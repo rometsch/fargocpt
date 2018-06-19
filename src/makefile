@@ -2,12 +2,11 @@
 # for ex.: setenv FARGO_ARCH LINUX (or export FARGO_ARCH=LINUX depending on your shell)
 # Possible choices : undefined, LINUX, INTEL, MACOSX, EV68, EVMP, SPARC
 
-# Generic IA32 Linux platform 
-# for pentium 3 or higher (otherwise edit accordingly)
+# Generic Linux platform
 # FARGO_ARCH must be set to LINUX
 CC_LINUX  = gcc
-OPT_LINUX = -O4 -march=pentium -Wall -ffast-math -Wno-unknown-pragmas
-OPTSEQ_LINUX = 
+OPT_LINUX = -O4 -march=native -Wall -ffast-math -Wno-unknown-pragmas
+OPTSEQ_LINUX =
 PARAOPT_LINUX =
 PARACC_LINUX = mpicc
 
@@ -15,17 +14,17 @@ PARACC_LINUX = mpicc
 # FARGO_ARCH must be set to OPTERON
 CC_OPTERON = gcc
 OPT_OPTERON = -O3 -march=opteron -Wall -ffast-math -Wno-unknown-pragmas
-OPTSEQ_OPTERON = 
+OPTSEQ_OPTERON =
 PARAOPT_OPTERON =
 PARACC_OPTERON = mpicc
 
-# Intel Linux platform 
+# Intel Linux platform
 # optimized for pentium 4 (otherwise edit accordingly)
 # FARGO_ARCH must be set to INTEL
 # (sequential only, MPI identical to generic IA32)
 CC_INTEL  = icc
-OPT_INTEL = 
-OPTSEQ_INTEL = -O3 -tpp7 -ipo -unroll -w2 -Wall -wd1418,310,266,810,1419,981,161 
+OPT_INTEL =
+OPTSEQ_INTEL = -O3 -tpp7 -ipo -unroll -w2 -Wall -wd1418,310,266,810,1419,981,161
 PARAOPT_INTEL = -O4 -march=pentium3 -Wall -ffast-math
 PARACC_INTEL = mpicc
 
@@ -33,7 +32,7 @@ PARACC_INTEL = mpicc
 # FARGO_ARCH must be set to MACOSX
 CC_MACOSX  = gcc
 OPT_MACOSX = -Wall -O3 -ffast-math -mcpu=G4 -Wno-unknown-pragmas
-OPTSEQ_MACOSX = 
+OPTSEQ_MACOSX =
 PARAOPT_MACOSX =
 PARACC_MACOSX = mpicc
 
@@ -44,7 +43,7 @@ CC_MacIntel = gcc
 #with OpenMP parallelization. Uncomment this line at your own risk.
 #OPT_MacIntel = -O3 -Wall -arch i386 -fast -ftree-vectorize -fopenmp
 OPT_MacIntel = -O3 -Wall -arch i386 -fast -Wno-unknown-pragmas
-OPTSEQ_MacIntel = 
+OPTSEQ_MacIntel =
 PARAOPT_MacIntel =
 PARACC_MacIntel = mpicc
 
@@ -53,7 +52,7 @@ PARACC_MacIntel = mpicc
 # These are used if you leave FARGO_ARCH undefined
 CC_  = cc
 OPT_ = -O
-OPTSEQ_ = 
+OPTSEQ_ =
 PARAOPT_ =
 PARACC_ = cc
 
@@ -62,7 +61,7 @@ PARACC_ = cc
 # Set the FARGO_ARCH variable to EV68
 CC_EV68  = cc
 OPT_EV68 = -arch ev6 -fast -O3 -inline all -msg_disable ompdirignored
-OPTSEQ_EV68 = 
+OPTSEQ_EV68 =
 PARAOPT_EV68 =
 PARACC_EV68 = cc
 
@@ -71,7 +70,7 @@ PARACC_EV68 = cc
 # Set the FARGO_ARCH variable to EVMP
 CC_EVMP  = cc
 OPT_EVMP = -arch ev6 -fast -O3 -inline all -mp
-OPTSEQ_EVMP = 
+OPTSEQ_EVMP =
 PARAOPT_EVMP =
 PARACC_EVMP = cc
 
@@ -79,7 +78,7 @@ PARACC_EVMP = cc
 # FARGO_ARCH must be set to SPARC
 CC_SPARC  = gcc
 OPT_SPARC = -O3 -Wall
-OPTSEQ_SPARC = 
+OPTSEQ_SPARC =
 PARAOPT_SPARC =
 PARACC_SPARC = mpicc
 #
@@ -133,7 +132,7 @@ OBJ		= $(MAINOBJ) $(DUMMY)
 endif
 
 all: conditionalrebuild $(AUTOINCL) $(OBJ) $(EXENAME) archive
-	@echo "" 
+	@echo ""
 	@echo ""
 	@echo "      NOTE"
 	@echo ""
@@ -167,7 +166,7 @@ endif
 .oldconfig:
 .config:
 
-archive : $(SRC) $(INCL) makefile varparser.pl	
+archive : $(SRC) $(INCL) makefile varparser.pl
 	@echo "Creating ../.source.tar.bz2"
 	@tar cf ../.source.tar *.c
 	@tar rf ../.source.tar *.h
