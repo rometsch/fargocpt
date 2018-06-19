@@ -1,0 +1,41 @@
+### Disk parameters
+
+AspectRatio     	0.05            Thickness over Radius in the disc
+Sigma0			6.3661977237e-4	Surface Density at r=1
+Viscosity		1e-5		Uniform kinematic viscosity
+SigmaSlope		0.0		Slope of surface density profile.
+					#here constant.
+
+### Planet parameters
+
+PlanetConfig		in/Jup.cfg
+ThicknessSmoothing 	0.6		Smoothing parameters in disk thickness
+MassTaper		5.0
+
+### Numerical method parameters
+
+Transport		FARGO
+InnerBoundary		NONREFLECTING	choose : OPEN or RIGID or NONREFLECTING
+Disk			YES
+OmegaFrame     		1.0
+Frame			Guiding-Center
+IndirectTerm		YES
+
+
+### Mesh parameters
+
+Nrad			128		Radial number of zones
+Nsec			384		Azimuthal number of zones (sectors)
+Rmin			0.4		Inner boundary radius
+Rmax			2.5		Outer boundary radius
+RadialSpacing 		Arithmetic      Zone interfaces evenly spaced
+
+
+
+### Output control parameters
+
+Ntot			10001		Total number of time steps
+Ninterm	 		20		Time steps between outputs
+DT			0.314159265359	Time step length. 2PI = 1 orbit
+OutputDir		out1
+

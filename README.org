@@ -1,0 +1,4 @@
+#+title: Legacy Fargo
+#+author: Thomas Rometsch
+
+The fargo hydrodynamics code by Frederic Masset downloaded on 2018-06-19 from [[http://fargo.in2p3.fr/Download-and-install][fargo.in2p3.fr]].
