@@ -1,4 +1,16 @@
-#+title: Legacy Fargo
+#+title: The Jungle of Fargo Codes
 #+author: Thomas Rometsch
 
+* Intro
+
+This is a collection of different versions of the Fargo code.
+
+* Versions
+
+** Legacy
+
 The fargo hydrodynamics code by Frederic Masset downloaded on 2018-06-19 from [[http://fargo.in2p3.fr/Download-and-install][fargo.in2p3.fr]].
+
+** Twam
+
+A Fargo verion by Tobias Müller, used in e.g. cite:mueller-2013-model-accret.

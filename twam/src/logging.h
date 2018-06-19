@@ -1,0 +1,24 @@
+#ifndef _LOGGING_H_
+#define _LOGGING_H_
+
+#include <stdarg.h>
+
+#define LOG_ERROR       "<0>"   /* error conditions                     */
+#define LOG_WARNING     "<1>"   /* warning conditions                   */
+#define LOG_NOTICE      "<2>"   /* normal but significant condition     */
+#define LOG_INFO        "<3>"   /* informational                        */
+#define LOG_VERBOSE     "<4>"   /* verbose                              */
+#define LOG_DEBUG       "<5>"   /* debug-level messages                 */
+
+namespace logging {
+
+extern char print_level;
+extern char error_level;
+
+int vprint(const char* fmt, va_list args);
+int print(const char *fmt, ...);
+int print_master(const char *fmt, ...);
+
+}
+
+#endif
