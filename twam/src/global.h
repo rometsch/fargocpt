@@ -83,6 +83,7 @@ extern char *PLANETCONFIG;
 extern double DT;
 extern unsigned int NINTERM;
 extern unsigned int NTOT;
+extern unsigned int N_iter;
 
 extern double MASSTAPER;
 

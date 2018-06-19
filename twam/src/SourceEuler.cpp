@@ -420,6 +420,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 		}
 
 		PhysicalTime += dt;
+                N_iter = N_iter +1;
 	}
 
 	if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {

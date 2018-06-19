@@ -128,6 +128,7 @@ char *PLANETCONFIG;
 double DT;
 unsigned int NINTERM;
 unsigned int NTOT;
+unsigned int N_iter;
 
 double MASSTAPER;
 

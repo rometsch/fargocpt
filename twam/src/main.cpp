@@ -59,6 +59,8 @@ int main(int argc, char* argv[])
 
 	LostMass = 0.0;
 
+	N_iter= 0;
+
 	resize_radialarrays(MAX1D);
 
 	unsigned int timeStepStart = 0;
@@ -230,7 +232,7 @@ int main(int argc, char* argv[])
 			TimeToWrite = YES;
 
 			// write polar grids
-			output::write_grids(data, TimeStep);
+			output::write_grids(data, TimeStep, N_iter, PhysicalTime);
 			// write planet data
 			data.get_planetary_system().write_planets(TimeStep, false);
 			// write quantities like energy, mass, ...
@@ -267,6 +269,8 @@ int main(int argc, char* argv[])
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);
 	}
+                logging::print_master(LOG_INFO "-- Final: Total Timesteps %d, Physical Time %f.\n", N_iter, PhysicalTime);
+//                logging::print_master(LOG_INFO " -- Physical Time:: %f.\n", PhysicalTime);
 
 	// free up everything
 	delete [] options::parameter_file;

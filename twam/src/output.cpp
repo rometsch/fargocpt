@@ -86,9 +86,9 @@ void check_free_space(t_data &data)
 	free(directory_name);
 }
 
-void write_grids(t_data &data, int index)
+void write_grids(t_data &data, int index, int iter, double phystime)
 {
-	logging::print_master(LOG_INFO "Writing output %d.\n", index);
+	logging::print_master(LOG_INFO "Writing output %d, Timestep Number %d, Physical Time %f.\n", index, iter, phystime);
 
 	// go thru all grids and write them
 	for (unsigned int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
