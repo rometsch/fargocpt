@@ -17,7 +17,7 @@ CXXFLAGS = $(CFLAGS)
 
 # use special MPI/FFTW libs
 MPI_PREFIX = /usr
-FFTW_PREFIX= /usr/local
+FFTW_PREFIX= /usr
 
 _CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include
 _CXXFLAGS = $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include
@@ -32,7 +32,7 @@ HDRS = $(wildcard *.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 LIBS = -lm -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -lgsl -lgslcblas
-# -Wl,--rpath -Wl,$(FFTW_PREFIX)/lib 
+# -Wl,--rpath -Wl,$(FFTW_PREFIX)/lib
 
 EXENAME        = ../fargo
 
