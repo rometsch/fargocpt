@@ -22,10 +22,10 @@ GSL_PREFIX_LINUX = /usr
 
 # BINAC
 # FARGO_ARCH must be set to BINAC
-CC_BINAC = /opt/bwhpc/common/mpi/openmpi/2.1.2-gnu-5.2/bin/mpicc
-CXX_BINAC = /opt/bwhpc/common/mpi/openmpi/2.1.2-gnu-5.2/bin/mpic++
+CC_BINAC = mpicc
+CXX_BINAC = mpic++
 CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas -ggdb
-MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/2.1.2-gnu-5.2
+MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-5.2
 FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-5.2
 GSL_PREFIX_LINUX = /opt/bwhpc/common/numlib/gsl/2.1
 
