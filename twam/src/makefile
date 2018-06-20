@@ -1,3 +1,12 @@
+# Track git commit when in git repository
+GIT_COMMIT = "$(shell git rev-parse HEAD)"
+GIT_CHANGED = "$(shell git diff-index --name-only HEAD | sed -e '{:q;N;s/\n/, /g;t q}')"
+
+ifeq (,$(subst "",,$(GIT_COMMIT)$(GIT_CHANGED)))
+	GIT_COMMIT = "not in git repo"
+	GIT_CHANGED = "not in git repo"
+endif
+
 # !! Define Environment variable FARGO_ARCH to reflect your architecture
 # for ex.: setenv FARGO_ARCH LINUX (or export FARGO_ARCH=LINUX depending on your shell)
 # Possible choices : undefined, LINUX, BINAC
