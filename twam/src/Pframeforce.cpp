@@ -190,11 +190,12 @@ double ConstructSequence(double* u, double* v, int n)
 {
 	int i;
 	double lapl=0.0;
-	for (i = 1; i < n; i++)
+	for (i = 1; i < n; i++) {
 		u[i] = 2.0*v[i]-u[i-1];
-		for (i = 1; i < n-1; i++) {
-			lapl += fabs(u[i+1]+u[i-1]-2.0*u[i]);
-		}
+	}
+	for (i = 1; i < n-1; i++) {
+		lapl += fabs(u[i+1]+u[i-1]-2.0*u[i]);
+	}
 	return lapl;
 }
 
