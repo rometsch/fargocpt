@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source env_sheep
+source sheep_env
 
 case $(hostname -s) in
 	login0*)

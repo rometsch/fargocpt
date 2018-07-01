@@ -68,7 +68,8 @@ Disk			YES
 OmegaFrame		0.0
 Frame			F
 IndirectTerm		YES
-FeelsDisk		No
+IndirectTermPlanet	YES
+FeelsDisk		YES
 
 ### Mesh parameters
 
@@ -87,7 +88,7 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
 Ntot			5000	# Total number of time steps
 Ninterm	 		100		# Time steps between outputs
 DT			6.28318531	# 1/10th of a jupiter orbit
-OutputDir		output/
+OutputDir		outputs/
 
 WriteAtEveryTimestep    Yes             # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity		Yes		# Write surface density. This is needed for restart of simulations. [default = yes]

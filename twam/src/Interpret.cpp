@@ -17,7 +17,7 @@ bool Adiabatic = false;
 // frame
 int Corotating, GuidingCenter;
 
-int FastTransport, Indirect_Term;
+int FastTransport, Indirect_Term, Indirect_Term_Planet;
 int OuterSourceMass, CICPlanet;
 
 void ReadVariables(char* filename, t_data &data)
@@ -102,6 +102,7 @@ void ReadVariables(char* filename, t_data &data)
 	OMEGAFRAME = config::value_as_double_default("OMEGAFRAME",0);
 
 	Indirect_Term = config::value_as_bool_default("IndirectTerm", 1);
+	Indirect_Term_Planet = config::value_as_bool_default("IndirectTermPlanet", 1);
 
 	// Energy equation / Adiabatic
 	Adiabatic = config::value_as_bool_default("Adiabatic", 0);

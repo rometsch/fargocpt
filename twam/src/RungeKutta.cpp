@@ -10,6 +10,7 @@
 static double k1[MAX1D], k2[MAX1D], k3[MAX1D], k4[MAX1D], k5[MAX1D], k6[MAX1D];
 static double Dist[MAX1D];
 extern boolean Indirect_Term;
+extern boolean Indirect_Term_Planet;
 
 void DerivMotionRK5(double* q_init, double* masses, double* deriv, int n, double dt, int* feelothers)
 {
@@ -33,7 +34,7 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv, int n, double
 		derivvx[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*x[i];
 		derivvy[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*y[i];
 		for (j = 0; j < n; j++) {
-			if (Indirect_Term) {
+			if (Indirect_Term_Planet) {
 				derivvx[i] -= constants::G*masses[j]/pow3(Dist[j])*x[j];
 				derivvy[i] -= constants::G*masses[j]/pow3(Dist[j])*y[j];
 			}
@@ -81,4 +82,3 @@ void RungeKutta(double* q0, double dt, double* masses, double* q1, int n, int* f
 		q1[i]=q0[i]+37.0/378.0*k1[i]+250.0/621.0*k3[i]+125.0/594.0*k4[i]+512.0/1771.0*k6[i];
 	}
 }
-

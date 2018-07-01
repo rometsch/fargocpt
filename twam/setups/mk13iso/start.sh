@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source env_sheep
+source sheep_env
 
 # BINAC: Change dir
 if [[ ${PBS_O_WORKDIR} ]]

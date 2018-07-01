@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<data>
+  <source>
+	<dir>setups</dir>
+	<dir>src</dir>
+	<dir>outputs</dir>
+	<dir>Tools</dir>
+  </source>
+  <scripts>
+    <queue>queue.sh</queue>
+	<setup>setup.sh</setup>
+    <start>setups/mk13iso/start.sh</start>
+	<env>setups/mk13iso/sheeprc</env>
+  </scripts>
+  <paramset>
+	<type>fargoIni</type>
+	<path>setups/mk13iso/in.par</path>
+  </paramset>
+</data>
