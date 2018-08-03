@@ -13,7 +13,7 @@ The fargo hydrodynamics code by Frederic Masset downloaded on 2018-06-19 from [[
 
 ** Twam
 
-A Fargo verion by Tobias Müller, used in e.g. cite:mueller-2013-model-accret.
+A Fargo version by Tobias Müller, used in e.g. cite:mueller-2013-model-accret.
 
 Need some dependencies
 
