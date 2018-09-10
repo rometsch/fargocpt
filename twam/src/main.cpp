@@ -240,6 +240,8 @@ int main(int argc, char* argv[])
 			output::write_quantities(data);
 			// write misc stuff (important for resuming)
 			output::write_misc(data, TimeStep);
+			// write time info for coarse output
+			output::write_coarse_time(TimeStep, nTimeStep, PhysicalTime);
 			// write disk quantities like eccentricity, ...
 			if (parameters::write_disk_quantities)
 				output::write_disk_quantities(data, TimeStep, false);

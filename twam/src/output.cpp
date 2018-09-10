@@ -607,5 +607,57 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	delete dissipation_values;
 }
 
+/**
+Write for each coarse output step the corresponding fine grained output number and the simulation time in cgs units.
+*/
+void write_coarse_time(unsigned int coarseOutputNumber, unsigned int fineOutputNumber, double physicalTime )
+{
+	FILE* fd = 0;
+	char* fd_filename;
+	static bool fd_created = false;
+
+	if (CPU_Master) {
+
+		if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "timeCoarse.dat") == -1) {
+			logging::print_master(LOG_ERROR "Not enough memory for string buffer.\n");
+			PersonalExit(1);
+		}
+		// check if file exists and we restarted
+		if ((options::restart) && !(fd_created)) {
+			fd = fopen(fd_filename, "r");
+			if (fd) {
+				fd_created = true;
+			}
+			fclose(fd);
+		}
+
+		// open logfile
+		if (!fd_created) {
+			fd = fopen(fd_filename, "w");
+		} else {
+			fd = fopen(fd_filename, "a");
+		}
+		if (fd == NULL) {
+			logging::print_master(LOG_ERROR "Can't write 'timeCoarse.dat' file. Aborting.\n");
+			PersonalExit(1);
+		}
+
+		free(fd_filename);
+
+		if (!fd_created) {
+			// print header
+			fprintf(fd,"# Time log for course output.\n# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n");
+			fd_created = true;
+		}
+	}
+
+	if (CPU_Master) {
+		fprintf(fd, "%u\t%u\t%#.16e\n"
+				, coarseOutputNumber
+				, fineOutputNumber
+				, PhysicalTime*units::time);
+		fclose(fd);
+	}
 }
 
+} // close namespace
