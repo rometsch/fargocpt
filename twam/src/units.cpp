@@ -6,6 +6,7 @@
 */
 
 #include "units.h"
+#include "global.h"
 #include "parameters.h"
 #include <stdlib.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 #include "constants.h"
 #include "logging.h"
 #include "LowTasks.h"
+#include "options.h"
 
 namespace units {
 
@@ -172,6 +174,53 @@ void print_code_units()
 	logging::print_master(LOG_VERBOSE "        kinematic viscosity:      nu0 = %.16g %s\n", kinematic_viscosity.get_cgs_factor(), kinematic_viscosity.get_cgs_symbol());
 	logging::print_master(LOG_VERBOSE "                     stress:          = %.16g %s\n", stress.get_cgs_factor(), stress.get_cgs_symbol());
 	logging::print_master(LOG_VERBOSE "                   pressure:       p0 = %.16g %s\n", pressure.get_cgs_factor(), pressure.get_cgs_symbol());
+}
+
+void write_code_unit_file() {
+	/* Write a file containing the base units to the output folder. */
+
+	FILE *fd = 0;
+	char* fd_filename;
+	static bool fd_created = false;
+
+	if (CPU_Master) {
+		if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "units.dat") == -1) {
+			logging::print_master(LOG_ERROR "Not enough memory for string buffer.\n");
+			PersonalExit(1);
+		}
+		// check if file exists and we restarted
+		if ((options::restart) && !(fd_created)) {
+			fd = fopen(fd_filename, "r");
+			if (fd) {
+				fd_created = true;
+			}
+			fclose(fd);
+		}
+		if (!fd_created) {
+			fd = fopen(fd_filename, "w");
+		}
+		if (fd == NULL) {
+			logging::print_master(LOG_ERROR "Can't write 'units.dat' file. Aborting.\n");
+			PersonalExit(1);
+		}
+
+		free(fd_filename);
+
+	}
+
+	if (CPU_Master) {
+		fprintf(fd, "# units-file : 1.0\n");
+		fprintf(fd, "# Syntax: base unit <tab> value <tab> unit name\n");
+		fprintf(fd, "length\t%.16e\t%s\n", length.get_cgs_factor(), length.get_cgs_symbol());
+		fprintf(fd, "mass\t%.16e\t%s\n", mass.get_cgs_factor(), mass.get_cgs_symbol());
+		fprintf(fd, "time\t%.16e\t%s\n", time.get_cgs_factor(), time.get_cgs_symbol());
+		fprintf(fd, "current\t \t \n");
+		fprintf(fd, "temperature\t%.16e\t%s\n", temperature.get_cgs_factor(), temperature.get_cgs_symbol());
+		fprintf(fd, "amount\t \t \n");
+		fprintf(fd, "intensity\t \t ");
+		fclose(fd);
+	}
+
 }
 
 }

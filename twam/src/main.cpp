@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
 	parameters::summarize_parameters();
 
 	units::print_code_units();
+	units::write_code_unit_file();
 	constants::print_constants();
 
 	// init random seed

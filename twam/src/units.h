@@ -66,6 +66,7 @@ extern t_unit mass_accretion_rate;
 
 void calculate_unit_factors();
 void print_code_units();
+void write_code_unit_file();
 
 }
 
