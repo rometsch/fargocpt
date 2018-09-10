@@ -1,0 +1,11 @@
+#+title: Fargo Version of the CPT group
+#+author: Thomas Rometsch
+
+* Description
+
+This is the version of the [[http://fargo.in2p3.fr/-Legacy-archive-][Fargo]] code used by some members of the Computational Physics Tübingen group.
+It was modified quite substatially by Tobias Müller and is now used and maintained by Tobias Moldenhauer and Thomas Rometsch.
+
+* Old Readme
+
+The old readme file by Tobias Müller can be found at [[file:README_OLD.md][here]].
