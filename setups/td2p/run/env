@@ -2,7 +2,7 @@
 # This file contains environment variables and loads additional modules
 # It is sourced in make/start/restart_sheep
 
-export SETUP="mk13"
+export SETUP="td2p"
 
 case $(hostname -s) in
 	login0*)
