@@ -277,8 +277,8 @@ double get_misc(unsigned int timestep, unsigned int column)
 }
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update) {
-	double *global_torques = (double*)malloc(sizeof(double)*data.get_planetary_system().get_number_of_planets()+1);
-	double *local_torques = (double*)malloc(sizeof(double)*data.get_planetary_system().get_number_of_planets()+1);
+	double *global_torques = (double*)malloc(sizeof(*global_torques)*(data.get_planetary_system().get_number_of_planets()+1));
+	double *local_torques = (double*)malloc(sizeof(*local_torques)*(data.get_planetary_system().get_number_of_planets()+1));
 
 	// central star
 	local_torques[0] = 0.0;
