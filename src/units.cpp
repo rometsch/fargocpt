@@ -197,6 +197,21 @@ void write_code_unit_file() {
 		free(fd_filename);
 
 		fprintf(fd, "# units-file : 1.0\n");
+		fprintf(fd, "# log output of units:\n");
+   		fprintf(fd, "#                    length:       l0 = %.16g %s\n", length.get_cgs_factor(), length.get_cgs_symbol());
+		fprintf(fd, "#                      mass:       m0 = %.16g %s\n", mass.get_cgs_factor(), mass.get_cgs_symbol());
+		fprintf(fd, "#                      time:       t0 = %.16g %s\t\t= %15.10g a\n", time.get_cgs_factor(), time.get_cgs_symbol(), time.get_cgs_factor()/(24*60*60*365.2425));
+		fprintf(fd, "#               temperature:       T0 = %.16g %s\n", temperature.get_cgs_factor(), temperature.get_cgs_symbol());
+		fprintf(fd, "#                    energy:       E0 = %.16g %s\n", energy.get_cgs_factor(), energy.get_cgs_symbol());
+		fprintf(fd, "#            energy density:       e0 = %.16g %s\n", energy_density.get_cgs_factor(), energy_density.get_cgs_symbol());
+		fprintf(fd, "#                   density:     rho0 = %.16g %s\n", density.get_cgs_factor(), density.get_cgs_symbol());
+		fprintf(fd, "#           surface density:   Sigma0 = %.16g %s\n", surface_density.get_cgs_factor(), surface_density.get_cgs_symbol());
+		fprintf(fd, "#               energy flux:       S0 = %.16g %s\n", energy_flux.get_cgs_factor(), energy_flux.get_cgs_symbol());
+		fprintf(fd, "#                  velocity:       v0 = %.16g %s\n", velocity.get_cgs_factor(), velocity.get_cgs_symbol());
+		fprintf(fd, "#              acceleration:       a0 = %.16g %s\n", acceleration.get_cgs_factor(), acceleration.get_cgs_symbol());
+		fprintf(fd, "#       kinematic viscosity:      nu0 = %.16g %s\n", kinematic_viscosity.get_cgs_factor(), kinematic_viscosity.get_cgs_symbol());
+		fprintf(fd, "#                    stress:          = %.16g %s\n", stress.get_cgs_factor(), stress.get_cgs_symbol());
+		fprintf(fd, "#                  pressure:       p0 = %.16g %s\n", pressure.get_cgs_factor(), pressure.get_cgs_symbol());
 		fprintf(fd, "# Syntax: base unit <tab> value <tab> unit name\n");
 		fprintf(fd, "length\t%.16e\t%s\n", length.get_cgs_factor(), length.get_cgs_symbol());
 		fprintf(fd, "mass\t%.16e\t%s\n", mass.get_cgs_factor(), mass.get_cgs_symbol());
