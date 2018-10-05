@@ -352,8 +352,8 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update) {
 			fd = fopen(fd_filename, "r");
 			if (fd) {
 				fd_created = true;
+				fclose(fd);
 			}
-			fclose(fd);
 		}
 		// open logfile
 		if (!fd_created) {
@@ -627,8 +627,8 @@ void write_coarse_time(unsigned int coarseOutputNumber, unsigned int fineOutputN
 			fd = fopen(fd_filename, "r");
 			if (fd) {
 				fd_created = true;
+				fclose(fd);
 			}
-			fclose(fd);
 		}
 
 		// open logfile
