@@ -188,17 +188,7 @@ void write_code_unit_file() {
 			logging::print_master(LOG_ERROR "Not enough memory for string buffer.\n");
 			PersonalExit(1);
 		}
-		// check if file exists and we restarted
-		if ((options::restart) && !(fd_created)) {
-			fd = fopen(fd_filename, "r");
-			if (fd) {
-				fd_created = true;
-				fclose(fd);
-			}
-		}
-		if (!fd_created) {
-			fd = fopen(fd_filename, "w");
-		}
+		fd = fopen(fd_filename, "w");
 		if (fd == NULL) {
 			logging::print_master(LOG_ERROR "Can't write 'units.dat' file. Aborting.\n");
 			PersonalExit(1);
@@ -206,9 +196,6 @@ void write_code_unit_file() {
 
 		free(fd_filename);
 
-	}
-
-	if (CPU_Master) {
 		fprintf(fd, "# units-file : 1.0\n");
 		fprintf(fd, "# Syntax: base unit <tab> value <tab> unit name\n");
 		fprintf(fd, "length\t%.16e\t%s\n", length.get_cgs_factor(), length.get_cgs_symbol());
