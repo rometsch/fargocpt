@@ -193,8 +193,8 @@ void write_code_unit_file() {
 			fd = fopen(fd_filename, "r");
 			if (fd) {
 				fd_created = true;
+				fclose(fd);
 			}
-			fclose(fd);
 		}
 		if (!fd_created) {
 			fd = fopen(fd_filename, "w");

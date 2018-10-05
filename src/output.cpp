@@ -570,8 +570,8 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 			fd = fopen(fd_filename, "r");
 			if (fd) {
 				fd_created_dissipation = true;
+				fclose(fd);
 			}
-			fclose(fd);
 		}
 		// open logfile
 		if (!fd_created_dissipation) {
