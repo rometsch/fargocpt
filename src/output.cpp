@@ -267,7 +267,7 @@ double get_misc(unsigned int timestep, unsigned int column)
 
 	// move ptr until correct column
 	while (column > 1) {
-		ptr += strspn(ptr, "eE0123456789-.");
+		ptr += strspn(ptr, "eE0123456789+-.");
 		ptr += strspn(ptr, "\t :=>_");
 		column--;
 	}
