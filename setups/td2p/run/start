@@ -5,8 +5,11 @@
 if [[ ${PBS_O_WORKDIR} ]]
 then
 	cd $PBS_O_WORKDIR
+	module add mpi/openmpi/1.10.3-gnu-5.2
+	module add numlib/fftw/3.3.5-openmpi-1.10.3-gnu-5.2
+	module add numlib/gsl/2.1
 fi
 
-source $(dirname $0)/env
+source .sheep.d/env
 
 mpirun -n $NCPU fargo setups/$SETUP/in.par

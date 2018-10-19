@@ -3,6 +3,7 @@
 # It is sourced in make/start/restart_sheep
 
 export SETUP="td2p"
+export HOURS=100
 
 case $(hostname -s) in
 	login0*)
@@ -11,7 +12,7 @@ case $(hostname -s) in
 		module add numlib/gsl/2.1
 		export FARGO_ARCH="BINAC"
 		export NCPU=14
-		export QUEUE=short
+		export QUEUE=long
 		;;
 	cpt-titan)
 		export FARGO_ARCH="CPTTITAN"
