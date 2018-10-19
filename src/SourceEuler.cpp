@@ -436,17 +436,14 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 		quantities::calculate_radial_alpha_reynolds_mean_finalize(data, DT);
 	}
 
-	if (!Adiabatic) {
-		// Recalculate pressure and temperature with updated densities
-		// otherwise temperature calculation in the next iteration has wrong pressure
-		if (data[t_data::PRESSURE].get_write() || data[t_data::TEMPERATURE].get_write()) {
-			compute_pressure(data, true);
-		}
-		if (data[t_data::TEMPERATURE].get_write()) {
-			compute_temperature(data, true);
-		}
+	// Recalculate pressure and temperature with updated densities
+	// otherwise temperature calculation in the next iteration has wrong pressure
+	if (data[t_data::PRESSURE].get_write() || data[t_data::TEMPERATURE].get_write()) {
+		compute_pressure(data, true);
 	}
-
+	if (data[t_data::TEMPERATURE].get_write()) {
+		compute_temperature(data, true);
+	}
 }
 
 /**
