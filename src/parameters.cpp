@@ -641,6 +641,7 @@ void summarize_parameters()
 		logging::print_master(LOG_INFO "Particles disk gravity is %s.\n", particle_disk_gravity_enabled ? "enabled" : "disabled");
 	}
 }
+
 void write_grid_data_to_file()
 {
   /* Write a file containing the base units to the output folder. */
@@ -663,10 +664,33 @@ void write_grid_data_to_file()
 
     free(fd_filename);
 
-    //fprintf(fd, "#XMIN\tXMAX\tYMIN\tYMAX\tNX\tNY\tNGHX\tNGHY\n");
-    fprintf(fd, "#RMIN\tRMAX\tPHIMIN\tPHIMAX          \tNRAD\tNAZ\tNGHRAD\tNGHAZ\n");
-    fprintf(fd, "%.16g\t%.16g\t%.16g\t%.16g\t%d\t%d\t%d\t%d\n",
-            RMIN, RMAX, 0.0, 2*PI, NRadial, NAzimuthal, 1, 1);
+
+    //fprintf(fd, "#XMIN\tXMAX\tYMIN\tYMAX\tNX\tNY\tNGHX\tNGHY\tRadial_spacing\n");
+
+    char radial_spacing_str[256];
+
+    switch(radial_grid_type)
+    {
+        case(arithmetic_spacing):
+        {
+            strncpy(radial_spacing_str, "Arithmetic", 256);
+            break;
+        }
+        case(logarithmic_spacing):
+        {
+            strncpy(radial_spacing_str, "Logarithmic", 256);
+            break;
+        }
+        case(exponential_spacing):
+        {
+            strncpy(radial_spacing_str, "Exponential", 256);
+            break;
+        }
+    }
+
+    fprintf(fd, "#RMIN\tRMAX\tPHIMIN\tPHIMAX          \tNRAD\tNAZ\tNGHRAD\tNGHAZ\tRadial_spacing\n");
+    fprintf(fd, "%.16g\t%.16g\t%.16g\t%.16g\t%d\t%d\t%d\t%d\t%s\n",
+            RMIN, RMAX, 0.0, 2*PI, NRadial, NAzimuthal, 1, 1, radial_spacing_str);
     fclose(fd);
   }
 }
