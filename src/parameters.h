@@ -226,7 +226,6 @@ extern bool particle_disk_gravity_enabled;
 void read(char* filename, t_data &data);
 void summarize_parameters();
 void apply_units();
-void write_grid_data_to_file();
 };
 
 #endif
