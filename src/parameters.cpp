@@ -641,5 +641,34 @@ void summarize_parameters()
 		logging::print_master(LOG_INFO "Particles disk gravity is %s.\n", particle_disk_gravity_enabled ? "enabled" : "disabled");
 	}
 }
+void write_grid_data_to_file()
+{
+  /* Write a file containing the base units to the output folder. */
 
+  FILE *fd = 0;
+  char *fd_filename;
+  static bool fd_created = false;
+
+  if (CPU_Master) {
+    if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "dimensions.dat") == -1) {
+      logging::print_master(LOG_ERROR "Not enough memory for string buffer.\n");
+      PersonalExit(1);
+    }
+    fd = fopen(fd_filename, "w");
+    if (fd == NULL) {
+      logging::print_master(LOG_ERROR
+                            "Can't write 'dimensions.dat' file. Aborting.\n");
+      PersonalExit(1);
+    }
+
+    free(fd_filename);
+
+    //fprintf(fd, "#XMIN\tXMAX\tYMIN\tYMAX\tNX\tNY\tNGHX\tNGHY\n");
+    fprintf(fd, "#RMIN\tRMAX\tPHIMIN\tPHIMAX          \tNRAD\tNAZ\tNGHRAD\tNGHAZ\n");
+    fprintf(fd, "%.16g\t%.16g\t%.16g\t%.16g\t%d\t%d\t%d\t%d\n",
+            RMIN, RMAX, 0.0, 2*PI, NRadial, NAzimuthal, 1, 1);
+    fclose(fd);
+  }
 }
+
+} // namespace parameters
