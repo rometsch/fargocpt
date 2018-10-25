@@ -108,7 +108,6 @@ int main(int argc, char* argv[])
 
 	ReadVariables(options::parameter_file, data);
 	parameters::summarize_parameters();
-	parameters::write_grid_data_to_file();
 
 	units::print_code_units();
 	units::write_code_unit_file();
