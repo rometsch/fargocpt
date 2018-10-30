@@ -31,8 +31,8 @@ namespace selfgravity {
 /// Initialization counter
 static int init_counter = 0;
 
-/// smoothing parameter of potential (introduced as B on page 53)
-double epsilon;
+double lambda_sq;
+double chi_sq;
 /// mesh size in radial direction (introduced as Δu on page 53)
 double r_step;
 /// mesh size in azimuthal direction (introduced as Δphi on page 53)
@@ -118,7 +118,8 @@ void init()
 		PersonalExit(1);
 	}
 
-	epsilon = parameters::thickness_smoothing_sg*ASPECTRATIO;
+	lambda_sq = pow(0.4571*ASPECTRATIO + 0.6737*sqrt(ASPECTRATIO) ,2);
+  chi_sq = pow((-0.7543*ASPECTRATIO + 0.6472)*ASPECTRATIO ,2);
 	r_step = log(Radii[GlobalNRadial]/Radii[0]) / (double)GlobalNRadial;
 	t_step = 2.0*PI/(double)NAzimuthal;
 
@@ -276,20 +277,16 @@ void compute_FFT_kernel()
 		}
 
 		for (unsigned int j = 0; j < NAzimuthal; j++) {
+            double denominator;
 			int l = i*stride + j;
 			theta = 2.0*PI*(double)j/(double)NAzimuthal;
 
-			/* Calculate K_r as described in (3.38)b on page 53
-			K_r(u,phi) = (1 + B^2 - exp(-u)*cos*phi) / (2*cosh(u)-cos(phi)) + B^2*exp*u)^(3/2) */
-			K_radial[l] = 1.0 + epsilon*epsilon - cos(theta)*exp(-u);
-			K_radial[l] *= pow(epsilon*epsilon*exp(u) + 2.0*( cosh(u) - cos(theta) ),-1.5);
-			// TODO: Both have same divisor
+      denominator = pow(2*(cosh(u) - cos(theta)) + lambda_sq*(exp(u)+exp(-u) -2) + chi_sq,-1.5);
 
-			/* Calculate K_phi as described in (3.40)b on page 55
-			K_phi(u,phi) = sin(phi) / (2*cosh(u)-cos(phi)) + B^2*exp*u)^(3/2) */
+			K_radial[l] = 1.0 - cos(theta)*exp(-u);
+			K_radial[l] *= denominator;
 			K_azimuthal[l] = sin(theta);
-
-			K_azimuthal[l] *= pow(epsilon*epsilon*exp(u) + 2.0*( cosh(u) - cos(theta) ),-1.5);
+			K_azimuthal[l] *= denominator;
 		}
 	}
 
@@ -306,8 +303,6 @@ void compute_acceleration(t_polargrid &density)
 	int stride;
 	int ghost_size;
 	double normaccr, normacct;
-	double *dens;
-	dens = density.Field;
 	nr = density.Nrad;
 	stride = 2*(NAzimuthal/2 + 1);
 	one_if_odd = (CPU_Number%2 == 0 ? 0 : 1);
@@ -429,18 +424,6 @@ void compute_acceleration(t_polargrid &density)
 			g_azimuthal[l] *= normacct;
 		}
 	}
-
-	// Eventually, we take the compensation from selfforce into account
-	// g_r(u,phi) is corrected by G*sigma(u,phi)*Δu*Δphi/B (3.43 page 57)
-	for ( i = 0 ; i < nr; i++ ) {
-		for ( j = 0; j < NAzimuthal; j++ ) {
-			l = i*NAzimuthal + j;
-			if ( (i+IMIN) < GlobalNRadial ) {
-				g_radial[l] += constants::G*dens[l]*r_step*t_step / epsilon;
-			}
-		}
-	}
-
 }
 
 /**
