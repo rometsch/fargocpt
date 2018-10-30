@@ -15,26 +15,35 @@ endif
 # FARGO_ARCH must be set to LINUX
 CC_LINUX = mpicc
 CXX_LINUX = mpic++
-CFLAGS_LINUX = -O2 -Wall -march=native -Wno-unknown-pragmas
+CFLAGS_LINUX = -O2 -Wall -march=native -Wno-unknown-pragmas -ggdb -L$HOME/include/lib
 MPI_PREFIX_LINUX = /usr
-FFTW_PREFIX_LINUX = /usr
+FFTW_PREFIX_LINUX = $HOME/include
 GSL_PREFIX_LINUX = /usr
+
+# HLR2
+# FARGO_ARCH must be set to HLR2
+CC_HLR2 = mpicc
+CXX_HLR2 = mpic++
+CFLAGS_HLR2 = -O2 -Wall -march=native -Wno-unknown-pragmas -ggdb
+MPI_PREFIX_HLR2 = /opt/openmpi/1.10
+FFTW_PREFIX_HLR2 = /opt/fftw/3.3_openmpi_1.10
+GSL_PREFIX_HLR2 = /opt/gsl/2.1
 
 # BINAC
 # FARGO_ARCH must be set to BINAC
 CC_BINAC = mpicc
 CXX_BINAC = mpic++
-CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas
+CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas -ggdb
 MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-5.2
 FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-5.2
-GSL_PREFIX_LINUX = /opt/bwhpc/common/numlib/gsl/2.1
+GSL_PREFIX_BINAC = /opt/bwhpc/common/numlib/gsl/2.1
 
 # Default Arch is LINUX
 CC_ = $(CC_LINUX)
 CXX_ = $(CXX_LINUX)
 CFLAGS_ =  $(CFLAGS_LINUX)
 MPI_PREFIX_ = $(MPI_PREFIX_LINUX)
-FFTW_PREFIX_ = $(FTTW_PREFIX_LINUX)
+FFTW_PREFIX_ = $(FFTW_PREFIX_LINUX)
 GSL_PREFIX_ = $(GSL_PREFIX_LINUX)
 
 # # current git commit
@@ -56,11 +65,11 @@ CXXFLAGS = $(CFLAGS)
 
 # use special MPI/FFTW libs
 MPI_PREFIX = $(MPI_PREFIX_$(FARGO_ARCH))
-FFTW_PREFIX= $(FTTW_PREFIX_$(FARGO_ARCH))
-GSL_PREFIX= $(FTTW_GSL_$(FARGO_ARCH))
+FFTW_PREFIX= $(FFTW_PREFIX_$(FARGO_ARCH))
+GSL_PREFIX= $(GSL_$(FARGO_ARCH))
 
 _CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_INC_DIR) -I$(MPI_INC_DIR) -I$(GSL_PREFIX)/include
-_CXXFLAGS = $(OPTIONS) $(CXXFLAGS) -I$(FFTW_INC_DIR) -I$(MPI_INC_DIR) -I$(GSL_PREFIX)/include
+_CXXFLAGS = $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_INC_DIR) -I$(GSL_PREFIX)/include
 
 SRCS_C = $(wildcard *.c)
 SRCS_CXX = $(wildcard *.cpp)
@@ -71,7 +80,7 @@ OBJS = $(OBJS_C) $(OBJS_CXX)
 HDRS = $(wildcard *.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
-LIBS = -lm -L$(MPI_LIB_DIR) -lmpi -L$(FFTW_LIB_DIR) -I$(FFTW_INC_DIR) -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
+LIBS = -lm -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
 # -Wl,--rpath -Wl,$(FFTW_PREFIX)/lib
 
 EXENAME        = ../fargo
