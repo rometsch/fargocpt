@@ -11,8 +11,6 @@ extern unsigned int restart_from;
 extern bool memory_usage;
 extern char *parameter_file;
 extern bool disable;
-extern unsigned int random_seed;
-
 }
 
 #endif

@@ -46,7 +46,7 @@ InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (
 
 PlanetConfig		setups/gamma_cephei/gamma-ceph.cfg
 ForcedCircular		No
-ThicknessSmoothing 	1e-9		# Softening parameters in disk thickness
+ThicknessSmoothing 	0.6		# Softening parameters in disk thickness
 
 ### Numerical method parameters
 
@@ -77,7 +77,7 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
 
 ### Output control parameters
 
-Ntot			10000		# Total number of time steps
+Ntot			1		# Total number of time steps
 Ninterm	 		100		# Time steps between outputs
 DT			4.956246157	# 1/100th of a binary orbit
 OutputDir		out3/
@@ -103,4 +103,16 @@ WriteDiskQuantities     Yes
 RandomSeed		1337		# random seed integer value
 RandomSigma 		Yes		# randomize sigma start values?
 RandomFactor		0.1		# randomize by +- 10%
-FeatureSize		0.05		# Feature size of the open somplex algorithm
+FeatureSize		1.0		# Feature size of the open somplex algorithm
+
+## particles
+IntegrateParticles	No     # enable particle integrator [default = no]	
+NumberOfParticles	0      # number of particles [default = 0]
+ParticleRadius		100    # particle radius in cm [default = 100]
+ParticleDensity		2.65   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
+ParticleSlope		0      # [default = 0]
+ParticleMinimumRadius	0.5  # [default = RMIN]
+ParticleMaximumRadius	5  # [default = RMAX]
+ParticleEscapeRadius	5  # [default = ParticleMaximumRadius]
+ParticleGasDragEnabled	Yes # [default = YES]
+ParticleDiskGravityEnabled no # [default = no]

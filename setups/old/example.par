@@ -155,8 +155,10 @@ WriteAspectRatio	No		# Write aspect ratio [default = no]
 WriteTorques		No		# Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth	No 	# Write optical depth in vertical direction (tau_eff by Hubeny [1990])
 
+RandomSeed		1		# random seed integer value
 RandomSigma 		Yes		# randomize sigma start values?
 RandomFactor		0.1		# randomize by +- 10%
+FeatureSize		0.05		# feature size of the open simplex algorithm
 
 ## particles
 IntegrateParticles	No     # enable particle integrator [default = no]	

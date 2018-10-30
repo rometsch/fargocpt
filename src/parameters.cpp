@@ -59,9 +59,11 @@ unsigned int radiative_diffusion_max_iterations;
 
 t_initialize_condition sigma_initialize_condition;
 char *sigma_filename = NULL;
+int random_seed;
 bool sigma_randomize;
 double sigma_random_factor;
 double sigma_floor;
+double sigma_feature_size;
 bool sigma_adjust;
 double sigma_discmass;
 double sigma0;
@@ -388,8 +390,10 @@ void read(char* filename, t_data &data)
 		}
 	}
 
+    random_seed = config::value_as_int_default("RandomSeed", 0);
 	sigma_randomize = config::value_as_bool_default("RandomSigma", 0);
 	sigma_random_factor = config::value_as_double_default("RandomFactor", 0.1);
+    sigma_feature_size = config::value_as_double_default("FeatureSize", (RMAX - RMIN)/150);
 	sigma_floor = config::value_as_double_default("SigmaFloor", 1e-9);
 	sigma0 = config::value_as_double_default("SIGMA0", 173.);
 	sigma_adjust = config::value_as_bool_default("SetSigma0", false);

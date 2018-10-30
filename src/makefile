@@ -16,6 +16,7 @@ endif
 CC_LINUX = mpicc
 CXX_LINUX = mpic++
 CFLAGS_LINUX = -O2 -Wall -march=native -Wno-unknown-pragmas
+#CFLAGS_LINUX = -g -Wall -march=native -Wno-unknown-pragmas
 MPI_PREFIX_LINUX = /usr
 FFTW_PREFIX_LINUX = /usr
 GSL_PREFIX_LINUX = /usr
@@ -34,7 +35,7 @@ CC_ = $(CC_LINUX)
 CXX_ = $(CXX_LINUX)
 CFLAGS_ =  $(CFLAGS_LINUX)
 MPI_PREFIX_ = $(MPI_PREFIX_LINUX)
-FFTW_PREFIX_ = $(FTTW_PREFIX_LINUX)
+FFTW_PREFIX_ = $(FFTW_PREFIX_LINUX)
 GSL_PREFIX_ = $(GSL_PREFIX_LINUX)
 
 # # current git commit
@@ -42,7 +43,7 @@ GSL_PREFIX_ = $(GSL_PREFIX_LINUX)
 # GIT_CHANGED = "$(shell git diff-index --name-only HEAD | sed -e '{:q;N;s/\n/, /g;t q}')"
 
 # options to compile
-OPTIONS = -D_TRAP_FPE -D_GNU_SOURCE -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
+OPTIONS = -D_TRAP_FPE -D_GNU_SOURCE -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)' -DNDEBUG
 
 # (MPI)-C compiler to use
 CC = $(CC_$(FARGO_ARCH))

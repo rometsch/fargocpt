@@ -40,7 +40,7 @@ HDRS = $(wildcard *.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 LIBS = -lm -L$(MPI_LIB_DIR) -lmpi -L$(FFTW_LIB_DIR) -I$(FFTW_INC_DIR) -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
-# -Wl,--rpath -Wl,$(FFTW_PREFIX)/lib 
+# -Wl,--rpath -Wl,$(FFTW_PREFIX)/lib
 
 EXENAME        = ../fargo
 

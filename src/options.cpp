@@ -22,7 +22,6 @@ unsigned int restart_from;
 char *parameter_file = NULL;
 bool memory_usage = false;
 bool disable = false;
-unsigned int random_seed = 1;
 
 static const char short_options [] = "-dr:s:vqbcenom";
 
@@ -48,7 +47,6 @@ void usage(int argc, char** argv)
 		"-n |                Disable simulation. The program just reads parameters file\n"
 		"-o |                Overrides output directory of input file.\n"
 		"-m |                estimate memory usage and print out\n"
-		"-s | --seed <n>     Init random seed with <n>\n"
 		"",
 		argv[0]);
 }
@@ -113,9 +111,6 @@ void parse(int argc, char** argv)
 				memory_usage = true;
 				break;
 
-			case 's':
-				random_seed = atoi(optarg);
-				break;
 
 			default:
 				usage(argc, argv);

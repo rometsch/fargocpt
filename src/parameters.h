@@ -86,10 +86,14 @@ enum t_initialize_condition {initialize_condition_profile, initialize_condition_
 extern t_initialize_condition sigma_initialize_condition;
 /// filename to read sigma profile from
 extern char* sigma_filename;
+/// random seed
+extern int random_seed;
 /// randomize sigma?
 extern bool sigma_randomize;
 /// sigma random factor
 extern double sigma_random_factor;
+/// open simplex feature size
+extern double sigma_feature_size;
 /// sigma floor (in multiples of Sigma0)
 extern double sigma_floor;
 /// adjust sigma0 to have total discmass = sigma_discmass

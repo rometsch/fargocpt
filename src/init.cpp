@@ -21,6 +21,8 @@
 #include "quantities.h"
 #include "TransportEuler.h"
 
+#include "options.h"
+#include "open-simplex-noise.h"
 
 extern int Restart;
 extern bool Adiabatic;
@@ -329,12 +331,43 @@ void init_gas_density(t_data &data)
 	}
 
 	if (parameters::sigma_randomize) {
+
+        struct osn_context *osn;
+        if(open_simplex_noise(parameters::random_seed*325582 , &osn) != 0) // multiply seed by random factor to keep seed unique, because it is reused several times in the code.
+        {
+            die("Bad open simplex noise!");
+        }
+
+
 		logging::print_master(LOG_INFO "Randomizing Sigma by %.2f %%.\n",parameters::sigma_random_factor*100);
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
-				data[t_data::DENSITY](n_radial, n_azimuthal) *= ((1-parameters::sigma_random_factor)+2*parameters::sigma_random_factor*((double)rand()/(double)RAND_MAX));
+
+                double r = Rmed[n_radial];
+                double angle = (double)n_azimuthal/(double)data[t_data::V_RADIAL].get_size_azimuthal()*2.0*PI;
+                double x = r*cos(angle);
+                double y = r*sin(angle);
+
+
+                double f = parameters::sigma_feature_size;
+
+                int simplex_order = 11;
+                double noise = 0.0;
+                for(int i = 0; i < simplex_order; ++i)
+                {
+                    double feature_factor= double(1<<i);
+                    double weight_factor = double(1<<(simplex_order-i-1));
+
+                    noise += open_simplex_noise2(osn, feature_factor*x/f, feature_factor*y/f) * weight_factor;
+                }
+
+                noise /= double((1<<simplex_order)-1);
+
+                data[t_data::DENSITY](n_radial, n_azimuthal) *= (1 + parameters::sigma_random_factor*noise);
 			}
 		}
+
+        open_simplex_noise_free(osn);
 	}
 
 	// profile damping?

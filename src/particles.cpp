@@ -4,6 +4,7 @@
 */
 
 #include <stdlib.h>
+#include <random>
 #include <math.h>
 #include <mpi.h>
 #include "LowTasks.h"
@@ -76,15 +77,19 @@ void init() {
 		id_offset+=global_number_of_particles-CPU_Number*local_number_of_particles;
 	}
 
-	logging::print(LOG_DEBUG "id offset: %u\n", id_offset);
-	// call drand48() often enough so that the random numbers are different on each process
-	for (unsigned int i = 0; i < id_offset; i++) {
-		drand48();
-	}
+    logging::print(LOG_DEBUG "random generator seed: %u\n", id_offset);
+
+    // random generator and distributions
+    std::mt19937 generator(id_offset*parameters::random_seed);
+    std::uniform_real_distribution<double> dis_one(0.0, 1.0);
+    std::uniform_real_distribution<double> dis_twoPi(0.0, 2.0*PI);
+
 
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-		double semi_major_axis = f(drand48(), parameters::particle_slope);
-		double phi = drand48()*2.0*PI;
+        double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
+        double phi = dis_twoPi(generator);
+        double phi2 = dis_twoPi(generator);
+
 		double eccentricity = 0.0;
 
 		particles[i].radius = parameters::particle_radius;
@@ -98,8 +103,8 @@ void init() {
 		particles[i].x = r*cos(phi);
 		particles[i].y = r*sin(phi);
 
-		particles[i].vx = -v*sin(phi);
-		particles[i].vy = v*cos(phi);
+        particles[i].vx = -v*sin(phi2);
+        particles[i].vy = v*cos(phi2);
 
 		particles[i].id = id_offset+i;
 	}

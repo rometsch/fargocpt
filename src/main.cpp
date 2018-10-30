@@ -46,16 +46,6 @@ unsigned int nTimeStep;
 int main(int argc, char* argv[])
 {
 	t_data data;
-	FILE *urandom;
-
-	urandom = fopen ("/dev/urandom", "r");
-	if (urandom != NULL) {
-		if (fread(&options::random_seed, sizeof(options::random_seed), 1, urandom)<1) {
-			logging::print_master(LOG_WARNING "Could not read from /dev/urandom! Random seed will be 1 if not specified otherwise!\n");
-			options::random_seed = 1;
-		}
-		fclose(urandom);
-	}
 
 	LostMass = 0.0;
 
@@ -113,10 +103,6 @@ int main(int argc, char* argv[])
 	units::print_code_units();
 	units::write_code_unit_file();
 	constants::print_constants();
-
-	// init random seed
-	srand(options::random_seed);
-	logging::print_master(LOG_INFO "Setting random seed to %u\n", options::random_seed);
 
 	SplitDomain();
 
