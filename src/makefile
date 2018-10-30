@@ -15,16 +15,16 @@ endif
 # FARGO_ARCH must be set to LINUX
 CC_LINUX = mpicc
 CXX_LINUX = mpic++
-CFLAGS_LINUX = -O2 -Wall -march=native -Wno-unknown-pragmas -ggdb -L$HOME/include/lib
+CFLAGS_LINUX = -O2 -Wall -march=native -Wno-unknown-pragmas
 MPI_PREFIX_LINUX = /usr
-FFTW_PREFIX_LINUX = $HOME/include
+FFTW_PREFIX_LINUX = /usr
 GSL_PREFIX_LINUX = /usr
 
 # HLR2
 # FARGO_ARCH must be set to HLR2
 CC_HLR2 = mpicc
 CXX_HLR2 = mpic++
-CFLAGS_HLR2 = -O2 -Wall -march=native -Wno-unknown-pragmas -ggdb
+CFLAGS_HLR2 = -O2 -Wall -march=native -Wno-unknown-pragmas
 MPI_PREFIX_HLR2 = /opt/openmpi/1.10
 FFTW_PREFIX_HLR2 = /opt/fftw/3.3_openmpi_1.10
 GSL_PREFIX_HLR2 = /opt/gsl/2.1
@@ -33,7 +33,7 @@ GSL_PREFIX_HLR2 = /opt/gsl/2.1
 # FARGO_ARCH must be set to BINAC
 CC_BINAC = mpicc
 CXX_BINAC = mpic++
-CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas -ggdb
+CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas
 MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-5.2
 FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-5.2
 GSL_PREFIX_BINAC = /opt/bwhpc/common/numlib/gsl/2.1
