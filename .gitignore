@@ -3,6 +3,10 @@
 *.dat
 fargo
 
+# Qt creator files
+*.user
+*.files
+
 # Compiled Object files
 *.slo
 *.lo
