@@ -152,7 +152,7 @@ void t_polargrid::write2D(unsigned int number) const
 	}
 	free(filename);
 
-	MPI_File_set_view(fh, 0, MPI::DOUBLE, MPI::DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
 	MPI_File_seek(fh,(IMIN+Zero_or_active)*get_size_azimuthal() , MPI_SEEK_SET);
 
 	from = Field;
@@ -247,7 +247,7 @@ void t_polargrid::write1D(unsigned int number) const
 		number_of_values+=2;
 	}
 
-	MPI_File_set_view(fh, 0, MPI::DOUBLE, MPI::DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
 	MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_SET);
 
 	from = 0;
@@ -377,7 +377,7 @@ void t_polargrid::read2D(const char* _filename)
 	// allocate buffer and read file
 	double *buffer_file = new double[count];
 
-	MPI_File_set_view(fh, 0, MPI::DOUBLE, MPI::DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
 	MPI_File_seek(fh, 0 , MPI_SEEK_SET);
 	MPI_File_read_all(fh, buffer_file, count, MPI_DOUBLE, &status);
 
@@ -476,7 +476,7 @@ void t_polargrid::read1D(const char* _filename, bool skip_min_max)
 	// allocate buffer and read file
 	double *buffer_file = new double[number_of_values*count];
 
-	MPI_File_set_view(fh, 0, MPI::DOUBLE, MPI::DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
 	MPI_File_seek(fh, 0 , MPI_SEEK_SET);
 	MPI_File_read_all(fh, buffer_file, count*number_of_values, MPI_DOUBLE, &status);
 
