@@ -88,7 +88,6 @@ void init() {
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
         double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
         double phi = dis_twoPi(generator);
-        double phi2 = dis_twoPi(generator);
 
 		double eccentricity = 0.0;
 
@@ -103,8 +102,8 @@ void init() {
 		particles[i].x = r*cos(phi);
 		particles[i].y = r*sin(phi);
 
-        particles[i].vx = -v*sin(phi2);
-        particles[i].vy = v*cos(phi2);
+        particles[i].vx = -v*sin(phi);
+        particles[i].vy = v*cos(phi);
 
 		particles[i].id = id_offset+i;
 	}
