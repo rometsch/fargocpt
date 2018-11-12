@@ -1136,8 +1136,12 @@ void radiative_diffusion(t_data &data, double dt) {
 					+ E(n_radial, n_azimuthal) * data[t_data::TEMPERATURE](n_radial, n_azimuthal_plus)
 					- Told(n_radial, n_azimuthal));
 
-				// only non ghostcells to norm and don't count overlap cell's twice
-				if ((n_radial > (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP) && (n_radial < (data[t_data::TEMPERATURE].get_max_radial() - (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP)))) {
+        // only non ghostcells to norm and don't count overlap cell's twice
+        bool isnot_ghostcell_rank_0 = n_radial > ((CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP);
+        bool isnot_ghostcell_rank_highest = (n_radial < (data[t_data::TEMPERATURE].get_max_radial()
+                                                         - ((CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP)));
+        
+        if (isnot_ghostcell_rank_0 && isnot_ghostcell_rank_highest) {
 					absolute_norm += pow2(old_value - data[t_data::TEMPERATURE](n_radial, n_azimuthal));
 				}
 			}
