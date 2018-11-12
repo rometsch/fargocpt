@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <cstring>
 
 extern boolean CICPlanet;
 

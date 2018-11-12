@@ -33,7 +33,7 @@
 #include "boundary_conditions.h"
 #include "quantities.h"
 #include "particles.h"
-
+#include <cstring>
 extern boolean Corotating;
 extern bool Adiabatic;
 extern boolean FastTransport;
