@@ -117,14 +117,14 @@ void init() {
 
 	// calculate offsets
 	MPI_Aint base;
-	MPI_Address(particles, &base);
-	MPI_Address(&particles[0].id, mpi_particle_offsets);
-	MPI_Address(&particles[0].x, mpi_particle_offsets+1);
-	MPI_Address(&particles[0].y, mpi_particle_offsets+2);
-	MPI_Address(&particles[0].vx, mpi_particle_offsets+3);
-	MPI_Address(&particles[0].vy, mpi_particle_offsets+4);
-	MPI_Address(&particles[0].mass, mpi_particle_offsets+5);
-	MPI_Address(&particles[0].radius, mpi_particle_offsets+6);
+    MPI_Get_address(particles, &base);
+    MPI_Get_address(&particles[0].id, mpi_particle_offsets);
+    MPI_Get_address(&particles[0].x, mpi_particle_offsets+1);
+    MPI_Get_address(&particles[0].y, mpi_particle_offsets+2);
+    MPI_Get_address(&particles[0].vx, mpi_particle_offsets+3);
+    MPI_Get_address(&particles[0].vy, mpi_particle_offsets+4);
+    MPI_Get_address(&particles[0].mass, mpi_particle_offsets+5);
+    MPI_Get_address(&particles[0].radius, mpi_particle_offsets+6);
 
 	for (int i = 0; i < 7; ++i) {
 		mpi_particle_offsets[i] -= base;

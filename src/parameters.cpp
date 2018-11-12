@@ -537,6 +537,9 @@ void summarize_parameters()
 		case boundary_condition_boundary_layer:
 			logging::print_master(LOG_INFO "Using 'boundary layer boundary conditions' at inner boundary.\n");
 			break;
+        case boundary_condition_keplerian:
+            logging::print_master(LOG_INFO "Using 'keplarian boundary conditions' at inner boundary.\n");
+            break;
 	}
 
 	switch (boundary_outer) {
@@ -558,6 +561,9 @@ void summarize_parameters()
 		case boundary_condition_boundary_layer:
 			logging::print_master(LOG_INFO "Using 'boundary layer boundary conditions' at outer boundary.\n");
 			break;
+        case boundary_condition_keplerian:
+            logging::print_master(LOG_INFO "Using 'keplarian boundary conditions' at inner boundary.\n");
+            break;
 	}
 
 	// Mass Transfer
@@ -652,7 +658,6 @@ void write_grid_data_to_file()
 
   FILE *fd = 0;
   char *fd_filename;
-  static bool fd_created = false;
 
   if (CPU_Master) {
     if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "dimensions.dat") == -1) {

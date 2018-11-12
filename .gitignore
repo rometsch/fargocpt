@@ -6,6 +6,9 @@ fargo
 # Qt creator files
 *.user
 *.files
+*.config
+*.creator
+*.includes
 
 # Compiled Object files
 *.slo

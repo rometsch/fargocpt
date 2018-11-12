@@ -181,7 +181,6 @@ void write_code_unit_file() {
 
 	FILE *fd = 0;
 	char* fd_filename;
-	static bool fd_created = false;
 
 	if (CPU_Master) {
 		if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "units.dat") == -1) {
