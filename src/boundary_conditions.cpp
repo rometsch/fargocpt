@@ -70,6 +70,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 			break;
 		case parameters::boundary_condition_nonreflecting:
 			NonReflectingBoundary_outer(data, &data[t_data::V_RADIAL], &data[t_data::DENSITY], &data[t_data::ENERGY]);
+            break;
 		case parameters::boundary_condition_viscous_outflow:
 			die("outer viscous outflow boundary not implemented");
 			break;

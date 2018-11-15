@@ -8,8 +8,8 @@ void Transport(t_data &data, PolarGrid* Density, PolarGrid* VRadial, PolarGrid* 
 void OneWindRad(t_data &data, PolarGrid* Density, PolarGrid* VRadial, PolarGrid* Energy, double dt);
 void ComputeThetaElongations(PolarGrid* VAzimuthal, double dt);
 
-void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal, double dt);
-void compute_residual_velocity(t_polargrid &v_azimuthal, double dt);
+void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal);
+void compute_residual_velocity(t_polargrid &v_azimuthal);
 
 void ComputeConstantResidual(PolarGrid* VAzimuthal, double dt);
 void AdvectSHIFT(t_polargrid &array);

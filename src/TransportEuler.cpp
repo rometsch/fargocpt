@@ -132,7 +132,7 @@ void OneWindRad(t_data &data, PolarGrid* Density, PolarGrid* VRadial, PolarGrid*
 /**
 	Compute average azimuthal velocities
 */
-void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal, double dt)
+void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal)
 {
 	for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial(); ++n_radial) {
 		double v_azimuthal_sum = 0.0;
@@ -148,7 +148,7 @@ void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal, double dt)
 /**
 	Compute (azimuthal) residual velocities
 */
-void compute_residual_velocity(t_polargrid &v_azimuthal, double dt)
+void compute_residual_velocity(t_polargrid &v_azimuthal)
 {
 	for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= v_azimuthal.get_max_azimuthal(); ++n_azimuthal) {
@@ -224,8 +224,8 @@ void AdvectSHIFT(t_polargrid &array)
 
 void OneWindTheta(t_data &data, PolarGrid* Density, PolarGrid* VAzimuthal, PolarGrid* Energy, double dt)
 {
-	compute_average_azimuthal_velocity(*VAzimuthal, dt);
-	compute_residual_velocity(*VAzimuthal, dt);
+    compute_average_azimuthal_velocity(*VAzimuthal);
+    compute_residual_velocity(*VAzimuthal);
 	ComputeConstantResidual(VAzimuthal, dt);	/* Constant residual is in VAzimuthal from now on */
 	UniformTransport = NO;
 	QuantitiesAdvection(data, Density, &v_azimuthal_res, Energy, dt);

@@ -179,7 +179,7 @@ void write_quantities(t_data &data)
 /**
 	log misc. data
 */
-void write_misc(t_data &data, unsigned int timestep)
+void write_misc(unsigned int timestep)
 {
 	FILE *fd = 0;
 	char* fd_filename;
@@ -603,14 +603,14 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 		fclose(fd);
 	}
 
-	delete luminosity_values;
-	delete dissipation_values;
+    delete[] luminosity_values;
+    delete[] dissipation_values;
 }
 
 /**
 Write for each coarse output step the corresponding fine grained output number and the simulation time in cgs units.
 */
-void write_coarse_time(unsigned int coarseOutputNumber, unsigned int fineOutputNumber, double physicalTime )
+void write_coarse_time(unsigned int coarseOutputNumber, unsigned int fineOutputNumber)
 {
 	FILE* fd = 0;
 	char* fd_filename;

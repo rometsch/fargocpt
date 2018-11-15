@@ -46,7 +46,7 @@ void FreeForce(Force* force)
 /**
 	Computes the force due to the disk on an object at position (x,y)
 */
-void ComputeForce(t_data &data, Force* force, double x, double y, double rsmoothing, double mass, int dimfxy)
+void ComputeForce(t_data &data, Force* force, double x, double y, double rsmoothing, double mass)
 {
 	int l, ns;
 	double localforce[8]={0.,0.,0.,0.,0.,0.,0.,0.}, globalforce[8]={0.,0.,0.,0.,0.,0.,0.,0.};
@@ -115,7 +115,7 @@ double compute_smoothing(double r)
 	return smooth;
 }
 
-void UpdateLog(t_data &data, Force* fc, int outputnb, double time, int dimfxy)
+void UpdateLog(t_data &data, Force* fc, int outputnb, double time)
 {
 	double x, y, r, m, vx, vy, smoothing;
 	FILE *out;
@@ -131,7 +131,7 @@ void UpdateLog(t_data &data, Force* fc, int outputnb, double time, int dimfxy)
 			smoothing = r*pow(m/3.,1./3.)*ROCHESMOOTHING;
 		else
 			smoothing = compute_smoothing(r);
-		ComputeForce(data, fc, x, y, smoothing, m, dimfxy);
+        ComputeForce(data, fc, x, y, smoothing, m);
 		if (CPU_Rank == CPU_Number-1) {
 			sprintf (filename, "%stqwk%d.dat", OUTPUTDIR, i);
 			out = fopen (filename, "a");

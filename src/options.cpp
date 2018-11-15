@@ -36,6 +36,7 @@ static const struct option long_options [] = {
 
 void usage(int argc, char** argv)
 {
+    (void)argc;
 	logging::print_master(LOG_ERROR "Usage: %s [options] configfile\n\n"
 		"-d | --debug        Print some debugging information on 'stdout' at each timestep\n"
 		"-r | --restart <n>  Restart calculation at timestep <n>\n"

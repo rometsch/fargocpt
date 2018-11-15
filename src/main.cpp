@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
 	TellEverything();
 
 	if (options::memory_usage) {
-		data.print_memory_usage(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
+        data.print_memory_usage(NRadial, NAzimuthal);
 		PersonalExit(0);
 	}
 
@@ -210,9 +210,9 @@ int main(int argc, char* argv[])
 			InnerOutputCounter = 0;
 			data.get_planetary_system().write_planets(TimeStep, true);
 			//WriteBigPlanetSystemFile(sys, TimeStep);
-			UpdateLog(data, force, TimeStep, PhysicalTime, dimfxy);
+            UpdateLog(data, force, TimeStep, PhysicalTime);
 			if (Stockholm)
-				UpdateLogStockholm(data, TimeStep, PhysicalTime);
+                UpdateLogStockholm(data, PhysicalTime);
 		}
 
 		if (NINTERM * (TimeStep = (nTimeStep / NINTERM)) == nTimeStep) {
@@ -226,9 +226,9 @@ int main(int argc, char* argv[])
 			// write quantities like energy, mass, ...
 			output::write_quantities(data);
 			// write misc stuff (important for resuming)
-			output::write_misc(data, TimeStep);
+            output::write_misc(TimeStep);
 			// write time info for coarse output
-			output::write_coarse_time(TimeStep, nTimeStep, PhysicalTime);
+            output::write_coarse_time(TimeStep, nTimeStep);
 			// write disk quantities like eccentricity, ...
 			if (parameters::write_disk_quantities)
 				output::write_disk_quantities(data, TimeStep, false);

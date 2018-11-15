@@ -18,7 +18,9 @@
 	Handles a floating point exception.
 */
 void fpe_sighandler(int sig, siginfo_t *info, void *secret) {
-	const char* type;
+    const char* type;
+    (void) sig;
+    (void) secret;
 
 	switch (info->si_code) {
 		case FPE_INTDIV:

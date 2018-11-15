@@ -119,7 +119,7 @@ Pair MassInOut(t_data &data, double a)
 	return massinout;
 }
 
-void UpdateLogStockholm(t_data &data, int outputnb, double time)
+void UpdateLogStockholm(t_data &data, double time)
 {
 	double x, y, r, m, smoothing /*, iplanet, cs, frac*/;
 	Force fc;

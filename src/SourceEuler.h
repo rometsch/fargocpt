@@ -22,8 +22,8 @@ void SubStep2(t_data &data, double dt);
 void SubStep3(t_data &data, double dt);
 void radiative_diffusion(t_data &data, double dt);
 
-void calculate_qplus(t_data &data, double dt);
-void calculate_qminus(t_data &data, double dt);
+void calculate_qplus(t_data &data);
+void calculate_qminus(t_data &data);
 
 double condition_cfl(t_data &data, t_polargrid &v_radial, t_polargrid &v_azimuthal, t_polargrid &soundspeed, double deltaT);
 

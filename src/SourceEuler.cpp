@@ -584,7 +584,7 @@ void SubStep2(t_data &data, double dt)
 	}
 }
 
-void calculate_qplus(t_data &data, double dt) {
+void calculate_qplus(t_data &data) {
 	// clear up all Qplus terms
 	data[t_data::QPLUS].clear();
 	data.qplus_total = 0;
@@ -772,7 +772,7 @@ void calculate_qplus(t_data &data, double dt) {
 	}
 }
 
-void calculate_qminus(t_data &data, double dt) {
+void calculate_qminus(t_data &data) {
 	// clear up all Qminus terms
 	data[t_data::QMINUS].clear();
 	data.qminus_total = 0;
@@ -835,8 +835,8 @@ void SubStep3(t_data &data, double dt)
 {
 	double num, den;
 
-	calculate_qplus(data, dt);
-	calculate_qminus(data, dt);
+    calculate_qplus(data);
+    calculate_qminus(data);
 
 	// calculate tau_cool if needed for output
 	if (data[t_data::TAU_COOL].get_write_1D() || data[t_data::TAU_COOL].get_write_2D()) {

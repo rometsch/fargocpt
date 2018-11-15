@@ -157,7 +157,7 @@ Pair ComputeAccel(Force* force, t_data &data, double x, double y, double rsmooth
 {
 	Pair acceleration;
 
-	ComputeForce(data, force, x, y, rsmoothing, mass, dimfxy);
+    ComputeForce(data, force, x, y, rsmoothing, mass);
 	if (ExcludeHill) {
 		acceleration.x = force->fx_ex_inner+force->fx_ex_outer;
 		acceleration.y = force->fy_ex_inner+force->fy_ex_outer;

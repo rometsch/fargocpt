@@ -60,7 +60,7 @@ find_package(MPI REQUIRED)
 
 
 
-add_compile_options(-std=c++17 -Werror -O3 -Wall -march=native -Wno-unknown-pragmas -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+add_compile_options(-std=c++17 -Werror -O3 -Wall -Wextra -Wno-old-style-cast -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
 
 # Use imported targets would make things much eazier. Thanks Levi for pointing it out.
 add_executable(${PROJECT_NAME} ./main.cpp ${CPP_SOURCES} ${H_SOURCES})

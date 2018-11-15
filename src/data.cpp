@@ -270,7 +270,7 @@ void t_data::set_size(unsigned int global_n_radial, unsigned int global_n_azimiu
 
 }
 
-void t_data::print_memory_usage(unsigned int global_n_radial, unsigned int global_n_azimiuthal, unsigned int n_radial, unsigned int n_azimuthal)
+void t_data::print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal)
 {
 	double local_memory_usage = 0;
 	double global_memory_usage = 0;
