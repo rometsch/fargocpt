@@ -1,5 +1,5 @@
-#ifndef _LOGGING_H_
-#define _LOGGING_H_
+#ifndef LOGGING_H
+#define LOGGING_H
 
 #include <stdarg.h>
 
@@ -21,4 +21,4 @@ int print_master(const char *fmt, ...);
 
 }
 
-#endif
+#endif // LOGGING_H

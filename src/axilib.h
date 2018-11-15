@@ -1,6 +1,6 @@
-#ifndef _AXILIB_H_
-#define _AXILIB_H_
+#ifndef AXILIB_H
+#define AXILIB_H
 
 void mpi_make1Dprofile(double* grid, double* array);
 
-#endif
+#endif // AXILIB_H

@@ -1,5 +1,5 @@
-#ifndef _RADIALGRID_H_
-#define _RADIALGRID_H_
+#ifndef RADIALGRID_H
+#define RADIALGRID_H
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -79,4 +79,4 @@ class t_radialgrid
 */
 };
 
-#endif
+#endif // RADIALGRID_H

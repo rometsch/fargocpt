@@ -1,5 +1,5 @@
-#ifndef _SOURCEEULER_H_
-#define _SOURCEEULER_H_
+#ifndef SOURCEEULER_H
+#define SOURCEEULER_H
 
 #include "data.h"
 #include "types.h"
@@ -35,4 +35,4 @@ void compute_rho(t_data &data, bool force_update);
 
 double CircumPlanetaryMass(t_data &data);
 
-#endif
+#endif // SOURCEEULER_H

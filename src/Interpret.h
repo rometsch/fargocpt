@@ -1,5 +1,5 @@
-#ifndef _INTERPRET_H_
-#define _INTERPRET_H_
+#ifndef INTERPRET_H
+#define INTERPRET_H
 
 #include "data.h"
 
@@ -10,4 +10,4 @@ double TellNbOrbits(double time);
 double TellNbOutputs(double time);
 void TellEverything();
 
-#endif
+#endif // INTERPRET_H

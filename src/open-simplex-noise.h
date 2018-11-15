@@ -1,5 +1,5 @@
-#ifndef OPEN_SIMPLEX_NOISE_H__
-#define OPEN_SIMPLEX_NOISE_H__
+#ifndef OPEN_SIMPLEX_NOISE_H
+#define OPEN_SIMPLEX_NOISE_H
 
 /*
  * OpenSimplex (Simplectic) Noise in C.
@@ -48,4 +48,4 @@ double open_simplex_noise4(struct osn_context *ctx, double x, double y, double z
 	}
 #endif
 
-#endif
+#endif // OPEN_SIMPLEX_NOISE_H

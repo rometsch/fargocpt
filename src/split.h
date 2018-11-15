@@ -1,6 +1,6 @@
-#ifndef _SPLIT_H_
-#define _SPLIT_H_
+#ifndef SPLIT_H
+#define SPLIT_H
 
 void SplitDomain();
 
-#endif
+#endif // SPLIT_H

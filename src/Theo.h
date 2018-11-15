@@ -1,5 +1,5 @@
-#ifndef _THEO_H_
-#define _THEO_H_
+#ifndef THEO_H
+#define THEO_H
 
 #include "constants.h"
 #include "types.h"
@@ -21,4 +21,4 @@ inline double omega_kepler(double r)
 void RefillSigma(t_polargrid* Density);
 void RefillEnergy(t_polargrid* Energy);
 
-#endif
+#endif // THEO_H

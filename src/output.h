@@ -1,5 +1,5 @@
-#ifndef _OUTPUT_H_
-#define _OUTPUT_H_
+#ifndef OUTPUT_H
+#define OUTPUT_H
 
 #include "types.h"
 #include "data.h"
@@ -21,4 +21,4 @@ double get_misc(unsigned int timestep, unsigned int column);
 
 }
 
-#endif
+#endif // OUTPUT_H

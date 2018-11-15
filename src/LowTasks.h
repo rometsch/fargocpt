@@ -1,5 +1,5 @@
-#ifndef _LOWTASKS_H_
-#define _LOWTASKS_H_
+#ifndef LOWTASKS_H
+#define LOWTASKS_H
 
 #include <stdlib.h>
 #include "types.h"
@@ -16,4 +16,4 @@ void MultiplyPolarGridbyConstant(t_polargrid* arraysrc, double constant);
 void die(const char *err, ...);
 void die_errno(const char *fmt, ...);
 
-#endif
+#endif // LOWTASKS_H

@@ -1,5 +1,5 @@
-#ifndef _SIDEEULER_H_
-#define _SEIEEULER_H_
+#ifndef SIDEEULER_H
+#define SEIEEULER_H
 
 #include "data.h"
 #include "types.h"
@@ -19,4 +19,4 @@ void ApplySubKeplerianBoundary(t_polargrid& v_azimuthal);
 
 void correct_v_azimuthal(t_polargrid& v_azimuthal, double dOmega);
 
-#endif
+#endif // SEIEEULER_H

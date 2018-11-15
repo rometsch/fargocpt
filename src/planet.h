@@ -1,5 +1,5 @@
-#ifndef _PLANET_H_
-#define _PLANET_H_
+#ifndef PLANET_H
+#define PLANET_H
 
 class t_planet
 {
@@ -79,4 +79,4 @@ class t_planet
 		double get_value_from_file(unsigned int timestep, unsigned int column);
 };
 
-#endif
+#endif // PLANET_H

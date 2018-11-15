@@ -1,5 +1,5 @@
-#ifndef _UNITS_H_
-#define _UNITS_H_
+#ifndef UNITS_H
+#define UNITS_H
 
 namespace units {
 
@@ -70,4 +70,4 @@ void write_code_unit_file();
 
 }
 
-#endif
+#endif // UNITS_H

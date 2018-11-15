@@ -1,5 +1,5 @@
-#ifndef _OPAC_H_
-#define _OPAC_H_
+#ifndef OPAC_H
+#define OPAC_H
 
 namespace opacity {
 
@@ -11,4 +11,4 @@ double kramers(double density, double temperature);
 
 };
 
-#endif
+#endif // OPAC_H

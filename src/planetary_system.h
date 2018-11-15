@@ -1,5 +1,5 @@
-#ifndef _PLANETARY_SYSTEM_H_
-#define _PLANETARY_SYSTEM_H_
+#ifndef PLANETARY_SYSTEM_H
+#define PLANETARY_SYSTEM_H
 
 #include "planet.h"
 #include <vector>
@@ -28,5 +28,5 @@ class t_planetary_system
 		void write_planets(unsigned int timestep, bool big_file);
 };
 
-#endif
+#endif // PLANETARY_SYSTEM_H
 

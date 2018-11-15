@@ -1,5 +1,5 @@
-#ifndef _QUANTITIES_H_
-#define _QUANTITIES_H_
+#ifndef QUANTITIES_H
+#define QUANTITIES_H
 
 #include "data.h"
 
@@ -38,4 +38,4 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep, bool forc
 
 }
 
-#endif
+#endif // QUANTITIES_H

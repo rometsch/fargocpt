@@ -1,5 +1,5 @@
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef UTIL_H
+#define UTIL_H
 
 template< typename T >
 inline T pow2(T x)
@@ -33,4 +33,4 @@ inline T max(T x, T y)
 
 double cutoff(double point, double width, double x);
 
-#endif
+#endif // UTIL_H

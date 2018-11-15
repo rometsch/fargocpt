@@ -1,5 +1,5 @@
-#ifndef _GLOBAL_H_
-#define _GLOBAL_H_
+#ifndef GLOBAL_H
+#define GLOBAL_H
 
 #include <mpi.h>
 #include "types.h"
@@ -105,4 +105,4 @@ extern double ADIABATICINDEX;
 extern double LostMass;
 extern bool Stockholm;
 
-#endif
+#endif // GLOBAL_H

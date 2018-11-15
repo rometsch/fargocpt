@@ -1,5 +1,5 @@
-#ifndef _VISCOSITY_H_
-#define _VISCOSITY_H_
+#ifndef VISCOSITY_H
+#define VISCOSITY_H
 
 #include "data.h"
 
@@ -11,4 +11,4 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial, t_pol
 
 }
 
-#endif
+#endif // VISCOSITY_H

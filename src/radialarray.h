@@ -1,5 +1,5 @@
-#ifndef _RADIALARRAY_H_
-#define _RADIALARRAY_H_
+#ifndef RADIALARRAY_H
+#define RADIALARRAY_H
 
 #include <stddef.h>
 
@@ -27,4 +27,4 @@ class t_radialarray
 		inline operator double*() { return array; }
 };
 
-#endif
+#endif // RADIALARRAY_H

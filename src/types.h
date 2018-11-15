@@ -1,5 +1,5 @@
-#ifndef _TYPES_H_
-#define _TYPES_H_
+#ifndef TYPES_H
+#define TYPES_H
 
 /**
 	\file types.h
@@ -74,4 +74,4 @@ typedef struct force Force;
 // TODO: This could be problematic on large NR
 #define MAX1D	16384
 
-#endif
+#endif // TYPES_H

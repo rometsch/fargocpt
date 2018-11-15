@@ -1,5 +1,5 @@
-#ifndef _BOUNDARY_CONDITIONS_H_
-#define _BOUNDARY_CONDITIONS_H_
+#ifndef BOUNDARY_CONDITIONS_H
+#define BOUNDARY_CONDITIONS_H
 
 #include "data.h"
 #include "types.h"
@@ -22,4 +22,4 @@ void keplerian2d_boundary_outer(t_data &data);
 
 }
 
-#endif
+#endif // BOUNDARY_CONDITIONS_H

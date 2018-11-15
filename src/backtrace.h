@@ -1,8 +1,8 @@
-#ifndef _BACKTRACE_H_
-#define _BACKTRACE_H_
+#ifndef BACKTRACE_H
+#define BACKTRACE_H
 
 #define BACKTRACE_MAXDEPTH 10
 
 void PrintTrace(void);
 
-#endif
+#endif // BACKTRACE_H

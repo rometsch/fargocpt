@@ -1,5 +1,5 @@
-#ifndef _SELFGRAVITY_H_
-#define _SELFGRAVITY_H_
+#ifndef SELFGRAVITY_H
+#define SELFGRAVITY_H
 
 #include "types.h"
 #include "polargrid.h"
@@ -26,4 +26,4 @@ void init_planetary_system(t_data &data);
 
 }
 
-#endif
+#endif // SELFGRAVITY_H

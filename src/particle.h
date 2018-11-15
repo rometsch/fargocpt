@@ -1,5 +1,5 @@
-#ifndef _PARTICLE_H_
-#define _PARTICLE_H_
+#ifndef PARTICLE_H
+#define PARTICLE_H
 
 #include <math.h>
 #include "constants.h"
@@ -32,4 +32,4 @@ class t_particle
 		inline double get_angle(void) { double phi = atan2(y, x); if (phi < 0) { phi += 2*PI; } return phi; };
 };
 
-#endif
+#endif // PARTICLE_H

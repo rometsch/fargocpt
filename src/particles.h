@@ -1,5 +1,5 @@
-#ifndef _PARTICLES_H_
-#define _PARTICLES_H_
+#ifndef PARTICLES_H
+#define PARTICLES_H
 
 #include "particle.h"
 #include "data.h"
@@ -20,4 +20,4 @@ void move(void);
 
 };
 
-#endif
+#endif // PARTICLES_H

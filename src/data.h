@@ -1,5 +1,5 @@
-#ifndef _DATA_H_
-#define _DATA_H_
+#ifndef DATA_H
+#define DATA_H
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -109,4 +109,4 @@ class t_data
 		t_planetary_system m_planetary_system;
 };
 
-#endif
+#endif // DATA_H

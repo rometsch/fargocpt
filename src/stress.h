@@ -1,5 +1,5 @@
-#ifndef _STRESS_H_
-#define _STRESS_H_
+#ifndef STRESS_H
+#define STRESS_H
 
 #include "data.h"
 
@@ -10,4 +10,4 @@ void calculate_gravitational_stress(t_data &data);
 
 }
 
-#endif
+#endif // STRESS_H

@@ -1,5 +1,5 @@
-#ifndef _PARAMETERS_H_
-#define _PARAMETERS_H_
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
 
 #include "data.h"
 
@@ -233,4 +233,4 @@ void apply_units();
 void write_grid_data_to_file();
 };
 
-#endif
+#endif // PARAMETERS_H

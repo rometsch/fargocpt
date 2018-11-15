@@ -1,5 +1,5 @@
-#ifndef _PFRAMEFORCE_H_
-#define _PFRAMEFORCE_H_
+#ifndef PFRAMEFORCE_H
+#define PFRAMEFORCE_H
 
 #include "types.h"
 #include "data.h"
@@ -13,4 +13,4 @@ double ConstructSequence(double* u, double* v, int n);
 void AccreteOntoPlanets(t_data &data, double dt);
 void FindOrbitalElements (double x, double y, double vx, double vy, double m, int n);
 
-#endif
+#endif // PFRAMEFORCE_H

@@ -1,5 +1,5 @@
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#ifndef CONFIG_H
+#define CONFIG_H
 
 namespace config {
 
@@ -19,4 +19,4 @@ const char *value_as_string_default(const char *key, const char *defvalue);
 
 }
 
-#endif
+#endif // CONFIG_H

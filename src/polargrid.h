@@ -1,5 +1,5 @@
-#ifndef _POLARGRID_H_
-#define _POLARGRID_H_
+#ifndef POLARGRID_H
+#define POLARGRID_H
 
 #include "units.h"
 #include <stddef.h>
@@ -95,4 +95,4 @@ class t_polargrid
 
 // for compatibility
 typedef t_polargrid PolarGrid;
-#endif
+#endif // POLARGRID_H

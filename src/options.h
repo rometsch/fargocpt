@@ -1,5 +1,5 @@
-#ifndef _OPTIONS_H_
-#define _OPTIONS_H_
+#ifndef OPTIONS_H
+#define OPTIONS_H
 
 namespace options {
 
@@ -13,4 +13,4 @@ extern char *parameter_file;
 extern bool disable;
 }
 
-#endif
+#endif // OPTIONS_H
