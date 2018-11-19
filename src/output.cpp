@@ -18,6 +18,9 @@
 #include "quantities.h"
 #include "options.h"
 
+#include <sys/stat.h>
+
+
 namespace output {
 
 void check_free_space(t_data &data)
@@ -29,13 +32,25 @@ void check_free_space(t_data &data)
 
 	if (asprintf(&directory_name, "%s/",OUTPUTDIR) <0) {
 		die("Not enough memory.");
-	}
+    }
+
+    // Create output directory if it doesn't exist
+    if(CPU_Master)
+    {
+        struct stat buffer;
+        if(stat(OUTPUTDIR, &buffer))
+        {
+            mkdir(OUTPUTDIR, 0700);
+        }
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
 
 	// check if output directory exists
 	if ((directory_pointer = opendir(directory_name)) == NULL) {
-		logging::print_master(LOG_ERROR "Output directory %s doesn't exists!\n", OUTPUTDIR);
-		die("Not output directory!");
-	}
+        logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n", OUTPUTDIR);
+        die("Not output directory!");
+    }
 
 	while ((directory_entry = readdir(directory_pointer))) {
 		if ((strcmp("..",directory_entry->d_name) != 0) && (strcmp(".",directory_entry->d_name) != 0)) {

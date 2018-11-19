@@ -221,6 +221,8 @@ void write_code_unit_file() {
 		fprintf(fd, "intensity\t \t ");
 		fclose(fd);
 	}
+    MPI_Barrier(MPI_COMM_WORLD);
+
 
 }
 

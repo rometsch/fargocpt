@@ -702,6 +702,8 @@ void write_grid_data_to_file()
             RMIN, RMAX, 0.0, 2*PI, NRadial, NAzimuthal, 1, 1, radial_spacing_str);
     fclose(fd);
   }
+  MPI_Barrier(MPI_COMM_WORLD);
+
 }
 
 } // namespace parameters

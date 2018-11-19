@@ -94,9 +94,12 @@ int main(int argc, char* argv[])
 	setfpe();
 
 	// handle command line parameters
-	options::parse(argc,argv);
+    options::parse(argc,argv);
 
-	ReadVariables(options::parameter_file, data);
+    ReadVariables(options::parameter_file, data);
+    // check if there is enough free space for all outputs (check before any output are files created)
+    output::check_free_space(data);
+
 	parameters::summarize_parameters();
 	parameters::write_grid_data_to_file();
 
@@ -117,9 +120,6 @@ int main(int argc, char* argv[])
 		PersonalExit(0);
 
 	data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
-
-	// check if there is enough free space for all outputs (check before used_rad.dat is created)
-	output::check_free_space(data);
 
 	init_radialarrays();
 	force = AllocateForce(dimfxy);

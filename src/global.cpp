@@ -117,7 +117,7 @@ double HillRadius, mdcp, mdcp0, exces_mdcp;
 int debug, OnlyInit;
 int GotoNextOutput, ViscosityAlpha, RocheSmoothing;
 int CentrifugalBalance, ExcludeHill, SloppyCFL;
-MPI_Status stat;
+MPI_Status global_MPI_Status;
 t_polargrid *CellAbscissa, *CellOrdinate;
 
 int OverridesOutputdir;

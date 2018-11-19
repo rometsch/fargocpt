@@ -34,14 +34,14 @@ void ReadVariables(char* filename, t_data &data)
 
 	FLARINGINDEX = config::value_as_double_default("FLARINGINDEX", 0.0);
 
-	if (asprintf(&OUTPUTDIR, "%s", config::value_as_string_default("OUTPUTDIR", "out/")) < 0) {
-		logging::print_master(LOG_ERROR "Not enough memory!\n");
-	}
+    if (asprintf(&OUTPUTDIR, "%s", config::value_as_string_default("OUTPUTDIR", "out/")) < 0) {
+        logging::print_master(LOG_ERROR "Not enough memory!\n");
+    }
 
 	// check if planet config exists
 	if ((config::key_exists("PLANETCONFIG")) && (strlen(config::value_as_string("PLANETCONFIG"))>0)) {
 		if (asprintf(&PLANETCONFIG, "%s", config::value_as_string("PLANETCONFIG")) < 0) {
-			logging::print_master(LOG_ERROR "Not enough memory!\n");
+            logging::print_master(LOG_ERROR "Not enough memory!\n");
 		}
 	} else {
 		PLANETCONFIG = NULL;
