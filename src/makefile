@@ -35,8 +35,8 @@ GSL_PREFIX_HLR2 = /opt/gsl/2.1
 CC_BINAC = mpicc
 CXX_BINAC = mpic++
 CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas
-MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-5.2
-FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-5.2
+MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-6.1
+FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-6.1
 GSL_PREFIX_BINAC = /opt/bwhpc/common/numlib/gsl/2.1
 
 # Default Arch is LINUX
