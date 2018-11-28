@@ -27,9 +27,9 @@ class t_particle
 		/// radius
 		double radius;
 
-		inline double get_squared_distance_to_star(void) { return pow2(x)+pow2(y); };
-		inline double get_distance_to_star(void) { return sqrt(pow2(x)+pow2(y)); };
-		inline double get_angle(void) { double phi = atan2(y, x); if (phi < 0) { phi += 2*PI; } return phi; };
+	  double get_squared_distance_to_star();
+		double get_distance_to_star();
+		double get_angle();
 };
 
 #endif // PARTICLE_H
