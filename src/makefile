@@ -15,7 +15,7 @@ endif
 # FARGO_ARCH must be set to LINUX
 CC_LINUX = mpicc
 CXX_LINUX = mpic++
-CFLAGS_LINUX = -O2 -Wall -march=native -Wno-unknown-pragmas
+CFLAGS_LINUX = -O2 -std=c++11 -Wall -march=native -Wno-unknown-pragmas
 #CFLAGS_LINUX = -g -Wall -march=native -Wno-unknown-pragmas
 MPI_PREFIX_LINUX = /usr
 FFTW_PREFIX_LINUX = /usr
