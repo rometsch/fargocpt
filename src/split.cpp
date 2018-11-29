@@ -159,7 +159,7 @@ void SplitDomain()
 			if (CPU_Rank != CPU_NoFriend)
 				MPI_Send(sg_split, 5, MPI_AINT, CPU_Friend, 10, MPI_COMM_WORLD);
 		}  else {
-			MPI_Recv(hydro_split, 5, MPI_AINT, CPU_Friend, 10, MPI_COMM_WORLD, &stat);
+            MPI_Recv(hydro_split, 5, MPI_AINT, CPU_Friend, 10, MPI_COMM_WORLD, &global_MPI_Status);
 			IMAX_friend = hydro_split[0];
 			local_i_start_friend = hydro_split[1];
 			local_Nx_friend = hydro_split[2];
@@ -212,8 +212,8 @@ void SplitDomain()
 				MPI_Ssend(&active_hydro_totalsize, 1, MPI_INT, CPU_Friend, 20, MPI_COMM_WORLD);
 				MPI_Ssend(&Zero_or_active, 1, MPI_INT, CPU_Friend, 22, MPI_COMM_WORLD);
 			} else {
-				MPI_Recv(&active_hydro_totalsize_friend, 1, MPI_INT, CPU_Friend, 20, MPI_COMM_WORLD, &stat);
-				MPI_Recv(&Zero_or_active_friend, 1, MPI_INT, CPU_Friend, 22, MPI_COMM_WORLD, &stat);
+                MPI_Recv(&active_hydro_totalsize_friend, 1, MPI_INT, CPU_Friend, 20, MPI_COMM_WORLD, &global_MPI_Status);
+                MPI_Recv(&Zero_or_active_friend, 1, MPI_INT, CPU_Friend, 22, MPI_COMM_WORLD, &global_MPI_Status);
 				dens_friend = (double*)malloc(sizeof(double) * active_hydro_totalsize_friend);
 				if (dens_friend == NULL) {
 					logging::print(LOG_ERROR "No enougth memory for dens_friend in split.c ...\n");

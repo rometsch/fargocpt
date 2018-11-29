@@ -1181,14 +1181,14 @@ void radiative_diffusion(t_data &data, double dt) {
 		}
 
 		if (CPU_Rank != 0) {
-			MPI_Wait(&req1, &stat);
-			MPI_Wait(&req2, &stat);
+            MPI_Wait(&req1, &global_MPI_Status);
+            MPI_Wait(&req2, &global_MPI_Status);
 			memcpy(data[t_data::TEMPERATURE].Field, RecvInnerBoundary, l*sizeof(double));
 		}
 
 		if (CPU_Rank != CPU_Highest) {
-			MPI_Wait(&req3, &stat);
-			MPI_Wait(&req4, &stat);
+            MPI_Wait(&req3, &global_MPI_Status);
+            MPI_Wait(&req4, &global_MPI_Status);
 			memcpy(data[t_data::TEMPERATURE].Field+oo, RecvOuterBoundary, l*sizeof(double));
 		}
 	}

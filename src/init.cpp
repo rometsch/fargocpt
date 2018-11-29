@@ -175,6 +175,8 @@ void init_radialarrays()
 		if (fd_output != NULL)
 			fclose(fd_output);
 	}
+    MPI_Barrier(MPI_COMM_WORLD);
+
 }
 
 /**

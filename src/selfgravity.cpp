@@ -194,7 +194,7 @@ void compute_FFT_density(t_polargrid &density)
 			/* all lower cpus recieve data */
 			MPI_Irecv (&dens_friend[0], active_hydro_totalsize_friend, MPI_DOUBLE, CPU_Friend, 30, MPI_COMM_WORLD, &req);
 		}
-		MPI_Wait (&req, &stat);
+        MPI_Wait (&req, &global_MPI_Status);
 	}
 
 	// lower half of cpus
@@ -332,10 +332,10 @@ void compute_acceleration(t_polargrid &density)
 					ffttohydro_transfer[i] = acc_azimuthal[(ifront+1-CPUOVERLAP)*stride + i - transfer_size/2];
 			}
 			MPI_Isend(ffttohydro_transfer, transfer_size, MPI_DOUBLE, CPU_Friend, 40, MPI_COMM_WORLD, &req1);
-			MPI_Wait(&req1, &stat);
+            MPI_Wait(&req1, &global_MPI_Status);
 		} else {
 			MPI_Irecv(ffttohydro_transfer_friend, transfer_size_friend, MPI_DOUBLE, CPU_Friend, 40, MPI_COMM_WORLD, &req1);
-			MPI_Wait(&req1, &stat);
+            MPI_Wait(&req1, &global_MPI_Status);
 		}
 	}
 
@@ -386,27 +386,27 @@ void compute_acceleration(t_polargrid &density)
 	if ( CPU_Number > 1 ) {
 		if ( (CPU_Rank > 0) && (CPU_Rank < (CPU_Number+one_if_odd)/2) ) {
 			MPI_Isend(&g_azimuthal[Zero_or_active*NAzimuthal], ghost_size, MPI_DOUBLE, CPU_Prev, 60, MPI_COMM_WORLD, &req3);
-			MPI_Wait(&req3, &stat);
+            MPI_Wait(&req3, &global_MPI_Status);
 			MPI_Irecv(&g_azimuthal[0], ghost_size, MPI_DOUBLE, CPU_Prev, 61, MPI_COMM_WORLD, &req4);
-			MPI_Wait(&req4, &stat);
+            MPI_Wait(&req4, &global_MPI_Status);
 		}
 		if ( (CPU_Rank >= (CPU_Number+one_if_odd)/2) && (CPU_Rank != CPU_Highest) ) {
 			MPI_Irecv(&g_azimuthal[Max_or_active*NAzimuthal], ghost_size, MPI_DOUBLE, CPU_Next, 60, MPI_COMM_WORLD, &req3);
-			MPI_Wait(&req3, &stat);
+            MPI_Wait(&req3, &global_MPI_Status);
 			MPI_Isend(&g_azimuthal[(Max_or_active-CPUOVERLAP)*NAzimuthal], ghost_size, MPI_DOUBLE, CPU_Next, 61, MPI_COMM_WORLD, &req4);
-			MPI_Wait(&req4, &stat);
+            MPI_Wait(&req4, &global_MPI_Status);
 		}
 		if ( (CPU_Rank > 0) && (CPU_Rank < (CPU_Number+one_if_odd)/2) ) {
 			MPI_Isend(&g_radial[Zero_or_active*NAzimuthal], ghost_size, MPI_DOUBLE, CPU_Prev, 50, MPI_COMM_WORLD, &req5);
-			MPI_Wait(&req5, &stat);
+            MPI_Wait(&req5, &global_MPI_Status);
 			MPI_Irecv(&g_radial[0], ghost_size, MPI_DOUBLE, CPU_Prev, 51, MPI_COMM_WORLD, &req6);
-			MPI_Wait(&req6, &stat);
+            MPI_Wait(&req6, &global_MPI_Status);
 		}
 		if ( (CPU_Rank >= (CPU_Number+one_if_odd)/2) && (CPU_Rank != CPU_Highest) ) {
 			MPI_Irecv(&g_radial[Max_or_active*NAzimuthal], ghost_size, MPI_DOUBLE, CPU_Next, 50, MPI_COMM_WORLD, &req5);
-			MPI_Wait(&req5, &stat);
+            MPI_Wait(&req5, &global_MPI_Status);
 			MPI_Isend(&g_radial[(Max_or_active-CPUOVERLAP)*NAzimuthal], ghost_size, MPI_DOUBLE, CPU_Next, 51, MPI_COMM_WORLD, &req6);
-			MPI_Wait(&req6, &stat);
+            MPI_Wait(&req6, &global_MPI_Status);
 		}
 	}
 

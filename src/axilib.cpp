@@ -54,18 +54,18 @@ void mpi_make1Dprofile(double* grid, double* array)
 			}
 			/* send it to next cpu */
 			MPI_Isend(array, GlobalNRadial, MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req);
-			MPI_Wait(&req, &stat);
+            MPI_Wait(&req, &global_MPI_Status);
 		} else if (CPU_Rank != 0) {
 			/* wait for data from previous cpu */
 			MPI_Irecv(array, GlobalNRadial, MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req);
-			MPI_Wait(&req, &stat);
+            MPI_Wait(&req, &global_MPI_Status);
 			/* add local data */
 			for (nRadial = Zero_or_active; nRadial < Max_or_active; nRadial++)
 				array[nRadial+IMIN] = tempArray[nRadial];
 			/* send it to next cpu */
 			if (CPU_Rank != CPU_Highest) {
 				MPI_Isend(array, GlobalNRadial, MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req);
-				MPI_Wait(&req, &stat);
+                MPI_Wait(&req, &global_MPI_Status);
 			}
 		}
 

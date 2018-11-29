@@ -120,8 +120,8 @@ void CommunicateBoundaries(t_polargrid* Density, t_polargrid* Vrad, t_polargrid*
 	}
 
 	if (CPU_Rank != 0) {
-		MPI_Wait(&req1, &stat);
-		MPI_Wait(&req2, &stat);
+        MPI_Wait(&req1, &global_MPI_Status);
+        MPI_Wait(&req2, &global_MPI_Status);
 		memcpy(Density->Field, RecvInnerBoundary, l*sizeof(double));
 		memcpy(Vrad->Field, RecvInnerBoundary+l, l*sizeof(double));
 		memcpy(Vtheta->Field, RecvInnerBoundary+2*l, l*sizeof(double));
@@ -130,8 +130,8 @@ void CommunicateBoundaries(t_polargrid* Density, t_polargrid* Vrad, t_polargrid*
 	}
 
 	if (CPU_Rank != CPU_Highest) {
-		MPI_Wait(&req3, &stat);
-		MPI_Wait(&req4, &stat);
+        MPI_Wait(&req3, &global_MPI_Status);
+        MPI_Wait(&req4, &global_MPI_Status);
 		memcpy(Density->Field+oo, RecvOuterBoundary, l*sizeof(double));
 		memcpy(Vrad->Field+oo, RecvOuterBoundary+l, l*sizeof(double));
 		memcpy(Vtheta->Field+oo, RecvOuterBoundary+2*l, l*sizeof(double));

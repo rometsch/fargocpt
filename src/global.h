@@ -73,7 +73,7 @@ extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern int debug, OnlyInit;
 extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing;
 extern int CentrifugalBalance, ExcludeHill, SloppyCFL;
-extern MPI_Status stat;
+extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellAbscissa, *CellOrdinate;
 extern int OverridesOutputdir;
 
