@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <string.h>
+#include <chrono>
 
 #include "units.h"
 #include "constants.h"
@@ -203,6 +204,9 @@ int main(int argc, char* argv[])
 
 	PhysicalTimeInitial = PhysicalTime;
 
+  
+  std::chrono::steady_clock::time_point realtime_start = std::chrono::steady_clock::now();
+
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
 		InnerOutputCounter++;
 
@@ -226,9 +230,9 @@ int main(int argc, char* argv[])
 			// write quantities like energy, mass, ...
 			output::write_quantities(data);
 			// write misc stuff (important for resuming)
-            output::write_misc(TimeStep);
+      output::write_misc(TimeStep);
 			// write time info for coarse output
-            output::write_coarse_time(TimeStep, nTimeStep);
+      output::write_coarse_time(TimeStep, nTimeStep);
 			// write disk quantities like eccentricity, ...
 			if (parameters::write_disk_quantities)
 				output::write_disk_quantities(data, TimeStep, false);
@@ -259,8 +263,12 @@ int main(int argc, char* argv[])
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);
 	}
-                logging::print_master(LOG_INFO "-- Final: Total Timesteps %d, Physical Time %f.\n", N_iter, PhysicalTime);
-//                logging::print_master(LOG_INFO " -- Physical Time:: %f.\n", PhysicalTime);
+  
+  std::chrono::steady_clock::time_point realtime_end = std::chrono::steady_clock::now();
+  double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - realtime_start).count();
+
+  logging::print_master(LOG_INFO "-- Final: Total Timesteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
+                        N_iter, PhysicalTime, realtime/1000000.0, realtime/(1000.0*N_iter));
 
 	// free up everything
 	delete [] options::parameter_file;
