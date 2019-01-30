@@ -305,8 +305,8 @@ void update_velocities_from_disk_gravity(t_data &data, double dt) {
 	double dphi = 2.0*PI/(double)data[t_data::DENSITY].get_size_azimuthal();
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active; ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
-			double cell_angle = n_radial*dphi;
-			double cell_x =	Rmed[n_radial]*sin(cell_angle);
+            double cell_angle = n_azimuthal*dphi;
+			double cell_x =	Rmed[n_radial]*cos(cell_angle);
 			double cell_y = Rmed[n_radial]*sin(cell_angle);
 			double cell_mass = Surf[n_radial]*data[t_data::DENSITY](n_radial,n_azimuthal);
 			for (unsigned int i = 0; i < global_number_of_particles; ++i) {
@@ -314,8 +314,6 @@ void update_velocities_from_disk_gravity(t_data &data, double dt) {
 				double d_x = cell_x - all_particles[i].x;
 				double d_y = cell_y - all_particles[i].y;
 				double invdist3 = pow(pow2(d_x)+pow2(d_y)+pow2(smoothing),-3.0/2.0);
-
-		//		logging::print("i: %u dx: %g dy: %g dist: %g invdist: %g\n", i, d_x, d_y, sqrtf(pow2(d_x)+pow2(d_y)), invdist3);
 
 				force_x[i] += constants::G*cell_mass*d_x*invdist3;
 				force_y[i] += constants::G*cell_mass*d_y*invdist3;
