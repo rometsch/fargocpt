@@ -145,7 +145,8 @@ double SIGMASLOPE;
 double OMEGAFRAME;
 double IMPOSEDDISKDRIFT;
 double FLARINGINDEX;
-double ADIABATICINDEX;
+double ADIABATICINDEX; // Also used for polytropic energy equation
+double POLYTROPIC_CONSTANT;
 
 double LostMass;
 bool Stockholm;

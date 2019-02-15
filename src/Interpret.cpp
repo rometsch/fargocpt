@@ -14,6 +14,8 @@
 
 // energy euations
 bool Adiabatic = false;
+bool Polytropic = false;
+
 // frame
 int Corotating, GuidingCenter;
 
@@ -104,13 +106,70 @@ void ReadVariables(char* filename, t_data &data)
 	Indirect_Term = config::value_as_bool_default("IndirectTerm", 1);
 	Indirect_Term_Planet = config::value_as_bool_default("IndirectTermPlanet", 1);
 
-	// Energy equation / Adiabatic
-	Adiabatic = config::value_as_bool_default("Adiabatic", 0);
-	ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 7.0/5.0);
-	if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
-		logging::print_master(LOG_WARNING "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-		Adiabatic = 0;
-	}
+
+
+    // Energy equation / Adiabatic
+    int Adiabatic_deprecated = config::value_as_int_default("Adiabatic", 2);
+
+    if(Adiabatic_deprecated == 0)
+    {
+        logging::print_master(LOG_INFO "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   0' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
+    }
+    if(Adiabatic_deprecated == 1)
+    {
+        Adiabatic = true;
+        logging::print_master(LOG_INFO "Warning : Setting the ideal equation of state with the flag 'Adiabatic    1' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
+
+        ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 7.0/5.0);
+        if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
+            logging::print_master(LOG_WARNING "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+            Adiabatic = false;
+        }
+    }
+    else
+    {
+        switch (tolower(*config::value_as_string_default("EquationOfState","Isothermal")))
+        {
+            case 'i':
+            {
+                Adiabatic = false;
+                Polytropic = false;
+                logging::print_master(LOG_INFO "Using isothermal equation of state.\n");
+
+                break;
+            }
+            case 'a':
+            {
+                // Energy equation / Adiabatic
+                Adiabatic = true;
+                ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 7.0/5.0);
+                if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
+                    logging::print_master(LOG_WARNING "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+                    Adiabatic = false;
+                }
+                logging::print_master(LOG_INFO "Using ideal equation of state.\n");
+
+                break;
+            }
+        case 'p':
+        {
+            // Equation of state / Polytropic
+            Polytropic = true;
+            ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 2.0);
+            POLYTROPIC_CONSTANT = config::value_as_double_default("PolytropicConstant", 10.0);
+
+            if ( (Polytropic) && (ADIABATICINDEX == 1) ) {
+                logging::print_master(LOG_WARNING "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+                Polytropic = false;
+            }
+            logging::print_master(LOG_INFO "Using polytropic equation of state.\n");
+
+            break;
+        }
+            default:
+                die("Invalid setting for Energy Equation");
+        }
+    }
 
 	ExcludeHill = config::value_as_bool_default("EXCLUDEHILL", 0);
 	CICPlanet = config::value_as_bool_default("CICPLANET", 0);

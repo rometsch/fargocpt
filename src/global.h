@@ -101,6 +101,7 @@ extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;
 extern double FLARINGINDEX;
 extern double ADIABATICINDEX;
+extern double POLYTROPIC_CONSTANT;
 
 extern double LostMass;
 extern bool Stockholm;

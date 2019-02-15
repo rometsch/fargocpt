@@ -36,6 +36,8 @@
 #include <cstring>
 extern boolean Corotating;
 extern bool Adiabatic;
+extern bool Polytropic;
+
 extern boolean FastTransport;
 Pair DiskOnPrimaryAcceleration;
 double dtemp;
@@ -216,7 +218,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 	dtemp=0.0;
 
-	if (Adiabatic) {
+    if (Adiabatic || Polytropic) {
 		compute_sound_speed(data, false);
 		compute_aspect_ratio(data, false);
 		viscosity::update_viscosity(data);
@@ -252,7 +254,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 			// this must be done after communication of boundaries
 			// update soundspeed if adiabatic
-			if (Adiabatic) {
+            if (Adiabatic || Polytropic) {
 				compute_sound_speed(data, true);
 				compute_aspect_ratio(data, true);
 			}
@@ -474,6 +476,7 @@ void SubStep1(t_data &data, double dt)
 		}
 	}
 
+
 	// update v_azimuthal with source terms
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::V_AZIMUTHAL_SOURCETERMS].get_max_radial(); ++n_radial) {
 		supp_torque = IMPOSEDDISKDRIFT*0.5*pow(Rmed[n_radial],-2.5+SIGMASLOPE);
@@ -507,8 +510,10 @@ void SubStep1(t_data &data, double dt)
 
 	viscosity::update_velocities_with_viscosity(data, data[t_data::V_RADIAL_SOURCETERMS], data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
 
+
 	if ( (parameters::boundary_inner != parameters::boundary_condition_evanescent) || (parameters::boundary_outer != parameters::boundary_condition_evanescent) || (parameters::boundary_inner != parameters::boundary_condition_boundary_layer) || (parameters::boundary_outer != parameters::boundary_condition_boundary_layer) )
 		ApplySubKeplerianBoundary(data[t_data::V_AZIMUTHAL_SOURCETERMS]);
+
 	/* if ( !Evanescent )
 		ApplySubKeplerianBoundary(&v_azimuthal_sourceterms); */
 }
@@ -550,6 +555,7 @@ void SubStep2(t_data &data, double dt)
 			}
 		}
 
+
 		// add artificial viscous pressure source term to v_azimuthal
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::V_AZIMUTHAL_NEW].get_max_radial(); ++n_radial) {
 			dxtheta = 2.0*PI/(double)data[t_data::DENSITY].get_size_azimuthal()*Rmed[n_radial];
@@ -558,8 +564,10 @@ void SubStep2(t_data &data, double dt)
 				// 1/Sigma 1/r dq_phi/dphi : Sigma is calculated as a mean value between the neightbour cells
 				data[t_data::V_AZIMUTHAL_NEW](n_radial,n_azimuthal) = data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial,n_azimuthal)
 								- dt*2.0/(data[t_data::DENSITY](n_radial,n_azimuthal) + data[t_data::DENSITY](n_radial,n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal() : n_azimuthal-1))*(data[t_data::Q_PHI](n_radial,n_azimuthal) - data[t_data::Q_PHI](n_radial,n_azimuthal == 0 ? data[t_data::Q_PHI].get_max_azimuthal() : n_azimuthal-1))*invdxtheta;
+
 			}
 		}
+
 
 		// If gas disk is adiabatic, we add artificial viscosity as a source term for advection of thermal energy polargrid
 		if (Adiabatic) {
@@ -1343,7 +1351,8 @@ double condition_cfl(t_data& data, t_polargrid &v_radial, t_polargrid &v_azimuth
 
 	//for (unsigned int n_radial = Zero_or_active; n_radial < MaxMO_or_active; ++n_radial) {
 	for (unsigned int n_radial = 1+(CPUOVERLAP-1) * (CPU_Rank > 0 ? 1 : 0); n_radial < NRadial-2-(CPUOVERLAP-1)*(CPU_Rank < CPU_Number-1 ? 1 : 0); ++n_radial) {
-		dtLocal = 2.0*PI*parameters::CFL/(double)NAzimuthal/fabs(v_mean[n_radial]*InvRmed[n_radial]-v_mean[n_radial+1]*InvRmed[n_radial+1]);
+        dtLocal = 2.0*PI*parameters::CFL/(double)NAzimuthal/fabs(v_mean[n_radial]*InvRmed[n_radial]-v_mean[n_radial+1]*InvRmed[n_radial+1]);
+
 		if (dtLocal < dtGlobal)
 			dtGlobal = dtLocal;
 	}
@@ -1389,14 +1398,19 @@ void compute_sound_speed(t_data &data, bool force_update)
 
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::SOUNDSPEED].get_max_azimuthal(); ++n_azimuthal) {
-			if (!Adiabatic) {
-				// This follows from: cs^/v_Kepler = H/r
-				data[t_data::SOUNDSPEED](n_radial, n_azimuthal) = ASPECTRATIO*sqrt(constants::G*M/Rb[n_radial])*pow(Rb[n_radial], FLARINGINDEX);
+            if (Adiabatic) {
+                /*if ((ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial, n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)) < 0) {
+                    logging::print("SoundSpeed calc: %g < 0! density=%g energy=%g in cell (%u,%u)\n",(ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial, n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)), data[t_data::DENSITY](n_radial, n_azimuthal), data[t_data::ENERGY](n_radial, n_azimuthal), n_radial, n_azimuthal);
+                }*/
+                data[t_data::SOUNDSPEED](n_radial, n_azimuthal) = sqrt( ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial, n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal) );
 			} else {
-				/*if ((ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial, n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)) < 0) {
-					logging::print("SoundSpeed calc: %g < 0! density=%g energy=%g in cell (%u,%u)\n",(ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial, n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)), data[t_data::DENSITY](n_radial, n_azimuthal), data[t_data::ENERGY](n_radial, n_azimuthal), n_radial, n_azimuthal);
-				}*/
-				data[t_data::SOUNDSPEED](n_radial, n_azimuthal) = sqrt( ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial, n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal) );
+                if(Polytropic)
+                {
+                    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) = sqrt(ADIABATICINDEX * constants::R / parameters::MU * data[t_data::TEMPERATURE](n_radial, n_azimuthal));
+                } else { // isothermal
+                // This follows from: cs^/v_Kepler = H/r
+                data[t_data::SOUNDSPEED](n_radial, n_azimuthal) = ASPECTRATIO*sqrt(constants::G*M/Rb[n_radial])*pow(Rb[n_radial], FLARINGINDEX);
+                }
 			}
 		}
 	}
@@ -1418,12 +1432,12 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 		double inv_v_kepler = 1.0/(omega_kepler(Rb[n_radial])*Rb[n_radial]);
 
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ASPECTRATIO].get_max_azimuthal(); ++n_azimuthal) {
-			if (!Adiabatic) {
-				// h = H/r = c_s/v_k
-				data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = data[t_data::SOUNDSPEED](n_radial, n_azimuthal)*inv_v_kepler;
+            if (Adiabatic || Polytropic) {
+                // h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
+                data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = data[t_data::SOUNDSPEED](n_radial, n_azimuthal)/(sqrt(ADIABATICINDEX))*inv_v_kepler;
 			} else {
-				// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
-				data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = data[t_data::SOUNDSPEED](n_radial, n_azimuthal)/(sqrt(ADIABATICINDEX))*inv_v_kepler;
+                // h = H/r = c_s/v_k
+                data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = data[t_data::SOUNDSPEED](n_radial, n_azimuthal)*inv_v_kepler;
 			}
 		}
 	}
@@ -1444,11 +1458,16 @@ void compute_pressure(t_data &data, bool force_update)
 
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::PRESSURE].get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::PRESSURE].get_max_azimuthal(); ++n_azimuthal) {
-			if (!Adiabatic) {
-				// since SoundSpeed is not update from initialization, cs remains axisymmetric
-				data[t_data::PRESSURE](n_radial,n_azimuthal) = data[t_data::DENSITY](n_radial,n_azimuthal)*pow2(data[t_data::SOUNDSPEED](n_radial,n_azimuthal));
+            if (Adiabatic) {
+                data[t_data::PRESSURE](n_radial,n_azimuthal) = (ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,n_azimuthal);
 			} else {
-				data[t_data::PRESSURE](n_radial,n_azimuthal) = (ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,n_azimuthal);
+                if(Polytropic)
+                {
+                    data[t_data::PRESSURE](n_radial,n_azimuthal) = data[t_data::DENSITY](n_radial,n_azimuthal)*pow2(data[t_data::SOUNDSPEED](n_radial,n_azimuthal)) / ADIABATICINDEX;
+                } else { // Isothermal
+                // since SoundSpeed is not update from initialization, cs remains axisymmetric
+                data[t_data::PRESSURE](n_radial,n_azimuthal) = data[t_data::DENSITY](n_radial,n_azimuthal)*pow2(data[t_data::SOUNDSPEED](n_radial,n_azimuthal));
+                }
 			}
 		}
 	}
@@ -1469,10 +1488,14 @@ void compute_temperature(t_data &data, bool force_update)
 
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::TEMPERATURE].get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal(); ++n_azimuthal) {
-			if (!Adiabatic) {
-				data[t_data::TEMPERATURE](n_radial,n_azimuthal) = parameters::MU/constants::R*data[t_data::PRESSURE](n_radial,n_azimuthal)/data[t_data::DENSITY](n_radial,n_azimuthal);
+            if (Adiabatic) {
+                data[t_data::TEMPERATURE](n_radial,n_azimuthal) = parameters::MU/constants::R*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,n_azimuthal)/data[t_data::DENSITY](n_radial,n_azimuthal);
 			} else {
-				data[t_data::TEMPERATURE](n_radial,n_azimuthal) = parameters::MU/constants::R*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,n_azimuthal)/data[t_data::DENSITY](n_radial,n_azimuthal);
+                if(Polytropic){
+                    data[t_data::TEMPERATURE](n_radial,n_azimuthal) = parameters::MU/constants::R*POLYTROPIC_CONSTANT*pow(data[t_data::DENSITY](n_radial,n_azimuthal), ADIABATICINDEX-1.0);
+                } else { // Isothermal
+                    data[t_data::TEMPERATURE](n_radial,n_azimuthal) = parameters::MU/constants::R*data[t_data::PRESSURE](n_radial,n_azimuthal)/data[t_data::DENSITY](n_radial,n_azimuthal);
+                }
 			}
 		}
 	}
