@@ -173,9 +173,10 @@ if __name__ == "__main__":
 
     xatol = 1e-14
     f = lambda Kgamma: Ppoly_optimizer(Kgamma, density, pressure)
-    K, gamma = scipy.optimize.minimize(f, x0=[12, 2], method='Powell', tol=xatol).x
+    opt_result = scipy.optimize.minimize(f, x0=[12, 2], method='Powell', tol=xatol)
+    K, gamma = opt_result.x
 
-    print('Input file: ', file_path)
+    print('Fitting the Pressure from the Polytropic equations to the Pressure from the Isothermal Equations\nunsing the Input file: ', file_path)
     print('PolytropicConstant   ', K, '\nAdiabaticIndex       ', gamma)
 
 
@@ -187,7 +188,7 @@ if __name__ == "__main__":
         out_folder = 'out'
         units = get_units('../' + out_folder + '/')
 
-        time = [100]
+        time = [0]
 
         for dt in time:
             fargo_v_azi = np.fromfile('../' + out_folder + '/gasvtheta1D' + str(dt) + '.dat')
