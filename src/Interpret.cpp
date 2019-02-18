@@ -109,16 +109,16 @@ void ReadVariables(char* filename, t_data &data)
 
 
     // Energy equation / Adiabatic
-    int Adiabatic_deprecated = config::value_as_int_default("Adiabatic", 2);
+    char Adiabatic_deprecated = tolower(*config::value_as_string_default("Adiabatic", "false"));
 
-    if(Adiabatic_deprecated == 0)
+    if(Adiabatic_deprecated == 'n')
     {
-        logging::print_master(LOG_INFO "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   0' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
+        logging::print_master(LOG_INFO "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
     }
-    if(Adiabatic_deprecated == 1)
+    if(Adiabatic_deprecated == 'y')
     {
         Adiabatic = true;
-        logging::print_master(LOG_INFO "Warning : Setting the ideal equation of state with the flag 'Adiabatic    1' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
+        logging::print_master(LOG_INFO "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
         ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 7.0/5.0);
         if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
@@ -128,31 +128,40 @@ void ReadVariables(char* filename, t_data &data)
     }
     else
     {
-        switch (tolower(*config::value_as_string_default("EquationOfState","Isothermal")))
+        char eos_string[512];
+        strncpy(eos_string, config::value_as_string_default("EquationOfState","Isothermal"), 256); // same as MAXNAME from config.cpp
+        for (char* t = eos_string; *t != '\0'; ++t) {
+            *t = tolower(*t);
+        }
+
+        bool could_read_eos = false;
+        if(strcmp(eos_string, "isothermal") == 0 || strcmp(eos_string, "iso") == 0)
         {
-            case 'i':
-            {
+            could_read_eos = true;
+            Adiabatic = false;
+            Polytropic = false;
+            logging::print_master(LOG_INFO "Using isothermal equation of state.\n");
+
+        }
+        if(strcmp(eos_string, "adiabatic") == 0 || strcmp(eos_string, "ideal") == 0)
+        {
+            could_read_eos = true;
+
+            // Energy equation / Adiabatic
+            Adiabatic = true;
+            ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 7.0/5.0);
+            if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
+                logging::print_master(LOG_WARNING "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
                 Adiabatic = false;
-                Polytropic = false;
-                logging::print_master(LOG_INFO "Using isothermal equation of state.\n");
-
-                break;
             }
-            case 'a':
-            {
-                // Energy equation / Adiabatic
-                Adiabatic = true;
-                ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 7.0/5.0);
-                if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
-                    logging::print_master(LOG_WARNING "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-                    Adiabatic = false;
-                }
-                logging::print_master(LOG_INFO "Using ideal equation of state.\n");
+            logging::print_master(LOG_INFO "Using ideal equation of state.\n");
 
-                break;
-            }
-        case 'p':
+        }
+
+        if(strcmp(eos_string, "polytropic") == 0 || strcmp(eos_string, "polytrop") == 0 || strcmp(eos_string, "poly") == 0)
         {
+                could_read_eos = true;
+
             // Equation of state / Polytropic
             Polytropic = true;
             ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 2.0);
@@ -164,12 +173,13 @@ void ReadVariables(char* filename, t_data &data)
             }
             logging::print_master(LOG_INFO "Using polytropic equation of state.\n");
 
-            break;
         }
-            default:
-                die("Invalid setting for Energy Equation");
+
+        if(!could_read_eos)
+            die("Invalid setting for Energy Equation:   %s\n",config::value_as_string_default("EquationOfState","Isothermal"));
         }
-    }
+    die("END\n");
+
 
 	ExcludeHill = config::value_as_bool_default("EXCLUDEHILL", 0);
 	CICPlanet = config::value_as_bool_default("CICPLANET", 0);
