@@ -107,6 +107,9 @@ if __name__ == "__main__":
         print("Correct usage:\npython get_polytropic_constants.py <path to par file>\n")
         sys.exit()
 
+    low_output = False
+    if len(args) > 2:
+        low_output = True
 
     file_path = args[1]
     if os.path.isfile(file_path):
@@ -142,7 +145,7 @@ if __name__ == "__main__":
 
 
     if par['ProfileDamping'] == 'Yes':
-        print('ProfileDamping')
+        # print('ProfileDamping')
         for n_radial in range(len(density)):
             density[n_radial] *= cutoff(par['ProfileDampingPoint'], par['ProfileDampingWidth'], Rmed[n_radial])
 
@@ -176,9 +179,11 @@ if __name__ == "__main__":
     opt_result = scipy.optimize.minimize(f, x0=[12, 2], method='Powell', tol=xatol)
     K, gamma = opt_result.x
 
-    print('Fitting the Pressure from the Polytropic equations to the Pressure from the Isothermal Equations\nunsing the Input file: ', file_path)
-    print('PolytropicConstant   ', K, '\nAdiabaticIndex       ', gamma)
-
+    if not low_output:
+        print('Fitting the Pressure from the Polytropic equations to the Pressure from the Isothermal Equations\nunsing the Input file: ', file_path)
+        print('PolytropicConstant   ', K, '\nAdiabaticIndex       ', gamma)
+    else:
+        print(K, gamma)
 
 
     # Plotting for Testing
