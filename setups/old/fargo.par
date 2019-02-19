@@ -24,8 +24,9 @@ ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation fun
 ArtificialViscosityFactor	1.41 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex		0.0		# Slope of Temperature/radius profile
 SelfGravity		No		# choose: Yes, Z or No
-Adiabatic		No		# choose No for an isothermal eq. of state
-AdiabaticIndex		1.66		# [default = 1.4]
+EquationOfState		Isothermal		# Isothermal Ideal Polytropic [default = Isothermal]
+AdiabaticIndex		1.4		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+PolytropicConstant		FIT_ISOTHERMAL		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 CoolingRadiativeLocal	No		# enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal	No		# enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta		10
@@ -116,7 +117,7 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC or Exponential
 Ntot			100001		# Total number of time steps
 Ninterm	 		20		# Time steps between outputs
 DT			0.314159265359	# Time step length. 2PI = 1 orbit
-OutputDir		out3/
+OutputDir		out/
 
 WriteAtEveryTimestep	Yes		# Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 
@@ -155,8 +156,10 @@ WriteAspectRatio	No		# Write aspect ratio [default = no]
 WriteTorques		No		# Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth	No 	# Write optical depth in vertical direction (tau_eff by Hubeny [1990])
 
+RandomSeed		1337		# random seed integer value
 RandomSigma 		No		# randomize sigma start values?
 RandomFactor		0.1		# randomize by +- 10%
+FeatureSize		0.05		# Feature size of the open somplex algorithm
 
 ## particles
 IntegrateParticles	No     # enable particle integrator [default = no]	
