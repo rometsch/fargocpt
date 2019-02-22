@@ -188,11 +188,9 @@ void ReadVariables(char* filename, t_data &data)
 
             char ADIABATICINDEX_string[512];
             strncpy(ADIABATICINDEX_string, config::value_as_string_default("AdiabaticIndex","7.0/5.0"), 256); // same as MAXNAME from config.cpp
-            printf("%s\n", ADIABATICINDEX_string);
             for (char* t = ADIABATICINDEX_string; *t != '\0'; ++t) {
                 *t = tolower(*t);
             }
-            printf("%s\n", ADIABATICINDEX_string);
 
             if(strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 || strcmp(ADIABATICINDEX_string, "fit isothermal") == 0)
             {
@@ -270,8 +268,6 @@ void ReadVariables(char* filename, t_data &data)
         if(!could_read_eos)
             die("Invalid setting for Energy Equation:   %s\n",config::value_as_string_default("EquationOfState","Isothermal"));
         }
-
-    die("END\n");
 
 
 	ExcludeHill = config::value_as_bool_default("EXCLUDEHILL", 0);
