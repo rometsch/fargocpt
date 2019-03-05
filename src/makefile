@@ -35,8 +35,10 @@ GSL_PREFIX_HLR2 = /opt/gsl/2.1
 CC_BINAC = mpicc
 CXX_BINAC = mpic++
 CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas
-MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-6.1
-FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-6.1
+#MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-6.1
+MPI_PREFIX_BINAC = $(MPI_HOME)
+#FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-6.1
+FFTW_PREFIX_BINAC = $(FFTW_HOME)
 GSL_PREFIX_BINAC = /opt/bwhpc/common/numlib/gsl/2.1
 
 # Default Arch is LINUX
@@ -69,8 +71,8 @@ MPI_PREFIX = $(MPI_PREFIX_$(FARGO_ARCH))
 FFTW_PREFIX= $(FFTW_PREFIX_$(FARGO_ARCH))
 GSL_PREFIX= $(GSL_$(FARGO_ARCH))
 
-_CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_INC_DIR) -I$(MPI_INC_DIR) -I$(GSL_PREFIX)/include
-_CXXFLAGS = $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_INC_DIR) -I$(GSL_PREFIX)/include
+_CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include
+_CXXFLAGS = $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include
 
 SRCS_C = $(wildcard *.c)
 SRCS_CXX = $(wildcard *.cpp)
