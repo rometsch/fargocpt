@@ -16,30 +16,16 @@ FIND_PATH( MPI_INCLUDE_DIR
         mpi.h
         PATHS
         ${MPI_INCLUDE_DIRS}
-        /opt/bwhpc/common/mpi/openmpi/3.1.2-gnu-7.3/include/	/usr/local/openmpi-4.0/include/
+        /opt/bwhpc/common/mpi/openmpi/3.1.2-gnu-7.3/include/
         DOC "The directory where mpi.h resides")
         set(MPI_INCLUDE_DIRS ${MPI_INCLUDE_DIR})
 
 FIND_LIBRARY( MPI_LIBRARY
         NAMES MPI mpi
-        PATHS /opt/bwhpc/common/mpi/openmpi/3.1.2-gnu-7.3/	/usr/local/openmpi-4.0/lib/
+        PATHS /opt/bwhpc/common/mpi/openmpi/3.1.2-gnu-7.3/
         DOC "The MPI library")
         SET(MPI_LIBRARIES ${MPI_LIBRARY})
 # where the compiled program is located
-
-# find fftw3-mpi.h
-FIND_PATH( FFTW_MPI_INCLUDE_DIR
-        NAME
-	fftw3-mpi.h
-        PATHS
-	${FFTW_MPI_INCLUDE_DIRS}
-	/usr/local/fftw-3.3.8/include/
-        DOC "The directory where fftw3-mpi.h resides")
-	set(FFTW_MPI_INCLUDE_DIRS ${FFTW_MPI_INCLUDE_DIR})
-
-
-
-
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/..)
 
 # include files
@@ -63,8 +49,8 @@ else()
         # otherwise cmake finds gsl 1.5 on binac
         find_package(GSL REQUIRED)
 	
-	find_library(FFTW3_LIBRARY fftw3 HINTS "/usr/local/fftw-3.3.8/lib/")
-	find_library(FFTW3_MPI_LIBRARY fftw3_mpi HINTS "/usr/local/fftw-3.3.8/lib/")
+	find_library(FFTW3_LIBRARY fftw3 HINTS "")
+	find_library(FFTW3_MPI_LIBRARY fftw3_mpi HINTS "")
 	find_library(GSL_LIBRARY gsl HINTS "")
 	find_library(GSLCBLAS_LIBRARY gslcblas HINTS "")
 
@@ -73,11 +59,11 @@ endif()
 find_package(MPI REQUIRED)
 
 
-add_compile_options(-std=c++17 -O3 -Wall -Wextra -Wno-old-style-cast -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
-# add_compile_options(-std=c++17 -g -Wall -Wextra -Wno-old-style-cast -march=native -D_TRAP_FPE -D_GNU_SOURCE) 
+
+add_compile_options(-std=c++17 -Werror -O3 -Wall -Wextra -Wno-old-style-cast -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
 
 # Use imported targets would make things much eazier. Thanks Levi for pointing it out.
 add_executable(${PROJECT_NAME} ./main.cpp ${CPP_SOURCES} ${H_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${MPI_CXX_INCLUDE_PATH} ${FFTW_MPI_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} ${FFTW3_MPI_LIBRARY} ${FFTW3_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY})
-# target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} fftw3 fftw3_mpi gsl gslcblas)
+target_include_directories(${PROJECT_NAME} PRIVATE ${MPI_CXX_INCLUDE_PATH})
+target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} ${FFTW3_LIBRARY} ${FFTW3_MPI_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY})
+#target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} fftw3 fftw3_mpi gsl gslcblas)
