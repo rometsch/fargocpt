@@ -33,8 +33,8 @@ GSL_PREFIX_HLR2 = /opt/gsl/2.1
 # BINAC
 # FARGO_ARCH must be set to BINAC
 CC_BINAC = mpicc
-CXX_BINAC = mpic++
-CFLAGS_BINAC = -O2 -Wall -march=native -Wno-unknown-pragmas
+CXX_BINAC = mpicxx
+CFLAGS_BINAC = -Ofast -Wall -march=native -Wno-unknown-pragmas -std=c++11
 #MPI_PREFIX_BINAC = /opt/bwhpc/common/mpi/openmpi/1.10.3-gnu-6.1
 MPI_PREFIX_BINAC = $(MPI_HOME)
 #FFTW_PREFIX_BINAC = /opt/bwhpc/common/numlib/fftw/3.3.5-gnu-6.1
