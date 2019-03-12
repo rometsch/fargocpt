@@ -11,6 +11,7 @@
 #include <math.h>
 #include <chrono>
 #include "global.h"
+#include "parameters.h"
 
 namespace logging {
 
@@ -102,7 +103,7 @@ int print_master(const char *fmt, ...)
 	return r;
 }
 
-void print_runtime_info(unsigned int output_number, unsigned int time_step_coarse) {
+void print_runtime_info(unsigned int output_number, unsigned int time_step_coarse, double dt) {
 	// Print a line with information about the runtime: current hyrdro step, average runtime, ...
 	// depending on whether enough real time or number of hydro steps have passed since the last log
 
@@ -127,11 +128,12 @@ void print_runtime_info(unsigned int output_number, unsigned int time_step_coars
 			realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_last_log).count();
 		}
 		realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_start).count();
-		logging::print_master(LOG_INFO "output %d, timestep %d, hyrdostep %d, physicaltime %f, realtime %.2f s, timeperstep %.2f ms\n",
+		logging::print_master(LOG_INFO "output %d, timestep %d, hyrdostep %d, physicaltime %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 							  output_number,
 							  time_step_coarse,
 							  N_iter,
 							  PhysicalTime,
+							  dt,
 							  realtime/1000000.0,
 							  realtime_since_last/(1000.0*(N_iter-N_last_log))
 							  );
