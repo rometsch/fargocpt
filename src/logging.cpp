@@ -103,6 +103,20 @@ int print_master(const char *fmt, ...)
 	return r;
 }
 
+void start_timer() {
+	Realtime_start = std::chrono::steady_clock::now();
+	Realtime_last_log = Realtime_start;
+}
+
+void print_runtime_final() {
+	std::chrono::steady_clock::time_point realtime_end = std::chrono::steady_clock::now();
+	double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - Realtime_start).count();
+
+	logging::print_master(LOG_INFO "-- Final: Total Hyrdosteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
+						  N_iter, PhysicalTime, realtime/1000000.0, realtime/(1000.0*N_iter));
+
+}
+
 void print_runtime_info(unsigned int output_number, unsigned int time_step_coarse, double dt) {
 	// Print a line with information about the runtime: current hyrdro step, average runtime, ...
 	// depending on whether enough real time or number of hydro steps have passed since the last log
