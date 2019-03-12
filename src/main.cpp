@@ -1,6 +1,5 @@
 #include <mpi.h>
 #include <string.h>
-#include <chrono>
 
 #include "units.h"
 #include "constants.h"
@@ -204,9 +203,8 @@ int main(int argc, char* argv[])
 
 	PhysicalTimeInitial = PhysicalTime;
 
+	logging::start_timer();
   
-  std::chrono::steady_clock::time_point realtime_start = std::chrono::steady_clock::now();
-
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
 		InnerOutputCounter++;
 
@@ -259,16 +257,11 @@ int main(int argc, char* argv[])
 				output::write_lightcurves(data, TimeStep, true);
 			TimeToWrite = NO;
 		}
-
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);
 	}
-  
-  std::chrono::steady_clock::time_point realtime_end = std::chrono::steady_clock::now();
-  double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - realtime_start).count();
 
-  logging::print_master(LOG_INFO "-- Final: Total Timesteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
-                        N_iter, PhysicalTime, realtime/1000000.0, realtime/(1000.0*N_iter));
+	logging::print_runtime_final();
 
 	// free up everything
 	delete [] options::parameter_file;

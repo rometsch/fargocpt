@@ -422,7 +422,8 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 		}
 
 		PhysicalTime += dt;
-                N_iter = N_iter +1;
+		N_iter = N_iter +1;
+		logging::print_runtime_info(nTimeStep/NINTERM, nTimeStep, dt);
 	}
 
 	if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
@@ -446,6 +447,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 	if (data[t_data::TEMPERATURE].get_write()) {
 		compute_temperature(data, true);
 	}
+
 }
 
 /**

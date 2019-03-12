@@ -2,6 +2,7 @@
 #define GLOBAL_H
 
 #include <mpi.h>
+#include <chrono>
 #include "types.h"
 #include "radialarray.h"
 

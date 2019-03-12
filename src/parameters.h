@@ -167,6 +167,11 @@ extern bool write_at_every_timestep;
 extern bool write_lightcurves;
 extern std::vector<double> lightcurves_radii;
 
+// runtime output
+extern unsigned int log_after_steps;
+extern double log_after_real_seconds;
+
+
 // type of opacity
 enum t_opacity {
 	opacity_lin,	// opacity based on Lin & Papaloizou, 1985
