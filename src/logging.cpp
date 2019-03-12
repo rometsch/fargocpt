@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include <chrono>
 #include "global.h"
 
 namespace logging {
@@ -99,6 +100,45 @@ int print_master(const char *fmt, ...)
 	va_end(args);
 
 	return r;
+}
+
+void print_runtime_info(unsigned int output_number, unsigned int time_step_coarse) {
+	// Print a line with information about the runtime: current hyrdro step, average runtime, ...
+	// depending on whether enough real time or number of hydro steps have passed since the last log
+
+	std::chrono::steady_clock::time_point realtime_now;
+	double realtime = 0.0;
+	double realtime_since_last = 0.0;
+
+	if (parameters::log_after_real_seconds > 0.0) {
+		// need to get corrent time anyways
+		realtime_now = std::chrono::steady_clock::now();
+		realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_last_log).count();
+	}
+
+	// Do we have to log because enough steps passed?
+	bool log_bc_steps = parameters::log_after_steps > 0 && (N_iter - N_last_log) > parameters::log_after_steps;
+	// Do we have to log because enough real time passed?
+	bool log_bc_time = parameters::log_after_real_seconds > 0 && realtime_since_last/1000000.0 > parameters::log_after_real_seconds;
+	if ( log_bc_steps || log_bc_time )  {
+		if (log_bc_steps) {
+			// get current time if not happend already
+			realtime_now = std::chrono::steady_clock::now();
+			realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_last_log).count();
+		}
+		realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_start).count();
+		logging::print_master(LOG_INFO "output %d, timestep %d, hyrdostep %d, physicaltime %f, realtime %.2f s, timeperstep %.2f ms\n",
+							  output_number,
+							  time_step_coarse,
+							  N_iter,
+							  PhysicalTime,
+							  realtime/1000000.0,
+							  realtime_since_last/(1000.0*(N_iter-N_last_log))
+							  );
+		N_last_log = N_iter;
+		Realtime_last_log = realtime_now;
+	}
+
 }
 
 }

@@ -19,6 +19,8 @@ int vprint(const char* fmt, va_list args);
 int print(const char *fmt, ...);
 int print_master(const char *fmt, ...);
 
+void print_runtime_info(unsigned int output_number, unsigned int time_step_coarse);
+
 }
 
 #endif // LOGGING_H

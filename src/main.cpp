@@ -260,6 +260,7 @@ int main(int argc, char* argv[])
 				output::write_lightcurves(data, TimeStep, true);
 			TimeToWrite = NO;
 		}
+		logging:print_runtime_info(TimeStep, nTimeStep);
 
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);

@@ -102,6 +102,9 @@ bool write_lightcurves;
 bool write_at_every_timestep;
 std::vector<double> lightcurves_radii;
 
+unsigned int log_after_steps;
+double log_after_real_seconds;	
+
 t_opacity opacity;
 
 double thickness_smoothing;
@@ -212,6 +215,9 @@ void read(char* filename, t_data &data)
 	write_disk_quantities = config::value_as_bool_default("WriteDiskQuantities", false);
 	write_at_every_timestep = config::value_as_bool_default("WriteAtEveryTimestep", false);
 	write_lightcurves = config::value_as_bool_default("WriteLightCurves", false);
+
+	log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps",0);
+	log_after_real_seconds = config::value_as_double_default("LogAfterRealSeconds",3600.0);
 
 	// parse light curve radii
 	if (config::key_exists("WriteLightCurvesRadii")) {
