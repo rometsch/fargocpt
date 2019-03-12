@@ -5,6 +5,7 @@
 */
 
 #include <mpi.h>
+#include <chrono>
 #include "types.h"
 #include "radialarray.h"
 
@@ -150,3 +151,8 @@ double POLYTROPIC_CONSTANT;
 
 double LostMass;
 bool Stockholm;
+
+std::chrono::steady_clock::time_point Realtime_start;
+std::chrono::steady_clock::time_point Realtime_last_log;
+double Realtime_since_last;
+unsigned int N_last_log;
