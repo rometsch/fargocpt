@@ -137,7 +137,7 @@ void print_runtime_info(unsigned int output_number, unsigned int time_step_coars
 	}
 
 	// Do we have to log because enough steps passed?
-	bool log_bc_steps = parameters::log_after_steps > 0 && (N_iter - n_last_log) > parameters::log_after_steps;
+	bool log_bc_steps = parameters::log_after_steps > 0 && (N_iter - n_last_log) >= parameters::log_after_steps;
 	// Do we have to log because enough real time passed?
 	bool log_bc_time = parameters::log_after_real_seconds > 0 && realtime_since_last/1000000.0 > parameters::log_after_real_seconds;
 	if ( log_bc_steps || log_bc_time )  {
