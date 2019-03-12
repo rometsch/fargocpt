@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
 	}
   
   std::chrono::steady_clock::time_point realtime_end = std::chrono::steady_clock::now();
-  double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - realtime_start).count();
+  double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - Realtime_start).count();
 
   logging::print_master(LOG_INFO "-- Final: Total Timesteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
                         N_iter, PhysicalTime, realtime/1000000.0, realtime/(1000.0*N_iter));
