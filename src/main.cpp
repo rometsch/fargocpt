@@ -205,8 +205,9 @@ int main(int argc, char* argv[])
 	PhysicalTimeInitial = PhysicalTime;
 
   
-  std::chrono::steady_clock::time_point realtime_start = std::chrono::steady_clock::now();
-
+	Realtime_start = std::chrono::steady_clock::now();
+	Realtime_last_log = Realtime_start;
+  
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
 		InnerOutputCounter++;
 
