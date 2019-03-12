@@ -217,7 +217,7 @@ void read(char* filename, t_data &data)
 	write_lightcurves = config::value_as_bool_default("WriteLightCurves", false);
 
 	log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps",0);
-	log_after_real_seconds = config::value_as_double_default("LogAfterRealSeconds",3600.0);
+	log_after_real_seconds = config::value_as_double_default("LogAfterRealSeconds",600.0);
 
 	// parse light curve radii
 	if (config::key_exists("WriteLightCurvesRadii")) {
