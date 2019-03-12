@@ -24,6 +24,11 @@ char print_level = 3;
 /// messages with level <= error_level are printed to stderr
 char error_level = 0;
 
+// time keeping
+std::chrono::steady_clock::time_point realtime_start;
+std::chrono::steady_clock::time_point realtime_last_log;
+unsigned int n_last_log;
+
 int vprint(const char* fmt, va_list args)
 {
 	char time_buf[80];
@@ -104,13 +109,13 @@ int print_master(const char *fmt, ...)
 }
 
 void start_timer() {
-	Realtime_start = std::chrono::steady_clock::now();
-	Realtime_last_log = Realtime_start;
+	realtime_start = std::chrono::steady_clock::now();
+	realtime_last_log = realtime_start;
 }
 
 void print_runtime_final() {
 	std::chrono::steady_clock::time_point realtime_end = std::chrono::steady_clock::now();
-	double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - Realtime_start).count();
+	double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - realtime_start).count();
 
 	logging::print_master(LOG_INFO "-- Final: Total Hyrdosteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
 						  N_iter, PhysicalTime, realtime/1000000.0, realtime/(1000.0*N_iter));
@@ -128,20 +133,20 @@ void print_runtime_info(unsigned int output_number, unsigned int time_step_coars
 	if (parameters::log_after_real_seconds > 0.0) {
 		// need to get corrent time anyways
 		realtime_now = std::chrono::steady_clock::now();
-		realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_last_log).count();
+		realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - realtime_last_log).count();
 	}
 
 	// Do we have to log because enough steps passed?
-	bool log_bc_steps = parameters::log_after_steps > 0 && (N_iter - N_last_log) > parameters::log_after_steps;
+	bool log_bc_steps = parameters::log_after_steps > 0 && (N_iter - n_last_log) > parameters::log_after_steps;
 	// Do we have to log because enough real time passed?
 	bool log_bc_time = parameters::log_after_real_seconds > 0 && realtime_since_last/1000000.0 > parameters::log_after_real_seconds;
 	if ( log_bc_steps || log_bc_time )  {
 		if (log_bc_steps) {
 			// get current time if not happend already
 			realtime_now = std::chrono::steady_clock::now();
-			realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_last_log).count();
+			realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - realtime_last_log).count();
 		}
-		realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - Realtime_start).count();
+		realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - realtime_start).count();
 		logging::print_master(LOG_INFO "output %d, timestep %d, hyrdostep %d, physicaltime %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 							  output_number,
 							  time_step_coarse,
@@ -149,10 +154,10 @@ void print_runtime_info(unsigned int output_number, unsigned int time_step_coars
 							  PhysicalTime,
 							  dt,
 							  realtime/1000000.0,
-							  realtime_since_last/(1000.0*(N_iter-N_last_log))
+							  realtime_since_last/(1000.0*(N_iter-n_last_log))
 							  );
-		N_last_log = N_iter;
-		Realtime_last_log = realtime_now;
+		n_last_log = N_iter;
+		realtime_last_log = realtime_now;
 	}
 
 }

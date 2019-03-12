@@ -107,9 +107,4 @@ extern double POLYTROPIC_CONSTANT;
 extern double LostMass;
 extern bool Stockholm;
 
-extern std::chrono::steady_clock::time_point Realtime_start;
-extern std::chrono::steady_clock::time_point Realtime_last_log;
-extern double Realtime_since_last;
-extern unsigned int N_last_log;
-
 #endif // GLOBAL_H
