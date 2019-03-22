@@ -228,7 +228,9 @@ void write_misc(unsigned int timestep)
 
 		if (!fd_created) {
 			// print header
-			fprintf(fd,"# timestep\tphysical time\tOmegaFrame\tLostMass\tFrameAngle\n");
+			fprintf(fd,"#FargoCPT misc file\n ");
+			fprintf(fd,"#version: 2\n ");
+			fprintf(fd,"#content: timestep\tphysical time\tOmegaFrame\tFrameAngle\n");
 			fd_created = true;
 		}
 	}
