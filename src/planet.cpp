@@ -115,7 +115,9 @@ void t_planet::create_planet_file()
 		PersonalExit(1);
 	}
 
-	fprintf(fd,"#TimeStep\tXplanet\tYplanet\tVXplanet\tVYplanet\tMplanetVirtual\tLostMass\tPhysicalTime\tOmegaFrame\tmdcp\texces_mdcp\teccentricity_calculated\tj\tsemi_major_axis\tomega\n");
+	fprintf(fd,"#FargoCPT planet file\n");
+	fprintf(fd,"#version: 2\n");
+	fprintf(fd,"#content: TimeStep\tXplanet\tYplanet\tVXplanet\tVYplanet\tMplanetVirtual\tPhysicalTime\tOmegaFrame\tmdcp\texces_mdcp\teccentricity_calculated\tj\tsemi_major_axis\tomega\n");
 
 	fclose(fd);
 }
@@ -142,14 +144,13 @@ void t_planet::write(unsigned int timestep, bool big_file)
 	}
 	free(filename);
 
-	fprintf(fd, "%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	fprintf(fd, "%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 		timestep,
 		get_x(),
 		get_y(),
 		get_vx(),
 		get_vy(),
 		get_mass(),
-		LostMass,
 		PhysicalTime,
 		OmegaFrame,
 		mdcp,
