@@ -148,5 +148,5 @@ double FLARINGINDEX;
 double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
-double LostMass;
+BoundaryFlow MassFlow;
 bool Stockholm;
