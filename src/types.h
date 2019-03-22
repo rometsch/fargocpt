@@ -68,6 +68,30 @@ struct force {
 
 typedef struct force Force;
 
+class BoundaryFlow {
+ public:
+	// Mass flow over inner and outer boundary and mass change by wave damping boundaries
+	double InnerPositive;
+	double InnerNegative;
+	double OuterPositive;
+	double OuterNegative;
+	double WaveDampingPositive;
+	double WaveDampingNegative;
+
+	BoundaryFlow() {
+		reset()
+	}
+
+	void reset() {
+		InnerPositive = 0.0;
+		InnerNegative = 0.0;
+		OuterPositive = 0.0;
+		OuterNegative = 0.0;
+		WaveDampingPositive = 0.0;
+		WaveDampingNegative = 0.0;
+	}
+};
+
 #define YES 1
 #define NO 0
 
