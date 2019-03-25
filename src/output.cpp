@@ -237,7 +237,7 @@ void write_misc(unsigned int timestep)
 
 	if (CPU_Master) {
 		// print to logfile
-		fprintf(fd, "%u\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n", timestep, PhysicalTime, OmegaFrame, LostMass, FrameAngle);
+		fprintf(fd, "%u\t%#.18g\t%#.18g\t%#.18g\n", timestep, PhysicalTime, OmegaFrame, FrameAngle);
 
 		// close file
 		fclose(fd);
