@@ -4,6 +4,7 @@
 #include "types.h"
 #include "data.h"
 #include <vector>
+#include <string>
 
 namespace output {
 
@@ -16,9 +17,9 @@ void write_disk_quantities(t_data &data, unsigned int timestep, bool force_updat
 void write_torques(t_data &data, unsigned int timestep, bool force_update);
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update);
 void write_coarse_time(unsigned int coarseOutputNumber, unsigned int fineOutputNumber);
-
-double get_misc(unsigned int timestep, unsigned int column);
-
+ 
+ double get_misc(unsigned int timestep, std::string variable);
+std::string get_version(std::string filename);
 }
 
 #endif // OUTPUT_H
