@@ -247,19 +247,6 @@ void write_misc(unsigned int timestep)
 	}
 }
 
-double get_misc(unsigned int timestep, unsigned int column)
-{
-	FILE *fd;
-	char *fd_filename = 0;
-	char buffer[1024];
-	char *ptr;
-	unsigned int line_timestep = 0;
-	double value;
-
-	// create filename
-	if (asprintf(&fd_filename, "%smisc.dat", OUTPUTDIR) == -1) {
-		logging::print(LOG_ERROR "Not enough memory!\n");
-		PersonalExit(1);
 std::string get_version(std::string filename) {
 	std::string version;
 	std::ifstream infile(filename);
@@ -281,35 +268,36 @@ std::string get_version(std::string filename) {
 	return "1";
 }
 
-	// open file
-	fd = fopen(fd_filename, "r");
-	fseek(fd, 0, SEEK_SET);
-	if (fd == NULL) {
-		logging::print(LOG_ERROR "Can't read %s file. Aborting.\n", fd_filename);
-		PersonalExit(1);
+double get_from_ascii_file(std::string filename, unsigned int timestep, unsigned int column) {
+	unsigned int line_timestep = 0;
+	std::ifstream infile(filename);
+	std::string line_start;
+
+	while (infile >> line_start) {
+		// search the file until the correct timestep is found
+		std::cout << "line_start = " << line_start << std::endl;
+		if (line_start.substr(0,1) == "#") {
+			// jump to next line
+			infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		} else {
+			// check the timestep
+			line_timestep = std::stoul(line_start);
+			std::cout << "line_timestep = " << line_timestep << std::endl;
+			if (line_timestep == timestep) {
+				break;
+			} else {
+				// jump to next line
+				infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			}
+		}
 	}
-	free(fd_filename);
-
-	// read file until line with correct timestep
-	do {
-		ptr = fgets(buffer, sizeof(buffer), fd);
-		sscanf(buffer, "%u", &line_timestep);
-	} while ((line_timestep != timestep) && (ptr != NULL));
-
-	// close file
-	fclose(fd);
-
-	if (ptr == NULL) {
-		logging::print_master(LOG_ERROR "Can't read entry %u in 'misc.dat'!\n", timestep);
-		PersonalExit(1);
+	double rv;
+	// read as many times as needed to reach the desired value
+	for (unsigned int i=0; i<column; i++) {
+		infile >> rv;
 	}
-
-	// move ptr until correct column
-	while (column > 1) {
-		ptr += strspn(ptr, "eE0123456789+-.");
-		ptr += strspn(ptr, "\t :=>_");
-		column--;
-	}
+	return rv;
+}
 
 	sscanf(ptr, "%lf", &value);
 	return value;
