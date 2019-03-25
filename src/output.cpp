@@ -19,6 +19,9 @@
 #include "options.h"
 
 #include <sys/stat.h>
+#include <fstream>
+#include <cstdio>
+#include <limits>
 
 
 namespace output {
