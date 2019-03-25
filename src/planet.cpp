@@ -4,9 +4,47 @@
 #include "global.h"
 #include "logging.h"
 #include "LowTasks.h"
+#include "output.h"
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <cstdio>
+#include <map>
+
+// define the variables in the planet data file
+std::map<std::string, int> planet_file_column_v1 = {
+	{ "TimeStep", 0 }
+	,{ "Xplanet", 1 }
+	,{ "Yplanet", 2 }
+	,{ "VXplanet", 3 }
+	,{ "VYplanet", 4 }
+	,{ "MplanetVirtual", 5 }
+	,{ "LostMass", 6 }
+	,{ "PhysicalTime", 7 }
+	,{ "OmegaFrame", 8 }
+	,{ "mdcp", 9 }
+	,{ "exces_mdcp", 10 }
+	,{ "eccentricity_calculated", 11 }
+	,{ "angular_momentum", 12 }
+	,{ "semi_major_axis", 13 }
+	,{ "omega", 14 } };
+
+// file version 2
+std::map<std::string, int> planet_file_column_v2 = {
+	{ "TimeStep", 0 }
+	,{ "Xplanet", 1 }
+	,{ "Yplanet", 2 }
+	,{ "VXplanet", 3 }
+	,{ "VYplanet", 4 }
+	,{ "MplanetVirtual", 5 }
+	,{ "PhysicalTime", 6 }
+	,{ "OmegaFrame", 7 }
+	,{ "mdcp", 8 }
+	,{ "exces_mdcp", 9 }
+	,{ "eccentricity_calculated", 10 }
+	,{ "angular_momentum", 11 }
+	,{ "semi_major_axis", 12 }
+	,{ "omega", 13 } };
 
 /**
 	set name of planet
@@ -166,58 +204,40 @@ void t_planet::write(unsigned int timestep, bool big_file)
 
 void t_planet::restart(unsigned int timestep)
 {
-	m_x = get_value_from_file(timestep, 2);
-	m_y = get_value_from_file(timestep, 3);
-	m_vx = get_value_from_file(timestep, 4);
-	m_vy = get_value_from_file(timestep, 5);
-	m_mass = get_value_from_file(timestep, 6);
+	m_x = get_value_from_file(timestep, "Xplanet");
+	m_y = get_value_from_file(timestep, "Yplanet");
+	m_vx = get_value_from_file(timestep, "VXplanet");
+	m_vy = get_value_from_file(timestep, "VYplanet");
+	m_mass = get_value_from_file(timestep, "MplanetVirtual");
 }
 
-double t_planet::get_value_from_file(unsigned int timestep, unsigned int column)
+double t_planet::get_value_from_file(unsigned int timestep, std::string variable_name)
 {
-	FILE *fd;
-	char *filename = 0;
-	char buffer[256];
-	char *ptr;
-	unsigned int line_timestep;
 	double value;
+	int column;
 
-	// create filename
-	if (asprintf(&filename, "%splanet%u.dat", OUTPUTDIR, get_planet_number()) == -1) {
-		logging::print(LOG_ERROR "Not enough memory!\n");
-		PersonalExit(1);
+	std::string filename = std::string(OUTPUTDIR) + "planet"
+	    + std::to_string(get_planet_number()) + ".dat";
+
+	std::string version = output::get_version(filename);
+	std::map<std::string, int> variable_columns;
+
+	if (version == "1") {
+		variable_columns = planet_file_column_v1;
+    } else if (version == "2") {
+		variable_columns = planet_file_column_v2;
+	} else {
+		std::cerr << "Unknown version '" << version << "'for planet.dat file!" << std::endl;
+	    PersonalExit(1);
 	}
 
-	// open file
-	fd = fopen(filename, "r");
-	if (fd == NULL) {
-		logging::print(LOG_ERROR "Can't read %s file. Aborting.\n", filename);
-		PersonalExit(1);
+	// check whether the column map contains the variable
+	auto iter = variable_columns.find(variable_name);
+	if (iter != variable_columns.end() ) {
+		column = iter->second;
+	} else {
+		std::cerr << "Unknown variable '" << variable_name << "' for planet.dat file version '" << version << "'\n" << std::endl;
 	}
-	free(filename);
-
-	// read file until line with correct timestep
-	do {
-		ptr = fgets(buffer, sizeof(buffer), fd);
-		sscanf(buffer, "%u", &line_timestep);
-	} while ((line_timestep != timestep) && (ptr != NULL));
-
-	if (ptr == NULL) {
-		logging::print_master(LOG_ERROR "Can't read entry %u in 'planet%u.dat'!\n", timestep, get_planet_number());
-		PersonalExit(1);
-	}
-
-	// close file
-	fclose(fd);
-
-	// move ptr until correct column
-	while (column > 1) {
-		ptr += strspn(ptr, "eE0123456789-.");
-		ptr += strspn(ptr, "\t :=>_");
-		column--;
-	}
-
-	sscanf(ptr, "%lf", &value);
-
+	value = output::get_from_ascii_file(filename, timestep, column);
 	return value;
 }
