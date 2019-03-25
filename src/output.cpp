@@ -158,7 +158,7 @@ void write_quantities(t_data &data)
 
 		if (!fd_created) {
 			// print header
-			fprintf(fd,"# physical time\t\tmass\t\t\tangular momentum\ttotal energy\t\tinternal energy\t\tkinematic energy\tpotential energy\tqplus\tqminus\tpvdiv\tradial kinetic energy\tazimuthal kinetic energy\n");
+			fprintf(fd,"# physical time\t\tmass\t\t\tangular momentum\ttotal energy\t\tinternal energy\t\tkinematic energy\tpotential energy\tqplus\tqminus\tpvdiv\tradial kinetic energy\tazimuthal kinetic energy\tdelta mass inner positive\tdelta mass inner negative\tdelta mass outer positive\tdelta mass outer negative\tdelta mass wave damping positive\tdelta mass wave damping negative\n");
 			fd_created = true;
 		}
 	}
@@ -175,7 +175,7 @@ void write_quantities(t_data &data)
 
 	if (CPU_Master) {
 		// print to logfile
-		fprintf(fd, "%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		fprintf(fd, "%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 			PhysicalTime,
 			totalMass,
 			totalAngularMomentum,
@@ -187,7 +187,16 @@ void write_quantities(t_data &data)
 			data.qminus_total,
 			data.pdivv_total,
 			radialKinematicEnergy,
-			azimuthalKinematicEnergy);
+			azimuthalKinematicEnergy,
+			MassDelta.InnerPositive,
+			MassDelta.InnerNegative,
+			MassDelta.OuterPositive,
+			MassDelta.OuterNegative,
+			MassDelta.WaveDampingPositive,
+			MassDelta.WaveDampingNegative );
+
+		// set mass delta to 0
+		MassDelta.reset();
 
 		// close file
 		fclose(fd);
