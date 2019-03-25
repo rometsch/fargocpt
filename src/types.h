@@ -79,8 +79,8 @@ class BoundaryFlow {
 	double WaveDampingNegative;
 
 	BoundaryFlow() {
-		reset()
-	}
+		reset();
+	};
 
 	void reset() {
 		InnerPositive = 0.0;
