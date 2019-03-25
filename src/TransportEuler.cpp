@@ -124,7 +124,7 @@ void OneWindRad(t_data &data, PolarGrid* Density, PolarGrid* VRadial, PolarGrid*
 	if (Adiabatic)
 		VanLeerRadial(data, VRadial, Energy, dt);
 
-	LostMass += VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
+	VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
 }
 
 /* Hereafter are the new specific procedures to the fast algorithm */
@@ -410,7 +410,7 @@ void compute_velocities_from_momenta(t_polargrid &density, t_polargrid &v_radial
 	}
 }
 
-double VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt)
+void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt)
 {
 	unsigned int nRadial, nAzimuthal, cell;
 	int lip;

@@ -31,7 +31,6 @@
 int TimeToWrite;
 int dimfxy = 11, Restart = 0;
 static int InnerOutputCounter=0, StillWriteOneOutput;
-extern double LostMass;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
 extern bool Adiabatic;
@@ -46,8 +45,6 @@ unsigned int nTimeStep;
 int main(int argc, char* argv[])
 {
 	t_data data;
-
-	LostMass = 0.0;
 
 	N_iter= 0;
 

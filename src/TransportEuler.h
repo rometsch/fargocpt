@@ -23,7 +23,7 @@ void ComputeStarTheta(PolarGrid* Qbase, PolarGrid* VAzimuthal, PolarGrid* QStar,
 void compute_momenta_from_velocities(t_polargrid &density, t_polargrid &v_radial, t_polargrid &v_azimuthal);
 void compute_velocities_from_momenta(t_polargrid &density, t_polargrid &v_radial, t_polargrid &v_azimuthal);
 
-double VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt);
+void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt);
 void VanLeerTheta(t_data &data, PolarGrid* VAzimuthal, PolarGrid* Qbase, double dt);
 void boundary_layer_mass_influx(PolarGrid* QStar, PolarGrid* VRadial);
 
