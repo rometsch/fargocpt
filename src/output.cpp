@@ -299,8 +299,34 @@ double get_from_ascii_file(std::string filename, unsigned int timestep, unsigned
 	return rv;
 }
 
-	sscanf(ptr, "%lf", &value);
-	return value;
+double get_misc(unsigned int timestep, std::string variable)
+{
+	unsigned int column = 0;
+	std::string filename = std::string(OUTPUTDIR) + "misc.dat";
+	std::string version = get_version(filename);
+
+	if (version == "2") {
+		if (variable == "timestep") column = 0;
+		else if (variable == "physical time") column = 1;
+		else if (variable == "OmegaFrame") column = 2;
+		else if (variable == "FrameAngle") column = 3;
+		else {
+			printf("Don't know variable '%s' in misc.dat v2\n", variable.c_str());
+			PersonalExit(1);
+		}
+	}
+	else if (version == "1") {
+		if (variable == "timestep") column = 0;
+		else if (variable == "physical time") column = 1;
+		else if (variable == "OmegaFrame") column = 2;
+		else if (variable == "LostMass") column = 3;
+		else if (variable == "FrameAngle") column = 4;
+		else {
+			printf("Don't know variable '%s' in misc.dat v1\n", variable.c_str());
+			PersonalExit(1);
+		}
+	}
+    return get_from_ascii_file(filename, timestep, column);
 }
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update) {
