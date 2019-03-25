@@ -155,9 +155,9 @@ int main(int argc, char* argv[])
 		data.get_planetary_system().restart(options::restart_from);
 
 		logging::print_master(LOG_INFO "Reading misc data...\n");
-		PhysicalTime = output::get_misc(options::restart_from, 2);
-		OmegaFrame = output::get_misc(options::restart_from, 3);
-		LostMass = output::get_misc(options::restart_from, 4);
+		PhysicalTime = output::get_misc(options::restart_from, "physical time");
+		OmegaFrame = output::get_misc(options::restart_from, "OmegaFrame");
+		FrameAngle = output::get_misc(options::restart_from, "FrameAngle");
 
 		// load grids at t = 0
 		logging::print_master(LOG_INFO "Loading polargrinds at t = 0...\n");
