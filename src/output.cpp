@@ -260,7 +260,26 @@ double get_misc(unsigned int timestep, unsigned int column)
 	if (asprintf(&fd_filename, "%smisc.dat", OUTPUTDIR) == -1) {
 		logging::print(LOG_ERROR "Not enough memory!\n");
 		PersonalExit(1);
+std::string get_version(std::string filename) {
+	std::string version;
+	std::ifstream infile(filename);
+	std::string line_start;
+	while (infile >> line_start) {
+		// is it the version line
+		if (line_start == "#version:") {
+			infile >> version;
+			return version;
+		} else if (line_start.substr(0,1) == "#") {
+			// were still in the header, jump to next line
+			infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		} else {
+			// not a comment line anymore, so nothing was found
+			break;
+		}
 	}
+	// nothing found up until here, assume dafault version 1.
+	return "1";
+}
 
 	// open file
 	fd = fopen(fd_filename, "r");
