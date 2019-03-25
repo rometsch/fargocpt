@@ -275,14 +275,12 @@ double get_from_ascii_file(std::string filename, unsigned int timestep, unsigned
 
 	while (infile >> line_start) {
 		// search the file until the correct timestep is found
-		std::cout << "line_start = " << line_start << std::endl;
 		if (line_start.substr(0,1) == "#") {
 			// jump to next line
 			infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 		} else {
 			// check the timestep
 			line_timestep = std::stoul(line_start);
-			std::cout << "line_timestep = " << line_timestep << std::endl;
 			if (line_timestep == timestep) {
 				break;
 			} else {
