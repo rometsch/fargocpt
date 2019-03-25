@@ -103,7 +103,7 @@ extern double FLARINGINDEX;
 extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
-extern BoundaryFlow MassFlow;
+extern BoundaryFlow MassDelta;
 extern bool Stockholm;
 
 #endif // GLOBAL_H
