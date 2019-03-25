@@ -11,6 +11,7 @@
 #include <math.h>
 #include "util.h"
 #include "Theo.h"
+#include <cstring>
 
 // temporary
 #include "SideEuler.h"
@@ -229,6 +230,9 @@ void viscous_outflow_boundary_inner(t_data &data)
 static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double dt) {
 	// use the correct radius array corresponding to quantity
 	t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
+	double delta;
+	double X, X0, Xnew;
+	bool is_density = strcmp( quantity.get_name(), "dens");
 
 	// is this CPU in the inner damping domain?
 	if ((parameters::damping_inner_limit > 1.0) && (radius[0] < RMIN*parameters::damping_inner_limit)) {
@@ -246,7 +250,18 @@ static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double
 			double exp_factor = exp(-dt*factor/tau);
 
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
-				quantity(n_radial, n_azimuthal) = (quantity(n_radial,n_azimuthal)-quantity0(n_radial,n_azimuthal)) * exp_factor + quantity0(n_radial,n_azimuthal);
+				X = quantity(n_radial,n_azimuthal);
+				X0 = quantity0(n_radial,n_azimuthal);
+				Xnew = (X-X0) * exp_factor + X0;
+				quantity(n_radial, n_azimuthal) = Xnew;
+				delta = Xnew - X;
+				if ( is_density ) {
+					if (delta > 0) {
+						MassDelta.WaveDampingPositive += delta;
+					} else {
+						MassDelta.WaveDampingNegative += delta;
+					}
+				}
 			}
 		}
 	}
@@ -267,7 +282,18 @@ static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double
 			double exp_factor = exp(-dt*factor/tau);
 
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
-				quantity(n_radial, n_azimuthal) = (quantity(n_radial,n_azimuthal)-quantity0(n_radial,n_azimuthal)) * exp_factor + quantity0(n_radial,n_azimuthal);
+				X = quantity(n_radial,n_azimuthal);
+				X0 = quantity0(n_radial,n_azimuthal);
+				Xnew = (X-X0) * exp_factor + X0;
+				quantity(n_radial, n_azimuthal) = Xnew;
+				delta = Xnew - X;
+				if ( is_density ) {
+					if (delta > 0) {
+						MassDelta.WaveDampingPositive += delta;
+					} else {
+						MassDelta.WaveDampingNegative += delta;
+					}
+				}
 			}
 		}
 	}
