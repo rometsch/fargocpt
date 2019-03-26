@@ -173,7 +173,9 @@ void t_planet::create_planet_file()
 		logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
 		PersonalExit(1);
 	}
-
+	fprintf(fd,"#FargoCPT planet file\n");
+	fprintf(fd,"#version: 2\n");
+	fprintf(fd, "%s", planet_file_variable_descriptor().c_str());
 	fclose(fd);
 
 	// create big file
@@ -192,7 +194,7 @@ void t_planet::create_planet_file()
 
 	fprintf(fd,"#FargoCPT planet file\n");
 	fprintf(fd,"#version: 2\n");
-	fprintf(fd,"#content: TimeStep\tXplanet\tYplanet\tVXplanet\tVYplanet\tMplanetVirtual\tPhysicalTime\tOmegaFrame\tmdcp\texces_mdcp\teccentricity_calculated\tj\tsemi_major_axis\tomega\n");
+	fprintf(fd, "%s", planet_file_variable_descriptor().c_str());
 
 	fclose(fd);
 }
