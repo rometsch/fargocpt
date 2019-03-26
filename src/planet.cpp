@@ -12,7 +12,7 @@
 #include <map>
 
 // define the variables in the planet data file
-std::map<std::string, int> planet_file_column_v1 = {
+const std::map<std::string, int> planet_file_column_v1 = {
 	{ "TimeStep", 0 }
 	,{ "Xplanet", 1 }
 	,{ "Yplanet", 2 }
@@ -30,7 +30,7 @@ std::map<std::string, int> planet_file_column_v1 = {
 	,{ "omega", 14 } };
 
 // file version 2
-std::map<std::string, int> planet_file_column_v2 = {
+const std::map<std::string, int> planet_file_column_v2 = {
 	{ "TimeStep", 0 }
 	,{ "Xplanet", 1 }
 	,{ "Yplanet", 2 }
@@ -45,6 +45,43 @@ std::map<std::string, int> planet_file_column_v2 = {
 	,{ "angular_momentum", 11 }
 	,{ "semi_major_axis", 12 }
 	,{ "omega", 13 } };
+
+auto planet_files_column = planet_file_column_v2;
+
+std::map<std::string, std::string> variable_units = {
+	{ "TimeStep", "1" }
+	,{ "Xplanet", "cm" }
+	,{ "Yplanet", "cm" }
+	,{ "VXplanet", "cm/s" }
+	,{ "VYplanet", "cm/s" }
+	,{ "MplanetVirtual", "g" }
+	,{ "LostMass", "g" }
+	,{ "PhysicalTime", "s" }
+	,{ "OmegaFrame", "1/s" }
+	,{ "mdcp", "g" }
+	,{ "exces_mdcp", "g" }
+	,{ "eccentricity_calculated", "1" }
+	,{ "angular_momentum", "g cm2/s" }
+	,{ "semi_major_axis", "cm" }
+	,{ "omega", "1/s" } };
+
+std::string planet_file_variable_descriptor() {
+	std::map<int, std::string> vars_by_column;
+	for (auto const &ent : planet_files_column) {
+		std::string name = ent.first;
+		int column = ent.second;
+		vars_by_column[column] = name;
+	}
+	std::string var_descriptor;
+	for (auto const &ent : vars_by_column) {
+		std::string column = std::to_string(ent.first);
+		std::string name = ent.second;
+		std::string unit = variable_units[name];
+		var_descriptor += "#variable: " + column + " | "
+			+ name + " | " + unit + "\n";
+	}
+	return var_descriptor;
+}
 
 /**
 	set name of planet
