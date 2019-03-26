@@ -12,7 +12,7 @@
 #include <map>
 
 // define the variables in the planet data file
-const std::map<std::string, int> planet_file_column_v1 = {
+const std::map<const std::string, const int> planet_file_column_v1 = {
 	{ "TimeStep", 0 }
 	,{ "Xplanet", 1 }
 	,{ "Yplanet", 2 }
@@ -30,7 +30,7 @@ const std::map<std::string, int> planet_file_column_v1 = {
 	,{ "omega", 14 } };
 
 // file version 2
-const std::map<std::string, int> planet_file_column_v2 = {
+const std::map<const std::string, const int> planet_file_column_v2 = {
 	{ "TimeStep", 0 }
 	,{ "Xplanet", 1 }
 	,{ "Yplanet", 2 }
@@ -48,7 +48,7 @@ const std::map<std::string, int> planet_file_column_v2 = {
 
 auto planet_files_column = planet_file_column_v2;
 
-std::map<std::string, std::string> variable_units = {
+const std::map<const std::string, const std::string> variable_units = {
 	{ "TimeStep", "1" }
 	,{ "Xplanet", "cm" }
 	,{ "Yplanet", "cm" }
@@ -241,7 +241,7 @@ double t_planet::get_value_from_file(unsigned int timestep, std::string variable
 	    + std::to_string(get_planet_number()) + ".dat";
 
 	std::string version = output::get_version(filename);
-	std::map<std::string, int> variable_columns;
+	auto variable_columns = planet_file_column_v2;
 
 	if (version == "1") {
 		variable_columns = planet_file_column_v1;
