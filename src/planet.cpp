@@ -65,24 +65,6 @@ std::map<std::string, std::string> variable_units = {
 	,{ "semi_major_axis", "cm" }
 	,{ "omega", "1/s" } };
 
-std::string planet_file_variable_descriptor() {
-	std::map<int, std::string> vars_by_column;
-	for (auto const &ent : planet_files_column) {
-		std::string name = ent.first;
-		int column = ent.second;
-		vars_by_column[column] = name;
-	}
-	std::string var_descriptor;
-	for (auto const &ent : vars_by_column) {
-		std::string column = std::to_string(ent.first);
-		std::string name = ent.second;
-		std::string unit = variable_units[name];
-		var_descriptor += "#variable: " + column + " | "
-			+ name + " | " + unit + "\n";
-	}
-	return var_descriptor;
-}
-
 /**
 	set name of planet
 */

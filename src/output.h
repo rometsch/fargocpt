@@ -5,6 +5,7 @@
 #include "data.h"
 #include <vector>
 #include <string>
+#include <map>
 
 namespace output {
 
@@ -21,6 +22,7 @@ void write_coarse_time(unsigned int coarseOutputNumber, unsigned int fineOutputN
 double get_misc(unsigned int timestep, std::string variable);
 double get_from_ascii_file(std::string filename, unsigned int timestep, unsigned int column);
 std::string get_version(std::string filename);
+std::string text_file_variable_description(const std::map<const std::string,const int> &variables, const std::map<const std::string, const std::string> &units);
 }
 
 #endif // OUTPUT_H

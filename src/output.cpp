@@ -277,6 +277,28 @@ std::string get_version(std::string filename) {
 	return "1";
 }
 
+std::string text_file_variable_description(const std::map<const std::string, const int> &variables, const std::map<const std::string, const std::string> &units) {
+	// construct a header string describing each variable in
+	// its own line including the column and its unit. e.g.
+	// #variable: 1 | PhysicalTime | s
+
+	std::map<int, std::string> vars_by_column;
+	for (auto const &ent : variables) {
+		std::string name = ent.first;
+		int column = ent.second;
+		vars_by_column[column] = name;
+	}
+	std::string var_descriptor;
+	for (auto const &ent : vars_by_column) {
+		std::string column = std::to_string(ent.first);
+		std::string name = ent.second;
+		std::string unit = units.at(name);
+		var_descriptor += "#variable: " + column + " | "
+			+ name + " | " + unit + "\n";
+	}
+	return var_descriptor;
+}
+
 double get_from_ascii_file(std::string filename, unsigned int timestep, unsigned int column) {
 	unsigned int line_timestep = 0;
 	std::ifstream infile(filename);
