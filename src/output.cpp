@@ -26,6 +26,74 @@
 
 namespace output {
 
+// info on variables in misc file
+const std::map<const std::string, const int> misc_file_column_v1 = {
+	{ "TimeStep", 0 }
+	,{ "PhysicalTime", 1 }
+	,{ "OmegaFrame", 2 }
+	,{ "LostMass", 3 }
+	,{ "FrameAngle", 4 } };
+
+const std::map<const std::string, const int> misc_file_column_v2 = {
+	{ "TimeStep", 0 }
+	,{ "PhysicalTime", 1 }
+	,{ "OmegaFrame", 2 }
+	,{ "FrameAngle", 3 } };
+
+auto misc_file_columns = misc_file_column_v2;
+
+const std::map<const std::string, const std::string> misc_file_variables = {
+	{ "TimeStep", "1" },
+	{ "PhysicalTime", "s" },
+	{ "OmegaFrame", "1/s" },
+	{ "LostMass", "g" },
+	{ "FrameAngle", "1" }
+	};
+
+const std::map<const std::string, const int> quantities_file_column_v2 = {
+{ "physical time", 0 },
+{ "mass", 1 },
+{ "angular momentum", 2 },
+{ "total energy", 3 },
+{ "internal energy", 4 },
+{ "kinematic energy", 5 },
+{ "potential energy", 6 },
+{ "qplus", 7 },
+{ "qminus", 8 },
+{ "pvdiv", 9 },
+{ "radial kinetic energy", 10 },
+{ "azimuthal kinetic energy", 11 },
+{ "delta mass inner positive", 12 },
+{ "delta mass inner negative", 13 },
+{ "delta mass outer positive", 14 },
+{ "delta mass outer negative", 15 },
+{ "delta mass wave damping positive", 16 },
+{ "delta mass wave damping negative", 17 }
+};
+
+auto quantities_file_column = quantities_file_column_v2;
+
+const std::map<const std::string, const std::string> quantities_file_variables = {
+{ "physical time", "s" },
+{ "mass", "g" },
+{ "angular momentum", "g cm2/s" },
+{ "total energy", "J" },
+{ "internal energy", "J" },
+{ "kinematic energy", "J" },
+{ "potential energy", "J" },
+{ "qplus", "1" },
+{ "qminus", "1" },
+{ "pvdiv", "1" },
+{ "radial kinetic energy", "J" },
+{ "azimuthal kinetic energy", "J" },
+{ "delta mass inner positive", "g" },
+{ "delta mass inner negative", "g" },
+{ "delta mass outer positive", "g" },
+{ "delta mass outer negative", "g" },
+{ "delta mass wave damping positive", "g" },
+{ "delta mass wave damping negative", "g" }
+};
+
 void check_free_space(t_data &data)
 {
 	char *directory_name;
@@ -158,7 +226,9 @@ void write_quantities(t_data &data)
 
 		if (!fd_created) {
 			// print header
-			fprintf(fd,"# physical time\t\tmass\t\t\tangular momentum\ttotal energy\t\tinternal energy\t\tkinematic energy\tpotential energy\tqplus\tqminus\tpvdiv\tradial kinetic energy\tazimuthal kinetic energy\tdelta mass inner positive\tdelta mass inner negative\tdelta mass outer positive\tdelta mass outer negative\tdelta mass wave damping positive\tdelta mass wave damping negative\n");
+			fprintf(fd,"#FargoCPT quantities file\n");
+			fprintf(fd,"#version: 2\n");
+			fprintf(fd,"%s", text_file_variable_description(quantities_file_column, quantities_file_variables).c_str() );
 			fd_created = true;
 		}
 	}
@@ -242,7 +312,7 @@ void write_misc(unsigned int timestep)
 			// print header
 			fprintf(fd,"#FargoCPT misc file\n");
 			fprintf(fd,"#version: 2\n");
-			fprintf(fd,"#content: timestep\tphysical time\tOmegaFrame\tFrameAngle\n");
+			fprintf(fd,"%s", text_file_variable_description(misc_file_columns, misc_file_variables).c_str());
 			fd_created = true;
 		}
 	}
