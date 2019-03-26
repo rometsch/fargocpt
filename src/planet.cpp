@@ -251,7 +251,7 @@ void t_planet::restart(unsigned int timestep)
 double t_planet::get_value_from_file(unsigned int timestep, std::string variable_name)
 {
 	double value;
-	int column;
+	int column = -1;
 
 	std::string filename = std::string(OUTPUTDIR) + "planet"
 	    + std::to_string(get_planet_number()) + ".dat";
@@ -274,6 +274,11 @@ double t_planet::get_value_from_file(unsigned int timestep, std::string variable
 		column = iter->second;
 	} else {
 		std::cerr << "Unknown variable '" << variable_name << "' for planet.dat file version '" << version << "'\n" << std::endl;
+	}
+
+	if (column == -1) {
+		std::cerr << "Something went wring in obtaining the column for " << variable_name << " for the planet data file." << std::endl;
+		PersonalExit(1);
 	}
 	value = output::get_from_ascii_file(filename, timestep, column);
 	return value;
