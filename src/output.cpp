@@ -251,13 +251,13 @@ void write_quantities(t_data &data, unsigned int timestep, bool force_update)
 	double disk_periastron = disk_quantities[1];
 
 	// computate absolute deviation from start values (this has to be done on all nodes!)
-	double totalMass = quantities::gas_total_mass(data)*units::mass;
-	double totalAngularMomentum = quantities::gas_angular_momentum(data)*units::angular_momentum;
-	double internalEnergy = quantities::gas_internal_energy(data)*units::energy;
-	double kinematicEnergy = quantities::gas_kinematic_energy(data)*units::energy;
-	double radialKinematicEnergy = quantities::gas_radial_kinematic_energy(data)*units::energy;
-	double azimuthalKinematicEnergy = quantities::gas_azimuthal_kinematic_energy(data)*units::energy;
-	double gravitationalEnergy = quantities::gas_gravitational_energy(data)*units::energy;
+	double totalMass = quantities::gas_total_mass(data);
+	double totalAngularMomentum = quantities::gas_angular_momentum(data);
+	double internalEnergy = quantities::gas_internal_energy(data);
+	double kinematicEnergy = quantities::gas_kinematic_energy(data);
+	double radialKinematicEnergy = quantities::gas_radial_kinematic_energy(data);
+	double azimuthalKinematicEnergy = quantities::gas_azimuthal_kinematic_energy(data);
+	double gravitationalEnergy = quantities::gas_gravitational_energy(data);
 	double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
 
 
