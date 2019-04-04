@@ -257,9 +257,9 @@ static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double
 				delta = Xnew - X;
 				if ( is_density ) {
 					if (delta > 0) {
-						MassDelta.WaveDampingPositive += delta;
+						MassDelta.WaveDampingPositive += delta*Surf[n_radial];
 					} else {
-						MassDelta.WaveDampingNegative += delta;
+						MassDelta.WaveDampingNegative += delta*Surf[n_radial];
 					}
 				}
 			}
@@ -289,9 +289,9 @@ static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double
 				delta = Xnew - X;
 				if ( is_density ) {
 					if (delta > 0) {
-						MassDelta.WaveDampingPositive += delta;
+						MassDelta.WaveDampingPositive += delta*Surf[n_radial];
 					} else {
-						MassDelta.WaveDampingNegative += delta;
+						MassDelta.WaveDampingNegative += delta*Surf[n_radial];
 					}
 				}
 			}
