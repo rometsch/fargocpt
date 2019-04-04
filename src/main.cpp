@@ -225,14 +225,12 @@ int main(int argc, char* argv[])
 			// write planet data
 			data.get_planetary_system().write_planets(TimeStep, false);
 			// write quantities like energy, mass, ...
-			output::write_quantities(data);
+			output::write_quantities(data, TimeStep, false);
 			// write misc stuff (important for resuming)
 			output::write_misc(TimeStep);
 			// write time info for coarse output
 			output::write_coarse_time(TimeStep, nTimeStep);
 			// write disk quantities like eccentricity, ...
-			if (parameters::write_disk_quantities)
-				output::write_disk_quantities(data, TimeStep, false);
 			if (parameters::write_torques)
 				output::write_torques(data, TimeStep, false);
 			if (parameters::write_lightcurves)
@@ -247,9 +245,7 @@ int main(int argc, char* argv[])
 		} else {
 			// write disk quantities like eccentricity, ...
 			if (parameters::write_at_every_timestep)
-				output::write_quantities(data);
-			if (parameters::write_disk_quantities && parameters::write_at_every_timestep)
-				output::write_disk_quantities(data, TimeStep, true);
+				output::write_quantities(data, TimeStep, true);
 			if (parameters::write_torques)
 				output::write_torques(data, TimeStep, true);
 			if (parameters::write_lightcurves && parameters::write_at_every_timestep)

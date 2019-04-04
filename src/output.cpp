@@ -53,25 +53,28 @@ const std::map<const std::string, const std::string> misc_file_variables = {
 	};
 
 const std::map<const std::string, const int> quantities_file_column_v2 = {
-{ "physical time", 0 },
-{ "mass", 1 },
-{ "angular momentum", 2 },
-{ "total energy", 3 },
-{ "internal energy", 4 },
-{ "kinematic energy", 5 },
-{ "potential energy", 6 },
-{ "radial kinetic energy", 7 },
-{ "azimuthal kinetic energy", 8 },
-{ "qplus", 9 },
-{ "qminus", 10 },
-{ "pdivv", 11 },
-{ "delta mass inner positive", 12 },
-{ "delta mass inner negative", 13 },
-{ "delta mass outer positive", 14 },
-{ "delta mass outer negative", 15 },
-{ "delta mass wave damping positive", 16 },
-{ "delta mass wave damping negative", 17 },
-{ "delta mass floor density positive", 18 }
+{ "time step", 0 },
+{ "physical time", 1 },
+{ "mass", 2 },
+{ "angular momentum", 3 },
+{ "total energy", 4 },
+{ "internal energy", 5 },
+{ "kinematic energy", 6 },
+{ "potential energy", 7 },
+{ "radial kinetic energy", 8 },
+{ "azimuthal kinetic energy", 9 },
+{ "eccentricity", 10 },
+{ "periastron", 11},
+{ "qplus", 12 },
+{ "qminus", 13 },
+{ "pdivv", 14 },
+{ "delta mass inner positive", 15 },
+{ "delta mass inner negative", 16 },
+{ "delta mass outer positive", 17 },
+{ "delta mass outer negative", 18 },
+{ "delta mass wave damping positive", 19 },
+{ "delta mass wave damping negative", 20 },
+{ "delta mass floor density positive", 21 }
 };
 
 auto quantities_file_column = quantities_file_column_v2;
@@ -200,7 +203,7 @@ void write_grids(t_data &data, int index, int iter, double phystime)
 /**
 
 */
-void write_quantities(t_data &data)
+void write_quantities(t_data &data, unsigned int timestep, bool force_update)
 {
 	FILE* fd = 0;
 	char* fd_filename;
@@ -243,6 +246,10 @@ void write_quantities(t_data &data)
 		}
 	}
 
+	auto disk_quantities = reduce_disk_quantities(data, timestep, force_update);
+	double disk_eccentricity = disk_quantities[0];
+	double disk_periastron = disk_quantities[1];
+
 	// computate absolute deviation from start values (this has to be done on all nodes!)
 	double totalMass = quantities::gas_total_mass(data)*units::mass;
 	double totalAngularMomentum = quantities::gas_angular_momentum(data)*units::angular_momentum;
@@ -253,9 +260,11 @@ void write_quantities(t_data &data)
 	double gravitationalEnergy = quantities::gas_gravitational_energy(data)*units::energy;
 	double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
 
+
 	if (CPU_Master) {
 		// print to logfile
-		fprintf(fd, "%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+			timestep,
 			PhysicalTime,
 			totalMass,
 			totalAngularMomentum,
@@ -263,6 +272,8 @@ void write_quantities(t_data &data)
 			internalEnergy,
 			kinematicEnergy,
 			gravitationalEnergy,
+			disk_eccentricity,
+			disk_periastron,
 			data.qplus_total,
 			data.qminus_total,
 			data.pdivv_total,
@@ -591,7 +602,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update) {
 /**
 	Calculates eccentricity, semi major axis and periastron averaged with the radial cells
 */
-void write_disk_quantities(t_data &data, unsigned int timestep, bool force_update)
+std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep, bool force_update)
 {
 	double local_eccentricity = 0.0;
 	double gas_total_mass = quantities::gas_total_mass(data);
@@ -625,49 +636,9 @@ void write_disk_quantities(t_data &data, unsigned int timestep, bool force_updat
 	//semi_major_axis /= gas_total_mass;
 	periastron /= gas_total_mass;
 
-	if (CPU_Master) {
-		// output
-		FILE* fd = 0;
-		char* fd_filename;
-		static bool fd_created = false;
+	std::vector<double> rv = {disk_eccentricity, periastron};
 
-		if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "disk_quantities.dat") == -1) {
-			logging::print_master(LOG_ERROR "Not enough memory for string buffer.\n");
-			PersonalExit(1);
-		}
-
-		// check if file exists and we restarted
-		if ((options::restart) && !(fd_created)) {
-			fd = fopen(fd_filename, "r");
-			if (fd) {
-				fd_created = true;
-			}
-			fclose(fd);
-		}
-		// open logfile
-		if (!fd_created) {
-			fd = fopen(fd_filename, "w");
-		} else {
-			fd = fopen(fd_filename, "a");
-		}
-		if (fd == NULL) {
-			logging::print_master(LOG_ERROR "Can't write 'disk_quantities.dat' file. Aborting.\n");
-			PersonalExit(1);
-		}
-
-		free(fd_filename);
-
-		if (!fd_created) {
-			// print header
-			fprintf(fd,"# PhysicalTime\tdisk_eccentricity\tsemi_major_axis (NYI)\tperiastron\tdiskmass\n");
-			fd_created = true;
-		}
-
-		fprintf(fd,"%.20e\t%.20e\t%.20e\t%.20e\t%.20e\n",PhysicalTime,disk_eccentricity,0.0,periastron,gas_total_mass);
-
-		// close file
-		fclose(fd);
-	}
+	return rv;
 }
 
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
