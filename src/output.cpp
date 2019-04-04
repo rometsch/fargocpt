@@ -84,9 +84,9 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 { "internal energy", "energy" },
 { "kinematic energy", "energy" },
 { "potential energy", "energy" },
-{ "qplus", "1" },
-{ "qminus", "1" },
-{ "pvdiv", "1" },
+{ "qplus", "specific power" },
+{ "qminus", "specific power" },
+{ "pvdiv", "pressure per time" },
 { "radial kinetic energy", "energy" },
 { "azimuthal kinetic energy", "energy" },
 { "delta mass inner positive", "mass" },
@@ -391,7 +391,14 @@ std::string text_file_variable_description(const std::map<const std::string, con
 		{ "frequency" , unit_descriptor( 1.0/units::time, "1/s")  },
 		{ "1" , "1" },
 		{ "length" , units::length.get_cgs_factor_symbol() },
-		{ "velocity" , units::velocity.get_cgs_factor_symbol() }
+		{ "velocity" , units::velocity.get_cgs_factor_symbol() },
+		{ "power", units::power.get_cgs_factor_symbol() },
+		{ "specific power", unit_descriptor(
+											units::power.get_cgs_factor()/units::length.get_cgs_factor()*units::length.get_cgs_factor()
+											, "erg cm2/s/g" ) },
+		{ "pressure per time",  unit_descriptor(
+											units::pressure.get_cgs_factor()/units::time.get_cgs_factor()
+											, "dyn/cm/s" ) }
 	};
 
 	std::string var_descriptor;
