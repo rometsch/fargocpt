@@ -25,7 +25,7 @@ const std::map<const std::string, const int> planet_file_column_v1 = {
 	,{ "omega frame", 8 }
 	,{ "mdcp", 9 }
 	,{ "exces mdcp", 10 }
-	,{ "eccentricity calculated", 11 }
+	,{ "eccentricity", 11 }
 	,{ "angular momentum", 12 }
 	,{ "semi-major axis", 13 }
 	,{ "omega", 14 } };
@@ -42,7 +42,7 @@ const std::map<const std::string, const int> planet_file_column_v2 = {
 	,{ "omega frame", 7 }
 	,{ "mdcp", 8 }
 	,{ "exces mdcp", 9 }
-	,{ "eccentricity calculated", 10 }
+	,{ "eccentricity", 10 }
 	,{ "angular momentum", 11 }
 	,{ "semi-major axis", 12 }
 	,{ "omega", 13 } };
@@ -61,7 +61,7 @@ const std::map<const std::string, const std::string> variable_units = {
 	,{ "omega frame", "frequency" }
 	,{ "mdcp", "mass" }
 	,{ "exces mdcp", "mass" }
-	,{ "eccentricity calculated", "1" }
+	,{ "eccentricity", "1" }
 	,{ "angular momentum", "angular_momentum" }
 	,{ "semi-major axis", "length" }
 	,{ "omega", "frequency" } };
