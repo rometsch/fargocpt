@@ -70,7 +70,8 @@ const std::map<const std::string, const int> quantities_file_column_v2 = {
 { "delta mass outer positive", 14 },
 { "delta mass outer negative", 15 },
 { "delta mass wave damping positive", 16 },
-{ "delta mass wave damping negative", 17 }
+{ "delta mass wave damping negative", 17 },
+{ "delta mass floor density positive", 18 }
 };
 
 auto quantities_file_column = quantities_file_column_v2;
@@ -94,6 +95,7 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 { "delta mass outer negative", "mass" },
 { "delta mass wave damping positive", "mass" },
 { "delta mass wave damping negative", "mass" },
+{ "delta mass floor density positive", "mass" },
 { "TimeStep", "1" },
 { "PhysicalTime", "time" },
 { "OmegaFrame", "frequency" },
@@ -252,7 +254,7 @@ void write_quantities(t_data &data)
 
 	if (CPU_Master) {
 		// print to logfile
-		fprintf(fd, "%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		fprintf(fd, "%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 			PhysicalTime,
 			totalMass,
 			totalAngularMomentum,
@@ -270,7 +272,8 @@ void write_quantities(t_data &data)
 			MassDelta.OuterPositive,
 			MassDelta.OuterNegative,
 			MassDelta.WaveDampingPositive,
-			MassDelta.WaveDampingNegative );
+			MassDelta.WaveDampingNegative,
+			MassDelta.FloorPositive	);
 
 		// set mass delta to 0
 		MassDelta.reset();

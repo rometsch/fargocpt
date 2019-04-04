@@ -5,6 +5,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -73,10 +74,15 @@ int DetectCrash(t_polargrid* array)
 bool assure_minimum_value(t_polargrid &dst, double minimum_value)
 {
 	bool found = false;
+	bool is_dens = strcmp(dst.get_name(), "dens") == 0;
 
 	for (unsigned int n_radial = 0; n_radial <= dst.get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= dst.get_max_azimuthal(); ++n_azimuthal) {
 			if (dst(n_radial, n_azimuthal) < minimum_value) {
+				if (is_dens) {
+					double mass_delta = (minimum_value - dst(n_radial, n_azimuthal))*Surf[n_radial];
+					MassDelta.FloorPositive += mass_delta;
+				}
 				dst(n_radial, n_azimuthal) = minimum_value;
 #ifndef NDEBUG
 				logging::print(LOG_DEBUG "assure_minimum_value: %s(%u,%u)=%g < %g\n",dst.get_name(),n_radial,n_azimuthal,dst(n_radial,n_azimuthal),minimum_value);
