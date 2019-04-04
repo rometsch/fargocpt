@@ -82,3 +82,50 @@ Reduced system variables such as gas mass, kinetic energy, ...
 |      9 | pdivv                            | sum of product of p with div v over disk                    |
 |     10 | radial kinetic energy            | gas kinetic energy in radial direction                      |
 |     11 | azimuthal kinetic energy         | gas kinetic energy in azimuthal direction                   |
+
+* planet.dat
+
+Information on planet orbits.
+
+** v2
+
++ "lost mass" removed from planet files. Monitoring of mass flow over boundaries now in Quantities.dat
+
+| column | variable         | description                                          |
+|--------+------------------+------------------------------------------------------|
+|      0 | time step        | current full output number                           |
+|      1 | x                | x coordinate of orbit                                |
+|      2 | y                | y coordinate of orbit                                |
+|      3 | vx               | x coordinate of orbital velocity                     |
+|      4 | vy               | y coordinate of orbital velocity                     |
+|      5 | mass             | mass of the planet                                   |
+|      6 | physical time    | time of the simulation                               |
+|      7 | omega frame      | angular velocity of the frame                        |
+|      8 | mdcp             | ?                                                    |
+|      9 | exces mdcp       | ?                                                    |
+|     10 | eccentricity     | eccentricity of the orbit                            |
+|     11 | angular momentum | angular momentum of the orbit                        |
+|     12 | semi-major axis  | semi-major axis of the orbit                         |
+|     13 | omega            | Keplerian angular momentum sqrt((M_star+m_pl)*G/a^3) |
+
+
+** v1
+
+| column | variable         | description                                          |
+|--------+------------------+------------------------------------------------------|
+|      0 | time step        | current full output number                           |
+|      1 | x                | x coordinate of orbit                                |
+|      2 | y                | y coordinate of orbit                                |
+|      3 | vx               | x coordinate of orbital velocity                     |
+|      4 | vy               | y coordinate of orbital velocity                     |
+|      5 | mass             | mass of the planet                                   |
+|      6 | lost mass        | gas mass which excaped through inner boundary        |
+|      7 | physical time    | time of the simulation                               |
+|      8 | omega frame      | angular velocity of the frame                        |
+|      9 | mdcp             | ?                                                    |
+|     10 | exces mdcp       | ?                                                    |
+|     11 | eccentricity     | eccentricity of the orbit                            |
+|     12 | angular momentum | angular momentum of the orbit                        |
+|     13 | semi-major axis  | semi-major axis of the orbit                         |
+|     14 | omega            | Keplerian angular momentum sqrt((M_star+m_pl)*G/a^3) |
+
