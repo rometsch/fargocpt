@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <cstdio>
+#include <iostream>
 #include <map>
 
 // define the variables in the planet data file
@@ -50,20 +51,20 @@ auto planet_files_column = planet_file_column_v2;
 
 const std::map<const std::string, const std::string> variable_units = {
 	{ "TimeStep", "1" }
-	,{ "Xplanet", "cm" }
-	,{ "Yplanet", "cm" }
-	,{ "VXplanet", "cm/s" }
-	,{ "VYplanet", "cm/s" }
-	,{ "MplanetVirtual", "g" }
-	,{ "LostMass", "g" }
-	,{ "PhysicalTime", "s" }
-	,{ "OmegaFrame", "1/s" }
-	,{ "mdcp", "g" }
-	,{ "exces_mdcp", "g" }
+	,{ "Xplanet", "length" }
+	,{ "Yplanet", "length" }
+	,{ "VXplanet", "velocity" }
+	,{ "VYplanet", "velocity" }
+	,{ "MplanetVirtual", "mass" }
+	,{ "LostMass", "mass" }
+	,{ "PhysicalTime", "time" }
+	,{ "OmegaFrame", "frequency" }
+	,{ "mdcp", "mass" }
+	,{ "exces_mdcp", "mass" }
 	,{ "eccentricity_calculated", "1" }
-	,{ "angular_momentum", "g cm2/s" }
-	,{ "semi_major_axis", "cm" }
-	,{ "omega", "1/s" } };
+	,{ "angular_momentum", "angular_momentum" }
+	,{ "semi_major_axis", "length" }
+	,{ "omega", "frequency" } };
 
 /**
 	set name of planet
@@ -142,6 +143,8 @@ void t_planet::create_planet_file()
 	FILE *fd;
 	char *filename = 0;
 
+	std::string header_variable_description = output::text_file_variable_description(planet_files_column, variable_units);
+
 	// create normal file
 	if (asprintf(&filename, "%splanet%u.dat", OUTPUTDIR, get_planet_number()) == -1) {
 		logging::print(LOG_ERROR "Not enough memory!\n");
@@ -157,7 +160,7 @@ void t_planet::create_planet_file()
 	}
 	fprintf(fd,"#FargoCPT planet file\n");
 	fprintf(fd,"#version: 2\n");
-	fprintf(fd, "%s", planet_file_variable_descriptor().c_str());
+	fprintf(fd, "%s", header_variable_description.c_str());
 	fclose(fd);
 
 	// create big file
@@ -176,7 +179,7 @@ void t_planet::create_planet_file()
 
 	fprintf(fd,"#FargoCPT planet file\n");
 	fprintf(fd,"#version: 2\n");
-	fprintf(fd, "%s", planet_file_variable_descriptor().c_str());
+	fprintf(fd, "%s", header_variable_description.c_str());
 
 	fclose(fd);
 }

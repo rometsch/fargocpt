@@ -15,6 +15,7 @@
 #include "logging.h"
 #include "LowTasks.h"
 #include "options.h"
+#include <sstream>
 
 namespace units {
 
@@ -83,6 +84,16 @@ void t_unit::set_cgs_symbol(const char *symbol)
 const char *t_unit::get_cgs_symbol(void) const
 {
 	return m_cgs_symbol;
+}
+
+std::string t_unit::get_cgs_factor_symbol() {
+	// a string containing the pair of value and unit as
+	// a string such as '1.7823468234...e16 g'
+	// i.e. the number with format #.16e
+	std::stringstream us;
+	us.precision(16);
+	us << std::scientific << m_cgs_factor << " " << std::string(m_cgs_symbol);
+	return us.str();
 }
 
 #include <stdio.h>

@@ -1,6 +1,8 @@
 #ifndef UNITS_H
 #define UNITS_H
 
+#include <string>
+
 namespace units {
 
 /// astronomical unit in cgs
@@ -40,6 +42,8 @@ class t_unit {
 		// operator
 		inline operator const double&() const { return m_cgs_factor; }
 		/* inline operator double&() { return m_cgs_factor; } */
+
+		std::string get_cgs_factor_symbol();
 };
 
 extern t_unit length;

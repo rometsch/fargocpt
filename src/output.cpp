@@ -21,7 +21,9 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <cstdio>
+#include <iostream>
 #include <limits>
+#include <sstream>
 
 
 namespace output {
@@ -44,9 +46,9 @@ auto misc_file_columns = misc_file_column_v2;
 
 const std::map<const std::string, const std::string> misc_file_variables = {
 	{ "TimeStep", "1" },
-	{ "PhysicalTime", "s" },
-	{ "OmegaFrame", "1/s" },
-	{ "LostMass", "g" },
+	{ "PhysicalTime", "time" },
+	{ "OmegaFrame", "frequency" },
+	{ "LostMass", "mass" },
 	{ "FrameAngle", "1" }
 	};
 
@@ -74,24 +76,29 @@ const std::map<const std::string, const int> quantities_file_column_v2 = {
 auto quantities_file_column = quantities_file_column_v2;
 
 const std::map<const std::string, const std::string> quantities_file_variables = {
-{ "physical time", "s" },
-{ "mass", "g" },
-{ "angular momentum", "g cm2/s" },
-{ "total energy", "J" },
-{ "internal energy", "J" },
-{ "kinematic energy", "J" },
-{ "potential energy", "J" },
+{ "physical time", "time" },
+{ "mass", "mass" },
+{ "angular momentum", "angular_momentum" },
+{ "total energy", "energy" },
+{ "internal energy", "energy" },
+{ "kinematic energy", "energy" },
+{ "potential energy", "energy" },
 { "qplus", "1" },
 { "qminus", "1" },
 { "pvdiv", "1" },
-{ "radial kinetic energy", "J" },
-{ "azimuthal kinetic energy", "J" },
-{ "delta mass inner positive", "g" },
-{ "delta mass inner negative", "g" },
-{ "delta mass outer positive", "g" },
-{ "delta mass outer negative", "g" },
-{ "delta mass wave damping positive", "g" },
-{ "delta mass wave damping negative", "g" }
+{ "radial kinetic energy", "energy" },
+{ "azimuthal kinetic energy", "energy" },
+{ "delta mass inner positive", "mass" },
+{ "delta mass inner negative", "mass" },
+{ "delta mass outer positive", "mass" },
+{ "delta mass outer negative", "mass" },
+{ "delta mass wave damping positive", "mass" },
+{ "delta mass wave damping negative", "mass" },
+{ "TimeStep", "1" },
+{ "PhysicalTime", "time" },
+{ "OmegaFrame", "frequency" },
+{ "LostMass", "mass" },
+{ "FrameAngle", "frequency" }
 };
 
 void check_free_space(t_data &data)
@@ -234,7 +241,7 @@ void write_quantities(t_data &data)
 	}
 
 	// computate absolute deviation from start values (this has to be done on all nodes!)
-	double totalMass = quantities::gas_total_mass(data);
+	double totalMass = quantities::gas_total_mass(data)*units::mass;
 	double totalAngularMomentum = quantities::gas_angular_momentum(data)*units::angular_momentum;
 	double internalEnergy = quantities::gas_internal_energy(data)*units::energy;
 	double kinematicEnergy = quantities::gas_kinematic_energy(data)*units::energy;
@@ -347,6 +354,16 @@ std::string get_version(std::string filename) {
 	return "1";
 }
 
+std::string unit_descriptor(double value, std::string unit) {
+	// produce a string containing the pair of value and unit as
+	// a string such as '1.7823468234...e16 g'
+	// i.e. the number with format #.16e
+	std::stringstream us;
+	us.precision(16);
+	us << std::scientific << value << " " << unit;
+	return us.str();
+}
+
 std::string text_file_variable_description(const std::map<const std::string, const int> &variables, const std::map<const std::string, const std::string> &units) {
 	// construct a header string describing each variable in
 	// its own line including the column and its unit. e.g.
@@ -358,13 +375,29 @@ std::string text_file_variable_description(const std::map<const std::string, con
 		int column = ent.second;
 		vars_by_column[column] = name;
 	}
+
+	// build a map with all code units
+	// need to do this runtime since units can be set in
+	// parameter file
+	// could also do this somewhere in initialization...
+	std::map<std::string, std::string> unit_descriptors = {
+		{ "mass" , units::mass.get_cgs_factor_symbol() },
+		{ "angular_momentum" , units::angular_momentum.get_cgs_factor_symbol() },
+		{ "time" , units::time.get_cgs_factor_symbol() },
+		{ "energy" , units::energy.get_cgs_factor_symbol() },
+		{ "frequency" , unit_descriptor( 1.0/units::time, "1/s")  },
+		{ "1" , "1" },
+		{ "length" , units::length.get_cgs_factor_symbol() },
+		{ "velocity" , units::velocity.get_cgs_factor_symbol() }
+	};
+
 	std::string var_descriptor;
 	for (auto const &ent : vars_by_column) {
 		std::string column = std::to_string(ent.first);
 		std::string name = ent.second;
 		std::string unit = units.at(name);
 		var_descriptor += "#variable: " + column + " | "
-			+ name + " | " + unit + "\n";
+			+ name + " | " + unit_descriptors[unit] + "\n";
 	}
 	return var_descriptor;
 }
@@ -395,6 +428,7 @@ double get_from_ascii_file(std::string filename, unsigned int timestep, unsigned
 	for (unsigned int i=0; i<column; i++) {
 		infile >> rv;
 	}
+	// std::cout << "Getting column " << column << " from '" <<  filename << "' for timestep " << timestep << " with value " << rv << std::endl;
 	return rv;
 }
 
@@ -425,7 +459,9 @@ double get_misc(unsigned int timestep, std::string variable)
 			PersonalExit(1);
 		}
 	}
-    return get_from_ascii_file(filename, timestep, column);
+    double rv = get_from_ascii_file(filename, timestep, column);
+	// std::cout << "Getting " << variable << " from misc for timestep " << timestep << " : value = " << rv << std::endl;
+	return rv;
 }
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update) {
