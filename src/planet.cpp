@@ -14,56 +14,56 @@
 
 // define the variables in the planet data file
 const std::map<const std::string, const int> planet_file_column_v1 = {
-	{ "TimeStep", 0 }
-	,{ "Xplanet", 1 }
-	,{ "Yplanet", 2 }
-	,{ "VXplanet", 3 }
-	,{ "VYplanet", 4 }
-	,{ "MplanetVirtual", 5 }
-	,{ "LostMass", 6 }
-	,{ "PhysicalTime", 7 }
-	,{ "OmegaFrame", 8 }
+	{ "time step", 0 }
+	,{ "x", 1 }
+	,{ "y", 2 }
+	,{ "vx", 3 }
+	,{ "vy", 4 }
+	,{ "mass", 5 }
+	,{ "lost mass", 6 }
+	,{ "physical time", 7 }
+	,{ "omega frame", 8 }
 	,{ "mdcp", 9 }
-	,{ "exces_mdcp", 10 }
-	,{ "eccentricity_calculated", 11 }
-	,{ "angular_momentum", 12 }
-	,{ "semi_major_axis", 13 }
+	,{ "exces mdcp", 10 }
+	,{ "eccentricity calculated", 11 }
+	,{ "angular momentum", 12 }
+	,{ "semi-major axis", 13 }
 	,{ "omega", 14 } };
 
 // file version 2
 const std::map<const std::string, const int> planet_file_column_v2 = {
-	{ "TimeStep", 0 }
-	,{ "Xplanet", 1 }
-	,{ "Yplanet", 2 }
-	,{ "VXplanet", 3 }
-	,{ "VYplanet", 4 }
-	,{ "MplanetVirtual", 5 }
-	,{ "PhysicalTime", 6 }
-	,{ "OmegaFrame", 7 }
+	{ "time step", 0 }
+	,{ "x", 1 }
+	,{ "y", 2 }
+	,{ "vx", 3 }
+	,{ "vy", 4 }
+	,{ "mass", 5 }
+	,{ "physical time", 6 }
+	,{ "omega frame", 7 }
 	,{ "mdcp", 8 }
-	,{ "exces_mdcp", 9 }
-	,{ "eccentricity_calculated", 10 }
-	,{ "angular_momentum", 11 }
-	,{ "semi_major_axis", 12 }
+	,{ "exces mdcp", 9 }
+	,{ "eccentricity calculated", 10 }
+	,{ "angular momentum", 11 }
+	,{ "semi-major axis", 12 }
 	,{ "omega", 13 } };
 
 auto planet_files_column = planet_file_column_v2;
 
 const std::map<const std::string, const std::string> variable_units = {
-	{ "TimeStep", "1" }
-	,{ "Xplanet", "length" }
-	,{ "Yplanet", "length" }
-	,{ "VXplanet", "velocity" }
-	,{ "VYplanet", "velocity" }
-	,{ "MplanetVirtual", "mass" }
-	,{ "LostMass", "mass" }
-	,{ "PhysicalTime", "time" }
-	,{ "OmegaFrame", "frequency" }
+	{ "time step", "1" }
+	,{ "x", "length" }
+	,{ "y", "length" }
+	,{ "vx", "velocity" }
+	,{ "vy", "velocity" }
+	,{ "mass", "mass" }
+	,{ "lost mass", "mass" }
+	,{ "physical time", "time" }
+	,{ "omega frame", "frequency" }
 	,{ "mdcp", "mass" }
-	,{ "exces_mdcp", "mass" }
-	,{ "eccentricity_calculated", "1" }
-	,{ "angular_momentum", "angular_momentum" }
-	,{ "semi_major_axis", "length" }
+	,{ "exces mdcp", "mass" }
+	,{ "eccentricity calculated", "1" }
+	,{ "angular momentum", "angular_momentum" }
+	,{ "semi-major axis", "length" }
 	,{ "omega", "frequency" } };
 
 /**
@@ -228,11 +228,11 @@ void t_planet::write(unsigned int timestep, bool big_file)
 
 void t_planet::restart(unsigned int timestep)
 {
-	m_x = get_value_from_file(timestep, "Xplanet");
-	m_y = get_value_from_file(timestep, "Yplanet");
-	m_vx = get_value_from_file(timestep, "VXplanet");
-	m_vy = get_value_from_file(timestep, "VYplanet");
-	m_mass = get_value_from_file(timestep, "MplanetVirtual");
+	m_x = get_value_from_file(timestep, "x");
+	m_y = get_value_from_file(timestep, "y");
+	m_vx = get_value_from_file(timestep, "vx");
+	m_vy = get_value_from_file(timestep, "vy");
+	m_mass = get_value_from_file(timestep, "mass");
 }
 
 double t_planet::get_value_from_file(unsigned int timestep, std::string variable_name)
