@@ -1,0 +1,84 @@
+#+title: Versions of the text based output files
+
+* Misc.dat
+
+Variables needed to restart the simulation.
+
+** v2
+
+<2019-03-29 Fr>
+
+| column | variable     | description                                           |
+|--------+--------------+-------------------------------------------------------|
+|      0 | TimeStep     | number of full output                                 |
+|      1 | PhysicalTime | simulation time                                       |
+|      2 | OmegaFrame   | angular velocity of the frame                         |
+|      3 | FrameAngle   | angle the frame has rotated since start of simulation |
+
+
+** v1
+
+| column | variable     | description                                           |
+|--------+--------------+-------------------------------------------------------|
+|      0 | TimeStep     | number of full output                                 |
+|      1 | PhysicalTime | simulation time                                       |
+|      2 | OmegaFrame   | angular velocity of the frame                         |
+|      3 | LostMass     | mass lost through the inner boundary                  |
+|      4 | FrameAngle   | angle the frame has rotated since start of simulation |
+
+
+* Quantities.dat
+
+Reduced system variables such as gas mass, kinetic energy, ...
+
+** v2
+
+<2019-04-04 Do>
+
+| column | variable                         | description                                                 |
+|--------+----------------------------------+-------------------------------------------------------------|
+|      0 | time step                        | output number                                               |
+|      1 | physical time                    | time of simulation                                          |
+|      2 | mass                             | gas mass                                                    |
+|      3 | angular momentum                 | gas angular momentum                                        |
+|      4 | total energy                     | gas energy                                                  |
+|      5 | internal energy                  | gas internal energy                                         |
+|      6 | kinematic energy                 | gas kinematic energy                                        |
+|      7 | potential energy                 | gas potential energy                                        |
+|      8 | radial kinetic energy            | gas kinetic energy in radial direction                      |
+|      9 | azimuthal kinetic energy         | gas kinetic energy in azimuthal direction                   |
+|     10 | eccentricity                     | gas eccentricity                                            |
+|     11 | periastron                       | periastron of eccentric disk                                |
+|     12 | qplus                            | sum of Qplus in whole disk                                  |
+|        |                                  | (note: sum of specific quantity without multiplied by mass) |
+|     13 | qminus                           | sum of Qminus in whole disk                                 |
+|        |                                  | (note: sum of specific quantity without multiplied by mass) |
+|     14 | pdivv                            | sum of product of p with div v over disk                    |
+|     15 | delta mass inner positive        | mass leaving domain over inner boundary since last output   |
+|     16 | delta mass inner negative        | mass entering domain over inner boundary since last output  |
+|     17 | delta mass outer positive        | mass leaving domain over outer boundary since last output   |
+|     18 | delta mass outer negative        | mass entering domain over outer boundary since last output  |
+|     19 | delta mass wave damping positive | mass leaving domain by damping boundary since last output   |
+|     20 | delta mass wave damping negative | mass entering domain by damping boundary since last output  |
+|     21 | delta mass floor density         | mass entering domain by setting floor density               |
+
+
+
+** v1
+
+| column | variable                         | description                                                 |
+|--------+----------------------------------+-------------------------------------------------------------|
+|      0 | physical time                    | time of simulation                                          |
+|      1 | mass                             | gas mass                                                    |
+|      2 | angular momentum                 | gas angular momentum                                        |
+|      3 | total energy                     | gas energy                                                  |
+|      4 | internal energy                  | gas internal energy                                         |
+|      5 | kinematic energy                 | gas kinematic energy                                        |
+|      6 | potential energy                 | gas potential energy                                        |
+|      7 | qplus                            | sum of Qplus in whole disk                                  |
+|        |                                  | (note: sum of specific quantity without multiplied by mass) |
+|      8 | qminus                           | sum of Qminus in whole disk                                 |
+|        |                                  | (note: sum of specific quantity without multiplied by mass) |
+|      9 | pdivv                            | sum of product of p with div v over disk                    |
+|     10 | radial kinetic energy            | gas kinetic energy in radial direction                      |
+|     11 | azimuthal kinetic energy         | gas kinetic energy in azimuthal direction                   |
