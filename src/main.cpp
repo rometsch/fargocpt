@@ -154,8 +154,8 @@ int main(int argc, char* argv[])
 		logging::print_master(LOG_INFO "Reading misc data...\n");
 		if (CPU_Master) {
 			PhysicalTime = output::get_misc(options::restart_from, "physical time");
-			OmegaFrame = output::get_misc(options::restart_from, "OmegaFrame");
-			FrameAngle = output::get_misc(options::restart_from, "FrameAngle");
+			OmegaFrame = output::get_misc(options::restart_from, "omega frame");
+			FrameAngle = output::get_misc(options::restart_from, "frame angle");
 		}
 
 		// load grids at t = 0

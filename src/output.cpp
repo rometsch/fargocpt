@@ -30,26 +30,26 @@ namespace output {
 
 // info on variables in misc file
 const std::map<const std::string, const int> misc_file_column_v1 = {
-	{ "TimeStep", 0 }
-	,{ "PhysicalTime", 1 }
-	,{ "OmegaFrame", 2 }
-	,{ "LostMass", 3 }
-	,{ "FrameAngle", 4 } };
+	{ "time step", 0 }
+	,{ "physical time", 1 }
+	,{ "omega frame", 2 }
+	,{ "lost mass", 3 }
+	,{ "frame angle", 4 } };
 
 const std::map<const std::string, const int> misc_file_column_v2 = {
-	{ "TimeStep", 0 }
-	,{ "PhysicalTime", 1 }
-	,{ "OmegaFrame", 2 }
-	,{ "FrameAngle", 3 } };
+	{ "time step", 0 }
+	,{ "physical time", 1 }
+	,{ "omega frame", 2 }
+	,{ "frame angle", 3 } };
 
 auto misc_file_columns = misc_file_column_v2;
 
 const std::map<const std::string, const std::string> misc_file_variables = {
-	{ "TimeStep", "1" },
-	{ "PhysicalTime", "time" },
-	{ "OmegaFrame", "frequency" },
-	{ "LostMass", "mass" },
-	{ "FrameAngle", "1" }
+	{ "time step", "1" },
+	{ "physical time", "time" },
+	{ "omega frame", "frequency" },
+	{ "lost mass", "mass" },
+	{ "frame angle", "1" }
 	};
 
 const std::map<const std::string, const int> quantities_file_column_v2 = {
@@ -96,11 +96,12 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 { "delta mass wave damping positive", "mass" },
 { "delta mass wave damping negative", "mass" },
 { "delta mass floor density positive", "mass" },
-{ "TimeStep", "1" },
-{ "PhysicalTime", "time" },
-{ "OmegaFrame", "frequency" },
-{ "LostMass", "mass" },
-{ "FrameAngle", "frequency" }
+{ "time step", "1" },
+{ "omega frame", "frequency" },
+{ "lost mass", "mass" },
+{ "frame angle", "frequency" },
+{ "eccentricity", "1" },
+{ "periastron", "1" },
 };
 
 void check_free_space(t_data &data)
@@ -451,8 +452,8 @@ double get_misc(unsigned int timestep, std::string variable)
 	if (version == "2") {
 		if (variable == "timestep") column = 0;
 		else if (variable == "physical time") column = 1;
-		else if (variable == "OmegaFrame") column = 2;
-		else if (variable == "FrameAngle") column = 3;
+		else if (variable == "omega frame") column = 2;
+		else if (variable == "frame angle") column = 3;
 		else {
 			printf("Don't know variable '%s' in misc.dat v2\n", variable.c_str());
 			PersonalExit(1);
@@ -461,9 +462,9 @@ double get_misc(unsigned int timestep, std::string variable)
 	else if (version == "1") {
 		if (variable == "timestep") column = 0;
 		else if (variable == "physical time") column = 1;
-		else if (variable == "OmegaFrame") column = 2;
-		else if (variable == "LostMass") column = 3;
-		else if (variable == "FrameAngle") column = 4;
+		else if (variable == "omega frame") column = 2;
+		else if (variable == "lost mass") column = 3;
+		else if (variable == "frame angle") column = 4;
 		else {
 			printf("Don't know variable '%s' in misc.dat v1\n", variable.c_str());
 			PersonalExit(1);
