@@ -104,7 +104,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	}
 
 // boundary condition broken, drains angular momentum from innermost ring and causes mass to rapidly fall inwards.
-#ifdef 0
+#ifdef USE_BROKEN_CODE
 	if (CPU_Rank == 0) {
 		if ((parameters::domegadr_zero) && (parameters::boundary_outer != parameters::boundary_condition_boundary_layer)) {
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal(); ++n_azimuthal) {
