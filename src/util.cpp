@@ -1,5 +1,6 @@
 #include "util.h"
 #include <math.h>
+#include <stdint.h>
 
 /**
 	cutoff function
@@ -21,3 +22,12 @@ double cutoff(double point, double width, double x)
 	return 1.0/(1.0+exp((x-point)/width));
 }
 
+bool is_big_endian(void)
+{
+    union {
+        uint32_t i;
+         char c[4];
+    } bint = {0x01020304};
+
+    return bint.c[0] == 1;
+}

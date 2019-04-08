@@ -32,5 +32,6 @@ inline T max(T x, T y)
 }
 
 double cutoff(double point, double width, double x);
+bool is_big_endian(void);
 
 #endif // UTIL_H
