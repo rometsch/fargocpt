@@ -415,6 +415,7 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 	unsigned int nRadial, nAzimuthal, cell;
 	int lip;
 	double dtheta;
+	bool is_density = strcmp( Qbase->get_name(), data[t_data::DENSITY_INT].get_name());
 
 	divise_polargrid(*Qbase, data[t_data::DENSITY_INT], *Work); // work = qbase/densityint
 	compute_star_radial(Work, VRadial, QRStar, dt);
@@ -431,20 +432,22 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 			varq-=dt*dtheta*Rsup[nRadial]*QRStar->Field[lip]*DensityStar->Field[lip]*VRadial->Field[lip];
 			Qbase->Field[cell] += varq*InvSurf[nRadial];
 
-			// TODO: boundary
-			//if ((nRadial == 0) && (parameters::boundary_inner == parameters::boundary_condition_open))
-			//if ((nRadial == 0) && (OpenInner))
-			if (nRadial == 0) {
-				if (varq > 0) {
-					MassDelta.InnerPositive += varq;
-				} else {
-					MassDelta.InnerNegative += varq;
-				}
-			} else if (nRadial == Qbase->get_max_radial()) {
-				if (varq > 0) {
-					MassDelta.OuterPositive += varq;
-				} else {
-					MassDelta.OuterNegative += varq;
+			if (is_density) {
+				// TODO: boundary
+				//if ((nRadial == 0) && (parameters::boundary_inner == parameters::boundary_condition_open))
+				//if ((nRadial == 0) && (OpenInner))
+				if (nRadial == 0) {
+					if (varq > 0) {
+						MassDelta.InnerPositive += varq;
+					} else {
+						MassDelta.InnerNegative += varq;
+					}
+				} else if (nRadial == Qbase->get_max_radial()) {
+					if (varq > 0) {
+						MassDelta.OuterPositive += varq;
+					} else {
+						MassDelta.OuterNegative += varq;
+					}
 				}
 			}
 		}
