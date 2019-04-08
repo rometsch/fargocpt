@@ -166,6 +166,7 @@ extern bool write_disk_quantities;
 extern bool write_at_every_timestep;
 extern bool write_lightcurves;
 extern std::vector<double> lightcurves_radii;
+extern bool write_massflow;
 
 // runtime output
 extern unsigned int log_after_steps;

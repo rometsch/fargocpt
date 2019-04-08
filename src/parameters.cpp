@@ -101,6 +101,7 @@ bool write_disk_quantities;
 bool write_lightcurves;
 bool write_at_every_timestep;
 std::vector<double> lightcurves_radii;
+bool write_massflow;
 
 unsigned int log_after_steps;
 double log_after_real_seconds;	
@@ -215,6 +216,8 @@ void read(char* filename, t_data &data)
 	write_disk_quantities = config::value_as_bool_default("WriteDiskQuantities", false);
 	write_at_every_timestep = config::value_as_bool_default("WriteAtEveryTimestep", false);
 	write_lightcurves = config::value_as_bool_default("WriteLightCurves", false);
+
+	write_massflow = config::value_as_bool_default("WriteMassFlow", false);
 
 	log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps",0);
 	log_after_real_seconds = config::value_as_double_default("LogAfterRealSeconds",600.0);
