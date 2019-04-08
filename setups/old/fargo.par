@@ -99,7 +99,7 @@ DampingVAzimuthal	No		# Damping of azimuthal velocity [default = no]
 DampingSurfaceDensity	No		# Damping of surface density [default = no]
 Disk			YES
 OmegaFrame		1.0
-Frame			F
+Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center
 IndirectTerm		YES		# Calculate incfluence of the disk on the star
 FeelsDisk		NO		# star feels the disk
 
