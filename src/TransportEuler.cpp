@@ -415,7 +415,11 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 	unsigned int nRadial, nAzimuthal, cell;
 	int lip;
 	double dtheta;
-	bool is_density = strcmp( Qbase->get_name(), data[t_data::DENSITY_INT].get_name());
+	bool is_density = false;
+	char* var_name = Qbase->get_name();
+	if (var_name != NULL) {
+		is_density = strcmp( var_name, data[t_data::DENSITY_INT].get_name());
+	}
 
 	divise_polargrid(*Qbase, data[t_data::DENSITY_INT], *Work); // work = qbase/densityint
 	compute_star_radial(Work, VRadial, QRStar, dt);
