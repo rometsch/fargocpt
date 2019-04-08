@@ -453,6 +453,9 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 						MassDelta.OuterNegative += varq;
 					}
 				}
+				if (parameters::write_massflow) {
+					data[t_data::MASSFLOW_1D](nRadial) += varq;
+				}
 			}
 		}
 	}

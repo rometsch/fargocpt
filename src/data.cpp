@@ -242,6 +242,10 @@ t_data::t_data()
 	m_radialgrids[TORQUE_1D].set_name("1D_torque");
 	m_radialgrids[TORQUE_1D].set_unit(units::torque);
 
+	m_radialgrids[MASSFLOW_1D].set_scalar(false);
+	m_radialgrids[MASSFLOW_1D].set_name("1D_Mass_Flow");
+	m_radialgrids[MASSFLOW_1D].set_unit(units::mass_accretion_rate);
+
 	qminus_total = 0.0;
 	qplus_total = 0.0;
 	pdivv_total = 0.0;
