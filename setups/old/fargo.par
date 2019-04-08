@@ -68,7 +68,7 @@ MOFVALUE		1E-9		# Mass Overflow in host star masses (m0) / Year
 
 ### Planet parameters
 
-#PlanetConfig		../Jup-res.cfg
+PlanetConfig		setups/old/Jup-res.cfg
 IntegratePlanets	Yes		# [default = yes]
 ThicknessSmoothing 	0.6		# Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG	0.0		# Softening parameter for SG [default = ThicknessSmoothing]
@@ -86,7 +86,7 @@ RadialViscosityFactor	1 	# Viscosity in radial direction is mutliplied with this
 
 Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
-InnerBoundary		NONREFLECTING
+InnerBoundary		OPEN
 OuterBoundary		EVANESCENT
 DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
 Damping			No		
@@ -99,7 +99,7 @@ DampingVAzimuthal	No		# Damping of azimuthal velocity [default = no]
 DampingSurfaceDensity	No		# Damping of surface density [default = no]
 Disk			YES
 OmegaFrame		1.0
-Frame			G
+Frame			F
 IndirectTerm		YES		# Calculate incfluence of the disk on the star
 FeelsDisk		NO		# star feels the disk
 
@@ -114,9 +114,9 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC or Exponential
 
 ### Output control parameters
 
-Ntot			100001		# Total number of time steps
-Ninterm	 		20		# Time steps between outputs
-DT			0.314159265359	# Time step length. 2PI = 1 orbit
+Ntot			2		# Total number of time steps
+Ninterm	 		1		# Time steps between outputs
+DT			0.628	# Time step length. 2PI = 1 orbit
 OutputDir		out/
 
 WriteAtEveryTimestep	Yes		# Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
@@ -150,6 +150,7 @@ WriteRadialLuminosity	No		# Write radial luminosity [default = no]
 WriteRadialDissipation	No		# Write radial dissipation [default = no]
 WriteLightCurves	No		# Write light curves [default = no]
 WriteLightcurvesRadii   0.4,5.2
+WriteMassFlow		Yes		# Write a 1d radial file with mass flow at each interface [default = no]
 
 WritePressure		No		# Write pressure [default = no]
 WriteAspectRatio	No		# Write aspect ratio [default = no]
