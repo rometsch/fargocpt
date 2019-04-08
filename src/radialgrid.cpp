@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <float.h>
 #include <gsl/gsl_spline.h>
+#include <sstream>
 
 #include "radialgrid.h"
 #include "global.h"
@@ -96,35 +97,57 @@ void t_radialgrid::write(unsigned int number, t_data &data) const
 		}
 	}
 
-	if (get_write_1D())
+	if (get_write_1D()) {
 		write1D(number);
+	}
 }
+
+/**
+	write radial average values of polargrid to filename
+
+	\param string filename
+    \param bool one_file : write array without radii to one single file
+*/
+void t_radialgrid::write1D(unsigned int timestep) const
+{
 
 /**
 	write radial average values of polargrid to filename
 
 	\param number file number
 */
-void t_radialgrid::write1D(unsigned int number) const
+	std::stringstream filename;
+	filename << OUTPUTDIR << "/gas" << get_name() << timestep << ".dat";
+	write1D(filename.str(), false);
+}
+
+void t_radialgrid::write1D(std::string filename, bool one_file) const
 {
 	MPI_File fh;
 	MPI_Status status;
 	int error, error_class, error_length;
 	unsigned int count, from, number_of_values = 2;
 	double *buffer;
-	char *filename, error_string[MPI_MAX_ERROR_STRING+1];
+	char error_string[MPI_MAX_ERROR_STRING+1];
 
 	// use Rmed or Rinf depending if this quantity is scalar or vector
 	t_radialarray &radius = is_scalar() ? Rmed : Rinf;
 
-	if (asprintf(&filename, "%s/gas%s%i.dat",OUTPUTDIR,get_name(),number) <0) {
-		die("Not enough memory!");
+	// only write values and no radii for one_file
+	if (one_file) {
+		number_of_values = 1;
 	}
-
+	std::cout << "writing 1D array " << filename << " with one_file = " << one_file << " NRadial = " << NRadial << std::endl;
 	// try to open file
-	error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+	if (one_file) {
+		// append to existing file for consecutive output of arrays
+		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
+	} else {
+		// make a new file for each output
+		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+	}
 	if (error != MPI_SUCCESS) {
-		logging::print_master(LOG_ERROR "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n", filename);
+		logging::print_master(LOG_ERROR "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n", filename.c_str());
 		
 		// error class
 		MPI_Error_class(error, &error_class);
@@ -139,11 +162,15 @@ void t_radialgrid::write1D(unsigned int number) const
 
 		MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 	}
-	free(filename);
 
-	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
-	MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_SET);
 	
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
+	if (one_file) {
+		//MPI_File_seek(fh, 0, MPI_SEEK_END);
+		MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_END);
+	} else {
+		MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_SET);
+	}
 	from = 0;
 	count = get_size_radial();
 
@@ -165,15 +192,23 @@ void t_radialgrid::write1D(unsigned int number) const
 
 	buffer = new double[number_of_values*count];
 
-	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-		buffer[number_of_values*n_radial] = radius[from+n_radial];
-		buffer[number_of_values*n_radial+1] = operator()(from+n_radial);
+	if (one_file) {
+		for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
+			buffer[number_of_values*n_radial] = operator()(from+n_radial);
+		}
+	} else {
+		for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
+			buffer[number_of_values*n_radial] = radius[from+n_radial];
+			buffer[number_of_values*n_radial+1] = operator()(from+n_radial);
+		}
 	}
 
 	// if unit is set multiply values by factor
+	unsigned int value_offset = 1;
+	if (one_file) value_offset = 0;
 	if (m_unit) {
 		for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-			buffer[number_of_values*n_radial+1] *= m_unit->get_cgs_factor();
+			buffer[number_of_values*n_radial+value_offset] *= m_unit->get_cgs_factor();
 		}
 	}
 

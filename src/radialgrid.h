@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <string>
 #include "units.h"
 
 class t_data;
@@ -58,7 +59,8 @@ class t_radialgrid
 		void write(unsigned int number, t_data &data) const;
 
 		// 1D read/write
-		void write1D(unsigned int number) const;
+		void write1D(unsigned int timestep) const;
+		void write1D(std::string filename, bool one_file) const;
 		void read1D(const char* filename);
 		void read1D(unsigned int number);
 
