@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <string.h>
+#include <fstream>
 
 #include "units.h"
 #include "constants.h"
@@ -27,6 +28,7 @@
 #include "viscosity.h"
 #include "Theo.h"
 #include "particles.h"
+#include "util.h"
 
 int TimeToWrite;
 int dimfxy = 11, Restart = 0;
@@ -198,6 +200,21 @@ int main(int argc, char* argv[])
 	} else {
 		// create planet files
 		data.get_planetary_system().create_planet_files();
+		// create mass flow file
+		if (parameters::write_massflow) {
+			if (CPU_Master) {
+			const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
+			std::ofstream ofs(filename);
+			ofs << "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat, Nr = " << GlobalNRadial+1 << " , unit = g/s , bigendian = " << is_big_endian() << std::endl;
+			ofs.close();
+			ofs.open(filename, std::ios::app); //| std::ios::binary);
+			//ofs.write( (char*)Radii.array, sizeof(*Radii.array)*data[t_data::MASSFLOW_1D].get_size_radial() );
+			for (unsigned int nRadial = 0; nRadial < GlobalNRadial+1; ++ nRadial) {
+				ofs << Radii[nRadial] << ",";
+			}
+			ofs << std::endl;
+		}
+		}
 	}
 
 	PhysicalTimeInitial = PhysicalTime;
@@ -254,6 +271,11 @@ int main(int argc, char* argv[])
 		}
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);
+		if (parameters::write_massflow) {
+			std::cout << "writing massflow" << std::endl;
+			const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
+			data[t_data::MASSFLOW_1D].write1D(filename, true);
+		}
 	}
 
 	logging::print_runtime_final();
