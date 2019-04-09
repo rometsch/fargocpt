@@ -318,7 +318,7 @@ void read(char* filename, t_data &data)
 
 	MU = config::value_as_double_default("mu",1.0);
 	minimum_temperature = config::value_as_double_default("MinimumTemperature", 0);
-	maximum_temperature = config::value_as_double_default("MaximumTemperature", 1e300);
+    maximum_temperature = config::value_as_double_default("MaximumTemperature", 1.0e300);
 
 	// TODO: remove temporary warning
 	if (config::key_exists("HeatingViscous") == false) {
@@ -601,8 +601,8 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO "Tau factor: %g\n", tau_factor);
 	logging::print_master(LOG_INFO "Kappa factor: %g\n", kappa_factor);
 
-	logging::print_master(LOG_INFO "Minimum temperature: %lf\n", minimum_temperature);
-	logging::print_master(LOG_INFO "Maximum temperature: %lf\n", maximum_temperature);
+    logging::print_master(LOG_INFO "Minimum temperature: %.5e\n", minimum_temperature);
+    logging::print_master(LOG_INFO "Maximum temperature: %.5e\n", maximum_temperature);
 
 	logging::print_master(LOG_INFO "Heating from star is %s. Using %s model with ramping time of %g and a total factor %g.\n", heating_star_enabled ? "enabled" : "disabled", heating_star_simple ? "simplified" : "advanced", heating_star_ramping_time, heating_star_factor);
 	logging::print_master(LOG_INFO "Heating from viscous dissipation is %s. Using a total factor of %g.\n", heating_viscous_enabled ? "enabled" : "disabled", heating_viscous_factor);
