@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <iostream>
 
 #include "LowTasks.h"
 #include "global.h"
@@ -32,6 +33,8 @@ double GetGlobalIFrac(double r)
 */
 void PersonalExit(int returncode)
 {
+	std::flush(std::cout);
+	MPI_Barrier(MPI_COMM_WORLD);
 	if (returncode != 0) {
 		MPI_Abort(MPI_COMM_WORLD, returncode);
 	}
