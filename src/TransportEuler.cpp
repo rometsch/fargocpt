@@ -440,17 +440,17 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 				// TODO: boundary
 				//if ((nRadial == 0) && (parameters::boundary_inner == parameters::boundary_condition_open))
 				//if ((nRadial == 0) && (OpenInner))
-				if (nRadial == 0) {
+				if (nRadial == 1) {
 					if (varq_inf > 0) {
 						MassDelta.InnerPositive += varq_inf;
 					} else {
 						MassDelta.InnerNegative += varq_inf;
 					}
 				} else if (nRadial == Qbase->get_max_radial()) {
-					if (varq_sup > 0) {
-						MassDelta.OuterPositive += varq_sup;
+					if (varq_inf > 0) {
+						MassDelta.OuterPositive += varq_inf;
 					} else {
-						MassDelta.OuterNegative += varq_sup;
+						MassDelta.OuterNegative += varq_inf;
 					}
 				}
 				if (parameters::write_massflow) {
