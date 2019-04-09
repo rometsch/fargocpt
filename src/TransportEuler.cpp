@@ -412,8 +412,7 @@ void compute_velocities_from_momenta(t_polargrid &density, t_polargrid &v_radial
 
 void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt)
 {
-	unsigned int nRadial, nAzimuthal, cell;
-	int lip;
+	unsigned int nRadial, nAzimuthal;
 	double dtheta;
 	bool is_density = false;
 	char* var_name = Qbase->get_name();
@@ -428,33 +427,37 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 
 	for (nRadial = 0; nRadial <= Qbase->get_max_radial(); ++nRadial) {
 		for (nAzimuthal = 0; nAzimuthal <= Qbase->get_max_azimuthal(); ++nAzimuthal) {
-			double varq;
-
-			cell=nAzimuthal+nRadial*Qbase->Nsec;
-			lip=cell+Qbase->Nsec;
-			varq =dt*dtheta*Rinf[nRadial]*QRStar->Field[cell]*DensityStar->Field[cell]*VRadial->Field[cell];
-			varq-=dt*dtheta*Rsup[nRadial]*QRStar->Field[lip]*DensityStar->Field[lip]*VRadial->Field[lip];
-			Qbase->Field[cell] += varq*InvSurf[nRadial];
+			const unsigned int cell=nAzimuthal+nRadial*Qbase->Nsec;
+			const int lip=cell+Qbase->Nsec;
+			// mass crossing inf interface
+			const double varq_inf =  dt*dtheta*Rinf[nRadial]*QRStar->Field[cell]*DensityStar->Field[cell]*VRadial->Field[cell];
+			// mass crossing sup interface
+			const double varq_sup = dt*dtheta*Rsup[nRadial]*QRStar->Field[lip] *DensityStar->Field[lip] *VRadial->Field[lip];
+			// update density
+			Qbase->Field[cell] += (varq_inf - varq_sup)*InvSurf[nRadial];
 
 			if (is_density) {
 				// TODO: boundary
 				//if ((nRadial == 0) && (parameters::boundary_inner == parameters::boundary_condition_open))
 				//if ((nRadial == 0) && (OpenInner))
 				if (nRadial == 0) {
-					if (varq > 0) {
-						MassDelta.InnerPositive += varq;
+					if (varq_inf > 0) {
+						MassDelta.InnerPositive += varq_inf;
 					} else {
-						MassDelta.InnerNegative += varq;
+						MassDelta.InnerNegative += varq_inf;
 					}
 				} else if (nRadial == Qbase->get_max_radial()) {
-					if (varq > 0) {
-						MassDelta.OuterPositive += varq;
+					if (varq_sup > 0) {
+						MassDelta.OuterPositive += varq_sup;
 					} else {
-						MassDelta.OuterNegative += varq;
+						MassDelta.OuterNegative += varq_sup;
 					}
 				}
 				if (parameters::write_massflow) {
-					data[t_data::MASSFLOW_1D](nRadial) += varq;
+					data[t_data::MASSFLOW_1D](nRadial) += varq_inf;
+					if (nRadial == Qbase->get_max_azimuthal()) {
+						data[t_data::MASSFLOW_1D](nRadial) += varq_sup;
+					}
 				}
 			}
 		}
