@@ -203,17 +203,13 @@ int main(int argc, char* argv[])
 		// create mass flow file
 		if (parameters::write_massflow) {
 			if (CPU_Master) {
-			const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
-			std::ofstream ofs(filename);
-			ofs << "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat, Nr = " << GlobalNRadial+1 << " , unit = g/s , bigendian = " << is_big_endian() << std::endl;
-			ofs.close();
-			ofs.open(filename, std::ios::app); //| std::ios::binary);
-			//ofs.write( (char*)Radii.array, sizeof(*Radii.array)*data[t_data::MASSFLOW_1D].get_size_radial() );
-			for (unsigned int nRadial = 0; nRadial < GlobalNRadial+1; ++ nRadial) {
-				ofs << Radii[nRadial] << ",";
+				const std::string filename_info = std::string(OUTPUTDIR) + "/gasMassFlow1D.info";
+				std::ofstream info_ofs(filename_info);
+				info_ofs << "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat, Nr = " << GlobalNRadial+1 << " , unit = g/s , bigendian = " << is_big_endian() << std::endl;
+				const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
+				std::ofstream ofs(filename,  std::ios::binary);
+				ofs.write( (char*)Radii.array, sizeof(*Radii.array)*(GlobalNRadial+1) );
 			}
-			ofs << std::endl;
-		}
 		}
 	}
 
@@ -272,9 +268,8 @@ int main(int argc, char* argv[])
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);
 		if (parameters::write_massflow) {
-			std::cout << "writing massflow" << std::endl;
 			const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
-			data[t_data::MASSFLOW_1D].write1D(filename, true);
+			data[t_data::MASSFLOW_1D].write(filename, TimeStep, data, true, true);
 		}
 	}
 

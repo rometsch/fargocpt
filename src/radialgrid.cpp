@@ -23,6 +23,7 @@ t_radialgrid::t_radialgrid()
 	m_write_1D = false;
 	m_calculate_on_write = false;
 	m_do_before_write = NULL;
+	m_clear_after_write = false;
 }
 
 t_radialgrid::~t_radialgrid()
@@ -100,6 +101,36 @@ void t_radialgrid::write(unsigned int number, t_data &data) const
 	if (get_write_1D()) {
 		write1D(number);
 	}
+
+	// if (get_write_1D() && m_clear_after_write) {
+	// 	clear();
+	// }
+}
+
+
+/**
+	 Write the data to binary file using the provided filename.
+
+	 \param string filename : filename to write the data to
+	 \param int number : output number
+	 \param t_data data : data construct
+	 \param bool one_file : write array without radii to one single file
+*/
+void t_radialgrid::write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write) const
+{
+	if (get_write_1D() || m_calculate_on_write) {
+		if (m_do_before_write != NULL) {
+			(*m_do_before_write)(data, number, false);
+		}
+	}
+
+	if (get_write_1D()  || force_write ) {
+		write1D(filename, one_file);
+	}
+
+	// if (get_write_1D() && m_clear_after_write) {
+	// 	clear();
+	// }
 }
 
 /**
@@ -137,11 +168,11 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 	if (one_file) {
 		number_of_values = 1;
 	}
-	std::cout << "writing 1D array " << filename << " with one_file = " << one_file << " NRadial = " << NRadial << std::endl;
 	// try to open file
 	if (one_file) {
 		// append to existing file for consecutive output of arrays
 		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
+		//error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
 	} else {
 		// make a new file for each output
 		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
@@ -163,11 +194,10 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 		MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 	}
 
-	
-	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
+	// Move file pointer to correct position
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);	
 	if (one_file) {
-		//MPI_File_seek(fh, 0, MPI_SEEK_END);
-		MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_END);
+		MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_END | MPI_SEEK_SET);
 	} else {
 		MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_SET);
 	}

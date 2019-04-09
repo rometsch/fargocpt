@@ -35,6 +35,7 @@ void calculate_toomre(t_data &data, unsigned int timestep, bool force_update);
 void calculate_radial_toomre(t_data &data, unsigned int timestep, bool force_update);
 void calculate_radial_luminosity(t_data &data, unsigned int timestep, bool force_update);
 void calculate_radial_dissipation(t_data &data, unsigned int timestep, bool force_update);
+void calculate_massflow(t_data &data, unsigned int timestep, bool force_update);
 
 }
 

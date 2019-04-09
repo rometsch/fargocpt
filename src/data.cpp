@@ -245,6 +245,8 @@ t_data::t_data()
 	m_radialgrids[MASSFLOW_1D].set_scalar(false);
 	m_radialgrids[MASSFLOW_1D].set_name("1D_Mass_Flow");
 	m_radialgrids[MASSFLOW_1D].set_unit(units::mass_accretion_rate);
+	m_radialgrids[MASSFLOW_1D].set_do_before_write(&quantities::calculate_massflow);
+	m_radialgrids[MASSFLOW_1D].set_clear_after_write(true);
 
 	qminus_total = 0.0;
 	qplus_total = 0.0;
