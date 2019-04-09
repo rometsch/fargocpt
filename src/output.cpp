@@ -450,7 +450,6 @@ double get_from_ascii_file(std::string filename, unsigned int timestep, unsigned
 	for (unsigned int i=0; i<column; i++) {
 		infile >> rv;
 	}
-	// std::cout << "Getting column " << column << " from '" <<  filename << "' for timestep " << timestep << " with value " << rv << std::endl;
 	return rv;
 }
 
@@ -482,7 +481,6 @@ double get_misc(unsigned int timestep, std::string variable)
 		}
 	}
     double rv = get_from_ascii_file(filename, timestep, column);
-	// std::cout << "Getting " << variable << " from misc for timestep " << timestep << " : value = " << rv << std::endl;
 	return rv;
 }
 
