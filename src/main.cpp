@@ -205,14 +205,27 @@ int main(int argc, char* argv[])
 			if (CPU_Master) {
 				const std::string filename_info = std::string(OUTPUTDIR) + "/gasMassFlow1D.info";
 				std::ofstream info_ofs(filename_info);
-				info_ofs << "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat, Nr = " << GlobalNRadial+1 << " , unit = g/s , bigendian = " << is_big_endian() << std::endl;
+                info_ofs << "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat, Nr = " << GlobalNRadial+1 << " , unit = " << data[t_data::MASSFLOW_1D].get_unit()->get_cgs_symbol() << " , bigendian = " << is_big_endian() << std::endl;
 				const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
 				std::ofstream ofs(filename,  std::ios::binary);
 				ofs.write( (char*)Radii.array, sizeof(*Radii.array)*(GlobalNRadial+1) );
 			}
 		}
-	}
 
+        if (data[t_data::DENSITY].get_write_1D()) {
+            if (CPU_Master) {
+                char *tmp;
+
+                if (asprintf(&tmp, "%s/gas%s1D.info",OUTPUTDIR,data[t_data::DENSITY].get_name())<0) {
+                    die("Not enough memory!");
+                }
+                const std::string filename_info = std::string(tmp);
+                std::ofstream info_ofs(filename_info);
+                info_ofs << "# Surface density 1d radial, in first line alternating: | radii | surface density | minimum surface density | maximum surface density | values at time in timestepCoarse.dat, Nr = " << GlobalNRadial << " , unit = " << data[t_data::DENSITY].get_unit()->get_cgs_symbol()  << " , bigendian = " << is_big_endian() << std::endl;
+                info_ofs.close();
+            }
+        }
+	}
 	PhysicalTimeInitial = PhysicalTime;
 
 	logging::start_timer();

@@ -47,6 +47,8 @@ class t_polargrid
 		inline ptrdiff_t get_size_radial() const { return m_scalar? Nrad : Nrad+1; }
 		inline ptrdiff_t get_size_azimuthal() const { return Nsec; }
 		inline char* get_name() const { return m_name; }
+        inline units::t_unit* get_unit() const { return m_unit; }
+
 		inline bool get_write_1D() const { return m_write_1D; }
 		inline bool get_write_2D() const { return m_write_2D; }
 		inline bool get_write() const { return m_write_1D || m_write_2D; }

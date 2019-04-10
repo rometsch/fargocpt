@@ -50,6 +50,7 @@ class t_radialgrid
 		inline ptrdiff_t get_max_radial() const { return m_scalar ? m_size_radial-1 : m_size_radial; }
 		inline ptrdiff_t get_size_radial() const { return m_scalar? m_size_radial : m_size_radial+1; }
 		inline char* get_name() const { return m_name; }
+        inline units::t_unit* get_unit() const { return m_unit; }
 		inline bool get_write_1D() const { return m_write_1D; }
 		inline bool get_write() const { return m_write_1D; }
 
