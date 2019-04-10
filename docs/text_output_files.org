@@ -31,6 +31,39 @@ Variables needed to restart the simulation.
 
 Reduced system variables such as gas mass, kinetic energy, ...
 
+** v2.1
+
+<2019-04-04 Do>
+
+| column | variable                         | description                                                 |
+|--------+----------------------------------+-------------------------------------------------------------|
+|      0 | time step                        | output number                                               |
+|      1 | small time step                  | time step number                                            |
+|      2 | physical time                    | time of simulation                                          |
+|      3 | mass                             | gas mass                                                    |
+|      4 | angular momentum                 | gas angular momentum                                        |
+|      5 | total energy                     | gas energy                                                  |
+|      6 | internal energy                  | gas internal energy                                         |
+|      7 | kinematic energy                 | gas kinematic energy                                        |
+|      8 | potential energy                 | gas potential energy                                        |
+|      9 | radial kinetic energy            | gas kinetic energy in radial direction                      |
+|     10 | azimuthal kinetic energy         | gas kinetic energy in azimuthal direction                   |
+|     11 | eccentricity                     | gas eccentricity                                            |
+|     12 | periastron                       | periastron of eccentric disk                                |
+|     13 | qplus                            | sum of Qplus in whole disk                                  |
+|        |                                  | (note: sum of specific quantity without multiplied by mass) |
+|     14 | qminus                           | sum of Qminus in whole disk                                 |
+|        |                                  | (note: sum of specific quantity without multiplied by mass) |
+|     15 | pdivv                            | sum of product of p with div v over disk                    |
+|     16 | delta mass inner positive        | mass leaving domain over inner boundary since last output   |
+|     17 | delta mass inner negative        | mass entering domain over inner boundary since last output  |
+|     18 | delta mass outer positive        | mass leaving domain over outer boundary since last output   |
+|     19 | delta mass outer negative        | mass entering domain over outer boundary since last output  |
+|     20 | delta mass wave damping positive | mass leaving domain by damping boundary since last output   |
+|     21 | delta mass wave damping negative | mass entering domain by damping boundary since last output  |
+|     22 | delta mass floor density         | mass entering domain by setting floor density               |
+
+
 ** v2
 
 <2019-04-04 Do>

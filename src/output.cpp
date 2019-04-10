@@ -203,7 +203,7 @@ void write_grids(t_data &data, int index, int iter, double phystime)
 /**
 
 */
-void write_quantities(t_data &data, unsigned int timestep, bool force_update)
+void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeStep, bool force_update)
 {
 	FILE* fd = 0;
 	char* fd_filename;
@@ -240,7 +240,7 @@ void write_quantities(t_data &data, unsigned int timestep, bool force_update)
 		if (!fd_created) {
 			// print header
 			fprintf(fd,"#FargoCPT quantities file\n");
-			fprintf(fd,"#version: 2\n");
+            fprintf(fd,"#version: 2.1\n");
 			fprintf(fd,"%s", text_file_variable_description(quantities_file_column, quantities_file_variables).c_str() );
 			fd_created = true;
 		}
@@ -263,8 +263,9 @@ void write_quantities(t_data &data, unsigned int timestep, bool force_update)
 
 	if (CPU_Master) {
 		// print to logfile
-		fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+        fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 			timestep,
+            nTimeStep,
 			PhysicalTime,
 			totalMass,
 			totalAngularMomentum,
