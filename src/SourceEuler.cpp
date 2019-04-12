@@ -222,7 +222,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 	double OmegaNew, domega;
 	double planet0_old_x = 0.0, planet0_old_y = 0.0;
 
-	dtemp=0.0;
+    dtemp=0.0;
 
     if (Adiabatic || Polytropic) {
 		compute_sound_speed(data, false);
@@ -279,7 +279,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 			}
 			AccreteOntoPlanets(data, dt);
 		}
-		dtemp += dt;
+        dtemp += dt;
 
 		DiskOnPrimaryAcceleration.x = 0.0;
 		DiskOnPrimaryAcceleration.y = 0.0;
@@ -1416,7 +1416,7 @@ void compute_sound_speed(t_data &data, bool force_update)
                 {
                     data[t_data::SOUNDSPEED](n_radial, n_azimuthal) = sqrt(ADIABATICINDEX * constants::R / parameters::MU * data[t_data::TEMPERATURE](n_radial, n_azimuthal));
                 } else { // isothermal
-                // This follows from: cs^/v_Kepler = H/r
+                // This follows from: cs/v_Kepler = H/r
                 data[t_data::SOUNDSPEED](n_radial, n_azimuthal) = ASPECTRATIO*sqrt(constants::G*M/Rb[n_radial])*pow(Rb[n_radial], FLARINGINDEX);
                 }
 			}

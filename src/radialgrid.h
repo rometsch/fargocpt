@@ -20,10 +20,10 @@ class t_radialgrid
 		char *m_name;
 		/// write 1D?
 		bool m_write_1D;
-		/// calculate grid even if m_write1D/m_write2D is false when write is called
-		bool m_calculate_on_write;
-		/// callback function to be called before write operations
-		void (*m_do_before_write)(t_data &, unsigned int, bool);
+        /// calculate grid even if m_write1D/m_write2D is false when write is called
+        bool m_calculate_on_write;
+        /// callback function to be called before write operations
+        void (*m_do_before_write)(t_data &, unsigned int, bool);
 		/// set all entries to zero after write operations
 		bool m_clear_after_write;
 		/// Radial size of the grid, in number of zones
@@ -44,7 +44,7 @@ class t_radialgrid
 		inline void set_write_1D(bool value) { m_write_1D = value; }
 		inline void set_write(bool value) { set_write_1D(value); }
 		inline void set_clear_after_write(bool value) { m_clear_after_write = value; }
-		inline void set_do_before_write(void (*value)(t_data &, unsigned int, bool)) { m_do_before_write = value; }
+        inline void set_do_before_write(void (*value)(t_data &, unsigned int, bool)) { m_do_before_write = value; m_calculate_on_write = true;}
 
 		// getter
 		inline ptrdiff_t get_max_radial() const { return m_scalar ? m_size_radial-1 : m_size_radial; }
@@ -60,8 +60,8 @@ class t_radialgrid
 
 		void clear();
 
-		void write(unsigned int number, t_data &data) const;
-		void write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write) const;
+		void write(unsigned int number, t_data &data);
+		void write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write);
 
 		// 1D read/write
 		void write1D(unsigned int timestep) const;

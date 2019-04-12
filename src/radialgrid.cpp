@@ -90,21 +90,21 @@ void t_radialgrid::clear()
 	}
 }
 
-void t_radialgrid::write(unsigned int number, t_data &data) const
+void t_radialgrid::write(unsigned int number, t_data &data)
 {
-	if (get_write_1D() || m_calculate_on_write) {
-		if (m_do_before_write != NULL) {
-			(*m_do_before_write)(data, number, false);
-		}
+	if (!get_write_1D() ) {
+		return;
 	}
 
-	if (get_write_1D()) {
-		write1D(number);
+	if (m_do_before_write != NULL) {
+		(*m_do_before_write)(data, number, false);
 	}
 
-	// if (get_write_1D() && m_clear_after_write) {
-	// 	clear();
-	// }
+	write1D(number);
+
+    if (m_clear_after_write) {
+     	clear();
+	}
 }
 
 
@@ -116,21 +116,20 @@ void t_radialgrid::write(unsigned int number, t_data &data) const
 	 \param t_data data : data construct
 	 \param bool one_file : write array without radii to one single file
 */
-void t_radialgrid::write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write) const
+void t_radialgrid::write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write)
 {
-	if (get_write_1D() || m_calculate_on_write) {
-		if (m_do_before_write != NULL) {
-			(*m_do_before_write)(data, number, false);
-		}
+	if (!force_write && !get_write_1D()) {
+		return;
+	}
+	if (m_do_before_write != NULL) {
+		(*m_do_before_write)(data, number, false);
 	}
 
-	if (get_write_1D()  || force_write ) {
-		write1D(filename, one_file);
-	}
+	write1D(filename, one_file);
 
-	// if (get_write_1D() && m_clear_after_write) {
-	// 	clear();
-	// }
+	if (m_clear_after_write) {
+	 	clear();
+	}
 }
 
 /**
