@@ -60,8 +60,8 @@ class t_radialgrid
 
 		void clear();
 
-		void write(unsigned int number, t_data &data) const;
-		void write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write) const;
+		void write(unsigned int number, t_data &data);
+		void write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write);
 
 		// 1D read/write
 		void write1D(unsigned int timestep) const;
