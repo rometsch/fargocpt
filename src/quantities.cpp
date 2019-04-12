@@ -545,11 +545,12 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 {
     (void) timestep;
     (void) force_update;
+
 	// divide the data in massflow by the large timestep DT before writing out
 	// to obtain the massflow from the mass difference
-	for (unsigned int nRadial=0; nRadial<data[t_data::MASSFLOW_1D].get_size_radial(); ++nRadial) {
-		data[t_data::MASSFLOW_1D](nRadial) *= 1./DT;
-	}
+    for (unsigned int nRadial=0; nRadial<data[t_data::MASSFLOW_1D].get_size_radial(); ++nRadial) {
+        data[t_data::MASSFLOW_1D](nRadial) *= 1./DT;
+    }
 }
 
 }

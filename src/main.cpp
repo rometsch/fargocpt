@@ -200,31 +200,50 @@ int main(int argc, char* argv[])
 	} else {
 		// create planet files
 		data.get_planetary_system().create_planet_files();
-		// create mass flow file
-		if (parameters::write_massflow) {
-			if (CPU_Master) {
-				const std::string filename_info = std::string(OUTPUTDIR) + "/gasMassFlow1D.info";
-				std::ofstream info_ofs(filename_info);
-                info_ofs << "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat, Nr = " << GlobalNRadial+1 << " , unit = " << data[t_data::MASSFLOW_1D].get_unit()->get_cgs_symbol() << " , bigendian = " << is_big_endian() << std::endl;
-				const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
-				std::ofstream ofs(filename,  std::ios::binary);
-				ofs.write( (char*)Radii.array, sizeof(*Radii.array)*(GlobalNRadial+1) );
-			}
-		}
 
-        if (data[t_data::DENSITY].get_write_1D()) {
-            if (CPU_Master) {
-                char *tmp;
+        // create 1D info files
+        if (CPU_Master)
+        {
+            for(int i = 0; i < t_data::N_POLARGRID_TYPES; ++i)
+            {
+                if (data[t_data::t_polargrid_type(i)].get_write_1D())
+                {
+                        char *tmp;
 
-                if (asprintf(&tmp, "%s/gas%s1D.info",OUTPUTDIR,data[t_data::DENSITY].get_name())<0) {
-                    die("Not enough memory!");
+                        if (asprintf(&tmp, "%s/gas%s1D.info",OUTPUTDIR,data[t_data::t_polargrid_type(i)].get_name())<0) {
+                            die("Not enough memory!");
+                        }
+
+                        int Nr = GlobalNRadial;
+
+                        if(data[t_data::t_polargrid_type(i)].is_vector())
+                            Nr += 1;
+
+                        const std::string filename_info = std::string(tmp);
+                        std::ofstream info_ofs(filename_info);
+                        info_ofs << "# version 0.1" << std::endl;
+                        info_ofs << "# " <<  data[t_data::t_polargrid_type(i)].get_name() << " 1d radial, in first line alternating: radii | quantity | minimum quantity | maximum quantity" << std::endl;
+                        info_ofs << "# values at time in timestepCoarse.dat\nNr = " << Nr << "\nunit = " << data[t_data::t_polargrid_type(i)].get_unit()->get_cgs_symbol()  << "\nbigendian = " << is_big_endian() << std::endl;
+                        info_ofs.close();
+
                 }
-                const std::string filename_info = std::string(tmp);
-                std::ofstream info_ofs(filename_info);
-                info_ofs << "# Surface density 1d radial, in first line alternating: | radii | surface density | minimum surface density | maximum surface density | values at time in timestepCoarse.dat, Nr = " << GlobalNRadial << " , unit = " << data[t_data::DENSITY].get_unit()->get_cgs_symbol()  << " , bigendian = " << is_big_endian() << std::endl;
-                info_ofs.close();
             }
+
+
+
+		// create mass flow file
+        if (parameters::write_massflow)
+        {
+            const std::string filename_info = std::string(OUTPUTDIR) + "/gasMassFlow1D.info";
+            std::ofstream info_ofs(filename_info);
+            info_ofs << "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat\nNr = " << GlobalNRadial+1 << "\nunit = " << data[t_data::MASSFLOW_1D].get_unit()->get_cgs_symbol() << "\nbigendian = " << is_big_endian() << std::endl;
+            const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
+            std::ofstream ofs(filename,  std::ios::binary);
+            ofs.write( (char*)Radii.array, sizeof(*Radii.array)*(GlobalNRadial+1) );
         }
+
+    }
+        MPI_Barrier(MPI_COMM_WORLD);
 	}
 	PhysicalTimeInitial = PhysicalTime;
 
@@ -283,6 +302,7 @@ int main(int argc, char* argv[])
 		if (parameters::write_massflow) {
 			const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
 			data[t_data::MASSFLOW_1D].write(filename, TimeStep, data, true, true);
+            data[t_data::MASSFLOW_1D].clear();
 		}
 	}
 

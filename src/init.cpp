@@ -585,7 +585,7 @@ void init_gas_velocities(t_data &data)
 
 				if (!parameters::initialize_vradial_zero) {
 					if (ViscosityAlpha) {
-						data[t_data::V_RADIAL](n_radial, n_azimuthal) -= 3.0*data[t_data::VISCOSITY](n_radial, n_azimuthal)/r*(-SIGMASLOPE+2.0*FLARINGINDEX+1.0);
+                        data[t_data::V_RADIAL](n_radial, n_azimuthal) -= 3.0*data[t_data::VISCOSITY](n_radial, n_azimuthal)/r*(-SIGMASLOPE + 2.0*FLARINGINDEX + 1.0);
 					} else {
 						data[t_data::V_RADIAL](n_radial, n_azimuthal) -= 3.0*data[t_data::VISCOSITY](n_radial, n_azimuthal)/r*(-SIGMASLOPE+.5);
 					}

@@ -92,8 +92,8 @@ void t_radialgrid::clear()
 
 void t_radialgrid::write(unsigned int number, t_data &data) const
 {
-	if (get_write_1D() || m_calculate_on_write) {
-		if (m_do_before_write != NULL) {
+    if (get_write_1D() || m_calculate_on_write) {
+        if (m_do_before_write != NULL) {
 			(*m_do_before_write)(data, number, false);
 		}
 	}
@@ -102,9 +102,9 @@ void t_radialgrid::write(unsigned int number, t_data &data) const
 		write1D(number);
 	}
 
-	// if (get_write_1D() && m_clear_after_write) {
-	// 	clear();
-	// }
+    // if (get_write_1D() && m_clear_after_write) {
+    // 	clear();
+    // }
 }
 
 
@@ -118,8 +118,8 @@ void t_radialgrid::write(unsigned int number, t_data &data) const
 */
 void t_radialgrid::write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write) const
 {
-	if (get_write_1D() || m_calculate_on_write) {
-		if (m_do_before_write != NULL) {
+    if (get_write_1D() || m_calculate_on_write) {
+        if (m_do_before_write != NULL) {
 			(*m_do_before_write)(data, number, false);
 		}
 	}

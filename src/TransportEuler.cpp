@@ -446,7 +446,7 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 					} else {
 						MassDelta.InnerNegative += varq_inf;
 					}
-				} else if (nRadial == Qbase->get_max_radial()) {
+                } else if (nRadial == GlobalNRadial-1) {
 					if (varq_inf > 0) {
 						MassDelta.OuterPositive += varq_inf;
 					} else {
@@ -455,9 +455,9 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 				}
 				if (parameters::write_massflow) {
 					data[t_data::MASSFLOW_1D](nRadial) += varq_inf;
-					if (nRadial == Qbase->get_max_azimuthal()) {
-						data[t_data::MASSFLOW_1D](nRadial) += varq_sup;
-					}
+                    if (nRadial == GlobalNRadial-1) {
+                        data[t_data::MASSFLOW_1D](nRadial) += varq_sup;
+                    }
 				}
 			}
 		}
