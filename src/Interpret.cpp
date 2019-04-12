@@ -161,6 +161,14 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
     {
         std::string planet_file = std::string(PLANETCONFIG);
         std::string planet_filename = output_folder + getFileName(planet_file);
+		if(options::restart)
+		{
+			char str[12];
+			sprintf(str, "%d", options::restart_from);
+			planet_filename +="_restart_";
+			planet_filename += str;
+		}
+
         std::filebuf old_planet_file, append_new_planet_file;
         old_planet_file.open(planet_file.c_str(), std::ios::in);
         append_new_planet_file.open(planet_filename.c_str(), std::ios::trunc | std::ios::out);
