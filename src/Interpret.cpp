@@ -23,11 +23,16 @@ int FastTransport, Indirect_Term, Indirect_Term_Planet;
 int OuterSourceMass, CICPlanet;
 
 #include <sstream>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <array>
+
+#include <sys/stat.h>
+#include "options.h"
+
 
 // used for calling python script needed for getting the polytropic constants
 std::string exec(const char* cmd) {
@@ -58,7 +63,23 @@ void get_polytropic_constants(char* filename, double &K, double &gamma)
     ss >> gamma;
 }
 
-void ReadVariables(char* filename, t_data &data)
+std::string getFileName(const std::string& s) {
+
+   char sep = '/';
+
+#ifdef _WIN32
+   sep = '\\';
+#endif
+
+   size_t i = s.rfind(sep, s.length());
+   if (i != std::string::npos) {
+      return(s.substr(i+1, s.length() - i));
+   }
+
+   return("");
+}
+
+void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 {
 	// read config from
 	//config::read_config_from_file(filename);
@@ -76,6 +97,18 @@ void ReadVariables(char* filename, t_data &data)
         logging::print_master(LOG_ERROR "Not enough memory!\n");
     }
 
+    // Create output directory if it doesn't exist
+    if(CPU_Master)
+    {
+        struct stat buffer;
+        if(stat(OUTPUTDIR, &buffer))
+        {
+            mkdir(OUTPUTDIR, 0700);
+        }
+    }
+
+
+
 	// check if planet config exists
 	if ((config::key_exists("PLANETCONFIG")) && (strlen(config::value_as_string("PLANETCONFIG"))>0)) {
 		if (asprintf(&PLANETCONFIG, "%s", config::value_as_string("PLANETCONFIG")) < 0) {
@@ -84,6 +117,68 @@ void ReadVariables(char* filename, t_data &data)
 	} else {
 		PLANETCONFIG = NULL;
 	}
+
+
+
+    // copy setup files into the output folder
+    std::string output_folder = std::string(OUTPUTDIR);
+    std::string par_file = getFileName(filename);
+    std::string par_filename = output_folder + std::string(par_file);
+
+    if(options::restart)
+    {
+        char str[12];
+        sprintf(str, "%d", options::restart_from);
+
+        par_filename +="_restart_";
+        par_filename += str;
+    }
+
+    std::ofstream new_par_file;
+    new_par_file.open (par_filename.c_str());
+
+
+    new_par_file << "###  Used launch options:";
+    for(int i=0;i<argc;i++)
+    {
+        new_par_file << " " << argv[i];
+    }
+    new_par_file << "\n\n\n";
+    new_par_file.close();
+
+
+    std::filebuf old_par_file, append_new_par_file;
+    old_par_file.open(filename, std::ios::in);
+    append_new_par_file.open(par_filename.c_str(), std::ios::app | std::ios::out);
+
+    std::copy(std::istreambuf_iterator<char>(&old_par_file), {},
+              std::ostreambuf_iterator<char>(&append_new_par_file));
+    append_new_par_file.close();
+    old_par_file.close();
+
+
+    if(PLANETCONFIG != NULL)
+    {
+        std::string planet_file = std::string(PLANETCONFIG);
+        std::string planet_filename = output_folder + getFileName(planet_file);
+		if(options::restart)
+		{
+			char str[12];
+			sprintf(str, "%d", options::restart_from);
+			planet_filename +="_restart_";
+			planet_filename += str;
+		}
+
+        std::filebuf old_planet_file, append_new_planet_file;
+        old_planet_file.open(planet_file.c_str(), std::ios::in);
+        append_new_planet_file.open(planet_filename.c_str(), std::ios::trunc | std::ios::out);
+        std::copy(std::istreambuf_iterator<char>(&old_planet_file), {},
+                  std::ostreambuf_iterator<char>(&append_new_planet_file));
+        append_new_planet_file.close();
+        old_planet_file.close();
+
+    }
+
 
 	OuterSourceMass = config::value_as_bool_default("OUTERSOURCEMASS", 0);
 
