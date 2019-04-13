@@ -619,7 +619,13 @@ void write_1D_info(t_data &data) {
 			info_ofs << "# " <<  data[t_data::t_polargrid_type(i)].get_name() << " 1d radial, in first line alternating: radii | quantity | minimum quantity | maximum quantity" << std::endl;
 			info_ofs << "# values at time in timestepCoarse.dat" << std::endl;
 			info_ofs << "Nr = " << Nr << std::endl;
-			info_ofs << "unit = " << data[t_data::t_polargrid_type(i)].get_unit()->get_cgs_symbol()  << std::endl;
+			std::string unit;
+			if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
+				unit = std::string( data[t_data::t_polargrid_type(i)].get_unit()->get_cgs_symbol() );
+			} else {
+				unit = "1";
+			}
+			info_ofs << "unit = " << unit  << std::endl;
 			info_ofs << "bigendian = " << is_big_endian() << std::endl;
 			info_ofs.close();
 		}
