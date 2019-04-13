@@ -52,6 +52,32 @@ const std::map<const std::string, const std::string> misc_file_variables = {
 	{ "frame angle", "1" }
 	};
 
+const std::map<const std::string, const int> quantities_file_column_v2_1 = {
+{ "time step", 0 },
+{ "analysis time step", 1},
+{ "physical time", 2 },
+{ "mass", 3 },
+{ "angular momentum", 4 },
+{ "total energy", 5 },
+{ "internal energy", 6 },
+{ "kinematic energy", 7 },
+{ "potential energy", 8 },
+{ "radial kinetic energy", 9 },
+{ "azimuthal kinetic energy", 10 },
+{ "eccentricity", 11 },
+{ "periastron", 12},
+{ "qplus", 13 },
+{ "qminus", 14 },
+{ "pdivv", 15 },
+{ "delta mass inner positive", 16 },
+{ "delta mass inner negative", 17 },
+{ "delta mass outer positive", 18 },
+{ "delta mass outer negative", 19 },
+{ "delta mass wave damping positive", 20 },
+{ "delta mass wave damping negative", 21 },
+{ "delta mass floor density positive", 22 }
+};
+
 const std::map<const std::string, const int> quantities_file_column_v2 = {
 { "time step", 0 },
 { "physical time", 1 },
@@ -77,7 +103,7 @@ const std::map<const std::string, const int> quantities_file_column_v2 = {
 { "delta mass floor density positive", 21 }
 };
 
-auto quantities_file_column = quantities_file_column_v2;
+auto quantities_file_column = quantities_file_column_v2_1;
 
 const std::map<const std::string, const std::string> quantities_file_variables = {
 { "physical time", "time" },
@@ -100,6 +126,7 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 { "delta mass wave damping negative", "mass" },
 { "delta mass floor density positive", "mass" },
 { "time step", "1" },
+{ "analysis time step", "1" },
 { "omega frame", "frequency" },
 { "lost mass", "mass" },
 { "frame angle", "frequency" },
