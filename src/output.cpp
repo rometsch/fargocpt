@@ -52,6 +52,31 @@ const std::map<const std::string, const std::string> misc_file_variables = {
 	{ "frame angle", "1" }
 	};
 
+const std::map<const std::string, const int> quantities_file_column_v2 = {
+{ "time step", 0 },
+{ "physical time", 1 },
+{ "mass", 2 },
+{ "angular momentum", 3 },
+{ "total energy", 4 },
+{ "internal energy", 5 },
+{ "kinematic energy", 6 },
+{ "potential energy", 7 },
+{ "radial kinetic energy", 8 },
+{ "azimuthal kinetic energy", 9 },
+{ "eccentricity", 10 },
+{ "periastron", 11},
+{ "qplus", 12 },
+{ "qminus", 13 },
+{ "pdivv", 14 },
+{ "delta mass inner positive", 15 },
+{ "delta mass inner negative", 16 },
+{ "delta mass outer positive", 17 },
+{ "delta mass outer negative", 18 },
+{ "delta mass wave damping positive", 19 },
+{ "delta mass wave damping negative", 20 },
+{ "delta mass floor density positive", 21 }
+};
+
 const std::map<const std::string, const int> quantities_file_column_v2_1 = {
 { "time step", 0 },
 { "analysis time step", 1},
@@ -78,32 +103,7 @@ const std::map<const std::string, const int> quantities_file_column_v2_1 = {
 { "delta mass floor density positive", 22 }
 };
 
-const std::map<const std::string, const int> quantities_file_column_v2 = {
-{ "time step", 0 },
-{ "physical time", 1 },
-{ "mass", 2 },
-{ "angular momentum", 3 },
-{ "total energy", 4 },
-{ "internal energy", 5 },
-{ "kinematic energy", 6 },
-{ "potential energy", 7 },
-{ "radial kinetic energy", 8 },
-{ "azimuthal kinetic energy", 9 },
-{ "eccentricity", 10 },
-{ "periastron", 11},
-{ "qplus", 12 },
-{ "qminus", 13 },
-{ "pdivv", 14 },
-{ "delta mass inner positive", 15 },
-{ "delta mass inner negative", 16 },
-{ "delta mass outer positive", 17 },
-{ "delta mass outer negative", 18 },
-{ "delta mass wave damping positive", 19 },
-{ "delta mass wave damping negative", 20 },
-{ "delta mass floor density positive", 21 }
-};
-
-auto quantities_file_column = quantities_file_column_v2_1;
+const auto quantities_file_column = quantities_file_column_v2_1;
 
 const std::map<const std::string, const std::string> quantities_file_variables = {
 { "physical time", "time" },
