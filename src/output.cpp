@@ -672,6 +672,7 @@ void write_massflow_info(t_data &data) {
 }
 
 void write_massflow(t_data &data, unsigned int timestep) {
+    (void) timestep;
 	const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
 	data[t_data::MASSFLOW_1D].write(filename, TimeStep, data, true, true);
 }
