@@ -134,8 +134,9 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
         par_filename += str;
     }
 
+    std::remove(par_filename.c_str());
     std::ofstream new_par_file;
-    new_par_file.open (par_filename.c_str());
+    new_par_file.open (par_filename.c_str(), std::ofstream::out | std::ofstream::trunc);
 
 
     new_par_file << "###  Used launch options:";
