@@ -24,7 +24,7 @@ namespace boundary_conditions {
 void apply_boundary_condition(t_data &data, double dt, bool final)
 {
 	// if this is the final boundary condition and damping is enable, do it
-	if (final && parameters::damping_enabled) {
+    if (final && parameters::damping_type > 0) {
 		damping(data, dt);
 	}
 
@@ -215,7 +215,8 @@ void viscous_outflow_boundary_inner(t_data &data)
 	}
 }
 
-static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double dt) {
+static void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0, double dt)
+{
 	// use the correct radius array corresponding to quantity
 	t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
 	double delta;
@@ -253,6 +254,15 @@ static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double
 			}
 		}
 	}
+}
+
+static void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0, double dt)
+{
+// use the correct radius array corresponding to quantity
+t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
+double delta;
+double X, X0, Xnew;
+bool is_density = strcmp( quantity.get_name(), "dens");
 
 	// is this CPU in the outer damping domain?
 	if ((parameters::damping_outer_limit < 1.0) && (radius[quantity.get_max_radial()] > RMAX*parameters::damping_outer_limit)) {
@@ -287,26 +297,165 @@ static void damping_single(t_polargrid &quantity, t_polargrid &quantity0, double
 	}
 }
 
+
+static void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0, double dt)
+{
+    // use the correct radius array corresponding to quantity
+    t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
+    double delta;
+    double X, X0, Xnew;
+    bool is_density = strcmp( quantity.get_name(), "dens");
+
+    // is this CPU in the inner damping domain?
+    if ((parameters::damping_inner_limit > 1.0) && (radius[0] < RMIN*parameters::damping_inner_limit)) {
+        // find range
+        unsigned int limit = 0;
+        while ((radius[limit] < RMIN*parameters::damping_inner_limit) && (limit <= quantity.get_max_radial())) {
+            limit++;
+        }
+        limit--;
+
+        double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMIN);
+
+        // get mean quantity
+        for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial)
+        {
+            quantity0(n_radial,0) = 0.0;
+            for (unsigned int n_azimuthal = 0; n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal)
+            {
+                quantity0(n_radial,0) += quantity(n_radial, n_azimuthal);
+            }
+            quantity0(n_radial,0) /= quantity.get_size_azimuthal();
+        }
+
+        for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
+            double factor = pow2((radius[n_radial]-RMIN*parameters::damping_inner_limit)/(RMIN-RMIN*parameters::damping_inner_limit));
+            double exp_factor = exp(-dt*factor/tau);
+
+            for (unsigned int n_azimuthal = 0; n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+                X = quantity(n_radial,n_azimuthal);
+                X0 = quantity0(n_radial,0);
+                Xnew = (X-X0) * exp_factor + X0;
+                quantity(n_radial, n_azimuthal) = Xnew;
+                delta = Xnew - X;
+                if ( is_density ) {
+                    if (delta > 0) {
+                        MassDelta.WaveDampingPositive += delta*Surf[n_radial];
+                    } else {
+                        MassDelta.WaveDampingNegative += delta*Surf[n_radial];
+                    }
+                }
+            }
+        }
+    }
+}
+
+static void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0, double dt)
+{
+    // use the correct radius array corresponding to quantity
+    t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
+    double delta;
+    double X, X0, Xnew;
+    bool is_density = strcmp( quantity.get_name(), "dens");
+
+    // is this CPU in the outer damping domain?
+    if ((parameters::damping_outer_limit < 1.0) && (radius[quantity.get_max_radial()] > RMAX*parameters::damping_outer_limit)) {
+        // find range
+        unsigned int limit = quantity.get_max_radial();
+        while ((radius[limit] > RMAX*parameters::damping_outer_limit) && (limit > 0)) {
+            limit--;
+        }
+        limit++;
+
+        double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMAX);
+
+
+        for (unsigned int n_radial = limit; n_radial <= quantity.get_max_radial(); ++n_radial)
+        {
+            quantity0(n_radial,0) = 0.0;
+            for (unsigned int n_azimuthal = 0; n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal)
+            {
+                quantity0(n_radial,0) += quantity(n_radial, n_azimuthal);
+            }
+            quantity0(n_radial,0) /= quantity.get_size_azimuthal();
+        }
+
+        for (unsigned int n_radial = limit; n_radial <= quantity.get_max_radial(); ++n_radial) {
+            double factor = pow2((radius[n_radial]-RMAX*parameters::damping_outer_limit)/(RMAX-RMAX*parameters::damping_outer_limit));
+            double exp_factor = exp(-dt*factor/tau);
+
+            for (unsigned int n_azimuthal = 0; n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+                X = quantity(n_radial,n_azimuthal);
+                X0 = quantity0(n_radial,0);
+                Xnew = (X-X0) * exp_factor + X0;
+                quantity(n_radial, n_azimuthal) = Xnew;
+                delta = Xnew - X;
+                if ( is_density ) {
+                    if (delta > 0) {
+                        MassDelta.WaveDampingPositive += delta*Surf[n_radial];
+                    } else {
+                        MassDelta.WaveDampingNegative += delta*Surf[n_radial];
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 /**
 	damping of velocities
 */
 void damping(t_data &data, double dt)
 {
-	if (parameters::damping_v_radial) {
-		damping_single(data[t_data::V_RADIAL], data[t_data::V_RADIAL0], dt);
-	}
 
-	if (parameters::damping_v_azimuthal) {
-		damping_single(data[t_data::V_AZIMUTHAL], data[t_data::V_AZIMUTHAL0], dt);
-	}
+    if(parameters::damping_type == parameters::t_damping_type::damping_initial_condidions)
+    {
+        if (parameters::damping_v_radial) {
+            damping_single_inner(data[t_data::V_RADIAL], data[t_data::V_RADIAL0], dt);
+            damping_single_outer(data[t_data::V_RADIAL], data[t_data::V_RADIAL0], dt);
 
-	if (parameters::damping_surface_density) {
-		damping_single(data[t_data::DENSITY], data[t_data::DENSITY0], dt);
-	}
+        }
 
-	if ((Adiabatic) && (parameters::damping_energy)) {
-		damping_single(data[t_data::ENERGY], data[t_data::ENERGY0], dt);
-	}
+        if (parameters::damping_v_azimuthal) {
+            damping_single_inner(data[t_data::V_AZIMUTHAL], data[t_data::V_AZIMUTHAL0], dt);
+            damping_single_outer(data[t_data::V_AZIMUTHAL], data[t_data::V_AZIMUTHAL0], dt);
+
+        }
+
+        if (parameters::damping_surface_density) {
+            damping_single_inner(data[t_data::DENSITY], data[t_data::DENSITY0], dt);
+            damping_single_outer(data[t_data::DENSITY], data[t_data::DENSITY0], dt);
+        }
+
+        if ((Adiabatic) && (parameters::damping_energy)) {
+            damping_single_inner(data[t_data::ENERGY], data[t_data::ENERGY0], dt);
+            damping_single_outer(data[t_data::ENERGY], data[t_data::ENERGY0], dt);
+        }
+    }
+    else if (parameters::damping_type == parameters::t_damping_type::damping_wave_damping)
+    {
+        if (parameters::damping_v_radial) {
+            damping_single_inner(data[t_data::V_RADIAL], data[t_data::V_RADIAL0], dt);
+        }
+
+        if (parameters::damping_v_azimuthal) {
+            damping_single_inner_mean(data[t_data::V_AZIMUTHAL], data[t_data::V_AZIMUTHAL0], dt);
+            damping_single_outer_mean(data[t_data::V_AZIMUTHAL], data[t_data::V_AZIMUTHAL0], dt);
+
+        }
+
+        if (parameters::damping_surface_density) {
+            damping_single_inner_mean(data[t_data::DENSITY], data[t_data::DENSITY0], dt);
+            damping_single_outer_mean(data[t_data::DENSITY], data[t_data::DENSITY0], dt);
+
+        }
+
+        if ((Adiabatic) && (parameters::damping_energy)) {
+            damping_single_inner_mean(data[t_data::ENERGY], data[t_data::ENERGY0], dt);
+            damping_single_outer_mean(data[t_data::ENERGY], data[t_data::ENERGY0], dt);
+        }
+    }
 }
 
 void mass_overflow(t_data &data)
@@ -369,7 +518,8 @@ void mass_overflow(t_data &data)
 
 }
 
-void apply_boundary_condition_temperature(t_data &data) {
+void apply_boundary_condition_temperature(t_data &data)
+{
 	if (CPU_Rank == 0) {
 		for (unsigned int n_radial = 0; n_radial <= GHOSTCELLS_B; ++n_radial) {
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal(); ++n_azimuthal) {

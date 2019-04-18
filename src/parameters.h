@@ -24,8 +24,9 @@ extern t_boundary_condition boundary_outer;
 /// set dr/dOmega zero at outer boundary
 extern bool domegadr_zero;
 
-/// enable of damping velocities against initial values
-extern bool damping_enabled;
+/// enable different damping types
+enum t_damping_type {damping_none, damping_initial_condidions, damping_wave_damping};
+extern t_damping_type damping_type;
 /// inner damping limit
 extern double damping_inner_limit;
 /// outer damping limit

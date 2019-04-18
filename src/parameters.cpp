@@ -28,7 +28,7 @@ t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;
 bool domegadr_zero;
 
-bool damping_enabled;
+t_damping_type damping_type;
 double damping_inner_limit;
 double damping_outer_limit;
 double damping_time_factor;
@@ -302,7 +302,19 @@ void read(char* filename, t_data &data)
 
 	domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
 
-	damping_enabled = config::value_as_bool_default("Damping", false);
+    switch (tolower(*config::value_as_string_default("Damping","None"))) {
+        case 'n':
+            damping_type = damping_none;
+            break;
+        case 'd':
+            damping_type = damping_initial_condidions;
+            break;
+        case 'w':
+            damping_type = damping_wave_damping;
+            break;
+        default:
+            damping_type = damping_none;
+    }
 	damping_inner_limit = config::value_as_double_default("DampingInnerLimit",1.05);
 	if (damping_inner_limit < 1) {
 		die("DampingInnerLimit must not be <1\n");
@@ -590,13 +602,19 @@ void summarize_parameters()
 	}
 	logging::print_master(LOG_INFO "Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n", radial_viscosity_factor);
 
-	if (damping_enabled) {
-		logging::print_master(LOG_INFO "Damping at inner boundary from %lf to %lf and at outer boundary from %lf to %lf with a timefactor of %lf.\n",RMIN,RMIN*damping_inner_limit,RMAX*damping_outer_limit,RMAX,damping_time_factor);
-		logging::print_master(LOG_INFO "Damping of surface density is %s.\n", damping_surface_density ? "enabled" : "disabled");
-		logging::print_master(LOG_INFO "Damping of radial velocity is %s.\n", damping_v_radial ? "enabled" : "disabled");
-		logging::print_master(LOG_INFO "Damping of azimuthal velocity is %s.\n", damping_v_azimuthal ? "enabled" : "disabled");
-		logging::print_master(LOG_INFO "Damping of energy is %s.\n", damping_energy ? "enabled" : "disabled");
-	} else {
+    if (damping_type == damping_initial_condidions) {
+        logging::print_master(LOG_INFO "Damping at inner boundary from %lf to %lf and at outer boundary from %lf to %lf with a timefactor of %lf.\n",RMIN,RMIN*damping_inner_limit,RMAX*damping_outer_limit,RMAX,damping_time_factor);
+        logging::print_master(LOG_INFO "Damping of surface density is %s.\n", damping_surface_density ? "enabled" : "disabled");
+        logging::print_master(LOG_INFO "Damping of radial velocity is %s.\n", damping_v_radial ? "enabled" : "disabled");
+        logging::print_master(LOG_INFO "Damping of azimuthal velocity is %s.\n", damping_v_azimuthal ? "enabled" : "disabled");
+        logging::print_master(LOG_INFO "Damping of energy is %s.\n", damping_energy ? "enabled" : "disabled");
+    } else if(damping_type == damping_wave_damping) {
+        logging::print_master(LOG_INFO "Wave Damping at inner boundary from %lf to %lf and at outer boundary from %lf to %lf with a timefactor of %lf.\n",RMIN,RMIN*damping_inner_limit,RMAX*damping_outer_limit,RMAX,damping_time_factor);
+        logging::print_master(LOG_INFO "Wave Damping of surface density is %s.\n", damping_surface_density ? "enabled" : "disabled");
+        logging::print_master(LOG_INFO "Wave Damping of radial velocity is %s.\n", damping_v_radial ? "enabled" : "disabled");
+        logging::print_master(LOG_INFO "Wave Damping of azimuthal velocity is %s.\n", damping_v_azimuthal ? "enabled" : "disabled");
+        logging::print_master(LOG_INFO "Wave Damping of energy is %s.\n", damping_energy ? "enabled" : "disabled");
+    } else {
 		logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
 	}
 
