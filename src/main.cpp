@@ -148,6 +148,7 @@ int main(int argc, char* argv[])
 	mdcp0 = CircumPlanetaryMass(data);
 
 	if (options::restart) {
+		// TODO: fix for case that NINTERM changes (probably add small time step to misc.dat)
 		timeStepStart = options::restart_from * NINTERM;
 		logging::print_master(LOG_INFO "Restarting planetary system...\n");
 		// restart planetary system
