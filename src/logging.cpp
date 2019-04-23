@@ -117,8 +117,12 @@ void print_runtime_final() {
 	std::chrono::steady_clock::time_point realtime_end = std::chrono::steady_clock::now();
 	double realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_end - realtime_start).count();
 
+	double time_per_step_ms = 0.0;
+	if (N_iter != 0) {
+		time_per_step_ms = realtime/(1000.0*N_iter);
+	}
 	logging::print_master(LOG_INFO "-- Final: Total Hyrdosteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
-						  N_iter, PhysicalTime, realtime/1000000.0, realtime/(1000.0*N_iter));
+						  N_iter, PhysicalTime, realtime/1000000.0, time_per_step_ms);
 
 }
 
@@ -147,6 +151,10 @@ void print_runtime_info(unsigned int output_number, unsigned int time_step_coars
 			realtime_since_last = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - realtime_last_log).count();
 		}
 		realtime = std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - realtime_start).count();
+		double time_per_step_ms = 0.0;
+		if ((N_iter-n_last_log) != 0) {
+			time_per_step_ms = realtime_since_last/(1000.0*(N_iter-n_last_log));
+		}
 		logging::print_master(LOG_INFO "output %d, timestep %d, hyrdostep %d, physicaltime %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 							  output_number,
 							  time_step_coarse,
@@ -154,7 +162,7 @@ void print_runtime_info(unsigned int output_number, unsigned int time_step_coars
 							  PhysicalTime,
 							  dt,
 							  realtime/1000000.0,
-							  realtime_since_last/(1000.0*(N_iter-n_last_log))
+							  time_per_step_ms
 							  );
 		n_last_log = N_iter;
 		realtime_last_log = realtime_now;
