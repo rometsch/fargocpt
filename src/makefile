@@ -63,7 +63,10 @@ GSL_PREFIX_ = $(GSL_PREFIX_LINUX)
 # GIT_CHANGED = "$(shell git diff-index --name-only HEAD | sed -e '{:q;N;s/\n/, /g;t q}')"
 
 # options to compile
-OPTIONS = -D_TRAP_FPE -D_GNU_SOURCE -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)' -DNDEBUG
+OPTIONS := -D_TRAP_FPE -D_GNU_SOURCE -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
+ifneq "$(FARGO_DEBUG)" "1"
+	OPTIONS := $(OPTIONS) -DNDEBUG
+endif
 
 # (MPI)-C compiler to use
 CC = $(CC_$(FARGO_ARCH))
@@ -71,7 +74,11 @@ CC = $(CC_$(FARGO_ARCH))
 CXX = $(CXX_$(FARGO_ARCH))
 
 # C Flags
-CFLAGS = $(CFLAGS_$(FARGO_ARCH))
+CFLAGS := $(CFLAGS_$(FARGO_ARCH))
+ifeq "$(FARGO_DEBUG)" "1"
+	CFLAGS := $(CFLAGS) -g
+endif
+$(info CFLAGS=$(CFLAGS))
 # C++ Flags
 CXXFLAGS = $(CFLAGS)
 
