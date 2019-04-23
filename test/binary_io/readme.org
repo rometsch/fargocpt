@@ -1,6 +1,8 @@
 #+title: Tests for binary io
 #+author: Thomas Rometsch
 
+* Problem
+
 The gasdens files seem to change after the code is restarted.
 The scripts in this folder are used to test for this issue and compare data files.
 
@@ -9,6 +11,21 @@ Probably the only important cases for N are zero and non-zero, i.e. initial cond
 
 No difference appears for output number 0.
 However small differences in the range of numerical precision appear for N > 0.
+
+* Analysis
+
+The errors being small at about 1e-14 to 1e-13 hints at round-off errors.
+Binary outputs in fargo are first multiplied by a factor to convert the values to cgs units.
+While loading the data from disk, the factors for the units are then divided to restore code units.
+Saving the data immediately again results in another multiplication with the cgs factor.
+This division and multiplication is not exactly reversible for floating point numbers which explains the differences in the files.
+Commenting out the multiplication by the factors and saving the code unit values directly resolves the issue.
+
+* Solution
+
+Use cgs units as code units.
+
+* Investigation
 
 The exact procedure is as follows:
 1) have a simulations up to some output number N
