@@ -232,25 +232,22 @@ int main(int argc, char* argv[])
                 UpdateLogStockholm(data, PhysicalTime);
 		}
 
-		if (NINTERM * (TimeStep = (nTimeStep / NINTERM)) == nTimeStep) {
+		bool force_update_for_output = true;
+		TimeStep = (nTimeStep / NINTERM); // note: integer division
+		bool write_complete_output = NINTERM * TimeStep == nTimeStep;
+		if (write_complete_output) {
 			// Outputs are done here
 			TimeToWrite = YES;
+			force_update_for_output = false;
 
 			// write polar grids
 			output::write_grids(data, TimeStep, N_iter, PhysicalTime);
 			// write planet data
 			data.get_planetary_system().write_planets(TimeStep, false);
-			// write quantities like energy, mass, ...
-            output::write_quantities(data, TimeStep, nTimeStep, false);
 			// write misc stuff (important for resuming)
 			output::write_misc(TimeStep);
 			// write time info for coarse output
 			output::write_coarse_time(TimeStep, nTimeStep);
-			// write disk quantities like eccentricity, ...
-			if (parameters::write_torques)
-				output::write_torques(data, TimeStep, false);
-			if (parameters::write_lightcurves)
-				output::write_lightcurves(data, TimeStep, false);
 			// write particles
 			if (parameters::integrate_particles)
 				particles::write(TimeStep);
@@ -259,20 +256,31 @@ int main(int argc, char* argv[])
 			}
 			StillWriteOneOutput--;
 		} else {
-			// write disk quantities like eccentricity, ...
-			if (parameters::write_at_every_timestep)
-                output::write_quantities(data, TimeStep, nTimeStep, true);
-			if (parameters::write_torques)
-				output::write_torques(data, TimeStep, true);
-			if (parameters::write_lightcurves && parameters::write_at_every_timestep)
-				output::write_lightcurves(data, TimeStep, true);
 			TimeToWrite = NO;
 		}
-		AlgoGas(nTimeStep, force, data);
-		SolveOrbits(data);
-		if (parameters::write_massflow) {
+
+		// write disk quantities like eccentricity, ...
+		if (write_complete_output || parameters::write_at_every_timestep) {
+			output::write_quantities(data, TimeStep, nTimeStep, force_update_for_output);
+		}
+		if (write_complete_output || parameters::write_torques) {
+			output::write_torques(data, TimeStep, force_update_for_output);
+		}
+		if (parameters::write_lightcurves && (parameters::write_at_every_timestep || write_complete_output)) {
+			output::write_lightcurves(data, TimeStep, force_update_for_output);
+		}
+		if (parameters::write_massflow && nTimeStep != timeStepStart) {
 			output::write_massflow(data, TimeStep);
 		}
+
+		// Exit if last timestep reached
+		if ( nTimeStep == NTOT ) {
+			break;
+		}
+
+		AlgoGas(nTimeStep, force, data);
+		SolveOrbits(data);
+
 	}
 
 	logging::print_runtime_final();
