@@ -232,6 +232,8 @@ int main(int argc, char* argv[])
 				UpdateLogStockholm(data, PhysicalTime);
 		}
 
+		// write outputs
+
 		bool force_update_for_output = true;
 		TimeStep = (nTimeStep / NINTERM); // note: integer division
 		bool write_complete_output = NINTERM * TimeStep == nTimeStep;
@@ -273,11 +275,12 @@ int main(int argc, char* argv[])
 			output::write_massflow(data, TimeStep);
 		}
 
-		// Exit if last timestep reached
+		// Exit if last timestep reached and last output is written
 		if ( nTimeStep == NTOT ) {
 			break;
 		}
 
+		// do hydro and nbody
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);
 
