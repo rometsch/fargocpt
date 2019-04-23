@@ -126,7 +126,7 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
         }
     }
 
-
+    MPI_Barrier(MPI_COMM_WORLD);
 
 	// check if planet config exists
 	if ((config::key_exists("PLANETCONFIG")) && (strlen(config::value_as_string("PLANETCONFIG"))>0)) {
