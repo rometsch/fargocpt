@@ -93,11 +93,11 @@ int main(int argc, char* argv[])
 	setfpe();
 
 	// handle command line parameters
-    options::parse(argc,argv);
+	options::parse(argc,argv);
 
-    ReadVariables(options::parameter_file, data, argc, argv);
-    // check if there is enough free space for all outputs (check before any output are files created)
-    output::check_free_space(data);
+	ReadVariables(options::parameter_file, data, argc, argv);
+	// check if there is enough free space for all outputs (check before any output are files created)
+	output::check_free_space(data);
 
 	parameters::summarize_parameters();
 	parameters::write_grid_data_to_file();
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 	TellEverything();
 
 	if (options::memory_usage) {
-        data.print_memory_usage(NRadial, NAzimuthal);
+		data.print_memory_usage(NRadial, NAzimuthal);
 		PersonalExit(0);
 	}
 
@@ -202,9 +202,9 @@ int main(int argc, char* argv[])
 		// create planet files
 		data.get_planetary_system().create_planet_files();
 
-        // create 1D info files
-        if (CPU_Master)
-        {
+		// create 1D info files
+		if (CPU_Master)
+		{
 			output::write_1D_info(data);
 
 			// create mass flow info file
@@ -213,13 +213,13 @@ int main(int argc, char* argv[])
 				output::write_massflow_info(data);
 			}
 
-    }
-        MPI_Barrier(MPI_COMM_WORLD);
+	}
+		MPI_Barrier(MPI_COMM_WORLD);
 	}
 	PhysicalTimeInitial = PhysicalTime;
 
 	logging::start_timer();
-  
+
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
 		InnerOutputCounter++;
 
@@ -227,9 +227,9 @@ int main(int argc, char* argv[])
 			InnerOutputCounter = 0;
 			data.get_planetary_system().write_planets(TimeStep, true);
 			//WriteBigPlanetSystemFile(sys, TimeStep);
-            UpdateLog(data, force, TimeStep, PhysicalTime);
+			UpdateLog(data, force, TimeStep, PhysicalTime);
 			if (Stockholm)
-                UpdateLogStockholm(data, PhysicalTime);
+				UpdateLogStockholm(data, PhysicalTime);
 		}
 
 		bool force_update_for_output = true;
