@@ -73,7 +73,7 @@ int vprint(const char* fmt, va_list args)
 		if (!time_format) {
 			fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",(int)(log(CPU_Number)/log(10)+1), CPU_Rank, buf);
 		} else {
-			fprintf(current_level <= error_level ? stderr : stdout, "[%0*i %s] %s",(int)(log(CPU_Number)/log(10)+1), CPU_Rank, time_buf, buf);			
+			fprintf(current_level <= error_level ? stderr : stdout, "[%0*i %s] %s",(int)(log(CPU_Number)/log(10)+1), CPU_Rank, time_buf, buf);
 		}
 		free(buf);
 		return res;
