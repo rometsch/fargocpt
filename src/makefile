@@ -21,6 +21,15 @@ MPI_PREFIX_LINUX = /usr
 FFTW_PREFIX_LINUX = /usr
 GSL_PREFIX_LINUX = /usr
 
+# Generic Linux platform
+# FARGO_ARCH must be set to LINUXENV
+CC_LINUXENV = mpicc
+CXX_LINUXENV = mpicxx
+CFLAGS_LINUXENV = -Ofast -std=c++11 -Wall -march=native -Wno-unknown-pragmas
+MPI_PREFIX_LINUXENV = $(MPI_HOME)
+FFTW_PREFIX_LINUXENV = $(FFTW_HOME)
+GSL_PREFIX_LINUXENV = /usr/gsl/2.1
+
 # HLR2
 # FARGO_ARCH must be set to HLR2
 CC_HLR2 = mpicc
