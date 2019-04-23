@@ -1,0 +1,33 @@
+#+title: Tests for binary io
+#+author: Thomas Rometsch
+
+The gasdens files seem to change after the code is restarted.
+The scripts in this folder are used to test for this issue and compare data files.
+
+Run =test.sh N= where N is the output number for which you want to compare the output files.
+Probably the only important cases for N are zero and non-zero, i.e. initial conditions vs. some intermediate simulation output.
+
+No difference appears for output number 0.
+However small differences in the range of numerical precision appear for N > 0.
+
+The exact procedure is as follows:
+1) have a simulations up to some output number N
+2) make a copy of =cp gasdensN.dat gasdensN.dat.bak=
+3) restart the code with =./fargo path/to/setup.par -r N=
+4) compare the new =gasdensN.dat= to the old : =cmp -l gasdensN.dat.bak gasdensN.dat=
+
+Many differences appear.
+Using =print_differences.py gasdensN.dat.bak gasdensN.dat= you can check the magnitude of the differences.
+
+The differences for a standard fargo setup after 1 orbit are as follows.
+
+#+begin_example
+Number of doubles =  49152
+Number of different values =  11236
+min value (file1) =  448.2098433162453
+max value (file1) =  63838.064418068934
+min diff =  5.684341886080802e-14
+max diff =  7.275957614183426e-12
+avg diff =  2.412911056039728e-13
+median diff =  2.2737367544323206e-13
+#+end_example
