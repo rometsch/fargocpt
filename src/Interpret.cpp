@@ -79,6 +79,25 @@ std::string getFileName(const std::string& s) {
    return("");
 }
 
+static void _mkdir(const char *dir, mode_t mode) {
+	// from https://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
+	char tmp[256];
+	char *p = NULL;
+	size_t len;
+
+	snprintf(tmp, sizeof(tmp),"%s",dir);
+	len = strlen(tmp);
+	if(tmp[len - 1] == '/')
+		tmp[len - 1] = 0;
+	for(p = tmp + 1; *p; p++)
+		if(*p == '/') {
+			*p = 0;
+			mkdir(tmp, mode);
+			*p = '/';
+		}
+	mkdir(tmp, S_IRWXU);
+}
+
 void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 {
 	// read config from
@@ -103,7 +122,7 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
         struct stat buffer;
         if(stat(OUTPUTDIR, &buffer))
         {
-            mkdir(OUTPUTDIR, 0700);
+            _mkdir(OUTPUTDIR, 0700);
         }
     }
 
