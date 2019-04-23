@@ -142,6 +142,9 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
     // copy setup files into the output folder
     std::string output_folder = std::string(OUTPUTDIR);
     std::string par_file = getFileName(filename);
+	if (output_folder.back() != '/') {
+		output_folder += "/";
+	}
     std::string par_filename = output_folder + std::string(par_file);
 
     if(options::restart)
