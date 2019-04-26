@@ -75,8 +75,30 @@ std::string getFileName(const std::string& s) {
    if (i != std::string::npos) {
       return(s.substr(i+1, s.length() - i));
    }
+   else {
+       return s;
+   }
 
    return("");
+}
+
+static void _mkdir(const char *dir, mode_t mode) {
+	// from https://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
+	char tmp[256];
+	char *p = NULL;
+	size_t len;
+
+	snprintf(tmp, sizeof(tmp),"%s",dir);
+	len = strlen(tmp);
+	if(tmp[len - 1] == '/')
+		tmp[len - 1] = 0;
+	for(p = tmp + 1; *p; p++)
+		if(*p == '/') {
+			*p = 0;
+			mkdir(tmp, mode);
+			*p = '/';
+		}
+	mkdir(tmp, S_IRWXU);
 }
 
 void ReadVariables(char* filename, t_data &data, int argc, char** argv)
@@ -105,11 +127,11 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
         struct stat buffer;
         if(stat(OUTPUTDIR, &buffer))
         {
-            mkdir(OUTPUTDIR, 0700);
+            _mkdir(OUTPUTDIR, 0700);
         }
     }
 
-
+    MPI_Barrier(MPI_COMM_WORLD);
 
 	// check if planet config exists
 	if ((config::key_exists("PLANETCONFIG")) && (strlen(config::value_as_string("PLANETCONFIG"))>0)) {
@@ -125,7 +147,10 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
     // copy setup files into the output folder
     std::string output_folder = std::string(OUTPUTDIR);
     std::string par_file = getFileName(filename);
-    std::string par_filename = output_folder + std::string(par_file);
+	if (output_folder.back() != '/') {
+		output_folder += "/";
+	}
+    std::string par_filename = output_folder + par_file;
 
     if(options::restart)
     {

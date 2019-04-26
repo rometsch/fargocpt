@@ -93,11 +93,11 @@ int main(int argc, char* argv[])
 	setfpe();
 
 	// handle command line parameters
-    options::parse(argc,argv);
+	options::parse(argc,argv);
 
-    ReadVariables(options::parameter_file, data, argc, argv);
-    // check if there is enough free space for all outputs (check before any output are files created)
-    output::check_free_space(data);
+	ReadVariables(options::parameter_file, data, argc, argv);
+	// check if there is enough free space for all outputs (check before any output are files created)
+	output::check_free_space(data);
 
 	parameters::summarize_parameters();
 	parameters::write_grid_data_to_file();
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 	TellEverything();
 
 	if (options::memory_usage) {
-        data.print_memory_usage(NRadial, NAzimuthal);
+		data.print_memory_usage(NRadial, NAzimuthal);
 		PersonalExit(0);
 	}
 
@@ -153,6 +153,7 @@ int main(int argc, char* argv[])
 	mdcp0 = CircumPlanetaryMass(data);
 
 	if (options::restart) {
+		// TODO: fix for case that NINTERM changes (probably add small time step to misc.dat)
 		timeStepStart = options::restart_from * NINTERM;
 		logging::print_master(LOG_INFO "Restarting planetary system...\n");
 		// restart planetary system
@@ -193,22 +194,15 @@ int main(int argc, char* argv[])
 			data[t_data::ENERGY].read2D(options::restart_from);
 
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-
-		// recalculate everyting
-		if (Adiabatic) {
-			compute_sound_speed(data, true);
-			compute_aspect_ratio(data, true);
-		}
-		viscosity::update_viscosity(data);
-		compute_pressure(data, true);
-		compute_temperature(data, true);
+		boundary_conditions::apply_boundary_condition(data, 0.0, false);
+		recalculate_derived_disk_quantities(data, true);
 	} else {
 		// create planet files
 		data.get_planetary_system().create_planet_files();
 
-        // create 1D info files
-        if (CPU_Master)
-        {
+		// create 1D info files
+		if (CPU_Master)
+		{
 			output::write_1D_info(data);
 
 			// create mass flow info file
@@ -217,13 +211,13 @@ int main(int argc, char* argv[])
 				output::write_massflow_info(data);
 			}
 
-    }
-        MPI_Barrier(MPI_COMM_WORLD);
+	}
+		MPI_Barrier(MPI_COMM_WORLD);
 	}
 	PhysicalTimeInitial = PhysicalTime;
 
 	logging::start_timer();
-  
+
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
 		InnerOutputCounter++;
 
@@ -231,30 +225,29 @@ int main(int argc, char* argv[])
 			InnerOutputCounter = 0;
 			data.get_planetary_system().write_planets(TimeStep, true);
 			//WriteBigPlanetSystemFile(sys, TimeStep);
-            UpdateLog(data, force, TimeStep, PhysicalTime);
+			UpdateLog(data, force, TimeStep, PhysicalTime);
 			if (Stockholm)
-                UpdateLogStockholm(data, PhysicalTime);
+				UpdateLogStockholm(data, PhysicalTime);
 		}
 
-		if (NINTERM * (TimeStep = (nTimeStep / NINTERM)) == nTimeStep) {
+		// write outputs
+
+		bool force_update_for_output = true;
+		TimeStep = (nTimeStep / NINTERM); // note: integer division
+		bool write_complete_output = NINTERM * TimeStep == nTimeStep;
+		if (write_complete_output) {
 			// Outputs are done here
 			TimeToWrite = YES;
+			force_update_for_output = false;
 
 			// write polar grids
 			output::write_grids(data, TimeStep, N_iter, PhysicalTime);
 			// write planet data
 			data.get_planetary_system().write_planets(TimeStep, false);
-			// write quantities like energy, mass, ...
-            output::write_quantities(data, TimeStep, nTimeStep, false);
 			// write misc stuff (important for resuming)
 			output::write_misc(TimeStep);
 			// write time info for coarse output
 			output::write_coarse_time(TimeStep, nTimeStep);
-			// write disk quantities like eccentricity, ...
-			if (parameters::write_torques)
-				output::write_torques(data, TimeStep, false);
-			if (parameters::write_lightcurves)
-				output::write_lightcurves(data, TimeStep, false);
 			// write particles
 			if (parameters::integrate_particles)
 				particles::write(TimeStep);
@@ -263,20 +256,32 @@ int main(int argc, char* argv[])
 			}
 			StillWriteOneOutput--;
 		} else {
-			// write disk quantities like eccentricity, ...
-			if (parameters::write_at_every_timestep)
-                output::write_quantities(data, TimeStep, nTimeStep, true);
-			if (parameters::write_torques)
-				output::write_torques(data, TimeStep, true);
-			if (parameters::write_lightcurves && parameters::write_at_every_timestep)
-				output::write_lightcurves(data, TimeStep, true);
 			TimeToWrite = NO;
 		}
-		AlgoGas(nTimeStep, force, data);
-		SolveOrbits(data);
-		if (parameters::write_massflow) {
+
+		// write disk quantities like eccentricity, ...
+		if (write_complete_output || parameters::write_at_every_timestep) {
+			output::write_quantities(data, TimeStep, nTimeStep, force_update_for_output);
+		}
+		if (write_complete_output || parameters::write_torques) {
+			output::write_torques(data, TimeStep, force_update_for_output);
+		}
+		if (parameters::write_lightcurves && (parameters::write_at_every_timestep || write_complete_output)) {
+			output::write_lightcurves(data, TimeStep, force_update_for_output);
+		}
+		if (parameters::write_massflow && nTimeStep != timeStepStart) {
 			output::write_massflow(data, TimeStep);
 		}
+
+		// Exit if last timestep reached and last output is written
+		if ( nTimeStep == NTOT ) {
+			break;
+		}
+
+		// do hydro and nbody
+		AlgoGas(nTimeStep, force, data);
+		SolveOrbits(data);
+
 	}
 
 	logging::print_runtime_final();
