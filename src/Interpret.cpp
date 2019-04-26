@@ -75,6 +75,9 @@ std::string getFileName(const std::string& s) {
    if (i != std::string::npos) {
       return(s.substr(i+1, s.length() - i));
    }
+   else {
+       return s;
+   }
 
    return("");
 }
@@ -145,7 +148,7 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 	if (output_folder.back() != '/') {
 		output_folder += "/";
 	}
-    std::string par_filename = output_folder + std::string(par_file);
+    std::string par_filename = output_folder + par_file;
 
     if(options::restart)
     {
