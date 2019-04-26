@@ -497,12 +497,24 @@ void damping(t_data &data, double dt)
 
 	if(parameters::damping)
     {
-		for(unsigned int i = 0; i < parameters::damping_vector.size(); ++i)
+		for(unsigned int i = 0; i < 3; ++i)
 		{
 			const parameters::DampingType *damper = &parameters::damping_vector[i];
-			(damper->inner_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
-			(damper->outer_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
+			if(damper->inner_damping_function != nullptr)
+				(damper->inner_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
+			if(damper->outer_damping_function != nullptr)
+				(damper->outer_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
         }
+		if(Adiabatic)
+		{
+			int i = 3;
+			const parameters::DampingType *damper = &parameters::damping_vector[i];
+			if(damper->inner_damping_function != nullptr)
+				(damper->inner_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
+			if(damper->outer_damping_function != nullptr)
+				(damper->outer_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
+
+		}
     }
 }
 

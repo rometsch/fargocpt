@@ -420,7 +420,7 @@ void read(char* filename, t_data &data)
 	}
 	else // in case of old style set both inner/outer to same type
 		tmp_damping_outer = tmp_damping_inner;
-	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::ENERGY, t_data::ENERGY, "Energy"));
+	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::ENERGY, t_data::ENERGY0, "Energy"));
 
 
 
