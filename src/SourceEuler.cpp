@@ -429,7 +429,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 		if (parameters::calculate_disk) {
 			CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
-			recalculate_everything(data, true);
+			recalculate_derived_disk_quantities(data, true);
 
 			if (!SloppyCFL) {
 				local_gas_time_step_cfl = 1.0;
