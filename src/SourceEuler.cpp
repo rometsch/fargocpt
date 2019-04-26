@@ -148,11 +148,6 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density, doubl
 	return found;
 }
 
-void blah()
-{
-
-}
-
 void recalculate_everything(t_data &data, bool force_update)
 {
 
