@@ -89,7 +89,7 @@ Transport		FARGO
 InnerBoundary		OPEN
 OuterBoundary		EVANESCENT
 DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
-Damping			No		
+Damping			None      # None, Damping, WaveDamping
 DampingInnerLimit	1.10    	# Rmin*Limit
 DampingOuterLimit	0.90    	# Rmax*Limit
 DampingTimeFactor	1.0e-3
