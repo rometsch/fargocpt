@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
 
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 		boundary_conditions::apply_boundary_condition(data, 0.0, false);
-		recalculate_everything(data, true);
+		recalculate_derived_disk_quantities(data, true);
 	} else {
 		// create planet files
 		data.get_planetary_system().create_planet_files();

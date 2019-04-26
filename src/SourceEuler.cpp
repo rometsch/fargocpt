@@ -148,10 +148,10 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density, doubl
 	return found;
 }
 
-void recalculate_everything(t_data &data, bool force_update)
+void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 {
 
-	if(!(Adiabatic || Polytropic))
+	if(!(Adiabatic || Polytropic)) // = Isothermal
 	{
 		compute_pressure(data, force_update);
 	}
@@ -174,7 +174,7 @@ void init_euler(t_data &data)
 
 
 	boundary_conditions::apply_boundary_condition(data, 0.0, false);
-	if(!(Adiabatic || Polytropic))
+	if(!(Adiabatic || Polytropic)) // = Isothermal
 	{
 		compute_sound_speed(data, false);
 		compute_pressure(data, false);
