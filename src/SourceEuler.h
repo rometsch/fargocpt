@@ -12,6 +12,7 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density, doubl
 void copy_polargrid(t_polargrid &dst, t_polargrid &src);
 void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src);
 
+void recalculate_derived_disk_quantities(t_data &data, bool force_update);
 void init_euler(t_data &data);
 void FreeEuler();
 

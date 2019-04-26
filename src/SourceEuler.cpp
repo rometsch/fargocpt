@@ -148,21 +148,50 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density, doubl
 	return found;
 }
 
+void recalculate_derived_disk_quantities(t_data &data, bool force_update)
+{
+
+	if(!(Adiabatic || Polytropic)) // = Isothermal
+	{
+		compute_pressure(data, force_update);
+	}
+
+
+	if (Adiabatic || Polytropic) {
+		compute_temperature(data, force_update);
+		compute_sound_speed(data, force_update);
+		compute_aspect_ratio(data, force_update);
+		compute_pressure(data, force_update);
+	}
+
+	viscosity::update_viscosity(data);
+}
 
 void init_euler(t_data &data)
 {
 	InitTransport();
 	InitComputeAccel();
 
-	// Density and Energy are already initialized: cf main.c
 
-	compute_sound_speed(data, false);
-	compute_aspect_ratio(data, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	if(!(Adiabatic || Polytropic)) // = Isothermal
+	{
+		compute_sound_speed(data, false);
+		compute_pressure(data, false);
+		compute_temperature(data, false);
+		compute_aspect_ratio(data, false);
+	}
+
+	if (Adiabatic || Polytropic) {
+		compute_temperature(data, false);
+		compute_sound_speed(data, false);
+		compute_aspect_ratio(data, false);
+		compute_pressure(data, false);
+	}
+
 	viscosity::update_viscosity(data);
-
-	compute_pressure(data, false);
-	compute_temperature(data, false);
 }
+
 
 /**
 
@@ -224,16 +253,9 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
     dtemp=0.0;
 
-    if (Adiabatic || Polytropic) {
-		compute_sound_speed(data, false);
-		compute_aspect_ratio(data, false);
-		viscosity::update_viscosity(data);
-	}
-
 	if (parameters::calculate_disk) {
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-		if (SloppyCFL)
-			local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT-dtemp);
+		local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT-dtemp);
 	}
 
 	MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
@@ -255,30 +277,6 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 	while (dtemp < DT) {
 		logging::print_master(LOG_VERBOSE "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",(int)ceil(log10(NTOT)),nTimeStep,NTOT,(double)nTimeStep/(double)NTOT*100.0,dtemp,DT,dtemp/DT*100.0);
 
-		if (parameters::calculate_disk) {
-			CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-
-			// this must be done after communication of boundaries
-			// update soundspeed if adiabatic
-            if (Adiabatic || Polytropic) {
-				compute_sound_speed(data, true);
-				compute_aspect_ratio(data, true);
-			}
-
-			// update viscosity
-			viscosity::update_viscosity(data);
-
-			// update temperature
-			compute_temperature(data, true);
-
-			if (!SloppyCFL) {
-				local_gas_time_step_cfl = 1.0;
-				local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT-dtemp);
-				MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-				dt = (DT-dtemp)/global_gas_time_step_cfl;
-			}
-			AccreteOntoPlanets(data, dt);
-		}
         dtemp += dt;
 
 		DiskOnPrimaryAcceleration.x = 0.0;
@@ -334,7 +332,6 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 		/* Now we update gas */
 		if (parameters::calculate_disk) {
-			boundary_conditions::apply_boundary_condition(data, dt, false);
 
 			if (DetectCrash(&data[t_data::DENSITY])) {
 				logging::print(LOG_ERROR "DetectCrash: Density < 0\n");
@@ -347,8 +344,6 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 					PersonalExit(1);
 				}
 			}
-
-			compute_pressure(data, true);
 
 			SubStep1(data, dt);
 			SubStep2(data, dt);
@@ -430,6 +425,21 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 		PhysicalTime += dt;
 		N_iter = N_iter +1;
 		logging::print_runtime_info(nTimeStep/NINTERM, nTimeStep, dt);
+
+		if (parameters::calculate_disk) {
+			CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
+
+			recalculate_everything(data, true);
+
+			if (!SloppyCFL) {
+				local_gas_time_step_cfl = 1.0;
+				local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT-dtemp);
+				MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+				dt = (DT-dtemp)/global_gas_time_step_cfl;
+			}
+			AccreteOntoPlanets(data, dt);
+
+		}
 	}
 
 	if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
@@ -444,16 +454,6 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 	if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
 		quantities::calculate_radial_alpha_reynolds_mean_finalize(data, DT);
 	}
-
-	// Recalculate pressure and temperature with updated densities
-	// otherwise temperature calculation in the next iteration has wrong pressure
-	if (data[t_data::PRESSURE].get_write() || data[t_data::TEMPERATURE].get_write()) {
-		compute_pressure(data, true);
-	}
-	if (data[t_data::TEMPERATURE].get_write()) {
-		compute_temperature(data, true);
-	}
-
 }
 
 /**

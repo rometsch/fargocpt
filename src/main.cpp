@@ -189,15 +189,8 @@ int main(int argc, char* argv[])
 			data[t_data::ENERGY].read2D(options::restart_from);
 
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-
-		// recalculate everyting
-		if (Adiabatic) {
-			compute_sound_speed(data, true);
-			compute_aspect_ratio(data, true);
-		}
-		viscosity::update_viscosity(data);
-		compute_pressure(data, true);
-		compute_temperature(data, true);
+		boundary_conditions::apply_boundary_condition(data, 0.0, false);
+		recalculate_derived_disk_quantities(data, true);
 	} else {
 		// create planet files
 		data.get_planetary_system().create_planet_files();
