@@ -26,6 +26,7 @@
 #include "util.h"
 #include "parameters.h"
 #include "quantities.h"
+#include "Interpret.h"
 
 extern boolean OuterSourceMass, Damping;
 extern bool Adiabatic;

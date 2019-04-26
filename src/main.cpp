@@ -144,11 +144,6 @@ int main(int argc, char* argv[])
 	copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
 	copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
 
-    if(parameters::damping_type == parameters::t_damping_type::damping_wave_damping)
-    {
-        data[t_data::V_RADIAL].clear();
-    }
-
 	// Initial Density is used to compute the circumplanetary mass with initial density field
 	mdcp0 = CircumPlanetaryMass(data);
 

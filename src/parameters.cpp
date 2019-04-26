@@ -18,8 +18,10 @@
 #include "string.h"
 #include "global.h"
 #include "constants.h"
+#include "boundary_conditions.h"
 
 namespace parameters {
+
 
 t_radial_grid radial_grid_type;
 const char* radial_grid_names[] = {"arithmetic", "logarithmic", "exponential"};
@@ -28,14 +30,12 @@ t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;
 bool domegadr_zero;
 
-t_damping_type damping_type;
+bool damping;
 double damping_inner_limit;
 double damping_outer_limit;
 double damping_time_factor;
-bool damping_energy;
-bool damping_v_radial;
-bool damping_v_azimuthal;
-bool damping_surface_density;
+
+std::vector<DampingType> damping_vector;
 
 double minimum_temperature;
 double maximum_temperature;
@@ -143,6 +143,64 @@ bool particle_disk_gravity_enabled;
 
 // for constant opacity
 double kappa_const = 1.0;
+
+
+
+DampingType write_damping_type(t_damping_type type_inner, t_damping_type type_outer, t_data::t_polargrid_type quantity, t_data::t_polargrid_type quantity0, std::string description)
+{
+	DampingType damping_type;
+	damping_type.array_to_damp = quantity;
+	damping_type.array_with_damping_values = quantity0;
+	std::string description_inner;
+	std::string description_outer;
+
+	switch (type_inner)
+	{
+		case damping_none:
+			damping_type.inner_damping_function = nullptr;
+			description_inner = "Damping " + description + " is disabled at inner boundary.";
+			break;
+		case damping_mean:
+			damping_type.inner_damping_function = &boundary_conditions::damping_single_inner_mean;
+			description_inner = "Damping " + description + " to mean value at inner boundary.";
+			break;
+		case damping_initial:
+			damping_type.inner_damping_function = &boundary_conditions::damping_single_inner;
+			description_inner = "Damping " + description + " to initial value at inner boundary.";
+			break;
+		case damping_zero:
+			damping_type.inner_damping_function = &boundary_conditions::damping_single_inner_zero;
+			description_inner = "Damping " + description + " to zero at inner boundary.";
+			break;
+	}
+
+	damping_type.description_inner = description_inner;
+
+	switch (type_outer)
+	{
+		case damping_none:
+			damping_type.outer_damping_function = nullptr;
+			description_outer = "Damping " + description + " is disabled at outer boundary.";
+			break;
+		case damping_mean:
+			damping_type.outer_damping_function = &boundary_conditions::damping_single_outer_mean;
+			description_outer = "Damping " + description + " to mean value at outer boundary.";
+			break;
+		case damping_initial:
+			damping_type.outer_damping_function = &boundary_conditions::damping_single_outer;
+			description_outer = "Damping " + description + " to initial value at outer boundary.";
+			break;
+		case damping_zero:
+			damping_type.outer_damping_function = &boundary_conditions::damping_single_outer_zero;
+			description_outer = "Damping " + description + " to zero at outer boundary.";
+			break;
+	}
+
+	damping_type.description_outer = description_outer;
+
+	return damping_type;
+}
+
 
 void read(char* filename, t_data &data)
 {
@@ -301,20 +359,8 @@ void read(char* filename, t_data &data)
 	}
 
 	domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
+	damping = config::value_as_bool_default("Damping", false);
 
-    switch (tolower(*config::value_as_string_default("Damping","None"))) {
-        case 'n':
-            damping_type = damping_none;
-            break;
-        case 'd':
-            damping_type = damping_initial_condidions;
-            break;
-        case 'w':
-            damping_type = damping_wave_damping;
-            break;
-        default:
-            damping_type = damping_none;
-    }
 	damping_inner_limit = config::value_as_double_default("DampingInnerLimit",1.05);
 	if (damping_inner_limit < 1) {
 		die("DampingInnerLimit must not be <1\n");
@@ -324,10 +370,59 @@ void read(char* filename, t_data &data)
 		die("DampingOuterLimit must not be >1\n");
 	}
 	damping_time_factor = config::value_as_double_default("DampingTimeFactor",1.0);
-	damping_energy = config::value_as_bool_default("DampingEnergy", false);
-	damping_v_radial = config::value_as_bool_default("DampingVRadial", false);
-	damping_v_azimuthal = config::value_as_bool_default("DampingVAzimuthal", false);
-	damping_surface_density = config::value_as_bool_default("DampingSurfaceDensity", false);
+
+
+	t_damping_type tmp_damping_inner;
+	t_damping_type tmp_damping_outer;
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingVRadial", "None");
+	if(tmp_damping_inner == t_damping_type::damping_none)
+	{
+		tmp_damping_inner = config::value_as_boudary_damping_default("DampingVRadialInner", "None");
+		tmp_damping_outer = config::value_as_boudary_damping_default("DampingVRadialOuter", "None");
+
+	}
+	else
+		tmp_damping_outer = tmp_damping_inner;
+	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
+
+
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingVAzimuthal", "None");
+	if(tmp_damping_inner == t_damping_type::damping_none)
+	{
+		tmp_damping_inner = config::value_as_boudary_damping_default("DampingVAzimuthalInner", "None");
+		tmp_damping_outer= config::value_as_boudary_damping_default("DampingVAzimuthalOuter", "None");
+
+	}
+	else
+		tmp_damping_outer= tmp_damping_inner;
+	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::V_AZIMUTHAL, t_data::V_AZIMUTHAL0, "VAzimuthal"));
+
+
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingSurfaceDensity", "None");
+	if(tmp_damping_inner == t_damping_type::damping_none)
+	{
+		tmp_damping_inner = config::value_as_boudary_damping_default("DampingSurfaceDensityInner", "None");
+		tmp_damping_outer = config::value_as_boudary_damping_default("DampingSurfaceDensityOuter", "None");
+
+	}
+	else
+		tmp_damping_outer = tmp_damping_inner;
+	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::DENSITY, t_data::DENSITY0, "SurfaceDensity"));
+
+
+
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingEnergy", "None");
+	if(tmp_damping_inner == t_damping_type::damping_none) // If old style is not used, try new style
+	{
+		tmp_damping_inner = config::value_as_boudary_damping_default("DampingEnergyInner", "None");
+		tmp_damping_outer = config::value_as_boudary_damping_default("DampingEnergyOuter", "None");
+
+	}
+	else // in case of old style set both inner/outer to same type
+		tmp_damping_outer = tmp_damping_inner;
+	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::ENERGY, t_data::ENERGY, "Energy"));
+
+
 
 	calculate_disk = config::value_as_bool_default("DISK", 1);
 
@@ -602,19 +697,16 @@ void summarize_parameters()
 	}
 	logging::print_master(LOG_INFO "Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n", radial_viscosity_factor);
 
-    if (damping_type == damping_initial_condidions) {
-        logging::print_master(LOG_INFO "Damping at inner boundary from %lf to %lf and at outer boundary from %lf to %lf with a timefactor of %lf.\n",RMIN,RMIN*damping_inner_limit,RMAX*damping_outer_limit,RMAX,damping_time_factor);
-        logging::print_master(LOG_INFO "Damping of surface density is %s.\n", damping_surface_density ? "enabled" : "disabled");
-        logging::print_master(LOG_INFO "Damping of radial velocity is %s.\n", damping_v_radial ? "enabled" : "disabled");
-        logging::print_master(LOG_INFO "Damping of azimuthal velocity is %s.\n", damping_v_azimuthal ? "enabled" : "disabled");
-        logging::print_master(LOG_INFO "Damping of energy is %s.\n", damping_energy ? "enabled" : "disabled");
-    } else if(damping_type == damping_wave_damping) {
-        logging::print_master(LOG_INFO "Wave Damping at inner boundary from %lf to %lf and at outer boundary from %lf to %lf with a timefactor of %lf.\n",RMIN,RMIN*damping_inner_limit,RMAX*damping_outer_limit,RMAX,damping_time_factor);
-        logging::print_master(LOG_INFO "Wave Damping of surface density is %s.\n", damping_surface_density ? "enabled" : "disabled");
-        logging::print_master(LOG_INFO "Wave Damping of radial velocity is %s.\n", damping_v_radial ? "enabled" : "disabled");
-        logging::print_master(LOG_INFO "Wave Damping of azimuthal velocity is %s.\n", damping_v_azimuthal ? "enabled" : "disabled");
-        logging::print_master(LOG_INFO "Wave Damping of energy is %s.\n", damping_energy ? "enabled" : "disabled");
-    } else {
+	if (damping)
+	{
+		for(unsigned int i = 0; i < damping_vector.size(); ++i)
+		{
+			printf("%s\n", damping_vector[i].description_inner.c_str());
+			printf("%s\n", damping_vector[i].description_outer.c_str());
+		}
+	}
+	else
+	{
 		logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
 	}
 

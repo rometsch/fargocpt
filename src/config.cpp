@@ -688,6 +688,49 @@ const char *value_as_string_default(const char *key, const char *defvalue)
 }
 
 /**
+	Get a value as t_boundary_condition to a corresponding key  if available, else set to default
+
+	\param key key
+	\param defvalue default value
+	\returns t_boundary_condition
+*/
+parameters::t_damping_type value_as_boudary_damping_default(const char *key, const char *defvalue)
+{
+	char* string_key;
+	if (key_exists(key))
+	{
+		string_key = (char*)value_as_string(key);
+	}
+	else
+	{
+		string_key = (char*)defvalue;
+	}
+
+	parameters::t_damping_type boundary_condition;
+	switch (tolower(*string_key))
+	{
+		case 'n':
+			boundary_condition = parameters::t_damping_type::damping_none;
+			break;
+		case 'i':
+			boundary_condition =  parameters::t_damping_type::damping_initial;
+			break;
+		case 'y': // for legacy compatibility
+			boundary_condition =  parameters::t_damping_type::damping_initial;
+			break;
+		case 'm':
+			boundary_condition = parameters::t_damping_type::damping_mean;
+			break;
+		case 'z':
+			boundary_condition = parameters::t_damping_type::damping_zero;
+			break;
+		default:
+			boundary_condition = parameters::t_damping_type::damping_none;
+	}
+	return boundary_condition;
+}
+
+/**
 	check if a key exists
 
 	\param key key to check for
