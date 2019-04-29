@@ -507,7 +507,7 @@ void damping(t_data &data, double dt)
         }
 		if(Adiabatic)
 		{
-			int i = 3;
+			const int i = 3;
 			const parameters::DampingType *damper = &parameters::damping_vector[i];
 			if(damper->inner_damping_function != nullptr)
 				(damper->inner_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
