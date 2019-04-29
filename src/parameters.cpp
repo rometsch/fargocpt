@@ -701,8 +701,8 @@ void summarize_parameters()
 	{
 		for(unsigned int i = 0; i < damping_vector.size(); ++i)
 		{
-			printf("%s\n", damping_vector[i].description_inner.c_str());
-			printf("%s\n", damping_vector[i].description_outer.c_str());
+			logging::print_master(LOG_INFO "%s\n", damping_vector[i].description_inner.c_str());
+			logging::print_master(LOG_INFO "%s\n", damping_vector[i].description_outer.c_str());
 		}
 	}
 	else
