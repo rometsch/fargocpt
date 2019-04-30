@@ -93,17 +93,14 @@ Damping			Yes      # NO, YES [default = no]
 DampingInnerLimit	1.10    	# Rmin*Limit
 DampingOuterLimit	0.90    	# Rmax*Limit
 DampingTimeFactor	1.0e-3
-DampingEnergy		No		# Damping of energy [default = no]
-DampingVRadial		No		# Damping of radial velocity [default = no]
-DampingVAzimuthal	No		# Damping of azimuthal velocity [default = no]
-DampingSurfaceDensity	No		# Damping of surface density [default = no]
-DampingEnergyInner		None		# Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
+
+DampingEnergyInner		Initial		# Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
 DampingEnergyOuter		Initial		# Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
-DampingVRadialInner		Zero		# Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialInner		Initial		# Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialOuter		Initial		# Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner	Initial		# Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalOuter	Initial		# Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
-DampingSurfaceDensityInner	Mean		# Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityInner	Initial		# Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
 DampingSurfaceDensityOuter	Initial		# Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none] 
 
 Disk			YES
