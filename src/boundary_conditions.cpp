@@ -490,7 +490,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0, do
 
 
 /**
-	damping of velocities
+	damping of all selected quantities
 */
 void damping(t_data &data, double dt)
 {
