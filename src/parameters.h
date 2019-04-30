@@ -25,7 +25,7 @@ extern t_boundary_condition boundary_outer;
 extern bool domegadr_zero;
 
 /// Struct for handling damping at boundaries
-struct DampingType
+struct t_DampingType
 {
 	void (*inner_damping_function)(t_polargrid&, t_polargrid&, double);
 	void (*outer_damping_function)(t_polargrid&, t_polargrid&, double);
@@ -34,6 +34,7 @@ struct DampingType
 	std::string description_inner;
 	std::string description_outer;
 };
+extern int damping_energy_id;
 
 
 /// enable different damping types
@@ -46,7 +47,7 @@ extern double damping_outer_limit;
 /// damping time factor
 extern double damping_time_factor;
 /// vector to handle damping structs
-extern std::vector<DampingType> damping_vector;
+extern std::vector<t_DampingType> damping_vector;
 
 // energy equation
 /// mean molecular mass

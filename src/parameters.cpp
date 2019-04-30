@@ -35,7 +35,9 @@ double damping_inner_limit;
 double damping_outer_limit;
 double damping_time_factor;
 
-std::vector<DampingType> damping_vector;
+
+int damping_energy_id;
+std::vector<t_DampingType> damping_vector;
 
 double minimum_temperature;
 double maximum_temperature;
@@ -146,9 +148,9 @@ double kappa_const = 1.0;
 
 
 
-DampingType write_damping_type(t_damping_type type_inner, t_damping_type type_outer, t_data::t_polargrid_type quantity, t_data::t_polargrid_type quantity0, std::string description)
+t_DampingType write_damping_type(t_damping_type type_inner, t_damping_type type_outer, t_data::t_polargrid_type quantity, t_data::t_polargrid_type quantity0, std::string description)
 {
-	DampingType damping_type;
+	t_DampingType damping_type;
 	damping_type.array_to_damp = quantity;
 	damping_type.array_with_damping_values = quantity0;
 	std::string description_inner;
@@ -374,53 +376,44 @@ void read(char* filename, t_data &data)
 
 	t_damping_type tmp_damping_inner;
 	t_damping_type tmp_damping_outer;
-	tmp_damping_inner = config::value_as_boudary_damping_default("DampingVRadial", "None");
-	if(tmp_damping_inner == t_damping_type::damping_none)
-	{
-		tmp_damping_inner = config::value_as_boudary_damping_default("DampingVRadialInner", "None");
-		tmp_damping_outer = config::value_as_boudary_damping_default("DampingVRadialOuter", "None");
 
-	}
-	else
-		tmp_damping_outer = tmp_damping_inner;
+	if(config::key_exists("DampingVRadial"))
+		die("DampingVRadial flag is decrepated used DampingVRadialInner and DampingVRadialOuter instead!");
+
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingVRadialInner", "None");
+	tmp_damping_outer = config::value_as_boudary_damping_default("DampingVRadialOuter", "None");
+
 	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
 
 
-	tmp_damping_inner = config::value_as_boudary_damping_default("DampingVAzimuthal", "None");
-	if(tmp_damping_inner == t_damping_type::damping_none)
-	{
-		tmp_damping_inner = config::value_as_boudary_damping_default("DampingVAzimuthalInner", "None");
-		tmp_damping_outer= config::value_as_boudary_damping_default("DampingVAzimuthalOuter", "None");
+	if(config::key_exists("DampingVAzimuthal"))
+		die("DampingVRadial flag is decrepated used DampingVAzimuthalInner and DampingVAzimuthalOuter instead!");
 
-	}
-	else
-		tmp_damping_outer= tmp_damping_inner;
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingVAzimuthalInner", "None");
+	tmp_damping_outer= config::value_as_boudary_damping_default("DampingVAzimuthalOuter", "None");
+
 	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::V_AZIMUTHAL, t_data::V_AZIMUTHAL0, "VAzimuthal"));
 
 
-	tmp_damping_inner = config::value_as_boudary_damping_default("DampingSurfaceDensity", "None");
-	if(tmp_damping_inner == t_damping_type::damping_none)
-	{
-		tmp_damping_inner = config::value_as_boudary_damping_default("DampingSurfaceDensityInner", "None");
-		tmp_damping_outer = config::value_as_boudary_damping_default("DampingSurfaceDensityOuter", "None");
+	if(config::key_exists("DampingSurfaceDensity"))
+		die("DampingSurfaceDensity flag is decrepated used DampingSurfaceDensityInner and DampingSurfaceDensityOuter instead!");
 
-	}
-	else
-		tmp_damping_outer = tmp_damping_inner;
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingSurfaceDensityInner", "None");
+	tmp_damping_outer = config::value_as_boudary_damping_default("DampingSurfaceDensityOuter", "None");
+
+
 	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::DENSITY, t_data::DENSITY0, "SurfaceDensity"));
 
 
-
 	tmp_damping_inner = config::value_as_boudary_damping_default("DampingEnergy", "None");
-	if(tmp_damping_inner == t_damping_type::damping_none) // If old style is not used, try new style
-	{
-		tmp_damping_inner = config::value_as_boudary_damping_default("DampingEnergyInner", "None");
-		tmp_damping_outer = config::value_as_boudary_damping_default("DampingEnergyOuter", "None");
+	if(config::key_exists("DampingEnergy"))
+		die("DampingEnergy flag is decrepated used DampingEnergyInner and DampingEnergyOuter instead!");
 
-	}
-	else // in case of old style set both inner/outer to same type
-		tmp_damping_outer = tmp_damping_inner;
+	tmp_damping_inner = config::value_as_boudary_damping_default("DampingEnergyInner", "None");
+	tmp_damping_outer = config::value_as_boudary_damping_default("DampingEnergyOuter", "None");
+
 	damping_vector.push_back(write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::ENERGY, t_data::ENERGY0, "Energy"));
+	damping_energy_id = (int)damping_vector.size() - 1;
 
 
 

@@ -18,7 +18,7 @@
 #include "SideEuler.h"
 #include "LowTasks.h"
 extern boolean OuterSourceMass;
-extern std::vector<parameters::DampingType> parameters::damping_vector;
+extern std::vector<parameters::t_DampingType> parameters::damping_vector;
 
 
 extern bool Adiabatic;
@@ -494,27 +494,18 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0, do
 */
 void damping(t_data &data, double dt)
 {
-
 	if(parameters::damping)
     {
-		for(unsigned int i = 0; i < 3; ++i)
+		const unsigned int number_of_quantities_to_damp = parameters::damping_vector.size();
+
+		for(unsigned int i = 0; i < number_of_quantities_to_damp; ++i)
 		{
-			const parameters::DampingType *damper = &parameters::damping_vector[i];
+			const parameters::t_DampingType *damper = &parameters::damping_vector[i];
 			if(damper->inner_damping_function != nullptr)
 				(damper->inner_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
 			if(damper->outer_damping_function != nullptr)
 				(damper->outer_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
         }
-		if(Adiabatic)
-		{
-			const int i = 3;
-			const parameters::DampingType *damper = &parameters::damping_vector[i];
-			if(damper->inner_damping_function != nullptr)
-				(damper->inner_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
-			if(damper->outer_damping_function != nullptr)
-				(damper->outer_damping_function)(data[damper->array_to_damp], data[damper->array_with_damping_values], dt);
-
-		}
     }
 }
 

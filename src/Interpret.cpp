@@ -12,6 +12,9 @@
 #include "units.h"
 #include "parameters.h"
 
+extern int damping_energy_id;
+extern std::vector<parameters::t_DampingType> damping_vector;
+
 // energy euations
 bool Adiabatic = false;
 bool Polytropic = false;
@@ -29,6 +32,7 @@ int OuterSourceMass, CICPlanet;
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <algorithm>
 
 #include <sys/stat.h>
 #include "options.h"
@@ -317,8 +321,8 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 
             if(strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 || strcmp(ADIABATICINDEX_string, "fit isothermal") == 0)
             {
-                logging::print_master(LOG_WARNING "Automatic AdiabatcIndex determination only available for polytropic equation of state. Using the default 7/5 instead\n");
-                ADIABATICINDEX = 7.0/5.0;
+				logging::print_master(LOG_ERROR "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
+				PersonalExit(1);
             }
             else
             {
@@ -388,9 +392,21 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 
         }
 
-        if(!could_read_eos)
-            die("Invalid setting for Energy Equation:   %s\n",config::value_as_string_default("EquationOfState","Isothermal"));
+		if(!could_read_eos)
+			die("Invalid setting for Energy Equation:   %s\n",config::value_as_string("EquationOfState"));
         }
+
+	if(!Adiabatic) // if energy is not needed, delete the energy damping boundary conditions
+	{
+		parameters::damping_vector.erase(parameters::damping_vector.begin() + parameters::damping_energy_id);
+	}
+
+	// delete unneeded calls to damping functions
+	// this must be performed after deleting the energy damping boundary, otherwise damping_energy_id would be incorrect.
+	auto delete_damping_condition = [&](const parameters::t_DampingType damper){
+		return damper.inner_damping_function == nullptr && damper.outer_damping_function == nullptr ? true : false;};
+	parameters::damping_vector.erase(std::remove_if(parameters::damping_vector.begin(),parameters::damping_vector.end(),delete_damping_condition),parameters::damping_vector.end());
+
 
 
 	ExcludeHill = config::value_as_bool_default("EXCLUDEHILL", 0);
