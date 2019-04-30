@@ -24,7 +24,7 @@ ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation fun
 ArtificialViscosityFactor	1.41 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex		0.0		# Slope of Temperature/radius profile
 SelfGravity		No		# choose: Yes, Z or No
-EquationOfState		Isothermal		# Isothermal Ideal Polytropic [default = Isothermal]
+EquationOfState		Ideal		# Isothermal Ideal Polytropic [default = Isothermal]
 AdiabaticIndex		1.4		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 PolytropicConstant		FIT_ISOTHERMAL		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 CoolingRadiativeLocal	No		# enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
@@ -89,14 +89,20 @@ Transport		FARGO
 InnerBoundary		OPEN
 OuterBoundary		EVANESCENT
 DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
-Damping			No		
+Damping			Yes      # NO, YES [default = no]
 DampingInnerLimit	1.10    	# Rmin*Limit
 DampingOuterLimit	0.90    	# Rmax*Limit
 DampingTimeFactor	1.0e-3
-DampingEnergy		No		# Damping of energy [default = no]
-DampingVRadial		No		# Damping of radial velocity [default = no]
-DampingVAzimuthal	No		# Damping of azimuthal velocity [default = no]
-DampingSurfaceDensity	No		# Damping of surface density [default = no]
+
+DampingEnergyInner		Initial		# Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
+DampingEnergyOuter		Initial		# Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialInner		Initial		# Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialOuter		Initial		# Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalInner	Initial		# Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalOuter	Initial		# Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityInner	Initial		# Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityOuter	Initial		# Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none] 
+
 Disk			YES
 OmegaFrame		1.0
 Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center

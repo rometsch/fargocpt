@@ -46,7 +46,7 @@ InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (
 
 PlanetConfig		setups/gamma_cephei/gamma-ceph.cfg
 ForcedCircular		No
-ThicknessSmoothing 	1e-9		# Softening parameters in disk thickness
+ThicknessSmoothing 	0.6		# Softening parameters in disk thickness
 
 ### Numerical method parameters
 
@@ -54,9 +54,14 @@ Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT
 InnerBoundary		REFLECTING
 OuterBoundary		OPEN
+Damping			None      # None, Damping, WaveDamping
 DampingInnerLimit	1.10    # Rmin*Limit
 DampingOuterLimit	0.90    # Rmax*Limit
 DampingTimeFactor	1.0e-3
+DampingEnergy		Yes		# Damping of energy [default = no]
+DampingVRadial		Yes		# Damping of radial velocity [default = no]
+DampingVAzimuthal	No		# Damping of azimuthal velocity [default = no]
+DampingSurfaceDensity	Yes		# Damping of surface density [default = no]
 Disk			YES
 OmegaFrame		0.0
 Frame			F
@@ -80,7 +85,6 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
 Ntot			10000		# Total number of time steps
 Ninterm	 		100		# Time steps between outputs
 DT			4.956246157	# 1/100th of a binary orbit
-OutputDir		out3/
 
 WriteAtEveryTimestep    Yes             # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity		Yes		# Write surface density. This is needed for restart of simulations. [default = yes]
