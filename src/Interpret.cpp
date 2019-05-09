@@ -147,71 +147,74 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 	}
 
 
+	if(CPU_Master)
+	{
+		// copy setup files into the output folder
+		std::string output_folder = std::string(OUTPUTDIR);
+		std::string par_file = getFileName(filename);
+		if (output_folder.back() != '/') {
+			output_folder += "/";
+		}
+		std::string par_filename = output_folder + par_file;
 
-    // copy setup files into the output folder
-    std::string output_folder = std::string(OUTPUTDIR);
-    std::string par_file = getFileName(filename);
-	if (output_folder.back() != '/') {
-		output_folder += "/";
-	}
-    std::string par_filename = output_folder + par_file;
-
-    if(options::restart)
-    {
-        char str[12];
-        sprintf(str, "%d", options::restart_from);
-
-        par_filename +="_restart_";
-        par_filename += str;
-    }
-
-    std::remove(par_filename.c_str());
-    std::ofstream new_par_file;
-    new_par_file.open (par_filename.c_str(), std::ofstream::out | std::ofstream::trunc);
-
-
-    new_par_file << "###  Used launch options:";
-    for(int i=0;i<argc;i++)
-    {
-        new_par_file << " " << argv[i];
-    }
-    new_par_file << "\n\n\n";
-    new_par_file.close();
-
-
-    std::filebuf old_par_file, append_new_par_file;
-    old_par_file.open(filename, std::ios::in);
-    append_new_par_file.open(par_filename.c_str(), std::ios::app | std::ios::out);
-
-    std::copy(std::istreambuf_iterator<char>(&old_par_file), {},
-              std::ostreambuf_iterator<char>(&append_new_par_file));
-    append_new_par_file.close();
-    old_par_file.close();
-
-
-    if(PLANETCONFIG != NULL)
-    {
-        std::string planet_file = std::string(PLANETCONFIG);
-        std::string planet_filename = output_folder + getFileName(planet_file);
 		if(options::restart)
 		{
 			char str[12];
 			sprintf(str, "%d", options::restart_from);
-			planet_filename +="_restart_";
-			planet_filename += str;
+
+			par_filename +="_restart_";
+			par_filename += str;
 		}
 
-        std::filebuf old_planet_file, append_new_planet_file;
-        old_planet_file.open(planet_file.c_str(), std::ios::in);
-        append_new_planet_file.open(planet_filename.c_str(), std::ios::trunc | std::ios::out);
-        std::copy(std::istreambuf_iterator<char>(&old_planet_file), {},
-                  std::ostreambuf_iterator<char>(&append_new_planet_file));
-        append_new_planet_file.close();
-        old_planet_file.close();
-
-    }
+		std::remove(par_filename.c_str());
+		std::ofstream new_par_file;
+		new_par_file.open (par_filename.c_str(), std::ofstream::out | std::ofstream::trunc);
 
 
+		new_par_file << "###  Used launch options:";
+		for(int i=0;i<argc;i++)
+		{
+			new_par_file << " " << argv[i];
+		}
+		new_par_file << "\n\n\n";
+		new_par_file.close();
+
+
+		std::filebuf old_par_file, append_new_par_file;
+		old_par_file.open(filename, std::ios::in);
+		append_new_par_file.open(par_filename.c_str(), std::ios::app | std::ios::out);
+
+		std::copy(std::istreambuf_iterator<char>(&old_par_file), {},
+				  std::ostreambuf_iterator<char>(&append_new_par_file));
+		append_new_par_file.close();
+		old_par_file.close();
+
+
+
+		if(PLANETCONFIG != NULL)
+		{
+			std::string planet_file = std::string(PLANETCONFIG);
+			std::string planet_filename = output_folder + getFileName(planet_file);
+			if(options::restart)
+			{
+				char str[12];
+				sprintf(str, "%d", options::restart_from);
+				planet_filename +="_restart_";
+				planet_filename += str;
+			}
+
+			std::filebuf old_planet_file, append_new_planet_file;
+			old_planet_file.open(planet_file.c_str(), std::ios::in);
+			append_new_planet_file.open(planet_filename.c_str(), std::ios::trunc | std::ios::out);
+			std::copy(std::istreambuf_iterator<char>(&old_planet_file), {},
+					  std::ostreambuf_iterator<char>(&append_new_planet_file));
+			append_new_planet_file.close();
+			old_planet_file.close();
+
+		}
+
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
 	OuterSourceMass = config::value_as_bool_default("OUTERSOURCEMASS", 0);
 
 	switch (tolower(*config::value_as_string_default("TRANSPORT","Fast"))) {
