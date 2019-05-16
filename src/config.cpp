@@ -29,6 +29,7 @@
 
 #include "config.h"
 #include "LowTasks.h"
+#include "logging.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -511,6 +512,10 @@ static unsigned int as_unsigned_int(const char *key, const char *value)
 static double as_double(const char *key, const char *value)
 {
 	double ret = 0;
+	if (!strcmp(value, "NaN")) {
+		logging::print_master((std::string(LOG_WARNING) + "Warning: '" + std::string(key) + "' set to the unphysical 1e300 instead of NaN. NaN is not supported for parameters!\n").c_str());
+		return 1e300;
+	}
 	if (!parse_double(value, &ret))
 		die_bad_config(key);
 	return ret;
