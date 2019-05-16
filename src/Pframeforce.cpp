@@ -129,9 +129,14 @@ void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 	Pair gamma;
 	double smoothing;
 
-	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
-		if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
-			t_planet &planet = data.get_planetary_system().get_planet(k);
+	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++)
+	{
+		t_planet &planet = data.get_planetary_system().get_planet(k);
+		double new_vx = planet.get_vx() + dt * IndirectTerm.x;
+		double new_vy = planet.get_vy() + dt * IndirectTerm.y;
+
+		if (data.get_planetary_system().get_planet(k).get_feeldisk())
+		{
 
 			if (RocheSmoothing) {
 				smoothing = planet.get_distance()*pow(planet.get_mass()/3.,1./3.)*ROCHESMOOTHING;
@@ -140,11 +145,12 @@ void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 			}
 
 			gamma = ComputeAccel(force, data, planet.get_x(), planet.get_y(), smoothing, planet.get_mass());
-			double new_vx = planet.get_vx() + dt * gamma.x + dt * IndirectTerm.x;
-			double new_vy = planet.get_vy() + dt * gamma.y + dt * IndirectTerm.y;
-			planet.set_vx(new_vx);
-			planet.set_vy(new_vy);
+			new_vx += dt * IndirectTerm.x;
+			new_vy += dt * IndirectTerm.y;
 		}
+
+		planet.set_vx(new_vx);
+		planet.set_vy(new_vy);
 	}
 }
 
