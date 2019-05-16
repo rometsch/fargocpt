@@ -148,8 +148,10 @@ extern unsigned int mof_planet;
 extern double mof_sigma;
 extern double mof_value;
 
-/// star feels disk
-extern bool feels_disk;
+/// disk applies force onto star
+/// and correction terms due to off barycenter system are applied
+/// replaces feels_disk
+extern bool disk_feedback;
 
 /// factor for conversation from surface density to density
 extern double density_factor;
@@ -245,6 +247,7 @@ void read(char* filename, t_data &data);
 void summarize_parameters();
 void apply_units();
 void write_grid_data_to_file();
+ void exitOnDeprecatedSetting(std::string setting_name, std::string reason, std::string instruction);
 };
 
 #endif // PARAMETERS_H

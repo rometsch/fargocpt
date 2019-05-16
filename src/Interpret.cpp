@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cctype>
 #include <cmath>
+#include <string>
 
 #include "config.h"
 #include "Interpret.h"
@@ -22,7 +23,7 @@ bool Polytropic = false;
 // frame
 int Corotating, GuidingCenter;
 
-int FastTransport, Indirect_Term, Indirect_Term_Planet;
+int FastTransport;
 int OuterSourceMass, CICPlanet;
 
 #include <sstream>
@@ -66,6 +67,7 @@ void get_polytropic_constants(char* filename, double &K, double &gamma)
     ss >> K;
     ss >> gamma;
 }
+
 
 std::string getFileName(const std::string& s) {
 
@@ -269,10 +271,9 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 	}
 	OMEGAFRAME = config::value_as_double_default("OMEGAFRAME",0);
 
-	Indirect_Term = config::value_as_bool_default("IndirectTerm", 1);
-	Indirect_Term_Planet = config::value_as_bool_default("IndirectTermPlanet", 1);
 
-
+	parameters::exitOnDeprecatedSetting("IndirectTerm", "Indirect terms are now handled automatically to avoid unphysical settings.", "Please remove the setting.");
+	parameters::exitOnDeprecatedSetting("IndirectTermPlanet", "Indirect terms are now handled automatically to avoid unphysical settings.", "Please remove the setting.");
 
     // Energy equation / Adiabatic
     char Adiabatic_deprecated = tolower(*config::value_as_string_default("Adiabatic", "false"));

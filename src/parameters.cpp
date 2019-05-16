@@ -87,7 +87,7 @@ bool profile_damping;
 double profile_damping_point;
 double profile_damping_width;
 
-bool feels_disk;
+bool disk_feedback;
 
 bool integrate_planets;
 
@@ -146,7 +146,13 @@ bool particle_disk_gravity_enabled;
 // for constant opacity
 double kappa_const = 1.0;
 
-
+	void exitOnDeprecatedSetting(std::string setting_name, std::string reason, std::string instruction) {
+	if (config::key_exists(setting_name.c_str())) {
+		std::string warn = "Deprecated setting '" + setting_name + "' found in .par file. " + reason + " " + instruction+ "\n";
+		logging::print_master((LOG_ERROR + warn).c_str());
+		die("Config Error");
+	}
+}
 
 t_DampingType write_damping_type(t_damping_type type_inner, t_damping_type type_outer, t_data::t_polargrid_type quantity, t_data::t_polargrid_type quantity0, std::string description)
 {
@@ -549,7 +555,8 @@ void read(char* filename, t_data &data)
 	profile_damping_point = config::value_as_double_default("ProfileDampingPoint", 0.0);
 	profile_damping_width = config::value_as_double_default("ProfileDampingWidth", 1.0);
 
-	feels_disk = config::value_as_bool_default("FeelsDisk", true);
+    exitOnDeprecatedSetting("FeelsDisk", "Replaced by parameter DiskFeedback for clarification since it affects more than just the star.", "Please replace 'FeelsDisk' by 'DiskFeedback'.");
+	disk_feedback = config::value_as_bool_default("DiskFeedback", true);
 
 	// self gravity
 	self_gravity = config::value_as_bool_default("SelfGravity",0);

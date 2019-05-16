@@ -9,8 +9,6 @@
 
 static double k1[MAX1D], k2[MAX1D], k3[MAX1D], k4[MAX1D], k5[MAX1D], k6[MAX1D];
 static double Dist[MAX1D];
-extern boolean Indirect_Term;
-extern boolean Indirect_Term_Planet;
 
 void DerivMotionRK5(double* q_init, double* masses, double* deriv, int n, double dt, int* feelothers)
 {
@@ -34,10 +32,9 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv, int n, double
 		derivvx[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*x[i];
 		derivvy[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*y[i];
 		for (j = 0; j < n; j++) {
-			if (Indirect_Term_Planet) {
-				derivvx[i] -= constants::G*masses[j]/pow3(Dist[j])*x[j];
-				derivvy[i] -= constants::G*masses[j]/pow3(Dist[j])*y[j];
-			}
+			// apply correction term caused by non barycenter systems
+			derivvx[i] -= constants::G*masses[j]/pow3(Dist[j])*x[j];
+			derivvy[i] -= constants::G*masses[j]/pow3(Dist[j])*y[j];
 			if ((j != i) && (feelothers[i])) {
 				dist = pow2(x[i]-x[j])+pow2(y[i]-y[j]);
 				dist = sqrt(dist);

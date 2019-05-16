@@ -1,5 +1,6 @@
 #include "planetary_system.h"
 #include "logging.h"
+#include "parameters.h"
 #include "LowTasks.h"
 #include "constants.h"
 #include "global.h"
@@ -107,6 +108,12 @@ void t_planetary_system::read_from_file(char *filename) {
 		if (tolower(feeldisk[0]) == 'y') {
 			planet->set_feeldisk(true);
 		} else {
+			if (parameters::disk_feedback  == YES) {
+				logging::print_master("\n\n\n");
+				logging::print_master(LOG_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+				logging::print_master((std::string(LOG_WARNING) + "UNPHYSICAL SETTING! Disk feedback is activated but disk interaction is disabled for planet " + std::string(planet->get_name()) + "!\n").c_str());
+				logging::print_master(LOG_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n");
+			}
 			planet->set_feeldisk(false);
 		}
 

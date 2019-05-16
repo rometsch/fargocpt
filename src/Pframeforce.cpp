@@ -25,7 +25,7 @@
 #include "util.h"
 
 extern Pair DiskOnPrimaryAcceleration;
-extern boolean AllowAccretion, Corotating, Indirect_Term, Cooling;
+extern boolean AllowAccretion, Corotating, Cooling;
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 static int FeelOthers[MAX1D];
 
@@ -35,7 +35,7 @@ Pair ComputeIndirectTerm() {
 	IndirectTerm.x = -DiskOnPrimaryAcceleration.x;
 	IndirectTerm.y = -DiskOnPrimaryAcceleration.y;
 
-	if (Indirect_Term == NO) {
+	if (parameters::disk_feedback == NO) {
 		IndirectTerm.x = 0.0;
 		IndirectTerm.y = 0.0;
 	}
@@ -94,7 +94,7 @@ void FillForcesArrays(t_data &data)
 				// direct term from planet
 				pot = -constants::G*mplanet/distancesmooth;
 				// indirect term from planet
-				if (Indirect_Term == YES)
+				if (parameters::disk_feedback == YES)
 					pot += constants::G*mplanet*InvPlanetDistance3*(x*planet.get_x()+y*planet.get_y());
 
 				data[t_data::POTENTIAL](n_radial,n_azimuthal) += pot;
