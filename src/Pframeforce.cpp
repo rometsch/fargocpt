@@ -145,8 +145,8 @@ void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 			}
 
 			gamma = ComputeAccel(force, data, planet.get_x(), planet.get_y(), smoothing, planet.get_mass());
-			new_vx += dt * IndirectTerm.x;
-			new_vy += dt * IndirectTerm.y;
+			new_vx += dt * gamma.x;
+			new_vy += dt * gamma.y;
 		}
 
 		planet.set_vx(new_vx);
