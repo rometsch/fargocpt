@@ -88,26 +88,25 @@ Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 InnerBoundary		OPEN
 OuterBoundary		EVANESCENT
-DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
+DomegaDrZero		Yes		# Set dOmega/dr = 0 at outer boundary
 Damping			Yes      # NO, YES [default = no]
 DampingInnerLimit	1.10    	# Rmin*Limit
 DampingOuterLimit	0.90    	# Rmax*Limit
 DampingTimeFactor	1.0e-3
 
 DampingEnergyInner		Initial		# Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
-DampingEnergyOuter		Initial		# Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialInner		Initial		# Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
-DampingVRadialOuter		Initial		# Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner	Initial		# Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
-DampingVAzimuthalOuter	Initial		# Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
 DampingSurfaceDensityInner	Initial		# Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
+DampingEnergyOuter		Initial		# Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialOuter		Initial		# Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalOuter	Initial		# Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
 DampingSurfaceDensityOuter	Initial		# Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none] 
 
 Disk			YES
 OmegaFrame		1.0
 Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center
-IndirectTerm		YES		# Calculate incfluence of the disk on the star
-FeelsDisk		NO		# star feels the disk
+DiskFeedback		NO		# Calculate incfluence of the disk on the star
 
 ### Mesh parameters
 
