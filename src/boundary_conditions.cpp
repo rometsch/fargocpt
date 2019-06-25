@@ -225,7 +225,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0, double 
 	t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
 	double delta;
 	double X, X0, Xnew;
-	bool is_density = strcmp( quantity.get_name(), "dens");
+	bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 
 	// is this CPU in the inner damping domain?
 	if ((parameters::damping_inner_limit > 1.0) && (radius[0] < RMIN*parameters::damping_inner_limit)) {
@@ -266,7 +266,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0, double 
 t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
 double delta;
 double X, X0, Xnew;
-bool is_density = strcmp( quantity.get_name(), "dens");
+bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 
 	// is this CPU in the outer damping domain?
 	if ((parameters::damping_outer_limit < 1.0) && (radius[quantity.get_max_radial()] > RMAX*parameters::damping_outer_limit)) {
@@ -307,7 +307,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0, do
 	(void) quantity0;
 	// use the correct radius array corresponding to quantity
 	t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
-	bool is_density = strcmp( quantity.get_name(), "dens");
+	bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 
 	// is this CPU in the inner damping domain?
 	if ((parameters::damping_inner_limit > 1.0) && (radius[0] < RMIN*parameters::damping_inner_limit)) {
@@ -348,7 +348,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0, do
 	// use the correct radius array corresponding to quantity
 	t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
 
-	bool is_density = strcmp( quantity.get_name(), "dens");
+	bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 
 	// is this CPU in the outer damping domain?
 	if ((parameters::damping_outer_limit < 1.0) && (radius[quantity.get_max_radial()] > RMAX*parameters::damping_outer_limit)) {
@@ -390,7 +390,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0, do
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
     double delta;
     double X, X0, Xnew;
-    bool is_density = strcmp( quantity.get_name(), "dens");
+	bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 
     // is this CPU in the inner damping domain?
     if ((parameters::damping_inner_limit > 1.0) && (radius[0] < RMIN*parameters::damping_inner_limit)) {
@@ -442,7 +442,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0, do
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
     double delta;
     double X, X0, Xnew;
-    bool is_density = strcmp( quantity.get_name(), "dens");
+	bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) && (radius[quantity.get_max_radial()] > RMAX*parameters::damping_outer_limit)) {

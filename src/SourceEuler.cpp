@@ -260,6 +260,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 	MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 	dt = DT/global_gas_time_step_cfl;
+	boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
 		quantities::calculate_alpha_grav_mean_reset(data);
