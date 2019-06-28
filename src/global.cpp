@@ -70,6 +70,9 @@ unsigned int One_or_active;
 unsigned int MaxMO_or_active;		/* MO: Minus One */
 unsigned int GlobalNRadial;
 
+int *GlobalNradialLocalSizes;			// Needed for MPI_Gatherv
+int *GlobalNradialDisplacements;	// Needed for MPI_Gatherv
+
 /** Rmed is the location of be the center of mass of the cell.
     Its definition is in fact : 0.5 * [ (4/3) \pi Rsup[i]^3 - (4/3) \pi Rinf[i]^3 ] / [ \pi Rsup[i]^2 - \pi Rinf[i]^2]
     or: one half of the elementary volume divided by the elementary surface.

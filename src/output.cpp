@@ -103,11 +103,40 @@ const std::map<const std::string, const int> quantities_file_column_v2_1 = {
 { "delta mass floor density positive", 22 }
 };
 
-const auto quantities_file_column = quantities_file_column_v2_1;
+
+const std::map<const std::string, const int> quantities_file_column_v2_2 = {
+{ "time step", 0 },
+{ "analysis time step", 1},
+{ "physical time", 2 },
+{ "mass", 3 },
+{ "radius", 4 },
+{ "angular momentum", 5 },
+{ "total energy", 6 },
+{ "internal energy", 7 },
+{ "kinematic energy", 8 },
+{ "potential energy", 9 },
+{ "radial kinetic energy", 10 },
+{ "azimuthal kinetic energy", 11 },
+{ "eccentricity", 12 },
+{ "periastron", 13},
+{ "qplus", 14 },
+{ "qminus", 15 },
+{ "pdivv", 16 },
+{ "delta mass inner positive", 17 },
+{ "delta mass inner negative", 18 },
+{ "delta mass outer positive", 19 },
+{ "delta mass outer negative", 20 },
+{ "delta mass wave damping positive", 21 },
+{ "delta mass wave damping negative", 22 },
+{ "delta mass floor density positive", 23 }
+};
+
+const auto quantities_file_column = quantities_file_column_v2_2;
 
 const std::map<const std::string, const std::string> quantities_file_variables = {
 { "physical time", "time" },
 { "mass", "mass" },
+{ "radius", "1" },
 { "angular momentum", "angular_momentum" },
 { "total energy", "energy" },
 { "internal energy", "energy" },
@@ -267,7 +296,7 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 		if (!fd_created) {
 			// print header
 			fprintf(fd,"#FargoCPT quantities file\n");
-            fprintf(fd,"#version: 2.1\n");
+			fprintf(fd,"#version: 2.2\n");
 			fprintf(fd,"%s", text_file_variable_description(quantities_file_column, quantities_file_variables).c_str() );
 			fd_created = true;
 		}
@@ -279,6 +308,7 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 
 	// computate absolute deviation from start values (this has to be done on all nodes!)
 	double totalMass = quantities::gas_total_mass(data);
+	double diskRadius = quantities::gas_disk_radius(data, totalMass);
 	double totalAngularMomentum = quantities::gas_angular_momentum(data);
 	double internalEnergy = quantities::gas_internal_energy(data);
 	double kinematicEnergy = quantities::gas_kinematic_energy(data);
@@ -290,11 +320,12 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 
 	if (CPU_Master) {
 		// print to logfile
-        fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 			timestep,
             nTimeStep,
 			PhysicalTime,
 			totalMass,
+			diskRadius,
 			totalAngularMomentum,
 			totalEnergy,
 			internalEnergy,

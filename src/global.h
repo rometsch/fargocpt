@@ -44,6 +44,9 @@ extern unsigned int One_or_active;
 extern unsigned int MaxMO_or_active;		/* MO: Minus One */
 extern unsigned int GlobalNRadial;
 
+extern int *GlobalNradialLocalSizes;			// Needed for MPI_Gatherv
+extern int *GlobalNradialDisplacements;	// Needed for MPI_Gatherv
+
 extern t_radialarray Rmed;
 extern t_radialarray &Rb;
 extern t_radialarray InvRmed;

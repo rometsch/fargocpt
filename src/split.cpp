@@ -223,6 +223,30 @@ void SplitDomain()
 		}
 	}
 
+
+	/////////////////////////////////////////////////////////////////////////////////////// Added by Lucas
+	// Needed for MPI_Gatherv
+	// Initializes Radial sizes of non vector arrays and required displacements
+	if(CPU_Master)
+	{
+		GlobalNradialLocalSizes = new int[CPU_Number];
+		GlobalNradialDisplacements = new int[CPU_Number];
+	}
+
+	const int local_array_start = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
+	const int local_array_end = NRadial - (CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
+	const int send_size = local_array_end - local_array_start;
+
+	MPI_Gather(&send_size, 1, MPI_INT, GlobalNradialLocalSizes, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	if(CPU_Master)
+	{
+		// Displacement for the first chunk of data - 0
+		for (int i = 0; i < CPU_Number; i++)
+		   GlobalNradialDisplacements[i] = (i > 0) ? (GlobalNradialDisplacements[i-1] + GlobalNradialLocalSizes[i-1]) : 0;
+	}
+	/////////////////////////////////////////////////////////////////////////////////////// End Added by Lucas
+
 	/* print debugging */
 	if (debug) {
 		logging::print(LOG_DEBUG "SplitDomain: DomainSplit Information:\n");
@@ -247,5 +271,15 @@ void SplitDomain()
 			logging::print(LOG_DEBUG "SplitDomain: LocalIStart_friend: %ld\n", local_i_start_friend);
 			logging::print(LOG_DEBUG "SplitDomain: total_local_size_friend: %ld\n", total_local_size_friend);
 		}
+	}
+}
+
+
+void FreeSplitDomain()
+{
+	if(CPU_Master)
+	{
+		delete [] GlobalNradialLocalSizes;
+		delete [] GlobalNradialDisplacements;
 	}
 }

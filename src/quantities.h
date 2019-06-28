@@ -6,6 +6,7 @@
 namespace quantities {
 
 double gas_total_mass(t_data &data);
+double gas_disk_radius(t_data &data, const double total_mass);
 double gas_angular_momentum(t_data &data);
 double gas_internal_energy(t_data &data);
 double gas_kinematic_energy(t_data &data);

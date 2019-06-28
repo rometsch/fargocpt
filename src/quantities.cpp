@@ -36,6 +36,57 @@ double gas_total_mass(t_data &data)
 }
 
 /**
+ * @brief gas_disk_radius
+ * @param data
+ * @return
+ */
+double gas_disk_radius(t_data &data, const double total_mass)
+{
+
+	const unsigned int max_size = GlobalNRadial;
+	const unsigned int local_array_start = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
+	const unsigned int local_array_end = data[t_data::DENSITY].get_size_radial() - (CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
+	const unsigned int send_size = local_array_end - local_array_start;
+
+	double local_mass[send_size];
+
+	for (unsigned int n_radial = local_array_start; n_radial < local_array_end; ++n_radial) {
+		local_mass[n_radial - local_array_start] = 0.0;
+		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
+			local_mass[n_radial - local_array_start] += Surf[n_radial]*data[t_data::DENSITY](n_radial, n_azimuthal);
+		}
+	}
+
+	double radius = 0.0;
+	double current_mass = 0.0;
+	double *global_mass = nullptr;
+
+	if(CPU_Master)
+	{
+		global_mass = new double[max_size];
+	}
+
+	MPI_Gatherv(local_mass, send_size, MPI_DOUBLE, global_mass, GlobalNradialLocalSizes, GlobalNradialDisplacements, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+	if(CPU_Master)
+	{
+		for(unsigned int i = GHOSTCELLS_B; i < max_size; ++i) // Outer ghost cell inside loop, but should always break before that anyway
+		{
+			current_mass += global_mass[i];
+			if(current_mass > 0.99*total_mass)
+			{
+				radius =  GlobalRmed[i];
+				break;
+			}
+		}
+
+		delete [] global_mass;
+	}
+
+	return radius;
+}
+
+/**
 	Calculates angular gas momentum.
 */
 double gas_angular_momentum(t_data &data)
