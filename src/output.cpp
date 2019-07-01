@@ -136,7 +136,7 @@ const auto quantities_file_column = quantities_file_column_v2_2;
 const std::map<const std::string, const std::string> quantities_file_variables = {
 { "physical time", "time" },
 { "mass", "mass" },
-{ "radius", "1" },
+{ "radius", "length" },
 { "angular momentum", "angular_momentum" },
 { "total energy", "energy" },
 { "internal energy", "energy" },
