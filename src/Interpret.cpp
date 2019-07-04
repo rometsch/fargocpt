@@ -451,6 +451,15 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 	if (ROCHESMOOTHING != 0.0) {
 		RocheSmoothing = YES;
 		logging::print_master(LOG_INFO "Planet potential smoothing scales with their Hill sphere.\n");
+	} else if (config::value_as_bool_default("ThicknessSmoothingAtPlanet", 0)) {
+		ThicknessSmoothingAtCell = NO;
+		ThicknessSmoothingAtPlanet = YES;
+		logging::print_master(LOG_INFO "Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
+	} else {
+		ThicknessSmoothingAtCell = YES;
+		ThicknessSmoothingAtPlanet = NO;
+		logging::print_master(LOG_INFO "Planet potential smoothing uses disk scale height at gas cell location.\n");
+
 	}
 
 	// Add a trailing slash to OUTPUTDIR if needed

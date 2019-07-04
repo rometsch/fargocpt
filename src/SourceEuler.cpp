@@ -292,7 +292,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 		if (parameters::calculate_disk) {
 			/* Indirect term star's potential computed here */
 			if (parameters::disk_feedback)
-				DiskOnPrimaryAcceleration = ComputeAccel(force, data, 0.0, 0.0, 0.0, 0.0);
+				DiskOnPrimaryAcceleration = ComputeAccel(force, data, 0.0, 0.0, 0.0);
 
 			/* Gravitational potential from star and planet(s) is computed and stored here*/
 			FillForcesArrays(data);
