@@ -154,11 +154,11 @@ void InitComputeAccel()
 	\param mass
 	\returns
 */
-Pair ComputeAccel(Force* force, t_data &data, double x, double y, double rsmoothing, double mass)
+Pair ComputeAccel(Force* force, t_data &data, double x, double y, double mass)
 {
 	Pair acceleration;
 
-    ComputeForce(data, force, x, y, rsmoothing, mass);
+    ComputeForce(data, force, x, y, mass);
 	if (ExcludeHill) {
 		acceleration.x = force->fx_ex_inner+force->fx_ex_outer;
 		acceleration.y = force->fy_ex_inner+force->fy_ex_outer;

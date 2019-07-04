@@ -118,7 +118,7 @@ double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 int debug, OnlyInit;
-int GotoNextOutput, ViscosityAlpha, RocheSmoothing;
+int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;
 int CentrifugalBalance, ExcludeHill, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellAbscissa, *CellOrdinate;

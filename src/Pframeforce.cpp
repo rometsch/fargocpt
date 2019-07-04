@@ -76,6 +76,7 @@ void FillForcesArrays(t_data &data)
 		// hill radius
 		double r_hill = pow(planet.get_mass()/(3.0*(M+planet.get_mass())),1.0/3.0)*planet.get_semi_major_axis();
 
+		// calculate smoothing length only once if not dependend on radius
 		if (RocheSmoothing) {
 			smooth = pow2(r_hill*ROCHESMOOTHING);
 		} else {
@@ -83,7 +84,12 @@ void FillForcesArrays(t_data &data)
 		}
 
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
-			InvDistance = 1.0/Rmed[n_radial];
+			InvDistance = 1.0/Rmed[n_radial];\
+			// calculate smoothing length if dependend on radius
+			// i.e. for thickness smoothing with scale height at cell location
+			if (ThicknessSmoothingAtCell) {
+				smooth = pow2(compute_smoothing(Rmed[n_radial]));
+			}
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal(); ++n_azimuthal) {
 				angle = (double)n_azimuthal/(double)data[t_data::POTENTIAL].get_size_azimuthal()*2.0*PI;
 				x = Rmed[n_radial]*cos(angle);
@@ -127,19 +133,18 @@ void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 {
 	Pair IndirectTerm = ComputeIndirectTerm();
 	Pair gamma;
-	double smoothing;
 
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
 		if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
 			t_planet &planet = data.get_planetary_system().get_planet(k);
 
-			if (RocheSmoothing) {
-				smoothing = planet.get_distance()*pow(planet.get_mass()/3.,1./3.)*ROCHESMOOTHING;
-			} else {
-				smoothing = compute_smoothing(planet.get_distance());
-			}
+			// if (RocheSmoothing) {
+			// 	smoothing = planet.get_distance()*pow(planet.get_mass()/3.,1./3.)*ROCHESMOOTHING;
+			// } else {
+			// 	smoothing = compute_smoothing(planet.get_distance());
+			// }
 
-			gamma = ComputeAccel(force, data, planet.get_x(), planet.get_y(), smoothing, planet.get_mass());
+			gamma = ComputeAccel(force, data, planet.get_x(), planet.get_y(), planet.get_mass());
 			double new_vx = planet.get_vx() + dt * gamma.x + dt * IndirectTerm.x;
 			double new_vy = planet.get_vy() + dt * gamma.y + dt * IndirectTerm.y;
 			planet.set_vx(new_vx);

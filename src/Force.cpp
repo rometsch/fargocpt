@@ -46,13 +46,14 @@ void FreeForce(Force* force)
 /**
 	Computes the force due to the disk on an object at position (x,y)
 */
-void ComputeForce(t_data &data, Force* force, double x, double y, double rsmoothing, double mass)
+void ComputeForce(t_data &data, Force* force, double x, double y, double mass)
 {
 	int l, ns;
 	double localforce[8]={0.,0.,0.,0.,0.,0.,0.,0.}, globalforce[8]={0.,0.,0.,0.,0.,0.,0.,0.};
 	double xc, yc, cellmass, dx, dy, distance, dist2, rh, a;
 	double InvDist3, fxi, fyi, fxhi, fyhi, fxo, fyo, fxho, fyho, hill_cut;
 	double *abs, *ord;
+	double rsmoothing = 0.0;
 
 	ns = data[t_data::DENSITY].Nsec;
 	abs = CellAbscissa->Field;
@@ -61,7 +62,22 @@ void ComputeForce(t_data &data, Force* force, double x, double y, double rsmooth
 	a = sqrt(x*x+y*y);
 	rh = pow(mass/3.0, 1./3.)*a+DBL_EPSILON;
 
+	// calculate smoothing length only once if not dependend on radius
+	if (RocheSmoothing) {
+		rsmoothing = rh*ROCHESMOOTHING;
+	} else {
+		// Thickness smoothing = smoothing with scale height
+		rsmoothing = compute_smoothing(a);
+	}
+	// consider calculation of force on primary, don't need to recalculate rsmoothing then
+	bool SmoothingEnabled = (a != 0.0);
+
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active; ++n_radial) {
+		// calculate smoothing length if dependend on radius
+		// i.e. for thickness smoothing with scale height at cell location
+		if (SmoothingEnabled && ThicknessSmoothingAtCell) {
+			rsmoothing = compute_smoothing(Rmed[n_radial]);
+		}
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
 			l = n_azimuthal+n_radial*ns;
 			xc = abs[l];
@@ -117,7 +133,7 @@ double compute_smoothing(double r)
 
 void UpdateLog(t_data &data, Force* fc, int outputnb, double time)
 {
-	double x, y, r, m, vx, vy, smoothing;
+	double x, y, m, vx, vy;
 	FILE *out;
 	char filename[255];
 	for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
@@ -125,13 +141,13 @@ void UpdateLog(t_data &data, Force* fc, int outputnb, double time)
 		y = data.get_planetary_system().get_planet(i).get_y();
 		vx = data.get_planetary_system().get_planet(i).get_vx();
 		vy = data.get_planetary_system().get_planet(i).get_vy();
-		r = sqrt(x*x+y*y);
+		//r = sqrt(x*x+y*y);
 		m = data.get_planetary_system().get_planet(i).get_mass();
-		if (RocheSmoothing)
-			smoothing = r*pow(m/3.,1./3.)*ROCHESMOOTHING;
-		else
-			smoothing = compute_smoothing(r);
-        ComputeForce(data, fc, x, y, smoothing, m);
+		// if (RocheSmoothing)
+		// 	smoothing = r*pow(m/3.,1./3.)*ROCHESMOOTHING;
+		// else
+		// 	smoothing = compute_smoothing(r);
+        ComputeForce(data, fc, x, y, m);
 		if (CPU_Rank == CPU_Number-1) {
 			sprintf (filename, "%stqwk%d.dat", OUTPUTDIR, i);
 			out = fopen (filename, "a");
