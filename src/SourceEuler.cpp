@@ -249,7 +249,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 	double dt;
 	double OmegaNew, domega;
-	double planet0_old_x = 0.0, planet0_old_y = 0.0;
+	double planet_corot_ref_old_x = 0.0, planet_corot_ref_old_y = 0.0;
 
     dtemp=0.0;
 
@@ -285,8 +285,8 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 		if (Corotating == YES) {
 			// save old planet positions
-			planet0_old_x = data.get_planetary_system().get_planet(0).get_x();
-			planet0_old_y = data.get_planetary_system().get_planet(0).get_y();
+			planet_corot_ref_old_x = data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_x();
+			planet_corot_ref_old_y = data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_y();
 		}
 
 		if (parameters::calculate_disk) {
@@ -312,9 +312,9 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 		/* Below we correct v_azimuthal, planet's position and velocities if we work in a frame non-centered on the star */
 		if (Corotating == YES) {
-			double distance_new = sqrt( pow2(data.get_planetary_system().get_planet(0).get_x()) + pow2(data.get_planetary_system().get_planet(0).get_y()) );
-			double distance_old = sqrt( pow2(planet0_old_x) + pow2(planet0_old_y) );
-			double cross = planet0_old_x*data.get_planetary_system().get_planet(0).get_y()-data.get_planetary_system().get_planet(0).get_x()*planet0_old_y;
+			double distance_new = sqrt( pow2(data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_x()) + pow2(data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_y()) );
+			double distance_old = sqrt( pow2(planet_corot_ref_old_x) + pow2(planet_corot_ref_old_y) );
+			double cross = planet_corot_ref_old_x*data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_y()-data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_x()*planet_corot_ref_old_y;
 
 			// new = r_new x r_old = distance_new * distance_old * sin(alpha*dt)
 			OmegaNew = asin(cross/(distance_new*distance_old))/dt;

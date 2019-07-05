@@ -271,6 +271,31 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 	}
 	OMEGAFRAME = config::value_as_double_default("OMEGAFRAME",0);
 
+	// Barycenter mode
+	switch (tolower(*config::value_as_string_default("BarycenterMode","primary"))) {
+	case 'p': // primary
+		parameters::n_bodies_for_barycenter = 1;
+		break;
+	case 'b': // binary
+		parameters::n_bodies_for_barycenter = 2;
+		break;
+	case 't': // tertiary
+		parameters::n_bodies_for_barycenter = 3;
+		break;
+	case 'q': // quaternary
+		parameters::n_bodies_for_barycenter = 4;
+		break;
+	case 'a': // all
+		parameters::n_bodies_for_barycenter = 0;
+		// will be set to number of bodies when loading planet system
+		break;
+	default:
+		die("Invalid setting for BarycenterMode: %s",config::value_as_string_default("BarycenterMode","primary"));
+	}
+	// allow barycenter mode different than primary only if NoDefaultStar is set
+	if (parameters::n_bodies_for_barycenter != 1 && !parameters::no_default_star) {
+		die("Incompatible settings: NoDefaultStar = False and BarycenterMode != primary are incompatible settings! Use NoDefaultStar = True and add the star to the planet config in order to use the barycenter mode.");
+	}
 
 	parameters::exitOnDeprecatedSetting("IndirectTerm", "Indirect terms are now handled automatically to avoid unphysical settings.", "Please remove the setting.");
 	parameters::exitOnDeprecatedSetting("IndirectTermPlanet", "Indirect terms are now handled automatically to avoid unphysical settings.", "Please remove the setting.");

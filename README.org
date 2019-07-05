@@ -9,3 +9,58 @@ It was modified quite substatially by Tobias Müller and is now used and maintai
 * Old Readme
 
 The old readme file by Tobias Müller can be found at [[file:README_OLD.md][here]].
+* Barycenter
+
+The original FARGO code uses a grid centered on the star.
+However, having only the primary star at the origin of the coordinate system might not be advisable in some situations such as circumbinary disks.
+In such a case, indirect terms get large.
+Since indirect terms are azimuthally asymmetric forces, this can cause numerical problems for the hydro simulation.
+
+Thus, it is desirable to be able to center the hydro grid at an arbitrary location in order to choose a suitable reference point.
+For simulations including heavy planets, a good reference point might be the barycenter of the nbody system.
+
+In a pure Nbody system, the center of mass will not change over time.
+For planet-disk simulations in which the planets and stars interact with the disk, this is not true anymore since angular momentum can be exchanged with the disk.
+
+To keep the system in the nbody barycenter, consider its definition
+
+\begin{align}
+    \vec{x}_B = \frac{ \sum_i m_i \vec{x}_i }{ \sum_i m_i }
+\end{align}
+
+The acceleration on it is
+
+\begin{align}
+    \ddot{\vec{x}}_B = \frac{ \sum_i m_i \ddot{\vec{x}}_i }{ \sum_i m_i }
+\end{align}
+
+To keep the grid centered on the barycenter, we only need to add the negative of the barycenter acceleration $\ddot{\vec{x}}_B$ to all forces (all particles and all gas cells).
+
+** Implementation
+
++ make the star a "planet"
++ add NoDefaultStar flag (as in Fargo3d)
++ add new flag BarycenterMode to define how many planets should be included in the barycenter calculation
+  - all        : for all particles
+  - primary    : for only the first particle
+  - binary     : for the first two particles
+  - trinary    : for the first three particles
+  - quaternary : for the first four particles
++ BarycenterMode can only be used if NoDefaultStar is set to YES/true/on, otherwise stop with error
++ NoDefaultStar should default to false, to maintain original behavior
++ add CorotatingReferenceBody to control which planet to use for the corotating frame (defaults to first planet)
+
+Change the calculation of force in
+
++ [ ] SourceEuler.cpp:AlgoGas
++ [ ] Pframforce.cpp:FillForceArrays
++ [ ]
+
+Change calculation of indirect term
+
++ [ ] Pframeforce.cpp:ComputeIndirectTerm
++ [ ] SourceEuler.cpp:AlgoGas
+
+Change planet as reference for corotating system
+
++ [ ] SourceEuler.cpp:AlgoGas

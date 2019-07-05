@@ -78,6 +78,11 @@ bool artificial_viscosity_dissipation;
 
 bool calculate_disk;
 
+// control centering of frame
+bool no_default_star;
+unsigned int n_bodies_for_barycenter;
+unsigned int corotation_reference_body;
+
 bool massoverflow;
 unsigned int mof_planet;
 double mof_sigma;
@@ -106,7 +111,7 @@ std::vector<double> lightcurves_radii;
 bool write_massflow;
 
 unsigned int log_after_steps;
-double log_after_real_seconds;	
+double log_after_real_seconds;
 
 t_opacity opacity;
 
@@ -425,9 +430,17 @@ void read(char* filename, t_data &data)
 
 	calculate_disk = config::value_as_bool_default("DISK", 1);
 
+	no_default_star = config::value_as_bool_default("NoDefaultStar", false);
+	if (no_default_star) {
+		corotation_reference_body = config::value_as_unsigned_int_default("CorotationReferenceBody", 1);
+	} else {
+		corotation_reference_body = config::value_as_unsigned_int_default("CorotationReferenceBody", 0);
+	}
+	// set number of bodies used to calculate barycenter in Interpret.cpp
+
 	MU = config::value_as_double_default("mu",1.0);
 	minimum_temperature = config::value_as_double_default("MinimumTemperature", 0);
-    maximum_temperature = config::value_as_double_default("MaximumTemperature", 1.0e300);
+	maximum_temperature = config::value_as_double_default("MaximumTemperature", 1.0e300);
 
 	// TODO: remove temporary warning
 	if (config::key_exists("HeatingViscous") == false) {
@@ -505,10 +518,10 @@ void read(char* filename, t_data &data)
 		}
 	}
 
-    random_seed = config::value_as_int_default("RandomSeed", 0);
+	random_seed = config::value_as_int_default("RandomSeed", 0);
 	sigma_randomize = config::value_as_bool_default("RandomSigma", 0);
 	sigma_random_factor = config::value_as_double_default("RandomFactor", 0.1);
-    sigma_feature_size = config::value_as_double_default("FeatureSize", (RMAX - RMIN)/150);
+	sigma_feature_size = config::value_as_double_default("FeatureSize", (RMAX - RMIN)/150);
 	sigma_floor = config::value_as_double_default("SigmaFloor", 1e-9);
 	sigma0 = config::value_as_double_default("SIGMA0", 173.);
 	sigma_adjust = config::value_as_bool_default("SetSigma0", false);
@@ -555,7 +568,7 @@ void read(char* filename, t_data &data)
 	profile_damping_point = config::value_as_double_default("ProfileDampingPoint", 0.0);
 	profile_damping_width = config::value_as_double_default("ProfileDampingWidth", 1.0);
 
-    exitOnDeprecatedSetting("FeelsDisk", "Replaced by parameter DiskFeedback for clarification since it affects more than just the star.", "Please replace 'FeelsDisk' by 'DiskFeedback'.");
+	exitOnDeprecatedSetting("FeelsDisk", "Replaced by parameter DiskFeedback for clarification since it affects more than just the star.", "Please replace 'FeelsDisk' by 'DiskFeedback'.");
 	disk_feedback = config::value_as_bool_default("DiskFeedback", true);
 
 	// self gravity
@@ -653,9 +666,9 @@ void summarize_parameters()
 		case boundary_condition_boundary_layer:
 			logging::print_master(LOG_INFO "Using 'boundary layer boundary conditions' at inner boundary.\n");
 			break;
-        case boundary_condition_keplerian:
-            logging::print_master(LOG_INFO "Using 'keplarian boundary conditions' at inner boundary.\n");
-            break;
+		case boundary_condition_keplerian:
+			logging::print_master(LOG_INFO "Using 'keplarian boundary conditions' at inner boundary.\n");
+			break;
 	}
 
 	switch (boundary_outer) {
@@ -673,13 +686,13 @@ void summarize_parameters()
 			break;
 		case boundary_condition_viscous_outflow:
 			logging::print_master(LOG_INFO "Using 'viscous outflow boundary condition' at outer boundary.\n");
-			break;	
+			break;
 		case boundary_condition_boundary_layer:
 			logging::print_master(LOG_INFO "Using 'boundary layer boundary conditions' at outer boundary.\n");
 			break;
-        case boundary_condition_keplerian:
-            logging::print_master(LOG_INFO "Using 'keplarian boundary conditions' at inner boundary.\n");
-            break;
+		case boundary_condition_keplerian:
+			logging::print_master(LOG_INFO "Using 'keplarian boundary conditions' at inner boundary.\n");
+			break;
 	}
 
 	// Mass Transfer
@@ -714,8 +727,8 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO "Tau factor: %g\n", tau_factor);
 	logging::print_master(LOG_INFO "Kappa factor: %g\n", kappa_factor);
 
-    logging::print_master(LOG_INFO "Minimum temperature: %.5e\n", minimum_temperature);
-    logging::print_master(LOG_INFO "Maximum temperature: %.5e\n", maximum_temperature);
+	logging::print_master(LOG_INFO "Minimum temperature: %.5e\n", minimum_temperature);
+	logging::print_master(LOG_INFO "Maximum temperature: %.5e\n", maximum_temperature);
 
 	logging::print_master(LOG_INFO "Heating from star is %s. Using %s model with ramping time of %g and a total factor %g.\n", heating_star_enabled ? "enabled" : "disabled", heating_star_simple ? "simplified" : "advanced", heating_star_ramping_time, heating_star_factor);
 	logging::print_master(LOG_INFO "Heating from viscous dissipation is %s. Using a total factor of %g.\n", heating_viscous_enabled ? "enabled" : "disabled", heating_viscous_factor);
@@ -779,47 +792,47 @@ void write_grid_data_to_file()
   char *fd_filename;
 
   if (CPU_Master) {
-    if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "dimensions.dat") == -1) {
-      logging::print_master(LOG_ERROR "Not enough memory for string buffer.\n");
-      PersonalExit(1);
-    }
-    fd = fopen(fd_filename, "w");
-    if (fd == NULL) {
-      logging::print_master(LOG_ERROR
-                            "Can't write 'dimensions.dat' file. Aborting.\n");
-      PersonalExit(1);
-    }
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "dimensions.dat") == -1) {
+	  logging::print_master(LOG_ERROR "Not enough memory for string buffer.\n");
+	  PersonalExit(1);
+	}
+	fd = fopen(fd_filename, "w");
+	if (fd == NULL) {
+	  logging::print_master(LOG_ERROR
+							"Can't write 'dimensions.dat' file. Aborting.\n");
+	  PersonalExit(1);
+	}
 
-    free(fd_filename);
+	free(fd_filename);
 
 
-    //fprintf(fd, "#XMIN\tXMAX\tYMIN\tYMAX\tNX\tNY\tNGHX\tNGHY\tRadial_spacing\n");
+	//fprintf(fd, "#XMIN\tXMAX\tYMIN\tYMAX\tNX\tNY\tNGHX\tNGHY\tRadial_spacing\n");
 
-    char radial_spacing_str[256];
+	char radial_spacing_str[256];
 
-    switch(radial_grid_type)
-    {
-        case(arithmetic_spacing):
-        {
-            strncpy(radial_spacing_str, "Arithmetic", 256);
-            break;
-        }
-        case(logarithmic_spacing):
-        {
-            strncpy(radial_spacing_str, "Logarithmic", 256);
-            break;
-        }
-        case(exponential_spacing):
-        {
-            strncpy(radial_spacing_str, "Exponential", 256);
-            break;
-        }
-    }
+	switch(radial_grid_type)
+	{
+		case(arithmetic_spacing):
+		{
+			strncpy(radial_spacing_str, "Arithmetic", 256);
+			break;
+		}
+		case(logarithmic_spacing):
+		{
+			strncpy(radial_spacing_str, "Logarithmic", 256);
+			break;
+		}
+		case(exponential_spacing):
+		{
+			strncpy(radial_spacing_str, "Exponential", 256);
+			break;
+		}
+	}
 
-    fprintf(fd, "#RMIN\tRMAX\tPHIMIN\tPHIMAX          \tNRAD\tNAZ\tNGHRAD\tNGHAZ\tRadial_spacing\n");
-    fprintf(fd, "%.16g\t%.16g\t%.16g\t%.16g\t%d\t%d\t%d\t%d\t%s\n",
-            RMIN, RMAX, 0.0, 2*PI, NRadial, NAzimuthal, 1, 1, radial_spacing_str);
-    fclose(fd);
+	fprintf(fd, "#RMIN\tRMAX\tPHIMIN\tPHIMAX          \tNRAD\tNAZ\tNGHRAD\tNGHAZ\tRadial_spacing\n");
+	fprintf(fd, "%.16g\t%.16g\t%.16g\t%.16g\t%d\t%d\t%d\t%d\t%s\n",
+			RMIN, RMAX, 0.0, 2*PI, NRadial, NAzimuthal, 1, 1, radial_spacing_str);
+	fclose(fd);
   }
   MPI_Barrier(MPI_COMM_WORLD);
 

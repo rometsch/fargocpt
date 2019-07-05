@@ -143,6 +143,11 @@ extern double thickness_smoothing_sg;
 /// calculate disk (hydro)
 extern bool calculate_disk;
 
+// control centering of frame
+extern bool no_default_star;
+extern unsigned int n_bodies_for_barycenter;
+extern unsigned int corotation_reference_body;
+
 extern bool massoverflow;
 extern unsigned int mof_planet;
 extern double mof_sigma;

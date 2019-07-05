@@ -10,6 +10,7 @@
 #include <cstring>
 
 extern boolean CICPlanet;
+extern int Corotating;
 
 t_planetary_system::t_planetary_system()
 {
@@ -100,7 +101,10 @@ void t_planetary_system::read_from_file(char *filename) {
 		double r = semi_major_axis*(1.0+eccentricity);
 		planet->set_x(r*cos(phi));
 		planet->set_y(r*sin(phi));
-		double v = sqrt(constants::G*(1.0+mass)/semi_major_axis)*sqrt( (1.0-eccentricity)/(1.0+eccentricity) );
+		double v=0.0;
+		if (semi_major_axis != 0.0) {
+			v = sqrt(constants::G*(1.0+mass)/semi_major_axis)*sqrt( (1.0-eccentricity)/(1.0+eccentricity) );
+		}
 		planet->set_vx(-v*sin(phi));
 		planet->set_vy(v*cos(phi));
 		planet->set_acc(acc);
@@ -141,6 +145,24 @@ void t_planetary_system::read_from_file(char *filename) {
 	} else {
 		HillRadius = 0;
 	}
+
+	// set up barycenter mode
+	if (parameters::no_default_star && get_number_of_planets() == 0) {
+		die("NoDefaultStar is True but number of bodies is 0!");
+	}
+	if (parameters::n_bodies_for_barycenter == 0) {
+		// use all bodies to calculate barycenter
+		parameters::n_bodies_for_barycenter = get_number_of_planets();
+	}
+	if (parameters::n_bodies_for_barycenter > get_number_of_planets()) {
+		// use as many bodies to calculate barycenter as possible
+		parameters::n_bodies_for_barycenter = get_number_of_planets();
+	}
+	if (Corotating == YES && parameters::corotation_reference_body > get_number_of_planets() -1) {
+		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.", parameters::corotation_reference_body, get_number_of_planets() -1);
+	}
+	die("number of planets for barycenter = %d", parameters::n_bodies_for_barycenter);
+
 }
 
 void t_planetary_system::list_planets()
