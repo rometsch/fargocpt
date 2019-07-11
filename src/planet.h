@@ -2,6 +2,7 @@
 #define PLANET_H
 
 #include <string>
+#include "types.h"
 
 class t_planet
 {
@@ -34,6 +35,9 @@ class t_planet
 		bool m_irradiate;
 		/// rampup time
 		double m_rampuptime;
+		/// disk on planet acceleration
+		Pair m_disk_on_planet_acceleration;
+
 
 	public:
 		// setter
@@ -51,6 +55,9 @@ class t_planet
 		inline void set_radius(double value) { m_radius = value; }
 		inline void set_irradiate(bool value) { m_irradiate = value; }
 		inline void set_rampuptime(double value) { m_rampuptime = value; }
+		inline void set_disk_on_planet_acceleration(Pair value) { m_disk_on_planet_acceleration = value; }
+		inline void set_disk_on_planet_acceleration_x(double value) { m_disk_on_planet_acceleration.x = value; }
+		inline void set_disk_on_planet_acceleration_y(double value) { m_disk_on_planet_acceleration.y = value; }
 
 		// getter
 		inline double get_mass(void) const { return m_mass; }
@@ -67,6 +74,9 @@ class t_planet
 		inline double get_radius(void) const { return m_radius; }
 		inline double get_irradiate(void) const { return m_irradiate; }
 		inline double get_rampuptime(void) const { return m_rampuptime; }
+		inline Pair get_disk_on_planet_acceleration(void) const { return m_disk_on_planet_acceleration; }
+		inline double get_disk_on_planet_acceleration_x(void) const { return m_disk_on_planet_acceleration.x; }
+		inline double get_disk_on_planet_acceleration_y(void) const { return m_disk_on_planet_acceleration.y; }
 
 		double get_distance();
 		double get_semi_major_axis();

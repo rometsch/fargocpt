@@ -25,36 +25,62 @@
 #include "util.h"
 
 extern Pair IndirectTerm;
+extern Pair IndirectTermDisk;
+extern Pair IndirectTermPlanets;
 extern boolean AllowAccretion, Corotating, Cooling;
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 static int FeelOthers[MAX1D];
 
-Pair ComputeIndirectTerm() {
+void ComputeIndirectTerm(Force* force,t_data &data) {
 	IndirectTerm.x = 0.0;
 	IndirectTerm.y = 0.0;
-	
+	IndirectTermDisk.x = 0.0;
+	IndirectTermDisk.y = 0.0;
+	IndirectTermPlanets.x = 0.0;
+	IndirectTermPlanets.y = 0.0;
+
 	if (parameters::disk_feedback) {
 		// calc disk on center indirect term
+		IndirectTermDisk = ComputeAccel(force, data, 0.0, 0.0, 0.0);
+		IndirectTermDisk.x = -IndirectTermDisk.x;
+		IndirectTermDisk.y = -IndirectTermDisk.y;
 	}
 
 	// compute planets on center indirect term
+	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
+		t_planet &planet = data.get_planetary_system().get_planet(k);
+		double InvPlanetDistance3 =  1.0/pow3(planet.get_distance());
+		double mplanet = data.get_planetary_system().get_planet(k).get_mass();
 
+		if (data.get_planetary_system().get_planet(k).get_rampuptime() > 0) {
+			double ramping = 1.0;
+			if (PhysicalTime < data.get_planetary_system().get_planet(k).get_rampuptime()*DT) {
+				ramping = 1.0-pow2(cos(PhysicalTime*PI/2.0/(data.get_planetary_system().get_planet(k).get_rampuptime()*DT)));
+			}
+			mplanet *= ramping;
+		}
+
+		IndirectTermPlanets.x = -constants::G*mplanet*InvPlanetDistance3*planet.get_x();
+		IndirectTermPlanets.y = -constants::G*mplanet*InvPlanetDistance3*planet.get_y();
+	}
+
+	IndirectTerm.x = IndirectTermDisk.x + IndirectTermPlanets.x;
+	IndirectTerm.y = IndirectTermDisk.y + IndirectTermPlanets.y;
 }
 
 /* Below : work in non-rotating frame */
-/* centered on the primary */
 void FillForcesArrays(t_data &data)
 {
 	double x, y, angle, distancesmooth;;
 	double smooth, mplanet;
 	double pot;
-	double InvPlanetDistance3, InvDistance;
+	double InvDistance;
 	//double xbin, ybin, mbin, distbin, Invdistbin3;
 
 	data[t_data::POTENTIAL].clear();
 
 	// gravitational potential from planets on gas
-	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
+	for (unsigned int k = 0;k  < data.get_planetary_system().get_number_of_planets(); k++) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
 		mplanet = data.get_planetary_system().get_planet(k).get_mass();
 
@@ -65,8 +91,6 @@ void FillForcesArrays(t_data &data)
 			}
 			mplanet *= ramping;
 		}
-
-		InvPlanetDistance3 =  1.0/pow3(planet.get_distance());
 
 		// hill radius
 		double r_hill = pow(planet.get_mass()/(3.0*(M+planet.get_mass())),1.0/3.0)*planet.get_semi_major_axis();
@@ -79,7 +103,7 @@ void FillForcesArrays(t_data &data)
 		}
 
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
-			InvDistance = 1.0/Rmed[n_radial];\
+			InvDistance = 1.0/Rmed[n_radial];
 			// calculate smoothing length if dependend on radius
 			// i.e. for thickness smoothing with scale height at cell location
 			if (ThicknessSmoothingAtCell) {
@@ -92,12 +116,7 @@ void FillForcesArrays(t_data &data)
 				double distance2 = pow2(x-planet.get_x())+pow2(y-planet.get_y());
 				distancesmooth = sqrt(distance2+smooth);
 
-				// direct term from planet
 				pot = -constants::G*mplanet/distancesmooth;
-				// indirect term from planet
-				if (parameters::disk_feedback == YES)
-					pot += constants::G*mplanet*InvPlanetDistance3*(x*planet.get_x()+y*planet.get_y());
-
 				data[t_data::POTENTIAL](n_radial,n_azimuthal) += pot;
 			}
 		}
@@ -113,10 +132,25 @@ void FillForcesArrays(t_data &data)
 
 			// direct term from star
 			pot = -constants::G*1.0*InvDistance;
-			// indirect term from star
+			// correct frame with contributions from disk and planets
 			pot -= IndirectTerm.x*x + IndirectTerm.y*y;
 
 			data[t_data::POTENTIAL](n_radial,n_azimuthal) += pot;
+		}
+	}
+}
+
+/**
+   Update disk forces onto planets if *diskfeedback* is turned on
+*/
+void ComputeDiskOnNbodyAccel(Force* force,t_data &data)
+{
+	Pair accel;
+	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
+		if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
+			t_planet &planet = data.get_planetary_system().get_planet(k);
+			accel = ComputeAccel(force, data, planet.get_x(), planet.get_y(), planet.get_mass());
+			planet.set_disk_on_planet_acceleration(accel);
 		}
 	}
 }
@@ -126,22 +160,15 @@ void FillForcesArrays(t_data &data)
 */
 void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 {
-	Pair IndirectTerm = ComputeIndirectTerm();
 	Pair gamma;
 
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
 		if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
 			t_planet &planet = data.get_planetary_system().get_planet(k);
 
-			// if (RocheSmoothing) {
-			// 	smoothing = planet.get_distance()*pow(planet.get_mass()/3.,1./3.)*ROCHESMOOTHING;
-			// } else {
-			// 	smoothing = compute_smoothing(planet.get_distance());
-			// }
-
-			gamma = ComputeAccel(force, data, planet.get_x(), planet.get_y(), planet.get_mass());
-			double new_vx = planet.get_vx() + dt * gamma.x + dt * IndirectTerm.x;
-			double new_vy = planet.get_vy() + dt * gamma.y + dt * IndirectTerm.y;
+			gamma = planet.get_disk_on_planet_acceleration();
+			double new_vx = planet.get_vx() + dt * gamma.x + dt * IndirectTermDisk.x;
+			double new_vy = planet.get_vy() + dt * gamma.y + dt * IndirectTermDisk.y;
 			planet.set_vx(new_vx);
 			planet.set_vy(new_vy);
 		}

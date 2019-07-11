@@ -41,6 +41,8 @@ extern bool Polytropic;
 
 extern boolean FastTransport;
 Pair IndirectTerm;
+Pair IndirectTermDisk;
+Pair IndirectTermPlanets;
 double dtemp;
 
 /**
@@ -292,6 +294,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 		if (parameters::calculate_disk) {
 			/* Indirect term star's potential computed here */
 			ComputeDiskOnNbodyAccel(force, data);
+			ComputeIndirectTerm(force, data);
 			/* Gravitational potential from star and planet(s) is computed and stored here*/
 			FillForcesArrays(data);
 			/* Planets' velocities are updated here from gravitationnal interaction with disk */

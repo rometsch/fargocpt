@@ -13,33 +13,42 @@ static double Dist[MAX1D];
 void DerivMotionRK5(double* q_init, double* masses, double* deriv, int n, double dt, int* feelothers)
 {
 	double *x,*y,*vx,*vy, dist;
-	double *derivx, *derivy, *derivvx, *derivvy;
+	double *deriv_x, *deriv_y, *deriv_vx, *deriv_vy;
 	int i, j;
+	double indirect_x = 0.0;
+	double indirect_y = 0.0;
 
 	x = q_init;
 	y = x+n;
 	vx = y+n;
 	vy = vx+n;
-	derivx = deriv;
-	derivy = deriv+n;
-	derivvx = derivy+n;
-	derivvy = derivvx+n;
-	for (i = 0; i < n; i++)
-		Dist[i] = sqrt(pow2(x[i])+pow2(y[i]));
+	deriv_x = deriv;
+	deriv_y = deriv+n;
+	deriv_vx = deriv_y+n;
+	deriv_vy = deriv_vx+n;
+	// Compute distances
 	for (i = 0; i < n; i++) {
-		derivx[i] = vx[i];
-		derivy[i] = vy[i];
-		derivvx[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*x[i];
-		derivvy[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*y[i];
+		Dist[i] = sqrt(pow2(x[i])+pow2(y[i]));
+	}
+	// indirect terms, correction term caused by non barycenter systems
+	for (i = 0; i < n; i++) {
+		indirect_x -= constants::G*masses[i]/pow3(Dist[i])*x[i];
+		indirect_y -= constants::G*masses[i]/pow3(Dist[i])*y[i];
+	}
+	for (i = 0; i < n; i++) {
+		// star planet interaction
+		deriv_x[i] = vx[i];
+		deriv_y[i] = vy[i];
+		deriv_vx[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*x[i] + indirect_x;
+		deriv_vy[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*y[i] + indirect_y;
+		// planet interaction
 		for (j = 0; j < n; j++) {
-			// apply correction term caused by non barycenter systems
-			derivvx[i] -= constants::G*masses[j]/pow3(Dist[j])*x[j];
-			derivvy[i] -= constants::G*masses[j]/pow3(Dist[j])*y[j];
+			// mutual interaction
 			if ((j != i) && (feelothers[i])) {
 				dist = pow2(x[i]-x[j])+pow2(y[i]-y[j]);
 				dist = sqrt(dist);
-				derivvx[i] += constants::G*masses[j]/pow3(dist)*(x[j]-x[i]);
-				derivvy[i] += constants::G*masses[j]/pow3(dist)*(y[j]-y[i]);
+				deriv_vx[i] += constants::G*masses[j]/pow3(dist)*(x[j]-x[i]);
+				deriv_vy[i] += constants::G*masses[j]/pow3(dist)*(y[j]-y[i]);
 			}
 		}
 	}

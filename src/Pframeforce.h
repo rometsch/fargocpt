@@ -4,7 +4,8 @@
 #include "types.h"
 #include "data.h"
 
-Pair ComputeIndirectTerm();
+void ComputeIndirectTerm(Force* force,t_data &data);
+void ComputeDiskOnNbodyAccel(Force* force,t_data &data);
 void FillForcesArrays(t_data &data);
 void AdvanceSystemFromDisk(Force* force, t_data &data, double dt);
 void AdvanceSystemRK5(t_data &data, double dt);

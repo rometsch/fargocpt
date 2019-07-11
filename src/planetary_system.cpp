@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <cstring>
+#include "types.h"
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -131,6 +132,8 @@ void t_planetary_system::read_from_file(char *filename) {
 		planet->set_temperature(temperature/units::temperature);
 		planet->set_irradiate(tolower(irradiate[0]) == 'y');
 		planet->set_rampuptime(rampuptime);
+
+		planet->set_disk_on_planet_acceleration( Pair() ); // initialize to zero
 
 		add_planet(planet);
 	}
