@@ -40,7 +40,7 @@ extern bool Adiabatic;
 extern bool Polytropic;
 
 extern boolean FastTransport;
-Pair DiskOnBarycenterAcceleration;
+Pair IndirectTerm;
 double dtemp;
 
 /**
@@ -280,8 +280,8 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
         dtemp += dt;
 
-		DiskOnBarycenterAcceleration.x = 0.0;
-		DiskOnBarycenterAcceleration.y = 0.0;
+		IndirectTerm.x = 0.0;
+		IndirectTerm.y = 0.0;
 
 		if (Corotating == YES) {
 			// save old planet positions
@@ -291,9 +291,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 		if (parameters::calculate_disk) {
 			/* Indirect term star's potential computed here */
-			if (parameters::disk_feedback)
-				DiskOnBarycenterAcceleration = ComputeAccel(force, data, 0.0, 0.0, 0.0);
-
+			ComputeDiskOnNbodyAccel(force, data);
 			/* Gravitational potential from star and planet(s) is computed and stored here*/
 			FillForcesArrays(data);
 			/* Planets' velocities are updated here from gravitationnal interaction with disk */

@@ -24,23 +24,21 @@
 #include "LowTasks.h"
 #include "util.h"
 
-extern Pair DiskOnBarycenterAcceleration;
+extern Pair IndirectTerm;
 extern boolean AllowAccretion, Corotating, Cooling;
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 static int FeelOthers[MAX1D];
 
 Pair ComputeIndirectTerm() {
-	Pair IndirectTerm;
-
-	IndirectTerm.x = -DiskOnBarycenterAcceleration.x;
-	IndirectTerm.y = -DiskOnBarycenterAcceleration.y;
-
-	if (parameters::disk_feedback == NO) {
-		IndirectTerm.x = 0.0;
-		IndirectTerm.y = 0.0;
+	IndirectTerm.x = 0.0;
+	IndirectTerm.y = 0.0;
+	
+	if (parameters::disk_feedback) {
+		// calc disk on center indirect term
 	}
 
-	return IndirectTerm;
+	// compute planets on center indirect term
+
 }
 
 /* Below : work in non-rotating frame */
@@ -52,9 +50,6 @@ void FillForcesArrays(t_data &data)
 	double pot;
 	double InvPlanetDistance3, InvDistance;
 	//double xbin, ybin, mbin, distbin, Invdistbin3;
-
-	/* Indirect term star on gas here */
-	Pair IndirectTerm = ComputeIndirectTerm();
 
 	data[t_data::POTENTIAL].clear();
 
