@@ -325,8 +325,6 @@ void update_velocities_from_disk_gravity(t_data &data, double dt) {
 	MPI_Allreduce(MPI_IN_PLACE, force_x, global_number_of_particles, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(MPI_IN_PLACE, force_y, global_number_of_particles, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-	Pair IndirectTerm = ComputeIndirectTerm();
-
 	// update particles
 	unsigned int offset = particle_offsets[CPU_Rank];
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
