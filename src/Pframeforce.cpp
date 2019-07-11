@@ -84,7 +84,7 @@ void FillForcesArrays(t_data &data)
 		}
 
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
-			InvDistance = 1.0/Rmed[n_radial];\
+			InvDistance = 1.0/Rmed[n_radial];
 			// calculate smoothing length if dependend on radius
 			// i.e. for thickness smoothing with scale height at cell location
 			if (ThicknessSmoothingAtCell) {
