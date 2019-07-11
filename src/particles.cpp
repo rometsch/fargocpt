@@ -18,7 +18,7 @@
 #include "Force.h"
 #include "Pframeforce.h"
 
-extern Pair DiskOnPrimaryAcceleration;
+extern Pair DiskOnBarycenterAcceleration;
 
 namespace particles {
 

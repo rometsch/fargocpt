@@ -24,7 +24,7 @@
 #include "LowTasks.h"
 #include "util.h"
 
-extern Pair DiskOnPrimaryAcceleration;
+extern Pair DiskOnBarycenterAcceleration;
 extern boolean AllowAccretion, Corotating, Cooling;
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 static int FeelOthers[MAX1D];
@@ -32,8 +32,8 @@ static int FeelOthers[MAX1D];
 Pair ComputeIndirectTerm() {
 	Pair IndirectTerm;
 
-	IndirectTerm.x = -DiskOnPrimaryAcceleration.x;
-	IndirectTerm.y = -DiskOnPrimaryAcceleration.y;
+	IndirectTerm.x = -DiskOnBarycenterAcceleration.x;
+	IndirectTerm.y = -DiskOnBarycenterAcceleration.y;
 
 	if (parameters::disk_feedback == NO) {
 		IndirectTerm.x = 0.0;
