@@ -164,7 +164,6 @@ void t_planetary_system::read_from_file(char *filename) {
 	if (Corotating == YES && parameters::corotation_reference_body > get_number_of_planets() -1) {
 		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.", parameters::corotation_reference_body, get_number_of_planets() -1);
 	}
-	die("number of planets for barycenter = %d", parameters::n_bodies_for_barycenter);
 
 }
 
