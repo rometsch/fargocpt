@@ -14,6 +14,7 @@ data1 = np.fromfile(file1)
 data2 = np.fromfile(file2)
 
 delta = np.abs(data1-data2)
+reldelta = delta/np.abs(data1)
 Ndiff = np.sum(delta!=0)
 Ntot = len(data1)
 
@@ -28,5 +29,9 @@ if (Ndiff != 0):
     print("max diff = ", np.max(delta))
     print("avg diff = ", np.mean(delta))
     print("median diff = ", np.median(delta))
+    print("min relative diff = ", np.min(reldelta))
+    print("max relative diff = ", np.max(reldelta))
+    print("avg relative diff = ", np.mean(reldelta))
+    print("median relative diff = ", np.median(reldelta))
 else:
     print("Files are identical")
