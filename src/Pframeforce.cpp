@@ -403,6 +403,11 @@ void FindOrbitalElements(double x, double y, double vx, double vy, double m, int
 
 	h = x*vy-y*vx;
 	d = sqrt(x*x+y*y);
+	if (d==0.0) {
+		fprintf (output, "%.12g\t%.12g\t%.12g\t%.12g\t%.12g\t%.12g\n", PhysicalTime, 0.0, 0.0, 0.0, 0.0, 0.0);
+		fclose (output);
+		return;
+	}
 	Ax = x*vy*vy-y*vx*vy-constants::G*m*x/d;
 	Ay = y*vx*vx-x*vx*vy-constants::G*m*y/d;
 	e = sqrt(Ax*Ax+Ay*Ay)/constants::G/m;
