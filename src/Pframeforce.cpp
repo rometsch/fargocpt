@@ -47,7 +47,7 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 			for (unsigned int n=0; n<parameters::n_bodies_for_barycenter; n++) {
 				t_planet &planet = data.get_planetary_system().get_planet(n);
 				double mass =  planet.get_mass();
-				Pair &accel = planet.get_disk_on_planet_acceleration();
+				Pair accel = planet.get_disk_on_planet_acceleration();
 				IndirectTermDisk.x -= mass*accel.x;
 				IndirectTermDisk.y -= mass*accel.y;
 				mass_center += mass;
@@ -69,7 +69,7 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 		for (unsigned int n=0; n<parameters::n_bodies_for_barycenter; n++) {
 			t_planet &planet = data.get_planetary_system().get_planet(n);
 			double mass =  planet.get_mass();
-			Pair &accel = planet.get_nbody_on_planet_acceleration();
+			Pair accel = planet.get_nbody_on_planet_acceleration();
 			IndirectTermPlanets.x -= mass*accel.x;
 			IndirectTermPlanets.y -= mass*accel.y;
 			mass_center += mass;
@@ -184,15 +184,15 @@ void ComputeDiskOnNbodyAccel(Force* force,t_data &data)
 void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 {
 
-	for (unsigned int npl = 0; npl < data.get_planetary_system().get_number_of_planets(); npl++) {
-		t_planet &planet = data.get_planetary_system().get_planet(npl);
+	for (unsigned int npl = 0; npl < planetary_system.get_number_of_planets(); npl++) {
+		t_planet &planet = planetary_system.get_planet(npl);
 		double x = planet.get_x();
 		double y = planet.get_y();
 		double ax = 0.0;
 		double ay = 0.0;
-		for (unsigned int nother = 0; nother < data.get_planetary_system().get_number_of_planets(); nother++) {
+		for (unsigned int nother = 0; nother < planetary_system.get_number_of_planets(); nother++) {
 			if (nother != npl) {
-				t_planet &other_planet = data.get_planetary_system().get_planet(nother);
+				t_planet &other_planet = planetary_system.get_planet(nother);
 				double xo = other_planet.get_x();
 				double yo = other_planet.get_y();
 				double mass = other_planet.get_mass();
