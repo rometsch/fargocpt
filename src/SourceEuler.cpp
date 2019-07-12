@@ -282,9 +282,6 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
         dtemp += dt;
 
-		IndirectTerm.x = 0.0;
-		IndirectTerm.y = 0.0;
-
 		if (Corotating == YES) {
 			// save old planet positions
 			planet_corot_ref_old_x = data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_x();
