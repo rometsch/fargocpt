@@ -39,20 +39,52 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 	IndirectTermPlanets.x = 0.0;
 	IndirectTermPlanets.y = 0.0;
 
+	// compute disk indirect term
 	if (parameters::disk_feedback) {
-		// calc disk on center indirect term
-		IndirectTermDisk = ComputeAccel(force, data, 0.0, 0.0, 0.0);
-		IndirectTermDisk.x = -IndirectTermDisk.x;
-		IndirectTermDisk.y = -IndirectTermDisk.y;
+		if (parameters::no_default_star) {
+			// add up contributions from disk on all bodies used to calculate the center
+			double mass_center = 0.0;
+			for (unsigned int n=0; n<parameters::n_bodies_for_barycenter; n++) {
+				t_planet &planet = data.get_planetary_system().get_planet(n);
+				double mass =  planet.get_mass();
+				Pair &accel = planet.get_disk_on_planet_acceleration();
+				IndirectTermDisk.x -= mass*accel.x;
+				IndirectTermDisk.y -= mass*accel.y;
+				mass_center += mass;
+			}
+			IndirectTermDisk.x /= mass_center;
+			IndirectTermDisk.y /= mass_center;
+		} else {
+			// default mode with primary star in coordinate center
+			IndirectTermDisk = ComputeAccel(force, data, 0.0, 0.0, 0.0);
+			IndirectTermDisk.x = -IndirectTermDisk.x;
+			IndirectTermDisk.y = -IndirectTermDisk.y;
+		}
 	}
 
-	// compute planets on center indirect term
-	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
-		t_planet &planet = data.get_planetary_system().get_planet(k);
-		double InvPlanetDistance3 =  1.0/pow3(planet.get_distance());
-		double mplanet = data.get_planetary_system().get_planet(k).get_mass();
-		IndirectTermPlanets.x = -constants::G*mplanet*InvPlanetDistance3*planet.get_x();
-		IndirectTermPlanets.y = -constants::G*mplanet*InvPlanetDistance3*planet.get_y();
+	// compute nbody indirect term
+	if (parameters::no_default_star) {
+		// add up contributions from mutual interactions from all bodies used to calculate the center
+		double mass_center = 0.0;
+		for (unsigned int n=0; n<parameters::n_bodies_for_barycenter; n++) {
+			t_planet &planet = data.get_planetary_system().get_planet(n);
+			double mass =  planet.get_mass();
+			Pair &accel = planet.get_nbody_on_planet_acceleration();
+			IndirectTermPlanets.x -= mass*accel.x;
+			IndirectTermPlanets.y -= mass*accel.y;
+			mass_center += mass;
+		}
+		IndirectTermPlanets.x /= mass_center;
+		IndirectTermPlanets.y /= mass_center;
+	} else {
+		// default mode with primary star in coordinate center
+		for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
+			t_planet &planet = data.get_planetary_system().get_planet(k);
+			double InvPlanetDistance3 =  1.0/pow3(planet.get_distance());
+			double mplanet = data.get_planetary_system().get_planet(k).get_mass();
+			IndirectTermPlanets.x = -constants::G*mplanet*InvPlanetDistance3*planet.get_x();
+			IndirectTermPlanets.y = -constants::G*mplanet*InvPlanetDistance3*planet.get_y();
+		}
 	}
 
 	IndirectTerm.x = IndirectTermDisk.x + IndirectTermPlanets.x;
