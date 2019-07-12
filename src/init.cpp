@@ -214,7 +214,7 @@ void init_physics(t_data &data) {
 	OmegaFrame = OMEGAFRAME;
 
 	if (Corotating) {
-		OmegaFrame = data.get_planetary_system().get_planet(0).get_omega();
+		OmegaFrame = data.get_planetary_system().get_planet(parameters::corotation_reference_body).get_omega();
 	}
 
 	FrameAngle = 0;
