@@ -156,6 +156,34 @@ void ComputeDiskOnNbodyAccel(Force* force,t_data &data)
 }
 
 /**
+   Update mutual planet-planet accelerations
+*/
+void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
+{
+
+	for (unsigned int npl = 0; npl < data.get_planetary_system().get_number_of_planets(); npl++) {
+		t_planet &planet = data.get_planetary_system().get_planet(npl);
+		double x = planet.get_x();
+		double y = planet.get_y();
+		double ax = 0.0;
+		double ay = 0.0;
+		for (unsigned int nother = 0; nother < data.get_planetary_system().get_number_of_planets(); nother++) {
+			if (nother != npl) {
+				t_planet &other_planet = data.get_planetary_system().get_planet(nother);
+				double xo = other_planet.get_x();
+				double yo = other_planet.get_y();
+				double mass = other_planet.get_mass();
+				double dist = sqrt( pow2(x - xo) + pow2(y - yo) );
+				ax -= constants::G*mass/pow3(dist)*(x-xo);
+				ay -= constants::G*mass/pow3(dist)*(y-yo);
+			}
+		}
+		planet.set_nbody_on_planet_acceleration_x(ax);
+		planet.set_nbody_on_planet_acceleration_y(ay);
+	}
+}
+
+/**
 	Updates planets velocities due to disk influence if "feeldisk" is set for the planet
 */
 void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
