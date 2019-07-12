@@ -35,8 +35,9 @@ class t_planet
 		bool m_irradiate;
 		/// rampup time
 		double m_rampuptime;
-		/// disk on planet acceleration
+		/// accelerations onto planet
 		Pair m_disk_on_planet_acceleration;
+		Pair m_nbody_on_planet_acceleration;
 
 
 	public:
@@ -58,6 +59,10 @@ class t_planet
 		inline void set_disk_on_planet_acceleration(Pair value) { m_disk_on_planet_acceleration = value; }
 		inline void set_disk_on_planet_acceleration_x(double value) { m_disk_on_planet_acceleration.x = value; }
 		inline void set_disk_on_planet_acceleration_y(double value) { m_disk_on_planet_acceleration.y = value; }
+		inline void set_nbody_on_planet_acceleration(Pair value) { m_nbody_on_planet_acceleration = value; }
+		inline void set_nbody_on_planet_acceleration_x(double value) { m_nbody_on_planet_acceleration.x = value; }
+		inline void set_nbody_on_planet_acceleration_y(double value) { m_nbody_on_planet_acceleration.y = value; }
+
 
 		// getter
 		inline double get_mass(void) const { return m_mass; }
@@ -77,6 +82,9 @@ class t_planet
 		inline Pair get_disk_on_planet_acceleration(void) const { return m_disk_on_planet_acceleration; }
 		inline double get_disk_on_planet_acceleration_x(void) const { return m_disk_on_planet_acceleration.x; }
 		inline double get_disk_on_planet_acceleration_y(void) const { return m_disk_on_planet_acceleration.y; }
+		inline Pair get_nbody_on_planet_acceleration(void) const { return m_nbody_on_planet_acceleration; }
+		inline double get_nbody_on_planet_acceleration_x(void) const { return m_nbody_on_planet_acceleration.x; }
+		inline double get_nbody_on_planet_acceleration_y(void) const { return m_nbody_on_planet_acceleration.y; }
 
 		double get_distance();
 		double get_semi_major_axis();
