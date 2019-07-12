@@ -3,7 +3,9 @@
 
 #include "RungeKutta.h"
 #include "constants.h"
+#include "parameters.h"
 #include "types.h"
+#include <vector>
 
 #define RKACCURACY 1e-1
 
@@ -14,9 +16,12 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv,unsigned int n
 {
 	double *x,*y,*vx,*vy, dist;
 	double *deriv_x, *deriv_y, *deriv_vx, *deriv_vy;
-	double indirect_x = 0.0;
-	double indirect_y = 0.0;
+	double indirect_term_x = 0.0;
+	double indirect_term_y = 0.0;
+	std::vector<double> accel_x(n);
+	std::vector<double> accel_y(n);
 
+	// select range of q_init array for local variables
 	x = q_init;
 	y = x+n;
 	vx = y+n;
@@ -25,29 +30,65 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv,unsigned int n
 	deriv_y = deriv+n;
 	deriv_vx = deriv_y+n;
 	deriv_vy = deriv_vx+n;
-	// Compute distances
-	for (i = 0; i < n; i++) {
-		Dist[i] = sqrt(pow2(x[i])+pow2(y[i]));
-	}
-	// indirect terms, correction term caused by non barycenter systems
-	for (i = 0; i < n; i++) {
-		indirect_x -= constants::G*masses[i]/pow3(Dist[i])*x[i];
-		indirect_y -= constants::G*masses[i]/pow3(Dist[i])*y[i];
-	}
-	for (i = 0; i < n; i++) {
+
+	if (parameters::no_default_star) {
+		// calculate mutual forces
+		for (unsigned int npl = 0; npl < n; npl++) {
+			double ax = 0.0;
+			double ay = 0.0;
+			for (unsigned int nother = 0; nother < n; nother++) {
+				if (nother != npl) {
+					dist = sqrt( pow2(x[npl] - x[nother]) + pow2(y[npl] - y[nother]) );
+					ax -= constants::G*masses[nother]/pow3(dist)*(x[npl]-x[nother]);
+					ay -= constants::G*masses[nother]/pow3(dist)*(x[npl]-x[nother]);
+				}
+			}
+			accel_x[npl] = ax;
+			accel_y[npl] = ay;
+		}
+		// calculate indirect term
+		double mass_center = 0.0;
+		for (unsigned int i=0; i<parameters::n_bodies_for_barycenter; i++) {
+			indirect_term_x -= masses[i]*accel_x[i];
+			indirect_term_y -= masses[i]*accel_y[i];
+			mass_center += masses[i];
+		}
+		indirect_term_x /= mass_center;
+		indirect_term_y /= mass_center;
+
+		// apply accelerations
+		for (unsigned int i=0; i<n; i++) {
+			deriv_x[i] = vx[i];
+			deriv_y[i] = vy[i];
+			deriv_vx[i] = accel_x[i] + indirect_term_x;
+			deriv_vy[i] = accel_y[i] + indirect_term_y;
+		}
+	} else {
+		// default mode with primary star in coordinate center
+		// Compute distances
+		for (unsigned int i = 0; i < n; i++) {
+			Dist[i] = sqrt(pow2(x[i])+pow2(y[i]));
+		}
+		// compute indirect terms
+		for (unsigned int i = 0; i < n; i++) {
+			indirect_term_x -= constants::G*masses[i]/pow3(Dist[i])*x[i];
+			indirect_term_y -= constants::G*masses[i]/pow3(Dist[i])*y[i];
+		}
+		for (unsigned int i = 0; i < n; i++) {
 		// star planet interaction
-		deriv_x[i] = vx[i];
-		deriv_y[i] = vy[i];
-		deriv_vx[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*x[i] + indirect_x;
-		deriv_vy[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*y[i] + indirect_y;
-		// planet interaction
-		for (j = 0; j < n; j++) {
-			// mutual interaction
-			if ((j != i) && (feelothers[i])) {
-				dist = pow2(x[i]-x[j])+pow2(y[i]-y[j]);
-				dist = sqrt(dist);
-				deriv_vx[i] += constants::G*masses[j]/pow3(dist)*(x[j]-x[i]);
-				deriv_vy[i] += constants::G*masses[j]/pow3(dist)*(y[j]-y[i]);
+			deriv_x[i] = vx[i];
+			deriv_y[i] = vy[i];
+			deriv_vx[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*x[i] + indirect_term_x;
+			deriv_vy[i] = -constants::G*1.0/Dist[i]/Dist[i]/Dist[i]*y[i] + indirect_term_y;
+			// planet interaction
+			for (unsigned int j = 0; j < n; j++) {
+				// mutual interaction
+				if ((j != i) && (feelothers[i])) {
+					dist = pow2(x[i]-x[j])+pow2(y[i]-y[j]);
+					dist = sqrt(dist);
+					deriv_vx[i] += constants::G*masses[j]/pow3(dist)*(x[j]-x[i]);
+					deriv_vy[i] += constants::G*masses[j]/pow3(dist)*(y[j]-y[i]);
+				}
 			}
 		}
 	}
