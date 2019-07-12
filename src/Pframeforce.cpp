@@ -51,15 +51,6 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
 		double InvPlanetDistance3 =  1.0/pow3(planet.get_distance());
 		double mplanet = data.get_planetary_system().get_planet(k).get_mass();
-
-		if (data.get_planetary_system().get_planet(k).get_rampuptime() > 0) {
-			double ramping = 1.0;
-			if (PhysicalTime < data.get_planetary_system().get_planet(k).get_rampuptime()*DT) {
-				ramping = 1.0-pow2(cos(PhysicalTime*PI/2.0/(data.get_planetary_system().get_planet(k).get_rampuptime()*DT)));
-			}
-			mplanet *= ramping;
-		}
-
 		IndirectTermPlanets.x = -constants::G*mplanet*InvPlanetDistance3*planet.get_x();
 		IndirectTermPlanets.y = -constants::G*mplanet*InvPlanetDistance3*planet.get_y();
 	}
