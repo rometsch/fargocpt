@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <vector>
 
 #include "constants.h"
 #include "parameters.h"
@@ -95,73 +96,64 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 void FillForcesArrays(t_data &data)
 {
 	double x, y, angle, distancesmooth;;
-	double smooth, mplanet;
-	double pot;
+	double smooth;
 	double InvDistance;
-	//double xbin, ybin, mbin, distbin, Invdistbin3;
+	unsigned int number_of_planets = data.get_planetary_system().get_number_of_planets();
+	std::vector<double> xpl(number_of_planets);
+	std::vector<double> ypl(number_of_planets);
+	std::vector<double> mpl(number_of_planets);
+	std::vector<double> smooth_pl(number_of_planets);
+
+	// setup planet data
+	for (unsigned int k = 0;k  < number_of_planets; k++) {
+		t_planet &planet = data.get_planetary_system().get_planet(k);
+		mpl[k] = data.get_planetary_system().get_planet(k).get_rampup_mass();
+		xpl[k] = planet.get_x();
+		ypl[k] = planet.get_y();
+		if (RocheSmoothing) {
+			double r_hill = pow(planet.get_mass()/(3.0*(M+planet.get_mass())),1.0/3.0)*planet.get_semi_major_axis();
+			smooth_pl[k] = pow2(r_hill*ROCHESMOOTHING);
+		} else {
+			smooth_pl[k] = pow2(compute_smoothing(planet.get_distance()));
+		}
+	}
 
 	data[t_data::POTENTIAL].clear();
 
 	// gravitational potential from planets on gas
-	for (unsigned int k = 0;k  < data.get_planetary_system().get_number_of_planets(); k++) {
-		t_planet &planet = data.get_planetary_system().get_planet(k);
-		mplanet = data.get_planetary_system().get_planet(k).get_mass();
 
-		if (data.get_planetary_system().get_planet(k).get_rampuptime() > 0) {
-			double ramping = 1.0;
-			if (PhysicalTime < data.get_planetary_system().get_planet(k).get_rampuptime()*DT) {
-				ramping = 1.0-pow2(cos(PhysicalTime*PI/2.0/(data.get_planetary_system().get_planet(k).get_rampuptime()*DT)));
-			}
-			mplanet *= ramping;
-		}
-
-		// hill radius
-		double r_hill = pow(planet.get_mass()/(3.0*(M+planet.get_mass())),1.0/3.0)*planet.get_semi_major_axis();
-
-		// calculate smoothing length only once if not dependend on radius
-		if (RocheSmoothing) {
-			smooth = pow2(r_hill*ROCHESMOOTHING);
-		} else {
-			smooth = pow2(compute_smoothing(planet.get_distance()));
-		}
-
-		for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
-			InvDistance = 1.0/Rmed[n_radial];
-			// calculate smoothing length if dependend on radius
-			// i.e. for thickness smoothing with scale height at cell location
-			if (ThicknessSmoothingAtCell) {
-				smooth = pow2(compute_smoothing(Rmed[n_radial]));
-			}
-			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal(); ++n_azimuthal) {
-				angle = (double)n_azimuthal/(double)data[t_data::POTENTIAL].get_size_azimuthal()*2.0*PI;
-				x = Rmed[n_radial]*cos(angle);
-				y = Rmed[n_radial]*sin(angle);
-				double distance2 = pow2(x-planet.get_x())+pow2(y-planet.get_y());
-				distancesmooth = sqrt(distance2+smooth);
-
-				pot = -constants::G*mplanet/distancesmooth;
-				data[t_data::POTENTIAL](n_radial,n_azimuthal) += pot;
-			}
-		}
-	}
-
-	// gravitational potential from star on gas
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
-		InvDistance = 1.0/Rmed[n_radial];
+		// calculate smoothing length if dependend on radius
+		// i.e. for thickness smoothing with scale height at cell location
+		if (ThicknessSmoothingAtCell) {
+			smooth = pow2(compute_smoothing(Rmed[n_radial]));
+		}
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal(); ++n_azimuthal) {
 			angle = (double)n_azimuthal/(double)data[t_data::POTENTIAL].get_size_azimuthal()*2.0*PI;
 			x = Rmed[n_radial]*cos(angle);
 			y = Rmed[n_radial]*sin(angle);
 
+			for (unsigned int k=0; k<number_of_planets; k++) {
+				if (!ThicknessSmoothingAtCell) {
+					smooth = smooth_pl[k];
+				}
+				double distance2 = pow2(x-xpl[k])+pow2(y-ypl[k]);
+				distancesmooth = sqrt(distance2+smooth);
+				data[t_data::POTENTIAL](n_radial,n_azimuthal) += -constants::G*mpl[k]/distancesmooth;
+			}
+			// apply indirect term
 			// correct frame with contributions from disk and planets
-			pot = -IndirectTerm.x*x -IndirectTerm.y*y;
+			data[t_data::POTENTIAL](n_radial,n_azimuthal) += -IndirectTerm.x*x -IndirectTerm.y*y;
 
 			if (!parameters::no_default_star) {
 				// direct term from star
-				pot = -constants::G*1.0*InvDistance;
+				if (!ThicknessSmoothingAtCell) {
+					smooth = 0.0;
+				}
+				distancesmooth = sqrt( pow2(Rmed[n_radial]) + smooth);
+				InvDistance = 1.0/distancesmooth;
+				data[t_data::POTENTIAL](n_radial,n_azimuthal) += -constants::G*1.0*InvDistance;
 			}
-
-			data[t_data::POTENTIAL](n_radial,n_azimuthal) += pot;
 		}
 	}
 }
