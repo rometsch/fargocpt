@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 from subprocess import run
 import numpy as np
 import argparse
@@ -18,6 +19,7 @@ def main():
     parser.add_argument("-n", default=1, type=int, help="number of orbits to calculate")
     parser.add_argument("--nbody", default=False, action="store_true", help="plot nbody stuff")
     parser.add_argument("--rho", default=False, action="store_true", help="plot density colormaps")
+    parser.add_argument("--outdirs", nargs=2, help="output dirs to compare")
     args = parser.parse_args()
 
     if (not args.nbody) and (not args.rho):
@@ -32,17 +34,25 @@ def main():
         params_nods.set("Ntot", args.n*100)
 
         run_sims()
-        
-    outdir1 = "out/comp-defaultstar/"
-    outdir2 = "out/comp-nodefaultstar/"
+
+    if args.outdirs:
+        outdir1 = args.outdirs[0]
+        outdir2 = args.outdirs[1]
+    else:
+        outdir1 = "out/comp-defaultstar/"
+        outdir2 = "out/comp-nodefaultstar/"
     # default star data
     reader_ds = reader_fargo.Reader(outdir1)
     # no default star data
     reader_nods = reader_fargo.Reader(outdir2)
 
-    Nrho = len(reader_ds.outputTimes)-1
+    if args.n:
+        Nrho = args.n
+    else:
+        Nrho = len(reader_ds.outputTimes)-1
     print("Comparing output number {}".format(Nrho))
-    compare_binary_output(outdir1+"gasdens{}.dat".format(Nrho), outdir2+"gasdens{}.dat".format(Nrho))
+    compare_binary_output(os.path.join(outdir1,"gasdens{}.dat".format(Nrho)),
+                          os.path.join(outdir2,"gasdens{}.dat".format(Nrho)))
         
     # default star data
     reader_ds = reader_fargo.Reader(outdir1)
@@ -52,9 +62,12 @@ def main():
     if args.nbody:
         plot_nbody(reader_ds, reader_nods)
     if args.rho:
-        plot_rho(reader_ds, reader_nods)
+        plot_rho(reader_ds, reader_nods, n=Nrho)
 
-def plot_nbody(reader_ds, reader_nods):
+def plot_nbody(reader1, reader2):
+
+    params1 = get_param(reader1)
+    params2 = get_param(reader2)
     
     fig, axes = plt.subplots(2,2,constrained_layout=True); axes = axes.ravel()
     varnames = ["semi-major axis", "eccentricity", "x", "y"]
@@ -64,10 +77,10 @@ def plot_nbody(reader_ds, reader_nods):
 
         ax = axes[k]
         varname = "semi-major axis"
-        time, val = reader_ds.getScalar(vn, npl)
+        time, val = reader1.getScalar(vn, get_nsecondary(params1))
         ax.plot(time/4.956246157/100, val, label="ds")
         
-        time, val = reader_nods.getScalar(vn, npl+1)
+        time, val = reader2.getScalar(vn, get_nsecondary(params2))
         ax.plot(time/4.956246157/100, val, label="nods")
         
         ax.set_ylabel(vn)
@@ -77,15 +90,32 @@ def plot_nbody(reader_ds, reader_nods):
         if k == 0:
             ax.legend()
 
-def plot_rho(reader_ds, reader_nods):
+def get_param(reader):
+    for fname in os.listdir(reader.dataDir):
+        if os.path.splitext(fname)[1] == ".par":
+            return Parameters(os.path.join(reader.dataDir, fname))
 
-    Nrho = len(reader_ds.outputTimes)-1
+def get_nsecondary(param):
+    try:
+        if param.get("NoDefaultStar") == "YES":
+            return 2
+        else:
+            return 1
+    except KeyError:
+        return 1
+            
+def plot_rho(reader1, reader2, n):
+
+    params1 = get_param(reader1)
+    params2 = get_param(reader2)
+    
+    Nrho = n
     
     fig, axes = plt.subplots(1,3, constrained_layout=True)
-    rho_ds = reader_ds.load2d(Nrho, "gasdens{}.dat", u.g/u.cm**2)
-    rho_nods = reader_nods.load2d(Nrho, "gasdens{}.dat", u.g/u.cm**2)
-    X = reader_ds.X.to("au")
-    Y = reader_ds.Y.to("au")
+    rho_ds = reader1.load2d(Nrho, "gasdens{}.dat", u.g/u.cm**2)
+    rho_nods = reader2.load2d(Nrho, "gasdens{}.dat", u.g/u.cm**2)
+    X = reader1.X.to("au")
+    Y = reader1.Y.to("au")
 
     delta_rho = np.abs(rho_ds - rho_nods)/np.max(np.abs(rho_ds))
 
@@ -101,8 +131,9 @@ def plot_rho(reader_ds, reader_nods):
     ax.set_title("default star")
     add_colorbar(fig, ax, im, 'rho [g/cm2]')
     # add line pointing to planet
-    t,x = reader_ds.getScalar("x", n=1, frame=Nrho)
-    t,y = reader_ds.getScalar("y", n=1, frame=Nrho)
+    nsecondary = get_nsecondary(params1)
+    t,x = reader1.getScalar("x", n=nsecondary, frame=Nrho)
+    t,y = reader1.getScalar("y", n=nsecondary, frame=Nrho)
     x = x.to("au").value
     y = y.to("au").value
     r = np.sqrt(x**2 + y**2)/np.max(X.value)
@@ -113,8 +144,9 @@ def plot_rho(reader_ds, reader_nods):
     ax.set_title("no default star")
     add_colorbar(fig, ax, im, "rho [g/cm2]")
     # add line pointing to planet
-    t,x = reader_nods.getScalar("x", n=2, frame=Nrho)
-    t,y = reader_nods.getScalar("y", n=2, frame=Nrho)
+    nsecondary = get_nsecondary(params2)
+    t,x = reader2.getScalar("x", n=nsecondary, frame=Nrho)
+    t,y = reader2.getScalar("y", n=nsecondary, frame=Nrho)
     x = x.to("au").value
     y = y.to("au").value
     r = np.sqrt(x**2 + y**2)/np.max(X.value)
@@ -122,7 +154,7 @@ def plot_rho(reader_ds, reader_nods):
 
     
     ax = axes[2]
-    im = ax.pcolormesh(X,Y,np.log(delta_rho), vmin=-10, cmap = cmap)
+    im = ax.pcolormesh(X,Y,np.log(delta_rho), vmin=-10, vmax=0, cmap = cmap)
     ax.set_title("log( delta rho rel)")
     add_colorbar(fig, ax, im, "log(delta rho/max rho)")
     
@@ -141,7 +173,7 @@ def run_sims():
     for configfile in ["gamma-ceph-defaultstar.par", "gamma-ceph-nodefaultstar.par"]:
         run(["mpirun", "-n", "4", "../../fargo", configfile])
 
-
+        
 def add_colorbar(fig, ax, im, label):
     divider = make_axes_locatable(ax)
     cax = divider.append_axes('bottom', size='5%', pad=0.05)

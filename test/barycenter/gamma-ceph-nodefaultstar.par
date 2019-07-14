@@ -95,7 +95,7 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
 
 ### Output control parameters
 
-Ntot			100	# Total number of time steps
+Ntot			1000	# Total number of time steps
 Ninterm	 		10		# Time steps between outputs
 DT			4.956246157	# 1/100th of a binary orbit
 OutputDir	out/comp-nodefaultstar
