@@ -69,13 +69,11 @@ void ComputeForce(t_data &data, Force* force, double x, double y, double mass)
 		// Thickness smoothing = smoothing with scale height
 		rsmoothing = compute_smoothing(a);
 	}
-	// consider calculation of force on primary, don't need to recalculate rsmoothing then
-	bool SmoothingEnabled = (a != 0.0);
 
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active; ++n_radial) {
 		// calculate smoothing length if dependend on radius
 		// i.e. for thickness smoothing with scale height at cell location
-		if (SmoothingEnabled && ThicknessSmoothingAtCell) {
+		if (ThicknessSmoothingAtCell) {
 			rsmoothing = compute_smoothing(Rmed[n_radial]);
 		}
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
