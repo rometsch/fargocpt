@@ -161,6 +161,7 @@ void t_planetary_system::read_from_file(char *filename) {
 		// use as many bodies to calculate barycenter as possible
 		parameters::n_bodies_for_barycenter = get_number_of_planets();
 	}
+	logging::print_master(LOG_INFO "The first %d planets are used to calculate the frame center.\n", parameters::n_bodies_for_barycenter);
 	if (Corotating == YES && parameters::corotation_reference_body > get_number_of_planets() -1) {
 		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.", parameters::corotation_reference_body, get_number_of_planets() -1);
 	}
