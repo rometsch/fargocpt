@@ -1,0 +1,51 @@
+after 1/10 of a binary orbit
+Comparing output number 1
+Number of doubles =  10585
+Number of different values =  10570
+min value (file1) =  0.0011214694091175941
+max value (file1) =  5091.834073102343
+min value (file2) =  0.0011214694091175753
+max value (file2) =  5091.834073102174
+min diff =  2.168404344971009e-19
+max diff =  1.3351382222026587e-09
+avg diff =  5.0631987808713515e-11
+median diff =  1.7280399333685637e-11
+min relative diff =  0.0
+max relative diff =  2.9533075619877215e-13
+avg relative diff =  3.197045059046983e-14
+median relative diff =  2.446660994431624e-14
+
+after 1 binary orbit
+Comparing output number 10
+Number of doubles =  10585
+Number of different values =  9297
+min value (file1) =  0.0002573085061579105
+max value (file1) =  5502.765919695734
+min value (file2) =  0.0002573085061579105
+max value (file2) =  5502.765919696012
+min diff =  5.421010862427522e-20
+max diff =  5.975380190648139e-10
+avg diff =  3.587580041857842e-11
+median diff =  2.0236257114447653e-11
+min relative diff =  0.0
+max relative diff =  3.4152285576002483e-12
+avg relative diff =  5.4053031739307356e-14
+median relative diff =  1.492735574419201e-14
+
+after 10 binary orbits
+Comparing output number 100
+Number of doubles =  10585
+Number of different values =  9151
+min value (file1) =  0.0002573085061579105
+max value (file1) =  7471.884641688967
+min value (file2) =  0.0002573085061579105
+max value (file2) =  7471.884641694293
+min diff =  9.75781955236954e-19
+max diff =  4.0755935515335295e-08
+avg diff =  2.7075568251275586e-09
+median diff =  1.924490788951516e-09
+min relative diff =  0.0
+max relative diff =  1.3178423343286158e-09
+avg relative diff =  1.6747703156373295e-11
+median relative diff =  9.970502422692851e-13
+

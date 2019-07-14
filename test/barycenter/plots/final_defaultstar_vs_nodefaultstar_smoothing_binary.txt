@@ -1,0 +1,16 @@
+Comparing output number 10
+Number of doubles =  10585
+Number of different values =  9324
+min value (file1) =  0.0002573085061579105
+max value (file1) =  5502.765919695734
+min value (file2) =  0.0002573085061579105
+max value (file2) =  5501.451298935002
+min diff =  7.203707416822067e-10
+max diff =  21.313336577073443
+avg diff =  2.2571000287833645
+median diff =  1.6441163996673396
+min relative diff =  0.0
+max relative diff =  1.181249990426416
+avg relative diff =  0.010257952502352693
+median relative diff =  0.0009464262126866117
+
