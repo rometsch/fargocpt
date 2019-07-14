@@ -20,6 +20,7 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv,unsigned int n
 	double indirect_term_y = 0.0;
 	std::vector<double> accel_x(n);
 	std::vector<double> accel_y(n);
+	unsigned int number_of_planets = n;
 
 	// select range of q_init array for local variables
 	x = q_init;
@@ -33,10 +34,10 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv,unsigned int n
 
 	if (parameters::no_default_star) {
 		// calculate mutual forces
-		for (unsigned int npl = 0; npl < n; npl++) {
+		for (unsigned int npl = 0; npl < number_of_planets; npl++) {
 			double ax = 0.0;
 			double ay = 0.0;
-			for (unsigned int nother = 0; nother < n; nother++) {
+			for (unsigned int nother = 0; nother < number_of_planets; nother++) {
 				if (nother != npl) {
 					dist = sqrt( pow2(x[npl] - x[nother]) + pow2(y[npl] - y[nother]) );
 					ax -= constants::G*masses[nother]/pow3(dist)*(x[npl]-x[nother]);
@@ -57,7 +58,7 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv,unsigned int n
 		indirect_term_y /= mass_center;
 
 		// apply accelerations
-		for (unsigned int i=0; i<n; i++) {
+		for (unsigned int i=0; i<number_of_planets; i++) {
 			deriv_x[i] = vx[i];
 			deriv_y[i] = vy[i];
 			deriv_vx[i] = accel_x[i] + indirect_term_x;
