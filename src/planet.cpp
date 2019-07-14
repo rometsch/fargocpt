@@ -89,6 +89,20 @@ double t_planet::get_distance()
 }
 
 /**
+	get ramp up mass of the planet
+*/
+double t_planet::get_rampup_mass()
+{
+	double ramping = 1.0;
+	if (get_rampuptime() > 0) {
+		if (PhysicalTime < get_rampuptime()*DT) {
+			ramping = 1.0-pow2(cos(PhysicalTime*PI/2.0/(get_rampuptime()*DT)));
+		}
+	}
+	return get_mass()*ramping;
+}
+
+/**
 	get planet semi major axis
 */
 double t_planet::get_semi_major_axis()
