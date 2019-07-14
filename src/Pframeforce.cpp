@@ -153,10 +153,13 @@ void FillForcesArrays(t_data &data)
 			x = Rmed[n_radial]*cos(angle);
 			y = Rmed[n_radial]*sin(angle);
 
-			// direct term from star
-			pot = -constants::G*1.0*InvDistance;
 			// correct frame with contributions from disk and planets
-			pot -= IndirectTerm.x*x + IndirectTerm.y*y;
+			pot = -IndirectTerm.x*x -IndirectTerm.y*y;
+
+			if (!parameters::no_default_star) {
+				// direct term from star
+				pot = -constants::G*1.0*InvDistance;
+			}
 
 			data[t_data::POTENTIAL](n_radial,n_azimuthal) += pot;
 		}
