@@ -28,10 +28,10 @@ def main():
     
     if args.r:
         params_ds = Parameters("gamma-ceph-defaultstar.par")
-        params_ds.set("Ntot", args.n*100)
+        params_ds.set("Ntot", args.n*10)
         
         params_nods = Parameters("gamma-ceph-nodefaultstar.par")
-        params_nods.set("Ntot", args.n*100)
+        params_nods.set("Ntot", args.n*10)
 
         run_sims()
 
