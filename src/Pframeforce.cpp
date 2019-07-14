@@ -398,7 +398,7 @@ void FindOrbitalElements(double x, double y, double vx, double vy, double m, int
 
 	h = x*vy-y*vx;
 	d = sqrt(x*x+y*y);
-	if (d==0.0) {
+	if (is_distance_zero(d)) {
 		fprintf (output, "%.12g\t%.12g\t%.12g\t%.12g\t%.12g\t%.12g\n", PhysicalTime, 0.0, 0.0, 0.0, 0.0, 0.0);
 		fclose (output);
 		return;

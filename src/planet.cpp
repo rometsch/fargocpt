@@ -124,7 +124,7 @@ double t_planet::get_period()
 double t_planet::get_omega()
 {
 	double distance = get_distance();
-	if (distance != 0.0) {
+	if (!is_distance_zero(distance)) {
 		return sqrt(((M+get_mass())*constants::G)/pow3(distance));
 	} else {
 		return 0.0;
@@ -147,7 +147,7 @@ double t_planet::get_eccentricity()
 {
 	// distance
 	double d = sqrt(pow2(get_x())+pow2(get_y()));
-	if (d!=0.0) {
+	if (!is_distance_zero(d)) {
 		// Runge-Lenz vector A = (p x L) - m * G * m * M * r/|r|;
 		double A_x =  get_angular_momentum()/get_mass() * (M+get_mass()) * get_vy() - constants::G * M * pow2(M+get_mass()) * get_x()/d;
 		double A_y = -get_angular_momentum()/get_mass() * (M+get_mass()) * get_vx() - constants::G * M * pow2(M+get_mass()) * get_y()/d;
