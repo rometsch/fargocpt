@@ -99,8 +99,8 @@ void t_planetary_system::read_from_file(char *filename) {
 		if (parameters::no_default_star) {
 			// planets starts at Apastron
 			double nu = PI;
-			double omega = phi-PI;
-			initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity, omega, nu);
+			double pericenter_angle = 0.0;
+			initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity, pericenter_angle, nu);
 		} else {
 			initialize_planet_legacy(planet, mass, semi_major_axis, eccentricity, phi);
 		}
