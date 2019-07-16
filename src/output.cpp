@@ -561,6 +561,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update) {
 		// 0.8 = cut off parameter
 		double r_taper = 0.8 * r_hill;
 
+		if (r_taper > 0.0) {
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::TORQUE].get_max_radial(); ++n_radial) {
 			data[t_data::TORQUE_1D](n_radial) = 0.0;
 
@@ -587,6 +588,8 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update) {
 					local_torques[n_planet+1] += data[t_data::TORQUE](n_radial, n_azimuthal);
 				}
 			}
+		}
+
 		}
 
 		char* name;
