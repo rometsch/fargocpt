@@ -96,18 +96,15 @@ void t_planetary_system::read_from_file(char *filename) {
 
 		t_planet* planet = new t_planet();
 
-		// planets starts at Apastron
-		planet->set_name(name);
-		planet->set_mass(mass);
-		double r = semi_major_axis*(1.0+eccentricity);
-		planet->set_x(r*cos(phi));
-		planet->set_y(r*sin(phi));
-		double v=0.0;
-		if (semi_major_axis != 0.0) {
-			v = sqrt(constants::G*(1.0+mass)/semi_major_axis)*sqrt( (1.0-eccentricity)/(1.0+eccentricity) );
+		if (parameters::no_default_star) {
+			// planets starts at Apastron
+			double nu = PI;
+			double omega = phi-PI;
+			initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity, omega, nu);
+		} else {
+			initialize_planet_legacy(planet, mass, semi_major_axis, eccentricity, phi);
 		}
-		planet->set_vx(-v*sin(phi));
-		planet->set_vy(v*cos(phi));
+		planet->set_name(name);
 		planet->set_acc(acc);
 
 		if (tolower(feeldisk[0]) == 'y') {
@@ -243,4 +240,103 @@ void t_planetary_system::write_planets(unsigned int timestep, bool big_file)
 	for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 		get_planet(i).write(timestep, big_file);
 	}
+}
+
+/**
+   Initialize the planets position and velocity in the legacy way
+*/
+void t_planetary_system::initialize_planet_legacy(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double phi)
+{
+	planet->set_mass(mass);
+	// planets starts at Apastron
+	double r = semi_major_axis*(1.0+eccentricity);
+	planet->set_x(r*cos(phi));
+	planet->set_y(r*sin(phi));
+	double v=0.0;
+	if (semi_major_axis != 0.0) {
+		v = sqrt(constants::G*(1.0+mass)/semi_major_axis)*sqrt( (1.0-eccentricity)/(1.0+eccentricity) );
+	}
+	planet->set_vx(-v*sin(phi));
+	planet->set_vy(v*cos(phi));
+}
+
+/**
+   Initialize the planets position and velocity using jacobian coordinates
+*/
+void t_planetary_system::initialize_planet_jacobi(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly)
+{
+	planet->set_mass(mass);
+	Pair com = get_center_of_mass(); // of all previously added planets
+	double com_mass = get_mass();    // of all previously added planets
+
+	// some temporary variables for optimization and legibility
+	double cos_ota = cos(omega + true_anomaly);
+	double sin_ota = sin(omega + true_anomaly);
+	double cos_o   = cos(omega);
+	double sin_o   = sin(omega);
+	double cos_ta  = cos(true_anomaly);
+	double sin_ta  = sin(true_anomaly);
+
+	double r = semi_major_axis*(1-eccentricity*eccentricity)/(1+eccentricity*cos_ta);
+	double x = com.x + r*cos_ota;
+	double y = com.y + r*sin_ota;
+
+	double v = sqrt( (com_mass + mass) / (semi_major_axis*(1+eccentricity*eccentricity)) );
+	double vx = v*( -cos_o*sin_ta - sin_o*(eccentricity + cos_ta) );
+	double vy = v*( -sin_o*sin_ta + cos_o*(eccentricity + cos_ta) );
+
+	planet->set_x(x);
+	planet->set_y(y);
+	planet->set_vx(vx);
+	planet->set_vy(vy);
+}
+
+/**
+   Get the sum of masses of the first n particles
+*/
+double t_planetary_system::get_mass(unsigned int n)
+{
+	double mass = 0.0;
+	for (unsigned int i=0; i<n; i++) {
+		mass += get_planet(i).get_mass();
+	}
+	return mass;
+}
+
+/**
+   Get the sum of masses of all particles
+*/
+double t_planetary_system::get_mass()
+{
+	return get_mass(get_number_of_planets());
+}
+
+/**
+   Get the center of mass of the first n particles
+*/
+Pair t_planetary_system::get_center_of_mass(unsigned int n)
+{
+	double x = 0.0;
+	double y = 0.0;
+	double mass = 0.0;
+	for (unsigned int i=0; i<n; i++) {
+		t_planet &planet = get_planet(i);
+		mass += planet.get_mass();
+		x += planet.get_x()*planet.get_mass();
+		y += planet.get_y()*planet.get_mass();
+	}
+	Pair com;
+	if (mass > 0) {
+		com.x = x/mass;
+		com.y = y/mass;
+	}
+	return com;
+}
+
+/**
+   Get the center of mass of all particles
+*/
+Pair t_planetary_system::get_center_of_mass()
+{
+	return get_center_of_mass(get_number_of_planets());
 }

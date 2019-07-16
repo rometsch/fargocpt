@@ -19,6 +19,14 @@ class t_planetary_system
 		inline t_planet& get_planet(unsigned int number) const { return *(m_planets.at(number)); }
 		//inline void delete_planet(unsigned int number) { delete m_planets.at(number); m_planets.erase(m_planets.begin()+number); }
 
+		void initialize_planet_legacy(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double phi);
+		void initialize_planet_jacobi(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly);
+
+		double get_mass();
+		double get_mass(unsigned int n);
+		Pair get_center_of_mass();
+		Pair get_center_of_mass(unsigned int n);
+
 		void read_from_file(char *filename);
 		void list_planets();
 		void rotate(double angle);
@@ -29,4 +37,3 @@ class t_planetary_system
 };
 
 #endif // PLANETARY_SYSTEM_H
-
