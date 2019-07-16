@@ -329,6 +329,9 @@ Pair t_planetary_system::get_center_of_mass(unsigned int n)
 	if (mass > 0) {
 		com.x = x/mass;
 		com.y = y/mass;
+	} else {
+		com.x = 0.0;
+		com.y = 0.0;
 	}
 	return com;
 }
