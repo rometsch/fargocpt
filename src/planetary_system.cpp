@@ -134,6 +134,7 @@ void t_planetary_system::read_from_file(char *filename) {
 		planet->set_rampuptime(rampuptime);
 
 		planet->set_disk_on_planet_acceleration( Pair() ); // initialize to zero
+		planet->set_nbody_on_planet_acceleration( Pair() );
 
 		add_planet(planet);
 	}
