@@ -283,7 +283,7 @@ void t_planetary_system::initialize_planet_jacobi(t_planet *planet, double mass,
 
 	double v = 0.0;
 	if (semi_major_axis > 0.0) {
-		v = sqrt( constants::G*(com_mass + mass) / (semi_major_axis*(1+eccentricity*eccentricity)) );
+		v = sqrt( constants::G*(com_mass + mass) / (semi_major_axis*(1-eccentricity*eccentricity)) );
 	}
 
 	double vx = v*( -cos_o*sin_ta - sin_o*(eccentricity + cos_ta) );
