@@ -35,5 +35,5 @@ bool is_big_endian(void)
 bool is_distance_zero(double x) {
 	// in cgs units 1e-7 equals 1 nm
 	// this is zero for astonomical scales
-	return abs(x) < 1e-13;
+	return x*x < 1e-26;
 }
