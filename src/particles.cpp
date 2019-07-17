@@ -140,12 +140,6 @@ void calculate_accelerations_from_star_and_planets(double &ax, double &ay, doubl
 	ax = 0;
 	ay = 0;
 
-	// host star
-	double r2 = pow2(x) + pow2(y);
-	double factor = constants::G*hydro_center_mass*pow(r2,-3.0/2.0);
-	ax += factor*(-x);
-	ay += factor*(-y);
-
 	// planets
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
@@ -153,6 +147,14 @@ void calculate_accelerations_from_star_and_planets(double &ax, double &ay, doubl
 		double factor = constants::G*planet.get_mass()*pow(r2,-3.0/2.0);
 		ax += factor*(planet.get_x()-x);
 		ay += factor*(planet.get_y()-y);
+	}
+
+	if (!parameters::no_default_star) {
+		// host star
+		double r2 = pow2(x) + pow2(y);
+		double factor = constants::G*hydro_center_mass*pow(r2,-3.0/2.0);
+		ax += factor*(-x);
+		ay += factor*(-y);
 	}
 }
 
