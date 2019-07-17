@@ -164,7 +164,7 @@ void t_planetary_system::read_from_file(char *filename) {
 		// use as many bodies to calculate hydro frame center as possible
 		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
 	}
-	logging::print_master(LOG_INFO "The first %d planets are used to calculate the frame center.\n", parameters::n_bodies_for_hydroframe_center);
+	logging::print_master(LOG_INFO "The first %d planets are used to calculate the hydro frame center.\n", parameters::n_bodies_for_hydroframe_center);
 
 	if (parameters::no_default_star) {
 		move_to_hydro_frame_center();
