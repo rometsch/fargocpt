@@ -166,7 +166,9 @@ void t_planetary_system::read_from_file(char *filename) {
 	}
 	logging::print_master(LOG_INFO "The first %d planets are used to calculate the frame center.\n", parameters::n_bodies_for_barycenter);
 
-	move_to_frame_center();
+	if (parameters::no_default_star) {
+		move_to_frame_center();
+	}
 
 	if (Corotating == YES && parameters::corotation_reference_body > get_number_of_planets() -1) {
 		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.", parameters::corotation_reference_body, get_number_of_planets() -1);
