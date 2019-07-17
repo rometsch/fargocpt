@@ -274,6 +274,7 @@ double ConstructSequence(double* u, double* v, int n)
 
 void AccreteOntoPlanets(t_data &data, double dt)
 {
+	bool masses_changed = false;
 	double RRoche, Rplanet, distance, dx, dy, deltaM, angle, temp;
 	int j_min, j_max, j, l, jf, ns, lip, ljp;
 	unsigned int i, i_min,i_max, nr;
@@ -371,7 +372,12 @@ void AccreteOntoPlanets(t_data &data, double dt)
 				data.get_planetary_system().get_planet(k).set_vy(PyPlanet/Mplanet);
 			}
 			data.get_planetary_system().get_planet(k).set_mass(Mplanet);
+			if (!masses_changed) masses_changed = true;
+			// update hydro center mass
 		}
+	}
+	if (masses_changed) {
+		data.get_planetary_system().update_global_hydro_frame_center_mass();
 	}
 }
 

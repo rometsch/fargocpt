@@ -72,6 +72,7 @@ extern t_radialarray SigmaMed;
 extern double OmegaFrame, PhysicalTime, PhysicalTimeInitial, FrameAngle;
 extern int TimeStep;
 extern double HillRadius, mdcp, mdcp0, exces_mdcp;
+extern double hydro_center_mass;
 
 extern int debug, OnlyInit;
 extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;

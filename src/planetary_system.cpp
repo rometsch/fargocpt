@@ -174,6 +174,9 @@ void t_planetary_system::read_from_file(char *filename) {
 		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.", parameters::corotation_reference_body, get_number_of_planets() -1);
 	}
 
+	update_global_hydro_frame_center_mass();
+	logging::print_master(LOG_INFO "The mass of the planets used as hydro frame center is %e.\n", hydro_center_mass);
+
 }
 
 void t_planetary_system::list_planets()
@@ -461,6 +464,15 @@ Pair t_planetary_system::get_hydro_frame_center_velocity()
 double t_planetary_system::get_hydro_frame_center_mass()
 {
 	return get_mass(parameters::n_bodies_for_hydroframe_center);
+}
+
+/**
+   Update the global variable hydro_center_mass.
+*/
+
+void t_planetary_system::update_global_hydro_frame_center_mass()
+{
+	hydro_center_mass = get_hydro_frame_center_mass();
 }
 
 /**

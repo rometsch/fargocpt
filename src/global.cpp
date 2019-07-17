@@ -117,6 +117,7 @@ t_radialarray GLOBAL_bufarray;
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
+double hydro_center_mass;
 int debug, OnlyInit;
 int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;
 int CentrifugalBalance, ExcludeHill, SloppyCFL;

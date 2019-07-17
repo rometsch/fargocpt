@@ -28,6 +28,8 @@ class t_planetary_system
 		double get_hydro_frame_center_mass();
 		void move_to_hydro_frame_center();
 
+		void update_global_hydro_frame_center_mass();
+
 		double get_mass();
 		double get_mass(unsigned int n);
 		Pair get_center_of_mass();
