@@ -97,7 +97,7 @@ void init() {
 		particles[i].mass = volume * parameters::particle_density;
 
 		double r = semi_major_axis*(1.0+eccentricity);
-		double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
+		double v = sqrt(constants::G*(hydro_center_mass+particles[i].mass)/semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
 
 		particles[i].x = r*cos(phi);
 		particles[i].y = r*sin(phi);
@@ -142,7 +142,7 @@ void calculate_accelerations_from_star_and_planets(double &ax, double &ay, doubl
 
 	// host star
 	double r2 = pow2(x) + pow2(y);
-	double factor = constants::G*M*pow(r2,-3.0/2.0);
+	double factor = constants::G*hydro_center_mass*pow(r2,-3.0/2.0);
 	ax += factor*(-x);
 	ay += factor*(-y);
 

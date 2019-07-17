@@ -457,7 +457,7 @@ void init_gas_velocities(t_data &data)
 
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal(); ++n_azimuthal) {
 				data[t_data::V_RADIAL](n_radial,n_azimuthal) = 0.0;
-				data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = sqrt(constants::G*M/r);
+				data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = sqrt(constants::G*hydro_center_mass/r);
 			}
 		}
 
@@ -505,7 +505,7 @@ void init_gas_velocities(t_data &data)
 
 		/* global axisymmetric pressure field, known by all cpus */
 		for (unsigned int i = 1; i < GlobalNRadial; i++) {
-			vt_int[i] = ( GLOBAL_bufarray[i] - GLOBAL_bufarray[i-1] ) / (.5*(SigmaMedGlobal[i]+SigmaMedGlobal[i-1]))/(GlobalRmed[i]-GlobalRmed[i-1]) + constants::G*(1.0/GlobalRmed[i-1]-1.0/GlobalRmed[i])/(GlobalRmed[i]-GlobalRmed[i-1]);
+			vt_int[i] = ( GLOBAL_bufarray[i] - GLOBAL_bufarray[i-1] ) / (.5*(SigmaMedGlobal[i]+SigmaMedGlobal[i-1]))/(GlobalRmed[i]-GlobalRmed[i-1]) + constants::G*hydro_center_mass*(1.0/GlobalRmed[i-1]-1.0/GlobalRmed[i])/(GlobalRmed[i]-GlobalRmed[i-1]);
 		}
 
 		/* Case of a disk with self-gravity */

@@ -691,8 +691,8 @@ void keplerian2d_boundary_inner(t_data &data) {
 					data[t_data::TEMPERATURE](0, n_azimuthal) = data[t_data::ENERGY](0, n_azimuthal)/data[t_data::DENSITY](0, n_azimuthal)*(ADIABATICINDEX-1.0)*parameters::MU*constants::R;
 					data[t_data::V_RADIAL](1 ,n_azimuthal) = 0.0;
 					data[t_data::V_RADIAL](0, n_azimuthal) = -data[t_data::V_RADIAL](2, n_azimuthal);
-					data[t_data::V_AZIMUTHAL](1, n_azimuthal) = sqrt(constants::G*M/Rmed[1]);
-					data[t_data::V_AZIMUTHAL](0, n_azimuthal) = sqrt(constants::G*M/Rmed[0]);
+					data[t_data::V_AZIMUTHAL](1, n_azimuthal) = sqrt(constants::G*hydro_center_mass/Rmed[1]);
+					data[t_data::V_AZIMUTHAL](0, n_azimuthal) = sqrt(constants::G*hydro_center_mass/Rmed[0]);
 	}
 }
 
@@ -706,8 +706,8 @@ void keplerian2d_boundary_outer(t_data &data) {
 					data[t_data::TEMPERATURE](data[t_data::TEMPERATURE].get_max_radial()-1, n_azimuthal) = data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial()-1, n_azimuthal)/data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial()-1, n_azimuthal)*(ADIABATICINDEX-1.0)*parameters::MU*constants::R;
 					data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(), n_azimuthal) = -data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial()-2, n_azimuthal);
 					data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial()-1,n_azimuthal) = 0.0;
-					data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) = sqrt(constants::G*M/Rmed[data[t_data::DENSITY].get_max_radial()]);
-					data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial()-1, n_azimuthal) = sqrt(constants::G*M/Rmed[data[t_data::DENSITY].get_max_radial()-1]);
+					data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) = sqrt(constants::G*hydro_center_mass/Rmed[data[t_data::DENSITY].get_max_radial()]);
+					data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial()-1, n_azimuthal) = sqrt(constants::G*hydro_center_mass/Rmed[data[t_data::DENSITY].get_max_radial()-1]);
 	}
 }
 

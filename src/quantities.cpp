@@ -252,7 +252,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep, bool force_u
 	double cosFrameAngle = cos(FrameAngle);
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
-			total_mass = M + data[t_data::DENSITY](n_radial, n_azimuthal)*Surf[n_radial];
+			total_mass = hydro_center_mass + data[t_data::DENSITY](n_radial, n_azimuthal)*Surf[n_radial];
 
 			// location of the cell
 			angle = (double)n_azimuthal/(double)data[t_data::V_RADIAL].get_size_azimuthal()*2.0*PI;
