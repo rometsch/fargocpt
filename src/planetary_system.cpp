@@ -99,8 +99,12 @@ void t_planetary_system::read_from_file(char *filename) {
 		if (parameters::no_default_star) {
 			// planets starts at Apastron
 			double nu = PI;
-			double pericenter_angle = 0.0;
-			initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity, pericenter_angle, nu);
+			double pericenter_angle = PI;
+			if (get_number_of_planets() < 2) {
+				initialize_planet_jacobi_adjust_first_two(planet, mass, semi_major_axis, eccentricity, pericenter_angle, nu);
+			} else {
+				initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity, pericenter_angle, nu);
+			}
 		} else {
 			initialize_planet_legacy(planet, mass, semi_major_axis, eccentricity, phi);
 		}
@@ -134,6 +138,7 @@ void t_planetary_system::read_from_file(char *filename) {
 		planet->set_nbody_on_planet_acceleration( Pair() );
 
 		add_planet(planet);
+
 	}
 
 	// close file
@@ -160,6 +165,9 @@ void t_planetary_system::read_from_file(char *filename) {
 		parameters::n_bodies_for_barycenter = get_number_of_planets();
 	}
 	logging::print_master(LOG_INFO "The first %d planets are used to calculate the frame center.\n", parameters::n_bodies_for_barycenter);
+
+	move_to_frame_center();
+
 	if (Corotating == YES && parameters::corotation_reference_body > get_number_of_planets() -1) {
 		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.", parameters::corotation_reference_body, get_number_of_planets() -1);
 	}
@@ -261,6 +269,55 @@ void t_planetary_system::initialize_planet_legacy(t_planet *planet, double mass,
 }
 
 /**
+   Set the position and velocity of the first planet according
+   to the second planets position and velocity.
+
+   This is done because the orbital elements of a single object are meaningless
+   and the first two bodies have to be initialized together.
+*/
+void t_planetary_system::initialize_planet_jacobi_adjust_first_two(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly)
+{
+	if (get_number_of_planets() == 0) {
+		// first planet always goes to origin
+		planet->set_mass(mass);
+		planet->set_x(0.0);
+		planet->set_y(0.0);
+		planet->set_vx(0.0);
+		planet->set_vy(0.0);
+	} else {
+		// initialize the second planet around the origin, such that the two bodies have
+		// the correct separation
+		initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity, omega, true_anomaly);
+		t_planet *planet1 = m_planets[0];
+		t_planet *planet2 = planet;
+
+		double m1 = planet1->get_mass();
+		double m2 = planet2->get_mass();
+
+		// values are now such that the distance between the first two bodies match
+
+		double x = planet2->get_x();
+		double y = planet2->get_y();
+		double vx = planet2->get_vx();
+		double vy = planet2->get_vy();
+
+		// move both bodies into barycenter
+
+		double k1 = m2/(m1+m2);
+		planet1->set_x(  -k1*x );
+		planet1->set_y(  -k1*y );
+		planet1->set_vx( -k1*vx );
+		planet1->set_vy( -k1*vy );
+
+		double k2 = m1/(m1+m2);
+		planet2->set_x(  k2*x );
+		planet2->set_y(  k2*y );
+		planet2->set_vx( k2*vx );
+		planet2->set_vy( k2*vy );
+	}
+}
+
+/**
    Initialize the planets position and velocity using jacobian coordinates
 */
 void t_planetary_system::initialize_planet_jacobi(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly)
@@ -341,9 +398,87 @@ Pair t_planetary_system::get_center_of_mass(unsigned int n)
 }
 
 /**
+   Get the velocity of the center of mass of the first n particles
+*/
+Pair t_planetary_system::get_center_of_mass_velocity(unsigned int n)
+{
+	double vx = 0.0;
+	double vy = 0.0;
+	double mass = 0.0;
+	for (unsigned int i=0; i<n; i++) {
+		t_planet &planet = get_planet(i);
+		mass += planet.get_mass();
+		vx += planet.get_vx()*planet.get_mass();
+		vy += planet.get_vy()*planet.get_mass();
+	}
+	Pair vcom;
+	if (mass > 0) {
+		vcom.x = vx/mass;
+		vcom.y = vy/mass;
+	} else {
+		vcom.x = 0.0;
+		vcom.y = 0.0;
+	}
+	return vcom;
+}
+
+
+/**
    Get the center of mass of all particles
 */
 Pair t_planetary_system::get_center_of_mass()
 {
 	return get_center_of_mass(get_number_of_planets());
+}
+
+/**
+   Get the center of coordinate system as chosen by
+   parameters::n_bodies_for_barycenter.
+   This is the function to be called later in the code
+   whenever the distance to the center is used.
+*/
+Pair t_planetary_system::get_frame_center_position()
+{
+	return get_center_of_mass(parameters::n_bodies_for_barycenter);
+}
+
+/**
+   Analogous to get_frame_center but returns its velocity.
+*/
+
+Pair t_planetary_system::get_frame_center_velocity()
+{
+	return get_center_of_mass_velocity(parameters::n_bodies_for_barycenter);
+}
+
+
+/**
+   Analogous to get_frame_center but returns its mass.
+*/
+
+double t_planetary_system::get_frame_center_mass()
+{
+	return get_mass(parameters::n_bodies_for_barycenter);
+}
+
+/**
+   Move the planetary system to the chosen frame center.
+ */
+void t_planetary_system::move_to_frame_center()
+{
+	Pair center = get_frame_center_position();
+	Pair vcenter = get_frame_center_velocity();
+	for (unsigned int i=0; i<get_number_of_planets(); i++) {
+		t_planet &planet = get_planet(i);
+		double x = planet.get_x();
+		double y = planet.get_y();
+		double vx = planet.get_vx();
+		double vy = planet.get_vy();
+
+		planet.set_x( x - center.x );
+		planet.set_y( y - center.y );
+		planet.set_vx( vx - vcenter.x );
+		planet.set_vy( vy - vcenter.y );
+
+	}
 }
