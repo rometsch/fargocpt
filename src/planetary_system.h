@@ -23,10 +23,10 @@ class t_planetary_system
 		void initialize_planet_jacobi(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly);
 		void initialize_planet_jacobi_adjust_first_two(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly);
 
-		Pair get_frame_center_position();
-		Pair get_frame_center_velocity();
-		double get_frame_center_mass();
-		void move_to_frame_center();
+		Pair get_hydro_frame_center_position();
+		Pair get_hydro_frame_center_velocity();
+		double get_hydro_frame_center_mass();
+		void move_to_hydro_frame_center();
 
 		double get_mass();
 		double get_mass(unsigned int n);

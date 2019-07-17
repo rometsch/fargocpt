@@ -152,22 +152,22 @@ void t_planetary_system::read_from_file(char *filename) {
 		HillRadius = 0;
 	}
 
-	// set up barycenter mode
+	// set up hydro frame center
 	if (parameters::no_default_star && get_number_of_planets() == 0) {
 		die("NoDefaultStar is True but number of bodies is 0!");
 	}
-	if (parameters::n_bodies_for_barycenter == 0) {
-		// use all bodies to calculate barycenter
-		parameters::n_bodies_for_barycenter = get_number_of_planets();
+	if (parameters::n_bodies_for_hydroframe_center == 0) {
+		// use all bodies to calculate hydro frame center
+		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
 	}
-	if (parameters::n_bodies_for_barycenter > get_number_of_planets()) {
-		// use as many bodies to calculate barycenter as possible
-		parameters::n_bodies_for_barycenter = get_number_of_planets();
+	if (parameters::n_bodies_for_hydroframe_center > get_number_of_planets()) {
+		// use as many bodies to calculate hydro frame center as possible
+		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
 	}
-	logging::print_master(LOG_INFO "The first %d planets are used to calculate the frame center.\n", parameters::n_bodies_for_barycenter);
+	logging::print_master(LOG_INFO "The first %d planets are used to calculate the frame center.\n", parameters::n_bodies_for_hydroframe_center);
 
 	if (parameters::no_default_star) {
-		move_to_frame_center();
+		move_to_hydro_frame_center();
 	}
 
 	if (Corotating == YES && parameters::corotation_reference_body > get_number_of_planets() -1) {
@@ -435,41 +435,41 @@ Pair t_planetary_system::get_center_of_mass()
 
 /**
    Get the center of coordinate system as chosen by
-   parameters::n_bodies_for_barycenter.
+   parameters::n_bodies_for_hydroframe_center.
    This is the function to be called later in the code
    whenever the distance to the center is used.
 */
-Pair t_planetary_system::get_frame_center_position()
+Pair t_planetary_system::get_hydro_frame_center_position()
 {
-	return get_center_of_mass(parameters::n_bodies_for_barycenter);
+	return get_center_of_mass(parameters::n_bodies_for_hydroframe_center);
 }
 
 /**
-   Analogous to get_frame_center but returns its velocity.
+   Analogous to get_hydro_frame_center but returns its velocity.
 */
 
-Pair t_planetary_system::get_frame_center_velocity()
+Pair t_planetary_system::get_hydro_frame_center_velocity()
 {
-	return get_center_of_mass_velocity(parameters::n_bodies_for_barycenter);
+	return get_center_of_mass_velocity(parameters::n_bodies_for_hydroframe_center);
 }
 
 
 /**
-   Analogous to get_frame_center but returns its mass.
+   Analogous to get_hydro_frame_center but returns its mass.
 */
 
-double t_planetary_system::get_frame_center_mass()
+double t_planetary_system::get_hydro_frame_center_mass()
 {
-	return get_mass(parameters::n_bodies_for_barycenter);
+	return get_mass(parameters::n_bodies_for_hydroframe_center);
 }
 
 /**
    Move the planetary system to the chosen frame center.
  */
-void t_planetary_system::move_to_frame_center()
+void t_planetary_system::move_to_hydro_frame_center()
 {
-	Pair center = get_frame_center_position();
-	Pair vcenter = get_frame_center_velocity();
+	Pair center = get_hydro_frame_center_position();
+	Pair vcenter = get_hydro_frame_center_velocity();
 	for (unsigned int i=0; i<get_number_of_planets(); i++) {
 		t_planet &planet = get_planet(i);
 		double x = planet.get_x();

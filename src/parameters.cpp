@@ -80,7 +80,7 @@ bool calculate_disk;
 
 // control centering of frame
 bool no_default_star;
-unsigned int n_bodies_for_barycenter;
+unsigned int n_bodies_for_hydroframe_center;
 unsigned int corotation_reference_body;
 
 bool massoverflow;

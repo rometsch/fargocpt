@@ -45,7 +45,7 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 		if (parameters::no_default_star) {
 			// add up contributions from disk on all bodies used to calculate the center
 			double mass_center = 0.0;
-			for (unsigned int n=0; n<parameters::n_bodies_for_barycenter; n++) {
+			for (unsigned int n=0; n<parameters::n_bodies_for_hydroframe_center; n++) {
 				t_planet &planet = data.get_planetary_system().get_planet(n);
 				double mass =  planet.get_mass();
 				Pair accel = planet.get_disk_on_planet_acceleration();
@@ -67,7 +67,7 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 	if (parameters::no_default_star) {
 		// add up contributions from mutual interactions from all bodies used to calculate the center
 		double mass_center = 0.0;
-		for (unsigned int n=0; n<parameters::n_bodies_for_barycenter; n++) {
+		for (unsigned int n=0; n<parameters::n_bodies_for_hydroframe_center; n++) {
 			t_planet &planet = data.get_planetary_system().get_planet(n);
 			double mass =  planet.get_mass();
 			Pair accel = planet.get_nbody_on_planet_acceleration();

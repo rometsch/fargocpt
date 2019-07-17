@@ -49,7 +49,7 @@ void DerivMotionRK5(double* q_init, double* masses, double* deriv,unsigned int n
 		}
 		// calculate indirect term
 		double mass_center = 0.0;
-		for (unsigned int i=0; i<parameters::n_bodies_for_barycenter; i++) {
+		for (unsigned int i=0; i<parameters::n_bodies_for_hydroframe_center; i++) {
 			indirect_term_x -= masses[i]*accel_x[i];
 			indirect_term_y -= masses[i]*accel_y[i];
 			mass_center += masses[i];
