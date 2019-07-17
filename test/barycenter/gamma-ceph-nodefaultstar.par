@@ -50,7 +50,7 @@ InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (
 ### Planet parameters
 
 PlanetConfig		gamma-ceph-nodefaultstar.cfg
-BarycenterMode		primary
+HydroFrameCenter	primary
 NoDefaultStar       YES
 ForcedCircular		No
 ThicknessSmoothing 	0.6		# Softening parameters in disk thickness
