@@ -1398,7 +1398,6 @@ double condition_cfl(t_data& data, t_polargrid &v_radial, t_polargrid &v_azimuth
 void compute_sound_speed(t_data &data, bool force_update)
 {
 	static double last_physicaltime_calculated = -1;
-	double center_mass = data.get_planetary_system().get_hydro_frame_center_mass();
 
 	if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
 			return;
