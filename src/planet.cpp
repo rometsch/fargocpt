@@ -45,9 +45,32 @@ const std::map<const std::string, const int> planet_file_column_v2 = {
 	,{ "eccentricity", 10 }
 	,{ "angular momentum", 11 }
 	,{ "semi-major axis", 12 }
-	,{ "omega", 13 } };
+	,{ "omega", 13 }
+};
 
-auto planet_files_column = planet_file_column_v2;
+// file version 2.1
+const std::map<const std::string, const int> planet_file_column_v2_1 = {
+	{ "time step", 0 }
+	,{ "x", 1 }
+	,{ "y", 2 }
+	,{ "vx", 3 }
+	,{ "vy", 4 }
+	,{ "mass", 5 }
+	,{ "physical time", 6 }
+	,{ "omega frame", 7 }
+	,{ "mdcp", 8 }
+	,{ "exces mdcp", 9 }
+	,{ "eccentricity", 10 }
+	,{ "angular momentum", 11 }
+	,{ "semi-major axis", 12 }
+	,{ "omega kepler", 13 }
+	,{ "mean anomaly", 14 }
+	,{ "eccentric anomaly", 15 }
+	,{ "true anomaly", 16 }
+	,{ "pericenter angle", 17 }
+};
+
+auto planet_files_column = planet_file_column_v2_1;
 
 const std::map<const std::string, const std::string> variable_units = {
 	{ "time step", "1" }
@@ -64,7 +87,13 @@ const std::map<const std::string, const std::string> variable_units = {
 	,{ "eccentricity", "1" }
 	,{ "angular momentum", "angular_momentum" }
 	,{ "semi-major axis", "length" }
-	,{ "omega", "frequency" } };
+	,{ "mean anomaly", "1" }
+	,{ "eccentric anomaly", "1" }
+	,{ "true anomaly", "1" }
+	,{ "pericenter angle", "1" }
+	,{ "omega", "frequency" }
+	,{ "omega kepler", "frequency" }
+};
 
 /**
 	set name of planet
@@ -103,14 +132,6 @@ double t_planet::get_rampup_mass()
 }
 
 /**
-	get planet semi major axis
-*/
-double t_planet::get_semi_major_axis()
-{
-	return pow2(get_angular_momentum()/get_mass()) / (constants::G * (M+get_mass())) / (1.0 - pow2(get_eccentricity()));
-}
-
-/**
 	get planet period T
 */
 double t_planet::get_period()
@@ -140,23 +161,6 @@ double t_planet::get_angular_momentum()
 	return get_mass()* get_x() * get_vy() - get_mass() * get_y() * get_vx();
 }
 
-/**
-	get planets eccentricity
-*/
-double t_planet::get_eccentricity()
-{
-	// distance
-	double d = sqrt(pow2(get_x())+pow2(get_y()));
-	if (!is_distance_zero(d)) {
-		// Runge-Lenz vector A = (p x L) - m * G * m * M * r/|r|;
-		double A_x =  get_angular_momentum()/get_mass() * (M+get_mass()) * get_vy() - constants::G * M * pow2(M+get_mass()) * get_x()/d;
-		double A_y = -get_angular_momentum()/get_mass() * (M+get_mass()) * get_vx() - constants::G * M * pow2(M+get_mass()) * get_y()/d;
-		// eccentricity
-		return sqrt(pow2(A_x) + pow2(A_y))/(constants::G*M*pow2(M+get_mass()));
-	} else {
-		return 0.0;
-	}
-}
 
 void t_planet::create_planet_file()
 {
@@ -229,7 +233,7 @@ void t_planet::write(unsigned int timestep, bool big_file)
 	}
 	free(filename);
 
-	fprintf(fd, "%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	fprintf(fd, "%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 		timestep,
 		get_x(),
 		get_y(),
@@ -243,7 +247,11 @@ void t_planet::write(unsigned int timestep, bool big_file)
 		get_eccentricity(),
 		get_angular_momentum(),
 		get_semi_major_axis(),
-		get_omega());
+		get_omega(),
+		get_mean_anomaly(),
+		get_eccentric_anomaly(),
+		get_true_anomaly(),
+		get_pericenter_angle() );
 
 	// close file
 	fclose(fd);
@@ -264,18 +272,18 @@ double t_planet::get_value_from_file(unsigned int timestep, std::string variable
 	int column = -1;
 
 	std::string filename = std::string(OUTPUTDIR) + "planet"
-	    + std::to_string(get_planet_number()) + ".dat";
+		+ std::to_string(get_planet_number()) + ".dat";
 
 	std::string version = output::get_version(filename);
 	auto variable_columns = planet_file_column_v2;
 
 	if (version == "1") {
 		variable_columns = planet_file_column_v1;
-    } else if (version == "2") {
+	} else if (version == "2") {
 		variable_columns = planet_file_column_v2;
 	} else {
 		std::cerr << "Unknown version '" << version << "'for planet.dat file!" << std::endl;
-	    PersonalExit(1);
+		PersonalExit(1);
 	}
 
 	// check whether the column map contains the variable
@@ -292,4 +300,84 @@ double t_planet::get_value_from_file(unsigned int timestep, std::string variable
 	}
 	value = output::get_from_ascii_file(filename, timestep, column);
 	return value;
+}
+
+
+
+void t_planet::calculate_orbital_elements(double x, double y, double vx, double vy, double com_mass)
+{
+	// mass of reference (primary for default star and sum of inner planet mass otherwise)
+	double Ax, Ay, e, d, h, a, E, M, V;
+	double PerihelionPA;
+	double temp;
+	double m = com_mass + get_mass();
+
+	h = x*vy-y*vx;
+	d = sqrt(x*x+y*y);
+	if (is_distance_zero(d)) {
+		m_semi_major_axis = 0.0;
+		m_eccentricity = 0.0;
+		m_mean_anomaly = 0.0;
+		m_true_anomaly = 0.0;
+		m_eccentric_anomaly = 0.0;
+		m_pericenter_angle = 0.0;
+		return;
+	}
+	Ax = x*vy*vy-y*vx*vy-constants::G*m*x/d;
+	Ay = y*vx*vx-x*vx*vy-constants::G*m*y/d;
+	e = sqrt(Ax*Ax+Ay*Ay)/constants::G/m;
+	a = h*h/constants::G/m/(1.0-e*e);
+
+	if (e != 0.0) {
+		temp = (1.0-d/a)/e;
+		if (temp > 1.0) {
+			// E = acos(1)
+			E = 0.0;
+		} else if (temp < -1.0) {
+			// E = acos(-1)
+			E = PI;
+		} else {
+			E = acos(temp);
+		}
+	} else {
+		E = 0.0;
+	}
+
+	if ((x*y*(vy*vy-vx*vx)+vx*vy*(x*x-y*y)) < 0) {
+		E= -E;
+	}
+
+	M = E-e*sin(E);
+
+	if (e != 0.0) {
+		temp = (a*(1.0-e*e)/d-1.0)/e;
+		if (temp > 1.0) {
+			// V = acos(1)
+			V = 0.0;
+		} else if (temp < -1.0) {
+			// V = acos(-1)
+			V = PI;
+		} else {
+			V = acos(temp);
+		}
+	} else {
+		V = 0.0;
+	}
+
+	if (E < 0.0) {
+		V = -V;
+	}
+
+	if (e != 0.0) {
+		PerihelionPA=atan2(Ay,Ax);
+	} else {
+		PerihelionPA=atan2(y,x);
+	}
+
+	m_semi_major_axis = a;
+	m_eccentricity = e;
+	m_mean_anomaly = M;
+	m_true_anomaly = V;
+	m_eccentric_anomaly = V;
+	m_pericenter_angle = PerihelionPA;
 }

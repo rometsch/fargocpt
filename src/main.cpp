@@ -214,6 +214,8 @@ int main(int argc, char* argv[])
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
 		InnerOutputCounter++;
 
+		data.get_planetary_system().calculate_orbital_elements();
+
 		if (InnerOutputCounter == 1) {
 			InnerOutputCounter = 0;
 			data.get_planetary_system().write_planets(TimeStep, true);
@@ -273,8 +275,6 @@ int main(int argc, char* argv[])
 
 		// do hydro and nbody
 		AlgoGas(nTimeStep, force, data);
-		SolveOrbits(data);
-
 	}
 
 	logging::print_runtime_final();

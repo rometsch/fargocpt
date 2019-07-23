@@ -29,6 +29,7 @@ class t_planetary_system
 		void move_to_hydro_frame_center();
 
 		void update_global_hydro_frame_center_mass();
+		void calculate_orbital_elements();
 
 		double get_mass();
 		double get_mass(unsigned int n);

@@ -38,7 +38,13 @@ class t_planet
 		/// accelerations onto planet
 		Pair m_disk_on_planet_acceleration;
 		Pair m_nbody_on_planet_acceleration;
-
+		/// orbital elements
+		double m_semi_major_axis;
+		double m_eccentricity;
+		double m_mean_anomaly;
+		double m_true_anomaly;
+		double m_eccentric_anomaly;
+		double m_pericenter_angle;
 
 	public:
 		// setter
@@ -87,12 +93,19 @@ class t_planet
 		inline double get_nbody_on_planet_acceleration_x(void) const { return m_nbody_on_planet_acceleration.x; }
 		inline double get_nbody_on_planet_acceleration_y(void) const { return m_nbody_on_planet_acceleration.y; }
 
+		inline double get_semi_major_axis() const { return m_semi_major_axis; }
+		inline double get_eccentricity() const { return m_eccentricity; }
+		inline double get_mean_anomaly() const { return m_mean_anomaly; }
+		inline double get_true_anomaly() const { return m_true_anomaly; }
+		inline double get_eccentric_anomaly() const { return m_eccentric_anomaly; }
+		inline double get_pericenter_angle() const { return m_pericenter_angle; }
+
 		double get_distance();
-		double get_semi_major_axis();
 		double get_angular_momentum();
 		double get_period();
 		double get_omega();
-		double get_eccentricity();
+
+		void calculate_orbital_elements(double x, double y, double vx, double vy, double com_mass);
 
 		void create_planet_file();
 		void write(unsigned int timestep, bool big_file);

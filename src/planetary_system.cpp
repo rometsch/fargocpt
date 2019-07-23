@@ -184,6 +184,8 @@ void t_planetary_system::list_planets()
 	if (!CPU_Master)
 		return;
 
+	calculate_orbital_elements();
+
 	if (get_number_of_planets() == 0) {
 		//logging::print(LOG_INFO "Planet overview: No planets specified.\n");
 		return;
@@ -494,5 +496,33 @@ void t_planetary_system::move_to_hydro_frame_center()
 		planet.set_vx( vx - vcenter.x );
 		planet.set_vy( vy - vcenter.y );
 
+	}
+}
+
+/**
+   Calculate orbital elements of all planets.
+ */
+void t_planetary_system::calculate_orbital_elements()
+{
+	double x, y, vx, vy, M;
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+		t_planet &planet = get_planet(i);
+		if (parameters::no_default_star) {
+			Pair com_pos = get_center_of_mass(i);
+			Pair com_vel = get_center_of_mass_velocity(i);
+			M = get_mass(i);
+			x = planet.get_x() - com_pos.x;
+			y = planet.get_y() - com_pos.y;
+			vx = planet.get_vx() - com_vel.x;
+			vy = planet.get_vy() - com_vel.y;
+		} else {
+			// use primary as reference in default star case
+			x = planet.get_x();
+			y = planet.get_y();
+			vx = planet.get_vx();
+			vy = planet.get_vy();
+			M = 1.0;
+		}
+		planet.calculate_orbital_elements(x,y,vx,vy,M);
 	}
 }

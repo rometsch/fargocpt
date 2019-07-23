@@ -247,17 +247,6 @@ void AdvanceSystemRK5(t_data &data, double dt)
 	}
 }
 
-void SolveOrbits(t_data &data)
-{
-	double x, y, vx, vy;
-	for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
-		x = data.get_planetary_system().get_planet(i).get_x();
-		y = data.get_planetary_system().get_planet(i).get_y();
-		vx = data.get_planetary_system().get_planet(i).get_vx();
-		vy = data.get_planetary_system().get_planet(i).get_vy();
-		FindOrbitalElements(x, y, vx, vy, 1.0+data.get_planetary_system().get_planet(i).get_mass(), i);
-	}
-}
 
 double ConstructSequence(double* u, double* v, int n)
 {
@@ -379,87 +368,4 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	if (masses_changed) {
 		data.get_planetary_system().update_global_hydro_frame_center_mass();
 	}
-}
-
-void FindOrbitalElements(double x, double y, double vx, double vy, double m, int n)
-{
-	// m is mstar + mplanet
-	double Ax, Ay, e, d, h, a, E, M, V;
-	double PerihelionPA;
-	FILE *output;
-	double temp;
-	char name[256];
-
-	if (CPU_Rank != CPU_Highest) {
-		return;
-	}
-
-	sprintf(name, "%sorbit%d.dat", OUTPUTDIR, n);
-	output = fopen (name, "a");
-
-	if (output == NULL) {
-		logging::print(LOG_ERROR "Can't open 'orbit%d.dat'. Exited.\n",n);
-		PersonalExit(1);
-	}
-
-	h = x*vy-y*vx;
-	d = sqrt(x*x+y*y);
-	if (is_distance_zero(d)) {
-		fprintf (output, "%.12g\t%.12g\t%.12g\t%.12g\t%.12g\t%.12g\n", PhysicalTime, 0.0, 0.0, 0.0, 0.0, 0.0);
-		fclose (output);
-		return;
-	}
-	Ax = x*vy*vy-y*vx*vy-constants::G*m*x/d;
-	Ay = y*vx*vx-x*vx*vy-constants::G*m*y/d;
-	e = sqrt(Ax*Ax+Ay*Ay)/constants::G/m;
-	a = h*h/constants::G/m/(1.0-e*e);
-
-	if (e != 0.0) {
-		temp = (1.0-d/a)/e;
-		if (temp > 1.0) {
-			// E = acos(1)
-			E = 0.0;
-		} else if (temp < -1.0) {
-			// E = acos(-1)
-			E = PI;
-		} else {
-			E = acos(temp);
-		}
-	} else {
-		E = 0.0;
-	}
-
-	if ((x*y*(vy*vy-vx*vx)+vx*vy*(x*x-y*y)) < 0) {
-		E= -E;
-	}
-
-	M = E-e*sin(E);
-
-	if (e != 0.0) {
-		temp = (a*(1.0-e*e)/d-1.0)/e;
-		if (temp > 1.0) {
-			// V = acos(1)
-			V = 0.0;
-		} else if (temp < -1.0) {
-			// V = acos(-1)
-			V = PI;
-		} else {
-			V = acos(temp);
-		}
-	} else {
-		V = 0.0;
-	}
-
-	if (E < 0.0) {
-		V = -V;
-	}
-
-	if (e != 0.0) {
-		PerihelionPA=atan2(Ay,Ax);
-	} else {
-		PerihelionPA=atan2(y,x);
-	}
-
-	fprintf (output, "%.12g\t%.12g\t%.12g\t%.12g\t%.12g\t%.12g\n", PhysicalTime, e, a, M, V, PerihelionPA);
-	fclose (output);
 }
