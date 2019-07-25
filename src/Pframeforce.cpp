@@ -85,12 +85,12 @@ void FillForcesArrays(t_data &data)
 
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
 			InvDistance = 1.0/Rmed[n_radial];
-			// calculate smoothing length if dependend on radius
-			// i.e. for thickness smoothing with scale height at cell location
-			if (ThicknessSmoothingAtCell) {
-				smooth = pow2(compute_smoothing(Rmed[n_radial]));
-			}
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal(); ++n_azimuthal) {
+				// calculate smoothing length if dependend on radius
+				// i.e. for thickness smoothing with scale height at cell location
+				if (ThicknessSmoothingAtCell) {
+					smooth = pow2(compute_smoothing(Rmed[n_radial], data, n_radial, n_azimuthal));
+				}
 				angle = (double)n_azimuthal/(double)data[t_data::POTENTIAL].get_size_azimuthal()*2.0*PI;
 				x = Rmed[n_radial]*cos(angle);
 				y = Rmed[n_radial]*sin(angle);

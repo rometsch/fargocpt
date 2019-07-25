@@ -73,12 +73,12 @@ void ComputeForce(t_data &data, Force* force, double x, double y, double mass)
 	bool SmoothingEnabled = (a != 0.0);
 
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active; ++n_radial) {
-		// calculate smoothing length if dependend on radius
-		// i.e. for thickness smoothing with scale height at cell location
-		if (SmoothingEnabled && ThicknessSmoothingAtCell) {
-			rsmoothing = compute_smoothing(Rmed[n_radial]);
-		}
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
+			// calculate smoothing length if dependend on radius
+			// i.e. for thickness smoothing with scale height at cell location
+			if (SmoothingEnabled && ThicknessSmoothingAtCell) {
+				rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial, n_azimuthal);
+			}
 			l = n_azimuthal+n_radial*ns;
 			xc = abs[l];
 			yc = ord[l];
@@ -128,6 +128,13 @@ double compute_smoothing(double r)
 {
 	double smooth;
 	smooth = parameters::thickness_smoothing * ASPECTRATIO * pow(r, 1.0+FLARINGINDEX);
+	return smooth;
+}
+
+double compute_smoothing(double r, t_data &data, const int n_radial, const int n_azimuthal)
+{
+	double smooth;
+	smooth = parameters::thickness_smoothing * data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * pow(r, 1.0+FLARINGINDEX);
 	return smooth;
 }
 

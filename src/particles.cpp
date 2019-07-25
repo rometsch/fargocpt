@@ -310,7 +310,7 @@ void update_velocities_from_disk_gravity(t_data &data, double dt) {
 			double cell_y = Rmed[n_radial]*sin(cell_angle);
 			double cell_mass = Surf[n_radial]*data[t_data::DENSITY](n_radial,n_azimuthal);
 			for (unsigned int i = 0; i < global_number_of_particles; ++i) {
-				double smoothing = compute_smoothing(all_particles[i].get_distance_to_star());
+				double smoothing = compute_smoothing(all_particles[i].get_distance_to_star(), data, n_radial, n_azimuthal);
 				double d_x = cell_x - all_particles[i].x;
 				double d_y = cell_y - all_particles[i].y;
 				double invdist3 = pow(pow2(d_x)+pow2(d_y)+pow2(smoothing),-3.0/2.0);

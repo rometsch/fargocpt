@@ -173,7 +173,7 @@ void init_euler(t_data &data)
 	InitComputeAccel();
 
 
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	//boundary_conditions::apply_boundary_condition(data, 0.0, false); // comment out so that output is equivalent to original fargo twam
 	if(!(Adiabatic || Polytropic)) // = Isothermal
 	{
 		compute_sound_speed(data, false);
