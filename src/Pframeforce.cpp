@@ -80,15 +80,18 @@ void FillForcesArrays(t_data &data)
 		if (RocheSmoothing) {
 			smooth = pow2(r_hill*ROCHESMOOTHING);
 		} else {
-			smooth = pow2(compute_smoothing(planet.get_distance()));
+			smooth = pow2(compute_smoothing_isothermal(planet.get_distance()));
 		}
 
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
 			InvDistance = 1.0/Rmed[n_radial];
+			if (ThicknessSmoothingAtCell && parameters::Locally_Isothermal) {
+				smooth = pow2(compute_smoothing_isothermal(Rmed[n_radial]));
+			}
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal(); ++n_azimuthal) {
 				// calculate smoothing length if dependend on radius
 				// i.e. for thickness smoothing with scale height at cell location
-				if (ThicknessSmoothingAtCell) {
+				if (ThicknessSmoothingAtCell && (!parameters::Locally_Isothermal)) {
 					smooth = pow2(compute_smoothing(Rmed[n_radial], data, n_radial, n_azimuthal));
 				}
 				angle = (double)n_azimuthal/(double)data[t_data::POTENTIAL].get_size_azimuthal()*2.0*PI;
@@ -137,12 +140,6 @@ void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
 		if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
 			t_planet &planet = data.get_planetary_system().get_planet(k);
-
-			// if (RocheSmoothing) {
-			// 	smoothing = planet.get_distance()*pow(planet.get_mass()/3.,1./3.)*ROCHESMOOTHING;
-			// } else {
-			// 	smoothing = compute_smoothing(planet.get_distance());
-			// }
 
 			gamma = ComputeAccel(force, data, planet.get_x(), planet.get_y(), planet.get_mass());
 			double new_vx = planet.get_vx() + dt * gamma.x + dt * IndirectTerm.x;

@@ -141,7 +141,7 @@ double RMIN;
 double RMAX;
 
 double ROCHESMOOTHING;
-double ASPECTRATIO;
+double ASPECTRATIO_REF;
 double VISCOSITY;
 double ALPHAVISCOSITY;
 double SIGMASLOPE;

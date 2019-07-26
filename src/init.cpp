@@ -20,12 +20,12 @@
 #include "util.h"
 #include "quantities.h"
 #include "TransportEuler.h"
+#include "boundary_conditions.h"
 
 #include "options.h"
 #include "open-simplex-noise.h"
 
 extern int Restart;
-extern bool Adiabatic;
 extern boolean Corotating;
 
 /**
@@ -197,7 +197,7 @@ void init_physics(t_data &data) {
 	init_gas_density(data);
 
 	// if energy equation is taken into account, we initialize the gas thermal energy
-	if (Adiabatic) {
+	if (parameters::Adiabatic) {
 		init_gas_energy(data);
 	}
 
@@ -222,6 +222,7 @@ void init_physics(t_data &data) {
 	// only gas velocities remain to be initialized
 	init_euler(data);
 	init_gas_velocities(data);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
 }
 
 /**
@@ -231,7 +232,7 @@ void init_physics(t_data &data) {
 void init_shakura_sunyaev(t_data &data) {
 	double factor;
 
-	if( !Adiabatic )
+	if( !parameters::Adiabatic )
 		die("Isothermal equation of state and Shakura & Sunyaev starting conditions has not yet been implemented!");
 
 	for( unsigned int n_radial = 0; n_radial < data[t_data::TEMPERATURE].Nrad; ++n_radial ) {
@@ -418,11 +419,11 @@ void init_gas_energy(t_data &data)
 
 	switch (parameters::energy_initialize_condition) {
 		case parameters::initialize_condition_profile:
-			logging::print_master(LOG_INFO "Initializing Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n", 1.0/((ADIABATICINDEX-1.0))*parameters::sigma0*pow2(ASPECTRATIO)*units::energy.get_cgs_factor(),units::energy.get_cgs_symbol(), units::length.get_cgs_factor()/units::cgs_AU, -SIGMASLOPE-1.0+2.0*FLARINGINDEX, FLARINGINDEX, parameters::MU/constants::R*  pow2(ASPECTRATIO)*units::temperature.get_cgs_factor(),units::temperature.get_cgs_symbol(), units::length.get_cgs_factor()/units::cgs_AU, -1.0+2.0*FLARINGINDEX);
+			logging::print_master(LOG_INFO "Initializing Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n", 1.0/((ADIABATICINDEX-1.0))*parameters::sigma0*pow2(ASPECTRATIO_REF)*units::energy.get_cgs_factor(),units::energy.get_cgs_symbol(), units::length.get_cgs_factor()/units::cgs_AU, -SIGMASLOPE-1.0+2.0*FLARINGINDEX, FLARINGINDEX, parameters::MU/constants::R*  pow2(ASPECTRATIO_REF)*units::temperature.get_cgs_factor(),units::temperature.get_cgs_symbol(), units::length.get_cgs_factor()/units::cgs_AU, -1.0+2.0*FLARINGINDEX);
 
 			for (unsigned int n_radial = 0; n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 				for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal(); ++n_azimuthal) {
-					data[t_data::ENERGY](n_radial,n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO)*pow(Rmed[n_radial],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
+					data[t_data::ENERGY](n_radial,n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO_REF)*pow(Rmed[n_radial],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
 				}
 			}
 			break;
@@ -570,7 +571,7 @@ void init_gas_velocities(t_data &data)
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal(); ++n_azimuthal) {
 			if (!parameters::self_gravity) {
 				// v_azimuthal = Omega_K * r * (...)
-				data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = r * omega_kepler(r) * sqrt(1.0 - pow2(ASPECTRATIO) * pow(r,2.0*FLARINGINDEX) * (1.+SIGMASLOPE-2.0*FLARINGINDEX) );
+				data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = r * omega_kepler(r) * sqrt(1.0 - pow2(ASPECTRATIO_REF) * pow(r,2.0*FLARINGINDEX) * (1.+SIGMASLOPE-2.0*FLARINGINDEX) );
 			}
 
 			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= OmegaFrame*r;

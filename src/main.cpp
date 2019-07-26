@@ -35,7 +35,6 @@ int dimfxy = 11, Restart = 0;
 static int InnerOutputCounter=0, StillWriteOneOutput;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
-extern bool Adiabatic;
 
 unsigned int nTimeStep;
 
@@ -164,7 +163,7 @@ int main(int argc, char* argv[])
 		data[t_data::DENSITY].read2D((unsigned int)0);
 		data[t_data::V_RADIAL].read2D((unsigned int)0);
 		data[t_data::V_AZIMUTHAL].read2D((unsigned int)0);
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			data[t_data::ENERGY].read2D((unsigned int)0);
 
 		// save starting values (needed for damping)
@@ -175,7 +174,7 @@ int main(int argc, char* argv[])
 
 		// recalculate SigmaMed/EnergyMed
 		RefillSigma(&data[t_data::DENSITY]);
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			RefillEnergy(&data[t_data::ENERGY]);
 
 		// load grids at t = restart_from
@@ -183,7 +182,7 @@ int main(int argc, char* argv[])
 		data[t_data::DENSITY].read2D(options::restart_from);
 		data[t_data::V_RADIAL].read2D(options::restart_from);
 		data[t_data::V_AZIMUTHAL].read2D(options::restart_from);
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			data[t_data::ENERGY].read2D(options::restart_from);
 
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);

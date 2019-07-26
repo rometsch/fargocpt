@@ -67,16 +67,19 @@ void ComputeForce(t_data &data, Force* force, double x, double y, double mass)
 		rsmoothing = rh*ROCHESMOOTHING;
 	} else {
 		// Thickness smoothing = smoothing with scale height
-		rsmoothing = compute_smoothing(a);
+		rsmoothing = compute_smoothing_isothermal(a);
 	}
 	// consider calculation of force on primary, don't need to recalculate rsmoothing then
 	bool SmoothingEnabled = (a != 0.0);
 
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active; ++n_radial) {
+		if (SmoothingEnabled && ThicknessSmoothingAtCell && parameters::Locally_Isothermal){
+			rsmoothing = compute_smoothing_isothermal(Rmed[n_radial]);
+		}
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
 			// calculate smoothing length if dependend on radius
 			// i.e. for thickness smoothing with scale height at cell location
-			if (SmoothingEnabled && ThicknessSmoothingAtCell) {
+			if (SmoothingEnabled && ThicknessSmoothingAtCell && (!parameters::Locally_Isothermal)) {
 				rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial, n_azimuthal);
 			}
 			l = n_azimuthal+n_radial*ns;
@@ -124,17 +127,19 @@ void ComputeForce(t_data &data, Force* force, double x, double y, double mass)
 	force->fy_ex_outer = globalforce[7];
 }
 
-double compute_smoothing(double r)
+double compute_smoothing_isothermal(double r)
 {
 	double smooth;
-	smooth = parameters::thickness_smoothing * ASPECTRATIO * pow(r, 1.0+FLARINGINDEX);
+	const double scale_height = ASPECTRATIO_REF * pow(r, 1.0+FLARINGINDEX); // = H
+	smooth = parameters::thickness_smoothing * scale_height;
 	return smooth;
 }
 
 double compute_smoothing(double r, t_data &data, const int n_radial, const int n_azimuthal)
 {
 	double smooth;
-	smooth = parameters::thickness_smoothing * data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * pow(r, 1.0+FLARINGINDEX);
+	const double scale_height = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * r;
+	smooth = parameters::thickness_smoothing * scale_height;
 	return smooth;
 }
 
@@ -148,12 +153,8 @@ void UpdateLog(t_data &data, Force* fc, int outputnb, double time)
 		y = data.get_planetary_system().get_planet(i).get_y();
 		vx = data.get_planetary_system().get_planet(i).get_vx();
 		vy = data.get_planetary_system().get_planet(i).get_vy();
-		//r = sqrt(x*x+y*y);
 		m = data.get_planetary_system().get_planet(i).get_mass();
-		// if (RocheSmoothing)
-		// 	smoothing = r*pow(m/3.,1./3.)*ROCHESMOOTHING;
-		// else
-		// 	smoothing = compute_smoothing(r);
+
         ComputeForce(data, fc, x, y, m);
 		if (CPU_Rank == CPU_Number-1) {
 			sprintf (filename, "%stqwk%d.dat", OUTPUTDIR, i);

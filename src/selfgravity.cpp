@@ -118,8 +118,8 @@ void init()
 		PersonalExit(1);
 	}
 
-	lambda_sq = pow(0.4571*ASPECTRATIO + 0.6737*sqrt(ASPECTRATIO) ,2);
-  chi_sq = pow((-0.7543*ASPECTRATIO + 0.6472)*ASPECTRATIO ,2);
+	lambda_sq = pow(0.4571*ASPECTRATIO_REF + 0.6737*sqrt(ASPECTRATIO_REF) ,2);
+  chi_sq = pow((-0.7543*ASPECTRATIO_REF + 0.6472)*ASPECTRATIO_REF ,2);
 	r_step = log(Radii[GlobalNRadial]/Radii[0]) / (double)GlobalNRadial;
 	t_step = 2.0*PI/(double)NAzimuthal;
 
@@ -467,7 +467,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 
 	for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial() - GHOSTCELLS_B; ++n_radial) {
 		// this corresponds to equation (3.42) in Baruteau, 2008
-		double temp = pow2(omega_kepler(Rmed[n_radial])) *( 1.0 - (1.+SIGMASLOPE-2.0*FLARINGINDEX) * pow2(ASPECTRATIO)*pow(Rmed[n_radial],2.0*FLARINGINDEX) ) - GLOBAL_AxiSGAccr[n_radial+IMIN]/Rmed[n_radial];
+		double temp = pow2(omega_kepler(Rmed[n_radial])) *( 1.0 - (1.+SIGMASLOPE-2.0*FLARINGINDEX) * pow2(ASPECTRATIO_REF)*pow(Rmed[n_radial],2.0*FLARINGINDEX) ) - GLOBAL_AxiSGAccr[n_radial+IMIN]/Rmed[n_radial];
 		if (temp < 0) {
 			logging::print("Radicand %lg < 0 in init_azimuthal_velocity! Maybe ThicknessSmoothingSG (%lg) is too small!\n", temp, parameters::thickness_smoothing_sg);
 		}

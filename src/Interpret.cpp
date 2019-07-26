@@ -16,10 +16,6 @@
 extern int damping_energy_id;
 extern std::vector<parameters::t_DampingType> damping_vector;
 
-// energy euations
-bool Adiabatic = false;
-bool Polytropic = false;
-
 // frame
 int Corotating, GuidingCenter;
 
@@ -246,7 +242,7 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 	}
 
 	// disc
-	ASPECTRATIO = config::value_as_double_default("ASPECTRATIO", 0.05);
+	ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
 
 	if (!config::key_exists("OuterBoundary")) {
 		logging::print_master(LOG_ERROR "OuterBoundary doesn't exist. Old .par file?\n");
@@ -284,13 +280,13 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
     }
     if(Adiabatic_deprecated == 'y')
     {
-        Adiabatic = true;
+		parameters::Adiabatic = true;
         logging::print_master(LOG_INFO "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
         ADIABATICINDEX = config::value_as_double_default("AdiabaticIndex", 7.0/5.0);
-        if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
+		if ( (parameters::Adiabatic) && (ADIABATICINDEX == 1) ) {
             logging::print_master(LOG_WARNING "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-            Adiabatic = false;
+			parameters::Adiabatic = false;
         }
     }
     else
@@ -305,8 +301,9 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
         if(strcmp(eos_string, "isothermal") == 0 || strcmp(eos_string, "iso") == 0)
         {
             could_read_eos = true;
-            Adiabatic = false;
-            Polytropic = false;
+			parameters::Adiabatic = false;
+			parameters::Polytropic = false;
+			parameters::Locally_Isothermal = true;
             logging::print_master(LOG_INFO "Using isothermal equation of state.\n");
 
         }
@@ -315,7 +312,7 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
             could_read_eos = true;
 
             // Energy equation / Adiabatic
-            Adiabatic = true;
+			parameters::Adiabatic = true;
 
             char ADIABATICINDEX_string[512];
             strncpy(ADIABATICINDEX_string, config::value_as_string_default("AdiabaticIndex","7.0/5.0"), 256); // same as MAXNAME from config.cpp
@@ -334,9 +331,9 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
             }
 
 
-            if ( (Adiabatic) && (ADIABATICINDEX == 1) ) {
+			if ( (parameters::Adiabatic) && (ADIABATICINDEX == 1) ) {
                 logging::print_master(LOG_WARNING "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-                Adiabatic = false;
+				parameters::Adiabatic = false;
             }
             logging::print_master(LOG_INFO "Using ideal equation of state.\n");
 
@@ -347,7 +344,7 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
             could_read_eos = true;
 
             // Equation of state / Polytropic
-            Polytropic = true;
+			parameters::Polytropic = true;
             double K = 0.0;
             double gamma = 0.0;
 
@@ -388,9 +385,9 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 
 
 
-            if ( (Polytropic) && (ADIABATICINDEX == 1) ) {
+			if ( (parameters::Polytropic) && (ADIABATICINDEX == 1) ) {
                 logging::print_master(LOG_WARNING "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-                Polytropic = false;
+				parameters::Polytropic = false;
             }
             logging::print_master(LOG_INFO "Using polytropic equation of state.\n");
 
@@ -400,7 +397,7 @@ void ReadVariables(char* filename, t_data &data, int argc, char** argv)
 			die("Invalid setting for Energy Equation:   %s\n",config::value_as_string("EquationOfState"));
         }
 
-	if(!Adiabatic) // if energy is not needed, delete the energy damping boundary conditions
+	if(!parameters::Adiabatic) // if energy is not needed, delete the energy damping boundary conditions
 	{
 		parameters::damping_vector.erase(parameters::damping_vector.begin() + parameters::damping_energy_id);
 	}
@@ -524,7 +521,7 @@ void TellEverything()
 	logging::print_master(LOG_VERBOSE "----------------\n");
 	logging::print_master(LOG_VERBOSE "Inner Radius          : %g\n", RMIN);
 	logging::print_master(LOG_VERBOSE "Outer Radius          : %g\n", RMAX);
-	logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n", ASPECTRATIO);
+	logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n", ASPECTRATIO_REF);
 	logging::print_master(LOG_VERBOSE "VKep at inner edge    : %.3g\n", sqrt(constants::G*1.0*(1.-0.0)/RMIN));
 	logging::print_master(LOG_VERBOSE "VKep at outer edge    : %.3g\n", sqrt(constants::G*1.0/RMAX));
 	/*
@@ -538,20 +535,20 @@ void TellEverything()
 	//temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE) - 1.0);
 	//logging::print_master(LOG_VERBOSE "Initial Mass outer to r=1.0  : %g \n", temp);
 	logging::print_master(LOG_VERBOSE "Travelling time for acoustic density waves :\n");
-	temp = 2.0/3.0/ASPECTRATIO*(pow(RMAX,1.5)-pow(RMIN,1.5));
+	temp = 2.0/3.0/ASPECTRATIO_REF*(pow(RMAX,1.5)-pow(RMIN,1.5));
 	logging::print_master(LOG_VERBOSE " * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n", temp, TellNbOrbits(temp), TellNbOutputs(temp));
-	temp = 2.0/3.0/ASPECTRATIO*(pow(RMAX,1.5)-pow(1.0,1.5));
+	temp = 2.0/3.0/ASPECTRATIO_REF*(pow(RMAX,1.5)-pow(1.0,1.5));
 	logging::print_master(LOG_VERBOSE " * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n", temp, TellNbOrbits(temp), TellNbOutputs(temp));
-	temp = 2.0/3.0/ASPECTRATIO*(pow(1.0,1.5)-pow(RMIN,1.5));
+	temp = 2.0/3.0/ASPECTRATIO_REF*(pow(1.0,1.5)-pow(RMIN,1.5));
 	logging::print_master(LOG_VERBOSE " * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n", temp, TellNbOrbits(temp), TellNbOutputs(temp));
 	temp = 2.0*PI*sqrt(RMIN*RMIN*RMIN/constants::G/1.0);
 	logging::print_master(LOG_VERBOSE "Orbital time at Rmin  : %.3g ~ %.2f outputs\n", temp, TellNbOutputs(temp));
 	temp = 2.0*PI*sqrt(RMAX*RMAX*RMAX/constants::G/1.0);
 	logging::print_master(LOG_VERBOSE "Orbital time at Rmax  : %.3g ~ %.2f outputs\n", temp, TellNbOutputs(temp));
 	logging::print_master(LOG_VERBOSE "Sound speed :\n");
-	logging::print_master(LOG_VERBOSE " * At unit radius     : %.3g\n", ASPECTRATIO*sqrt(constants::G*1.0));
-	logging::print_master(LOG_VERBOSE " * At outer edge      : %.3g\n", ASPECTRATIO*sqrt(constants::G*1.0/RMAX));
-	logging::print_master(LOG_VERBOSE " * At inner edge      : %.3g\n", ASPECTRATIO*sqrt(constants::G*1.0/RMIN));
+	logging::print_master(LOG_VERBOSE " * At unit radius     : %.3g\n", ASPECTRATIO_REF*sqrt(constants::G*1.0));
+	logging::print_master(LOG_VERBOSE " * At outer edge      : %.3g\n", ASPECTRATIO_REF*sqrt(constants::G*1.0/RMAX));
+	logging::print_master(LOG_VERBOSE " * At inner edge      : %.3g\n", ASPECTRATIO_REF*sqrt(constants::G*1.0/RMIN));
 	logging::print_master(LOG_VERBOSE "Grid properties:\n");
 	logging::print_master(LOG_VERBOSE "----------------\n");
 	logging::print_master(LOG_VERBOSE "Number of (local) rings  : %d\n", NRadial);

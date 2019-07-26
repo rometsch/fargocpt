@@ -5,6 +5,11 @@
 
 namespace parameters {
 
+// energy euations
+extern bool Adiabatic;
+extern bool Polytropic;
+extern bool Locally_Isothermal;
+
 /// Type of radial Grid
 enum t_radial_grid {
 	arithmetic_spacing,

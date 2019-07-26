@@ -96,7 +96,7 @@ extern double RMIN;
 extern double RMAX;
 
 extern double ROCHESMOOTHING;
-extern double ASPECTRATIO;
+extern double ASPECTRATIO_REF;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
 extern double SIGMASLOPE;
