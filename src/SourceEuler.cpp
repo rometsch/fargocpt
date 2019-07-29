@@ -290,7 +290,9 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
 		if (parameters::calculate_disk) {
 			/* Indirect term star's potential computed here */
-			ComputeDiskOnNbodyAccel(force, data);
+			if (parameters::disk_feedback) {
+				ComputeDiskOnNbodyAccel(force, data);
+			}
 			ComputeNbodyOnNbodyAccel(data.get_planetary_system());
 			ComputeIndirectTerm(force, data);
 			/* Gravitational potential from star and planet(s) is computed and stored here*/
