@@ -103,8 +103,7 @@ void FillForcesArrays(t_data &data)
 				// direct term from planet
 				pot = -constants::G*mplanet/distancesmooth;
 				// indirect term from planet
-				if (parameters::disk_feedback == YES)
-					pot += constants::G*mplanet*InvPlanetDistance3*(x*planet.get_x()+y*planet.get_y());
+				pot += constants::G*mplanet*InvPlanetDistance3*(x*planet.get_x()+y*planet.get_y());
 
 				data[t_data::POTENTIAL](n_radial,n_azimuthal) += pot;
 			}

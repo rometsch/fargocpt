@@ -886,7 +886,19 @@ void SubStep3(t_data &data, double dt)
 			/*num = (1.0-(dt/2.0)*(ADIABATICINDEX-1.0)*data[t_data::DIV_V](n_radial, n_azimuthal))*data[t_data::ENERGY_INT](n_radial, n_azimuthal)+dt*data[t_data::QPLUS](n_radial, n_azimuthal)-dt*data[t_data::QMINUS](n_radial, n_azimuthal);
 			den = (1.0+(dt/2.0)*(ADIABATICINDEX-1.0)*data[t_data::DIV_V](n_radial, n_azimuthal)); 
 			*/
-			double alpha = 1.0 + 2.0 * ASPECTRATIO_REF*pow(Rmed[n_radial],1+FLARINGINDEX)*4.0*constants::sigma/constants::c/pow4((constants::R/parameters::MU)/(ADIABATICINDEX-1.0)*data[t_data::DENSITY](n_radial, n_azimuthal))*pow3(data[t_data::ENERGY_INT](n_radial, n_azimuthal));
+
+			// TWAM original with H/R = initial:
+			// const double alpha = 1.0 + 2.0 * ASPECTRATIO*pow(Rmed[n_radial],1+FLARINGINDEX)*4.0
+			// 	*constants::sigma/constants::c
+			// 	/pow4((constants::R/parameters::MU)/(ADIABATICINDEX-1.0)*data[t_data::DENSITY](n_radial, n_azimuthal))
+			// 	*pow3(data[t_data::ENERGY_INT](n_radial, n_azimuthal));
+
+			const double R = Rmed[n_radial];
+		    const double H = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * R ;
+			const double inv_pow4 = pow4( (parameters::MU * (ADIABATICINDEX-1.0)) / (constants::R * data[t_data::DENSITY](n_radial, n_azimuthal)) );
+			const double pow3_eint = pow3(data[t_data::ENERGY_INT](n_radial, n_azimuthal));
+			double alpha = 1.0 + 2.0 * H *4.0*constants::sigma/constants::c * inv_pow4 * pow3_eint;
+
 			num = dt*data[t_data::QPLUS](n_radial, n_azimuthal)
 			    - dt*data[t_data::QMINUS](n_radial, n_azimuthal)
 			    + alpha*data[t_data::ENERGY_INT](n_radial, n_azimuthal);
