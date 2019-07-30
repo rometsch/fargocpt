@@ -656,7 +656,7 @@ void calculate_qplus(t_data &data) {
 			if (!parameters::cooling_radiative_enabled) {
 				die("Need to calulate Tau_eff first!\n"); // TODO: make it properly!
 			}
-			// Simple star heating (Günther et al. 2004)
+			// Simple star heating (see Masterthesis Alexandros Ziampras)
 			for (unsigned int n_radial = 1; n_radial <= data[t_data::QPLUS].get_max_radial()-1; ++n_radial) {
 				for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal(); ++n_azimuthal) {
 
