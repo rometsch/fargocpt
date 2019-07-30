@@ -653,33 +653,31 @@ void calculate_qplus(t_data &data) {
 		}
 
 		if (parameters::heating_star_simple) {
+			if (!parameters::cooling_radiative_enabled) {
+				die("Need to calulate Tau_eff first!\n"); // TODO: make it properly!
+			}
 			// Simple star heating (Günther et al. 2004)
 			for (unsigned int n_radial = 1; n_radial <= data[t_data::QPLUS].get_max_radial()-1; ++n_radial) {
 				for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal(); ++n_azimuthal) {
 
-					// calculate Rosseland mean opacity kappa. opaclin needs values in cgs units
-					double temperatureCGS = data[t_data::TEMPERATURE](n_radial, n_azimuthal)*units::temperature;
-
-					// TODO: user aspect ratio
-					double densityCGS = data[t_data::DENSITY](n_radial, n_azimuthal)/(parameters::density_factor*data[t_data::SOUNDSPEED](n_radial, n_azimuthal)/sqrt(ADIABATICINDEX)/omega_kepler(Rmed[n_radial]) )*units::density;
-					double kappaCGS = opacity::opacity(densityCGS,temperatureCGS);
-					data[t_data::KAPPA](n_radial, n_azimuthal) = parameters::kappa_factor*kappaCGS*units::opacity.get_inverse_cgs_factor();
-
-					// mean vertical optical depth: tau = 1/2 kappa Sigma
-					data[t_data::TAU2](n_radial, n_azimuthal) = parameters::tau_factor*(1.0/parameters::density_factor)*data[t_data::KAPPA](n_radial, n_azimuthal)*data[t_data::DENSITY](n_radial, n_azimuthal);
-					double tau = data[t_data::TAU2](n_radial, n_azimuthal)*(Rsup[n_radial]-Rinf[n_radial])/(data[t_data::ASPECTRATIO](n_radial, n_azimuthal)*Rmed[n_radial]);
-
-					if (tau < 1)
-						continue;
-
-					double dH = data[t_data::ASPECTRATIO](n_radial+1, n_azimuthal)*Rmed[n_radial+1]-data[t_data::ASPECTRATIO](n_radial-1, n_azimuthal)*Rmed[n_radial-1];
-
-					if (dH > 0) {
-						 double angle = dH/sqrt(pow2(dH)+pow2(Rmed[n_radial+1]-Rmed[n_radial-1]));
-						 double distance = Rmed[n_radial];
-
-						 data[t_data::QPLUS](n_radial,n_azimuthal) += ramping*parameters::heating_star_factor*2.0*angle*constants::sigma.get_code_value()*pow4(parameters::star_temperature)*pow2(parameters::star_radius/distance);
-					}
+					const double distance = Rmed[n_radial];
+					const double HoverR = data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
+					const double sigma = constants::sigma.get_code_value();
+					const double T_star = parameters::star_temperature;
+					const double R_star = parameters::star_radius;
+					const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
+					const double eps = 0.5;  // TODO: add a parameter
+					// choose according to Chiang & Goldreich (1997)
+					const double dlogH_dlogr = 9.0/7.0;
+					// use eq. 7 from Menou & Goodman (2004) (rearranged), Qirr = 2*(1-eps)*L_star/(4 pi r^2)*(dlogH/dlogr - 1) * H/r * 1/Tau_eff
+					// here we use (1-eps) = parameters::heating_star_factor
+					// L_star = 4 pi R_star^2 sigma_sb T_star^4
+					double qplus = 2*(1-eps); // 2*(1-eps)
+					qplus *= sigma*pow4(T_star)*pow2(R_star/distance); // *L_star/(4 pi r^2)
+					qplus *= dlogH_dlogr - 1; // *(dlogH/dlogr - 1)
+					qplus *= HoverR; // * H/r
+					qplus /= tau_eff; // * 1/Tau_eff
+					data[t_data::QPLUS](n_radial,n_azimuthal) += ramping*qplus;
 				}
 			}
 		} else {
@@ -848,8 +846,9 @@ void SubStep3(t_data &data, double dt)
 {
 	double num, den;
 
+	calculate_qminus(data); // first to calculate teff
     calculate_qplus(data);
-    calculate_qminus(data);
+
 
 	// calculate tau_cool if needed for output
 	if (data[t_data::TAU_COOL].get_write_1D() || data[t_data::TAU_COOL].get_write_2D()) {
