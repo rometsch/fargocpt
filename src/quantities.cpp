@@ -114,13 +114,13 @@ double gas_internal_energy(t_data &data)
 	double local_internal_energy = 0.0;
 	double global_internal_energy = 0.0;
 
-	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial < data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal(); ++n_azimuthal) {
 			local_internal_energy += Surf[n_radial]*data[t_data::ENERGY](n_radial,n_azimuthal);
 		}
 	}
 
-	MPI_Allreduce(&local_internal_energy, &global_internal_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_internal_energy, &global_internal_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_internal_energy;
 }
@@ -148,7 +148,7 @@ double gas_kinematic_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_kinematic_energy;
 }
@@ -173,7 +173,7 @@ double gas_radial_kinematic_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_kinematic_energy;
 }
@@ -197,7 +197,7 @@ double gas_azimuthal_kinematic_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_kinematic_energy;
 }
@@ -216,7 +216,7 @@ double gas_gravitational_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_gravitational_energy, &global_gravitational_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_gravitational_energy, &global_gravitational_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_gravitational_energy;
 }

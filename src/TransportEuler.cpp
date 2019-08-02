@@ -453,22 +453,22 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 				// TODO: boundary
 				//if ((nRadial == 0) && (parameters::boundary_inner == parameters::boundary_condition_open))
 				//if ((nRadial == 0) && (OpenInner))
-				if (nRadial == 1) {
+				if (CPU_Rank == 0 && nRadial == 1) {
 					if (varq_inf > 0) {
-						MassDelta.InnerPositive += varq_inf;
+						sum_without_ghost_cells(MassDelta.InnerPositive, varq_inf, nRadial);
 					} else {
-						MassDelta.InnerNegative += varq_inf;
+						sum_without_ghost_cells(MassDelta.InnerNegative, varq_inf, nRadial);
 					}
-                } else if (nRadial == GlobalNRadial-1) {
+				} else if (CPU_Rank == CPU_Highest && nRadial == Qbase->get_max_radial()) {
 					if (varq_inf > 0) {
-						MassDelta.OuterPositive += varq_inf;
+						sum_without_ghost_cells(MassDelta.OuterPositive, varq_inf, nRadial);
 					} else {
-						MassDelta.OuterNegative += varq_inf;
+						sum_without_ghost_cells(MassDelta.OuterNegative, varq_inf, nRadial);
 					}
 				}
 				if (parameters::write_massflow) {
 					data[t_data::MASSFLOW_1D](nRadial) += varq_inf;
-                    if (nRadial == GlobalNRadial-1) {
+					if (CPU_Rank == CPU_Highest && nRadial == Qbase->get_max_radial()) {
                         data[t_data::MASSFLOW_1D](nRadial) += varq_sup;
                     }
 				}

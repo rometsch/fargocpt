@@ -317,6 +317,28 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 	double gravitationalEnergy = quantities::gas_gravitational_energy(data);
 	double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
 
+	double qplus_total = 0.0;
+	double qminus_total = 0.0;
+	double pdivv_total = 0.0;
+	double InnerPositive = 0.0;
+	double InnerNegative = 0.0;
+	double OuterPositive = 0.0;
+	double OuterNegative = 0.0;
+	double WaveDampingPositive = 0.0;
+	double WaveDampingNegative = 0.0;
+	double FloorPositive	= 0.0;
+
+	MPI_Reduce(&data.qplus_total,				&qplus_total,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&data.qminus_total,				&qminus_total,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&data.pdivv_total,				&pdivv_total,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.InnerPositive,		&InnerPositive,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.InnerNegative,		&InnerNegative,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.OuterPositive,		&OuterPositive,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.OuterNegative,		&OuterNegative,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.WaveDampingPositive,	&WaveDampingPositive,	1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.WaveDampingNegative,	&WaveDampingNegative,	1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.FloorPositive,		&FloorPositive,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
 
 	if (CPU_Master) {
 		// print to logfile
@@ -335,23 +357,22 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 			azimuthalKinematicEnergy,
 			disk_eccentricity,
 			disk_periastron,
-			data.qplus_total,
-			data.qminus_total,
-			data.pdivv_total,
-			MassDelta.InnerPositive,
-			MassDelta.InnerNegative,
-			MassDelta.OuterPositive,
-			MassDelta.OuterNegative,
-			MassDelta.WaveDampingPositive,
-			MassDelta.WaveDampingNegative,
-			MassDelta.FloorPositive	);
-
-		// set mass delta to 0
-		MassDelta.reset();
+			qplus_total,
+			qminus_total,
+			pdivv_total,
+			InnerPositive,
+			InnerNegative,
+			OuterPositive,
+			OuterNegative,
+			WaveDampingPositive,
+			WaveDampingNegative,
+			FloorPositive	);
 
 		// close file
 		fclose(fd);
 	}
+	// set mass delta to 0
+	MassDelta.reset();
 }
 
 /**
@@ -737,9 +758,9 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep, 
 	}
 
 	// synchronize threads
-	MPI_Allreduce(&local_eccentricity, &disk_eccentricity, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_eccentricity, &disk_eccentricity, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 	//MPI_Allreduce(&local_semi_major_axis, &semi_major_axis, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	MPI_Allreduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	disk_eccentricity /= gas_total_mass;
 	//semi_major_axis /= gas_total_mass;

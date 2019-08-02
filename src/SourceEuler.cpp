@@ -79,7 +79,7 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
 			if (dst(n_radial, n_azimuthal) < minimum_value) {
 				if (is_dens) {
 					double mass_delta = (minimum_value - dst(n_radial, n_azimuthal))*Surf[n_radial];
-					MassDelta.FloorPositive += mass_delta;
+					sum_without_ghost_cells(MassDelta.FloorPositive, mass_delta, n_radial);
 				}
 				dst(n_radial, n_azimuthal) = minimum_value;
 #ifndef NDEBUG
@@ -367,7 +367,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 				}
 
 				if (assure_maximum_temperature(data[t_data::ENERGY], data[t_data::DENSITY], parameters::maximum_temperature*units::temperature.get_inverse_cgs_factor())) {
-					logging::print(LOG_INFO "Found temperature > %g %s after SubStep3.\n",parameters::maximum_temperature, units::temperature.get_cgs_symbol());
+					logging::print(LOG_DEBUG "Found temperature > %g %s after SubStep3.\n",parameters::maximum_temperature, units::temperature.get_cgs_symbol());
 				}
 
 				if (parameters::radiative_diffusion_enabled) {
@@ -378,7 +378,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 					}
 
 					if (assure_maximum_temperature(data[t_data::ENERGY], data[t_data::DENSITY], parameters::maximum_temperature*units::temperature.get_inverse_cgs_factor())) {
-						logging::print(LOG_INFO "Found temperature > %g %s after radiative_diffusion.\n",parameters::maximum_temperature, units::temperature.get_cgs_symbol());
+						logging::print(LOG_DEBUG "Found temperature > %g %s after radiative_diffusion.\n",parameters::maximum_temperature, units::temperature.get_cgs_symbol());
 					}
 				}
 
@@ -397,7 +397,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 				}
 
 				if (assure_maximum_temperature(data[t_data::ENERGY], data[t_data::DENSITY], parameters::maximum_temperature*units::temperature.get_inverse_cgs_factor())) {
-					logging::print(LOG_INFO "Found temperature > %g %s after Transport.\n",parameters::maximum_temperature, units::temperature.get_cgs_symbol());
+					logging::print(LOG_DEBUG "Found temperature > %g %s after Transport.\n",parameters::maximum_temperature, units::temperature.get_cgs_symbol());
 				}
 			}
 			boundary_conditions::apply_boundary_condition(data, dt, true);
@@ -619,29 +619,29 @@ void calculate_qplus(t_data &data) {
 
 					qplus *= parameters::heating_viscous_factor;
 					data[t_data::QPLUS](n_radial,n_azimuthal) += qplus;
-					data.qplus_total += qplus;
+					sum_without_ghost_cells(data.qplus_total, qplus, n_radial);
 				}
 			}
 		}
 
-		/* We calculate the heating source term Qplus for i=0 */
+		/* We calculate the heating source term Qplus for i=max */
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal(); ++n_azimuthal) {
 			if (data[t_data::VISCOSITY](data[t_data::QPLUS].get_max_radial(),n_azimuthal) != 0.0) {
 				// power-law extrapolation
 				double qplus = data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial()-1, n_azimuthal)*exp( log(data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial()-1, n_azimuthal)/data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial()-2, n_azimuthal)) * log(Rmed[data[t_data::QPLUS].get_max_radial()]/Rmed[data[t_data::QPLUS].get_max_radial()-1]) / log(Rmed[data[t_data::QPLUS].get_max_radial()-1]/Rmed[data[t_data::QPLUS].get_max_radial()-2]) );
 
 				data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial(),n_azimuthal) += qplus;
-				data.qplus_total += qplus;
+				sum_without_ghost_cells(data.qplus_total, qplus, data[t_data::QPLUS].get_max_radial());
 			}
 		}
-		/* We calculate the heating source term Qplus for i=max */
+		/* We calculate the heating source term Qplus for i=0 */
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal(); ++n_azimuthal) {
 			if (data[t_data::VISCOSITY](0,n_azimuthal) != 0.0) {
 				// power-law extrapolation
 				double qplus = data[t_data::QPLUS](1, n_azimuthal)*exp( log(data[t_data::QPLUS](1, n_azimuthal)/data[t_data::QPLUS](2, n_azimuthal)) * log(Rmed[0]/Rmed[1]) / log(Rmed[1]/Rmed[2]) );
 
 				data[t_data::QPLUS](0,n_azimuthal) += qplus;
-				data.qplus_total += qplus;
+				sum_without_ghost_cells(data.qplus_total, qplus, 0);
 			}
 		}
 	}
@@ -762,7 +762,7 @@ void calculate_qplus(t_data &data) {
 					double qplus = ramping*visibility*parameters::heating_star_factor*2.0*alpha*constants::sigma.get_code_value()*pow4(parameters::star_temperature)*pow2(parameters::star_radius/Rmed[n_radial]);
 
 					data[t_data::QPLUS](n_radial,n_azimuthal) += qplus;
-					data.qplus_total += qplus;
+					sum_without_ghost_cells(data.qplus_total, qplus, n_radial);
 
 					/* // secondary star/plantes
 					for (unsigned int planet = 1; planet > data.get_planetary_system().get_number_of_planets(); ++planet) {
@@ -798,7 +798,7 @@ void calculate_qminus(t_data &data) {
 				double qminus = data[t_data::ENERGY](n_radial, n_azimuthal)*(0.5*(data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal)+data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL].get_max_azimuthal() ? 0 : n_azimuthal+1))/Rmed[n_radial])/parameters::cooling_beta;
 
 				data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
-				data.qminus_total += qminus;
+				sum_without_ghost_cells(data.qminus_total, qminus, n_radial);
 			}
 		}
 	}
@@ -835,7 +835,7 @@ void calculate_qminus(t_data &data) {
 				double qminus = parameters::cooling_radiative_factor*2*(constants::sigma.get_code_value())*pow4(data[t_data::TEMPERATURE](n_radial, n_azimuthal))/data[t_data::TAU_EFF](n_radial, n_azimuthal);
 
 				data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
-				data.qminus_total += qminus;
+				sum_without_ghost_cells(data.qminus_total, qminus, n_radial);
 			}
 		}
 	}
@@ -868,7 +868,7 @@ void SubStep3(t_data &data, double dt)
 				double pdivv = (ADIABATICINDEX-1.0)*dt*data[t_data::DIV_V](n_radial, n_azimuthal)*data[t_data::ENERGY](n_radial, n_azimuthal);
 				data[t_data::P_DIVV](n_radial, n_azimuthal) = pdivv;
 
-				data.pdivv_total += pdivv;
+				sum_without_ghost_cells(data.pdivv_total, pdivv, n_radial);
 			}
 		}
 	}

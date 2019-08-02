@@ -70,6 +70,15 @@ unsigned int One_or_active;
 unsigned int MaxMO_or_active;		/* MO: Minus One */
 unsigned int GlobalNRadial;
 
+/** sum up a quantity inside the processes domain without ghost cells */
+void sum_without_ghost_cells(double &accumulator, const double &addend, const unsigned int &n_radial)
+{
+	if(One_or_active <= n_radial && n_radial < Max_or_active)
+	{
+		accumulator += addend;
+	}
+}
+
 int *GlobalNradialLocalSizes;			// Needed for MPI_Gatherv
 int *GlobalNradialDisplacements;	// Needed for MPI_Gatherv
 
