@@ -46,8 +46,11 @@ extern unsigned int GlobalNRadial;
 
 void sum_without_ghost_cells(double &accumulator, const double &addend, const unsigned int &n_radial);
 
-extern int *GlobalNradialLocalSizes;			// Needed for MPI_Gatherv
-extern int *GlobalNradialDisplacements;	// Needed for MPI_Gatherv
+extern int *RootNradialLocalSizes;			// Needed for MPI_Gatherv
+extern int *RootNradialDisplacements;	// Needed for MPI_Gatherv
+extern int *RootIMAX;
+extern int *RootIMIN;
+extern int *RootRanksOrdered;
 
 extern t_radialarray Rmed;
 extern t_radialarray &Rb;

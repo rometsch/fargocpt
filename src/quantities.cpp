@@ -43,7 +43,6 @@ double gas_total_mass(t_data &data)
 double gas_disk_radius(t_data &data, const double total_mass)
 {
 
-	const unsigned int max_size = GlobalNRadial;
 	const unsigned int local_array_start = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
 	const unsigned int local_array_end = data[t_data::DENSITY].get_size_radial() - (CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
 	const unsigned int send_size = local_array_end - local_array_start;
@@ -56,33 +55,32 @@ double gas_disk_radius(t_data &data, const double total_mass)
 			local_mass[n_radial - local_array_start] += Surf[n_radial]*data[t_data::DENSITY](n_radial, n_azimuthal);
 		}
 	}
-
 	double radius = 0.0;
 	double current_mass = 0.0;
-	double *global_mass = nullptr;
+
+	MPI_Gatherv(local_mass, send_size, MPI_DOUBLE, GLOBAL_bufarray, RootNradialLocalSizes, RootNradialDisplacements, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
 	if(CPU_Master)
 	{
-		global_mass = new double[max_size];
-	}
-
-	MPI_Gatherv(local_mass, send_size, MPI_DOUBLE, global_mass, GlobalNradialLocalSizes, GlobalNradialDisplacements, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-	if(CPU_Master)
-	{
-		for(unsigned int i = GHOSTCELLS_B; i < max_size; ++i) // Outer ghost cell inside loop, but should always break before that anyway
+		int j = -1;
+		for(int rank = 0; rank < CPU_Number; ++rank)
 		{
-			current_mass += global_mass[i];
-			if(current_mass > 0.99*total_mass)
+			int id = RootRanksOrdered[rank];
+			for(int i = RootIMIN[id]; i <= RootIMAX[id]; ++i)
 			{
-				radius =  GlobalRmed[i];
-				break;
+				++j;
+				current_mass += GLOBAL_bufarray[i];
+				if(current_mass > 0.99*total_mass)
+				{
+					radius =  GlobalRmed[j];
+					goto found_radius; // break out of nested loop
+				}
 			}
 		}
 
-		delete [] global_mass;
+		found_radius:
+		void();
 	}
-
 	return radius;
 }
 

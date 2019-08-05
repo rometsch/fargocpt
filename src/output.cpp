@@ -18,6 +18,7 @@
 #include "quantities.h"
 #include "options.h"
 
+#include "unistd.h" // for access()
 #include <sys/stat.h>
 #include <fstream>
 #include <cstdio>
@@ -273,11 +274,10 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 		}
 		// check if file exists and we restarted
 		if ((options::restart) && !(fd_created)) {
-			fd = fopen(fd_filename, "r");
-			if (fd) {
+			if(access( fd_filename, W_OK ) != -1)
+			{
 				fd_created = true;
 			}
-			fclose(fd);
 		}
 
 		// open logfile
@@ -431,6 +431,12 @@ void write_misc(unsigned int timestep)
 std::string get_version(std::string filename) {
 	std::string version;
 	std::ifstream infile(filename);
+
+	if(infile.fail()){
+		logging::print_master(LOG_ERROR "Error: File %s cannot be opened!\n", filename.c_str());
+		PersonalExit(1);
+	}
+
 	std::string line_start;
 	while (infile >> line_start) {
 		// is it the version line

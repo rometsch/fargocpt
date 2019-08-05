@@ -79,8 +79,11 @@ void sum_without_ghost_cells(double &accumulator, const double &addend, const un
 	}
 }
 
-int *GlobalNradialLocalSizes;			// Needed for MPI_Gatherv
-int *GlobalNradialDisplacements;	// Needed for MPI_Gatherv
+int *RootNradialLocalSizes;			// Needed for MPI_Gatherv
+int *RootNradialDisplacements;	// Needed for MPI_Gatherv
+int *RootIMAX;
+int *RootIMIN;
+int *RootRanksOrdered;
 
 /** Rmed is the location of be the center of mass of the cell.
     Its definition is in fact : 0.5 * [ (4/3) \pi Rsup[i]^3 - (4/3) \pi Rinf[i]^3 ] / [ \pi Rsup[i]^2 - \pi Rinf[i]^2]
