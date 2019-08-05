@@ -13,6 +13,7 @@ void mpi_init(void);
 void mpi_finalize(void);
 
 void init();
+void update_tobi_constants(t_data& data);
 
 void compute(t_polargrid &density, t_polargrid &v_radial, t_polargrid &v_azimuthal, double dt, bool update);
 void compute_FFT_density(t_polargrid &density);

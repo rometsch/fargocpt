@@ -19,6 +19,7 @@
 #include "time.h"
 #include "global.h"
 #include "logging.h"
+#include "quantities.h"
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE
@@ -108,6 +109,47 @@ void mpi_finalize(void)
 
 
 /**
+ * @brief update_tobi_constants, calculate mass weighted aspect ratio and use it to update lambda_sq and chi_sq.
+ * @param data
+ * @param timestep
+ * @param force_update
+ */
+void update_tobi_constants(t_data &data)
+{
+	// only update every 10th timestep
+	constexpr int update_every_nth_step = 10;
+	static int last_timestep_calculated = update_every_nth_step;
+	last_timestep_calculated++;
+	if(last_timestep_calculated < update_every_nth_step)
+		return;
+	last_timestep_calculated = 0;
+
+	double local_mass = 0.0;
+	const double gas_total_mass = quantities::gas_total_mass(data);
+	double aspect_ratio = 0.0;
+	double local_aspect_ratio = 0.0;
+
+	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise they would be included twice!)
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::DENSITY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
+			// eccentricity and semi major axis weighted with cellmass
+			local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+			local_aspect_ratio += data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * local_mass;
+		}
+	}
+
+	// synchronize threads
+	MPI_Allreduce(&local_aspect_ratio, &aspect_ratio, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+	aspect_ratio /= gas_total_mass;
+
+	lambda_sq = pow2(0.4571*aspect_ratio + 0.6737*sqrt(aspect_ratio));
+	chi_sq = pow2((-0.7543*aspect_ratio + 0.6472)*aspect_ratio);
+
+	return;
+}
+
+/**
 	Initializes self gravity.
 */
 void init()
@@ -118,8 +160,8 @@ void init()
 		PersonalExit(1);
 	}
 
-	lambda_sq = pow(0.4571*ASPECTRATIO_REF + 0.6737*sqrt(ASPECTRATIO_REF) ,2);
-  chi_sq = pow((-0.7543*ASPECTRATIO_REF + 0.6472)*ASPECTRATIO_REF ,2);
+	lambda_sq = pow2(0.4571*ASPECTRATIO_REF + 0.6737*sqrt(ASPECTRATIO_REF));
+	chi_sq = pow2((-0.7543*ASPECTRATIO_REF + 0.6472)*ASPECTRATIO_REF);
 	r_step = log(Radii[GlobalNRadial]/Radii[0]) / (double)GlobalNRadial;
 	t_step = 2.0*PI/(double)NAzimuthal;
 
