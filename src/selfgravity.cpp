@@ -110,6 +110,7 @@ void mpi_finalize(void)
 
 /**
  * @brief update_tobi_constants, calculate mass weighted aspect ratio and use it to update lambda_sq and chi_sq.
+ * see Tobi's master thesis for more info on the constants or Baruteau, 2008 for info on the self gravity module.
  * @param data
  * @param timestep
  * @param force_update
