@@ -282,9 +282,10 @@ int main(int argc, char* argv[])
 	delete [] options::parameter_file;
 	FreeEuler();
 	FreeForce(force);
-	FreeSplitDomain();
 
 	selfgravity::mpi_finalize();
+	FreeSplitDomain();
+
 	MPI_Finalize();
 
 	return 0;

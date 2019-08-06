@@ -307,23 +307,18 @@ void SplitDomain()
 void FreeSplitDomain()
 {
 
-	if ( (CPU_Number%2 == 0) || (CPU_Rank != CPU_NoFriend) ) {
-		int one_if_odd = (CPU_Number%2 == 0 ? 0 : 1);
-		if (!( CPU_Rank >= (CPU_Number+one_if_odd)/2 ))
-		{
-			free(dens_friend);
-		}
+
+	if(dens_friend != nullptr)
+	{
+		free(dens_friend);
 	}
+
 	if(CPU_Master)
 	{
-
 		delete [] RootNradialLocalSizes;
 		delete [] RootNradialDisplacements;
 		delete [] RootIMAX;
 		delete [] RootIMIN;
 		delete [] RootRanksOrdered;
-
-		delete [] RootNradialLocalSizes;
-		delete [] RootNradialDisplacements;
 	}
 }
