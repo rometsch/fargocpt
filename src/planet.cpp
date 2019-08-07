@@ -89,6 +89,25 @@ double t_planet::get_distance()
 }
 
 /**
+ * @brief t_planet::get_angle get phi coordinate
+ * @return
+ */
+double t_planet::get_phi() const
+{
+	return atan2(m_y, m_x);
+}
+
+
+/**
+	get planet distance to host star
+*/
+double t_planet::get_r() const
+{
+	return sqrt(pow2(m_x)+pow2(m_y));
+}
+
+
+/**
 	get planet semi major axis
 */
 double t_planet::get_semi_major_axis()

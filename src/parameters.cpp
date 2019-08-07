@@ -143,9 +143,11 @@ double particle_density;
 double particle_slope;
 double particle_minimum_radius;
 double particle_maximum_radius;
-double particle_escape_radius;
+double particle_minimum_escape_radius;
+double particle_maximum_escape_radius;
 bool particle_gas_drag_enabled;
 bool particle_disk_gravity_enabled;
+t_particle_integrator integrator;
 
 // for constant opacity
 double kappa_const = 1.0;
@@ -600,6 +602,7 @@ void read(char* filename, t_data &data)
 	CFL = config::value_as_double_default("CFL", 0.5);
 
 	// particles
+	CartesianParticles = config::value_as_bool_default("CartesianParticles", false);
 	integrate_particles = config::value_as_bool_default("IntegrateParticles", false);
 	number_of_particles = config::value_as_unsigned_int_default("NumberOfParticles", 0);
 	particle_radius = config::value_as_double_default("ParticleRadius", 100.0);
@@ -607,9 +610,65 @@ void read(char* filename, t_data &data)
 	particle_slope = config::value_as_double_default("ParticleSlope", 0.0);
 	particle_minimum_radius = config::value_as_double_default("ParticleMinimumRadius", RMIN);
 	particle_maximum_radius = config::value_as_double_default("ParticleMaximumRadius", RMAX);
-	particle_escape_radius = config::value_as_double_default("ParticleEscapeRadius", particle_maximum_radius);
+	particle_minimum_escape_radius = config::value_as_double_default("ParticleMinimumEscapeRadius", particle_minimum_radius);
+	particle_maximum_escape_radius = config::value_as_double_default("ParticleMaximumEscapeRadius", particle_maximum_radius);
 	particle_gas_drag_enabled = config::value_as_bool_default("ParticleGasDragEnabled", true);
 	particle_disk_gravity_enabled = config::value_as_bool_default("ParticleDiskGravityEnabled", false);
+	// particle integrator
+	switch (tolower(*config::value_as_string_default("ParticleIntegrator","s"))) {
+		case 'e': // Explicit
+			integrator = integrator_explicit;
+			break;
+		case 'a': // Adaptive
+			integrator = integrator_adaptive;
+			break;
+		case 's': // Semi-implicit
+			integrator = integrator_semiimplicit;
+
+			if(!particle_gas_drag_enabled)
+			{
+				logging::print_master(LOG_ERROR "Do not use semi-implicit particle integrator without gas drag, use the explicit integrator instead.\n");
+					}
+
+			break;
+		case 'i': // Implicit
+			integrator = integrator_implicit;
+
+			if(!particle_gas_drag_enabled)
+			{
+				logging::print_master(LOG_ERROR "Do not use implicit particle integrator without gas drag, use the explicit integrator instead.\n");
+			}
+
+			break;
+		default:
+			die("Invalid setting for Particle Integrator: %s	with key %s",config::value_as_string_default("ParticleIntegrator","s"), tolower(*config::value_as_string_default("ParticleIntegrator","s")));
+	}
+
+	if(CartesianParticles && ((integrator != integrator_explicit) && (integrator != integrator_adaptive)))
+	{
+		logging::print_master(LOG_ERROR "\nCartesian particles can only use the explicit integrator! Switching integrator to polar!\n\n");
+		CartesianParticles = false;
+	}
+	if((particle_disk_gravity_enabled && (!self_gravity || CartesianParticles) && integrate_particles))
+	{
+		logging::print_master(LOG_ERROR "Cannot enable particle_disk_gravity_enabled while self_gravity is off!\n");
+		PersonalExit(1);
+	}
+
+	// second and second last radius, so that partices stay out of the ghost cells
+	if(particle_minimum_escape_radius < RMIN)
+	{
+		logging::print_master(LOG_WARNING "particle_minimum_escape_radius can't be smaller than the inner radius of the domain. Setting particle_minimum_escape_radius to inner radius of the domain.\n");
+		particle_minimum_escape_radius = RMIN;
+	}
+
+
+	if(particle_maximum_escape_radius > RMAX)
+	{
+		logging::print_master(LOG_WARNING "particle_maximum_escape_radius can't be larger than the outer radius of the domain. Setting particle_maximum_escape_radius to outer radius of the domain.\n");
+		particle_maximum_escape_radius = RMAX;
+	}
+
 }
 
 void apply_units() {
@@ -769,9 +828,25 @@ void summarize_parameters()
 	if (integrate_particles) {
 		logging::print_master(LOG_INFO "Using %u particles with a radius of %g and a density of %g.\n", number_of_particles, particle_radius, particle_density);
 		logging::print_master(LOG_INFO "Distributing particles with a r^%.2g profile from %g to %g.\n", particle_slope, particle_minimum_radius, particle_maximum_radius);
-		logging::print_master(LOG_INFO "Particles are considered escaped from the system when they reach a distance of %g.\n", particle_escape_radius);
+		logging::print_master(LOG_INFO "Particles are considered escaped from the system when they reach a distance of %g or %g.\n", particle_minimum_escape_radius, particle_maximum_escape_radius);
 		logging::print_master(LOG_INFO "Particles gas drag is %s.\n", particle_gas_drag_enabled ? "enabled" : "disabled");
 		logging::print_master(LOG_INFO "Particles disk gravity is %s.\n", particle_disk_gravity_enabled ? "enabled" : "disabled");
+		switch (integrator) {
+				case integrator_explicit:
+						logging::print_master(LOG_INFO "Particles use the explicit integrator\n");
+						break;
+			case integrator_adaptive:
+					logging::print_master(LOG_INFO "Particles use the (explicit) adaptive integrator\n");
+					break;
+				case integrator_semiimplicit: // Semi-implicit
+						logging::print_master(LOG_INFO "Particles use the semiimplicit integrator\n");
+						break;
+				case integrator_implicit: // Implicit
+						logging::print_master(LOG_INFO "Particles use the implicit integrator\n");
+						break;
+				default:
+						die("Invalid setting for Particle Integrator: %s",config::value_as_string_default("ParticleIntegrator","s"));
+		}
 	}
 }
 

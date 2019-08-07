@@ -135,7 +135,9 @@ int main(int argc, char* argv[])
 	init_physics(data);
 
 	if (parameters::integrate_particles)
-		particles::init();
+	{
+		particles::init(data);
+	}
 
 	// save starting values (needed for damping)
 	copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
@@ -184,6 +186,9 @@ int main(int argc, char* argv[])
 		data[t_data::V_AZIMUTHAL].read2D(options::restart_from);
 		if (parameters::Adiabatic)
 			data[t_data::ENERGY].read2D(options::restart_from);
+
+		if(parameters::integrate_particles)
+			particles::restart(options::restart_from);
 
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 		boundary_conditions::apply_boundary_condition(data, 0.0, false);

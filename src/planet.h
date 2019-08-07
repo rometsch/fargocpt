@@ -69,6 +69,8 @@ class t_planet
 		inline double get_rampuptime(void) const { return m_rampuptime; }
 
 		double get_distance();
+		double get_r(void) const;
+		double get_phi(void) const;
 		double get_semi_major_axis();
 		double get_angular_momentum();
 		double get_period();

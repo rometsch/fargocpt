@@ -242,11 +242,20 @@ extern double particle_minimum_radius;
 /// particle maximum radius
 extern double particle_maximum_radius;
 /// particle escape radius
-extern double particle_escape_radius;
+extern double particle_minimum_escape_radius;
+extern double particle_maximum_escape_radius;
 /// particle gas drag
 extern bool particle_gas_drag_enabled;
 /// particle disk gravity
 extern bool particle_disk_gravity_enabled;
+/// particle integrator
+enum t_particle_integrator {
+	integrator_explicit,	    // explicit integrator (Cash-Karp, high-order)
+	integrator_adaptive,		// adaptive Cash-Karp integrator
+	integrator_semiimplicit,	// semi-implicit integrator
+	integrator_implicit,		// fully implicit integrator
+};
+extern t_particle_integrator integrator;
 
 void read(char* filename, t_data &data);
 void summarize_parameters();
