@@ -461,15 +461,15 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 					}
 				} else if (CPU_Rank == CPU_Highest && nRadial == Qbase->get_max_radial()) {
 					if (varq_inf > 0) {
-						sum_without_ghost_cells(MassDelta.OuterPositive, varq_inf, nRadial);
+						sum_without_ghost_cells(MassDelta.OuterNegative, -varq_inf, nRadial);
 					} else {
-						sum_without_ghost_cells(MassDelta.OuterNegative, varq_inf, nRadial);
+						sum_without_ghost_cells(MassDelta.OuterPositive, -varq_inf, nRadial);
 					}
 				}
 				if (parameters::write_massflow) {
-					data[t_data::MASSFLOW_1D](nRadial) += varq_inf;
+					sum_without_ghost_cells(data[t_data::MASSFLOW_1D](nRadial), varq_inf, nRadial);
 					if (CPU_Rank == CPU_Highest && nRadial == Qbase->get_max_radial()) {
-                        data[t_data::MASSFLOW_1D](nRadial) += varq_sup;
+						data[t_data::MASSFLOW_1D](nRadial) += varq_sup; // TODO this part is always zero (tested with open boundaries)
                     }
 				}
 			}

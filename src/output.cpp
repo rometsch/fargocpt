@@ -372,7 +372,7 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 		fclose(fd);
 	}
 	// set mass delta to 0
-	MassDelta.reset();
+	// MassDelta.reset();
 }
 
 /**
