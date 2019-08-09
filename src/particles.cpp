@@ -44,8 +44,8 @@ static MPI_Datatype mpi_particle;
 
 // inverse of the Cumulative distribution function for a slope proportional to r^n
 static double f(double x, double n) {
-	double rmin = parameters::particle_minimum_radius;
-	double rmax = parameters::particle_maximum_radius;
+	double rmin = parameters::particle_minimum_radius/(1.0+parameters::particle_eccentricity);
+	double rmax = parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
 
 	if (n == -1) {
 		return exp(log(rmax-rmin)*x)*rmin;
@@ -115,7 +115,7 @@ void init(t_data &data) {
 	std::uniform_real_distribution<double> dis_one(0.0, 1.0);
 	std::uniform_real_distribution<double> dis_twoPi(0.0, 2.0*PI);
 
-	std::uniform_real_distribution<double> dis_eccentricity(0.0, 0.03); // for generating eccentricities same as Marzari & Scholl 2000
+	std::uniform_real_distribution<double> dis_eccentricity(0.0, parameters::particle_eccentricity); // for generating eccentricities same as Marzari & Scholl 2000
 
 
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
@@ -167,7 +167,6 @@ void init(t_data &data) {
 		particles[i].phi_ddot = 0.0;
 
 		particles[i].id = id_offset+i;
-
 
 		// init particle timestep for adaptive explicit integrator
 		double  sk, h1, der2, der12, sqr;
@@ -738,6 +737,7 @@ void check_tstop(t_data &data)
 
 		unsigned int n_radial_a_minus = 0, n_radial_a_plus = 1, n_radial_b_minus = 0, n_radial_b_plus = 1;
 		unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0, n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
+
 		find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 		// calculate gas quantities at the particle location

@@ -139,6 +139,7 @@ double M0;
 unsigned int number_of_particles;
 bool integrate_particles;
 double particle_radius;
+double particle_eccentricity;
 double particle_density;
 double particle_slope;
 double particle_minimum_radius;
@@ -606,6 +607,7 @@ void read(char* filename, t_data &data)
 	integrate_particles = config::value_as_bool_default("IntegrateParticles", false);
 	number_of_particles = config::value_as_unsigned_int_default("NumberOfParticles", 0);
 	particle_radius = config::value_as_double_default("ParticleRadius", 100.0);
+	particle_eccentricity = config::value_as_double_default("ParticleEccentricity", 0.0);
 	particle_density = config::value_as_double_default("ParticleDensity", 2.65);
 	particle_slope = config::value_as_double_default("ParticleSlope", 0.0);
 	particle_minimum_radius = config::value_as_double_default("ParticleMinimumRadius", RMIN);
@@ -827,7 +829,7 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO "Particles are %s.\n", integrate_particles ? "enabled" : "disabled");
 	if (integrate_particles) {
 		logging::print_master(LOG_INFO "Using %u particles with a radius of %g and a density of %g.\n", number_of_particles, particle_radius, particle_density);
-		logging::print_master(LOG_INFO "Distributing particles with a r^%.2g profile from %g to %g.\n", particle_slope, particle_minimum_radius, particle_maximum_radius);
+		logging::print_master(LOG_INFO "Distributing particles with a r^%.2g profile from %g to %g with a eccentricity from 0.0 to %g.\n", particle_slope, particle_minimum_radius, particle_maximum_radius, particle_eccentricity);
 		logging::print_master(LOG_INFO "Particles are considered escaped from the system when they reach a distance of %g or %g.\n", particle_minimum_escape_radius, particle_maximum_escape_radius);
 		logging::print_master(LOG_INFO "Particles gas drag is %s.\n", particle_gas_drag_enabled ? "enabled" : "disabled");
 		logging::print_master(LOG_INFO "Particles disk gravity is %s.\n", particle_disk_gravity_enabled ? "enabled" : "disabled");

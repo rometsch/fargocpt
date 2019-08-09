@@ -233,6 +233,8 @@ extern unsigned int number_of_particles;
 extern bool integrate_particles;
 /// particle radius
 extern double particle_radius;
+/// particle eccentricity
+extern double particle_eccentricity;
 /// particle density
 extern double particle_density;
 /// particle slope
