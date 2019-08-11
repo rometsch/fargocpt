@@ -340,6 +340,11 @@ void restart(unsigned int timestep) {
   }
 
   fd = fopen(filename, "r");
+  if(fd == nullptr)
+  {
+	logging::print_master(LOG_INFO "Can't find file particles%d.dat. Using generated particles.\n", timestep);
+    return;
+  }
   fseek(fd, 0L, SEEK_END);
   long int  size = ftell(fd);
   fclose(fd); // go back to beginning of file
