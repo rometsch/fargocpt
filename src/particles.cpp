@@ -48,7 +48,7 @@ static double f(double x, double n) {
 	double rmax = parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
 
 	if (n == -1) {
-		return exp(log(rmax-rmin)*x)*rmin;
+		return exp(log(rmax/rmin)*x)*rmin;
 	} else {
 		return exp(log(x*(-pow(rmin,n+1)+pow(rmax,n+1))+pow(rmin,n+1))/(n+1));
 	}
