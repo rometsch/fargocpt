@@ -47,14 +47,12 @@ static double f(double x, double n) {
 	double rmin = parameters::particle_minimum_radius;
 	double rmax = parameters::particle_maximum_radius;
 
-	/*
 	// make sure particles are not initialized on an orbit that moves out of particle-bounds
 	if(RMAX < parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
 		rmax = parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
 
 	if(RMIN > parameters::particle_minimum_radius*(1.0-parameters::particle_eccentricity))
 		rmin = parameters::particle_minimum_radius/(1.0-parameters::particle_eccentricity);
-	*/
 
 	if (n == -1) {
 		return exp(log(rmax/rmin)*x)*rmin;
