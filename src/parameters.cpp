@@ -20,6 +20,11 @@
 #include "constants.h"
 #include "boundary_conditions.h"
 
+
+#include <limits>
+constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
+
+
 namespace parameters {
 
 // energy euations
@@ -146,6 +151,8 @@ double particle_minimum_radius;
 double particle_maximum_radius;
 double particle_minimum_escape_radius;
 double particle_maximum_escape_radius;
+double particle_minimum_escape_radius_sq;
+double particle_maximum_escape_radius_sq;
 bool particle_gas_drag_enabled;
 bool particle_disk_gravity_enabled;
 t_particle_integrator integrator;
@@ -670,6 +677,10 @@ void read(char* filename, t_data &data)
 		logging::print_master(LOG_WARNING "particle_maximum_escape_radius can't be larger than the outer radius of the domain. Setting particle_maximum_escape_radius to outer radius of the domain.\n");
 		particle_maximum_escape_radius = RMAX;
 	}
+
+	particle_maximum_escape_radius_sq = pow2(particle_maximum_escape_radius) - DBL_EPSILON; // DBL for safety
+	particle_minimum_escape_radius_sq = pow2(particle_minimum_escape_radius) + DBL_EPSILON;
+
 
 }
 

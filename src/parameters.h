@@ -244,8 +244,8 @@ extern double particle_minimum_radius;
 /// particle maximum radius
 extern double particle_maximum_radius;
 /// particle escape radius
-extern double particle_minimum_escape_radius;
-extern double particle_maximum_escape_radius;
+extern double particle_minimum_escape_radius_sq;
+extern double particle_maximum_escape_radius_sq;
 /// particle gas drag
 extern bool particle_gas_drag_enabled;
 /// particle disk gravity

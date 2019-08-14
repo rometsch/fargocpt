@@ -44,8 +44,17 @@ static MPI_Datatype mpi_particle;
 
 // inverse of the Cumulative distribution function for a slope proportional to r^n
 static double f(double x, double n) {
-	double rmin = parameters::particle_minimum_radius/(1.0+parameters::particle_eccentricity);
-	double rmax = parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
+	double rmin = parameters::particle_minimum_radius;
+	double rmax = parameters::particle_maximum_radius;
+
+	/*
+	// make sure particles are not initialized on an orbit that moves out of particle-bounds
+	if(RMAX < parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
+		rmax = parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
+
+	if(RMIN > parameters::particle_minimum_radius*(1.0-parameters::particle_eccentricity))
+		rmin = parameters::particle_minimum_radius/(1.0-parameters::particle_eccentricity);
+	*/
 
 	if (n == -1) {
 		return exp(log(rmax/rmin)*x)*rmin;
@@ -1770,14 +1779,16 @@ void integrate_explicit(t_data &data, const double dt) {
 void move(void) {
 	// remove escaped particles
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-		if (particles[i].get_squared_distance_to_star() > pow2(parameters::particle_maximum_escape_radius)) {
+		if (particles[i].get_squared_distance_to_star() > parameters::particle_maximum_escape_radius_sq) {
 			particles[i] = particles[local_number_of_particles-1];
 			local_number_of_particles--;
+			i--; // new particle with id 'i' must be checked too
 		}
 
-		if (particles[i].get_squared_distance_to_star()  < pow2(parameters::particle_minimum_escape_radius)) {
+		if (particles[i].get_squared_distance_to_star()  < parameters::particle_minimum_escape_radius_sq) {
 			particles[i] = particles[local_number_of_particles-1];
 			local_number_of_particles--;
+			i--; // new particle with id 'i' must be checked too
 		}
 	}
 
