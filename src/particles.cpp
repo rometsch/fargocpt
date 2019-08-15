@@ -141,6 +141,27 @@ void init(t_data &data) {
 		*/
 
 		particles[i].radius = parameters::particle_radius;
+
+		if(false)
+		{
+			const int particle_type = i % 4; // 4 different particle sizes
+			switch(particle_type)
+			{
+				case 0: // very small particles
+					particles[i].radius *= 1.0;
+					break;
+				case 1: // small particles
+					particles[i].radius *= 5.0;
+					break;
+				case 2:	// medium particles
+					particles[i].radius *= 10.0;
+					break;
+				case 3: // very large particles
+					particles[i].radius *= 50.0;
+					break;
+			}
+		}
+
 		double volume = 4.0/3.0*PI*pow3(particles[i].radius);
 
 		particles[i].mass = volume * parameters::particle_density;
@@ -1782,8 +1803,7 @@ void move(void) {
 			local_number_of_particles--;
 			i--; // new particle with id 'i' must be checked too
 		}
-
-		if (particles[i].get_squared_distance_to_star()  < parameters::particle_minimum_escape_radius_sq) {
+		else if (particles[i].get_squared_distance_to_star()  < parameters::particle_minimum_escape_radius_sq) {
 			particles[i] = particles[local_number_of_particles-1];
 			local_number_of_particles--;
 			i--; // new particle with id 'i' must be checked too
