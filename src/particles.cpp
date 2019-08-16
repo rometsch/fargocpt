@@ -91,112 +91,14 @@ static double get_particle_eccentricity(int particle_index)
 }
 */
 
-void init(t_data &data) {
-	// calculate number of initial local particles
-	global_number_of_particles = parameters::number_of_particles;
-	local_number_of_particles = global_number_of_particles/CPU_Number;
-
-	if ((unsigned int)CPU_Rank < global_number_of_particles-CPU_Number*local_number_of_particles) {
-		local_number_of_particles++;
-	}
-
-	local_r_min = Ra[CPU_Rank == 0 ? GHOSTCELLS_A-1 : CPUOVERLAP];
-	local_r_max = Ra[CPU_Rank == CPU_Highest ? NRadial-GHOSTCELLS_A+1 : NRadial-CPUOVERLAP];
-
-	// create storage
-	particles_size = local_number_of_particles;
-	particles = (t_particle*)malloc(sizeof(t_particle)*particles_size);
-
-	// init particles with data
-	unsigned int id_offset = global_number_of_particles/CPU_Number * CPU_Rank;
-	if ((unsigned int)CPU_Rank < global_number_of_particles-CPU_Number*local_number_of_particles) {
-		id_offset+=CPU_Rank;
-	} else {
-		id_offset+=global_number_of_particles-CPU_Number*local_number_of_particles;
-	}
-
-	logging::print(LOG_DEBUG "random generator seed: %u\n", id_offset);
-
-	// random generator and distributions
-	std::mt19937 generator(id_offset*parameters::random_seed);
-	std::uniform_real_distribution<double> dis_one(0.0, 1.0);
-	std::uniform_real_distribution<double> dis_twoPi(0.0, 2.0*PI);
-
-	std::uniform_real_distribution<double> dis_eccentricity(0.0, parameters::particle_eccentricity); // for generating eccentricities same as Marzari & Scholl 2000
-
+/**
+ * @brief init_particle_timestep init particle timestep for adaptive explicit integrator
+ * @param data
+ */
+static void init_particle_timestep(t_data &data)
+{
 
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-		double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
-		double phi = dis_twoPi(generator);
-		double eccentricity = dis_eccentricity(generator);
-
-		/*
-		// debug setup
-		const int num_particles_per_ring = 100;
-		int global_id = i + int(double(global_number_of_particles)/double(CPU_Number)*double(CPU_Rank));
-
-		phi = 2.0*PI / num_particles_per_ring * double(global_id%num_particles_per_ring);
-		semi_major_axis = double(global_id/num_particles_per_ring)*0.1 + 0.7;
-		eccentricity = 0.0;
-		*/
-
-		particles[i].radius = parameters::particle_radius;
-
-		if(false)
-		{
-			const int particle_type = i % 4; // 4 different particle sizes
-			switch(particle_type)
-			{
-				case 0: // very small particles
-					particles[i].radius *= 1.0;
-					break;
-				case 1: // small particles
-					particles[i].radius *= 5.0;
-					break;
-				case 2:	// medium particles
-					particles[i].radius *= 10.0;
-					break;
-				case 3: // very large particles
-					particles[i].radius *= 50.0;
-					break;
-			}
-		}
-
-		double volume = 4.0/3.0*PI*pow3(particles[i].radius);
-
-		particles[i].mass = volume * parameters::particle_density;
-
-		double r = semi_major_axis*(1.0+eccentricity);
-		double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
-
-		if(CartesianParticles)
-		{
-			// Beware: cartesian particles still use the names of polar coordinates
-			// x = r
-			// y = phi
-			// vx = r_dot
-			// vy = phi_dot
-			particles[i].r = r*cos(phi);
-			particles[i].phi = r*sin(phi);
-
-			particles[i].r_dot = -v*sin(phi);
-			particles[i].phi_dot = v*cos(phi);
-		}
-		else
-		{
-			particles[i].r = r;
-			particles[i].phi = phi;
-
-			particles[i].r_dot = 0.0;
-			particles[i].phi_dot = v/r;
-		}
-
-		particles[i].r_ddot = 0.0;
-		particles[i].phi_ddot = 0.0;
-
-		particles[i].id = id_offset+i;
-
-		// init particle timestep for adaptive explicit integrator
 		double  sk, h1, der2, der12, sqr;
 
 		int iord = 5;
@@ -316,7 +218,149 @@ void init(t_data &data) {
 		else
 		  h1 = pow (0.01/der12, 1.0/(double)iord);
 		particles[i].timestep = fmin (100.0 * particles[i].timestep, h1);
+	}
 
+}
+
+
+static void init_particle(const unsigned int &i, const unsigned int &id_offset, std::mt19937 &generator, std::uniform_real_distribution<double> &dis_one, std::uniform_real_distribution<double> &dis_twoPi, std::uniform_real_distribution<double> &dis_eccentricity)
+{
+	double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
+	double phi = dis_twoPi(generator);
+	double eccentricity = dis_eccentricity(generator);
+
+
+	/*
+	// debug setup
+	const int num_particles_per_ring = 10;
+	int global_id = i + id_offset;
+
+	double rmin = parameters::particle_minimum_radius;
+	double rmax = parameters::particle_maximum_radius;
+
+	// make sure particles are not initialized on an orbit that moves out of particle-bounds
+	if(RMAX < parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
+		rmax = parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
+
+	if(RMIN > parameters::particle_minimum_radius*(1.0-parameters::particle_eccentricity))
+		rmin = parameters::particle_minimum_radius/(1.0-parameters::particle_eccentricity);
+
+
+	phi = 2.0*PI / num_particles_per_ring * (global_id/num_particles_per_ring);
+	semi_major_axis = (rmax - rmin) * double(global_id%num_particles_per_ring)/double(num_particles_per_ring) + rmin;
+	eccentricity = 0.0;
+	*/
+
+
+
+	particles[i].radius = parameters::particle_radius;
+
+	if(false)
+	{
+		const int particle_type = i % 4; // 4 different particle sizes
+		switch(particle_type)
+		{
+			case 0: // very small particles
+				particles[i].radius *= 1.0;
+				break;
+			case 1: // small particles
+				particles[i].radius *= 5.0;
+				break;
+			case 2:	// medium particles
+				particles[i].radius *= 10.0;
+				break;
+			case 3: // very large particles
+				particles[i].radius *= 50.0;
+				break;
+		}
+	}
+
+	double volume = 4.0/3.0*PI*pow3(particles[i].radius);
+
+	particles[i].mass = volume * parameters::particle_density;
+
+	double r = semi_major_axis*(1.0+eccentricity);
+	double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
+
+	if(CartesianParticles)
+	{
+		// Beware: cartesian particles still use the names of polar coordinates
+		// x = r
+		// y = phi
+		// vx = r_dot
+		// vy = phi_dot
+		particles[i].r = r*cos(phi);
+		particles[i].phi = r*sin(phi);
+
+		particles[i].r_dot = -v*sin(phi);
+		particles[i].phi_dot = v*cos(phi);
+	}
+	else
+	{
+		particles[i].r = r;
+		particles[i].phi = phi;
+
+		particles[i].r_dot = 0.0;
+		particles[i].phi_dot = v/r;
+	}
+
+	particles[i].r_ddot = 0.0;
+	particles[i].phi_ddot = 0.0;
+
+	// only needed for adaptive integrator, initialized later
+	particles[i].timestep = 0.0;
+	particles[i].facold = 0.0;
+
+	particles[i].id = id_offset+i;
+}
+
+void init(t_data &data) {
+	// calculate number of initial local particles
+	global_number_of_particles = parameters::number_of_particles;
+	local_number_of_particles = global_number_of_particles/CPU_Number;
+
+	if ((unsigned int)CPU_Rank < global_number_of_particles-CPU_Number*local_number_of_particles) {
+		local_number_of_particles++;
+	}
+
+	local_r_min = Ra[CPU_Rank == 0 ? GHOSTCELLS_A-1 : CPUOVERLAP];
+	local_r_max = Ra[CPU_Rank == CPU_Highest ? NRadial-GHOSTCELLS_A+1 : NRadial-CPUOVERLAP];
+
+	// create storage
+	particles_size = local_number_of_particles;
+	particles = (t_particle*)malloc(sizeof(t_particle)*particles_size);
+
+
+	const unsigned int seed = parameters::random_seed;
+	logging::print(LOG_DEBUG "random generator seed: %u\n", seed);
+
+	// random generator and distributions
+	std::mt19937 generator(seed);
+	std::uniform_real_distribution<double> dis_one(0.0, 1.0);
+	std::uniform_real_distribution<double> dis_twoPi(0.0, 2.0*PI);
+
+	std::uniform_real_distribution<double> dis_eccentricity(0.0, parameters::particle_eccentricity); // for generating eccentricities same as Marzari & Scholl 2000
+
+
+	 // get number of local particles from all nodes to compute correct offsets
+	unsigned int nodes_number_of_particles[CPU_Number];
+	MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED, nodes_number_of_particles, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+
+	// compute local offset
+	unsigned int local_offset = 0;
+	for (int cpu = 0; cpu < CPU_Rank; ++cpu) {
+		local_offset += nodes_number_of_particles[cpu];
+	}
+
+
+	for (unsigned int i = 0; i < local_offset; ++i)
+	{
+		init_particle(0, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity); // bring random generator to correct position
+	}
+
+	for (unsigned int i = 0; i < local_number_of_particles; ++i)
+	{
+		init_particle(i, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity);
 	}
 
 	// create MPI datatype
@@ -348,9 +392,13 @@ void init(t_data &data) {
 	MPI_Type_commit(&mpi_particle);
 
 	// particles might be created on the wrong node, so move them to the correct one :)
-	move();
+	for(int i = 0; i < CPU_Number; ++i)
+		move();
 
 	check_tstop(data);
+
+	if(parameters::integrator == parameters::integrator_adaptive)
+		init_particle_timestep(data);
 }
 
 
@@ -450,7 +498,8 @@ void restart(unsigned int timestep) {
 
 
   // particles might be loaded to the wrong node, so move them to the correct one
-  move();
+  for(int i = 0; i < CPU_Number; ++i)
+	  move();
 
 }
 
@@ -828,7 +877,7 @@ void check_tstop(t_data &data)
 			PersonalExit(1);
 		}
 
-		if(tstop < 0.01*dt &&  parameters::particle_gas_drag_enabled && parameters::integrator == parameters::integrator_semiimplicit)
+		if(tstop < 0.005*dt &&  parameters::particle_gas_drag_enabled && parameters::integrator == parameters::integrator_semiimplicit)
 		{
 			logging::print_master(LOG_ERROR "Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!");
 			PersonalExit(1);
@@ -1350,7 +1399,6 @@ void integrate_implicit(t_data &data, const double dt)
 
 void integrate_explicit_adaptive(t_data &data, const double dt) {
 
-
 	if(CartesianParticles)
 	{
 		// disk gravity on particles is inside gas_drag function
@@ -1546,8 +1594,12 @@ void integrate_explicit_adaptive(t_data &data, const double dt) {
 			// estimate new positions and velocities
 			const double r_new = particles[i].r + timestep * (37.0/378.0 * k1_r + 250.0/621.0 * k3_r + 125.0/594.0 * k4_r + 512.0/1771.0 * k6_r);
 			double phi_new = particles[i].phi + timestep * (37.0/378.0 * k1_phi + 250.0/621.0 * k3_phi + 125.0/594.0 * k4_phi + 512.0/1771.0 * k6_phi);
-			if(phi_new > 2.0*PI)
-				phi_new -= 2.0*PI;
+
+			if(!CartesianParticles)
+			{
+				if(phi_new > 2.0*PI)
+					phi_new -= 2.0*PI;
+			}
 
 			const double r_ddot_new = (37.0/378.0 * k1_r_dot + 250.0/621.0 * k3_r_dot + 125.0/594.0 * k4_r_dot + 512.0/1771.0 * k6_r_dot);
 			const double phi_ddot_new = (37.0/378.0 * k1_phi_dot + 250.0/621.0 * k3_phi_dot + 125.0/594.0 * k4_phi_dot + 512.0/1771.0 * k6_phi_dot);
@@ -1611,13 +1663,13 @@ void integrate_explicit_adaptive(t_data &data, const double dt) {
 				particles[i].r_ddot = r_ddot_new;
 				particles[i].phi_ddot = phi_ddot_new;
 
-				if (reject)
+				if (reject) // last try was rejected
 				{
 					particles[i].timestep = fmin (fabs(particles[i].timestep), fabs(old_timestep));
 				}
 				reject = false;
 			}
-			else
+			else // timestep rejected
 			{
 				particles[i].timestep = old_timestep / fmin (facc1, fac11/safe);
 				reject = true;
@@ -1983,8 +2035,33 @@ void write(unsigned int timestep) {
 void rotate(double Omega, double dt) {
   for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	// rotate positions
-		particles[i].phi  -= Omega*dt;
-		check_angle(particles[i].phi);
+	  if(CartesianParticles)
+	  {
+		  const double x_old = particles[i].r;
+		  const double y_old = particles[i].phi;
+
+		  const double vx_old = particles[i].r_dot;
+		  const double vy_old = particles[i].phi_dot;
+
+		  double &x = particles[i].r;
+		  double &y = particles[i].phi;
+
+		  double &vx = particles[i].r_dot;
+		  double &vy = particles[i].phi_dot;
+
+		  // rotate positions
+		  double angle = Omega*dt;
+		  x = x_old*cos(angle)+y_old*sin(angle);
+		  y = -x_old*sin(angle)+y_old*cos(angle);
+		  // rotate velocities
+		  vx = vx_old*cos(angle)+vy_old*sin(angle);
+		  vy = -vx_old*sin(angle)+vy_old*cos(angle);
+	  }
+	  else {
+
+		  particles[i].phi  -= Omega*dt;
+		  check_angle(particles[i].phi);
+	  }
   }
 }
 

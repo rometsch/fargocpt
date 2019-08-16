@@ -318,6 +318,10 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 			domega = (OmegaNew-OmegaFrame);
 			if (parameters::calculate_disk)
 				correct_v_azimuthal(data[t_data::V_AZIMUTHAL], domega);
+
+			if (parameters::integrate_particles)
+				particles::rotate(domega,dt);
+
 			OmegaFrame = OmegaNew;
 		}
 

@@ -619,8 +619,8 @@ void read(char* filename, t_data &data)
 	particle_slope = config::value_as_double_default("ParticleSlope", 0.0);
 	particle_minimum_radius = config::value_as_double_default("ParticleMinimumRadius", RMIN);
 	particle_maximum_radius = config::value_as_double_default("ParticleMaximumRadius", RMAX);
-	particle_minimum_escape_radius = config::value_as_double_default("ParticleMinimumEscapeRadius", particle_minimum_radius);
-	particle_maximum_escape_radius = config::value_as_double_default("ParticleMaximumEscapeRadius", particle_maximum_radius);
+	particle_minimum_escape_radius = config::value_as_double_default("ParticleMinimumEscapeRadius", RMIN);
+	particle_maximum_escape_radius = config::value_as_double_default("ParticleMaximumEscapeRadius", RMAX);
 	particle_gas_drag_enabled = config::value_as_bool_default("ParticleGasDragEnabled", true);
 	particle_disk_gravity_enabled = config::value_as_bool_default("ParticleDiskGravityEnabled", false);
 	// particle integrator
