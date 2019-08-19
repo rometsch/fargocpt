@@ -669,7 +669,7 @@ static double interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid, bo
 	}
 
     //double Qm = ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim);
--   //double Qp = ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
+    //double Qp = ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
     // mathematically the same, but less computations 
 	const double Qm = ((phip-phi)*Qmm+(phi-phim)*Qmp)/dphi;
 	const double Qp = ((phip-phi)*Qpm+(phi-phim)*Qpp)/dphi;
