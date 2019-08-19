@@ -610,7 +610,8 @@ void calculate_derivitives_from_star_and_planets(
 
 
 static double interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid, bool azimuthal_a_grid, unsigned int n_radial_minus, unsigned int n_radial_plus, unsigned int n_azimuthal_minus, unsigned int n_azimuthal_plus, double r, double phi) {
-	double dphi = 2.0*PI/(double)quantity.get_size_azimuthal();
+	const double dphi = 2.0*PI/(double)quantity.get_size_azimuthal();
+	const unsigned int last_index = quantity.get_max_azimuthal();
 
 	// values at corners
 	double Qmm = quantity(n_radial_minus, n_azimuthal_minus);
@@ -621,50 +622,95 @@ static double interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid, bo
 	double rm = radial_a_grid ? Ra[n_radial_minus] : Rb[n_radial_minus];
 	double rp = radial_a_grid ? Ra[n_radial_plus] : Rb[n_radial_plus];
 
-	double phim = azimuthal_a_grid ? n_azimuthal_minus*dphi : (n_azimuthal_minus+0.5)*dphi;
-	double phip = azimuthal_a_grid ? n_azimuthal_plus*dphi : (n_azimuthal_plus+0.5)*dphi;
+	double phim;
+	double phip;
 
-	if ((phim > 2*PI) || (phip > 2*PI)) {
-		phim -= PI;
-		phip -= PI;
-		phi -= PI;
+	if(azimuthal_a_grid)
+	{
+
+		phim = n_azimuthal_minus*dphi;
+
+        // particle is in cell with n_azimuthal = N_azimuthal_max - 1
+        // next cells is at n_azimuthal = 0, but measure distance from 2*PI instead
+		if(n_azimuthal_plus == 0)
+		{
+			phip = double(n_azimuthal_minus+1)*dphi;
+		}
+		else
+		{
+			phip = n_azimuthal_plus*dphi;
+		}
+	}
+	else
+	{
+		if(n_azimuthal_minus == last_index)
+		{
+			if(phi < PI)
+			{
+				// particle is inside cell with n_azimuthal = 0
+				// previous cell is at N_azimuthal_max - 1, but measure distance from -0.5*dphi
+				phim = -0.5*dphi;
+				phip =  0.5*dphi;
+			}
+			else
+			{
+				// particle is inside cell with n_azimuthal = N_azimuthal_max - 1
+				// next cell is at N_azimuthal = 0, but measure distance from 2*PI+0.5*dphi
+				phim = (n_azimuthal_minus + 0.5)*dphi;
+				phip = (n_azimuthal_minus + 1.5)*dphi;
+			}
+		}
+		else
+		{
+			phim = (n_azimuthal_minus+0.5)*dphi;
+			phip = (n_azimuthal_plus+0.5)*dphi;
+		}
+
 	}
 
-	double Qm = ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim);
-	double Qp = ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
+    //double Qm = ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim);
+-   //double Qp = ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
+    // mathematically the same, but less computations 
+	const double Qm = ((phip-phi)*Qmm+(phi-phim)*Qmp)/dphi;
+	const double Qp = ((phip-phi)*Qpm+(phi-phim)*Qpp)/dphi;
 
-	return ((rp-r)*Qm+(r-rm)*Qp)/(rp-rm);
+	const double Q = ((rp-r)*Qm+(r-rm)*Qp)/(rp-rm);
+
+	return Q;
 }
 
 
-void find_nearest(const t_polargrid &quantity, unsigned int &n_radial_a_minus, unsigned int &n_radial_a_plus, unsigned int &n_azimuthal_a_minus, unsigned int &n_azimuthal_a_plus, unsigned int &n_radial_b_minus, unsigned int &n_radial_b_plus, unsigned int &n_azimuthal_b_minus, unsigned int &n_azimuthal_b_plus, const double r, const double phi) {
+void find_nearest(const t_polargrid &quantity,
+              unsigned int &n_radial_a_minus, unsigned int &n_radial_a_plus,
+              unsigned int &n_azimuthal_a_minus, unsigned int &n_azimuthal_a_plus,
+              unsigned int &n_radial_b_minus, unsigned int &n_radial_b_plus,
+              unsigned int &n_azimuthal_b_minus, unsigned int &n_azimuthal_b_plus,
+              const double r, const double phi)
+{
 
   double dphi = 2.0*PI/(double)quantity.get_size_azimuthal();
 
   // find nearest n_radials
   // we do not need to check if n_radial_a_plus < NRadial because it this would be the case, something in the move part went wrong :)
   while (Ra[n_radial_a_plus] < r)
-  {
 	  n_radial_a_plus++;
-  }
-	n_radial_a_minus = n_radial_a_plus - 1;
-
+  n_radial_a_minus = n_radial_a_plus - 1;
   while (Rb[n_radial_b_plus] < r)
-  {
-	n_radial_b_plus++;
-  }
-	n_radial_b_minus = n_radial_b_plus - 1;
+	  n_radial_b_plus++;
+  n_radial_b_minus = n_radial_b_plus - 1;
 
   // find nearest n_azimuthals
   n_azimuthal_a_minus = trunc(phi/dphi);
-  n_azimuthal_a_plus = n_azimuthal_a_minus + 1;
-  if (n_azimuthal_a_plus == (unsigned int)quantity.get_size_azimuthal()) {
-	n_azimuthal_a_plus = 0;
+  n_azimuthal_a_plus = n_azimuthal_a_minus+1;
+  if (n_azimuthal_a_plus == quantity.get_size_azimuthal()) {
+	  n_azimuthal_a_plus = 0;
   }
-  n_azimuthal_b_minus = trunc((phi-0.5*dphi)/dphi);
-  n_azimuthal_b_plus = n_azimuthal_b_minus + 1;
-  if (n_azimuthal_b_plus == (unsigned int)quantity.get_size_azimuthal()) {
-	n_azimuthal_b_plus = 0;
+
+  int tmp = floor((phi-0.5*dphi)/dphi);
+  n_azimuthal_b_minus = (tmp == -1) ? quantity.get_max_azimuthal() : (unsigned int)tmp;
+  n_azimuthal_b_plus = n_azimuthal_b_minus+1;
+  if (n_azimuthal_b_plus == quantity.get_size_azimuthal()) {
+	  n_azimuthal_b_plus = 0;
   }
 }
 
@@ -901,32 +947,15 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt) {
 			continue;
 		}
 
-		// find nearest n_radials
-		unsigned int n_radial_a_minus = 0, n_radial_b_minus = 0, n_radial_a_plus = 1, n_radial_b_plus = 1;
-		// we do not need to check if n_radial_a_plus < NRadial because it this would be the case, something in the move part went wrong :)
-		while (Ra[n_radial_a_plus] < r)
-			n_radial_a_plus++;
-		n_radial_a_minus = n_radial_a_plus - 1;
-		while (Rb[n_radial_b_plus] < r)
-			n_radial_b_plus++;
-		n_radial_b_minus = n_radial_b_plus - 1;
-
-		// find nearest n_azimuthals
+		// find nearest cells
+		unsigned int n_radial_a_minus = 0, n_radial_a_plus  = 1;
+		unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 		unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
-		n_azimuthal_a_minus = trunc(phi/dphi);
-		n_azimuthal_a_plus = n_azimuthal_a_minus+1;
-		if (n_azimuthal_a_plus == data[t_data::DENSITY].get_size_azimuthal()) {
-			n_azimuthal_a_plus = 0;
-		}
-
 		unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-		n_azimuthal_b_minus = trunc((phi-0.5*dphi)/dphi);
-		n_azimuthal_b_plus = n_azimuthal_b_minus+1;
-		if (n_azimuthal_b_plus == data[t_data::DENSITY].get_size_azimuthal()) {
-			n_azimuthal_b_plus = 0;
-		}
+		find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
-		// calculate quantities need
+
+		// calculate quantities needed
 		double rho = interpolate_bilinear(data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 		double vg_radial = interpolate_bilinear(data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 		double vg_azimuthal = interpolate_bilinear(data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus, n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
@@ -993,32 +1022,15 @@ void update_velocities_from_gas_drag(t_data &data, double dt) {
 			continue;
 		}
 
-		// find nearest n_radials
-		unsigned int n_radial_a_minus = 0, n_radial_b_minus = 0, n_radial_a_plus = 1, n_radial_b_plus = 1;
-		// we do not need to check if n_radial_a_plus < NRadial because it this would be the case, something in the move part went wrong :)
-		while (Ra[n_radial_a_plus] < r)
-			n_radial_a_plus++;
-		n_radial_a_minus = n_radial_a_plus - 1;
-		while (Rb[n_radial_b_plus] < r)
-			n_radial_b_plus++;
-		n_radial_b_minus = n_radial_b_plus - 1;
-
-		// find nearest n_azimuthals
+		// find nearest cells
+		unsigned int n_radial_a_minus = 0, n_radial_a_plus  = 1;
+		unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 		unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
-		n_azimuthal_a_minus = trunc(phi/dphi);
-		n_azimuthal_a_plus = n_azimuthal_a_minus+1;
-		if (n_azimuthal_a_plus == data[t_data::DENSITY].get_size_azimuthal()) {
-			n_azimuthal_a_plus = 0;
-		}
-
 		unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-		n_azimuthal_b_minus = trunc((phi-0.5*dphi)/dphi);
-		n_azimuthal_b_plus = n_azimuthal_b_minus+1;
-		if (n_azimuthal_b_plus == data[t_data::DENSITY].get_size_azimuthal()) {
-			n_azimuthal_b_plus = 0;
-		}
+		find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
-		// calculate quantities need
+
+		// calculate quantities needed
 		const double rho = interpolate_bilinear(data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 		const double vg_radial = interpolate_bilinear(data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 		const double vg_azimuthal = interpolate_bilinear(data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus, n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
