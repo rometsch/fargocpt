@@ -934,7 +934,6 @@ void check_tstop(t_data &data)
 
 
 void update_velocities_from_gas_drag_cart(t_data &data, double dt) {
-	double dphi = 2.0*PI/(double)data[t_data::DENSITY].get_size_azimuthal();
 
 	compute_rho(data, true);
 
@@ -1009,7 +1008,6 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt) {
 }
 
 void update_velocities_from_gas_drag(t_data &data, double dt) {
-	double dphi = 2.0*PI/(double)data[t_data::DENSITY].get_size_azimuthal();
 
 	compute_rho(data, true);
 
