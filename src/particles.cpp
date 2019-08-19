@@ -843,15 +843,15 @@ void check_tstop(t_data &data)
 
 	double dt = DT;
 
-	if (parameters::calculate_disk) {
-		double local_gas_time_step_cfl = 1.0;
-		double global_gas_time_step_cfl = 1.0;
-		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-		local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT);
 
-		MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-		dt = DT/global_gas_time_step_cfl;
-	}
+	double local_gas_time_step_cfl = 1.0;
+	double global_gas_time_step_cfl = 1.0;
+	CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
+	local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT);
+
+	MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	dt = DT/global_gas_time_step_cfl;
+
 
 	compute_rho(data, true);
 	compute_temperature(data, true);
@@ -1412,13 +1412,13 @@ void integrate_explicit_adaptive(t_data &data, const double dt) {
 	if(CartesianParticles)
 	{
 		// disk gravity on particles is inside gas_drag function
-		if ((parameters::calculate_disk) && (parameters::particle_gas_drag_enabled))
+		if (parameters::particle_gas_drag_enabled)
 			update_velocities_from_gas_drag_cart(data, dt);
 	}
 	else
 	{
 		// disk gravity on particles is inside gas_drag function
-		if ((parameters::calculate_disk) && (parameters::particle_gas_drag_enabled))
+		if (parameters::particle_gas_drag_enabled)
 			update_velocities_from_gas_drag(data, dt);
 	}
 
@@ -1696,13 +1696,13 @@ void integrate_explicit(t_data &data, const double dt) {
 	if(CartesianParticles)
 	{
 		// disk gravity on particles is inside gas_drag function
-		if ((parameters::calculate_disk) && (parameters::particle_gas_drag_enabled))
+		if (parameters::particle_gas_drag_enabled)
 			update_velocities_from_gas_drag_cart(data, dt);
 	}
 	else
 	{
 		// disk gravity on particles is inside gas_drag function
-		if ((parameters::calculate_disk) && (parameters::particle_gas_drag_enabled))
+		if (parameters::particle_gas_drag_enabled)
 			update_velocities_from_gas_drag(data, dt);
 	}
 
