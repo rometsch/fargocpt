@@ -1063,11 +1063,6 @@ void update_velocities_from_gas_drag(t_data &data, double dt) {
 		const double fdrag_r = dt * fdrag_temp * vrel_r;
 		const double fdrag_phi = dt * fdrag_temp * vrel_phi/r;
 
-		if(particles[i].phi_dot < fdrag_phi)
-		{
-			logging::print_master(LOG_ERROR " Particle stopping time too short for explicit integrator, use implicit or semiimplicit instead\n");
-			PersonalExit(1);
-		}
 		// update velocities
 		particles[i].r_dot += fdrag_r;
 		particles[i].phi_dot += fdrag_phi;
