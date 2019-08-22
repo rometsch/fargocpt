@@ -75,11 +75,12 @@ static double check_angle(double &phi) {
 
 static void transformCartCyl(double *cart, double *cyl, double r, double phi)
 {
-  cyl[0]  = cart[0]*cos(phi);
-  cyl[0] += cart[1]*sin(phi);
+	(void) r;
+	cyl[0]  = cart[0]*cos(phi);
+	cyl[0] += cart[1]*sin(phi);
 
-  cyl[1]  =-cart[0]*sin(phi);
-  cyl[1] += cart[1]*cos(phi);
+	cyl[1]  =-cart[0]*sin(phi);
+	cyl[1] += cart[1]*cos(phi);
 }
 
 
@@ -519,9 +520,9 @@ void restart(unsigned int timestep) {
 void calculate_accelerations_from_star_and_planets(double &ar, double &aphi, const double r, const double r_dot, const double phi, const double phi_dot, t_data& data) {
 
 	constexpr double epsilon=0.005;
-	constexpr double expsilon_sq = epsilon*epsilon;
+	constexpr double epsilon_sq = epsilon*epsilon;
 	// host star
-	ar = r * phi_dot * phi_dot - constants::G*M/(r*r + expsilon_sq);
+	ar = r * phi_dot * phi_dot - constants::G*M/(r*r + epsilon_sq);
 	aphi= - 2.0 * r_dot / r * phi_dot;
 
 	// planets
@@ -536,10 +537,10 @@ void calculate_accelerations_from_star_and_planets(double &ar, double &aphi, con
 		double cos_delta_phi;
 		sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
 
-		const double distance_to_planet_pow2 = r*r + r_planet*r_planet - 2 * r*r_planet*cos_delta_phi + expsilon_sq;
-		const double distance_to_planet_pow3 = distance_to_planet_pow2*sqrt(distance_to_planet_pow2);
+		const double distance_to_planet_pow = sqrt(r*r + r_planet*r_planet - 2 * r*r_planet*cos_delta_phi);
+		const double distance_to_planet_pow2_smoothed = distance_to_planet_pow*distance_to_planet_pow + epsilon_sq;
 
-		const double factor = constants::G*planet.get_mass() / distance_to_planet_pow3;
+		const double factor = constants::G*planet.get_mass() / (distance_to_planet_pow*distance_to_planet_pow2_smoothed);
 
 		ar -= factor * (r - r_planet*cos_delta_phi);
 		aphi -= factor * r_planet * sin_delta_phi / r;
@@ -555,23 +556,24 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, 
 	ay = 0;
 
 	constexpr double epsilon=0.005;
-	constexpr double expsilon_sq = epsilon*epsilon;
+	constexpr double epsilon_sq = epsilon*epsilon;
 
 	// host star
-	const double r2 = pow2(x) + pow2(y) + expsilon_sq;
+	double r2 = pow2(x) + pow2(y);
 	const double r = sqrt(r2);
+	r2 +=  epsilon_sq;
 
-	//const double factor = constants::G*M*pow(r2,-3.0/2.0);
-	const double factor = constants::G*M/pow3(r);
+	const double factor = constants::G*M/(r*r2);
 	ax += factor*(-x);
 	ay += factor*(-y);
 
 	// planets
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
-		const double r2 = pow2(planet.get_x()-x) + pow2(planet.get_y()-y) + expsilon_sq;
+		double r2 = pow2(planet.get_x()-x) + pow2(planet.get_y()-y);
 		const double r = sqrt(r2);
-		const double factor = constants::G*planet.get_mass()/pow3(r);
+		r2 += epsilon_sq;
+		const double factor = constants::G*planet.get_mass()/(r*r2);
 
 		ax += factor*(planet.get_x()-x);
 		ay += factor*(planet.get_y()-y);
@@ -613,11 +615,10 @@ void calculate_derivitives_from_star_and_planets(
 
 		const double distance_to_planet = sqrt(r*r + r_planet*r_planet - 2.0 * r*r_planet*cos_delta_phi);
 		const double distance_to_planet_smoothed_pow2 = distance_to_planet*distance_to_planet + epsilon_sq;
-		const double distance_to_planet_smoothed_pow3 = distance_to_planet_smoothed_pow2*sqrt(distance_to_planet_smoothed_pow2);
 
 		// direct term
-		grav_r_ddot -= constants::G*planet_mass * (r - r_planet*cos_delta_phi) / distance_to_planet_smoothed_pow3;
-		minus_grav_l_dot -= constants::G*planet_mass * r * r_planet * sin_delta_phi / distance_to_planet_smoothed_pow3;
+		grav_r_ddot -= constants::G*planet_mass * (r - r_planet*cos_delta_phi) / (distance_to_planet_smoothed_pow2*distance_to_planet);
+		minus_grav_l_dot -= constants::G*planet_mass * r * r_planet * sin_delta_phi / (distance_to_planet_smoothed_pow2*distance_to_planet);
 
 		// indirect term
 		grav_r_ddot -= constants::G*planet_mass/pow2(r_planet)*cos_delta_phi;
@@ -625,7 +626,6 @@ void calculate_derivitives_from_star_and_planets(
 
 	}
 }
-
 
 
 void calculate_derivitives_from_star_and_planets_in_cart(
@@ -640,11 +640,11 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 	const double x = r*cos(phi);
 	const double y = r*sin(phi);
 
-	const double r_smoothed = sqrt(r*r + epsilon_sq);
+	const double r2_smoothed = (r*r + epsilon_sq);
 
 	// host star
-	acart[0] =  -constants::G*M*x/pow3(r_smoothed);
-	acart[1] =  -constants::G*M*y/pow3(r_smoothed);
+	acart[0] =  -constants::G*M*x/(r2_smoothed*r);
+	acart[1] =  -constants::G*M*y/(r2_smoothed*r);
 
 	// planets
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
@@ -657,12 +657,14 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 		const double x_dist = x-x_planet;
 		const double y_dist = y-y_planet;
 
-		const double dist = sqrt(x_dist*x_dist + y_dist*y_dist + epsilon_sq);
+		double dist2 = x_dist*x_dist + y_dist*y_dist;
+		const double dist = sqrt(dist2);
+		dist2 += epsilon_sq;
 
 
 		// direct term
-		acart[0] += -constants::G*planet_mass*x_dist/(dist*dist*dist);
-		acart[1] += -constants::G*planet_mass*y_dist/(dist*dist*dist);
+		acart[0] += -constants::G*planet_mass*x_dist/(dist*dist2);
+		acart[1] += -constants::G*planet_mass*y_dist/(dist*dist2);
 
 
 		// indirect term
@@ -1494,7 +1496,6 @@ void integrate_implicit(t_data &data, const double dt)
 		}
 		else
 		{
-
 			calculate_derivitives_from_star_and_planets(r_ddot0, minus_l_dot0, r0, phi0, data);
 		}
 		// Predicted position
@@ -1510,7 +1511,6 @@ void integrate_implicit(t_data &data, const double dt)
 		}
 		else
 		{
-
 			calculate_derivitives_from_star_and_planets(r_ddot1, minus_l_dot1, r1, phi1, data);
 		}
 
