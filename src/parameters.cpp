@@ -653,12 +653,15 @@ void read(char* filename, t_data &data)
 			die("Invalid setting for Particle Integrator: %s	with key %s",config::value_as_string_default("ParticleIntegrator","s"), tolower(*config::value_as_string_default("ParticleIntegrator","s")));
 	}
 
-	if(CartesianParticles && ((integrator != integrator_explicit) && (integrator != integrator_adaptive)))
+	if(CartesianParticles && ((integrator == integrator_implicit) || integrator == integrator_semiimplicit))
 	{
-		logging::print_master(LOG_ERROR "\nCartesian particles can only use the explicit integrator! Switching integrator to polar!\n\n");
+		// implicit and semiimplicit integrator only implemented in polar coordiantes,
+		// but forces can be calculated in cartesian coordinates
 		CartesianParticles = false;
+		ParticlesInCartesian = true;
 	}
-	if((particle_disk_gravity_enabled && (!self_gravity || CartesianParticles) && integrate_particles))
+
+	if(particle_disk_gravity_enabled && (!self_gravity))
 	{
 		logging::print_master(LOG_ERROR "Cannot enable particle_disk_gravity_enabled while self_gravity is off!\n");
 		PersonalExit(1);

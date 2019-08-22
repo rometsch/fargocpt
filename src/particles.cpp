@@ -73,6 +73,16 @@ static double check_angle(double &phi) {
   }
 }
 
+static void transformCartCyl(double *cart, double *cyl, double r, double phi)
+{
+  cyl[0]  = cart[0]*cos(phi);
+  cyl[0] += cart[1]*sin(phi);
+
+  cyl[1]  =-cart[0]*sin(phi);
+  cyl[1] += cart[1]*cos(phi);
+}
+
+
 /*
 static double get_particle_eccentricity(int particle_index)
 {
@@ -393,7 +403,9 @@ void init(t_data &data) {
 
 	// particles might be created on the wrong node, so move them to the correct one :)
 	for(int i = 0; i < CPU_Number; ++i)
+	{
 		move();
+	}
 
 	check_tstop(data);
 
@@ -547,7 +559,10 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, 
 
 	// host star
 	const double r2 = pow2(x) + pow2(y) + expsilon_sq;
-	const double factor = constants::G*M*pow(r2,-3.0/2.0);
+	const double r = sqrt(r2);
+
+	//const double factor = constants::G*M*pow(r2,-3.0/2.0);
+	const double factor = constants::G*M/pow3(r);
 	ax += factor*(-x);
 	ay += factor*(-y);
 
@@ -570,8 +585,11 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, 
 
 
 void calculate_derivitives_from_star_and_planets(
-		double &grav_r_ddot, double &minus_grav_l_dot, const double r,
-		const double phi, t_data& data) {
+		double &grav_r_ddot,
+		double &minus_grav_l_dot,
+		const double r,
+		const double phi, t_data& data)
+{
 	constexpr double epsilon=0.005;
 	constexpr double epsilon_sq = epsilon*epsilon;
 
@@ -594,17 +612,67 @@ void calculate_derivitives_from_star_and_planets(
 
 		const double distance_to_planet = sqrt(r*r + r_planet*r_planet - 2.0 * r*r_planet*cos_delta_phi);
 		const double distance_to_planet_smoothed_pow2 = distance_to_planet*distance_to_planet + epsilon_sq;
-		const double distance_to_planet_pow3 = distance_to_planet_smoothed_pow2*sqrt(distance_to_planet_smoothed_pow2);
+		const double distance_to_planet_smoothed_pow3 = distance_to_planet_smoothed_pow2*sqrt(distance_to_planet_smoothed_pow2);
 
 		// direct term
-		grav_r_ddot -= constants::G*planet_mass * (r - r_planet*cos_delta_phi) / distance_to_planet_pow3;
-		minus_grav_l_dot -= constants::G*planet_mass * r * r_planet * sin_delta_phi / distance_to_planet_pow3;
+		grav_r_ddot -= constants::G*planet_mass * (r - r_planet*cos_delta_phi) / distance_to_planet_smoothed_pow3;
+		minus_grav_l_dot -= constants::G*planet_mass * r * r_planet * sin_delta_phi / distance_to_planet_smoothed_pow3;
 
 		// indirect term
 		grav_r_ddot -= constants::G*planet_mass/pow2(r_planet)*cos_delta_phi;
 		minus_grav_l_dot += constants::G*planet_mass*r/(pow2(r_planet))*sin_delta_phi;
 
 	}
+}
+
+
+
+void calculate_derivitives_from_star_and_planets_in_cart(
+		double &grav_r_ddot, double &minus_grav_l_dot, const double r,
+		const double phi, t_data& data) {
+	constexpr double epsilon=0.005;
+	constexpr double epsilon_sq = epsilon*epsilon;
+
+	double acart[2];
+	double acyl[2];
+
+	const double x = r*cos(phi);
+	const double y = r*sin(phi);
+
+	const double r_smoothed = sqrt(r*r + epsilon_sq);
+
+	// host star
+	acart[0] =  -constants::G*M*x/pow3(r_smoothed);
+	acart[1] =  -constants::G*M*y/pow3(r_smoothed);
+
+	// planets
+	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
+		const t_planet &planet = data.get_planetary_system().get_planet(k);
+
+		const double x_planet = planet.get_x();
+		const double y_planet = planet.get_y();
+		const double planet_mass = planet.get_mass();
+
+		const double x_dist = x-x_planet;
+		const double y_dist = y-y_planet;
+
+		const double dist = sqrt(x_dist*x_dist + y_dist*y_dist + epsilon_sq);
+
+
+		// direct term
+		acart[0] += -constants::G*planet_mass*x_dist/(dist*dist*dist);
+		acart[1] += -constants::G*planet_mass*y_dist/(dist*dist*dist);
+
+
+		// indirect term
+		const double r_planet = planet.get_r();
+		acart[0] += -constants::G*planet_mass*x_planet/(r_planet*r_planet*r_planet);
+		acart[1] += -constants::G*planet_mass*y_planet/(r_planet*r_planet*r_planet);
+	}
+
+	transformCartCyl(acart,acyl,r,phi);
+	grav_r_ddot = acyl[0];
+	minus_grav_l_dot = acyl[1]*r;
 }
 
 
@@ -931,6 +999,37 @@ void check_tstop(t_data &data)
 	}
 }
 
+// apply disk feedback on primary onto the particles
+void update_velocities_from_indirect_term(const double dt)
+{
+	const Pair IndirectTerm = ComputeIndirectTerm();
+
+	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
+
+		double indirect_q1_dot;
+		double indirect_q2_dot;
+		if(CartesianParticles)
+		{
+			indirect_q1_dot = fma(IndirectTerm.x, dt, particles[i].r_dot);
+			indirect_q2_dot = fma(IndirectTerm.y, dt, particles[i].phi_dot);
+		}
+		else
+		{
+			double r = particles[i].r;
+			double phi = particles[i].phi;
+
+			const double r_dot = particles[i].r_dot;
+			const double phi_dot = particles[i].phi_dot;
+
+			indirect_q1_dot = r_dot + dt*( IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi));
+			indirect_q2_dot = phi_dot + dt*(-IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi)) / r;
+
+		}
+
+		particles[i].r_dot   = indirect_q1_dot;
+		particles[i].phi_dot = indirect_q2_dot;
+	}
+}
 
 
 void update_velocities_from_gas_drag_cart(t_data &data, double dt) {
@@ -999,12 +1098,18 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt) {
 		// update velocities
 		vx += dt * fdrag_x/particles[i].mass;
 		vy += dt * fdrag_y/particles[i].mass;
+
+		if (parameters::particle_disk_gravity_enabled) {
+			update_velocity_from_disk_gravity_cart(n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi, i, dt);
+		}
 	}
 
 
+	/* For testing purpose only, very slow
 	if (parameters::particle_disk_gravity_enabled) {
-		update_velocities_from_disk_gravity_cart(data, dt);
+		update_velocity_from_disk_gravity_cart_old(data, dt);
 	}
+	*/
 }
 
 void update_velocities_from_gas_drag(t_data &data, double dt) {
@@ -1067,7 +1172,6 @@ void update_velocities_from_gas_drag(t_data &data, double dt) {
 		particles[i].r_dot += fdrag_r;
 		particles[i].phi_dot += fdrag_phi;
 
-
 		if (parameters::particle_disk_gravity_enabled) {
 			update_velocity_from_disk_gravity(n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi, i, dt);
 		}
@@ -1118,16 +1222,8 @@ void update_velocity_from_disk_gravity(const int n_radial_a_minus, const int n_r
    const double sg_azimuthal = interpolate_bilinear_sg(selfgravity::g_azimuthal, n_radial_a_minus, n_radial_a_plus,
 												  n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
-
-
-	Pair IndirectTerm = ComputeIndirectTerm();
-
-	double a_indirect_r = IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi);
-	double a_indirect_phi = -IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi);
-
-
-	particles[particle_id].r_dot += dt * (sg_radial+a_indirect_r);
-	particles[particle_id].phi_dot += dt * (sg_azimuthal*a_indirect_phi)/r;
+   particles[particle_id].r_dot += dt * sg_radial;
+   particles[particle_id].phi_dot += dt * sg_azimuthal/r;
 
 }
 
@@ -1164,7 +1260,30 @@ void integrate(t_data &data, const double dt)
 
 }
 
-void update_velocities_from_disk_gravity_cart(t_data &data, double dt) {
+
+
+void update_velocity_from_disk_gravity_cart(const int n_radial_a_minus, const int n_radial_a_plus,
+									   const int n_azimuthal_b_minus, const int n_azimuthal_b_plus,
+									   const double r, const double phi,
+									   const int particle_id, const double dt) {
+
+
+
+   const double sg_radial = interpolate_bilinear_sg(selfgravity::g_radial, n_radial_a_minus, n_radial_a_plus,
+												  n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+   const double sg_azimuthal = interpolate_bilinear_sg(selfgravity::g_azimuthal, n_radial_a_minus, n_radial_a_plus,
+												  n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+
+
+   double &vx = particles[particle_id].r_dot;
+   double &vy = particles[particle_id].phi_dot;
+
+   vx += dt*(cos(phi) * sg_radial - sin(phi) * sg_azimuthal);
+   vy += dt*(sin(phi) * sg_radial + cos(phi) * sg_azimuthal);
+}
+
+
+void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt) {
 	int *number_of_particles = (int*)malloc(sizeof(int)*CPU_Number);
 	int *particle_offsets = (int*)malloc(sizeof(int)*CPU_Number);
 	t_particle *all_particles = (t_particle*)malloc(sizeof(t_particle)*global_number_of_particles);
@@ -1182,18 +1301,8 @@ void update_velocities_from_disk_gravity_cart(t_data &data, double dt) {
 		}
 	}
 
-	/*
-	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-		logging::print("Local Particle %u at %g,%g\n", i, particles[i].x, particles[i].y);
-	} */
-
 	// get all particles
 	MPI_Allgatherv(particles, local_number_of_particles, mpi_particle, all_particles, number_of_particles, particle_offsets, mpi_particle, MPI_COMM_WORLD);
-
-	/*
-	for (unsigned int i = 0; i < global_number_of_particles; ++i) {
-		logging::print("Global Particle %u at %g,%g\n", i, all_particles[i].x, all_particles[i].y);
-	} */
 
 	for (unsigned int i = 0; i < global_number_of_particles; ++i) {
 		force_x[i] = 0;
@@ -1225,15 +1334,13 @@ void update_velocities_from_disk_gravity_cart(t_data &data, double dt) {
 	MPI_Allreduce(MPI_IN_PLACE, force_x, global_number_of_particles, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 	MPI_Allreduce(MPI_IN_PLACE, force_y, global_number_of_particles, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
-	Pair IndirectTerm = ComputeIndirectTerm();
-
 	// update particles
 	unsigned int offset = particle_offsets[CPU_Rank];
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 		double &vx = particles[i].r_dot;
 		double &vy = particles[i].phi_dot;
-		vx += dt * force_x[offset+i] + dt * IndirectTerm.x;
-		vy += dt * force_y[offset+i] + dt * IndirectTerm.y;
+		vx += dt * force_x[offset+i];
+		vy += dt * force_y[offset+i];
 	}
 
 	free(number_of_particles);
@@ -1246,8 +1353,13 @@ void update_velocities_from_disk_gravity_cart(t_data &data, double dt) {
 
 void integrate_semiimplicit(t_data &data, const double dt)
 {
-	// Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014, eqs. A4-A12)
 
+	if(parameters::disk_feedback)
+	{
+		update_velocities_from_indirect_term(dt);
+	}
+
+	// Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014, eqs. A4-A12)
 	if (parameters::particle_gas_drag_enabled)
 	{
 		compute_rho(data, true);
@@ -1290,7 +1402,15 @@ void integrate_semiimplicit(t_data &data, const double dt)
 		}
 		double grav_r_ddot;
 		double minus_grav_l_dot;
-		calculate_derivitives_from_star_and_planets(grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+		if(ParticlesInCartesian)
+		{
+			calculate_derivitives_from_star_and_planets_in_cart(grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+		}
+		else
+		{
+
+			calculate_derivitives_from_star_and_planets(grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+		}
 
 		double l2 = l1 + minus_grav_l_dot*dt1;
 		if (parameters::particle_gas_drag_enabled)
@@ -1326,6 +1446,11 @@ void integrate_semiimplicit(t_data &data, const double dt)
 
 void integrate_implicit(t_data &data, const double dt)
 {
+	if(parameters::disk_feedback)
+	{
+		update_velocities_from_indirect_term(dt);
+	}
+
 	// Fully implicit integrator in cylindrical coordinates (see Zhu et al. 2014, eqs. A15-A18)
   double r1, phi1, l1, r_dot1,tstop1,tstop0,dt0,dt1;
   double r_ddot0,minus_l_dot0,r_ddot1,minus_l_dot1,hfdt,minus_r_dot_rel0,minus_l_rel0,minus_r_dot_rel1,minus_l_rel1;
@@ -1362,7 +1487,15 @@ void integrate_implicit(t_data &data, const double dt)
 		  dt0 = 1.0+dt/tstop0;
 		}
 
-		calculate_derivitives_from_star_and_planets(r_ddot0, minus_l_dot0, r0, phi0, data);
+		if(ParticlesInCartesian)
+		{
+			calculate_derivitives_from_star_and_planets_in_cart(r_ddot0, minus_l_dot0, r0, phi0, data);
+		}
+		else
+		{
+
+			calculate_derivitives_from_star_and_planets(r_ddot0, minus_l_dot0, r0, phi0, data);
+		}
 		// Predicted position
 		if (parameters::particle_gas_drag_enabled)
 		{
@@ -1370,7 +1503,15 @@ void integrate_implicit(t_data &data, const double dt)
 			dt1 = hfdt/(1.0 + hfdt/tstop0 + hfdt/tstop1 + hfdt*dt/(tstop0*tstop1));
 		}
 
-		calculate_derivitives_from_star_and_planets(r_ddot1, minus_l_dot1, r1, phi1, data);
+		if(ParticlesInCartesian)
+		{
+			calculate_derivitives_from_star_and_planets_in_cart(r_ddot1, minus_l_dot1, r1, phi1, data);
+		}
+		else
+		{
+
+			calculate_derivitives_from_star_and_planets(r_ddot1, minus_l_dot1, r1, phi1, data);
+		}
 
 		l1 = l0;
 		l1 += (minus_l_dot0+minus_l_dot1*dt0)*dt1;
@@ -1395,7 +1536,6 @@ void integrate_implicit(t_data &data, const double dt)
 		particles[i].phi  = phi2;
 		check_angle(particles[i].phi);
 		particles[i].phi_dot = l1/pow2(particles[i].r);
-
 	}
 
 	move();
@@ -1417,10 +1557,14 @@ void integrate_explicit_adaptive(t_data &data, const double dt) {
 			update_velocities_from_gas_drag(data, dt);
 	}
 
+	if(parameters::disk_feedback)
+	{
+		update_velocities_from_indirect_term(dt);
+	}
+
 	// as particles move independent of each other, we can integrate one after one
 	for (unsigned int i = 0; i < local_number_of_particles; ++i)
 	{
-
 
 		double   fac, fac11;
 		double   atoli, rtoli, err, sk;
@@ -1701,6 +1845,12 @@ void integrate_explicit(t_data &data, const double dt) {
 			update_velocities_from_gas_drag(data, dt);
 	}
 
+	if(parameters::disk_feedback)
+	{
+		update_velocities_from_indirect_term(dt);
+	}
+
+
 	// as particles move independent of each other, we can integrate one after one
 	for (unsigned int i = 0; i < local_number_of_particles; ++i)
 	{
@@ -1930,9 +2080,8 @@ void move(void) {
 		local_number_of_particles--;
 	}
 
-	// move particles outwards starting from the inner most node
 
-	// receive particles from outer node first
+	// receive particles from inner node first
 	if (CPU_Rank > 0) {
 		MPI_Status status;
 		MPI_Probe(CPU_Prev, 0, MPI_COMM_WORLD, &status);
@@ -1949,6 +2098,9 @@ void move(void) {
 
 		local_number_of_particles += number;
 	}
+
+
+	// move particles outwards starting from the inner most node
 
 	// check if we need to send particles to outer node
 	int outward_offset[local_number_of_particles];

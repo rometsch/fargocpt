@@ -29,7 +29,7 @@ extern boolean AllowAccretion, Corotating, Cooling;
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 static int FeelOthers[MAX1D];
 
-Pair ComputeIndirectTerm() {
+const Pair ComputeIndirectTerm() {
 	Pair IndirectTerm;
 
 	IndirectTerm.x = -DiskOnPrimaryAcceleration.x;
@@ -54,7 +54,7 @@ void FillForcesArrays(t_data &data)
 	//double xbin, ybin, mbin, distbin, Invdistbin3;
 
 	/* Indirect term star on gas here */
-	Pair IndirectTerm = ComputeIndirectTerm();
+	const Pair IndirectTerm = ComputeIndirectTerm();
 
 	data[t_data::POTENTIAL].clear();
 
@@ -133,7 +133,7 @@ void FillForcesArrays(t_data &data)
 */
 void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 {
-	Pair IndirectTerm = ComputeIndirectTerm();
+	const Pair IndirectTerm = ComputeIndirectTerm();
 	Pair gamma;
 
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
