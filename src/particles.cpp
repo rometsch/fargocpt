@@ -570,7 +570,8 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, 
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
 		const double r2 = pow2(planet.get_x()-x) + pow2(planet.get_y()-y) + expsilon_sq;
-		const double factor = constants::G*planet.get_mass()*pow(r2,-3.0/2.0);
+		const double r = sqrt(r2);
+		const double factor = constants::G*planet.get_mass()/pow3(r);
 
 		ax += factor*(planet.get_x()-x);
 		ay += factor*(planet.get_y()-y);
