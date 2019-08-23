@@ -537,10 +537,10 @@ void calculate_accelerations_from_star_and_planets(double &ar, double &aphi, con
 		double cos_delta_phi;
 		sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
 
-		const double distance_to_planet_pow = sqrt(r*r + r_planet*r_planet - 2 * r*r_planet*cos_delta_phi);
-		const double distance_to_planet_pow2_smoothed = distance_to_planet_pow*distance_to_planet_pow + epsilon_sq;
+		const double distance_to_planet = sqrt(r*r + r_planet*r_planet - 2 * r*r_planet*cos_delta_phi);
+		const double distance_to_planet_pow2_smoothed = distance_to_planet*distance_to_planet + epsilon_sq;
 
-		const double factor = constants::G*planet.get_mass() / (distance_to_planet_pow*distance_to_planet_pow2_smoothed);
+		const double factor = constants::G*planet.get_mass() / (distance_to_planet*distance_to_planet_pow2_smoothed);
 
 		ar -= factor * (r - r_planet*cos_delta_phi);
 		aphi -= factor * r_planet * sin_delta_phi / r;
@@ -1108,7 +1108,8 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt) {
 	}
 
 
-	/* For testing purpose only, very slow
+	/*
+	// For testing purpose only, very slow
 	if (parameters::particle_disk_gravity_enabled) {
 		update_velocity_from_disk_gravity_cart_old(data, dt);
 	}
@@ -1178,15 +1179,16 @@ void update_velocities_from_gas_drag(t_data &data, double dt) {
 		if (parameters::particle_disk_gravity_enabled) {
 			update_velocity_from_disk_gravity(n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi, i, dt);
 		}
-
 	}
 }
-
 
 static double interpolate_bilinear_sg(const double *array1D,
 				   const unsigned int n_radial_minus, const unsigned int n_radial_plus,
 				   const unsigned int n_azimuthal_minus, const unsigned int n_azimuthal_plus,
-				   const double r, double phi) {
+				   const double r, double phi)
+{
+
+	const unsigned int last_index = NAzimuthal-1;
 	double dphi = 2.0*PI/(double)NAzimuthal;
 
 	// values at corners
@@ -1198,8 +1200,33 @@ static double interpolate_bilinear_sg(const double *array1D,
 	double rm = Rb[n_radial_minus];
 	double rp = Rb[n_radial_plus];
 
-	double phim = (n_azimuthal_minus+0.5)*dphi;
-	double phip = (n_azimuthal_plus+0.5)*dphi;
+	double phim;
+	double phip;
+
+
+	if(n_azimuthal_minus == last_index)
+	{
+		if(phi < PI)
+		{
+			// particle is inside cell with n_azimuthal = 0
+			// previous cell is at N_azimuthal_max - 1, but measure distance from -0.5*dphi
+			phim = -0.5*dphi;
+			phip =  0.5*dphi;
+		}
+		else // phi > PI
+		{
+			// particle is inside cell with n_azimuthal = N_azimuthal_max - 1
+			// next cell is at N_azimuthal = 0, but measure distance from 2*PI+0.5*dphi
+			phim = (n_azimuthal_minus + 0.5)*dphi;
+			phip = (n_azimuthal_minus + 1.5)*dphi;
+		}
+	}
+	else
+	{
+		phim = (n_azimuthal_minus+0.5)*dphi;
+		phip = (n_azimuthal_plus+0.5)*dphi;
+	}
+
 
 	if ((phim > 2.0*PI) || (phip > 2.0*PI)) {
 		phim -= PI;
@@ -1543,7 +1570,8 @@ void integrate_implicit(t_data &data, const double dt)
 }
 
 
-void integrate_explicit_adaptive(t_data &data, const double dt) {
+void integrate_explicit_adaptive(t_data &data, const double dt)
+{
 
 	if(CartesianParticles)
 	{
@@ -1747,8 +1775,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt) {
 
 			if(!CartesianParticles)
 			{
-				if(phi_new > 2.0*PI)
-					phi_new -= 2.0*PI;
+				check_angle(phi_new);
 			}
 
 			const double r_ddot_new = (37.0/378.0 * k1_r_dot + 250.0/621.0 * k3_r_dot + 125.0/594.0 * k4_r_dot + 512.0/1771.0 * k6_r_dot);
@@ -1990,6 +2017,11 @@ void integrate_explicit(t_data &data, const double dt) {
 		// update position & velocity
 		particles[i].r += dt * (37.0/378.0 * k1_r + 250.0/621.0 * k3_r + 125.0/594.0 * k4_r + 512.0/1771.0 * k6_r);
 		particles[i].phi += dt * (37.0/378.0 * k1_phi + 250.0/621.0 * k3_phi + 125.0/594.0 * k4_phi + 512.0/1771.0 * k6_phi);
+
+		if(!CartesianParticles)
+		{
+			check_angle(particles[i].phi);
+		}
 
 		particles[i].r_ddot = (37.0/378.0 * k1_r_dot + 250.0/621.0 * k3_r_dot + 125.0/594.0 * k4_r_dot + 512.0/1771.0 * k6_r_dot);
 		particles[i].phi_ddot = (37.0/378.0 * k1_phi_dot + 250.0/621.0 * k3_phi_dot + 125.0/594.0 * k4_phi_dot + 512.0/1771.0 * k6_phi_dot);

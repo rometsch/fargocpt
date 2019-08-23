@@ -249,10 +249,13 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 
     dtemp=0.0;
 
+
 	if (parameters::calculate_disk) {
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-		local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT-dtemp);
 	}
+	// recalculate timestep, even for no_disk = true, so that particle drag has reasonable timestep size
+	local_gas_time_step_cfl = condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], data[t_data::SOUNDSPEED], DT-dtemp);
+
 
 	MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 	dt = DT/global_gas_time_step_cfl;
