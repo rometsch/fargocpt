@@ -1451,7 +1451,7 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 	last_physicaltime_calculated = PhysicalTime;
 
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::ASPECTRATIO].get_max_radial(); ++n_radial) {
-		double inv_v_kepler = 1.0/(omega_kepler(Rb[n_radial])*Rb[n_radial]);
+		double inv_v_kepler = 1.0/(omega_kepler(Rb[n_radial]) * Rb[n_radial]);
 
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ASPECTRATIO].get_max_azimuthal(); ++n_azimuthal) {
 			if (parameters::Adiabatic || parameters::Polytropic) {

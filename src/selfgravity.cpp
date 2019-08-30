@@ -125,24 +125,8 @@ void update_tobi_constants(t_data &data)
 		return;
 	last_timestep_calculated = 0;
 
-	double local_mass = 0.0;
-	const double gas_total_mass = quantities::gas_total_mass(data);
-	double aspect_ratio = 0.0;
-	double local_aspect_ratio = 0.0;
 
-	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise they would be included twice!)
-	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::DENSITY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
-		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
-			// eccentricity and semi major axis weighted with cellmass
-			local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
-			local_aspect_ratio += data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * local_mass;
-		}
-	}
-
-	// synchronize threads
-	MPI_Allreduce(&local_aspect_ratio, &aspect_ratio, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-	aspect_ratio /= gas_total_mass;
+	double aspect_ratio = quantities::gas_aspect_ratio(data);
 
 	lambda_sq = pow2(0.4571*aspect_ratio + 0.6737*sqrt(aspect_ratio));
 	chi_sq = pow2((-0.7543*aspect_ratio + 0.6472)*aspect_ratio);

@@ -132,7 +132,33 @@ const std::map<const std::string, const int> quantities_file_column_v2_2 = {
 { "delta mass floor density positive", 23 }
 };
 
-const auto quantities_file_column = quantities_file_column_v2_2;
+const std::map<const std::string, const int> quantities_file_column_v2_3 = {
+{ "time step", 0 },
+{ "analysis time step", 1},
+{ "physical time", 2 },
+{ "mass", 3 },
+{ "radius", 4 },
+{ "angular momentum", 5 },
+{ "total energy", 6 },
+{ "internal energy", 7 },
+{ "kinematic energy", 8 },
+{ "potential energy", 9 },
+{ "radial kinetic energy", 10 },
+{ "azimuthal kinetic energy", 11 },
+{ "eccentricity", 12 },
+{ "periastron", 13},
+{ "qplus", 14 },
+{ "qminus", 15 },
+{ "pdivv", 16 },
+{ "delta mass inner positive", 17 },
+{ "delta mass inner negative", 18 },
+{ "delta mass outer positive", 19 },
+{ "delta mass outer negative", 20 },
+{ "delta mass wave damping positive", 21 },
+{ "delta mass wave damping negative", 22 },
+{ "delta mass floor density positive", 23 },
+{ "aspect ratio", 24 }
+};
 
 const std::map<const std::string, const std::string> quantities_file_variables = {
 { "physical time", "time" },
@@ -162,7 +188,12 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 { "frame angle", "frequency" },
 { "eccentricity", "1" },
 { "periastron", "1" },
+{ "aspect ratio", "1" }
 };
+
+
+const auto quantities_file_column = quantities_file_column_v2_3;
+
 
 void check_free_space(t_data &data)
 {
@@ -316,6 +347,8 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 	double azimuthalKinematicEnergy = quantities::gas_azimuthal_kinematic_energy(data);
 	double gravitationalEnergy = quantities::gas_gravitational_energy(data);
 	double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
+	double scale_height = quantities::gas_aspect_ratio(data);
+
 
 	double qplus_total = 0.0;
 	double qminus_total = 0.0;
@@ -342,7 +375,7 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 
 	if (CPU_Master) {
 		// print to logfile
-		fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 			timestep,
             nTimeStep,
 			PhysicalTime,
@@ -366,13 +399,14 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 			OuterNegative,
 			WaveDampingPositive,
 			WaveDampingNegative,
-			FloorPositive	);
+			FloorPositive,
+			scale_height);
 
 		// close file
 		fclose(fd);
 	}
 	// set mass delta to 0
-	// MassDelta.reset();
+	MassDelta.reset();
 }
 
 /**
