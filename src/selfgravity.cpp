@@ -521,21 +521,24 @@ void init_planetary_system(t_data &data)
 
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
 		/* dist denotes the planet's semi-major axis */
-		dist = data.get_planetary_system().get_planet(k).get_semi_major_axis();
-		// TODO remove quick&dirty solution and think about it
+		if(data.get_planetary_system().get_planet(k).get_feeldisk())
+		{
+			dist = data.get_planetary_system().get_planet(k).get_semi_major_axis();
+			// TODO remove quick&dirty solution and think about it
 
-		if (dist<RMAX) {
-			ipl = 0;
-			while (GlobalRmed[ipl] <= dist)
-				ipl++;
-			ri = GlobalRmed[ipl];
-			rip1 = GlobalRmed[ipl+1];
-			dr = rip1 - ri;
-			sgacc = (dist - ri)*GLOBAL_AxiSGAccr[ipl+1] + (rip1 - dist)*GLOBAL_AxiSGAccr[ipl];
-			sgacc /= dr;
-			/* sgacc is the radial sg acc. at the planet's semi-major axis */
-			double new_vy = data.get_planetary_system().get_planet(k).get_vy() * (double)sqrt (1. - dist*dist*sgacc);
-			data.get_planetary_system().get_planet(k).set_vy(new_vy);
+			if (dist<RMAX) {
+				ipl = 0;
+				while (GlobalRmed[ipl] <= dist)
+					ipl++;
+				ri = GlobalRmed[ipl];
+				rip1 = GlobalRmed[ipl+1];
+				dr = rip1 - ri;
+				sgacc = (dist - ri)*GLOBAL_AxiSGAccr[ipl+1] + (rip1 - dist)*GLOBAL_AxiSGAccr[ipl];
+				sgacc /= dr;
+				/* sgacc is the radial sg acc. at the planet's semi-major axis */
+				double new_vy = data.get_planetary_system().get_planet(k).get_vy() * (double)sqrt (1. - dist*dist*sgacc);
+				data.get_planetary_system().get_planet(k).set_vy(new_vy);
+			}
 		}
 	}
 
