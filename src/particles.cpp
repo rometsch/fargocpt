@@ -84,6 +84,100 @@ static void transformCartCyl(double *cart, double *cyl, double r, double phi)
 }
 
 
+void find_nearest(const t_polargrid &quantity,
+			  unsigned int &n_radial_a_minus, unsigned int &n_radial_a_plus,
+			  unsigned int &n_azimuthal_a_minus, unsigned int &n_azimuthal_a_plus,
+			  unsigned int &n_radial_b_minus, unsigned int &n_radial_b_plus,
+			  unsigned int &n_azimuthal_b_minus, unsigned int &n_azimuthal_b_plus,
+			  const double r, const double phi)
+{
+
+  double dphi = 2.0*PI/(double)quantity.get_size_azimuthal();
+
+  // find nearest n_radials
+  // we do not need to check if n_radial_a_plus < NRadial because it this would be the case, something in the move part went wrong :)
+  while (Ra[n_radial_a_plus] < r)
+	  n_radial_a_plus++;
+  n_radial_a_minus = n_radial_a_plus - 1;
+  while (Rb[n_radial_b_plus] < r)
+	  n_radial_b_plus++;
+  n_radial_b_minus = n_radial_b_plus - 1;
+
+  // find nearest n_azimuthals
+  n_azimuthal_a_minus = trunc(phi/dphi);
+  n_azimuthal_a_plus = n_azimuthal_a_minus+1;
+  if (n_azimuthal_a_plus == quantity.get_size_azimuthal()) {
+	  n_azimuthal_a_plus = 0;
+  }
+
+  int tmp = floor((phi-0.5*dphi)/dphi);
+  n_azimuthal_b_minus = (tmp == -1) ? quantity.get_max_azimuthal() : (unsigned int)tmp;
+  n_azimuthal_b_plus = n_azimuthal_b_minus+1;
+  if (n_azimuthal_b_plus == quantity.get_size_azimuthal()) {
+	  n_azimuthal_b_plus = 0;
+  }
+}
+
+
+static double interpolate_bilinear_sg(const double *array1D,
+				   const unsigned int n_radial_minus, const unsigned int n_radial_plus,
+				   const unsigned int n_azimuthal_minus, const unsigned int n_azimuthal_plus,
+				   const double r, double phi)
+{
+
+	const unsigned int last_index = NAzimuthal-1;
+	double dphi = 2.0*PI/(double)NAzimuthal;
+
+	// values at corners
+	double Qmm = array1D[n_radial_minus*NAzimuthal + n_azimuthal_minus];
+	double Qpm = array1D[n_radial_plus*NAzimuthal + n_azimuthal_minus];
+	double Qmp = array1D[n_radial_minus*NAzimuthal + n_azimuthal_plus];
+	double Qpp = array1D[n_radial_plus*NAzimuthal + n_azimuthal_plus];
+
+	double rm = Rb[n_radial_minus];
+	double rp = Rb[n_radial_plus];
+
+	double phim;
+	double phip;
+
+
+	if(n_azimuthal_minus == last_index)
+	{
+		if(phi < PI)
+		{
+			// particle is inside cell with n_azimuthal = 0
+			// previous cell is at N_azimuthal_max - 1, but measure distance from -0.5*dphi
+			phim = -0.5*dphi;
+			phip =  0.5*dphi;
+		}
+		else // phi > PI
+		{
+			// particle is inside cell with n_azimuthal = N_azimuthal_max - 1
+			// next cell is at N_azimuthal = 0, but measure distance from 2*PI+0.5*dphi
+			phim = (n_azimuthal_minus + 0.5)*dphi;
+			phip = (n_azimuthal_minus + 1.5)*dphi;
+		}
+	}
+	else
+	{
+		phim = (n_azimuthal_minus+0.5)*dphi;
+		phip = (n_azimuthal_plus+0.5)*dphi;
+	}
+
+
+	if ((phim > 2.0*PI) || (phip > 2.0*PI)) {
+		phim -= PI;
+		phip -= PI;
+		phi -= PI;
+	}
+
+	double Qm = ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim);
+	double Qp = ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
+
+	return ((rp-r)*Qm+(r-rm)*Qp)/(rp-rm);
+}
+
+
 /*
 static double get_particle_eccentricity(int particle_index)
 {
@@ -234,7 +328,7 @@ static void init_particle_timestep(t_data &data)
 }
 
 
-static void init_particle(const unsigned int &i, const unsigned int &id_offset, std::mt19937 &generator, std::uniform_real_distribution<double> &dis_one, std::uniform_real_distribution<double> &dis_twoPi, std::uniform_real_distribution<double> &dis_eccentricity)
+static void init_particle(t_data &data, const unsigned int &i, const unsigned int &id_offset, std::mt19937 &generator, std::uniform_real_distribution<double> &dis_one, std::uniform_real_distribution<double> &dis_twoPi, std::uniform_real_distribution<double> &dis_eccentricity)
 {
 	double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
 	double phi = dis_twoPi(generator);
@@ -266,7 +360,7 @@ static void init_particle(const unsigned int &i, const unsigned int &id_offset, 
 
 	particles[i].radius = parameters::particle_radius;
 
-	if(false)
+	if(true)
 	{
 		const int particle_type = i % 4; // 4 different particle sizes
 		switch(particle_type)
@@ -291,7 +385,23 @@ static void init_particle(const unsigned int &i, const unsigned int &id_offset, 
 	particles[i].mass = volume * parameters::particle_density;
 
 	double r = semi_major_axis*(1.0+eccentricity);
-	double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
+
+
+	double sg_radial = 0.0;
+	if (parameters::particle_disk_gravity_enabled) {
+
+		// find nearest cells
+		unsigned int n_radial_a_minus = 0, n_radial_a_plus  = 1;
+		unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
+		unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
+		unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
+		find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+
+		sg_radial = interpolate_bilinear_sg(selfgravity::g_radial, n_radial_a_minus, n_radial_a_plus,
+											n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+	}
+
+	double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis - sg_radial*semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
 
 	if(CartesianParticles)
 	{
@@ -366,12 +476,12 @@ void init(t_data &data) {
 
 	for (unsigned int i = 0; i < local_offset; ++i)
 	{
-		init_particle(0, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity); // bring random generator to correct position
+		init_particle(data, 0, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity); // bring random generator to correct position
 	}
 
 	for (unsigned int i = 0; i < local_number_of_particles; ++i)
 	{
-		init_particle(i, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity);
+		init_particle(data, i, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity);
 	}
 
 	// create MPI datatype
@@ -749,42 +859,6 @@ static double interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid, bo
 
 	return Q;
 }
-
-
-void find_nearest(const t_polargrid &quantity,
-              unsigned int &n_radial_a_minus, unsigned int &n_radial_a_plus,
-              unsigned int &n_azimuthal_a_minus, unsigned int &n_azimuthal_a_plus,
-              unsigned int &n_radial_b_minus, unsigned int &n_radial_b_plus,
-              unsigned int &n_azimuthal_b_minus, unsigned int &n_azimuthal_b_plus,
-              const double r, const double phi)
-{
-
-  double dphi = 2.0*PI/(double)quantity.get_size_azimuthal();
-
-  // find nearest n_radials
-  // we do not need to check if n_radial_a_plus < NRadial because it this would be the case, something in the move part went wrong :)
-  while (Ra[n_radial_a_plus] < r)
-	  n_radial_a_plus++;
-  n_radial_a_minus = n_radial_a_plus - 1;
-  while (Rb[n_radial_b_plus] < r)
-	  n_radial_b_plus++;
-  n_radial_b_minus = n_radial_b_plus - 1;
-
-  // find nearest n_azimuthals
-  n_azimuthal_a_minus = trunc(phi/dphi);
-  n_azimuthal_a_plus = n_azimuthal_a_minus+1;
-  if (n_azimuthal_a_plus == quantity.get_size_azimuthal()) {
-	  n_azimuthal_a_plus = 0;
-  }
-
-  int tmp = floor((phi-0.5*dphi)/dphi);
-  n_azimuthal_b_minus = (tmp == -1) ? quantity.get_max_azimuthal() : (unsigned int)tmp;
-  n_azimuthal_b_plus = n_azimuthal_b_minus+1;
-  if (n_azimuthal_b_plus == quantity.get_size_azimuthal()) {
-	  n_azimuthal_b_plus = 0;
-  }
-}
-
 
 static void calculate_tstop(const double r, const double phi, const double r_dot, const double phi_dot,
 					 t_data &data, const double radius, double &minus_r_dotel_r, double &minus_l_rel,
@@ -1180,64 +1254,6 @@ void update_velocities_from_gas_drag(t_data &data, double dt) {
 			update_velocity_from_disk_gravity(n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi, i, dt);
 		}
 	}
-}
-
-static double interpolate_bilinear_sg(const double *array1D,
-				   const unsigned int n_radial_minus, const unsigned int n_radial_plus,
-				   const unsigned int n_azimuthal_minus, const unsigned int n_azimuthal_plus,
-				   const double r, double phi)
-{
-
-	const unsigned int last_index = NAzimuthal-1;
-	double dphi = 2.0*PI/(double)NAzimuthal;
-
-	// values at corners
-	double Qmm = array1D[n_radial_minus*NAzimuthal + n_azimuthal_minus];
-	double Qpm = array1D[n_radial_plus*NAzimuthal + n_azimuthal_minus];
-	double Qmp = array1D[n_radial_minus*NAzimuthal + n_azimuthal_plus];
-	double Qpp = array1D[n_radial_plus*NAzimuthal + n_azimuthal_plus];
-
-	double rm = Rb[n_radial_minus];
-	double rp = Rb[n_radial_plus];
-
-	double phim;
-	double phip;
-
-
-	if(n_azimuthal_minus == last_index)
-	{
-		if(phi < PI)
-		{
-			// particle is inside cell with n_azimuthal = 0
-			// previous cell is at N_azimuthal_max - 1, but measure distance from -0.5*dphi
-			phim = -0.5*dphi;
-			phip =  0.5*dphi;
-		}
-		else // phi > PI
-		{
-			// particle is inside cell with n_azimuthal = N_azimuthal_max - 1
-			// next cell is at N_azimuthal = 0, but measure distance from 2*PI+0.5*dphi
-			phim = (n_azimuthal_minus + 0.5)*dphi;
-			phip = (n_azimuthal_minus + 1.5)*dphi;
-		}
-	}
-	else
-	{
-		phim = (n_azimuthal_minus+0.5)*dphi;
-		phip = (n_azimuthal_plus+0.5)*dphi;
-	}
-
-
-	if ((phim > 2.0*PI) || (phip > 2.0*PI)) {
-		phim -= PI;
-		phip -= PI;
-		phi -= PI;
-	}
-
-	double Qm = ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim);
-	double Qp = ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
-
-	return ((rp-r)*Qm+(r-rm)*Qp)/(rp-rm);
 }
 
 void update_velocity_from_disk_gravity(const int n_radial_a_minus, const int n_radial_a_plus,
