@@ -328,7 +328,59 @@ static void init_particle_timestep(t_data &data)
 }
 
 
-static void init_particle(t_data &data, const unsigned int &i, const unsigned int &id_offset, std::mt19937 &generator, std::uniform_real_distribution<double> &dis_one, std::uniform_real_distribution<double> &dis_twoPi, std::uniform_real_distribution<double> &dis_eccentricity)
+
+
+static void correct_for_self_gravity(t_data &data, const unsigned int i)
+{
+
+	const double r = particles[i].get_distance_to_star();
+	const double phi = particles[i].get_angle();
+
+	const double eccentricity = particles[i].phi_ddot; // reused variable for storage, will be initialized correctly in this function to 0.0
+	const double semi_major_axis = r / (1.0 + eccentricity);
+
+	double sg_radial = 0.0;
+	if (parameters::particle_disk_gravity_enabled)
+	{
+
+		// find nearest cells
+		unsigned int n_radial_a_minus = 0, n_radial_a_plus  = 1;
+		unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
+		unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
+		unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
+		find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+
+		sg_radial = interpolate_bilinear_sg(selfgravity::g_radial, n_radial_a_minus, n_radial_a_plus,
+											n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+	}
+
+	double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis - sg_radial*semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
+
+	// only need to update velocities, set accelerations to 0 anyway
+	if(CartesianParticles)
+	{
+		// Beware: cartesian particles still use the names of polar coordinates
+		// vx = r_dot
+		// vy = phi_dot
+
+		particles[i].r_dot = -v*sin(phi);
+		particles[i].phi_dot = v*cos(phi);
+	}
+	else
+	{
+		particles[i].r_dot = 0.0;
+		particles[i].phi_dot = v/r;
+	}
+
+	particles[i].r_ddot = 0.0;
+	particles[i].phi_ddot = 0.0;
+
+}
+
+
+
+
+static void init_particle(const unsigned int &i, const unsigned int &id_offset, std::mt19937 &generator, std::uniform_real_distribution<double> &dis_one, std::uniform_real_distribution<double> &dis_twoPi, std::uniform_real_distribution<double> &dis_eccentricity)
 {
 	double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
 	double phi = dis_twoPi(generator);
@@ -385,23 +437,7 @@ static void init_particle(t_data &data, const unsigned int &i, const unsigned in
 	particles[i].mass = volume * parameters::particle_density;
 
 	double r = semi_major_axis*(1.0+eccentricity);
-
-
-	double sg_radial = 0.0;
-	if (parameters::particle_disk_gravity_enabled) {
-
-		// find nearest cells
-		unsigned int n_radial_a_minus = 0, n_radial_a_plus  = 1;
-		unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
-		unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
-		unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-		find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-
-		sg_radial = interpolate_bilinear_sg(selfgravity::g_radial, n_radial_a_minus, n_radial_a_plus,
-											n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	}
-
-	double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis - sg_radial*semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
+	double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
 
 	if(CartesianParticles)
 	{
@@ -425,8 +461,8 @@ static void init_particle(t_data &data, const unsigned int &i, const unsigned in
 		particles[i].phi_dot = v/r;
 	}
 
-	particles[i].r_ddot = 0.0;
-	particles[i].phi_ddot = 0.0;
+	particles[i].r_ddot = v;
+	particles[i].phi_ddot = eccentricity;
 
 	// only needed for adaptive integrator, initialized later
 	particles[i].timestep = 0.0;
@@ -476,12 +512,12 @@ void init(t_data &data) {
 
 	for (unsigned int i = 0; i < local_offset; ++i)
 	{
-		init_particle(data, 0, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity); // bring random generator to correct position
+		init_particle(0, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity); // bring random generator to correct position
 	}
 
 	for (unsigned int i = 0; i < local_number_of_particles; ++i)
 	{
-		init_particle(data, i, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity);
+		init_particle(i, local_offset, generator, dis_one, dis_twoPi, dis_eccentricity);
 	}
 
 	// create MPI datatype
@@ -518,6 +554,14 @@ void init(t_data &data) {
 		move();
 	}
 
+
+	if(parameters::particle_disk_gravity_enabled)
+	{
+		for (unsigned int i = 0; i < local_number_of_particles; ++i)
+		{
+			correct_for_self_gravity(data, i);
+		}
+	}
 	check_tstop(data);
 
 	if(parameters::integrator == parameters::integrator_adaptive)
