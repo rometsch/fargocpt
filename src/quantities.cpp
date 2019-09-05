@@ -152,6 +152,47 @@ double gas_internal_energy(t_data &data)
 	return global_internal_energy;
 }
 
+
+/**
+	Calculates gas qplus
+*/
+double gas_qplus(t_data &data)
+{
+	double local_qplus = 0.0;
+	double global_qplus = 0.0;
+
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal(); ++n_azimuthal) {
+			local_qplus += Surf[n_radial]*data[t_data::QPLUS](n_radial,n_azimuthal);
+		}
+	}
+
+	MPI_Reduce(&local_qplus, &global_qplus, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	return global_qplus;
+}
+
+
+/**
+	Calculates gas qminus
+*/
+double gas_qminus(t_data &data)
+{
+	double local_qminus = 0.0;
+	double global_qminus = 0.0;
+
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal(); ++n_azimuthal) {
+			local_qminus += Surf[n_radial]*data[t_data::QMINUS](n_radial,n_azimuthal);
+		}
+	}
+
+	MPI_Reduce(&local_qminus, &global_qminus, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	return global_qminus;
+}
+
+
 /**
 	Calculates gas kinematic energy
 */

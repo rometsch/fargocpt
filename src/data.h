@@ -94,7 +94,7 @@ class t_data
 		inline t_planetary_system& get_planetary_system() { return m_planetary_system; }
         void print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal);
 
-		double qminus_total, qplus_total, pdivv_total;
+		double pdivv_total;
 		inline ptrdiff_t get_n_radial(void) { return m_n_radial; };
 		inline ptrdiff_t get_n_azimuthal(void) { return m_n_azimuthal; };
 		inline ptrdiff_t get_global_n_radial(void) { return m_global_n_radial; };

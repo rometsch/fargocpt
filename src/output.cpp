@@ -342,6 +342,8 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 	double diskRadius = quantities::gas_disk_radius(data, totalMass);
 	double totalAngularMomentum = quantities::gas_angular_momentum(data);
 	double internalEnergy = quantities::gas_internal_energy(data);
+	double qplus = quantities::gas_qplus(data);
+	double qminus = quantities::gas_qminus(data);
 	double kinematicEnergy = quantities::gas_kinematic_energy(data);
 	double radialKinematicEnergy = quantities::gas_radial_kinematic_energy(data);
 	double azimuthalKinematicEnergy = quantities::gas_azimuthal_kinematic_energy(data);
@@ -350,8 +352,6 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 	double scale_height = quantities::gas_aspect_ratio(data);
 
 
-	double qplus_total = 0.0;
-	double qminus_total = 0.0;
 	double pdivv_total = 0.0;
 	double InnerPositive = 0.0;
 	double InnerNegative = 0.0;
@@ -361,8 +361,6 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 	double WaveDampingNegative = 0.0;
 	double FloorPositive	= 0.0;
 
-	MPI_Reduce(&data.qplus_total,				&qplus_total,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(&data.qminus_total,				&qminus_total,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 	MPI_Reduce(&data.pdivv_total,				&pdivv_total,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 	MPI_Reduce(&MassDelta.InnerPositive,		&InnerPositive,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 	MPI_Reduce(&MassDelta.InnerNegative,		&InnerNegative,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -390,8 +388,8 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 			azimuthalKinematicEnergy,
 			disk_eccentricity,
 			disk_periastron,
-			qplus_total,
-			qminus_total,
+			qplus,
+			qminus,
 			pdivv_total,
 			InnerPositive,
 			InnerNegative,

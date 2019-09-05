@@ -608,7 +608,6 @@ void SubStep2(t_data &data, double dt)
 void calculate_qplus(t_data &data) {
 	// clear up all Qplus terms
 	data[t_data::QPLUS].clear();
-	data.qplus_total = 0;
 
 	if (parameters::heating_viscous_enabled) {
 		/* We calculate the heating source term Qplus from i=1 to max-1 */
@@ -627,7 +626,6 @@ void calculate_qplus(t_data &data) {
 
 					qplus *= parameters::heating_viscous_factor;
 					data[t_data::QPLUS](n_radial,n_azimuthal) += qplus;
-					sum_without_ghost_cells(data.qplus_total, qplus, n_radial);
 				}
 			}
 		}
@@ -639,7 +637,6 @@ void calculate_qplus(t_data &data) {
 				double qplus = data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial()-1, n_azimuthal)*exp( log(data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial()-1, n_azimuthal)/data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial()-2, n_azimuthal)) * log(Rmed[data[t_data::QPLUS].get_max_radial()]/Rmed[data[t_data::QPLUS].get_max_radial()-1]) / log(Rmed[data[t_data::QPLUS].get_max_radial()-1]/Rmed[data[t_data::QPLUS].get_max_radial()-2]) );
 
 				data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial(),n_azimuthal) += qplus;
-				sum_without_ghost_cells(data.qplus_total, qplus, data[t_data::QPLUS].get_max_radial());
 			}
 		}
 		/* We calculate the heating source term Qplus for i=0 */
@@ -649,7 +646,6 @@ void calculate_qplus(t_data &data) {
 				double qplus = data[t_data::QPLUS](1, n_azimuthal)*exp( log(data[t_data::QPLUS](1, n_azimuthal)/data[t_data::QPLUS](2, n_azimuthal)) * log(Rmed[0]/Rmed[1]) / log(Rmed[1]/Rmed[2]) );
 
 				data[t_data::QPLUS](0,n_azimuthal) += qplus;
-				sum_without_ghost_cells(data.qplus_total, qplus, 0);
 			}
 		}
 	}
@@ -768,7 +764,6 @@ void calculate_qplus(t_data &data) {
 					double qplus = ramping*visibility*parameters::heating_star_factor*2.0*alpha*constants::sigma.get_code_value()*pow4(parameters::star_temperature)*pow2(parameters::star_radius/Rmed[n_radial]);
 
 					data[t_data::QPLUS](n_radial,n_azimuthal) += qplus;
-					sum_without_ghost_cells(data.qplus_total, qplus, n_radial);
 
 					/* // secondary star/plantes
 					for (unsigned int planet = 1; planet > data.get_planetary_system().get_number_of_planets(); ++planet) {
@@ -794,7 +789,6 @@ void calculate_qplus(t_data &data) {
 void calculate_qminus(t_data &data) {
 	// clear up all Qminus terms
 	data[t_data::QMINUS].clear();
-	data.qminus_total = 0;
 
 	// beta cooling
 	if (parameters::cooling_beta_enabled) {
@@ -804,7 +798,6 @@ void calculate_qminus(t_data &data) {
 				double qminus = data[t_data::ENERGY](n_radial, n_azimuthal)*(0.5*(data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal)+data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL].get_max_azimuthal() ? 0 : n_azimuthal+1))/Rmed[n_radial])/parameters::cooling_beta;
 
 				data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
-				sum_without_ghost_cells(data.qminus_total, qminus, n_radial);
 			}
 		}
 	}
@@ -841,7 +834,6 @@ void calculate_qminus(t_data &data) {
 				double qminus = parameters::cooling_radiative_factor*2*(constants::sigma.get_code_value())*pow4(data[t_data::TEMPERATURE](n_radial, n_azimuthal))/data[t_data::TAU_EFF](n_radial, n_azimuthal);
 
 				data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
-				sum_without_ghost_cells(data.qminus_total, qminus, n_radial);
 			}
 		}
 	}
