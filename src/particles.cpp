@@ -967,15 +967,21 @@ static void calculate_tstop2(const double r, const double phi, const double r_do
 					 t_data &data, const double radius, double &minus_r_dotel_r, double &minus_l_rel,
 					 double &tstop, const double r0, const double l0) {
 
+
+  // r has been updated since last  move(), so we need to confirm that the particle is still inside the domain
+  // the gas values are determined at the edge of the domain if particle is outside the domain
+  double r_tmp = fmax(r, local_r_min);
+  r_tmp = fmin(r, local_r_max);
+
   unsigned int n_radial_a_minus = 0, n_radial_a_plus = 1, n_radial_b_minus = 0, n_radial_b_plus = 1;
   unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0, n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-  find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+  find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
 
   // calculate gas quantities at the particle location
-  const double rho = interpolate_bilinear(data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-  const double temperature = interpolate_bilinear(data[t_data::TEMPERATURE], false, false, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-  const double vg_radial = interpolate_bilinear(data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-  const double vg_azimuthal = interpolate_bilinear(data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus, n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+  const double rho = interpolate_bilinear(data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
+  const double temperature = interpolate_bilinear(data[t_data::TEMPERATURE], false, false, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
+  const double vg_radial = interpolate_bilinear(data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
+  const double vg_azimuthal = interpolate_bilinear(data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus, n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r_tmp, phi);
   const double m0 = parameters::MU * constants::m_u.get_code_value();
   const double vthermal = sqrt(8.0*constants::k_B.get_code_value()*temperature/(PI*m0));
 

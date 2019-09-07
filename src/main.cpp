@@ -216,17 +216,6 @@ int main(int argc, char* argv[])
 	logging::start_timer();
 
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
-		InnerOutputCounter++;
-
-		if (InnerOutputCounter == 1) {
-			InnerOutputCounter = 0;
-			data.get_planetary_system().write_planets(TimeStep, true);
-			//WriteBigPlanetSystemFile(sys, TimeStep);
-			UpdateLog(data, force, TimeStep, PhysicalTime);
-			if (Stockholm)
-				UpdateLogStockholm(data, PhysicalTime);
-		}
-
 		// write outputs
 
 		bool force_update_for_output = true;
@@ -255,6 +244,20 @@ int main(int argc, char* argv[])
 		} else {
 			TimeToWrite = NO;
 		}
+
+
+		(void) InnerOutputCounter;
+		//InnerOutputCounter++;
+		//if (InnerOutputCounter == 1) {
+		if ((write_complete_output || parameters::write_at_every_timestep)) {
+			//InnerOutputCounter = 0;
+			data.get_planetary_system().write_planets(TimeStep, true);
+			//WriteBigPlanetSystemFile(sys, TimeStep);
+			UpdateLog(data, force, TimeStep, PhysicalTime);
+			if (Stockholm)
+				UpdateLogStockholm(data, PhysicalTime);
+		}
+
 
 		// write disk quantities like eccentricity, ...
 		if (write_complete_output || parameters::write_at_every_timestep) {
