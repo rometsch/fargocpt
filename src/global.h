@@ -44,8 +44,13 @@ extern unsigned int One_or_active;
 extern unsigned int MaxMO_or_active;		/* MO: Minus One */
 extern unsigned int GlobalNRadial;
 
-extern int *GlobalNradialLocalSizes;			// Needed for MPI_Gatherv
-extern int *GlobalNradialDisplacements;	// Needed for MPI_Gatherv
+void sum_without_ghost_cells(double &accumulator, const double &addend, const unsigned int &n_radial);
+
+extern int *RootNradialLocalSizes;			// Needed for MPI_Gatherv
+extern int *RootNradialDisplacements;	// Needed for MPI_Gatherv
+extern int *RootIMAX;
+extern int *RootIMIN;
+extern int *RootRanksOrdered;
 
 extern t_radialarray Rmed;
 extern t_radialarray &Rb;
@@ -75,7 +80,7 @@ extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern double hydro_center_mass;
 
 extern int debug, OnlyInit;
-extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;
+extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
 extern int CentrifugalBalance, ExcludeHill, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellAbscissa, *CellOrdinate;
@@ -97,7 +102,7 @@ extern double RMIN;
 extern double RMAX;
 
 extern double ROCHESMOOTHING;
-extern double ASPECTRATIO;
+extern double ASPECTRATIO_REF;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
 extern double SIGMASLOPE;

@@ -32,10 +32,9 @@
 
 int TimeToWrite;
 int dimfxy = 11, Restart = 0;
-static int InnerOutputCounter=0, StillWriteOneOutput;
+static int StillWriteOneOutput;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
-extern bool Adiabatic;
 
 unsigned int nTimeStep;
 
@@ -136,7 +135,9 @@ int main(int argc, char* argv[])
 	init_physics(data);
 
 	if (parameters::integrate_particles)
-		particles::init();
+	{
+		particles::init(data);
+	}
 
 	// save starting values (needed for damping)
 	copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
@@ -164,7 +165,7 @@ int main(int argc, char* argv[])
 		data[t_data::DENSITY].read2D((unsigned int)0);
 		data[t_data::V_RADIAL].read2D((unsigned int)0);
 		data[t_data::V_AZIMUTHAL].read2D((unsigned int)0);
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			data[t_data::ENERGY].read2D((unsigned int)0);
 
 		// save starting values (needed for damping)
@@ -175,7 +176,7 @@ int main(int argc, char* argv[])
 
 		// recalculate SigmaMed/EnergyMed
 		RefillSigma(&data[t_data::DENSITY]);
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			RefillEnergy(&data[t_data::ENERGY]);
 
 		// load grids at t = restart_from
@@ -183,8 +184,11 @@ int main(int argc, char* argv[])
 		data[t_data::DENSITY].read2D(options::restart_from);
 		data[t_data::V_RADIAL].read2D(options::restart_from);
 		data[t_data::V_AZIMUTHAL].read2D(options::restart_from);
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			data[t_data::ENERGY].read2D(options::restart_from);
+
+		if(parameters::integrate_particles)
+			particles::restart(options::restart_from);
 
 		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 		boundary_conditions::apply_boundary_condition(data, 0.0, false);
@@ -212,19 +216,8 @@ int main(int argc, char* argv[])
 	logging::start_timer();
 
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
-		InnerOutputCounter++;
 
 		data.get_planetary_system().calculate_orbital_elements();
-
-		if (InnerOutputCounter == 1) {
-			InnerOutputCounter = 0;
-			data.get_planetary_system().write_planets(TimeStep, true);
-			//WriteBigPlanetSystemFile(sys, TimeStep);
-			UpdateLog(data, force, TimeStep, PhysicalTime);
-			if (Stockholm)
-				UpdateLogStockholm(data, PhysicalTime);
-		}
-
 		// write outputs
 
 		bool force_update_for_output = true;
@@ -253,6 +246,15 @@ int main(int argc, char* argv[])
 		} else {
 			TimeToWrite = NO;
 		}
+
+
+		if ((write_complete_output || parameters::write_at_every_timestep)) {
+			data.get_planetary_system().write_planets(TimeStep, true);
+			UpdateLog(data, force, TimeStep, PhysicalTime);
+			if (Stockholm)
+				UpdateLogStockholm(data, PhysicalTime);
+		}
+
 
 		// write disk quantities like eccentricity, ...
 		if (write_complete_output || parameters::write_at_every_timestep) {
@@ -285,6 +287,8 @@ int main(int argc, char* argv[])
 	FreeForce(force);
 
 	selfgravity::mpi_finalize();
+	FreeSplitDomain();
+
 	MPI_Finalize();
 
 	return 0;

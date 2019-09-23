@@ -43,7 +43,6 @@ static boolean NoSplitAdvection[MAX1D];
 static boolean UniformTransport;
 extern int TimeStep;
 extern boolean FastTransport;
-extern bool Adiabatic;
 extern boolean OpenInner;
 
 /**
@@ -121,7 +120,7 @@ void OneWindRad(t_data &data, PolarGrid* Density, PolarGrid* VRadial, PolarGrid*
 	VanLeerRadial(data, VRadial, &angular_momentum_plus, dt);
 	VanLeerRadial(data, VRadial, &angular_momentum_minus, dt);
 
-	if (Adiabatic)
+	if (parameters::Adiabatic)
 		VanLeerRadial(data, VRadial, Energy, dt);
 
 	VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
@@ -235,7 +234,7 @@ void OneWindTheta(t_data &data, PolarGrid* Density, PolarGrid* VAzimuthal, Polar
 	AdvectSHIFT(radial_momentum_minus);
 	AdvectSHIFT(angular_momentum_plus);
 	AdvectSHIFT(angular_momentum_minus);
-	if (Adiabatic)
+	if (parameters::Adiabatic)
 		AdvectSHIFT(*Energy);
 	AdvectSHIFT(*Density);
 }
@@ -250,7 +249,7 @@ void QuantitiesAdvection(t_data &data, PolarGrid* Density, PolarGrid* VAzimuthal
 	VanLeerTheta(data, VAzimuthal, &radial_momentum_minus, dt);
 	VanLeerTheta(data, VAzimuthal, &angular_momentum_plus, dt);
 	VanLeerTheta(data, VAzimuthal, &angular_momentum_minus, dt);
-	if (Adiabatic)
+	if (parameters::Adiabatic)
 		VanLeerTheta(data, VAzimuthal, Energy, dt);
 	VanLeerTheta(data, VAzimuthal, Density, dt); /* MUST be the last line */
 }
@@ -330,6 +329,13 @@ void compute_star_radial(t_polargrid* Qbase, t_polargrid* VRadial, t_polargrid* 
 	}
 }
 
+/**
+ * @brief ComputeStarTheta update the quantity Qbase with advection in Azimuthal direction, results are written to Qstar
+ * @param Qbase
+ * @param VAzimuthal
+ * @param QStar
+ * @param dt
+ */
 void ComputeStarTheta(PolarGrid* Qbase, PolarGrid* VAzimuthal, PolarGrid* QStar, double dt)
 {
 	unsigned int nRadial, nAzimuthal,cell;
@@ -410,6 +416,13 @@ void compute_velocities_from_momenta(t_polargrid &density, t_polargrid &v_radial
 	}
 }
 
+/**
+ * @brief VanLeerRadial perform advection of quantity Qbase via transforming it into specific quantity
+ * @param data
+ * @param VRadial
+ * @param Qbase
+ * @param dt
+ */
 void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt)
 {
 	unsigned int nRadial, nAzimuthal;
@@ -440,23 +453,23 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 				// TODO: boundary
 				//if ((nRadial == 0) && (parameters::boundary_inner == parameters::boundary_condition_open))
 				//if ((nRadial == 0) && (OpenInner))
-				if (nRadial == 1) {
+				if (CPU_Rank == 0 && nRadial == 1) {
 					if (varq_inf > 0) {
-						MassDelta.InnerPositive += varq_inf;
+						sum_without_ghost_cells(MassDelta.InnerPositive, varq_inf, nRadial);
 					} else {
-						MassDelta.InnerNegative += varq_inf;
+						sum_without_ghost_cells(MassDelta.InnerNegative, varq_inf, nRadial);
 					}
-                } else if (nRadial == GlobalNRadial-1) {
+				} else if (CPU_Rank == CPU_Highest && nRadial == Qbase->get_max_radial()) {
 					if (varq_inf > 0) {
-						MassDelta.OuterPositive += varq_inf;
+						sum_without_ghost_cells(MassDelta.OuterNegative, -varq_inf, nRadial);
 					} else {
-						MassDelta.OuterNegative += varq_inf;
+						sum_without_ghost_cells(MassDelta.OuterPositive, -varq_inf, nRadial);
 					}
 				}
 				if (parameters::write_massflow) {
-					data[t_data::MASSFLOW_1D](nRadial) += varq_inf;
-                    if (nRadial == GlobalNRadial-1) {
-                        data[t_data::MASSFLOW_1D](nRadial) += varq_sup;
+					sum_without_ghost_cells(data[t_data::MASSFLOW_1D](nRadial), varq_inf, nRadial);
+					if (CPU_Rank == CPU_Highest && nRadial == Qbase->get_max_radial()) {
+						data[t_data::MASSFLOW_1D](nRadial) += varq_sup; // TODO this part is always zero (tested with open boundaries)
                     }
 				}
 			}
@@ -464,13 +477,20 @@ void VanLeerRadial(t_data &data, PolarGrid* VRadial, PolarGrid* Qbase, double dt
 	}
 }
 
+/**
+ * @brief VanLeerTheta perform advection on quantity Qbase by transforming it into specific quantity
+ * @param data
+ * @param VAzimuthal
+ * @param Qbase
+ * @param dt
+ */
 void VanLeerTheta(t_data &data, PolarGrid* VAzimuthal, PolarGrid* Qbase, double dt)
 {
 	unsigned int nRadial, nAzimuthal, cell;
 
 	int ljp;
 
-	divise_polargrid(*Qbase, data[t_data::DENSITY_INT], *Work);
+	divise_polargrid(*Qbase, data[t_data::DENSITY_INT], *Work); // work = qbase/densityint
 
 	ComputeStarTheta(Work, VAzimuthal, QRStar, dt);
 

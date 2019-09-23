@@ -171,6 +171,10 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 	if (one_file) {
 		// append to existing file for consecutive output of arrays
 		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
+		// if file doesn't exist yet, create it
+		if (error != MPI_SUCCESS) {
+			error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+		}
 		//error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
 	} else {
 		// make a new file for each output

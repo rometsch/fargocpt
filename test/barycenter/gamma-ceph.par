@@ -97,7 +97,7 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
 Ntot			100	# Total number of time steps
 Ninterm	 		1		# Time steps between outputs
 DT			49.56246157	# 1/10th of a binary orbit
-OutputDir	out/refractored
+OutputDir	out/master
 
 WriteAtEveryTimestep    Yes             # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity		Yes		# Write surface density. This is needed for restart of simulations. [default = yes]

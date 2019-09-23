@@ -57,9 +57,9 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 			IndirectTermDisk.y /= mass_center;
 		} else {
 			// default mode with primary star in coordinate center
-			IndirectTermDisk = ComputeAccel(force, data, 0.0, 0.0, 0.0);
-			IndirectTermDisk.x = -IndirectTermDisk.x;
-			IndirectTermDisk.y = -IndirectTermDisk.y;
+			Pair acceleration = ComputeAccel(force, data, 0.0, 0.0, 0.0);
+			IndirectTermDisk.x = -acceleration.x;
+			IndirectTermDisk.y = -acceleration.y;
 		}
 	}
 
@@ -81,7 +81,7 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 		// default mode with primary star in coordinate center
 		for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
 			t_planet &planet = data.get_planetary_system().get_planet(k);
-			double InvPlanetDistance3 =  1.0/pow3(planet.get_distance());
+			double InvPlanetDistance3 =  1.0/pow3(planet.get_r());
 			double mplanet = data.get_planetary_system().get_planet(k).get_mass();
 			IndirectTermPlanets.x = -constants::G*mplanet*InvPlanetDistance3*planet.get_x();
 			IndirectTermPlanets.y = -constants::G*mplanet*InvPlanetDistance3*planet.get_y();
@@ -114,7 +114,7 @@ void FillForcesArrays(t_data &data)
 			double r_hill = pow(planet.get_mass()/(3.0*(M+planet.get_mass())),1.0/3.0)*planet.get_semi_major_axis();
 			smooth_pl[k] = pow2(r_hill*ROCHESMOOTHING);
 		} else {
-			smooth_pl[k] = pow2(compute_smoothing(planet.get_distance()));
+			smooth_pl[k] = pow2(compute_smoothing_isothermal(planet.get_r()));
 		}
 	}
 
@@ -125,8 +125,8 @@ void FillForcesArrays(t_data &data)
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
 		// calculate smoothing length if dependend on radius
 		// i.e. for thickness smoothing with scale height at cell location
-		if (ThicknessSmoothingAtCell) {
-			smooth = pow2(compute_smoothing(Rmed[n_radial]));
+		if (ThicknessSmoothingAtCell && parameters::Locally_Isothermal) {
+			smooth = pow2(compute_smoothing_isothermal(Rmed[n_radial]));
 		}
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal(); ++n_azimuthal) {
 			angle = (double)n_azimuthal/(double)data[t_data::POTENTIAL].get_size_azimuthal()*2.0*PI;
@@ -137,8 +137,12 @@ void FillForcesArrays(t_data &data)
 				if (!ThicknessSmoothingAtCell) {
 					smooth = smooth_pl[k];
 				}
+				if (ThicknessSmoothingAtCell && (!parameters::Locally_Isothermal)) {
+					smooth = pow2(compute_smoothing(Rmed[n_radial], data, n_radial, n_azimuthal));
+				}
 				double distance2 = pow2(x-xpl[k])+pow2(y-ypl[k]);
 				distancesmooth = sqrt(distance2+smooth);
+				// direct term from planet
 				data[t_data::POTENTIAL](n_radial,n_azimuthal) += -constants::G*mpl[k]/distancesmooth;
 			}
 			// apply indirect term

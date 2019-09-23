@@ -1,6 +1,6 @@
 ## Disk parameters
 
-ThicknessSmoothingAtPlanet 0
+ThicknessSmoothingAtPlanet 1
 
 Sigma0			0.0001		# surface density at r=1 in g/cm^2
 SigmaSlope		1		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)

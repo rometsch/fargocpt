@@ -12,8 +12,9 @@
 #include "logging.h"
 #include "LowTasks.h"
 #include "global.h"
+#include "parameters.h"
 
-extern bool Adiabatic;
+extern bool parameters::Adiabatic;
 
 namespace options {
 

@@ -12,6 +12,7 @@
 #include "time.h"
 #include "global.h"
 #include "logging.h"
+#include "parameters.h"
 
 /// pointer to inner boundary send puffer
 static double *SendInnerBoundary;
@@ -31,8 +32,6 @@ static size_t bufferSize;
 /// flag if buffers for boundary communication already have been allocated
 static int buffersAllocated = 0;
 
-extern boolean Adiabatic;
-
 /**
 	Calculate size of buffers needed for boundary communication and allocate them.
 */
@@ -41,7 +40,7 @@ void AllocateBoundaryCommunicationBuffers() {
 	bufferSize = 3;
 
 	/* if we calculate adiabatic, energy is additional needed */
-	if (Adiabatic)
+	if (parameters::Adiabatic)
 		bufferSize++;
 
 	/* each variable has to be stored NAzimuthal times overlap cells. */
@@ -90,7 +89,7 @@ void CommunicateBoundaries(t_polargrid* Density, t_polargrid* Vrad, t_polargrid*
 	memcpy(SendOuterBoundary+l, Vrad->Field+o, l*sizeof(double));
 	memcpy(SendOuterBoundary+2*l, Vtheta->Field+o, l*sizeof(double));
 
-	if (Adiabatic) {
+	if (parameters::Adiabatic) {
 		memcpy(SendInnerBoundary+3*l, Energy->Field+l, l*sizeof(double));
 		memcpy(SendOuterBoundary+3*l, Energy->Field+o, l*sizeof(double));
 	}
@@ -125,7 +124,7 @@ void CommunicateBoundaries(t_polargrid* Density, t_polargrid* Vrad, t_polargrid*
 		memcpy(Density->Field, RecvInnerBoundary, l*sizeof(double));
 		memcpy(Vrad->Field, RecvInnerBoundary+l, l*sizeof(double));
 		memcpy(Vtheta->Field, RecvInnerBoundary+2*l, l*sizeof(double));
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			memcpy(Energy->Field, RecvInnerBoundary+3*l, l*sizeof(double));
 	}
 
@@ -135,7 +134,7 @@ void CommunicateBoundaries(t_polargrid* Density, t_polargrid* Vrad, t_polargrid*
 		memcpy(Density->Field+oo, RecvOuterBoundary, l*sizeof(double));
 		memcpy(Vrad->Field+oo, RecvOuterBoundary+l, l*sizeof(double));
 		memcpy(Vtheta->Field+oo, RecvOuterBoundary+2*l, l*sizeof(double));
-		if (Adiabatic)
+		if (parameters::Adiabatic)
 			memcpy(Energy->Field+oo, RecvOuterBoundary+3*l, l*sizeof(double));
 	}
 }

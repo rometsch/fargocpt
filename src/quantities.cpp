@@ -35,6 +35,35 @@ double gas_total_mass(t_data &data)
 	return global_mass;
 }
 
+
+
+
+double gas_aspect_ratio(t_data &data)
+{
+	double local_mass = 0.0;
+	const double gas_total_mass = quantities::gas_total_mass(data);
+	double aspect_ratio = 0.0;
+	double local_aspect_ratio = 0.0;
+
+	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise they would be included twice!)
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::DENSITY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal(); ++n_azimuthal) {
+			// eccentricity and semi major axis weighted with cellmass
+			local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+			local_aspect_ratio += data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * local_mass;
+		}
+	}
+
+	// synchronize threads
+	MPI_Allreduce(&local_aspect_ratio, &aspect_ratio, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+	aspect_ratio /= gas_total_mass;
+
+	return aspect_ratio;
+}
+
+
+
 /**
  * @brief gas_disk_radius
  * @param data
@@ -43,7 +72,6 @@ double gas_total_mass(t_data &data)
 double gas_disk_radius(t_data &data, const double total_mass)
 {
 
-	const unsigned int max_size = GlobalNRadial;
 	const unsigned int local_array_start = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
 	const unsigned int local_array_end = data[t_data::DENSITY].get_size_radial() - (CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
 	const unsigned int send_size = local_array_end - local_array_start;
@@ -56,33 +84,32 @@ double gas_disk_radius(t_data &data, const double total_mass)
 			local_mass[n_radial - local_array_start] += Surf[n_radial]*data[t_data::DENSITY](n_radial, n_azimuthal);
 		}
 	}
-
 	double radius = 0.0;
 	double current_mass = 0.0;
-	double *global_mass = nullptr;
+
+	MPI_Gatherv(local_mass, send_size, MPI_DOUBLE, GLOBAL_bufarray, RootNradialLocalSizes, RootNradialDisplacements, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
 	if(CPU_Master)
 	{
-		global_mass = new double[max_size];
-	}
-
-	MPI_Gatherv(local_mass, send_size, MPI_DOUBLE, global_mass, GlobalNradialLocalSizes, GlobalNradialDisplacements, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-	if(CPU_Master)
-	{
-		for(unsigned int i = GHOSTCELLS_B; i < max_size; ++i) // Outer ghost cell inside loop, but should always break before that anyway
+		int j = -1;
+		for(int rank = 0; rank < CPU_Number; ++rank)
 		{
-			current_mass += global_mass[i];
-			if(current_mass > 0.99*total_mass)
+			int id = RootRanksOrdered[rank];
+			for(int i = RootIMIN[id]; i <= RootIMAX[id]; ++i)
 			{
-				radius =  GlobalRmed[i];
-				break;
+				++j;
+				current_mass += GLOBAL_bufarray[i];
+				if(current_mass > 0.99*total_mass)
+				{
+					radius =  GlobalRmed[j];
+					goto found_radius; // break out of nested loop
+				}
 			}
 		}
 
-		delete [] global_mass;
+		found_radius:
+		void();
 	}
-
 	return radius;
 }
 
@@ -114,16 +141,57 @@ double gas_internal_energy(t_data &data)
 	double local_internal_energy = 0.0;
 	double global_internal_energy = 0.0;
 
-	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial < data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal(); ++n_azimuthal) {
 			local_internal_energy += Surf[n_radial]*data[t_data::ENERGY](n_radial,n_azimuthal);
 		}
 	}
 
-	MPI_Allreduce(&local_internal_energy, &global_internal_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_internal_energy, &global_internal_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_internal_energy;
 }
+
+
+/**
+	Calculates gas qplus
+*/
+double gas_qplus(t_data &data)
+{
+	double local_qplus = 0.0;
+	double global_qplus = 0.0;
+
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal(); ++n_azimuthal) {
+			local_qplus += Surf[n_radial]*data[t_data::QPLUS](n_radial,n_azimuthal);
+		}
+	}
+
+	MPI_Reduce(&local_qplus, &global_qplus, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	return global_qplus;
+}
+
+
+/**
+	Calculates gas qminus
+*/
+double gas_qminus(t_data &data)
+{
+	double local_qminus = 0.0;
+	double global_qminus = 0.0;
+
+	for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP; n_radial <= data[t_data::ENERGY].get_max_radial() - ( CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP ); ++n_radial) {
+		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal(); ++n_azimuthal) {
+			local_qminus += Surf[n_radial]*data[t_data::QMINUS](n_radial,n_azimuthal);
+		}
+	}
+
+	MPI_Reduce(&local_qminus, &global_qminus, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+	return global_qminus;
+}
+
 
 /**
 	Calculates gas kinematic energy
@@ -148,7 +216,7 @@ double gas_kinematic_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_kinematic_energy;
 }
@@ -173,7 +241,7 @@ double gas_radial_kinematic_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_kinematic_energy;
 }
@@ -197,7 +265,7 @@ double gas_azimuthal_kinematic_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_kinematic_energy, &global_kinematic_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_kinematic_energy;
 }
@@ -216,7 +284,7 @@ double gas_gravitational_energy(t_data &data)
 		}
 	}
 
-	MPI_Allreduce(&local_gravitational_energy, &global_gravitational_energy, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_gravitational_energy, &global_gravitational_energy, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	return global_gravitational_energy;
 }

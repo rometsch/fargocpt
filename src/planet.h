@@ -100,7 +100,8 @@ class t_planet
 		inline double get_eccentric_anomaly() const { return m_eccentric_anomaly; }
 		inline double get_pericenter_angle() const { return m_pericenter_angle; }
 
-		double get_distance();
+		double get_r(void) const;
+		double get_phi(void) const;
 		double get_angular_momentum();
 		double get_period();
 		double get_omega();

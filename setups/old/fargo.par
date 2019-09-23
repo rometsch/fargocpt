@@ -70,6 +70,8 @@ MOFVALUE		1E-9		# Mass Overflow in host star masses (m0) / Year
 
 PlanetConfig		setups/old/Jup-res.cfg
 IntegratePlanets	Yes		# [default = yes]
+HydroFrameCenter	primary
+NoDefaultStar       No
 ThicknessSmoothing 	0.6		# Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG	0.0		# Softening parameter for SG [default = ThicknessSmoothing]
 ThicknessSmoothingAtPlanet   No  # use the scale height at the radius of the planet for thickness smoothing. This flag should always be NO to use the scale height at the gas cell location expect for comparison reasons.
@@ -167,14 +169,19 @@ RandomSigma 		No		# randomize sigma start values?
 RandomFactor		0.1		# randomize by +- 10%
 FeatureSize		0.05		# Feature size of the open somplex algorithm
 
+
 ## particles
-IntegrateParticles	No     # enable particle integrator [default = no]	
-NumberOfParticles	0      # number of particles [default = 0]
-ParticleRadius		100    # particle radius in cm [default = 100]
+IntegrateParticles	YES     # enable particle integrator [default = no]	
+CartesianParticles	YES     # enable particle integrator [default = no]	
+ParticleIntegrator  explicit
+NumberOfParticles	1002      # number of particles [default = 0]
+ParticleRadius		1e3   # particle radius in cm [default = 100]
+ParticleEccentricity 0.03 # particle maximum Eccentricity
 ParticleDensity		2.65   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSlope		0      # [default = 0]
-ParticleMinimumRadius	0  # [default = RMIN]
-ParticleMaximumRadius	1  # [default = RMAX]
-ParticleEscapeRadius	1  # [default = ParticleMaximumRadius]
-ParticleGasDragEnabled	Yes # [default = YES]
+ParticleMinimumRadius	0.4  # [default = RMIN]
+ParticleMaximumRadius	2.5  # [default = RMAX]
+ParticleMinimumEscapeRadius 0.4 # [default = ParticleMinimumRadius]
+ParticleMaximumEscapeRadius 2.5 # [default = ParticleMaximumRadius]
+ParticleGasDragEnabled	yes # [default = YES]
 ParticleDiskGravityEnabled no # [default = no]

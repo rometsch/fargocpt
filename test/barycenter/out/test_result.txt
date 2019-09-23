@@ -1,0 +1,52 @@
+comparing master branch (49a7e9074aa29542b423d1bfa1d4e6aa9093c9b0) to barycenter branch (4b88bbc93daf31a51dd90ec2988537d1b10f7d52)
+
+reproduce:
+first run mpirun -n 4 ../../fargo gamma_ceph.par in the test/barycenter dir on both branches (master and barycenter), compile each
+
+result of camparisons with test/binary_io/print_differences.py out/master/gasdens$N.dat out/refractored$N.dat
+in test/barycenter/out run compare.py with argument 100, 50, 10
+
+N=100 # equivalent to 10 binary orbits
+
+Number of doubles =  10585
+Number of different values =  9165
+min value (file1) =  0.0002573085061579101
+max value (file1) =  7450.673831100572
+min diff =  2.439454888092385e-18
+max diff =  2.7063947527494747e-08
+avg diff =  1.739884264504712e-09
+median diff =  1.180751496576704e-09
+min relative diff =  0.0
+max relative diff =  7.916652858435404e-10
+avg relative diff =  1.1241553969903408e-11
+median relative diff =  6.571439842898567e-13
+
+N = 50 # 5 binary orbits
+
+Number of doubles =  10585
+Number of different values =  9232
+min value (file1) =  0.0002573085061579101
+max value (file1) =  6212.693522504062
+min diff =  3.7947076036992655e-19
+max diff =  5.00961050420301e-09
+avg diff =  2.863202243885904e-10
+median diff =  1.5711520973127335e-10
+min relative diff =  0.0
+max relative diff =  9.058397217611244e-11
+avg relative diff =  1.5566596398262219e-12
+median relative diff =  1.0482618845606399e-13
+
+N = 10 # 1 binary orbit
+
+Number of doubles =  10585
+Number of different values =  9290
+min value (file1) =  0.0002573085061579101
+max value (file1) =  5505.928905122514
+min diff =  5.421010862427522e-20
+max diff =  5.875335773453116e-10
+avg diff =  4.382977764516675e-11
+median diff =  2.5011104298755527e-11
+min relative diff =  0.0
+max relative diff =  1.0654745591205679e-11
+avg relative diff =  1.0892010298397497e-13
+median relative diff =  1.6348171816952134e-14

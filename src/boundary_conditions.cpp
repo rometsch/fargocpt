@@ -21,8 +21,6 @@ extern boolean OuterSourceMass;
 extern std::vector<parameters::t_DampingType> parameters::damping_vector;
 
 
-extern bool Adiabatic;
-
 namespace boundary_conditions {
 
 void apply_boundary_condition(t_data &data, double dt, bool final)
@@ -250,9 +248,9 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0, double 
 				delta = Xnew - X;
 				if ( is_density ) {
 					if (delta > 0) {
-						MassDelta.WaveDampingPositive += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingPositive, delta*Surf[n_radial], n_radial);
 					} else {
-						MassDelta.WaveDampingNegative += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingNegative, delta*Surf[n_radial], n_radial);
 					}
 				}
 			}
@@ -291,9 +289,9 @@ bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 				delta = Xnew - X;
 				if ( is_density ) {
 					if (delta > 0) {
-						MassDelta.WaveDampingPositive += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingPositive, delta*Surf[n_radial], n_radial);
 					} else {
-						MassDelta.WaveDampingNegative += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingNegative, delta*Surf[n_radial], n_radial);
 					}
 				}
 			}
@@ -332,9 +330,9 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0, do
 				const double delta = Xnew - X;
 				if ( is_density ) {
 					if (delta > 0) {
-						MassDelta.WaveDampingPositive += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingPositive, delta*Surf[n_radial], n_radial);
 					} else {
-						MassDelta.WaveDampingNegative += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingNegative, delta*Surf[n_radial], n_radial);
 					}
 				}
 			}
@@ -373,9 +371,9 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0, do
 				const double delta = Xnew - X;
 				if ( is_density ) {
 					if (delta > 0) {
-						MassDelta.WaveDampingPositive += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingPositive, delta*Surf[n_radial], n_radial);
 					} else {
-						MassDelta.WaveDampingNegative += delta*Surf[n_radial];
+						sum_without_ghost_cells(MassDelta.WaveDampingNegative, delta*Surf[n_radial], n_radial);
 					}
 				}
 			}
@@ -426,10 +424,10 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0, do
                 delta = Xnew - X;
                 if ( is_density ) {
                     if (delta > 0) {
-                        MassDelta.WaveDampingPositive += delta*Surf[n_radial];
-                    } else {
-                        MassDelta.WaveDampingNegative += delta*Surf[n_radial];
-                    }
+						sum_without_ghost_cells(MassDelta.WaveDampingPositive, delta*Surf[n_radial], n_radial);
+					} else {
+						sum_without_ghost_cells(MassDelta.WaveDampingNegative, delta*Surf[n_radial], n_radial);
+					}
                 }
             }
         }
@@ -478,10 +476,10 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0, do
                 delta = Xnew - X;
                 if ( is_density ) {
                     if (delta > 0) {
-                        MassDelta.WaveDampingPositive += delta*Surf[n_radial];
-                    } else {
-                        MassDelta.WaveDampingNegative += delta*Surf[n_radial];
-                    }
+						sum_without_ghost_cells(MassDelta.WaveDampingPositive, delta*Surf[n_radial], n_radial);
+					} else {
+						sum_without_ghost_cells(MassDelta.WaveDampingNegative, delta*Surf[n_radial], n_radial);
+					}
                 }
             }
         }
@@ -537,7 +535,7 @@ void mass_overflow(t_data &data)
 	double check = 0.0;
 	int gridcell = 0;
 	int maxradial = data[t_data::DENSITY].get_max_radial();
-	double dist = data.get_planetary_system().get_planet(parameters::mof_planet).get_distance();
+	double dist = data.get_planetary_system().get_planet(parameters::mof_planet).get_r();
 	double mass_stream = 0.0;
 	for (int i = -number_of_cells; i <= number_of_cells; i++) {
 		gridcell = (nearest_grid_cell + i + maxcells)%maxcells;
@@ -685,8 +683,8 @@ void keplerian2d_boundary_inner(t_data &data) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal(); ++n_azimuthal) {
 					data[t_data::DENSITY](1, n_azimuthal) = parameters::sigma0*pow(Rmed[1],-SIGMASLOPE);
 					data[t_data::DENSITY](0, n_azimuthal) = parameters::sigma0*pow(Rmed[0],-SIGMASLOPE);
-					data[t_data::ENERGY](1, n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO)*pow(Rmed[1],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
-					data[t_data::ENERGY](0, n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO)*pow(Rmed[0],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
+					data[t_data::ENERGY](1, n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO_REF)*pow(Rmed[1],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
+					data[t_data::ENERGY](0, n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO_REF)*pow(Rmed[0],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
 					data[t_data::TEMPERATURE](1, n_azimuthal) = data[t_data::ENERGY](1, n_azimuthal)/data[t_data::DENSITY](1, n_azimuthal)*(ADIABATICINDEX-1.0)*parameters::MU*constants::R;
 					data[t_data::TEMPERATURE](0, n_azimuthal) = data[t_data::ENERGY](0, n_azimuthal)/data[t_data::DENSITY](0, n_azimuthal)*(ADIABATICINDEX-1.0)*parameters::MU*constants::R;
 					data[t_data::V_RADIAL](1 ,n_azimuthal) = 0.0;
@@ -700,8 +698,8 @@ void keplerian2d_boundary_outer(t_data &data) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal(); ++n_azimuthal) {
 					data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(), n_azimuthal) = parameters::sigma0*pow(Rmed[data[t_data::DENSITY].get_max_radial()],-SIGMASLOPE);
 					data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial()-1, n_azimuthal) = parameters::sigma0*pow(Rmed[data[t_data::DENSITY].get_max_radial()-1],-SIGMASLOPE);
-					data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(), n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO)*pow(Rmed[data[t_data::DENSITY].get_max_radial()],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
-					data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial()-1, n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO)*pow(Rmed[data[t_data::DENSITY].get_max_radial()-1],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
+					data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(), n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO_REF)*pow(Rmed[data[t_data::DENSITY].get_max_radial()],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
+					data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial()-1, n_azimuthal) = 1.0/(ADIABATICINDEX-1.0)*parameters::sigma0*pow2(ASPECTRATIO_REF)*pow(Rmed[data[t_data::DENSITY].get_max_radial()-1],-SIGMASLOPE-1.0+2.0*FLARINGINDEX);
 					data[t_data::TEMPERATURE](data[t_data::TEMPERATURE].get_max_radial(), n_azimuthal) = data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(), n_azimuthal)/data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(), n_azimuthal)*(ADIABATICINDEX-1.0)*parameters::MU*constants::R;
 					data[t_data::TEMPERATURE](data[t_data::TEMPERATURE].get_max_radial()-1, n_azimuthal) = data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial()-1, n_azimuthal)/data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial()-1, n_azimuthal)*(ADIABATICINDEX-1.0)*parameters::MU*constants::R;
 					data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(), n_azimuthal) = -data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial()-2, n_azimuthal);

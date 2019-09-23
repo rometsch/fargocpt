@@ -18,6 +18,7 @@
 #include "quantities.h"
 #include "options.h"
 
+#include "unistd.h" // for access()
 #include <sys/stat.h>
 #include <fstream>
 #include <cstdio>
@@ -131,7 +132,33 @@ const std::map<const std::string, const int> quantities_file_column_v2_2 = {
 { "delta mass floor density positive", 23 }
 };
 
-const auto quantities_file_column = quantities_file_column_v2_2;
+const std::map<const std::string, const int> quantities_file_column_v2_3 = {
+{ "time step", 0 },
+{ "analysis time step", 1},
+{ "physical time", 2 },
+{ "mass", 3 },
+{ "radius", 4 },
+{ "angular momentum", 5 },
+{ "total energy", 6 },
+{ "internal energy", 7 },
+{ "kinematic energy", 8 },
+{ "potential energy", 9 },
+{ "radial kinetic energy", 10 },
+{ "azimuthal kinetic energy", 11 },
+{ "eccentricity", 12 },
+{ "periastron", 13},
+{ "qplus", 14 },
+{ "qminus", 15 },
+{ "pdivv", 16 },
+{ "delta mass inner positive", 17 },
+{ "delta mass inner negative", 18 },
+{ "delta mass outer positive", 19 },
+{ "delta mass outer negative", 20 },
+{ "delta mass wave damping positive", 21 },
+{ "delta mass wave damping negative", 22 },
+{ "delta mass floor density positive", 23 },
+{ "aspect ratio", 24 }
+};
 
 const std::map<const std::string, const std::string> quantities_file_variables = {
 { "physical time", "time" },
@@ -161,7 +188,12 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 { "frame angle", "frequency" },
 { "eccentricity", "1" },
 { "periastron", "1" },
+{ "aspect ratio", "1" }
 };
+
+
+const auto quantities_file_column = quantities_file_column_v2_3;
+
 
 void check_free_space(t_data &data)
 {
@@ -273,11 +305,10 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 		}
 		// check if file exists and we restarted
 		if ((options::restart) && !(fd_created)) {
-			fd = fopen(fd_filename, "r");
-			if (fd) {
+			if(access( fd_filename, W_OK ) != -1)
+			{
 				fd_created = true;
 			}
-			fclose(fd);
 		}
 
 		// open logfile
@@ -311,16 +342,38 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 	double diskRadius = quantities::gas_disk_radius(data, totalMass);
 	double totalAngularMomentum = quantities::gas_angular_momentum(data);
 	double internalEnergy = quantities::gas_internal_energy(data);
+	double qplus = quantities::gas_qplus(data);
+	double qminus = quantities::gas_qminus(data);
 	double kinematicEnergy = quantities::gas_kinematic_energy(data);
 	double radialKinematicEnergy = quantities::gas_radial_kinematic_energy(data);
 	double azimuthalKinematicEnergy = quantities::gas_azimuthal_kinematic_energy(data);
 	double gravitationalEnergy = quantities::gas_gravitational_energy(data);
 	double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
+	double scale_height = quantities::gas_aspect_ratio(data);
+
+
+	double pdivv_total = 0.0;
+	double InnerPositive = 0.0;
+	double InnerNegative = 0.0;
+	double OuterPositive = 0.0;
+	double OuterNegative = 0.0;
+	double WaveDampingPositive = 0.0;
+	double WaveDampingNegative = 0.0;
+	double FloorPositive	= 0.0;
+
+	MPI_Reduce(&data.pdivv_total,				&pdivv_total,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.InnerPositive,		&InnerPositive,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.InnerNegative,		&InnerNegative,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.OuterPositive,		&OuterPositive,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.OuterNegative,		&OuterNegative,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.WaveDampingPositive,	&WaveDampingPositive,	1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.WaveDampingNegative,	&WaveDampingNegative,	1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.FloorPositive,		&FloorPositive,			1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 
 	if (CPU_Master) {
 		// print to logfile
-		fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 			timestep,
             nTimeStep,
 			PhysicalTime,
@@ -335,23 +388,23 @@ void write_quantities(t_data &data, unsigned int timestep, unsigned int nTimeSte
 			azimuthalKinematicEnergy,
 			disk_eccentricity,
 			disk_periastron,
-			data.qplus_total,
-			data.qminus_total,
-			data.pdivv_total,
-			MassDelta.InnerPositive,
-			MassDelta.InnerNegative,
-			MassDelta.OuterPositive,
-			MassDelta.OuterNegative,
-			MassDelta.WaveDampingPositive,
-			MassDelta.WaveDampingNegative,
-			MassDelta.FloorPositive	);
-
-		// set mass delta to 0
-		MassDelta.reset();
+			qplus,
+			qminus,
+			pdivv_total,
+			InnerPositive,
+			InnerNegative,
+			OuterPositive,
+			OuterNegative,
+			WaveDampingPositive,
+			WaveDampingNegative,
+			FloorPositive,
+			scale_height);
 
 		// close file
 		fclose(fd);
 	}
+	// set mass delta to 0
+	MassDelta.reset();
 }
 
 /**
@@ -410,6 +463,12 @@ void write_misc(unsigned int timestep)
 std::string get_version(std::string filename) {
 	std::string version;
 	std::ifstream infile(filename);
+
+	if(infile.fail()){
+		logging::print_master(LOG_ERROR "Error: File %s cannot be opened!\n", filename.c_str());
+		PersonalExit(1);
+	}
+
 	std::string line_start;
 	while (infile >> line_start) {
 		// is it the version line
@@ -554,7 +613,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update) {
 	for (unsigned int n_planet = 0; n_planet < data.get_planetary_system().get_number_of_planets(); ++n_planet) {
 		local_torques[n_planet+1] = 0;
 		t_planet& planet = data.get_planetary_system().get_planet(n_planet);
-		double smooth = parameters::thickness_smoothing * ASPECTRATIO * pow(planet.get_distance(), 1.0+FLARINGINDEX);
+		double smooth = parameters::thickness_smoothing * ASPECTRATIO_REF * pow(planet.get_r(), 1.0+FLARINGINDEX);
 
 		// hill radius
 		double r_hill = pow(planet.get_mass()/(3.0*(M+planet.get_mass())),1.0/3.0)*planet.get_semi_major_axis();
@@ -740,9 +799,9 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep, 
 	}
 
 	// synchronize threads
-	MPI_Allreduce(&local_eccentricity, &disk_eccentricity, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_eccentricity, &disk_eccentricity, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 	//MPI_Allreduce(&local_semi_major_axis, &semi_major_axis, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	MPI_Allreduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
 	disk_eccentricity /= gas_total_mass;
 	//semi_major_axis /= gas_total_mass;

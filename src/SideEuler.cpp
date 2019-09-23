@@ -29,7 +29,6 @@
 #include "Interpret.h"
 
 extern boolean OuterSourceMass, Damping;
-extern bool Adiabatic;
 extern int dimfxy;
 extern boolean OuterSourceMass;
 
@@ -385,7 +384,7 @@ void EvanescentBoundary(t_data &data, double step)
 				vrad[cell] = (vrad[cell]+lambda*vrad0)/(1.0+lambda);
 				vtheta[cell] = (vtheta[cell]+lambda*vtheta0)/(1.0+lambda);
 				dens[cell] = (dens[cell]+lambda*dens0)/(1.0+lambda);
-				if (Adiabatic)
+				if (parameters::Adiabatic)
 					energ[cell] = (energ[cell]+lambda*energ0)/(1.0+lambda);
 			}
 		}
@@ -434,8 +433,8 @@ void ApplySubKeplerianBoundary(t_polargrid& v_azimuthal)
 	double VKepIn = 0.0, VKepOut = 0.0;
 	if (!parameters::self_gravity) {
 		/* (3.4) on page 44 */
-		VKepIn = sqrt ( constants::G*hydro_center_mass/Rb[0] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO,2.0)*pow(Rb[0],2.0*FLARINGINDEX) ) );
-		VKepOut = sqrt ( constants::G*hydro_center_mass/Rb[v_azimuthal.get_max_radial()] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO,2.0)*pow(Rb[v_azimuthal.get_max_radial()],2.0*FLARINGINDEX) ) );
+		VKepIn = sqrt ( constants::G*hydro_center_mass/Rb[0] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO_REF,2.0)*pow(Rb[0],2.0*FLARINGINDEX) ) );
+		VKepOut = sqrt ( constants::G*hydro_center_mass/Rb[v_azimuthal.get_max_radial()] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO_REF,2.0)*pow(Rb[v_azimuthal.get_max_radial()],2.0*FLARINGINDEX) ) );
 	} else {
 		double *GLOBAL_AxiSGAccr = (double*)malloc(sizeof(double) * GlobalNRadial);
 		mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
@@ -444,13 +443,13 @@ void ApplySubKeplerianBoundary(t_polargrid& v_azimuthal)
 		/* VKepIn is only needed on innermost CPU */
 		if ( CPU_Rank == 0 ) {
 			//viscosity::aspect_ratio(Rmed[0])
-			VKepIn = sqrt ( constants::G*hydro_center_mass/Rb[0] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO,2.0)*pow(Rb[0],2.0*FLARINGINDEX) ) - Rb[0]*GLOBAL_AxiSGAccr[0] );
+			VKepIn = sqrt ( constants::G*hydro_center_mass/Rb[0] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO_REF,2.0)*pow(Rb[0],2.0*FLARINGINDEX) ) - Rb[0]*GLOBAL_AxiSGAccr[0] );
 		}
 
 		/* VKepOut is only needed on outermost CPU */
 		if ( CPU_Rank == CPU_Highest ) {
 			// viscosity::aspect_ratio(Rmed[VAzimuthal->Nrad-1])
-			VKepOut = sqrt ( constants::G*hydro_center_mass/Rb[v_azimuthal.get_max_radial()] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO,2.0)*pow(Rb[v_azimuthal.get_max_radial()],2.0*FLARINGINDEX) ) - Rb[v_azimuthal.get_max_radial()]*GLOBAL_AxiSGAccr[v_azimuthal.get_max_radial()+IMIN] );
+			VKepOut = sqrt ( constants::G*hydro_center_mass/Rb[v_azimuthal.get_max_radial()] * ( 1.0 - (1.0+SIGMASLOPE-2.0*FLARINGINDEX) * pow(ASPECTRATIO_REF,2.0)*pow(Rb[v_azimuthal.get_max_radial()],2.0*FLARINGINDEX) ) - Rb[v_azimuthal.get_max_radial()]*GLOBAL_AxiSGAccr[v_azimuthal.get_max_radial()+IMIN] );
 		}
 		free(GLOBAL_AxiSGAccr);
 	}

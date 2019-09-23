@@ -134,7 +134,7 @@ void UpdateLogStockholm(t_data &data, double time)
 		if (RocheSmoothing)
 			smoothing = r*pow(m/3.,1./3.)*ROCHESMOOTHING;
 		else
-			smoothing = compute_smoothing (r);
+			smoothing = compute_smoothing_isothermal (r);
 		fc = ComputeForceStockholm(data, x, y, smoothing, m);
 		massinout = MassInOut(data, r);
 		if (CPU_Rank == CPU_Number-1) {

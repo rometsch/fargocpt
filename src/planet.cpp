@@ -110,12 +110,23 @@ void t_planet::set_name(const char* name)
 }
 
 /**
-	get planet distance to host star
-*/
-double t_planet::get_distance()
+ * @brief t_planet::get_angle get phi coordinate
+ * @return
+ */
+double t_planet::get_phi() const
 {
-	return sqrt(pow2(get_x())+pow2(get_y()));
+	return atan2(m_y, m_x);
 }
+
+
+/**
+	get planet distance to coordinate center
+*/
+double t_planet::get_r() const
+{
+	return sqrt(pow2(m_x)+pow2(m_y));
+}
+
 
 /**
 	get ramp up mass of the planet
@@ -144,7 +155,7 @@ double t_planet::get_period()
 */
 double t_planet::get_omega()
 {
-	double distance = get_distance();
+	double distance = get_r();
 	if (!is_distance_zero(distance)) {
 		return sqrt(((M+get_mass())*constants::G)/pow3(distance));
 	} else {

@@ -19,6 +19,7 @@
 #include "time.h"
 #include "global.h"
 #include "logging.h"
+#include "quantities.h"
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE
@@ -108,6 +109,32 @@ void mpi_finalize(void)
 
 
 /**
+ * @brief update_tobi_constants, calculate mass weighted aspect ratio and use it to update lambda_sq and chi_sq.
+ * see Tobi's master thesis for more info on the constants or Baruteau, 2008 for info on the self gravity module.
+ * @param data
+ * @param timestep
+ * @param force_update
+ */
+void update_tobi_constants(t_data &data)
+{
+	// only update every 10th timestep
+	constexpr int update_every_nth_step = 10;
+	static int last_timestep_calculated = update_every_nth_step;
+	last_timestep_calculated++;
+	if(last_timestep_calculated < update_every_nth_step)
+		return;
+	last_timestep_calculated = 0;
+
+
+	double aspect_ratio = quantities::gas_aspect_ratio(data);
+
+	lambda_sq = pow2(0.4571*aspect_ratio + 0.6737*sqrt(aspect_ratio));
+	chi_sq = pow2((-0.7543*aspect_ratio + 0.6472)*aspect_ratio);
+
+	return;
+}
+
+/**
 	Initializes self gravity.
 */
 void init()
@@ -118,8 +145,8 @@ void init()
 		PersonalExit(1);
 	}
 
-	lambda_sq = pow(0.4571*ASPECTRATIO + 0.6737*sqrt(ASPECTRATIO) ,2);
-  chi_sq = pow((-0.7543*ASPECTRATIO + 0.6472)*ASPECTRATIO ,2);
+	lambda_sq = pow2(0.4571*ASPECTRATIO_REF + 0.6737*sqrt(ASPECTRATIO_REF));
+	chi_sq = pow2((-0.7543*ASPECTRATIO_REF + 0.6472)*ASPECTRATIO_REF);
 	r_step = log(Radii[GlobalNRadial]/Radii[0]) / (double)GlobalNRadial;
 	t_step = 2.0*PI/(double)NAzimuthal;
 
@@ -467,7 +494,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 
 	for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial() - GHOSTCELLS_B; ++n_radial) {
 		// this corresponds to equation (3.42) in Baruteau, 2008
-		double temp = pow2(omega_kepler(Rmed[n_radial])) *( 1.0 - (1.+SIGMASLOPE-2.0*FLARINGINDEX) * pow2(ASPECTRATIO)*pow(Rmed[n_radial],2.0*FLARINGINDEX) ) - GLOBAL_AxiSGAccr[n_radial+IMIN]/Rmed[n_radial];
+		double temp = pow2(omega_kepler(Rmed[n_radial])) *( 1.0 - (1.+SIGMASLOPE-2.0*FLARINGINDEX) * pow2(ASPECTRATIO_REF)*pow(Rmed[n_radial],2.0*FLARINGINDEX) ) - GLOBAL_AxiSGAccr[n_radial+IMIN]/Rmed[n_radial];
 		if (temp < 0) {
 			logging::print("Radicand %lg < 0 in init_azimuthal_velocity! Maybe ThicknessSmoothingSG (%lg) is too small!\n", temp, parameters::thickness_smoothing_sg);
 		}
@@ -494,21 +521,24 @@ void init_planetary_system(t_data &data)
 
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
 		/* dist denotes the planet's semi-major axis */
-		dist = data.get_planetary_system().get_planet(k).get_semi_major_axis();
-		// TODO remove quick&dirty solution and think about it
+		if(data.get_planetary_system().get_planet(k).get_feeldisk())
+		{
+			dist = data.get_planetary_system().get_planet(k).get_semi_major_axis();
+			// TODO remove quick&dirty solution and think about it
 
-		if (dist<RMAX) {
-			ipl = 0;
-			while (GlobalRmed[ipl] <= dist)
-				ipl++;
-			ri = GlobalRmed[ipl];
-			rip1 = GlobalRmed[ipl+1];
-			dr = rip1 - ri;
-			sgacc = (dist - ri)*GLOBAL_AxiSGAccr[ipl+1] + (rip1 - dist)*GLOBAL_AxiSGAccr[ipl];
-			sgacc /= dr;
-			/* sgacc is the radial sg acc. at the planet's semi-major axis */
-			double new_vy = data.get_planetary_system().get_planet(k).get_vy() * (double)sqrt (1. - dist*dist*sgacc);
-			data.get_planetary_system().get_planet(k).set_vy(new_vy);
+			if (dist<RMAX) {
+				ipl = 0;
+				while (GlobalRmed[ipl] <= dist)
+					ipl++;
+				ri = GlobalRmed[ipl];
+				rip1 = GlobalRmed[ipl+1];
+				dr = rip1 - ri;
+				sgacc = (dist - ri)*GLOBAL_AxiSGAccr[ipl+1] + (rip1 - dist)*GLOBAL_AxiSGAccr[ipl];
+				sgacc /= dr;
+				/* sgacc is the radial sg acc. at the planet's semi-major axis */
+				double new_vy = data.get_planetary_system().get_planet(k).get_vy() * (double)sqrt (1. - dist*dist*sgacc);
+				data.get_planetary_system().get_planet(k).set_vy(new_vy);
+			}
 		}
 	}
 

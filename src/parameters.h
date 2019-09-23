@@ -5,6 +5,11 @@
 
 namespace parameters {
 
+// energy euations
+extern bool Adiabatic;
+extern bool Polytropic;
+extern bool Locally_Isothermal;
+
 /// Type of radial Grid
 enum t_radial_grid {
 	arithmetic_spacing,
@@ -233,6 +238,8 @@ extern unsigned int number_of_particles;
 extern bool integrate_particles;
 /// particle radius
 extern double particle_radius;
+/// particle eccentricity
+extern double particle_eccentricity;
 /// particle density
 extern double particle_density;
 /// particle slope
@@ -242,11 +249,20 @@ extern double particle_minimum_radius;
 /// particle maximum radius
 extern double particle_maximum_radius;
 /// particle escape radius
-extern double particle_escape_radius;
+extern double particle_minimum_escape_radius_sq;
+extern double particle_maximum_escape_radius_sq;
 /// particle gas drag
 extern bool particle_gas_drag_enabled;
 /// particle disk gravity
 extern bool particle_disk_gravity_enabled;
+/// particle integrator
+enum t_particle_integrator {
+	integrator_explicit,	    // explicit integrator (Cash-Karp, high-order)
+	integrator_adaptive,		// adaptive Cash-Karp integrator
+	integrator_semiimplicit,	// semi-implicit integrator
+	integrator_implicit,		// fully implicit integrator
+};
+extern t_particle_integrator integrator;
 
 void read(char* filename, t_data &data);
 void summarize_parameters();

@@ -70,8 +70,20 @@ unsigned int One_or_active;
 unsigned int MaxMO_or_active;		/* MO: Minus One */
 unsigned int GlobalNRadial;
 
-int *GlobalNradialLocalSizes;			// Needed for MPI_Gatherv
-int *GlobalNradialDisplacements;	// Needed for MPI_Gatherv
+/** sum up a quantity inside the processes domain without ghost cells */
+void sum_without_ghost_cells(double &accumulator, const double &addend, const unsigned int &n_radial)
+{
+	if(One_or_active <= n_radial && n_radial < Max_or_active)
+	{
+		accumulator += addend;
+	}
+}
+
+int *RootNradialLocalSizes;			// Needed for MPI_Gatherv
+int *RootNradialDisplacements;	// Needed for MPI_Gatherv
+int *RootIMAX;
+int *RootIMIN;
+int *RootRanksOrdered;
 
 /** Rmed is the location of be the center of mass of the cell.
     Its definition is in fact : 0.5 * [ (4/3) \pi Rsup[i]^3 - (4/3) \pi Rinf[i]^3 ] / [ \pi Rsup[i]^2 - \pi Rinf[i]^2]
@@ -119,7 +131,7 @@ int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
-int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;
+int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
 int CentrifugalBalance, ExcludeHill, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellAbscissa, *CellOrdinate;
@@ -142,7 +154,7 @@ double RMIN;
 double RMAX;
 
 double ROCHESMOOTHING;
-double ASPECTRATIO;
+double ASPECTRATIO_REF;
 double VISCOSITY;
 double ALPHAVISCOSITY;
 double SIGMASLOPE;

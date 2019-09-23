@@ -6,4 +6,4 @@ else
 	N="$1"
 fi
 TOCOMPARE="gasdens$N.dat"
-$COMP refractored/$TOCOMPARE finished-nodefaultstar/$TOCOMPARE
+$COMP master/$TOCOMPARE refractored/$TOCOMPARE

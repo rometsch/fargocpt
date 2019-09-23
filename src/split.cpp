@@ -13,6 +13,10 @@
 #define FFTW_MEASURE FFTW_ESTIMATE
 #endif
 
+
+#include<vector>
+#include <algorithm>
+
 void SplitDomain()
 {
 	/* Variables specific to standard mesh split */
@@ -229,21 +233,46 @@ void SplitDomain()
 	// Initializes Radial sizes of non vector arrays and required displacements
 	if(CPU_Master)
 	{
-		GlobalNradialLocalSizes = new int[CPU_Number];
-		GlobalNradialDisplacements = new int[CPU_Number];
+		RootNradialLocalSizes = new int[CPU_Number];
+		RootNradialDisplacements = new int[CPU_Number];
+		RootIMAX = new int[CPU_Number];
+		RootIMIN  = new int[CPU_Number];
+		RootRanksOrdered = new int[CPU_Number];
 	}
 
-	const int local_array_start = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
-	const int local_array_end = NRadial - (CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
-	const int send_size = local_array_end - local_array_start;
+	const int local_array_start = IMIN + ((CPU_Rank == 0) ? 0 : CPUOVERLAP);
+	const int local_array_end = IMAX - (CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
 
-	MPI_Gather(&send_size, 1, MPI_INT, GlobalNradialLocalSizes, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	const int send_size = local_array_end - local_array_start + 1;
+
+	MPI_Gather(&IMAX, 1, MPI_INT, RootIMAX, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Gather(&IMIN, 1, MPI_INT, RootIMIN, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Gather(&send_size, 1, MPI_INT, RootNradialLocalSizes, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	MPI_Gather(&CPU_Next, 1, MPI_INT, RootRanksOrdered, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
 	if(CPU_Master)
 	{
+
+		int tmp[CPU_Number];
+		tmp[0] = 0;
+		for(int i = 1; i < CPU_Number; ++i)
+		{
+			tmp[i] = RootRanksOrdered[tmp[i-1]];
+		}
+		for(int i = 0; i < CPU_Number; ++i)
+		{
+			RootRanksOrdered[i] = tmp[i];
+		}
+
+
 		// Displacement for the first chunk of data - 0
 		for (int i = 0; i < CPU_Number; i++)
-		   GlobalNradialDisplacements[i] = (i > 0) ? (GlobalNradialDisplacements[i-1] + GlobalNradialLocalSizes[i-1]) : 0;
+		{
+			RootNradialDisplacements[i] = (i > 0) ? (RootNradialDisplacements[i-1] + RootNradialLocalSizes[i-1]) : 0;
+			RootIMIN[i] = RootNradialDisplacements[i] + ((i == 0) ? GHOSTCELLS_B : 0);
+			RootIMAX[i] = RootNradialDisplacements[i] + RootNradialLocalSizes[i] - 1  - (i == CPU_Highest ? 1 : 0);
+		}
 	}
 	/////////////////////////////////////////////////////////////////////////////////////// End Added by Lucas
 
@@ -277,9 +306,19 @@ void SplitDomain()
 
 void FreeSplitDomain()
 {
+
+
+	if(dens_friend != nullptr)
+	{
+		free(dens_friend);
+	}
+
 	if(CPU_Master)
 	{
-		delete [] GlobalNradialLocalSizes;
-		delete [] GlobalNradialDisplacements;
+		delete [] RootNradialLocalSizes;
+		delete [] RootNradialDisplacements;
+		delete [] RootIMAX;
+		delete [] RootIMIN;
+		delete [] RootRanksOrdered;
 	}
 }
