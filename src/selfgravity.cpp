@@ -535,6 +535,7 @@ void init_planetary_system(t_data &data)
 				dr = rip1 - ri;
 				sgacc = (dist - ri)*GLOBAL_AxiSGAccr[ipl+1] + (rip1 - dist)*GLOBAL_AxiSGAccr[ipl];
 				sgacc /= dr;
+				// TODO: fix that only y velocity is updated
 				/* sgacc is the radial sg acc. at the planet's semi-major axis */
 				double new_vy = data.get_planetary_system().get_planet(k).get_vy() * (double)sqrt (1. - dist*dist*sgacc);
 				data.get_planetary_system().get_planet(k).set_vy(new_vy);

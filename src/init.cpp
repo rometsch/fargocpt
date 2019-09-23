@@ -204,7 +204,9 @@ void init_physics(t_data &data) {
 	if (parameters::self_gravity) {
 		// if SelfGravity = YES or Z, planets are initialized feeling disk potential. Only the surface density is required to calculate the radial self-gravity acceleration. The disk radial and azimutal velocities are not updated
 		selfgravity::compute(data[t_data::DENSITY], data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], foostep, false);
-		selfgravity::init_planetary_system(data);
+		if (parameters::disk_feedback) {
+			selfgravity::init_planetary_system(data);
+		}
 		logging::print_master(LOG_INFO "sg initialised\n");
 	}
 
