@@ -284,8 +284,11 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	vrad   = data[t_data::V_RADIAL].Field;
 	vtheta = data[t_data::V_AZIMUTHAL].Field;
 
-	for (unsigned int k=0; k < data.get_planetary_system().get_number_of_planets(); k++) {
-		if (data.get_planetary_system().get_planet(k).get_acc() > 1e-10) {
+	auto planetary_system =  data.get_planetary_system();
+
+	for (unsigned int k=0; k < planetary_system.get_number_of_planets(); k++) {
+		auto planet = planetary_system.get_planet(k);
+		if (planet.get_acc() > 1e-10) {
 			dMplanet = dPxPlanet = dPyPlanet = 0.0;
 			// Hereafter : initialization of W. Kley's parameters
 			facc = dt*data.get_planetary_system().get_planet(k).get_acc();
@@ -295,11 +298,11 @@ void AccreteOntoPlanets(t_data &data, double dt)
 			frac2 = 0.45;
 
 			// W. Kley's parameters initialization finished
-			Xplanet = data.get_planetary_system().get_planet(k).get_x();
-			Yplanet = data.get_planetary_system().get_planet(k).get_y();
-			VXplanet = data.get_planetary_system().get_planet(k).get_vx();
-			VYplanet = data.get_planetary_system().get_planet(k).get_vy();
-			Mplanet = data.get_planetary_system().get_planet(k).get_mass();
+			Xplanet = planet.get_x();
+			Yplanet = planet.get_y();
+			VXplanet = planet.get_vx();
+			VYplanet = planet.get_vy();
+			Mplanet = planet.get_mass();
 			Rplanet = sqrt(Xplanet*Xplanet+Yplanet*Yplanet);
 			RRoche = pow((1.0/3.0*Mplanet),(1.0/3.0))*Rplanet;
 
@@ -360,16 +363,16 @@ void AccreteOntoPlanets(t_data &data, double dt)
 			PxPlanet += dPxPlanet;
 			PyPlanet += dPyPlanet;
 			Mplanet  += dMplanet;
-			if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
-				data.get_planetary_system().get_planet(k).set_vx(PxPlanet/Mplanet);
-				data.get_planetary_system().get_planet(k).set_vy(PyPlanet/Mplanet);
+			if (planet.get_feeldisk()) {
+				planet.set_vx(PxPlanet/Mplanet);
+				planet.set_vy(PyPlanet/Mplanet);
 			}
-			data.get_planetary_system().get_planet(k).set_mass(Mplanet);
+			planet.set_mass(Mplanet);
 			if (!masses_changed) masses_changed = true;
 			// update hydro center mass
 		}
 	}
 	if (masses_changed) {
-		data.get_planetary_system().update_global_hydro_frame_center_mass();
+		planetary_system.update_global_hydro_frame_center_mass();
 	}
 }
