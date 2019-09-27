@@ -291,7 +291,9 @@ void AccreteOntoPlanets(t_data &data, double dt)
 		if (planet.get_acc() > 1e-10) {
 			dMplanet = dPxPlanet = dPyPlanet = 0.0;
 			// Hereafter : initialization of W. Kley's parameters
-			facc = dt*data.get_planetary_system().get_planet(k).get_acc();
+			// remove a ratio of facc = planet.get_acc() of the mass inside the Hill sphere
+			// every free fall time at the Hill radius
+			facc = dt*planet.get_acc()*planet.get_omega()*sqrt(12.0)/2.0/PI;
 			facc1 = 1.0/3.0*facc;
 			facc2 = 2.0/3.0*facc;
 			frac1 = 0.75;
