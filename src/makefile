@@ -15,7 +15,7 @@ endif
 # FARGO_ARCH must be set to LINUX
 CC_LINUX = mpicc
 CXX_LINUX = mpic++
-CFLAGS_LINUX = -O2 -std=c++11 -Wall -march=native -Wno-unknown-pragmas
+CFLAGS_LINUX = -Ofast -std=c++11 -Wall -march=native -Wno-unknown-pragmas
 #CFLAGS_LINUX = -g -Wall -march=native -Wno-unknown-pragmas
 MPI_PREFIX_LINUX = /usr
 FFTW_PREFIX_LINUX = /usr
@@ -34,7 +34,7 @@ GSL_PREFIX_LINUXENV = /usr/gsl/2.1
 # FARGO_ARCH must be set to HLR2
 CC_HLR2 = mpicc
 CXX_HLR2 = mpic++
-CFLAGS_HLR2 = -O2 -Wall -march=native -Wno-unknown-pragmas
+CFLAGS_HLR2 = -Ofast -Wall -march=native -Wno-unknown-pragmas
 MPI_PREFIX_HLR2 = /opt/openmpi/1.10
 FFTW_PREFIX_HLR2 = /opt/fftw/3.3_openmpi_1.10
 GSL_PREFIX_HLR2 = /opt/gsl/2.1
