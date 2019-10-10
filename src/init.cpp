@@ -184,8 +184,6 @@ void init_radialarrays()
 */
 
 void init_physics(t_data &data) {
-	double foostep = 0.;
-
 	if( (parameters::sigma_initialize_condition == parameters::initialize_condition_shakura_sunyaev) && (parameters::energy_initialize_condition == parameters::initialize_condition_shakura_sunyaev) ) {
 		init_shakura_sunyaev(data);
 		return;
