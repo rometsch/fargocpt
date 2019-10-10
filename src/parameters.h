@@ -80,6 +80,8 @@ extern bool cooling_radiative_enabled;
 extern double cooling_radiative_factor;
 /// beta cooling enabled 
 extern bool cooling_beta_enabled;
+/// beta cooling ramp up time 
+extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
 
