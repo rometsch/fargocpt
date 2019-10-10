@@ -803,15 +803,16 @@ void calculate_qminus(t_data &data) {
           const double E = data[t_data::ENERGY](n_radial, n_azimuthal);
           const double t_ramp_up = parameters::cooling_beta_ramp_up;
 
-          double beta = parameters::cooling_beta;
+          double beta_inv = 1/parameters::cooling_beta;
           if(t_ramp_up > 0.0) {
               const double t = PhysicalTime;
               
               double ramp_factor = 1 - exp( - pow(2*t/t_ramp_up, 2) );
-              beta = beta * ramp_factor;
+              
+              beta_inv = beta_inv * ramp_factor;
           }
 
-          const double qminus = E * omega_k / beta;
+          const double qminus = E * omega_k * beta_inv;
 
 				  data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
 			}
