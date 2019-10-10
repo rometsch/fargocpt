@@ -117,6 +117,10 @@ namespace selfgravity {
         if(since_last_calculated >= (update_every_nth_step-1)) {
             double aspect_ratio = quantities::gas_aspect_ratio(data);
 
+            if(aspect_ratio == 0.0) {
+                aspect_ratio = ASPECTRATIO_REF;
+            }
+
             lambda_sq = pow2(0.4571*aspect_ratio + 0.6737*sqrt(aspect_ratio));
             chi_sq = pow2((-0.7543*aspect_ratio + 0.6472)*aspect_ratio);
 

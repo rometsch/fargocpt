@@ -467,7 +467,7 @@ void read(char* filename, t_data &data)
 	cooling_radiative_enabled = config::value_as_bool_default("CoolingRadiativeLocal", false);
 	cooling_beta_enabled = config::value_as_bool_default("CoolingBetaLocal", false);
 	cooling_beta = config::value_as_double_default("CoolingBeta", 1.0);
-  cooling_beta = config::value_as_double_default("CoolingBetaRampUp", 0.0);
+  cooling_beta_ramp_up = config::value_as_double_default("CoolingBetaRampUp", 0.0);
 
 	// initialisation
 	initialize_pure_keplerian = config::value_as_bool_default("InitializePureKeplerian", false);
