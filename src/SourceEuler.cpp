@@ -510,8 +510,7 @@ void SubStep1(t_data &data, double dt)
 	}
 
 	if (parameters::self_gravity) {
-		selfgravity::update_tobi_constants(data);
-		selfgravity::compute(data[t_data::DENSITY], data[t_data::V_RADIAL_SOURCETERMS], data[t_data::V_AZIMUTHAL_SOURCETERMS], dt, true);
+      selfgravity::compute(data, dt, true);
 	}
 
 	// compute and add acceleartions due to disc viscosity as a source term

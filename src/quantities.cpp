@@ -34,10 +34,7 @@ double gas_total_mass(t_data &data)
 
 	return global_mass;
 }
-
-
-
-
+    
 double gas_aspect_ratio(t_data &data)
 {
 	double local_mass = 0.0;
@@ -61,8 +58,6 @@ double gas_aspect_ratio(t_data &data)
 
 	return aspect_ratio;
 }
-
-
 
 /**
  * @brief gas_disk_radius

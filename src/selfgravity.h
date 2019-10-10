@@ -12,10 +12,10 @@ extern double* g_azimuthal;
 void mpi_init(void);
 void mpi_finalize(void);
 
-void init();
-void update_tobi_constants(t_data& data);
+void init(t_data &data);
+void update_sg_constants(t_data& data);
 
-void compute(t_polargrid &density, t_polargrid &v_radial, t_polargrid &v_azimuthal, double dt, bool update);
+void compute(t_data &data, double dt, bool update);
 void compute_FFT_density(t_polargrid &density);
 void compute_acceleration(t_polargrid &density);
 void compute_FFT_kernel();
