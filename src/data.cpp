@@ -1,10 +1,10 @@
 
-#include <mpi.h>
 #include "data.h"
-#include "units.h"
-#include "output.h"
 #include "logging.h"
+#include "output.h"
 #include "quantities.h"
+#include "units.h"
+#include <mpi.h>
 
 /// constructor
 t_data::t_data()
@@ -40,19 +40,23 @@ t_data::t_data()
 
 	m_polargrids[ECCENTRICITY].set_scalar(true);
 	m_polargrids[ECCENTRICITY].set_name("Eccentricity");
-	m_polargrids[ECCENTRICITY].set_do_before_write(&quantities::calculate_disk_quantities);
+	m_polargrids[ECCENTRICITY].set_do_before_write(
+	    &quantities::calculate_disk_quantities);
 
 	m_polargrids[PERIASTRON].set_scalar(true);
 	m_polargrids[PERIASTRON].set_name("Periastron");
-	m_polargrids[PERIASTRON].set_do_before_write(&quantities::calculate_disk_quantities);
+	m_polargrids[PERIASTRON].set_do_before_write(
+	    &quantities::calculate_disk_quantities);
 
 	m_polargrids[ALPHA_GRAV].set_scalar(true);
 	m_polargrids[ALPHA_GRAV].set_name("alpha_grav");
-	m_polargrids[ALPHA_GRAV].set_do_before_write(&quantities::calculate_alpha_grav);
+	m_polargrids[ALPHA_GRAV].set_do_before_write(
+	    &quantities::calculate_alpha_grav);
 
 	m_polargrids[ALPHA_REYNOLDS].set_scalar(true);
 	m_polargrids[ALPHA_REYNOLDS].set_name("alpha_reynolds");
-	m_polargrids[ALPHA_REYNOLDS].set_do_before_write(&quantities::calculate_alpha_reynolds);
+	m_polargrids[ALPHA_REYNOLDS].set_do_before_write(
+	    &quantities::calculate_alpha_reynolds);
 
 	m_polargrids[ALPHA_GRAV_MEAN].set_scalar(true);
 	m_polargrids[ALPHA_GRAV_MEAN].set_name("alpha_grav_mean");
@@ -64,7 +68,8 @@ t_data::t_data()
 	m_polargrids[V_RADIAL0].set_name("vrad0");
 	m_polargrids[V_RADIAL0].set_unit(units::velocity);
 
-	m_polargrids[V_AZIMUTHAL0].set_vector(m_polargrids[V_AZIMUTHAL].is_vector());
+	m_polargrids[V_AZIMUTHAL0].set_vector(
+	    m_polargrids[V_AZIMUTHAL].is_vector());
 	m_polargrids[V_AZIMUTHAL0].set_name("vtheta0");
 	m_polargrids[V_AZIMUTHAL0].set_unit(units::velocity);
 
@@ -134,7 +139,8 @@ t_data::t_data()
 	m_polargrids[V_RADIAL_SOURCETERMS].set_name("vrad_sourceterms");
 	m_polargrids[V_RADIAL_SOURCETERMS].set_unit(units::velocity);
 
-	m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_vector(m_polargrids[V_AZIMUTHAL].is_vector());
+	m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_vector(
+	    m_polargrids[V_AZIMUTHAL].is_vector());
 	m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_name("vtheta_sourceterms");
 	m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_unit(units::velocity);
 
@@ -142,7 +148,8 @@ t_data::t_data()
 	m_polargrids[V_RADIAL_NEW].set_name("vrad_new");
 	m_polargrids[V_RADIAL_NEW].set_unit(units::velocity);
 
-	m_polargrids[V_AZIMUTHAL_NEW].set_vector(m_polargrids[V_AZIMUTHAL].is_vector());
+	m_polargrids[V_AZIMUTHAL_NEW].set_vector(
+	    m_polargrids[V_AZIMUTHAL].is_vector());
 	m_polargrids[V_AZIMUTHAL_NEW].set_name("vtheta_new");
 	m_polargrids[V_AZIMUTHAL_NEW].set_unit(units::velocity);
 
@@ -194,7 +201,8 @@ t_data::t_data()
 	m_radialgrids[DENSITY_1D].set_name("1D_dens");
 	m_radialgrids[DENSITY_1D].set_unit(units::surface_density);
 
-	m_radialgrids[V_AZIMUTHAL_1D].set_vector(m_polargrids[V_AZIMUTHAL].is_vector());
+	m_radialgrids[V_AZIMUTHAL_1D].set_vector(
+	    m_polargrids[V_AZIMUTHAL].is_vector());
 	m_radialgrids[V_AZIMUTHAL_1D].set_name("1D_vtheta");
 	m_radialgrids[V_AZIMUTHAL_1D].set_unit(units::velocity);
 
@@ -204,21 +212,25 @@ t_data::t_data()
 
 	m_radialgrids[TOOMRE_1D].set_scalar(true);
 	m_radialgrids[TOOMRE_1D].set_name("1D_toomre");
-	m_radialgrids[TOOMRE_1D].set_do_before_write(&quantities::calculate_radial_toomre);
+	m_radialgrids[TOOMRE_1D].set_do_before_write(
+	    &quantities::calculate_radial_toomre);
 
 	m_radialgrids[ALPHA_GRAV_1D].set_scalar(true);
 	m_radialgrids[ALPHA_GRAV_1D].set_name("1D_alpha_grav");
-	m_radialgrids[ALPHA_GRAV_1D].set_do_before_write(&quantities::calculate_radial_alpha_grav);
+	m_radialgrids[ALPHA_GRAV_1D].set_do_before_write(
+	    &quantities::calculate_radial_alpha_grav);
 
 	m_radialgrids[ALPHA_REYNOLDS_1D].set_scalar(true);
 	m_radialgrids[ALPHA_REYNOLDS_1D].set_name("1D_alpha_reynolds");
-	m_radialgrids[ALPHA_REYNOLDS_1D].set_do_before_write(&quantities::calculate_radial_alpha_reynolds);
+	m_radialgrids[ALPHA_REYNOLDS_1D].set_do_before_write(
+	    &quantities::calculate_radial_alpha_reynolds);
 
 	m_radialgrids[ALPHA_GRAV_MEAN_1D].set_scalar(true);
 	m_radialgrids[ALPHA_GRAV_MEAN_1D].set_name("1D_alpha_grav_mean");
 
 	m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_scalar(true);
-	m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_name("1D_alpha_reynolds_mean");
+	m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_name(
+	    "1D_alpha_reynolds_mean");
 
 	m_radialgrids[T_GRAVITATIONAL_1D].set_scalar(true);
 	m_radialgrids[T_GRAVITATIONAL_1D].set_name("1D_T_gravitational");
@@ -231,47 +243,48 @@ t_data::t_data()
 	m_radialgrids[LUMINOSITY_1D].set_scalar(true);
 	m_radialgrids[LUMINOSITY_1D].set_name("1D_Luminosity");
 	m_radialgrids[LUMINOSITY_1D].set_unit(units::power);
-	m_radialgrids[LUMINOSITY_1D].set_do_before_write(&quantities::calculate_radial_luminosity);
+	m_radialgrids[LUMINOSITY_1D].set_do_before_write(
+	    &quantities::calculate_radial_luminosity);
 
 	m_radialgrids[DISSIPATION_1D].set_scalar(true);
 	m_radialgrids[DISSIPATION_1D].set_name("1D_Dissipation");
 	m_radialgrids[DISSIPATION_1D].set_unit(units::power);
-	m_radialgrids[DISSIPATION_1D].set_do_before_write(&quantities::calculate_radial_dissipation);
+	m_radialgrids[DISSIPATION_1D].set_do_before_write(
+	    &quantities::calculate_radial_dissipation);
 
 	m_radialgrids[TORQUE_1D].set_scalar(true);
 	m_radialgrids[TORQUE_1D].set_name("1D_torque");
 	m_radialgrids[TORQUE_1D].set_unit(units::torque);
 
 	m_radialgrids[MASSFLOW_1D].set_scalar(false);
-    m_radialgrids[MASSFLOW_1D].set_name("MassFlow1D");
+	m_radialgrids[MASSFLOW_1D].set_name("MassFlow1D");
 	m_radialgrids[MASSFLOW_1D].set_unit(units::mass_accretion_rate);
-	m_radialgrids[MASSFLOW_1D].set_do_before_write(&quantities::calculate_massflow);
+	m_radialgrids[MASSFLOW_1D].set_do_before_write(
+	    &quantities::calculate_massflow);
 	m_radialgrids[MASSFLOW_1D].set_clear_after_write(true);
 
 	pdivv_total = 0.0;
 }
 
 /// destructor
-t_data::~t_data()
-{
+t_data::~t_data() {}
 
-}
-
-void t_data::set_size(unsigned int global_n_radial, unsigned int global_n_azimiuthal, unsigned int n_radial, unsigned int n_azimuthal)
+void t_data::set_size(unsigned int global_n_radial,
+		      unsigned int global_n_azimiuthal, unsigned int n_radial,
+		      unsigned int n_azimuthal)
 {
 	m_global_n_radial = global_n_radial;
 	m_global_n_azimuthal = global_n_azimiuthal;
 	m_n_radial = n_radial;
 	m_n_azimuthal = n_azimuthal;
 
-	for (unsigned int i = 0; i < N_POLARGRID_TYPES; ++i ) {
+	for (unsigned int i = 0; i < N_POLARGRID_TYPES; ++i) {
 		m_polargrids[i].set_size(m_n_radial, m_n_azimuthal);
 	}
 
-	for (unsigned int i = 0; i < N_RADIALGRID_TYPES; ++i ) {
+	for (unsigned int i = 0; i < N_RADIALGRID_TYPES; ++i) {
 		m_radialgrids[i].set_size(m_n_radial);
 	}
-
 }
 
 void t_data::print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal)
@@ -279,16 +292,28 @@ void t_data::print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal)
 	double local_memory_usage = 0;
 	double global_memory_usage = 0;
 
-	for (unsigned int i = 0; i < N_POLARGRID_TYPES; ++i ) {
-		local_memory_usage += m_polargrids[i].get_memory_usage(n_radial, n_azimuthal);
+	for (unsigned int i = 0; i < N_POLARGRID_TYPES; ++i) {
+		local_memory_usage +=
+		    m_polargrids[i].get_memory_usage(n_radial, n_azimuthal);
 	}
 
-	for (unsigned int i = 0; i < N_RADIALGRID_TYPES; ++i ) {
-		local_memory_usage += m_radialgrids[i].get_memory_usage(n_radial);
+	for (unsigned int i = 0; i < N_RADIALGRID_TYPES; ++i) {
+		local_memory_usage +=
+		    m_radialgrids[i].get_memory_usage(n_radial);
 	}
 
-	MPI_Allreduce(&local_memory_usage, &global_memory_usage, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	MPI_Allreduce(&local_memory_usage, &global_memory_usage, 1, MPI_DOUBLE,
+		      MPI_SUM, MPI_COMM_WORLD);
 
-	logging::print(LOG_INFO "Need about %.0lf bytes = %.2lf KB = %.2lf MB = %.2lf GB of memory on this process.\n", local_memory_usage, local_memory_usage / 1024.0,local_memory_usage / 1048576.0, local_memory_usage / 1073741824.0);
-	logging::print_master(LOG_INFO "Need about %.0lf bytes = %.2lf KB = %.2lf MB = %.2lf GB of memory in total.\n", global_memory_usage, global_memory_usage / 1024.0,global_memory_usage / 1048576.0, global_memory_usage / 1073741824.0);
+	logging::print(LOG_INFO "Need about %.0lf bytes = %.2lf KB = %.2lf MB "
+				"= %.2lf GB of memory on this process.\n",
+		       local_memory_usage, local_memory_usage / 1024.0,
+		       local_memory_usage / 1048576.0,
+		       local_memory_usage / 1073741824.0);
+	logging::print_master(LOG_INFO
+			      "Need about %.0lf bytes = %.2lf KB = %.2lf MB = "
+			      "%.2lf GB of memory in total.\n",
+			      global_memory_usage, global_memory_usage / 1024.0,
+			      global_memory_usage / 1048576.0,
+			      global_memory_usage / 1073741824.0);
 }

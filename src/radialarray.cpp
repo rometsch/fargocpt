@@ -2,11 +2,12 @@
 	\file radialarray.cpp
 	\author Tobias Mueller <Tobias_Mueller@twam.info>
 
-	This file manages the t_radialarray class which stores radial information
+	This file manages the t_radialarray class which stores radial
+   information
 */
 
-#include <stdlib.h>
 #include "radialarray.h"
+#include <stdlib.h>
 
 t_radialarray::t_radialarray()
 {
@@ -24,10 +25,7 @@ t_radialarray::t_radialarray(ptrdiff_t size)
 	clear();
 }
 
-t_radialarray::~t_radialarray()
-{
-	delete[] array;
-}
+t_radialarray::~t_radialarray() { delete[] array; }
 
 /**
 	set all entries to 0

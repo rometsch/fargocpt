@@ -1,17 +1,17 @@
-#include <stdlib.h>
-#include <string.h>
-#include <mpi.h>
 #include <float.h>
 #include <gsl/gsl_spline.h>
+#include <mpi.h>
 #include <sstream>
+#include <stdlib.h>
+#include <string.h>
 
-#include "radialgrid.h"
-#include "global.h"
-#include "radialarray.h"
-#include "logging.h"
 #include "LowTasks.h"
 #include "constants.h"
+#include "global.h"
+#include "logging.h"
 #include "polargrid.h"
+#include "radialarray.h"
+#include "radialgrid.h"
 
 t_radialgrid::t_radialgrid()
 {
@@ -28,8 +28,8 @@ t_radialgrid::t_radialgrid()
 
 t_radialgrid::~t_radialgrid()
 {
-	delete [] m_name;
-	delete [] m_data;
+	delete[] m_name;
+	delete[] m_data;
 }
 
 /**
@@ -43,7 +43,7 @@ void t_radialgrid::set_size(ptrdiff_t size_radial)
 	m_size_radial = size_radial;
 
 	// vector fields need one more cell in radial direction
-	m_data = new double[(m_scalar ? size_radial : size_radial+1)];
+	m_data = new double[(m_scalar ? size_radial : size_radial + 1)];
 
 	clear();
 }
@@ -51,13 +51,13 @@ void t_radialgrid::set_size(ptrdiff_t size_radial)
 /**
 	set name of radial grid
 */
-void t_radialgrid::set_name(const char* name)
+void t_radialgrid::set_name(const char *name)
 {
 	// delete old name
-	delete [] m_name;
+	delete[] m_name;
 
 	// aquire space for new name
-	m_name = new char[strlen(name)+1];
+	m_name = new char[strlen(name) + 1];
 
 	strcpy(m_name, name);
 }
@@ -65,34 +65,26 @@ void t_radialgrid::set_name(const char* name)
 /**
 	set unit of radial grid
 */
-void t_radialgrid::set_unit(units::t_unit &unit)
-{
-	m_unit = &unit;
-}
+void t_radialgrid::set_unit(units::t_unit &unit) { m_unit = &unit; }
 
-void t_radialgrid::set_vector(bool value)
-{
-	m_scalar = !value;
-}
+void t_radialgrid::set_vector(bool value) { m_scalar = !value; }
 
-void t_radialgrid::set_scalar(bool value)
-{
-	m_scalar = value;
-}
+void t_radialgrid::set_scalar(bool value) { m_scalar = value; }
 
 /**
 	set all entries to 0
 */
 void t_radialgrid::clear()
 {
-	for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
+	for (unsigned int n_radial = 0; n_radial <= get_max_radial();
+	     ++n_radial) {
 		operator()(n_radial) = 0.0;
 	}
 }
 
 void t_radialgrid::write(unsigned int number, t_data &data)
 {
-	if (!get_write_1D() ) {
+	if (!get_write_1D()) {
 		return;
 	}
 
@@ -102,11 +94,10 @@ void t_radialgrid::write(unsigned int number, t_data &data)
 
 	write1D(number);
 
-    if (m_clear_after_write) {
-     	clear();
+	if (m_clear_after_write) {
+		clear();
 	}
 }
-
 
 /**
 	 Write the data to binary file using the provided filename.
@@ -116,7 +107,8 @@ void t_radialgrid::write(unsigned int number, t_data &data)
 	 \param t_data data : data construct
 	 \param bool one_file : write array without radii to one single file
 */
-void t_radialgrid::write(std::string filename, unsigned int number, t_data &data, bool one_file, bool force_write)
+void t_radialgrid::write(std::string filename, unsigned int number,
+			 t_data &data, bool one_file, bool force_write)
 {
 	if (!force_write && !get_write_1D()) {
 		return;
@@ -128,7 +120,7 @@ void t_radialgrid::write(std::string filename, unsigned int number, t_data &data
 	write1D(filename, one_file);
 
 	if (m_clear_after_write) {
-	 	clear();
+		clear();
 	}
 }
 
@@ -141,11 +133,11 @@ void t_radialgrid::write(std::string filename, unsigned int number, t_data &data
 void t_radialgrid::write1D(unsigned int timestep) const
 {
 
-/**
-	write radial average values of polargrid to filename
+	/**
+		write radial average values of polargrid to filename
 
-	\param number file number
-*/
+		\param number file number
+	*/
 	std::stringstream filename;
 	filename << OUTPUTDIR << "/gas" << get_name() << timestep << ".dat";
 	write1D(filename.str(), false);
@@ -158,7 +150,7 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 	int error, error_class, error_length;
 	unsigned int count, from, number_of_values = 2;
 	double *buffer;
-	char error_string[MPI_MAX_ERROR_STRING+1];
+	char error_string[MPI_MAX_ERROR_STRING + 1];
 
 	// use Rmed or Rinf depending if this quantity is scalar or vector
 	t_radialarray &radius = is_scalar() ? Rmed : Rinf;
@@ -170,39 +162,54 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 	// try to open file
 	if (one_file) {
 		// append to existing file for consecutive output of arrays
-		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
+		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+				      MPI_MODE_WRONLY | MPI_MODE_APPEND,
+				      MPI_INFO_NULL, &fh);
 		// if file doesn't exist yet, create it
 		if (error != MPI_SUCCESS) {
-			error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+			error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+					      MPI_MODE_WRONLY | MPI_MODE_CREATE,
+					      MPI_INFO_NULL, &fh);
 		}
-		//error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
+		// error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+		// MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
 	} else {
 		// make a new file for each output
-		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
+		error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+				      MPI_MODE_WRONLY | MPI_MODE_CREATE,
+				      MPI_INFO_NULL, &fh);
 	}
 	if (error != MPI_SUCCESS) {
-		logging::print_master(LOG_ERROR "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n", filename.c_str());
-		
+		logging::print_master(
+		    LOG_ERROR "Error while writing to file '%s'. Check file "
+			      "permissions and IO support of MPI library\n",
+		    filename.c_str());
+
 		// error class
 		MPI_Error_class(error, &error_class);
 		MPI_Error_string(error_class, error_string, &error_length);
 		error_string[error_length] = 0;
-		logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
-		
+		logging::print_master(LOG_ERROR "MPI error class: %s\n",
+				      error_string);
+
 		// error code
 		MPI_Error_string(error, error_string, &error_length);
 		error_string[error_length] = 0;
-		logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+		logging::print_master(LOG_ERROR "MPI error code: %s\n",
+				      error_string);
 
 		MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 	}
 
 	// Move file pointer to correct position
-	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);	
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE,
+			  const_cast<char *>("native"), MPI_INFO_NULL);
 	if (one_file) {
-		MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_END | MPI_SEEK_SET);
+		MPI_File_seek(fh, (IMIN + Zero_or_active) * number_of_values,
+			      MPI_SEEK_END | MPI_SEEK_SET);
 	} else {
-		MPI_File_seek(fh,(IMIN+Zero_or_active)*number_of_values , MPI_SEEK_SET);
+		MPI_File_seek(fh, (IMIN + Zero_or_active) * number_of_values,
+			      MPI_SEEK_SET);
 	}
 	from = 0;
 	count = get_size_radial();
@@ -212,40 +219,48 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 		count -= 1;
 	}
 
-	// We strip the first CPUOVERLAP rings if the current CPU is not the  innermost one
+	// We strip the first CPUOVERLAP rings if the current CPU is not the
+	// innermost one
 	if (CPU_Rank > 0) {
 		from += CPUOVERLAP;
-		count -=CPUOVERLAP ;
+		count -= CPUOVERLAP;
 	}
 
-	// We strip the last CPUOVERLAP rings if the current CPU is not the outermost one, equal to CPU_Highest in all cases
+	// We strip the last CPUOVERLAP rings if the current CPU is not the
+	// outermost one, equal to CPU_Highest in all cases
 	if (CPU_Rank != CPU_Highest) {
-		count -=CPUOVERLAP;
+		count -= CPUOVERLAP;
 	}
 
-	buffer = new double[number_of_values*count];
+	buffer = new double[number_of_values * count];
 
 	if (one_file) {
 		for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-			buffer[number_of_values*n_radial] = operator()(from+n_radial);
+			buffer[number_of_values * n_radial] = operator()(
+			    from + n_radial);
 		}
 	} else {
 		for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-			buffer[number_of_values*n_radial] = radius[from+n_radial];
-			buffer[number_of_values*n_radial+1] = operator()(from+n_radial);
+			buffer[number_of_values * n_radial] =
+			    radius[from + n_radial];
+			buffer[number_of_values * n_radial + 1] = operator()(
+			    from + n_radial);
 		}
 	}
 
 	// if unit is set multiply values by factor
 	unsigned int value_offset = 1;
-	if (one_file) value_offset = 0;
+	if (one_file)
+		value_offset = 0;
 	if (m_unit) {
 		for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-			buffer[number_of_values*n_radial+value_offset] *= m_unit->get_cgs_factor();
+			buffer[number_of_values * n_radial + value_offset] *=
+			    m_unit->get_cgs_factor();
 		}
 	}
 
-	MPI_File_write_all(fh, buffer, count*number_of_values, MPI_DOUBLE, &status);
+	MPI_File_write_all(fh, buffer, count * number_of_values, MPI_DOUBLE,
+			   &status);
 
 	delete[] buffer;
 
@@ -255,14 +270,15 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 
 /**
 	read radial average values of polargrid to filename
-	
+
 	\param number file number
 */
 void t_radialgrid::read1D(unsigned int number)
 {
 	char *filename;
 
-	if (asprintf(&filename, "%s/gas%s%i.dat",OUTPUTDIR,get_name(),number) <0) {
+	if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(),
+		     number) < 0) {
 		die("Not enough memory!");
 	}
 
@@ -271,36 +287,42 @@ void t_radialgrid::read1D(unsigned int number)
 	free(filename);
 }
 
-void t_radialgrid::read1D(const char* _filename)
+void t_radialgrid::read1D(const char *_filename)
 {
 	MPI_File fh;
 	MPI_Status status;
 	MPI_Offset size;
 	int error, error_class, error_length;
 	unsigned int count, number_of_values = 2;
-	char *filename, error_string[MPI_MAX_ERROR_STRING+1];
+	char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
 	// use Rmed or Rinf depending if this quantity is scalar or vector
 	t_radialarray &radius = is_scalar() ? Rmed : Rinf;
 
-	filename = new char[strlen(_filename)+1];
-	strcpy(filename,_filename);
+	filename = new char[strlen(_filename) + 1];
+	strcpy(filename, _filename);
 
 	// try to open file
-	error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
+	error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,
+			      MPI_INFO_NULL, &fh);
 	if (error != MPI_SUCCESS) {
-		logging::print_master(LOG_ERROR "Error while reading from file '%s'. Check file permissions and IO support of MPI library\n", filename);
-		
+		logging::print_master(
+		    LOG_ERROR "Error while reading from file '%s'. Check file "
+			      "permissions and IO support of MPI library\n",
+		    filename);
+
 		// error class
 		MPI_Error_class(error, &error_class);
 		MPI_Error_string(error_class, error_string, &error_length);
 		error_string[error_length] = 0;
-		logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
-		
+		logging::print_master(LOG_ERROR "MPI error class: %s\n",
+				      error_string);
+
 		// error code
 		MPI_Error_string(error, error_string, &error_length);
 		error_string[error_length] = 0;
-		logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+		logging::print_master(LOG_ERROR "MPI error code: %s\n",
+				      error_string);
 
 		MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
 	}
@@ -310,19 +332,23 @@ void t_radialgrid::read1D(const char* _filename)
 	MPI_File_get_size(fh, &size);
 
 	// calculate number of values in file
-	count = size/number_of_values/sizeof(double);
+	count = size / number_of_values / sizeof(double);
 	if (is_vector()) {
 		count -= 1;
 	}
 
-	logging::print_master(LOG_INFO "Reading file '%s' with %u bytes. Reading %u values...\n",_filename,size,count);
+	logging::print_master(
+	    LOG_INFO "Reading file '%s' with %u bytes. Reading %u values...\n",
+	    _filename, size, count);
 
 	// allocate buffer and read file
-	double *buffer_file = new double[number_of_values*count];
+	double *buffer_file = new double[number_of_values * count];
 
-	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE, const_cast<char*>("native"), MPI_INFO_NULL);
-	MPI_File_seek(fh, 0 , MPI_SEEK_SET);
-	MPI_File_read_all(fh, buffer_file, count*number_of_values, MPI_DOUBLE, &status);
+	MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE,
+			  const_cast<char *>("native"), MPI_INFO_NULL);
+	MPI_File_seek(fh, 0, MPI_SEEK_SET);
+	MPI_File_read_all(fh, buffer_file, count * number_of_values, MPI_DOUBLE,
+			  &status);
 
 	// close file
 	MPI_File_close(&fh);
@@ -330,7 +356,8 @@ void t_radialgrid::read1D(const char* _filename)
 	// if unit is set multiply values by factor
 	if (m_unit) {
 		for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-			buffer_file[number_of_values*n_radial+1] /= m_unit->get_cgs_factor();
+			buffer_file[number_of_values * n_radial + 1] /=
+			    m_unit->get_cgs_factor();
 		}
 	}
 
@@ -339,13 +366,22 @@ void t_radialgrid::read1D(const char* _filename)
 	double *buffer_value = new double[count];
 
 	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-		buffer_radius[n_radial] = buffer_file[number_of_values*n_radial+0];
-		buffer_value[n_radial] = buffer_file[number_of_values*n_radial+1];
+		buffer_radius[n_radial] =
+		    buffer_file[number_of_values * n_radial + 0];
+		buffer_value[n_radial] =
+		    buffer_file[number_of_values * n_radial + 1];
 	}
 
 	// print warning if using spline values outside from provide range
-	if ((RMIN < 2*buffer_radius[0]-buffer_radius[1]) || (RMAX > 2*buffer_radius[count-1]-buffer_radius[count-2])) {
-		logging::print_master(LOG_WARNING "Warning: '%s' covers radii from %.5lf to %.5lf, but you're using %.5lf to %.5lf! Spline interpolation isn't performing well here!\n",_filename, buffer_radius[0], buffer_radius[count-1], RMIN, RMAX);
+	if ((RMIN < 2 * buffer_radius[0] - buffer_radius[1]) ||
+	    (RMAX > 2 * buffer_radius[count - 1] - buffer_radius[count - 2])) {
+		logging::print_master(
+		    LOG_WARNING
+		    "Warning: '%s' covers radii from %.5lf to %.5lf, but "
+		    "you're using %.5lf to %.5lf! Spline interpolation isn't "
+		    "performing well here!\n",
+		    _filename, buffer_radius[0], buffer_radius[count - 1], RMIN,
+		    RMAX);
 	}
 
 	// delete file buffer
@@ -353,7 +389,7 @@ void t_radialgrid::read1D(const char* _filename)
 
 	// allocate structures needed for spline interpolation
 	gsl_interp_accel *acc = gsl_interp_accel_alloc();
-	gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline,count);
+	gsl_spline *spline = gsl_spline_alloc(gsl_interp_cspline, count);
 
 	// init spline
 	gsl_spline_init(spline, buffer_radius, buffer_value, count);
@@ -363,8 +399,10 @@ void t_radialgrid::read1D(const char* _filename)
 	delete[] buffer_value;
 
 	// evaluate spline on all points needed and write into polargrid
-	for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
-		operator()(n_radial) = gsl_spline_eval(spline, radius[n_radial] ,acc);
+	for (unsigned int n_radial = 0; n_radial <= get_max_radial();
+	     ++n_radial) {
+		operator()(n_radial) =
+		    gsl_spline_eval(spline, radius[n_radial], acc);
 	}
 
 	// free spline interpolation structures
@@ -380,30 +418,39 @@ unsigned int t_radialgrid::bytes_needed_1D()
 	// factor 2 is because of radius and value
 	unsigned int number_of_values = 2;
 
-	return number_of_values*sizeof(double)*get_size_radial();
+	return number_of_values * sizeof(double) * get_size_radial();
 }
 
 unsigned int t_radialgrid::get_memory_usage(ptrdiff_t size_radial)
 {
-	return (m_scalar ? size_radial : size_radial+1)*sizeof(double);
+	return (m_scalar ? size_radial : size_radial + 1) * sizeof(double);
 }
 
-t_radialgrid& t_radialgrid::operator=(const t_polargrid& polargrid)
+t_radialgrid &t_radialgrid::operator=(const t_polargrid &polargrid)
 {
-	if ((polargrid.get_size_radial() == get_size_radial()) && (polargrid.is_scalar() == is_scalar())) {
-		for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
+	if ((polargrid.get_size_radial() == get_size_radial()) &&
+	    (polargrid.is_scalar() == is_scalar())) {
+		for (unsigned int n_radial = 0; n_radial <= get_max_radial();
+		     ++n_radial) {
 			operator()(n_radial) = 0.0;
-			for (unsigned int n_azimuthal = 0; n_azimuthal <= polargrid.get_max_azimuthal(); ++n_azimuthal) {
-				operator()(n_radial) += polargrid(n_radial,n_azimuthal);
+			for (unsigned int n_azimuthal = 0;
+			     n_azimuthal <= polargrid.get_max_azimuthal();
+			     ++n_azimuthal) {
+				operator()(n_radial) +=
+				    polargrid(n_radial, n_azimuthal);
 			}
-			operator()(n_radial) /= (double)polargrid.get_size_azimuthal();
+			operator()(n_radial) /=
+			    (double)polargrid.get_size_azimuthal();
 		}
 
 	} else {
 		if (polargrid.get_size_radial() != get_size_radial()) {
-			die("Size of '%s' (%u) and '%s' (%u) does not match!\n", polargrid.get_name(), polargrid.get_size_radial(), get_name(), get_size_radial());
+			die("Size of '%s' (%u) and '%s' (%u) does not match!\n",
+			    polargrid.get_name(), polargrid.get_size_radial(),
+			    get_name(), get_size_radial());
 		} else {
-			die("Type of '%s' and '%s' does not match!\n", polargrid.get_name(), get_name());			
+			die("Type of '%s' and '%s' does not match!\n",
+			    polargrid.get_name(), get_name());
 		}
 	}
 

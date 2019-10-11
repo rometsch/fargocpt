@@ -1,38 +1,38 @@
+#include <fstream>
 #include <mpi.h>
 #include <string.h>
-#include <fstream>
 
-#include "units.h"
+#include "Force.h"
+#include "Interpret.h"
+#include "LowTasks.h"
+#include "Pframeforce.h"
+#include "SideEuler.h"
+#include "SourceEuler.h"
+#include "Stockholm.h"
+#include "Theo.h"
+#include "boundary_conditions.h"
+#include "commbound.h"
 #include "constants.h"
-#include "time.h"
+#include "data.h"
+#include "fpe.h"
 #include "global.h"
 #include "init.h"
-#include "SourceEuler.h"
-#include "SideEuler.h"
-#include "commbound.h"
-#include "LowTasks.h"
-#include "boundary_conditions.h"
-#include "Pframeforce.h"
-#include "Stockholm.h"
-#include "Force.h"
-#include "output.h"
-#include "split.h"
-#include "selfgravity.h"
-#include "fpe.h"
-#include "Interpret.h"
-#include "parameters.h"
 #include "logging.h"
 #include "options.h"
-#include "data.h"
-#include "quantities.h"
-#include "viscosity.h"
-#include "Theo.h"
+#include "output.h"
+#include "parameters.h"
 #include "particles.h"
+#include "quantities.h"
+#include "selfgravity.h"
+#include "split.h"
+#include "time.h"
+#include "units.h"
 #include "util.h"
+#include "viscosity.h"
 
 int TimeToWrite;
 int dimfxy = 11, Restart = 0;
-static int InnerOutputCounter=0, StillWriteOneOutput;
+static int InnerOutputCounter = 0, StillWriteOneOutput;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
 
@@ -43,11 +43,11 @@ unsigned int nTimeStep;
 // Handle SIGTERM
 // write all polargrids on error
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 	t_data data;
 
-	N_iter= 0;
+	N_iter = 0;
 
 	resize_radialarrays(MAX1D);
 
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 
 	int CPU_NameLength;
 	Force *force;
-	char CPU_Name[MPI_MAX_PROCESSOR_NAME+1];
+	char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
 
 	// initialize MPI
 	MPI_Init(&argc, &argv);
@@ -67,35 +67,46 @@ int main(int argc, char* argv[])
 	CPU_Master = (CPU_Rank == 0 ? 1 : 0);
 
 	// print some information about program
-	logging::print_master(LOG_INFO "fargo: This file was compiled on %s, %s.\n",__DATE__,__TIME__);
-	#ifdef GIT_COMMIT
-	logging::print_master(LOG_INFO "fargo: Last git commit: %s\n", GIT_COMMIT);
-	#endif
-	#ifdef GIT_CHANGED
-	logging::print_master(LOG_INFO "fargo: Files changed since git commit: %s\n", GIT_CHANGED);
-	#endif
-	#ifdef _GNU_SOURCE
-	logging::print_master(LOG_INFO "fargo: This version of FARGO used _GNU_SOURCE\n");
-	#endif
-	#ifdef NDEBUG
-	logging::print_master(LOG_INFO "fargo: This version of FARGO used NDEBUG. So no assertion checks!\n");
-	#else
-	logging::print_master(LOG_INFO "fargo: This version of FARGO does assertion checks! Compile with NDEBUG to speed up!\n");
-	#endif
+	logging::print_master(LOG_INFO
+			      "fargo: This file was compiled on %s, %s.\n",
+			      __DATE__, __TIME__);
+#ifdef GIT_COMMIT
+	logging::print_master(LOG_INFO "fargo: Last git commit: %s\n",
+			      GIT_COMMIT);
+#endif
+#ifdef GIT_CHANGED
+	logging::print_master(LOG_INFO
+			      "fargo: Files changed since git commit: %s\n",
+			      GIT_CHANGED);
+#endif
+#ifdef _GNU_SOURCE
+	logging::print_master(
+	    LOG_INFO "fargo: This version of FARGO used _GNU_SOURCE\n");
+#endif
+#ifdef NDEBUG
+	logging::print_master(LOG_INFO "fargo: This version of FARGO used "
+				       "NDEBUG. So no assertion checks!\n");
+#else
+	logging::print_master(LOG_INFO
+			      "fargo: This version of FARGO does assertion "
+			      "checks! Compile with NDEBUG to speed up!\n");
+#endif
 
 	// print information on which processor we're running
 	MPI_Get_processor_name(CPU_Name, &CPU_NameLength);
 	CPU_Name[CPU_NameLength] = '\0';
-	logging::print(LOG_INFO "fargo: running on %s\n",CPU_Name);
+	logging::print(LOG_INFO "fargo: running on %s\n", CPU_Name);
 
-	// control behavoir for floating point exceptions trapping (default is not to do anything)
+	// control behavoir for floating point exceptions trapping (default is
+	// not to do anything)
 	setfpe();
 
 	// handle command line parameters
-	options::parse(argc,argv);
+	options::parse(argc, argv);
 
 	ReadVariables(options::parameter_file, data, argc, argv);
-	// check if there is enough free space for all outputs (check before any output are files created)
+	// check if there is enough free space for all outputs (check before any
+	// output are files created)
 	output::check_free_space(data);
 
 	parameters::summarize_parameters();
@@ -122,20 +133,23 @@ int main(int argc, char* argv[])
 	init_radialarrays();
 	force = AllocateForce(dimfxy);
 
-	// Here planets are initialized feeling star potential but they do not feel disk potential
+	// Here planets are initialized feeling star potential but they do not
+	// feel disk potential
 	data.get_planetary_system().read_from_file(PLANETCONFIG);
 
 	logging::print_master(LOG_INFO "planets initialised.\n");
 
-	if ((data.get_planetary_system().get_number_of_planets() == 0) && (Corotating == YES)) {
-		logging::print_master(LOG_ERROR "Error: Corotating frame is not possible with 0 planets.\n");
+	if ((data.get_planetary_system().get_number_of_planets() == 0) &&
+	    (Corotating == YES)) {
+		logging::print_master(LOG_ERROR
+				      "Error: Corotating frame is not possible "
+				      "with 0 planets.\n");
 		PersonalExit(1);
 	}
 
 	init_physics(data);
 
-	if (parameters::integrate_particles)
-	{
+	if (parameters::integrate_particles) {
 		particles::init(data);
 	}
 
@@ -145,23 +159,30 @@ int main(int argc, char* argv[])
 	copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
 	copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
 
-	// Initial Density is used to compute the circumplanetary mass with initial density field
+	// Initial Density is used to compute the circumplanetary mass with
+	// initial density field
 	mdcp0 = CircumPlanetaryMass(data);
 
 	if (options::restart) {
-		// TODO: fix for case that NINTERM changes (probably add small time step to misc.dat)
+		// TODO: fix for case that NINTERM changes (probably add small
+		// time step to misc.dat)
 		timeStepStart = options::restart_from * NINTERM;
-		logging::print_master(LOG_INFO "Restarting planetary system...\n");
+		logging::print_master(LOG_INFO
+				      "Restarting planetary system...\n");
 		// restart planetary system
 		data.get_planetary_system().restart(options::restart_from);
 
 		logging::print_master(LOG_INFO "Reading misc data...\n");
-		PhysicalTime = output::get_misc(options::restart_from, "physical time");
-		OmegaFrame = output::get_misc(options::restart_from, "omega frame");
-		FrameAngle = output::get_misc(options::restart_from, "frame angle");
+		PhysicalTime =
+		    output::get_misc(options::restart_from, "physical time");
+		OmegaFrame =
+		    output::get_misc(options::restart_from, "omega frame");
+		FrameAngle =
+		    output::get_misc(options::restart_from, "frame angle");
 
 		// load grids at t = 0
-		logging::print_master(LOG_INFO "Loading polargrinds at t = 0...\n");
+		logging::print_master(LOG_INFO
+				      "Loading polargrinds at t = 0...\n");
 		data[t_data::DENSITY].read2D((unsigned int)0);
 		data[t_data::V_RADIAL].read2D((unsigned int)0);
 		data[t_data::V_AZIMUTHAL].read2D((unsigned int)0);
@@ -170,7 +191,8 @@ int main(int argc, char* argv[])
 
 		// save starting values (needed for damping)
 		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
-		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
+		copy_polargrid(data[t_data::V_AZIMUTHAL0],
+			       data[t_data::V_AZIMUTHAL]);
 		copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
 		copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
 
@@ -180,17 +202,21 @@ int main(int argc, char* argv[])
 			RefillEnergy(&data[t_data::ENERGY]);
 
 		// load grids at t = restart_from
-		logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",options::restart_from);
+		logging::print_master(LOG_INFO
+				      "Loading polargrinds at t = %u...\n",
+				      options::restart_from);
 		data[t_data::DENSITY].read2D(options::restart_from);
 		data[t_data::V_RADIAL].read2D(options::restart_from);
 		data[t_data::V_AZIMUTHAL].read2D(options::restart_from);
 		if (parameters::Adiabatic)
 			data[t_data::ENERGY].read2D(options::restart_from);
 
-		if(parameters::integrate_particles)
+		if (parameters::integrate_particles)
 			particles::restart(options::restart_from);
 
-		CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL], &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
+		CommunicateBoundaries(
+		    &data[t_data::DENSITY], &data[t_data::V_RADIAL],
+		    &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 		boundary_conditions::apply_boundary_condition(data, 0.0, false);
 		recalculate_derived_disk_quantities(data, true);
 	} else {
@@ -198,17 +224,14 @@ int main(int argc, char* argv[])
 		data.get_planetary_system().create_planet_files();
 
 		// create 1D info files
-		if (CPU_Master)
-		{
+		if (CPU_Master) {
 			output::write_1D_info(data);
 
 			// create mass flow info file
-			if (parameters::write_massflow)
-			{
+			if (parameters::write_massflow) {
 				output::write_massflow_info(data);
 			}
-
-	}
+		}
 		MPI_Barrier(MPI_COMM_WORLD);
 	}
 	PhysicalTimeInitial = PhysicalTime;
@@ -227,9 +250,11 @@ int main(int argc, char* argv[])
 			force_update_for_output = false;
 
 			// write polar grids
-			output::write_grids(data, TimeStep, N_iter, PhysicalTime);
+			output::write_grids(data, TimeStep, N_iter,
+					    PhysicalTime);
 			// write planet data
-			data.get_planetary_system().write_planets(TimeStep, false);
+			data.get_planetary_system().write_planets(TimeStep,
+								  false);
 			// write misc stuff (important for resuming)
 			output::write_misc(TimeStep);
 			// write time info for coarse output
@@ -237,7 +262,8 @@ int main(int argc, char* argv[])
 			// write particles
 			if (parameters::integrate_particles)
 				particles::write(TimeStep);
-			if ((OnlyInit) || ((GotoNextOutput) && (!StillWriteOneOutput))) {
+			if ((OnlyInit) ||
+			    ((GotoNextOutput) && (!StillWriteOneOutput))) {
 				PersonalExit(0);
 			}
 			StillWriteOneOutput--;
@@ -245,49 +271,54 @@ int main(int argc, char* argv[])
 			TimeToWrite = NO;
 		}
 
-
-		(void) InnerOutputCounter;
-		//InnerOutputCounter++;
-		//if (InnerOutputCounter == 1) {
-		if ((write_complete_output || parameters::write_at_every_timestep)) {
-			//InnerOutputCounter = 0;
-			data.get_planetary_system().write_planets(TimeStep, true);
-			//WriteBigPlanetSystemFile(sys, TimeStep);
+		(void)InnerOutputCounter;
+		// InnerOutputCounter++;
+		// if (InnerOutputCounter == 1) {
+		if ((write_complete_output ||
+		     parameters::write_at_every_timestep)) {
+			// InnerOutputCounter = 0;
+			data.get_planetary_system().write_planets(TimeStep,
+								  true);
+			// WriteBigPlanetSystemFile(sys, TimeStep);
 			UpdateLog(data, force, TimeStep, PhysicalTime);
 			if (Stockholm)
 				UpdateLogStockholm(data, PhysicalTime);
 		}
 
-
 		// write disk quantities like eccentricity, ...
-		if (write_complete_output || parameters::write_at_every_timestep) {
-			output::write_quantities(data, TimeStep, nTimeStep, force_update_for_output);
+		if (write_complete_output ||
+		    parameters::write_at_every_timestep) {
+			output::write_quantities(data, TimeStep, nTimeStep,
+						 force_update_for_output);
 		}
 		if (write_complete_output || parameters::write_torques) {
-			output::write_torques(data, TimeStep, force_update_for_output);
+			output::write_torques(data, TimeStep,
+					      force_update_for_output);
 		}
-		if (parameters::write_lightcurves && (parameters::write_at_every_timestep || write_complete_output)) {
-			output::write_lightcurves(data, TimeStep, force_update_for_output);
+		if (parameters::write_lightcurves &&
+		    (parameters::write_at_every_timestep ||
+		     write_complete_output)) {
+			output::write_lightcurves(data, TimeStep,
+						  force_update_for_output);
 		}
 		if (parameters::write_massflow && nTimeStep != timeStepStart) {
 			output::write_massflow(data, TimeStep);
 		}
 
 		// Exit if last timestep reached and last output is written
-		if ( nTimeStep == NTOT ) {
+		if (nTimeStep == NTOT) {
 			break;
 		}
 
 		// do hydro and nbody
 		AlgoGas(nTimeStep, force, data);
 		SolveOrbits(data);
-
 	}
 
 	logging::print_runtime_final();
 
 	// free up everything
-	delete [] options::parameter_file;
+	delete[] options::parameter_file;
 	FreeEuler();
 	FreeForce(force);
 

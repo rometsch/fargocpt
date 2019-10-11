@@ -1,29 +1,23 @@
 #include "particle.h"
-#include <math.h>
 #include "global.h"
+#include <math.h>
 
 double t_particle::get_squared_distance_to_star()
 {
-	if(CartesianParticles)
-	{
+	if (CartesianParticles) {
 		const double &x = r;
 		const double &y = phi;
 		return pow2(x) + pow2(y);
-	}
-	else
-	{
-		return r*r;
+	} else {
+		return r * r;
 	}
 }
 
 double t_particle::get_distance_to_star()
 {
-	if(CartesianParticles)
-	{
+	if (CartesianParticles) {
 		return sqrt(get_squared_distance_to_star());
-	}
-	else
-	{
+	} else {
 		return r;
 	}
 }
@@ -31,43 +25,36 @@ double t_particle::get_distance_to_star()
 double t_particle::get_angle() const
 {
 
-	if(CartesianParticles)
-	{
+	if (CartesianParticles) {
 		const double &x = r;
 		const double &y = phi;
 
-		double phi_ = atan2(y,x);
+		double phi_ = atan2(y, x);
 
-		if(phi_<0)
-		{
-			phi_ += 2*PI;
+		if (phi_ < 0) {
+			phi_ += 2 * PI;
 		}
 
 		return phi_;
-	}
-	else {
+	} else {
 		return phi;
 	}
 }
 
-
-
 double t_particle::get_r_dot() const
 {
 
-	if(CartesianParticles)
-	{
-		const double &x  = r;
-		const double &y  = phi;
+	if (CartesianParticles) {
+		const double &x = r;
+		const double &y = phi;
 		const double &vx = r_dot;
 		const double &vy = phi_dot;
 
-		const double local_r = sqrt(x*x+y*y);
+		const double local_r = sqrt(x * x + y * y);
 
-		const double local_r_dot = (x*vx + y*vy) / local_r;
+		const double local_r_dot = (x * vx + y * vy) / local_r;
 		return local_r_dot;
-	}
-	else {
+	} else {
 		return r_dot;
 	}
 }
@@ -75,19 +62,18 @@ double t_particle::get_r_dot() const
 double t_particle::get_phi_dot() const
 {
 
-	if(CartesianParticles)
-	{
-		const double &x  = r;
-		const double &y  = phi;
+	if (CartesianParticles) {
+		const double &x = r;
+		const double &y = phi;
 		const double &vx = r_dot;
 		const double &vy = phi_dot;
 
-		const double local_r = sqrt(x*x+y*y);
+		const double local_r = sqrt(x * x + y * y);
 
-		const double local_phi_dot = (x*vy - vx*y) / (local_r*local_r);
+		const double local_phi_dot =
+		    (x * vy - vx * y) / (local_r * local_r);
 		return local_phi_dot;
-	}
-	else {
+	} else {
 		return phi_dot;
 	}
 }

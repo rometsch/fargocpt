@@ -7,60 +7,63 @@
 #include <fenv.h>
 #include <vector>
 
-#include "fpe.h"
-#include "backtrace.h"
-#include "logging.h"
-#include "global.h"
 #include "LowTasks.h"
+#include "backtrace.h"
+#include "fpe.h"
+#include "global.h"
+#include "logging.h"
 #include "output.h"
 
 /**
 	Handles a floating point exception.
 */
-void fpe_sighandler(int sig, siginfo_t *info, void *secret) {
-    const char* type;
-    (void) sig;
-    (void) secret;
+void fpe_sighandler(int sig, siginfo_t *info, void *secret)
+{
+	const char *type;
+	(void)sig;
+	(void)secret;
 
 	switch (info->si_code) {
-		case FPE_INTDIV:
-			type = "integer divide by zero";
-			break;
+	case FPE_INTDIV:
+		type = "integer divide by zero";
+		break;
 
-		case FPE_INTOVF:
-			type = "integer overflow";
-			break;
+	case FPE_INTOVF:
+		type = "integer overflow";
+		break;
 
-		case FPE_FLTDIV:
-			type = "floating-point divide by zero";
-			break;
+	case FPE_FLTDIV:
+		type = "floating-point divide by zero";
+		break;
 
-		case FPE_FLTOVF:
-			type = "floating-point overflow";
-			break;
+	case FPE_FLTOVF:
+		type = "floating-point overflow";
+		break;
 
-		case FPE_FLTUND:
-			type = "floating-point underflow";
-			break;
+	case FPE_FLTUND:
+		type = "floating-point underflow";
+		break;
 
-		case FPE_FLTRES:
-			type = "floating-point inexact result";
-			break;
+	case FPE_FLTRES:
+		type = "floating-point inexact result";
+		break;
 
-		case FPE_FLTINV:
-			type = "floating-point invalid operation";
-			break;
+	case FPE_FLTINV:
+		type = "floating-point invalid operation";
+		break;
 
-		case FPE_FLTSUB:
-			type = "subscript out of range";
-			break;
+	case FPE_FLTSUB:
+		type = "subscript out of range";
+		break;
 
-		default:
-			type = "undefined";
-			break;
+	default:
+		type = "undefined";
+		break;
 	}
 
-	logging::print(LOG_ERROR "CPU #%d has been signaled with a floating point exception of type '%s'.\n", CPU_Rank, type);
+	logging::print(LOG_ERROR "CPU #%d has been signaled with a floating "
+				 "point exception of type '%s'.\n",
+		       CPU_Rank, type);
 
 	PrintTrace();
 
@@ -71,7 +74,8 @@ void fpe_sighandler(int sig, siginfo_t *info, void *secret) {
 /**
 	Initializes floating point exeception handling.
 */
-void setfpe() {
+void setfpe()
+{
 #ifdef _TRAP_FPE
 	/* Can also be any of the value below:
 		FE_INEXACT           inexact result
@@ -87,10 +91,9 @@ void setfpe() {
 	struct sigaction sa;
 
 	sa.sa_sigaction = &fpe_sighandler;
-	sigemptyset (&sa.sa_mask);
+	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART | SA_SIGINFO;
 
 	sigaction(SIGFPE, &sa, NULL);
 #endif
 }
-

@@ -1,10 +1,9 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <mpi.h>
-#include "types.h"
 #include "radialarray.h"
-
+#include "types.h"
+#include <mpi.h>
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -35,19 +34,21 @@ extern ptrdiff_t ifront;
 
 extern int Zero_or_active_friend;
 
-extern int hydro_totalsize, active_hydro_totalsize, active_hydro_totalsize_friend;
+extern int hydro_totalsize, active_hydro_totalsize,
+    active_hydro_totalsize_friend;
 extern unsigned int IMIN;
 extern unsigned int IMAX;
 extern unsigned int Zero_or_active;
 extern unsigned int Max_or_active;
 extern unsigned int One_or_active;
-extern unsigned int MaxMO_or_active;		/* MO: Minus One */
+extern unsigned int MaxMO_or_active; /* MO: Minus One */
 extern unsigned int GlobalNRadial;
 
-void sum_without_ghost_cells(double &accumulator, const double &addend, const unsigned int &n_radial);
+void sum_without_ghost_cells(double &accumulator, const double &addend,
+			     const unsigned int &n_radial);
 
-extern int *RootNradialLocalSizes;			// Needed for MPI_Gatherv
-extern int *RootNradialDisplacements;	// Needed for MPI_Gatherv
+extern int *RootNradialLocalSizes;    // Needed for MPI_Gatherv
+extern int *RootNradialDisplacements; // Needed for MPI_Gatherv
 extern int *RootIMAX;
 extern int *RootIMIN;
 extern int *RootRanksOrdered;
@@ -79,7 +80,9 @@ extern int TimeStep;
 extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 
 extern int debug, OnlyInit;
-extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
+extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
+    ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles,
+    ParticlesInCartesian;
 extern int CentrifugalBalance, ExcludeHill, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellAbscissa, *CellOrdinate;

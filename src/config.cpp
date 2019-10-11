@@ -31,13 +31,14 @@
 #include "LowTasks.h"
 #include "logging.h"
 #include <ctype.h>
+#include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <errno.h>
 
-namespace config {
+namespace config
+{
 
 #define MAXNAME (256)
 
@@ -56,11 +57,11 @@ typedef struct {
 } t_entry;
 
 typedef struct {
-	t_entry* data;
+	t_entry *data;
 	unsigned int size;
 } t_list;
 
-static t_list list = {NULL,0};
+static t_list list = {NULL, 0};
 
 static void add_to_config_list(const char *key, const char *value);
 static inline int iskeychar(int c);
@@ -89,13 +90,16 @@ static bool as_bool(const char *key, const char *value);
 */
 static void add_to_config_list(const char *key, const char *value)
 {
-	list.data = (t_entry*)realloc(list.data,(++list.size)*sizeof(t_entry));
+	list.data =
+	    (t_entry *)realloc(list.data, (++list.size) * sizeof(t_entry));
 
-	list.data[list.size-1].key = (char*)malloc((strlen(key)+1)*sizeof(char));
-	list.data[list.size-1].value = (char*)malloc((strlen(value)+1)*sizeof(char));
+	list.data[list.size - 1].key =
+	    (char *)malloc((strlen(key) + 1) * sizeof(char));
+	list.data[list.size - 1].value =
+	    (char *)malloc((strlen(value) + 1) * sizeof(char));
 
-	strcpy(list.data[list.size-1].key,key);
-	strcpy(list.data[list.size-1].value,value);
+	strcpy(list.data[list.size - 1].key, key);
+	strcpy(list.data[list.size - 1].value, value);
 }
 
 /**
@@ -104,10 +108,7 @@ static void add_to_config_list(const char *key, const char *value)
 	\param c char to check
 	\returns 0 if no key char, otherwise != 0
 */
-static inline int iskeychar(int c)
-{
-	return isalnum(c) || c == '-';
-}
+static inline int iskeychar(int c) { return isalnum(c) || c == '-'; }
 
 /**
 	read next char from config file
@@ -192,7 +193,8 @@ static char *parse_value(void)
 				c = '\n';
 				break;
 			/* Some characters escape as themselves */
-			case '\\': case '"':
+			case '\\':
+			case '"':
 				break;
 			/* Reject unknown escape sequences */
 			default:
@@ -202,7 +204,7 @@ static char *parse_value(void)
 			continue;
 		}
 		if (c == '"') {
-			quote = 1-quote;
+			quote = 1 - quote;
 			continue;
 		}
 		value[len++] = c;
@@ -239,7 +241,8 @@ static int get_value(char *key, unsigned int len)
 	value = NULL;
 
 	if (c != '\n') {
-		/* uncomment this line and comment the ungetc line if you want to use "parameter = value" style in your config file */
+		/* uncomment this line and comment the ungetc line if you want
+		 * to use "parameter = value" style in your config file */
 		/*if (c != '=')
 			return -1;*/
 		ungetc(c, file_ptr);
@@ -264,16 +267,16 @@ static int parse_file()
 	static char var[MAXNAME];
 
 	/* U+FEFF Byte Order Mark in UTF8 */
-	static const unsigned char *utf8_bom = (unsigned char *) "\xef\xbb\xbf";
+	static const unsigned char *utf8_bom = (unsigned char *)"\xef\xbb\xbf";
 	const unsigned char *bomptr = utf8_bom;
 
 	for (;;) {
-		int c =get_next_char();
+		int c = get_next_char();
 		if (bomptr && *bomptr) {
 			/* We are at the file beginning; skip UTF8-encoded BOM
 			 * if present. Sane editors won't put this in on their
 			 * own, but e.g. Windows Notepad will do it happily. */
-			if ((unsigned char) c == *bomptr) {
+			if ((unsigned char)c == *bomptr) {
 				bomptr++;
 				continue;
 			} else {
@@ -299,7 +302,7 @@ static int parse_file()
 		if (!isalpha(c))
 			break;
 		var[baselen] = tolower(c);
-		if (get_value(var, baselen+1) < 0)
+		if (get_value(var, baselen + 1) < 0)
 			break;
 	}
 
@@ -358,12 +361,10 @@ static int parse_unit_factor(const char *end, unsigned long *val)
 	else if (!strcasecmp(end, "k")) {
 		*val *= 1000;
 		return 1;
-	}
-	else if (!strcasecmp(end, "M")) {
+	} else if (!strcasecmp(end, "M")) {
 		*val *= 1000 * 1000;
 		return 1;
-	}
-	else if (!strcasecmp(end, "G")) {
+	} else if (!strcasecmp(end, "G")) {
 		*val *= 1000 * 1000 * 1000;
 		return 1;
 	}
@@ -386,7 +387,7 @@ static const char *value(const char *key)
 	}
 
 	for (i = 0; i < list.size; ++i) {
-		if (strcmp(keylower,list.data[i].key) == 0)
+		if (strcmp(keylower, list.data[i].key) == 0)
 			return list.data[i].value;
 	}
 
@@ -513,7 +514,12 @@ static double as_double(const char *key, const char *value)
 {
 	double ret = 0;
 	if (!strcmp(value, "NaN")) {
-		logging::print_master((std::string(LOG_WARNING) + "Warning: '" + std::string(key) + "' set to the unphysical 1e300 instead of NaN. NaN is not supported for parameters!\n").c_str());
+		logging::print_master(
+		    (std::string(LOG_WARNING) + "Warning: '" +
+		     std::string(key) +
+		     "' set to the unphysical 1e300 instead of NaN. NaN is not "
+		     "supported for parameters!\n")
+			.c_str());
 		return 1e300;
 	}
 	if (!parse_double(value, &ret))
@@ -536,9 +542,11 @@ static int as_bool_or_int(const char *key, const char *value, int *is_bool)
 		return 1;
 	if (!*value)
 		return 0;
-	if (!strcasecmp(value, "true") || !strcasecmp(value, "yes") || !strcasecmp(value, "on"))
+	if (!strcasecmp(value, "true") || !strcasecmp(value, "yes") ||
+	    !strcasecmp(value, "on"))
 		return 1;
-	if (!strcasecmp(value, "false") || !strcasecmp(value, "no") || !strcasecmp(value, "off"))
+	if (!strcasecmp(value, "false") || !strcasecmp(value, "no") ||
+	    !strcasecmp(value, "off"))
 		return 0;
 	*is_bool = 0;
 	return as_int(key, value);
@@ -563,10 +571,7 @@ static bool as_bool(const char *key, const char *value)
 	\param key key
 	\returns value
 */
-bool value_as_bool(const char *key)
-{
-	return as_bool(key, value(key));
-}
+bool value_as_bool(const char *key) { return as_bool(key, value(key)); }
 
 /**
 	Get a value as int to a corresponding key
@@ -574,10 +579,7 @@ bool value_as_bool(const char *key)
 	\param key key
 	\returns value
 */
-int value_as_int(const char *key)
-{
-	return as_int(key, value(key));
-}
+int value_as_int(const char *key) { return as_int(key, value(key)); }
 
 /**
 	Get a value as unsigned int to a corresponding key
@@ -596,10 +598,7 @@ unsigned int value_as_unsigned_int(const char *key)
 	\param key key
 	\returns value
 */
-double value_as_double(const char *key)
-{
-	return as_double(key, value(key));
-}
+double value_as_double(const char *key) { return as_double(key, value(key)); }
 
 /**
 	Get a value as string to a corresponding key
@@ -607,13 +606,11 @@ double value_as_double(const char *key)
 	\param key key
 	\returns value
 */
-const char *value_as_string(const char *key)
-{
-	return value(key);
-}
+const char *value_as_string(const char *key) { return value(key); }
 
 /**
-	Get a value as bool to a corresponding key if available, else set to default
+	Get a value as bool to a corresponding key if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -629,7 +626,8 @@ bool value_as_bool_default(const char *key, bool defvalue)
 }
 
 /**
-	Get a value as int to a corresponding key if available, else set to default
+	Get a value as int to a corresponding key if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -645,13 +643,15 @@ int value_as_int_default(const char *key, int defvalue)
 }
 
 /**
-	Get a value as unsigned int to a corresponding key if available, else set to default
+	Get a value as unsigned int to a corresponding key if available, else
+   set to default
 
 	\param key key
 	\param defvalue default value
 	\returns value
 */
-unsigned int value_as_unsigned_int_default(const char *key, unsigned int defvalue)
+unsigned int value_as_unsigned_int_default(const char *key,
+					   unsigned int defvalue)
 {
 	if (key_exists(key)) {
 		return value_as_unsigned_int(key);
@@ -661,7 +661,8 @@ unsigned int value_as_unsigned_int_default(const char *key, unsigned int defvalu
 }
 
 /**
-	Get a value as double to a corresponding key  if available, else set to default
+	Get a value as double to a corresponding key  if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -677,7 +678,8 @@ double value_as_double_default(const char *key, double defvalue)
 }
 
 /**
-	Get a value as string to a corresponding key  if available, else set to default
+	Get a value as string to a corresponding key  if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -693,44 +695,44 @@ const char *value_as_string_default(const char *key, const char *defvalue)
 }
 
 /**
-	Get a value as t_boundary_condition to a corresponding key  if available, else set to default
+	Get a value as t_boundary_condition to a corresponding key  if
+   available, else set to default
 
 	\param key key
 	\param defvalue default value
 	\returns t_boundary_condition
 */
-parameters::t_damping_type value_as_boudary_damping_default(const char *key, const char *defvalue)
+parameters::t_damping_type
+value_as_boudary_damping_default(const char *key, const char *defvalue)
 {
-	char* string_key;
-	if (key_exists(key))
-	{
-		string_key = (char*)value_as_string(key);
-	}
-	else
-	{
-		string_key = (char*)defvalue;
+	char *string_key;
+	if (key_exists(key)) {
+		string_key = (char *)value_as_string(key);
+	} else {
+		string_key = (char *)defvalue;
 	}
 
 	parameters::t_damping_type boundary_condition;
-	switch (tolower(*string_key))
-	{
-		case 'n':
-			boundary_condition = parameters::t_damping_type::damping_none;
-			break;
-		case 'i':
-			boundary_condition =  parameters::t_damping_type::damping_initial;
-			break;
-		case 'y': // for legacy compatibility
-			boundary_condition =  parameters::t_damping_type::damping_initial;
-			break;
-		case 'm':
-			boundary_condition = parameters::t_damping_type::damping_mean;
-			break;
-		case 'z':
-			boundary_condition = parameters::t_damping_type::damping_zero;
-			break;
-		default:
-			boundary_condition = parameters::t_damping_type::damping_none;
+	switch (tolower(*string_key)) {
+	case 'n':
+		boundary_condition = parameters::t_damping_type::damping_none;
+		break;
+	case 'i':
+		boundary_condition =
+		    parameters::t_damping_type::damping_initial;
+		break;
+	case 'y': // for legacy compatibility
+		boundary_condition =
+		    parameters::t_damping_type::damping_initial;
+		break;
+	case 'm':
+		boundary_condition = parameters::t_damping_type::damping_mean;
+		break;
+	case 'z':
+		boundary_condition = parameters::t_damping_type::damping_zero;
+		break;
+	default:
+		boundary_condition = parameters::t_damping_type::damping_none;
 	}
 	return boundary_condition;
 }
@@ -751,7 +753,7 @@ int key_exists(const char *key)
 	}
 
 	for (i = 0; i < list.size; ++i) {
-		if (strcmp(keylower,list.data[i].key) == 0)
+		if (strcmp(keylower, list.data[i].key) == 0)
 			return 1;
 	}
 
@@ -766,8 +768,9 @@ void print_parsed_config()
 	unsigned int i;
 
 	for (i = 0; i < list.size; ++i) {
-		printf("[%u]: %s = %s\n",i,list.data[i].key,list.data[i].value);
+		printf("[%u]: %s = %s\n", i, list.data[i].key,
+		       list.data[i].value);
 	}
 }
 
-}
+} // namespace config

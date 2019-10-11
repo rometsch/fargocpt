@@ -1,17 +1,17 @@
 #ifndef LOWTASKS_H
 #define LOWTASKS_H
 
-#include <stdlib.h>
 #include "types.h"
+#include <stdlib.h>
 
 double GetGlobalIFrac(double r);
 
 void PersonalExit(int returncode);
 
-t_polargrid* CreatePolarGrid(unsigned int Nr, unsigned int Ns, const char* name);
+t_polargrid *CreatePolarGrid(unsigned int Nr, unsigned int Ns,
+			     const char *name);
 
-void MultiplyPolarGridbyConstant(t_polargrid* arraysrc, double constant);
-
+void MultiplyPolarGridbyConstant(t_polargrid *arraysrc, double constant);
 
 void die(const char *err, ...);
 void die_errno(const char *fmt, ...);

@@ -1,19 +1,17 @@
 #include "planetary_system.h"
-#include "logging.h"
-#include "parameters.h"
 #include "LowTasks.h"
 #include "constants.h"
 #include "global.h"
+#include "logging.h"
+#include "parameters.h"
+#include <cstring>
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
-#include <ctype.h>
-#include <cstring>
 
 extern boolean CICPlanet;
 
-t_planetary_system::t_planetary_system()
-{
-}
+t_planetary_system::t_planetary_system() {}
 
 t_planetary_system::~t_planetary_system()
 {
@@ -24,7 +22,8 @@ t_planetary_system::~t_planetary_system()
 	m_planets.clear();
 }
 
-void t_planetary_system::read_from_file(char *filename) {
+void t_planetary_system::read_from_file(char *filename)
+{
 	FILE *fd;
 
 	// check if a filename was specified
@@ -38,7 +37,8 @@ void t_planetary_system::read_from_file(char *filename) {
 
 	// check if file was readable
 	if (fd == NULL) {
-		logging::print_master(LOG_ERROR "Error : can't find '%s'.\n", filename);
+		logging::print_master(LOG_ERROR "Error : can't find '%s'.\n",
+				      filename);
 		PersonalExit(1);
 		return;
 	}
@@ -48,7 +48,8 @@ void t_planetary_system::read_from_file(char *filename) {
 	// read line by line
 	while (fgets(buffer, sizeof(buffer), fd) != NULL) {
 		char name[80], feeldisk[5], feelother[5], irradiate[5];
-		double semi_major_axis, mass, acc, eccentricity = 0.0, temperature, radius, phi, rampuptime;
+		double semi_major_axis, mass, acc,
+		    eccentricity = 0.0, temperature, radius, phi, rampuptime;
 		int num_args;
 
 		// check if this line is a comment
@@ -56,7 +57,11 @@ void t_planetary_system::read_from_file(char *filename) {
 			continue;
 
 		// try to cut line into pieces
-		num_args = sscanf(buffer, "%80s %lf %lf %lf %5s %5s %lf %lf %lf %5s %lf %lf", name, &semi_major_axis, &mass, &acc, feeldisk, feelother, &eccentricity, &radius, &temperature, irradiate, &phi, &rampuptime);
+		num_args = sscanf(
+		    buffer, "%80s %lf %lf %lf %5s %5s %lf %lf %lf %5s %lf %lf",
+		    name, &semi_major_axis, &mass, &acc, feeldisk, feelother,
+		    &eccentricity, &radius, &temperature, irradiate, &phi,
+		    &rampuptime);
 		if (num_args < 6)
 			continue;
 
@@ -85,34 +90,48 @@ void t_planetary_system::read_from_file(char *filename) {
 		}
 
 		if (CICPlanet) {
-			// initialization puts centered-in-cell planets (with excentricity = 0 only)
+			// initialization puts centered-in-cell planets (with
+			// excentricity = 0 only)
 			unsigned int j = 0;
-			while ( GlobalRmed[j] < semi_major_axis)
+			while (GlobalRmed[j] < semi_major_axis)
 				j++;
-			semi_major_axis = Radii[j+1];
+			semi_major_axis = Radii[j + 1];
 		}
 
-		t_planet* planet = new t_planet();
+		t_planet *planet = new t_planet();
 
 		// planets starts at Apastron
 		planet->set_name(name);
 		planet->set_mass(mass);
-		double r = semi_major_axis*(1.0+eccentricity);
-		planet->set_x(r*cos(phi));
-		planet->set_y(r*sin(phi));
-		double v = sqrt(constants::G*(1.0+mass)/semi_major_axis)*sqrt( (1.0-eccentricity)/(1.0+eccentricity) );
-		planet->set_vx(-v*sin(phi));
-		planet->set_vy(v*cos(phi));
+		double r = semi_major_axis * (1.0 + eccentricity);
+		planet->set_x(r * cos(phi));
+		planet->set_y(r * sin(phi));
+		double v = sqrt(constants::G * (1.0 + mass) / semi_major_axis) *
+			   sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
+		planet->set_vx(-v * sin(phi));
+		planet->set_vy(v * cos(phi));
 		planet->set_acc(acc);
 
 		if (tolower(feeldisk[0]) == 'y') {
 			planet->set_feeldisk(true);
 		} else {
-			if (parameters::disk_feedback  == YES) {
+			if (parameters::disk_feedback == YES) {
 				logging::print_master("\n\n\n");
-				logging::print_master(LOG_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-				logging::print_master((std::string(LOG_WARNING) + "UNPHYSICAL SETTING! Disk feedback is activated but disk interaction is disabled for planet " + std::string(planet->get_name()) + "!\n").c_str());
-				logging::print_master(LOG_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n");
+				logging::print_master(
+				    LOG_WARNING
+				    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+				    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+				logging::print_master(
+				    (std::string(LOG_WARNING) +
+				     "UNPHYSICAL SETTING! Disk feedback is "
+				     "activated but disk interaction is "
+				     "disabled for planet " +
+				     std::string(planet->get_name()) + "!\n")
+					.c_str());
+				logging::print_master(
+				    LOG_WARNING "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+						"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+						"!!!!!!!!!!!!!!!!!!!!\n\n\n");
 			}
 			planet->set_feeldisk(false);
 		}
@@ -124,7 +143,7 @@ void t_planetary_system::read_from_file(char *filename) {
 		}
 
 		planet->set_radius(radius);
-		planet->set_temperature(temperature/units::temperature);
+		planet->set_temperature(temperature / units::temperature);
 		planet->set_irradiate(tolower(irradiate[0]) == 'y');
 		planet->set_rampuptime(rampuptime);
 
@@ -134,10 +153,12 @@ void t_planetary_system::read_from_file(char *filename) {
 	// close file
 	fclose(fd);
 
-	logging::print_master(LOG_INFO "%d planet(s) found.\n", get_number_of_planets());
+	logging::print_master(LOG_INFO "%d planet(s) found.\n",
+			      get_number_of_planets());
 
 	if (get_number_of_planets() > 0) {
-		HillRadius = get_planet(0).get_x() * pow(get_planet(0).get_mass()/3.,1./3.);
+		HillRadius = get_planet(0).get_x() *
+			     pow(get_planet(0).get_mass() / 3., 1. / 3.);
 	} else {
 		HillRadius = 0;
 	}
@@ -149,36 +170,70 @@ void t_planetary_system::list_planets()
 		return;
 
 	if (get_number_of_planets() == 0) {
-		//logging::print(LOG_INFO "Planet overview: No planets specified.\n");
+		// logging::print(LOG_INFO "Planet overview: No planets
+		// specified.\n");
 		return;
 	}
 
 	logging::print(LOG_INFO "Planet overview:\n");
 	logging::print(LOG_INFO "\n");
-	logging::print(LOG_INFO " #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |\n");
-	logging::print(LOG_INFO "-----+-------------------------+------------+------------+------------+------------+------------+\n");
+	logging::print(LOG_INFO
+		       " #   | name                    | mass [m0]  | x [l0]   "
+		       "  | y [l0]     | vx         | vy         |\n");
+	logging::print(LOG_INFO
+		       "-----+-------------------------+------------+----------"
+		       "--+------------+------------+------------+\n");
 
 	for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		logging::print(LOG_INFO " %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",i , get_planet(i).get_name(), get_planet(i).get_mass(), get_planet(i).get_x(), get_planet(i).get_y(), get_planet(i).get_vx(), get_planet(i).get_vy());
+		logging::print(LOG_INFO " %3i | %-23s | % 10.7g | % 10.7g | % "
+					"10.7g | % 10.7g | % 10.7g |\n",
+			       i, get_planet(i).get_name(),
+			       get_planet(i).get_mass(), get_planet(i).get_x(),
+			       get_planet(i).get_y(), get_planet(i).get_vx(),
+			       get_planet(i).get_vy());
 	}
 
 	logging::print(LOG_INFO "\n");
-	logging::print(LOG_INFO " #   | e          | a          | T [t0]     | T [a]      | accreting  | feels disk | feels plan.|\n");
-	logging::print(LOG_INFO "-----+------------+------------+------------+------------+------------+------------+------------+\n");
+	logging::print(LOG_INFO
+		       " #   | e          | a          | T [t0]     | T [a]    "
+		       "  | accreting  | feels disk | feels plan.|\n");
+	logging::print(LOG_INFO
+		       "-----+------------+------------+------------+----------"
+		       "--+------------+------------+------------+\n");
 
 	for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		logging::print(LOG_INFO " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",i ,get_planet(i).get_eccentricity(), get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),get_planet(i).get_period()*units::time.get_cgs_factor()/(24*60*60*365.2425), get_planet(i).get_acc(), (get_planet(i).get_feeldisk()) ? 'X' : '-', (get_planet(i).get_feelother()) ? 'X' : '-');
+		logging::print(
+		    LOG_INFO " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % "
+			     "10.7g |          %c |          %c |\n",
+		    i, get_planet(i).get_eccentricity(),
+		    get_planet(i).get_semi_major_axis(),
+		    get_planet(i).get_period(),
+		    get_planet(i).get_period() * units::time.get_cgs_factor() /
+			(24 * 60 * 60 * 365.2425),
+		    get_planet(i).get_acc(),
+		    (get_planet(i).get_feeldisk()) ? 'X' : '-',
+		    (get_planet(i).get_feelother()) ? 'X' : '-');
 	}
 
 	logging::print(LOG_INFO "\n");
-	logging::print(LOG_INFO " #   | Temp [K]   | R [l0]     | irradiates | rampuptime |\n");
-	logging::print(LOG_INFO "-----+------------+------------+------------+------------+\n");
+	logging::print(
+	    LOG_INFO
+	    " #   | Temp [K]   | R [l0]     | irradiates | rampuptime |\n");
+	logging::print(
+	    LOG_INFO
+	    "-----+------------+------------+------------+------------+\n");
 
 	for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		logging::print(LOG_INFO " %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",i ,get_planet(i).get_temperature()*units::temperature, get_planet(i).get_radius(), (get_planet(i).get_irradiate()) ? 'X' : '-', get_planet(i).get_rampuptime());
+		logging::print(
+		    LOG_INFO
+		    " %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
+		    i, get_planet(i).get_temperature() * units::temperature,
+		    get_planet(i).get_radius(),
+		    (get_planet(i).get_irradiate()) ? 'X' : '-',
+		    get_planet(i).get_rampuptime());
 	}
 
-logging::print(LOG_INFO "\n");
+	logging::print(LOG_INFO "\n");
 }
 
 void t_planetary_system::rotate(double angle)
@@ -187,14 +242,15 @@ void t_planetary_system::rotate(double angle)
 		// rotate positions
 		double old_x = get_planet(i).get_x();
 		double old_y = get_planet(i).get_y();
-		get_planet(i).set_x( old_x*cos(angle)+old_y*sin(angle));
-		get_planet(i).set_y(-old_x*sin(angle)+old_y*cos(angle));
+		get_planet(i).set_x(old_x * cos(angle) + old_y * sin(angle));
+		get_planet(i).set_y(-old_x * sin(angle) + old_y * cos(angle));
 
 		// rotate velocities
 		double old_vx = get_planet(i).get_vx();
 		double old_vy = get_planet(i).get_vy();
-		get_planet(i).set_vx( old_vx*cos(angle)+old_vy*sin(angle));
-		get_planet(i).set_vy(-old_vx*sin(angle)+old_vy*cos(angle));
+		get_planet(i).set_vx(old_vx * cos(angle) + old_vy * sin(angle));
+		get_planet(i).set_vy(-old_vx * sin(angle) +
+				     old_vy * cos(angle));
 	}
 }
 

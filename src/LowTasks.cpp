@@ -1,10 +1,10 @@
-#include <mpi.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
 #include <iostream>
+#include <mpi.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "LowTasks.h"
 #include "global.h"
@@ -12,16 +12,18 @@
 
 double GetGlobalIFrac(double r)
 {
-	int i=0;
+	int i = 0;
 	double ifrac;
 
 	if (r < GlobalRmed[0])
 		return 0.0;
-	if (r > GlobalRmed[GlobalNRadial-1])
-		return (double)GlobalNRadial-1.0;
+	if (r > GlobalRmed[GlobalNRadial - 1])
+		return (double)GlobalNRadial - 1.0;
 	while (GlobalRmed[i] <= r)
 		i++;
-	ifrac = (double)i+(r-GlobalRmed[i-1])/(GlobalRmed[i]-GlobalRmed[i-1])-1.0;
+	ifrac = (double)i +
+		(r - GlobalRmed[i - 1]) / (GlobalRmed[i] - GlobalRmed[i - 1]) -
+		1.0;
 
 	return ifrac;
 }
@@ -42,12 +44,12 @@ void PersonalExit(int returncode)
 	exit(returncode);
 }
 
-t_polargrid* CreatePolarGrid(unsigned int Nr, unsigned int Ns, const char* name)
+t_polargrid *CreatePolarGrid(unsigned int Nr, unsigned int Ns, const char *name)
 {
-	t_polargrid* polarGrid;
+	t_polargrid *polarGrid;
 
 	polarGrid = new t_polargrid();
-	polarGrid->set_size(Nr,Ns);
+	polarGrid->set_size(Nr, Ns);
 	polarGrid->set_name(name);
 	polarGrid->WriteOut = 0;
 	polarGrid->Initialised = 0;
@@ -55,7 +57,7 @@ t_polargrid* CreatePolarGrid(unsigned int Nr, unsigned int Ns, const char* name)
 	return polarGrid;
 }
 
-void MultiplyPolarGridbyConstant(t_polargrid* arraysrc, double constant)
+void MultiplyPolarGridbyConstant(t_polargrid *arraysrc, double constant)
 {
 	(*arraysrc) *= constant;
 }
@@ -86,7 +88,7 @@ void die_errno(const char *fmt, ...)
 	unsigned int i, j;
 
 	err = strerror(errno);
-	for (i = j = 0; err[i] && j < sizeof(str_error) - 1; ) {
+	for (i = j = 0; err[i] && j < sizeof(str_error) - 1;) {
 		if ((str_error[j++] = err[i++]) != '%')
 			continue;
 		if (j < sizeof(str_error) - 1) {

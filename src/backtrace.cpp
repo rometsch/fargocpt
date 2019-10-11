@@ -1,10 +1,10 @@
-#include <stdlib.h>
-#include <stddef.h>
 #include <execinfo.h>
+#include <stddef.h>
+#include <stdlib.h>
 
+#include "LowTasks.h"
 #include "backtrace.h"
 #include "logging.h"
-#include "LowTasks.h"
 
 /**
 	prints backtrace for debugging
