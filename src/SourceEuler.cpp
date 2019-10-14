@@ -1431,11 +1431,6 @@ void calculate_qplus(t_data &data)
 	}
 }
 
-double calculate_omega_k(double r)
-{
-	return sqrt(constants::G * M / (r * r * r));
-}
-
 void calculate_qminus(t_data &data)
 {
 	// clear up all Qminus terms
@@ -1452,7 +1447,8 @@ void calculate_qminus(t_data &data)
 			     ++n_azimuthal) {
 				// Q- = E Omega/beta
 				const double r = Rmed[n_radial];
-				const double omega_k = calculate_omega_k(r);
+				const double omega_k =
+				    calculate_omega_kepler(r);
 				const double E =
 				    data[t_data::ENERGY](n_radial, n_azimuthal);
 				const double t_ramp_up =
@@ -1496,14 +1492,15 @@ void calculate_qminus(t_data &data)
 						 units::temperature;
 
 				// TODO: user aspect ratio
-				densityCGS = data[t_data::DENSITY](
-						 n_radial, n_azimuthal) /
-					     (parameters::density_factor *
-					      data[t_data::SOUNDSPEED](
-						  n_radial, n_azimuthal) /
-					      sqrt(ADIABATICINDEX) /
-					      omega_kepler(Rmed[n_radial])) *
-					     units::density;
+				densityCGS =
+				    data[t_data::DENSITY](n_radial,
+							  n_azimuthal) /
+				    (parameters::density_factor *
+				     data[t_data::SOUNDSPEED](n_radial,
+							      n_azimuthal) /
+				     sqrt(ADIABATICINDEX) /
+				     calculate_omega_kepler(Rmed[n_radial])) *
+				    units::density;
 
 				kappaCGS = opacity::opacity(densityCGS,
 							    temperatureCGS);
@@ -2559,7 +2556,7 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 	     n_radial <= data[t_data::ASPECTRATIO].get_max_radial();
 	     ++n_radial) {
 		double inv_v_kepler =
-		    1.0 / (omega_kepler(Rb[n_radial]) * Rb[n_radial]);
+		    1.0 / (calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial]);
 
 		for (unsigned int n_azimuthal = 0;
 		     n_azimuthal <=

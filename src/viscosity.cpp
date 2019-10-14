@@ -40,7 +40,8 @@ void update_viscosity(t_data &data)
 		for (unsigned int n_radial = 0;
 		     n_radial <= data[t_data::VISCOSITY].get_max_radial();
 		     ++n_radial) {
-			inv_omega_kepler = 1.0 / omega_kepler(Rb[n_radial]);
+			inv_omega_kepler =
+			    1.0 / calculate_omega_kepler(Rb[n_radial]);
 
 			for (unsigned int n_azimuthal = 0;
 			     n_azimuthal <=

@@ -370,7 +370,7 @@ void init_shakura_sunyaev(t_data &data)
 			    (ADIABATICINDEX - 1.) *
 			    data[t_data::ENERGY](n_radial, n_azimuthal);
 			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-			    omega_kepler(Rb[n_radial]) * Rb[n_radial];
+			    calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial];
 
 			// if( Rb[n_radial] < parameters::star_radius ){
 			// 	data[t_data::TEMPERATURE](n_radial, n_azimuthal)
@@ -387,11 +387,12 @@ void init_shakura_sunyaev(t_data &data)
 			// data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
 			// sqrt( constants::R/parameters::MU *
 			// data[t_data::TEMPERATURE](n_radial, n_azimuthal) ) /
-			// (omega_kepler(Rb[n_radial]) * Rb[n_radial]);
-			// 	data[t_data::DENSITY](n_radial, n_azimuthal) =
+			// (calculate_omega_kepler(Rb[n_radial]) *
+			// Rb[n_radial]); 	data[t_data::DENSITY](n_radial,
+			// n_azimuthal) =
 			// parameters::mass_accretion_rate/(3.*PI*ALPHAVISCOSITY*pow(data[t_data::SOUNDSPEED](n_radial,
-			// n_azimuthal),2)/omega_kepler(Rb[n_radial]))*(1. -
-			// pow(parameters::star_radius/Rb[n_radial+1],.5));
+			// n_azimuthal),2)/calculate_omega_kepler(Rb[n_radial]))*(1.
+			// - pow(parameters::star_radius/Rb[n_radial+1],.5));
 			// 	data[t_data::ENERGY](n_radial, n_azimuthal) =
 			// constants::R/parameters::MU
 			// * 1./(ADIABATICINDEX-1.)*data[t_data::DENSITY](n_radial,
@@ -401,7 +402,7 @@ void init_shakura_sunyaev(t_data &data)
 			// (ADIABATICINDEX-1.)*data[t_data::ENERGY](n_radial,
 			// n_azimuthal);
 			// data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-			// omega_kepler(Rb[n_radial])*Rb[n_radial];
+			// calculate_omega_kepler(Rb[n_radial])*Rb[n_radial];
 			// 	data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 			// -
 			// parameters::mass_accretion_rate/(2.*PI*data[t_data::DENSITY](n_radial,
@@ -419,11 +420,12 @@ void init_shakura_sunyaev(t_data &data)
 			// 	data[t_data::ASPECTRATIO](n_radial, n_azimuthal)
 			// = sqrt( constants::R/parameters::MU *
 			// data[t_data::TEMPERATURE](n_radial, n_azimuthal) ) /
-			// (omega_kepler(Rb[n_radial]) * Rb[n_radial]);
-			// 	data[t_data::DENSITY](n_radial, n_azimuthal) =
+			// (calculate_omega_kepler(Rb[n_radial]) *
+			// Rb[n_radial]); 	data[t_data::DENSITY](n_radial,
+			// n_azimuthal) =
 			// parameters::mass_accretion_rate/(3.*PI*ALPHAVISCOSITY*pow(data[t_data::SOUNDSPEED](n_radial,
-			// n_azimuthal),2)/omega_kepler(Rb[n_radial]))*(1. -
-			// pow(parameters::star_radius/Rb[n_radial],.5));
+			// n_azimuthal),2)/calculate_omega_kepler(Rb[n_radial]))*(1.
+			// - pow(parameters::star_radius/Rb[n_radial],.5));
 			// 	//data[t_data::DENSITY](n_radial, n_azimuthal) =
 			// parameters::mass_accretion_rate/(3.*PI*ALPHAVISCOSITY*data[t_data::SOUNDSPEED](n_radial,
 			// n_azimuthal)*data[t_data::ASPECTRATIO](n_radial,
@@ -438,7 +440,7 @@ void init_shakura_sunyaev(t_data &data)
 			// (ADIABATICINDEX-1.)*data[t_data::ENERGY](n_radial,
 			// n_azimuthal);
 			// data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-			// omega_kepler(Rb[n_radial])*Rb[n_radial];
+			// calculate_omega_kepler(Rb[n_radial])*Rb[n_radial];
 			// 	data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 			// -
 			// parameters::mass_accretion_rate/(2.*PI*data[t_data::DENSITY](n_radial,
@@ -920,7 +922,7 @@ void init_gas_velocities(t_data &data)
 				// v_azimuthal = Omega_K * r * (...)
 				data[t_data::V_AZIMUTHAL](n_radial,
 							  n_azimuthal) =
-				    r * omega_kepler(r) *
+				    r * calculate_omega_kepler(r) *
 				    sqrt(1.0 - pow2(ASPECTRATIO_REF) *
 						   pow(r, 2.0 * FLARINGINDEX) *
 						   (1. + SIGMASLOPE -

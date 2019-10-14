@@ -610,7 +610,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 	     ++n_radial) {
 		// this corresponds to equation (3.42) in Baruteau, 2008
 		double temp =
-		    pow2(omega_kepler(Rmed[n_radial])) *
+		    pow2(calculate_omega_kepler(Rmed[n_radial])) *
 			(1.0 - (1. + SIGMASLOPE - 2.0 * FLARINGINDEX) *
 				   pow2(ASPECTRATIO_REF) *
 				   pow(Rmed[n_radial], 2.0 * FLARINGINDEX)) -
