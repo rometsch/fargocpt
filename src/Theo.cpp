@@ -47,3 +47,8 @@ void RefillEnergy(t_polargrid *Energy)
 		EnergyMed[nRadial] = mean;
 	}
 }
+
+double calculate_omega_kepler(double r)
+{
+	return sqrt(constants::G * M / (r * r * r));
+}

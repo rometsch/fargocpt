@@ -5,11 +5,7 @@
 #include "types.h"
 #include <math.h>
 
-double calculate_omega_kepler(double r)
-{
-	return sqrt(constants::G * M / (r * r * r));
-}
-
+double calculate_omega_kepler(double r);
 void RefillSigma(t_polargrid *Density);
 void RefillEnergy(t_polargrid *Energy);
 
