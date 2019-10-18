@@ -1,9 +1,3 @@
-/**
-	\file Pframeforce.cpp
-
-	Functions that evaluate the %force between the planets and the disk. The FillForcesArrays() function is ill-named: it rather fill an array of the potential, that is later use to derive the force acting on the disk at every zone. The name of this file is due to the fact that we work in the frame centered on the primary (which is therefore not inertial). Old versions of fargo also featured the file Gframeforce.c, in which we worked in the frame centered on the center of gravity of the system.  The present file also contains the functions necessary to update the planets' position and velocities (taking into account, or not, the indirect term, ie the term arising from the fact that the frame is not inertial), as well as the function that initializes the hydrodynamics fields with analytic prescription.
-*/
-
 #include <stdlib.h>
 #include <math.h>
 #include <vector>
@@ -32,6 +26,11 @@ extern boolean AllowAccretion, Corotating, Cooling;
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 static int FeelOthers[MAX1D];
 
+/**
+ * @brief ComputeIndirectTerm: IndirectTerm is the correction therm that needs to be added to the accelerations.
+ * @param force
+ * @param data
+ */
 void ComputeIndirectTerm(Force* force,t_data &data) {
 	IndirectTerm.x = 0.0;
 	IndirectTerm.y = 0.0;
@@ -42,58 +41,44 @@ void ComputeIndirectTerm(Force* force,t_data &data) {
 
 	// compute disk indirect term
 	if (parameters::disk_feedback) {
-		if (parameters::no_default_star) {
-			// add up contributions from disk on all bodies used to calculate the center
-			double mass_center = 0.0;
-			for (unsigned int n=0; n<parameters::n_bodies_for_hydroframe_center; n++) {
-				t_planet &planet = data.get_planetary_system().get_planet(n);
-				double mass =  planet.get_mass();
-				Pair accel = planet.get_disk_on_planet_acceleration();
-				IndirectTermDisk.x -= mass*accel.x;
-				IndirectTermDisk.y -= mass*accel.y;
-				mass_center += mass;
-			}
-			IndirectTermDisk.x /= mass_center;
-			IndirectTermDisk.y /= mass_center;
-		} else {
-			// default mode with primary star in coordinate center
-			Pair acceleration = ComputeAccel(force, data, 0.0, 0.0, 0.0);
-			IndirectTermDisk.x = -acceleration.x;
-			IndirectTermDisk.y = -acceleration.y;
-		}
-	}
-
-	// compute nbody indirect term
-	if (parameters::no_default_star) {
-		// add up contributions from mutual interactions from all bodies used to calculate the center
+		// add up contributions from disk on all bodies used to calculate the center
 		double mass_center = 0.0;
 		for (unsigned int n=0; n<parameters::n_bodies_for_hydroframe_center; n++) {
 			t_planet &planet = data.get_planetary_system().get_planet(n);
 			double mass =  planet.get_mass();
-			Pair accel = planet.get_nbody_on_planet_acceleration();
-			IndirectTermPlanets.x -= mass*accel.x;
-			IndirectTermPlanets.y -= mass*accel.y;
+			Pair accel = planet.get_disk_on_planet_acceleration();
+			IndirectTermDisk.x -= mass*accel.x;
+			IndirectTermDisk.y -= mass*accel.y;
 			mass_center += mass;
 		}
-		IndirectTermPlanets.x /= mass_center;
-		IndirectTermPlanets.y /= mass_center;
-	} else {
-		// default mode with primary star in coordinate center
-		for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); k++) {
-			t_planet &planet = data.get_planetary_system().get_planet(k);
-			double InvPlanetDistance3 =  1.0/pow3(planet.get_r());
-			double mplanet = data.get_planetary_system().get_planet(k).get_mass();
-			IndirectTermPlanets.x = -constants::G*mplanet*InvPlanetDistance3*planet.get_x();
-			IndirectTermPlanets.y = -constants::G*mplanet*InvPlanetDistance3*planet.get_y();
-		}
+		IndirectTermDisk.x /= mass_center;
+		IndirectTermDisk.y /= mass_center;
 	}
+
+	// compute nbody indirect term
+	// add up contributions from mutual interactions from all bodies used to calculate the center
+	double mass_center = 0.0;
+	for (unsigned int n=0; n<parameters::n_bodies_for_hydroframe_center; n++) {
+		t_planet &planet = data.get_planetary_system().get_planet(n);
+		double mass =  planet.get_mass();
+		Pair accel = planet.get_nbody_on_planet_acceleration();
+		IndirectTermPlanets.x -= mass*accel.x;
+		IndirectTermPlanets.y -= mass*accel.y;
+		mass_center += mass;
+	}
+	IndirectTermPlanets.x /= mass_center;
+	IndirectTermPlanets.y /= mass_center;
 
 	IndirectTerm.x = IndirectTermDisk.x + IndirectTermPlanets.x;
 	IndirectTerm.y = IndirectTermDisk.y + IndirectTermPlanets.y;
 }
 
 /* Below : work in non-rotating frame */
-void FillForcesArrays(t_data &data)
+/**
+ * @brief CalculatePotential: Nbody Potential caused by stars and planets
+ * @param data
+ */
+void CalculatePotential(t_data &data)
 {
 	double x, y, angle, distancesmooth;;
 	double smooth = 0.0;
@@ -121,7 +106,6 @@ void FillForcesArrays(t_data &data)
 	data[t_data::POTENTIAL].clear();
 
 	// gravitational potential from planets on gas
-
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
 		// calculate smoothing length if dependend on radius
 		// i.e. for thickness smoothing with scale height at cell location
@@ -148,16 +132,6 @@ void FillForcesArrays(t_data &data)
 			// apply indirect term
 			// correct frame with contributions from disk and planets
 			data[t_data::POTENTIAL](n_radial,n_azimuthal) += -IndirectTerm.x*x -IndirectTerm.y*y;
-
-			if (!parameters::no_default_star) {
-				// direct term from star
-				if (!ThicknessSmoothingAtCell) {
-					smooth = 0.0;
-				}
-				distancesmooth = sqrt( pow2(Rmed[n_radial]) + smooth);
-				InvDistance = 1.0/distancesmooth;
-				data[t_data::POTENTIAL](n_radial,n_azimuthal) += -constants::G*1.0*InvDistance;
-			}
 		}
 	}
 }
@@ -227,8 +201,11 @@ void AdvanceSystemFromDisk(Force* force, t_data &data, double dt)
 
 void AdvanceSystemRK5(t_data &data, double dt)
 {
+
 	unsigned int n = data.get_planetary_system().get_number_of_planets();
 
+
+	/*
 	if (parameters::integrate_planets) {
 		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
 			q0[i+0*n] = data.get_planetary_system().get_planet(i).get_x();
@@ -249,6 +226,46 @@ void AdvanceSystemRK5(t_data &data, double dt)
 		}
 
 	}
+	*/
+
+
+
+
+	if (parameters::integrate_planets) {
+		auto &rebound = data.get_planetary_system().m_rebound;
+
+		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
+			auto &planet = data.get_planetary_system().get_planet(i);
+			rebound->particles[i].x = planet.get_x();
+			rebound->particles[i].y = planet.get_y();
+			rebound->particles[i].vx = planet.get_vx();
+			rebound->particles[i].vy = planet.get_vy();
+			rebound->particles[i].m = planet.get_mass();
+		}
+
+
+		for (unsigned int i = 0; i < rebound->N; i++) {
+			printf("particle = %d	%.5e	(%.5e	%.5e)	(%.5e	%.5e)\n", rebound->N, rebound->particles[i].m, rebound->particles[i].x, rebound->particles[i].y, rebound->particles[i].vx, rebound->particles[i].vy);
+		}
+
+
+		reb_integrate(data.get_planetary_system().m_rebound, PhysicalTime + dt);
+
+		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
+			auto planet = data.get_planetary_system().get_planet(i);
+			printf("read back = %d	%.5e	(%.5e	%.5e)	(%.5e	%.5e)\n", i, rebound->particles[i].m, rebound->particles[i].x, rebound->particles[i].y, rebound->particles[i].vx, rebound->particles[i].vy);
+
+			planet.set_x(rebound->particles[i].x);
+			planet.set_y(rebound->particles[i].y);
+			planet.set_vx(rebound->particles[i].vx);
+			planet.set_vy(rebound->particles[i].vy);
+
+		}
+
+		data.get_planetary_system().move_to_hydro_frame_center();
+	}
+
+
 }
 
 

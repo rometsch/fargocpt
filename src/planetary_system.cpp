@@ -15,6 +15,7 @@ extern int Corotating;
 
 t_planetary_system::t_planetary_system()
 {
+	m_rebound = reb_create_simulation();
 }
 
 t_planetary_system::~t_planetary_system()
@@ -26,8 +27,67 @@ t_planetary_system::~t_planetary_system()
 	m_planets.clear();
 }
 
+
+
+void t_planetary_system::init_rebound() {
+
+	m_rebound->G = constants::G;
+	m_rebound->dt = 1e-6;
+	m_rebound->softening = 0.0; // 5e-4; // Jupiter radius in au
+	m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+	//m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
+	for (unsigned int i = 0; i < m_planets.size(); ++i) {
+		struct reb_particle p = {0};
+		p.x = m_planets.at(i)->m_x;
+		p.y = m_planets.at(i)->m_y;
+		p.z = 0.0;
+		p.vx = m_planets.at(i)->m_vx;
+		p.vy = m_planets.at(i)->m_vy;
+		p.vz = 0.0;
+		p.ax = 0.0;
+		p.ay = 0.0;
+		p.az = 0.0;
+		p.m = m_planets.at(i)->m_mass;
+		p.r = 0.0;
+		p.lastcollision = 0.0;
+		p.c = nullptr;
+		p.hash = 0;
+		p.sim = m_rebound;
+		reb_add(m_rebound, p);
+	}
+}
+
+
+void t_planetary_system::initialize_default_star()
+{
+	t_planet* planet = new t_planet();
+	initialize_planet_legacy(planet, M, 0.0, 0.0, 0.0);
+
+	planet->set_name("Default Star");
+	planet->set_acc(0.0);
+
+	planet->set_feeldisk(false);
+	planet->set_feelother(true);
+
+	planet->set_radius(parameters::star_radius);
+	planet->set_temperature(parameters::star_temperature/units::temperature);
+	planet->set_irradiate(false);
+	planet->set_rampuptime(0.0);
+
+	planet->set_disk_on_planet_acceleration( Pair() ); // initialize to zero
+	planet->set_nbody_on_planet_acceleration( Pair() );
+	add_planet(planet);
+
+}
+
+
 void t_planetary_system::read_from_file(char *filename) {
 	FILE *fd;
+
+
+	if(!parameters::no_default_star){
+		initialize_default_star();
+	}
 
 	// check if a filename was specified
 	if (filename == NULL) {
@@ -166,9 +226,7 @@ void t_planetary_system::read_from_file(char *filename) {
 	}
 	logging::print_master(LOG_INFO "The first %d planets are used to calculate the hydro frame center.\n", parameters::n_bodies_for_hydroframe_center);
 
-	if (parameters::no_default_star) {
-		move_to_hydro_frame_center();
-	}
+	move_to_hydro_frame_center();
 
 	if (Corotating == YES && parameters::corotation_reference_body > get_number_of_planets() -1) {
 		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.", parameters::corotation_reference_body, get_number_of_planets() -1);
@@ -504,25 +562,23 @@ void t_planetary_system::move_to_hydro_frame_center()
  */
 void t_planetary_system::calculate_orbital_elements()
 {
+	if (get_number_of_planets()==1) {
+		get_planet(0).set_orbital_elements_zero();
+		return;
+	}
 	double x, y, vx, vy, M;
 	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-		t_planet &planet = get_planet(i);
-		if (parameters::no_default_star) {
-			Pair com_pos = get_center_of_mass(i);
-			Pair com_vel = get_center_of_mass_velocity(i);
-			M = get_mass(i);
-			x = planet.get_x() - com_pos.x;
-			y = planet.get_y() - com_pos.y;
-			vx = planet.get_vx() - com_vel.x;
-			vy = planet.get_vy() - com_vel.y;
-		} else {
-			// use primary as reference in default star case
-			x = planet.get_x();
-			y = planet.get_y();
-			vx = planet.get_vx();
-			vy = planet.get_vy();
-			M = 1.0;
-		}
+		auto &planet = get_planet(i);
+		unsigned int n_center = i;
+		if (i<=1) n_center = 2;
+		Pair com_pos = get_center_of_mass(n_center);
+		Pair com_vel = get_center_of_mass_velocity(n_center);
+		M = get_mass(n_center);
+		x = planet.get_x() - com_pos.x;
+		y = planet.get_y() - com_pos.y;
+		vx = planet.get_vx() - com_vel.x;
+		vy = planet.get_vy() - com_vel.y;
+
 		planet.calculate_orbital_elements(x,y,vx,vy,M);
 	}
 }

@@ -124,6 +124,7 @@ int main(int argc, char* argv[])
 
 	// Here planets are initialized feeling star potential but they do not feel disk potential
 	data.get_planetary_system().read_from_file(PLANETCONFIG);
+	data.get_planetary_system().init_rebound();
 
 	logging::print_master(LOG_INFO "planets initialised.\n");
 

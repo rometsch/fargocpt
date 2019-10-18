@@ -295,7 +295,7 @@ void AlgoGas(unsigned int nTimeStep, Force* force, t_data &data)
 			ComputeNbodyOnNbodyAccel(data.get_planetary_system());
 			ComputeIndirectTerm(force, data);
 			/* Gravitational potential from star and planet(s) is computed and stored here*/
-			FillForcesArrays(data);
+			CalculatePotential(data);
 			/* Planets' velocities are updated here from gravitationnal interaction with disk */
 			AdvanceSystemFromDisk(force, data, dt);
 		}

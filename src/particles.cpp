@@ -678,12 +678,6 @@ void calculate_accelerations_from_star_and_planets(double &ar, double &aphi, con
 	ar = 0.0;
 	aphi = 0.0;
 
-	if (!parameters::no_default_star) {
-		// host star
-		ar = r * phi_dot * phi_dot - constants::G*M/(r*r + epsilon_sq);
-		aphi= - 2.0 * r_dot / r * phi_dot;
-	}
-
 	// planets
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
 		const t_planet &planet = data.get_planetary_system().get_planet(k);
@@ -703,11 +697,10 @@ void calculate_accelerations_from_star_and_planets(double &ar, double &aphi, con
 
 		ar -= factor * (r - r_planet*cos_delta_phi);
 		aphi -= factor * r_planet * sin_delta_phi / r;
-
-		// indirect term
-		ar -= constants::G*planet.get_mass()/pow2(r_planet)*cos_delta_phi;
-		aphi += constants::G*planet.get_mass()/(pow2(r_planet)*r)*sin_delta_phi;
 	}
+
+	ar += IndirectTerm.x*cos(phi) + IndirectTerm.y*sin(phi);
+	aphi += -IndirectTerm.x*sin(phi) + IndirectTerm.y*cos(phi);
 }
 
 void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, const double x, const double y, t_data& data) {
@@ -716,17 +709,6 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, 
 
 	constexpr double epsilon=0.005;
 	constexpr double epsilon_sq = epsilon*epsilon;
-
-	if (!parameters::no_default_star) {
-		// host star
-		double r2 = pow2(x) + pow2(y);
-		const double r = sqrt(r2);
-		r2 +=  epsilon_sq;
-
-		const double factor = constants::G*M/(r*r2);
-		ax += factor*(-x);
-		ay += factor*(-y);
-	}
 
 	// planets
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
@@ -738,13 +720,10 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, 
 
 		ax += factor*(planet.get_x()-x);
 		ay += factor*(planet.get_y()-y);
-
-		// indirect term
-		double dist3 = pow3(planet.get_r());
-		const double factor2 = -constants::G*planet.get_mass()/dist3;
-		ax += factor2*(planet.get_x());
-		ay += factor2*(planet.get_y());
 	}
+
+	ax += IndirectTerm.x;
+	ay += IndirectTerm.y;
 }
 
 
@@ -759,11 +738,6 @@ void calculate_derivitives_from_star_and_planets(
 
 	grav_r_ddot = 0.0;
 	minus_grav_l_dot = 0.0;
-
-	if (!parameters::no_default_star) {
-		// host star
-		grav_r_ddot = -constants::G*M/(r*r + epsilon_sq);
-	}
 
 	// planets
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
@@ -784,12 +758,10 @@ void calculate_derivitives_from_star_and_planets(
 		// direct term
 		grav_r_ddot -= constants::G*planet_mass * (r - r_planet*cos_delta_phi) / (distance_to_planet_smoothed_pow2*distance_to_planet);
 		minus_grav_l_dot -= constants::G*planet_mass * r * r_planet * sin_delta_phi / (distance_to_planet_smoothed_pow2*distance_to_planet);
-
-		// indirect term
-		grav_r_ddot -= constants::G*planet_mass/pow2(r_planet)*cos_delta_phi;
-		minus_grav_l_dot += constants::G*planet_mass*r/(pow2(r_planet))*sin_delta_phi;
-
 	}
+
+	grav_r_ddot += IndirectTerm.x*cos(phi) + IndirectTerm.y*sin(phi);
+	minus_grav_l_dot += -r*(IndirectTerm.x*sin(phi) + IndirectTerm.y*cos(phi));
 }
 
 
@@ -807,14 +779,6 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 
 	const double x = r*cos(phi);
 	const double y = r*sin(phi);
-
-	if (!parameters::no_default_star) {
-		// host star
-		const double r2_smoothed = (r*r + epsilon_sq);
-
-		acart[0] =  -constants::G*M*x/(r2_smoothed*r);
-		acart[1] =  -constants::G*M*y/(r2_smoothed*r);
-	}
 
 	// planets
 	for (unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k) {
@@ -835,13 +799,10 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 		// direct term
 		acart[0] += -constants::G*planet_mass*x_dist/(dist*dist2);
 		acart[1] += -constants::G*planet_mass*y_dist/(dist*dist2);
-
-
-		// indirect term
-		const double r_planet = planet.get_r();
-		acart[0] += -constants::G*planet_mass*x_planet/(r_planet*r_planet*r_planet);
-		acart[1] += -constants::G*planet_mass*y_planet/(r_planet*r_planet*r_planet);
 	}
+
+	acart[0] +=  IndirectTerm.x;
+	acart[1] +=  IndirectTerm.y;
 
 	transformCartCyl(acart,acyl,r,phi);
 	grav_r_ddot = acyl[0];

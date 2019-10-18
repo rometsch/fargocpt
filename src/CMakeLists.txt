@@ -29,9 +29,8 @@ FIND_LIBRARY( MPI_LIBRARY
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/..)
 
 # include files
-FILE(GLOB CPP_SOURCES "./*.cpp")
-FILE(GLOB H_SOURCES "./*.h")
-
+FILE(GLOB CPP_SOURCES "./*.cpp" "./rebound/*.c")
+FILE(GLOB H_SOURCES "./*.h" "./rebound/*.h")
 # MPI dir to check if we are on BINAC
 string(SUBSTRING ${MPI_INCLUDE_DIR} 0 11 MPI_SUBSTR)
 
@@ -60,7 +59,9 @@ find_package(MPI REQUIRED)
 
 
 
-add_compile_options(-std=c++11 -Werror -O3 -Wall -Wextra -Wno-old-style-cast -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+#add_compile_options(-std=c++11 -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+add_compile_options(-std=c++11 -g -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+#add_compile_options(-std=c++11 -Werror -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
 
 # Use imported targets would make things much eazier. Thanks Levi for pointing it out.
 add_executable(${PROJECT_NAME} ./main.cpp ${CPP_SOURCES} ${H_SOURCES})

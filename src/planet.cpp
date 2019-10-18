@@ -313,7 +313,14 @@ double t_planet::get_value_from_file(unsigned int timestep, std::string variable
 	return value;
 }
 
-
+void t_planet::set_orbital_elements_zero() {
+	m_semi_major_axis = 0.0;
+	m_eccentricity = 0.0;
+	m_mean_anomaly = 0.0;
+	m_true_anomaly = 0.0;
+	m_eccentric_anomaly = 0.0;
+	m_pericenter_angle = 0.0;
+}
 
 void t_planet::calculate_orbital_elements(double x, double y, double vx, double vy, double com_mass)
 {
@@ -325,13 +332,8 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx, double 
 
 	h = x*vy-y*vx;
 	d = sqrt(x*x+y*y);
-	if (is_distance_zero(d)) {
-		m_semi_major_axis = 0.0;
-		m_eccentricity = 0.0;
-		m_mean_anomaly = 0.0;
-		m_true_anomaly = 0.0;
-		m_eccentric_anomaly = 0.0;
-		m_pericenter_angle = 0.0;
+	if (is_distance_zero(d) || h == 0.0) {
+		set_orbital_elements_zero();
 		return;
 	}
 	Ax = x*vy*vy-y*vx*vy-constants::G*m*x/d;

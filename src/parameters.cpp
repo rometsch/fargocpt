@@ -445,11 +445,8 @@ void read(char* filename, t_data &data)
 	calculate_disk = config::value_as_bool_default("DISK", 1);
 
 	no_default_star = config::value_as_bool_default("NoDefaultStar", false);
-	if (no_default_star) {
-		corotation_reference_body = config::value_as_unsigned_int_default("CorotationReferenceBody", 1);
-	} else {
-		corotation_reference_body = config::value_as_unsigned_int_default("CorotationReferenceBody", 0);
-	}
+	corotation_reference_body = config::value_as_unsigned_int_default("CorotationReferenceBody", 1);
+
 	// set number of bodies used to calculate barycenter in Interpret.cpp
 
 	MU = config::value_as_double_default("mu",1.0);

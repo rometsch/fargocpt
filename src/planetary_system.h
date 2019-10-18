@@ -2,6 +2,7 @@
 #define PLANETARY_SYSTEM_H
 
 #include "planet.h"
+#include "rebound/rebound.h"
 #include <vector>
 
 class t_planetary_system
@@ -11,6 +12,7 @@ class t_planetary_system
 		std::vector<t_planet *> m_planets;
 
 	public:
+		struct reb_simulation *m_rebound;
 		t_planetary_system();
 		~t_planetary_system();
 
@@ -37,6 +39,8 @@ class t_planetary_system
 		Pair get_center_of_mass(unsigned int n);
 		Pair get_center_of_mass_velocity(unsigned int n);
 
+		void initialize_default_star();
+		void init_rebound();
 		void read_from_file(char *filename);
 		void list_planets();
 		void rotate(double angle);

@@ -6,6 +6,9 @@
 
 class t_planet
 {
+
+	friend class t_planetary_system;
+
 	private:
 		/// mass
 		double m_mass;
@@ -69,7 +72,6 @@ class t_planet
 		inline void set_nbody_on_planet_acceleration_x(double value) { m_nbody_on_planet_acceleration.x = value; }
 		inline void set_nbody_on_planet_acceleration_y(double value) { m_nbody_on_planet_acceleration.y = value; }
 
-
 		// getter
 		inline double get_mass(void) const { return m_mass; }
 		double get_rampup_mass();
@@ -107,6 +109,7 @@ class t_planet
 		double get_omega();
 
 		void calculate_orbital_elements(double x, double y, double vx, double vy, double com_mass);
+		void set_orbital_elements_zero();
 
 		void create_planet_file();
 		void write(unsigned int timestep, bool big_file);
