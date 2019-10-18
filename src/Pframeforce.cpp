@@ -284,10 +284,10 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	vrad   = data[t_data::V_RADIAL].Field;
 	vtheta = data[t_data::V_AZIMUTHAL].Field;
 
-	auto planetary_system =  data.get_planetary_system();
+	auto &planetary_system =  data.get_planetary_system();
 
 	for (unsigned int k=0; k < planetary_system.get_number_of_planets(); k++) {
-		auto planet = planetary_system.get_planet(k);
+		auto &planet = planetary_system.get_planet(k);
 		if (planet.get_acc() > 1e-10) {
 			dMplanet = dPxPlanet = dPyPlanet = 0.0;
 			// Hereafter : initialization of W. Kley's parameters
