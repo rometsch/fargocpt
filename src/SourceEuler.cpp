@@ -511,8 +511,7 @@ void SubStep1(t_data &data, double dt)
 	}
 
 	if (parameters::self_gravity) {
-		selfgravity::update_tobi_constants(data);
-		selfgravity::compute(data[t_data::DENSITY], data[t_data::V_RADIAL_SOURCETERMS], data[t_data::V_AZIMUTHAL_SOURCETERMS], dt, true);
+		selfgravity::compute(data, dt, true);
 	}
 
 	// compute and add acceleartions due to disc viscosity as a source term
@@ -787,6 +786,10 @@ void calculate_qplus(t_data &data) {
 	}
 }
 
+double calculate_omega_k(double r) {
+    return sqrt(constants::G * hydro_center_mass / (r*r*r));
+}
+
 void calculate_qminus(t_data &data) {
 	// clear up all Qminus terms
 	data[t_data::QMINUS].clear();
@@ -796,9 +799,21 @@ void calculate_qminus(t_data &data) {
 		for (unsigned int n_radial = 0; n_radial <= data[t_data::QPLUS].get_max_radial(); ++n_radial) {
 			for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal(); ++n_azimuthal) {
 				// Q- = E Omega/beta
-				double qminus = data[t_data::ENERGY](n_radial, n_azimuthal)*(0.5*(data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal)+data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL].get_max_azimuthal() ? 0 : n_azimuthal+1))/Rmed[n_radial])/parameters::cooling_beta;
+          const double r = Rmed[n_radial];
+          const double omega_k = calculate_omega_k(r);
+          const double E = data[t_data::ENERGY](n_radial, n_azimuthal);
+          const double t_ramp_up = parameters::cooling_beta_ramp_up;
 
-				data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
+          double beta_inv = 1/parameters::cooling_beta;
+          if(t_ramp_up > 0.0) {
+              const double t = PhysicalTime;
+              double ramp_factor = 1 - exp( - pow(2*t/t_ramp_up, 2) );
+              beta_inv = beta_inv * ramp_factor;
+          }
+
+          const double qminus = E * omega_k * beta_inv;
+
+				  data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
 			}
 		}
 	}
@@ -849,7 +864,6 @@ void SubStep3(t_data &data, double dt)
 
 	calculate_qminus(data); // first to calculate teff
     calculate_qplus(data);
-
 
 	// calculate tau_cool if needed for output
 	if (data[t_data::TAU_COOL].get_write_1D() || data[t_data::TAU_COOL].get_write_2D()) {
@@ -1497,7 +1511,6 @@ void compute_temperature(t_data &data, bool force_update)
 			return;
 	}
 	last_physicaltime_calculated = PhysicalTime;
-
 
 	for (unsigned int n_radial = 0; n_radial <= data[t_data::TEMPERATURE].get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal(); ++n_azimuthal) {

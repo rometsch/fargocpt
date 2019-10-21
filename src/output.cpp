@@ -615,6 +615,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update) {
 		t_planet& planet = data.get_planetary_system().get_planet(n_planet);
 		double smooth = parameters::thickness_smoothing * ASPECTRATIO_REF * pow(planet.get_r(), 1.0+FLARINGINDEX);
 
+
 		// hill radius
 		double r_hill = pow(planet.get_mass()/(3.0*(M+planet.get_mass())),1.0/3.0)*planet.get_semi_major_axis();
 		// 0.8 = cut off parameter

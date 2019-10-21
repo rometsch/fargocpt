@@ -184,8 +184,6 @@ void init_radialarrays()
 */
 
 void init_physics(t_data &data) {
-	double foostep = 0.;
-
 	if( (parameters::sigma_initialize_condition == parameters::initialize_condition_shakura_sunyaev) && (parameters::energy_initialize_condition == parameters::initialize_condition_shakura_sunyaev) ) {
 		init_shakura_sunyaev(data);
 		return;
@@ -203,10 +201,8 @@ void init_physics(t_data &data) {
 
 	if (parameters::self_gravity) {
 		// if SelfGravity = YES or Z, planets are initialized feeling disk potential. Only the surface density is required to calculate the radial self-gravity acceleration. The disk radial and azimutal velocities are not updated
-		selfgravity::compute(data[t_data::DENSITY], data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], foostep, false);
-		if (parameters::disk_feedback) {
-			selfgravity::init_planetary_system(data);
-		}
+		selfgravity::init(data);
+		selfgravity::init_planetary_system(data);
 		logging::print_master(LOG_INFO "sg initialised\n");
 	}
 

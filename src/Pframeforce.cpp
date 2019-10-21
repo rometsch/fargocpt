@@ -128,6 +128,7 @@ void CalculatePotential(t_data &data)
 				distancesmooth = sqrt(distance2+smooth);
 				// direct term from planet
 				data[t_data::POTENTIAL](n_radial,n_azimuthal) += -constants::G*mpl[k]/distancesmooth;
+
 			}
 			// apply indirect term
 			// correct frame with contributions from disk and planets

@@ -217,7 +217,6 @@ int main(int argc, char* argv[])
 	logging::start_timer();
 
 	for (nTimeStep = timeStepStart; nTimeStep <= NTOT; ++nTimeStep) {
-
 		data.get_planetary_system().calculate_orbital_elements();
 		// write outputs
 
@@ -249,8 +248,13 @@ int main(int argc, char* argv[])
 		}
 
 
+		//(void) InnerOutputCounter;
+		//InnerOutputCounter++;
+		//if (InnerOutputCounter == 1) {
 		if ((write_complete_output || parameters::write_at_every_timestep)) {
+			//InnerOutputCounter = 0;
 			data.get_planetary_system().write_planets(TimeStep, true);
+			//WriteBigPlanetSystemFile(sys, TimeStep);
 			UpdateLog(data, force, TimeStep, PhysicalTime);
 			if (Stockholm)
 				UpdateLogStockholm(data, PhysicalTime);

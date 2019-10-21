@@ -184,9 +184,9 @@ static double get_particle_eccentricity(int particle_index)
 	// used for debugging the integrators
 	const int i = particle_index;
 
-	// Runge-Lenz vector A = (p x L) - m * G * m * M * r/|r|
-	const double kappa = constants::G * M * particles[i].mass;
-	const double reduced_mass = M*particles[i].mass / (M + particles[i].mass);
+	// Runge-Lenz vector A = (p x L) - m * G * m * hydro_center_mass * r/|r|
+	const double kappa = constants::G * hydro_center_mass * particles[i].mass;
+	const double reduced_mass = hydro_center_mass*particles[i].mass / (hydro_center_mass + particles[i].mass);
 	const double A_r = reduced_mass * pow3(particles[i].r) * pow2(particles[i].phi_dot) - kappa;
 	const double A_phi = reduced_mass * pow2(particles[i].r) * particles[i].r_dot * particles[i].phi_dot;
 	const double A = sqrt(A_r*A_r + A_phi*A_phi);
@@ -354,7 +354,7 @@ static void correct_for_self_gravity(t_data &data, const unsigned int i)
 											n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 	}
 
-	double v = sqrt(constants::G*(M+particles[i].mass)/semi_major_axis - sg_radial*semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
+	double v = sqrt(constants::G*(hydro_center_mass+particles[i].mass)/semi_major_axis - sg_radial*semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
 
 	// only need to update velocities, set accelerations to 0 anyway
 	if(CartesianParticles)
@@ -439,6 +439,7 @@ static void init_particle(const unsigned int &i, const unsigned int &id_offset, 
 	double r = semi_major_axis*(1.0+eccentricity);
 	double v = sqrt(constants::G*(hydro_center_mass+particles[i].mass)/semi_major_axis)*sqrt((1.0-eccentricity)/(1.0+eccentricity));
 
+
 	if(CartesianParticles)
 	{
 		// Beware: cartesian particles still use the names of polar coordinates
@@ -486,7 +487,6 @@ void init(t_data &data) {
 	// create storage
 	particles_size = local_number_of_particles;
 	particles = (t_particle*)malloc(sizeof(t_particle)*particles_size);
-
 
 	const unsigned int seed = parameters::random_seed;
 	logging::print(LOG_DEBUG "random generator seed: %u\n", seed);
@@ -669,7 +669,6 @@ void restart(unsigned int timestep) {
 
 }
 
-
 void calculate_accelerations_from_star_and_planets(double &ar, double &aphi, const double r, const double r_dot, const double phi, const double phi_dot, t_data& data) {
 
 	constexpr double epsilon=0.005;
@@ -701,6 +700,7 @@ void calculate_accelerations_from_star_and_planets(double &ar, double &aphi, con
 
 	ar += IndirectTerm.x*cos(phi) + IndirectTerm.y*sin(phi);
 	aphi += -IndirectTerm.x*sin(phi) + IndirectTerm.y*cos(phi);
+
 }
 
 void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, const double x, const double y, t_data& data) {
@@ -725,7 +725,6 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay, 
 	ax += IndirectTerm.x;
 	ay += IndirectTerm.y;
 }
-
 
 void calculate_derivitives_from_star_and_planets(
 		double &grav_r_ddot,
@@ -808,8 +807,6 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 	grav_r_ddot = acyl[0];
 	minus_grav_l_dot = acyl[1]*r;
 }
-
-
 
 static double interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid, bool azimuthal_a_grid, unsigned int n_radial_minus, unsigned int n_radial_plus, unsigned int n_azimuthal_minus, unsigned int n_azimuthal_plus, double r, double phi) {
 	const double dphi = 2.0*PI/(double)quantity.get_size_azimuthal();
@@ -1007,7 +1004,6 @@ static void calculate_tstop2(const double r, const double phi, const double r_do
   tstop = radius*parameters::particle_density/term;
 }
 
-
 // confirm that tstop < dt/10, else make user change integrator
 // tstop > dt/10 can cause numerical instabilities for the explicit integrator
 void check_tstop(t_data &data)
@@ -1153,7 +1149,6 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt) {
 		unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 		unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
 		find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-
 
 		// calculate quantities needed
 		double rho = interpolate_bilinear(data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
