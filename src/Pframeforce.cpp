@@ -244,18 +244,10 @@ void AdvanceSystemRK5(t_data &data, double dt)
 			rebound->particles[i].m = planet.get_mass();
 		}
 
-
-		for (unsigned int i = 0; i < rebound->N; i++) {
-			printf("particle = %d	%.5e	(%.5e	%.5e)	(%.5e	%.5e)\n", rebound->N, rebound->particles[i].m, rebound->particles[i].x, rebound->particles[i].y, rebound->particles[i].vx, rebound->particles[i].vy);
-		}
-
-
 		reb_integrate(data.get_planetary_system().m_rebound, PhysicalTime + dt);
 
 		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
 			auto planet = data.get_planetary_system().get_planet(i);
-			printf("read back = %d	%.5e	(%.5e	%.5e)	(%.5e	%.5e)\n", i, rebound->particles[i].m, rebound->particles[i].x, rebound->particles[i].y, rebound->particles[i].vx, rebound->particles[i].vy);
-
 			planet.set_x(rebound->particles[i].x);
 			planet.set_y(rebound->particles[i].y);
 			planet.set_vx(rebound->particles[i].vx);
