@@ -234,7 +234,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0, double 
 		}
 		limit--;
 
-		double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMIN);
+		double tau = parameters::damping_time_factor*2.0*PI/calculate_omega_kepler(RMIN);
 
 		for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 			double factor = pow2((radius[n_radial]-RMIN*parameters::damping_inner_limit)/(RMIN-RMIN*parameters::damping_inner_limit));
@@ -275,7 +275,7 @@ bool is_density = strcmp( quantity.get_name(), "dens") == 0;
 		}
 		limit++;
 
-		double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMAX);
+		double tau = parameters::damping_time_factor*2.0*PI/calculate_omega_kepler(RMAX);
 
 		for (unsigned int n_radial = limit; n_radial <= quantity.get_max_radial(); ++n_radial) {
 			double factor = pow2((radius[n_radial]-RMAX*parameters::damping_outer_limit)/(RMAX-RMAX*parameters::damping_outer_limit));
@@ -316,7 +316,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0, do
 		}
 		limit--;
 
-		double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMIN);
+		double tau = parameters::damping_time_factor*2.0*PI/calculate_omega_kepler(RMIN);
 
 		for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 			double factor = pow2((radius[n_radial]-RMIN*parameters::damping_inner_limit)/(RMIN-RMIN*parameters::damping_inner_limit));
@@ -357,7 +357,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0, do
 		}
 		limit++;
 
-		double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMAX);
+		double tau = parameters::damping_time_factor*2.0*PI/calculate_omega_kepler(RMAX);
 
 		for (unsigned int n_radial = limit; n_radial <= quantity.get_max_radial(); ++n_radial) {
 			double factor = pow2((radius[n_radial]-RMAX*parameters::damping_outer_limit)/(RMAX-RMAX*parameters::damping_outer_limit));
@@ -399,7 +399,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0, do
         }
         limit--;
 
-        double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMIN);
+        double tau = parameters::damping_time_factor*2.0*PI/calculate_omega_kepler(RMIN);
 
         // get mean quantity
         for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial)
@@ -451,7 +451,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0, do
         }
         limit++;
 
-        double tau = parameters::damping_time_factor*2.0*PI/omega_kepler(RMAX);
+        double tau = parameters::damping_time_factor*2.0*PI/calculate_omega_kepler(RMAX);
 
 
         for (unsigned int n_radial = limit; n_radial <= quantity.get_max_radial(); ++n_radial)
@@ -549,9 +549,9 @@ void mass_overflow(t_data &data)
 		// scalar quantities maxradial -1, vectorial quantities maxrad-2
 		data[t_data::DENSITY](maxradial-1,gridcell) += mass_stream;
 		// calculate gas velocities
-		data[t_data::V_RADIAL](maxradial-2,gridcell) = -1.0 * ( data[t_data::DENSITY](maxradial-1,gridcell) * data[t_data::V_RADIAL](maxradial-2,gridcell) + mass_stream * 0.1 * omega_kepler(dist) * Rmed[maxradial-1]) / (data[t_data::DENSITY](maxradial-1,gridcell) + mass_stream); // speed inwards
+		data[t_data::V_RADIAL](maxradial-2,gridcell) = -1.0 * ( data[t_data::DENSITY](maxradial-1,gridcell) * data[t_data::V_RADIAL](maxradial-2,gridcell) + mass_stream * 0.1 * calculate_omega_kepler(dist) * Rmed[maxradial-1]) / (data[t_data::DENSITY](maxradial-1,gridcell) + mass_stream); // speed inwards
 
-		data[t_data::V_AZIMUTHAL](maxradial-2,gridcell) = (omega_kepler(dist) - OmegaFrame) * Rmed[maxradial-1];
+		data[t_data::V_AZIMUTHAL](maxradial-2,gridcell) = (calculate_omega_kepler(dist) - OmegaFrame) * Rmed[maxradial-1];
 
 		#ifndef NDEBUG
 		logging::print(LOG_VERBOSE "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, maxcells %i , noc %i , i %i \n",data[t_data::DENSITY](maxradial-1,gridcell), weight_factor, angle, nearest_grid_cell,  mass_stream, gridcell, maxcells, number_of_cells*2+1, i);
@@ -668,7 +668,7 @@ void boundary_layer_outer_boundary(t_data &data) {
 		data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial()-1, n_azimuthal) = -1.*fabs(data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial()-2, n_azimuthal))*sqrt(Ra[data[t_data::V_RADIAL].get_max_radial()-2]/Ra[data[t_data::V_RADIAL].get_max_radial()-1]);
 		data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(), n_azimuthal) = -1.*fabs(data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial()-2, n_azimuthal))*sqrt(Ra[data[t_data::V_RADIAL].get_max_radial()-2]/Ra[data[t_data::V_RADIAL].get_max_radial()]);
 
-		// Omega at outer boundary equals omega_kepler (plus leading order pressure correction)
+		// Omega at outer boundary equals calculate_omega_kepler (plus leading order pressure correction)
 		data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) = 1./sqrt(Rb[data[t_data::DENSITY].get_max_radial()]);
 		// TODO: Include pressure correction, like in uphi[*jN] = 1./sqrt(Rb[*jN]) + 0.5/Sigma[*jN]*sqrt(pow3(Rb[*jN])*pow2(Rb[*jN]))*.5/Rb[*jN]*(P[*jN+1]-P[*jN-1])/DeltaRa[*jN+1];
 	}

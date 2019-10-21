@@ -492,7 +492,7 @@ namespace selfgravity {
 
         for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial() - GHOSTCELLS_B; ++n_radial) {
             // this corresponds to equation (3.42) in Baruteau, 2008
-            double temp = pow2(omega_kepler(Rmed[n_radial])) *( 1.0 - (1.+SIGMASLOPE-2.0*FLARINGINDEX) * pow2(ASPECTRATIO_REF)*pow(Rmed[n_radial],2.0*FLARINGINDEX) ) - GLOBAL_AxiSGAccr[n_radial+IMIN]/Rmed[n_radial];
+            double temp = pow2(calculate_omega_kepler(Rmed[n_radial])) *( 1.0 - (1.+SIGMASLOPE-2.0*FLARINGINDEX) * pow2(ASPECTRATIO_REF)*pow(Rmed[n_radial],2.0*FLARINGINDEX) ) - GLOBAL_AxiSGAccr[n_radial+IMIN]/Rmed[n_radial];
             if (temp < 0) {
                 logging::print("Radicand %lg < 0 in init_azimuthal_velocity! Maybe ThicknessSmoothingSG (%lg) is too small!\n", temp, parameters::thickness_smoothing_sg);
             }

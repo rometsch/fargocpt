@@ -1,4 +1,3 @@
-#include "global.h"
 #include "Theo.h"
 
 /**
@@ -43,4 +42,9 @@ void RefillEnergy(t_polargrid* Energy)
 		mean /= (double)Energy->Nsec;
 		EnergyMed[nRadial] = mean;
 	}
+}
+
+double calculate_omega_kepler(double r)
+{
+	return sqrt(constants::G * hydro_center_mass / (r * r * r));
 }

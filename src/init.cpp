@@ -246,7 +246,7 @@ void init_shakura_sunyaev(t_data &data) {
 			data[t_data::SOUNDSPEED](n_radial,n_azimuthal) = sqrt(constants::R/parameters::MU * ADIABATICINDEX * data[t_data::TEMPERATURE](n_radial, n_azimuthal));
 			data[t_data::ENERGY](n_radial, n_azimuthal) = constants::R/parameters::MU * 1./(ADIABATICINDEX-1.)*data[t_data::DENSITY](n_radial, n_azimuthal)*data[t_data::TEMPERATURE](n_radial, n_azimuthal);
 			data[t_data::PRESSURE](n_radial, n_azimuthal) = (ADIABATICINDEX-1.)*data[t_data::ENERGY](n_radial, n_azimuthal);
-			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = omega_kepler(Rb[n_radial])*Rb[n_radial];
+			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = calculate_omega_kepler(Rb[n_radial])*Rb[n_radial];
 		}
 	}
 
@@ -548,7 +548,7 @@ void init_gas_velocities(t_data &data)
 		for (unsigned int n_azimuthal = 0; n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal(); ++n_azimuthal) {
 			if (!parameters::self_gravity) {
 				// v_azimuthal = Omega_K * r * (...)
-				data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = r * omega_kepler(r) * sqrt(1.0 - pow2(ASPECTRATIO_REF) * pow(r,2.0*FLARINGINDEX) * (1.+SIGMASLOPE-2.0*FLARINGINDEX) );
+				data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = r * calculate_omega_kepler(r) * sqrt(1.0 - pow2(ASPECTRATIO_REF) * pow(r,2.0*FLARINGINDEX) * (1.+SIGMASLOPE-2.0*FLARINGINDEX) );
 			}
 
 			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= OmegaFrame*r;

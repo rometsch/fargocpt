@@ -588,7 +588,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */, bool /* force_u
 			kappa = sqrt(fabs(pow3(InvRmed[n_radial])*(pow2(data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal)*Rmed[n_radial])-pow2(data[t_data::V_AZIMUTHAL](n_radial-1,n_azimuthal)*Rmed[n_radial-1]))*InvDiffRmed[n_radial]));
 
 			// Q = (c_s kappa) / (Pi G Sigma)
-			//data[t_data::TOOMRE](n_radial, n_azimuthal) = data[t_data::SOUNDSPEED](n_radial, n_azimuthal)*omega_kepler(Rmed[n_radial])/(PI*G*data[t_data::DENSITY](n_radial, n_azimuthal));
+			//data[t_data::TOOMRE](n_radial, n_azimuthal) = data[t_data::SOUNDSPEED](n_radial, n_azimuthal)*calculate_omega_kepler(Rmed[n_radial])/(PI*G*data[t_data::DENSITY](n_radial, n_azimuthal));
 			data[t_data::TOOMRE](n_radial, n_azimuthal) = data[t_data::SOUNDSPEED](n_radial, n_azimuthal)*kappa/(PI*constants::G*data[t_data::DENSITY](n_radial, n_azimuthal));
 		}
 	}
