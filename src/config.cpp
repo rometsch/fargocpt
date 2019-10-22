@@ -31,13 +31,14 @@
 #include "LowTasks.h"
 #include "logging.h"
 #include <ctype.h>
+#include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <errno.h>
 
-namespace config {
+namespace config
+{
 
 #define MAXNAME (256)
 
@@ -51,16 +52,16 @@ static int file_linenumber;
 static int file_EOF;
 
 typedef struct {
-	char *key;
-	char *value;
+    char *key;
+    char *value;
 } t_entry;
 
 typedef struct {
-	t_entry* data;
-	unsigned int size;
+    t_entry *data;
+    unsigned int size;
 } t_list;
 
-static t_list list = {NULL,0};
+static t_list list = {NULL, 0};
 
 static void add_to_config_list(const char *key, const char *value);
 static inline int iskeychar(int c);
@@ -89,13 +90,15 @@ static bool as_bool(const char *key, const char *value);
 */
 static void add_to_config_list(const char *key, const char *value)
 {
-	list.data = (t_entry*)realloc(list.data,(++list.size)*sizeof(t_entry));
+    list.data = (t_entry *)realloc(list.data, (++list.size) * sizeof(t_entry));
 
-	list.data[list.size-1].key = (char*)malloc((strlen(key)+1)*sizeof(char));
-	list.data[list.size-1].value = (char*)malloc((strlen(value)+1)*sizeof(char));
+    list.data[list.size - 1].key =
+	(char *)malloc((strlen(key) + 1) * sizeof(char));
+    list.data[list.size - 1].value =
+	(char *)malloc((strlen(value) + 1) * sizeof(char));
 
-	strcpy(list.data[list.size-1].key,key);
-	strcpy(list.data[list.size-1].value,value);
+    strcpy(list.data[list.size - 1].key, key);
+    strcpy(list.data[list.size - 1].value, value);
 }
 
 /**
@@ -104,10 +107,7 @@ static void add_to_config_list(const char *key, const char *value)
 	\param c char to check
 	\returns 0 if no key char, otherwise != 0
 */
-static inline int iskeychar(int c)
-{
-	return isalnum(c) || c == '-';
-}
+static inline int iskeychar(int c) { return isalnum(c) || c == '-'; }
 
 /**
 	read next char from config file
@@ -116,29 +116,29 @@ static inline int iskeychar(int c)
 */
 static int get_next_char(void)
 {
-	int c;
-	FILE *f;
+    int c;
+    FILE *f;
 
-	c = '\n';
-	if ((f = file_ptr) != NULL) {
-		c = fgetc(f);
-		if (c == '\r') {
-			/* DOS like systems */
-			c = fgetc(f);
-			if (c != '\n') {
-				ungetc(c, f);
-				c = '\r';
-			}
-		}
-		if (c == '\n')
-			file_linenumber++;
-		if (c == EOF) {
-			file_EOF = 1;
-			c = '\n';
-		}
+    c = '\n';
+    if ((f = file_ptr) != NULL) {
+	c = fgetc(f);
+	if (c == '\r') {
+	    /* DOS like systems */
+	    c = fgetc(f);
+	    if (c != '\n') {
+		ungetc(c, f);
+		c = '\r';
+	    }
 	}
+	if (c == '\n')
+	    file_linenumber++;
+	if (c == EOF) {
+	    file_EOF = 1;
+	    c = '\n';
+	}
+    }
 
-	return c;
+    return c;
 }
 
 /**
@@ -148,65 +148,66 @@ static int get_next_char(void)
 */
 static char *parse_value(void)
 {
-	static char value[1024];
-	int quote = 0, comment = 0, space = 0;
-	unsigned int len = 0;
+    static char value[1024];
+    int quote = 0, comment = 0, space = 0;
+    unsigned int len = 0;
 
-	for (;;) {
-		int c = get_next_char();
-		if (len >= sizeof(value) - 1)
-			return NULL;
-		if (c == '\n') {
-			if (quote)
-				return NULL;
-			value[len] = 0;
-			return value;
-		}
-		if (comment)
-			continue;
-		if (isspace(c) && !quote) {
-			if (len)
-				space++;
-			continue;
-		}
-		if (!quote) {
-			if (c == ';' || c == '#') {
-				comment = 1;
-				continue;
-			}
-		}
-		for (; space; space--)
-			value[len++] = ' ';
-		if (c == '\\') {
-			c = get_next_char();
-			switch (c) {
-			case '\n':
-				continue;
-			case 't':
-				c = '\t';
-				break;
-			case 'b':
-				c = '\b';
-				break;
-			case 'n':
-				c = '\n';
-				break;
-			/* Some characters escape as themselves */
-			case '\\': case '"':
-				break;
-			/* Reject unknown escape sequences */
-			default:
-				return NULL;
-			}
-			value[len++] = c;
-			continue;
-		}
-		if (c == '"') {
-			quote = 1-quote;
-			continue;
-		}
-		value[len++] = c;
+    for (;;) {
+	int c = get_next_char();
+	if (len >= sizeof(value) - 1)
+	    return NULL;
+	if (c == '\n') {
+	    if (quote)
+		return NULL;
+	    value[len] = 0;
+	    return value;
 	}
+	if (comment)
+	    continue;
+	if (isspace(c) && !quote) {
+	    if (len)
+		space++;
+	    continue;
+	}
+	if (!quote) {
+	    if (c == ';' || c == '#') {
+		comment = 1;
+		continue;
+	    }
+	}
+	for (; space; space--)
+	    value[len++] = ' ';
+	if (c == '\\') {
+	    c = get_next_char();
+	    switch (c) {
+	    case '\n':
+		continue;
+	    case 't':
+		c = '\t';
+		break;
+	    case 'b':
+		c = '\b';
+		break;
+	    case 'n':
+		c = '\n';
+		break;
+	    /* Some characters escape as themselves */
+	    case '\\':
+	    case '"':
+		break;
+	    /* Reject unknown escape sequences */
+	    default:
+		return NULL;
+	    }
+	    value[len++] = c;
+	    continue;
+	}
+	if (c == '"') {
+	    quote = 1 - quote;
+	    continue;
+	}
+	value[len++] = c;
+    }
 }
 
 /**
@@ -218,40 +219,41 @@ static char *parse_value(void)
 */
 static int get_value(char *key, unsigned int len)
 {
-	int c;
-	char *value;
+    int c;
+    char *value;
 
-	/* Get the full key */
-	for (;;) {
-		c = get_next_char();
-		if (file_EOF)
-			break;
-		if (!iskeychar(c))
-			break;
-		key[len++] = tolower(c);
-		if (len >= MAXNAME)
-			return -1;
-	}
-	key[len] = 0;
-	while (c == ' ' || c == '\t')
-		c = get_next_char();
+    /* Get the full key */
+    for (;;) {
+	c = get_next_char();
+	if (file_EOF)
+	    break;
+	if (!iskeychar(c))
+	    break;
+	key[len++] = tolower(c);
+	if (len >= MAXNAME)
+	    return -1;
+    }
+    key[len] = 0;
+    while (c == ' ' || c == '\t')
+	c = get_next_char();
 
-	value = NULL;
+    value = NULL;
 
-	if (c != '\n') {
-		/* uncomment this line and comment the ungetc line if you want to use "parameter = value" style in your config file */
-		/*if (c != '=')
-			return -1;*/
-		ungetc(c, file_ptr);
-		value = parse_value();
-		if (!value)
-			return -1;
-	}
+    if (c != '\n') {
+	/* uncomment this line and comment the ungetc line if you want to use
+	 * "parameter = value" style in your config file */
+	/*if (c != '=')
+		return -1;*/
+	ungetc(c, file_ptr);
+	value = parse_value();
+	if (!value)
+	    return -1;
+    }
 
-	if (value != NULL)
-		add_to_config_list(key, value);
+    if (value != NULL)
+	add_to_config_list(key, value);
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -259,53 +261,53 @@ static int get_value(char *key, unsigned int len)
 */
 static int parse_file()
 {
-	int comment = 0;
-	int baselen = 0;
-	static char var[MAXNAME];
+    int comment = 0;
+    int baselen = 0;
+    static char var[MAXNAME];
 
-	/* U+FEFF Byte Order Mark in UTF8 */
-	static const unsigned char *utf8_bom = (unsigned char *) "\xef\xbb\xbf";
-	const unsigned char *bomptr = utf8_bom;
+    /* U+FEFF Byte Order Mark in UTF8 */
+    static const unsigned char *utf8_bom = (unsigned char *)"\xef\xbb\xbf";
+    const unsigned char *bomptr = utf8_bom;
 
-	for (;;) {
-		int c =get_next_char();
-		if (bomptr && *bomptr) {
-			/* We are at the file beginning; skip UTF8-encoded BOM
-			 * if present. Sane editors won't put this in on their
-			 * own, but e.g. Windows Notepad will do it happily. */
-			if ((unsigned char) c == *bomptr) {
-				bomptr++;
-				continue;
-			} else {
-				/* Do not tolerate partial BOM. */
-				if (bomptr != utf8_bom)
-					break;
-				/* No BOM at file beginning. Cool. */
-				bomptr = NULL;
-			}
-		}
-		if (c == '\n') {
-			if (file_EOF)
-				return 0;
-			comment = 0;
-			continue;
-		}
-		if (comment || isspace(c))
-			continue;
-		if (c == '#' || c == ';') {
-			comment = 1;
-			continue;
-		}
-		if (!isalpha(c))
-			break;
-		var[baselen] = tolower(c);
-		if (get_value(var, baselen+1) < 0)
-			break;
+    for (;;) {
+	int c = get_next_char();
+	if (bomptr && *bomptr) {
+	    /* We are at the file beginning; skip UTF8-encoded BOM
+	     * if present. Sane editors won't put this in on their
+	     * own, but e.g. Windows Notepad will do it happily. */
+	    if ((unsigned char)c == *bomptr) {
+		bomptr++;
+		continue;
+	    } else {
+		/* Do not tolerate partial BOM. */
+		if (bomptr != utf8_bom)
+		    break;
+		/* No BOM at file beginning. Cool. */
+		bomptr = NULL;
+	    }
 	}
+	if (c == '\n') {
+	    if (file_EOF)
+		return 0;
+	    comment = 0;
+	    continue;
+	}
+	if (comment || isspace(c))
+	    continue;
+	if (c == '#' || c == ';') {
+	    comment = 1;
+	    continue;
+	}
+	if (!isalpha(c))
+	    break;
+	var[baselen] = tolower(c);
+	if (get_value(var, baselen + 1) < 0)
+	    break;
+    }
 
-	die("bad config file line %d in %s", file_linenumber, file_name);
+    die("bad config file line %d in %s", file_linenumber, file_name);
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -316,20 +318,20 @@ static int parse_file()
 */
 int read_config_from_file(const char *filename)
 {
-	int ret;
-	FILE *f = fopen(filename, "r");
+    int ret;
+    FILE *f = fopen(filename, "r");
 
-	ret = -1;
-	if (f) {
-		file_ptr = f;
-		file_name = filename;
-		file_linenumber = 1;
-		file_EOF = 0;
-		ret = parse_file();
-		fclose(f);
-		file_name = NULL;
-	}
-	return ret;
+    ret = -1;
+    if (f) {
+	file_ptr = f;
+	file_name = filename;
+	file_linenumber = 1;
+	file_EOF = 0;
+	ret = parse_file();
+	fclose(f);
+	file_name = NULL;
+    }
+    return ret;
 }
 
 /**
@@ -339,9 +341,9 @@ int read_config_from_file(const char *filename)
 */
 static void die_bad_config(const char *key)
 {
-	if (file_name)
-		die("bad config value for '%s' in %s", key, file_name);
-	die("bad config value for '%s'", key);
+    if (file_name)
+	die("bad config value for '%s' in %s", key, file_name);
+    die("bad config value for '%s'", key);
 }
 
 /**
@@ -353,21 +355,19 @@ static void die_bad_config(const char *key)
 */
 static int parse_unit_factor(const char *end, unsigned long *val)
 {
-	if (!*end)
-		return 1;
-	else if (!strcasecmp(end, "k")) {
-		*val *= 1000;
-		return 1;
-	}
-	else if (!strcasecmp(end, "M")) {
-		*val *= 1000 * 1000;
-		return 1;
-	}
-	else if (!strcasecmp(end, "G")) {
-		*val *= 1000 * 1000 * 1000;
-		return 1;
-	}
-	return 0;
+    if (!*end)
+	return 1;
+    else if (!strcasecmp(end, "k")) {
+	*val *= 1000;
+	return 1;
+    } else if (!strcasecmp(end, "M")) {
+	*val *= 1000 * 1000;
+	return 1;
+    } else if (!strcasecmp(end, "G")) {
+	*val *= 1000 * 1000 * 1000;
+	return 1;
+    }
+    return 0;
 }
 
 /**
@@ -378,21 +378,21 @@ static int parse_unit_factor(const char *end, unsigned long *val)
 */
 static const char *value(const char *key)
 {
-	char keylower[MAXNAME];
-	unsigned int i;
+    char keylower[MAXNAME];
+    unsigned int i;
 
-	for (i = 0; i <= strlen(key); ++i) {
-		keylower[i] = tolower(key[i]);
-	}
+    for (i = 0; i <= strlen(key); ++i) {
+	keylower[i] = tolower(key[i]);
+    }
 
-	for (i = 0; i < list.size; ++i) {
-		if (strcmp(keylower,list.data[i].key) == 0)
-			return list.data[i].value;
-	}
+    for (i = 0; i < list.size; ++i) {
+	if (strcmp(keylower, list.data[i].key) == 0)
+	    return list.data[i].value;
+    }
 
-	die("bad config file: no setting for '%s' found", key);
+    die("bad config file: no setting for '%s' found", key);
 
-	return NULL;
+    return NULL;
 }
 
 /**
@@ -404,16 +404,16 @@ static const char *value(const char *key)
 */
 static int parse_long(const char *value, long *ret)
 {
-	if (value && *value) {
-		char *end;
-		long val = strtol(value, &end, 0);
-		unsigned long factor = 1;
-		if (!parse_unit_factor(end, &factor))
-			return 0;
-		*ret = val * factor;
-		return 1;
-	}
-	return 0;
+    if (value && *value) {
+	char *end;
+	long val = strtol(value, &end, 0);
+	unsigned long factor = 1;
+	if (!parse_unit_factor(end, &factor))
+	    return 0;
+	*ret = val * factor;
+	return 1;
+    }
+    return 0;
 }
 
 /**
@@ -425,15 +425,15 @@ static int parse_long(const char *value, long *ret)
 */
 static int parse_unsigned_long(const char *value, unsigned long *ret)
 {
-	if (value && *value) {
-		char *end;
-		unsigned long val = strtoul(value, &end, 0);
-		if (!parse_unit_factor(end, &val))
-			return 0;
-		*ret = val;
-		return 1;
-	}
-	return 0;
+    if (value && *value) {
+	char *end;
+	unsigned long val = strtoul(value, &end, 0);
+	if (!parse_unit_factor(end, &val))
+	    return 0;
+	*ret = val;
+	return 1;
+    }
+    return 0;
 }
 
 /**
@@ -445,16 +445,16 @@ static int parse_unsigned_long(const char *value, unsigned long *ret)
 */
 static int parse_double(const char *value, double *ret)
 {
-	if (value && *value) {
-		char *end;
-		double val = strtod(value, &end);
-		unsigned long factor = 1;
-		if (!parse_unit_factor(end, &factor))
-			return 0;
-		*ret = val * factor;
-		return 1;
-	}
-	return 0;
+    if (value && *value) {
+	char *end;
+	double val = strtod(value, &end);
+	unsigned long factor = 1;
+	if (!parse_unit_factor(end, &factor))
+	    return 0;
+	*ret = val * factor;
+	return 1;
+    }
+    return 0;
 }
 
 /**
@@ -481,10 +481,10 @@ static int parse_double(const char *value, double *ret)
 */
 static int as_int(const char *key, const char *value)
 {
-	long ret = 0;
-	if (!parse_long(value, &ret))
-		die_bad_config(key);
-	return ret;
+    long ret = 0;
+    if (!parse_long(value, &ret))
+	die_bad_config(key);
+    return ret;
 }
 
 /**
@@ -496,10 +496,10 @@ static int as_int(const char *key, const char *value)
 */
 static unsigned int as_unsigned_int(const char *key, const char *value)
 {
-	unsigned long ret = 0;
-	if (!parse_unsigned_long(value, &ret))
-		die_bad_config(key);
-	return ret;
+    unsigned long ret = 0;
+    if (!parse_unsigned_long(value, &ret))
+	die_bad_config(key);
+    return ret;
 }
 
 /**
@@ -511,14 +511,17 @@ static unsigned int as_unsigned_int(const char *key, const char *value)
 */
 static double as_double(const char *key, const char *value)
 {
-	double ret = 0;
-	if (!strcmp(value, "NaN")) {
-		logging::print_master((std::string(LOG_WARNING) + "Warning: '" + std::string(key) + "' set to the unphysical 1e300 instead of NaN. NaN is not supported for parameters!\n").c_str());
-		return 1e300;
-	}
-	if (!parse_double(value, &ret))
-		die_bad_config(key);
-	return ret;
+    double ret = 0;
+    if (!strcmp(value, "NaN")) {
+	logging::print_master(
+	    (std::string(LOG_WARNING) + "Warning: '" + std::string(key) +
+	     "' set to the unphysical 1e300 instead of NaN. NaN is not supported for parameters!\n")
+		.c_str());
+	return 1e300;
+    }
+    if (!parse_double(value, &ret))
+	die_bad_config(key);
+    return ret;
 }
 
 /**
@@ -531,17 +534,19 @@ static double as_double(const char *key, const char *value)
 */
 static int as_bool_or_int(const char *key, const char *value, int *is_bool)
 {
-	*is_bool = 1;
-	if (!value)
-		return 1;
-	if (!*value)
-		return 0;
-	if (!strcasecmp(value, "true") || !strcasecmp(value, "yes") || !strcasecmp(value, "on"))
-		return 1;
-	if (!strcasecmp(value, "false") || !strcasecmp(value, "no") || !strcasecmp(value, "off"))
-		return 0;
-	*is_bool = 0;
-	return as_int(key, value);
+    *is_bool = 1;
+    if (!value)
+	return 1;
+    if (!*value)
+	return 0;
+    if (!strcasecmp(value, "true") || !strcasecmp(value, "yes") ||
+	!strcasecmp(value, "on"))
+	return 1;
+    if (!strcasecmp(value, "false") || !strcasecmp(value, "no") ||
+	!strcasecmp(value, "off"))
+	return 0;
+    *is_bool = 0;
+    return as_int(key, value);
 }
 
 /**
@@ -553,8 +558,8 @@ static int as_bool_or_int(const char *key, const char *value, int *is_bool)
 */
 static bool as_bool(const char *key, const char *value)
 {
-	int discard;
-	return !!as_bool_or_int(key, value, &discard);
+    int discard;
+    return !!as_bool_or_int(key, value, &discard);
 }
 
 /**
@@ -563,10 +568,7 @@ static bool as_bool(const char *key, const char *value)
 	\param key key
 	\returns value
 */
-bool value_as_bool(const char *key)
-{
-	return as_bool(key, value(key));
-}
+bool value_as_bool(const char *key) { return as_bool(key, value(key)); }
 
 /**
 	Get a value as int to a corresponding key
@@ -574,10 +576,7 @@ bool value_as_bool(const char *key)
 	\param key key
 	\returns value
 */
-int value_as_int(const char *key)
-{
-	return as_int(key, value(key));
-}
+int value_as_int(const char *key) { return as_int(key, value(key)); }
 
 /**
 	Get a value as unsigned int to a corresponding key
@@ -587,7 +586,7 @@ int value_as_int(const char *key)
 */
 unsigned int value_as_unsigned_int(const char *key)
 {
-	return as_unsigned_int(key, value(key));
+    return as_unsigned_int(key, value(key));
 }
 
 /**
@@ -596,10 +595,7 @@ unsigned int value_as_unsigned_int(const char *key)
 	\param key key
 	\returns value
 */
-double value_as_double(const char *key)
-{
-	return as_double(key, value(key));
-}
+double value_as_double(const char *key) { return as_double(key, value(key)); }
 
 /**
 	Get a value as string to a corresponding key
@@ -607,13 +603,11 @@ double value_as_double(const char *key)
 	\param key key
 	\returns value
 */
-const char *value_as_string(const char *key)
-{
-	return value(key);
-}
+const char *value_as_string(const char *key) { return value(key); }
 
 /**
-	Get a value as bool to a corresponding key if available, else set to default
+	Get a value as bool to a corresponding key if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -621,15 +615,16 @@ const char *value_as_string(const char *key)
 */
 bool value_as_bool_default(const char *key, bool defvalue)
 {
-	if (key_exists(key)) {
-		return value_as_bool(key);
-	} else {
-		return defvalue;
-	}
+    if (key_exists(key)) {
+	return value_as_bool(key);
+    } else {
+	return defvalue;
+    }
 }
 
 /**
-	Get a value as int to a corresponding key if available, else set to default
+	Get a value as int to a corresponding key if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -637,31 +632,34 @@ bool value_as_bool_default(const char *key, bool defvalue)
 */
 int value_as_int_default(const char *key, int defvalue)
 {
-	if (key_exists(key)) {
-		return value_as_int(key);
-	} else {
-		return defvalue;
-	}
+    if (key_exists(key)) {
+	return value_as_int(key);
+    } else {
+	return defvalue;
+    }
 }
 
 /**
-	Get a value as unsigned int to a corresponding key if available, else set to default
+	Get a value as unsigned int to a corresponding key if available, else
+   set to default
 
 	\param key key
 	\param defvalue default value
 	\returns value
 */
-unsigned int value_as_unsigned_int_default(const char *key, unsigned int defvalue)
+unsigned int value_as_unsigned_int_default(const char *key,
+					   unsigned int defvalue)
 {
-	if (key_exists(key)) {
-		return value_as_unsigned_int(key);
-	} else {
-		return defvalue;
-	}
+    if (key_exists(key)) {
+	return value_as_unsigned_int(key);
+    } else {
+	return defvalue;
+    }
 }
 
 /**
-	Get a value as double to a corresponding key  if available, else set to default
+	Get a value as double to a corresponding key  if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -669,15 +667,16 @@ unsigned int value_as_unsigned_int_default(const char *key, unsigned int defvalu
 */
 double value_as_double_default(const char *key, double defvalue)
 {
-	if (key_exists(key)) {
-		return value_as_double(key);
-	} else {
-		return defvalue;
-	}
+    if (key_exists(key)) {
+	return value_as_double(key);
+    } else {
+	return defvalue;
+    }
 }
 
 /**
-	Get a value as string to a corresponding key  if available, else set to default
+	Get a value as string to a corresponding key  if available, else set to
+   default
 
 	\param key key
 	\param defvalue default value
@@ -685,54 +684,52 @@ double value_as_double_default(const char *key, double defvalue)
 */
 const char *value_as_string_default(const char *key, const char *defvalue)
 {
-	if (key_exists(key)) {
-		return value_as_string(key);
-	} else {
-		return defvalue;
-	}
+    if (key_exists(key)) {
+	return value_as_string(key);
+    } else {
+	return defvalue;
+    }
 }
 
 /**
-	Get a value as t_boundary_condition to a corresponding key  if available, else set to default
+	Get a value as t_boundary_condition to a corresponding key  if
+   available, else set to default
 
 	\param key key
 	\param defvalue default value
 	\returns t_boundary_condition
 */
-parameters::t_damping_type value_as_boudary_damping_default(const char *key, const char *defvalue)
+parameters::t_damping_type
+value_as_boudary_damping_default(const char *key, const char *defvalue)
 {
-	char* string_key;
-	if (key_exists(key))
-	{
-		string_key = (char*)value_as_string(key);
-	}
-	else
-	{
-		string_key = (char*)defvalue;
-	}
+    char *string_key;
+    if (key_exists(key)) {
+	string_key = (char *)value_as_string(key);
+    } else {
+	string_key = (char *)defvalue;
+    }
 
-	parameters::t_damping_type boundary_condition;
-	switch (tolower(*string_key))
-	{
-		case 'n':
-			boundary_condition = parameters::t_damping_type::damping_none;
-			break;
-		case 'i':
-			boundary_condition =  parameters::t_damping_type::damping_initial;
-			break;
-		case 'y': // for legacy compatibility
-			boundary_condition =  parameters::t_damping_type::damping_initial;
-			break;
-		case 'm':
-			boundary_condition = parameters::t_damping_type::damping_mean;
-			break;
-		case 'z':
-			boundary_condition = parameters::t_damping_type::damping_zero;
-			break;
-		default:
-			boundary_condition = parameters::t_damping_type::damping_none;
-	}
-	return boundary_condition;
+    parameters::t_damping_type boundary_condition;
+    switch (tolower(*string_key)) {
+    case 'n':
+	boundary_condition = parameters::t_damping_type::damping_none;
+	break;
+    case 'i':
+	boundary_condition = parameters::t_damping_type::damping_initial;
+	break;
+    case 'y': // for legacy compatibility
+	boundary_condition = parameters::t_damping_type::damping_initial;
+	break;
+    case 'm':
+	boundary_condition = parameters::t_damping_type::damping_mean;
+	break;
+    case 'z':
+	boundary_condition = parameters::t_damping_type::damping_zero;
+	break;
+    default:
+	boundary_condition = parameters::t_damping_type::damping_none;
+    }
+    return boundary_condition;
 }
 
 /**
@@ -743,19 +740,19 @@ parameters::t_damping_type value_as_boudary_damping_default(const char *key, con
 */
 int key_exists(const char *key)
 {
-	char keylower[MAXNAME];
-	unsigned int i;
+    char keylower[MAXNAME];
+    unsigned int i;
 
-	for (i = 0; i <= strlen(key); ++i) {
-		keylower[i] = tolower(key[i]);
-	}
+    for (i = 0; i <= strlen(key); ++i) {
+	keylower[i] = tolower(key[i]);
+    }
 
-	for (i = 0; i < list.size; ++i) {
-		if (strcmp(keylower,list.data[i].key) == 0)
-			return 1;
-	}
+    for (i = 0; i < list.size; ++i) {
+	if (strcmp(keylower, list.data[i].key) == 0)
+	    return 1;
+    }
 
-	return 0;
+    return 0;
 }
 
 /**
@@ -763,11 +760,11 @@ int key_exists(const char *key)
 */
 void print_parsed_config()
 {
-	unsigned int i;
+    unsigned int i;
 
-	for (i = 0; i < list.size; ++i) {
-		printf("[%u]: %s = %s\n",i,list.data[i].key,list.data[i].value);
-	}
+    for (i = 0; i < list.size; ++i) {
+	printf("[%u]: %s = %s\n", i, list.data[i].key, list.data[i].value);
+    }
 }
 
-}
+} // namespace config

@@ -7,47 +7,64 @@
 
 class t_planetary_system
 {
-	private:
-		// list of all planets
-		std::vector<t_planet *> m_planets;
+  private:
+    // list of all planets
+    std::vector<t_planet *> m_planets;
 
-	public:
-		struct reb_simulation *m_rebound;
-		t_planetary_system();
-		~t_planetary_system();
+  public:
+    struct reb_simulation *m_rebound;
+    t_planetary_system();
+    ~t_planetary_system();
 
-		inline void add_planet(t_planet* planet) { m_planets.push_back(planet); planet->set_planet_number(get_number_of_planets()); }
-		inline unsigned int get_number_of_planets(void) const { return m_planets.size(); }
-		inline t_planet& get_planet(unsigned int number) const { return *(m_planets.at(number)); }
-		//inline void delete_planet(unsigned int number) { delete m_planets.at(number); m_planets.erase(m_planets.begin()+number); }
+    inline void add_planet(t_planet *planet)
+    {
+	m_planets.push_back(planet);
+	planet->set_planet_number(get_number_of_planets());
+    }
+    inline unsigned int get_number_of_planets(void) const
+    {
+	return m_planets.size();
+    }
+    inline t_planet &get_planet(unsigned int number) const
+    {
+	return *(m_planets.at(number));
+    }
+    // inline void delete_planet(unsigned int number) { delete
+    // m_planets.at(number); m_planets.erase(m_planets.begin()+number); }
 
-		void initialize_planet_legacy(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double phi);
-		void initialize_planet_jacobi(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly);
-		void initialize_planet_jacobi_adjust_first_two(t_planet *planet, double mass, double semi_major_axis, double eccentricity, double omega, double true_anomaly);
+    void initialize_planet_legacy(t_planet *planet, double mass,
+				  double semi_major_axis, double eccentricity,
+				  double phi);
+    void initialize_planet_jacobi(t_planet *planet, double mass,
+				  double semi_major_axis, double eccentricity,
+				  double omega, double true_anomaly);
+    void initialize_planet_jacobi_adjust_first_two(
+	t_planet *planet, double mass, double semi_major_axis,
+	double eccentricity, double omega, double true_anomaly);
 
-		Pair get_hydro_frame_center_position();
-		Pair get_hydro_frame_center_velocity();
-		double get_hydro_frame_center_mass();
-		void move_to_hydro_frame_center();
+    Pair get_hydro_frame_center_position();
+    Pair get_hydro_frame_center_velocity();
+    double get_hydro_frame_center_mass();
+    void move_to_hydro_frame_center();
 
-		void update_global_hydro_frame_center_mass();
-		void calculate_orbital_elements();
+    void update_global_hydro_frame_center_mass();
+    void calculate_orbital_elements();
 
-		double get_mass();
-		double get_mass(unsigned int n);
-		Pair get_center_of_mass();
-		Pair get_center_of_mass(unsigned int n);
-		Pair get_center_of_mass_velocity(unsigned int n);
+    double get_mass();
+    double get_mass(unsigned int n);
+    Pair get_center_of_mass();
+    Pair get_center_of_mass(unsigned int n);
+    Pair get_center_of_mass_velocity(unsigned int n);
 
-		void initialize_default_star();
-		void init_rebound();
-		void read_from_file(char *filename);
-		void list_planets();
-		void rotate(double angle);
-		void restart(unsigned int timestep);
+    void initialize_default_star();
+    void init_rebound();
+    void read_from_file(char *filename);
+    void list_planets();
+    void rotate(double angle);
+    void restart(unsigned int timestep);
 
-		void create_planet_files();
-		void write_planets(unsigned int timestep, bool big_file);
+    void create_planet_files();
+    void write_planets(unsigned int timestep, bool big_file);
 };
 
 #endif // PLANETARY_SYSTEM_H

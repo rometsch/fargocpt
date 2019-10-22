@@ -4,14 +4,16 @@
 	Declares all global variables.
 */
 
-#include <mpi.h>
-#include "types.h"
 #include "radialarray.h"
+#include "types.h"
+#include <mpi.h>
 
-/** number of this process, not an unsigned integer because MPI excepts it to be signed */
+/** number of this process, not an unsigned integer because MPI excepts it to be
+ * signed */
 int CPU_Rank;
 
-/** total number of processes, not an unsigned integer because MPI excepts it to be signed */
+/** total number of processes, not an unsigned integer because MPI excepts it to
+ * be signed */
 int CPU_Number;
 
 /** is this process the master process */
@@ -54,42 +56,51 @@ int Zero_or_active_friend;
 int hydro_totalsize, active_hydro_totalsize, active_hydro_totalsize_friend;
 /* ------------------------------------- */
 
-/** radial index of the inner most cell in global radial mesh of this process including ghost cells (!) */
+/** radial index of the inner most cell in global radial mesh of this process
+ * including ghost cells (!) */
 unsigned int IMIN;
 
-/** radial index of the outer most cell in global radial mesh of this process including ghost cells (!) */
+/** radial index of the outer most cell in global radial mesh of this process
+ * including ghost cells (!) */
 unsigned int IMAX;
 
-/** radial index of the inner most cell in global radial mesh of this process excluding ghost cells (!) */
+/** radial index of the inner most cell in global radial mesh of this process
+ * excluding ghost cells (!) */
 unsigned int Zero_or_active;
 
-/** radial index of the inner most cell in global radial mesh of this process excluding ghost cells (!) */
+/** radial index of the inner most cell in global radial mesh of this process
+ * excluding ghost cells (!) */
 unsigned int Max_or_active;
 
 unsigned int One_or_active;
-unsigned int MaxMO_or_active;		/* MO: Minus One */
+unsigned int MaxMO_or_active; /* MO: Minus One */
 unsigned int GlobalNRadial;
 
 /** sum up a quantity inside the processes domain without ghost cells */
-void sum_without_ghost_cells(double &accumulator, const double &addend, const unsigned int &n_radial)
+void sum_without_ghost_cells(double &accumulator, const double &addend,
+			     const unsigned int &n_radial)
 {
-	if(One_or_active <= n_radial && n_radial < Max_or_active)
-	{
-		accumulator += addend;
-	}
+    if (One_or_active <= n_radial && n_radial < Max_or_active) {
+	accumulator += addend;
+    }
 }
 
-int *RootNradialLocalSizes;			// Needed for MPI_Gatherv
-int *RootNradialDisplacements;	// Needed for MPI_Gatherv
+int *RootNradialLocalSizes;    // Needed for MPI_Gatherv
+int *RootNradialDisplacements; // Needed for MPI_Gatherv
 int *RootIMAX;
 int *RootIMIN;
 int *RootRanksOrdered;
 
 /** Rmed is the location of be the center of mass of the cell.
-    Its definition is in fact : 0.5 * [ (4/3) \pi Rsup[i]^3 - (4/3) \pi Rinf[i]^3 ] / [ \pi Rsup[i]^2 - \pi Rinf[i]^2]
-    or: one half of the elementary volume divided by the elementary surface.
+    Its definition is in fact : 0.5 * [ (4/3) \pi Rsup[i]^3 - (4/3) \pi
+   Rinf[i]^3 ] / [ \pi Rsup[i]^2 - \pi Rinf[i]^2] or: one half of the elementary
+   volume divided by the elementary surface.
 
-    Note that this represents the position of the center of mass only for d\theta << \pi . If d\theta becomes large, then the center of mass can be out of the cell, closer to the center (it reached the center for d\theta=2\pi), but Rmed stays between Rinf and Rsup, and doesn't depend on d\theta in the code. (Aurélien Crida) */
+    Note that this represents the position of the center of mass only for
+   d\theta << \pi . If d\theta becomes large, then the center of mass can be out
+   of the cell, closer to the center (it reached the center for d\theta=2\pi),
+   but Rmed stays between Rinf and Rsup, and doesn't depend on d\theta in the
+   code. (Aurélien Crida) */
 t_radialarray Rmed;
 t_radialarray &Rb = Rmed;
 
@@ -131,7 +142,8 @@ int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
-int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
+int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell,
+    ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
 int CentrifugalBalance, ExcludeHill, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellAbscissa, *CellOrdinate;
