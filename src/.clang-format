@@ -5,3 +5,4 @@ BreakBeforeBraces: Linux
 AllowShortIfStatementsOnASingleLine: false
 IndentCaseLabels: false
 PenaltyBreakString: 10000000
+BreakStringLiterals: false
