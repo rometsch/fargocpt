@@ -94,6 +94,8 @@ extern double cooling_radiative_factor;
 extern bool cooling_beta_enabled;
 /// beta cooling ramp up time
 extern double cooling_beta_ramp_up;
+/// beta cooling inner buffer zone
+extern double cooling_beta_inner_buffer;
 /// beta cooling constant
 extern double cooling_beta;
 

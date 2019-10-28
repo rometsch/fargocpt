@@ -1439,13 +1439,12 @@ void calculate_qminus(t_data &data)
 	// beta cooling
 	if (parameters::cooling_beta_enabled) {
 		for (unsigned int n_radial = 0;
-		     n_radial <= data[t_data::QPLUS].get_max_radial();
+		     n_radial <= data[t_data::QMINUS].get_max_radial();
 		     ++n_radial) {
 			for (unsigned int n_azimuthal = 0;
 			     n_azimuthal <=
-			     data[t_data::QPLUS].get_max_azimuthal();
+			     data[t_data::QMINUS].get_max_azimuthal();
 			     ++n_azimuthal) {
-				// Q- = E Omega/beta
 				const double r = Rmed[n_radial];
 				const double omega_k =
 				    calculate_omega_kepler(r);
@@ -1453,16 +1452,28 @@ void calculate_qminus(t_data &data)
 				    data[t_data::ENERGY](n_radial, n_azimuthal);
 				const double t_ramp_up =
 				    parameters::cooling_beta_ramp_up;
+				const double inner_buffer =
+				    parameters::cooling_beta_inner_buffer;
 
 				double beta_inv = 1 / parameters::cooling_beta;
+
+				double ramp_factor = 1;
 				if (t_ramp_up > 0.0) {
 					const double t = PhysicalTime;
 
-					double ramp_factor =
+					double t_ramp_factor =
 					    1 - exp(-pow(2 * t / t_ramp_up, 2));
 
-					beta_inv = beta_inv * ramp_factor;
+					ramp_factor *= t_ramp_factor;					
 				}
+				if (inner_buffer > 0.0) {
+				    double buffer_ramp_factor =
+					1 - exp(-pow(2 * (r-RMIN)  / inner_buffer, 2));
+
+					ramp_factor *= buffer_ramp_factor;	
+				}
+
+				beta_inv = beta_inv * ramp_factor;
 
 				const double qminus = E * omega_k * beta_inv;
 

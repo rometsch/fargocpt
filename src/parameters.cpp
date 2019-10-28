@@ -60,6 +60,7 @@ double cooling_radiative_factor;
 bool cooling_radiative_enabled;
 bool cooling_beta_enabled;
 double cooling_beta_ramp_up;
+double cooling_beta_inner_buffer;
 double cooling_beta;
 
 bool radiative_diffusion_enabled;
@@ -570,6 +571,8 @@ void read(char *filename, t_data &data)
 	cooling_beta = config::value_as_double_default("CoolingBeta", 1.0);
 	cooling_beta_ramp_up =
 	    config::value_as_double_default("CoolingBetaRampUp", 0.0);
+	cooling_beta_inner_buffer =
+	    config::value_as_double_default("CoolingBetaInnerBuffer", 0.0);
 
 	// initialisation
 	initialize_pure_keplerian =
