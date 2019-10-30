@@ -273,7 +273,7 @@ void AdvanceSystemRK5(t_data &data, double dt)
 
 	for (unsigned int i = 0;
 	     i < data.get_planetary_system().get_number_of_planets(); i++) {
-	    auto planet = data.get_planetary_system().get_planet(i);
+	    auto &planet = data.get_planetary_system().get_planet(i);
 	    planet.set_x(rebound->particles[i].x);
 	    planet.set_y(rebound->particles[i].y);
 	    planet.set_vx(rebound->particles[i].vx);
