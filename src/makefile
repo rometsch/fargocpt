@@ -99,7 +99,9 @@ OBJS = $(OBJS_C) $(OBJS_CXX)
 HDRS = $(wildcard *.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
-LIBS = -lm -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas -L. -l:rebound/librebound.so
+MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+LIBS = -lm -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas -L$(MAKEFILE_DIR)rebound -lrebound
 # -Wl,--rpath -Wl,$(FFTW_PREFIX)/lib
 
 EXENAME        = ../fargo
