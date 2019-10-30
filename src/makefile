@@ -99,13 +99,14 @@ OBJS = $(OBJS_C) $(OBJS_CXX)
 HDRS = $(wildcard *.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
-LIBS = -lm -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
+LIBS = -lm -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas -L. -l:rebound/librebound.so
 # -Wl,--rpath -Wl,$(FFTW_PREFIX)/lib
 
 EXENAME        = ../fargo
 
 $(EXENAME): $(OBJS)
-	$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS)
+	$(MAKE) -C rebound
+	$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS) 
 
 $(OBJS): $(HDRS) makefile
 
@@ -115,6 +116,7 @@ main.o: $(HDRS) makefile $(SRCS_C) $(SRCS_CXX)
 
 clean:
 	rm -f $(OBJS) $(TEMP)
+	$(MAKE) -C rebound clean
 
 %.o : %.c
 	$(CC) $*.c -c $(_CFLAGS)
