@@ -81,20 +81,15 @@ void t_planetary_system::read_from_file(char *filename)
 {
     FILE *fd;
 
-    // check if a filename was specified
-    if (filename == NULL) {
-		logging::print_master(LOG_INFO "No planetfile specified.\n");
-		initialize_default_star();
-		update_global_hydro_frame_center_mass();
-		logging::print_master(
-							  LOG_INFO "The mass of the planets used as hydro frame center is %e.\n",
-							  hydro_center_mass);
-		return;
-    }
-
     if (!parameters::no_default_star) {
 		initialize_default_star();
     }
+
+    // check if a filename was specified
+    if (filename == NULL) {
+		logging::print_master(LOG_INFO "No planetfile specified.\n");
+	} else {
+	// Only read from file if filename is given.
 
     // open fill
     fd = fopen(filename, "r");
@@ -217,6 +212,7 @@ void t_planetary_system::read_from_file(char *filename)
 
 	add_planet(planet);
     }
+	}
 
     // close file
     fclose(fd);
