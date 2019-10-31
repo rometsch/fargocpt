@@ -104,7 +104,7 @@ void CalculatePotential(t_data &data)
 	ypl[k] = planet.get_y();
 	if (RocheSmoothing) {
 	    double r_hill =
-		pow(planet.get_mass() / (3.0 * (M + planet.get_mass())),
+		pow(mpl[k] / (3.0 * (M + mpl[k])),
 		    1.0 / 3.0) *
 		planet.get_semi_major_axis();
 	    smooth_pl[k] = pow2(r_hill * ROCHESMOOTHING);
