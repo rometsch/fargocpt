@@ -15,7 +15,6 @@ extern int Corotating;
 
 t_planetary_system::t_planetary_system()
 {
-    m_rebound = reb_create_simulation();
 }
 
 t_planetary_system::~t_planetary_system()
@@ -29,30 +28,22 @@ t_planetary_system::~t_planetary_system()
 
 void t_planetary_system::init_rebound()
 {
-
+	m_rebound = reb_create_simulation();
     m_rebound->G = constants::G;
     m_rebound->dt = 1e-6;
     m_rebound->softening = 0.0; // 5e-4; // Jupiter radius in au
     m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
-    for (unsigned int i = 0; i < m_planets.size(); ++i) {
-	struct reb_particle p = {0};
-	p.x = m_planets.at(i)->m_x;
-	p.y = m_planets.at(i)->m_y;
-	p.z = 0.0;
-	p.vx = m_planets.at(i)->m_vx;
-	p.vy = m_planets.at(i)->m_vy;
-	p.vz = 0.0;
-	p.ax = 0.0;
-	p.ay = 0.0;
-	p.az = 0.0;
-	p.m = m_planets.at(i)->m_mass;
-	p.r = 0.0;
-	p.lastcollision = 0.0;
-	p.c = nullptr;
-	p.hash = 0;
-	p.sim = m_rebound;
-	reb_add(m_rebound, p);
+    for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+		auto &planet = get_planet(i);
+		struct reb_particle p = {0};
+		p.x = planet.get_x();
+		p.y = planet.get_y();
+		p.vx = planet.get_vx();
+		p.vy = planet.get_vy();
+		p.m = planet.get_mass();
+		p.c = nullptr;
+		reb_add(m_rebound, p);
     }
 }
 
