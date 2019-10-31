@@ -212,13 +212,12 @@ void t_planetary_system::read_from_file(char *filename)
 
 	add_planet(planet);
     }
-	}
-
-    // close file
+	    // close file
     fclose(fd);
 
     logging::print_master(LOG_INFO "%d planet(s) found.\n",
 			  get_number_of_planets());
+	}
 
     if (get_number_of_planets() > 0) {
 	HillRadius =
