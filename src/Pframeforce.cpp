@@ -256,6 +256,11 @@ void AdvanceSystemRK5(t_data &data, double dt)
     }
     */
 
+	if (data.get_planetary_system().get_number_of_planets() < 2) {
+		// don't integrate a single particle that doesn't move
+		return;
+	}
+
     if (parameters::integrate_planets) {
 	auto &rebound = data.get_planetary_system().m_rebound;
 
