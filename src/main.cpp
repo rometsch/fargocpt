@@ -138,11 +138,11 @@ int main(int argc, char *argv[])
 
     logging::print_master(LOG_INFO "planets initialised.\n");
 
-    if ((data.get_planetary_system().get_number_of_planets() == 0) &&
+    if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
 	(Corotating == YES)) {
 	logging::print_master(
 	    LOG_ERROR
-	    "Error: Corotating frame is not possible with 0 planets.\n");
+	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
 	PersonalExit(1);
     }
 
