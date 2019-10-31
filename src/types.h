@@ -17,18 +17,18 @@
 typedef int boolean;
 
 struct torque_set {
-	double InnerDisk;
-	double OuterDisk;
-	double ExcludeHill;
-	double Total;
+    double InnerDisk;
+    double OuterDisk;
+    double ExcludeHill;
+    double Total;
 };
 
 typedef struct torque_set TorqueSet;
 
 struct triplet {
-	double x;
-	double y;
-	double z;
+    double x;
+    double y;
+    double z;
 };
 
 typedef struct triplet Triplet;
@@ -40,8 +40,8 @@ typedef struct triplet Triplet;
    in MassInOut().
 */
 struct pair {
-	double x;
-	double y;
+    double x;
+    double y;
 };
 
 typedef struct pair Pair;
@@ -54,61 +54,61 @@ typedef struct pair Pair;
    the disk material and the force that excludes part of the Hill sphere.
 */
 struct force {
-	/// x-component of the force arising from the inner disk, without Hill
-	/// sphere avoidance
-	double fx_inner;
-	/// y-component of the force arising from the inner disk, without Hill
-	/// sphere avoidance
-	double fy_inner;
-	/// x-component of the force arising from the inner disk, with Hill
-	/// sphere avoidance
-	double fx_ex_inner;
-	/// y-component of the force arising from the inner disk, with Hill
-	/// sphere avoidance
-	double fy_ex_inner;
-	/// x-component of the force arising from the outer disk, without Hill
-	/// sphere avoidance
-	double fx_outer;
-	/// y-component of the force arising from the outer disk, without Hill
-	/// sphere avoidance
-	double fy_outer;
-	/// x-component of the force arising from the outer disk, with Hill
-	/// sphere avoidance
-	double fx_ex_outer;
-	/// x-component of the force arising from the outer disk, with Hill
-	/// sphere avoidance
-	double fy_ex_outer;
+    /// x-component of the force arising from the inner disk, without Hill
+    /// sphere avoidance
+    double fx_inner;
+    /// y-component of the force arising from the inner disk, without Hill
+    /// sphere avoidance
+    double fy_inner;
+    /// x-component of the force arising from the inner disk, with Hill
+    /// sphere avoidance
+    double fx_ex_inner;
+    /// y-component of the force arising from the inner disk, with Hill
+    /// sphere avoidance
+    double fy_ex_inner;
+    /// x-component of the force arising from the outer disk, without Hill
+    /// sphere avoidance
+    double fx_outer;
+    /// y-component of the force arising from the outer disk, without Hill
+    /// sphere avoidance
+    double fy_outer;
+    /// x-component of the force arising from the outer disk, with Hill
+    /// sphere avoidance
+    double fx_ex_outer;
+    /// x-component of the force arising from the outer disk, with Hill
+    /// sphere avoidance
+    double fy_ex_outer;
 
-	double *GlobalForce;
+    double *GlobalForce;
 };
 
 typedef struct force Force;
 
 class BoundaryFlow
 {
-      public:
-	// Mass flow over inner and outer boundary and mass change by wave
-	// damping boundaries and floor density
-	double InnerPositive;
-	double InnerNegative;
-	double OuterPositive;
-	double OuterNegative;
-	double WaveDampingPositive;
-	double WaveDampingNegative;
-	double FloorPositive;
+  public:
+    // Mass flow over inner and outer boundary and mass change by wave
+    // damping boundaries and floor density
+    double InnerPositive;
+    double InnerNegative;
+    double OuterPositive;
+    double OuterNegative;
+    double WaveDampingPositive;
+    double WaveDampingNegative;
+    double FloorPositive;
 
-	BoundaryFlow() { reset(); };
+    BoundaryFlow() { reset(); };
 
-	void reset()
-	{
-		InnerPositive = 0.0;
-		InnerNegative = 0.0;
-		OuterPositive = 0.0;
-		OuterNegative = 0.0;
-		WaveDampingPositive = 0.0;
-		WaveDampingNegative = 0.0;
-		FloorPositive = 0.0;
-	}
+    void reset()
+    {
+	InnerPositive = 0.0;
+	InnerNegative = 0.0;
+	OuterPositive = 0.0;
+	OuterNegative = 0.0;
+	WaveDampingPositive = 0.0;
+	WaveDampingNegative = 0.0;
+	FloorPositive = 0.0;
+    }
 };
 
 #define YES 1

@@ -24,31 +24,31 @@ namespace constants
 
 class t_constant
 {
-      private:
-	char *m_symbol;
-	double m_code_value;
-	double m_cgs_value;
-	char *m_cgs_unit_symbol;
+  private:
+    char *m_symbol;
+    double m_code_value;
+    double m_cgs_value;
+    char *m_cgs_unit_symbol;
 
-      public:
-	t_constant();
-	~t_constant();
+  public:
+    t_constant();
+    ~t_constant();
 
-	// setter
-	void set_symbol(const char *);
-	void set_code_value(double);
-	void set_cgs_value(double);
-	void set_cgs_unit_symbol(const char *);
+    // setter
+    void set_symbol(const char *);
+    void set_code_value(double);
+    void set_cgs_value(double);
+    void set_cgs_unit_symbol(const char *);
 
-	// getter
-	const char *get_symbol(void) const;
-	double get_code_value(void) const;
-	double get_cgs_value(void) const;
-	const char *get_cgs_unit_symbol(void) const;
+    // getter
+    const char *get_symbol(void) const;
+    double get_code_value(void) const;
+    double get_cgs_value(void) const;
+    const char *get_cgs_unit_symbol(void) const;
 
-	// operator
-	inline operator const double &() const { return m_code_value; }
-	/* inline operator double&() { return m_cgs_value; } */
+    // operator
+    inline operator const double &() const { return m_code_value; }
+    /* inline operator double&() { return m_cgs_value; } */
 };
 
 /// gravitational constant

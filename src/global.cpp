@@ -80,9 +80,9 @@ unsigned int GlobalNRadial;
 void sum_without_ghost_cells(double &accumulator, const double &addend,
 			     const unsigned int &n_radial)
 {
-	if (One_or_active <= n_radial && n_radial < Max_or_active) {
-		accumulator += addend;
-	}
+    if (One_or_active <= n_radial && n_radial < Max_or_active) {
+	accumulator += addend;
+    }
 }
 
 int *RootNradialLocalSizes;    // Needed for MPI_Gatherv

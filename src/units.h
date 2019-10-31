@@ -18,37 +18,37 @@ const double cgs_Year = 31556925.261; // 365.*24.*60.*60.;
 
 class t_unit
 {
-      private:
-	/// cgs conversion factor
-	double m_cgs_factor;
-	double m_inverse_cgs_factor;
+  private:
+    /// cgs conversion factor
+    double m_cgs_factor;
+    double m_inverse_cgs_factor;
 
-	/// cgs unit symbol
-	char *m_cgs_symbol;
+    /// cgs unit symbol
+    char *m_cgs_symbol;
 
-      public:
-	t_unit();
-	~t_unit();
+  public:
+    t_unit();
+    ~t_unit();
 
-	// setter
-	void set_cgs_factor(double);
-	void set_cgs_symbol(const char *);
+    // setter
+    void set_cgs_factor(double);
+    void set_cgs_symbol(const char *);
 
-	// getter
-	const char *get_cgs_symbol(void) const;
-	/// get conversion factor to cgs system
-	inline double get_cgs_factor(void) const { return m_cgs_factor; }
-	/// get conversion factor from cgs systems
-	inline double get_inverse_cgs_factor(void) const
-	{
-		return m_inverse_cgs_factor;
-	}
+    // getter
+    const char *get_cgs_symbol(void) const;
+    /// get conversion factor to cgs system
+    inline double get_cgs_factor(void) const { return m_cgs_factor; }
+    /// get conversion factor from cgs systems
+    inline double get_inverse_cgs_factor(void) const
+    {
+	return m_inverse_cgs_factor;
+    }
 
-	// operator
-	inline operator const double &() const { return m_cgs_factor; }
-	/* inline operator double&() { return m_cgs_factor; } */
+    // operator
+    inline operator const double &() const { return m_cgs_factor; }
+    /* inline operator double&() { return m_cgs_factor; } */
 
-	std::string get_cgs_factor_symbol();
+    std::string get_cgs_factor_symbol();
 };
 
 extern t_unit length;

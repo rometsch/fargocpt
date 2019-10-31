@@ -13,22 +13,22 @@ extern bool Locally_Isothermal;
 
 /// Type of radial Grid
 enum t_radial_grid {
-	arithmetic_spacing,
-	logarithmic_spacing,
-	exponential_spacing
+    arithmetic_spacing,
+    logarithmic_spacing,
+    exponential_spacing
 };
 extern t_radial_grid radial_grid_type;
 extern const char *radial_grid_names[];
 
 // boundary conditions
 enum t_boundary_condition {
-	boundary_condition_open,
-	boundary_condition_reflecting,
-	boundary_condition_nonreflecting,
-	boundary_condition_evanescent,
-	boundary_condition_viscous_outflow,
-	boundary_condition_boundary_layer,
-	boundary_condition_keplerian
+    boundary_condition_open,
+    boundary_condition_reflecting,
+    boundary_condition_nonreflecting,
+    boundary_condition_evanescent,
+    boundary_condition_viscous_outflow,
+    boundary_condition_boundary_layer,
+    boundary_condition_keplerian
 };
 
 /// type of inner boundary
@@ -40,21 +40,21 @@ extern bool domegadr_zero;
 
 /// Struct for handling damping at boundaries
 struct t_DampingType {
-	void (*inner_damping_function)(t_polargrid &, t_polargrid &, double);
-	void (*outer_damping_function)(t_polargrid &, t_polargrid &, double);
-	t_data::t_polargrid_type array_to_damp;
-	t_data::t_polargrid_type array_with_damping_values;
-	std::string description_inner;
-	std::string description_outer;
+    void (*inner_damping_function)(t_polargrid &, t_polargrid &, double);
+    void (*outer_damping_function)(t_polargrid &, t_polargrid &, double);
+    t_data::t_polargrid_type array_to_damp;
+    t_data::t_polargrid_type array_with_damping_values;
+    std::string description_inner;
+    std::string description_outer;
 };
 extern int damping_energy_id;
 
 /// enable different damping types
 enum t_damping_type {
-	damping_none,
-	damping_initial,
-	damping_mean,
-	damping_zero
+    damping_none,
+    damping_initial,
+    damping_mean,
+    damping_zero
 };
 extern bool damping;
 /// inner damping limit
@@ -110,10 +110,10 @@ extern unsigned int radiative_diffusion_max_iterations;
 
 // initialisation
 enum t_initialize_condition {
-	initialize_condition_profile,
-	initialize_condition_read1D,
-	initialize_condition_read2D,
-	initialize_condition_shakura_sunyaev
+    initialize_condition_profile,
+    initialize_condition_read1D,
+    initialize_condition_read2D,
+    initialize_condition_shakura_sunyaev
 };
 
 /// initialize condition for sigma
@@ -151,11 +151,11 @@ extern double profile_damping_width;
 
 // type of artifical viscosity
 enum t_artificial_viscosity {
-	artificial_viscosity_none, // no artificial viscosity
-	artificial_viscosity_TW, // artificial viscosity based on Tscharnuter &
-				 // Winkler, 1979
-	artificial_viscosity_SN // artificial viscosity based on Stone & Norman,
-				// 1991 (ZEUS)
+    artificial_viscosity_none, // no artificial viscosity
+    artificial_viscosity_TW,   // artificial viscosity based on Tscharnuter &
+			     // Winkler, 1979
+    artificial_viscosity_SN // artificial viscosity based on Stone & Norman,
+			    // 1991 (ZEUS)
 };
 
 /// type of artificial viscosity
@@ -212,12 +212,12 @@ extern double log_after_real_seconds;
 
 // type of opacity
 enum t_opacity {
-	opacity_lin,     // opacity based on Lin & Papaloizou, 1985
-	opacity_bell,    // opacity based on Bell & Lin, 1994
-	opacity_zhu,     // opacity based on Zhu, Hartmann & Gammie, 2008
-	opacity_kramers, // opacity based on Kramers Law plus electron
-			 // scattering (Thomson)
-	opacity_const_op // constant opacity
+    opacity_lin,     // opacity based on Lin & Papaloizou, 1985
+    opacity_bell,    // opacity based on Bell & Lin, 1994
+    opacity_zhu,     // opacity based on Zhu, Hartmann & Gammie, 2008
+    opacity_kramers, // opacity based on Kramers Law plus electron
+		     // scattering (Thomson)
+    opacity_const_op // constant opacity
 };
 
 extern t_opacity opacity;
@@ -275,10 +275,10 @@ extern bool particle_gas_drag_enabled;
 extern bool particle_disk_gravity_enabled;
 /// particle integrator
 enum t_particle_integrator {
-	integrator_explicit,     // explicit integrator (Cash-Karp, high-order)
-	integrator_adaptive,     // adaptive Cash-Karp integrator
-	integrator_semiimplicit, // semi-implicit integrator
-	integrator_implicit,     // fully implicit integrator
+    integrator_explicit,     // explicit integrator (Cash-Karp, high-order)
+    integrator_adaptive,     // adaptive Cash-Karp integrator
+    integrator_semiimplicit, // semi-implicit integrator
+    integrator_implicit,     // fully implicit integrator
 };
 extern t_particle_integrator integrator;
 

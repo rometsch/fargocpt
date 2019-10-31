@@ -2,6 +2,6 @@
 #define MACROS_H
 
 #define CELL(nRadial, nAzimuthal, NAzimuthal)                                  \
-	(((nRadial) * (NAzimuthal)) + (nAzimuthal))
+    (((nRadial) * (NAzimuthal)) + (nAzimuthal))
 
 #endif // MACROS_H
