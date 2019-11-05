@@ -142,6 +142,7 @@ void CalculatePotential(t_data &data)
 						    n_radial, n_azimuthal));
 		}
 		double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
+        if(k == 0) smooth = 0.0;
 		distancesmooth = sqrt(distance2 + smooth);
 		// direct term from planet
 		data[t_data::POTENTIAL](n_radial, n_azimuthal) +=
