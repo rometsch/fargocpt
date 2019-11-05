@@ -32,7 +32,8 @@ void t_planetary_system::init_rebound()
     m_rebound->G = constants::G;
     m_rebound->dt = 1e-6;
     m_rebound->softening = 0.0; // 5e-4; // Jupiter radius in au
-    m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+	//m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+	m_rebound->integrator = reb_simulation::REB_INTEGRATOR_MERCURIUS;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 		auto &planet = get_planet(i);
