@@ -2103,10 +2103,6 @@ void integrate_explicit(t_data &data, const double dt)
 	    update_velocities_from_gas_drag(data, dt);
     }
 
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // as particles move independent of each other, we can integrate one after
     // one
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
