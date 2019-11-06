@@ -341,19 +341,23 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 		    .get_y();
 	}
 
-	if (parameters::calculate_disk) {
-	    /* Indirect term star's potential computed here */
-	    if (parameters::disk_feedback) {
+	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(force, data);
-	    }
-	    ComputeNbodyOnNbodyAccel(data.get_planetary_system());
-	    ComputeIndirectTerm(force, data);
-	    /* Gravitational potential from star and planet(s) is computed and
-	     * stored here*/
-	    CalculatePotential(data);
-	    /* Planets' velocities are updated here from gravitationnal
-	     * interaction with disk */
-	    AdvanceSystemFromDisk(force, data, dt);
+	}
+	/* Indirect term star's potential computed here */
+	ComputeNbodyOnNbodyAccel(data.get_planetary_system());
+	ComputeIndirectTerm(force, data);
+
+	if (parameters::calculate_disk) {
+		/* Gravitational potential from star and planet(s) is computed and
+		 * stored here*/
+		CalculatePotential(data);
+		/* Planets' velocities are updated here from gravitationnal
+		 * interaction with disk */
+	}
+
+	if (parameters::disk_feedback) {
+		AdvanceSystemFromDisk(force, data, dt);
 	}
 
 	/* Planets' positions and velocities are updated from gravitational
