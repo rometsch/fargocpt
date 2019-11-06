@@ -1212,13 +1212,14 @@ void check_tstop(t_data &data)
 // apply disk feedback on primary onto the particles
 void update_velocities_from_indirect_term(const double dt)
 {
+	// Naming of r and phi weird!!!!!!!
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double indirect_q1_dot;
 	double indirect_q2_dot;
 	if (CartesianParticles) {
-	    indirect_q1_dot = fma(IndirectTerm.x, dt, particles[i].r_dot);
-	    indirect_q2_dot = fma(IndirectTerm.y, dt, particles[i].phi_dot);
+	    indirect_q1_dot = IndirectTerm.x*dt + particles[i].r_dot;
+	    indirect_q2_dot = IndirectTerm.y*dt + particles[i].phi_dot;
 	} else {
 	    double r = particles[i].r;
 	    double phi = particles[i].phi;
