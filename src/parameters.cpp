@@ -87,7 +87,7 @@ bool artificial_viscosity_dissipation;
 bool calculate_disk;
 
 // control centering of frame
-bool no_default_star;
+bool default_star;
 unsigned int n_bodies_for_hydroframe_center;
 unsigned int corotation_reference_body;
 
@@ -520,7 +520,7 @@ void read(char *filename, t_data &data)
 
     calculate_disk = config::value_as_bool_default("DISK", 1);
 
-    no_default_star = config::value_as_bool_default("NoDefaultStar", false);
+    default_star = config::value_as_bool_default("DefaultStar", true);
     corotation_reference_body =
 	config::value_as_unsigned_int_default("CorotationReferenceBody", 1);
 

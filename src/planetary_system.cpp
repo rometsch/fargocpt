@@ -73,7 +73,7 @@ void t_planetary_system::read_from_file(char *filename)
 {
     FILE *fd;
 
-    if (!parameters::no_default_star) {
+    if (parameters::default_star) {
 		initialize_default_star();
     }
 
@@ -149,7 +149,10 @@ void t_planetary_system::read_from_file(char *filename)
 
 	t_planet *planet = new t_planet();
 
-	if (parameters::no_default_star) {
+	if (parameters::default_star) {
+	    initialize_planet_legacy(planet, mass, semi_major_axis,
+				     eccentricity, phi);
+	} else {
 	    // planets starts at Apastron
 	    double nu = PI;
 	    double pericenter_angle = PI;
@@ -161,9 +164,6 @@ void t_planetary_system::read_from_file(char *filename)
 		initialize_planet_jacobi(planet, mass, semi_major_axis,
 					 eccentricity, pericenter_angle, nu);
 	    }
-	} else {
-	    initialize_planet_legacy(planet, mass, semi_major_axis,
-				     eccentricity, phi);
 	}
 	planet->set_name(name);
 	planet->set_acc(acc);
@@ -219,16 +219,16 @@ void t_planetary_system::read_from_file(char *filename)
     }
 
     // set up hydro frame center
-    if (parameters::no_default_star && get_number_of_planets() == 0) {
-	die("NoDefaultStar is True but number of bodies is 0!");
+    if (get_number_of_planets() == 0) {
+		die("No stars or planets!");
     }
     if (parameters::n_bodies_for_hydroframe_center == 0) {
-	// use all bodies to calculate hydro frame center
-	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
+		// use all bodies to calculate hydro frame center
+		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
     if (parameters::n_bodies_for_hydroframe_center > get_number_of_planets()) {
-	// use as many bodies to calculate hydro frame center as possible
-	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
+		// use as many bodies to calculate hydro frame center as possible
+		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
     logging::print_master(
 	LOG_INFO
@@ -239,7 +239,7 @@ void t_planetary_system::read_from_file(char *filename)
 
     if (Corotating == YES &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
-	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
+		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
 	    parameters::corotation_reference_body, get_number_of_planets() - 1);
     }
 

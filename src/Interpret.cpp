@@ -293,11 +293,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	die("Invalid setting for HydroFrameCenter: %s",
 	    config::value_as_string_default("HydroFrameCenter", "primary"));
     }
-    // allow barycenter mode different than primary only if NoDefaultStar is set
-    if (parameters::n_bodies_for_hydroframe_center != 1 &&
-	!parameters::no_default_star) {
-	die("Incompatible settings: NoDefaultStar = False and HydroFrameCenter != primary are incompatible settings! Use NoDefaultStar = True and add the star to the planet config in order to change the hydro frame center.");
-    }
 
     parameters::exitOnDeprecatedSetting(
 	"IndirectTerm",

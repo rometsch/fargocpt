@@ -170,7 +170,7 @@ extern double thickness_smoothing_sg;
 extern bool calculate_disk;
 
 // control centering of frame
-extern bool no_default_star;
+extern bool default_star;
 extern unsigned int n_bodies_for_hydroframe_center;
 extern unsigned int corotation_reference_body;
 
