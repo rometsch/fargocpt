@@ -1,0 +1,48 @@
+# !! Define Environment variable FARGO_ARCH to reflect your architecture
+# for ex.: setenv FARGO_ARCH LINUX (or export FARGO_ARCH=LINUX depending on your shell)
+# Possible choices :
+#   undefined -> LINUX
+#	LINUX : look for libraries in /usr/lib and includes in /usr/include
+#	LINUXENV : define MPI_HOME and FFTW_HOME as env variable, look there
+#	HLR2 : HLR cluster config
+#	BINAC : Binac cluster config
+
+# default to LINUX
+FARGO_ARCH ?= LINUX
+$(info FARGO_ARCH=$(FARGO_ARCH))
+
+# Generic Linux platform
+# FARGO_ARCH must be set to LINUX
+CC_LINUX = mpicc
+CXX_LINUX = mpic++
+CFLAGS_LINUX =
+MPI_PREFIX_LINUX = /usr
+FFTW_PREFIX_LINUX = /usr
+GSL_PREFIX_LINUX = /usr
+
+# Generic Linux platform
+# FARGO_ARCH must be set to LINUXENV
+CC_LINUXENV = mpicc
+CXX_LINUXENV = mpicxx
+CFLAGS_LINUXENV =
+MPI_PREFIX_LINUXENV = $(MPI_HOME)
+FFTW_PREFIX_LINUXENV = $(FFTW_HOME)
+GSL_PREFIX_LINUXENV = /usr/gsl/2.1
+
+# HLR2
+# FARGO_ARCH must be set to HLR2
+CC_HLR2 = mpicc
+CXX_HLR2 = mpic++
+CFLAGS_HLR2 =
+MPI_PREFIX_HLR2 = /opt/openmpi/1.10
+FFTW_PREFIX_HLR2 = /opt/fftw/3.3_openmpi_1.10
+GSL_PREFIX_HLR2 = /opt/gsl/2.1
+
+# BINAC
+# FARGO_ARCH must be set to BINAC
+CC_BINAC = mpicc
+CXX_BINAC = mpicxx
+CFLAGS_BINAC =
+MPI_PREFIX_BINAC = $(MPI_HOME)
+FFTW_PREFIX_BINAC = $(FFTW_HOME)
+GSL_PREFIX_BINAC = /opt/bwhpc/common/numlib/gsl/2.1
