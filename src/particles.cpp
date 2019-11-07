@@ -2098,7 +2098,7 @@ void integrate_explicit(t_data &data, const double dt)
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
-    } else {
+    }// else {
 	// disk gravity on particles is inside gas_drag function
 	// if (parameters::particle_gas_drag_enabled)
 	//     update_velocities_from_gas_drag(data, dt);
