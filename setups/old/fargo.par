@@ -70,8 +70,9 @@ MOFVALUE		1E-9		# Mass Overflow in host star masses (m0) / Year
 
 PlanetConfig		setups/old/Jup-res.cfg
 IntegratePlanets	Yes		# [default = yes]
-HydroFrameCenter	primary
-DefaultStar         Yes
+HydroFrameCenter	primary # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+DefaultStar         Yes     # add a default central object to nbody system if true, else load central object from planet file
+
 ThicknessSmoothing 	0.6		# Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG	0.0		# Softening parameter for SG [default = ThicknessSmoothing]
 ThicknessSmoothingAtPlanet   No  # use the scale height at the radius of the planet for thickness smoothing. This flag should always be NO to use the scale height at the gas cell location expect for comparison reasons.
