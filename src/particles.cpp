@@ -21,8 +21,6 @@
 #include <stdlib.h>
 
 extern Pair IndirectTerm;
-extern Pair IndirectTermDisk;
-extern Pair IndirectTermPlanets;
 
 namespace particles
 {
@@ -743,9 +741,6 @@ void calculate_accelerations_from_star_and_planets(
 	ar -= factor * (r - r_planet * cos_delta_phi);
 	aphi -= factor * r_planet * sin_delta_phi / r;
     }
-
-    ar += IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi);
-    aphi += -IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi);
 }
 
 void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
@@ -771,9 +766,6 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 	ax += factor * (planet.get_x() - x);
 	ay += factor * (planet.get_y() - y);
     }
-
-    ax += IndirectTermPlanets.x;
-    ay += IndirectTermPlanets.y;
 }
 
 void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
@@ -814,10 +806,6 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 	    constants::G * planet_mass * r * r_planet * sin_delta_phi /
 	    (distance_to_planet_smoothed_pow2 * distance_to_planet);
     }
-
-    grav_r_ddot += IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi);
-    minus_grav_l_dot +=
-	-r * (IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi));
 }
 
 void calculate_derivitives_from_star_and_planets_in_cart(
@@ -856,9 +844,6 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 	acart[0] += -constants::G * planet_mass * x_dist / (dist * dist2);
 	acart[1] += -constants::G * planet_mass * y_dist / (dist * dist2);
     }
-
-    acart[0] += IndirectTerm.x;
-    acart[1] += IndirectTerm.y;
 
     transformCartCyl(acart, acyl, r, phi);
     grav_r_ddot = acyl[0];
@@ -1220,8 +1205,8 @@ void update_velocities_from_indirect_term(const double dt)
 	double indirect_q1_dot;
 	double indirect_q2_dot;
 	if (CartesianParticles) {
-	    indirect_q1_dot = IndirectTermDisk.x*dt + particles[i].r_dot;
-	    indirect_q2_dot = IndirectTermDisk.y*dt + particles[i].phi_dot;
+	    indirect_q1_dot = IndirectTerm.x*dt + particles[i].r_dot;
+	    indirect_q2_dot = IndirectTerm.y*dt + particles[i].phi_dot;
 	} else {
 	    double r = particles[i].r;
 	    double phi = particles[i].phi;
@@ -1229,11 +1214,11 @@ void update_velocities_from_indirect_term(const double dt)
 	    const double r_dot = particles[i].r_dot;
 	    const double phi_dot = particles[i].phi_dot;
 
-	    indirect_q1_dot = r_dot + dt * (IndirectTermDisk.x * cos(phi) +
-					    IndirectTermDisk.y * sin(phi));
+	    indirect_q1_dot = r_dot + dt * (IndirectTerm.x * cos(phi) +
+					    IndirectTerm.y * sin(phi));
 	    indirect_q2_dot =
 		phi_dot +
-		dt * (-IndirectTermDisk.x * sin(phi) + IndirectTermDisk.y * cos(phi)) /
+		dt * (-IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi)) /
 		    r;
 	}
 
