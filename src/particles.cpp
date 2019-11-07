@@ -21,6 +21,8 @@
 #include <stdlib.h>
 
 extern Pair IndirectTerm;
+extern Pair IndirectTermDisk;
+extern Pair IndirectTermPlanets;
 
 namespace particles
 {
@@ -770,8 +772,8 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 	ay += factor * (planet.get_y() - y);
     }
 
-    ax += IndirectTerm.x;
-    ay += IndirectTerm.y;
+    ax += IndirectTermPlanets.x;
+    ay += IndirectTermPlanets.y;
 }
 
 void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
@@ -1218,8 +1220,8 @@ void update_velocities_from_indirect_term(const double dt)
 	double indirect_q1_dot;
 	double indirect_q2_dot;
 	if (CartesianParticles) {
-	    indirect_q1_dot = IndirectTerm.x*dt + particles[i].r_dot;
-	    indirect_q2_dot = IndirectTerm.y*dt + particles[i].phi_dot;
+	    indirect_q1_dot = IndirectTermDisk.x*dt + particles[i].r_dot;
+	    indirect_q2_dot = IndirectTermDisk.y*dt + particles[i].phi_dot;
 	} else {
 	    double r = particles[i].r;
 	    double phi = particles[i].phi;
@@ -1227,11 +1229,11 @@ void update_velocities_from_indirect_term(const double dt)
 	    const double r_dot = particles[i].r_dot;
 	    const double phi_dot = particles[i].phi_dot;
 
-	    indirect_q1_dot = r_dot + dt * (IndirectTerm.x * cos(phi) +
-					    IndirectTerm.y * sin(phi));
+	    indirect_q1_dot = r_dot + dt * (IndirectTermDisk.x * cos(phi) +
+					    IndirectTermDisk.y * sin(phi));
 	    indirect_q2_dot =
 		phi_dot +
-		dt * (-IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi)) /
+		dt * (-IndirectTermDisk.x * sin(phi) + IndirectTermDisk.y * cos(phi)) /
 		    r;
 	}
 
@@ -2102,6 +2104,10 @@ void integrate_explicit(t_data &data, const double dt)
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag(data, dt);
+    }
+
+	if (parameters::disk_feedback) {
+		update_velocities_from_indirect_term(dt);
     }
 
     // as particles move independent of each other, we can integrate one after
