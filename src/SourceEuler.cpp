@@ -406,10 +406,11 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 		correct_v_azimuthal(data[t_data::V_AZIMUTHAL], domega);
 
 	    OmegaFrame = OmegaNew;
-	}
 
-	if (parameters::integrate_particles) {
-		particles::rotate(domega, dt);
+		// rotate particle for the angle difference
+		if (parameters::integrate_particles) {
+			particles::rotate(domega, dt);
+		}
 	}
 
 	if (parameters::integrate_planets) {
