@@ -360,14 +360,14 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 		AdvanceSystemFromDisk(force, data, dt);
 	}
 
+	if (parameters::integrate_particles) {
+	    particles::integrate(data, dt);
+	}
+
 	/* Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
 	    AdvanceSystemRK5(data, dt);
-	}
-
-	if (parameters::integrate_particles) {
-	    particles::integrate(data, dt);
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
