@@ -56,8 +56,6 @@ void t_planetary_system::initialize_default_star()
     planet->set_name("Default Star");
     planet->set_acc(0.0);
 
-    planet->set_feelother(true);
-
     planet->set_radius(parameters::star_radius);
     planet->set_temperature(parameters::star_temperature);
     planet->set_irradiate(false);
@@ -169,13 +167,8 @@ void t_planetary_system::read_from_file(char *filename)
 
 	logging::print_master(LOG_WARNING,
 						  "Warning: feeldisk flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
-
-
-	if (tolower(feelother[0]) == 'y') {
-	    planet->set_feelother(true);
-	} else {
-	    planet->set_feelother(false);
-	}
+	logging::print_master(LOG_WARNING,
+						  "Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
 
 	planet->set_radius(radius);
 	planet->set_temperature(temperature / units::temperature);

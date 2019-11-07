@@ -24,8 +24,6 @@ class t_planet
     double m_acc;
     /// name
     char *m_name;
-    /// feels other planets gravity
-    bool m_feelother;
     /// planet number
     unsigned int m_planet_number;
     /// temperature
@@ -56,7 +54,6 @@ class t_planet
     inline void set_vy(double value) { m_vy = value; }
     inline void set_acc(double value) { m_acc = value; }
     void set_name(const char *value);
-    inline void set_feelother(bool value) { m_feelother = value; }
     inline void set_planet_number(unsigned int value)
     {
 	m_planet_number = value;
@@ -99,7 +96,6 @@ class t_planet
     inline double get_vy(void) const { return m_vy; }
     inline double get_acc(void) const { return m_acc; }
     inline const char *get_name(void) const { return m_name; }
-    inline bool get_feelother(void) const { return m_feelother; }
     inline unsigned int get_planet_number(void) const
     {
 	return m_planet_number;

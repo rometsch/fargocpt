@@ -23,7 +23,6 @@ extern Pair IndirectTermDisk;
 extern Pair IndirectTermPlanets;
 extern boolean AllowAccretion, Corotating, Cooling;
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
-static int FeelOthers[MAX1D];
 
 /**
  * @brief ComputeIndirectTerm: IndirectTerm is the correction therm that needs
@@ -239,11 +238,10 @@ void AdvanceSystemRK5(t_data &data, double dt)
     data.get_planetary_system().get_planet(i).get_y(); q0[i+2*n] =
     data.get_planetary_system().get_planet(i).get_vx(); q0[i+3*n] =
     data.get_planetary_system().get_planet(i).get_vy(); PlanetMasses[i] =
-    data.get_planetary_system().get_planet(i).get_mass(); FeelOthers[i] =
-    data.get_planetary_system().get_planet(i).get_feelother();
+    data.get_planetary_system().get_planet(i).get_mass();
 	    }
 
-	    RungeKutta(q0, dt, PlanetMasses, q1, n, FeelOthers);
+	    RungeKutta(q0, dt, PlanetMasses, q1, n);
 
 	    for (unsigned int i = 0; i <
     data.get_planetary_system().get_number_of_planets(); i++) {
