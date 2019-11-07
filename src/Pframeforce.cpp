@@ -160,7 +160,7 @@ void ComputeDiskOnNbodyAccel(Force *force, t_data &data)
     Pair accel;
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
-	if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
+	if (parameters::disk_feedback) {
 	    t_planet &planet = data.get_planetary_system().get_planet(k);
 	    accel = ComputeAccel(force, data, planet.get_x(), planet.get_y(),
 				 planet.get_mass());
@@ -200,8 +200,7 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 }
 
 /**
-	Updates planets velocities due to disk influence if "feeldisk" is set
-   for the planet
+	Updates planets velocities due to disk influence if "DiskFeedback" is set.
 */
 void AdvanceSystemFromDisk(Force *force, t_data &data, double dt)
 {
@@ -209,7 +208,7 @@ void AdvanceSystemFromDisk(Force *force, t_data &data, double dt)
 
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
-	if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
+	if (parameters::disk_feedback) {
 	    t_planet &planet = data.get_planetary_system().get_planet(k);
 
 	    gamma = planet.get_disk_on_planet_acceleration();
@@ -390,7 +389,7 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	    PxPlanet += dPxPlanet;
 	    PyPlanet += dPyPlanet;
 	    Mplanet += dMplanet;
-	    if (planet.get_feeldisk()) {
+	    if (parameters::disk_feedback) {
 		planet.set_vx(PxPlanet / Mplanet);
 		planet.set_vy(PyPlanet / Mplanet);
 	    }

@@ -602,7 +602,7 @@ void init_planetary_system(t_data &data)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
 	/* dist denotes the planet's semi-major axis */
-	if (data.get_planetary_system().get_planet(k).get_feeldisk()) {
+	if (parameters::disk_feedback) {
 	    dist =
 		data.get_planetary_system().get_planet(k).get_semi_major_axis();
 	    // TODO remove quick&dirty solution and think about it
