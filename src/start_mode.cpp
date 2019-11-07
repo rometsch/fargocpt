@@ -4,7 +4,7 @@
 #include "logging.h"
 
 #include <cstdint>
-#include <filesystem>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -29,12 +29,12 @@ void configure_start_mode()
 
     switch (mode) {
     case mode_start:
-	if (!std::filesystem::is_empty(OUTPUTDIR)) {
+	if (!std::experimental::filesystem::is_empty(OUTPUTDIR)) {
 	    std::string backup_path = OUTPUTDIR;
 	    rtrim(backup_path, "/");
 	    backup_path += "_bak";
 
-	    for (uint32_t i = 1; std::filesystem::exists(backup_path); i++) {
+	    for (uint32_t i = 1; std::experimental::filesystem::exists(backup_path); i++) {
 		backup_path = OUTPUTDIR;
 		rtrim(backup_path, "/");
 		backup_path += "_bak" + std::to_string(i);
@@ -42,12 +42,12 @@ void configure_start_mode()
 	    logging::print_master(LOG_INFO
 				  "%s is not empty, backing up as %s\n",
 				  OUTPUTDIR, backup_path.c_str());
-	    std::filesystem::rename(OUTPUTDIR, backup_path);
-	    std::filesystem::create_directory(OUTPUTDIR);
+	    std::experimental::filesystem::rename(OUTPUTDIR, backup_path);
+	    std::experimental::filesystem::create_directory(OUTPUTDIR);
 	}
 	break;
     case mode_auto:
-	if (std::filesystem::is_empty(OUTPUTDIR)) {
+	if (std::experimental::filesystem::is_empty(OUTPUTDIR)) {
 	    logging::print_master(
 		LOG_INFO "No output found, starting fresh simulation\n");
 	    mode = mode_start;
@@ -91,7 +91,7 @@ bool is_number(std::string s)
 std::int32_t get_latest_output_num()
 {
     std::ifstream misc_file;
-    std::filesystem::path path;
+    std::experimental::filesystem::path path;
 
     path = OUTPUTDIR;
     path /= "misc.dat";
