@@ -490,8 +490,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    if (FrameAngle != 0.0) {
 		// periastron grid is rotated to non-rotating coordinate system
 		// to prevent phase jumps of atan2 in later transformations like
-		// you would have had if you back-transform the output periastron
-		// values
+		// you would have had if you back-transform the output
+		// periastron values
 		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
 		    atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
 			  e_x * cosFrameAngle - e_y * sinFrameAngle);

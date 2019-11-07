@@ -135,7 +135,7 @@ void print_runtime_final()
     }
     logging::print_master(
 	LOG_INFO
-	"-- Final: Total Hyrdosteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
+	"-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
 	N_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 

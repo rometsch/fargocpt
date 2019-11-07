@@ -11,6 +11,7 @@
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
+#include "start_mode.h"
 #include "units.h"
 
 extern int damping_energy_id;
@@ -147,6 +148,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	PLANETCONFIG = NULL;
     }
 
+    start_mode::configure_start_mode();
+
     if (CPU_Master) {
 	// copy setup files into the output folder
 	std::string output_folder = std::string(OUTPUTDIR);
@@ -156,9 +159,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	}
 	std::string par_filename = output_folder + par_file;
 
-	if (options::restart) {
+	if (start_mode::mode == start_mode::mode_restart) {
 	    char str[12];
-	    sprintf(str, "%d", options::restart_from);
+	    sprintf(str, "%d", start_mode::restart_from);
 
 	    par_filename += "_restart_";
 	    par_filename += str;
@@ -190,9 +193,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    std::string planet_file = std::string(PLANETCONFIG);
 	    std::string planet_filename =
 		output_folder + getFileName(planet_file);
-	    if (options::restart) {
+	    if (start_mode::mode == start_mode::mode_restart) {
 		char str[12];
-		sprintf(str, "%d", options::restart_from);
+		sprintf(str, "%d", start_mode::restart_from);
 		planet_filename += "_restart_";
 		planet_filename += str;
 	    }
@@ -638,8 +641,8 @@ void TellEverything()
     // - pow(RMIN,2.0-SIGMASLOPE));	/* correct this and what follows... */
     // logging::print_master(LOG_VERBOSE "Initial Disk Mass             : %g\n",
     // temp); temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(1.0 -
-    // pow(RMIN,2.0-SIGMASLOPE)); logging::print_master(LOG_VERBOSE "Initial Mass
-    // inner to r=1.0  : %g \n", temp);
+    // pow(RMIN,2.0-SIGMASLOPE)); logging::print_master(LOG_VERBOSE "Initial
+    // Mass inner to r=1.0  : %g \n", temp);
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
     // - 1.0); logging::print_master(LOG_VERBOSE "Initial Mass outer to r=1.0  :
     // %g \n", temp);

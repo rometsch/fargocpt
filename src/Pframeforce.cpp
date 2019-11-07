@@ -99,10 +99,8 @@ void CalculatePotential(t_data &data)
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	if (RocheSmoothing) {
-	    double r_hill =
-		pow(mpl[k] / (3.0 * (M + mpl[k])),
-		    1.0 / 3.0) *
-		planet.get_semi_major_axis();
+	    double r_hill = pow(mpl[k] / (3.0 * (M + mpl[k])), 1.0 / 3.0) *
+			    planet.get_semi_major_axis();
 	    smooth_pl[k] = pow2(r_hill * ROCHESMOOTHING);
 	} else {
 	    smooth_pl[k] = pow2(compute_smoothing_isothermal(planet.get_r()));
@@ -138,7 +136,8 @@ void CalculatePotential(t_data &data)
 						    n_radial, n_azimuthal));
 		}
 		double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
-        if(k == 0) smooth = 0.0;
+		if (k == 0)
+		    smooth = 0.0;
 		distancesmooth = sqrt(distance2 + smooth);
 		// direct term from planet
 		data[t_data::POTENTIAL](n_radial, n_azimuthal) +=
@@ -200,7 +199,8 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 }
 
 /**
-	Updates planets velocities due to disk influence if "DiskFeedback" is set.
+	Updates planets velocities due to disk influence if "DiskFeedback" is
+   set.
 */
 void AdvanceSystemFromDisk(Force *force, t_data &data, double dt)
 {

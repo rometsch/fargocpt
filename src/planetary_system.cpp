@@ -13,9 +13,7 @@
 extern boolean CICPlanet;
 extern int Corotating;
 
-t_planetary_system::t_planetary_system()
-{
-}
+t_planetary_system::t_planetary_system() {}
 
 t_planetary_system::~t_planetary_system()
 {
@@ -28,23 +26,23 @@ t_planetary_system::~t_planetary_system()
 
 void t_planetary_system::init_rebound()
 {
-	m_rebound = reb_create_simulation();
+    m_rebound = reb_create_simulation();
     m_rebound->G = constants::G;
     m_rebound->dt = 1e-6;
     m_rebound->softening = 0.0; // 5e-4; // Jupiter radius in au
-	//m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
-	m_rebound->integrator = reb_simulation::REB_INTEGRATOR_MERCURIUS;
+    // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+    m_rebound->integrator = reb_simulation::REB_INTEGRATOR_MERCURIUS;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		auto &planet = get_planet(i);
-		struct reb_particle p = {0};
-		p.x = planet.get_x();
-		p.y = planet.get_y();
-		p.vx = planet.get_vx();
-		p.vy = planet.get_vy();
-		p.m = planet.get_mass();
-		p.c = nullptr;
-		reb_add(m_rebound, p);
+	auto &planet = get_planet(i);
+	struct reb_particle p = {0};
+	p.x = planet.get_x();
+	p.y = planet.get_y();
+	p.vx = planet.get_vx();
+	p.vy = planet.get_vy();
+	p.m = planet.get_mass();
+	p.c = nullptr;
+	reb_add(m_rebound, p);
     }
 }
 
@@ -71,121 +69,127 @@ void t_planetary_system::read_from_file(char *filename)
     FILE *fd;
 
     if (parameters::default_star) {
-		initialize_default_star();
+	initialize_default_star();
     }
 
     // check if a filename was specified
     if (filename == NULL) {
-		logging::print_master(LOG_INFO "No planetfile specified.\n");
-	} else {
+	logging::print_master(LOG_INFO "No planetfile specified.\n");
+    } else {
 	// Only read from file if filename is given.
 
-    // open fill
-    fd = fopen(filename, "r");
+	// open fill
+	fd = fopen(filename, "r");
 
-    // check if file was readable
-    if (fd == NULL) {
-	logging::print_master(LOG_ERROR "Error : can't find '%s'.\n", filename);
-	PersonalExit(1);
-	return;
-    }
-
-    char buffer[512];
-
-    // read line by line
-    while (fgets(buffer, sizeof(buffer), fd) != NULL) {
-	char name[80], feeldisk[5], feelother[5], irradiate[5];
-	double semi_major_axis, mass, acc, eccentricity = 0.0, temperature,
-					   radius, phi, rampuptime;
-	int num_args;
-
-	// check if this line is a comment
-	if ((strlen(buffer) > 0) && (buffer[0] == '#'))
-	    continue;
-
-	// try to cut line into pieces
-	num_args = sscanf(
-	    buffer, "%80s %lf %lf %lf %5s %5s %lf %lf %lf %5s %lf %lf", name,
-	    &semi_major_axis, &mass, &acc, feeldisk, feelother, &eccentricity,
-	    &radius, &temperature, irradiate, &phi, &rampuptime);
-	if (num_args < 6)
-	    continue;
-
-	if (num_args < 7) {
-	    eccentricity = 0.0;
+	// check if file was readable
+	if (fd == NULL) {
+	    logging::print_master(LOG_ERROR "Error : can't find '%s'.\n",
+				  filename);
+	    PersonalExit(1);
+	    return;
 	}
 
-	if (num_args < 8) {
-	    radius = 0.009304813;
-	}
+	char buffer[512];
 
-	if (num_args < 9) {
-	    temperature = 5778.0;
-	}
+	// read line by line
+	while (fgets(buffer, sizeof(buffer), fd) != NULL) {
+	    char name[80], feeldisk[5], feelother[5], irradiate[5];
+	    double semi_major_axis, mass, acc, eccentricity = 0.0, temperature,
+					       radius, phi, rampuptime;
+	    int num_args;
 
-	if (num_args < 10) {
-	    irradiate[0] = 'n';
-	}
+	    // check if this line is a comment
+	    if ((strlen(buffer) > 0) && (buffer[0] == '#'))
+		continue;
 
-	if (num_args < 11) {
-	    phi = 0.0;
-	}
+	    // try to cut line into pieces
+	    num_args = sscanf(
+		buffer, "%80s %lf %lf %lf %5s %5s %lf %lf %lf %5s %lf %lf",
+		name, &semi_major_axis, &mass, &acc, feeldisk, feelother,
+		&eccentricity, &radius, &temperature, irradiate, &phi,
+		&rampuptime);
+	    if (num_args < 6)
+		continue;
 
-	if (num_args < 12) {
-	    rampuptime = 0;
-	}
-
-	if (CICPlanet) {
-	    // initialization puts centered-in-cell planets (with excentricity =
-	    // 0 only)
-	    unsigned int j = 0;
-	    while (GlobalRmed[j] < semi_major_axis)
-		j++;
-	    semi_major_axis = Radii[j + 1];
-	}
-
-	t_planet *planet = new t_planet();
-
-	if (parameters::default_star) {
-	    initialize_planet_legacy(planet, mass, semi_major_axis,
-				     eccentricity, phi);
-	} else {
-	    // planets starts at Apastron
-	    double nu = PI;
-	    double pericenter_angle = PI;
-	    if (get_number_of_planets() < 2) {
-		initialize_planet_jacobi_adjust_first_two(
-		    planet, mass, semi_major_axis, eccentricity,
-		    pericenter_angle, nu);
-	    } else {
-		initialize_planet_jacobi(planet, mass, semi_major_axis,
-					 eccentricity, pericenter_angle, nu);
+	    if (num_args < 7) {
+		eccentricity = 0.0;
 	    }
+
+	    if (num_args < 8) {
+		radius = 0.009304813;
+	    }
+
+	    if (num_args < 9) {
+		temperature = 5778.0;
+	    }
+
+	    if (num_args < 10) {
+		irradiate[0] = 'n';
+	    }
+
+	    if (num_args < 11) {
+		phi = 0.0;
+	    }
+
+	    if (num_args < 12) {
+		rampuptime = 0;
+	    }
+
+	    if (CICPlanet) {
+		// initialization puts centered-in-cell planets (with
+		// excentricity = 0 only)
+		unsigned int j = 0;
+		while (GlobalRmed[j] < semi_major_axis)
+		    j++;
+		semi_major_axis = Radii[j + 1];
+	    }
+
+	    t_planet *planet = new t_planet();
+
+	    if (parameters::default_star) {
+		initialize_planet_legacy(planet, mass, semi_major_axis,
+					 eccentricity, phi);
+	    } else {
+		// planets starts at Apastron
+		double nu = PI;
+		double pericenter_angle = PI;
+		if (get_number_of_planets() < 2) {
+		    initialize_planet_jacobi_adjust_first_two(
+			planet, mass, semi_major_axis, eccentricity,
+			pericenter_angle, nu);
+		} else {
+		    initialize_planet_jacobi(planet, mass, semi_major_axis,
+					     eccentricity, pericenter_angle,
+					     nu);
+		}
+	    }
+	    planet->set_name(name);
+	    planet->set_acc(acc);
+
+	    logging::print_master(
+		LOG_WARNING,
+		"Warning: feeldisk flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
+	    logging::print_master(
+		LOG_WARNING,
+		"Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
+
+	    planet->set_radius(radius);
+	    planet->set_temperature(temperature / units::temperature);
+	    planet->set_irradiate(tolower(irradiate[0]) == 'y');
+	    planet->set_rampuptime(rampuptime);
+
+	    planet->set_disk_on_planet_acceleration(
+		Pair()); // initialize to zero
+	    planet->set_nbody_on_planet_acceleration(Pair());
+
+	    add_planet(planet);
 	}
-	planet->set_name(name);
-	planet->set_acc(acc);
+	// close file
+	fclose(fd);
 
-	logging::print_master(LOG_WARNING,
-						  "Warning: feeldisk flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
-	logging::print_master(LOG_WARNING,
-						  "Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
-
-	planet->set_radius(radius);
-	planet->set_temperature(temperature / units::temperature);
-	planet->set_irradiate(tolower(irradiate[0]) == 'y');
-	planet->set_rampuptime(rampuptime);
-
-	planet->set_disk_on_planet_acceleration(Pair()); // initialize to zero
-	planet->set_nbody_on_planet_acceleration(Pair());
-
-	add_planet(planet);
+	logging::print_master(LOG_INFO "%d planet(s) found.\n",
+			      get_number_of_planets());
     }
-	    // close file
-    fclose(fd);
-
-    logging::print_master(LOG_INFO "%d planet(s) found.\n",
-			  get_number_of_planets());
-	}
 
     if (get_number_of_planets() > 0) {
 	HillRadius =
@@ -196,15 +200,15 @@ void t_planetary_system::read_from_file(char *filename)
 
     // set up hydro frame center
     if (get_number_of_planets() == 0) {
-		die("No stars or planets!");
+	die("No stars or planets!");
     }
     if (parameters::n_bodies_for_hydroframe_center == 0) {
-		// use all bodies to calculate hydro frame center
-		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
+	// use all bodies to calculate hydro frame center
+	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
     if (parameters::n_bodies_for_hydroframe_center > get_number_of_planets()) {
-		// use as many bodies to calculate hydro frame center as possible
-		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
+	// use as many bodies to calculate hydro frame center as possible
+	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
     logging::print_master(
 	LOG_INFO
@@ -215,7 +219,7 @@ void t_planetary_system::read_from_file(char *filename)
 
     if (Corotating == YES &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
-		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
+	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
 	    parameters::corotation_reference_body, get_number_of_planets() - 1);
     }
 

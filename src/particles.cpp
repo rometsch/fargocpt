@@ -918,7 +918,8 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
     }
 
     // double Qm =
-    // ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim); double Qp =
+    // ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim); double Qp
+    // =
     // ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
     // mathematically the same, but less computations
     const double Qm = ((phip - phi) * Qmm + (phi - phim) * Qmp) / dphi;
@@ -1212,14 +1213,14 @@ void check_tstop(t_data &data)
 // apply disk feedback on primary onto the particles
 void update_velocities_from_indirect_term(const double dt)
 {
-	// Naming of r and phi weird!!!!!!!
+    // Naming of r and phi weird!!!!!!!
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double indirect_q1_dot;
 	double indirect_q2_dot;
 	if (CartesianParticles) {
-	    indirect_q1_dot = IndirectTerm.x*dt + particles[i].r_dot;
-	    indirect_q2_dot = IndirectTerm.y*dt + particles[i].phi_dot;
+	    indirect_q1_dot = IndirectTerm.x * dt + particles[i].r_dot;
+	    indirect_q2_dot = IndirectTerm.y * dt + particles[i].phi_dot;
 	} else {
 	    double r = particles[i].r;
 	    double phi = particles[i].phi;
@@ -2098,10 +2099,10 @@ void integrate_explicit(t_data &data, const double dt)
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
-    }// else {
-	// disk gravity on particles is inside gas_drag function
-	// if (parameters::particle_gas_drag_enabled)
-	//     update_velocities_from_gas_drag(data, dt);
+    } // else {
+      // disk gravity on particles is inside gas_drag function
+      // if (parameters::particle_gas_drag_enabled)
+      //     update_velocities_from_gas_drag(data, dt);
     // }
 
     // as particles move independent of each other, we can integrate one after

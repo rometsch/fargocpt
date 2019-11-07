@@ -59,9 +59,9 @@ find_package(MPI REQUIRED)
 
 
 
-#add_compile_options(-std=c++11 -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
-add_compile_options(-std=c++11 -g -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
-#add_compile_options(-std=c++11 -Werror -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+add_compile_options(-std=c++17 -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+#add_compile_options(-std=c++17 -g -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+#add_compile_options(-std=c++17 -Werror -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
 
 
 # Use imported targets would make things much eazier. Thanks Levi for pointing it out.

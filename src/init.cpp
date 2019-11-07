@@ -403,15 +403,18 @@ void init_gas_density(t_data &data)
 	die("Bad choice!"); // TODO: better explanation!
 	break;
 	// 		case parameters::initialize_condition_shakura_sunyaev:
-	// 			logging::print_master(LOG_INFO "Initializing Sigma
-	// from Shakura and Sunyaev 1973 standard solution (cf. A&A, 24, 337)");
+	// 			logging::print_master(LOG_INFO "Initializing
+	// Sigma from Shakura and Sunyaev 1973 standard solution (cf. A&A, 24,
+	// 337)");
 	//
 	// 			for (unsigned int n_radial = 0; n_radial <
-	// data[t_data::DENSITY].Nrad; ++n_radial) { 				for (unsigned int
-	// n_azimuthal = 0; n_azimuthal < data[t_data::DENSITY].Nsec;
-	// ++n_azimuthal) { 					data[t_data::DENSITY](n_radial, n_azimuthal) =
-	// 					data[t_data::DENSITY](n_radial, n_azimuthal)
-	// = parameters::sigma0*pow(Rmed[n_radial],-SIGMASLOPE);
+	// data[t_data::DENSITY].Nrad; ++n_radial) { 				for
+	// (unsigned int n_azimuthal = 0; n_azimuthal <
+	// data[t_data::DENSITY].Nsec;
+	// ++n_azimuthal) {
+	// data[t_data::DENSITY](n_radial, n_azimuthal) =
+	// 					data[t_data::DENSITY](n_radial,
+	// n_azimuthal) = parameters::sigma0*pow(Rmed[n_radial],-SIGMASLOPE);
 	// 				}
 	// 			}
 	// 			break;

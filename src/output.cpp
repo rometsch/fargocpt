@@ -8,6 +8,7 @@
 #include "options.h"
 #include "parameters.h"
 #include "quantities.h"
+#include "start_mode.h"
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
@@ -308,7 +309,7 @@ void write_quantities(t_data &data, unsigned int timestep,
 	    PersonalExit(1);
 	}
 	// check if file exists and we restarted
-	if ((options::restart) && !(fd_created)) {
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
 	    if (access(fd_filename, W_OK) != -1) {
 		fd_created = true;
 	    }
@@ -423,7 +424,7 @@ void write_misc(unsigned int timestep)
 	    PersonalExit(1);
 	}
 	// check if file exists and we restarted
-	if ((options::restart) && !(fd_created)) {
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
 	    fd = fopen(fd_filename, "r");
 	    if (fd) {
 		fd_created = true;
@@ -735,7 +736,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	}
 
 	// check if file exists and we restarted
-	if ((options::restart) && !(fd_created)) {
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
 	    fd = fopen(fd_filename, "r");
 	    if (fd) {
 		fd_created = true;
@@ -964,7 +965,8 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	}
 
 	// check if file exists and we restarted
-	if ((options::restart) && !(fd_created_luminosity)) {
+	if ((start_mode::mode == start_mode::mode_restart) &&
+	    !(fd_created_luminosity)) {
 	    fd = fopen(fd_filename, "r");
 	    if (fd) {
 		fd_created_luminosity = true;
@@ -1014,7 +1016,8 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	}
 
 	// check if file exists and we restarted
-	if ((options::restart) && !(fd_created_dissipation)) {
+	if ((start_mode::mode == start_mode::mode_restart) &&
+	    !(fd_created_dissipation)) {
 	    fd = fopen(fd_filename, "r");
 	    if (fd) {
 		fd_created_dissipation = true;
@@ -1077,7 +1080,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 	    PersonalExit(1);
 	}
 	// check if file exists and we restarted
-	if ((options::restart) && !(fd_created)) {
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
 	    fd = fopen(fd_filename, "r");
 	    if (fd) {
 		fd_created = true;

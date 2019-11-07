@@ -342,22 +342,22 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	}
 
 	if (parameters::disk_feedback) {
-		ComputeDiskOnNbodyAccel(force, data);
+	    ComputeDiskOnNbodyAccel(force, data);
 	}
 	/* Indirect term star's potential computed here */
 	ComputeNbodyOnNbodyAccel(data.get_planetary_system());
 	ComputeIndirectTerm(force, data);
 
 	if (parameters::calculate_disk) {
-		/* Gravitational potential from star and planet(s) is computed and
-		 * stored here*/
-		CalculatePotential(data);
-		/* Planets' velocities are updated here from gravitationnal
-		 * interaction with disk */
+	    /* Gravitational potential from star and planet(s) is computed and
+	     * stored here*/
+	    CalculatePotential(data);
+	    /* Planets' velocities are updated here from gravitationnal
+	     * interaction with disk */
 	}
 
 	if (parameters::disk_feedback) {
-		AdvanceSystemFromDisk(force, data, dt);
+	    AdvanceSystemFromDisk(force, data, dt);
 	}
 
 	if (parameters::integrate_particles) {
@@ -401,10 +401,10 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 
 	    OmegaFrame = OmegaNew;
 
-		// rotate particle for the angle difference
-		if (parameters::integrate_particles) {
-			particles::rotate(domega, dt);
-		}
+	    // rotate particle for the angle difference
+	    if (parameters::integrate_particles) {
+		particles::rotate(domega, dt);
+	    }
 	}
 
 	if (parameters::integrate_planets) {
@@ -1293,7 +1293,7 @@ void calculate_qminus(t_data &data)
 
 		// Q = 2 sigma_R T_eff^4
 		//(*Qminus)(n_radial, n_azimuthal) =
-		//2*(constants::sigma.get_code_value())*pow(temperatureEff,4);
+		// 2*(constants::sigma.get_code_value())*pow(temperatureEff,4);
 		double qminus =
 		    parameters::cooling_radiative_factor * 2 *
 		    (constants::sigma.get_code_value()) *

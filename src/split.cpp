@@ -280,7 +280,7 @@ void SplitDomain()
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
-    ///Added by Lucas
+    /// Added by Lucas
     // Needed for MPI_Gatherv
     // Initializes Radial sizes of non vector arrays and required displacements
     if (CPU_Master) {
@@ -330,7 +330,7 @@ void SplitDomain()
 	}
     }
     ///////////////////////////////////////////////////////////////////////////////////////
-    ///End Added by Lucas
+    /// End Added by Lucas
 
     /* print debugging */
     if (debug) {
