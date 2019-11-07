@@ -10,7 +10,6 @@
 #define RKACCURACY 1e-1
 
 static double k1[MAX1D], k2[MAX1D], k3[MAX1D], k4[MAX1D], k5[MAX1D], k6[MAX1D];
-static double Dist[MAX1D];
 
 void DerivMotionRK5(double *q_init, double *masses, double *deriv,
 		    unsigned int n, double dt, int *feelothers)

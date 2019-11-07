@@ -22,8 +22,6 @@ extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
 extern Pair IndirectTermPlanets;
 extern boolean AllowAccretion, Corotating, Cooling;
-static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
-static int FeelOthers[MAX1D];
 
 /**
  * @brief ComputeIndirectTerm: IndirectTerm is the correction therm that needs
@@ -86,9 +84,7 @@ void ComputeIndirectTerm(Force *force, t_data &data)
 void CalculatePotential(t_data &data)
 {
     double x, y, angle, distancesmooth;
-    ;
     double smooth = 0.0;
-    double InvDistance;
     unsigned int number_of_planets =
 	data.get_planetary_system().get_number_of_planets();
     std::vector<double> xpl(number_of_planets);
@@ -232,41 +228,15 @@ void AdvanceSystemRK5(t_data &data, double dt)
 
     unsigned int n = data.get_planetary_system().get_number_of_planets();
 
-    /*
-    if (parameters::integrate_planets) {
-	    for (unsigned int i = 0; i <
-    data.get_planetary_system().get_number_of_planets(); i++) { q0[i+0*n] =
-    data.get_planetary_system().get_planet(i).get_x(); q0[i+1*n] =
-    data.get_planetary_system().get_planet(i).get_y(); q0[i+2*n] =
-    data.get_planetary_system().get_planet(i).get_vx(); q0[i+3*n] =
-    data.get_planetary_system().get_planet(i).get_vy(); PlanetMasses[i] =
-    data.get_planetary_system().get_planet(i).get_mass(); FeelOthers[i] =
-    data.get_planetary_system().get_planet(i).get_feelother();
-	    }
-
-	    RungeKutta(q0, dt, PlanetMasses, q1, n, FeelOthers);
-
-	    for (unsigned int i = 0; i <
-    data.get_planetary_system().get_number_of_planets(); i++) {
-		    data.get_planetary_system().get_planet(i).set_x(q1[i+0*n]);
-		    data.get_planetary_system().get_planet(i).set_y(q1[i+1*n]);
-		    data.get_planetary_system().get_planet(i).set_vx(q1[i+2*n]);
-		    data.get_planetary_system().get_planet(i).set_vy(q1[i+3*n]);
-	    }
-
+    if (data.get_planetary_system().get_number_of_planets() < 2) {
+	// don't integrate a single particle that doesn't move
+	return;
     }
-    */
-
-	if (data.get_planetary_system().get_number_of_planets() < 2) {
-		// don't integrate a single particle that doesn't move
-		return;
-	}
 
     if (parameters::integrate_planets) {
 	auto &rebound = data.get_planetary_system().m_rebound;
 
-	for (unsigned int i = 0;
-	     i < data.get_planetary_system().get_number_of_planets(); i++) {
+	for (unsigned int i = 0; i < n; i++) {
 	    auto &planet = data.get_planetary_system().get_planet(i);
 	    rebound->particles[i].x = planet.get_x();
 	    rebound->particles[i].y = planet.get_y();
@@ -277,8 +247,7 @@ void AdvanceSystemRK5(t_data &data, double dt)
 
 	reb_integrate(data.get_planetary_system().m_rebound, PhysicalTime + dt);
 
-	for (unsigned int i = 0;
-	     i < data.get_planetary_system().get_number_of_planets(); i++) {
+	for (unsigned int i = 0; i < n; i++) {
 	    auto &planet = data.get_planetary_system().get_planet(i);
 	    planet.set_x(rebound->particles[i].x);
 	    planet.set_y(rebound->particles[i].y);
