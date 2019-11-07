@@ -56,7 +56,6 @@ void t_planetary_system::initialize_default_star()
     planet->set_name("Default Star");
     planet->set_acc(0.0);
 
-    planet->set_feeldisk(false);
     planet->set_feelother(true);
 
     planet->set_radius(parameters::star_radius);
@@ -168,25 +167,9 @@ void t_planetary_system::read_from_file(char *filename)
 	planet->set_name(name);
 	planet->set_acc(acc);
 
-	if (tolower(feeldisk[0]) == 'y') {
-	    planet->set_feeldisk(true);
-	} else {
-	    if (parameters::disk_feedback == YES) {
-		logging::print_master("\n\n\n");
-		logging::print_master(
-		    LOG_WARNING
-		    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-		logging::print_master(
-		    (std::string(LOG_WARNING) +
-		     "UNPHYSICAL SETTING! Disk feedback is activated but disk interaction is disabled for planet " +
-		     std::string(planet->get_name()) + "!\n")
-			.c_str());
-		logging::print_master(
-		    LOG_WARNING
-		    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n");
-	    }
-	    planet->set_feeldisk(false);
-	}
+	logging::print_master(LOG_WARNING,
+						  "Warning: feeldisk flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
+
 
 	if (tolower(feelother[0]) == 'y') {
 	    planet->set_feelother(true);
@@ -295,8 +278,7 @@ void t_planetary_system::list_planets()
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
 		(24 * 60 * 60 * 365.2425),
-	    get_planet(i).get_acc(), (get_planet(i).get_feeldisk()) ? 'X' : '-',
-	    (get_planet(i).get_feelother()) ? 'X' : '-');
+	    get_planet(i).get_acc(), "deprecated", "deprecated");
     }
 
     logging::print(LOG_INFO "\n");
