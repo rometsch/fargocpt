@@ -741,9 +741,6 @@ void calculate_accelerations_from_star_and_planets(
 	ar -= factor * (r - r_planet * cos_delta_phi);
 	aphi -= factor * r_planet * sin_delta_phi / r;
     }
-
-    ar += IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi);
-    aphi += -IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi);
 }
 
 void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
@@ -769,9 +766,6 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 	ax += factor * (planet.get_x() - x);
 	ay += factor * (planet.get_y() - y);
     }
-
-    ax += IndirectTerm.x;
-    ay += IndirectTerm.y;
 }
 
 void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
@@ -812,10 +806,6 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 	    constants::G * planet_mass * r * r_planet * sin_delta_phi /
 	    (distance_to_planet_smoothed_pow2 * distance_to_planet);
     }
-
-    grav_r_ddot += IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi);
-    minus_grav_l_dot +=
-	-r * (IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi));
 }
 
 void calculate_derivitives_from_star_and_planets_in_cart(
@@ -854,9 +844,6 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 	acart[0] += -constants::G * planet_mass * x_dist / (dist * dist2);
 	acart[1] += -constants::G * planet_mass * y_dist / (dist * dist2);
     }
-
-    acart[0] += IndirectTerm.x;
-    acart[1] += IndirectTerm.y;
 
     transformCartCyl(acart, acyl, r, phi);
     grav_r_ddot = acyl[0];
@@ -2099,11 +2086,15 @@ void integrate_explicit(t_data &data, const double dt)
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
-    } // else {
-      // disk gravity on particles is inside gas_drag function
-      // if (parameters::particle_gas_drag_enabled)
-      //     update_velocities_from_gas_drag(data, dt);
-    // }
+    } else {
+	// disk gravity on particles is inside gas_drag function
+	if (parameters::particle_gas_drag_enabled)
+	    update_velocities_from_gas_drag(data, dt);
+    }// else {
+	// disk gravity on particles is inside gas_drag function
+	if (parameters::disk_feedback) {
+		update_velocities_from_indirect_term(dt);
+    }
 
     // as particles move independent of each other, we can integrate one after
     // one
