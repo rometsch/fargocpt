@@ -1,9 +1,11 @@
 include arch.defs
 
+OPTIONS += -Wall -march=native -Wno-unknown-pragmas
+OPTIMIZATION := -Ofast
+
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"
 GIT_CHANGED = "$(shell git diff-index --name-only HEAD | sed -e '{:q;N;s/\n/, /g;t q}')"
-OPTIONS += -Ofast -Wall -march=native -Wno-unknown-pragmas
 
 # options to compile
 OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
@@ -18,9 +20,12 @@ CXX = $(CXX_$(FARGO_ARCH))
 
 # C Flags
 CFLAGS := $(CFLAGS_$(FARGO_ARCH))
+
 # handle debug ENV variable
 ifeq "$(FARGO_DEBUG)" "1"
-	CFLAGS := $(CFLAGS) -g
+	CFLAGS += -g -O0
+else
+	CFLAGS += $(OPTIMIZATION)
 endif
 
 # C++ Flags
