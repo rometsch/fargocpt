@@ -2090,10 +2090,10 @@ void integrate_explicit(t_data &data, const double dt)
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag(data, dt);
-    }// else {
-	// disk gravity on particles is inside gas_drag function
-	if (parameters::disk_feedback) {
-		update_velocities_from_indirect_term(dt);
+    } // else {
+    // disk gravity on particles is inside gas_drag function
+    if (parameters::disk_feedback) {
+	update_velocities_from_indirect_term(dt);
     }
 
     // as particles move independent of each other, we can integrate one after

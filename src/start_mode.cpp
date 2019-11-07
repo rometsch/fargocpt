@@ -73,7 +73,8 @@ void configure_start_mode()
 std::string get_last_line(std::ifstream &in)
 {
     std::string line;
-    while (in >> std::ws && std::getline(in, line));
+    while (in >> std::ws && std::getline(in, line))
+	;
 
     return line;
 }

@@ -408,9 +408,8 @@ void init_gas_density(t_data &data)
 	// 337)");
 	//
 	// 			for (unsigned int n_radial = 0; n_radial <
-	// data[t_data::DENSITY].Nrad; ++n_radial) { 				for
-	// (unsigned int n_azimuthal = 0; n_azimuthal <
-	// data[t_data::DENSITY].Nsec;
+	// data[t_data::DENSITY].Nrad; ++n_radial) { for (unsigned int
+	// n_azimuthal = 0; n_azimuthal < data[t_data::DENSITY].Nsec;
 	// ++n_azimuthal) {
 	// data[t_data::DENSITY](n_radial, n_azimuthal) =
 	// 					data[t_data::DENSITY](n_radial,
