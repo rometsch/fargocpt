@@ -319,6 +319,12 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	quantities::calculate_radial_alpha_reynolds_mean_reset(data);
     }
 
+	// hack correct feels disk for planets
+	for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center; n++) {
+		t_planet &planet = data.get_planetary_system().get_planet(n);
+		planet.set_feeldisk(parameters::disk_feedback);
+	}
+
     while (dtemp < DT) {
 	logging::print_master(
 	    LOG_VERBOSE
