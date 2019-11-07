@@ -60,7 +60,7 @@ void t_planetary_system::initialize_default_star()
     planet->set_feelother(true);
 
     planet->set_radius(parameters::star_radius);
-    planet->set_temperature(parameters::star_temperature / units::temperature);
+    planet->set_temperature(parameters::star_temperature);
     planet->set_irradiate(false);
     planet->set_rampuptime(0.0);
 
