@@ -528,7 +528,7 @@ void read(char *filename, t_data &data)
 
     MU = config::value_as_double_default("mu", 1.0);
     minimum_temperature =
-	config::value_as_double_default("MinimumTemperature", 0);
+	config::value_as_double_default("MinimumTemperature", 3);
     maximum_temperature =
 	config::value_as_double_default("MaximumTemperature", 1.0e300);
 
