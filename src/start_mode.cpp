@@ -56,6 +56,7 @@ void configure_start_mode()
 	} else {
 	    mode = mode_restart;
 	    // continue with case mode_restart to get the last outputfile
+	    [[fallthrough]];
 	}
     case mode_restart:
 	if (restart_from < 0) {

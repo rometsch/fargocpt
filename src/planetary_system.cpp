@@ -35,13 +35,23 @@ void t_planetary_system::init_rebound()
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	auto &planet = get_planet(i);
-	struct reb_particle p = {0};
+	struct reb_particle p;
 	p.x = planet.get_x();
 	p.y = planet.get_y();
+	p.z = 0;
 	p.vx = planet.get_vx();
 	p.vy = planet.get_vy();
+	p.vz = 0;
+	p.ax = 0;
+	p.ay = 0;
+	p.az = 0;
 	p.m = planet.get_mass();
+	p.r = 0;
+	p.lastcollision = 0;
 	p.c = nullptr;
+	p.hash = 0;
+	p.ap = nullptr;
+	p.sim = nullptr;
 	reb_add(m_rebound, p);
     }
 }

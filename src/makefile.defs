@@ -1,6 +1,7 @@
 include arch.defs
 
-OPTIONS += -Wall -march=native -Wno-unknown-pragmas
+OPTIONS += -Wall -Wextra -Werror -march=native -Wno-unknown-pragmas
+OPTIONS += -Wno-old-style-cast
 OPTIMIZATION := -Ofast
 
 # Track git commit when in git repository

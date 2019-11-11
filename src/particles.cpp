@@ -709,7 +709,9 @@ void calculate_accelerations_from_star_and_planets(
     double &ar, double &aphi, const double r, const double r_dot,
     const double phi, const double phi_dot, t_data &data)
 {
-
+    (void)r_dot;
+    (void)phi_dot;
+    
     constexpr double epsilon = 0.005;
     constexpr double epsilon_sq = epsilon * epsilon;
 
