@@ -29,7 +29,7 @@ extern boolean AllowAccretion, Corotating, Cooling;
  * @param force
  * @param data
  */
-void ComputeIndirectTerm(Force *force, t_data &data)
+void ComputeIndirectTerm(t_data &data)
 {
     IndirectTerm.x = 0.0;
     IndirectTerm.y = 0.0;
@@ -202,7 +202,7 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 	Updates planets velocities due to disk influence if "DiskFeedback" is
    set.
 */
-void AdvanceSystemFromDisk(Force *force, t_data &data, double dt)
+void AdvanceSystemFromDisk(t_data &data, double dt)
 {
     Pair gamma;
 

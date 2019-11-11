@@ -381,8 +381,12 @@ void init_gas_density(t_data &data)
 	     ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
-		data[t_data::DENSITY](n_radial, n_azimuthal) =
+		const double density =
 		    parameters::sigma0 * pow(Rmed[n_radial], -SIGMASLOPE);
+		const double density_floor =
+		    parameters::sigma_floor * parameters::sigma0;
+		data[t_data::DENSITY](n_radial, n_azimuthal) =
+		    max(density, density_floor);
 	    }
 	}
 	break;
@@ -482,9 +486,14 @@ void init_gas_density(t_data &data)
 		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// damp density to 0 for r > profile_damping_point
-		data[t_data::DENSITY](n_radial, n_azimuthal) *=
+		const double density_damped =
+		    data[t_data::DENSITY](n_radial, n_azimuthal) *
 		    cutoff(parameters::profile_damping_point,
 			   parameters::profile_damping_width, Rmed[n_radial]);
+		const double density_floor =
+		    parameters::sigma_floor * parameters::sigma0;
+		data[t_data::DENSITY](n_radial, n_azimuthal) =
+		    max(density_damped, density_floor);
 		// set density to SIGMA0*SIGMA_FLOOR for r > r >
 		// profile_damping_point
 		// data[t_data::DENSITY](n_radial, n_azimuthal) +=
@@ -560,10 +569,21 @@ void init_gas_energy(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		data[t_data::ENERGY](n_radial, n_azimuthal) =
+
+		const double energy =
 		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
 		    pow2(ASPECTRATIO_REF) *
 		    pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+		const double temperature_floor =
+		    parameters::minimum_temperature *
+		    units::temperature.get_inverse_cgs_factor();
+		const double energy_floor =
+		    temperature_floor *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+		data[t_data::ENERGY](n_radial, n_azimuthal) =
+		    max(energy, energy_floor);
 	    }
 	}
 	break;
@@ -599,9 +619,20 @@ void init_gas_energy(t_data &data)
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// damp energy to 0 for r > profile_damping_point
-		data[t_data::ENERGY](n_radial, n_azimuthal) *=
+		const double energy_damped =
+		    data[t_data::ENERGY](n_radial, n_azimuthal) *
 		    cutoff(parameters::profile_damping_point,
 			   parameters::profile_damping_width, Rmed[n_radial]);
+		const double temperature_floor =
+		    parameters::minimum_temperature *
+		    units::temperature.get_inverse_cgs_factor();
+		const double energy_floor =
+		    temperature_floor *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+		data[t_data::ENERGY](n_radial, n_azimuthal) =
+		    max(energy_damped, energy_floor);
 	    }
 	}
     }

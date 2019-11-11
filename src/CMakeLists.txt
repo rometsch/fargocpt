@@ -58,14 +58,15 @@ endif()
 find_package(MPI REQUIRED)
 
 
+set(CMAKE_CXX_STANDARD 17)
 
-add_compile_options(-std=c++17 -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
-#add_compile_options(-std=c++17 -g -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+add_compile_options(-std=c++17 -lstdc++fs -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
+#add_compile_options(-std=c++17 -lstdc++fs -g -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
 #add_compile_options(-std=c++17 -Werror -Ofast -Wall -Wextra -Wno-old-style-cast -Wno-missing-field-initializers -Wno-implicit-fallthrough -Wno-unknown-pragmas -march=native -DNDEBUG -D_TRAP_FPE -D_GNU_SOURCE) 
 
 
 # Use imported targets would make things much eazier. Thanks Levi for pointing it out.
 add_executable(${PROJECT_NAME} ./main.cpp ${CPP_SOURCES} ${H_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${MPI_CXX_INCLUDE_PATH})
-target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} ${FFTW3_LIBRARY} ${FFTW3_MPI_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} ${FFTW3_LIBRARY} ${FFTW3_MPI_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY} stdc++fs)
 #target_link_libraries(${PROJECT_NAME} ${MPI_CXX_LIBRARIES} fftw3 fftw3_mpi gsl gslcblas)

@@ -34,7 +34,8 @@ void configure_start_mode()
 	    rtrim(backup_path, "/");
 	    backup_path += "_bak";
 
-	    for (uint32_t i = 1; std::experimental::filesystem::exists(backup_path); i++) {
+	    for (uint32_t i = 1;
+		 std::experimental::filesystem::exists(backup_path); i++) {
 		backup_path = OUTPUTDIR;
 		rtrim(backup_path, "/");
 		backup_path += "_bak" + std::to_string(i);

@@ -346,7 +346,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	}
 	/* Indirect term star's potential computed here */
 	ComputeNbodyOnNbodyAccel(data.get_planetary_system());
-	ComputeIndirectTerm(force, data);
+	ComputeIndirectTerm(data);
 
 	if (parameters::calculate_disk) {
 	    /* Gravitational potential from star and planet(s) is computed and
@@ -357,7 +357,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	}
 
 	if (parameters::disk_feedback) {
-	    AdvanceSystemFromDisk(force, data, dt);
+	    AdvanceSystemFromDisk(data, dt);
 	}
 
 	if (parameters::integrate_particles) {
@@ -1387,6 +1387,7 @@ void SubStep3(t_data &data, double dt)
 	    const double R = Rmed[n_radial];
 	    const double H =
 		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * R;
+
 	    const double inv_pow4 = pow4(
 		(parameters::MU * (ADIABATICINDEX - 1.0)) /
 		(constants::R * data[t_data::DENSITY](n_radial, n_azimuthal)));
