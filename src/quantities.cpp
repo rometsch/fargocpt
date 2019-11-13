@@ -91,7 +91,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	(CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
     const unsigned int send_size = local_array_end - local_array_start;
 
-	std::vector<double> local_mass(send_size);
+    std::vector<double> local_mass(send_size);
 
     for (unsigned int n_radial = local_array_start; n_radial < local_array_end;
 	 ++n_radial) {
