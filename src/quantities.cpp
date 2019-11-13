@@ -9,6 +9,7 @@
 #include "util.h"
 #include <math.h>
 #include <mpi.h>
+#include <vector>
 
 extern boolean Corotating;
 extern double M0;
@@ -90,7 +91,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	(CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
     const unsigned int send_size = local_array_end - local_array_start;
 
-    double local_mass[send_size];
+	std::vector<double> local_mass(send_size);
 
     for (unsigned int n_radial = local_array_start; n_radial < local_array_end;
 	 ++n_radial) {
@@ -105,7 +106,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
     double radius = 0.0;
     double current_mass = 0.0;
 
-    MPI_Gatherv(local_mass, send_size, MPI_DOUBLE, GLOBAL_bufarray,
+    MPI_Gatherv(&local_mass[0], send_size, MPI_DOUBLE, GLOBAL_bufarray,
 		RootNradialLocalSizes, RootNradialDisplacements, MPI_DOUBLE, 0,
 		MPI_COMM_WORLD);
 

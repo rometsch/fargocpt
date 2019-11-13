@@ -10,6 +10,6 @@ double bell(double density, double temperature);
 double zhu(double density, double temperature);
 double kramers(double density, double temperature);
 
-}; // namespace opacity
+} // namespace opacity
 
 #endif // OPAC_H

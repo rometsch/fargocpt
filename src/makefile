@@ -11,13 +11,6 @@ TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
-LIBS = -lm -lstdc++fs -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
-
-#statically link rebound
-LIBS += -Lrebound -lrebound
-
-EXENAME        = ../fargo
-
 $(EXENAME): rebound/librebound.a $(OBJS)
 	$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS)
 

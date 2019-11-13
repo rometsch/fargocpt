@@ -291,6 +291,6 @@ void apply_units();
 void write_grid_data_to_file();
 void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 			     std::string instruction);
-}; // namespace parameters
+} // namespace parameters
 
 #endif // PARAMETERS_H

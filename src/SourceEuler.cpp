@@ -13,6 +13,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 
 #include "LowTasks.h"
 #include "Pframeforce.h"
@@ -1928,8 +1929,8 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
 		     double deltaT)
 {
-    double v_mean[v_radial.get_size_radial()],
-	v_residual[v_radial.get_size_azimuthal()];
+	std::vector<double> v_mean(v_radial.get_size_radial());
+	std::vector<double> v_residual(v_radial.get_size_azimuthal());
     double dtGlobal, dtLocal;
 
     // debugging variables

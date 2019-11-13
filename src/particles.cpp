@@ -19,6 +19,7 @@
 #include <mpi.h>
 #include <random>
 #include <stdlib.h>
+#include <vector>
 
 extern Pair IndirectTerm;
 
@@ -516,9 +517,9 @@ void init(t_data &data)
 					    // same as Marzari & Scholl 2000
 
     // get number of local particles from all nodes to compute correct offsets
-    unsigned int nodes_number_of_particles[CPU_Number];
+	std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
     MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
-		  nodes_number_of_particles, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+		  &nodes_number_of_particles[0], 1, MPI_UNSIGNED, MPI_COMM_WORLD);
 
     // compute local offset
     unsigned int local_offset = 0;
@@ -680,9 +681,9 @@ void restart(unsigned int timestep)
     free(filename);
 
     // get number of local particles from all nodes to compute correct offsets
-    unsigned int nodes_number_of_particles[CPU_Number];
+	std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
     MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
-		  nodes_number_of_particles, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+		  &nodes_number_of_particles[0], 1, MPI_UNSIGNED, MPI_COMM_WORLD);
 
     // compute local offset
     unsigned int local_offset = 0;
@@ -2337,8 +2338,8 @@ void move(void)
     }
 
     // check if we need to send particles to inner node
-    int inward_offset[local_number_of_particles];
-    int inward_size[local_number_of_particles];
+    std::vector<int> inward_offset(local_number_of_particles);
+	std::vector<int> inward_size(local_number_of_particles);
     int inward_count = 0;
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	if ((CPU_Rank > 0) && (particles[i].get_squared_distance_to_star() <
@@ -2352,7 +2353,7 @@ void move(void)
     // send particles to inner node
     if (CPU_Rank > 0) {
 	MPI_Datatype inward_type;
-	MPI_Type_indexed(inward_count, inward_size, inward_offset, mpi_particle,
+	MPI_Type_indexed(inward_count, &inward_size[0], &inward_offset[0], mpi_particle,
 			 &inward_type);
 	MPI_Type_commit(&inward_type);
 	MPI_Send(particles, 1, inward_type, CPU_Prev, 0, MPI_COMM_WORLD);
@@ -2396,8 +2397,8 @@ void move(void)
     // move particles outwards starting from the inner most node
 
     // check if we need to send particles to outer node
-    int outward_offset[local_number_of_particles];
-    int outward_size[local_number_of_particles];
+    std::vector<int> outward_offset(local_number_of_particles);
+    std::vector<int> outward_size(local_number_of_particles);
     int outward_count = 0;
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	if ((CPU_Rank < CPU_Highest) &&
@@ -2412,7 +2413,7 @@ void move(void)
     // send particles to outer node
     if (CPU_Rank < CPU_Highest) {
 	MPI_Datatype outward_type;
-	MPI_Type_indexed(outward_count, outward_size, outward_offset,
+	MPI_Type_indexed(outward_count, &outward_size[0], &outward_offset[0],
 			 mpi_particle, &outward_type);
 	MPI_Type_commit(&outward_type);
 	MPI_Send(particles, 1, outward_type, CPU_Next, 0, MPI_COMM_WORLD);
@@ -2475,9 +2476,9 @@ void write(unsigned int timestep)
     free(filename);
 
     // get number of local particles from all nodes to compute correct offsets
-    unsigned int nodes_number_of_particles[CPU_Number];
+	std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
     MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
-		  nodes_number_of_particles, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+		  &nodes_number_of_particles[0], 1, MPI_UNSIGNED, MPI_COMM_WORLD);
 
     // compute local offset
     unsigned int local_offset = 0;
