@@ -51,6 +51,6 @@ void write(unsigned int timestep);
 void move(void);
 void rotate(double Omega, double dt);
 
-}; // namespace particles
+} // namespace particles
 
 #endif // PARTICLES_H

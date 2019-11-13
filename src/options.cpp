@@ -79,7 +79,7 @@ void parse(int argc, char **argv)
 	switch (c) {
 	case 0: // getopt_long() flag
 	    break;
-	    
+
 	case 1: // no option
 	    if (parameter_file) {
 		usage(argc, argv);

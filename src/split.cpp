@@ -7,6 +7,7 @@
 #include "selfgravity.h"
 #include "time.h"
 #include <fftw3-mpi.h>
+#include <vector>
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE
@@ -307,7 +308,7 @@ void SplitDomain()
 
     if (CPU_Master) {
 
-	int tmp[CPU_Number];
+	std::vector<int> tmp(CPU_Number);
 	tmp[0] = 0;
 	for (int i = 1; i < CPU_Number; ++i) {
 	    tmp[i] = RootRanksOrdered[tmp[i - 1]];
