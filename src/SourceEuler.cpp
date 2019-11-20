@@ -211,8 +211,8 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 
 void init_euler(t_data &data)
 {
+	InitCellCenterCoordinates();
     InitTransport();
-    InitComputeAccel();
 
     if (parameters::Locally_Isothermal) {
 	compute_sound_speed(data, false);

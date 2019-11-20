@@ -151,7 +151,7 @@ void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
 /**
 
 */
-void InitComputeAccel()
+void InitCellCenterCoordinates()
 {
     unsigned int nRadial, nAzimuthal, cell;
 

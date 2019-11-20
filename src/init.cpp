@@ -348,13 +348,15 @@ void init_shakura_sunyaev(t_data &data)
     RefillSigma(&data[t_data::DENSITY]);
     RefillEnergy(&data[t_data::ENERGY]);
 
-    if (parameters::self_gravity)
-	die("Self-gravity and Shakura-Sunyaev starting values has not yet been implemented!");
+    if (parameters::self_gravity) {
+		die("Self-gravity and Shakura-Sunyaev starting values has not yet been implemented!");
+	}
+
+	InitCellCenterCoordinates();
 
     /** init_euler w/o updates that have already been done above **/
     InitTransport();
 
-    InitComputeAccel();
 
     viscosity::update_viscosity(data);
     /** end init_euler **/
