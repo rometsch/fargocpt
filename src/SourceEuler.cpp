@@ -890,6 +890,10 @@ void SubStep2(t_data &data, double dt)
 
 void calculate_qplus(t_data &data)
 {
+
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
+
     // clear up all Qplus terms
     data[t_data::QPLUS].clear();
 
@@ -993,15 +997,23 @@ void calculate_qplus(t_data &data)
 		die("Need to calulate Tau_eff first!\n"); // TODO: make it
 							  // properly!
 	    }
-	    // Simple star heating (see Masterthesis Alexandros Ziampras)
-	    for (unsigned int n_radial = 1;
+		const double x_star = data.get_planetary_system().get_planet(0).get_x();
+		const double y_star = data.get_planetary_system().get_planet(0).get_y();
+
+		// Simple star heating (see Masterthesis Alexandros Ziampras)
+		for (unsigned int n_radial = 1;
 		 n_radial <= data[t_data::QPLUS].get_max_radial() - 1;
 		 ++n_radial) {
 		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		     ++n_azimuthal) {
+			 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+			 ++n_azimuthal) {
 
-		    const double distance = Rmed[n_radial];
+			const unsigned int ncell =
+				n_radial * data[t_data::DENSITY].get_size_azimuthal() +
+				n_azimuthal;
+			const double xc = cell_center_x[ncell];
+			const double yc = cell_center_y[ncell];
+			const double distance = sqrt(pow2(x_star-xc) + pow2(y_star-yc));
 		    const double HoverR =
 			data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
 		    const double sigma = constants::sigma.get_code_value();
