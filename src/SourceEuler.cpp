@@ -890,6 +890,10 @@ void SubStep2(t_data &data, double dt)
 
 void calculate_qplus(t_data &data)
 {
+
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
+
     // clear up all Qplus terms
     data[t_data::QPLUS].clear();
 
