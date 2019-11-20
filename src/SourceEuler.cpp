@@ -2313,15 +2313,14 @@ double CircumPlanetaryMass(t_data &data)
 {
     double xpl, ypl;
     double dist, mdcplocal, mdcptotal;
-    double *abs, *ord;
 
     /* if there's no planet, there is no mass inside its Roche lobe ;) */
     if (data.get_planetary_system().get_number_of_planets() == 0)
 	return 0;
 
     // TODO: non global
-    abs = CellAbscissa->Field;
-    ord = CellOrdinate->Field;
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
 
     xpl = data.get_planetary_system().get_planet(0).get_x();
     ypl = data.get_planetary_system().get_planet(0).get_y();
@@ -2337,8 +2336,8 @@ double CircumPlanetaryMass(t_data &data)
 	    unsigned int cell =
 		n_radial * data[t_data::DENSITY].get_size_azimuthal() +
 		n_azimuthal;
-	    dist = sqrt((abs[cell] - xpl) * (abs[cell] - xpl) +
-			(ord[cell] - ypl) * (ord[cell] - ypl));
+	    dist = sqrt((cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
+			(cell_center_y[cell] - ypl) * (cell_center_y[cell] - ypl));
 	    if (dist < HillRadius) {
 		mdcplocal += Surf[n_radial] *
 			     data[t_data::DENSITY](n_radial, n_azimuthal);

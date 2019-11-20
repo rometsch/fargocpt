@@ -155,18 +155,18 @@ void InitComputeAccel()
 {
     unsigned int nRadial, nAzimuthal, cell;
 
-    CellAbscissa = CreatePolarGrid(NRadial, NAzimuthal, "abscissa");
-    CellOrdinate = CreatePolarGrid(NRadial, NAzimuthal, "ordinate");
+    CellCenterX = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_x");
+    CellCenterY = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_y");
 
-    for (nRadial = 0; nRadial < CellAbscissa->Nrad; ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < CellAbscissa->Nsec; ++nAzimuthal) {
-	    cell = nAzimuthal + nRadial * CellAbscissa->Nsec;
-	    CellAbscissa->Field[cell] =
+    for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
+	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
+	    cell = nAzimuthal + nRadial * CellCenterX->Nsec;
+	    CellCenterX->Field[cell] =
 		Rmed[nRadial] * cos(2.0 * PI * (double)nAzimuthal /
-				    (double)(CellAbscissa->Nsec));
-	    CellOrdinate->Field[cell] =
+				    (double)(CellCenterX->Nsec));
+	    CellCenterY->Field[cell] =
 		Rmed[nRadial] * sin(2.0 * PI * (double)nAzimuthal /
-				    (double)(CellAbscissa->Nsec));
+				    (double)(CellCenterX->Nsec));
 	}
     }
 }

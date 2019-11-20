@@ -280,14 +280,14 @@ void AccreteOntoPlanets(t_data &data, double dt)
     double Xplanet, Yplanet, Mplanet, VXplanet, VYplanet;
     double facc, facc1, facc2, frac1,
 	frac2; /* We adopt the same notations as W. Kley */
-    double *dens, *abs, *ord, *vrad, *vtheta;
+    double *dens, *vrad, *vtheta;
     double PxPlanet, PyPlanet, vrcell, vtcell, vxcell, vycell, xc, yc;
     double dPxPlanet, dPyPlanet, dMplanet;
     nr = data[t_data::DENSITY].Nrad;
     ns = data[t_data::DENSITY].Nsec;
     dens = data[t_data::DENSITY].Field;
-    abs = CellAbscissa->Field;
-    ord = CellOrdinate->Field;
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
     vrad = data[t_data::V_RADIAL].Field;
     vtheta = data[t_data::V_AZIMUTHAL].Field;
 
@@ -343,8 +343,8 @@ void AccreteOntoPlanets(t_data &data, double dt)
 		    ljp = l + 1;
 		    if (jf == ns - 1)
 			ljp = i * ns;
-		    xc = abs[l];
-		    yc = ord[l];
+		    xc = cell_center_x[l];
+		    yc = cell_center_y[l];
 		    dx = Xplanet - xc;
 		    dy = Yplanet - yc;
 		    distance = sqrt(dx * dx + dy * dy);

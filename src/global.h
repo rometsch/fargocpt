@@ -86,7 +86,7 @@ extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
     ParticlesInCartesian;
 extern int CentrifugalBalance, ExcludeHill, SloppyCFL;
 extern MPI_Status global_MPI_Status;
-extern t_polargrid *CellAbscissa, *CellOrdinate;
+extern t_polargrid *CellCenterX, *CellCenterY;
 extern int OverridesOutputdir;
 
 extern char *OUTPUTDIR;
