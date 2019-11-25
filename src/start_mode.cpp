@@ -23,9 +23,7 @@ std::string &rtrim(std::string &str, const std::string &chars = "\t\n\v\f\r ")
 
 void configure_start_mode()
 {
-    if (!CPU_Master) {
-	return;
-    }
+    if (CPU_Master) {
 
     switch (mode) {
     case mode_start:
@@ -70,6 +68,9 @@ void configure_start_mode()
     default:
 	die("Invalid start_mode");
     }
+	}
+	MPI_Bcast(&restart_from, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&mode, 1, MPI_UINT32_T, 0, MPI_COMM_WORLD);
 }
 
 std::string get_last_line(std::ifstream &in)
