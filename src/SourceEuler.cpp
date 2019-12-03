@@ -358,7 +358,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	}
 
 	if (parameters::disk_feedback) {
-	    AdvanceSystemFromDisk(data, dt);
+	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
 
 	if (parameters::integrate_particles) {

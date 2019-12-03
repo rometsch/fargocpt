@@ -202,7 +202,7 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 	Updates planets velocities due to disk influence if "DiskFeedback" is
    set.
 */
-void AdvanceSystemFromDisk(t_data &data, double dt)
+void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
 {
     Pair gamma;
 
