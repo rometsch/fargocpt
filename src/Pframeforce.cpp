@@ -202,7 +202,7 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 	Updates planets velocities due to disk influence if "DiskFeedback" is
    set.
 */
-void AdvanceSystemFromDisk(t_data &data, double dt)
+void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
 {
     Pair gamma;
 
@@ -219,42 +219,6 @@ void AdvanceSystemFromDisk(t_data &data, double dt)
 	    planet.set_vx(new_vx);
 	    planet.set_vy(new_vy);
 	}
-    }
-}
-
-void AdvanceSystemRK5(t_data &data, double dt)
-{
-
-    unsigned int n = data.get_planetary_system().get_number_of_planets();
-
-    if (data.get_planetary_system().get_number_of_planets() < 2) {
-	// don't integrate a single particle that doesn't move
-	return;
-    }
-
-    if (parameters::integrate_planets) {
-	auto &rebound = data.get_planetary_system().m_rebound;
-
-	for (unsigned int i = 0; i < n; i++) {
-	    auto &planet = data.get_planetary_system().get_planet(i);
-	    rebound->particles[i].x = planet.get_x();
-	    rebound->particles[i].y = planet.get_y();
-	    rebound->particles[i].vx = planet.get_vx();
-	    rebound->particles[i].vy = planet.get_vy();
-	    rebound->particles[i].m = planet.get_mass();
-	}
-
-	reb_integrate(data.get_planetary_system().m_rebound, PhysicalTime + dt);
-
-	for (unsigned int i = 0; i < n; i++) {
-	    auto &planet = data.get_planetary_system().get_planet(i);
-	    planet.set_x(rebound->particles[i].x);
-	    planet.set_y(rebound->particles[i].y);
-	    planet.set_vx(rebound->particles[i].vx);
-	    planet.set_vy(rebound->particles[i].vy);
-	}
-
-	data.get_planetary_system().move_to_hydro_frame_center();
     }
 }
 

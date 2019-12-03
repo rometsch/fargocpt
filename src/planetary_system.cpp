@@ -629,3 +629,52 @@ void t_planetary_system::calculate_orbital_elements()
 	planet.calculate_orbital_elements(x, y, vx, vy, M);
     }
 }
+
+
+/**
+   Copy positions, velocities and masses
+   from planetary system to rebound.
+*/
+void t_planetary_system::copy_data_to_rebound() {
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	    auto &planet = get_planet(i);
+	    m_rebound->particles[i].x = planet.get_x();
+	    m_rebound->particles[i].y = planet.get_y();
+	    m_rebound->particles[i].vx = planet.get_vx();
+	    m_rebound->particles[i].vy = planet.get_vy();
+	    m_rebound->particles[i].m = planet.get_mass();
+	}
+}
+
+/**
+   Copy positions, velocities and masses back
+   from rebound to planetary system.
+*/
+void t_planetary_system::copy_data_from_rebound() {
+		for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	    auto &planet = get_planet(i);
+	    planet.set_x(m_rebound->particles[i].x);
+	    planet.set_y(m_rebound->particles[i].y);
+	    planet.set_vx(m_rebound->particles[i].vx);
+	    planet.set_vy(m_rebound->particles[i].vy);
+	}
+}
+
+/**
+   Integrate the nbody system forward in time using rebound.
+*/
+void t_planetary_system::integrate(double time, double dt) {
+    if (get_number_of_planets() < 2) {
+	// don't integrate a single particle that doesn't move
+		return;
+    }
+
+	copy_data_to_rebound();
+	m_rebound->t = time;
+
+	reb_integrate(m_rebound, time + dt);
+
+	copy_data_from_rebound();
+
+	move_to_hydro_frame_center();
+}
