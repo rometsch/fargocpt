@@ -368,7 +368,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	/* Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
-	    AdvanceSystemRK5(data, dt);
+	    data.get_planetary_system().integrate(PhysicalTime, dt);
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
