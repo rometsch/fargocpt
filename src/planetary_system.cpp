@@ -237,6 +237,8 @@ void t_planetary_system::read_from_file(char *filename)
     logging::print_master(
 	LOG_INFO "The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
+
+	init_rebound();
 }
 
 void t_planetary_system::list_planets()
@@ -330,6 +332,7 @@ void t_planetary_system::restart(unsigned int timestep)
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).restart(timestep);
     }
+	m_rebound->t = PhysicalTime;
 }
 
 void t_planetary_system::create_planet_files()

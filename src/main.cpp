@@ -136,7 +136,6 @@ int main(int argc, char *argv[])
     // Here planets are initialized feeling star potential but they do not feel
     // disk potential
     data.get_planetary_system().read_from_file(PLANETCONFIG);
-    data.get_planetary_system().init_rebound();
 
     logging::print_master(LOG_INFO "planets initialised.\n");
 
@@ -169,8 +168,6 @@ int main(int argc, char *argv[])
 	// to misc.dat)
 	timeStepStart = start_mode::restart_from * NINTERM;
 	logging::print_master(LOG_INFO "Restarting planetary system...\n");
-	// restart planetary system
-	data.get_planetary_system().restart(start_mode::restart_from);
 
 	logging::print_master(LOG_INFO "Reading misc data...\n");
 	PhysicalTime =
@@ -208,6 +205,10 @@ int main(int argc, char *argv[])
 
 	if (parameters::integrate_particles)
 	    particles::restart(start_mode::restart_from);
+
+	// restart planetary system
+	data.get_planetary_system().restart(start_mode::restart_from);
+
 
 	CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
 			      &data[t_data::V_AZIMUTHAL],
