@@ -287,7 +287,8 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 
     double dt;
     double OmegaNew, domega;
-    double planet_corot_ref_old_x = 0.0, planet_corot_ref_old_y = 0.0;
+	// old coordinates of corotation body
+    double corot_old_x = 0.0, corot_old_y = 0.0;
 
     dtemp = 0.0;
 
@@ -332,14 +333,10 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 
 	if (Corotating == YES) {
 	    // save old planet positions
-	    planet_corot_ref_old_x =
-		data.get_planetary_system()
-		    .get_planet(parameters::corotation_reference_body)
-		    .get_x();
-	    planet_corot_ref_old_y =
-		data.get_planetary_system()
-		    .get_planet(parameters::corotation_reference_body)
-		    .get_y();
+		unsigned int n = parameters::corotation_reference_body;
+		auto &planet = data.get_planetary_system().get_planet(n);
+	    corot_old_x = planet.get_x();
+	    corot_old_y = planet.get_y();
 	}
 
 	if (parameters::disk_feedback) {
@@ -353,10 +350,10 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	    /* Gravitational potential from star and planet(s) is computed and
 	     * stored here*/
 	    CalculatePotential(data);
-	    /* Planets' velocities are updated here from gravitationnal
-	     * interaction with disk */
 	}
 
+	/* Planets' velocities are updated here from gravitationnal
+	 * interaction with disk */
 	if (parameters::disk_feedback) {
 	    AdvanceSystemFromDisk(data, dt);
 	}
@@ -374,32 +371,21 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	/* Below we correct v_azimuthal, planet's position and velocities if we
 	 * work in a frame non-centered on the star */
 	if (Corotating == YES) {
-	    double distance_new =
-		sqrt(pow2(data.get_planetary_system()
-			      .get_planet(parameters::corotation_reference_body)
-			      .get_x()) +
-		     pow2(data.get_planetary_system()
-			      .get_planet(parameters::corotation_reference_body)
-			      .get_y()));
-	    double distance_old = sqrt(pow2(planet_corot_ref_old_x) +
-				       pow2(planet_corot_ref_old_y));
-	    double cross =
-		planet_corot_ref_old_x *
-		    data.get_planetary_system()
-			.get_planet(parameters::corotation_reference_body)
-			.get_y() -
-		data.get_planetary_system()
-			.get_planet(parameters::corotation_reference_body)
-			.get_x() *
-		    planet_corot_ref_old_y;
+		unsigned int n = parameters::corotation_reference_body;
+		auto &planet = data.get_planetary_system().get_planet(n);
+		const double x = planet.get_x();
+		const double y = planet.get_y();
+	    const double distance_new = sqrt(pow2(x) + pow2(y));
+	    const double distance_old = sqrt(pow2(corot_old_x) + pow2(corot_old_y));
+	    const double cross = corot_old_x*y-x*corot_old_y;
 
 	    // new = r_new x r_old = distance_new * distance_old * sin(alpha*dt)
 	    OmegaNew = asin(cross / (distance_new * distance_old)) / dt;
 
 	    domega = (OmegaNew - OmegaFrame);
-	    if (parameters::calculate_disk)
-		correct_v_azimuthal(data[t_data::V_AZIMUTHAL], domega);
-
+	    if (parameters::calculate_disk) {
+			correct_v_azimuthal(data[t_data::V_AZIMUTHAL], domega);
+		}
 	    OmegaFrame = OmegaNew;
 
 	    // rotate particle for the angle difference
