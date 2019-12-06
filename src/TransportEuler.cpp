@@ -502,9 +502,10 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
     unsigned int nRadial, nAzimuthal;
     double dtheta;
     bool is_density = false;
-    char *var_name = Qbase->get_name();
-    if (var_name != NULL) {
-	is_density = strcmp(var_name, data[t_data::DENSITY_INT].get_name());
+    units::t_unit *unit = Qbase->get_unit();
+    if (unit != nullptr) {
+	    is_density = strcmp(unit->get_cgs_symbol(),
+                            units::surface_density.get_cgs_symbol()) == 0;
     }
 
     divise_polargrid(*Qbase, data[t_data::DENSITY_INT],
