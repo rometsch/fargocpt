@@ -1,28 +1,85 @@
+#include <cxxabi.h>
 #include <execinfo.h>
-#include <stddef.h>
+#include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ucontext.h>
+#include <unistd.h>
+#include <stddef.h>
+#include <iostream>
 
 #include "LowTasks.h"
 #include "backtrace.h"
 #include "logging.h"
+#include "global.h"
 
 /**
 	prints backtrace for debugging
+	code from https://stackoverflow.com/a/1925461
 */
-void PrintTrace(void)
+void PrintTrace()
 {
-    void *array[BACKTRACE_MAXDEPTH];
-    size_t size;
-    char **strings;
-    size_t i;
+    void * array[BACKTRACE_MAXDEPTH];
+    int size = backtrace(array, BACKTRACE_MAXDEPTH);
+    char ** messages = backtrace_symbols(array, size);
 
-    size = backtrace(array, BACKTRACE_MAXDEPTH);
-    strings = backtrace_symbols(array, size);
+    // skip first stack frame (points here)
+    for (int i = 2; i < size && messages != NULL; ++i)
+    {
+        char *mangled_name = 0, *offset_begin = 0, *offset_end = 0;
 
-    logging::print(LOG_ERROR "Obtained %zd stack frames.\n", size);
+        // find parantheses and +address offset surrounding mangled name
+        for (char *p = messages[i]; *p; ++p)
+        {
+            if (*p == '(')
+            {
+                mangled_name = p;
+            }
+            else if (*p == '+')
+            {
+                offset_begin = p;
+            }
+            else if (*p == ')')
+            {
+                offset_end = p;
+                break;
+            }
+        }
 
-    for (i = 2; i < size; i++)
-	logging::print(LOG_ERROR "%s\n", strings[i]);
+        // if the line could be processed, attempt to demangle the symbol
+        if (mangled_name && offset_begin && offset_end &&
+            mangled_name < offset_begin)
+        {
+            *mangled_name++ = '\0';
+            *offset_begin++ = '\0';
+            *offset_end++ = '\0';
 
-    free(strings);
+            int status;
+            char * real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+
+            // if demangling is successful, output the demangled function name
+            if (status == 0)
+            {
+                std::cerr << "[" << CPU_Rank << "] [bt]: (" << i << ") " << messages[i] << " : " 
+                          << real_name << "+" << offset_begin << offset_end
+                          << std::endl;
+
+            }
+            // otherwise, output the mangled function name
+            else
+            {
+                std::cerr << "[" << CPU_Rank << "] [bt]: (" << i << ") " << messages[i] << " : " 
+                          << mangled_name << "+" << offset_begin << offset_end
+                          << std::endl;
+            }
+            free(real_name);
+        }
+        // otherwise, print the whole line
+        else
+        {
+            std::cerr << "[" << CPU_Rank << "] [bt]: (" << i << ") " << messages[i] << std::endl;
+        }
+    }
+    free(messages);
 }
