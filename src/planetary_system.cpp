@@ -1,6 +1,7 @@
 #include "planetary_system.h"
 #include "LowTasks.h"
 #include "constants.h"
+#include "fpe.h"
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
@@ -672,7 +673,9 @@ void t_planetary_system::integrate(double time, double dt) {
 	copy_data_to_rebound();
 	m_rebound->t = time;
 
+	disable_trap_fpe_gnu();
 	reb_integrate(m_rebound, time + dt);
+	enable_trap_fpe_gnu();
 
 	copy_data_from_rebound();
 
