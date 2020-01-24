@@ -20,6 +20,17 @@
 #include <string>
 #include <unistd.h>
 
+// Taken from
+// https://stackoverflow.com/questions/5820810/case-insensitive-string-comp-in-c
+static int strcicmp(char const *a, char const *b)
+{
+    for (;; a++, b++) {
+	int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+	if (d != 0 || !*a)
+	    return d;
+    }
+}
+
 namespace options
 {
 char *parameter_file;
@@ -62,7 +73,7 @@ void usage(int argc, char **argv)
 	"-b |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
 	"-c |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
 	"-n |                   Disable simulation. The program just reads parameters file\n"
-	"-m |                   estimate memory usage and print out\n"
+	"-m |                   estimate memory usage and3df59ec2b9a5f5a5c00028320b2a31224a3686ecprint out\n"
 	"",
 	argv[0]);
 }
@@ -86,7 +97,6 @@ void parse(int argc, char **argv)
 		usage(argc, argv);
 		die("Input Error: Parameter file must be the last argument");
 	    }
-
 	    if (start_mode::mode == start_mode::mode_none) {
 		if (!strcicmp(optarg, "start")) {
 		    start_mode::mode = start_mode::mode_start;
