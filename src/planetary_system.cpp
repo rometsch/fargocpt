@@ -288,7 +288,7 @@ void t_planetary_system::list_planets()
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
 		(24 * 60 * 60 * 365.2425),
-	    get_planet(i).get_acc(), "deprecated", "deprecated");
+		get_planet(i).get_acc(), "-", "-");
     }
 
     logging::print(LOG_INFO "\n");
