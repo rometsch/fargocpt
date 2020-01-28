@@ -112,11 +112,6 @@ void CalculatePotential(t_data &data)
     // gravitational potential from planets on gas
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
-	// calculate smoothing length if dependend on radius
-	// i.e. for thickness smoothing with scale height at cell location
-	if (ThicknessSmoothingAtCell && parameters::Locally_Isothermal) {
-	    smooth = pow2(compute_smoothing_isothermal(Rmed[n_radial]));
-	}
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
@@ -130,8 +125,7 @@ void CalculatePotential(t_data &data)
 		if (!ThicknessSmoothingAtCell) {
 		    smooth = smooth_pl[k];
 		}
-		if (ThicknessSmoothingAtCell &&
-		    (!parameters::Locally_Isothermal)) {
+		if (ThicknessSmoothingAtCell) {
 		    smooth = pow2(compute_smoothing(Rmed[n_radial], data,
 						    n_radial, n_azimuthal));
 		}
