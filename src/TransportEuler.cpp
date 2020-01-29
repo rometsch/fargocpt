@@ -281,39 +281,6 @@ void QuantitiesAdvection(t_data &data, PolarGrid *Density,
 void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 			 t_polargrid *QStar, double dt)
 {
-    /*	// calculate all dq
-	    for (unsigned int n_radial = 0; n_radial <= base.get_max_radial();
-       ++n_radial) { for (unsigned int n_azimuthal = 0; n_azimuthal <=
-       base.get_max_azimuthal(); ++n_azimuthal) {
-			    // inner and outer most cells need dq = 0
-			    if ((n_radial == 0) || (n_radial ==
-       base.get_max_radial())) { dq[n_radial] = 0.0; } else { double dq_minus =
-       base(n_radial,
-       n_azimuthal)-base(n_azimuthal-1,n_azimuthal)*InvDiffRmed[nRadial]; double
-       dq_plus = base(n_radial+1,
-       n_azimuthal)-base(n_radial,n_azimuthal)*InvDiffRmed[nRadial+1];
-
-				    if (dq_minus * dq_plus > 0.0) {
-					    dq[n_radial]
-       = 2.0*dq_minus*dq_plus/(dq_minus+dq_plus); } else { dq[n_radial] = 0.0;
-				    }
-			    }
-		    }
-	    }
-
-	    // calculate star
-	    for (unsigned int n_radial = 0; n_radial <= base.get_max_radial();
-       ++n_radial) { for (unsigned int n_azimuthal = 0; n_azimuthal <=
-       base.get_max_azimuthal(); ++n_azimuthal) { if (v_radial(n_radial,
-       n_azimuthal) > 0.0) { star(n_radial, n_azimuthal) = base(n_radial-1,
-       n_azimuthal)+(Rmed[nRadial]-Rmed[nRadial-1]-v_radial(n_radial,n_azimuthal)*dt)*0.5*dq[nRadial-1];
-			    } else {
-				    star(n_radial, n_azimuthal) = base(n_radial,
-       n_azimuthal)-(Rmed[nRadial+1]-Rmed[nRadial]+v_radial(n_radial,n_azimuthal)*dt)*0.5*dq[nRadial];
-			    }
-		    }
-	    }*/
-
     unsigned int nRadial, nAzimuthal;
     double dqp, dqm;
 
