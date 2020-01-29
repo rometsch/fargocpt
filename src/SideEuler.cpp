@@ -137,15 +137,10 @@ void CheckAngularMomentumConservation(t_data &data)
 */
 void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
 {
-    for (unsigned int n_radial = 0; n_radial <= result.get_max_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= result.get_max_azimuthal(); ++n_azimuthal) {
-	    result(n_radial, n_azimuthal) =
-		num(n_radial, n_azimuthal) /
-		(denom(n_radial, n_azimuthal) + DBL_EPSILON);
+	const unsigned int Nmax = result.get_size_radial() * result.get_size_azimuthal();
+	for (unsigned int n=0; n < Nmax; n++) {
+	    result.Field[n] = num.Field[n] / (denom.Field[n] + DBL_EPSILON);
 	}
-    }
 }
 
 /**
