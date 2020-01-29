@@ -137,7 +137,7 @@ void CheckAngularMomentumConservation(t_data &data)
 */
 void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
 {
-	const unsigned int Nmax = dst.get_size_radial() * dst.get_size_azimuthal();
+	const unsigned int Nmax = result.get_size_radial() * result.get_size_azimuthal();
 	for (unsigned int n=0; n < Nmax; n++) {
 	    result.Field[n] = num.Field[n] / (denom.Field[n] + DBL_EPSILON);
 	}
