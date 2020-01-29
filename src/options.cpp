@@ -11,11 +11,12 @@
 #include "logging.h"
 #include "parameters.h"
 #include "start_mode.h"
+#include "util.h"
 
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <getopt.h>
-#include <string.h>
 #include <string>
 #include <unistd.h>
 
@@ -87,15 +88,16 @@ void parse(int argc, char **argv)
 	    }
 
 	    if (start_mode::mode == start_mode::mode_none) {
-		if (!strcmp(optarg, "start")) {
+		if (!strcicmp(optarg, "start")) {
 		    start_mode::mode = start_mode::mode_start;
-		} else if (!strcmp(optarg, "restart")) {
+		} else if (!strcicmp(optarg, "restart")) {
 		    start_mode::mode = start_mode::mode_restart;
-		} else if (!strcmp(optarg, "auto")) {
+		} else if (!strcicmp(optarg, "auto")) {
 		    start_mode::mode = start_mode::mode_auto;
 		} else {
 		    usage(argc, argv);
-		    die("Invalid start mode '%s'");
+			logging::print(LOG_ERROR "Invalid start mode '%s'\n", optarg);
+		    PersonalExit(0);
 		}
 	    } else {
 		if (start_mode::mode == start_mode::mode_restart) {
@@ -103,7 +105,7 @@ void parse(int argc, char **argv)
 			start_mode::restart_from = std::atoi(optarg);
 
 			if (start_mode::restart_from < 0) {
-			    die("Input Error: Restart file can not be negative");
+			    die("Input Error: Restart file can not be negative\n");
 			}
 			break;
 		    }

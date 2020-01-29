@@ -1,6 +1,9 @@
 #include "util.h"
-#include <math.h>
+#include <cstring>
+#include <cmath>
 #include <stdint.h>
+#include <string>
+
 
 /**
 	cutoff function
@@ -38,4 +41,15 @@ bool is_distance_zero(double x)
     // in cgs units 1e-7 equals 1 nm
     // this is zero for astonomical scales
     return x * x < 1e-26;
+}
+
+// Taken from
+// https://stackoverflow.com/questions/5820810/case-insensitive-string-comp-in-c
+int strcicmp(char const *a, char const *b)
+{
+    for (;; a++, b++) {
+	int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+	if (d != 0 || !*a)
+	    return d;
+    }
 }
