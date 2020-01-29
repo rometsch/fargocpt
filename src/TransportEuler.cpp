@@ -284,48 +284,48 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
     unsigned int nRadial, nAzimuthal;
     double dqp, dqm;
 
-    for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-
 	for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	    unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
-	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
-	    unsigned int cellNextRadial = cell + Qbase->Nsec;
-
-	    if ((nRadial == 0) || (nRadial == Qbase->Nrad - 1)) {
-		dq[nRadial] = 0.0;
-	    } else {
-		dqm = (Qbase->Field[cell] - Qbase->Field[cellPrevRadial]) *
-		      InvDiffRmed[nRadial];
-		dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
-		      InvDiffRmed[nRadial + 1];
-		if (dqp * dqm > 0.0)
-		    dq[nRadial] = 2.0 * dqp * dqm / (dqp + dqm);
-		else
-		    dq[nRadial] = 0.0;
-	    }
+		for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+			unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
+			unsigned int cellPrevRadial = cell - Qbase->Nsec;
+			unsigned int cellNextRadial = cell + Qbase->Nsec;
+			if ((nRadial == 0) || (nRadial == Qbase->Nrad - 1)) {
+				dq[cell] = 0.0;
+			} else {
+				dqm = (Qbase->Field[cell] - Qbase->Field[cellPrevRadial]) *
+					InvDiffRmed[nRadial];
+				dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
+					InvDiffRmed[nRadial + 1];
+				if (dqp * dqm > 0.0)
+					dq[cell] = 2.0 * dqp * dqm / (dqp + dqm);
+				else
+					dq[cell] = 0.0;
+			}
+		}
 	}
-
 	// TODO: changed to nRadial =1 because of nRadial-1
 	// TODO: potential problem: Using Rmed[nRadial] - Rmed[nRadial-1] for
 	// a-mesh Qties (v_rad,..) as well as for b-mesh Qties (Density,...)
 	for (nRadial = 1; nRadial < Qbase->Nrad; ++nRadial) {
-	    unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
-	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
-
-	    if (VRadial->Field[cell] > 0.0)
-		QStar->Field[cell] = Qbase->Field[cellPrevRadial] +
-				     (Rmed[nRadial] - Rmed[nRadial - 1] -
-				      VRadial->Field[cell] * dt) *
-					 0.5 * dq[nRadial - 1];
-	    else
-		QStar->Field[cell] =
-		    Qbase->Field[cell] - (Rmed[nRadial + 1] - Rmed[nRadial] +
-					  VRadial->Field[cell] * dt) *
-					     0.5 * dq[nRadial];
+		for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+			unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
+			unsigned int cellPrevRadial = cell - Qbase->Nsec;
+			if (VRadial->Field[cell] > 0.0)
+				QStar->Field[cell] = Qbase->Field[cellPrevRadial] +
+					(Rmed[nRadial] - Rmed[nRadial - 1] -
+					 VRadial->Field[cell] * dt) *
+					0.5 * dq[cellPrevRadial];
+			else
+				QStar->Field[cell] =
+					Qbase->Field[cell] - (Rmed[nRadial + 1] - Rmed[nRadial] +
+										  VRadial->Field[cell] * dt) *
+					0.5 * dq[cell];
+		}
 	}
 	// TODO: check here
-	(*QStar)(0, nAzimuthal) = 0.0;
-	(*QStar)(QStar->get_max_radial(), nAzimuthal) = 0.0;
+	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+		(*QStar)(0, nAzimuthal) = 0.0;
+		(*QStar)(QStar->get_max_radial(), nAzimuthal) = 0.0;
     }
 }
 
