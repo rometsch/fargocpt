@@ -57,18 +57,24 @@ void InitTransport()
 {
     radial_momentum_plus.set_scalar(true);
     radial_momentum_plus.set_size(NRadial, NAzimuthal);
+	radial_momentum_plus.set_name("radial_momentum_plus");
     radial_momentum_minus.set_scalar(true);
     radial_momentum_minus.set_size(NRadial, NAzimuthal);
+	radial_momentum_minus.set_name("radial_momentum_minus");
     angular_momentum_plus.set_scalar(true);
     angular_momentum_plus.set_size(NRadial, NAzimuthal);
+	angular_momentum_plus.set_name("angular_momentum_plus");
     angular_momentum_minus.set_scalar(true);
     angular_momentum_minus.set_size(NRadial, NAzimuthal);
+	angular_momentum_minus.set_name("angular_momentum_minus");
 
     v_azimuthal_res.set_vector(false);
     v_azimuthal_res.set_size(NRadial, NAzimuthal);
+	v_azimuthal_res.set_name("v_azimuthal_res");
 
     v_azimuthal_mean.set_vector(false);
     v_azimuthal_mean.set_size(NRadial);
+	v_azimuthal_mean.set_name("v_azimuthal_mean");
 
     Work = CreatePolarGrid(NRadial, NAzimuthal, "WorkGrid");
 
