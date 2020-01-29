@@ -15,4 +15,6 @@ double cutoff(double point, double width, double x);
 bool is_big_endian(void);
 bool is_distance_zero(double x);
 
+int strcicmp(char const *a, char const *b);
+
 #endif // UTIL_H
