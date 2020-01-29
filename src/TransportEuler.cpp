@@ -126,8 +126,9 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     // boundary layer:
     if (parameters::boundary_outer ==
 	    parameters::boundary_condition_boundary_layer &&
-	CPU_Rank == CPU_Highest)
-	boundary_layer_mass_influx(DensityStar, VRadial);
+		CPU_Rank == CPU_Highest) {
+		boundary_layer_mass_influx(DensityStar, VRadial);
+	}
 
     copy_polargrid(data[t_data::DENSITY_INT], *Density);
 
@@ -136,8 +137,9 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     VanLeerRadial(data, VRadial, &angular_momentum_plus, dt);
     VanLeerRadial(data, VRadial, &angular_momentum_minus, dt);
 
-    if (parameters::Adiabatic)
-	VanLeerRadial(data, VRadial, Energy, dt);
+    if (parameters::Adiabatic) {
+		VanLeerRadial(data, VRadial, Energy, dt);
+	}
 
     VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
 }
@@ -359,16 +361,19 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 
 	    ljp = cell + 1;
 	    ljm = cell - 1;
-	    if (nAzimuthal == 0)
-		ljm = nRadial * Qbase->Nsec + Qbase->Nsec - 1;
-	    if (nAzimuthal == Qbase->Nsec - 1)
-		ljp = nRadial * Qbase->Nsec;
+	    if (nAzimuthal == 0) {
+			ljm = nRadial * Qbase->Nsec + Qbase->Nsec - 1;
+		}
+	    if (nAzimuthal == Qbase->Nsec - 1) {
+			ljp = nRadial * Qbase->Nsec;
+		}
 	    dqm = (Qbase->Field[cell] - Qbase->Field[ljm]);
 	    dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
-	    if (dqp * dqm > 0.0)
-		dq[cell] = dqp * dqm / (dqp + dqm) * invdxtheta;
-	    else
-		dq[cell] = 0.0;
+	    if (dqp * dqm > 0.0) {
+			dq[cell] = dqp * dqm / (dqp + dqm) * invdxtheta;
+	    } else {
+			dq[cell] = 0.0;
+		}
 	}
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    // cell = nAzimuthal+nRadial*Qbase->Nsec;
@@ -379,12 +384,13 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 		jm = Qbase->Nsec - 1;
 	    ljm = jm + nRadial * Qbase->Nsec;
 	    ksi = VAzimuthal->Field[cell] * dt;
-	    if (ksi > 0.0)
-		QStar->Field[cell] =
-		    Qbase->Field[ljm] + (dxtheta - ksi) * dq[ljm];
-	    else
-		QStar->Field[cell] =
-		    Qbase->Field[cell] - (dxtheta + ksi) * dq[cell];
+	    if (ksi > 0.0) {
+			QStar->Field[cell] =
+				Qbase->Field[ljm] + (dxtheta - ksi) * dq[ljm];
+		} else {
+			QStar->Field[cell] =
+				Qbase->Field[cell] - (dxtheta + ksi) * dq[cell];
+		}
 	}
     }
 }
