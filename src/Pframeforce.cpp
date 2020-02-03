@@ -277,53 +277,28 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	    RRoche = pow((1.0 / 3.0 * Mplanet), (1.0 / 3.0)) * Rplanet;
 
 	    // Central mass is 1.0
-	    i_min = 0;
-	    i_max = nr - 1;
-	    while ((Rsup[i_min] < Rplanet - RRoche) && (i_min < nr))
-		i_min++;
-	    while ((Rinf[i_max] > Rplanet + RRoche) && (i_max > 0))
-		i_max--;
-	    angle = atan2(Yplanet, Xplanet);
-		j_min =
-		(int)((double)ns / 2.0 / PI * (angle - 2.0 * RRoche / Rplanet));
-	    j_max =
-		(int)((double)ns / 2.0 / PI * (angle + 2.0 * RRoche / Rplanet));
+		// TODO change clamp_r_id_to_radii_grid -> clamp_r_id_to_rmed_grid
+		// TODO change get_rinf_id -> get_rmed_id
+		unsigned int i_min = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RRoche));
+		unsigned int i_max = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RRoche)+1);
 
-		unsigned int i_min_test = clamp_id_to_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RRoche));
-		unsigned int i_max_test = clamp_id_to_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RRoche));
+		int j_min = get_med_azimuthal_id(angle - 2.0 * RRoche / Rplanet);
+		if(j_min < 0) // TODO remove, to be consistent with previous code
+		{
+			j_min++;
+		}
+		int j_max = get_med_azimuthal_id(angle + 2.0 * RRoche / Rplanet) + 1;
 
-		unsigned int j_min_test = get_inf_azimuthal_id(angle - 2.0 * RRoche / Rplanet);
-		unsigned int j_max_test = get_inf_azimuthal_id(angle + 2.0 * RRoche / Rplanet);
-
-		if(i_min != i_min_test)
-			printf("i_min is wrong: %d	%d\n", i_min, i_min_test);
-
-		if(i_max != i_max_test)
-			printf("i_max is wrong: %d	%d\n", i_max, i_max_test);
-
-
-		double dj_min = ((double)ns / 2.0 / PI * (angle - 2.0 * RRoche / Rplanet));
-		double djf_min = std::floor(dj_min);
-
-		printf("Floor : %g	%g\n", dj_min, djf_min);
-
-		if(j_min != j_min_test)
-			printf("j_min is wrong: %d	%d\n", j_min, j_min_test);
-
-		if(j_max != j_max_test)
-			printf("j_max is wrong: %d	%d\n", j_max, j_max_test);
-
-
+		int phi_range = j_max - j_min;
+		j_min = clamp_phi_id_to_grid(j_min);
+		j_max = clamp_phi_id_to_grid(j_max);
 
 	    PxPlanet = Mplanet * VXplanet;
 	    PyPlanet = Mplanet * VYplanet;
-	    for (i = i_min; i <= i_max; i++) {
-		for (j = j_min; j <= j_max; j++) {
-		    jf = j;
-		    while (jf < 0)
-			jf += ns;
-		    while (jf >= ns)
-			jf -= ns;
+		for (i = i_min; i < i_max; i++) {
+			jf = j_min;
+		for (int count = 0; count < phi_range; ++count, ++jf) {
+			jf = clamp_phi_id_to_grid(jf);
 		    l = jf + i * ns;
 		    lip = l + ns;
 		    ljp = l + 1;
@@ -339,6 +314,7 @@ void AccreteOntoPlanets(t_data &data, double dt)
 		    vrcell = 0.5 * (vrad[l] + vrad[lip]);
 		    vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
 		    vycell = (vrcell * yc + vtcell * xc) / Rmed[i];
+
 		    if (distance < frac1 * RRoche) {
 			deltaM = facc1 * dens[l] * Surf[i];
 			if (i < Zero_or_active)

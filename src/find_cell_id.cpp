@@ -14,18 +14,51 @@ static double inv_phi_cell_size;
 static double phi_cell_size;
 
 
-int clamp_id_to_grid(int cell_id)
+unsigned int clamp_r_id_to_rmed_grid(int cell_id)
 {
+
+	const int Nr_max = (int)NRadial-2;
 	if(cell_id < 0)
 	{
 		cell_id = 0;
 	}
-	else if(cell_id >= (int)NRadial)
+	else if(cell_id > Nr_max)
 	{
-		cell_id = (int)NRadial-1;
+		cell_id = Nr_max;
 	}
 
-	return cell_id;
+	return (unsigned int)cell_id;
+}
+
+unsigned int clamp_r_id_to_radii_grid(int cell_id)
+{
+
+	const int Nr_max = (int)NRadial-1;
+	if(cell_id < 0)
+	{
+		cell_id = 0;
+	}
+	else if(cell_id > Nr_max)
+	{
+		cell_id = Nr_max;
+	}
+
+	return (unsigned int)cell_id;
+}
+
+
+unsigned int clamp_phi_id_to_grid(int cell_id)
+{
+	if(cell_id < 0)
+	{
+		cell_id += NAzimuthal;
+	}
+	if(cell_id >= (int)NAzimuthal)
+	{
+		cell_id -= NAzimuthal;
+	}
+
+	return (unsigned int)cell_id;
 }
 
 static void init_cell_finder_log(const double cell_growth_factor, const double first_cell_size){
@@ -280,7 +313,7 @@ unsigned int get_next_azimuthal_id(const unsigned int id_low)
 	return id_high;
 }
 
-unsigned int get_inf_azimuthal_id(const double phi){
+int get_inf_azimuthal_id(const double phi){
 
 	double did = phi * inv_phi_cell_size;
 	int id_low = (int)std::floor(did);
@@ -301,29 +334,21 @@ unsigned int get_inf_azimuthal_id(const double phi){
 	}
 #endif // DEBUG
 
-	/*
-	if(id_low < 0)
-	{
-		id_low += NAzimuthal;
-	}
-	*/
-
-	return (unsigned int)id_low;
+	return id_low;
 
 }
 
-unsigned int get_med_azimuthal_id(const double phi){
+int get_med_azimuthal_id(const double phi){
 
 	double did = ((phi - 0.5*phi_cell_size) * inv_phi_cell_size);
-	int id_low = did < 0 ? NAzimuthal-1 : (unsigned int)std::floor(did);
+	int id_low = (int)std::floor(did);
 
 
 #ifndef NDEBUG
 	{
 		bool lower_than_ceil = phi - 0.5*phi_cell_size < phi_cell_size*(double)(id_low+1);
 
-		double phi_tmp2 = phi < 0.5*phi_cell_size? phi + 2.0*M_PI : phi;
-		bool higher_than_floor = phi_tmp2 - 0.5*phi_cell_size > phi_cell_size*(double)(id_low);
+		bool higher_than_floor = phi - 0.5*phi_cell_size > phi_cell_size*(double)(id_low);
 
 		if(!(lower_than_ceil && higher_than_floor))
 		{
@@ -335,12 +360,7 @@ unsigned int get_med_azimuthal_id(const double phi){
 	}
 #endif // DEBUG
 
-	if(id_low < 0)
-	{
-		id_low += NAzimuthal;
-	}
-
-	return (unsigned int)id_low;
+	return id_low;
 
 }
 
@@ -382,7 +402,7 @@ void init_cell_finder(parameters::t_radial_grid GRID, const double cell_growth_f
 }
 
 
-unsigned int get_rmed_id(parameters::t_radial_grid GRID, const double r)
+int get_rmed_id(parameters::t_radial_grid GRID, const double r)
 {
 
 	int id;
@@ -419,10 +439,10 @@ unsigned int get_rmed_id(parameters::t_radial_grid GRID, const double r)
 		}
 	}
 
-	return (unsigned int)id;
+	return id;
 }
 
-unsigned int get_rinf_id(parameters::t_radial_grid GRID, const double r)
+int get_rinf_id(parameters::t_radial_grid GRID, const double r)
 {
 	int id;
 	switch(GRID)
@@ -458,5 +478,5 @@ unsigned int get_rinf_id(parameters::t_radial_grid GRID, const double r)
 		}
 	}
 
-	return (unsigned int)id;
+	return id;
 }
