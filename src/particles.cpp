@@ -20,6 +20,7 @@
 #include <random>
 #include <stdlib.h>
 #include <vector>
+#include "find_cell_id.h"
 
 extern Pair IndirectTerm;
 
@@ -130,6 +131,50 @@ void find_nearest(const t_polargrid &quantity, unsigned int &n_radial_a_minus,
     if (n_azimuthal_b_plus == quantity.get_size_azimuthal()) {
 	n_azimuthal_b_plus = 0;
     }
+
+	unsigned int n_rad_a_minus = get_rinf_id(parameters::radial_grid_type, r);
+	unsigned int n_rad_a_plus = n_rad_a_minus + 1;
+
+	unsigned int n_rad_b_minus = get_rmed_id(parameters::radial_grid_type, r);
+	unsigned int n_rad_b_plus = n_rad_b_minus + 1;
+
+	unsigned int n_az_a_minus = get_inf_azimuthal_id(phi);
+	unsigned int n_az_a_plus = get_next_azimuthal_id(n_az_a_minus);
+
+	unsigned int n_az_b_minus = get_med_azimuthal_id(phi);
+	unsigned int n_az_b_plus = get_next_azimuthal_id(n_az_b_minus);
+
+	bool a_plus = n_rad_a_plus == n_radial_a_plus;
+	bool a_minus = a_plus &&( n_rad_a_minus == n_radial_a_minus);
+
+	bool b_plus = a_minus && (n_rad_b_plus == n_radial_b_plus);
+	bool b_minus = b_plus && (n_rad_b_minus == n_radial_b_minus);
+
+	bool az_a_plus = b_minus && (n_az_a_plus == n_azimuthal_a_plus);
+	bool az_a_minus = az_a_plus && (n_az_a_minus == n_azimuthal_a_minus);
+
+	bool az_b_plus = az_a_minus && (n_az_b_plus == n_azimuthal_b_plus);
+	bool az_b_minus = az_b_plus && (n_az_b_minus == n_azimuthal_b_minus);
+
+	if(!az_b_minus)
+	{
+		printf("%d	%d	%d	%d		%d	%d	%d	%d\n",a_plus, a_minus,
+			   b_plus, b_minus, az_a_plus, az_a_minus,
+			   az_b_plus, az_b_minus);
+		printf("a_plus		%.5e	(%d	%d) != (%d	%d)\n", r, n_radial_a_minus, n_radial_a_plus,
+			   n_rad_a_minus, n_rad_a_plus);
+		printf("b_plus		%.5e	(%d	%d) != (%d	%d)\n", r, n_radial_b_minus, n_radial_b_plus,
+			   n_rad_b_minus, n_rad_b_plus);
+
+		printf("az_a_plus	%.5e	(%d	%d) != (%d	%d)\n", phi, n_azimuthal_a_minus, n_azimuthal_a_plus,
+			   n_az_a_minus, n_az_a_plus);
+		printf("az_b_plus	%.5e	(%d	%d) != (%d	%d)\n", phi, n_azimuthal_b_minus, n_azimuthal_b_plus,
+			   n_az_b_minus, n_az_b_plus);
+		std::flush(std::cout);
+
+			die("Getting particles ids failed!\n");
+	}
+
 }
 
 static double interpolate_bilinear_sg(const double *array1D,

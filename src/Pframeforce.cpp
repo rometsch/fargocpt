@@ -17,6 +17,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "find_cell_id.h"
 
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
@@ -283,10 +284,37 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	    while ((Rinf[i_max] > Rplanet + RRoche) && (i_max > 0))
 		i_max--;
 	    angle = atan2(Yplanet, Xplanet);
-	    j_min =
+		j_min =
 		(int)((double)ns / 2.0 / PI * (angle - 2.0 * RRoche / Rplanet));
 	    j_max =
 		(int)((double)ns / 2.0 / PI * (angle + 2.0 * RRoche / Rplanet));
+
+		unsigned int i_min_test = clamp_id_to_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RRoche));
+		unsigned int i_max_test = clamp_id_to_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RRoche));
+
+		unsigned int j_min_test = get_inf_azimuthal_id(angle - 2.0 * RRoche / Rplanet);
+		unsigned int j_max_test = get_inf_azimuthal_id(angle + 2.0 * RRoche / Rplanet);
+
+		if(i_min != i_min_test)
+			printf("i_min is wrong: %d	%d\n", i_min, i_min_test);
+
+		if(i_max != i_max_test)
+			printf("i_max is wrong: %d	%d\n", i_max, i_max_test);
+
+
+		double dj_min = ((double)ns / 2.0 / PI * (angle - 2.0 * RRoche / Rplanet));
+		double djf_min = std::floor(dj_min);
+
+		printf("Floor : %g	%g\n", dj_min, djf_min);
+
+		if(j_min != j_min_test)
+			printf("j_min is wrong: %d	%d\n", j_min, j_min_test);
+
+		if(j_max != j_max_test)
+			printf("j_max is wrong: %d	%d\n", j_max, j_max_test);
+
+
+
 	    PxPlanet = Mplanet * VXplanet;
 	    PyPlanet = Mplanet * VYplanet;
 	    for (i = i_min; i <= i_max; i++) {
