@@ -17,6 +17,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "find_cell_id.h"
 
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;

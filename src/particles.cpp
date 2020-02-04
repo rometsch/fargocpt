@@ -20,6 +20,7 @@
 #include <random>
 #include <stdlib.h>
 #include <vector>
+#include "find_cell_id.h"
 
 extern Pair IndirectTerm;
 
@@ -94,7 +95,7 @@ static void transformCartCyl(double *cart, double *cyl, double r, double phi)
     cyl[1] += cart[1] * cos(phi);
 }
 
-void find_nearest(const t_polargrid &quantity, unsigned int &n_radial_a_minus,
+void find_nearest(unsigned int &n_radial_a_minus,
 		  unsigned int &n_radial_a_plus,
 		  unsigned int &n_azimuthal_a_minus,
 		  unsigned int &n_azimuthal_a_plus,
@@ -103,33 +104,19 @@ void find_nearest(const t_polargrid &quantity, unsigned int &n_radial_a_minus,
 		  unsigned int &n_azimuthal_b_plus, const double r,
 		  const double phi)
 {
+	n_radial_a_minus = get_rinf_id(parameters::radial_grid_type, r);
+	n_radial_a_plus = n_radial_a_minus + 1;
 
-    double dphi = 2.0 * PI / (double)quantity.get_size_azimuthal();
+	n_radial_b_minus = get_rmed_id(parameters::radial_grid_type, r);
+	n_radial_b_plus = n_radial_b_minus + 1;
 
-    // find nearest n_radials
-    // we do not need to check if n_radial_a_plus < NRadial because it this
-    // would be the case, something in the move part went wrong :)
-    while (Ra[n_radial_a_plus] < r)
-	n_radial_a_plus++;
-    n_radial_a_minus = n_radial_a_plus - 1;
-    while (Rb[n_radial_b_plus] < r)
-	n_radial_b_plus++;
-    n_radial_b_minus = n_radial_b_plus - 1;
+	n_azimuthal_a_minus = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));
+	n_azimuthal_a_plus = get_next_azimuthal_id(n_azimuthal_a_minus);
 
-    // find nearest n_azimuthals
-    n_azimuthal_a_minus = trunc(phi / dphi);
-    n_azimuthal_a_plus = n_azimuthal_a_minus + 1;
-    if (n_azimuthal_a_plus == quantity.get_size_azimuthal()) {
-	n_azimuthal_a_plus = 0;
-    }
+	n_azimuthal_b_minus = clamp_phi_id_to_grid(get_med_azimuthal_id(phi));
+	n_azimuthal_b_plus = get_next_azimuthal_id(n_azimuthal_b_minus);
 
-    int tmp = floor((phi - 0.5 * dphi) / dphi);
-    n_azimuthal_b_minus =
-	(tmp == -1) ? quantity.get_max_azimuthal() : (unsigned int)tmp;
-    n_azimuthal_b_plus = n_azimuthal_b_minus + 1;
-    if (n_azimuthal_b_plus == quantity.get_size_azimuthal()) {
-	n_azimuthal_b_plus = 0;
-    }
+
 }
 
 static double interpolate_bilinear_sg(const double *array1D,
@@ -338,7 +325,7 @@ static void init_particle_timestep(t_data &data)
     }
 }
 
-static void correct_for_self_gravity(t_data &data, const unsigned int i)
+static void correct_for_self_gravity(const unsigned int i)
 {
 
     const double r = particles[i].get_distance_to_star();
@@ -357,7 +344,7 @@ static void correct_for_self_gravity(t_data &data, const unsigned int i)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);
@@ -580,7 +567,7 @@ void init(t_data &data)
 
     if (parameters::particle_disk_gravity_enabled) {
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-	    correct_for_self_gravity(data, i);
+		correct_for_self_gravity(i);
 	}
     }
     check_tstop(data);
@@ -933,7 +920,7 @@ static void calculate_tstop(const double r, const double phi,
 		 n_radial_b_minus = 0, n_radial_b_plus = 1;
     unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-    find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		 n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		 n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r,
 		 phi);
@@ -1017,7 +1004,7 @@ static void calculate_tstop2(const double r, const double phi,
 		 n_radial_b_minus = 0, n_radial_b_plus = 1;
     unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-    find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		 n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		 n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		 r_tmp, phi);
@@ -1118,7 +1105,7 @@ void check_tstop(t_data &data)
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		     n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
 
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);
@@ -1252,7 +1239,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);
@@ -1349,7 +1336,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);

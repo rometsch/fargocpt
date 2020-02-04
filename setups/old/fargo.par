@@ -119,6 +119,7 @@ Nsec			384 #1536 384		# Azimuthal number of
 Rmin			0.4		# Inner boundary radius
 Rmax			2.5		# Outer boundary radius
 RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC or Exponential
+ExponentialCellSizeFactor 1.41      # Scaling used on the size of the first cell in the logarithmic grid used to build an exponential grid
 
 ### Output control parameters
 

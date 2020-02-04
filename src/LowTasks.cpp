@@ -10,23 +10,6 @@
 #include "global.h"
 #include "logging.h"
 
-double GetGlobalIFrac(double r)
-{
-    int i = 0;
-    double ifrac;
-
-    if (r < GlobalRmed[0])
-	return 0.0;
-    if (r > GlobalRmed[GlobalNRadial - 1])
-	return (double)GlobalNRadial - 1.0;
-    while (GlobalRmed[i] <= r)
-	i++;
-    ifrac = (double)i +
-	    (r - GlobalRmed[i - 1]) / (GlobalRmed[i] - GlobalRmed[i - 1]) - 1.0;
-
-    return ifrac;
-}
-
 /**
 	Finalize MPI and terminate program.
 

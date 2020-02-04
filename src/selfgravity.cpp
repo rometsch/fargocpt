@@ -611,8 +611,8 @@ void init_planetary_system(t_data &data)
 		ipl = 0;
 		while (GlobalRmed[ipl] <= dist)
 		    ipl++;
-		ri = GlobalRmed[ipl];
-		rip1 = GlobalRmed[ipl + 1];
+		ri = GlobalRmed[ipl-1];
+		rip1 = GlobalRmed[ipl];
 		dr = rip1 - ri;
 		sgacc = (dist - ri) * GLOBAL_AxiSGAccr[ipl + 1] +
 			(rip1 - dist) * GLOBAL_AxiSGAccr[ipl];

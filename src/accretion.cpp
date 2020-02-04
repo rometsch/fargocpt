@@ -12,6 +12,7 @@
 #include "global.h"
 #include "parameters.h"
 #include "planet.h"
+#include "find_cell_id.h"
 
 namespace accretion
 {
@@ -20,15 +21,8 @@ namespace accretion
 										  const unsigned int nr) {
 		/* Calculate the indeces in radial direction where
 		   the Hill sphere starts and stops */
-		unsigned int i_min = 0;
-		while ((Rsup[i_min] < Rplanet - RHill) && (i_min < nr)) {
-			i_min++;
-		}
-
-		unsigned int i_max = nr > 0 ? nr -1 : 0;
-		while ((Rinf[i_max] > Rplanet + RHill) && (i_max > 0)) {
-			i_max--;
-		}
+		unsigned i_min = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RHill));
+		unsigned i_max = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RHill)+1);
 		std::tuple<unsigned int, unsigned int> ids(i_min, i_max);
 		return ids;
 	}
@@ -40,8 +34,8 @@ namespace accretion
 											  const unsigned int ns) {
 		/* Calculate the index in azimuthal direction
 		   where the Hill sphere starts and stops */
-		const int i_min = (int)((double)ns / 2.0 / PI * (angle - 2.0 * RHill / Rplanet));
-		const int i_max = (int)((double)ns / 2.0 / PI * (angle + 2.0 * RHill / Rplanet));
+		const int i_min = get_med_azimuthal_id(angle - 2.0 * RHill / Rplanet);
+		const int i_max = get_med_azimuthal_id(angle + 2.0 * RHill / Rplanet) + 1;
 		std::tuple<int, int> ids(i_min, i_max);
 		return ids;
 	}
@@ -111,17 +105,14 @@ namespace accretion
 			for (int i = i_min; i <= i_max; i++) {
 				for (int j = j_min; j <= j_max; j++) {
 					// map azimuthal index to [0, ns]
-					int jf = j;
-					while (jf < 0)
-						jf += ns;
-					while (jf >= ns)
-						jf -= ns;
+					int jf = clamp_phi_id_to_grid(j);;
 					// calculate cell 1d index
 					int l = jf + i * ns;
 					int lip = l + ns;
 					int ljp = l + 1;
-					if (jf == ns - 1)
+					if (jf == ns - 1) {
 						ljp = i * ns;
+					}
 
 					const double xc = cell_center_x[l];
 					const double yc = cell_center_y[l];
