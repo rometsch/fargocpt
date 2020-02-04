@@ -21,6 +21,7 @@
 #include "selfgravity.h"
 #include "util.h"
 #include "viscosity.h"
+#include "find_cell_id.h"
 
 #include "open-simplex-noise.h"
 #include "options.h"
@@ -73,42 +74,70 @@ void init_radialarrays()
     // free up fdInputFilename
     free(fd_input_filename);
 
+	double first_cell_size = 0.0;
+	double cell_growth_factor = 0.0;
     if (fd_input == NULL) {
 	logging::print_master(
 	    LOG_INFO "Warning : no `radii.dat' file found. Using default.\n");
-	double interval, slope;
 	switch (parameters::radial_grid_type) {
 	case parameters::logarithmic_spacing:
+		{
+		cell_growth_factor = std::pow((RMAX/RMIN), 1.0/((double)GlobalNRadial-2.0));
 	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
-		Radii[nRadial] = RMIN * exp((double)(nRadial - 1.0) /
+		const double rad_i_test = RMIN * exp((double)(nRadial - 1.0) /
 					    (double)(GlobalNRadial - 2.0) *
 					    log(RMAX / RMIN));
-	    }
+
+
+		Radii[nRadial] = RMIN * std::pow(cell_growth_factor, (double)nRadial-1.0);
+
+		if(fabs(Radii[nRadial] - rad_i_test)/rad_i_test > 1.e-14)
+		{
+			printf("DEBUG:	Init logarithmic spacing went wrong	at Nr=%d	old=%.5e	new=%.5e\n", nRadial, rad_i_test, Radii[nRadial]);
+			Radii[nRadial] = rad_i_test;
+		}
+
+		assert(fabs(Radii[nRadial] - rad_i_test)/rad_i_test < 1.e-14);
+		}
 	    break;
+		}
 	case parameters::arithmetic_spacing:
-	    interval = (RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
+		{
+		cell_growth_factor = ((double)GlobalNRadial - 2.0) / (RMAX-RMIN);
+		const double interval = (RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
 	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
 		Radii[nRadial] = RMIN + interval * (double)(nRadial - 1.0);
 	    }
 	    break;
+		}
 	case parameters::exponential_spacing:
-	    slope = (.011 * 5. - .01) * 100. / ((double)(GlobalNRadial - 2));
+		{
+		// Don't touch the rest
+		cell_growth_factor = std::pow((RMAX/RMIN), 1.0/((double)GlobalNRadial-2.0));
+
+		first_cell_size = RMIN * (cell_growth_factor - 1.0)* parameters::exponential_cell_size_factor;
+		const double f = (RMAX-RMIN)/first_cell_size;
+		double exp_growth_factor = 1.02;
+		const double Nr = (double)GlobalNRadial - 2.0;
+		for(int i = 0; i < 500000; ++i)
+		{
+			exp_growth_factor = exp_growth_factor - ((std::pow(exp_growth_factor, Nr) - exp_growth_factor*f + f - 1)) /
+					(Nr * std::pow(exp_growth_factor, Nr-1.0) - f);
+		}
+		cell_growth_factor = exp_growth_factor;
 	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
-		Radii[nRadial] =
-		    (RMIN - RMAX) /
-			(exp(slope) -
-			 exp(slope * ((double)GlobalNRadial - 1))) *
-			exp(slope * (double)(nRadial)) +
-		    RMIN -
-		    (RMIN - RMAX) /
-			(1. - exp(slope * ((double)GlobalNRadial - 2)));
+			Radii[nRadial] = RMIN + first_cell_size * (std::pow(exp_growth_factor, (double)nRadial-1.0) - 1.0) / (exp_growth_factor-1.0);
 	    }
 	    break;
+		}
+		case parameters::custom_spacing:
+			break;
 	default:
 	    die("Invalid setting for RadialSpacing");
 	}
     } else {
 	logging::print_master(LOG_INFO "Reading 'radii.dat' file.\n");
+	parameters::radial_grid_type = parameters::custom_spacing;
 	for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
 	    double temp;
 
@@ -122,6 +151,8 @@ void init_radialarrays()
 	    }
 	}
     }
+
+	init_cell_finder(parameters::radial_grid_type, cell_growth_factor, first_cell_size);
 
     /* if input file is open, close it */
     if (fd_input != NULL)

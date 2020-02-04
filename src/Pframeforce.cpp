@@ -17,6 +17,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "find_cell_id.h"
 
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
@@ -229,19 +230,19 @@ double ConstructSequence(double *u, double *v, int n)
     return lapl;
 }
 
+
 void AccreteOntoPlanets(t_data &data, double dt)
 {
     bool masses_changed = false;
     double RRoche, Rplanet, distance, dx, dy, deltaM, angle, temp;
-    int j_min, j_max, j, l, jf, ns, lip, ljp;
-    unsigned int i, i_min, i_max, nr;
+	int j_min, j_max, l, jf, ns, lip, ljp;
+	unsigned int i, i_min, i_max;
     double Xplanet, Yplanet, Mplanet, VXplanet, VYplanet;
     double facc, facc1, facc2, frac1,
 	frac2; /* We adopt the same notations as W. Kley */
     double *dens, *vrad, *vtheta;
     double PxPlanet, PyPlanet, vrcell, vtcell, vxcell, vycell, xc, yc;
     double dPxPlanet, dPyPlanet, dMplanet;
-    nr = data[t_data::DENSITY].Nrad;
     ns = data[t_data::DENSITY].Nsec;
     dens = data[t_data::DENSITY].Field;
     const double* cell_center_x = CellCenterX->Field;
@@ -276,26 +277,29 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	    RRoche = pow((1.0 / 3.0 * Mplanet), (1.0 / 3.0)) * Rplanet;
 
 	    // Central mass is 1.0
-	    i_min = 0;
-	    i_max = nr - 1;
-	    while ((Rsup[i_min] < Rplanet - RRoche) && (i_min < nr))
-		i_min++;
-	    while ((Rinf[i_max] > Rplanet + RRoche) && (i_max > 0))
-		i_max--;
-	    angle = atan2(Yplanet, Xplanet);
-	    j_min =
-		(int)((double)ns / 2.0 / PI * (angle - 2.0 * RRoche / Rplanet));
-	    j_max =
-		(int)((double)ns / 2.0 / PI * (angle + 2.0 * RRoche / Rplanet));
+		// TODO change clamp_r_id_to_radii_grid -> clamp_r_id_to_rmed_grid
+		// TODO change get_rinf_id -> get_rmed_id
+		i_min = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RRoche));
+		i_max = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RRoche)+1);
+
+		angle = atan2(Yplanet, Xplanet);
+		j_min = get_med_azimuthal_id(angle - 2.0 * RRoche / Rplanet);
+		if(j_min < 0) // TODO remove, to be consistent with previous code
+		{
+			j_min++;
+		}
+		j_max = get_med_azimuthal_id(angle + 2.0 * RRoche / Rplanet) + 1;
+
+		int phi_range = j_max - j_min;
+		j_min = clamp_phi_id_to_grid(j_min);
+		j_max = clamp_phi_id_to_grid(j_max);
+
 	    PxPlanet = Mplanet * VXplanet;
 	    PyPlanet = Mplanet * VYplanet;
-	    for (i = i_min; i <= i_max; i++) {
-		for (j = j_min; j <= j_max; j++) {
-		    jf = j;
-		    while (jf < 0)
-			jf += ns;
-		    while (jf >= ns)
-			jf -= ns;
+		for (i = i_min; i < i_max; i++) {
+			jf = j_min;
+		for (int count = 0; count < phi_range; ++count, ++jf) {
+			jf = clamp_phi_id_to_grid(jf);
 		    l = jf + i * ns;
 		    lip = l + ns;
 		    ljp = l + 1;
@@ -311,6 +315,7 @@ void AccreteOntoPlanets(t_data &data, double dt)
 		    vrcell = 0.5 * (vrad[l] + vrad[lip]);
 		    vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
 		    vycell = (vrcell * yc + vtcell * xc) / Rmed[i];
+
 		    if (distance < frac1 * RRoche) {
 			deltaM = facc1 * dens[l] * Surf[i];
 			if (i < Zero_or_active)

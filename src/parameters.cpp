@@ -32,7 +32,9 @@ bool Polytropic = false;
 bool Locally_Isothermal = false;
 
 t_radial_grid radial_grid_type;
-const char *radial_grid_names[] = {"arithmetic", "logarithmic", "exponential"};
+const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential", "custom"};
+double exponential_cell_size_factor;
+
 
 t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;
@@ -262,6 +264,7 @@ void read(char *filename, t_data &data)
     RMIN = config::value_as_double_default("RMIN", 1.0);
     RMAX = config::value_as_double_default("RMAX", 1.0);
 
+	exponential_cell_size_factor = config::value_as_double_default("ExponentialCellSizeFactor", 1.41);
     switch (tolower(
 	*config::value_as_string_default("RadialSpacing", "ARITHMETIC"))) {
     case 'a': // arithmetic
@@ -1158,6 +1161,10 @@ void write_grid_data_to_file()
 	    strncpy(radial_spacing_str, "Exponential", 256);
 	    break;
 	}
+		case (custom_spacing): {
+			strncpy(radial_spacing_str, "Custom", 256);
+			break;
+		}
 	}
 
 	fprintf(
