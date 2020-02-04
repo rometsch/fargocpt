@@ -104,10 +104,10 @@ void find_nearest(unsigned int &n_radial_a_minus,
 		  unsigned int &n_azimuthal_b_plus, const double r,
 		  const double phi)
 {
-	n_radial_a_minus = get_rinf_id(parameters::radial_grid_type, r);
+	n_radial_a_minus = get_rinf_id(r);
 	n_radial_a_plus = n_radial_a_minus + 1;
 
-	n_radial_b_minus = get_rmed_id(parameters::radial_grid_type, r);
+	n_radial_b_minus = get_rmed_id(r);
 	n_radial_b_plus = n_radial_b_minus + 1;
 
 	n_azimuthal_a_minus = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));

@@ -152,7 +152,7 @@ void init_radialarrays()
 	}
     }
 
-	init_cell_finder(parameters::radial_grid_type, cell_growth_factor, first_cell_size);
+	init_cell_finder(cell_growth_factor, first_cell_size);
 
     /* if input file is open, close it */
     if (fd_input != NULL)

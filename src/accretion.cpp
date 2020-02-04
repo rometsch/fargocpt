@@ -17,12 +17,11 @@
 namespace accretion
 {
 	std::tuple<unsigned int,unsigned int> hill_radial_index(const double Rplanet,
-										  const double RHill,
-										  const unsigned int nr) {
+										  const double RHill) {
 		/* Calculate the indeces in radial direction where
 		   the Hill sphere starts and stops */
-		unsigned i_min = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RHill));
-		unsigned i_max = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RHill)+1);
+		unsigned i_min = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet - RHill));
+		unsigned i_max = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet + RHill) + 1);
 		std::tuple<unsigned int, unsigned int> ids(i_min, i_max);
 		return ids;
 	}
@@ -30,8 +29,7 @@ namespace accretion
 
 	std::tuple<int, int> hill_azimuthal_index(const double angle,
 											  const double Rplanet,
-											  const double RHill,
-											  const unsigned int ns) {
+											  const double RHill) {
 		/* Calculate the index in azimuthal direction
 		   where the Hill sphere starts and stops */
 		const int i_min = get_med_azimuthal_id(angle - 2.0 * RHill / Rplanet);
@@ -64,7 +62,6 @@ namespace accretion
 
 	bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt) {
 		bool mass_changed = false;
-		const int nr = data[t_data::DENSITY].Nrad;
 		const int ns = data[t_data::DENSITY].Nsec;
 		double* dens = data[t_data::DENSITY].Field;
 		const double* cell_center_x = CellCenterX->Field;
@@ -93,9 +90,9 @@ namespace accretion
 			const double RHill = planet.get_rhill();
 
 			// calculate range of indeces to iterate over
-			const auto [i_min, i_max] = hill_radial_index(Rplanet, RHill, nr);
+			const auto [i_min, i_max] = hill_radial_index(Rplanet, RHill);
 			const double angle = planet.get_phi();
-			const auto [j_min, j_max] = hill_azimuthal_index(angle, Rplanet, RHill, ns);
+			const auto [j_min, j_max] = hill_azimuthal_index(angle, Rplanet, RHill);
 
 
 			double dMplanet = 0.0;
