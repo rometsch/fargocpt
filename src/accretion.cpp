@@ -82,12 +82,14 @@ namespace accretion
 			// Hereafter : initialization of W. Kley's parameters
 			// remove a ratio of facc = planet.get_acc() of the mass inside the
 			// Hill sphere every free fall time at the Hill radius
-			double facc = dt * planet.get_acc() * planet.get_omega() * sqrt(12.0) /
-				2.0 / PI;
-			double facc1 = 1.0 / 3.0 * facc;
-			double facc2 = 2.0 / 3.0 * facc;
+			double facc = dt * planet.get_acc()
+				* planet.get_omega() * sqrt(12.0)
+				/2.0 / PI;
+			const double facc1 = 1.0 / 3.0 * facc;
+			const double facc2 = 2.0 / 3.0 * facc;
 			const double frac1 = 0.75;
 			const double frac2 = 0.45;
+
 
 			// W. Kley's parameters initialization finished
 			const double Xplanet = planet.get_x();
@@ -101,11 +103,12 @@ namespace accretion
 			const double angle = planet.get_phi();
 			const auto [j_min, j_max] = hill_azimuthal_index(angle, Rplanet, RHill, ns);
 
+
 			double dMplanet = 0.0;
 			double dPxPlanet = 0.0;
 			double dPyPlanet = 0.0;
 
-			for (unsigned int i = i_min; i <= i_max; i++) {
+			for (int i = i_min; i <= i_max; i++) {
 				for (int j = j_min; j <= j_max; j++) {
 					// map azimuthal index to [0, ns]
 					int jf = j;
@@ -138,29 +141,34 @@ namespace accretion
 					// handle accretion zone 1
 					if (distance < frac1 * RHill) {
 						deltaM = facc1 * dens[l] * Surf[i];
-						if (i < Zero_or_active)
+						if (i < One_or_active) {
 							deltaM = 0.0;
-						if (i >= Max_or_active)
+						} else if (i >= Max_or_active) {
 							deltaM = 0.0;
-						dens[l] *= (1.0 - facc1);
-						dPxPlanet += deltaM * vxcell;
-						dPyPlanet += deltaM * vycell;
-						dMplanet += deltaM;
+						} else {
+							dens[l] *= (1.0 - facc1);
+							dPxPlanet += deltaM * vxcell;
+							dPyPlanet += deltaM * vycell;
+							dMplanet += deltaM;
+						}
 					}
 					// handle accretion zone 2
 					if (distance < frac2 * RHill) {
 						deltaM = facc2 * dens[l] * Surf[i];
-						if (i < Zero_or_active)
+						if (i < One_or_active) {
 							deltaM = 0.0;
-						if (i >= Max_or_active)
+						} else if (i >= Max_or_active) {
 							deltaM = 0.0;
-						dens[l] *= (1.0 - facc2);
-						dPxPlanet += deltaM * vxcell;
-						dPyPlanet += deltaM * vycell;
-						dMplanet += deltaM;
+						} else {
+							dens[l] *= (1.0 - facc2);
+							dPxPlanet += deltaM * vxcell;
+							dPyPlanet += deltaM * vycell;
+							dMplanet += deltaM;
+						}
 					}
 				}
 			}
+
 			// MPI reduce
 			double temp;
 			MPI_Allreduce(&dMplanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
@@ -188,12 +196,11 @@ namespace accretion
 		bool masses_changed = false;
 
 		auto &planetary_system = data.get_planetary_system();
-
 		for (unsigned int k = 0; k < planetary_system.get_number_of_planets();
 			 k++) {
 			auto &planet = planetary_system.get_planet(k);
 			const bool changed = AccreteOntoSinglePlanet(data, planet, dt);
-			masses_changed = masses_changed && changed;
+			masses_changed = masses_changed || changed;
 		}
 
 		// update hydro center mass
