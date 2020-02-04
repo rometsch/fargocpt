@@ -157,6 +157,19 @@ double t_planet::get_omega()
 }
 
 /**
+	get hill radius at current planet location
+*/
+double t_planet::get_rhill()
+{
+    const double r = get_r();
+	const double Mp = get_mass();
+	const double Mstar = hydro_center_mass;
+	const double rhill = pow(Mp/(3*Mstar), 1.0/3.0)*r;\
+	return rhill;
+}
+
+
+/**
 	get angular momentum of planet
 */
 double t_planet::get_angular_momentum()
