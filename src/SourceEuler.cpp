@@ -15,6 +15,7 @@
 #include <string.h>
 #include <vector>
 
+#include "accretion.h"
 #include "LowTasks.h"
 #include "Pframeforce.h"
 #include "SideEuler.h"
@@ -575,7 +576,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			      MPI_COMM_WORLD);
 		dt = (DT - dtemp) / global_gas_time_step_cfl;
 	    }
-	    AccreteOntoPlanets(data, dt);
+		accretion::AccreteOntoPlanets(data, dt);
 	}
     }
 
