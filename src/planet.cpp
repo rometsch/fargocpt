@@ -140,7 +140,7 @@ double t_planet::get_period()
 {
     return 2.0 * PI *
 	   sqrt(pow3(get_semi_major_axis()) /
-		((M + get_mass()) * constants::G));
+		((hydro_center_mass + get_mass()) * constants::G));
 }
 
 /**
@@ -150,7 +150,7 @@ double t_planet::get_omega()
 {
     double distance = get_r();
     if (!is_distance_zero(distance)) {
-	return sqrt(((M + get_mass()) * constants::G) / pow3(distance));
+	return sqrt(((hydro_center_mass + get_mass()) * constants::G) / pow3(distance));
     } else {
 	return 0.0;
     }
