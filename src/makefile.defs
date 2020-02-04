@@ -31,7 +31,7 @@ CFLAGS := $(CFLAGS_$(FARGO_ARCH))
 ifeq "$(FARGO_DEBUG)" "1"
 	CFLAGS += -g -O0
 else
-	CFLAGS += $(OPTIMIZATION) #-DNDEBUG
+	CFLAGS += $(OPTIMIZATION) -DNDEBUG
 endif
 
 # C++ Flags

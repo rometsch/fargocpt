@@ -118,12 +118,12 @@ Nsec			384 #1536 384		# Azimuthal number of
 # zones (sectors)
 Rmin			0.4		# Inner boundary radius
 Rmax			2.5		# Outer boundary radius
-RadialSpacing 		Arithmetic		# Logarithmic or ARITHMETIC or Exponential
+RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC or Exponential
 ExponentialCellSizeFactor 1.41      # Scaling used on the size of the first cell in the logarithmic grid used to build an exponential grid
 
 ### Output control parameters
 
-Ntot			4		# Total number of time steps
+Ntot			2		# Total number of time steps
 Ninterm	 		1		# Time steps between outputs
 DT			0.628	# Time step length. 2PI = 1 orbit
 OutputDir		out/
@@ -176,7 +176,7 @@ FeatureSize		0.05		# Feature size of the open somplex algorithm
 IntegrateParticles	YES     # enable particle integrator [default = no]	
 CartesianParticles	YES     # enable particle integrator [default = no]	
 ParticleIntegrator  explicit
-NumberOfParticles	100002      # number of particles [default = 0]
+NumberOfParticles	1002      # number of particles [default = 0]
 ParticleRadius		1e3   # particle radius in cm [default = 100]
 ParticleEccentricity 0.03 # particle maximum Eccentricity
 ParticleDensity		2.65   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
