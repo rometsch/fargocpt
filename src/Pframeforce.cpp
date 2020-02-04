@@ -230,19 +230,19 @@ double ConstructSequence(double *u, double *v, int n)
     return lapl;
 }
 
+
 void AccreteOntoPlanets(t_data &data, double dt)
 {
     bool masses_changed = false;
     double RRoche, Rplanet, distance, dx, dy, deltaM, angle, temp;
-    int j_min, j_max, j, l, jf, ns, lip, ljp;
-    unsigned int i, i_min, i_max, nr;
+	int j_min, j_max, l, jf, ns, lip, ljp;
+	unsigned int i, i_min, i_max;
     double Xplanet, Yplanet, Mplanet, VXplanet, VYplanet;
     double facc, facc1, facc2, frac1,
 	frac2; /* We adopt the same notations as W. Kley */
     double *dens, *vrad, *vtheta;
     double PxPlanet, PyPlanet, vrcell, vtcell, vxcell, vycell, xc, yc;
     double dPxPlanet, dPyPlanet, dMplanet;
-    nr = data[t_data::DENSITY].Nrad;
     ns = data[t_data::DENSITY].Nsec;
     dens = data[t_data::DENSITY].Field;
     const double* cell_center_x = CellCenterX->Field;
@@ -279,15 +279,16 @@ void AccreteOntoPlanets(t_data &data, double dt)
 	    // Central mass is 1.0
 		// TODO change clamp_r_id_to_radii_grid -> clamp_r_id_to_rmed_grid
 		// TODO change get_rinf_id -> get_rmed_id
-		unsigned int i_min = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RRoche));
-		unsigned int i_max = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RRoche)+1);
+		i_min = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet - RRoche));
+		i_max = clamp_r_id_to_radii_grid(get_rinf_id(parameters::radial_grid_type, Rplanet + RRoche)+1);
 
-		int j_min = get_med_azimuthal_id(angle - 2.0 * RRoche / Rplanet);
+		angle = atan2(Yplanet, Xplanet);
+		j_min = get_med_azimuthal_id(angle - 2.0 * RRoche / Rplanet);
 		if(j_min < 0) // TODO remove, to be consistent with previous code
 		{
 			j_min++;
 		}
-		int j_max = get_med_azimuthal_id(angle + 2.0 * RRoche / Rplanet) + 1;
+		j_max = get_med_azimuthal_id(angle + 2.0 * RRoche / Rplanet) + 1;
 
 		int phi_range = j_max - j_min;
 		j_min = clamp_phi_id_to_grid(j_min);

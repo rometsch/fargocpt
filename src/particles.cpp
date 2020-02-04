@@ -325,7 +325,7 @@ static void init_particle_timestep(t_data &data)
     }
 }
 
-static void correct_for_self_gravity(t_data &data, const unsigned int i)
+static void correct_for_self_gravity(const unsigned int i)
 {
 
     const double r = particles[i].get_distance_to_star();
@@ -567,7 +567,7 @@ void init(t_data &data)
 
     if (parameters::particle_disk_gravity_enabled) {
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-	    correct_for_self_gravity(data, i);
+		correct_for_self_gravity(i);
 	}
     }
     check_tstop(data);
