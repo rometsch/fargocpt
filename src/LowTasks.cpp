@@ -46,11 +46,10 @@ void MultiplyPolarGridbyConstant(t_polargrid *arraysrc, double constant)
 
 static void die_builtin(const char *err, va_list params)
 {
-    char msg[1024];
-    vsnprintf(msg, sizeof(msg), err, params);
-    fprintf(stderr, "fatal: %s\n", msg);
-    MPI_Finalize();
-    exit(128);
+	char msg[1024];
+	vsnprintf(msg, sizeof(msg), err, params);
+	fprintf(stderr, "fatal: %s\n", msg);
+	PersonalExit(128);
 }
 
 void die(const char *err, ...)
