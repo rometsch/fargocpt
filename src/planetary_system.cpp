@@ -104,7 +104,7 @@ void t_planetary_system::read_from_file(char *filename)
 
 	// read line by line
 	while (fgets(buffer, sizeof(buffer), fd) != NULL) {
-	    char name[80], feeldisk[5], feelother[5], irradiate[5];
+		char name[256], feeldisk[8], feelother[8], irradiate[8];
 	    double semi_major_axis, mass, acc, eccentricity = 0.0, temperature,
 					       radius, phi, rampuptime;
 	    int num_args;
@@ -115,7 +115,7 @@ void t_planetary_system::read_from_file(char *filename)
 
 	    // try to cut line into pieces
 	    num_args = sscanf(
-		buffer, "%80s %lf %lf %lf %5s %5s %lf %lf %lf %5s %lf %lf",
+		buffer, "%255s %lf %lf %lf %7s %7s %lf %lf %lf %7s %lf %lf",
 		name, &semi_major_axis, &mass, &acc, feeldisk, feelother,
 		&eccentricity, &radius, &temperature, irradiate, &phi,
 		&rampuptime);
