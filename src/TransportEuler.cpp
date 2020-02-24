@@ -523,13 +523,13 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 						varq_inf, nRadial);
 		    }
 		} else if (CPU_Rank == CPU_Highest &&
-			   nRadial == Qbase->get_max_radial()) {
-		    if (varq_inf > 0) {
+			   nRadial == Qbase->get_max_radial()-1) {
+			if (varq_sup > 0) {
 			sum_without_ghost_cells(MassDelta.OuterNegative,
-						-varq_inf, nRadial);
+						varq_sup, nRadial);
 		    } else {
 			sum_without_ghost_cells(MassDelta.OuterPositive,
-						-varq_inf, nRadial);
+						varq_sup, nRadial);
 		    }
 		}
 		if (parameters::write_massflow) {
