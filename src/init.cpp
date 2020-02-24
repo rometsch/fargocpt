@@ -84,20 +84,8 @@ void init_radialarrays()
 		{
 		cell_growth_factor = std::pow((RMAX/RMIN), 1.0/((double)GlobalNRadial-2.0));
 	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
-		const double rad_i_test = RMIN * exp((double)(nRadial - 1.0) /
-					    (double)(GlobalNRadial - 2.0) *
-					    log(RMAX / RMIN));
-
 
 		Radii[nRadial] = RMIN * std::pow(cell_growth_factor, (double)nRadial-1.0);
-
-		if(fabs(Radii[nRadial] - rad_i_test)/rad_i_test > 1.e-14)
-		{
-			printf("DEBUG:	Init logarithmic spacing went wrong	at Nr=%d	old=%.5e	new=%.5e\n", nRadial, rad_i_test, Radii[nRadial]);
-			Radii[nRadial] = rad_i_test;
-		}
-
-		assert(fabs(Radii[nRadial] - rad_i_test)/rad_i_test < 1.e-14);
 		}
 	    break;
 		}
