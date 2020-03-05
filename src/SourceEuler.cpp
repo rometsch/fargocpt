@@ -1301,18 +1301,15 @@ void calculate_qminus(t_data &data)
 		    1.0 /
 			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
 
-		// effective temperature: T_eff^4 tau_eff = T^4
-		// temperatureEff = (*Temperature)(n_radial,
-		// n_azimuthal)/(pow(tauEff,1.0/4.0));
 
-		// Q = 2 sigma_R T_eff^4
-		//(*Qminus)(n_radial, n_azimuthal) =
-		// 2*(constants::sigma.get_code_value())*pow(temperatureEff,4);
-		double qminus =
-		    parameters::cooling_radiative_factor * 2 *
-		    (constants::sigma.get_code_value()) *
-		    pow4(data[t_data::TEMPERATURE](n_radial, n_azimuthal)) /
-		    data[t_data::TAU_EFF](n_radial, n_azimuthal);
+		// Q = factor 2 sigma_sb T^4 / tau_eff
+
+		const double factor = parameters::cooling_radiative_factor;
+		const double sigma_sb = constants::sigma.get_code_value();
+		const double T4 = pow4(data[t_data::TEMPERATURE](n_radial, n_azimuthal));
+		const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
+
+		const double qminus = factor * 2 * sigma_sb * T4 / tau_eff;
 
 		data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
 	    }
@@ -1392,29 +1389,33 @@ void SubStep3(t_data &data, double dt)
 
 	    // TWAM original with H/R = initial:
 	    // const double alpha = 1.0 + 2.0 *
-	    // ASPECTRATIO*pow(Rmed[n_radial],1+FLARINGINDEX)*4.0
+	    // ASPECTRATIO_REF*pow(Rmed[n_radial],1+FLARINGINDEX)*4.0
 	    // 	*constants::sigma/constants::c
 	    // 	/pow4((constants::R/parameters::MU)/(ADIABATICINDEX-1.0)*data[t_data::DENSITY](n_radial,
 	    // n_azimuthal)) 	*pow3(data[t_data::ENERGY_INT](n_radial,
 	    // n_azimuthal));
+	    
+		const double sigma_sb = constants::sigma;
+		const double c = constants::c;
+		const double mu = parameters::MU;
+		const double gamma = ADIABATICINDEX;
+		const double Rgas = constants::R;
 
-	    const double R = Rmed[n_radial];
-	    const double H =
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * R;
+		const double R = Rmed[n_radial];
+		const double h = data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
+	    const double H = h*R;
+		
+		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+		const double eint = data[t_data::ENERGY_INT](n_radial, n_azimuthal);
+		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
+		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
+		const double divV = data[t_data::DIV_V](n_radial, n_azimuthal);
 
-	    const double inv_pow4 = pow4(
-		(parameters::MU * (ADIABATICINDEX - 1.0)) /
-		(constants::R * data[t_data::DENSITY](n_radial, n_azimuthal)));
-	    const double pow3_eint =
-		pow3(data[t_data::ENERGY_INT](n_radial, n_azimuthal));
-	    double alpha = 1.0 + 2.0 * H * 4.0 * constants::sigma /
-				     constants::c * inv_pow4 * pow3_eint;
+	    const double inv_pow4 = pow4( mu * (gamma - 1.0) / (Rgas * sigma));
+	    double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * pow3(eint);
 
-	    num = dt * data[t_data::QPLUS](n_radial, n_azimuthal) -
-		  dt * data[t_data::QMINUS](n_radial, n_azimuthal) +
-		  alpha * data[t_data::ENERGY_INT](n_radial, n_azimuthal);
-	    den = alpha + (ADIABATICINDEX - 1.0) * dt *
-			      data[t_data::DIV_V](n_radial, n_azimuthal);
+	    num = dt * qplus - dt * qminus + alpha * eint;
+	    den = alpha + (gamma - 1.0) * dt * divV;
 
 	    data[t_data::ENERGY_NEW](n_radial, n_azimuthal) = num / den;
 	}
@@ -2147,17 +2148,6 @@ void compute_sound_speed(t_data &data, bool force_update)
 	     n_azimuthal <= data[t_data::SOUNDSPEED].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic) {
-		/*if
-		((ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,
-		n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)) < 0)
-		{ logging::print("SoundSpeed calc: %g < 0! density=%g energy=%g
-		in cell
-		(%u,%u)\n",(ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,
-		n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)),
-		data[t_data::DENSITY](n_radial, n_azimuthal),
-		data[t_data::ENERGY](n_radial, n_azimuthal), n_radial,
-		n_azimuthal);
-		}*/
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
 		    sqrt(ADIABATICINDEX * (ADIABATICINDEX - 1.0) *
 			 data[t_data::ENERGY](n_radial, n_azimuthal) /
