@@ -579,7 +579,8 @@ void init_gas_energy(t_data &data)
 	    units::energy.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
 	    -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
-	    parameters::MU / constants::R * pow2(ASPECTRATIO_REF) *
+	    parameters::MU / constants::R * pow2(ASPECTRATIO_REF) 
+		* constants::G * hydro_center_mass *
 		units::temperature.get_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
@@ -590,11 +591,11 @@ void init_gas_energy(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-
 		const double energy =
 		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
 		    pow2(ASPECTRATIO_REF) *
-		    pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+		    pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX)
+			* constants::G * hydro_center_mass;
 		const double temperature_floor =
 		    parameters::minimum_temperature *
 		    units::temperature.get_inverse_cgs_factor();
