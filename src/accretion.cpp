@@ -73,16 +73,13 @@ namespace accretion
 			// Hereafter : initialization of W. Kley's parameters
 			// remove a ratio of facc = planet.get_acc() of the mass inside the
 			// Hill sphere every free fall time at the Hill radius
-			double facc = dt * planet.get_acc()
-				* planet.get_omega() * sqrt(12.0)
-				/2.0 / PI;
+			const double facc = dt * planet.get_acc() * planet.get_omega();			
 			const double facc1 = 1.0 / 3.0 * facc;
 			const double facc2 = 2.0 / 3.0 * facc;
-			const double frac1 = 0.75;
-			const double frac2 = 0.45;
-
-
+			const double frac1 = 0.5;
+			const double frac2 = 0.25;
 			// W. Kley's parameters initialization finished
+			
 			const double Xplanet = planet.get_x();
 			const double Yplanet = planet.get_y();
 
