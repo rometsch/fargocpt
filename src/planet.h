@@ -120,14 +120,7 @@ class t_planet
     {
 	return m_nbody_on_planet_acceleration;
     }
-    inline double get_nbody_on_planet_acceleration_x(void) const
-    {
-	return m_nbody_on_planet_acceleration.x;
-    }
-    inline double get_nbody_on_planet_acceleration_y(void) const
-    {
-	return m_nbody_on_planet_acceleration.y;
-    }
+
 
     inline double get_semi_major_axis() const { return m_semi_major_axis; }
     inline double get_eccentricity() const { return m_eccentricity; }
