@@ -1,3 +1,7 @@
+# content of build folder
+build/*
+src/build/
+
 # Prerequisites
 *__pycache__
 *.d
