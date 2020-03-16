@@ -609,19 +609,18 @@ void t_planetary_system::move_to_hydro_frame_center()
  */
 void t_planetary_system::calculate_orbital_elements()
 {
-    if (get_number_of_planets() == 1) {
-	get_planet(0).set_orbital_elements_zero();
-	return;
-    }
     double x, y, vx, vy, M;
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
-	unsigned int n_center = i;
-	if (i <= 1)
-	    n_center = 2;
-	Pair com_pos = get_center_of_mass(n_center);
-	Pair com_vel = get_center_of_mass_velocity(n_center);
-	M = get_mass(n_center);
+	if (i == 0) {
+		get_planet(0).set_orbital_elements_zero();
+		continue;
+	}
+
+	Pair com_pos = get_center_of_mass(i);
+	Pair com_vel = get_center_of_mass_velocity(i);
+
+	M = get_mass(i);
 	x = planet.get_x() - com_pos.x;
 	y = planet.get_y() - com_pos.y;
 	vx = planet.get_vx() - com_vel.x;
