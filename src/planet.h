@@ -152,6 +152,7 @@ class t_planet
     void restart(unsigned int timestep);
     double get_value_from_file(unsigned int timestep,
 			       std::string variable_name);
+	~t_planet();
 };
 
 #endif // PLANET_H

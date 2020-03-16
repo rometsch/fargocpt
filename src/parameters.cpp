@@ -371,7 +371,7 @@ void read(char *filename, t_data &data)
     if (config::key_exists("WriteLightCurvesRadii")) {
 	// get light curves radii string
 	char *lightcurves_radii_string =
-	    new char[strlen(config::value_as_string("WriteLightCurvesRadii"))];
+	    new char[strlen(config::value_as_string("WriteLightCurvesRadii"))+1];
 	strcpy(lightcurves_radii_string,
 	       config::value_as_string("WriteLightCurvesRadii"));
 

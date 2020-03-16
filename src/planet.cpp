@@ -92,6 +92,13 @@ const std::map<const std::string, const std::string> variable_units = {
     {"omega", "frequency"},
     {"omega kepler", "frequency"}};
 
+
+
+t_planet::~t_planet()
+{
+	delete[] m_name;
+}
+
 /**
 	set name of planet
 */
