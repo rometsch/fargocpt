@@ -161,9 +161,10 @@ void t_planetary_system::read_from_file(char *filename)
 		initialize_planet_legacy(planet, mass, semi_major_axis,
 					 eccentricity, phi);
 	    } else {
-		// planets starts at Apastron
-		double nu = PI;
-		double pericenter_angle = PI;
+		// planets starts at Periastron
+		double nu = 0.0;
+
+		double pericenter_angle = phi;
 		if (get_number_of_planets() < 2) {
 		    initialize_planet_jacobi_adjust_first_two(
 			planet, mass, semi_major_axis, eccentricity,

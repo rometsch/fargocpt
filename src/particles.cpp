@@ -46,7 +46,7 @@ static MPI_Datatype mpi_particle;
 
 // inverse of the Cumulative distribution function for a slope proportional to
 // r^n
-static double f(double x, double n)
+static double power_law_distribution(double x, double n)
 {
     double rmin = parameters::particle_minimum_radius;
     double rmax = parameters::particle_maximum_radius;
@@ -85,7 +85,7 @@ static double check_angle(double &phi)
     }
 }
 
-static void transformCartCyl(double *cart, double *cyl, double r, double phi)
+static void transform_cart_to_cyl(const double * const cart, double * const cyl, const double r, const double phi)
 {
     (void)r;
     cyl[0] = cart[0] * cos(phi);
@@ -383,7 +383,7 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 	      std::uniform_real_distribution<double> &dis_twoPi,
 	      std::uniform_real_distribution<double> &dis_eccentricity)
 {
-    double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
+	double semi_major_axis = power_law_distribution(dis_one(generator), parameters::particle_slope);
     double phi = dis_twoPi(generator);
     double eccentricity = dis_eccentricity(generator);
 
@@ -837,7 +837,7 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 	acart[1] += -constants::G * planet_mass * y_dist / (dist * dist2);
     }
 
-    transformCartCyl(acart, acyl, r, phi);
+	transform_cart_to_cyl(acart, acyl, r, phi);
     grav_r_ddot = acyl[0];
     minus_grav_l_dot = acyl[1] * r;
 }
