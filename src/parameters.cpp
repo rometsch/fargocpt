@@ -753,7 +753,8 @@ void read(char *filename, t_data &data)
     particle_eccentricity =
 	config::value_as_double_default("ParticleEccentricity", 0.0);
     particle_density = config::value_as_double_default("ParticleDensity", 2.65);
-    particle_slope = config::value_as_double_default("ParticleSlope", 0.0);
+	particle_slope = config::value_as_double_default("ParticleSurfaceDensitySlope", 0.0);
+	particle_slope += 1.0;
     particle_minimum_radius =
 	config::value_as_double_default("ParticleMinimumRadius", RMIN);
     particle_maximum_radius =

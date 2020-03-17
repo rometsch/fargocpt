@@ -176,11 +176,11 @@ FeatureSize		0.05		# Feature size of the open somplex algorithm
 IntegrateParticles	YES     # enable particle integrator [default = no]	
 CartesianParticles	YES     # enable particle integrator [default = no]	
 ParticleIntegrator  explicit
-NumberOfParticles	1002      # number of particles [default = 0]
+NumberOfParticles	10002      # number of particles [default = 0]
 ParticleRadius		1e3   # particle radius in cm [default = 100]
 ParticleEccentricity 0.03 # particle maximum Eccentricity
 ParticleDensity		2.65   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
-ParticleSlope		0      # [default = 0]
+ParticleSurfaceDensitySlope		0      # [default = 0]
 ParticleMinimumRadius	0.4  # [default = RMIN]
 ParticleMaximumRadius	2.5  # [default = RMAX]
 ParticleMinimumEscapeRadius 0.4 # [default = ParticleMinimumRadius]
