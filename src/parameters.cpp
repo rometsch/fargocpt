@@ -753,8 +753,9 @@ void read(char *filename, t_data &data)
     particle_eccentricity =
 	config::value_as_double_default("ParticleEccentricity", 0.0);
     particle_density = config::value_as_double_default("ParticleDensity", 2.65);
-	particle_slope = config::value_as_double_default("ParticleSurfaceDensitySlope", 0.0);
-	particle_slope += 1.0;
+	particle_slope = config::value_as_double_default("ParticleSurfaceDensitySlope", SIGMASLOPE);
+	particle_slope = -particle_slope; // particle distribution scales with  r^slope, so we introduces the minus here to make it r^-slope (same as for gas)
+	particle_slope += 1.0; // particles are distributed over a whole simulation ring which introduces a factor 1/r for the particle surface density
     particle_minimum_radius =
 	config::value_as_double_default("ParticleMinimumRadius", RMIN);
     particle_maximum_radius =

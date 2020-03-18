@@ -1176,7 +1176,7 @@ void check_tstop(t_data &data)
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!");
-	    PersonalExit(1);
+		PersonalExit(1);
 	}
 
 	if (tstop < 0.005 * dt && parameters::particle_gas_drag_enabled &&
@@ -1184,7 +1184,7 @@ void check_tstop(t_data &data)
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!");
-	    PersonalExit(1);
+		PersonalExit(1);
 	}
     }
 }

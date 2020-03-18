@@ -108,7 +108,7 @@ static void init_cell_finder_custom(const double cell_growth_factor, const doubl
 }
 
 
-static void rmed_id_error_check(const double r, const int id)
+static void rmed_id_error_check(const double r, int &id)
 {
 #ifndef NDEBUG
 	if(id >= 0)
@@ -146,12 +146,17 @@ static void rmed_id_error_check(const double r, const int id)
 		}
 	}
 #else
-			(void) r;
-			(void) id;
+	(void) r;
+
+	// clamp id to domain
+	if(id < 0)
+		id = 0;
+	if(id > (int)NRadial-1)
+		id = NRadial-1;
 #endif // DEBUG
 }
 
-static void rinf_id_error_check(const double r, const int id)
+static void rinf_id_error_check(const double r, int &id)
 {
 #ifndef NDEBUG
 	if(id >= 0 && id <= (int)NRadial)
@@ -190,7 +195,12 @@ static void rinf_id_error_check(const double r, const int id)
 	}
 #else
 	(void) r;
-	(void) id;
+
+	// clamp id to domain
+	if(id < 0)
+		id = 0;
+	if(id > (int)NRadial-1)
+		id = NRadial-1;
 #endif // DEBUG
 }
 

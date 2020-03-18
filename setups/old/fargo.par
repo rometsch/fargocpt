@@ -1,7 +1,7 @@
 ## Disk parameters
 
 Sigma0			1890.6732476597317		# surface density at r=1 in g/cm^2
-SigmaSlope		0.0		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+SigmaSlope		0.5		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
 DiscMass		0.5		# only used when SetSigma0 = true [default = 0.01]
 SigmaFloor		1e-9		# floor surface density in multiples of sigma0 [default = 1e-9]
@@ -175,12 +175,12 @@ FeatureSize		0.05		# Feature size of the open somplex algorithm
 ## particles
 IntegrateParticles	YES     # enable particle integrator [default = no]	
 CartesianParticles	YES     # enable particle integrator [default = no]	
-ParticleIntegrator  explicit
-NumberOfParticles	10002      # number of particles [default = 0]
-ParticleRadius		1e3   # particle radius in cm [default = 100]
+ParticleIntegrator  Adaptive # Explicit, Adaptive, Semiimplicit and Implicit
+NumberOfParticles	400002      # number of particles [default = 0]
+ParticleRadius		1e5   # particle radius in cm [default = 100]
 ParticleEccentricity 0.03 # particle maximum Eccentricity
 ParticleDensity		2.65   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
-ParticleSurfaceDensitySlope		0      # [default = 0]
+ParticleSurfaceDensitySlope		0.5      # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
 ParticleMinimumRadius	0.4  # [default = RMIN]
 ParticleMaximumRadius	2.5  # [default = RMAX]
 ParticleMinimumEscapeRadius 0.4 # [default = ParticleMinimumRadius]
