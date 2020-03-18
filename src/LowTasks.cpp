@@ -18,7 +18,6 @@
 void PersonalExit(int returncode)
 {
     std::flush(std::cout);
-    MPI_Barrier(MPI_COMM_WORLD);
     if (returncode != 0) {
 	MPI_Abort(MPI_COMM_WORLD, returncode);
     }
