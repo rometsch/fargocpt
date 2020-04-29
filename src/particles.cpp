@@ -1275,9 +1275,9 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 
 	// calculate gas velocities in cartesian coordinates
 	double vg_x =
-	    cos(phi) * vg_radial - sin(phi) * (vg_azimuthal + OmegaFrame * r);
+		cos(phi) * vg_radial - sin(phi) * vg_azimuthal;
 	double vg_y =
-	    sin(phi) * vg_radial + cos(phi) * (vg_azimuthal + OmegaFrame * r);
+		sin(phi) * vg_radial + cos(phi) * vg_azimuthal;
 
 	// particles store cartesian data
 	double &vx = particles[i].r_dot;
@@ -1374,7 +1374,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	// calculate relative velocities
 	const double vrel_r = particles[i].r_dot - vg_radial;
 	const double vrel_phi =
-	    r * (particles[i].phi_dot - OmegaFrame) - vg_azimuthal;
+		r * particles[i].phi_dot - vg_azimuthal;
 	const double vrel = sqrt(pow2(vrel_r) + pow2(vrel_phi));
 
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
