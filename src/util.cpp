@@ -42,14 +42,3 @@ bool is_distance_zero(double x)
     // this is zero for astonomical scales
     return x * x < 1e-26;
 }
-
-// Taken from
-// https://stackoverflow.com/questions/5820810/case-insensitive-string-comp-in-c
-int strcicmp(char const *a, char const *b)
-{
-    for (;; a++, b++) {
-	int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
-	if (d != 0 || !*a)
-	    return d;
-    }
-}
