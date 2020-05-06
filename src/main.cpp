@@ -131,13 +131,12 @@ int main(int argc, char *argv[])
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
 
     init_radialarrays();
-    force = AllocateForce(dimfxy);
+	force = AllocateForce(dimfxy);
 
-    // Here planets are initialized feeling star potential but they do not feel
-    // disk potential
-    data.get_planetary_system().read_from_file(PLANETCONFIG);
+	// Here planets are initialized feeling star potential
+	data.get_planetary_system().read_from_file(PLANETCONFIG);
+	logging::print_master(LOG_INFO "planets loaded.\n");
 
-    logging::print_master(LOG_INFO "planets initialised.\n");
 
     if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
 	(Corotating == YES)) {
@@ -148,6 +147,13 @@ int main(int argc, char *argv[])
     }
 
     init_physics(data);
+
+	// update planet velocity due to disk potential
+	if (parameters::disk_feedback) {
+		ComputeDiskOnNbodyAccel(force, data);
+	}
+	data.get_planetary_system().correct_velocity_for_disk_accel();
+	logging::print_master(LOG_INFO "planets initialised.\n");
 
     if (parameters::integrate_particles) {
 	particles::init(data);

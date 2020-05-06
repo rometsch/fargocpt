@@ -263,7 +263,6 @@ void init_physics(t_data &data)
 	// radial self-gravity acceleration. The disk radial and azimutal
 	// velocities are not updated
 	selfgravity::init(data);
-	selfgravity::init_planetary_system(data);
 	logging::print_master(LOG_INFO "sg initialised\n");
     }
 

@@ -586,48 +586,4 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
     free(GLOBAL_AxiSGAccr);
 }
 
-void init_planetary_system(t_data &data)
-{
-    int ipl;
-    double dist, ri, rip1, dr, sgacc;
-
-    double *GLOBAL_AxiSGAccr = (double *)malloc(sizeof(double) * GlobalNRadial);
-
-    mpi_make1Dprofile(g_radial, GLOBAL_AxiSGAccr);
-
-    // Planetary system initialization in self-gravity cases: planets are put in
-    // a fixed circular orbit, we need to know radial sg acceleration felt by
-    // planets
-
-    for (unsigned int k = 0;
-	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
-	/* dist denotes the planet's semi-major axis */
-	if (parameters::disk_feedback) {
-	    dist =
-		data.get_planetary_system().get_planet(k).get_semi_major_axis();
-	    // TODO remove quick&dirty solution and think about it
-
-	    if (dist < RMAX) {
-		ipl = 0;
-		while (GlobalRmed[ipl] <= dist)
-		    ipl++;
-		ri = GlobalRmed[ipl-1];
-		rip1 = GlobalRmed[ipl];
-		dr = rip1 - ri;
-		sgacc = (dist - ri) * GLOBAL_AxiSGAccr[ipl + 1] +
-			(rip1 - dist) * GLOBAL_AxiSGAccr[ipl];
-		sgacc /= dr;
-		/* sgacc is the radial sg acc. at the planet's semi-major axis
-		 */
-		double new_vy =
-		    data.get_planetary_system().get_planet(k).get_vy() *
-		    (double)sqrt(1. - dist * dist * sgacc);
-		data.get_planetary_system().get_planet(k).set_vy(new_vy);
-	    }
-	}
-    }
-
-    free(GLOBAL_AxiSGAccr);
-}
-
 } // namespace selfgravity
