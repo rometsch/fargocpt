@@ -696,18 +696,34 @@ void t_planetary_system::correct_velocity_for_disk_accel()
 
 	for (unsigned int k = 0; k < get_number_of_planets(); k++) {
 
+		/*
+		 * from centrifugal balance folows
+		 * v_new**2 / r = a_disk + v_old**2 / r
+		 * v_new = sqrt(v_old**2 - r * a_disk)
+		 */
 		t_planet &planet = get_planet(k);
 
 		const Pair gas_accel = planet.get_disk_on_planet_acceleration();
 		const double vx_old = planet.get_vx();
 		const double vy_old = planet.get_vy();
 		const double v_old = std::sqrt(std::pow(vx_old, 2.0) + std::pow(vy_old, 2.0));
-		const double r = planet.get_r();
+
+		if(v_old == 0.0)
+		{
+			continue;
+		}
+
 		const double x = planet.get_x();
 		const double y = planet.get_y();
-		const double a_gas = gas_accel.x * x / r + gas_accel.y * y / r;
+		const double specific_torque_gas = gas_accel.x * x + gas_accel.y * y; // = a_disk * r
 
-		const double v_new = std::sqrt(std::pow(v_old, 2.0) - r * a_gas);
+		if(specific_torque_gas > std::pow(v_old, 2.0))
+		{
+			continue;
+		}
+
+		const double v_new = std::sqrt(std::pow(v_old, 2.0) - specific_torque_gas);
+
 		const double new_vx = v_new / v_old * vx_old;
 		const double new_vy = v_new / v_old * vy_old;
 
