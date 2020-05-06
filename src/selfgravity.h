@@ -25,8 +25,6 @@ void update_velocities(t_polargrid &v_radial, t_polargrid &v_azimuthal,
 		       double dt);
 
 void init_azimuthal_velocity(t_polargrid &v_azimuthal);
-void init_planetary_system(t_data &data);
-
 } // namespace selfgravity
 
 #endif // SELFGRAVITY_H
