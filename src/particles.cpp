@@ -85,6 +85,13 @@ static double check_angle(double &phi)
     }
 }
 
+
+static double corret_v_gas_azimuthal_omega_frame(const double v_az_gas, const double r_particle)
+{
+	const double v_az_corrected = v_az_gas + r_particle * OmegaFrame;
+	return v_az_corrected;
+}
+
 static void transform_cart_to_cyl(const double * const cart, double * const cyl, const double r, const double phi)
 {
     (void)r;
@@ -416,19 +423,22 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
     particles[i].radius = parameters::particle_radius;
 
     if (true) {
-	const int particle_type = i % 4; // 4 different particle sizes
+	const int particle_type = i % 5; // 4 different particle sizes
 	switch (particle_type) {
 	case 0: // very small particles
 	    particles[i].radius *= 1.0;
 	    break;
 	case 1: // small particles
-	    particles[i].radius *= 5.0;
+	    particles[i].radius *= 1e1;
 	    break;
 	case 2: // medium particles
-	    particles[i].radius *= 10.0;
+	    particles[i].radius *= 1e2;
 	    break;
 	case 3: // very large particles
-	    particles[i].radius *= 50.0;
+	    particles[i].radius *= 1e3;
+		break;
+	case 4: // very large particles
+	    particles[i].radius *= 1e4;
 	    break;
 	}
     }
@@ -935,9 +945,10 @@ static void calculate_tstop(const double r, const double phi,
     const double vg_radial = interpolate_bilinear(
 	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
 	n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-    const double vg_azimuthal = interpolate_bilinear(
-	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
 	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (PI * m0));
@@ -945,6 +956,7 @@ static void calculate_tstop(const double r, const double phi,
     // calculate relative velocities
     minus_r_dotel_r = vg_radial - r_dot;
     const double vrel_phi = vg_azimuthal - phi_dot * r;
+
     minus_l_rel = r * vrel_phi;
 
     const double vrel = sqrt(pow2(minus_r_dotel_r) + pow2(vrel_phi));
@@ -1019,9 +1031,10 @@ static void calculate_tstop2(const double r, const double phi,
     const double vg_radial = interpolate_bilinear(
 	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
 	n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
-    const double vg_azimuthal = interpolate_bilinear(
-	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r_tmp, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
 	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (PI * m0));
@@ -1120,9 +1133,10 @@ void check_tstop(t_data &data)
 	const double vg_radial = interpolate_bilinear(
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	const double vg_azimuthal = interpolate_bilinear(
+	const double vg_azimuthal_temp = interpolate_bilinear(
 	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
 	const double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
 				     temperature / (PI * m0));
@@ -1251,18 +1265,19 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	double vg_radial = interpolate_bilinear(
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	double vg_azimuthal = interpolate_bilinear(
-	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	double temperature = interpolate_bilinear(
 	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
 	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate gas velocities in cartesian coordinates
 	double vg_x =
-	    cos(phi) * vg_radial - sin(phi) * (vg_azimuthal + OmegaFrame * r);
+		cos(phi) * vg_radial - sin(phi) * vg_azimuthal;
 	double vg_y =
-	    sin(phi) * vg_radial + cos(phi) * (vg_azimuthal + OmegaFrame * r);
+		sin(phi) * vg_radial + cos(phi) * vg_azimuthal;
 
 	// particles store cartesian data
 	double &vx = particles[i].r_dot;
@@ -1348,9 +1363,10 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	const double vg_radial = interpolate_bilinear(
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	const double vg_azimuthal = interpolate_bilinear(
-	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double temperature = interpolate_bilinear(
 	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
 	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
@@ -1358,7 +1374,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	// calculate relative velocities
 	const double vrel_r = particles[i].r_dot - vg_radial;
 	const double vrel_phi =
-	    r * (particles[i].phi_dot - OmegaFrame) - vg_azimuthal;
+		r * particles[i].phi_dot - vg_azimuthal;
 	const double vrel = sqrt(pow2(vrel_r) + pow2(vrel_phi));
 
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
