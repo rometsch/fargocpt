@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
     init_radialarrays();
 	force = AllocateForce(dimfxy);
 
+	// Here planets are initialized feeling star potential
 	data.get_planetary_system().read_from_file(PLANETCONFIG);
 	logging::print_master(LOG_INFO "planets loaded.\n");
 
@@ -147,8 +148,7 @@ int main(int argc, char *argv[])
 
     init_physics(data);
 
-	// Here planets are initialized feeling star potential but they do not feel
-	// disk potential
+	// update planet velocity due to disk potential
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(force, data);
 	}
