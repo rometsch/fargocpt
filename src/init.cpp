@@ -660,7 +660,7 @@ void init_gas_energy(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// damp energy to 0 for r < profile_cutoff_point_outer
+		// damp energy to 0 for r > profile_cutoff_point_outer
 		const double energy_damped =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) *
 			cutoff_outer(parameters::profile_cutoff_point_outer,
@@ -692,7 +692,7 @@ void init_gas_energy(t_data &data)
 		for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// damp energy to 0 for r > profile_cutoff_point_inner
+		// damp energy to 0 for r < profile_cutoff_point_inner
 		const double energy_damped =
 			data[t_data::ENERGY](n_radial, n_azimuthal) *
 			cutoff_inner(parameters::profile_cutoff_point_inner,
