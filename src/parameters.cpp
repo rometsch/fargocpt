@@ -649,7 +649,7 @@ void read(char *filename, t_data &data)
     sigma0 = config::value_as_double_default("SIGMA0", 173.);
     sigma_adjust = config::value_as_bool_default("SetSigma0", false);
     sigma_discmass = config::value_as_double_default("discmass", 0.01);
-    density_factor = config::value_as_double_default("DensityFactor", 2.0);
+	density_factor = config::value_as_double_default("DensityFactor", std::sqrt(2.0*M_PI));
 
     tau_factor = config::value_as_double_default("TauFactor", 1.0);
     kappa_factor = config::value_as_double_default("KappaFactor", 1.0);
