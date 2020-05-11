@@ -142,12 +142,19 @@ extern t_initialize_condition energy_initialize_condition;
 /// filename to read energy profile from
 extern char *energy_filename;
 
-/// enable profile damping
-extern bool profile_damping;
-/// profile damping point
-extern double profile_damping_point;
-/// profile damping width
-extern double profile_damping_width;
+/// enable profile cutoff
+extern bool profile_cutoff_outer;
+/// profile cutoff point
+extern double profile_cutoff_point_outer;
+/// profile cutoff width
+extern double profile_cutoff_width_outer;
+
+/// enable profile cutoff
+extern bool profile_cutoff_inner;
+/// profile cutoff point
+extern double profile_cutoff_point_inner;
+/// profile cutoff width
+extern double profile_cutoff_width_inner;
 
 // type of artifical viscosity
 enum t_artificial_viscosity {

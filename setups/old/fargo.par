@@ -7,11 +7,17 @@ DiscMass		0.5		# only used when SetSigma0 = true [default = 0.01]
 SigmaFloor		1e-9		# floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition		Profile		# Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename		""		# File to read surface density from (when Condition = 1D or 2D)
-DensityFactor		2.0		# Factor for convertion from surface density to density [default = 2.0]
+DensityFactor		2.0		# Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
 
-ProfileDamping		No		# enable profile damping [default = no]
-ProfileDampingPoint	40.0
-ProfileDampingWidth	0.5
+
+ProfileCutoffInner		No		# enable profile cutoff [default = no]
+ProfileCutoffPointInner	4.0     # in [au], [default = 0]
+ProfileCutoffWidthInner	0.5		# in [au], [default = 1]
+
+ProfileCutoffOuter		No		# enable profile cutoff [default = no]
+ProfileCutoffPointOuter	40.0    # in [au], [default = 1e+300]
+ProfileCutoffWidthOuter	0.5     # in [au], [default = 1]
+
 
 EnergyCondition		Profile		# Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
