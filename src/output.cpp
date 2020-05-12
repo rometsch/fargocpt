@@ -814,6 +814,8 @@ void write_1D_info(t_data &data)
 	    info_ofs << "unit = " << unit << std::endl;
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
+
+		free(tmp);
 	}
     }
 }

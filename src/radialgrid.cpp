@@ -91,7 +91,7 @@ void t_radialgrid::write(unsigned int number, t_data &data)
 	(*m_do_before_write)(data, number, false);
     }
 
-    write1D(number);
+	write1D(number);
 
     if (m_clear_after_write) {
 	clear();
@@ -116,7 +116,7 @@ void t_radialgrid::write(std::string filename, unsigned int number,
 	(*m_do_before_write)(data, number, false);
     }
 
-    write1D(filename, one_file);
+	write1D(filename, one_file);
 
     if (m_clear_after_write) {
 	clear();
@@ -139,7 +139,7 @@ void t_radialgrid::write1D(unsigned int timestep) const
     */
     std::stringstream filename;
     filename << OUTPUTDIR << "/gas" << get_name() << timestep << ".dat";
-    write1D(filename.str(), false);
+	write1D(filename.str(), false);
 }
 
 void t_radialgrid::write1D(std::string filename, bool one_file) const

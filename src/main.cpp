@@ -30,6 +30,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "config.h"
 
 int TimeToWrite;
 int dimfxy = 11, Restart = 0;
@@ -310,8 +311,12 @@ int main(int argc, char *argv[])
 
     logging::print_runtime_final();
 
-    // free up everything
-    delete[] options::parameter_file;
+	// free up everything
+	config::free_config_list();
+	DeallocateBoundaryCommunicationBuffers();
+	free(OUTPUTDIR);
+	free(PLANETCONFIG);
+	delete[] options::parameter_file;
     FreeEuler();
     FreeForce(force);
 

@@ -99,6 +99,8 @@ void InitTransport()
 */
 void FreeTransport()
 {
+
+	delete DensityStar;
     delete Work;
     delete QRStar;
 
