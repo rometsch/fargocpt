@@ -215,6 +215,26 @@ void print_code_units()
     logging::print_master(LOG_VERBOSE
 			  "                   pressure:       p0 = %.16g %s\n",
 			  pressure.get_cgs_factor(), pressure.get_cgs_symbol());
+	logging::print_master(LOG_VERBOSE
+			  "           angular momentum:      L0 = %.16g %s\n",
+			  angular_momentum.get_cgs_factor(),
+			  angular_momentum.get_cgs_symbol());
+	logging::print_master(LOG_VERBOSE
+			  "                      power:       P0 = %.16g %s\n",
+			  power.get_cgs_factor(), power.get_cgs_symbol());
+
+	logging::print_master(LOG_VERBOSE
+			  "                     torque:     tau0 = %.16g %s\n",
+			  torque.get_cgs_factor(), torque.get_cgs_symbol());
+	logging::print_master(LOG_VERBOSE
+			  "                      force:       F0 = %.16g %s\n",
+			  force.get_cgs_factor(), force.get_cgs_symbol());
+	logging::print_master(LOG_VERBOSE
+			  "        mass accretion rate:    Mdot0 = %.16g %s\n",
+			  mass_accretion_rate.get_cgs_factor(), mass_accretion_rate.get_cgs_symbol());
+	logging::print_master(LOG_VERBOSE
+			  "                    opacity:   kappa0 = %.16g %s\n",
+			  opacity.get_cgs_factor(), opacity.get_cgs_symbol());
 }
 
 void write_code_unit_file()
@@ -275,6 +295,22 @@ void write_code_unit_file()
 		stress.get_cgs_factor(), stress.get_cgs_symbol());
 	fprintf(fd, "#                  pressure:       p0 = %.16g %s\n",
 		pressure.get_cgs_factor(), pressure.get_cgs_symbol());
+
+	fprintf(fd, "#          angular momentum:       L0 = %.16g %s\n",
+		angular_momentum.get_cgs_factor(), angular_momentum.get_cgs_symbol());
+	fprintf(fd, "#                     power:       P0 = %.16g %s\n",
+		power.get_cgs_factor(), power.get_cgs_symbol());
+	fprintf(fd, "#                    torque:     tau0 = %.16g %s\n",
+		torque.get_cgs_factor(), torque.get_cgs_symbol());
+	fprintf(fd, "#                     force:       F0 = %.16g %s\n",
+		force.get_cgs_factor(), force.get_cgs_symbol());
+	fprintf(fd, "#       mass_accretion_rate:    Mdot0 = %.16g %s\n",
+		mass_accretion_rate.get_cgs_factor(), mass_accretion_rate.get_cgs_symbol());
+	fprintf(fd, "#                   opacity:   kappa0 = %.16g %s\n",
+		opacity.get_cgs_factor(), opacity.get_cgs_symbol());
+
+
+
 	fprintf(fd, "# Syntax: base unit <tab> value <tab> unit name\n");
 	fprintf(fd, "length\t%.16e\t%s\n", length.get_cgs_factor(),
 		length.get_cgs_symbol());
