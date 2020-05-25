@@ -80,17 +80,18 @@ void t_planetary_system::initialize_default_star()
     add_planet(planet);
 }
 
-void t_planetary_system::read_from_file(char *filename)
+void t_planetary_system::read_from_file(char *filename, bool restart)
 {
     FILE *fd;
 
 
-	/// Note: techically we only need to do this if we are restarting the simulation. But this works anyway.
+	if(restart) {
 	/// Check if last planet file is missing
 	/// If this is the case, we are restarting from a legacy simulation in which the central object did not have a planet file
    std::string last_filename = std::string(OUTPUTDIR) + "planet" +
 			  std::to_string(get_number_of_planets()) + ".dat";
    planet_restart_legacy = !std::experimental::filesystem::exists(last_filename);
+	}
 
 
     if (parameters::default_star) {

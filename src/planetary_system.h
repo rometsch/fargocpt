@@ -63,7 +63,7 @@ class t_planetary_system
 
     void initialize_default_star();
     void init_rebound();
-    void read_from_file(char *filename);
+	void read_from_file(char *filename, bool restart);
     void list_planets();
     void rotate(double angle);
     void restart(unsigned int timestep);
