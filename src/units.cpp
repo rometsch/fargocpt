@@ -210,7 +210,7 @@ void print_code_units()
 			  kinematic_viscosity.get_cgs_factor(),
 			  kinematic_viscosity.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
-			  "                     stress:          = %.16g %s\n",
+			  "                     stress:   sigma0 = %.16g %s\n",
 			  stress.get_cgs_factor(), stress.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                   pressure:       p0 = %.16g %s\n",
@@ -291,7 +291,7 @@ void write_code_unit_file()
 	fprintf(fd, "#       kinematic viscosity:      nu0 = %.16g %s\n",
 		kinematic_viscosity.get_cgs_factor(),
 		kinematic_viscosity.get_cgs_symbol());
-	fprintf(fd, "#                    stress:          = %.16g %s\n",
+	fprintf(fd, "#                    stress:   sigma0 = %.16g %s\n",
 		stress.get_cgs_factor(), stress.get_cgs_symbol());
 	fprintf(fd, "#                  pressure:       p0 = %.16g %s\n",
 		pressure.get_cgs_factor(), pressure.get_cgs_symbol());
