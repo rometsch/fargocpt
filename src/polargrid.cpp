@@ -60,8 +60,8 @@ void t_polargrid::set_size(ptrdiff_t size_radial, ptrdiff_t size_azimuthal)
 */
 void t_polargrid::set_name(const char *name)
 {
-    // delete old name
-    delete[] m_name;
+	// delete old name
+	delete[] m_name;
 
     // aquire space for new name
     m_name = new char[strlen(name) + 1];
@@ -97,9 +97,9 @@ void t_polargrid::write(unsigned int number, t_data &data) const
 	if (m_do_before_write != NULL) {
 	    (*m_do_before_write)(data, number, false);
 	}
-    }
+	}
 
-    if (get_write_1D())
+	if (get_write_1D())
 	write1D(number);
 
     if (get_write_2D())
@@ -217,7 +217,6 @@ void t_polargrid::write1D(unsigned int number) const
     MPI_Status status;
     int error, error_class, error_length;
     unsigned int count, from, number_of_values = 2;
-    double *buffer;
     char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
     // use Rmed or Rinf depending if this quantity is scalar or vector
@@ -251,7 +250,7 @@ void t_polargrid::write1D(unsigned int number) const
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
-    free(filename);
+	free(filename);
 
     if (m_write_max_max_1D) {
 	// min/max need additional two values
@@ -283,6 +282,7 @@ void t_polargrid::write1D(unsigned int number) const
 	count -= CPUOVERLAP;
     }
 
+	double *buffer;
     buffer = new double[number_of_values * count];
 
     for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
@@ -332,7 +332,7 @@ void t_polargrid::write1D(unsigned int number) const
 	}
     }
 
-    MPI_File_write_all(fh, buffer, count * number_of_values, MPI_DOUBLE,
+	MPI_File_write_all(fh, buffer, count * number_of_values, MPI_DOUBLE,
 		       &status);
 
     delete[] buffer;

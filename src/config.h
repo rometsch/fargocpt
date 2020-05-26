@@ -7,6 +7,8 @@ namespace config
 {
 
 int read_config_from_file(const char *filename);
+void free_config_list();
+
 void print_parsed_config();
 int key_exists(const char *key);
 bool value_as_bool(const char *key);

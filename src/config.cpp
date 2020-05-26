@@ -101,6 +101,17 @@ static void add_to_config_list(const char *key, const char *value)
     strcpy(list.data[list.size - 1].value, value);
 }
 
+void free_config_list()
+{
+
+	for(unsigned int i = 0; i < list.size;++i){
+		free(list.data[i].key);
+		free(list.data[i].value);
+	}
+	free(list.data);
+}
+
+
 /**
 	check if a char is a valid key character
 
@@ -329,8 +340,14 @@ int read_config_from_file(const char *filename)
 	file_EOF = 0;
 	ret = parse_file();
 	fclose(f);
+	f = NULL;
 	file_name = NULL;
     }
+
+	if(f != NULL)
+	{
+		fclose(f);
+	}
     return ret;
 }
 

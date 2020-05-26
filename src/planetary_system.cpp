@@ -23,6 +23,8 @@ t_planetary_system::~t_planetary_system()
     }
 
     m_planets.clear();
+	reb_free_simulation(m_rebound);
+
 }
 
 void t_planetary_system::init_rebound()

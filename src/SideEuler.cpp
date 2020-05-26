@@ -150,8 +150,11 @@ void InitCellCenterCoordinates()
 {
     unsigned int nRadial, nAzimuthal, cell;
 
-    CellCenterX = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_x");
-    CellCenterY = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_y");
+	delete CellCenterY;
+	delete CellCenterX;
+
+	CellCenterX = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_x");
+	CellCenterY = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_y");
 
     for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
@@ -164,6 +167,12 @@ void InitCellCenterCoordinates()
 				    (double)(CellCenterX->Nsec));
 	}
     }
+}
+
+void FreeCellCenterCoordinates()
+{
+	delete CellCenterY;
+	delete CellCenterX;
 }
 
 /**

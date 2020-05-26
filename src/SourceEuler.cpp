@@ -235,7 +235,7 @@ void init_euler(t_data &data)
 /**
 
 */
-void FreeEuler() { FreeTransport(); }
+void FreeEuler() { FreeTransport(); FreeCellCenterCoordinates();}
 
 /**
 	copy one polar grid into another
