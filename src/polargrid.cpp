@@ -29,6 +29,8 @@ t_polargrid::t_polargrid()
     m_calculate_on_write = false;
     m_write_max_max_1D = true;
     m_do_before_write = NULL;
+	m_clear_after_write = false;
+	m_integrate_1D_for_write = false;
 }
 
 t_polargrid::~t_polargrid()
@@ -91,7 +93,7 @@ void t_polargrid::clear()
     }
 }
 
-void t_polargrid::write(unsigned int number, t_data &data) const
+void t_polargrid::write(unsigned int number, t_data &data)
 {
     if (get_write_1D() || get_write_2D() || m_calculate_on_write) {
 	if (m_do_before_write != NULL) {
@@ -99,11 +101,17 @@ void t_polargrid::write(unsigned int number, t_data &data) const
 	}
 	}
 
-	if (get_write_1D())
+	if (get_write_1D()){
 	write1D(number);
+	}
 
-    if (get_write_2D())
+	if (get_write_2D()){
 	write2D(number);
+	}
+
+	if(get_clear_after_write()){
+		clear();
+	}
 }
 
 /**
@@ -295,7 +303,9 @@ void t_polargrid::write1D(unsigned int number) const
 		from + n_radial, n_azimuthal);
 	}
 
-	buffer[number_of_values * n_radial + 1] /= (double)get_size_azimuthal();
+	if(!get_integrate_azimuthally_for_1D_write()){
+		buffer[number_of_values * n_radial + 1] /= (double)get_size_azimuthal();
+	}
     }
 
     // if write min/max values, get them!

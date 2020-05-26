@@ -64,6 +64,7 @@ class t_data
 	VISIBILITY,  //
 	TORQUE,
 	RHO,
+	MASSFLOW,
 
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES
@@ -83,7 +84,6 @@ class t_data
 	LUMINOSITY_1D,		//
 	DISSIPATION_1D,
 	TORQUE_1D,
-	MASSFLOW_1D,
 
 	// number of t_radialgrid_types
 	N_RADIALGRID_TYPES

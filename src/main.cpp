@@ -229,11 +229,6 @@ int main(int argc, char *argv[])
 	// create 1D info files
 	if (CPU_Master) {
 	    output::write_1D_info(data);
-
-	    // create mass flow info file
-	    if (parameters::write_massflow) {
-		output::write_massflow_info(data);
-	    }
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
     }
@@ -295,9 +290,6 @@ int main(int argc, char *argv[])
 	if (parameters::write_lightcurves &&
 	    (parameters::write_at_every_timestep || write_complete_output)) {
 	    output::write_lightcurves(data, TimeStep, force_update_for_output);
-	}
-	if (parameters::write_massflow && nTimeStep != timeStepStart) {
-	    output::write_massflow(data, TimeStep);
 	}
 
 	// Exit if last timestep reached and last output is written

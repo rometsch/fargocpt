@@ -195,6 +195,15 @@ t_data::t_data()
     m_polargrids[RHO].set_name("rho");
     m_polargrids[RHO].set_unit(units::density);
 
+
+	m_polargrids[MASSFLOW].set_scalar(false);
+	m_polargrids[MASSFLOW].set_name("MassFlow");
+	m_polargrids[MASSFLOW].set_unit(units::mass_accretion_rate);
+	m_polargrids[MASSFLOW].set_do_before_write(
+	&quantities::calculate_massflow);
+	m_polargrids[MASSFLOW].set_clear_after_write(true);
+	m_polargrids[MASSFLOW].set_integrate_azimuthally_for_1D_write(true);
+
     // -- radial grids --
 
     m_radialgrids[DENSITY_1D].set_scalar(true);
@@ -254,13 +263,6 @@ t_data::t_data()
     m_radialgrids[TORQUE_1D].set_scalar(true);
     m_radialgrids[TORQUE_1D].set_name("1D_torque");
     m_radialgrids[TORQUE_1D].set_unit(units::torque);
-
-    m_radialgrids[MASSFLOW_1D].set_scalar(false);
-    m_radialgrids[MASSFLOW_1D].set_name("MassFlow1D");
-    m_radialgrids[MASSFLOW_1D].set_unit(units::mass_accretion_rate);
-    m_radialgrids[MASSFLOW_1D].set_do_before_write(
-	&quantities::calculate_massflow);
-    m_radialgrids[MASSFLOW_1D].set_clear_after_write(true);
 
     pdivv_total = 0.0;
 }

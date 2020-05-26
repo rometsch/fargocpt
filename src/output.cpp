@@ -820,31 +820,6 @@ void write_1D_info(t_data &data)
     }
 }
 
-void write_massflow_info(t_data &data)
-{
-    const std::string filename_info =
-	std::string(OUTPUTDIR) + "/gasMassFlow1D.info";
-    std::ofstream info_ofs(filename_info);
-    info_ofs
-	<< "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat"
-	<< std::endl;
-    info_ofs << "Nr = " << GlobalNRadial + 1 << std::endl;
-    info_ofs << "unit = "
-	     << data[t_data::MASSFLOW_1D].get_unit()->get_cgs_symbol()
-	     << std::endl;
-    info_ofs << "bigendian = " << is_big_endian() << std::endl;
-    const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
-    std::ofstream ofs(filename, std::ios::binary);
-    ofs.write((char *)Radii.array, sizeof(*Radii.array) * (GlobalNRadial + 1));
-}
-
-void write_massflow(t_data &data, unsigned int timestep)
-{
-    (void)timestep;
-    const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
-    data[t_data::MASSFLOW_1D].write(filename, TimeStep, data, true, true);
-}
-
 /**
 	Calculates eccentricity, semi major axis and periastron averaged with
    the radial cells

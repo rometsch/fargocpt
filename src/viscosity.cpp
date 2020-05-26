@@ -209,7 +209,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 			data[t_data::DENSITY](n_radial, n_azimuthal) *
 			pow2(min(
 			    Rsup[n_radial] - Rinf[n_radial],
-			    Rmed[n_radial] * 2 * M_PI /
+				Rmed[n_radial] * 2 * PI /
 				data[t_data::DENSITY].get_size_azimuthal())) *
 			(-data[t_data::DIV_V](n_radial, n_azimuthal));
 		} else {

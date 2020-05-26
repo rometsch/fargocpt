@@ -361,7 +361,8 @@ void read(char *filename, t_data &data)
     write_lightcurves =
 	config::value_as_bool_default("WriteLightCurves", false);
 
-    write_massflow = config::value_as_bool_default("WriteMassFlow", false);
+	write_massflow = config::value_as_bool_default("WriteMassFlow", false);
+	data[t_data::MASSFLOW].set_write(write_massflow);
 
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =

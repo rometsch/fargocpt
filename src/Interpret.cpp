@@ -233,7 +233,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
 	double optimal_N_azimuthal =
-	    M_PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
+			PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
 
 	// check if optimal azimuthal cell number differs from actual azimuthal
 	// cell number by more than 10%

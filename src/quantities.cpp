@@ -934,26 +934,24 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 
 void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 {
-    (void)timestep;
-    (void)force_update;
+	(void)timestep;
+	(void)force_update;
 
 	double denom;
+	denom = NINTERM*DT;
 
-	if(parameters::write_at_every_timestep)
-	{
-		denom = DT;
+	// divide the data in massflow by the large timestep DT before writing out
+	// to obtain the massflow from the mass difference
+	for (unsigned int nRadial = 0;
+	 nRadial < data[t_data::MASSFLOW].get_size_radial(); ++nRadial) {
+		for (unsigned int n_azimuthal = 0;
+			 n_azimuthal <= data[t_data::MASSFLOW].get_max_azimuthal();
+			 ++n_azimuthal) {
+			data[t_data::MASSFLOW](nRadial, n_azimuthal) *= 1. / denom;
+		}
 	}
-	else
-	{
-		denom = NINTERM*DT;
-	}
-
-    // divide the data in massflow by the large timestep DT before writing out
-    // to obtain the massflow from the mass difference
-    for (unsigned int nRadial = 0;
-	 nRadial < data[t_data::MASSFLOW_1D].get_size_radial(); ++nRadial) {
-	data[t_data::MASSFLOW_1D](nRadial) *= 1. / denom;
-    }
 }
+
+
 
 } // namespace quantities
