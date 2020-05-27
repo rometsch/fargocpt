@@ -25,27 +25,19 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
 			  bool force_update);
 void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 				     double dt);
-void calculate_alpha_grav_mean_finalize(t_data &data, double dt);
-void calculate_alpha_grav_mean_reset(t_data &data);
 void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 			      bool force_update);
 void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 					 double dt);
-void calculate_alpha_reynolds_mean_finalize(t_data &data, double dt);
-void calculate_alpha_reynolds_mean_reset(t_data &data);
 void calculate_radial_alpha_grav(t_data &data, unsigned int timestep,
 				 bool force_update);
 void calculate_radial_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 					    double dt);
-void calculate_radial_alpha_grav_mean_finalize(t_data &data, double dt);
-void calculate_radial_alpha_grav_mean_reset(t_data &data);
 void calculate_radial_alpha_reynolds(t_data &data, unsigned int timestep,
 				     bool force_update);
 void calculate_radial_alpha_reynolds_mean_sumup(t_data &data,
 						unsigned int timestep,
 						double dt);
-void calculate_radial_alpha_reynolds_mean_finalize(t_data &data, double dt);
-void calculate_radial_alpha_reynolds_mean_reset(t_data &data);
 void calculate_toomre(t_data &data, unsigned int timestep, bool force_update);
 void calculate_radial_toomre(t_data &data, unsigned int timestep,
 			     bool force_update);

@@ -308,18 +308,6 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
     dt = DT / global_gas_time_step_cfl;
     boundary_conditions::apply_boundary_condition(data, dt, false);
 
-    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	quantities::calculate_alpha_grav_mean_reset(data);
-    }
-    if (data[t_data::ALPHA_GRAV_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_grav_mean_reset(data);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
-	quantities::calculate_alpha_reynolds_mean_reset(data);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_reynolds_mean_reset(data);
-    }
 
     while (dtemp < DT) {
 	logging::print_master(
@@ -539,19 +527,19 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 
 	    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
 		quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep,
-							    dt);
+								dt/DT);
 	    }
 	    if (data[t_data::ALPHA_GRAV_MEAN_1D].get_write()) {
 		quantities::calculate_radial_alpha_grav_mean_sumup(
-		    data, nTimeStep, dt);
+			data, nTimeStep, dt/DT);
 	    }
 	    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
 		quantities::calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
-								dt);
+								dt/DT);
 	    }
 	    if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
 		quantities::calculate_radial_alpha_reynolds_mean_sumup(
-		    data, nTimeStep, dt);
+			data, nTimeStep, dt/DT);
 	    }
 	}
 
@@ -578,19 +566,6 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	    }
 		accretion::AccreteOntoPlanets(data, dt);
 	}
-    }
-
-    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	quantities::calculate_alpha_grav_mean_finalize(data, DT);
-    }
-    if (data[t_data::ALPHA_GRAV_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_grav_mean_finalize(data, DT);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
-	quantities::calculate_alpha_reynolds_mean_finalize(data, DT);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_reynolds_mean_finalize(data, DT);
     }
 }
 

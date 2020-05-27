@@ -60,9 +60,13 @@ t_data::t_data()
 
     m_polargrids[ALPHA_GRAV_MEAN].set_scalar(true);
     m_polargrids[ALPHA_GRAV_MEAN].set_name("alpha_grav_mean");
+	m_polargrids[ALPHA_GRAV_MEAN].set_clear_after_write(true);
+
 
     m_polargrids[ALPHA_REYNOLDS_MEAN].set_scalar(true);
     m_polargrids[ALPHA_REYNOLDS_MEAN].set_name("alpha_reynolds_mean");
+	m_polargrids[ALPHA_REYNOLDS_MEAN].set_clear_after_write(true);
+
 
     m_polargrids[V_RADIAL0].set_vector(true);
     m_polargrids[V_RADIAL0].set_name("vrad0");
@@ -236,9 +240,13 @@ t_data::t_data()
 
     m_radialgrids[ALPHA_GRAV_MEAN_1D].set_scalar(true);
     m_radialgrids[ALPHA_GRAV_MEAN_1D].set_name("1D_alpha_grav_mean");
+	m_radialgrids[ALPHA_GRAV_MEAN_1D].set_clear_after_write(true);
+
 
     m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_scalar(true);
     m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_name("1D_alpha_reynolds_mean");
+	m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_clear_after_write(true);
+
 
     m_radialgrids[T_GRAVITATIONAL_1D].set_scalar(true);
     m_radialgrids[T_GRAVITATIONAL_1D].set_name("1D_T_gravitational");

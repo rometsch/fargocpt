@@ -614,50 +614,6 @@ void calculate_radial_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
     }
 }
 
-void calculate_alpha_grav_mean_finalize(t_data &data, double dt)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV_MEAN].get_max_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ALPHA_GRAV_MEAN].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::ALPHA_GRAV_MEAN](n_radial, n_azimuthal) /= dt;
-	}
-    }
-}
-
-void calculate_radial_alpha_grav_mean_finalize(t_data &data, double dt)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV_MEAN_1D].get_max_radial();
-	 ++n_radial) {
-	data[t_data::ALPHA_GRAV_MEAN_1D](n_radial) /= dt;
-    }
-}
-
-void calculate_alpha_grav_mean_reset(t_data &data)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV_MEAN].get_max_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ALPHA_GRAV_MEAN].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::ALPHA_GRAV_MEAN](n_radial, n_azimuthal) = 0;
-	}
-    }
-}
-
-void calculate_radial_alpha_grav_mean_reset(t_data &data)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV_MEAN_1D].get_max_radial();
-	 ++n_radial) {
-	data[t_data::ALPHA_GRAV_MEAN_1D](n_radial) = 0;
-    }
-}
-
 /**
 	compute alpha Reynolds
 
@@ -751,60 +707,14 @@ void calculate_radial_alpha_reynolds_mean_sumup(t_data &data,
 						unsigned int timestep,
 						double dt)
 {
-    calculate_radial_alpha_reynolds(data, timestep, true);
+	calculate_radial_alpha_reynolds(data, timestep, true);
 
-    for (unsigned int n_radial = 0;
+	for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_max_radial();
 	 ++n_radial) {
 	data[t_data::ALPHA_REYNOLDS_MEAN_1D](n_radial) +=
-	    data[t_data::ALPHA_REYNOLDS_1D](n_radial) * dt;
-    }
-}
-
-void calculate_alpha_reynolds_mean_finalize(t_data &data, double dt)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS_MEAN].get_max_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <=
-	     data[t_data::ALPHA_REYNOLDS_MEAN].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::ALPHA_REYNOLDS_MEAN](n_radial, n_azimuthal) /= dt;
+		data[t_data::ALPHA_REYNOLDS_1D](n_radial) * dt;
 	}
-    }
-}
-
-void calculate_radial_alpha_reynolds_mean_finalize(t_data &data, double dt)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_max_radial();
-	 ++n_radial) {
-	data[t_data::ALPHA_REYNOLDS_MEAN_1D](n_radial) /= dt;
-    }
-}
-
-void calculate_alpha_reynolds_mean_reset(t_data &data)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS_MEAN].get_max_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <=
-	     data[t_data::ALPHA_REYNOLDS_MEAN].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::ALPHA_REYNOLDS_MEAN](n_radial, n_azimuthal) = 0;
-	}
-    }
-}
-
-void calculate_radial_alpha_reynolds_mean_reset(t_data &data)
-{
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_max_radial();
-	 ++n_radial) {
-	data[t_data::ALPHA_REYNOLDS_MEAN_1D](n_radial) = 0;
-    }
 }
 
 /**
