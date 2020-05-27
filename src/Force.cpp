@@ -76,7 +76,7 @@ void ComputeForce(t_data &data, Force *force, double x, double y, double mass)
 	rsmoothing = compute_smoothing_isothermal(a);
     }
 
-    for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
+	for (unsigned int n_radial = One_or_active; n_radial < MaxMO_or_active;
 	 ++n_radial) {
 	if (SmoothingEnabled && ThicknessSmoothingAtCell &&
 	    parameters::Locally_Isothermal) {
