@@ -244,7 +244,7 @@ void t_planet::write(unsigned int timestep, bool big_file)
 	return;
 
     FILE *fd;
-    char *filename = 0;
+	char *filename = 0;
 
     // create filename
     if (asprintf(&filename, big_file ? "%sbigplanet%u.dat" : "%splanet%u.dat",
@@ -276,17 +276,17 @@ void t_planet::write(unsigned int timestep, bool big_file)
 
 void t_planet::restart(unsigned int timestep)
 {
-    m_x = get_value_from_file(timestep, "x");
-    m_y = get_value_from_file(timestep, "y");
-    m_vx = get_value_from_file(timestep, "vx");
-    m_vy = get_value_from_file(timestep, "vy");
-    m_mass = get_value_from_file(timestep, "mass");
+	m_x = get_value_from_file(timestep, "x");
+	m_y = get_value_from_file(timestep, "y");
+	m_vx = get_value_from_file(timestep, "vx");
+	m_vy = get_value_from_file(timestep, "vy");
+	m_mass = get_value_from_file(timestep, "mass");
 }
 
 double t_planet::get_value_from_file(unsigned int timestep,
-				     std::string variable_name)
+					 std::string variable_name)
 {
-    double value;
+	double value;
     int column = -1;
 
     std::string filename = std::string(OUTPUTDIR) + "planet" +

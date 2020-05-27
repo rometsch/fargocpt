@@ -141,10 +141,10 @@ class t_planet
     void set_orbital_elements_zero();
 
     void create_planet_file();
-    void write(unsigned int timestep, bool big_file);
-    void restart(unsigned int timestep);
-    double get_value_from_file(unsigned int timestep,
-			       std::string variable_name);
+	void write(unsigned int timestep, bool big_file);
+	void restart(unsigned int timestep);
+	double get_value_from_file(unsigned int timestep,
+				   std::string variable_name);
 	~t_planet();
 };
 
