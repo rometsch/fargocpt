@@ -492,37 +492,58 @@ void init_gas_density(t_data &data)
 	open_simplex_noise_free(osn);
     }
 
-    // profile damping?
-    if (parameters::profile_damping) {
+	// profile cutoff at outer boundary?
+	if (parameters::profile_cutoff_outer) {
 	logging::print_master(
-	    LOG_INFO "Damping Sigma for r > %g %s over a range from %g %s\n",
-	    parameters::profile_damping_point * units::length.get_cgs_factor(),
+		LOG_INFO "Cutoff Sigma for r > %g %s over a range from %g %s\n",
+		parameters::profile_cutoff_point_outer * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol(),
-	    parameters::profile_damping_width * units::length.get_cgs_factor(),
+		parameters::profile_cutoff_width_outer * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// damp density to 0 for r > profile_damping_point
+		// Cutoff density to 0 for r > profile_cutoff_point_outer
 		const double density_damped =
 		    data[t_data::DENSITY](n_radial, n_azimuthal) *
-		    cutoff(parameters::profile_damping_point,
-			   parameters::profile_damping_width, Rmed[n_radial]);
+			cutoff_outer(parameters::profile_cutoff_point_outer,
+			   parameters::profile_cutoff_width_outer, Rmed[n_radial]);
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
 		    max(density_damped, density_floor);
-		// set density to SIGMA0*SIGMA_FLOOR for r > r >
-		// profile_damping_point
-		// data[t_data::DENSITY](n_radial, n_azimuthal) +=
-		// (1-cutoff(parameters::profile_damping_point+parameters::profile_damping_width,
-		// parameters::profile_damping_width,Rmed[n_radial]))*
-		// parameters::sigma0 * parameters::sigma_floor;
 	    }
 	}
     }
+
+	// profile cutoff at inner boundary?
+	if (parameters::profile_cutoff_inner) {
+	logging::print_master(
+		LOG_INFO "Cutoff Sigma for r < %g %s over a range from %g %s\n",
+		parameters::profile_cutoff_point_inner * units::length.get_cgs_factor(),
+		units::length.get_cgs_symbol(),
+		parameters::profile_cutoff_width_inner * units::length.get_cgs_factor(),
+		units::length.get_cgs_symbol());
+	for (unsigned int n_radial = 0;
+		 n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 ++n_azimuthal) {
+		// Cutoff density to 0 for r < profile_cutoff_point_inner
+		const double density_damped =
+			data[t_data::DENSITY](n_radial, n_azimuthal) *
+			cutoff_inner(parameters::profile_cutoff_point_inner,
+			   parameters::profile_cutoff_width_inner, Rmed[n_radial]);
+		const double density_floor =
+			parameters::sigma_floor * parameters::sigma0;
+		data[t_data::DENSITY](n_radial, n_azimuthal) =
+			max(density_damped, density_floor);
+		}
+	}
+	}
+
 
     // renormalize sigma0?
     if (parameters::sigma_adjust) {
@@ -626,24 +647,24 @@ void init_gas_energy(t_data &data)
 	break;
     }
 
-    // profile damping?
-    if (parameters::profile_damping) {
+	// profile damping outer?
+	if (parameters::profile_cutoff_outer) {
 	logging::print_master(
 	    LOG_INFO "Damping Energy for r > %g %s over a range of %g %s\n",
-	    parameters::profile_damping_point * units::length.get_cgs_factor(),
+		parameters::profile_cutoff_point_outer * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol(),
-	    parameters::profile_damping_width * units::length.get_cgs_factor(),
+		parameters::profile_cutoff_width_outer * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// damp energy to 0 for r > profile_damping_point
+		// damp energy to 0 for r > profile_cutoff_point_outer
 		const double energy_damped =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) *
-		    cutoff(parameters::profile_damping_point,
-			   parameters::profile_damping_width, Rmed[n_radial]);
+			cutoff_outer(parameters::profile_cutoff_point_outer,
+			   parameters::profile_cutoff_width_outer, Rmed[n_radial]);
 		const double temperature_floor =
 		    parameters::minimum_temperature *
 		    units::temperature.get_inverse_cgs_factor();
@@ -657,6 +678,38 @@ void init_gas_energy(t_data &data)
 	    }
 	}
     }
+
+	// profile damping inner?
+	if (parameters::profile_cutoff_inner) {
+	logging::print_master(
+		LOG_INFO "Damping Energy for r < %g %s over a range of %g %s\n",
+		parameters::profile_cutoff_point_inner * units::length.get_cgs_factor(),
+		units::length.get_cgs_symbol(),
+		parameters::profile_cutoff_width_inner * units::length.get_cgs_factor(),
+		units::length.get_cgs_symbol());
+	for (unsigned int n_radial = 0;
+		 n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
+		 ++n_azimuthal) {
+		// damp energy to 0 for r < profile_cutoff_point_inner
+		const double energy_damped =
+			data[t_data::ENERGY](n_radial, n_azimuthal) *
+			cutoff_inner(parameters::profile_cutoff_point_inner,
+			   parameters::profile_cutoff_width_inner, Rmed[n_radial]);
+		const double temperature_floor =
+			parameters::minimum_temperature *
+			units::temperature.get_inverse_cgs_factor();
+		const double energy_floor =
+			temperature_floor *
+			data[t_data::DENSITY](n_radial, n_azimuthal) /
+			parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+		data[t_data::ENERGY](n_radial, n_azimuthal) =
+			max(energy_damped, energy_floor);
+		}
+	}
+	}
 
     // set EnergyMed
     RefillEnergy(&data[t_data::ENERGY]);

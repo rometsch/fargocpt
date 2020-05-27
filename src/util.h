@@ -11,7 +11,8 @@ template <typename T> inline T min(T x, T y) { return x < y ? x : y; }
 
 template <typename T> inline T max(T x, T y) { return x > y ? x : y; }
 
-double cutoff(double point, double width, double x);
+double cutoff_outer(double point, double width, double x);
+double cutoff_inner(double point, double width, double x);
 bool is_big_endian(void);
 bool is_distance_zero(double x);
 

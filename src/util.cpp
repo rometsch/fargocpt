@@ -12,7 +12,7 @@
 		x > point-width & x < point+width -> smooth transition from 1 to
    0
 */
-double cutoff(double point, double width, double x)
+double cutoff_outer(double point, double width, double x)
 {
     /*	if (x < point-width) {
 		    return 1.0;
@@ -25,6 +25,19 @@ double cutoff(double point, double width, double x)
     // return 1.0/(exp(8.0/width*(x-point))+1.0);
     return 1.0 / (1.0 + exp((x - point) / width));
 }
+
+/**
+	cutoff function
+		x > point-width -> 1
+		x < point+width -> 0
+		x < point-width & x < point+width -> smooth transition from 1 to
+   0
+*/
+double cutoff_inner(double point, double width, double x)
+{
+	return 1.0 / (1.0 + exp((point - x) / width));
+}
+
 
 bool is_big_endian(void)
 {
