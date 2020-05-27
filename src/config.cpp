@@ -37,19 +37,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+
+#include "json/json.hpp"
+using json = nlohmann::json;
+
 namespace config
 {
 
 #define MAXNAME (256)
 
-/// current config file pointer
-static FILE *file_ptr;
 /// filename of config file
 static const char *file_name;
-/// current parsed line numbers of config file
-static int file_linenumber;
-/// end of config file reached?
-static int file_EOF;
 
 typedef struct {
     char *key;
@@ -65,10 +66,6 @@ static t_list list = {NULL, 0};
 
 static void add_to_config_list(const char *key, const char *value);
 static inline int iskeychar(int c);
-static int get_next_char(void);
-static char *parse_value(void);
-static int get_value(char *key, unsigned int len);
-static int parse_file();
 static void die_bad_config(const char *key);
 static int parse_unit_factor(const char *end, unsigned long *val);
 static const char *value(const char *key);
@@ -104,13 +101,12 @@ static void add_to_config_list(const char *key, const char *value)
 void free_config_list()
 {
 
-	for(unsigned int i = 0; i < list.size;++i){
-		free(list.data[i].key);
-		free(list.data[i].value);
-	}
-	free(list.data);
+    for (unsigned int i = 0; i < list.size; ++i) {
+	free(list.data[i].key);
+	free(list.data[i].value);
+    }
+    free(list.data);
 }
-
 
 /**
 	check if a char is a valid key character
@@ -121,207 +117,6 @@ void free_config_list()
 static inline int iskeychar(int c) { return isalnum(c) || c == '-'; }
 
 /**
-	read next char from config file
-
-	\returns next char from config file
-*/
-static int get_next_char(void)
-{
-    int c;
-    FILE *f;
-
-    c = '\n';
-    if ((f = file_ptr) != NULL) {
-	c = fgetc(f);
-	if (c == '\r') {
-	    /* DOS like systems */
-	    c = fgetc(f);
-	    if (c != '\n') {
-		ungetc(c, f);
-		c = '\r';
-	    }
-	}
-	if (c == '\n')
-	    file_linenumber++;
-	if (c == EOF) {
-	    file_EOF = 1;
-	    c = '\n';
-	}
-    }
-
-    return c;
-}
-
-/**
-	read the the value from the config file
-
-	\returns value (as string)
-*/
-static char *parse_value(void)
-{
-    static char value[1024];
-    int quote = 0, comment = 0, space = 0;
-    unsigned int len = 0;
-
-    for (;;) {
-	int c = get_next_char();
-	if (len >= sizeof(value) - 1)
-	    return NULL;
-	if (c == '\n') {
-	    if (quote)
-		return NULL;
-	    value[len] = 0;
-	    return value;
-	}
-	if (comment)
-	    continue;
-	if (isspace(c) && !quote) {
-	    if (len)
-		space++;
-	    continue;
-	}
-	if (!quote) {
-	    if (c == ';' || c == '#') {
-		comment = 1;
-		continue;
-	    }
-	}
-	for (; space; space--)
-	    value[len++] = ' ';
-	if (c == '\\') {
-	    c = get_next_char();
-	    switch (c) {
-	    case '\n':
-		continue;
-	    case 't':
-		c = '\t';
-		break;
-	    case 'b':
-		c = '\b';
-		break;
-	    case 'n':
-		c = '\n';
-		break;
-	    /* Some characters escape as themselves */
-	    case '\\':
-	    case '"':
-		break;
-	    /* Reject unknown escape sequences */
-	    default:
-		return NULL;
-	    }
-	    value[len++] = c;
-	    continue;
-	}
-	if (c == '"') {
-	    quote = 1 - quote;
-	    continue;
-	}
-	value[len++] = c;
-    }
-}
-
-/**
-	read the rest of the key name and value from the the config file
-
-	\param key key correspondig to value
-	\param len number of chars already read into key
-	\returns 0 if successful
-*/
-static int get_value(char *key, unsigned int len)
-{
-    int c;
-    char *value;
-
-    /* Get the full key */
-    for (;;) {
-	c = get_next_char();
-	if (file_EOF)
-	    break;
-	if (!iskeychar(c))
-	    break;
-	key[len++] = tolower(c);
-	if (len >= MAXNAME)
-	    return -1;
-    }
-    key[len] = 0;
-    while (c == ' ' || c == '\t')
-	c = get_next_char();
-
-    value = NULL;
-
-    if (c != '\n') {
-	/* uncomment this line and comment the ungetc line if you want to use
-	 * "parameter = value" style in your config file */
-	/*if (c != '=')
-		return -1;*/
-	ungetc(c, file_ptr);
-	value = parse_value();
-	if (!value)
-	    return -1;
-    }
-
-    if (value != NULL)
-	add_to_config_list(key, value);
-
-    return 0;
-}
-
-/**
-	parse the config file
-*/
-static int parse_file()
-{
-    int comment = 0;
-    int baselen = 0;
-    static char var[MAXNAME];
-
-    /* U+FEFF Byte Order Mark in UTF8 */
-    static const unsigned char *utf8_bom = (unsigned char *)"\xef\xbb\xbf";
-    const unsigned char *bomptr = utf8_bom;
-
-    for (;;) {
-	int c = get_next_char();
-	if (bomptr && *bomptr) {
-	    /* We are at the file beginning; skip UTF8-encoded BOM
-	     * if present. Sane editors won't put this in on their
-	     * own, but e.g. Windows Notepad will do it happily. */
-	    if ((unsigned char)c == *bomptr) {
-		bomptr++;
-		continue;
-	    } else {
-		/* Do not tolerate partial BOM. */
-		if (bomptr != utf8_bom)
-		    break;
-		/* No BOM at file beginning. Cool. */
-		bomptr = NULL;
-	    }
-	}
-	if (c == '\n') {
-	    if (file_EOF)
-		return 0;
-	    comment = 0;
-	    continue;
-	}
-	if (comment || isspace(c))
-	    continue;
-	if (c == '#' || c == ';') {
-	    comment = 1;
-	    continue;
-	}
-	if (!isalpha(c))
-	    break;
-	var[baselen] = tolower(c);
-	if (get_value(var, baselen + 1) < 0)
-	    break;
-    }
-
-    die("bad config file line %d in %s", file_linenumber, file_name);
-
-    return 0;
-}
-
-/**
 	read config file
 
 	\param filename config file to read
@@ -329,26 +124,26 @@ static int parse_file()
 */
 int read_config_from_file(const char *filename)
 {
-    int ret;
-    FILE *f = fopen(filename, "r");
-
-    ret = -1;
-    if (f) {
-	file_ptr = f;
-	file_name = filename;
-	file_linenumber = 1;
-	file_EOF = 0;
-	ret = parse_file();
-	fclose(f);
-	f = NULL;
-	file_name = NULL;
-    }
-
-	if(f != NULL)
-	{
-		fclose(f);
+    try {
+	std::ifstream infile(filename);
+	json j;
+	infile >> j;
+	for (auto &[key, value] : j.items()) {
+	    // std::cout << key << ":" << value << std::endl;
+	    std::string lower_key = std::string(key);
+	    std::transform(lower_key.begin(), lower_key.end(),
+			   lower_key.begin(), ::tolower);
+	    // j[lower_key] = value;
+	    std::cout << value << std::endl;
+	    if (value.contains("value")) {
+		add_to_config_list(lower_key.c_str(),
+				   std::string(value["value"]).c_str());
+	    }
 	}
-    return ret;
+	return 0;
+    } catch (const nlohmann::detail::parse_error &ex) {
+	return -1;
+    }
 }
 
 /**
