@@ -137,38 +137,42 @@ void CheckAngularMomentumConservation(t_data &data)
 */
 void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
 {
-    for (unsigned int n_radial = 0; n_radial <= result.get_max_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= result.get_max_azimuthal(); ++n_azimuthal) {
-	    result(n_radial, n_azimuthal) =
-		num(n_radial, n_azimuthal) /
-		(denom(n_radial, n_azimuthal) + DBL_EPSILON);
+	const unsigned int Nmax = result.get_size_radial() * result.get_size_azimuthal();
+	for (unsigned int n=0; n < Nmax; n++) {
+	    result.Field[n] = num.Field[n] / (denom.Field[n] + DBL_EPSILON);
 	}
-    }
 }
 
 /**
 
 */
-void InitComputeAccel()
+void InitCellCenterCoordinates()
 {
     unsigned int nRadial, nAzimuthal, cell;
 
-    CellAbscissa = CreatePolarGrid(NRadial, NAzimuthal, "abscissa");
-    CellOrdinate = CreatePolarGrid(NRadial, NAzimuthal, "ordinate");
+	delete CellCenterY;
+	delete CellCenterX;
 
-    for (nRadial = 0; nRadial < CellAbscissa->Nrad; ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < CellAbscissa->Nsec; ++nAzimuthal) {
-	    cell = nAzimuthal + nRadial * CellAbscissa->Nsec;
-	    CellAbscissa->Field[cell] =
+	CellCenterX = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_x");
+	CellCenterY = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_y");
+
+    for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
+	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
+	    cell = nAzimuthal + nRadial * CellCenterX->Nsec;
+	    CellCenterX->Field[cell] =
 		Rmed[nRadial] * cos(2.0 * PI * (double)nAzimuthal /
-				    (double)(CellAbscissa->Nsec));
-	    CellOrdinate->Field[cell] =
+				    (double)(CellCenterX->Nsec));
+	    CellCenterY->Field[cell] =
 		Rmed[nRadial] * sin(2.0 * PI * (double)nAzimuthal /
-				    (double)(CellAbscissa->Nsec));
+				    (double)(CellCenterX->Nsec));
 	}
     }
+}
+
+void FreeCellCenterCoordinates()
+{
+	delete CellCenterY;
+	delete CellCenterX;
 }
 
 /**

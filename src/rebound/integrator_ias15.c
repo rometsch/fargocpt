@@ -543,10 +543,11 @@ static int reb_integrator_ias15_step(struct reb_simulation* r) {
                     }
 				}
 			}
-			//if(maxak == 0.0)
-			//	integrator_error = 0.0;
-			//else
+			if(maxak == 0.0) {
+				integrator_error = 0.0;
+			}else{
 				integrator_error = maxb6k/(maxak);
+			}
         }else{
 			for(int k=0;k<N3;k++) {
                 const double ak  = at[k];

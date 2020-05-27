@@ -15,14 +15,13 @@ Force ComputeForceStockholm(t_data &data, double x, double y, double rsmoothing,
     double xc, yc, cellmass, dx, dy, distance, dist2, rh, a;
     double InvDist3, fxi, fyi, fxhi, fyhi, fxo, fyo, fxho, fyho, outside_hill,
 	inside_hill;
-    double *dens, *abs, *ord;
     unsigned int i;
 
     Force Force;
     ns = data[t_data::DENSITY].Nsec;
-    dens = data[t_data::DENSITY].Field;
-    abs = CellAbscissa->Field;
-    ord = CellOrdinate->Field;
+    const double* dens = data[t_data::DENSITY].Field;
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
     fxi = fyi = fxhi = fyhi = fxo = fyo = fxho = fyho = 0.0;
     a = sqrt(x * x + y * y);
     rh = pow(mass / 3., 1. / 3.) * a + 1e-15;
@@ -30,8 +29,8 @@ Force ComputeForceStockholm(t_data &data, double x, double y, double rsmoothing,
     for (i = Zero_or_active; i < Max_or_active; i++) {
 	for (j = 0; j < ns; j++) {
 	    l = j + i * ns;
-	    xc = abs[l];
-	    yc = ord[l];
+	    xc = cell_center_x[l];
+	    yc = cell_center_y[l];
 	    cellmass = Surf[i] * dens[l];
 	    dx = xc - x;
 	    dy = yc - y;

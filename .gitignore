@@ -1,3 +1,7 @@
+# content of build folder
+build/*
+src/build/
+
 # Prerequisites
 *__pycache__
 *.d
@@ -66,3 +70,9 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# vscode settings
+.vscode
+
+# Output files
+out*

@@ -4,8 +4,6 @@
 #include "types.h"
 #include <stdlib.h>
 
-double GetGlobalIFrac(double r);
-
 void PersonalExit(int returncode);
 
 t_polargrid *CreatePolarGrid(unsigned int Nr, unsigned int Ns,

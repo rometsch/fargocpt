@@ -32,7 +32,9 @@ bool Polytropic = false;
 bool Locally_Isothermal = false;
 
 t_radial_grid radial_grid_type;
-const char *radial_grid_names[] = {"arithmetic", "logarithmic", "exponential"};
+const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential", "custom"};
+double exponential_cell_size_factor;
+
 
 t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;
@@ -262,6 +264,7 @@ void read(char *filename, t_data &data)
     RMIN = config::value_as_double_default("RMIN", 1.0);
     RMAX = config::value_as_double_default("RMAX", 1.0);
 
+	exponential_cell_size_factor = config::value_as_double_default("ExponentialCellSizeFactor", 1.41);
     switch (tolower(
 	*config::value_as_string_default("RadialSpacing", "ARITHMETIC"))) {
     case 'a': // arithmetic
@@ -368,7 +371,7 @@ void read(char *filename, t_data &data)
     if (config::key_exists("WriteLightCurvesRadii")) {
 	// get light curves radii string
 	char *lightcurves_radii_string =
-	    new char[strlen(config::value_as_string("WriteLightCurvesRadii"))];
+	    new char[strlen(config::value_as_string("WriteLightCurvesRadii"))+1];
 	strcpy(lightcurves_radii_string,
 	       config::value_as_string("WriteLightCurvesRadii"));
 
@@ -528,7 +531,7 @@ void read(char *filename, t_data &data)
 
     MU = config::value_as_double_default("mu", 1.0);
     minimum_temperature =
-	config::value_as_double_default("MinimumTemperature", 0);
+	config::value_as_double_default("MinimumTemperature", 3);
     maximum_temperature =
 	config::value_as_double_default("MaximumTemperature", 1.0e300);
 
@@ -750,7 +753,9 @@ void read(char *filename, t_data &data)
     particle_eccentricity =
 	config::value_as_double_default("ParticleEccentricity", 0.0);
     particle_density = config::value_as_double_default("ParticleDensity", 2.65);
-    particle_slope = config::value_as_double_default("ParticleSlope", 0.0);
+	particle_slope = config::value_as_double_default("ParticleSurfaceDensitySlope", SIGMASLOPE);
+	particle_slope = -particle_slope; // particle distribution scales with  r^slope, so we introduces the minus here to make it r^-slope (same as for gas)
+	particle_slope += 1.0; // particles are distributed over a whole simulation ring which introduces a factor 1/r for the particle surface density
     particle_minimum_radius =
 	config::value_as_double_default("ParticleMinimumRadius", RMIN);
     particle_maximum_radius =
@@ -1158,6 +1163,10 @@ void write_grid_data_to_file()
 	    strncpy(radial_spacing_str, "Exponential", 256);
 	    break;
 	}
+		case (custom_spacing): {
+			strncpy(radial_spacing_str, "Custom", 256);
+			break;
+		}
 	}
 
 	fprintf(

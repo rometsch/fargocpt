@@ -27,10 +27,12 @@
 #include "quantities.h"
 #include "selfgravity.h"
 #include "split.h"
+#include "start_mode.h"
 #include "time.h"
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "config.h"
 
 using json = nlohmann::json;
 
@@ -116,6 +118,7 @@ int main(int argc, char *argv[])
     options::parse(argc, argv);
 
     ReadVariables(options::parameter_file, data, argc, argv);
+
     // check if there is enough free space for all outputs (check before any
     // output are files created)
     output::check_free_space(data);
@@ -142,14 +145,12 @@ int main(int argc, char *argv[])
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
 
     init_radialarrays();
-    force = AllocateForce(dimfxy);
+	force = AllocateForce(dimfxy);
 
-    // Here planets are initialized feeling star potential but they do not feel
-    // disk potential
-    data.get_planetary_system().read_from_file(PLANETCONFIG);
-    data.get_planetary_system().init_rebound();
+	// Here planets are initialized feeling star potential
+	data.get_planetary_system().read_from_file(PLANETCONFIG);
+	logging::print_master(LOG_INFO "planets loaded.\n");
 
-    logging::print_master(LOG_INFO "planets initialised.\n");
 
     if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
 	(Corotating == YES)) {
@@ -160,6 +161,13 @@ int main(int argc, char *argv[])
     }
 
     init_physics(data);
+
+	// update planet velocity due to disk potential
+	if (parameters::disk_feedback) {
+		ComputeDiskOnNbodyAccel(force, data);
+	}
+	data.get_planetary_system().correct_velocity_for_disk_accel();
+	logging::print_master(LOG_INFO "planets initialised.\n");
 
     if (parameters::integrate_particles) {
 	particles::init(data);
@@ -176,18 +184,17 @@ int main(int argc, char *argv[])
     // density field
     mdcp0 = CircumPlanetaryMass(data);
 
-    if (options::restart) {
+    if (start_mode::mode == start_mode::mode_restart) {
 	// TODO: fix for case that NINTERM changes (probably add small time step
 	// to misc.dat)
-	timeStepStart = options::restart_from * NINTERM;
+	timeStepStart = start_mode::restart_from * NINTERM;
 	logging::print_master(LOG_INFO "Restarting planetary system...\n");
-	// restart planetary system
-	data.get_planetary_system().restart(options::restart_from);
 
 	logging::print_master(LOG_INFO "Reading misc data...\n");
-	PhysicalTime = output::get_misc(options::restart_from, "physical time");
-	OmegaFrame = output::get_misc(options::restart_from, "omega frame");
-	FrameAngle = output::get_misc(options::restart_from, "frame angle");
+	PhysicalTime =
+	    output::get_misc(start_mode::restart_from, "physical time");
+	OmegaFrame = output::get_misc(start_mode::restart_from, "omega frame");
+	FrameAngle = output::get_misc(start_mode::restart_from, "frame angle");
 
 	// load grids at t = 0
 	logging::print_master(LOG_INFO "Loading polargrinds at t = 0...\n");
@@ -210,15 +217,19 @@ int main(int argc, char *argv[])
 
 	// load grids at t = restart_from
 	logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",
-			      options::restart_from);
-	data[t_data::DENSITY].read2D(options::restart_from);
-	data[t_data::V_RADIAL].read2D(options::restart_from);
-	data[t_data::V_AZIMUTHAL].read2D(options::restart_from);
+			      start_mode::restart_from);
+	data[t_data::DENSITY].read2D(start_mode::restart_from);
+	data[t_data::V_RADIAL].read2D(start_mode::restart_from);
+	data[t_data::V_AZIMUTHAL].read2D(start_mode::restart_from);
 	if (parameters::Adiabatic)
-	    data[t_data::ENERGY].read2D(options::restart_from);
+	    data[t_data::ENERGY].read2D(start_mode::restart_from);
 
 	if (parameters::integrate_particles)
-	    particles::restart(options::restart_from);
+	    particles::restart(start_mode::restart_from);
+
+	// restart planetary system
+	data.get_planetary_system().restart(start_mode::restart_from);
+
 
 	CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
 			      &data[t_data::V_AZIMUTHAL],
@@ -314,8 +325,12 @@ int main(int argc, char *argv[])
 
     logging::print_runtime_final();
 
-    // free up everything
-    delete[] options::parameter_file;
+	// free up everything
+	config::free_config_list();
+	DeallocateBoundaryCommunicationBuffers();
+	free(OUTPUTDIR);
+	free(PLANETCONFIG);
+	delete[] options::parameter_file;
     FreeEuler();
     FreeForce(force);
 

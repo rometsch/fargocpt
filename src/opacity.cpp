@@ -351,4 +351,4 @@ double kramers(double density, double temperature)
     return thomson_scattering + kappa_kramer;
 }
 
-}; // namespace opacity
+} // namespace opacity

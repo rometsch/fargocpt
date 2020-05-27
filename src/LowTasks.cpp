@@ -10,23 +10,6 @@
 #include "global.h"
 #include "logging.h"
 
-double GetGlobalIFrac(double r)
-{
-    int i = 0;
-    double ifrac;
-
-    if (r < GlobalRmed[0])
-	return 0.0;
-    if (r > GlobalRmed[GlobalNRadial - 1])
-	return (double)GlobalNRadial - 1.0;
-    while (GlobalRmed[i] <= r)
-	i++;
-    ifrac = (double)i +
-	    (r - GlobalRmed[i - 1]) / (GlobalRmed[i] - GlobalRmed[i - 1]) - 1.0;
-
-    return ifrac;
-}
-
 /**
 	Finalize MPI and terminate program.
 
@@ -35,7 +18,6 @@ double GetGlobalIFrac(double r)
 void PersonalExit(int returncode)
 {
     std::flush(std::cout);
-    MPI_Barrier(MPI_COMM_WORLD);
     if (returncode != 0) {
 	MPI_Abort(MPI_COMM_WORLD, returncode);
     }
@@ -63,11 +45,10 @@ void MultiplyPolarGridbyConstant(t_polargrid *arraysrc, double constant)
 
 static void die_builtin(const char *err, va_list params)
 {
-    char msg[1024];
-    vsnprintf(msg, sizeof(msg), err, params);
-    fprintf(stderr, "fatal: %s\n", msg);
-    MPI_Finalize();
-    exit(128);
+	char msg[1024];
+	vsnprintf(msg, sizeof(msg), err, params);
+	fprintf(stderr, "fatal: %s\n", msg);
+	PersonalExit(128);
 }
 
 void die(const char *err, ...)

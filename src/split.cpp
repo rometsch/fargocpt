@@ -7,6 +7,7 @@
 #include "selfgravity.h"
 #include "time.h"
 #include <fftw3-mpi.h>
+#include <vector>
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE
@@ -280,7 +281,7 @@ void SplitDomain()
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
-    ///Added by Lucas
+    /// Added by Lucas
     // Needed for MPI_Gatherv
     // Initializes Radial sizes of non vector arrays and required displacements
     if (CPU_Master) {
@@ -307,7 +308,7 @@ void SplitDomain()
 
     if (CPU_Master) {
 
-	int tmp[CPU_Number];
+	std::vector<int> tmp(CPU_Number);
 	tmp[0] = 0;
 	for (int i = 1; i < CPU_Number; ++i) {
 	    tmp[i] = RootRanksOrdered[tmp[i - 1]];
@@ -330,7 +331,7 @@ void SplitDomain()
 	}
     }
     ///////////////////////////////////////////////////////////////////////////////////////
-    ///End Added by Lucas
+    /// End Added by Lucas
 
     /* print debugging */
     if (debug) {

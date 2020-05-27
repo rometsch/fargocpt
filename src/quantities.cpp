@@ -9,6 +9,7 @@
 #include "util.h"
 #include <math.h>
 #include <mpi.h>
+#include <vector>
 
 extern boolean Corotating;
 extern double M0;
@@ -90,7 +91,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	(CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
     const unsigned int send_size = local_array_end - local_array_start;
 
-    double local_mass[send_size];
+    std::vector<double> local_mass(send_size);
 
     for (unsigned int n_radial = local_array_start; n_radial < local_array_end;
 	 ++n_radial) {
@@ -105,7 +106,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
     double radius = 0.0;
     double current_mass = 0.0;
 
-    MPI_Gatherv(local_mass, send_size, MPI_DOUBLE, GLOBAL_bufarray,
+    MPI_Gatherv(&local_mass[0], send_size, MPI_DOUBLE, GLOBAL_bufarray,
 		RootNradialLocalSizes, RootNradialDisplacements, MPI_DOUBLE, 0,
 		MPI_COMM_WORLD);
 
@@ -490,8 +491,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    if (FrameAngle != 0.0) {
 		// periastron grid is rotated to non-rotating coordinate system
 		// to prevent phase jumps of atan2 in later transformations like
-		// you would have had if you back-transform the output periastron
-		// values
+		// you would have had if you back-transform the output
+		// periastron values
 		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
 		    atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
 			  e_x * cosFrameAngle - e_y * sinFrameAngle);
@@ -936,11 +937,22 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     (void)timestep;
     (void)force_update;
 
+	double denom;
+
+	if(parameters::write_at_every_timestep)
+	{
+		denom = DT;
+	}
+	else
+	{
+		denom = NINTERM*DT;
+	}
+
     // divide the data in massflow by the large timestep DT before writing out
     // to obtain the massflow from the mass difference
     for (unsigned int nRadial = 0;
 	 nRadial < data[t_data::MASSFLOW_1D].get_size_radial(); ++nRadial) {
-	data[t_data::MASSFLOW_1D](nRadial) *= 1. / DT;
+	data[t_data::MASSFLOW_1D](nRadial) *= 1. / denom;
     }
 }
 

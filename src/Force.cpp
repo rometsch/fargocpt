@@ -57,12 +57,11 @@ void ComputeForce(t_data &data, Force *force, double x, double y, double mass)
 	   globalforce[8] = {0., 0., 0., 0., 0., 0., 0., 0.};
     double xc, yc, cellmass, dx, dy, distance, dist2, rh, a;
     double InvDist3, fxi, fyi, fxhi, fyhi, fxo, fyo, fxho, fyho, hill_cut;
-    double *abs, *ord;
     double rsmoothing = 0.0;
 
     ns = data[t_data::DENSITY].Nsec;
-    abs = CellAbscissa->Field;
-    ord = CellOrdinate->Field;
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
     fxi = fyi = fxhi = fyhi = fxo = fyo = fxho = fyho = 0.0;
     a = sqrt(x * x + y * y);
     rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
@@ -94,8 +93,8 @@ void ComputeForce(t_data &data, Force *force, double x, double y, double mass)
 					       n_azimuthal);
 	    }
 	    l = n_azimuthal + n_radial * ns;
-	    xc = abs[l];
-	    yc = ord[l];
+	    xc = cell_center_x[l];
+	    yc = cell_center_y[l];
 	    cellmass =
 		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
 	    dx = xc - x;

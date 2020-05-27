@@ -1,6 +1,7 @@
 #include "planetary_system.h"
 #include "LowTasks.h"
 #include "constants.h"
+#include "fpe.h"
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
@@ -13,9 +14,7 @@
 extern boolean CICPlanet;
 extern int Corotating;
 
-t_planetary_system::t_planetary_system()
-{
-}
+t_planetary_system::t_planetary_system() {}
 
 t_planetary_system::~t_planetary_system()
 {
@@ -24,27 +23,39 @@ t_planetary_system::~t_planetary_system()
     }
 
     m_planets.clear();
+	reb_free_simulation(m_rebound);
+
 }
 
 void t_planetary_system::init_rebound()
 {
-	m_rebound = reb_create_simulation();
+    m_rebound = reb_create_simulation();
     m_rebound->G = constants::G;
     m_rebound->dt = 1e-6;
     m_rebound->softening = 0.0; // 5e-4; // Jupiter radius in au
-	//m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
-	m_rebound->integrator = reb_simulation::REB_INTEGRATOR_MERCURIUS;
+    m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+    // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_MERCURIUS;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		auto &planet = get_planet(i);
-		struct reb_particle p = {0};
-		p.x = planet.get_x();
-		p.y = planet.get_y();
-		p.vx = planet.get_vx();
-		p.vy = planet.get_vy();
-		p.m = planet.get_mass();
-		p.c = nullptr;
-		reb_add(m_rebound, p);
+	auto &planet = get_planet(i);
+	struct reb_particle p;
+	p.x = planet.get_x();
+	p.y = planet.get_y();
+	p.z = 0;
+	p.vx = planet.get_vx();
+	p.vy = planet.get_vy();
+	p.vz = 0;
+	p.ax = 0;
+	p.ay = 0;
+	p.az = 0;
+	p.m = planet.get_mass();
+	p.r = 0;
+	p.lastcollision = 0;
+	p.c = nullptr;
+	p.hash = 0;
+	p.ap = nullptr;
+	p.sim = nullptr;
+	reb_add(m_rebound, p);
     }
 }
 
@@ -55,9 +66,6 @@ void t_planetary_system::initialize_default_star()
 
     planet->set_name("Default Star");
     planet->set_acc(0.0);
-
-    planet->set_feeldisk(false);
-    planet->set_feelother(true);
 
     planet->set_radius(parameters::star_radius);
     planet->set_temperature(parameters::star_temperature);
@@ -74,142 +82,128 @@ void t_planetary_system::read_from_file(char *filename)
     FILE *fd;
 
     if (parameters::default_star) {
-		initialize_default_star();
+	initialize_default_star();
     }
 
     // check if a filename was specified
     if (filename == NULL) {
-		logging::print_master(LOG_INFO "No planetfile specified.\n");
-	} else {
+	logging::print_master(LOG_INFO "No planetfile specified.\n");
+    } else {
 	// Only read from file if filename is given.
 
-    // open fill
-    fd = fopen(filename, "r");
+	// open fill
+	fd = fopen(filename, "r");
 
-    // check if file was readable
-    if (fd == NULL) {
-	logging::print_master(LOG_ERROR "Error : can't find '%s'.\n", filename);
-	PersonalExit(1);
-	return;
-    }
-
-    char buffer[512];
-
-    // read line by line
-    while (fgets(buffer, sizeof(buffer), fd) != NULL) {
-	char name[80], feeldisk[5], feelother[5], irradiate[5];
-	double semi_major_axis, mass, acc, eccentricity = 0.0, temperature,
-					   radius, phi, rampuptime;
-	int num_args;
-
-	// check if this line is a comment
-	if ((strlen(buffer) > 0) && (buffer[0] == '#'))
-	    continue;
-
-	// try to cut line into pieces
-	num_args = sscanf(
-	    buffer, "%80s %lf %lf %lf %5s %5s %lf %lf %lf %5s %lf %lf", name,
-	    &semi_major_axis, &mass, &acc, feeldisk, feelother, &eccentricity,
-	    &radius, &temperature, irradiate, &phi, &rampuptime);
-	if (num_args < 6)
-	    continue;
-
-	if (num_args < 7) {
-	    eccentricity = 0.0;
+	// check if file was readable
+	if (fd == NULL) {
+	    logging::print_master(LOG_ERROR "Error : can't find '%s'.\n",
+				  filename);
+	    PersonalExit(1);
+	    return;
 	}
 
-	if (num_args < 8) {
-	    radius = 0.009304813;
-	}
+	char buffer[512];
 
-	if (num_args < 9) {
-	    temperature = 5778.0;
-	}
+	// read line by line
+	while (fgets(buffer, sizeof(buffer), fd) != NULL) {
+		char name[256], feeldisk[8], feelother[8], irradiate[8];
+	    double semi_major_axis, mass, acc, eccentricity = 0.0, temperature,
+					       radius, phi, rampuptime;
+	    int num_args;
 
-	if (num_args < 10) {
-	    irradiate[0] = 'n';
-	}
+	    // check if this line is a comment
+	    if ((strlen(buffer) > 0) && (buffer[0] == '#'))
+		continue;
 
-	if (num_args < 11) {
-	    phi = 0.0;
-	}
+	    // try to cut line into pieces
+	    num_args = sscanf(
+		buffer, "%255s %lf %lf %lf %7s %7s %lf %lf %lf %7s %lf %lf",
+		name, &semi_major_axis, &mass, &acc, feeldisk, feelother,
+		&eccentricity, &radius, &temperature, irradiate, &phi,
+		&rampuptime);
+	    if (num_args < 6)
+		continue;
 
-	if (num_args < 12) {
-	    rampuptime = 0;
-	}
+	    if (num_args < 7) {
+		eccentricity = 0.0;
+	    }
 
-	if (CICPlanet) {
-	    // initialization puts centered-in-cell planets (with excentricity =
-	    // 0 only)
-	    unsigned int j = 0;
-	    while (GlobalRmed[j] < semi_major_axis)
-		j++;
-	    semi_major_axis = Radii[j + 1];
-	}
+	    if (num_args < 8) {
+		radius = 0.009304813;
+	    }
 
-	t_planet *planet = new t_planet();
+	    if (num_args < 9) {
+		temperature = 5778.0;
+	    }
 
-	if (parameters::default_star) {
-	    initialize_planet_legacy(planet, mass, semi_major_axis,
-				     eccentricity, phi);
-	} else {
-	    // planets starts at Apastron
-	    double nu = PI;
-	    double pericenter_angle = PI;
-	    if (get_number_of_planets() < 2) {
-		initialize_planet_jacobi_adjust_first_two(
-		    planet, mass, semi_major_axis, eccentricity,
-		    pericenter_angle, nu);
+	    if (num_args < 10) {
+		irradiate[0] = 'n';
+	    }
+
+	    if (num_args < 11) {
+		phi = 0.0;
+	    }
+
+	    if (num_args < 12) {
+		rampuptime = 0;
+	    }
+
+	    if (CICPlanet) {
+		// initialization puts centered-in-cell planets (with
+		// excentricity = 0 only)
+		unsigned int j = 0;
+		while (GlobalRmed[j] < semi_major_axis)
+		    j++;
+		semi_major_axis = Radii[j + 1];
+	    }
+
+	    t_planet *planet = new t_planet();
+
+	    if (parameters::default_star) {
+		initialize_planet_legacy(planet, mass, semi_major_axis,
+					 eccentricity, phi);
 	    } else {
-		initialize_planet_jacobi(planet, mass, semi_major_axis,
-					 eccentricity, pericenter_angle, nu);
+		// planets starts at Periastron
+		double nu = 0.0;
+
+		double pericenter_angle = phi;
+		if (get_number_of_planets() < 2) {
+		    initialize_planet_jacobi_adjust_first_two(
+			planet, mass, semi_major_axis, eccentricity,
+			pericenter_angle, nu);
+		} else {
+		    initialize_planet_jacobi(planet, mass, semi_major_axis,
+					     eccentricity, pericenter_angle,
+					     nu);
+		}
 	    }
+	    planet->set_name(name);
+	    planet->set_acc(acc);
+
+	    logging::print_master(
+		LOG_WARNING,
+		"Warning: feeldisk flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
+	    logging::print_master(
+		LOG_WARNING,
+		"Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
+
+	    planet->set_radius(radius);
+	    planet->set_temperature(temperature / units::temperature);
+	    planet->set_irradiate(tolower(irradiate[0]) == 'y');
+	    planet->set_rampuptime(rampuptime);
+
+	    planet->set_disk_on_planet_acceleration(
+		Pair()); // initialize to zero
+	    planet->set_nbody_on_planet_acceleration(Pair());
+
+	    add_planet(planet);
 	}
-	planet->set_name(name);
-	planet->set_acc(acc);
+	// close file
+	fclose(fd);
 
-	if (tolower(feeldisk[0]) == 'y') {
-	    planet->set_feeldisk(true);
-	} else {
-	    if (parameters::disk_feedback == YES) {
-		logging::print_master("\n\n\n");
-		logging::print_master(
-		    LOG_WARNING
-		    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-		logging::print_master(
-		    (std::string(LOG_WARNING) +
-		     "UNPHYSICAL SETTING! Disk feedback is activated but disk interaction is disabled for planet " +
-		     std::string(planet->get_name()) + "!\n")
-			.c_str());
-		logging::print_master(
-		    LOG_WARNING
-		    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n\n");
-	    }
-	    planet->set_feeldisk(false);
-	}
-
-	if (tolower(feelother[0]) == 'y') {
-	    planet->set_feelother(true);
-	} else {
-	    planet->set_feelother(false);
-	}
-
-	planet->set_radius(radius);
-	planet->set_temperature(temperature / units::temperature);
-	planet->set_irradiate(tolower(irradiate[0]) == 'y');
-	planet->set_rampuptime(rampuptime);
-
-	planet->set_disk_on_planet_acceleration(Pair()); // initialize to zero
-	planet->set_nbody_on_planet_acceleration(Pair());
-
-	add_planet(planet);
+	logging::print_master(LOG_INFO "%d planet(s) found.\n",
+			      get_number_of_planets());
     }
-	    // close file
-    fclose(fd);
-
-    logging::print_master(LOG_INFO "%d planet(s) found.\n",
-			  get_number_of_planets());
-	}
 
     if (get_number_of_planets() > 0) {
 	HillRadius =
@@ -220,15 +214,15 @@ void t_planetary_system::read_from_file(char *filename)
 
     // set up hydro frame center
     if (get_number_of_planets() == 0) {
-		die("No stars or planets!");
+	die("No stars or planets!");
     }
     if (parameters::n_bodies_for_hydroframe_center == 0) {
-		// use all bodies to calculate hydro frame center
-		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
+	// use all bodies to calculate hydro frame center
+	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
     if (parameters::n_bodies_for_hydroframe_center > get_number_of_planets()) {
-		// use as many bodies to calculate hydro frame center as possible
-		parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
+	// use as many bodies to calculate hydro frame center as possible
+	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
     logging::print_master(
 	LOG_INFO
@@ -239,7 +233,7 @@ void t_planetary_system::read_from_file(char *filename)
 
     if (Corotating == YES &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
-		die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
+	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
 	    parameters::corotation_reference_body, get_number_of_planets() - 1);
     }
 
@@ -247,6 +241,8 @@ void t_planetary_system::read_from_file(char *filename)
     logging::print_master(
 	LOG_INFO "The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
+
+	init_rebound();
 }
 
 void t_planetary_system::list_planets()
@@ -295,8 +291,7 @@ void t_planetary_system::list_planets()
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
 		(24 * 60 * 60 * 365.2425),
-	    get_planet(i).get_acc(), (get_planet(i).get_feeldisk()) ? 'X' : '-',
-	    (get_planet(i).get_feelother()) ? 'X' : '-');
+		get_planet(i).get_acc(), '-', '-');
     }
 
     logging::print(LOG_INFO "\n");
@@ -341,6 +336,7 @@ void t_planetary_system::restart(unsigned int timestep)
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).restart(timestep);
     }
+	m_rebound->t = PhysicalTime;
 }
 
 void t_planetary_system::create_planet_files()
@@ -616,19 +612,18 @@ void t_planetary_system::move_to_hydro_frame_center()
  */
 void t_planetary_system::calculate_orbital_elements()
 {
-    if (get_number_of_planets() == 1) {
-	get_planet(0).set_orbital_elements_zero();
-	return;
-    }
     double x, y, vx, vy, M;
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
-	unsigned int n_center = i;
-	if (i <= 1)
-	    n_center = 2;
-	Pair com_pos = get_center_of_mass(n_center);
-	Pair com_vel = get_center_of_mass_velocity(n_center);
-	M = get_mass(n_center);
+	if (i == 0) {
+		get_planet(0).set_orbital_elements_zero();
+		continue;
+	}
+
+	Pair com_pos = get_center_of_mass(i);
+	Pair com_vel = get_center_of_mass_velocity(i);
+
+	M = get_mass(i);
 	x = planet.get_x() - com_pos.x;
 	y = planet.get_y() - com_pos.y;
 	vx = planet.get_vx() - com_vel.x;
@@ -636,4 +631,105 @@ void t_planetary_system::calculate_orbital_elements()
 
 	planet.calculate_orbital_elements(x, y, vx, vy, M);
     }
+}
+
+
+/**
+   Copy positions, velocities and masses
+   from planetary system to rebound.
+*/
+void t_planetary_system::copy_data_to_rebound() {
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	    auto &planet = get_planet(i);
+	    m_rebound->particles[i].x = planet.get_x();
+	    m_rebound->particles[i].y = planet.get_y();
+	    m_rebound->particles[i].vx = planet.get_vx();
+	    m_rebound->particles[i].vy = planet.get_vy();
+	    m_rebound->particles[i].m = planet.get_mass();
+	}
+}
+
+/**
+   Copy positions, velocities and masses back
+   from rebound to planetary system.
+*/
+void t_planetary_system::copy_data_from_rebound() {
+		for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	    auto &planet = get_planet(i);
+	    planet.set_x(m_rebound->particles[i].x);
+	    planet.set_y(m_rebound->particles[i].y);
+	    planet.set_vx(m_rebound->particles[i].vx);
+	    planet.set_vy(m_rebound->particles[i].vy);
+	}
+}
+
+/**
+   Integrate the nbody system forward in time using rebound.
+*/
+void t_planetary_system::integrate(double time, double dt) {
+    if (get_number_of_planets() < 2) {
+	// don't integrate a single particle that doesn't move
+		return;
+    }
+
+	copy_data_to_rebound();
+	m_rebound->t = time;
+
+	disable_trap_fpe_gnu();
+	reb_integrate(m_rebound, time + dt);
+	enable_trap_fpe_gnu();
+
+	copy_data_from_rebound();
+
+	move_to_hydro_frame_center();
+}
+
+
+/**
+	Updates planets velocities due to disk influence if "DiskFeedback" is
+   set.
+*/
+void t_planetary_system::correct_velocity_for_disk_accel()
+{
+
+	if (!parameters::disk_feedback){
+		return;
+	}
+
+	for (unsigned int k = 0; k < get_number_of_planets(); k++) {
+
+		/*
+		 * from centrifugal balance folows
+		 * v_new**2 / r = a_disk + v_old**2 / r
+		 * v_new = sqrt(v_old**2 - r * a_disk)
+		 */
+		t_planet &planet = get_planet(k);
+
+		const Pair gas_accel = planet.get_disk_on_planet_acceleration();
+		const double vx_old = planet.get_vx();
+		const double vy_old = planet.get_vy();
+		const double v_old = std::sqrt(std::pow(vx_old, 2.0) + std::pow(vy_old, 2.0));
+
+		if(v_old == 0.0)
+		{
+			continue;
+		}
+
+		const double x = planet.get_x();
+		const double y = planet.get_y();
+		const double specific_torque_gas = gas_accel.x * x + gas_accel.y * y; // = a_disk * r
+
+		if(specific_torque_gas > std::pow(v_old, 2.0))
+		{
+			continue;
+		}
+
+		const double v_new = std::sqrt(std::pow(v_old, 2.0) - specific_torque_gas);
+
+		const double new_vx = v_new / v_old * vx_old;
+		const double new_vy = v_new / v_old * vy_old;
+
+		planet.set_vx(new_vx);
+		planet.set_vy(new_vy);
+	}
 }

@@ -1,6 +1,9 @@
 #include "util.h"
-#include <math.h>
+#include <cstring>
+#include <cmath>
 #include <stdint.h>
+#include <string>
+
 
 /**
 	cutoff function

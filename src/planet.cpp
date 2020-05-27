@@ -92,6 +92,13 @@ const std::map<const std::string, const std::string> variable_units = {
     {"omega", "frequency"},
     {"omega kepler", "frequency"}};
 
+
+
+t_planet::~t_planet()
+{
+	delete[] m_name;
+}
+
 /**
 	set name of planet
 */
@@ -140,7 +147,7 @@ double t_planet::get_period()
 {
     return 2.0 * PI *
 	   sqrt(pow3(get_semi_major_axis()) /
-		((M + get_mass()) * constants::G));
+		((hydro_center_mass + get_mass()) * constants::G));
 }
 
 /**
@@ -150,11 +157,24 @@ double t_planet::get_omega()
 {
     double distance = get_r();
     if (!is_distance_zero(distance)) {
-	return sqrt(((M + get_mass()) * constants::G) / pow3(distance));
+	return sqrt(((hydro_center_mass + get_mass()) * constants::G) / pow3(distance));
     } else {
 	return 0.0;
     }
 }
+
+/**
+	get hill radius at current planet location
+*/
+double t_planet::get_rhill()
+{
+    const double r = get_r();
+	const double Mp = get_mass();
+	const double Mstar = hydro_center_mass;
+	const double rhill = pow(Mp/(3*Mstar), 1.0/3.0)*r;\
+	return rhill;
+}
+
 
 /**
 	get angular momentum of planet

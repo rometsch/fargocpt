@@ -65,6 +65,11 @@ class t_planetary_system
 
     void create_planet_files();
     void write_planets(unsigned int timestep, bool big_file);
+
+	void integrate(double time, double dt);
+	void copy_data_to_rebound();
+	void copy_data_from_rebound();
+	void correct_velocity_for_disk_accel();
 };
 
 #endif // PLANETARY_SYSTEM_H

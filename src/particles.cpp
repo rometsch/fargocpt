@@ -19,6 +19,8 @@
 #include <mpi.h>
 #include <random>
 #include <stdlib.h>
+#include <vector>
+#include "find_cell_id.h"
 
 extern Pair IndirectTerm;
 
@@ -44,7 +46,7 @@ static MPI_Datatype mpi_particle;
 
 // inverse of the Cumulative distribution function for a slope proportional to
 // r^n
-static double f(double x, double n)
+static double power_law_distribution(double x, double n)
 {
     double rmin = parameters::particle_minimum_radius;
     double rmax = parameters::particle_maximum_radius;
@@ -83,7 +85,14 @@ static double check_angle(double &phi)
     }
 }
 
-static void transformCartCyl(double *cart, double *cyl, double r, double phi)
+
+static double corret_v_gas_azimuthal_omega_frame(const double v_az_gas, const double r_particle)
+{
+	const double v_az_corrected = v_az_gas + r_particle * OmegaFrame;
+	return v_az_corrected;
+}
+
+static void transform_cart_to_cyl(const double * const cart, double * const cyl, const double r, const double phi)
 {
     (void)r;
     cyl[0] = cart[0] * cos(phi);
@@ -93,7 +102,7 @@ static void transformCartCyl(double *cart, double *cyl, double r, double phi)
     cyl[1] += cart[1] * cos(phi);
 }
 
-void find_nearest(const t_polargrid &quantity, unsigned int &n_radial_a_minus,
+void find_nearest(unsigned int &n_radial_a_minus,
 		  unsigned int &n_radial_a_plus,
 		  unsigned int &n_azimuthal_a_minus,
 		  unsigned int &n_azimuthal_a_plus,
@@ -102,33 +111,19 @@ void find_nearest(const t_polargrid &quantity, unsigned int &n_radial_a_minus,
 		  unsigned int &n_azimuthal_b_plus, const double r,
 		  const double phi)
 {
+	n_radial_a_minus = get_rinf_id(r);
+	n_radial_a_plus = n_radial_a_minus + 1;
 
-    double dphi = 2.0 * PI / (double)quantity.get_size_azimuthal();
+	n_radial_b_minus = get_rmed_id(r);
+	n_radial_b_plus = n_radial_b_minus + 1;
 
-    // find nearest n_radials
-    // we do not need to check if n_radial_a_plus < NRadial because it this
-    // would be the case, something in the move part went wrong :)
-    while (Ra[n_radial_a_plus] < r)
-	n_radial_a_plus++;
-    n_radial_a_minus = n_radial_a_plus - 1;
-    while (Rb[n_radial_b_plus] < r)
-	n_radial_b_plus++;
-    n_radial_b_minus = n_radial_b_plus - 1;
+	n_azimuthal_a_minus = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));
+	n_azimuthal_a_plus = get_next_azimuthal_id(n_azimuthal_a_minus);
 
-    // find nearest n_azimuthals
-    n_azimuthal_a_minus = trunc(phi / dphi);
-    n_azimuthal_a_plus = n_azimuthal_a_minus + 1;
-    if (n_azimuthal_a_plus == quantity.get_size_azimuthal()) {
-	n_azimuthal_a_plus = 0;
-    }
+	n_azimuthal_b_minus = clamp_phi_id_to_grid(get_med_azimuthal_id(phi));
+	n_azimuthal_b_plus = get_next_azimuthal_id(n_azimuthal_b_minus);
 
-    int tmp = floor((phi - 0.5 * dphi) / dphi);
-    n_azimuthal_b_minus =
-	(tmp == -1) ? quantity.get_max_azimuthal() : (unsigned int)tmp;
-    n_azimuthal_b_plus = n_azimuthal_b_minus + 1;
-    if (n_azimuthal_b_plus == quantity.get_size_azimuthal()) {
-	n_azimuthal_b_plus = 0;
-    }
+
 }
 
 static double interpolate_bilinear_sg(const double *array1D,
@@ -337,7 +332,7 @@ static void init_particle_timestep(t_data &data)
     }
 }
 
-static void correct_for_self_gravity(t_data &data, const unsigned int i)
+static void correct_for_self_gravity(const unsigned int i)
 {
 
     const double r = particles[i].get_distance_to_star();
@@ -356,7 +351,7 @@ static void correct_for_self_gravity(t_data &data, const unsigned int i)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);
@@ -395,7 +390,7 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 	      std::uniform_real_distribution<double> &dis_twoPi,
 	      std::uniform_real_distribution<double> &dis_eccentricity)
 {
-    double semi_major_axis = f(dis_one(generator), parameters::particle_slope);
+	double semi_major_axis = power_law_distribution(dis_one(generator), parameters::particle_slope);
     double phi = dis_twoPi(generator);
     double eccentricity = dis_eccentricity(generator);
 
@@ -428,19 +423,22 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
     particles[i].radius = parameters::particle_radius;
 
     if (true) {
-	const int particle_type = i % 4; // 4 different particle sizes
+	const int particle_type = i % 5; // 4 different particle sizes
 	switch (particle_type) {
 	case 0: // very small particles
 	    particles[i].radius *= 1.0;
 	    break;
 	case 1: // small particles
-	    particles[i].radius *= 5.0;
+	    particles[i].radius *= 1e1;
 	    break;
 	case 2: // medium particles
-	    particles[i].radius *= 10.0;
+	    particles[i].radius *= 1e2;
 	    break;
 	case 3: // very large particles
-	    particles[i].radius *= 50.0;
+	    particles[i].radius *= 1e3;
+		break;
+	case 4: // very large particles
+	    particles[i].radius *= 1e4;
 	    break;
 	}
     }
@@ -516,9 +514,10 @@ void init(t_data &data)
 					    // same as Marzari & Scholl 2000
 
     // get number of local particles from all nodes to compute correct offsets
-    unsigned int nodes_number_of_particles[CPU_Number];
+    std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
     MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
-		  nodes_number_of_particles, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+		  &nodes_number_of_particles[0], 1, MPI_UNSIGNED,
+		  MPI_COMM_WORLD);
 
     // compute local offset
     unsigned int local_offset = 0;
@@ -542,9 +541,9 @@ void init(t_data &data)
     int mpi_particle_lengths[11] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     MPI_Aint mpi_particle_offsets[11];
     MPI_Datatype mpi_particle_types[11] = {MPI_UNSIGNED, MPI_DOUBLE, MPI_DOUBLE,
-					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
-					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
-					   MPI_DOUBLE,	 MPI_DOUBLE};
+					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE,
+					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE,
+					   MPI_DOUBLE,   MPI_DOUBLE};
 
     // calculate offsets
     MPI_Aint base;
@@ -578,7 +577,7 @@ void init(t_data &data)
 
     if (parameters::particle_disk_gravity_enabled) {
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-	    correct_for_self_gravity(data, i);
+		correct_for_self_gravity(i);
 	}
     }
     check_tstop(data);
@@ -680,9 +679,10 @@ void restart(unsigned int timestep)
     free(filename);
 
     // get number of local particles from all nodes to compute correct offsets
-    unsigned int nodes_number_of_particles[CPU_Number];
+    std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
     MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
-		  nodes_number_of_particles, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+		  &nodes_number_of_particles[0], 1, MPI_UNSIGNED,
+		  MPI_COMM_WORLD);
 
     // compute local offset
     unsigned int local_offset = 0;
@@ -709,6 +709,8 @@ void calculate_accelerations_from_star_and_planets(
     double &ar, double &aphi, const double r, const double r_dot,
     const double phi, const double phi_dot, t_data &data)
 {
+    (void)r_dot;
+    (void)phi_dot;
 
     constexpr double epsilon = 0.005;
     constexpr double epsilon_sq = epsilon * epsilon;
@@ -741,9 +743,6 @@ void calculate_accelerations_from_star_and_planets(
 	ar -= factor * (r - r_planet * cos_delta_phi);
 	aphi -= factor * r_planet * sin_delta_phi / r;
     }
-
-    ar += IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi);
-    aphi += -IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi);
 }
 
 void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
@@ -769,9 +768,6 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 	ax += factor * (planet.get_x() - x);
 	ay += factor * (planet.get_y() - y);
     }
-
-    ax += IndirectTerm.x;
-    ay += IndirectTerm.y;
 }
 
 void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
@@ -812,10 +808,6 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 	    constants::G * planet_mass * r * r_planet * sin_delta_phi /
 	    (distance_to_planet_smoothed_pow2 * distance_to_planet);
     }
-
-    grav_r_ddot += IndirectTerm.x * cos(phi) + IndirectTerm.y * sin(phi);
-    minus_grav_l_dot +=
-	-r * (IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi));
 }
 
 void calculate_derivitives_from_star_and_planets_in_cart(
@@ -855,10 +847,7 @@ void calculate_derivitives_from_star_and_planets_in_cart(
 	acart[1] += -constants::G * planet_mass * y_dist / (dist * dist2);
     }
 
-    acart[0] += IndirectTerm.x;
-    acart[1] += IndirectTerm.y;
-
-    transformCartCyl(acart, acyl, r, phi);
+	transform_cart_to_cyl(acart, acyl, r, phi);
     grav_r_ddot = acyl[0];
     minus_grav_l_dot = acyl[1] * r;
 }
@@ -918,7 +907,8 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
     }
 
     // double Qm =
-    // ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim); double Qp =
+    // ((rm*phip-rm*phi)*Qmm+(rm*phi-rm*phim)*Qmp)/(rm*phip-rm*phim); double Qp
+    // =
     // ((rp*phip-rp*phi)*Qpm+(rp*phi-rp*phim)*Qpp)/(rp*phip-rp*phim);
     // mathematically the same, but less computations
     const double Qm = ((phip - phi) * Qmm + (phi - phim) * Qmp) / dphi;
@@ -940,7 +930,7 @@ static void calculate_tstop(const double r, const double phi,
 		 n_radial_b_minus = 0, n_radial_b_plus = 1;
     unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-    find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		 n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		 n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r,
 		 phi);
@@ -955,9 +945,10 @@ static void calculate_tstop(const double r, const double phi,
     const double vg_radial = interpolate_bilinear(
 	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
 	n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-    const double vg_azimuthal = interpolate_bilinear(
-	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
 	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (PI * m0));
@@ -965,6 +956,7 @@ static void calculate_tstop(const double r, const double phi,
     // calculate relative velocities
     minus_r_dotel_r = vg_radial - r_dot;
     const double vrel_phi = vg_azimuthal - phi_dot * r;
+
     minus_l_rel = r * vrel_phi;
 
     const double vrel = sqrt(pow2(minus_r_dotel_r) + pow2(vrel_phi));
@@ -1024,7 +1016,7 @@ static void calculate_tstop2(const double r, const double phi,
 		 n_radial_b_minus = 0, n_radial_b_plus = 1;
     unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-    find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		 n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		 n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		 r_tmp, phi);
@@ -1039,9 +1031,10 @@ static void calculate_tstop2(const double r, const double phi,
     const double vg_radial = interpolate_bilinear(
 	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
 	n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
-    const double vg_azimuthal = interpolate_bilinear(
-	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r_tmp, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
 	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (PI * m0));
@@ -1125,7 +1118,7 @@ void check_tstop(t_data &data)
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		     n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
 
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);
@@ -1140,9 +1133,10 @@ void check_tstop(t_data &data)
 	const double vg_radial = interpolate_bilinear(
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	const double vg_azimuthal = interpolate_bilinear(
+	const double vg_azimuthal_temp = interpolate_bilinear(
 	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
 	const double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
 				     temperature / (PI * m0));
@@ -1196,7 +1190,7 @@ void check_tstop(t_data &data)
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!");
-	    PersonalExit(1);
+		PersonalExit(1);
 	}
 
 	if (tstop < 0.005 * dt && parameters::particle_gas_drag_enabled &&
@@ -1204,7 +1198,7 @@ void check_tstop(t_data &data)
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!");
-	    PersonalExit(1);
+		PersonalExit(1);
 	}
     }
 }
@@ -1212,14 +1206,14 @@ void check_tstop(t_data &data)
 // apply disk feedback on primary onto the particles
 void update_velocities_from_indirect_term(const double dt)
 {
-	// Naming of r and phi weird!!!!!!!
+    // Naming of r and phi weird!!!!!!!
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double indirect_q1_dot;
 	double indirect_q2_dot;
 	if (CartesianParticles) {
-	    indirect_q1_dot = IndirectTerm.x*dt + particles[i].r_dot;
-	    indirect_q2_dot = IndirectTerm.y*dt + particles[i].phi_dot;
+	    indirect_q1_dot = IndirectTerm.x * dt + particles[i].r_dot;
+	    indirect_q2_dot = IndirectTerm.y * dt + particles[i].phi_dot;
 	} else {
 	    double r = particles[i].r;
 	    double phi = particles[i].phi;
@@ -1259,7 +1253,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);
@@ -1271,18 +1265,19 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	double vg_radial = interpolate_bilinear(
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	double vg_azimuthal = interpolate_bilinear(
-	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	double temperature = interpolate_bilinear(
 	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
 	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate gas velocities in cartesian coordinates
 	double vg_x =
-	    cos(phi) * vg_radial - sin(phi) * (vg_azimuthal + OmegaFrame * r);
+		cos(phi) * vg_radial - sin(phi) * vg_azimuthal;
 	double vg_y =
-	    sin(phi) * vg_radial + cos(phi) * (vg_azimuthal + OmegaFrame * r);
+		sin(phi) * vg_radial + cos(phi) * vg_azimuthal;
 
 	// particles store cartesian data
 	double &vx = particles[i].r_dot;
@@ -1356,7 +1351,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(data[t_data::DENSITY], n_radial_a_minus, n_radial_a_plus,
+	find_nearest(n_radial_a_minus, n_radial_a_plus,
 		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
 		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
 		     r, phi);
@@ -1368,9 +1363,10 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	const double vg_radial = interpolate_bilinear(
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	const double vg_azimuthal = interpolate_bilinear(
-	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal_temp = interpolate_bilinear(
+		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double temperature = interpolate_bilinear(
 	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
 	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
@@ -1378,7 +1374,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	// calculate relative velocities
 	const double vrel_r = particles[i].r_dot - vg_radial;
 	const double vrel_phi =
-	    r * (particles[i].phi_dot - OmegaFrame) - vg_azimuthal;
+		r * particles[i].phi_dot - vg_azimuthal;
 	const double vrel = sqrt(pow2(vrel_r) + pow2(vrel_phi));
 
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
@@ -2098,11 +2094,15 @@ void integrate_explicit(t_data &data, const double dt)
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
-    }// else {
+    } else {
 	// disk gravity on particles is inside gas_drag function
-	// if (parameters::particle_gas_drag_enabled)
-	//     update_velocities_from_gas_drag(data, dt);
-    // }
+	if (parameters::particle_gas_drag_enabled)
+	    update_velocities_from_gas_drag(data, dt);
+    } // else {
+    // disk gravity on particles is inside gas_drag function
+    if (parameters::disk_feedback) {
+	update_velocities_from_indirect_term(dt);
+    }
 
     // as particles move independent of each other, we can integrate one after
     // one
@@ -2343,8 +2343,8 @@ void move(void)
     }
 
     // check if we need to send particles to inner node
-    int inward_offset[local_number_of_particles];
-    int inward_size[local_number_of_particles];
+    std::vector<int> inward_offset(local_number_of_particles);
+    std::vector<int> inward_size(local_number_of_particles);
     int inward_count = 0;
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	if ((CPU_Rank > 0) && (particles[i].get_squared_distance_to_star() <
@@ -2358,8 +2358,8 @@ void move(void)
     // send particles to inner node
     if (CPU_Rank > 0) {
 	MPI_Datatype inward_type;
-	MPI_Type_indexed(inward_count, inward_size, inward_offset, mpi_particle,
-			 &inward_type);
+	MPI_Type_indexed(inward_count, &inward_size[0], &inward_offset[0],
+			 mpi_particle, &inward_type);
 	MPI_Type_commit(&inward_type);
 	MPI_Send(particles, 1, inward_type, CPU_Prev, 0, MPI_COMM_WORLD);
 	MPI_Type_free(&inward_type);
@@ -2402,8 +2402,8 @@ void move(void)
     // move particles outwards starting from the inner most node
 
     // check if we need to send particles to outer node
-    int outward_offset[local_number_of_particles];
-    int outward_size[local_number_of_particles];
+    std::vector<int> outward_offset(local_number_of_particles);
+    std::vector<int> outward_size(local_number_of_particles);
     int outward_count = 0;
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	if ((CPU_Rank < CPU_Highest) &&
@@ -2418,7 +2418,7 @@ void move(void)
     // send particles to outer node
     if (CPU_Rank < CPU_Highest) {
 	MPI_Datatype outward_type;
-	MPI_Type_indexed(outward_count, outward_size, outward_offset,
+	MPI_Type_indexed(outward_count, &outward_size[0], &outward_offset[0],
 			 mpi_particle, &outward_type);
 	MPI_Type_commit(&outward_type);
 	MPI_Send(particles, 1, outward_type, CPU_Next, 0, MPI_COMM_WORLD);
@@ -2481,9 +2481,10 @@ void write(unsigned int timestep)
     free(filename);
 
     // get number of local particles from all nodes to compute correct offsets
-    unsigned int nodes_number_of_particles[CPU_Number];
+    std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
     MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
-		  nodes_number_of_particles, 1, MPI_UNSIGNED, MPI_COMM_WORLD);
+		  &nodes_number_of_particles[0], 1, MPI_UNSIGNED,
+		  MPI_COMM_WORLD);
 
     // compute local offset
     unsigned int local_offset = 0;

@@ -21,6 +21,7 @@
 #include "selfgravity.h"
 #include "util.h"
 #include "viscosity.h"
+#include "find_cell_id.h"
 
 #include "open-simplex-noise.h"
 #include "options.h"
@@ -73,42 +74,58 @@ void init_radialarrays()
     // free up fdInputFilename
     free(fd_input_filename);
 
+	double first_cell_size = 0.0;
+	double cell_growth_factor = 0.0;
     if (fd_input == NULL) {
 	logging::print_master(
 	    LOG_INFO "Warning : no `radii.dat' file found. Using default.\n");
-	double interval, slope;
 	switch (parameters::radial_grid_type) {
 	case parameters::logarithmic_spacing:
+		{
+		cell_growth_factor = std::pow((RMAX/RMIN), 1.0/((double)GlobalNRadial-2.0));
 	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
-		Radii[nRadial] = RMIN * exp((double)(nRadial - 1.0) /
-					    (double)(GlobalNRadial - 2.0) *
-					    log(RMAX / RMIN));
-	    }
+
+		Radii[nRadial] = RMIN * std::pow(cell_growth_factor, (double)nRadial-1.0);
+		}
 	    break;
+		}
 	case parameters::arithmetic_spacing:
-	    interval = (RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
+		{
+		cell_growth_factor = ((double)GlobalNRadial - 2.0) / (RMAX-RMIN);
+		const double interval = (RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
 	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
 		Radii[nRadial] = RMIN + interval * (double)(nRadial - 1.0);
 	    }
 	    break;
+		}
 	case parameters::exponential_spacing:
-	    slope = (.011 * 5. - .01) * 100. / ((double)(GlobalNRadial - 2));
+		{
+		// Don't touch the rest
+		cell_growth_factor = std::pow((RMAX/RMIN), 1.0/((double)GlobalNRadial-2.0));
+
+		first_cell_size = RMIN * (cell_growth_factor - 1.0)* parameters::exponential_cell_size_factor;
+		const double f = (RMAX-RMIN)/first_cell_size;
+		double exp_growth_factor = 1.02;
+		const double Nr = (double)GlobalNRadial - 2.0;
+		for(int i = 0; i < 500000; ++i)
+		{
+			exp_growth_factor = exp_growth_factor - ((std::pow(exp_growth_factor, Nr) - exp_growth_factor*f + f - 1)) /
+					(Nr * std::pow(exp_growth_factor, Nr-1.0) - f);
+		}
+		cell_growth_factor = exp_growth_factor;
 	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
-		Radii[nRadial] =
-		    (RMIN - RMAX) /
-			(exp(slope) -
-			 exp(slope * ((double)GlobalNRadial - 1))) *
-			exp(slope * (double)(nRadial)) +
-		    RMIN -
-		    (RMIN - RMAX) /
-			(1. - exp(slope * ((double)GlobalNRadial - 2)));
+			Radii[nRadial] = RMIN + first_cell_size * (std::pow(exp_growth_factor, (double)nRadial-1.0) - 1.0) / (exp_growth_factor-1.0);
 	    }
 	    break;
+		}
+		case parameters::custom_spacing:
+			break;
 	default:
 	    die("Invalid setting for RadialSpacing");
 	}
     } else {
 	logging::print_master(LOG_INFO "Reading 'radii.dat' file.\n");
+	parameters::radial_grid_type = parameters::custom_spacing;
 	for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
 	    double temp;
 
@@ -122,6 +139,8 @@ void init_radialarrays()
 	    }
 	}
     }
+
+	init_cell_finder(cell_growth_factor, first_cell_size);
 
     /* if input file is open, close it */
     if (fd_input != NULL)
@@ -244,7 +263,6 @@ void init_physics(t_data &data)
 	// radial self-gravity acceleration. The disk radial and azimutal
 	// velocities are not updated
 	selfgravity::init(data);
-	selfgravity::init_planetary_system(data);
 	logging::print_master(LOG_INFO "sg initialised\n");
     }
 
@@ -348,13 +366,15 @@ void init_shakura_sunyaev(t_data &data)
     RefillSigma(&data[t_data::DENSITY]);
     RefillEnergy(&data[t_data::ENERGY]);
 
-    if (parameters::self_gravity)
-	die("Self-gravity and Shakura-Sunyaev starting values has not yet been implemented!");
+    if (parameters::self_gravity) {
+		die("Self-gravity and Shakura-Sunyaev starting values has not yet been implemented!");
+	}
+
+	InitCellCenterCoordinates();
 
     /** init_euler w/o updates that have already been done above **/
     InitTransport();
 
-    InitComputeAccel();
 
     viscosity::update_viscosity(data);
     /** end init_euler **/
@@ -381,8 +401,12 @@ void init_gas_density(t_data &data)
 	     ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
-		data[t_data::DENSITY](n_radial, n_azimuthal) =
+		const double density =
 		    parameters::sigma0 * pow(Rmed[n_radial], -SIGMASLOPE);
+		const double density_floor =
+		    parameters::sigma_floor * parameters::sigma0;
+		data[t_data::DENSITY](n_radial, n_azimuthal) =
+		    max(density, density_floor);
 	    }
 	}
 	break;
@@ -403,15 +427,17 @@ void init_gas_density(t_data &data)
 	die("Bad choice!"); // TODO: better explanation!
 	break;
 	// 		case parameters::initialize_condition_shakura_sunyaev:
-	// 			logging::print_master(LOG_INFO "Initializing Sigma
-	// from Shakura and Sunyaev 1973 standard solution (cf. A&A, 24, 337)");
+	// 			logging::print_master(LOG_INFO "Initializing
+	// Sigma from Shakura and Sunyaev 1973 standard solution (cf. A&A, 24,
+	// 337)");
 	//
 	// 			for (unsigned int n_radial = 0; n_radial <
-	// data[t_data::DENSITY].Nrad; ++n_radial) { 				for (unsigned int
+	// data[t_data::DENSITY].Nrad; ++n_radial) { for (unsigned int
 	// n_azimuthal = 0; n_azimuthal < data[t_data::DENSITY].Nsec;
-	// ++n_azimuthal) { 					data[t_data::DENSITY](n_radial, n_azimuthal) =
-	// 					data[t_data::DENSITY](n_radial, n_azimuthal)
-	// = parameters::sigma0*pow(Rmed[n_radial],-SIGMASLOPE);
+	// ++n_azimuthal) {
+	// data[t_data::DENSITY](n_radial, n_azimuthal) =
+	// 					data[t_data::DENSITY](n_radial,
+	// n_azimuthal) = parameters::sigma0*pow(Rmed[n_radial],-SIGMASLOPE);
 	// 				}
 	// 			}
 	// 			break;
@@ -480,9 +506,14 @@ void init_gas_density(t_data &data)
 		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// damp density to 0 for r > profile_damping_point
-		data[t_data::DENSITY](n_radial, n_azimuthal) *=
+		const double density_damped =
+		    data[t_data::DENSITY](n_radial, n_azimuthal) *
 		    cutoff(parameters::profile_damping_point,
 			   parameters::profile_damping_width, Rmed[n_radial]);
+		const double density_floor =
+		    parameters::sigma_floor * parameters::sigma0;
+		data[t_data::DENSITY](n_radial, n_azimuthal) =
+		    max(density_damped, density_floor);
 		// set density to SIGMA0*SIGMA_FLOOR for r > r >
 		// profile_damping_point
 		// data[t_data::DENSITY](n_radial, n_azimuthal) +=
@@ -547,7 +578,8 @@ void init_gas_energy(t_data &data)
 	    units::energy.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
 	    -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
-	    parameters::MU / constants::R * pow2(ASPECTRATIO_REF) *
+	    parameters::MU / constants::R * pow2(ASPECTRATIO_REF) 
+		* constants::G * hydro_center_mass *
 		units::temperature.get_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
@@ -558,10 +590,21 @@ void init_gas_energy(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		data[t_data::ENERGY](n_radial, n_azimuthal) =
+		const double energy =
 		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
 		    pow2(ASPECTRATIO_REF) *
-		    pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+		    pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX)
+			* constants::G * hydro_center_mass;
+		const double temperature_floor =
+		    parameters::minimum_temperature *
+		    units::temperature.get_inverse_cgs_factor();
+		const double energy_floor =
+		    temperature_floor *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+		data[t_data::ENERGY](n_radial, n_azimuthal) =
+		    max(energy, energy_floor);
 	    }
 	}
 	break;
@@ -597,9 +640,20 @@ void init_gas_energy(t_data &data)
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// damp energy to 0 for r > profile_damping_point
-		data[t_data::ENERGY](n_radial, n_azimuthal) *=
+		const double energy_damped =
+		    data[t_data::ENERGY](n_radial, n_azimuthal) *
 		    cutoff(parameters::profile_damping_point,
 			   parameters::profile_damping_width, Rmed[n_radial]);
+		const double temperature_floor =
+		    parameters::minimum_temperature *
+		    units::temperature.get_inverse_cgs_factor();
+		const double energy_floor =
+		    temperature_floor *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+		data[t_data::ENERGY](n_radial, n_azimuthal) =
+		    max(energy_damped, energy_floor);
 	    }
 	}
     }

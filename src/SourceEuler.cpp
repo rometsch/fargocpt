@@ -13,7 +13,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 
+#include "accretion.h"
 #include "LowTasks.h"
 #include "Pframeforce.h"
 #include "SideEuler.h"
@@ -210,8 +212,8 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 
 void init_euler(t_data &data)
 {
+	InitCellCenterCoordinates();
     InitTransport();
-    InitComputeAccel();
 
     if (parameters::Locally_Isothermal) {
 	compute_sound_speed(data, false);
@@ -233,7 +235,7 @@ void init_euler(t_data &data)
 /**
 
 */
-void FreeEuler() { FreeTransport(); }
+void FreeEuler() { FreeTransport(); FreeCellCenterCoordinates();}
 
 /**
 	copy one polar grid into another
@@ -319,12 +321,6 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	quantities::calculate_radial_alpha_reynolds_mean_reset(data);
     }
 
-	// hack correct feels disk for planets
-	for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center; n++) {
-		t_planet &planet = data.get_planetary_system().get_planet(n);
-		planet.set_feeldisk(parameters::disk_feedback);
-	}
-
     while (dtemp < DT) {
 	logging::print_master(
 	    LOG_VERBOSE
@@ -348,22 +344,22 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	}
 
 	if (parameters::disk_feedback) {
-		ComputeDiskOnNbodyAccel(force, data);
+	    ComputeDiskOnNbodyAccel(force, data);
 	}
 	/* Indirect term star's potential computed here */
 	ComputeNbodyOnNbodyAccel(data.get_planetary_system());
-	ComputeIndirectTerm(force, data);
+	ComputeIndirectTerm(data);
 
 	if (parameters::calculate_disk) {
-		/* Gravitational potential from star and planet(s) is computed and
-		 * stored here*/
-		CalculatePotential(data);
-		/* Planets' velocities are updated here from gravitationnal
-		 * interaction with disk */
+	    /* Gravitational potential from star and planet(s) is computed and
+	     * stored here*/
+	    CalculatePotential(data);
+	    /* Planets' velocities are updated here from gravitationnal
+	     * interaction with disk */
 	}
 
 	if (parameters::disk_feedback) {
-		AdvanceSystemFromDisk(force, data, dt);
+	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
 
 	if (parameters::integrate_particles) {
@@ -373,7 +369,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	/* Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
-	    AdvanceSystemRK5(data, dt);
+	    data.get_planetary_system().integrate(PhysicalTime, dt);
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
@@ -406,10 +402,11 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 		correct_v_azimuthal(data[t_data::V_AZIMUTHAL], domega);
 
 	    OmegaFrame = OmegaNew;
-	}
 
-	if (parameters::integrate_particles) {
+	    // rotate particle for the angle difference
+	    if (parameters::integrate_particles) {
 		particles::rotate(domega, dt);
+	    }
 	}
 
 	if (parameters::integrate_planets) {
@@ -579,7 +576,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			      MPI_COMM_WORLD);
 		dt = (DT - dtemp) / global_gas_time_step_cfl;
 	    }
-	    AccreteOntoPlanets(data, dt);
+		accretion::AccreteOntoPlanets(data, dt);
 	}
     }
 
@@ -894,6 +891,10 @@ void SubStep2(t_data &data, double dt)
 
 void calculate_qplus(t_data &data)
 {
+
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
+
     // clear up all Qplus terms
     data[t_data::QPLUS].clear();
 
@@ -997,15 +998,23 @@ void calculate_qplus(t_data &data)
 		die("Need to calulate Tau_eff first!\n"); // TODO: make it
 							  // properly!
 	    }
-	    // Simple star heating (see Masterthesis Alexandros Ziampras)
-	    for (unsigned int n_radial = 1;
+		const double x_star = data.get_planetary_system().get_planet(0).get_x();
+		const double y_star = data.get_planetary_system().get_planet(0).get_y();
+
+		// Simple star heating (see Masterthesis Alexandros Ziampras)
+		for (unsigned int n_radial = 1;
 		 n_radial <= data[t_data::QPLUS].get_max_radial() - 1;
 		 ++n_radial) {
 		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		     ++n_azimuthal) {
+			 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+			 ++n_azimuthal) {
 
-		    const double distance = Rmed[n_radial];
+			const unsigned int ncell =
+				n_radial * data[t_data::DENSITY].get_size_azimuthal() +
+				n_azimuthal;
+			const double xc = cell_center_x[ncell];
+			const double yc = cell_center_y[ncell];
+			const double distance = sqrt(pow2(x_star-xc) + pow2(y_star-yc));
 		    const double HoverR =
 			data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
 		    const double sigma = constants::sigma.get_code_value();
@@ -1292,18 +1301,15 @@ void calculate_qminus(t_data &data)
 		    1.0 /
 			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
 
-		// effective temperature: T_eff^4 tau_eff = T^4
-		// temperatureEff = (*Temperature)(n_radial,
-		// n_azimuthal)/(pow(tauEff,1.0/4.0));
 
-		// Q = 2 sigma_R T_eff^4
-		//(*Qminus)(n_radial, n_azimuthal) =
-		//2*(constants::sigma.get_code_value())*pow(temperatureEff,4);
-		double qminus =
-		    parameters::cooling_radiative_factor * 2 *
-		    (constants::sigma.get_code_value()) *
-		    pow4(data[t_data::TEMPERATURE](n_radial, n_azimuthal)) /
-		    data[t_data::TAU_EFF](n_radial, n_azimuthal);
+		// Q = factor 2 sigma_sb T^4 / tau_eff
+
+		const double factor = parameters::cooling_radiative_factor;
+		const double sigma_sb = constants::sigma.get_code_value();
+		const double T4 = pow4(data[t_data::TEMPERATURE](n_radial, n_azimuthal));
+		const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
+
+		const double qminus = factor * 2 * sigma_sb * T4 / tau_eff;
 
 		data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
 	    }
@@ -1383,28 +1389,33 @@ void SubStep3(t_data &data, double dt)
 
 	    // TWAM original with H/R = initial:
 	    // const double alpha = 1.0 + 2.0 *
-	    // ASPECTRATIO*pow(Rmed[n_radial],1+FLARINGINDEX)*4.0
+	    // ASPECTRATIO_REF*pow(Rmed[n_radial],1+FLARINGINDEX)*4.0
 	    // 	*constants::sigma/constants::c
 	    // 	/pow4((constants::R/parameters::MU)/(ADIABATICINDEX-1.0)*data[t_data::DENSITY](n_radial,
 	    // n_azimuthal)) 	*pow3(data[t_data::ENERGY_INT](n_radial,
 	    // n_azimuthal));
+	    
+		const double sigma_sb = constants::sigma;
+		const double c = constants::c;
+		const double mu = parameters::MU;
+		const double gamma = ADIABATICINDEX;
+		const double Rgas = constants::R;
 
-	    const double R = Rmed[n_radial];
-	    const double H =
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * R;
-	    const double inv_pow4 = pow4(
-		(parameters::MU * (ADIABATICINDEX - 1.0)) /
-		(constants::R * data[t_data::DENSITY](n_radial, n_azimuthal)));
-	    const double pow3_eint =
-		pow3(data[t_data::ENERGY_INT](n_radial, n_azimuthal));
-	    double alpha = 1.0 + 2.0 * H * 4.0 * constants::sigma /
-				     constants::c * inv_pow4 * pow3_eint;
+		const double R = Rmed[n_radial];
+		const double h = data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
+	    const double H = h*R;
+		
+		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+		const double eint = data[t_data::ENERGY_INT](n_radial, n_azimuthal);
+		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
+		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
+		const double divV = data[t_data::DIV_V](n_radial, n_azimuthal);
 
-	    num = dt * data[t_data::QPLUS](n_radial, n_azimuthal) -
-		  dt * data[t_data::QMINUS](n_radial, n_azimuthal) +
-		  alpha * data[t_data::ENERGY_INT](n_radial, n_azimuthal);
-	    den = alpha + (ADIABATICINDEX - 1.0) * dt *
-			      data[t_data::DIV_V](n_radial, n_azimuthal);
+	    const double inv_pow4 = pow4( mu * (gamma - 1.0) / (Rgas * sigma));
+	    double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * pow3(eint);
+
+	    num = dt * qplus - dt * qminus + alpha * eint;
+	    den = alpha + (gamma - 1.0) * dt * divV;
 
 	    data[t_data::ENERGY_NEW](n_radial, n_azimuthal) = num / den;
 	}
@@ -1932,8 +1943,8 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
 		     double deltaT)
 {
-    double v_mean[v_radial.get_size_radial()],
-	v_residual[v_radial.get_size_azimuthal()];
+	std::vector<double> v_mean(v_radial.get_size_radial());
+	std::vector<double> v_residual(v_radial.get_size_azimuthal());
     double dtGlobal, dtLocal;
 
     // debugging variables
@@ -2137,17 +2148,6 @@ void compute_sound_speed(t_data &data, bool force_update)
 	     n_azimuthal <= data[t_data::SOUNDSPEED].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic) {
-		/*if
-		((ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,
-		n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)) < 0)
-		{ logging::print("SoundSpeed calc: %g < 0! density=%g energy=%g
-		in cell
-		(%u,%u)\n",(ADIABATICINDEX*(ADIABATICINDEX-1.0)*data[t_data::ENERGY](n_radial,
-		n_azimuthal)/data[t_data::DENSITY](n_radial, n_azimuthal)),
-		data[t_data::DENSITY](n_radial, n_azimuthal),
-		data[t_data::ENERGY](n_radial, n_azimuthal), n_radial,
-		n_azimuthal);
-		}*/
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
 		    sqrt(ADIABATICINDEX * (ADIABATICINDEX - 1.0) *
 			 data[t_data::ENERGY](n_radial, n_azimuthal) /
@@ -2316,15 +2316,14 @@ double CircumPlanetaryMass(t_data &data)
 {
     double xpl, ypl;
     double dist, mdcplocal, mdcptotal;
-    double *abs, *ord;
 
     /* if there's no planet, there is no mass inside its Roche lobe ;) */
     if (data.get_planetary_system().get_number_of_planets() == 0)
 	return 0;
 
     // TODO: non global
-    abs = CellAbscissa->Field;
-    ord = CellOrdinate->Field;
+    const double* cell_center_x = CellCenterX->Field;
+    const double* cell_center_y = CellCenterY->Field;
 
     xpl = data.get_planetary_system().get_planet(0).get_x();
     ypl = data.get_planetary_system().get_planet(0).get_y();
@@ -2340,8 +2339,8 @@ double CircumPlanetaryMass(t_data &data)
 	    unsigned int cell =
 		n_radial * data[t_data::DENSITY].get_size_azimuthal() +
 		n_azimuthal;
-	    dist = sqrt((abs[cell] - xpl) * (abs[cell] - xpl) +
-			(ord[cell] - ypl) * (ord[cell] - ypl));
+	    dist = sqrt((cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
+			(cell_center_y[cell] - ypl) * (cell_center_y[cell] - ypl));
 	    if (dist < HillRadius) {
 		mdcplocal += Surf[n_radial] *
 			     data[t_data::DENSITY](n_radial, n_azimuthal);

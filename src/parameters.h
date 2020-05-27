@@ -13,12 +13,14 @@ extern bool Locally_Isothermal;
 
 /// Type of radial Grid
 enum t_radial_grid {
-    arithmetic_spacing,
     logarithmic_spacing,
-    exponential_spacing
+	arithmetic_spacing,
+	exponential_spacing,
+	custom_spacing
 };
 extern t_radial_grid radial_grid_type;
 extern const char *radial_grid_names[];
+extern double exponential_cell_size_factor;
 
 // boundary conditions
 enum t_boundary_condition {
@@ -291,6 +293,6 @@ void apply_units();
 void write_grid_data_to_file();
 void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 			     std::string instruction);
-}; // namespace parameters
+} // namespace parameters
 
 #endif // PARAMETERS_H

@@ -135,7 +135,7 @@ void print_runtime_final()
     }
     logging::print_master(
 	LOG_INFO
-	"-- Final: Total Hyrdosteps %d, Physical Time %.2f, realtime %.2f seconds, time per step: %.2f milliseconds\n",
+	"-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
 	N_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
@@ -185,7 +185,7 @@ void print_runtime_info(unsigned int output_number,
 	}
 	logging::print_master(
 	    LOG_INFO
-	    "output %d, timestep %d, hyrdostep %d, physicaltime %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
+	    "output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 	    output_number, time_step_coarse, N_iter, PhysicalTime, dt,
 	    realtime / 1000000.0, time_per_step_ms);
 	n_last_log = N_iter;

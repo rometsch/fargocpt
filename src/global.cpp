@@ -146,7 +146,7 @@ int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell,
     ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
 int CentrifugalBalance, ExcludeHill, SloppyCFL;
 MPI_Status global_MPI_Status;
-t_polargrid *CellAbscissa, *CellOrdinate;
+t_polargrid *CellCenterX, *CellCenterY;
 
 int OverridesOutputdir;
 
