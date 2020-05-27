@@ -2,7 +2,6 @@
 #include <iostream>
 #include <mpi.h>
 #include <string.h>
-#include "json/json.hpp"
 
 #include "Force.h"
 #include "Interpret.h"
@@ -34,8 +33,6 @@
 #include "viscosity.h"
 #include "config.h"
 
-using json = nlohmann::json;
-
 int TimeToWrite;
 int dimfxy = 11, Restart = 0;
 static int StillWriteOneOutput;
@@ -50,16 +47,7 @@ unsigned int nTimeStep;
 // write all polargrids on error
 
 int main(int argc, char *argv[])
-{
-
-	std::ifstream infile("test.json");
-	json j;
-	infile >> j;
-
-	printf("Json test\n");
-	std::cout << j["foo"] << std::endl;
-	exit(0);
-	
+{	
     t_data data;
 
     N_iter = 0;
