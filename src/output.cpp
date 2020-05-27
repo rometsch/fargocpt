@@ -12,12 +12,13 @@
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
+#include "Force.h"
+
 #include <dirent.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/statvfs.h>
 
 #include "unistd.h" // for access()
 #include <cstdio>
@@ -26,6 +27,8 @@
 #include <limits>
 #include <sstream>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <cfloat>
 
 namespace output
 {
@@ -637,6 +640,12 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	sizeof(*local_torques) *
 	(data.get_planetary_system().get_number_of_planets()));
 
+	double rsmoothing = 0.0;
+	double xc, yc, cellmass, dx, dy, distance, dist2, rh;
+
+	const int ns = data[t_data::DENSITY].Nsec;
+	const double* cell_center_x = CellCenterX->Field;
+	const double* cell_center_y = CellCenterY->Field;
 
     // do everything for all planets/stars
     for (unsigned int n_planet = 0;
@@ -644,65 +653,68 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	 ++n_planet) {
 	local_torques[n_planet] = 0;
 	t_planet &planet = data.get_planetary_system().get_planet(n_planet);
-	double smooth = parameters::thickness_smoothing * ASPECTRATIO_REF *
-			pow(planet.get_r(), 1.0 + FLARINGINDEX);
 
-	// hill radius
-	double r_hill = pow(planet.get_mass() / (3.0 * (M + planet.get_mass())),
-			    1.0 / 3.0) *
-			planet.get_semi_major_axis();
-	// 0.8 = cut off parameter
-	double r_taper = 0.8 * r_hill;
 
-	if (r_taper > 0.0) {
-	    for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::TORQUE].get_max_radial();
-		 ++n_radial) {
-		data[t_data::TORQUE_1D](n_radial) = 0.0;
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double mass = planet.get_mass();
+	const double a = planet.get_semi_major_axis();
 
-		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::TORQUE].get_max_azimuthal();
-		     ++n_azimuthal) {
-		    double phi =
-			(double)n_azimuthal /
-			(double)data[t_data::TORQUE].get_size_azimuthal() *
-			2.0 * PI;
-		    double dx = planet.get_x() - Rmed[n_radial] * cos(phi);
-		    double dy = planet.get_y() - Rmed[n_radial] * sin(phi);
-		    double m = data[t_data::DENSITY](n_radial, n_azimuthal) *
-			       Surf[n_radial];
 
-		    double distance2 = pow2(dx) + pow2(dy) + pow2(smooth);
 
-		    double taper = 1.0;
+	rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
 
-		    if (sqrt(pow2(dx) + pow2(dy)) < 4.0 * r_taper) {
-			taper =
-			    1.0 / (exp(-(sqrt(pow2(dx) + pow2(dy)) - r_taper) /
-				       (0.1 * r_taper)) +
-				   1.0);
-		    }
+	bool SmoothingEnabled = (a != 0.0);
 
-		    double F_x = -dx * m * planet.get_mass() *
-				 pow(distance2, -1.5) * taper;
-		    double F_y = -dy * m * planet.get_mass() *
-				 pow(distance2, -1.5) * taper;
+	// calculate smoothing length only once if not dependend on radius
+	if (RocheSmoothing) {
+	rsmoothing = rh * ROCHESMOOTHING;
+	} else {
+	// Thickness smoothing = smoothing with scale height
+	rsmoothing = compute_smoothing_isothermal(a);
+	}
 
-		    data[t_data::TORQUE](n_radial, n_azimuthal) =
-			planet.get_x() * F_y - planet.get_y() * F_x;
-		    data[t_data::TORQUE_1D](n_radial) +=
-			data[t_data::TORQUE](n_radial, n_azimuthal);
-		    if ((n_radial >=
-			 ((CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP)) &&
-			(n_radial <= data[t_data::TORQUE].get_max_radial() -
-					 (CPU_Rank == CPU_Highest
-					      ? GHOSTCELLS_B
-					      : CPUOVERLAP))) {
-			local_torques[n_planet] +=
-			    data[t_data::TORQUE](n_radial, n_azimuthal);
-		    }
+	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
+	 ++n_radial) {
+	if (SmoothingEnabled && ThicknessSmoothingAtCell &&
+		parameters::Locally_Isothermal) {
+		rsmoothing = compute_smoothing_isothermal(Rmed[n_radial]);
+	}
+
+	data[t_data::TORQUE_1D](n_radial) = 0.0;
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 ++n_azimuthal) {
+		// calculate smoothing length if dependend on radius
+		// i.e. for thickness smoothing with scale height at cell location
+		if (SmoothingEnabled && ThicknessSmoothingAtCell &&
+		(!parameters::Locally_Isothermal)) {
+		rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial,
+						   n_azimuthal);
 		}
-	    }
+		const int l = n_azimuthal + n_radial * ns;
+		xc = cell_center_x[l];
+		yc = cell_center_y[l];
+		cellmass =
+		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
+		dx = xc - x;
+		dy = yc - y;
+		dist2 = dx * dx + dy * dy;
+		dist2 += rsmoothing * rsmoothing;
+		distance = sqrt(dist2);
+		const double InvDist3 = 1.0 / dist2 / distance;
+
+		const double Fx = constants::G * cellmass * dx * InvDist3 * mass;
+		const double Fy = constants::G * cellmass * dy * InvDist3 * mass;
+
+		const double Torque = x * Fy - y * Fx;
+
+		data[t_data::TORQUE](n_radial, n_azimuthal) =
+		Torque;
+		data[t_data::TORQUE_1D](n_radial) += Torque;
+		local_torques[n_planet] += Torque;
+
+	}
 	}
 
 	char *name;
