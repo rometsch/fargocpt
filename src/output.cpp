@@ -632,19 +632,17 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
     double *global_torques = (double *)malloc(
 	sizeof(*global_torques) *
-	(data.get_planetary_system().get_number_of_planets() + 1));
+	(data.get_planetary_system().get_number_of_planets()));
     double *local_torques = (double *)malloc(
 	sizeof(*local_torques) *
-	(data.get_planetary_system().get_number_of_planets() + 1));
+	(data.get_planetary_system().get_number_of_planets()));
 
-    // central star
-    local_torques[0] = 0.0;
 
     // do everything for all planets/stars
     for (unsigned int n_planet = 0;
 	 n_planet < data.get_planetary_system().get_number_of_planets();
 	 ++n_planet) {
-	local_torques[n_planet + 1] = 0;
+	local_torques[n_planet] = 0;
 	t_planet &planet = data.get_planetary_system().get_planet(n_planet);
 	double smooth = parameters::thickness_smoothing * ASPECTRATIO_REF *
 			pow(planet.get_r(), 1.0 + FLARINGINDEX);
@@ -700,7 +698,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 					 (CPU_Rank == CPU_Highest
 					      ? GHOSTCELLS_B
 					      : CPUOVERLAP))) {
-			local_torques[n_planet + 1] +=
+			local_torques[n_planet] +=
 			    data[t_data::TORQUE](n_radial, n_azimuthal);
 		    }
 		}
@@ -720,7 +718,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
     }
 
     MPI_Allreduce(local_torques, global_torques,
-		  data.get_planetary_system().get_number_of_planets() + 1,
+		  data.get_planetary_system().get_number_of_planets(),
 		  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
     if (CPU_Master) {
@@ -765,7 +763,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 
 	fprintf(fd, "%.20e", PhysicalTime);
 	for (unsigned int i = 0;
-	     i <= data.get_planetary_system().get_number_of_planets(); ++i) {
+		 i < data.get_planetary_system().get_number_of_planets(); ++i) {
 	    fprintf(fd, "\t%.20e", global_torques[i] * units::torque);
 	}
 	fprintf(fd, "\n");
