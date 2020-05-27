@@ -136,20 +136,15 @@ WriteTemperature	No		# Write temperature. [default = no]
 WriteVelocity		Yes		# Write velocites. This is needed for restart of simulations. [default = yes]
 WriteSoundspeed		No		# Write sound speed [default = no]
 WriteToomre		No		# Write Toomre parameter Q. [default = no]
-WriteRadialToomre	No		# Write Toomre azimthally averaged [default = no]
 WriteQMinus		No		# Write QMinus. [default = no]
 WriteQPlus		No		# Write QPlus. [default = no]
 WriteViscosity		No		# Write Viscosity. [default = no]
 WriteTauCool		No		# Write TauCool. [default = no]
 WriteKappa		No		# Write Kappa. [default = no]
 WriteAlphaGrav		No		# Write AlphaGrav. [default = no]
-WriteRadialAlphaGrav		No		# Write AlphaGrav azimthally averaged . [default = no]
 WriteAlphaGravMean	No		# Write AlphaGrav time average. [default = no]
-WriteRadialAlphaGravMean	No		# Write AlphaGrav time average azimthally averaged . [default = no]
 WriteAlphaReynolds	No		# Write AlphaReynolds [default = no]
-WriteRadialAlphaReynolds	No		# Write AlphaReynolds azimthally averaged  [default = no]
 WriteAlphaReynoldsMean	No		# Write AlphaReynolds time average [default = no]
-WriteRadialAlphaReynoldsMean	No		# Write AlphaReynolds time average azimthally averaged [default = no]
 WriteEccentricity	No		# Write eccentricity. [default = no]
 WriteTReynolds		No		# Write Reynolds stress tensor. [default = no]
 WriteTGravitational	No		# Write gravitational stress tensor. [default = no]
@@ -159,7 +154,8 @@ WriteRadialLuminosity	No		# Write radial luminosity [default = no]
 WriteRadialDissipation	No		# Write radial dissipation [default = no]
 WriteLightCurves	No		# Write light curves [default = no]
 WriteLightcurvesRadii   0.4,5.2
-WriteMassFlow		Yes		# Write a 1d radial file with mass flow at each interface [default = no]
+WriteMassFlow		No		# Write a 1d radial file with mass flow at each interface [default = no]
+WriteGasTorques     No      # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017  
 
 WritePressure		No		# Write pressure [default = no]
 WriteAspectRatio	No		# Write aspect ratio [default = no]
@@ -173,7 +169,7 @@ FeatureSize		0.05		# Feature size of the open somplex algorithm
 
 
 ## particles
-IntegrateParticles	YES     # enable particle integrator [default = no]	
+IntegrateParticles	No     # enable particle integrator [default = no]	
 CartesianParticles	YES     # enable particle integrator [default = no]	
 ParticleIntegrator  Adaptive # Explicit, Adaptive, Semiimplicit and Implicit
 NumberOfParticles	400002      # number of particles [default = 0]
