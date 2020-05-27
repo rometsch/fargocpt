@@ -29,18 +29,7 @@ void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 			      bool force_update);
 void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 					 double dt);
-void calculate_radial_alpha_grav(t_data &data, unsigned int timestep,
-				 bool force_update);
-void calculate_radial_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
-					    double dt);
-void calculate_radial_alpha_reynolds(t_data &data, unsigned int timestep,
-				     bool force_update);
-void calculate_radial_alpha_reynolds_mean_sumup(t_data &data,
-						unsigned int timestep,
-						double dt);
 void calculate_toomre(t_data &data, unsigned int timestep, bool force_update);
-void calculate_radial_toomre(t_data &data, unsigned int timestep,
-			     bool force_update);
 void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 				 bool force_update);
 void calculate_radial_dissipation(t_data &data, unsigned int timestep,

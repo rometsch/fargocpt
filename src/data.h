@@ -71,16 +71,6 @@ class t_data
     };
 
     enum t_radialgrid_type {
-	DENSITY_1D,
-	V_AZIMUTHAL_1D,
-	SOUNDSPEED_1D,
-	TOOMRE_1D,
-	T_REYNOLDS_1D,		// Reynold Stress tensor
-	T_GRAVITATIONAL_1D,	// graviational Stress tensor
-	ALPHA_GRAV_1D,		// alpha grav
-	ALPHA_GRAV_MEAN_1D,	// alpha grav time average
-	ALPHA_REYNOLDS_1D,	// alpha reynolds
-	ALPHA_REYNOLDS_MEAN_1D, // alpha reynolds time average
 	LUMINOSITY_1D,		//
 	DISSIPATION_1D,
 	TORQUE_1D,

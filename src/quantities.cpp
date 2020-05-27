@@ -545,44 +545,6 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
     }
 }
 
-/**
-	compute alpha gravitational
-
-	alpha(R) = |d ln Omega/d ln R|^-1 (Tgrav)/(Sigma cs^2)
-*/
-void calculate_radial_alpha_grav(t_data &data, unsigned int timestep,
-				 bool force_update)
-{
-    static int last_timestep_calculated = -1;
-
-    if (parameters::self_gravity != true)
-	return;
-
-    if (!force_update) {
-	if (last_timestep_calculated == (int)timestep) {
-	    return;
-	} else {
-	    last_timestep_calculated = timestep;
-	}
-    }
-
-    stress::calculate_gravitational_stress(data);
-
-    // average gravitational stress
-    data[t_data::T_GRAVITATIONAL_1D] = data[t_data::T_GRAVITATIONAL];
-    // average density
-    data[t_data::DENSITY_1D] = data[t_data::DENSITY];
-    // average soundspeed
-    data[t_data::SOUNDSPEED_1D] = data[t_data::SOUNDSPEED];
-
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV_1D].get_max_radial(); ++n_radial) {
-	data[t_data::ALPHA_GRAV_1D](n_radial) =
-	    2.0 / 3.0 * data[t_data::T_GRAVITATIONAL_1D](n_radial) /
-	    (data[t_data::DENSITY_1D](n_radial) *
-	     pow2(data[t_data::SOUNDSPEED_1D](n_radial)));
-    }
-}
 
 void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 				     double dt)
@@ -601,62 +563,12 @@ void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
     }
 }
 
-void calculate_radial_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
-					    double dt)
-{
-    calculate_radial_alpha_grav(data, timestep, true);
-
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV_MEAN_1D].get_max_radial();
-	 ++n_radial) {
-	data[t_data::ALPHA_GRAV_MEAN_1D](n_radial) +=
-	    data[t_data::ALPHA_GRAV_1D](n_radial) * dt;
-    }
-}
-
 /**
 	compute alpha Reynolds
 
 	alpha(R) = |d ln Omega/d ln R|^-1 (Trey)/(Sigma cs^2)
 */
 void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
-			      bool force_update)
-{
-    static int last_timestep_calculated = -1;
-
-    if (!force_update) {
-	if (last_timestep_calculated == (int)timestep) {
-	    return;
-	} else {
-	    last_timestep_calculated = timestep;
-	}
-    }
-
-    stress::calculate_Reynolds_stress(data);
-
-    // average gravitational stress
-    data[t_data::T_REYNOLDS_1D] = data[t_data::T_REYNOLDS];
-    // average density
-    data[t_data::DENSITY_1D] = data[t_data::DENSITY];
-    // average soundspeed
-    data[t_data::SOUNDSPEED_1D] = data[t_data::SOUNDSPEED];
-
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS_1D].get_max_radial();
-	 ++n_radial) {
-	data[t_data::ALPHA_REYNOLDS_1D](n_radial) =
-	    2.0 / 3.0 * data[t_data::T_REYNOLDS_1D](n_radial) /
-	    (data[t_data::DENSITY_1D](n_radial) *
-	     pow2(data[t_data::SOUNDSPEED_1D](n_radial)));
-    }
-}
-
-/**
-	compute alpha Reynolds
-
-	alpha(R) = |d ln Omega/d ln R|^-1 (Trey)/(Sigma cs^2)
-*/
-void calculate_radial_alpha_reynolds(t_data &data, unsigned int timestep,
 				     bool force_update)
 {
     static int last_timestep_calculated = -1;
@@ -703,20 +615,6 @@ void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
     }
 }
 
-void calculate_radial_alpha_reynolds_mean_sumup(t_data &data,
-						unsigned int timestep,
-						double dt)
-{
-	calculate_radial_alpha_reynolds(data, timestep, true);
-
-	for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_max_radial();
-	 ++n_radial) {
-	data[t_data::ALPHA_REYNOLDS_MEAN_1D](n_radial) +=
-		data[t_data::ALPHA_REYNOLDS_1D](n_radial) * dt;
-	}
-}
-
 /**
 	Calculates Toomre Q parameter
 */
@@ -749,38 +647,6 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 		(PI * constants::G *
 		 data[t_data::DENSITY](n_radial, n_azimuthal));
 	}
-    }
-}
-
-/**
-	Calculates Toomre Q parameter
-*/
-void calculate_radial_toomre(t_data &data, unsigned int /* timestep */,
-			     bool /* force_update */)
-{
-    // calculate averaged density
-    data[t_data::DENSITY_1D] = data[t_data::DENSITY];
-    // calculate averaged soundspeed
-    data[t_data::SOUNDSPEED_1D] = data[t_data::SOUNDSPEED];
-    // calculate averaged v_azimuthal
-    data[t_data::V_AZIMUTHAL_1D] = data[t_data::V_AZIMUTHAL];
-
-    double kappa;
-
-    for (unsigned int n_radial = 1;
-	 n_radial <= data[t_data::TOOMRE_1D].get_max_radial(); ++n_radial) {
-	// kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
-	kappa = sqrt(fabs(
-	    pow3(InvRmed[n_radial]) *
-	    (pow2(data[t_data::V_AZIMUTHAL_1D](n_radial) * Rmed[n_radial]) -
-	     pow2(data[t_data::V_AZIMUTHAL_1D](n_radial - 1) *
-		  Rmed[n_radial - 1])) *
-	    InvDiffRmed[n_radial]));
-
-	// Q = (c_s kappa) / (Pi G Sigma)
-	data[t_data::TOOMRE_1D](n_radial) =
-	    data[t_data::SOUNDSPEED_1D](n_radial) * kappa /
-	    (PI * constants::G * data[t_data::DENSITY_1D](n_radial));
     }
 }
 

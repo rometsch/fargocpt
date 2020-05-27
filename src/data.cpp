@@ -209,53 +209,6 @@ t_data::t_data()
 	m_polargrids[MASSFLOW].set_integrate_azimuthally_for_1D_write(true);
 
     // -- radial grids --
-
-    m_radialgrids[DENSITY_1D].set_scalar(true);
-    m_radialgrids[DENSITY_1D].set_name("1D_dens");
-    m_radialgrids[DENSITY_1D].set_unit(units::surface_density);
-
-    m_radialgrids[V_AZIMUTHAL_1D].set_vector(
-	m_polargrids[V_AZIMUTHAL].is_vector());
-    m_radialgrids[V_AZIMUTHAL_1D].set_name("1D_vtheta");
-    m_radialgrids[V_AZIMUTHAL_1D].set_unit(units::velocity);
-
-    m_radialgrids[SOUNDSPEED_1D].set_scalar(true);
-    m_radialgrids[SOUNDSPEED_1D].set_name("1D_soundspeed");
-    m_radialgrids[SOUNDSPEED_1D].set_unit(units::velocity);
-
-    m_radialgrids[TOOMRE_1D].set_scalar(true);
-    m_radialgrids[TOOMRE_1D].set_name("1D_toomre");
-    m_radialgrids[TOOMRE_1D].set_do_before_write(
-	&quantities::calculate_radial_toomre);
-
-    m_radialgrids[ALPHA_GRAV_1D].set_scalar(true);
-    m_radialgrids[ALPHA_GRAV_1D].set_name("1D_alpha_grav");
-    m_radialgrids[ALPHA_GRAV_1D].set_do_before_write(
-	&quantities::calculate_radial_alpha_grav);
-
-    m_radialgrids[ALPHA_REYNOLDS_1D].set_scalar(true);
-    m_radialgrids[ALPHA_REYNOLDS_1D].set_name("1D_alpha_reynolds");
-    m_radialgrids[ALPHA_REYNOLDS_1D].set_do_before_write(
-	&quantities::calculate_radial_alpha_reynolds);
-
-    m_radialgrids[ALPHA_GRAV_MEAN_1D].set_scalar(true);
-    m_radialgrids[ALPHA_GRAV_MEAN_1D].set_name("1D_alpha_grav_mean");
-	m_radialgrids[ALPHA_GRAV_MEAN_1D].set_clear_after_write(true);
-
-
-    m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_scalar(true);
-    m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_name("1D_alpha_reynolds_mean");
-	m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_clear_after_write(true);
-
-
-    m_radialgrids[T_GRAVITATIONAL_1D].set_scalar(true);
-    m_radialgrids[T_GRAVITATIONAL_1D].set_name("1D_T_gravitational");
-    m_radialgrids[T_GRAVITATIONAL_1D].set_unit(units::stress);
-
-    m_radialgrids[T_REYNOLDS_1D].set_scalar(true);
-    m_radialgrids[T_REYNOLDS_1D].set_name("1D_T_Reynolds");
-    m_radialgrids[T_REYNOLDS_1D].set_unit(units::stress);
-
     m_radialgrids[LUMINOSITY_1D].set_scalar(true);
     m_radialgrids[LUMINOSITY_1D].set_name("1D_Luminosity");
     m_radialgrids[LUMINOSITY_1D].set_unit(units::power);

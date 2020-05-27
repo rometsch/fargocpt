@@ -529,17 +529,9 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 		quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep,
 								dt/DT);
 	    }
-	    if (data[t_data::ALPHA_GRAV_MEAN_1D].get_write()) {
-		quantities::calculate_radial_alpha_grav_mean_sumup(
-			data, nTimeStep, dt/DT);
-	    }
 	    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
 		quantities::calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
 								dt/DT);
-	    }
-	    if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
-		quantities::calculate_radial_alpha_reynolds_mean_sumup(
-			data, nTimeStep, dt/DT);
 	    }
 	}
 
