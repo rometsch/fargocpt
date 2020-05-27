@@ -113,6 +113,33 @@ t_data::t_data()
     m_polargrids[VISCOSITY].set_name("viscosity");
     m_polargrids[VISCOSITY].set_unit(units::kinematic_viscosity);
 
+	m_polargrids[ADVECTION_TORQUE].set_scalar(true);
+	m_polargrids[ADVECTION_TORQUE].set_name("ADVECTION_TORQUE");
+	m_polargrids[ADVECTION_TORQUE].set_unit(units::torque);
+	m_polargrids[ADVECTION_TORQUE].set_do_before_write(
+	&quantities::calculate_advection_torque);
+	m_polargrids[ADVECTION_TORQUE].set_clear_after_write(true);
+	m_polargrids[ADVECTION_TORQUE].set_integrate_azimuthally_for_1D_write(true);
+
+
+	m_polargrids[VISCOUS_TORQUE].set_scalar(true);
+	m_polargrids[VISCOUS_TORQUE].set_name("VISCOUS_TORQUE");
+	m_polargrids[VISCOUS_TORQUE].set_unit(units::torque);
+	m_polargrids[VISCOUS_TORQUE].set_do_before_write(
+	&quantities::calculate_viscous_torque);
+	m_polargrids[VISCOUS_TORQUE].set_clear_after_write(true);
+	m_polargrids[VISCOUS_TORQUE].set_integrate_azimuthally_for_1D_write(true);
+
+
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_scalar(true);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_name("GRAVITATIONAL_TORQUE_NOT_INTEGRATED");
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_unit(units::torque);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_do_before_write(
+	&quantities::calculate_gravitational_torque);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_clear_after_write(true);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_integrate_azimuthally_for_1D_write(true);
+
+
     // tau_r_r is cell centered
     m_polargrids[TAU_R_R].set_scalar(true);
     m_polargrids[TAU_R_R].set_name("tau_r_r");
@@ -198,7 +225,6 @@ t_data::t_data()
     m_polargrids[RHO].set_scalar(true);
     m_polargrids[RHO].set_name("rho");
     m_polargrids[RHO].set_unit(units::density);
-
 
 	m_polargrids[MASSFLOW].set_scalar(false);
 	m_polargrids[MASSFLOW].set_name("MassFlow");

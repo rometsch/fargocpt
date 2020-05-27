@@ -729,5 +729,75 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 }
 
 
+void calculate_viscous_torque(t_data &data, unsigned int timestep, bool force_update)
+{
+	(void)timestep;
+	(void)force_update;
+
+	double denom;
+
+	if(!parameters::write_at_every_timestep)
+	{
+		denom = (double)NINTERM;
+		// divide the data in massflow by the large timestep DT before writing out
+		// to obtain the massflow from the mass difference
+		for (unsigned int nRadial = 0;
+			 nRadial < data[t_data::VISCOUS_TORQUE].get_size_radial(); ++nRadial) {
+			for(unsigned int nAzimuthal = 0;
+				nAzimuthal < data[t_data::VISCOUS_TORQUE].get_size_azimuthal(); ++nAzimuthal){
+				data[t_data::VISCOUS_TORQUE](nRadial, nAzimuthal) *= 1. / denom;
+			}
+		}
+	}
+}
+
+
+void calculate_gravitational_torque(t_data &data, unsigned int timestep, bool force_update)
+{
+	(void)timestep;
+	(void)force_update;
+
+	double denom;
+
+	if(!parameters::write_at_every_timestep)
+	{
+		denom = (double)NINTERM;
+		// divide the data in massflow by the large timestep DT before writing out
+		// to obtain the massflow from the mass difference
+		for (unsigned int nRadial = 0;
+			 nRadial < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_size_radial(); ++nRadial) {
+			for(unsigned int nAzimuthal = 0;
+				nAzimuthal < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_size_azimuthal(); ++nAzimuthal){
+				data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED](nRadial, nAzimuthal) *= 1. / denom;
+			}
+		}
+	}
+}
+
+
+void calculate_advection_torque(t_data &data, unsigned int timestep, bool force_update)
+{
+	(void)timestep;
+	(void)force_update;
+
+	double denom;
+
+	if(!parameters::write_at_every_timestep)
+	{
+		denom = (double)NINTERM;
+		// divide the data in massflow by the large timestep DT before writing out
+		// to obtain the massflow from the mass difference
+		for (unsigned int nRadial = 0;
+			 nRadial < data[t_data::ADVECTION_TORQUE].get_size_radial(); ++nRadial) {
+			for(unsigned int nAzimuthal = 0;
+				nAzimuthal < data[t_data::ADVECTION_TORQUE].get_size_azimuthal(); ++nAzimuthal){
+				data[t_data::ADVECTION_TORQUE](nRadial, nAzimuthal) *= 1. / denom;
+			}
+		}
+	}
+}
+
+
+
 
 } // namespace quantities

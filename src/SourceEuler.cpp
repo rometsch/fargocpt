@@ -38,6 +38,8 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "gas_torques.h"
+
 #include <cstring>
 extern boolean Corotating;
 
@@ -524,6 +526,16 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 
 	    mdcp = CircumPlanetaryMass(data);
 	    exces_mdcp = mdcp - mdcp0;
+
+		if(data[t_data::ADVECTION_TORQUE].get_write()){
+			gas_torques::calculate_advection_torque(data, dt/DT);
+		}
+		if(data[t_data::VISCOUS_TORQUE].get_write()){
+			gas_torques::calculate_viscous_torque(data, dt/DT);
+		}
+		if(data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()){
+			gas_torques::calculate_gravitational_torque(data, dt/DT);
+		}
 
 	    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
 		quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep,

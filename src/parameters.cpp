@@ -327,6 +327,12 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteTReynolds", false));
     data[t_data::T_GRAVITATIONAL].set_write(
 	config::value_as_bool_default("WriteTGravitational", false));
+	data[t_data::ADVECTION_TORQUE].set_write(
+	config::value_as_bool_default("WriteGasTorques", false));
+	data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
+	config::value_as_bool_default("WriteGasTorques", false));
+	data[t_data::VISCOUS_TORQUE].set_write(
+	config::value_as_bool_default("WriteGasTorques", false));
     data[t_data::P_DIVV].set_write(
 	config::value_as_bool_default("WritepDV", false));
     data[t_data::TAU].set_write(
