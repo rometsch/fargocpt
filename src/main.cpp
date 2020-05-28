@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	force = AllocateForce(dimfxy);
 
 	// Here planets are initialized feeling star potential
-	data.get_planetary_system().read_from_file(PLANETCONFIG);
+	data.get_planetary_system().read_from_file(options::parameter_file);
 	logging::print_master(LOG_INFO "planets loaded.\n");
 
 
