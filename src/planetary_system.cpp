@@ -86,11 +86,14 @@ void t_planetary_system::initialize_default_star()
 // find the cell center radius in which r lies.
 static double find_cell_centere_radius(const double r)
 {
+    if (r < RMIN || r > RMAX) {
+	die("Can not find cell center radius outside the grid at r = %f!", r);
+    }
     unsigned int j = 0;
     while (Radii[j] < r) {
 	j++;
     }
-    return GlobalRmed[j];
+    return GlobalRmed[j-1];
 }
 
 // template <typename T>
@@ -216,9 +219,13 @@ void t_planetary_system::read_from_file(char *filename)
 		if (cell_centered) {
 		    // initialization puts centered-in-cell planets (with
 		    // excentricity = 0 only)
-			if (eccentricity >0) {
-				die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
-			}
+		    if (eccentricity > 0) {
+			die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
+		    }
+		    if (semi_major_axis < RMIN || semi_major_axis > RMAX) {
+			die("Can not put planet %s at cell center for a = %f which is outside the grid!",
+			    name.c_str(), semi_major_axis);
+		    }
 		    semi_major_axis = find_cell_centere_radius(semi_major_axis);
 		}
 
@@ -240,11 +247,6 @@ void t_planetary_system::read_from_file(char *filename)
 						 eccentricity,
 						 argument_of_pericenter, nu);
 		    }
-		}
-		std::string name =
-		    "planet" + std::to_string(get_number_of_planets());
-		if (values.contains("name")) {
-		    name = values["name"];
 		}
 
 		planet->set_name(name.c_str());
