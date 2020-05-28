@@ -190,7 +190,7 @@ void t_planetary_system::read_from_file(char *filename)
 
 		double semi_major_axis =
 		    ValueFromJson(values, "semi-major axis");
-		const double mass = ValueFromJson(values, "semi-major axis");
+		const double mass = ValueFromJson(values, "mass");
 
 		const double eccentricity =
 		    ValueFromJsonDefault(values, "eccentricity", 0.0);
