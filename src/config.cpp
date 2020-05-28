@@ -129,10 +129,6 @@ int read_config_from_file(const char *filename)
 	json j;
 	infile >> j;
 	for (auto &[key, value] : j.items()) {
-		if (std::string(key) == "planets") {
-			std::cout << "planets entry: " << value[0] << std::endl;
-			// std::cout << "planets entry as string: " << std::string(value) << std::endl;
-		}
 	    std::string lower_key = std::string(key);
 	    std::transform(lower_key.begin(), lower_key.end(),
 			   lower_key.begin(), ::tolower);
