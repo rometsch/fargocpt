@@ -11,6 +11,14 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "json/json.hpp"
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+
+using json = nlohmann::json;
+
 extern boolean CICPlanet;
 extern int Corotating;
 
@@ -23,8 +31,7 @@ t_planetary_system::~t_planetary_system()
     }
 
     m_planets.clear();
-	reb_free_simulation(m_rebound);
-
+    reb_free_simulation(m_rebound);
 }
 
 void t_planetary_system::init_rebound()
@@ -77,133 +84,190 @@ void t_planetary_system::initialize_default_star()
     add_planet(planet);
 }
 
+// find the cell center radius in which r lies.
+static double find_cell_centere_radius(const double r)
+{
+    unsigned int j = 0;
+    while (Radii[j] < r) {
+	j++;
+    }
+    return GlobalRmed[j];
+}
+
+// template <typename T>
+// static T get_json_value(const json &json_object, const std::string key)
+// {
+//     T ret;
+//     std::istringstream(json_object[key]) >> ret;
+//     return ret;
+// }
+
+// inspired by https://stackoverflow.com/a/8165847
+class ValueFromJson
+{
+  private:
+    json m_j;
+    std::string m_key;
+
+  public:
+    ValueFromJson(const json &j, const char *key) : m_j(j), m_key(key) {}
+
+    template <typename T> operator T()
+    {
+	const std::string val = m_j[m_key];
+	T t;
+	std::stringstream ss(val);
+	ss >> t;
+	return t;
+    }
+};
+
+template <typename T> class ValueFromJsonDefault
+{
+  private:
+    json m_j;
+    std::string m_key;
+    T m_default;
+
+  public:
+    ValueFromJsonDefault(const json &j, const char *key, const T &default_val)
+	: m_j(j), m_key(key), m_default(default_val)
+    {
+    }
+
+    operator T()
+    {
+	if (m_j.contains(m_key)) {
+	    const std::string val = m_j[m_key];
+	    T t;
+	    std::stringstream ss(val);
+	    ss >> t;
+	    return t;
+	} else {
+	    return m_default;
+	}
+    }
+};
+
+/*
+Convert a human redable string to a boolean value, non-casesensitive.
+y/yes -> true, n/no -> false, fail otherwise.
+*/
+static bool string_decide(const std::string &des)
+{
+	bool ret = false;
+    std::string s = std::string(des);
+    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    if (s == "yes" || s == "y" || s == "true" || s == "1") {
+		ret = true;
+    } else if (s == "no" || s == "n" || s == "false" || s == "0 ") {
+		ret = false;
+    } else {
+		die("Invalid attempt to convert string to bool for: %s", des.c_str());
+    }
+	return ret;
+}
+
 void t_planetary_system::read_from_file(char *filename)
 {
-    FILE *fd;
-
     if (parameters::default_star) {
 	initialize_default_star();
     }
 
-    // check if a filename was specified
-    if (filename == NULL) {
-	logging::print_master(LOG_INFO "No planetfile specified.\n");
-    } else {
-	// Only read from file if filename is given.
+    try {
+	std::ifstream infile(filename);
+	json j;
+	infile >> j;
 
-	// open fill
-	fd = fopen(filename, "r");
+	if (j.contains("planets")) {
+	    auto &planets_json_list = j["planets"];
+	    for (auto &values : planets_json_list) {
 
-	// check if file was readable
-	if (fd == NULL) {
-	    logging::print_master(LOG_ERROR "Error : can't find '%s'.\n",
-				  filename);
-	    PersonalExit(1);
-	    return;
-	}
-
-	char buffer[512];
-
-	// read line by line
-	while (fgets(buffer, sizeof(buffer), fd) != NULL) {
-		char name[256], feeldisk[8], feelother[8], irradiate[8];
-	    double semi_major_axis, mass, acc, eccentricity = 0.0, temperature,
-					       radius, phi, rampuptime;
-	    int num_args;
-
-	    // check if this line is a comment
-	    if ((strlen(buffer) > 0) && (buffer[0] == '#'))
-		continue;
-
-	    // try to cut line into pieces
-	    num_args = sscanf(
-		buffer, "%255s %lf %lf %lf %7s %7s %lf %lf %lf %7s %lf %lf",
-		name, &semi_major_axis, &mass, &acc, feeldisk, feelother,
-		&eccentricity, &radius, &temperature, irradiate, &phi,
-		&rampuptime);
-	    if (num_args < 6)
-		continue;
-
-	    if (num_args < 7) {
-		eccentricity = 0.0;
-	    }
-
-	    if (num_args < 8) {
-		radius = 0.009304813;
-	    }
-
-	    if (num_args < 9) {
-		temperature = 5778.0;
-	    }
-
-	    if (num_args < 10) {
-		irradiate[0] = 'n';
-	    }
-
-	    if (num_args < 11) {
-		phi = 0.0;
-	    }
-
-	    if (num_args < 12) {
-		rampuptime = 0;
-	    }
-
-	    if (CICPlanet) {
-		// initialization puts centered-in-cell planets (with
-		// excentricity = 0 only)
-		unsigned int j = 0;
-		while (GlobalRmed[j] < semi_major_axis)
-		    j++;
-		semi_major_axis = Radii[j + 1];
-	    }
-
-	    t_planet *planet = new t_planet();
-
-	    if (parameters::default_star) {
-		initialize_planet_legacy(planet, mass, semi_major_axis,
-					 eccentricity, phi);
-	    } else {
-		// planets starts at Periastron
-		double nu = 0.0;
-
-		double pericenter_angle = phi;
-		if (get_number_of_planets() < 2) {
-		    initialize_planet_jacobi_adjust_first_two(
-			planet, mass, semi_major_axis, eccentricity,
-			pericenter_angle, nu);
-		} else {
-		    initialize_planet_jacobi(planet, mass, semi_major_axis,
-					     eccentricity, pericenter_angle,
-					     nu);
+		// check if all needed quantities are present
+		if (!(values.contains("semi-major axis") &&
+		      values.contains("mass"))) {
+		    die("One of the planets does not have all of: semi-major axis and mass!");
 		}
+
+		double semi_major_axis =
+		    ValueFromJson(values, "semi-major axis");
+		const double mass = ValueFromJson(values, "semi-major axis");
+
+		const double eccentricity =
+		    ValueFromJsonDefault(values, "eccentricity", 0.0);
+
+		const double accretion_efficiency =
+		    ValueFromJsonDefault(values, "accretion efficiency", 0.0);
+
+		const double radius =
+		    ValueFromJsonDefault(values, "radius", 0.009304813);
+
+		const double temperature =
+		    ValueFromJsonDefault(values, "temperature", 5778.0);
+
+		const bool irradiate = string_decide(
+		    ValueFromJsonDefault(values, "irradiate", std::string("no")));
+
+		std::cout << "irradiation flag = " << irradiate << std::endl;
+		die("planned");
+
+		const double argument_of_pericenter =
+		    ValueFromJsonDefault(values, "argument of pericenter", 0.0);
+
+		double ramp_up_time = ValueFromJsonDefault(values, "ramp-up time", 0.0);
+
+		if (CICPlanet) {
+		    // initialization puts centered-in-cell planets (with
+		    // excentricity = 0 only)
+		    semi_major_axis = find_cell_centere_radius(semi_major_axis);
+		}
+
+		t_planet *planet = new t_planet();
+
+		if (parameters::default_star) {
+		    initialize_planet_legacy(planet, mass, semi_major_axis,
+					     eccentricity,
+					     argument_of_pericenter);
+		} else {
+		    // planets starts at Periastron
+		    const double nu = 0.0;
+		    if (get_number_of_planets() < 2) {
+			initialize_planet_jacobi_adjust_first_two(
+			    planet, mass, semi_major_axis, eccentricity,
+			    argument_of_pericenter, nu);
+		    } else {
+			initialize_planet_jacobi(planet, mass, semi_major_axis,
+						 eccentricity,
+						 argument_of_pericenter, nu);
+		    }
+		}
+		std::string name =
+		    "planet" + std::to_string(get_number_of_planets());
+		if (values.contains("name")) {
+		    name = values["name"];
+		}
+
+		planet->set_name(name.c_str());
+		planet->set_acc(accretion_efficiency);
+
+		planet->set_radius(radius);
+		planet->set_temperature(temperature / units::temperature);
+		planet->set_irradiate(irradiate);
+		planet->set_rampuptime(ramp_up_time);
+
+		planet->set_disk_on_planet_acceleration(
+		    Pair()); // initialize to zero
+		planet->set_nbody_on_planet_acceleration(Pair());
+
+		add_planet(planet);
 	    }
-	    planet->set_name(name);
-	    planet->set_acc(acc);
-
-	    logging::print_master(
-		LOG_WARNING,
-		"Warning: feeldisk flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
-	    logging::print_master(
-		LOG_WARNING,
-		"Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
-
-	    planet->set_radius(radius);
-	    planet->set_temperature(temperature / units::temperature);
-	    planet->set_irradiate(tolower(irradiate[0]) == 'y');
-	    planet->set_rampuptime(rampuptime);
-
-	    planet->set_disk_on_planet_acceleration(
-		Pair()); // initialize to zero
-	    planet->set_nbody_on_planet_acceleration(Pair());
-
-	    add_planet(planet);
 	}
-	// close file
-	fclose(fd);
-
-	logging::print_master(LOG_INFO "%d planet(s) found.\n",
-			      get_number_of_planets());
+    } catch (const nlohmann::detail::parse_error &ex) {
+	die("Error in reading planet configuration from config file.");
     }
+
+    logging::print_master(LOG_INFO "%d planet(s) found.\n",
+			  get_number_of_planets());
 
     if (get_number_of_planets() > 0) {
 	HillRadius =
@@ -242,7 +306,7 @@ void t_planetary_system::read_from_file(char *filename)
 	LOG_INFO "The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
 
-	init_rebound();
+    init_rebound();
 }
 
 void t_planetary_system::list_planets()
@@ -291,7 +355,7 @@ void t_planetary_system::list_planets()
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
 		(24 * 60 * 60 * 365.2425),
-		get_planet(i).get_acc(), '-', '-');
+	    get_planet(i).get_acc(), '-', '-');
     }
 
     logging::print(LOG_INFO "\n");
@@ -336,7 +400,7 @@ void t_planetary_system::restart(unsigned int timestep)
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).restart(timestep);
     }
-	m_rebound->t = PhysicalTime;
+    m_rebound->t = PhysicalTime;
 }
 
 void t_planetary_system::create_planet_files()
@@ -616,8 +680,8 @@ void t_planetary_system::calculate_orbital_elements()
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
 	if (i == 0) {
-		get_planet(0).set_orbital_elements_zero();
-		continue;
+	    get_planet(0).set_orbital_elements_zero();
+	    continue;
 	}
 
 	Pair com_pos = get_center_of_mass(i);
@@ -633,57 +697,58 @@ void t_planetary_system::calculate_orbital_elements()
     }
 }
 
-
 /**
    Copy positions, velocities and masses
    from planetary system to rebound.
 */
-void t_planetary_system::copy_data_to_rebound() {
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	    auto &planet = get_planet(i);
-	    m_rebound->particles[i].x = planet.get_x();
-	    m_rebound->particles[i].y = planet.get_y();
-	    m_rebound->particles[i].vx = planet.get_vx();
-	    m_rebound->particles[i].vy = planet.get_vy();
-	    m_rebound->particles[i].m = planet.get_mass();
-	}
+void t_planetary_system::copy_data_to_rebound()
+{
+    for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	auto &planet = get_planet(i);
+	m_rebound->particles[i].x = planet.get_x();
+	m_rebound->particles[i].y = planet.get_y();
+	m_rebound->particles[i].vx = planet.get_vx();
+	m_rebound->particles[i].vy = planet.get_vy();
+	m_rebound->particles[i].m = planet.get_mass();
+    }
 }
 
 /**
    Copy positions, velocities and masses back
    from rebound to planetary system.
 */
-void t_planetary_system::copy_data_from_rebound() {
-		for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	    auto &planet = get_planet(i);
-	    planet.set_x(m_rebound->particles[i].x);
-	    planet.set_y(m_rebound->particles[i].y);
-	    planet.set_vx(m_rebound->particles[i].vx);
-	    planet.set_vy(m_rebound->particles[i].vy);
-	}
+void t_planetary_system::copy_data_from_rebound()
+{
+    for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	auto &planet = get_planet(i);
+	planet.set_x(m_rebound->particles[i].x);
+	planet.set_y(m_rebound->particles[i].y);
+	planet.set_vx(m_rebound->particles[i].vx);
+	planet.set_vy(m_rebound->particles[i].vy);
+    }
 }
 
 /**
    Integrate the nbody system forward in time using rebound.
 */
-void t_planetary_system::integrate(double time, double dt) {
+void t_planetary_system::integrate(double time, double dt)
+{
     if (get_number_of_planets() < 2) {
 	// don't integrate a single particle that doesn't move
-		return;
+	return;
     }
 
-	copy_data_to_rebound();
-	m_rebound->t = time;
+    copy_data_to_rebound();
+    m_rebound->t = time;
 
-	disable_trap_fpe_gnu();
-	reb_integrate(m_rebound, time + dt);
-	enable_trap_fpe_gnu();
+    disable_trap_fpe_gnu();
+    reb_integrate(m_rebound, time + dt);
+    enable_trap_fpe_gnu();
 
-	copy_data_from_rebound();
+    copy_data_from_rebound();
 
-	move_to_hydro_frame_center();
+    move_to_hydro_frame_center();
 }
-
 
 /**
 	Updates planets velocities due to disk influence if "DiskFeedback" is
@@ -692,44 +757,45 @@ void t_planetary_system::integrate(double time, double dt) {
 void t_planetary_system::correct_velocity_for_disk_accel()
 {
 
-	if (!parameters::disk_feedback){
-		return;
+    if (!parameters::disk_feedback) {
+	return;
+    }
+
+    for (unsigned int k = 0; k < get_number_of_planets(); k++) {
+
+	/*
+	 * from centrifugal balance folows
+	 * v_new**2 / r = a_disk + v_old**2 / r
+	 * v_new = sqrt(v_old**2 - r * a_disk)
+	 */
+	t_planet &planet = get_planet(k);
+
+	const Pair gas_accel = planet.get_disk_on_planet_acceleration();
+	const double vx_old = planet.get_vx();
+	const double vy_old = planet.get_vy();
+	const double v_old =
+	    std::sqrt(std::pow(vx_old, 2.0) + std::pow(vy_old, 2.0));
+
+	if (v_old == 0.0) {
+	    continue;
 	}
 
-	for (unsigned int k = 0; k < get_number_of_planets(); k++) {
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double specific_torque_gas =
+	    gas_accel.x * x + gas_accel.y * y; // = a_disk * r
 
-		/*
-		 * from centrifugal balance folows
-		 * v_new**2 / r = a_disk + v_old**2 / r
-		 * v_new = sqrt(v_old**2 - r * a_disk)
-		 */
-		t_planet &planet = get_planet(k);
-
-		const Pair gas_accel = planet.get_disk_on_planet_acceleration();
-		const double vx_old = planet.get_vx();
-		const double vy_old = planet.get_vy();
-		const double v_old = std::sqrt(std::pow(vx_old, 2.0) + std::pow(vy_old, 2.0));
-
-		if(v_old == 0.0)
-		{
-			continue;
-		}
-
-		const double x = planet.get_x();
-		const double y = planet.get_y();
-		const double specific_torque_gas = gas_accel.x * x + gas_accel.y * y; // = a_disk * r
-
-		if(specific_torque_gas > std::pow(v_old, 2.0))
-		{
-			continue;
-		}
-
-		const double v_new = std::sqrt(std::pow(v_old, 2.0) - specific_torque_gas);
-
-		const double new_vx = v_new / v_old * vx_old;
-		const double new_vy = v_new / v_old * vy_old;
-
-		planet.set_vx(new_vx);
-		planet.set_vy(new_vy);
+	if (specific_torque_gas > std::pow(v_old, 2.0)) {
+	    continue;
 	}
+
+	const double v_new =
+	    std::sqrt(std::pow(v_old, 2.0) - specific_torque_gas);
+
+	const double new_vx = v_new / v_old * vx_old;
+	const double new_vy = v_new / v_old * vy_old;
+
+	planet.set_vx(new_vx);
+	planet.set_vy(new_vy);
+    }
 }
