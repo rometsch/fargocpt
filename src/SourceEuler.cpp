@@ -278,12 +278,10 @@ void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src)
 }
 
 /**
-
-	\param force
 	\param data
 	\param sys
 */
-void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
+void AlgoGas(unsigned int nTimeStep, t_data &data)
 {
     double local_gas_time_step_cfl = 1.0;
     double global_gas_time_step_cfl;
@@ -334,7 +332,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	}
 
 	if (parameters::disk_feedback) {
-	    ComputeDiskOnNbodyAccel(force, data);
+		ComputeDiskOnNbodyAccel(data);
 	}
 	/* Indirect term star's potential computed here */
 	ComputeNbodyOnNbodyAccel(data.get_planetary_system());

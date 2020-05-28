@@ -149,13 +149,13 @@ void CalculatePotential(t_data &data)
 /**
    Update disk forces onto planets if *diskfeedback* is turned on
 */
-void ComputeDiskOnNbodyAccel(Force *force, t_data &data)
+void ComputeDiskOnNbodyAccel(t_data &data)
 {
     Pair accel;
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
-		accel = ComputeAccel(force, data, planet.get_x(), planet.get_y(),
+		accel = ComputeAccel(data, planet.get_x(), planet.get_y(),
 							 planet.get_mass());
 		planet.set_disk_on_planet_acceleration(accel);
 

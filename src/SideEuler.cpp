@@ -30,8 +30,7 @@
 #include "util.h"
 #include "viscosity.h"
 
-extern boolean OuterSourceMass, Damping;
-extern int dimfxy;
+extern boolean Damping;
 extern boolean OuterSourceMass;
 
 /**
@@ -176,7 +175,6 @@ void FreeCellCenterCoordinates()
 }
 
 /**
-	\param force
 	\param Density
 	\param x
 	\param y
@@ -184,18 +182,11 @@ void FreeCellCenterCoordinates()
 	\param mass
 	\returns
 */
-Pair ComputeAccel(Force *force, t_data &data, double x, double y, double mass)
+Pair ComputeAccel(t_data &data, double x, double y, double mass)
 {
     Pair acceleration;
 
-    ComputeForce(data, force, x, y, mass);
-    if (ExcludeHill) {
-	acceleration.x = force->fx_ex_inner + force->fx_ex_outer;
-	acceleration.y = force->fy_ex_inner + force->fy_ex_outer;
-    } else {
-	acceleration.x = force->fx_inner + force->fx_outer;
-	acceleration.y = force->fy_inner + force->fy_outer;
-    }
+	acceleration = ComputeForce(data, x, y, mass);
 
     return acceleration;
 }

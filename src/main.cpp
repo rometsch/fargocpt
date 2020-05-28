@@ -8,7 +8,6 @@
 #include "Pframeforce.h"
 #include "SideEuler.h"
 #include "SourceEuler.h"
-#include "Stockholm.h"
 #include "Theo.h"
 #include "boundary_conditions.h"
 #include "commbound.h"
@@ -33,7 +32,7 @@
 #include "config.h"
 
 int TimeToWrite;
-int dimfxy = 11, Restart = 0;
+int Restart = 0;
 static int StillWriteOneOutput;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
@@ -56,7 +55,6 @@ int main(int argc, char *argv[])
     unsigned int timeStepStart = 0;
 
     int CPU_NameLength;
-    Force *force;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
 
     // initialize MPI
@@ -132,7 +130,6 @@ int main(int argc, char *argv[])
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
 
     init_radialarrays();
-	force = AllocateForce(dimfxy);
 
 	// Here planets are initialized feeling star potential
 	data.get_planetary_system().read_from_file(PLANETCONFIG);
@@ -151,7 +148,7 @@ int main(int argc, char *argv[])
 
 	// update planet velocity due to disk potential
 	if (parameters::disk_feedback) {
-		ComputeDiskOnNbodyAccel(force, data);
+		ComputeDiskOnNbodyAccel(data);
 	}
 	data.get_planetary_system().correct_velocity_for_disk_accel();
 	logging::print_master(LOG_INFO "planets initialised.\n");
@@ -245,7 +242,7 @@ int main(int argc, char *argv[])
 	bool write_complete_output = NINTERM * TimeStep == nTimeStep;
 	/// asure planet torques are computed
 	if (!parameters::disk_feedback && (write_complete_output || parameters::write_at_every_timestep)) {
-		ComputeDiskOnNbodyAccel(force, data);
+		ComputeDiskOnNbodyAccel(data);
 	}
 
 	if (write_complete_output) {
@@ -279,9 +276,6 @@ int main(int argc, char *argv[])
 	    // InnerOutputCounter = 0;
 	    data.get_planetary_system().write_planets(TimeStep, true);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
-	    UpdateLog(data, force, TimeStep, PhysicalTime);
-	    if (Stockholm)
-		UpdateLogStockholm(data, PhysicalTime);
 	}
 
 	// write disk quantities like eccentricity, ...
@@ -304,7 +298,7 @@ int main(int argc, char *argv[])
 	}
 
 	// do hydro and nbody
-	AlgoGas(nTimeStep, force, data);
+	AlgoGas(nTimeStep, data);
     }
 
     logging::print_runtime_final();
@@ -316,7 +310,6 @@ int main(int argc, char *argv[])
 	free(PLANETCONFIG);
 	delete[] options::parameter_file;
     FreeEuler();
-    FreeForce(force);
 
     selfgravity::mpi_finalize();
     FreeSplitDomain();
