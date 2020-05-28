@@ -154,12 +154,13 @@ void ComputeDiskOnNbodyAccel(Force *force, t_data &data)
     Pair accel;
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
-	if (parameters::disk_feedback) {
-	    t_planet &planet = data.get_planetary_system().get_planet(k);
-	    accel = ComputeAccel(force, data, planet.get_x(), planet.get_y(),
-				 planet.get_mass());
-	    planet.set_disk_on_planet_acceleration(accel);
-	}
+		t_planet &planet = data.get_planetary_system().get_planet(k);
+		accel = ComputeAccel(force, data, planet.get_x(), planet.get_y(),
+							 planet.get_mass());
+		planet.set_disk_on_planet_acceleration(accel);
+
+		const double torque = (planet.get_x() * accel.y - planet.get_y() * accel.x)*planet.get_mass();
+		planet.set_torque(torque);
     }
 }
 

@@ -243,6 +243,11 @@ int main(int argc, char *argv[])
 	bool force_update_for_output = true;
 	TimeStep = (nTimeStep / NINTERM); // note: integer division
 	bool write_complete_output = NINTERM * TimeStep == nTimeStep;
+	/// asure planet torques are computed
+	if (!parameters::disk_feedback && (write_complete_output || parameters::write_at_every_timestep)) {
+		ComputeDiskOnNbodyAccel(force, data);
+	}
+
 	if (write_complete_output) {
 	    // Outputs are done here
 	    TimeToWrite = YES;
@@ -284,6 +289,7 @@ int main(int argc, char *argv[])
 	    output::write_quantities(data, TimeStep, nTimeStep,
 				     force_update_for_output);
 	}
+
 	if (write_complete_output || parameters::write_torques) {
 	    output::write_torques(data, TimeStep, force_update_for_output);
 	}

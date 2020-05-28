@@ -545,7 +545,9 @@ std::string text_file_variable_description(
 					   "erg cm2/s/g")},
 	{"pressure per time", unit_descriptor(units::pressure.get_cgs_factor() /
 						  units::time.get_cgs_factor(),
-					      "dyn/cm/s")}};
+						  "dyn/cm/s")},
+	{"torque", unit_descriptor(units::torque.get_cgs_factor(),
+							  units::torque.get_cgs_symbol())}};
 
     std::string var_descriptor;
     for (auto const &ent : vars_by_column) {
@@ -633,13 +635,6 @@ double get_misc(unsigned int timestep, std::string variable)
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
-    double *global_torques = (double *)malloc(
-	sizeof(*global_torques) *
-	(data.get_planetary_system().get_number_of_planets()));
-    double *local_torques = (double *)malloc(
-	sizeof(*local_torques) *
-	(data.get_planetary_system().get_number_of_planets()));
-
 	double rsmoothing = 0.0;
 	double xc, yc, cellmass, dx, dy, distance, dist2, rh;
 
@@ -651,7 +646,6 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
     for (unsigned int n_planet = 0;
 	 n_planet < data.get_planetary_system().get_number_of_planets();
 	 ++n_planet) {
-	local_torques[n_planet] = 0;
 	t_planet &planet = data.get_planetary_system().get_planet(n_planet);
 
 
@@ -712,7 +706,6 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 		data[t_data::TORQUE](n_radial, n_azimuthal) =
 		Torque;
 		data[t_data::TORQUE_1D](n_radial) += Torque;
-		local_torques[n_planet] += Torque;
 
 	}
 	}
@@ -728,64 +721,6 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	    data[t_data::TORQUE_1D].write1D(timestep);
 	}
     }
-
-    MPI_Allreduce(local_torques, global_torques,
-		  data.get_planetary_system().get_number_of_planets(),
-		  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-    if (CPU_Master) {
-	// output
-	FILE *fd = 0;
-	char *fd_filename;
-	static bool fd_created = false;
-
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "torques.dat") == -1) {
-	    logging::print_master(LOG_ERROR
-				  "Not enough memory for string buffer.\n");
-	    PersonalExit(1);
-	}
-
-	// check if file exists and we restarted
-	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
-	    fd = fopen(fd_filename, "r");
-	    if (fd) {
-		fd_created = true;
-		fclose(fd);
-	    }
-	}
-	// open logfile
-	if (!fd_created) {
-	    fd = fopen(fd_filename, "w");
-	} else {
-	    fd = fopen(fd_filename, "a");
-	}
-	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR "Can't write 'torques.dat' file. Aborting.\n");
-	    PersonalExit(1);
-	}
-
-	free(fd_filename);
-
-	if (!fd_created) {
-	    // print header
-	    fprintf(fd, "# \n");
-	    fd_created = true;
-	}
-
-	fprintf(fd, "%.20e", PhysicalTime);
-	for (unsigned int i = 0;
-		 i < data.get_planetary_system().get_number_of_planets(); ++i) {
-	    fprintf(fd, "\t%.20e", global_torques[i] * units::torque);
-	}
-	fprintf(fd, "\n");
-
-	// close file
-	fclose(fd);
-    }
-
-    free(local_torques);
-    free(global_torques);
 }
 
 void write_1D_info(t_data &data)
