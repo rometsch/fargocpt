@@ -206,21 +206,23 @@ void t_planetary_system::read_from_file(char *filename)
 		const double temperature =
 		    ValueFromJsonDefault(values, "temperature", 5778.0);
 
-		const bool irradiate = string_decide(
-		    ValueFromJsonDefault(values, "irradiate", std::string("no")));
+		const bool irradiate = string_decide(ValueFromJsonDefault(
+		    values, "irradiate", std::string("no")));
 
 		const double argument_of_pericenter =
 		    ValueFromJsonDefault(values, "argument of pericenter", 0.0);
 
-		double ramp_up_time = ValueFromJsonDefault(values, "ramp-up time", 0.0);
+		double ramp_up_time =
+		    ValueFromJsonDefault(values, "ramp-up time", 0.0);
 
-		std::string name = "planet" + std::to_string(get_number_of_planets());
+		std::string name =
+		    "planet" + std::to_string(get_number_of_planets());
 		if (values.contains("name")) {
-			name = values["name"];
+		    name = values["name"];
 		}
 
-		const bool cell_centered = string_decide(
-		    ValueFromJsonDefault(values, "cell centered", std::string("no")));
+		const bool cell_centered = string_decide(ValueFromJsonDefault(
+		    values, "cell centered", std::string("no")));
 		if (cell_centered) {
 		    // initialization puts centered-in-cell planets (with
 		    // excentricity = 0 only)
@@ -276,17 +278,27 @@ void t_planetary_system::read_from_file(char *filename)
     logging::print_master(LOG_INFO "%d planet(s) found.\n",
 			  get_number_of_planets());
 
-    if (get_number_of_planets() > 0) {
-	HillRadius =
-	    get_planet(0).get_x() * pow(get_planet(0).get_mass() / 3., 1. / 3.);
-    } else {
-	HillRadius = 0;
+	if (get_number_of_planets() == 0) {
+		die("No stars or planets!");
     }
-
     // set up hydro frame center
-    if (get_number_of_planets() == 0) {
-	die("No stars or planets!");
+	init_hydro_frame_center();
+
+	init_corotation_body();
+
+    init_rebound();
+}
+
+void t_planetary_system::init_corotation_body() {
+    if (Corotating == YES &&
+	parameters::corotation_reference_body > get_number_of_planets() - 1) {
+	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
+	    parameters::corotation_reference_body, get_number_of_planets() - 1);
     }
+}
+
+void t_planetary_system::init_hydro_frame_center()
+{
     if (parameters::n_bodies_for_hydroframe_center == 0) {
 	// use all bodies to calculate hydro frame center
 	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
@@ -302,18 +314,10 @@ void t_planetary_system::read_from_file(char *filename)
 
     move_to_hydro_frame_center();
 
-    if (Corotating == YES &&
-	parameters::corotation_reference_body > get_number_of_planets() - 1) {
-	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
-	    parameters::corotation_reference_body, get_number_of_planets() - 1);
-    }
-
-    update_global_hydro_frame_center_mass();
+	update_global_hydro_frame_center_mass();
     logging::print_master(
 	LOG_INFO "The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
-
-    init_rebound();
 }
 
 void t_planetary_system::list_planets()

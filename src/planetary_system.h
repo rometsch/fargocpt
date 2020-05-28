@@ -58,7 +58,10 @@ class t_planetary_system
 
     void initialize_default_star();
     void init_rebound();
+    void init_hydro_frame_center();
+    void init_corotation_body();
     void read_from_file(char *filename);
+
     void list_planets();
     void rotate(double angle);
     void restart(unsigned int timestep);

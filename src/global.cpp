@@ -151,7 +151,6 @@ t_polargrid *CellCenterX, *CellCenterY;
 int OverridesOutputdir;
 
 char *OUTPUTDIR;
-char *PLANETCONFIG;
 
 double DT;
 unsigned int NINTERM;
