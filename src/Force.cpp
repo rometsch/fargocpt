@@ -24,12 +24,12 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 /**
 	Computes the force due to the disk on an object at position (x,y)
 */
-Pair ComputeForce(t_data &data, double x, double y, double mass)
+Pair ComputeAccel(t_data &data, double x, double y, double mass)
 {
 	Pair acceleration;
     int l, ns;
-	double localforce[4] = {0., 0., 0., 0.},
-	   globalforce[4] = {0., 0., 0., 0.};
+	double localaccel[4] = {0., 0., 0., 0.},
+	   globalaccel[4] = {0., 0., 0., 0.};
 	double xc, yc, cellmass, dx, dy, distance, dist2, a;
 	double InvDist3, fxi, fyi, fxo, fyo;
     double rsmoothing = 0.0;
@@ -88,15 +88,15 @@ Pair ComputeForce(t_data &data, double x, double y, double mass)
 	}
     }
 
-    localforce[0] = fxi;
-    localforce[1] = fyi;
-	localforce[2] = fxo;
-	localforce[3] = fyo;
-	MPI_Allreduce(&localforce, &globalforce, 4, MPI_DOUBLE, MPI_SUM,
+	localaccel[0] = fxi;
+	localaccel[1] = fyi;
+	localaccel[2] = fxo;
+	localaccel[3] = fyo;
+	MPI_Allreduce(&localaccel, &globalaccel, 4, MPI_DOUBLE, MPI_SUM,
 		  MPI_COMM_WORLD);
 
-	acceleration.x = globalforce[0] + globalforce[2];
-	acceleration.y = globalforce[1] + globalforce[3];
+	acceleration.x = globalaccel[0] + globalaccel[2];
+	acceleration.y = globalaccel[1] + globalaccel[3];
 
 	return acceleration;
 }

@@ -175,23 +175,6 @@ void FreeCellCenterCoordinates()
 }
 
 /**
-	\param Density
-	\param x
-	\param y
-	\param rsmoothing
-	\param mass
-	\returns
-*/
-Pair ComputeAccel(t_data &data, double x, double y, double mass)
-{
-    Pair acceleration;
-
-	acceleration = ComputeForce(data, x, y, mass);
-
-    return acceleration;
-}
-
-/**
 	\param VRadial radial velocity polar grid
 	\param Density density polar grid
 	\param Energy energy polar grid
