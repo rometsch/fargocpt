@@ -132,7 +132,7 @@ template <typename T> class ValueFromJsonDefault
     T m_default;
 
   public:
-    ValueFromJsonDefault(const json &j, const char *key, const T &default_val)
+    ValueFromJsonDefault(const json &j, const char *key, const T& default_val)
 	: m_j(j), m_key(key), m_default(default_val)
     {
     }
@@ -141,10 +141,10 @@ template <typename T> class ValueFromJsonDefault
     {
 	if (m_j.contains(m_key)) {
 	    const std::string val = m_j[m_key];
-	    T t;
+	    T ret;
 	    std::stringstream ss(val);
-	    ss >> t;
-	    return t;
+	    ss >> ret;
+	    return ret;
 	} else {
 	    return m_default;
 	}
@@ -168,6 +168,15 @@ static bool string_decide(const std::string &des)
 		die("Invalid attempt to convert string to bool for: %s", des.c_str());
     }
 	return ret;
+}
+
+static bool flag_value_with_default(const json& j, const std::string& key, bool default_value) {
+	if (j.contains(key)) {
+	    const std::string val = j[key];
+	    return string_decide(val);
+	} else {
+	    return default_value;
+	}
 }
 
 void t_planetary_system::read_from_file(char *filename)
@@ -206,8 +215,8 @@ void t_planetary_system::read_from_file(char *filename)
 		const double temperature =
 		    ValueFromJsonDefault(values, "temperature", 5778.0);
 
-		const bool irradiate = string_decide(ValueFromJsonDefault(
-		    values, "irradiate", std::string("no")));
+		const bool irradiate = 
+			flag_value_with_default(values, "irradiate", "no");
 
 		const double argument_of_pericenter =
 		    ValueFromJsonDefault(values, "argument of pericenter", 0.0);
@@ -221,8 +230,8 @@ void t_planetary_system::read_from_file(char *filename)
 		    name = values["name"];
 		}
 
-		const bool cell_centered = string_decide(ValueFromJsonDefault(
-		    values, "cell centered", std::string("no")));
+		const bool cell_centered = 
+			flag_value_with_default(values, "cell centered", "no");
 		if (cell_centered) {
 		    // initialization puts centered-in-cell planets (with
 		    // excentricity = 0 only)
