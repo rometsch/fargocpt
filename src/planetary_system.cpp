@@ -158,9 +158,9 @@ static bool string_decide(const std::string &des)
 	bool ret = false;
     std::string s = std::string(des);
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if (s == "yes" || s == "y" || s == "true" || s == "1") {
+    if (s == "yes" || s == "y" || s == "true" || s == "1" || s == "on") {
 		ret = true;
-    } else if (s == "no" || s == "n" || s == "false" || s == "0 ") {
+    } else if (s == "no" || s == "n" || s == "false" || s == "0 " || s == "off") {
 		ret = false;
     } else {
 		die("Invalid attempt to convert string to bool for: %s", des.c_str());
@@ -180,8 +180,7 @@ void t_planetary_system::read_from_file(char *filename)
 	infile >> j;
 
 	if (j.contains("planets")) {
-	    auto &planets_json_list = j["planets"];
-	    for (auto &values : planets_json_list) {
+	    for (auto &values : j["planets"]) {
 
 		// check if all needed quantities are present
 		if (!(values.contains("semi-major axis") &&
@@ -207,9 +206,6 @@ void t_planetary_system::read_from_file(char *filename)
 
 		const bool irradiate = string_decide(
 		    ValueFromJsonDefault(values, "irradiate", std::string("no")));
-
-		std::cout << "irradiation flag = " << irradiate << std::endl;
-		die("planned");
 
 		const double argument_of_pericenter =
 		    ValueFromJsonDefault(values, "argument of pericenter", 0.0);
