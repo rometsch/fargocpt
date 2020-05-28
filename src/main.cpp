@@ -317,7 +317,6 @@ int main(int argc, char *argv[])
 	config::free_config_list();
 	DeallocateBoundaryCommunicationBuffers();
 	free(OUTPUTDIR);
-	free(PLANETCONFIG);
 	delete[] options::parameter_file;
     FreeEuler();
     FreeForce(force);

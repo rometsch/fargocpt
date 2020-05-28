@@ -90,7 +90,6 @@ extern t_polargrid *CellCenterX, *CellCenterY;
 extern int OverridesOutputdir;
 
 extern char *OUTPUTDIR;
-extern char *PLANETCONFIG;
 
 extern double DT;
 extern unsigned int NINTERM;

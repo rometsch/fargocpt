@@ -137,17 +137,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // check if planet config exists
-    if ((config::key_exists("PLANETCONFIG")) &&
-	(strlen(config::value_as_string("PLANETCONFIG")) > 0)) {
-	if (asprintf(&PLANETCONFIG, "%s",
-		     config::value_as_string("PLANETCONFIG")) < 0) {
-	    logging::print_master(LOG_ERROR "Not enough memory!\n");
-	}
-    } else {
-	PLANETCONFIG = NULL;
-    }
-
     start_mode::configure_start_mode();
 
     if (CPU_Master) {
@@ -188,28 +177,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		  std::ostreambuf_iterator<char>(&append_new_par_file));
 	append_new_par_file.close();
 	old_par_file.close();
-
-	if (PLANETCONFIG != NULL) {
-	    std::string planet_file = std::string(PLANETCONFIG);
-	    std::string planet_filename =
-		output_folder + getFileName(planet_file);
-	    if (start_mode::mode == start_mode::mode_restart) {
-		char str[12];
-		sprintf(str, "%d", start_mode::restart_from);
-		planet_filename += "_restart_";
-		planet_filename += str;
-	    }
-
-	    std::filebuf old_planet_file, append_new_planet_file;
-	    old_planet_file.open(planet_file.c_str(), std::ios::in);
-	    append_new_planet_file.open(planet_filename.c_str(),
-					std::ios::trunc | std::ios::out);
-	    std::copy(std::istreambuf_iterator<char>(&old_planet_file), {},
-		      std::ostreambuf_iterator<char>(&append_new_planet_file));
-	    append_new_planet_file.close();
-	    old_planet_file.close();
-	}
     }
+	
     MPI_Barrier(MPI_COMM_WORLD);
     OuterSourceMass = config::value_as_bool_default("OUTERSOURCEMASS", 0);
 
