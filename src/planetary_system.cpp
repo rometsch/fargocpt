@@ -214,6 +214,11 @@ void t_planetary_system::read_from_file(char *filename)
 
 		double ramp_up_time = ValueFromJsonDefault(values, "ramp-up time", 0.0);
 
+		std::string name = "planet" + std::to_string(get_number_of_planets());
+		if (values.contains("name")) {
+			name = values["name"];
+		}
+
 		const bool cell_centered = string_decide(
 		    ValueFromJsonDefault(values, "cell centered", std::string("no")));
 		if (cell_centered) {
