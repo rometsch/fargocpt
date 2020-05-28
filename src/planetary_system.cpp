@@ -19,7 +19,6 @@
 
 using json = nlohmann::json;
 
-extern boolean CICPlanet;
 extern int Corotating;
 
 t_planetary_system::t_planetary_system() {}
@@ -212,9 +211,14 @@ void t_planetary_system::read_from_file(char *filename)
 
 		double ramp_up_time = ValueFromJsonDefault(values, "ramp-up time", 0.0);
 
-		if (CICPlanet) {
+		const bool cell_centered = string_decide(
+		    ValueFromJsonDefault(values, "cell centered", std::string("no")));
+		if (cell_centered) {
 		    // initialization puts centered-in-cell planets (with
 		    // excentricity = 0 only)
+			if (eccentricity >0) {
+				die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
+			}
 		    semi_major_axis = find_cell_centere_radius(semi_major_axis);
 		}
 

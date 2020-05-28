@@ -21,7 +21,7 @@ extern std::vector<parameters::t_DampingType> damping_vector;
 int Corotating, GuidingCenter;
 
 int FastTransport;
-int OuterSourceMass, CICPlanet;
+int OuterSourceMass;
 
 #include <algorithm>
 #include <array>
@@ -472,8 +472,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	parameters::damping_vector.end());
 
     ExcludeHill = config::value_as_bool_default("EXCLUDEHILL", 0);
-    CICPlanet = config::value_as_bool_default("CICPLANET", 0);
-
     ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
     VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
 
