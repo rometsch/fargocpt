@@ -3,7 +3,10 @@
 
 #include "planet.h"
 #include "rebound/rebound.h"
+#include "json/json.hpp"
 #include <vector>
+
+using json = nlohmann::json;
 
 class t_planetary_system
 {
@@ -60,7 +63,9 @@ class t_planetary_system
     void init_rebound();
     void init_hydro_frame_center();
     void init_corotation_body();
-    void read_from_file(char *filename);
+    void init_planet(const json& values);
+    void config_consistency_checks();
+    void init_system(char *filename);
 
     void list_planets();
     void rotate(double angle);

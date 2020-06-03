@@ -11,7 +11,6 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "json/json.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -93,16 +92,8 @@ static double find_cell_centere_radius(const double r)
     while (Radii[j] < r) {
 	j++;
     }
-    return GlobalRmed[j-1];
+    return GlobalRmed[j - 1];
 }
-
-// template <typename T>
-// static T get_json_value(const json &json_object, const std::string key)
-// {
-//     T ret;
-//     std::istringstream(json_object[key]) >> ret;
-//     return ret;
-// }
 
 // inspired by https://stackoverflow.com/a/8165847
 class ValueFromJson
@@ -132,7 +123,7 @@ template <typename T> class ValueFromJsonDefault
     T m_default;
 
   public:
-    ValueFromJsonDefault(const json &j, const char *key, const T& default_val)
+    ValueFromJsonDefault(const json &j, const char *key, const T &default_val)
 	: m_j(j), m_key(key), m_default(default_val)
     {
     }
@@ -157,29 +148,112 @@ y/yes -> true, n/no -> false, fail otherwise.
 */
 static bool string_decide(const std::string &des)
 {
-	bool ret = false;
+    bool ret = false;
     std::string s = std::string(des);
     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
     if (s == "yes" || s == "y" || s == "true" || s == "1" || s == "on") {
-		ret = true;
-    } else if (s == "no" || s == "n" || s == "false" || s == "0 " || s == "off") {
-		ret = false;
+	ret = true;
+    } else if (s == "no" || s == "n" || s == "false" || s == "0 " ||
+	       s == "off") {
+	ret = false;
     } else {
-		die("Invalid attempt to convert string to bool for: %s", des.c_str());
+	die("Invalid attempt to convert string to bool for: %s", des.c_str());
     }
-	return ret;
+    return ret;
 }
 
-static bool flag_value_with_default(const json& j, const std::string& key, bool default_value) {
-	if (j.contains(key)) {
-	    const std::string val = j[key];
-	    return string_decide(val);
-	} else {
-	    return default_value;
+static bool flag_value_with_default(const json &j, const std::string &key,
+				    bool default_value)
+{
+    if (j.contains(key)) {
+	const std::string val = j[key];
+	return string_decide(val);
+    } else {
+	return default_value;
+    }
+}
+
+void t_planetary_system::init_planet(const json &values)
+{
+    // check if all needed quantities are present
+    if (!(values.contains("semi-major axis") && values.contains("mass"))) {
+	die("One of the planets does not have all of: semi-major axis and mass!");
+    }
+
+    double semi_major_axis = ValueFromJson(values, "semi-major axis");
+    const double mass = ValueFromJson(values, "mass");
+
+    const double eccentricity =
+	ValueFromJsonDefault(values, "eccentricity", 0.0);
+
+    const double accretion_efficiency =
+	ValueFromJsonDefault(values, "accretion efficiency", 0.0);
+
+    const double radius = ValueFromJsonDefault(values, "radius", 0.009304813);
+
+    const double temperature =
+	ValueFromJsonDefault(values, "temperature", 5778.0);
+
+    const bool irradiate = flag_value_with_default(values, "irradiate", "no");
+
+    const double argument_of_pericenter =
+	ValueFromJsonDefault(values, "argument of pericenter", 0.0);
+
+    double ramp_up_time = ValueFromJsonDefault(values, "ramp-up time", 0.0);
+
+    std::string name = "planet" + std::to_string(get_number_of_planets());
+    if (values.contains("name")) {
+	name = values["name"];
+    }
+
+    const bool cell_centered =
+	flag_value_with_default(values, "cell centered", "no");
+    if (cell_centered) {
+	// initialization puts centered-in-cell planets (with
+	// excentricity = 0 only)
+	if (eccentricity > 0) {
+	    die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
 	}
+	if (semi_major_axis < RMIN || semi_major_axis > RMAX) {
+	    die("Can not put planet %s at cell center for a = %f which is outside the grid!",
+		name.c_str(), semi_major_axis);
+	}
+	semi_major_axis = find_cell_centere_radius(semi_major_axis);
+    }
+
+    t_planet *planet = new t_planet();
+
+    if (parameters::default_star) {
+	initialize_planet_legacy(planet, mass, semi_major_axis, eccentricity,
+				 argument_of_pericenter);
+    } else {
+	// planets starts at Periastron
+	const double nu = 0.0;
+	if (get_number_of_planets() < 2) {
+	    initialize_planet_jacobi_adjust_first_two(
+		planet, mass, semi_major_axis, eccentricity,
+		argument_of_pericenter, nu);
+	} else {
+	    initialize_planet_jacobi(planet, mass, semi_major_axis,
+				     eccentricity, argument_of_pericenter, nu);
+	}
+    }
+
+    planet->set_name(name.c_str());
+    planet->set_acc(accretion_efficiency);
+
+    planet->set_radius(radius);
+    planet->set_temperature(temperature / units::temperature);
+    planet->set_irradiate(irradiate);
+    planet->set_rampuptime(ramp_up_time);
+
+    planet->set_disk_on_planet_acceleration(Pair()); // initialize to zero
+    planet->set_nbody_on_planet_acceleration(Pair());
+
+    add_planet(planet);
 }
 
-void t_planetary_system::read_from_file(char *filename)
+void t_planetary_system::init_system(char *filename)
 {
     if (parameters::default_star) {
 	initialize_default_star();
@@ -192,113 +266,41 @@ void t_planetary_system::read_from_file(char *filename)
 
 	if (j.contains("planets")) {
 	    for (auto &values : j["planets"]) {
-
-		// check if all needed quantities are present
-		if (!(values.contains("semi-major axis") &&
-		      values.contains("mass"))) {
-		    die("One of the planets does not have all of: semi-major axis and mass!");
-		}
-
-		double semi_major_axis =
-		    ValueFromJson(values, "semi-major axis");
-		const double mass = ValueFromJson(values, "mass");
-
-		const double eccentricity =
-		    ValueFromJsonDefault(values, "eccentricity", 0.0);
-
-		const double accretion_efficiency =
-		    ValueFromJsonDefault(values, "accretion efficiency", 0.0);
-
-		const double radius =
-		    ValueFromJsonDefault(values, "radius", 0.009304813);
-
-		const double temperature =
-		    ValueFromJsonDefault(values, "temperature", 5778.0);
-
-		const bool irradiate = 
-			flag_value_with_default(values, "irradiate", "no");
-
-		const double argument_of_pericenter =
-		    ValueFromJsonDefault(values, "argument of pericenter", 0.0);
-
-		double ramp_up_time =
-		    ValueFromJsonDefault(values, "ramp-up time", 0.0);
-
-		std::string name =
-		    "planet" + std::to_string(get_number_of_planets());
-		if (values.contains("name")) {
-		    name = values["name"];
-		}
-
-		const bool cell_centered = 
-			flag_value_with_default(values, "cell centered", "no");
-		if (cell_centered) {
-		    // initialization puts centered-in-cell planets (with
-		    // excentricity = 0 only)
-		    if (eccentricity > 0) {
-			die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
-		    }
-		    if (semi_major_axis < RMIN || semi_major_axis > RMAX) {
-			die("Can not put planet %s at cell center for a = %f which is outside the grid!",
-			    name.c_str(), semi_major_axis);
-		    }
-		    semi_major_axis = find_cell_centere_radius(semi_major_axis);
-		}
-
-		t_planet *planet = new t_planet();
-
-		if (parameters::default_star) {
-		    initialize_planet_legacy(planet, mass, semi_major_axis,
-					     eccentricity,
-					     argument_of_pericenter);
-		} else {
-		    // planets starts at Periastron
-		    const double nu = 0.0;
-		    if (get_number_of_planets() < 2) {
-			initialize_planet_jacobi_adjust_first_two(
-			    planet, mass, semi_major_axis, eccentricity,
-			    argument_of_pericenter, nu);
-		    } else {
-			initialize_planet_jacobi(planet, mass, semi_major_axis,
-						 eccentricity,
-						 argument_of_pericenter, nu);
-		    }
-		}
-
-		planet->set_name(name.c_str());
-		planet->set_acc(accretion_efficiency);
-
-		planet->set_radius(radius);
-		planet->set_temperature(temperature / units::temperature);
-		planet->set_irradiate(irradiate);
-		planet->set_rampuptime(ramp_up_time);
-
-		planet->set_disk_on_planet_acceleration(
-		    Pair()); // initialize to zero
-		planet->set_nbody_on_planet_acceleration(Pair());
-
-		add_planet(planet);
+		init_planet(values);
 	    }
 	}
     } catch (const nlohmann::detail::parse_error &ex) {
 	die("Error in reading planet configuration from config file.");
     }
 
-    logging::print_master(LOG_INFO "%d planet(s) found.\n",
-			  get_number_of_planets());
+    config_consistency_checks();
 
-	if (get_number_of_planets() == 0) {
-		die("No stars or planets!");
-    }
-    // set up hydro frame center
-	init_hydro_frame_center();
+    init_hydro_frame_center();
 
-	init_corotation_body();
+    init_corotation_body();
 
     init_rebound();
+
+    logging::print_master(LOG_INFO "%d planet(s) initialized.\n",
+			  get_number_of_planets());
 }
 
-void t_planetary_system::init_corotation_body() {
+void t_planetary_system::config_consistency_checks()
+{
+    if (get_number_of_planets() == 0) {
+	die("No stars or planets!");
+    }
+
+    if ((get_number_of_planets() <= 1) && (Corotating == YES)) {
+	logging::print_master(
+	    LOG_ERROR
+	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
+	PersonalExit(1);
+    }
+}
+
+void t_planetary_system::init_corotation_body()
+{
     if (Corotating == YES &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
 	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
@@ -323,7 +325,7 @@ void t_planetary_system::init_hydro_frame_center()
 
     move_to_hydro_frame_center();
 
-	update_global_hydro_frame_center_mass();
+    update_global_hydro_frame_center_mass();
     logging::print_master(
 	LOG_INFO "The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);

@@ -136,17 +136,8 @@ int main(int argc, char *argv[])
 	force = AllocateForce(dimfxy);
 
 	// Here planets are initialized feeling star potential
-	data.get_planetary_system().read_from_file(options::parameter_file);
-	logging::print_master(LOG_INFO "planets loaded.\n");
-
-
-    if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
-	(Corotating == YES)) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
-	PersonalExit(1);
-    }
+	auto& planetary_system = data.get_planetary_system();
+	planetary_system.init_system(options::parameter_file);
 
     init_physics(data);
 
