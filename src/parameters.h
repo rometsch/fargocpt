@@ -289,6 +289,21 @@ enum t_particle_integrator {
 extern t_particle_integrator integrator;
 
 void read(char *filename, t_data &data);
+void parse_grid_config();
+void parse_output_config(t_data &data);
+void parse_boundary_config();
+void parse_damping_config();
+void parse_nbody_config();
+void parse_disk_config();
+void parse_initialization_config();
+void parse_viscosity_config();
+void parse_opacity_config();
+void parse_massoverflow_config();
+void parse_hydrosolver_config();
+void parse_boundarylayer_config();
+void parse_particle_config();
+
+
 void summarize_parameters();
 void apply_units();
 void write_grid_data_to_file();
