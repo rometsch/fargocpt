@@ -173,7 +173,7 @@ void UpdateLog(t_data &data, Force *fc, int outputnb, double time)
 
 	ComputeForce(data, fc, x, y, m);
 	if (CPU_Rank == CPU_Number - 1) {
-	    sprintf(filename, "%stqwk%d.dat", OUTPUTDIR, i);
+	    sprintf(filename, "%stqwk%d.dat", OUTPUTDIR.c_str(), i);
 	    out = fopen(filename, "a");
 	    if (out == NULL) {
 		fprintf(stderr, "Can't open %s\n", filename);

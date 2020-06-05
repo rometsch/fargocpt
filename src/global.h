@@ -3,7 +3,9 @@
 
 #include "radialarray.h"
 #include "types.h"
+#include "config.h"
 #include <mpi.h>
+#include <string>
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -89,7 +91,7 @@ extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
 extern int OverridesOutputdir;
 
-extern char *OUTPUTDIR;
+extern std::string OUTPUTDIR;
 
 extern double DT;
 extern unsigned int NINTERM;
@@ -116,5 +118,7 @@ extern double POLYTROPIC_CONSTANT;
 
 extern BoundaryFlow MassDelta;
 extern bool Stockholm;
+
+extern Config config;
 
 #endif // GLOBAL_H

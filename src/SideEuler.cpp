@@ -96,7 +96,7 @@ void CheckAngularMomentumConservation(t_data &data)
     if (!CPU_Master)
 	return;
 
-    if (asprintf(&fdFilename, "%s%s", OUTPUTDIR, "Momentum.dat") == -1) {
+    if (asprintf(&fdFilename, "%s%s", OUTPUTDIR.c_str(), "Momentum.dat") == -1) {
 	logging::print_master(LOG_ERROR
 			      "Not enough memory for string buffer.\n");
 	PersonalExit(1);

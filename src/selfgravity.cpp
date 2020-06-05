@@ -22,6 +22,7 @@
 #include "selfgravity.h"
 #include "time.h"
 #include "util.h"
+#include "config.h"
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE

@@ -305,9 +305,7 @@ int main(int argc, char *argv[])
     logging::print_runtime_final();
 
 	// free up everything
-	config::free_config_list();
 	DeallocateBoundaryCommunicationBuffers();
-	free(OUTPUTDIR);
 	delete[] options::parameter_file;
     FreeEuler();
     FreeForce(force);

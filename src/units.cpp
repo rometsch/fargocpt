@@ -225,7 +225,7 @@ void write_code_unit_file()
     char *fd_filename;
 
     if (CPU_Master) {
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "units.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "units.dat") == -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);

@@ -107,11 +107,16 @@ class ValueFromJson
 
     template <typename T> operator T()
     {
-	const std::string val = m_j[m_key];
-	T t;
-	std::stringstream ss(val);
-	ss >> t;
-	return t;
+	const auto val = m_j[m_key];
+	if (val.is_string()) {
+	    const std::string val = m_j[m_key];
+	    T ret;
+	    std::stringstream ss(val);
+	    ss >> ret;
+	    return ret;
+	} else {
+	    return m_j[m_key].get<T>();
+	}
     }
 };
 

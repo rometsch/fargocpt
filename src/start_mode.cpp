@@ -40,8 +40,8 @@ void configure_start_mode()
 	    }
 	    logging::print_master(LOG_INFO
 				  "%s is not empty, backing up as %s\n",
-				  OUTPUTDIR, backup_path.c_str());
-	    std::experimental::filesystem::rename(OUTPUTDIR, backup_path);
+				  OUTPUTDIR.c_str(), backup_path.c_str());
+	    std::experimental::filesystem::rename(OUTPUTDIR.c_str(), backup_path);
 	    std::experimental::filesystem::create_directory(OUTPUTDIR);
 	}
 	break;

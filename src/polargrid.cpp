@@ -120,7 +120,7 @@ void t_polargrid::write2D(unsigned int number) const
     double *from;
     char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
@@ -222,7 +222,7 @@ void t_polargrid::write1D(unsigned int number) const
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rb : Ra;
 
-    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
@@ -345,7 +345,7 @@ void t_polargrid::read2D(unsigned int number)
 {
     char *filename;
 
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
@@ -442,7 +442,7 @@ void t_polargrid::read1D(unsigned int number, bool skip_min_max)
 {
     char *filename;
 
-    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }

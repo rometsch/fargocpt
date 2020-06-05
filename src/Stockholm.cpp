@@ -146,7 +146,7 @@ void UpdateLogStockholm(t_data &data, double time)
 	fc = ComputeForceStockholm(data, x, y, smoothing, m);
 	massinout = MassInOut(data, r);
 	if (CPU_Rank == CPU_Number - 1) {
-	    sprintf(filename, "%storque%d.dat", OUTPUTDIR, i);
+	    sprintf(filename, "%storque%d.dat", OUTPUTDIR.c_str(), i);
 	    out = fopen(filename, "a");
 	    if (out == NULL) {
 		fprintf(stderr, "Can't open %s\n", filename);

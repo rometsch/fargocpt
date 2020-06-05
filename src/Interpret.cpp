@@ -106,32 +106,33 @@ static void _mkdir(const char *dir, mode_t mode)
     mkdir(tmp, S_IRWXU);
 }
 
+static char lowercase_first_letter(const std::string &s)
+{
+    return tolower(s[0]);
+}
+
 void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 {
     // read config from
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
 
-    MASSTAPER = config::value_as_double_default("MASSTAPER", 0.0000001);
-    ROCHESMOOTHING = config::value_as_double_default("ROCHESMOOTHING", 0.0);
-    SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
-    IMPOSEDDISKDRIFT = config::value_as_double_default("IMPOSEDDISKDRIFT", 0.0);
+    MASSTAPER = config.get("MASSTAPER", 0.0000001);
+    ROCHESMOOTHING = config.get("ROCHESMOOTHING", 0.0);
+    SIGMASLOPE = config.get("SIGMASLOPE", 0.0);
+    IMPOSEDDISKDRIFT = config.get("IMPOSEDDISKDRIFT", 0.0);
 
-    FLARINGINDEX = config::value_as_double_default("FLARINGINDEX", 0.0);
+    FLARINGINDEX = config.get("FLARINGINDEX", 0.0);
 
     std::string par_file_name = getFileName(filename);
     par_file_name = par_file_name.substr(0, par_file_name.size() - 4) + "/";
-    if (asprintf(&OUTPUTDIR, "%s",
-		 config::value_as_string_default("OUTPUTDIR",
-						 par_file_name.c_str())) < 0) {
-	logging::print_master(LOG_ERROR "Not enough memory!\n");
-    }
+    OUTPUTDIR = config.get<std::string>("OUTPUTDIR", par_file_name);
 
     // Create output directory if it doesn't exist
     if (CPU_Master) {
 	struct stat buffer;
-	if (stat(OUTPUTDIR, &buffer)) {
-	    _mkdir(OUTPUTDIR, 0700);
+	if (stat(OUTPUTDIR.c_str(), &buffer)) {
+	    _mkdir(OUTPUTDIR.c_str(), 0700);
 	}
     }
 
@@ -178,11 +179,11 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	append_new_par_file.close();
 	old_par_file.close();
     }
-	
-    MPI_Barrier(MPI_COMM_WORLD);
-    OuterSourceMass = config::value_as_bool_default("OUTERSOURCEMASS", 0);
 
-    switch (tolower(*config::value_as_string_default("TRANSPORT", "Fast"))) {
+    MPI_Barrier(MPI_COMM_WORLD);
+    OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
+
+    switch (tolower(config.get<std::string>("TRANSPORT", "Fast")[0])) {
     case 'f':
 	FastTransport = 1;
 	break;
@@ -194,9 +195,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     }
 
     // time settings
-    NTOT = config::value_as_unsigned_int_default("NTOT", 1000);
-    NINTERM = config::value_as_unsigned_int_default("NINTERM", 10);
-    DT = config::value_as_double_default("DT", 1.0);
+    NTOT = config.get("NTOT", 1000);
+    NINTERM = config.get("NINTERM", 10);
+    DT = config.get("DT", 1.0);
 
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
@@ -216,9 +217,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     }
 
     // disc
-    ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
+    ASPECTRATIO_REF = config.get("ASPECTRATIO", 0.05);
 
-    if (!config::key_exists("OuterBoundary")) {
+    if (!config.contains("OuterBoundary")) {
 	logging::print_master(LOG_ERROR
 			      "OuterBoundary doesn't exist. Old .par file?\n");
 	die("died for convenience ;)");
@@ -227,7 +228,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // Frame settings
     Corotating = 0;
     GuidingCenter = 0;
-    switch (tolower(*config::value_as_string_default("Frame", "Fixed"))) {
+    switch (tolower(config.get<std::string>("Frame", "Fixed")[0])) {
     case 'f': // Fixed
 	break;
     case 'c': // Corotating
@@ -240,12 +241,11 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     default:
 	die("Invalid setting for Frame");
     }
-    OMEGAFRAME = config::value_as_double_default("OMEGAFRAME", 0);
+    OMEGAFRAME = config.get("OMEGAFRAME", double(0));
 
     // Barycenter mode
-    switch (tolower(
-	*config::value_as_string_default("HydroFrameCenter", "primary"))) {
-    case 'p': // primary
+    switch (lowercase_first_letter(config.get<std::string>("HydroFrameCenter", "primary"))) {
+    case 'p': // primarys
 	parameters::n_bodies_for_hydroframe_center = 1;
 	break;
     case 'b': // binary
@@ -263,21 +263,22 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	break;
     default:
 	die("Invalid setting for HydroFrameCenter: %s",
-	    config::value_as_string_default("HydroFrameCenter", "primary"));
+	    config.get<std::string>("HydroFrameCenter", "primary").c_str());
     }
 
-    parameters::exitOnDeprecatedSetting(
-	"IndirectTerm",
-	"Indirect terms are now handled automatically to avoid unphysical settings.",
-	"Please remove the setting.");
-    parameters::exitOnDeprecatedSetting(
-	"IndirectTermPlanet",
-	"Indirect terms are now handled automatically to avoid unphysical settings.",
-	"Please remove the setting.");
+    if (config.contains("IndirectTerm")) {
+	die("Indirect terms are now handled automatically to avoid unphysical settings.",
+	    "Please remove the setting.");
+    }
+
+    if (config.contains("IndirectTermPlanet")) {
+	die("Indirect terms are now handled automatically to avoid unphysical settings.",
+	    "Please remove the setting.");
+    }
 
     // Energy equation / Adiabatic
     char Adiabatic_deprecated =
-	tolower(*config::value_as_string_default("Adiabatic", "false"));
+	lowercase_first_letter(config.get<std::string>("Adiabatic", "false"));
 
     if (Adiabatic_deprecated == 'n') {
 	logging::print_master(
@@ -290,8 +291,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    LOG_INFO
 	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
-	ADIABATICINDEX =
-	    config::value_as_double_default("AdiabaticIndex", 7.0 / 5.0);
+	ADIABATICINDEX = config.get("AdiabaticIndex", 7.0 / 5.0);
 	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
 	    logging::print_master(
 		LOG_WARNING
@@ -299,14 +299,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    parameters::Adiabatic = false;
 	}
     } else {
-	char eos_string[512];
-	strncpy(
-	    eos_string,
-	    config::value_as_string_default("EquationOfState", "Isothermal"),
-	    256); // same as MAXNAME from config.cpp
-	for (char *t = eos_string; *t != '\0'; ++t) {
-	    *t = tolower(*t);
-	}
+
+	const std::string eos_string_tmp =
+	    lowercase(config.get<std::string>("EquationOfState", "Isothermal"));
+	const char *eos_string = eos_string_tmp.c_str();
 
 	bool could_read_eos = false;
 	if (strcmp(eos_string, "isothermal") == 0 ||
@@ -325,14 +321,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    // Energy equation / Adiabatic
 	    parameters::Adiabatic = true;
 
-	    char ADIABATICINDEX_string[512];
-	    strncpy(
-		ADIABATICINDEX_string,
-		config::value_as_string_default("AdiabaticIndex", "7.0/5.0"),
-		256); // same as MAXNAME from config.cpp
-	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
-		*t = tolower(*t);
-	    }
+	    const std::string ADIABATICINDEX_string_tmp =
+		lowercase(config.get<std::string>("AdiabaticIndex", "7/5"));
+	    const char *ADIABATICINDEX_string =
+		ADIABATICINDEX_string_tmp.c_str();
 
 	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
@@ -341,8 +333,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
-		ADIABATICINDEX = config::value_as_double_default(
-		    "AdiabaticIndex", 7.0 / 5.0);
+		ADIABATICINDEX = config.get("AdiabaticIndex", 7.0 / 5.0);
 	    }
 
 	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
@@ -364,31 +355,23 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    double K = 0.0;
 	    double gamma = 0.0;
 
-	    char ADIABATICINDEX_string[512];
-	    strncpy(ADIABATICINDEX_string,
-		    config::value_as_string_default("AdiabaticIndex", "2.0"),
-		    256); // same as MAXNAME from config.cpp
-	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
-		*t = tolower(*t);
-	    }
+	    const std::string ADIABATICINDEX_string_tmp =
+		lowercase(config.get<std::string>("AdiabaticIndex", "2.0"));
+	    const char *ADIABATICINDEX_string =
+		ADIABATICINDEX_string_tmp.c_str();
 
 	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
 		get_polytropic_constants(filename, K, gamma);
 		ADIABATICINDEX = gamma;
 	    } else {
-		ADIABATICINDEX =
-		    config::value_as_double_default("AdiabaticIndex", 2.0);
+		ADIABATICINDEX = config.get("AdiabaticIndex", 2.0);
 	    }
 
-	    char POLYTROPIC_CONSTANT_string[512];
-	    strncpy(
-		POLYTROPIC_CONSTANT_string,
-		config::value_as_string_default("PolytropicConstant", "12.753"),
-		256); // same as MAXNAME from config.cpp
-	    for (char *t = POLYTROPIC_CONSTANT_string; *t != '\0'; ++t) {
-		*t = tolower(*t);
-	    }
+	    const std::string POLYTROPIC_CONSTANT_string_tmp =
+		lowercase(config.get<std::string>("AdiabaticIndex", "7/5"));
+	    const char *POLYTROPIC_CONSTANT_string =
+		POLYTROPIC_CONSTANT_string_tmp.c_str();
 
 	    if (strcmp(POLYTROPIC_CONSTANT_string, "fit_isothermal") == 0 ||
 		strcmp(POLYTROPIC_CONSTANT_string, "fit isothermal") == 0) {
@@ -398,8 +381,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		}
 		POLYTROPIC_CONSTANT = K;
 	    } else {
-		POLYTROPIC_CONSTANT = config::value_as_double_default(
-		    "PolytropicConstant", 12.753);
+		POLYTROPIC_CONSTANT = config.get("PolytropicConstant", 12.753);
 	    }
 
 	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
@@ -412,9 +394,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 				  "Using polytropic equation of state.\n");
 	}
 
-	if (!could_read_eos)
-	    die("Invalid setting for Energy Equation:   %s\n",
-		config::value_as_string("EquationOfState"));
+	if (!could_read_eos) {
+	    const std::string eos_str = config.get("EquationOfState");
+	    die("Invalid setting for Energy Equation:   %s\n", eos_str.c_str());
+	}
     }
 
     if (!parameters::Adiabatic) // if energy is not needed, delete the energy
@@ -440,9 +423,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		       delete_damping_condition),
 	parameters::damping_vector.end());
 
-    ExcludeHill = config::value_as_bool_default("EXCLUDEHILL", 0);
-    ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
-    VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
+    ExcludeHill = config.get_flag("EXCLUDEHILL", false);
+    ALPHAVISCOSITY = config.get("ALPHAVISCOSITY", 0.0);
+    VISCOSITY = config.get("VISCOSITY", 0.0);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
@@ -487,7 +470,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	logging::print_master(
 	    LOG_INFO
 	    "Planet potential smoothing scales with their Hill sphere.\n");
-    } else if (config::value_as_bool_default("ThicknessSmoothingAtPlanet", 0)) {
+    } else if (config.get_flag("ThicknessSmoothingAtPlanet", false)) {
 	ThicknessSmoothingAtCell = NO;
 	ThicknessSmoothingAtPlanet = YES;
 	logging::print_master(
@@ -502,11 +485,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     }
 
     // Add a trailing slash to OUTPUTDIR if needed
-    if (OUTPUTDIR[strlen(OUTPUTDIR) - 1] != '/') {
-	unsigned int size = strlen(OUTPUTDIR);
-	OUTPUTDIR = (char *)realloc(OUTPUTDIR, size + 2);
-	OUTPUTDIR[size] = '/';
-	OUTPUTDIR[size + 1] = 0;
+    if (OUTPUTDIR[OUTPUTDIR.length() - 1] != '/') {
+	OUTPUTDIR.append("/");
     }
 
     constants::initialize_constants();

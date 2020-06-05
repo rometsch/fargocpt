@@ -6,7 +6,9 @@
 
 #include "radialarray.h"
 #include "types.h"
+#include "config.h"
 #include <mpi.h>
+#include <string>
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */
@@ -150,7 +152,7 @@ t_polargrid *CellCenterX, *CellCenterY;
 
 int OverridesOutputdir;
 
-char *OUTPUTDIR;
+std::string OUTPUTDIR;
 
 double DT;
 unsigned int NINTERM;
@@ -177,3 +179,5 @@ double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
 bool Stockholm;
+
+Config config;

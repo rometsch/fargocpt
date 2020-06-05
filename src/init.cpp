@@ -63,7 +63,7 @@ void init_radialarrays()
     char *fd_input_filename;
     unsigned int nRadial;
 
-    if (asprintf(&fd_input_filename, "%s%s", OUTPUTDIR, "radii.dat") == -1) {
+    if (asprintf(&fd_input_filename, "%s%s", OUTPUTDIR.c_str(), "radii.dat") == -1) {
 	logging::print_master(LOG_ERROR
 			      "Not enough memory for string buffer.\n");
 	PersonalExit(1);
@@ -200,7 +200,7 @@ void init_radialarrays()
 	FILE *fd_output;
 	char *fd_output_filename;
 
-	if (asprintf(&fd_output_filename, "%s%s", OUTPUTDIR, "used_rad.dat") ==
+	if (asprintf(&fd_output_filename, "%s%s", OUTPUTDIR.c_str(), "used_rad.dat") ==
 	    -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
@@ -413,14 +413,14 @@ void init_gas_density(t_data &data)
 
     case parameters::initialize_condition_read1D:
 	logging::print_master(LOG_INFO "Loading Sigma from '%s' (1D).\n",
-			      parameters::sigma_filename);
-	data[t_data::DENSITY].read1D(parameters::sigma_filename, true);
+			      parameters::sigma_filename.c_str());
+	data[t_data::DENSITY].read1D(parameters::sigma_filename.c_str(), true);
 	break;
 
     case parameters::initialize_condition_read2D:
 	logging::print_master(LOG_INFO "Loading Sigma from '%s' (2D).\n",
-			      parameters::sigma_filename);
-	data[t_data::DENSITY].read2D(parameters::sigma_filename);
+			      parameters::sigma_filename.c_str());
+	data[t_data::DENSITY].read2D(parameters::sigma_filename.c_str());
 	break;
 
     case parameters::initialize_condition_shakura_sunyaev:
@@ -611,14 +611,14 @@ void init_gas_energy(t_data &data)
 
     case parameters::initialize_condition_read1D:
 	logging::print_master(LOG_INFO "Loading Energy from '%s' (1D).\n",
-			      parameters::energy_filename);
-	data[t_data::ENERGY].read1D(parameters::energy_filename, true);
+			      parameters::energy_filename.c_str());
+	data[t_data::ENERGY].read1D(parameters::energy_filename.c_str(), true);
 	break;
 
     case parameters::initialize_condition_read2D:
 	logging::print_master(LOG_INFO "Loading Energy from '%s' (2D).\n",
-			      parameters::energy_filename);
-	data[t_data::ENERGY].read2D(parameters::energy_filename);
+			      parameters::energy_filename.c_str());
+	data[t_data::ENERGY].read2D(parameters::energy_filename.c_str());
 	break;
 
     case parameters::initialize_condition_shakura_sunyaev:

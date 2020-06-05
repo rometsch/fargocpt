@@ -3,6 +3,7 @@
 
 #include "data.h"
 
+
 namespace parameters
 {
 
@@ -119,7 +120,7 @@ enum t_initialize_condition {
 /// initialize condition for sigma
 extern t_initialize_condition sigma_initialize_condition;
 /// filename to read sigma profile from
-extern char *sigma_filename;
+extern std::string sigma_filename;
 /// random seed
 extern int random_seed;
 /// randomize sigma?
@@ -140,7 +141,7 @@ extern double sigma0;
 /// initiliaze condition for energy
 extern t_initialize_condition energy_initialize_condition;
 /// filename to read energy profile from
-extern char *energy_filename;
+extern std::string energy_filename;
 
 /// enable profile damping
 extern bool profile_damping;
@@ -291,8 +292,6 @@ void read(char *filename, t_data &data);
 void summarize_parameters();
 void apply_units();
 void write_grid_data_to_file();
-void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
-			     std::string instruction);
 } // namespace parameters
 
 #endif // PARAMETERS_H

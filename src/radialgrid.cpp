@@ -272,7 +272,7 @@ void t_radialgrid::read1D(unsigned int number)
 {
     char *filename;
 
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }

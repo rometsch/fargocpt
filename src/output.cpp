@@ -194,15 +194,15 @@ void check_free_space(t_data &data)
     struct dirent *directory_entry;
     struct statvfs fiData;
 
-    if (asprintf(&directory_name, "%s/", OUTPUTDIR) < 0) {
+    if (asprintf(&directory_name, "%s/", OUTPUTDIR.c_str()) < 0) {
 	die("Not enough memory.");
     }
 
     // Create output directory if it doesn't exist
     if (CPU_Master) {
 	struct stat buffer;
-	if (stat(OUTPUTDIR, &buffer)) {
-	    mkdir(OUTPUTDIR, 0700);
+	if (stat(OUTPUTDIR.c_str(), &buffer)) {
+	    mkdir(OUTPUTDIR.c_str(), 0700);
 	}
     }
     MPI_Barrier(MPI_COMM_WORLD);
@@ -210,7 +210,7 @@ void check_free_space(t_data &data)
     // check if output directory exists
     if ((directory_pointer = opendir(directory_name)) == NULL) {
 	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
-			      OUTPUTDIR);
+			      OUTPUTDIR.c_str());
 	die("Not output directory!");
     }
 
@@ -218,7 +218,7 @@ void check_free_space(t_data &data)
 	if ((strcmp("..", directory_entry->d_name) != 0) &&
 	    (strcmp(".", directory_entry->d_name) != 0)) {
 	    logging::print_master(
-		LOG_NOTICE "Output directory %s is not empty!\n", OUTPUTDIR);
+		LOG_NOTICE "Output directory %s is not empty!\n", OUTPUTDIR.c_str());
 	    break;
 	}
     }
@@ -246,7 +246,7 @@ void check_free_space(t_data &data)
     number_of_files *= NTOT / NINTERM;
 
     logging::print_master(LOG_INFO "Output information:\n");
-    logging::print_master(LOG_INFO "   Output directory: %s\n", OUTPUTDIR);
+    logging::print_master(LOG_INFO "   Output directory: %s\n", OUTPUTDIR.c_str());
     logging::print_master(LOG_INFO "    Number of files: %u\n",
 			  number_of_files);
     logging::print_master(LOG_INFO "  Total output size: %.2f GB\n",
@@ -303,7 +303,8 @@ void write_quantities(t_data &data, unsigned int timestep,
 
     if (CPU_Master) {
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "Quantities.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(),
+		     "Quantities.dat") == -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
@@ -418,7 +419,8 @@ void write_misc(unsigned int timestep)
     static bool fd_created = false;
 
     if (CPU_Master) {
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "misc.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "misc.dat") ==
+	    -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
@@ -590,7 +592,7 @@ double get_from_ascii_file(std::string filename, unsigned int timestep,
 double get_misc(unsigned int timestep, std::string variable)
 {
     unsigned int column = 0;
-    std::string filename = std::string(OUTPUTDIR) + "misc.dat";
+    std::string filename = OUTPUTDIR + "misc.dat";
     std::string version = get_version(filename);
 
     if (version == "2") {
@@ -729,7 +731,8 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	char *fd_filename;
 	static bool fd_created = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "torques.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "torques.dat") ==
+	    -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
@@ -784,7 +787,7 @@ void write_1D_info(t_data &data)
 	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
 	    char *tmp;
 
-	    if (asprintf(&tmp, "%s/gas%s1D.info", OUTPUTDIR,
+	    if (asprintf(&tmp, "%s/gas%s1D.info", OUTPUTDIR.c_str(),
 			 data[t_data::t_polargrid_type(i)].get_name()) < 0) {
 		die("Not enough memory!");
 	    }
@@ -815,15 +818,14 @@ void write_1D_info(t_data &data)
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
 
-		free(tmp);
+	    free(tmp);
 	}
     }
 }
 
 void write_massflow_info(t_data &data)
 {
-    const std::string filename_info =
-	std::string(OUTPUTDIR) + "/gasMassFlow1D.info";
+    const std::string filename_info = OUTPUTDIR + "/gasMassFlow1D.info";
     std::ofstream info_ofs(filename_info);
     info_ofs
 	<< "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat"
@@ -833,7 +835,7 @@ void write_massflow_info(t_data &data)
 	     << data[t_data::MASSFLOW_1D].get_unit()->get_cgs_symbol()
 	     << std::endl;
     info_ofs << "bigendian = " << is_big_endian() << std::endl;
-    const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
+    const std::string filename = OUTPUTDIR + "/gasMassFlow1D.dat";
     std::ofstream ofs(filename, std::ios::binary);
     ofs.write((char *)Radii.array, sizeof(*Radii.array) * (GlobalNRadial + 1));
 }
@@ -841,7 +843,7 @@ void write_massflow_info(t_data &data)
 void write_massflow(t_data &data, unsigned int timestep)
 {
     (void)timestep;
-    const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
+    const std::string filename = OUTPUTDIR + "/gasMassFlow1D.dat";
     data[t_data::MASSFLOW_1D].write(filename, TimeStep, data, true, true);
 }
 
@@ -960,7 +962,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	char *fd_filename;
 	static bool fd_created_luminosity = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "luminosity.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "luminosity.dat") == -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
@@ -1010,7 +1012,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	// write dissipation
 	static bool fd_created_dissipation = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "dissipation.dat") ==
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "dissipation.dat") ==
 	    -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
@@ -1076,7 +1078,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "timeCoarse.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "timeCoarse.dat") == -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);

@@ -596,7 +596,7 @@ void restart(unsigned int timestep)
     FILE *fd;
     char *filename = 0;
     // create filename
-    if (asprintf(&filename, "%sparticles%u.dat", OUTPUTDIR, timestep) < 0) {
+    if (asprintf(&filename, "%sparticles%u.dat", OUTPUTDIR.c_str(), timestep) < 0) {
 	logging::print(LOG_ERROR "Not enough memory!\n");
 	PersonalExit(1);
     }
@@ -2451,7 +2451,7 @@ void write(unsigned int timestep)
     int error, error_class, error_length;
     char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
-    if (asprintf(&filename, "%s/particles%i.dat", OUTPUTDIR, timestep) < 0) {
+    if (asprintf(&filename, "%s/particles%i.dat", OUTPUTDIR.c_str(), timestep) < 0) {
 	die("Not enough memory!");
     }
 
