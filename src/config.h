@@ -17,7 +17,6 @@ template <typename T> T json_caster(const json &j)
 {
     T ret;
     if (j.is_string()) {
-	std::cout << "Casting string with value " << j << std::endl;
 	const std::string val = j;
 	std::stringstream ss(val);
 	ss >> ret;
@@ -29,7 +28,6 @@ template <typename T> T json_caster(const json &j)
     } else {
 	ret = j.get<T>();
     }
-    std::cout << "casted to value " << ret << std::endl;
     return ret;
 }
 
