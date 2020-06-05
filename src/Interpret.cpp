@@ -25,12 +25,14 @@ int OuterSourceMass;
 
 #include <algorithm>
 #include <array>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+namespace fs = std::experimental::filesystem;
 
 #include "options.h"
 #include <sys/stat.h>
@@ -66,49 +68,78 @@ void get_polytropic_constants(char *filename, double &K, double &gamma)
     ss >> gamma;
 }
 
-std::string getFileName(const std::string &s)
-{
-
-    char sep = '/';
-
-#ifdef _WIN32
-    sep = '\\';
-#endif
-
-    size_t i = s.rfind(sep, s.length());
-    if (i != std::string::npos) {
-	return (s.substr(i + 1, s.length() - i));
-    } else {
-	return s;
-    }
-
-    return ("");
-}
-
-static void _mkdir(const char *dir, mode_t mode)
-{
-    // from
-    // https://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
-    char tmp[256];
-    char *p = NULL;
-    size_t len;
-
-    snprintf(tmp, sizeof(tmp), "%s", dir);
-    len = strlen(tmp);
-    if (tmp[len - 1] == '/')
-	tmp[len - 1] = 0;
-    for (p = tmp + 1; *p; p++)
-	if (*p == '/') {
-	    *p = 0;
-	    mkdir(tmp, mode);
-	    *p = '/';
-	}
-    mkdir(tmp, S_IRWXU);
-}
 
 static char lowercase_first_letter(const std::string &s)
 {
     return tolower(s[0]);
+}
+
+std::string launch_cmd(int argc, char ** argv) {
+	std::string cmd = "";
+	for (int i = 0; i < argc; i++) {
+	    cmd += argv[i];
+		if (i < argc -1 ) {
+			cmd += " ";
+		} 
+	}
+	return cmd;
+}
+
+void write_config_copy_info(const fs::path& file_path, const fs::path& copy_path, std::string cmd) {
+	std::ofstream out_file(file_path);
+
+	out_file << "{" << std::endl;
+	out_file << "\"launch options\" : \"";
+	out_file << cmd;
+	out_file << "\"," << std::endl;
+	out_file << "\"config file\": " << copy_path << std::endl;
+	out_file << "}" << std::endl;
+	out_file.close();
+}
+
+void copy_config_file(const char *filename, int argc, char **argv)
+{
+    if (CPU_Master) {
+	// copy setup files into the output folder
+
+	fs::path startlog_dir = fs::path(OUTPUTDIR) / "startlog";
+	if (!fs::exists(startlog_dir)) {
+	    fs::create_directory(startlog_dir);
+	}
+
+	fs::path config_file(filename);
+	fs::path config_copy_path =
+	    startlog_dir / config_file.filename().stem();
+
+	if (start_mode::mode == start_mode::mode_restart) {
+	    config_copy_path += "_restart_";
+	    config_copy_path += std::to_string(start_mode::restart_from);
+	}
+	fs::path config_info_path(config_copy_path);
+	config_info_path += "_info.json";
+	config_copy_path += config_file.extension();
+
+	std::string cmd = launch_cmd(argc, argv);
+	write_config_copy_info(config_info_path, config_copy_path, cmd);
+
+	fs::remove(config_copy_path);
+	fs::copy_file(config_file, config_copy_path);
+    }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void create_outputdir(const char* filename) {
+    fs::path config_file_name(filename);
+    OUTPUTDIR = config.get<std::string>("OUTPUTDIR", config_file_name.stem());
+
+    // Create output directory if it doesn't exist
+    if (CPU_Master) {
+		if (!fs::exists(OUTPUTDIR)) {
+			fs::create_directory(OUTPUTDIR);
+		}
+    }
+	MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void ReadVariables(char *filename, t_data &data, int argc, char **argv)
@@ -124,63 +155,11 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     FLARINGINDEX = config.get("FLARINGINDEX", 0.0);
 
-    std::string par_file_name = getFileName(filename);
-    par_file_name = par_file_name.substr(0, par_file_name.size() - 4) + "/";
-    OUTPUTDIR = config.get<std::string>("OUTPUTDIR", par_file_name);
-
-    // Create output directory if it doesn't exist
-    if (CPU_Master) {
-	struct stat buffer;
-	if (stat(OUTPUTDIR.c_str(), &buffer)) {
-	    _mkdir(OUTPUTDIR.c_str(), 0700);
-	}
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
+	create_outputdir(filename);
 
     start_mode::configure_start_mode();
+    copy_config_file(filename, argc, argv);
 
-    if (CPU_Master) {
-	// copy setup files into the output folder
-	std::string output_folder = std::string(OUTPUTDIR);
-	std::string par_file = getFileName(filename);
-	if (output_folder.back() != '/') {
-	    output_folder += "/";
-	}
-	std::string par_filename = output_folder + par_file;
-
-	if (start_mode::mode == start_mode::mode_restart) {
-	    char str[12];
-	    sprintf(str, "%d", start_mode::restart_from);
-
-	    par_filename += "_restart_";
-	    par_filename += str;
-	}
-
-	std::remove(par_filename.c_str());
-	std::ofstream new_par_file;
-	new_par_file.open(par_filename.c_str(),
-			  std::ofstream::out | std::ofstream::trunc);
-
-	new_par_file << "###  Used launch options:";
-	for (int i = 0; i < argc; i++) {
-	    new_par_file << " " << argv[i];
-	}
-	new_par_file << "\n\n\n";
-	new_par_file.close();
-
-	std::filebuf old_par_file, append_new_par_file;
-	old_par_file.open(filename, std::ios::in);
-	append_new_par_file.open(par_filename.c_str(),
-				 std::ios::app | std::ios::out);
-
-	std::copy(std::istreambuf_iterator<char>(&old_par_file), {},
-		  std::ostreambuf_iterator<char>(&append_new_par_file));
-	append_new_par_file.close();
-	old_par_file.close();
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
     OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
 
     switch (tolower(config.get<std::string>("TRANSPORT", "Fast")[0])) {
@@ -244,7 +223,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     OMEGAFRAME = config.get("OMEGAFRAME", double(0));
 
     // Barycenter mode
-    switch (lowercase_first_letter(config.get<std::string>("HydroFrameCenter", "primary"))) {
+    switch (lowercase_first_letter(
+	config.get<std::string>("HydroFrameCenter", "primary"))) {
     case 'p': // primarys
 	parameters::n_bodies_for_hydroframe_center = 1;
 	break;

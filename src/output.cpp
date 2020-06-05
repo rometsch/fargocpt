@@ -198,15 +198,6 @@ void check_free_space(t_data &data)
 	die("Not enough memory.");
     }
 
-    // Create output directory if it doesn't exist
-    if (CPU_Master) {
-	struct stat buffer;
-	if (stat(OUTPUTDIR.c_str(), &buffer)) {
-	    mkdir(OUTPUTDIR.c_str(), 0700);
-	}
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-
     // check if output directory exists
     if ((directory_pointer = opendir(directory_name)) == NULL) {
 	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
