@@ -145,26 +145,19 @@ void create_outputdir(const char *filename)
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void ReadVariables(char *filename, t_data &data, int argc, char **argv)
+void interpret_disk_parameters()
 {
-    // read config from
-    // config::read_config_from_file(filename);
-    parameters::read(filename, data);
-
     MASSTAPER = config.get("MASSTAPER", 0.0000001);
     ROCHESMOOTHING = config.get("ROCHESMOOTHING", 0.0);
     SIGMASLOPE = config.get("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config.get("IMPOSEDDISKDRIFT", 0.0);
 
     FLARINGINDEX = config.get("FLARINGINDEX", 0.0);
+    ASPECTRATIO_REF = config.get("ASPECTRATIO", 0.05);
+}
 
-    create_outputdir(filename);
-
-    start_mode::configure_start_mode();
-    copy_config_file(filename, argc, argv);
-
-    OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
-
+void interpret_transport_algo()
+{
     switch (tolower(config.get<std::string>("TRANSPORT", "Fast")[0])) {
     case 'f':
 	FastTransport = 1;
@@ -175,12 +168,17 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     default:
 	die("Invalid setting for Transport");
     }
+}
 
-    // time settings
+void interpret_output_timesteps()
+{
     NTOT = config.get("NTOT", 1000);
     NINTERM = config.get("NINTERM", 10);
     DT = config.get("DT", 1.0);
+}
 
+void interpret_grid()
+{
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
@@ -197,16 +195,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		NAzimuthal, lround(optimal_N_azimuthal));
 	}
     }
+}
 
-    // disc
-    ASPECTRATIO_REF = config.get("ASPECTRATIO", 0.05);
-
-    if (!config.contains("OuterBoundary")) {
-	logging::print_master(LOG_ERROR,
-			      "OuterBoundary doesn't exist. Old .par file?\n");
-	die("died for convenience ;)");
-    }
-
+void interpret_rotating_frame()
+{
     // Frame settings
     Corotating = 0;
     GuidingCenter = 0;
@@ -224,7 +216,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	die("Invalid setting for Frame");
     }
     OMEGAFRAME = config.get("OMEGAFRAME", double(0));
+}
 
+void interpret_coordinate_system_center()
+{
     // Barycenter mode
     switch (lowercase_first_letter(
 	config.get<std::string>("HydroFrameCenter", "primary"))) {
@@ -248,7 +243,16 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	die("Invalid setting for HydroFrameCenter: %s",
 	    config.get<std::string>("HydroFrameCenter", "primary").c_str());
     }
+}
 
+void interpret_coorindate_system()
+{
+    interpret_rotating_frame();
+    interpret_coordinate_system_center();
+}
+
+void warn_about_indirect_term_flag()
+{
     if (config.contains("IndirectTerm")) {
 	die("Indirect terms are now handled automatically to avoid unphysical settings.",
 	    "Please remove the setting.");
@@ -258,7 +262,37 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	die("Indirect terms are now handled automatically to avoid unphysical settings.",
 	    "Please remove the setting.");
     }
+}
 
+void remove_energy_damping_if_unused()
+{
+    if (!parameters::Adiabatic) // if energy is not needed, delete the energy
+				// damping boundary conditions
+    {
+	parameters::damping_vector.erase(parameters::damping_vector.begin() +
+					 parameters::damping_energy_id);
+    }
+
+    // delete unneeded calls to damping functions
+    // this must be performed after deleting the energy damping boundary,
+    // otherwise damping_energy_id would be incorrect.
+    auto delete_damping_condition =
+	[&](const parameters::t_DampingType damper) {
+	    return damper.inner_damping_function == nullptr &&
+			   damper.outer_damping_function == nullptr
+		       ? true
+		       : false;
+	};
+    parameters::damping_vector.erase(
+	std::remove_if(parameters::damping_vector.begin(),
+		       parameters::damping_vector.end(),
+		       delete_damping_condition),
+	parameters::damping_vector.end());
+}
+
+
+void interpret_equation_of_state(char *filename)
+{
     // Energy equation / Adiabatic
     char Adiabatic_deprecated =
 	lowercase_first_letter(config.get<std::string>("Adiabatic", "false"));
@@ -383,49 +417,12 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	}
     }
 
-    if (!parameters::Adiabatic) // if energy is not needed, delete the energy
-				// damping boundary conditions
-    {
-	parameters::damping_vector.erase(parameters::damping_vector.begin() +
-					 parameters::damping_energy_id);
-    }
+    remove_energy_damping_if_unused();
+}
 
-    // delete unneeded calls to damping functions
-    // this must be performed after deleting the energy damping boundary,
-    // otherwise damping_energy_id would be incorrect.
-    auto delete_damping_condition =
-	[&](const parameters::t_DampingType damper) {
-	    return damper.inner_damping_function == nullptr &&
-			   damper.outer_damping_function == nullptr
-		       ? true
-		       : false;
-	};
-    parameters::damping_vector.erase(
-	std::remove_if(parameters::damping_vector.begin(),
-		       parameters::damping_vector.end(),
-		       delete_damping_condition),
-	parameters::damping_vector.end());
 
-    ExcludeHill = config.get_flag("EXCLUDEHILL", false);
-    ALPHAVISCOSITY = config.get("ALPHAVISCOSITY", 0.0);
-    VISCOSITY = config.get("VISCOSITY", 0.0);
-
-    if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
-	logging::print_master(LOG_ERROR, "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR, "VISCOSITY and ALPHAVISCOSITY.\n");
-	logging::print_master(LOG_ERROR,
-			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR,
-			      "one of these variables and run again.\n");
-	PersonalExit(1);
-    }
-
-    if (ALPHAVISCOSITY != 0.0) {
-	ViscosityAlpha = YES;
-	logging::print_master(LOG_INFO, "Viscosity is of alpha type\n");
-    }
-
-    if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
+void interpret_Nbody_smoothing() {
+	if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
 	logging::print_master(LOG_ERROR, "You cannot use at the same time\n");
 	logging::print_master(LOG_ERROR,
 			      "`ThicknessSmoothing' and `RocheSmoothing'.\n");
@@ -466,12 +463,75 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    LOG_INFO,
 	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
     }
+}
 
+void interpret_Nbody_interactions()
+{
+    ExcludeHill = config.get_flag("EXCLUDEHILL", false);
+	interpret_Nbody_smoothing();
+}
+
+void interpret_viscosity()
+{
+    VISCOSITY = config.get("VISCOSITY", 0.0);
+    ALPHAVISCOSITY = config.get("ALPHAVISCOSITY", 0.0);
+
+    if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
+	logging::print_master(LOG_ERROR, "You cannot use at the same time\n");
+	logging::print_master(LOG_ERROR, "VISCOSITY and ALPHAVISCOSITY.\n");
+	logging::print_master(LOG_ERROR,
+			      "Edit the parameter file so as to remove\n");
+	logging::print_master(LOG_ERROR,
+			      "one of these variables and run again.\n");
+	PersonalExit(1);
+    }
+
+    if (ALPHAVISCOSITY != 0.0) {
+	ViscosityAlpha = YES;
+	logging::print_master(LOG_INFO, "Viscosity is of alpha type\n");
+    }
+}
+
+void sanitize_output_dir_string() {
     // Add a trailing slash to OUTPUTDIR if needed
     if (OUTPUTDIR[OUTPUTDIR.length() - 1] != '/') {
 	OUTPUTDIR.append("/");
     }
+}
 
+void ReadVariables(char *filename, t_data &data, int argc, char **argv)
+{
+    // read config from
+    // config::read_config_from_file(filename);
+    parameters::read(filename, data);
+
+    interpret_disk_parameters();
+
+    create_outputdir(filename);
+
+    start_mode::configure_start_mode();
+    copy_config_file(filename, argc, argv);
+
+    OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
+
+    interpret_transport_algo();
+
+    interpret_output_timesteps();
+
+    interpret_grid();
+
+    interpret_coorindate_system();
+
+    warn_about_indirect_term_flag();
+
+    interpret_equation_of_state(filename);
+
+    interpret_Nbody_interactions();
+
+    interpret_viscosity();
+
+	sanitize_output_dir_string();
+    
     constants::initialize_constants();
 
     // now we now everything to compute unit factors
@@ -581,18 +641,18 @@ void TellEverything()
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
 	LOG_VERBOSE,
-	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n",
-	temp, TellNbOrbits(temp), TellNbOutputs(temp));
+	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
     logging::print_master(
 	LOG_VERBOSE,
-	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n",
-	temp, TellNbOrbits(temp), TellNbOutputs(temp));
+	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
 	LOG_VERBOSE,
-	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n",
-	temp, TellNbOrbits(temp), TellNbOutputs(temp));
+	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
     logging::print_master(LOG_VERBOSE,
 			  "Orbital time at Rmin  : %.3g ~ %.2f outputs\n", temp,

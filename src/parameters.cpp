@@ -528,8 +528,8 @@ void summarize_parameters()
 	    "Kramers opacity and constant electron scattering (Thomson) used.\n");
 	break;
     case opacity_const_op:
-	logging::print_master(LOG_INFO, "Using constant opacity kappa_R = %e.\n",
-			      kappa_const);
+	logging::print_master(
+	    LOG_INFO, "Using constant opacity kappa_R = %e.\n", kappa_const);
 	break;
     }
 
@@ -835,6 +835,12 @@ void parse_boundary_config()
     }
 
     domegadr_zero = config.get_flag("DomegaDrZero", false);
+
+    if (!config.contains("OuterBoundary")) {
+	logging::print_master(LOG_ERROR,
+			      "OuterBoundary doesn't exist. Old .par file?\n");
+	die("died for convenience ;)");
+    }
 }
 
 void parse_damping_config()
