@@ -27,12 +27,6 @@ void Config::insert_lowercase_keys() {
 	}
 }
 
-AutoTypeInterface Config::get(const char *key)
-{
-    AutoTypeInterface wrapper = AutoTypeInterface(m_j[lowercase(key)]["value"]);
-    return wrapper;
-}
-
 static bool string_decide(const std::string &des)
 {
     bool ret = false;
@@ -69,3 +63,56 @@ bool Config::get_flag(const char *key, const bool default_value)
 	return default_value;
     }
 }
+
+bool Config::contains(const char* key)
+{
+    const bool ret = m_j.contains(lowercase(key));
+    return ret;
+}
+
+bool Config::contains(const std::string& key)
+{
+    const bool ret = m_j.contains(lowercase(key));
+    return ret;
+}
+
+
+template <typename T> T Config::get(const char *key)
+{
+    const std::string lkey = lowercase(key);
+	const T ret = json_caster<T>(m_j[lkey]["value"]);
+	return ret;
+}
+
+// template <typename T> bool Config::contains(const T &key)
+// {
+//     const bool ret = m_j.contains(lowercase(key));
+//     return ret;
+// }
+template <typename T> T Config::get(const char *key, const T &default_value)
+{
+    const std::string lkey = lowercase(key);
+    if (contains(lkey)) {
+	T ret = get<T>(key);
+	return ret; 
+    } else {
+	return default_value;
+    }
+}
+
+
+// template bool Config::contains(const char* key);
+// template bool Config::contains(const std::string& key);
+
+template double Config::get(const char *key);
+template int Config::get(const char *key);
+template unsigned int Config::get(const char *key);
+template std::string Config::get(const char *key);
+
+template double Config::get(const char *key, const double& d);
+template int Config::get(const char *key, const int& d);
+template unsigned int Config::get(const char *key, const unsigned int& d);
+template std::string Config::get(const char *key, const std::string& d);
+
+
+

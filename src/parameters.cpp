@@ -279,12 +279,12 @@ void read(char *filename, t_data &data)
     config.load_file(filename);
 
     // units
-    L0 = config.get("l0", 1.0);
-    M0 = config.get("m0", 1.0);
+    L0 = config.get<double>("l0", 1.0);
+    M0 = config.get<double>("m0", 1.0);
 
     // star parameters
-    star_temperature = config.get("StarTemperature", 5778);
-    star_radius = config.get("StarRadius", 0.009304813);
+    star_temperature = config.get<double>("StarTemperature", 5778);
+    star_radius = config.get<double>("StarRadius", 0.009304813);
 
     parse_grid_config();
 
@@ -590,13 +590,13 @@ void write_grid_data_to_file()
 void parse_grid_config()
 {
     /* grid */
-    NRadial = config.get("NRAD", 64);
-    NAzimuthal = config.get("NSEC", 64);
-    RMIN = config.get("RMIN", 1.0);
-    RMAX = config.get("RMAX", 1.0);
+    NRadial = config.get<unsigned int>("NRAD", 64);
+    NAzimuthal = config.get<unsigned int>("NSEC", 64);
+    RMIN = config.get<double>("RMIN", 1.0);
+    RMAX = config.get<double>("RMAX", 1.0);
 
     exponential_cell_size_factor =
-	config.get("ExponentialCellSizeFactor", 1.41);
+	config.get<double>("ExponentialCellSizeFactor", 1.41);
     switch (
 	tolower(config.get<std::string>("RadialSpacing", "ARITHMETIC")[0])) {
     case 'a': // arithmetic
@@ -676,14 +676,14 @@ void parse_output_config(t_data &data)
 
     write_massflow = config.get_flag("WriteMassFlow", false);
 
-    log_after_steps = config.get("LogAfterSteps", 0);
-    log_after_real_seconds = config.get("LogAfterRealSeconds", 600.0);
+    log_after_steps = config.get<double>("LogAfterSteps", 0);
+    log_after_real_seconds = config.get<double>("LogAfterRealSeconds", 600.0);
 
     // parse light curve radii
     if (config.contains("WriteLightCurvesRadii")) {
 	// get light curves radii string
 
-	std::string lightcurve_config = config.get("WriteLightCurvesRadii");
+	std::string lightcurve_config = config.get<std::string>("WriteLightCurvesRadii");
 
 	char *lightcurves_radii_string =
 	    new char[lightcurve_config.length() + 1];
@@ -779,15 +779,15 @@ void parse_damping_config()
 {
     damping = config.get_flag("Damping", false);
 
-    damping_inner_limit = config.get("DampingInnerLimit", 1.05);
+    damping_inner_limit = config.get<double>("DampingInnerLimit", 1.05);
     if (damping_inner_limit < 1) {
 	die("DampingInnerLimit must not be <1\n");
     }
-    damping_outer_limit = config.get("DampingOuterLimit", 0.95);
+    damping_outer_limit = config.get<double>("DampingOuterLimit", 0.95);
     if (damping_outer_limit > 1) {
 	die("DampingOuterLimit must not be >1\n");
     }
-    damping_time_factor = config.get("DampingTimeFactor", 1.0);
+    damping_time_factor = config.get<double>("DampingTimeFactor", 1.0);
 
     t_damping_type tmp_damping_inner;
     t_damping_type tmp_damping_outer;
@@ -847,8 +847,8 @@ void parse_damping_config()
 void parse_nbody_config()
 {
     default_star = config.get_flag("DefaultStar", true);
-    corotation_reference_body = config.get("CorotationReferenceBody", 1);
-    thickness_smoothing = config.get("ThicknessSmoothing", 0.0);
+    corotation_reference_body = config.get<unsigned int>("CorotationReferenceBody", 1);
+    thickness_smoothing = config.get<double>("ThicknessSmoothing", 0.0);
     integrate_planets = config.get_flag("IntegratePlanets", true);
 }
 
@@ -857,9 +857,9 @@ void parse_disk_config()
     calculate_disk = config.get_flag("DISK", true);
     disk_feedback = config.get_flag("DiskFeedback", true);
 
-    MU = config.get("mu", 1.0);
-    minimum_temperature = config.get("MinimumTemperature", 3);
-    maximum_temperature = config.get("MaximumTemperature", std::numeric_limits<double>::max());
+    MU = config.get<double>("mu", 1.0);
+    minimum_temperature = config.get<double>("MinimumTemperature", 3);
+    maximum_temperature = config.get<double>("MaximumTemperature", std::numeric_limits<double>::max());
 	if (maximum_temperature < 0) {
 		maximum_temperature = std::numeric_limits<double>::max();
 	}
@@ -869,27 +869,27 @@ void parse_disk_config()
 	die("please specify HeatingViscous in config file");
     }
     heating_viscous_enabled = config.get_flag("HeatingViscous", false);
-    heating_viscous_factor = config.get("HeatingViscousFactor", 1.0);
+    heating_viscous_factor = config.get<double>("HeatingViscousFactor", 1.0);
     heating_star_enabled = config.get_flag("HeatingStar", false);
-    heating_star_factor = config.get("HeatingStarFactor", 1.0);
-    heating_star_ramping_time = config.get("HeatingStarRampingTime", 0.0);
+    heating_star_factor = config.get<double>("HeatingStarFactor", 1.0);
+    heating_star_ramping_time = config.get<double>("HeatingStarRampingTime", 0.0);
     heating_star_simple = config.get_flag("HeatingStarSimple", false);
 
     radiative_diffusion_enabled = config.get_flag("RadiativeDiffusion", false);
-    radiative_diffusion_omega = config.get("RadiativeDiffusionOmega", 1.5);
+    radiative_diffusion_omega = config.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled =
 	config.get_flag("RadiativeDiffusionAutoOmega", false);
     radiative_diffusion_max_iterations =
-	config.get("RadiativeDiffusionMaxIterations", 50000);
+	config.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
 
-    zbuffer_size = config.get("zbufferSize", 100);
-    zbuffer_maxangle = config.get("zbufferMaxAngle", 10.0 / 180.0 * PI);
+    zbuffer_size = config.get<unsigned int>("zbufferSize", 100);
+    zbuffer_maxangle = config.get<double>("zbufferMaxAngle", 10.0 / 180.0 * PI);
 
-    cooling_radiative_factor = config.get("CoolingRadiativeFactor", 1.0);
+    cooling_radiative_factor = config.get<double>("CoolingRadiativeFactor", 1.0);
     cooling_radiative_enabled = config.get_flag("CoolingRadiativeLocal", false);
     cooling_beta_enabled = config.get_flag("CoolingBetaLocal", false);
-    cooling_beta = config.get("CoolingBeta", 1.0);
-    cooling_beta_ramp_up = config.get("CoolingBetaRampUp", 0.0);
+    cooling_beta = config.get<double>("CoolingBeta", 1.0);
+    cooling_beta_ramp_up = config.get<double>("CoolingBetaRampUp", 0.0);
 }
 
 void parse_initialization_config()
@@ -943,20 +943,20 @@ void parse_initialization_config()
 	energy_filename = config.get<std::string>("EnergyFilename", "");
     }
 
-    random_seed = config.get("RandomSeed", 0);
+    random_seed = config.get<int>("RandomSeed", 0);
     sigma_randomize = config.get_flag("RandomSigma", false);
-    sigma_random_factor = config.get("RandomFactor", 0.1);
-    sigma_feature_size = config.get("FeatureSize", (RMAX - RMIN) / 150);
-    sigma_floor = config.get("SigmaFloor", 1e-9);
-    sigma0 = config.get("SIGMA0", 173.);
+    sigma_random_factor = config.get<double>("RandomFactor", 0.1);
+    sigma_feature_size = config.get<double>("FeatureSize", (RMAX - RMIN) / 150);
+    sigma_floor = config.get<double>("SigmaFloor", 1e-9);
+    sigma0 = config.get<double>("SIGMA0", 173.);
     sigma_adjust = config.get_flag("SetSigma0", false);
-    sigma_discmass = config.get("discmass", 0.01);
-    density_factor = config.get("DensityFactor", 2.0);
+    sigma_discmass = config.get<double>("discmass", 0.01);
+    density_factor = config.get<double>("DensityFactor", 2.0);
 
     // profile damping
     profile_damping = config.get_flag("ProfileDamping", false);
-    profile_damping_point = config.get("ProfileDampingPoint", 0.0);
-    profile_damping_width = config.get("ProfileDampingWidth", 1.0);
+    profile_damping_point = config.get<double>("ProfileDampingPoint", 0.0);
+    profile_damping_width = config.get<double>("ProfileDampingWidth", 1.0);
 }
 
 void parse_viscosity_config()
@@ -978,7 +978,7 @@ void parse_viscosity_config()
     }
     artificial_viscosity_dissipation =
 	config.get_flag("ArtificialViscosityDissipation", true);
-    artificial_viscosity_factor = config.get("ArtificialViscosityFactor", 1.41);
+    artificial_viscosity_factor = config.get<double>("ArtificialViscosityFactor", 1.41);
     // warning
     if (config.contains("CVNR")) {
 	die("Parameter CVNR has been renamed to ArtificialViscosityFactor");
@@ -988,14 +988,14 @@ void parse_viscosity_config()
 void parse_selfgravity_config()
 {
     thickness_smoothing_sg =
-	config.get("ThicknessSmoothingSG", thickness_smoothing);
+	config.get<double>("ThicknessSmoothingSG", thickness_smoothing);
     self_gravity = config.get_flag("SelfGravity", false);
 }
 
 void parse_opacity_config()
 {
-    tau_factor = config.get("TauFactor", 1.0);
-    kappa_factor = config.get("KappaFactor", 1.0);
+    tau_factor = config.get<double>("TauFactor", 1.0);
+    kappa_factor = config.get<double>("KappaFactor", 1.0);
 
     // opacity
     switch (tolower(config.get<std::string>("Opacity", "Lin")[0])) {
@@ -1013,7 +1013,7 @@ void parse_opacity_config()
 	break;
     case 'c': // Constant
 	opacity = opacity_const_op;
-	kappa_const = config.get("KappaConst", 1.0);
+	kappa_const = config.get<double>("KappaConst", 1.0);
 	break;
     default:
 	die("Invalid setting for Opacity: %s",
@@ -1024,30 +1024,30 @@ void parse_opacity_config()
 void parse_massoverflow_config()
 {
     massoverflow = config.get_flag("massoverflow", false);
-    mof_planet = config.get("mofplanet", 0);
-    mof_sigma = config.get("mofsigma", 1.0);
-    mof_value = config.get("mofvalue", 10E-9);
+    mof_planet = config.get<unsigned int>("mofplanet", 0);
+    mof_sigma = config.get<double>("mofsigma", 1.0);
+    mof_value = config.get<double>("mofvalue", 10E-9);
 }
 
-void parse_hydrosolver_config() { CFL = config.get("CFL", 0.5); }
+void parse_hydrosolver_config() { CFL = config.get<double>("CFL", 0.5); }
 
 void parse_boundarylayer_config()
 {
-    radial_viscosity_factor = config.get("RadialViscosityFactor", 1.);
-    vrad_fraction_of_kepler = config.get("VRadIn", 1.6e-3);
-    stellar_rotation_rate = config.get("StellarRotation", 0.1);
-    mass_accretion_rate = config.get("MassAccretionRate", 1.e-9);
+    radial_viscosity_factor = config.get<double>("RadialViscosityFactor", 1.);
+    vrad_fraction_of_kepler = config.get<double>("VRadIn", 1.6e-3);
+    stellar_rotation_rate = config.get<double>("StellarRotation", 0.1);
+    mass_accretion_rate = config.get<double>("MassAccretionRate", 1.e-9);
 }
 
 void parse_particle_config()
 {
     CartesianParticles = config.get_flag("CartesianParticles", false);
     integrate_particles = config.get_flag("IntegrateParticles", false);
-    number_of_particles = config.get("NumberOfParticles", 0);
-    particle_radius = config.get("ParticleRadius", 100.0);
-    particle_eccentricity = config.get("ParticleEccentricity", 0.0);
-    particle_density = config.get("ParticleDensity", 2.65);
-    particle_slope = config.get("ParticleSurfaceDensitySlope", SIGMASLOPE);
+    number_of_particles = config.get<unsigned int>("NumberOfParticles", 0);
+    particle_radius = config.get<double>("ParticleRadius", 100.0);
+    particle_eccentricity = config.get<double>("ParticleEccentricity", 0.0);
+    particle_density = config.get<double>("ParticleDensity", 2.65);
+    particle_slope = config.get<double>("ParticleSurfaceDensitySlope", SIGMASLOPE);
     particle_slope =
 	-particle_slope; // particle distribution scales with  r^slope, so we
 			 // introduces the minus here to make it r^-slope (same
@@ -1055,12 +1055,12 @@ void parse_particle_config()
     particle_slope +=
 	1.0; // particles are distributed over a whole simulation ring which
 	     // introduces a factor 1/r for the particle surface density
-    particle_minimum_radius = config.get("ParticleMinimumRadius", RMIN);
-    particle_maximum_radius = config.get("ParticleMaximumRadius", RMAX);
+    particle_minimum_radius = config.get<double>("ParticleMinimumRadius", RMIN);
+    particle_maximum_radius = config.get<double>("ParticleMaximumRadius", RMAX);
     particle_minimum_escape_radius =
-	config.get("ParticleMinimumEscapeRadius", RMIN);
+	config.get<double>("ParticleMinimumEscapeRadius", RMIN);
     particle_maximum_escape_radius =
-	config.get("ParticleMaximumEscapeRadius", RMAX);
+	config.get<double>("ParticleMaximumEscapeRadius", RMAX);
     particle_gas_drag_enabled = config.get_flag("ParticleGasDragEnabled", true);
     particle_disk_gravity_enabled =
 	config.get_flag("ParticleDiskGravityEnabled", false);

@@ -147,13 +147,13 @@ void create_outputdir(const char *filename)
 
 void interpret_disk_parameters()
 {
-    MASSTAPER = config.get("MASSTAPER", 0.0000001);
-    ROCHESMOOTHING = config.get("ROCHESMOOTHING", 0.0);
-    SIGMASLOPE = config.get("SIGMASLOPE", 0.0);
-    IMPOSEDDISKDRIFT = config.get("IMPOSEDDISKDRIFT", 0.0);
+    MASSTAPER = config.get<double>("MASSTAPER", 0.0000001);
+    ROCHESMOOTHING = config.get<double>("ROCHESMOOTHING", 0.0);
+    SIGMASLOPE = config.get<double>("SIGMASLOPE", 0.0);
+    IMPOSEDDISKDRIFT = config.get<double>("IMPOSEDDISKDRIFT", 0.0);
 
-    FLARINGINDEX = config.get("FLARINGINDEX", 0.0);
-    ASPECTRATIO_REF = config.get("ASPECTRATIO", 0.05);
+    FLARINGINDEX = config.get<double>("FLARINGINDEX", 0.0);
+    ASPECTRATIO_REF = config.get<double>("ASPECTRATIO", 0.05);
 }
 
 void interpret_transport_algo()
@@ -172,9 +172,9 @@ void interpret_transport_algo()
 
 void interpret_output_timesteps()
 {
-    NTOT = config.get("NTOT", 1000);
-    NINTERM = config.get("NINTERM", 10);
-    DT = config.get("DT", 1.0);
+    NTOT = config.get<unsigned int>("NTOT", 1000);
+    NINTERM = config.get<unsigned int>("NINTERM", 10);
+    DT = config.get<double>("DT", 1.0);
 }
 
 void interpret_grid()
@@ -214,7 +214,7 @@ void interpret_rotating_frame()
     default:
 	die("Invalid setting for Frame");
     }
-    OMEGAFRAME = config.get("OMEGAFRAME", double(0));
+    OMEGAFRAME = config.get<double>("OMEGAFRAME", double(0));
 }
 
 void interpret_coordinate_system_center()
@@ -303,7 +303,7 @@ void interpret_equation_of_state(char *filename)
 	parameters::Adiabatic = true;
 	logging::info_master("Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
-	ADIABATICINDEX = config.get("AdiabaticIndex", 7.0 / 5.0);
+	ADIABATICINDEX = config.get<double>("AdiabaticIndex", 7.0 / 5.0);
 	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
 	    logging::warning_master(
 		"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
@@ -342,7 +342,7 @@ void interpret_equation_of_state(char *filename)
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
-		ADIABATICINDEX = config.get("AdiabaticIndex", 7.0 / 5.0);
+		ADIABATICINDEX = config.get<double>("AdiabaticIndex", 7.0 / 5.0);
 	    }
 
 	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
@@ -373,7 +373,7 @@ void interpret_equation_of_state(char *filename)
 		get_polytropic_constants(filename, K, gamma);
 		ADIABATICINDEX = gamma;
 	    } else {
-		ADIABATICINDEX = config.get("AdiabaticIndex", 2.0);
+		ADIABATICINDEX = config.get<double>("AdiabaticIndex", 2.0);
 	    }
 
 	    const std::string POLYTROPIC_CONSTANT_string_tmp =
@@ -389,7 +389,7 @@ void interpret_equation_of_state(char *filename)
 		}
 		POLYTROPIC_CONSTANT = K;
 	    } else {
-		POLYTROPIC_CONSTANT = config.get("PolytropicConstant", 12.753);
+		POLYTROPIC_CONSTANT = config.get<double>("PolytropicConstant", 12.753);
 	    }
 
 	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
@@ -401,7 +401,7 @@ void interpret_equation_of_state(char *filename)
 	}
 
 	if (!could_read_eos) {
-	    const std::string eos_str = config.get("EquationOfState");
+	    const std::string eos_str = config.get<std::string>("EquationOfState");
 	    die("Invalid setting for Energy Equation:   %s\n", eos_str.c_str());
 	}
     }
@@ -454,8 +454,8 @@ void interpret_Nbody_interactions()
 
 void interpret_viscosity()
 {
-    VISCOSITY = config.get("VISCOSITY", 0.0);
-    ALPHAVISCOSITY = config.get("ALPHAVISCOSITY", 0.0);
+    VISCOSITY = config.get<double>("VISCOSITY", 0.0);
+    ALPHAVISCOSITY = config.get<double>("ALPHAVISCOSITY", 0.0);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
 	logging::error_master( "You cannot use at the same time\n");
