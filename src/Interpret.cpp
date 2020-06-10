@@ -499,6 +499,11 @@ void sanitize_output_dir_string() {
     }
 }
 
+void interpret_boundary() {
+	// perscriped mass accretion through outer boundary
+	OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
+}
+
 void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 {
     // read config from
@@ -510,9 +515,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     create_outputdir(filename);
 
     start_mode::configure_start_mode();
-    copy_config_file(filename, argc, argv);
 
-    OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
+    copy_config_file(filename, argc, argv);
 
     interpret_transport_algo();
 
@@ -530,6 +534,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     interpret_viscosity();
 
+	interpret_boundary();
+
 	sanitize_output_dir_string();
     
     constants::initialize_constants();
@@ -542,6 +548,12 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // units::calculate_unit_factors() so it is not possible. Moving the read()
     // call causes an error.
     parameters::apply_units();
+
+	double foo = parameters::maximum_temperature * units::temperature.get_inverse_cgs_factor();
+	std::cout << "!!!!!!!!!!!!!!!!!!!! double max = " << std::numeric_limits<double>::max() << std::endl;
+	std::cout << "!!!!!!!!!!!!!!!!!!!! maximum T = " << foo << std::endl;
+	std::cout << "!!!!!!!!!!!!!!!!!!!! 1.1*double max = " << 1.1*std::numeric_limits<double>::max() << std::endl;
+	std::cout << "!!!!!!!!!!!!!!!!!!!! 2 < 1.1*double max = " << (-100 < 1.1*std::numeric_limits<double>::max()) << std::endl;
 }
 
 void PrintUsage(char *execname)

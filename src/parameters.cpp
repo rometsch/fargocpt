@@ -302,8 +302,6 @@ void read(char *filename, t_data &data)
 
     parse_viscosity_config();
 
-    parse_viscosity_config();
-
     parse_opacity_config();
 
     parse_massoverflow_config();
@@ -927,7 +925,10 @@ void parse_disk_config()
 
     MU = config.get("mu", 1.0);
     minimum_temperature = config.get("MinimumTemperature", 3);
-    maximum_temperature = config.get("MaximumTemperature", 1.0e300);
+    maximum_temperature = config.get("MaximumTemperature", std::numeric_limits<double>::max());
+	if (maximum_temperature < 0) {
+		maximum_temperature = std::numeric_limits<double>::max();
+	}
 
     // TODO: remove temporary warning
     if (config.contains("HeatingViscous") == false) {
