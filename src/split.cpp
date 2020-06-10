@@ -33,7 +33,7 @@ void SplitDomain()
     if (!parameters::self_gravity) {
 	if (debug)
 	    logging::print_master(
-		LOG_INFO "SplitDomain: Doing standard domain decomposition.\n");
+		LOG_INFO, "SplitDomain: Doing standard domain decomposition.\n");
 
 	size_low = NRadial / CPU_Number;
 	size_high = size_low + 1;
@@ -41,7 +41,7 @@ void SplitDomain()
 
 	if (size_low < 2 * CPUOVERLAP) {
 	    logging::print_master(
-		LOG_ERROR
+		LOG_ERROR,
 		"The number of processes is too large or the mesh is radially too narrow.\n");
 	    PersonalExit(1);
 	}
@@ -83,11 +83,11 @@ void SplitDomain()
 	// Domain decomposition imposed by fftw_mpi
 	if (debug)
 	    logging::print_master(
-		LOG_INFO
+		LOG_INFO,
 		"SplitDomain: Doing fftw-mesh implied domain decomposition.\n");
 
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "SplitDomain: Doing some FFT test measures to optimize FFT calculations. This may take a few seconds.\n");
 
 	// calculate fft mesh sizes
@@ -100,7 +100,7 @@ void SplitDomain()
 	    if ((CPU_Rank == CPU_Number / 2 - 1) &&
 		(local_i_start + local_Nx - 1 < GlobalNRadial - 1)) {
 		logging::print(
-		    LOG_ERROR
+		    LOG_ERROR,
 		    "ERROR: Bad choice of number of processes for current value of GLOBALNRAD.\n");
 		PersonalExit(1);
 	    }
@@ -108,7 +108,7 @@ void SplitDomain()
 
 	if (local_Nx < 2 * CPUOVERLAP) {
 	    logging::print(
-		LOG_ERROR
+		LOG_ERROR,
 		"ERROR: At least one of the processes has a ring number (%u) less than the total number of ghosts (%u): I must exit.\n",
 		local_Nx, 2 * CPUOVERLAP);
 	    PersonalExit(1);
@@ -179,7 +179,7 @@ void SplitDomain()
 		    (double *)malloc(sizeof(double) * transfer_size);
 		if (ffttohydro_transfer == NULL) {
 		    logging::print(
-			LOG_ERROR
+			LOG_ERROR,
 			"No enougth memory for ffttohydro_transfer tab in split.c ...\n");
 		    PersonalExit(1);
 		}
@@ -209,7 +209,7 @@ void SplitDomain()
 	    if ((SGP_buffft_Accr_friend == NULL) ||
 		(SGP_buffft_Acct_friend == NULL)) {
 		logging::print(
-		    LOG_ERROR
+		    LOG_ERROR,
 		    "No enougth memory for SGP_buffft_Acc_friend in split.c ...\n");
 		PersonalExit(1);
 	    }
@@ -218,7 +218,7 @@ void SplitDomain()
 		(double *)malloc(sizeof(double) * transfer_size_friend);
 	    if (ffttohydro_transfer_friend == NULL) {
 		logging::print(
-		    LOG_ERROR
+		    LOG_ERROR,
 		    "No enougth memory for ffttohydro_transfer_friend tab in split.c ...\n");
 		PersonalExit(1);
 	    }
@@ -239,10 +239,10 @@ void SplitDomain()
 	NRadial = IMAX - IMIN + 1;
 
 	if (NRadial < 2 * CPUOVERLAP) {
-	    logging::print(LOG_ERROR "CPU %d: local_Nx = %d\n", CPU_Rank,
+	    logging::print(LOG_ERROR, "CPU %d: local_Nx = %d\n", CPU_Rank,
 			   NRadial);
 	    logging::print(
-		LOG_ERROR
+		LOG_ERROR,
 		"ERROR: One of the processes has a ring number less than the total number of ghosts: I must exit.\n");
 	    PersonalExit(1);
 	}
@@ -272,7 +272,7 @@ void SplitDomain()
 					       active_hydro_totalsize_friend);
 		if (dens_friend == NULL) {
 		    logging::print(
-			LOG_ERROR
+			LOG_ERROR,
 			"No enougth memory for dens_friend in split.c ...\n");
 		    PersonalExit(1);
 		}
@@ -335,37 +335,37 @@ void SplitDomain()
 
     /* print debugging */
     if (debug) {
-	logging::print(LOG_DEBUG "SplitDomain: DomainSplit Information:\n");
+	logging::print(LOG_DEBUG, "SplitDomain: DomainSplit Information:\n");
 	if (!parameters::self_gravity)
-	    logging::print_master(LOG_DEBUG "SplitDomain: %d = %d * %d + %d\n",
+	    logging::print_master(LOG_DEBUG, "SplitDomain: %d = %d * %d + %d\n",
 				  GlobalNRadial, CPU_Number, size_low,
 				  remainder);
-	logging::print(LOG_DEBUG "SplitDomain: IMIN: %d\n", IMIN);
-	logging::print(LOG_DEBUG "SplitDomain: IMAX: %d\n", IMAX);
-	logging::print(LOG_DEBUG "SplitDomain: NRAD: %d\n", NRadial);
-	logging::print(LOG_DEBUG "SplitDomain: Zero_or_active: %d\n",
+	logging::print(LOG_DEBUG, "SplitDomain: IMIN: %d\n", IMIN);
+	logging::print(LOG_DEBUG, "SplitDomain: IMAX: %d\n", IMAX);
+	logging::print(LOG_DEBUG, "SplitDomain: NRAD: %d\n", NRadial);
+	logging::print(LOG_DEBUG, "SplitDomain: Zero_or_active: %d\n",
 		       Zero_or_active);
-	logging::print(LOG_DEBUG "SplitDomain: One_or_active: %d\n",
+	logging::print(LOG_DEBUG, "SplitDomain: One_or_active: %d\n",
 		       One_or_active);
-	logging::print(LOG_DEBUG "SplitDomain: Max_or_active: %d\n",
+	logging::print(LOG_DEBUG, "SplitDomain: Max_or_active: %d\n",
 		       Max_or_active);
-	logging::print(LOG_DEBUG "SplitDomain: MaxMO_or_active: %d\n",
+	logging::print(LOG_DEBUG, "SplitDomain: MaxMO_or_active: %d\n",
 		       MaxMO_or_active);
-	logging::print(LOG_DEBUG "SplitDomain: GLOB: %d\n", GlobalNRadial);
-	logging::print(LOG_DEBUG "SplitDomain: CPUOVERLAP: %d\n", CPUOVERLAP);
+	logging::print(LOG_DEBUG, "SplitDomain: GLOB: %d\n", GlobalNRadial);
+	logging::print(LOG_DEBUG, "SplitDomain: CPUOVERLAP: %d\n", CPUOVERLAP);
 	if (parameters::self_gravity) {
-	    logging::print(LOG_DEBUG "SplitDomain: LocalNx: %ld\n", local_Nx);
-	    logging::print(LOG_DEBUG "SplitDomain: LocalIStart: %ld\n",
+	    logging::print(LOG_DEBUG, "SplitDomain: LocalNx: %ld\n", local_Nx);
+	    logging::print(LOG_DEBUG, "SplitDomain: LocalIStart: %ld\n",
 			   local_i_start);
-	    logging::print(LOG_DEBUG "SplitDomain: total_local_size: %ld\n",
+	    logging::print(LOG_DEBUG, "SplitDomain: total_local_size: %ld\n",
 			   total_local_size);
 
-	    logging::print(LOG_DEBUG "Friend: %ld\n", CPU_Friend);
-	    logging::print(LOG_DEBUG "SplitDomain: LocalNx_friend: %ld\n",
+	    logging::print(LOG_DEBUG, "Friend: %ld\n", CPU_Friend);
+	    logging::print(LOG_DEBUG, "SplitDomain: LocalNx_friend: %ld\n",
 			   local_Nx_friend);
-	    logging::print(LOG_DEBUG "SplitDomain: LocalIStart_friend: %ld\n",
+	    logging::print(LOG_DEBUG, "SplitDomain: LocalIStart_friend: %ld\n",
 			   local_i_start_friend);
-	    logging::print(LOG_DEBUG
+	    logging::print(LOG_DEBUG,
 			   "SplitDomain: total_local_size_friend: %ld\n",
 			   total_local_size_friend);
 	}

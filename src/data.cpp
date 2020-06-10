@@ -304,12 +304,12 @@ void t_data::print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal)
 		  MPI_SUM, MPI_COMM_WORLD);
 
     logging::print(
-	LOG_INFO
+	LOG_INFO,
 	"Need about %.0lf bytes = %.2lf KB = %.2lf MB = %.2lf GB of memory on this process.\n",
 	local_memory_usage, local_memory_usage / 1024.0,
 	local_memory_usage / 1048576.0, local_memory_usage / 1073741824.0);
     logging::print_master(
-	LOG_INFO
+	LOG_INFO,
 	"Need about %.0lf bytes = %.2lf KB = %.2lf MB = %.2lf GB of memory in total.\n",
 	global_memory_usage, global_memory_usage / 1024.0,
 	global_memory_usage / 1048576.0, global_memory_usage / 1073741824.0);

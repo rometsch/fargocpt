@@ -68,33 +68,35 @@ void get_polytropic_constants(char *filename, double &K, double &gamma)
     ss >> gamma;
 }
 
-
 static char lowercase_first_letter(const std::string &s)
 {
     return tolower(s[0]);
 }
 
-std::string launch_cmd(int argc, char ** argv) {
-	std::string cmd = "";
-	for (int i = 0; i < argc; i++) {
-	    cmd += argv[i];
-		if (i < argc -1 ) {
-			cmd += " ";
-		} 
+std::string launch_cmd(int argc, char **argv)
+{
+    std::string cmd = "";
+    for (int i = 0; i < argc; i++) {
+	cmd += argv[i];
+	if (i < argc - 1) {
+	    cmd += " ";
 	}
-	return cmd;
+    }
+    return cmd;
 }
 
-void write_config_copy_info(const fs::path& file_path, const fs::path& copy_path, std::string cmd) {
-	std::ofstream out_file(file_path);
+void write_config_copy_info(const fs::path &file_path,
+			    const fs::path &copy_path, std::string cmd)
+{
+    std::ofstream out_file(file_path);
 
-	out_file << "{" << std::endl;
-	out_file << "\"launch options\" : \"";
-	out_file << cmd;
-	out_file << "\"," << std::endl;
-	out_file << "\"config file\": " << copy_path << std::endl;
-	out_file << "}" << std::endl;
-	out_file.close();
+    out_file << "{" << std::endl;
+    out_file << "\"launch options\" : \"";
+    out_file << cmd;
+    out_file << "\"," << std::endl;
+    out_file << "\"config file\": " << copy_path << std::endl;
+    out_file << "}" << std::endl;
+    out_file.close();
 }
 
 void copy_config_file(const char *filename, int argc, char **argv)
@@ -129,17 +131,18 @@ void copy_config_file(const char *filename, int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void create_outputdir(const char* filename) {
+void create_outputdir(const char *filename)
+{
     fs::path config_file_name(filename);
     OUTPUTDIR = config.get<std::string>("OUTPUTDIR", config_file_name.stem());
 
     // Create output directory if it doesn't exist
     if (CPU_Master) {
-		if (!fs::exists(OUTPUTDIR)) {
-			fs::create_directory(OUTPUTDIR);
-		}
+	if (!fs::exists(OUTPUTDIR)) {
+	    fs::create_directory(OUTPUTDIR);
+	}
     }
-	MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void ReadVariables(char *filename, t_data &data, int argc, char **argv)
@@ -155,7 +158,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     FLARINGINDEX = config.get("FLARINGINDEX", 0.0);
 
-	create_outputdir(filename);
+    create_outputdir(filename);
 
     start_mode::configure_start_mode();
     copy_config_file(filename, argc, argv);
@@ -189,7 +192,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	if (fabs(((double)NAzimuthal - optimal_N_azimuthal) /
 		 (double)NAzimuthal) > 0.1) {
 	    logging::print_master(
-		LOG_WARNING
+		LOG_WARNING,
 		"You have %u cells in azimuthal direction. This should be %u cells to have quadratic cells!\n",
 		NAzimuthal, lround(optimal_N_azimuthal));
 	}
@@ -199,7 +202,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     ASPECTRATIO_REF = config.get("ASPECTRATIO", 0.05);
 
     if (!config.contains("OuterBoundary")) {
-	logging::print_master(LOG_ERROR
+	logging::print_master(LOG_ERROR,
 			      "OuterBoundary doesn't exist. Old .par file?\n");
 	die("died for convenience ;)");
     }
@@ -262,19 +265,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     if (Adiabatic_deprecated == 'n') {
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
     }
     if (Adiabatic_deprecated == 'y') {
 	parameters::Adiabatic = true;
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
 	ADIABATICINDEX = config.get("AdiabaticIndex", 7.0 / 5.0);
 	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
 	    logging::print_master(
-		LOG_WARNING
+		LOG_WARNING,
 		"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 	    parameters::Adiabatic = false;
 	}
@@ -291,7 +294,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    parameters::Adiabatic = false;
 	    parameters::Polytropic = false;
 	    parameters::Locally_Isothermal = true;
-	    logging::print_master(LOG_INFO
+	    logging::print_master(LOG_INFO,
 				  "Using isothermal equation of state.\n");
 	}
 	if (strcmp(eos_string, "adiabatic") == 0 ||
@@ -309,7 +312,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
 		logging::print_master(
-		    LOG_ERROR
+		    LOG_ERROR,
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
@@ -318,11 +321,11 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
 	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
 		logging::print_master(
-		    LOG_WARNING
+		    LOG_WARNING,
 		    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 		parameters::Adiabatic = false;
 	    }
-	    logging::print_master(LOG_INFO "Using ideal equation of state.\n");
+	    logging::print_master(LOG_INFO, "Using ideal equation of state.\n");
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||
@@ -366,11 +369,11 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
 	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
 		logging::print_master(
-		    LOG_WARNING
+		    LOG_WARNING,
 		    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 		parameters::Polytropic = false;
 	    }
-	    logging::print_master(LOG_INFO
+	    logging::print_master(LOG_INFO,
 				  "Using polytropic equation of state.\n");
 	}
 
@@ -408,59 +411,59 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     VISCOSITY = config.get("VISCOSITY", 0.0);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
-	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
-	logging::print_master(LOG_ERROR
+	logging::print_master(LOG_ERROR, "You cannot use at the same time\n");
+	logging::print_master(LOG_ERROR, "VISCOSITY and ALPHAVISCOSITY.\n");
+	logging::print_master(LOG_ERROR,
 			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR
+	logging::print_master(LOG_ERROR,
 			      "one of these variables and run again.\n");
 	PersonalExit(1);
     }
 
     if (ALPHAVISCOSITY != 0.0) {
 	ViscosityAlpha = YES;
-	logging::print_master(LOG_INFO "Viscosity is of alpha type\n");
+	logging::print_master(LOG_INFO, "Viscosity is of alpha type\n");
     }
 
     if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
-	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR
+	logging::print_master(LOG_ERROR, "You cannot use at the same time\n");
+	logging::print_master(LOG_ERROR,
 			      "`ThicknessSmoothing' and `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR
+	logging::print_master(LOG_ERROR,
 			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR
+	logging::print_master(LOG_ERROR,
 			      "one of these variables and run again.\n");
 	PersonalExit(1);
     }
 
     if ((parameters::thickness_smoothing <= 0.0) && (ROCHESMOOTHING <= 0.0)) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "A non-vanishing potential smoothing length is required.\n");
 	logging::print_master(
-	    LOG_ERROR "Please use either of the following variables:\n");
-	logging::print_master(LOG_ERROR
+	    LOG_ERROR, "Please use either of the following variables:\n");
+	logging::print_master(LOG_ERROR,
 			      "`ThicknessSmoothing' *or* `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR "before launching the run again.\n");
+	logging::print_master(LOG_ERROR, "before launching the run again.\n");
 	PersonalExit(1);
     }
 
     if (ROCHESMOOTHING != 0.0) {
 	RocheSmoothing = YES;
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "Planet potential smoothing scales with their Hill sphere.\n");
     } else if (config.get_flag("ThicknessSmoothingAtPlanet", false)) {
 	ThicknessSmoothingAtCell = NO;
 	ThicknessSmoothingAtPlanet = YES;
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
     } else {
 	ThicknessSmoothingAtCell = YES;
 	ThicknessSmoothingAtPlanet = NO;
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
     }
 
@@ -484,53 +487,53 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 void PrintUsage(char *execname)
 {
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"Usage : %s [-abcdeimnptvz] [-(0-9)] [-s number] [-f scaling] parameters file\n",
 	execname);
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"\n-a : Monitor mass and angular momentum at each timestep\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-b : Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-c : Sloppy CFL condition (checked at each DT, not at each timestep)\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-d : Print some debugging information on 'stdout' at each timestep\n");
-    logging::print_master(LOG_ERROR
+    logging::print_master(LOG_ERROR,
 			  "-e : Activate EU test problem torque file output\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-f : Scale density array by 'scaling'. Useful to increase/decrease\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"     disk surface density after a restart, for instance.            \n");
     logging::print_master(
-	LOG_ERROR "-i : tabulate Sigma profile as given by restart files\n");
+	LOG_ERROR, "-i : tabulate Sigma profile as given by restart files\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-n : Disable simulation. The program just reads parameters file\n");
-    logging::print_master(LOG_ERROR
+    logging::print_master(LOG_ERROR,
 			  "-o : Overrides output directory of input file.\n");
     logging::print_master(
-	LOG_ERROR "-p : Give profiling information at each time step\n");
+	LOG_ERROR, "-p : Give profiling information at each time step\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-s : Restart simulation, taking #'number' files as initial conditions\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-v : Verbose mode. Tells everything about parameters file\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"-z : fake sequential built when evaluating sums on HD meshes\n");
     logging::print_master(
-	LOG_ERROR "-(0-9) : only write initial (or restart) HD meshes,\n");
-    logging::print_master(LOG_ERROR
+	LOG_ERROR, "-(0-9) : only write initial (or restart) HD meshes,\n");
+    logging::print_master(LOG_ERROR,
 			  "     proceed to the next nth output and exit\n");
     logging::print_master(
-	LOG_ERROR
+	LOG_ERROR,
 	"     This option must stand alone on one switch (-va -4 is legal, -v4a is not)\n");
     PersonalExit(1);
 }
@@ -549,77 +552,77 @@ void TellEverything()
     if (!CPU_Master)
 	return;
 
-    logging::print_master(LOG_VERBOSE "Disc properties:\n");
-    logging::print_master(LOG_VERBOSE "----------------\n");
-    logging::print_master(LOG_VERBOSE "Inner Radius          : %g\n", RMIN);
-    logging::print_master(LOG_VERBOSE "Outer Radius          : %g\n", RMAX);
-    logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n",
+    logging::print_master(LOG_VERBOSE, "Disc properties:\n");
+    logging::print_master(LOG_VERBOSE, "----------------\n");
+    logging::print_master(LOG_VERBOSE, "Inner Radius          : %g\n", RMIN);
+    logging::print_master(LOG_VERBOSE, "Outer Radius          : %g\n", RMAX);
+    logging::print_master(LOG_VERBOSE, "Aspect Ratio          : %g\n",
 			  ASPECTRATIO_REF);
-    logging::print_master(LOG_VERBOSE "VKep at inner edge    : %.3g\n",
+    logging::print_master(LOG_VERBOSE, "VKep at inner edge    : %.3g\n",
 			  sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
-    logging::print_master(LOG_VERBOSE "VKep at outer edge    : %.3g\n",
+    logging::print_master(LOG_VERBOSE, "VKep at outer edge    : %.3g\n",
 			  sqrt(constants::G * 1.0 / RMAX));
     /*
-    logging::print_master(LOG_VERBOSE "boundary_inner        : %i\n",
-    parameters::boundary_inner); logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE, "boundary_inner        : %i\n",
+    parameters::boundary_inner); logging::print_master(LOG_VERBOSE,
     "boundary_outer        : %i\n", parameters::boundary_outer);
     */
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
     // - pow(RMIN,2.0-SIGMASLOPE));	/* correct this and what follows... */
-    // logging::print_master(LOG_VERBOSE "Initial Disk Mass             : %g\n",
-    // temp); temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(1.0 -
-    // pow(RMIN,2.0-SIGMASLOPE)); logging::print_master(LOG_VERBOSE "Initial
+    // logging::print_master(LOG_VERBOSE, "Initial Disk Mass             :
+    // %g\n", temp); temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(1.0 -
+    // pow(RMIN,2.0-SIGMASLOPE)); logging::print_master(LOG_VERBOSE, "Initial
     // Mass inner to r=1.0  : %g \n", temp);
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
-    // - 1.0); logging::print_master(LOG_VERBOSE "Initial Mass outer to r=1.0  :
+    // - 1.0); logging::print_master(LOG_VERBOSE, "Initial Mass outer to r=1.0 :
     // %g \n", temp);
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "Travelling time for acoustic density waves :\n");
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
-	LOG_VERBOSE
+	LOG_VERBOSE,
 	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
     logging::print_master(
-	LOG_VERBOSE
+	LOG_VERBOSE,
 	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
-	LOG_VERBOSE
+	LOG_VERBOSE,
 	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
-    logging::print_master(LOG_VERBOSE
-			  "Orbital time at Rmin  : %.3g ~ %.2f outputs\n",
-			  temp, TellNbOutputs(temp));
+    logging::print_master(LOG_VERBOSE,
+			  "Orbital time at Rmin  : %.3g ~ %.2f outputs\n", temp,
+			  TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
-    logging::print_master(LOG_VERBOSE
-			  "Orbital time at Rmax  : %.3g ~ %.2f outputs\n",
-			  temp, TellNbOutputs(temp));
-    logging::print_master(LOG_VERBOSE "Sound speed :\n");
-    logging::print_master(LOG_VERBOSE " * At unit radius     : %.3g\n",
+    logging::print_master(LOG_VERBOSE,
+			  "Orbital time at Rmax  : %.3g ~ %.2f outputs\n", temp,
+			  TellNbOutputs(temp));
+    logging::print_master(LOG_VERBOSE, "Sound speed :\n");
+    logging::print_master(LOG_VERBOSE, " * At unit radius     : %.3g\n",
 			  ASPECTRATIO_REF * sqrt(constants::G * 1.0));
-    logging::print_master(LOG_VERBOSE " * At outer edge      : %.3g\n",
+    logging::print_master(LOG_VERBOSE, " * At outer edge      : %.3g\n",
 			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
-    logging::print_master(LOG_VERBOSE " * At inner edge      : %.3g\n",
+    logging::print_master(LOG_VERBOSE, " * At inner edge      : %.3g\n",
 			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
-    logging::print_master(LOG_VERBOSE "Grid properties:\n");
-    logging::print_master(LOG_VERBOSE "----------------\n");
-    logging::print_master(LOG_VERBOSE "Number of (local) rings  : %d\n",
+    logging::print_master(LOG_VERBOSE, "Grid properties:\n");
+    logging::print_master(LOG_VERBOSE, "----------------\n");
+    logging::print_master(LOG_VERBOSE, "Number of (local) rings  : %d\n",
 			  NRadial);
-    logging::print_master(LOG_VERBOSE "Number of (global) rings : %d\n",
+    logging::print_master(LOG_VERBOSE, "Number of (global) rings : %d\n",
 			  GlobalNRadial);
-    logging::print_master(LOG_VERBOSE "Number of sectors        : %d\n",
+    logging::print_master(LOG_VERBOSE, "Number of sectors        : %d\n",
 			  NAzimuthal);
-    logging::print_master(LOG_VERBOSE "Total (local) cells      : %d\n",
+    logging::print_master(LOG_VERBOSE, "Total (local) cells      : %d\n",
 			  NRadial * NAzimuthal);
-    logging::print_master(LOG_VERBOSE "Total (gobal) cells      : %d\n",
+    logging::print_master(LOG_VERBOSE, "Total (gobal) cells      : %d\n",
 			  GlobalNRadial * NAzimuthal);
-    logging::print_master(LOG_VERBOSE "Outputs properties:\n");
-    logging::print_master(LOG_VERBOSE "-------------------\n");
+    logging::print_master(LOG_VERBOSE, "Outputs properties:\n");
+    logging::print_master(LOG_VERBOSE, "-------------------\n");
     logging::print_master(
-	LOG_VERBOSE "Time increment between outputs : %.3f = %.3f orbits\n",
+	LOG_VERBOSE, "Time increment between outputs : %.3f = %.3f orbits\n",
 	NINTERM * DT, TellNbOrbits(NINTERM * DT));
 }

@@ -162,44 +162,44 @@ void calculate_constants_in_code_units()
 
 void print_constants()
 {
-    logging::print_master(LOG_VERBOSE "Code constants:\n");
+    logging::print_master(LOG_VERBOSE, "Code constants:\n");
 #ifndef NDEBUG
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "     gravitational constant: %8s = %15g = %15g %s\n",
 			  G.get_symbol(), G.get_code_value(), G.get_cgs_value(),
 			  G.get_cgs_unit_symbol());
 #else
     logging::print_master(
-	LOG_VERBOSE
+	LOG_VERBOSE,
 	"     gravitational constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
 #endif
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "         Boltzmann constant: %8s = %15g = %15g %s\n",
 			  k_B.get_symbol(), k_B.get_code_value(),
 			  k_B.get_cgs_value(), k_B.get_cgs_unit_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "             molecular mass: %8s = %15g = %15g %s\n",
 			  m_u.get_symbol(), m_u.get_code_value(),
 			  m_u.get_cgs_value(), m_u.get_cgs_unit_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "            Planck constant: %8s = %15g = %15g %s\n",
 			  h.get_symbol(), h.get_code_value(), h.get_cgs_value(),
 			  h.get_cgs_unit_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "             speed of light: %8s = %15g = %15g %s\n",
 			  c.get_symbol(), c.get_code_value(), c.get_cgs_value(),
 			  c.get_cgs_unit_symbol());
 #ifndef NDEBUG
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "      specific gas constant: %8s = %15g = %15g %s\n",
 			  R.get_symbol(), R.get_code_value(), R.get_cgs_value(),
 			  R.get_cgs_unit_symbol());
 #else
     logging::print_master(
-	LOG_VERBOSE
+	LOG_VERBOSE,
 	"      specific gas constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
 #endif
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "  Stefan-Boltzmann constant: %8s = %15g = %15g %s\n",
 			  sigma.get_symbol(), sigma.get_code_value(),
 			  sigma.get_cgs_value(), sigma.get_cgs_unit_symbol());

@@ -145,7 +145,7 @@ void init(t_data &data)
     // Self-gravity must be on a polar logarithmic grid
     if (parameters::radial_grid_type != parameters::logarithmic_spacing) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "A logarithmic grid is needed to compute self-gravity with polar method. Try again!\n");
 	PersonalExit(1);
     }

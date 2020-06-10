@@ -38,7 +38,7 @@ void configure_start_mode()
 		rtrim(backup_path, "/");
 		backup_path += "_bak" + std::to_string(i);
 	    }
-	    logging::print_master(LOG_INFO
+	    logging::print_master(LOG_INFO,
 				  "%s is not empty, backing up as %s\n",
 				  OUTPUTDIR.c_str(), backup_path.c_str());
 	    std::experimental::filesystem::rename(OUTPUTDIR.c_str(), backup_path);
@@ -48,7 +48,7 @@ void configure_start_mode()
     case mode_auto:
 	if (std::experimental::filesystem::is_empty(OUTPUTDIR)) {
 	    logging::print_master(
-		LOG_INFO "No output found, starting fresh simulation\n");
+		LOG_INFO, "No output found, starting fresh simulation\n");
 	    mode = mode_start;
 	    break;
 	} else {

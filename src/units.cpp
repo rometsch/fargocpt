@@ -169,50 +169,50 @@ void calculate_unit_factors()
 
 void print_code_units()
 {
-    logging::print_master(LOG_VERBOSE "Code units:\n");
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE, "Code units:\n");
+    logging::print_master(LOG_VERBOSE,
 			  "                     length:       l0 = %.16g %s\n",
 			  length.get_cgs_factor(), length.get_cgs_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "                       mass:       m0 = %.16g %s\n",
 			  mass.get_cgs_factor(), mass.get_cgs_symbol());
     logging::print_master(
-	LOG_VERBOSE
+	LOG_VERBOSE,
 	"                       time:       t0 = %.16g %s\t\t= %15.10g a\n",
 	time.get_cgs_factor(), time.get_cgs_symbol(),
 	time.get_cgs_factor() / (24 * 60 * 60 * 365.2425));
     logging::print_master(
-	LOG_VERBOSE "                temperature:       T0 = %.16g %s\n",
+	LOG_VERBOSE, "                temperature:       T0 = %.16g %s\n",
 	temperature.get_cgs_factor(), temperature.get_cgs_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "                     energy:       E0 = %.16g %s\n",
 			  energy.get_cgs_factor(), energy.get_cgs_symbol());
     logging::print_master(
-	LOG_VERBOSE "             energy density:       e0 = %.16g %s\n",
+	LOG_VERBOSE, "             energy density:       e0 = %.16g %s\n",
 	energy_density.get_cgs_factor(), energy_density.get_cgs_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "                    density:     rho0 = %.16g %s\n",
 			  density.get_cgs_factor(), density.get_cgs_symbol());
     logging::print_master(
-	LOG_VERBOSE "            surface density:   Sigma0 = %.16g %s\n",
+	LOG_VERBOSE, "            surface density:   Sigma0 = %.16g %s\n",
 	surface_density.get_cgs_factor(), surface_density.get_cgs_symbol());
     logging::print_master(
-	LOG_VERBOSE "                energy flux:       S0 = %.16g %s\n",
+	LOG_VERBOSE, "                energy flux:       S0 = %.16g %s\n",
 	energy_flux.get_cgs_factor(), energy_flux.get_cgs_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "                   velocity:       v0 = %.16g %s\n",
 			  velocity.get_cgs_factor(), velocity.get_cgs_symbol());
     logging::print_master(
-	LOG_VERBOSE "               acceleration:       a0 = %.16g %s\n",
+	LOG_VERBOSE, "               acceleration:       a0 = %.16g %s\n",
 	acceleration.get_cgs_factor(), acceleration.get_cgs_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "        kinematic viscosity:      nu0 = %.16g %s\n",
 			  kinematic_viscosity.get_cgs_factor(),
 			  kinematic_viscosity.get_cgs_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "                     stress:          = %.16g %s\n",
 			  stress.get_cgs_factor(), stress.get_cgs_symbol());
-    logging::print_master(LOG_VERBOSE
+    logging::print_master(LOG_VERBOSE,
 			  "                   pressure:       p0 = %.16g %s\n",
 			  pressure.get_cgs_factor(), pressure.get_cgs_symbol());
 }
@@ -226,13 +226,13 @@ void write_code_unit_file()
 
     if (CPU_Master) {
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "units.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
 	fd = fopen(fd_filename, "w");
 	if (fd == NULL) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Can't write 'units.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}

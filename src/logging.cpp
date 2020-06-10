@@ -88,6 +88,52 @@ int vprint(const char *fmt, va_list args)
     return 0;
 }
 
+int print_flagged(const unsigned int flag, const char *fmt, va_list args)
+{
+    char time_buf[80];
+
+    // log level from flag value
+    int current_level = flag;
+
+    if (current_level <= print_level) {
+	if (time_format) {
+	    time_t ti;
+	    struct tm *ts;
+
+	    time(&ti);
+	    switch (time_format) {
+	    case 1: // print timestamp
+		sprintf(time_buf, "%i", (int)ti);
+		break;
+	    case 2: // print UTC time
+		ts = gmtime(&ti);
+		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", ts);
+		break;
+	    case 3: // print local time
+		ts = localtime(&ti);
+		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S %Z",
+			 ts);
+		break;
+	    }
+	}
+
+	char *buf;
+	int res = vasprintf(&buf, fmt, args);
+	if (time_format) {
+	    fprintf(current_level <= error_level ? stderr : stdout,
+		    "[%0*i %s] %s", (int)(log(CPU_Number) / log(10) + 1),
+		    CPU_Rank, time_buf, buf);
+	} else {
+	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
+		    (int)(log(CPU_Number) / log(10) + 1), CPU_Rank, buf);
+	}
+	free(buf);
+	return res;
+    }
+
+    return 0;
+}
+
 int print(const char *fmt, ...)
 {
     va_list args;
@@ -95,6 +141,19 @@ int print(const char *fmt, ...)
 
     va_start(args, fmt);
     r = vprint(fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int print(const unsigned int log_level, const char *fmt, ...)
+{
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(log_level, fmt, args);
     va_end(args);
 
     return r;
@@ -110,6 +169,21 @@ int print_master(const char *fmt, ...)
 
     va_start(args, fmt);
     r = vprint(fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int print_master(const unsigned int log_level, const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(log_level, fmt, args);
     va_end(args);
 
     return r;
@@ -134,7 +208,7 @@ void print_runtime_final()
 	time_per_step_ms = realtime / (1000.0 * N_iter);
     }
     logging::print_master(
-	LOG_INFO
+	LOG_INFO,
 	"-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
 	N_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
@@ -184,7 +258,7 @@ void print_runtime_info(unsigned int output_number,
 		realtime_since_last / (1000.0 * (N_iter - n_last_log));
 	}
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 	    output_number, time_step_coarse, N_iter, PhysicalTime, dt,
 	    realtime / 1000000.0, time_per_step_ms);

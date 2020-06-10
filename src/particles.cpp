@@ -501,7 +501,7 @@ void init(t_data &data)
     particles = (t_particle *)malloc(sizeof(t_particle) * particles_size);
 
     const unsigned int seed = parameters::random_seed;
-    logging::print(LOG_DEBUG "random generator seed: %u\n", seed);
+    logging::print(LOG_DEBUG, "random generator seed: %u\n", seed);
 
     // random generator and distributions
     std::mt19937 generator(seed);
@@ -590,21 +590,21 @@ void restart(unsigned int timestep)
 {
 
     logging::print_master(
-	LOG_WARNING
+	LOG_WARNING,
 	"Beware: when restarting particles, the user is responsible that the loaded particle file is written with the same coordinate system as the simulation is running on!\n\n");
 
     FILE *fd;
     char *filename = 0;
     // create filename
     if (asprintf(&filename, "%sparticles%u.dat", OUTPUTDIR.c_str(), timestep) < 0) {
-	logging::print(LOG_ERROR "Not enough memory!\n");
+	logging::print(LOG_ERROR, "Not enough memory!\n");
 	PersonalExit(1);
     }
 
     fd = fopen(filename, "r");
     if (fd == nullptr) {
 	logging::print_master(
-	    LOG_INFO
+	    LOG_INFO,
 	    "Can't find file particles%d.dat. Using generated particles.\n",
 	    timestep);
 	return;
@@ -617,7 +617,7 @@ void restart(unsigned int timestep)
 
     if (num_particles_in_file < parameters::number_of_particles) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "Warning: Simulation runs with %d particles but only %d particles can be loaded from file!\n\n",
 	    parameters::number_of_particles, num_particles_in_file);
 	global_number_of_particles = num_particles_in_file;
@@ -641,7 +641,7 @@ void restart(unsigned int timestep)
     }
     if (num_particles_in_file > parameters::number_of_particles) {
 	logging::print_master(
-	    LOG_WARNING
+	    LOG_WARNING,
 	    "Warning: particle File contains %d particles but only %d particles can be loaded into Simulation!\n\n",
 	    num_particles_in_file, parameters::number_of_particles);
     }
@@ -656,7 +656,7 @@ void restart(unsigned int timestep)
 			  MPI_INFO_NULL, &fh);
     if (error != MPI_SUCCESS) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "Error while reading to file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename);
 
@@ -664,17 +664,17 @@ void restart(unsigned int timestep)
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
 
-    logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",
+    logging::print_master(LOG_INFO, "Reading file '%s' with %u bytes.\n",
 			  filename, size);
     free(filename);
 
@@ -1188,7 +1188,7 @@ void check_tstop(t_data &data)
 	    (parameters::integrator == parameters::integrator_explicit ||
 	     parameters::integrator == parameters::integrator_adaptive)) {
 	    logging::print_master(
-		LOG_ERROR
+		LOG_ERROR,
 		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!");
 		PersonalExit(1);
 	}
@@ -1196,7 +1196,7 @@ void check_tstop(t_data &data)
 	if (tstop < 0.005 * dt && parameters::particle_gas_drag_enabled &&
 	    parameters::integrator == parameters::integrator_semiimplicit) {
 	    logging::print_master(
-		LOG_ERROR
+		LOG_ERROR,
 		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!");
 		PersonalExit(1);
 	}
@@ -2461,7 +2461,7 @@ void write(unsigned int timestep)
 		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
     if (error != MPI_SUCCESS) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename);
 
@@ -2469,12 +2469,12 @@ void write(unsigned int timestep)
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }

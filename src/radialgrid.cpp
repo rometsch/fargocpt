@@ -180,7 +180,7 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
     }
     if (error != MPI_SUCCESS) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename.c_str());
 
@@ -188,12 +188,12 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
@@ -302,7 +302,7 @@ void t_radialgrid::read1D(const char *_filename)
 			  MPI_INFO_NULL, &fh);
     if (error != MPI_SUCCESS) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "Error while reading from file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename);
 
@@ -310,12 +310,12 @@ void t_radialgrid::read1D(const char *_filename)
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::print_master(LOG_ERROR, "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
@@ -331,7 +331,7 @@ void t_radialgrid::read1D(const char *_filename)
     }
 
     logging::print_master(
-	LOG_INFO "Reading file '%s' with %u bytes. Reading %u values...\n",
+	LOG_INFO, "Reading file '%s' with %u bytes. Reading %u values...\n",
 	_filename, size, count);
 
     // allocate buffer and read file
@@ -367,7 +367,7 @@ void t_radialgrid::read1D(const char *_filename)
     if ((RMIN < 2 * buffer_radius[0] - buffer_radius[1]) ||
 	(RMAX > 2 * buffer_radius[count - 1] - buffer_radius[count - 2])) {
 	logging::print_master(
-	    LOG_WARNING
+	    LOG_WARNING,
 	    "Warning: '%s' covers radii from %.5lf to %.5lf, but you're using %.5lf to %.5lf! Spline interpolation isn't performing well here!\n",
 	    _filename, buffer_radius[0], buffer_radius[count - 1], RMIN, RMAX);
     }

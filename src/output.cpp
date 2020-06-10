@@ -200,7 +200,7 @@ void check_free_space(t_data &data)
 
     // check if output directory exists
     if ((directory_pointer = opendir(directory_name)) == NULL) {
-	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
+	logging::print_master(LOG_ERROR, "Output directory %s doesn't exist!\n",
 			      OUTPUTDIR.c_str());
 	die("Not output directory!");
     }
@@ -209,7 +209,7 @@ void check_free_space(t_data &data)
 	if ((strcmp("..", directory_entry->d_name) != 0) &&
 	    (strcmp(".", directory_entry->d_name) != 0)) {
 	    logging::print_master(
-		LOG_NOTICE "Output directory %s is not empty!\n", OUTPUTDIR.c_str());
+		LOG_NOTICE, "Output directory %s is not empty!\n", OUTPUTDIR.c_str());
 	    break;
 	}
     }
@@ -236,28 +236,28 @@ void check_free_space(t_data &data)
     space_needed *= NTOT / NINTERM;
     number_of_files *= NTOT / NINTERM;
 
-    logging::print_master(LOG_INFO "Output information:\n");
-    logging::print_master(LOG_INFO "   Output directory: %s\n", OUTPUTDIR.c_str());
-    logging::print_master(LOG_INFO "    Number of files: %u\n",
+    logging::print_master(LOG_INFO, "Output information:\n");
+    logging::print_master(LOG_INFO, "   Output directory: %s\n", OUTPUTDIR.c_str());
+    logging::print_master(LOG_INFO, "    Number of files: %u\n",
 			  number_of_files);
-    logging::print_master(LOG_INFO "  Total output size: %.2f GB\n",
+    logging::print_master(LOG_INFO, "  Total output size: %.2f GB\n",
 			  (double)space_needed / 1024.0 / 1024.0 / 1024.0);
 
     if ((statvfs(directory_name, &fiData)) < 0) {
 	logging::print_master(
-	    LOG_WARNING
+	    LOG_WARNING,
 	    "Couldn't stat filesystem. You have to check for enough free space manually!\n");
     } else {
 	// free space of device, more precisely number of space available to
 	// non-priv processes (like us)
 	unsigned long int free_space = fiData.f_bavail * fiData.f_frsize;
 
-	logging::print_master(LOG_INFO "    Space Available: %.2f GB\n",
+	logging::print_master(LOG_INFO, "    Space Available: %.2f GB\n",
 			      (double)free_space / 1024.0 / 1024.0 / 1024.0);
 
 	if (space_needed > free_space) {
 	    logging::print_master(
-		LOG_WARNING
+		LOG_WARNING,
 		"There is not enough space for all outputs! The program will fail at same point!\n");
 	}
     }
@@ -268,7 +268,7 @@ void check_free_space(t_data &data)
 void write_grids(t_data &data, int index, int iter, double phystime)
 {
     logging::print_master(
-	LOG_INFO "Writing output %d, Timestep Number %d, Physical Time %f.\n",
+	LOG_INFO, "Writing output %d, Timestep Number %d, Physical Time %f.\n",
 	index, iter, phystime);
 
     // go thru all grids and write them
@@ -296,7 +296,7 @@ void write_quantities(t_data &data, unsigned int timestep,
 
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(),
 		     "Quantities.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -315,7 +315,7 @@ void write_quantities(t_data &data, unsigned int timestep,
 	}
 	if (fd == NULL) {
 	    logging::print_master(
-		LOG_ERROR "Can't write 'Quantities.dat' file. Aborting.\n");
+		LOG_ERROR, "Can't write 'Quantities.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -412,7 +412,7 @@ void write_misc(unsigned int timestep)
     if (CPU_Master) {
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "misc.dat") ==
 	    -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -431,7 +431,7 @@ void write_misc(unsigned int timestep)
 	    fd = fopen(fd_filename, "a");
 	}
 	if (fd == NULL) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Can't write 'misc.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
@@ -466,7 +466,7 @@ std::string get_version(std::string filename)
     std::ifstream infile(filename);
 
     if (infile.fail()) {
-	logging::print_master(LOG_ERROR "Error: File %s cannot be opened!\n",
+	logging::print_master(LOG_ERROR, "Error: File %s cannot be opened!\n",
 			      filename.c_str());
 	PersonalExit(1);
     }
@@ -724,7 +724,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "torques.dat") ==
 	    -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -745,7 +745,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	}
 	if (fd == NULL) {
 	    logging::print_master(
-		LOG_ERROR "Can't write 'torques.dat' file. Aborting.\n");
+		LOG_ERROR, "Can't write 'torques.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -954,7 +954,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	static bool fd_created_luminosity = false;
 
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "luminosity.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -976,7 +976,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	}
 	if (fd == NULL) {
 	    logging::print_master(
-		LOG_ERROR "Can't write 'luminosity.dat' file. Aborting.\n");
+		LOG_ERROR, "Can't write 'luminosity.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -1005,7 +1005,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "dissipation.dat") ==
 	    -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -1027,7 +1027,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	}
 	if (fd == NULL) {
 	    logging::print_master(
-		LOG_ERROR "Can't write 'dissipation.dat' file. Aborting.\n");
+		LOG_ERROR, "Can't write 'dissipation.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -1070,7 +1070,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
     if (CPU_Master) {
 
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "timeCoarse.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::print_master(LOG_ERROR,
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -1091,7 +1091,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 	}
 	if (fd == NULL) {
 	    logging::print_master(
-		LOG_ERROR "Can't write 'timeCoarse.dat' file. Aborting.\n");
+		LOG_ERROR, "Can't write 'timeCoarse.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 

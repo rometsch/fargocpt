@@ -57,7 +57,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	    EvanescentBoundary(data, dt);
 	} else {
 	    logging::print_master(
-		LOG_ERROR
+		LOG_ERROR,
 		"Different EvanescentBoundary Parameters. Old .par File?\n");
 	    die("inner/outer evanescent boundary not implemented yet");
 	}
@@ -662,7 +662,7 @@ void mass_overflow(t_data &data)
     if (parameters::mof_planet + 1 >
 	data.get_planetary_system().get_number_of_planets()) {
 	logging::print_master(
-	    LOG_ERROR
+	    LOG_ERROR,
 	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
 	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
     }
@@ -719,7 +719,7 @@ void mass_overflow(t_data &data)
 
 #ifndef NDEBUG
 	logging::print(
-	    LOG_VERBOSE
+	    LOG_VERBOSE,
 	    "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, maxcells %i , noc %i , i %i \n",
 	    data[t_data::DENSITY](maxradial - 1, gridcell), weight_factor,
 	    angle, nearest_grid_cell, mass_stream, gridcell, maxcells,
@@ -729,7 +729,7 @@ void mass_overflow(t_data &data)
 
     // check if mass overflow is constant
     if (!(check > 0.99) || !(check < 1.01)) {
-	logging::print_master(LOG_ERROR "weight_factor %lf should be 0.997 \n",
+	logging::print_master(LOG_ERROR, "weight_factor %lf should be 0.997 \n",
 			      weight_factor);
     }
 }
@@ -757,7 +757,7 @@ void apply_boundary_condition_temperature(t_data &data)
 	    break;
 	default:
 	    logging::print_master(
-		LOG_ERROR
+		LOG_ERROR,
 		"Boundary condition at inner boundary not supported for temperature!\n");
 	    break;
 	}
@@ -798,7 +798,7 @@ void apply_boundary_condition_temperature(t_data &data)
 	    break;
 	default:
 	    logging::print_master(
-		LOG_ERROR
+		LOG_ERROR,
 		"Boundary condition at outer boundary not supported for temperature!\n");
 	    break;
 	}

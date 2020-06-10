@@ -61,7 +61,7 @@ int DetectCrash(t_polargrid *array)
 	for (unsigned int n_azimuthal = 0; n_azimuthal < array->Nsec;
 	     ++n_azimuthal) {
 	    if ((*array)(n_radial, n_azimuthal) < 0.0) {
-		logging::print(LOG_WARNING "%s negative in cell: (%u,%u)=%g\n",
+		logging::print(LOG_WARNING, "%s negative in cell: (%u,%u)=%g\n",
 			       array->get_name(), n_radial, n_azimuthal,
 			       (*array)(n_radial, n_azimuthal));
 		result += 1;
@@ -97,7 +97,7 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
 		}
 		dst(n_radial, n_azimuthal) = minimum_value;
 #ifndef NDEBUG
-		logging::print(LOG_DEBUG
+		logging::print(LOG_DEBUG,
 			       "assure_minimum_value: %s(%u,%u)=%g < %g\n",
 			       dst.get_name(), n_radial, n_azimuthal,
 			       dst(n_radial, n_azimuthal), minimum_value);
@@ -130,7 +130,7 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0)) {
 #ifndef NDEBUG
 		logging::print(
-		    LOG_DEBUG "assure_minimum_temperature: (%u,%u)=%g<%g\n",
+		    LOG_DEBUG, "assure_minimum_temperature: (%u,%u)=%g<%g\n",
 		    n_radial, n_azimuthal,
 		    energy(n_radial, n_azimuthal) *
 			units::temperature.get_cgs_factor() /
@@ -173,7 +173,7 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0)) {
 #ifndef NDEBUG
 		logging::print(
-		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
+		    LOG_DEBUG, "assure_maximum_temperature: (%u,%u)=%g>%g\n",
 		    n_radial, n_azimuthal,
 		    energy(n_radial, n_azimuthal) *
 			units::temperature.get_cgs_factor() /
@@ -323,7 +323,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 
     while (dtemp < DT) {
 	logging::print_master(
-	    LOG_VERBOSE
+	    LOG_VERBOSE,
 	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
 	    (int)ceil(log10(NTOT)), nTimeStep, NTOT,
 	    (double)nTimeStep / (double)NTOT * 100.0, dtemp, DT,
@@ -419,13 +419,13 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	if (parameters::calculate_disk) {
 
 	    if (DetectCrash(&data[t_data::DENSITY])) {
-		logging::print(LOG_ERROR "DetectCrash: Density < 0\n");
+		logging::print(LOG_ERROR, "DetectCrash: Density < 0\n");
 		PersonalExit(1);
 	    }
 
 	    if (parameters::Adiabatic) {
 		if (DetectCrash(&data[t_data::ENERGY])) {
-		    logging::print(LOG_ERROR "DetectCrash: Energy < 0\n");
+		    logging::print(LOG_ERROR, "DetectCrash: Energy < 0\n");
 		    PersonalExit(1);
 		}
 	    }
@@ -458,7 +458,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			parameters::minimum_temperature *
 			    units::temperature.get_inverse_cgs_factor())) {
 		    logging::print(
-			LOG_DEBUG "Found temperature < %g %s after SubStep3.\n",
+			LOG_DEBUG, "Found temperature < %g %s after SubStep3.\n",
 			parameters::minimum_temperature,
 			units::temperature.get_cgs_symbol());
 		}
@@ -468,7 +468,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			parameters::maximum_temperature *
 			    units::temperature.get_inverse_cgs_factor())) {
 		    logging::print(
-			LOG_DEBUG "Found temperature > %g %s after SubStep3.\n",
+			LOG_DEBUG, "Found temperature > %g %s after SubStep3.\n",
 			parameters::maximum_temperature,
 			units::temperature.get_cgs_symbol());
 		}
@@ -481,7 +481,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			    parameters::minimum_temperature *
 				units::temperature.get_inverse_cgs_factor())) {
 			logging::print(
-			    LOG_DEBUG
+			    LOG_DEBUG,
 			    "Found temperature < %g %s after radiative_diffusion.\n",
 			    parameters::minimum_temperature,
 			    units::temperature.get_cgs_symbol());
@@ -492,7 +492,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			    parameters::maximum_temperature *
 				units::temperature.get_inverse_cgs_factor())) {
 			logging::print(
-			    LOG_DEBUG
+			    LOG_DEBUG,
 			    "Found temperature > %g %s after radiative_diffusion.\n",
 			    parameters::maximum_temperature,
 			    units::temperature.get_cgs_symbol());
@@ -515,7 +515,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			parameters::minimum_temperature *
 			    units::temperature.get_inverse_cgs_factor())) {
 		    logging::print(
-			LOG_DEBUG
+			LOG_DEBUG,
 			"Found temperature < %g %s after Transport.\n",
 			parameters::minimum_temperature,
 			units::temperature.get_cgs_symbol());
@@ -526,7 +526,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 			parameters::maximum_temperature *
 			    units::temperature.get_inverse_cgs_factor())) {
 		    logging::print(
-			LOG_DEBUG
+			LOG_DEBUG,
 			"Found temperature > %g %s after Transport.\n",
 			parameters::maximum_temperature,
 			units::temperature.get_cgs_symbol());
@@ -1889,7 +1889,7 @@ void radiative_diffusion(t_data &data, double dt)
 
     if (iterations == parameters::radiative_diffusion_max_iterations) {
 	logging::print_master(
-	    LOG_WARNING
+	    LOG_WARNING,
 	    "Maximum iterations (%u) reached in radiative_diffusion (omega = %lg). Norm is %lg with a last change of %lg.\n",
 	    parameters::radiative_diffusion_max_iterations, omega,
 	    absolute_norm, norm_change);
@@ -1916,7 +1916,7 @@ void radiative_diffusion(t_data &data, double dt)
 
     old_iterations = iterations;
 
-    logging::print_master(LOG_VERBOSE "%u iterations, omega=%lf\n", iterations,
+    logging::print_master(LOG_VERBOSE, "%u iterations, omega=%lf\n", iterations,
 			  omega);
 
     // compute energy from temperature
@@ -2090,40 +2090,40 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
     }
 
     if (debug) {
-	logging::print(LOG_DEBUG "Timestep control information for CPU %d: \n",
+	logging::print(LOG_DEBUG, "Timestep control information for CPU %d: \n",
 		       CPU_Rank);
 	logging::print(
-	    LOG_DEBUG "Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
+	    LOG_DEBUG, "Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
 	    n_radial_debug, n_azimuthal_debug);
-	logging::print(LOG_DEBUG "located at radius Rmed         : %g\n",
+	logging::print(LOG_DEBUG, "located at radius Rmed         : %g\n",
 		       Rmed[n_radial_debug]);
-	logging::print(LOG_DEBUG "Sound speed limit              : %g\n",
+	logging::print(LOG_DEBUG, "Sound speed limit              : %g\n",
 		       itdbg1);
-	logging::print(LOG_DEBUG "Radial motion limit            : %g\n",
+	logging::print(LOG_DEBUG, "Radial motion limit            : %g\n",
 		       itdbg2);
-	logging::print(LOG_DEBUG "Residual circular motion limit : %g\n",
+	logging::print(LOG_DEBUG, "Residual circular motion limit : %g\n",
 		       itdbg3);
 
 	if (parameters::artificial_viscosity_factor > 0) {
-	    logging::print(LOG_DEBUG "Articifial Viscosity limit     : %g\n",
+	    logging::print(LOG_DEBUG, "Articifial Viscosity limit     : %g\n",
 			   itdbg4);
-	    logging::print(LOG_DEBUG "   Arise from r with limit     : %g\n",
+	    logging::print(LOG_DEBUG, "   Arise from r with limit     : %g\n",
 			   viscRadial);
-	    logging::print(LOG_DEBUG "   and from theta with limit   : %g\n",
+	    logging::print(LOG_DEBUG, "   and from theta with limit   : %g\n",
 			   viscAzimuthal);
 	} else {
-	    logging::print(LOG_DEBUG
+	    logging::print(LOG_DEBUG,
 			   "Articifial Viscosity limit     : disabled\n");
 	}
-	logging::print(LOG_DEBUG "Kinematic viscosity limit      : %g\n",
+	logging::print(LOG_DEBUG, "Kinematic viscosity limit      : %g\n",
 		       itdbg5);
-	logging::print(LOG_DEBUG "Limit time step for this cell  : %g\n",
+	logging::print(LOG_DEBUG, "Limit time step for this cell  : %g\n",
 		       mdtdbg);
-	logging::print(LOG_DEBUG "Limit time step adopted        : %g\n",
+	logging::print(LOG_DEBUG, "Limit time step adopted        : %g\n",
 		       dtGlobal);
 	if (dtGlobal < mdtdbg) {
-	    logging::print(LOG_DEBUG "Discrepancy arise either from shear.\n");
-	    logging::print(LOG_DEBUG "or from the imposed DT interval.\n");
+	    logging::print(LOG_DEBUG, "Discrepancy arise either from shear.\n");
+	    logging::print(LOG_DEBUG, "or from the imposed DT interval.\n");
 	}
     }
 
