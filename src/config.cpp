@@ -29,7 +29,6 @@ void Config::insert_lowercase_keys() {
 
 AutoTypeInterface Config::get(const char *key)
 {
-    std::cout << "Getting config value " << key << std::endl;
     AutoTypeInterface wrapper = AutoTypeInterface(m_j[lowercase(key)]["value"]);
     return wrapper;
 }
