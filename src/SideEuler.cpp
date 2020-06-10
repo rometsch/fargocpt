@@ -78,17 +78,14 @@ void CheckAngularMomentumConservation(t_data &data)
 
 	// PhysicalTime < 1e-10 was the "old" condition for saving start values
 	if (PhysicalTime > 1e-10) {
-	    logging::print_master(
-		LOG_INFO,
-		"CheckAngularMomentumConservation is called for the first time very late: t=%f\n",
+	    logging::info_master("CheckAngularMomentumConservation is called for the first time very late: t=%f\n",
 		PhysicalTime);
 	}
 
 	planetsStartAngularMomentum = planetsAngularMomentum;
 	gasStartAngularMomentum = gasAngularMomentum;
 	totalStartAngularMomentum = totalAngularMomentum;
-	logging::print_master(
-	    LOG_INFO, "time = %lg, Hp0 = %lg, Hg0 = %lg et Ht0 = %lg\n",
+	logging::info_master("time = %lg, Hp0 = %lg, Hg0 = %lg et Ht0 = %lg\n",
 	    PhysicalTime, planetsStartAngularMomentum, gasStartAngularMomentum,
 	    totalStartAngularMomentum);
     }
@@ -97,7 +94,7 @@ void CheckAngularMomentumConservation(t_data &data)
 	return;
 
     if (asprintf(&fdFilename, "%s%s", OUTPUTDIR.c_str(), "Momentum.dat") == -1) {
-	logging::print_master(LOG_ERROR,
+	logging::error_master(
 			      "Not enough memory for string buffer.\n");
 	PersonalExit(1);
     }
@@ -105,7 +102,7 @@ void CheckAngularMomentumConservation(t_data &data)
     // open logfile
     fd = fopen(fdFilename, "a");
     if (fd == NULL) {
-	logging::print_master(LOG_ERROR,
+	logging::error_master(
 			      "Can't write 'Momentum.dat' file. Aborting.\n");
 	PersonalExit(1);
     }

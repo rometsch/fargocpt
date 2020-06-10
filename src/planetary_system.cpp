@@ -286,7 +286,7 @@ void t_planetary_system::init_system(char *filename)
 
     init_rebound();
 
-    logging::print_master(LOG_INFO, "%d planet(s) initialized.\n",
+    logging::info_master("%d planet(s) initialized.\n",
 			  get_number_of_planets());
 }
 
@@ -297,8 +297,7 @@ void t_planetary_system::config_consistency_checks()
     }
 
     if ((get_number_of_planets() <= 1) && (Corotating == YES)) {
-	logging::print_master(
-	    LOG_ERROR,
+	logging::error_master(
 	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
 	PersonalExit(1);
     }
@@ -323,16 +322,13 @@ void t_planetary_system::init_hydro_frame_center()
 	// use as many bodies to calculate hydro frame center as possible
 	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
-    logging::print_master(
-	LOG_INFO,
-	"The first %d planets are used to calculate the hydro frame center.\n",
+    logging::info_master("The first %d planets are used to calculate the hydro frame center.\n",
 	parameters::n_bodies_for_hydroframe_center);
 
     move_to_hydro_frame_center();
 
     update_global_hydro_frame_center_mass();
-    logging::print_master(
-	LOG_INFO, "The mass of the planets used as hydro frame center is %e.\n",
+    logging::info_master("The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
 }
 
@@ -344,40 +340,28 @@ void t_planetary_system::list_planets()
     calculate_orbital_elements();
 
     if (get_number_of_planets() == 0) {
-	// logging::print(LOG_INFO, "Planet overview: No planets specified.\n");
+	// logging::info("Planet overview: No planets specified.\n");
 	return;
     }
 
-    logging::print(LOG_INFO, "Planet overview:\n");
-    logging::print(LOG_INFO, "\n");
-    logging::print(
-	LOG_INFO,
-	" #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |\n");
-    logging::print(
-	LOG_INFO,
-	"-----+-------------------------+------------+------------+------------+------------+------------+\n");
+    logging::info("Planet overview:\n");
+    logging::info("\n");
+    logging::info(" #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |\n");
+    logging::info("-----+-------------------------+------------+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	logging::print(
-	    LOG_INFO,
-	    " %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
+	logging::info(" %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
 	    i, get_planet(i).get_name(), get_planet(i).get_mass(),
 	    get_planet(i).get_x(), get_planet(i).get_y(),
 	    get_planet(i).get_vx(), get_planet(i).get_vy());
     }
 
-    logging::print(LOG_INFO, "\n");
-    logging::print(
-	LOG_INFO,
-	" #   | e          | a          | T [t0]     | T [a]      | accreting  | feels disk | feels plan.|\n");
-    logging::print(
-	LOG_INFO,
-	"-----+------------+------------+------------+------------+------------+------------+------------+\n");
+    logging::info("\n");
+    logging::info(" #   | e          | a          | T [t0]     | T [a]      | accreting  | feels disk | feels plan.|\n");
+    logging::info("-----+------------+------------+------------+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	logging::print(
-	    LOG_INFO,
-	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
+	logging::info(" %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
@@ -385,24 +369,19 @@ void t_planetary_system::list_planets()
 	    get_planet(i).get_acc(), '-', '-');
     }
 
-    logging::print(LOG_INFO, "\n");
-    logging::print(
-	LOG_INFO,
-	" #   | Temp [K]   | R [l0]     | irradiates | rampuptime |\n");
-    logging::print(
-	LOG_INFO,
-	"-----+------------+------------+------------+------------+\n");
+    logging::info("\n");
+    logging::info(" #   | Temp [K]   | R [l0]     | irradiates | rampuptime |\n");
+    logging::info("-----+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	logging::print(LOG_INFO,
-		       " %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
+	logging::info(" %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
 		       i, get_planet(i).get_temperature() * units::temperature,
 		       get_planet(i).get_radius(),
 		       (get_planet(i).get_irradiate()) ? 'X' : '-',
 		       get_planet(i).get_rampuptime());
     }
 
-    logging::print(LOG_INFO, "\n");
+    logging::info("\n");
 }
 
 void t_planetary_system::rotate(double angle)

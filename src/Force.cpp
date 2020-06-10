@@ -30,7 +30,7 @@ Force *AllocateForce(int dimfxy)
     globalforce = (double *)malloc(sizeof(double) * 4 * dimfxy);
 
     if ((force == NULL) || (globalforce == NULL)) {
-	logging::print(LOG_ERROR, "Not Enough Memory.\n");
+	logging::error( "Not Enough Memory.\n");
 	PersonalExit(1);
     }
 

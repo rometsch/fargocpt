@@ -61,8 +61,7 @@ static const struct option long_options[] = {
 void usage(int argc, char **argv)
 {
     (void)argc;
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"Usage: %s [options] start|restart <N>|auto configfile\n\n"
 	"start                  Start a new simulation from scratch\n"
 	"restart <N>            Restart from an old simulation output, latest if no N specified\n"
@@ -106,7 +105,7 @@ void parse(int argc, char **argv)
 		    start_mode::mode = start_mode::mode_auto;
 		} else {
 		    usage(argc, argv);
-			logging::print(LOG_ERROR, "Invalid start mode '%s'\n", optarg);
+			logging::error( "Invalid start mode '%s'\n", optarg);
 		    PersonalExit(0);
 		}
 	    } else {

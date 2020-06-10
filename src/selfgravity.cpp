@@ -144,8 +144,7 @@ void init(t_data &data)
 {
     // Self-gravity must be on a polar logarithmic grid
     if (parameters::radial_grid_type != parameters::logarithmic_spacing) {
-	logging::print_master(
-	    LOG_ERROR,
+	logging::error_master(
 	    "A logarithmic grid is needed to compute self-gravity with polar method. Try again!\n");
 	PersonalExit(1);
     }
@@ -572,7 +571,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 				     pow(Rmed[n_radial], 2.0 * FLARINGINDEX)) -
 		      GLOBAL_AxiSGAccr[n_radial + IMIN] / Rmed[n_radial];
 	if (temp < 0) {
-	    logging::print(
+	    logging::log(
 		"Radicand %lg < 0 in init_azimuthal_velocity! Maybe ThicknessSmoothingSG (%lg) is too small!\n",
 		temp, parameters::thickness_smoothing_sg);
 	}

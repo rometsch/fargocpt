@@ -329,24 +329,18 @@ void summarize_parameters()
     // artifical viscosity
     switch (artificial_viscosity) {
     case artificial_viscosity_none:
-	logging::print_master(LOG_INFO, "Using no artificial viscosity.\n");
+	logging::info_master("Using no artificial viscosity.\n");
 	break;
     case artificial_viscosity_TW:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\n",
+	logging::info_master("Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\n",
 	    parameters::artificial_viscosity_factor);
-	logging::print_master(
-	    LOG_INFO, "Artificial viscosity is %s for dissipation.\n",
+	logging::info_master("Artificial viscosity is %s for dissipation.\n",
 	    parameters::artificial_viscosity_dissipation ? "used" : "not used");
 	break;
     case artificial_viscosity_SN:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using Stone-Norman (1991, ZEUS-2D) artificial viscosity with C = %lf.\n",
+	logging::info_master("Using Stone-Norman (1991, ZEUS-2D) artificial viscosity with C = %lf.\n",
 	    parameters::artificial_viscosity_factor);
-	logging::print_master(
-	    LOG_INFO, "Artificial viscosity is %s for dissipation.\n",
+	logging::info_master("Artificial viscosity is %s for dissipation.\n",
 	    parameters::artificial_viscosity_dissipation ? "used" : "not used");
 	break;
     }
@@ -354,180 +348,131 @@ void summarize_parameters()
     // boundary conditions
     switch (boundary_inner) {
     case boundary_condition_open:
-	logging::print_master(
-	    LOG_INFO, "Using 'open boundary condition' at inner boundary.\n");
+	logging::info_master("Using 'open boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_reflecting:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'reflecting boundary condition' at inner boundary.\n");
+	logging::info_master("Using 'reflecting boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_nonreflecting:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'nonreflecting boundary condition' at inner boundary.\n");
+	logging::info_master("Using 'nonreflecting boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_evanescent:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'evanescent boundary condition' at inner boundary.\n");
+	logging::info_master("Using 'evanescent boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_viscous_outflow:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'viscous outflow boundary condition' at inner boundary.\n");
+	logging::info_master("Using 'viscous outflow boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'boundary layer boundary conditions' at inner boundary.\n");
+	logging::info_master("Using 'boundary layer boundary conditions' at inner boundary.\n");
 	break;
     case boundary_condition_keplerian:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'keplarian boundary conditions' at inner boundary.\n");
+	logging::info_master("Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
     }
 
     switch (boundary_outer) {
     case boundary_condition_open:
-	logging::print_master(
-	    LOG_INFO, "Using 'open boundary condition' at outer boundary.\n");
+	logging::info_master("Using 'open boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_reflecting:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'reflecting boundary condition' at outer boundary.\n");
+	logging::info_master("Using 'reflecting boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_nonreflecting:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'nonreflecting boundary condition' at outer boundary.\n");
+	logging::info_master("Using 'nonreflecting boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_evanescent:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'evanescent boundary condition' at outer boundary.\n");
+	logging::info_master("Using 'evanescent boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_viscous_outflow:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
+	logging::info_master("Using 'viscous outflow boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'boundary layer boundary conditions' at outer boundary.\n");
+	logging::info_master("Using 'boundary layer boundary conditions' at outer boundary.\n");
 	break;
     case boundary_condition_keplerian:
-	logging::print_master(
-	    LOG_INFO,
-	    "Using 'keplarian boundary conditions' at inner boundary.\n");
+	logging::info_master("Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
     }
 
     // Mass Transfer
     if (parameters::massoverflow) {
-	logging::print_master(
-	    LOG_INFO,
-	    "Mass Transfer of %g M_0/orbit will be spread on %i gridcells (sigma = %g).\n",
+	logging::info_master("Mass Transfer of %g M_0/orbit will be spread on %i gridcells (sigma = %g).\n",
 	    parameters::mof_value,
 	    int(NAzimuthal * 3.0 * parameters::mof_sigma), mof_sigma);
     }
 
     // Boundary layer
     if (boundary_inner == boundary_condition_boundary_layer) {
-	logging::print_master(
-	    LOG_INFO,
-	    "Boundary Layer: Radial velocity at inner boundary is %e * V_Kepler.\n",
+	logging::info_master("Boundary Layer: Radial velocity at inner boundary is %e * V_Kepler.\n",
 	    vrad_fraction_of_kepler);
-	logging::print_master(
-	    LOG_INFO,
-	    "Boundary Layer: Stellar rotation rate is %f * Om_Kepler.\n",
+	logging::info_master("Boundary Layer: Stellar rotation rate is %f * Om_Kepler.\n",
 	    stellar_rotation_rate);
     }
     if (boundary_outer == boundary_condition_boundary_layer) {
-	logging::print_master(
-	    LOG_INFO,
-	    "Boundary Layer: Mass Accretion Rate is %g Solar Masses per Year.\n",
+	logging::info_master("Boundary Layer: Mass Accretion Rate is %g Solar Masses per Year.\n",
 	    mass_accretion_rate * units::mass.get_cgs_factor() /
 		units::time.get_cgs_factor() * units::cgs_Year /
 		units::cgs_Msol);
     }
-    logging::print_master(
-	LOG_INFO,
-	"Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n",
+    logging::info_master("Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n",
 	radial_viscosity_factor);
 
     if (damping) {
 	for (unsigned int i = 0; i < damping_vector.size(); ++i) {
-	    logging::print_master(LOG_INFO, "%s\n",
+	    logging::info_master("%s\n",
 				  damping_vector[i].description_inner.c_str());
-	    logging::print_master(LOG_INFO, "%s\n",
+	    logging::info_master("%s\n",
 				  damping_vector[i].description_outer.c_str());
 	}
     } else {
-	logging::print_master(LOG_INFO, "Damping at boundaries is disabled.\n");
+	logging::info_master("Damping at boundaries is disabled.\n");
     }
 
-    logging::print_master(LOG_INFO, "Surface density factor: %g\n",
+    logging::info_master("Surface density factor: %g\n",
 			  density_factor);
-    logging::print_master(LOG_INFO, "Tau factor: %g\n", tau_factor);
-    logging::print_master(LOG_INFO, "Kappa factor: %g\n", kappa_factor);
+    logging::info_master("Tau factor: %g\n", tau_factor);
+    logging::info_master("Kappa factor: %g\n", kappa_factor);
 
-    logging::print_master(LOG_INFO, "Minimum temperature: %.5e\n",
+    logging::info_master("Minimum temperature: %.5e\n",
 			  minimum_temperature);
-    logging::print_master(LOG_INFO, "Maximum temperature: %.5e\n",
+    logging::info_master("Maximum temperature: %.5e\n",
 			  maximum_temperature);
 
-    logging::print_master(
-	LOG_INFO,
-	"Heating from star is %s. Using %s model with ramping time of %g and a total factor %g.\n",
+    logging::info_master("Heating from star is %s. Using %s model with ramping time of %g and a total factor %g.\n",
 	heating_star_enabled ? "enabled" : "disabled",
 	heating_star_simple ? "simplified" : "advanced",
 	heating_star_ramping_time, heating_star_factor);
-    logging::print_master(
-	LOG_INFO,
-	"Heating from viscous dissipation is %s. Using a total factor of %g.\n",
+    logging::info_master("Heating from viscous dissipation is %s. Using a total factor of %g.\n",
 	heating_viscous_enabled ? "enabled" : "disabled",
 	heating_viscous_factor);
-    logging::print_master(LOG_INFO, "Cooling (beta) is %s. Using beta = %g.\n",
+    logging::info_master("Cooling (beta) is %s. Using beta = %g.\n",
 			  cooling_beta_enabled ? "enabled" : "disabled",
 			  cooling_beta);
-    logging::print_master(
-	LOG_INFO, "Cooling (radiative) is %s. Using a total factor of %g.\n",
+    logging::info_master("Cooling (radiative) is %s. Using a total factor of %g.\n",
 	cooling_radiative_enabled ? "enabled" : "disabled",
 	cooling_radiative_factor);
-    logging::print_master(
-	LOG_INFO,
-	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
+    logging::info_master("Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
 
-    logging::print_master(LOG_INFO, "CFL parameter: %g\n", CFL);
+    logging::info_master("CFL parameter: %g\n", CFL);
 
     switch (opacity) {
     case opacity_lin:
-	logging::print_master(
-	    LOG_INFO, "Opacity uses tables from Lin & Papaloizou, 1985\n");
+	logging::info_master("Opacity uses tables from Lin & Papaloizou, 1985\n");
 	break;
     case opacity_bell:
-	logging::print_master(LOG_INFO,
-			      "Opacity uses tables from Bell & Lin, 1994\n");
+	logging::info_master("Opacity uses tables from Bell & Lin, 1994\n");
 	break;
     case opacity_zhu:
-	logging::print_master(LOG_INFO,
-			      "Opacity uses tables from Zhu et al., 2012\n");
+	logging::info_master("Opacity uses tables from Zhu et al., 2012\n");
 	break;
     case opacity_kramers:
-	logging::print_master(
-	    LOG_INFO,
-	    "Kramers opacity and constant electron scattering (Thomson) used.\n");
+	logging::info_master("Kramers opacity and constant electron scattering (Thomson) used.\n");
 	break;
     case opacity_const_op:
-	logging::print_master(
-	    LOG_INFO, "Using constant opacity kappa_R = %e.\n", kappa_const);
+	logging::info_master("Using constant opacity kappa_R = %e.\n", kappa_const);
 	break;
     }
 
@@ -545,48 +490,38 @@ void summarize_parameters()
 	}
 	buffer[pos - 2] = '0';
 
-	logging::print_master(LOG_INFO, "Lightcurves radii are: %s\n", buffer);
+	logging::info_master("Lightcurves radii are: %s\n", buffer);
     }
 
     // particles
-    logging::print_master(LOG_INFO, "Particles are %s.\n",
+    logging::info_master("Particles are %s.\n",
 			  integrate_particles ? "enabled" : "disabled");
     if (integrate_particles) {
-	logging::print_master(
-	    LOG_INFO,
-	    "Using %u particles with a radius of %g and a density of %g.\n",
+	logging::info_master("Using %u particles with a radius of %g and a density of %g.\n",
 	    number_of_particles, particle_radius, particle_density);
-	logging::print_master(
-	    LOG_INFO,
-	    "Distributing particles with a r^%.2g profile from %g to %g with a eccentricity from 0.0 to %g.\n",
+	logging::info_master("Distributing particles with a r^%.2g profile from %g to %g with a eccentricity from 0.0 to %g.\n",
 	    particle_slope, particle_minimum_radius, particle_maximum_radius,
 	    particle_eccentricity);
-	logging::print_master(
-	    LOG_INFO,
-	    "Particles are considered escaped from the system when they reach a distance of %g or %g.\n",
+	logging::info_master("Particles are considered escaped from the system when they reach a distance of %g or %g.\n",
 	    particle_minimum_escape_radius, particle_maximum_escape_radius);
-	logging::print_master(LOG_INFO, "Particles gas drag is %s.\n",
+	logging::info_master("Particles gas drag is %s.\n",
 			      particle_gas_drag_enabled ? "enabled"
 							: "disabled");
-	logging::print_master(LOG_INFO, "Particles disk gravity is %s.\n",
+	logging::info_master("Particles disk gravity is %s.\n",
 			      particle_disk_gravity_enabled ? "enabled"
 							    : "disabled");
 	switch (integrator) {
 	case integrator_explicit:
-	    logging::print_master(LOG_INFO,
-				  "Particles use the explicit integrator\n");
+	    logging::info_master("Particles use the explicit integrator\n");
 	    break;
 	case integrator_adaptive:
-	    logging::print_master(
-		LOG_INFO, "Particles use the (explicit) adaptive integrator\n");
+	    logging::info_master("Particles use the (explicit) adaptive integrator\n");
 	    break;
 	case integrator_semiimplicit: // Semi-implicit
-	    logging::print_master(
-		LOG_INFO, "Particles use the semiimplicit integrator\n");
+	    logging::info_master("Particles use the semiimplicit integrator\n");
 	    break;
 	case integrator_implicit: // Implicit
-	    logging::print_master(LOG_INFO,
-				  "Particles use the implicit integrator\n");
+	    logging::info_master("Particles use the implicit integrator\n");
 	    break;
 	default:
 	    die("Invalid setting for Particle Integrator: %s",
@@ -605,14 +540,13 @@ void write_grid_data_to_file()
     if (CPU_Master) {
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(),
 		     "dimensions.dat") == -1) {
-	    logging::print_master(LOG_ERROR,
+	    logging::error_master(
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
 	fd = fopen(fd_filename, "w");
 	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR, "Can't write 'dimensions.dat' file. Aborting.\n");
+	    logging::error_master( "Can't write 'dimensions.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -835,7 +769,7 @@ void parse_boundary_config()
     domegadr_zero = config.get_flag("DomegaDrZero", false);
 
     if (!config.contains("OuterBoundary")) {
-	logging::print_master(LOG_ERROR,
+	logging::error_master(
 			      "OuterBoundary doesn't exist. Old .par file?\n");
 	die("died for convenience ;)");
     }
@@ -1142,8 +1076,7 @@ void parse_particle_config()
 	integrator = integrator_semiimplicit;
 
 	if (!particle_gas_drag_enabled) {
-	    logging::print_master(
-		LOG_ERROR,
+	    logging::error_master(
 		"Do not use semi-implicit particle integrator without gas drag, use the explicit integrator instead.\n");
 	}
 
@@ -1152,8 +1085,7 @@ void parse_particle_config()
 	integrator = integrator_implicit;
 
 	if (!particle_gas_drag_enabled) {
-	    logging::print_master(
-		LOG_ERROR,
+	    logging::error_master(
 		"Do not use implicit particle integrator without gas drag, use the explicit integrator instead.\n");
 	}
 
@@ -1173,8 +1105,7 @@ void parse_particle_config()
     }
 
     if (particle_disk_gravity_enabled && (!self_gravity)) {
-	logging::print_master(
-	    LOG_ERROR,
+	logging::error_master(
 	    "Cannot enable particle_disk_gravity_enabled while self_gravity is off!\n");
 	PersonalExit(1);
     }
@@ -1182,15 +1113,13 @@ void parse_particle_config()
     // second and second last radius, so that partices stay out of the ghost
     // cells
     if (particle_minimum_escape_radius < RMIN) {
-	logging::print_master(
-	    LOG_WARNING,
+	logging::warning_master(
 	    "particle_minimum_escape_radius can't be smaller than the inner radius of the domain. Setting particle_minimum_escape_radius to inner radius of the domain.\n");
 	particle_minimum_escape_radius = RMIN;
     }
 
     if (particle_maximum_escape_radius > RMAX) {
-	logging::print_master(
-	    LOG_WARNING,
+	logging::warning_master(
 	    "particle_maximum_escape_radius can't be larger than the outer radius of the domain. Setting particle_maximum_escape_radius to outer radius of the domain.\n");
 	particle_maximum_escape_radius = RMAX;
     }

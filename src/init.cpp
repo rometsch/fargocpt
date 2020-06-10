@@ -64,7 +64,7 @@ void init_radialarrays()
     unsigned int nRadial;
 
     if (asprintf(&fd_input_filename, "%s%s", OUTPUTDIR.c_str(), "radii.dat") == -1) {
-	logging::print_master(LOG_ERROR,
+	logging::error_master(
 			      "Not enough memory for string buffer.\n");
 	PersonalExit(1);
     }
@@ -77,8 +77,7 @@ void init_radialarrays()
 	double first_cell_size = 0.0;
 	double cell_growth_factor = 0.0;
     if (fd_input == NULL) {
-	logging::print_master(
-	    LOG_INFO, "Warning : no `radii.dat' file found. Using default.\n");
+	logging::info_master("Warning : no `radii.dat' file found. Using default.\n");
 	switch (parameters::radial_grid_type) {
 	case parameters::logarithmic_spacing:
 		{
@@ -124,7 +123,7 @@ void init_radialarrays()
 	    die("Invalid setting for RadialSpacing");
 	}
     } else {
-	logging::print_master(LOG_INFO, "Reading 'radii.dat' file.\n");
+	logging::info_master("Reading 'radii.dat' file.\n");
 	parameters::radial_grid_type = parameters::custom_spacing;
 	for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
 	    double temp;
@@ -132,8 +131,7 @@ void init_radialarrays()
 	    if (fscanf(fd_input, "%lf", &temp) == 1) {
 		Radii[nRadial] = temp;
 	    } else {
-		logging::print_master(
-		    LOG_ERROR,
+		logging::error_master(
 		    "Reading 'radii.dat' file: No data left to read :(\n");
 		PersonalExit(1);
 	    }
@@ -159,9 +157,7 @@ void init_radialarrays()
 				   Radii[nRadial] * Radii[nRadial]);
     }
 
-    logging::print_master(
-	LOG_VERBOSE,
-	"Active %s grid is ranging from %g to %g. Total grid is range from %g to %g.\n",
+    logging::verbose_master("Active %s grid is ranging from %g to %g. Total grid is range from %g to %g.\n",
 	parameters::radial_grid_names[parameters::radial_grid_type], Radii[1],
 	Radii[GlobalNRadial - 1], Radii[0], Radii[GlobalNRadial]);
 
@@ -202,7 +198,7 @@ void init_radialarrays()
 
 	if (asprintf(&fd_output_filename, "%s%s", OUTPUTDIR.c_str(), "used_rad.dat") ==
 	    -1) {
-	    logging::print_master(LOG_ERROR,
+	    logging::error_master(
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -210,7 +206,7 @@ void init_radialarrays()
 	fd_output = fopen(fd_output_filename, "w");
 
 	if (fd_output == NULL) {
-	    logging::print_master(LOG_ERROR,
+	    logging::error_master(
 				  "Can't write %s.\nProgram stopped.\n",
 				  fd_output_filename);
 	    PersonalExit(1);
@@ -263,7 +259,7 @@ void init_physics(t_data &data)
 	// radial self-gravity acceleration. The disk radial and azimutal
 	// velocities are not updated
 	selfgravity::init(data);
-	logging::print_master(LOG_INFO, "sg initialised\n");
+	logging::info_master("sg initialised\n");
     }
 
     // ListPlanets(sys);
@@ -390,8 +386,7 @@ void init_gas_density(t_data &data)
 {
     switch (parameters::sigma_initialize_condition) {
     case parameters::initialize_condition_profile:
-	logging::print_master(
-	    LOG_INFO, "Initializing Sigma(r) = %g = %g %s * [r/(%g AU)]^(%g)\n",
+	logging::info_master("Initializing Sigma(r) = %g = %g %s * [r/(%g AU)]^(%g)\n",
 	    parameters::sigma0,
 	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
@@ -412,13 +407,13 @@ void init_gas_density(t_data &data)
 	break;
 
     case parameters::initialize_condition_read1D:
-	logging::print_master(LOG_INFO, "Loading Sigma from '%s' (1D).\n",
+	logging::info_master("Loading Sigma from '%s' (1D).\n",
 			      parameters::sigma_filename.c_str());
 	data[t_data::DENSITY].read1D(parameters::sigma_filename.c_str(), true);
 	break;
 
     case parameters::initialize_condition_read2D:
-	logging::print_master(LOG_INFO, "Loading Sigma from '%s' (2D).\n",
+	logging::info_master("Loading Sigma from '%s' (2D).\n",
 			      parameters::sigma_filename.c_str());
 	data[t_data::DENSITY].read2D(parameters::sigma_filename.c_str());
 	break;
@@ -427,7 +422,7 @@ void init_gas_density(t_data &data)
 	die("Bad choice!"); // TODO: better explanation!
 	break;
 	// 		case parameters::initialize_condition_shakura_sunyaev:
-	// 			logging::print_master(LOG_INFO, "Initializing
+	// 			logging::info_master("Initializing
 	// Sigma from Shakura and Sunyaev 1973 standard solution (cf. A&A, 24,
 	// 337)");
 	//
@@ -453,7 +448,7 @@ void init_gas_density(t_data &data)
 	    die("Bad open simplex noise!");
 	}
 
-	logging::print_master(LOG_INFO, "Randomizing Sigma by %.2f %%.\n",
+	logging::info_master("Randomizing Sigma by %.2f %%.\n",
 			      parameters::sigma_random_factor * 100);
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
@@ -494,8 +489,7 @@ void init_gas_density(t_data &data)
 
     // profile damping?
     if (parameters::profile_damping) {
-	logging::print_master(
-	    LOG_INFO, "Damping Sigma for r > %g %s over a range from %g %s\n",
+	logging::info_master("Damping Sigma for r > %g %s over a range from %g %s\n",
 	    parameters::profile_damping_point * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_damping_width * units::length.get_cgs_factor(),
@@ -528,8 +522,7 @@ void init_gas_density(t_data &data)
     if (parameters::sigma_adjust) {
 	double total_mass = quantities::gas_total_mass(data);
 	parameters::sigma0 *= parameters::sigma_discmass / total_mass;
-	logging::print_master(
-	    LOG_INFO, "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
+	logging::info_master("Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
 	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(), total_mass,
 	    parameters::sigma_discmass);
@@ -546,7 +539,7 @@ void init_gas_density(t_data &data)
 	}
     } else {
 	double total_mass = quantities::gas_total_mass(data);
-	logging::print_master(LOG_INFO, "Total disk is mass is %g = %g %s.\n",
+	logging::info_master("Total disk is mass is %g = %g %s.\n",
 			      total_mass,
 			      total_mass * units::mass.get_cgs_factor(),
 			      units::mass.get_cgs_symbol());
@@ -562,17 +555,14 @@ void init_gas_density(t_data &data)
 void init_gas_energy(t_data &data)
 {
     if (ADIABATICINDEX == 1.0) {
-	logging::print_master(
-	    LOG_ERROR,
+	logging::error_master(
 	    "The adiabatic index must differ from unity to initialize the gas internal energy. I must exit.\n");
 	PersonalExit(1);
     }
 
     switch (parameters::energy_initialize_condition) {
     case parameters::initialize_condition_profile:
-	logging::print_master(
-	    LOG_INFO,
-	    "Initializing Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
+	logging::info_master("Initializing Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((ADIABATICINDEX - 1.0)) * parameters::sigma0 *
 		pow2(ASPECTRATIO_REF) * units::energy.get_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
@@ -610,13 +600,13 @@ void init_gas_energy(t_data &data)
 	break;
 
     case parameters::initialize_condition_read1D:
-	logging::print_master(LOG_INFO, "Loading Energy from '%s' (1D).\n",
+	logging::info_master("Loading Energy from '%s' (1D).\n",
 			      parameters::energy_filename.c_str());
 	data[t_data::ENERGY].read1D(parameters::energy_filename.c_str(), true);
 	break;
 
     case parameters::initialize_condition_read2D:
-	logging::print_master(LOG_INFO, "Loading Energy from '%s' (2D).\n",
+	logging::info_master("Loading Energy from '%s' (2D).\n",
 			      parameters::energy_filename.c_str());
 	data[t_data::ENERGY].read2D(parameters::energy_filename.c_str());
 	break;
@@ -628,8 +618,7 @@ void init_gas_energy(t_data &data)
 
     // profile damping?
     if (parameters::profile_damping) {
-	logging::print_master(
-	    LOG_INFO, "Damping Energy for r > %g %s over a range of %g %s\n",
+	logging::info_master("Damping Energy for r > %g %s over a range of %g %s\n",
 	    parameters::profile_damping_point * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_damping_width * units::length.get_cgs_factor(),

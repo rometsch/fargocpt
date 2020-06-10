@@ -21,7 +21,7 @@ void mpi_make1Dprofile(double *grid, double *array)
     tempArray = (double *)malloc(sizeof(double) * NRadial);
 
     if (tempArray == NULL) {
-	logging::print(LOG_ERROR,
+	logging::error(
 		       "Not enough memory in axisglib.c ; suspect...");
 	PersonalExit(1);
     }

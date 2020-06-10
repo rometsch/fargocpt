@@ -189,8 +189,7 @@ void interpret_grid()
 	// cell number by more than 10%
 	if (fabs(((double)NAzimuthal - optimal_N_azimuthal) /
 		 (double)NAzimuthal) > 0.1) {
-	    logging::print_master(
-		LOG_WARNING,
+	    logging::warning_master(
 		"You have %u cells in azimuthal direction. This should be %u cells to have quadratic cells!\n",
 		NAzimuthal, lround(optimal_N_azimuthal));
 	}
@@ -298,20 +297,15 @@ void interpret_equation_of_state(char *filename)
 	lowercase_first_letter(config.get<std::string>("Adiabatic", "false"));
 
     if (Adiabatic_deprecated == 'n') {
-	logging::print_master(
-	    LOG_INFO,
-	    "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
+	logging::info_master("Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
     }
     if (Adiabatic_deprecated == 'y') {
 	parameters::Adiabatic = true;
-	logging::print_master(
-	    LOG_INFO,
-	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
+	logging::info_master("Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
 	ADIABATICINDEX = config.get("AdiabaticIndex", 7.0 / 5.0);
 	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
-	    logging::print_master(
-		LOG_WARNING,
+	    logging::warning_master(
 		"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 	    parameters::Adiabatic = false;
 	}
@@ -328,8 +322,7 @@ void interpret_equation_of_state(char *filename)
 	    parameters::Adiabatic = false;
 	    parameters::Polytropic = false;
 	    parameters::Locally_Isothermal = true;
-	    logging::print_master(LOG_INFO,
-				  "Using isothermal equation of state.\n");
+	    logging::info_master("Using isothermal equation of state.\n");
 	}
 	if (strcmp(eos_string, "adiabatic") == 0 ||
 	    strcmp(eos_string, "ideal") == 0) {
@@ -345,8 +338,7 @@ void interpret_equation_of_state(char *filename)
 
 	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
-		logging::print_master(
-		    LOG_ERROR,
+		logging::error_master(
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
@@ -354,12 +346,11 @@ void interpret_equation_of_state(char *filename)
 	    }
 
 	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
-		logging::print_master(
-		    LOG_WARNING,
+		logging::warning_master(
 		    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 		parameters::Adiabatic = false;
 	    }
-	    logging::print_master(LOG_INFO, "Using ideal equation of state.\n");
+	    logging::info_master("Using ideal equation of state.\n");
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||
@@ -402,13 +393,11 @@ void interpret_equation_of_state(char *filename)
 	    }
 
 	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
-		logging::print_master(
-		    LOG_WARNING,
+		logging::warning_master(
 		    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 		parameters::Polytropic = false;
 	    }
-	    logging::print_master(LOG_INFO,
-				  "Using polytropic equation of state.\n");
+	    logging::info_master("Using polytropic equation of state.\n");
 	}
 
 	if (!could_read_eos) {
@@ -423,45 +412,37 @@ void interpret_equation_of_state(char *filename)
 
 void interpret_Nbody_smoothing() {
 	if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
-	logging::print_master(LOG_ERROR, "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR,
+	logging::error_master( "You cannot use at the same time\n");
+	logging::error_master(
 			      "`ThicknessSmoothing' and `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR,
+	logging::error_master(
 			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR,
+	logging::error_master(
 			      "one of these variables and run again.\n");
 	PersonalExit(1);
     }
 
     if ((parameters::thickness_smoothing <= 0.0) && (ROCHESMOOTHING <= 0.0)) {
-	logging::print_master(
-	    LOG_ERROR,
+	logging::error_master(
 	    "A non-vanishing potential smoothing length is required.\n");
-	logging::print_master(
-	    LOG_ERROR, "Please use either of the following variables:\n");
-	logging::print_master(LOG_ERROR,
+	logging::error_master( "Please use either of the following variables:\n");
+	logging::error_master(
 			      "`ThicknessSmoothing' *or* `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR, "before launching the run again.\n");
+	logging::error_master( "before launching the run again.\n");
 	PersonalExit(1);
     }
 
     if (ROCHESMOOTHING != 0.0) {
 	RocheSmoothing = YES;
-	logging::print_master(
-	    LOG_INFO,
-	    "Planet potential smoothing scales with their Hill sphere.\n");
+	logging::info_master("Planet potential smoothing scales with their Hill sphere.\n");
     } else if (config.get_flag("ThicknessSmoothingAtPlanet", false)) {
 	ThicknessSmoothingAtCell = NO;
 	ThicknessSmoothingAtPlanet = YES;
-	logging::print_master(
-	    LOG_INFO,
-	    "Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
+	logging::info_master("Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
     } else {
 	ThicknessSmoothingAtCell = YES;
 	ThicknessSmoothingAtPlanet = NO;
-	logging::print_master(
-	    LOG_INFO,
-	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
+	logging::info_master("Planet potential smoothing uses disk scale height at gas cell location.\n");
     }
 }
 
@@ -477,18 +458,18 @@ void interpret_viscosity()
     ALPHAVISCOSITY = config.get("ALPHAVISCOSITY", 0.0);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
-	logging::print_master(LOG_ERROR, "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR, "VISCOSITY and ALPHAVISCOSITY.\n");
-	logging::print_master(LOG_ERROR,
+	logging::error_master( "You cannot use at the same time\n");
+	logging::error_master( "VISCOSITY and ALPHAVISCOSITY.\n");
+	logging::error_master(
 			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR,
+	logging::error_master(
 			      "one of these variables and run again.\n");
 	PersonalExit(1);
     }
 
     if (ALPHAVISCOSITY != 0.0) {
 	ViscosityAlpha = YES;
-	logging::print_master(LOG_INFO, "Viscosity is of alpha type\n");
+	logging::info_master("Viscosity is of alpha type\n");
     }
 }
 
@@ -506,8 +487,6 @@ void interpret_boundary() {
 
 void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 {
-    // read config from
-    // config::read_config_from_file(filename);
     parameters::read(filename, data);
 
     interpret_disk_parameters();
@@ -558,54 +537,39 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
 void PrintUsage(char *execname)
 {
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"Usage : %s [-abcdeimnptvz] [-(0-9)] [-s number] [-f scaling] parameters file\n",
 	execname);
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"\n-a : Monitor mass and angular momentum at each timestep\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"-b : Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"-c : Sloppy CFL condition (checked at each DT, not at each timestep)\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"-d : Print some debugging information on 'stdout' at each timestep\n");
-    logging::print_master(LOG_ERROR,
+    logging::error_master(
 			  "-e : Activate EU test problem torque file output\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"-f : Scale density array by 'scaling'. Useful to increase/decrease\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"     disk surface density after a restart, for instance.            \n");
-    logging::print_master(
-	LOG_ERROR, "-i : tabulate Sigma profile as given by restart files\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master( "-i : tabulate Sigma profile as given by restart files\n");
+    logging::error_master(
 	"-n : Disable simulation. The program just reads parameters file\n");
-    logging::print_master(LOG_ERROR,
+    logging::error_master(
 			  "-o : Overrides output directory of input file.\n");
-    logging::print_master(
-	LOG_ERROR, "-p : Give profiling information at each time step\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master( "-p : Give profiling information at each time step\n");
+    logging::error_master(
 	"-s : Restart simulation, taking #'number' files as initial conditions\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"-v : Verbose mode. Tells everything about parameters file\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"-z : fake sequential built when evaluating sums on HD meshes\n");
-    logging::print_master(
-	LOG_ERROR, "-(0-9) : only write initial (or restart) HD meshes,\n");
-    logging::print_master(LOG_ERROR,
+    logging::error_master( "-(0-9) : only write initial (or restart) HD meshes,\n");
+    logging::error_master(
 			  "     proceed to the next nth output and exit\n");
-    logging::print_master(
-	LOG_ERROR,
+    logging::error_master(
 	"     This option must stand alone on one switch (-va -4 is legal, -v4a is not)\n");
     PersonalExit(1);
 }
@@ -624,77 +588,66 @@ void TellEverything()
     if (!CPU_Master)
 	return;
 
-    logging::print_master(LOG_VERBOSE, "Disc properties:\n");
-    logging::print_master(LOG_VERBOSE, "----------------\n");
-    logging::print_master(LOG_VERBOSE, "Inner Radius          : %g\n", RMIN);
-    logging::print_master(LOG_VERBOSE, "Outer Radius          : %g\n", RMAX);
-    logging::print_master(LOG_VERBOSE, "Aspect Ratio          : %g\n",
+    logging::verbose_master("Disc properties:\n");
+    logging::verbose_master("----------------\n");
+    logging::verbose_master("Inner Radius          : %g\n", RMIN);
+    logging::verbose_master("Outer Radius          : %g\n", RMAX);
+    logging::verbose_master("Aspect Ratio          : %g\n",
 			  ASPECTRATIO_REF);
-    logging::print_master(LOG_VERBOSE, "VKep at inner edge    : %.3g\n",
+    logging::verbose_master("VKep at inner edge    : %.3g\n",
 			  sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
-    logging::print_master(LOG_VERBOSE, "VKep at outer edge    : %.3g\n",
+    logging::verbose_master("VKep at outer edge    : %.3g\n",
 			  sqrt(constants::G * 1.0 / RMAX));
     /*
-    logging::print_master(LOG_VERBOSE, "boundary_inner        : %i\n",
-    parameters::boundary_inner); logging::print_master(LOG_VERBOSE,
-    "boundary_outer        : %i\n", parameters::boundary_outer);
+    logging::verbose_master("boundary_inner        : %i\n",
+    parameters::boundary_inner); logging::verbose_master("boundary_outer        : %i\n", parameters::boundary_outer);
     */
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
     // - pow(RMIN,2.0-SIGMASLOPE));	/* correct this and what follows... */
-    // logging::print_master(LOG_VERBOSE, "Initial Disk Mass             :
+    // logging::verbose_master("Initial Disk Mass             :
     // %g\n", temp); temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(1.0 -
-    // pow(RMIN,2.0-SIGMASLOPE)); logging::print_master(LOG_VERBOSE, "Initial
+    // pow(RMIN,2.0-SIGMASLOPE)); logging::verbose_master("Initial
     // Mass inner to r=1.0  : %g \n", temp);
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
-    // - 1.0); logging::print_master(LOG_VERBOSE, "Initial Mass outer to r=1.0 :
+    // - 1.0); logging::verbose_master("Initial Mass outer to r=1.0 :
     // %g \n", temp);
-    logging::print_master(LOG_VERBOSE,
-			  "Travelling time for acoustic density waves :\n");
+    logging::verbose_master("Travelling time for acoustic density waves :\n");
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
-    logging::print_master(
-	LOG_VERBOSE,
-	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+    logging::verbose_master(" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n", temp,
 	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
-    logging::print_master(
-	LOG_VERBOSE,
-	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+    logging::verbose_master(" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
 	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
-    logging::print_master(
-	LOG_VERBOSE,
-	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+    logging::verbose_master(" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
 	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
-    logging::print_master(LOG_VERBOSE,
-			  "Orbital time at Rmin  : %.3g ~ %.2f outputs\n", temp,
+    logging::verbose_master("Orbital time at Rmin  : %.3g ~ %.2f outputs\n", temp,
 			  TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
-    logging::print_master(LOG_VERBOSE,
-			  "Orbital time at Rmax  : %.3g ~ %.2f outputs\n", temp,
+    logging::verbose_master("Orbital time at Rmax  : %.3g ~ %.2f outputs\n", temp,
 			  TellNbOutputs(temp));
-    logging::print_master(LOG_VERBOSE, "Sound speed :\n");
-    logging::print_master(LOG_VERBOSE, " * At unit radius     : %.3g\n",
+    logging::verbose_master("Sound speed :\n");
+    logging::verbose_master(" * At unit radius     : %.3g\n",
 			  ASPECTRATIO_REF * sqrt(constants::G * 1.0));
-    logging::print_master(LOG_VERBOSE, " * At outer edge      : %.3g\n",
+    logging::verbose_master(" * At outer edge      : %.3g\n",
 			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
-    logging::print_master(LOG_VERBOSE, " * At inner edge      : %.3g\n",
+    logging::verbose_master(" * At inner edge      : %.3g\n",
 			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
-    logging::print_master(LOG_VERBOSE, "Grid properties:\n");
-    logging::print_master(LOG_VERBOSE, "----------------\n");
-    logging::print_master(LOG_VERBOSE, "Number of (local) rings  : %d\n",
+    logging::verbose_master("Grid properties:\n");
+    logging::verbose_master("----------------\n");
+    logging::verbose_master("Number of (local) rings  : %d\n",
 			  NRadial);
-    logging::print_master(LOG_VERBOSE, "Number of (global) rings : %d\n",
+    logging::verbose_master("Number of (global) rings : %d\n",
 			  GlobalNRadial);
-    logging::print_master(LOG_VERBOSE, "Number of sectors        : %d\n",
+    logging::verbose_master("Number of sectors        : %d\n",
 			  NAzimuthal);
-    logging::print_master(LOG_VERBOSE, "Total (local) cells      : %d\n",
+    logging::verbose_master("Total (local) cells      : %d\n",
 			  NRadial * NAzimuthal);
-    logging::print_master(LOG_VERBOSE, "Total (gobal) cells      : %d\n",
+    logging::verbose_master("Total (gobal) cells      : %d\n",
 			  GlobalNRadial * NAzimuthal);
-    logging::print_master(LOG_VERBOSE, "Outputs properties:\n");
-    logging::print_master(LOG_VERBOSE, "-------------------\n");
-    logging::print_master(
-	LOG_VERBOSE, "Time increment between outputs : %.3f = %.3f orbits\n",
+    logging::verbose_master("Outputs properties:\n");
+    logging::verbose_master("-------------------\n");
+    logging::verbose_master("Time increment between outputs : %.3f = %.3f orbits\n",
 	NINTERM * DT, TellNbOrbits(NINTERM * DT));
 }

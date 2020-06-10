@@ -126,8 +126,7 @@ void fpe_sighandler(int sig, siginfo_t *info, void *secret)
 	break;
     }
 
-    logging::print(
-	LOG_ERROR,
+    logging::error(
 	"CPU #%d has been signaled with a floating point exception of type '%s'.\n",
 	CPU_Rank, type);
 
