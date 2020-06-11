@@ -33,7 +33,7 @@ template <typename T> T json_caster(const json &j)
 
 Config::Config(const char *filename) { load_file(filename); }
 
-Config::Config(const json& j)
+Config::Config(const json &j)
 {
     m_j = std::make_shared<json>(j);
     insert_lowercase_keys();
@@ -41,8 +41,20 @@ Config::Config(const json& j)
 
 Config Config::get_subconfig(const char *key)
 {
-    auto &j = *m_j;
+    const auto &j = *m_j;
     return Config(json(j[lowercase(key)]));
+}
+
+std::vector<Config> Config::get_planet_config()
+{
+    const auto &j = *m_j;
+    std::vector<Config> planets;
+    if (contains("planets")) {
+	for (auto &j_planet : j["planets"]) {
+	    planets.push_back(Config(j_planet));
+	}
+    }
+    return planets;
 }
 
 void Config::load_file(const char *filename)
@@ -84,8 +96,14 @@ static bool string_decide(const std::string &des)
 bool Config::get_flag(const char *key)
 {
     bool ret = false;
-    auto &j = *m_j;
-    auto val = j[lowercase(key)]["value"];
+    const auto &j = *m_j;
+    json val;
+    auto &el = j[lowercase(key)];
+    if (el.contains("value")) {
+	val = el["value"];
+    } else {
+	val = el;
+    }
     if (val.is_string()) {
 	ret = string_decide(val);
     } else if (val.is_boolean()) {
@@ -118,8 +136,14 @@ bool Config::contains(const std::string &key)
 template <typename T> T Config::get(const char *key)
 {
     const auto &j = *m_j;
-    const std::string lkey = lowercase(key);
-    const T ret = json_caster<T>(j[lkey]["value"]);
+    json val;
+    auto &el = j[lowercase(key)];
+    if (el.contains("value")) {
+	val = el["value"];
+    } else {
+	val = el;
+    }
+    const T ret = json_caster<T>(val);
     return ret;
 }
 

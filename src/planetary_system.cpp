@@ -16,8 +16,6 @@
 #include <sstream>
 #include <string>
 
-using json = nlohmann::json;
-
 extern int Corotating;
 
 t_planetary_system::t_planetary_system() {}
@@ -95,124 +93,38 @@ static double find_cell_centere_radius(const double r)
     return GlobalRmed[j - 1];
 }
 
-// inspired by https://stackoverflow.com/a/8165847
-class ValueFromJson
-{
-  private:
-    json m_j;
-    std::string m_key;
-
-  public:
-    ValueFromJson(const json &j, const char *key) : m_j(j), m_key(key) {}
-
-    template <typename T> operator T()
-    {
-	const auto val = m_j[m_key];
-	if (val.is_string()) {
-	    const std::string val = m_j[m_key];
-	    T ret;
-	    std::stringstream ss(val);
-	    ss >> ret;
-	    return ret;
-	} else {
-	    return m_j[m_key].get<T>();
-	}
-    }
-};
-
-template <typename T> class ValueFromJsonDefault
-{
-  private:
-    json m_j;
-    std::string m_key;
-    T m_default;
-
-  public:
-    ValueFromJsonDefault(const json &j, const char *key, const T &default_val)
-	: m_j(j), m_key(key), m_default(default_val)
-    {
-    }
-
-    operator T()
-    {
-	if (m_j.contains(m_key)) {
-	    const std::string val = m_j[m_key];
-	    T ret;
-	    std::stringstream ss(val);
-	    ss >> ret;
-	    return ret;
-	} else {
-	    return m_default;
-	}
-    }
-};
-
-/*
-Convert a human redable string to a boolean value, non-casesensitive.
-y/yes -> true, n/no -> false, fail otherwise.
-*/
-static bool string_decide(const std::string &des)
-{
-    bool ret = false;
-    std::string s = std::string(des);
-    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if (s == "yes" || s == "y" || s == "true" || s == "1" || s == "on") {
-	ret = true;
-    } else if (s == "no" || s == "n" || s == "false" || s == "0 " ||
-	       s == "off") {
-	ret = false;
-    } else {
-	die("Invalid attempt to convert string to bool for: %s", des.c_str());
-    }
-    return ret;
-}
-
-static bool flag_value_with_default(const json &j, const std::string &key,
-				    bool default_value)
-{
-    if (j.contains(key)) {
-	const std::string val = j[key];
-	return string_decide(val);
-    } else {
-	return default_value;
-    }
-}
-
-void t_planetary_system::init_planet(const json &values)
+void t_planetary_system::init_planet(Config &config)
 {
     // check if all needed quantities are present
-    if (!(values.contains("semi-major axis") && values.contains("mass"))) {
+    if (!(config.contains("semi-major axis") && config.contains("mass"))) {
 	die("One of the planets does not have all of: semi-major axis and mass!");
     }
 
-    double semi_major_axis = ValueFromJson(values, "semi-major axis");
-    const double mass = ValueFromJson(values, "mass");
+    double semi_major_axis = config.get<double>("semi-major axis");
+    const double mass = config.get<double>("mass");
 
-    const double eccentricity =
-	ValueFromJsonDefault(values, "eccentricity", 0.0);
+    const double eccentricity = config.get<double>("eccentricity", 0.0);
 
     const double accretion_efficiency =
-	ValueFromJsonDefault(values, "accretion efficiency", 0.0);
+	config.get<double>("accretion efficiency", 0.0);
 
-    const double radius = ValueFromJsonDefault(values, "radius", 0.009304813);
+    const double radius = config.get<double>("radius", 0.009304813);
 
-    const double temperature =
-	ValueFromJsonDefault(values, "temperature", 5778.0);
+    const double temperature = config.get<double>("temperature", 5778.0);
 
-    const bool irradiate = flag_value_with_default(values, "irradiate", "no");
+    const bool irradiate = config.get_flag("irradiate", "no");
 
     const double argument_of_pericenter =
-	ValueFromJsonDefault(values, "argument of pericenter", 0.0);
+	config.get<double>("argument of pericenter", 0.0);
 
-    double ramp_up_time = ValueFromJsonDefault(values, "ramp-up time", 0.0);
+    double ramp_up_time = config.get<double>("ramp-up time", 0.0);
 
     std::string name = "planet" + std::to_string(get_number_of_planets());
-    if (values.contains("name")) {
-	name = values["name"];
+    if (config.contains("name")) {
+	name = config.get<std::string>("name");
     }
 
-    const bool cell_centered =
-	flag_value_with_default(values, "cell centered", "no");
+    const bool cell_centered = config.get_flag("cell centered", "no");
     if (cell_centered) {
 	// initialization puts centered-in-cell planets (with
 	// excentricity = 0 only)
@@ -264,18 +176,11 @@ void t_planetary_system::init_system(char *filename)
 	initialize_default_star();
     }
 
-    try {
-	std::ifstream infile(filename);
-	json j;
-	infile >> j;
+    Config config(filename);
 
-	if (j.contains("planets")) {
-	    for (auto &values : j["planets"]) {
-		init_planet(values);
-	    }
-	}
-    } catch (const nlohmann::detail::parse_error &ex) {
-	die("Error in reading planet configuration from config file.");
+    std::vector<Config> planet_configs = config.get_planet_config();
+    for (auto &planet : planet_configs) {
+	init_planet(planet);
     }
 
     config_consistency_checks();
@@ -287,7 +192,7 @@ void t_planetary_system::init_system(char *filename)
     init_rebound();
 
     logging::info_master("%d planet(s) initialized.\n",
-			  get_number_of_planets());
+			 get_number_of_planets());
 }
 
 void t_planetary_system::config_consistency_checks()
@@ -322,13 +227,15 @@ void t_planetary_system::init_hydro_frame_center()
 	// use as many bodies to calculate hydro frame center as possible
 	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
     }
-    logging::info_master("The first %d planets are used to calculate the hydro frame center.\n",
+    logging::info_master(
+	"The first %d planets are used to calculate the hydro frame center.\n",
 	parameters::n_bodies_for_hydroframe_center);
 
     move_to_hydro_frame_center();
 
     update_global_hydro_frame_center_mass();
-    logging::info_master("The mass of the planets used as hydro frame center is %e.\n",
+    logging::info_master(
+	"The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
 }
 
@@ -346,22 +253,28 @@ void t_planetary_system::list_planets()
 
     logging::info("Planet overview:\n");
     logging::info("\n");
-    logging::info(" #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |\n");
-    logging::info("-----+-------------------------+------------+------------+------------+------------+------------+\n");
+    logging::info(
+	" #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |\n");
+    logging::info(
+	"-----+-------------------------+------------+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	logging::info(" %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
+	logging::info(
+	    " %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
 	    i, get_planet(i).get_name(), get_planet(i).get_mass(),
 	    get_planet(i).get_x(), get_planet(i).get_y(),
 	    get_planet(i).get_vx(), get_planet(i).get_vy());
     }
 
     logging::info("\n");
-    logging::info(" #   | e          | a          | T [t0]     | T [a]      | accreting  | feels disk | feels plan.|\n");
-    logging::info("-----+------------+------------+------------+------------+------------+------------+------------+\n");
+    logging::info(
+	" #   | e          | a          | T [t0]     | T [a]      | accreting  | feels disk | feels plan.|\n");
+    logging::info(
+	"-----+------------+------------+------------+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	logging::info(" %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
+	logging::info(
+	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
@@ -370,15 +283,17 @@ void t_planetary_system::list_planets()
     }
 
     logging::info("\n");
-    logging::info(" #   | Temp [K]   | R [l0]     | irradiates | rampuptime |\n");
-    logging::info("-----+------------+------------+------------+------------+\n");
+    logging::info(
+	" #   | Temp [K]   | R [l0]     | irradiates | rampuptime |\n");
+    logging::info(
+	"-----+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	logging::info(" %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
-		       i, get_planet(i).get_temperature() * units::temperature,
-		       get_planet(i).get_radius(),
-		       (get_planet(i).get_irradiate()) ? 'X' : '-',
-		       get_planet(i).get_rampuptime());
+	logging::info(" %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n", i,
+		      get_planet(i).get_temperature() * units::temperature,
+		      get_planet(i).get_radius(),
+		      (get_planet(i).get_irradiate()) ? 'X' : '-',
+		      get_planet(i).get_rampuptime());
     }
 
     logging::info("\n");

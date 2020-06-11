@@ -1,17 +1,16 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "parameters.h"
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "LowTasks.h"
 
-#include "nlohmann/json_fwd.hpp"
+#include "json/json_fwd.hpp"
 
 using json = nlohmann::json;
 
@@ -42,6 +41,7 @@ class Config
     bool contains(const std::string &key);
 
     Config get_subconfig(const char *key);
+    std::vector<Config> get_planet_config();
 };
 
 #endif // CONFIG_H

@@ -1,12 +1,10 @@
 #ifndef PLANETARY_SYSTEM_H
 #define PLANETARY_SYSTEM_H
 
+#include "config.h"
 #include "planet.h"
 #include "rebound/rebound.h"
-#include "json/json.hpp"
 #include <vector>
-
-using json = nlohmann::json;
 
 class t_planetary_system
 {
@@ -63,7 +61,7 @@ class t_planetary_system
     void init_rebound();
     void init_hydro_frame_center();
     void init_corotation_body();
-    void init_planet(const json& values);
+    void init_planet(Config& config);
     void config_consistency_checks();
     void init_system(char *filename);
 
