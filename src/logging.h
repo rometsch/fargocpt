@@ -1,7 +1,6 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
-#include "fmt/printf.h"
 #include "global.h"
 
 #include <stdarg.h>
@@ -19,42 +18,9 @@ namespace logging
 extern char print_level;
 extern char error_level;
 
-void v_fmt_print(const char *format, fmt::format_args args);
+int log(const char *fmt, ...);
+int log_master(const char *fmt, ...);
 
-// template <typename... Args>
-// void fmt_print(const char* format, const Args & ... args) {
-//   vreport_error(format, fmt::make_format_args(args...));
-// }
-
-int print_flagged(const unsigned int flag, const char *fmt, va_list args);
-
-template <typename... Args> void log(const char *format, const Args &... args)
-{
-    fmt::print("[{}] ", CPU_Rank);
-    fmt::printf(format, args...);
-}
-template <typename... Args>
-void log(const int log_level, const char *format, const Args &... args)
-{
-    if (log_level <= print_level) {
-	log(format, args...);
-    }
-}
-
-template <typename... Args>
-void log_master(const char *format, const Args &... args)
-{
-    if (CPU_Master) {
-	log(format, args...);
-    }
-}
-template <typename... Args>
-void log_master(const int log_level, const char *format, const Args &... args)
-{
-    if (log_level <= print_level) {
-	log_master(format, args...);
-    }
-}
 
 /***
  * Available logging functions:
@@ -77,79 +43,19 @@ void log_master(const int log_level, const char *format, const Args &... args)
  * 
  ***/
 
+ int error(const char* format, ...);
+ int warning(const char* format, ...);
+ int notice(const char* format, ...);
+ int info(const char* format, ...);
+ int verbose(const char* format, ...);
+ int debug(const char* format, ...);
 
-template <typename... Args> void error(const char *format, const Args &... args)
-{
-    log(LOG_ERROR, format, args...);
-}
-
-template <typename... Args>
-void warning(const char *format, const Args &... args)
-{
-    log(LOG_WARNING, format, args...);
-}
-
-template <typename... Args>
-void notice(const char *format, const Args &... args)
-{
-    log(LOG_NOTICE, format, args...);
-}
-
-template <typename... Args> void info(const char *format, const Args &... args)
-{
-    log(LOG_INFO, format, args...);
-}
-
-template <typename... Args>
-void verbose(const char *format, const Args &... args)
-{
-    log(LOG_VERBOSE, format, args...);
-}
-
-template <typename... Args> void debug(const char *format, const Args &... args)
-{
-    log(LOG_DEBUG, format, args...);
-}
-
-/*** 
- * Functions to log on master cpu only.
- ***/ 
-
-template <typename... Args>
-void error_master(const char *format, const Args &... args)
-{
-    log_master(LOG_ERROR, format, args...);
-}
-
-template <typename... Args>
-void warning_master(const char *format, const Args &... args)
-{
-    log_master(LOG_WARNING, format, args...);
-}
-
-template <typename... Args>
-void notice_master(const char *format, const Args &... args)
-{
-    log_master(LOG_NOTICE, format, args...);
-}
-
-template <typename... Args>
-void info_master(const char *format, const Args &... args)
-{
-    log_master(LOG_INFO, format, args...);
-}
-
-template <typename... Args>
-void verbose_master(const char *format, const Args &... args)
-{
-    log_master(LOG_VERBOSE, format, args...);
-}
-
-template <typename... Args>
-void debug_master(const char *format, const Args &... args)
-{
-    log_master(LOG_DEBUG, format, args...);
-}
+ int error_master(const char* format, ...);
+ int warning_master(const char* format, ...);
+ int notice_master(const char* format, ...);
+ int info_master(const char* format, ...);
+ int verbose_master(const char* format, ...);
+ int debug_master(const char* format, ...);
 
 void print_runtime_info(unsigned int output_number,
 			unsigned int time_step_coarse, double dt);

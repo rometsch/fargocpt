@@ -8,7 +8,7 @@
 #include "global.h"
 #include "parameters.h"
 #include <chrono>
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -32,116 +32,325 @@ std::chrono::steady_clock::time_point realtime_last_log;
 unsigned int n_last_log;
 
 
+int vprint(const char *fmt, va_list args)
+{
+    char time_buf[80];
 
-// int myvprint(const char *fmt, va_list args)
-// {
-//     char time_buf[80];
+    // default log level for messages is info
+    int current_level = 3;
 
-//     // default log level for messages is info
-//     int current_level = 3;
+    // get specific level for this message
+    if (fmt[0] == '<') {
+	unsigned char c = fmt[1];
+	if (c && fmt[2] == '>') {
+	    if (c >= '0' && c <= '5') {
+		current_level = c - '0';
+		fmt += 3;
+	    }
+	}
+    }
 
-//     // get specific level for this message
-//     if (fmt[0] == '<') {
-// 	unsigned char c = fmt[1];
-// 	if (c && fmt[2] == '>') {
-// 	    if (c >= '0' && c <= '5') {
-// 		current_level = c - '0';
-// 		fmt += 3;
-// 	    }
-// 	}
-//     }
+    if (current_level <= print_level) {
+	if (time_format) {
+	    time_t ti;
+	    struct tm *ts;
 
-//     if (current_level <= print_level) {
-// 	if (time_format) {
-// 	    time_t ti;
-// 	    struct tm *ts;
+	    time(&ti);
+	    switch (time_format) {
+	    case 1: // print timestamp
+		sprintf(time_buf, "%i", (int)ti);
+		break;
+	    case 2: // print UTC time
+		ts = gmtime(&ti);
+		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", ts);
+		break;
+	    case 3: // print local time
+		ts = localtime(&ti);
+		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S %Z",
+			 ts);
+		break;
+	    }
+	}
 
-// 	    time(&ti);
-// 	    switch (time_format) {
-// 	    case 1: // print timestamp
-// 		sprintf(time_buf, "%i", (int)ti);
-// 		break;
-// 	    case 2: // print UTC time
-// 		ts = gmtime(&ti);
-// 		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", ts);
-// 		break;
-// 	    case 3: // print local time
-// 		ts = localtime(&ti);
-// 		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S %Z",
-// 			 ts);
-// 		break;
-// 	    }
-// 	}
+	char *buf;
+	int res = vasprintf(&buf, fmt, args);
+	if (!time_format) {
+	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
+		    (int)(std::log(CPU_Number) / std::log(10) + 1), CPU_Rank, buf);
+	} else {
+	    fprintf(current_level <= error_level ? stderr : stdout,
+		    "[%0*i %s] %s", (int)(std::log(CPU_Number) / std::log(10) + 1),
+		    CPU_Rank, time_buf, buf);
+	}
+	free(buf);
+	return res;
+    }
 
-// 	char *buf;
-// 	int res = vasprintf(&buf, fmt, args);
-// 	if (!time_format) {
-// 	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
-// 		    (int)(log(CPU_Number) / log(10) + 1), CPU_Rank, buf);
-// 	} else {
-// 	    fprintf(current_level <= error_level ? stderr : stdout,
-// 		    "[%0*i %s] %s", (int)(log(CPU_Number) / log(10) + 1),
-// 		    CPU_Rank, time_buf, buf);
-// 	}
-// 	free(buf);
-// 	return res;
-//     }
+    return 0;
+}
 
-//     return 0;
-// }
+int print_flagged(const unsigned int flag, const char *fmt, va_list args)
+{
+    char time_buf[80];
 
-// int print_flagged(const unsigned int flag, const char *fmt, va_list args)
-// {
-//     char time_buf[80];
+    // log level from flag value
+    int current_level = flag;
 
-//     // log level from flag value
-//     int current_level = flag;
+    if (current_level <= print_level) {
+	if (time_format) {
+	    time_t ti;
+	    struct tm *ts;
 
-//     if (current_level <= print_level) {
-// 	if (time_format) {
-// 	    time_t ti;
-// 	    struct tm *ts;
+	    time(&ti);
+	    switch (time_format) {
+	    case 1: // print timestamp
+		sprintf(time_buf, "%i", (int)ti);
+		break;
+	    case 2: // print UTC time
+		ts = gmtime(&ti);
+		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", ts);
+		break;
+	    case 3: // print local time
+		ts = localtime(&ti);
+		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S %Z",
+			 ts);
+		break;
+	    }
+	}
 
-// 	    time(&ti);
-// 	    switch (time_format) {
-// 	    case 1: // print timestamp
-// 		sprintf(time_buf, "%i", (int)ti);
-// 		break;
-// 	    case 2: // print UTC time
-// 		ts = gmtime(&ti);
-// 		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", ts);
-// 		break;
-// 	    case 3: // print local time
-// 		ts = localtime(&ti);
-// 		strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S %Z",
-// 			 ts);
-// 		break;
-// 	    }
-// 	}
+	char *buf;
+	int res = vasprintf(&buf, fmt, args);
+	if (time_format) {
+	    fprintf(current_level <= error_level ? stderr : stdout,
+		    "[%0*i %s] %s", (int)(std::log(CPU_Number) / std::log(10) + 1),
+		    CPU_Rank, time_buf, buf);
+	} else {
+	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
+		    (int)(std::log(CPU_Number) / std::log(10) + 1), CPU_Rank, buf);
+	}
+	free(buf);
+	return res;
+    }
 
-// 	char *buf;
-// 	int res = vasprintf(&buf, fmt, args);
-// 	if (time_format) {
-// 	    fprintf(current_level <= error_level ? stderr : stdout,
-// 		    "[%0*i %s] %s", (int)(log(CPU_Number) / log(10) + 1),
-// 		    CPU_Rank, time_buf, buf);
-// 	} else {
-// 	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
-// 		    (int)(log(CPU_Number) / log(10) + 1), CPU_Rank, buf);
-// 	}
-// 	free(buf);
-// 	return res;
-//     }
+    return 0;
+}
 
-//     return 0;
-// }
+int log(const char *fmt, ...)
+{
+    va_list args;
+    int r;
 
-int error_master(const char *fmt, ...);
-int warning_master(const char *fmt, ...);
-int notice_master(const char *fmt, ...);
-int info_master(const char *fmt, ...);
-int verbose_master(const char *fmt, ...);
-int debug_master(const char *fmt, ...);
+    va_start(args, fmt);
+    r = vprint(fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int print(const unsigned int log_level, const char *fmt, ...)
+{
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(log_level, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int log_master(const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = vprint(fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int print_master(const unsigned int log_level, const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(log_level, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int error_master(const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_ERROR, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int warning_master(const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_WARNING, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int notice_master(const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_NOTICE, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int info_master(const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_INFO, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int verbose_master(const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_VERBOSE, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int debug_master(const char *fmt, ...)
+{
+    if (!CPU_Master)
+	return 0;
+
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_DEBUG, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int error(const char *fmt, ...)
+{
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_ERROR, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int warning(const char *fmt, ...)
+{
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_WARNING, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int notice(const char *fmt, ...)
+{
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_NOTICE, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int info(const char *fmt, ...)
+{
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_INFO, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int verbose(const char *fmt, ...)
+{
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_VERBOSE, fmt, args);
+    va_end(args);
+
+    return r;
+}
+
+int debug(const char *fmt, ...)
+{
+    va_list args;
+    int r;
+
+    va_start(args, fmt);
+    r = print_flagged(LOG_DEBUG, fmt, args);
+    va_end(args);
+
+    return r;
+}
 
 void start_timer()
 {
@@ -161,7 +370,8 @@ void print_runtime_final()
     if (N_iter != 0) {
 	time_per_step_ms = realtime / (1000.0 * N_iter);
     }
-    logging::info_master("-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
+    logging::info_master(
+	"-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
 	N_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
@@ -209,7 +419,8 @@ void print_runtime_info(unsigned int output_number,
 	    time_per_step_ms =
 		realtime_since_last / (1000.0 * (N_iter - n_last_log));
 	}
-	logging::info_master("output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
+	logging::info_master(
+	    "output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 	    output_number, time_step_coarse, N_iter, PhysicalTime, dt,
 	    realtime / 1000000.0, time_per_step_ms);
 	n_last_log = N_iter;
