@@ -519,7 +519,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     
     constants::initialize_constants();
 
-    // now we now everything to compute unit factors
+    // now we know everything to compute unit factors
     units::calculate_unit_factors();
 
     // TODO: This should definitely done in parameters.cpp, where values are
@@ -527,12 +527,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // units::calculate_unit_factors() so it is not possible. Moving the read()
     // call causes an error.
     parameters::apply_units();
-
-	double foo = parameters::maximum_temperature * units::temperature.get_inverse_cgs_factor();
-	std::cout << "!!!!!!!!!!!!!!!!!!!! double max = " << std::numeric_limits<double>::max() << std::endl;
-	std::cout << "!!!!!!!!!!!!!!!!!!!! maximum T = " << foo << std::endl;
-	std::cout << "!!!!!!!!!!!!!!!!!!!! 1.1*double max = " << 1.1*std::numeric_limits<double>::max() << std::endl;
-	std::cout << "!!!!!!!!!!!!!!!!!!!! 2 < 1.1*double max = " << (-100 < 1.1*std::numeric_limits<double>::max()) << std::endl;
 }
 
 void PrintUsage(char *execname)
