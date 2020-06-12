@@ -4,9 +4,9 @@
 	Declares all global variables.
 */
 
+#include "config.h"
 #include "radialarray.h"
 #include "types.h"
-#include "config.h"
 #include <mpi.h>
 #include <string>
 
@@ -144,8 +144,8 @@ int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
-int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell,
-    ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
+bool RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;
+int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian;
 int CentrifugalBalance, ExcludeHill, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;

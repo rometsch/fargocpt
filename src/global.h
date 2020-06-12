@@ -1,9 +1,9 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#include "config.h"
 #include "radialarray.h"
 #include "types.h"
-#include "config.h"
 #include <mpi.h>
 #include <string>
 
@@ -83,8 +83,9 @@ extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern double hydro_center_mass;
 
 extern int debug, OnlyInit;
-extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
-    ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles,
+extern bool RocheSmoothing, ThicknessSmoothingAtCell,
+    ThicknessSmoothingAtPlanet;
+extern int GotoNextOutput, ViscosityAlpha, CartesianParticles,
     ParticlesInCartesian;
 extern int CentrifugalBalance, ExcludeHill, SloppyCFL;
 extern MPI_Status global_MPI_Status;

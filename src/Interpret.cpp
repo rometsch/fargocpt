@@ -433,16 +433,19 @@ void interpret_Nbody_smoothing() {
     }
 
     if (ROCHESMOOTHING != 0.0) {
-	RocheSmoothing = YES;
-	logging::info_master("Planet potential smoothing scales with their Hill sphere.\n");
+	RocheSmoothing = true;
+	logging::info_master(
+	    "Planet potential smoothing scales with their Hill sphere.\n");
     } else if (config.get_flag("ThicknessSmoothingAtPlanet", false)) {
-	ThicknessSmoothingAtCell = NO;
-	ThicknessSmoothingAtPlanet = YES;
-	logging::info_master("Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
+	ThicknessSmoothingAtCell = false;
+	ThicknessSmoothingAtPlanet = true;
+	logging::info_master(
+	    "Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
     } else {
-	ThicknessSmoothingAtCell = YES;
-	ThicknessSmoothingAtPlanet = NO;
-	logging::info_master("Planet potential smoothing uses disk scale height at gas cell location.\n");
+	ThicknessSmoothingAtCell = true;
+	ThicknessSmoothingAtPlanet = false;
+	logging::info_master(
+	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
     }
 }
 
