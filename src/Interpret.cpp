@@ -289,6 +289,76 @@ void remove_energy_damping_if_unused()
 	parameters::damping_vector.end());
 }
 
+void interpret_isothermal()
+{
+    parameters::Adiabatic = false;
+    parameters::Polytropic = false;
+    parameters::Locally_Isothermal = true;
+    logging::info_master("Using isothermal equation of state.\n");
+}
+void interpret_adiabatic()
+{
+    // Energy equation / Adiabatic
+    parameters::Adiabatic = true;
+
+    const std::string ADIABATICINDEX_string =
+	lowercase(config.get<std::string>("AdiabaticIndex", "not set"));
+
+    if (ADIABATICINDEX_string == "fit_isothermal" ||
+	ADIABATICINDEX_string == "fit isothermal") {
+	logging::error_master(
+	    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
+	PersonalExit(1);
+    } else {
+	ADIABATICINDEX = config.get<double>("AdiabaticIndex", 7.0 / 5.0);
+    }
+
+    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
+	logging::warning_master(
+	    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+	parameters::Adiabatic = false;
+    }
+    logging::info_master("Using ideal equation of state.\n");
+}
+void interpret_polytropic(char *filename)
+{
+    // Equation of state / Polytropic
+    parameters::Polytropic = true;
+    double K = 0.0;
+    double gamma = 0.0;
+
+    const std::string ADIABATICINDEX_string =
+	lowercase(config.get<std::string>("AdiabaticIndex", "2.0"));
+
+    if (ADIABATICINDEX_string == "fit_isothermal" ||
+	ADIABATICINDEX_string == "fit isothermal") {
+	get_polytropic_constants(filename, K, gamma);
+	ADIABATICINDEX = gamma;
+    } else {
+	ADIABATICINDEX = config.get<double>("AdiabaticIndex", 2.0);
+    }
+
+    const std::string POLYTROPIC_CONSTANT_string =
+	lowercase(config.get<std::string>("AdiabaticIndex", "not set"));
+
+    if (POLYTROPIC_CONSTANT_string == "fit_isothermal" ||
+	POLYTROPIC_CONSTANT_string == "fit isothermal") {
+	if (K == 0.0) // Call script only if needed
+	{
+	    get_polytropic_constants(filename, K, gamma);
+	}
+	POLYTROPIC_CONSTANT = K;
+    } else {
+	POLYTROPIC_CONSTANT = config.get<double>("PolytropicConstant", 12.753);
+    }
+
+    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
+	logging::warning_master(
+	    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+	parameters::Polytropic = false;
+    }
+    logging::info_master("Using polytropic equation of state.\n");
+}
 
 void interpret_equation_of_state(char *filename)
 {
@@ -297,11 +367,13 @@ void interpret_equation_of_state(char *filename)
 	lowercase_first_letter(config.get<std::string>("Adiabatic", "false"));
 
     if (Adiabatic_deprecated == 'n') {
-	logging::info_master("Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
+	logging::info_master(
+	    "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
     }
     if (Adiabatic_deprecated == 'y') {
 	parameters::Adiabatic = true;
-	logging::info_master("Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
+	logging::info_master(
+	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
 	ADIABATICINDEX = config.get<double>("AdiabaticIndex", 7.0 / 5.0);
 	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
@@ -311,97 +383,27 @@ void interpret_equation_of_state(char *filename)
 	}
     } else {
 
-	const std::string eos_string_tmp =
+	const std::string eos_string =
 	    lowercase(config.get<std::string>("EquationOfState", "Isothermal"));
-	const char *eos_string = eos_string_tmp.c_str();
 
 	bool could_read_eos = false;
-	if (strcmp(eos_string, "isothermal") == 0 ||
-	    strcmp(eos_string, "iso") == 0) {
+	if (eos_string == "isothermal" || eos_string == "iso") {
+	    interpret_isothermal();
 	    could_read_eos = true;
-	    parameters::Adiabatic = false;
-	    parameters::Polytropic = false;
-	    parameters::Locally_Isothermal = true;
-	    logging::info_master("Using isothermal equation of state.\n");
 	}
-	if (strcmp(eos_string, "adiabatic") == 0 ||
-	    strcmp(eos_string, "ideal") == 0) {
+	if (eos_string == "adiabatic" || eos_string == "ideal") {
+	    interpret_adiabatic();
 	    could_read_eos = true;
-
-	    // Energy equation / Adiabatic
-	    parameters::Adiabatic = true;
-
-	    const std::string ADIABATICINDEX_string_tmp =
-		lowercase(config.get<std::string>("AdiabaticIndex", "7/5"));
-	    const char *ADIABATICINDEX_string =
-		ADIABATICINDEX_string_tmp.c_str();
-
-	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
-		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
-		logging::error_master(
-		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
-		PersonalExit(1);
-	    } else {
-		ADIABATICINDEX = config.get<double>("AdiabaticIndex", 7.0 / 5.0);
-	    }
-
-	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
-		logging::warning_master(
-		    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-		parameters::Adiabatic = false;
-	    }
-	    logging::info_master("Using ideal equation of state.\n");
 	}
 
-	if (strcmp(eos_string, "polytropic") == 0 ||
-	    strcmp(eos_string, "polytrop") == 0 ||
-	    strcmp(eos_string, "poly") == 0) {
+	if (eos_string == "polytropic" || eos_string == "polytrop" ||
+	    eos_string == "poly") {
 	    could_read_eos = true;
-
-	    // Equation of state / Polytropic
-	    parameters::Polytropic = true;
-	    double K = 0.0;
-	    double gamma = 0.0;
-
-	    const std::string ADIABATICINDEX_string_tmp =
-		lowercase(config.get<std::string>("AdiabaticIndex", "2.0"));
-	    const char *ADIABATICINDEX_string =
-		ADIABATICINDEX_string_tmp.c_str();
-
-	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
-		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
-		get_polytropic_constants(filename, K, gamma);
-		ADIABATICINDEX = gamma;
-	    } else {
-		ADIABATICINDEX = config.get<double>("AdiabaticIndex", 2.0);
-	    }
-
-	    const std::string POLYTROPIC_CONSTANT_string_tmp =
-		lowercase(config.get<std::string>("AdiabaticIndex", "7/5"));
-	    const char *POLYTROPIC_CONSTANT_string =
-		POLYTROPIC_CONSTANT_string_tmp.c_str();
-
-	    if (strcmp(POLYTROPIC_CONSTANT_string, "fit_isothermal") == 0 ||
-		strcmp(POLYTROPIC_CONSTANT_string, "fit isothermal") == 0) {
-		if (K == 0.0) // Call script only if needed
-		{
-		    get_polytropic_constants(filename, K, gamma);
-		}
-		POLYTROPIC_CONSTANT = K;
-	    } else {
-		POLYTROPIC_CONSTANT = config.get<double>("PolytropicConstant", 12.753);
-	    }
-
-	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
-		logging::warning_master(
-		    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-		parameters::Polytropic = false;
-	    }
-	    logging::info_master("Using polytropic equation of state.\n");
 	}
 
 	if (!could_read_eos) {
-	    const std::string eos_str = config.get<std::string>("EquationOfState");
+	    const std::string eos_str =
+		config.get<std::string>("EquationOfState");
 	    die("Invalid setting for Energy Equation:   %s\n", eos_str.c_str());
 	}
     }
@@ -409,26 +411,23 @@ void interpret_equation_of_state(char *filename)
     remove_energy_damping_if_unused();
 }
 
-
-void interpret_Nbody_smoothing() {
-	if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
-	logging::error_master( "You cannot use at the same time\n");
-	logging::error_master(
-			      "`ThicknessSmoothing' and `RocheSmoothing'.\n");
-	logging::error_master(
-			      "Edit the parameter file so as to remove\n");
-	logging::error_master(
-			      "one of these variables and run again.\n");
+void interpret_Nbody_smoothing()
+{
+    if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
+	logging::error_master("You cannot use at the same time\n");
+	logging::error_master("`ThicknessSmoothing' and `RocheSmoothing'.\n");
+	logging::error_master("Edit the parameter file so as to remove\n");
+	logging::error_master("one of these variables and run again.\n");
 	PersonalExit(1);
     }
 
     if ((parameters::thickness_smoothing <= 0.0) && (ROCHESMOOTHING <= 0.0)) {
 	logging::error_master(
 	    "A non-vanishing potential smoothing length is required.\n");
-	logging::error_master( "Please use either of the following variables:\n");
 	logging::error_master(
-			      "`ThicknessSmoothing' *or* `RocheSmoothing'.\n");
-	logging::error_master( "before launching the run again.\n");
+	    "Please use either of the following variables:\n");
+	logging::error_master("`ThicknessSmoothing' *or* `RocheSmoothing'.\n");
+	logging::error_master("before launching the run again.\n");
 	PersonalExit(1);
     }
 
@@ -452,7 +451,7 @@ void interpret_Nbody_smoothing() {
 void interpret_Nbody_interactions()
 {
     ExcludeHill = config.get_flag("EXCLUDEHILL", false);
-	interpret_Nbody_smoothing();
+    interpret_Nbody_smoothing();
 }
 
 void interpret_viscosity()
@@ -461,12 +460,10 @@ void interpret_viscosity()
     ALPHAVISCOSITY = config.get<double>("ALPHAVISCOSITY", 0.0);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
-	logging::error_master( "You cannot use at the same time\n");
-	logging::error_master( "VISCOSITY and ALPHAVISCOSITY.\n");
-	logging::error_master(
-			      "Edit the parameter file so as to remove\n");
-	logging::error_master(
-			      "one of these variables and run again.\n");
+	logging::error_master("You cannot use at the same time\n");
+	logging::error_master("VISCOSITY and ALPHAVISCOSITY.\n");
+	logging::error_master("Edit the parameter file so as to remove\n");
+	logging::error_master("one of these variables and run again.\n");
 	PersonalExit(1);
     }
 
@@ -476,16 +473,18 @@ void interpret_viscosity()
     }
 }
 
-void sanitize_output_dir_string() {
+void sanitize_output_dir_string()
+{
     // Add a trailing slash to OUTPUTDIR if needed
     if (OUTPUTDIR[OUTPUTDIR.length() - 1] != '/') {
 	OUTPUTDIR.append("/");
     }
 }
 
-void interpret_boundary() {
-	// perscriped mass accretion through outer boundary
-	OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
+void interpret_boundary()
+{
+    // perscriped mass accretion through outer boundary
+    OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
 }
 
 void ReadVariables(char *filename, t_data &data, int argc, char **argv)
@@ -516,10 +515,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     interpret_viscosity();
 
-	interpret_boundary();
+    interpret_boundary();
 
-	sanitize_output_dir_string();
-    
+    sanitize_output_dir_string();
+
     constants::initialize_constants();
 
     // now we know everything to compute unit factors
@@ -545,27 +544,27 @@ void PrintUsage(char *execname)
 	"-c : Sloppy CFL condition (checked at each DT, not at each timestep)\n");
     logging::error_master(
 	"-d : Print some debugging information on 'stdout' at each timestep\n");
-    logging::error_master(
-			  "-e : Activate EU test problem torque file output\n");
+    logging::error_master("-e : Activate EU test problem torque file output\n");
     logging::error_master(
 	"-f : Scale density array by 'scaling'. Useful to increase/decrease\n");
     logging::error_master(
 	"     disk surface density after a restart, for instance.            \n");
-    logging::error_master( "-i : tabulate Sigma profile as given by restart files\n");
+    logging::error_master(
+	"-i : tabulate Sigma profile as given by restart files\n");
     logging::error_master(
 	"-n : Disable simulation. The program just reads parameters file\n");
+    logging::error_master("-o : Overrides output directory of input file.\n");
     logging::error_master(
-			  "-o : Overrides output directory of input file.\n");
-    logging::error_master( "-p : Give profiling information at each time step\n");
+	"-p : Give profiling information at each time step\n");
     logging::error_master(
 	"-s : Restart simulation, taking #'number' files as initial conditions\n");
     logging::error_master(
 	"-v : Verbose mode. Tells everything about parameters file\n");
     logging::error_master(
 	"-z : fake sequential built when evaluating sums on HD meshes\n");
-    logging::error_master( "-(0-9) : only write initial (or restart) HD meshes,\n");
     logging::error_master(
-			  "     proceed to the next nth output and exit\n");
+	"-(0-9) : only write initial (or restart) HD meshes,\n");
+    logging::error_master("     proceed to the next nth output and exit\n");
     logging::error_master(
 	"     This option must stand alone on one switch (-va -4 is legal, -v4a is not)\n");
     PersonalExit(1);
@@ -589,15 +588,15 @@ void TellEverything()
     logging::verbose_master("----------------\n");
     logging::verbose_master("Inner Radius          : %g\n", RMIN);
     logging::verbose_master("Outer Radius          : %g\n", RMAX);
-    logging::verbose_master("Aspect Ratio          : %g\n",
-			  ASPECTRATIO_REF);
+    logging::verbose_master("Aspect Ratio          : %g\n", ASPECTRATIO_REF);
     logging::verbose_master("VKep at inner edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
+			    sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
     logging::verbose_master("VKep at outer edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 / RMAX));
+			    sqrt(constants::G * 1.0 / RMAX));
     /*
     logging::verbose_master("boundary_inner        : %i\n",
-    parameters::boundary_inner); logging::verbose_master("boundary_outer        : %i\n", parameters::boundary_outer);
+    parameters::boundary_inner); logging::verbose_master("boundary_outer :
+    %i\n", parameters::boundary_outer);
     */
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
     // - pow(RMIN,2.0-SIGMASLOPE));	/* correct this and what follows... */
@@ -610,41 +609,42 @@ void TellEverything()
     // %g \n", temp);
     logging::verbose_master("Travelling time for acoustic density waves :\n");
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
-    logging::verbose_master(" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+    logging::verbose_master(
+	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n", temp,
 	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
-    logging::verbose_master(" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+    logging::verbose_master(
+	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
 	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
-    logging::verbose_master(" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+    logging::verbose_master(
+	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
 	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
-    logging::verbose_master("Orbital time at Rmin  : %.3g ~ %.2f outputs\n", temp,
-			  TellNbOutputs(temp));
+    logging::verbose_master("Orbital time at Rmin  : %.3g ~ %.2f outputs\n",
+			    temp, TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
-    logging::verbose_master("Orbital time at Rmax  : %.3g ~ %.2f outputs\n", temp,
-			  TellNbOutputs(temp));
+    logging::verbose_master("Orbital time at Rmax  : %.3g ~ %.2f outputs\n",
+			    temp, TellNbOutputs(temp));
     logging::verbose_master("Sound speed :\n");
     logging::verbose_master(" * At unit radius     : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0));
+			    ASPECTRATIO_REF * sqrt(constants::G * 1.0));
     logging::verbose_master(" * At outer edge      : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
+			    ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
     logging::verbose_master(" * At inner edge      : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
+			    ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
     logging::verbose_master("Grid properties:\n");
     logging::verbose_master("----------------\n");
-    logging::verbose_master("Number of (local) rings  : %d\n",
-			  NRadial);
-    logging::verbose_master("Number of (global) rings : %d\n",
-			  GlobalNRadial);
-    logging::verbose_master("Number of sectors        : %d\n",
-			  NAzimuthal);
+    logging::verbose_master("Number of (local) rings  : %d\n", NRadial);
+    logging::verbose_master("Number of (global) rings : %d\n", GlobalNRadial);
+    logging::verbose_master("Number of sectors        : %d\n", NAzimuthal);
     logging::verbose_master("Total (local) cells      : %d\n",
-			  NRadial * NAzimuthal);
+			    NRadial * NAzimuthal);
     logging::verbose_master("Total (gobal) cells      : %d\n",
-			  GlobalNRadial * NAzimuthal);
+			    GlobalNRadial * NAzimuthal);
     logging::verbose_master("Outputs properties:\n");
     logging::verbose_master("-------------------\n");
-    logging::verbose_master("Time increment between outputs : %.3f = %.3f orbits\n",
-	NINTERM * DT, TellNbOrbits(NINTERM * DT));
+    logging::verbose_master(
+	"Time increment between outputs : %.3f = %.3f orbits\n", NINTERM * DT,
+	TellNbOrbits(NINTERM * DT));
 }
