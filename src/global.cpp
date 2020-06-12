@@ -144,7 +144,6 @@ int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
-bool RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;
 int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;

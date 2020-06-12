@@ -148,7 +148,7 @@ void create_outputdir(const char *filename)
 void interpret_disk_parameters()
 {
     MASSTAPER = config.get<double>("MASSTAPER", 0.0000001);
-    parameters::rochesmoothing = config.get<double>("ROCHESMOOTHING", 0.0);
+    parameters::roche_smoothing_factor = config.get<double>("ROCHESMOOTHING", 0.0);
     SIGMASLOPE = config.get<double>("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config.get<double>("IMPOSEDDISKDRIFT", 0.0);
 
@@ -413,7 +413,7 @@ void interpret_equation_of_state(char *filename)
 
 void interpret_Nbody_smoothing()
 {
-    if ((parameters::thickness_smoothing != 0.0) && (parameters::rochesmoothing != 0.0)) {
+    if ((parameters::thickness_smoothing != 0.0) && (parameters::roche_smoothing_factor != 0.0)) {
 	logging::error_master("You cannot use at the same time\n");
 	logging::error_master("`ThicknessSmoothing' and `RocheSmoothing'.\n");
 	logging::error_master("Edit the parameter file so as to remove\n");
@@ -421,7 +421,7 @@ void interpret_Nbody_smoothing()
 	PersonalExit(1);
     }
 
-    if ((parameters::thickness_smoothing <= 0.0) && (parameters::rochesmoothing <= 0.0)) {
+    if ((parameters::thickness_smoothing <= 0.0) && (parameters::roche_smoothing_factor <= 0.0)) {
 	logging::error_master(
 	    "A non-vanishing potential smoothing length is required.\n");
 	logging::error_master(
@@ -431,18 +431,16 @@ void interpret_Nbody_smoothing()
 	PersonalExit(1);
     }
 
-    if (parameters::rochesmoothing != 0.0) {
-	RocheSmoothing = true;
+    if (parameters::roche_smoothing_factor != 0.0) {
+	parameters::roche_smoothing_enabled = true;
 	logging::info_master(
 	    "Planet potential smoothing scales with their Hill sphere.\n");
     } else if (config.get_flag("ThicknessSmoothingAtPlanet", false)) {
-	ThicknessSmoothingAtCell = false;
-	ThicknessSmoothingAtPlanet = true;
+	parameters::thickness_smoothing_at_cell = false;
 	logging::info_master(
 	    "Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
     } else {
-	ThicknessSmoothingAtCell = true;
-	ThicknessSmoothingAtPlanet = false;
+	parameters::thickness_smoothing_at_cell = true;
 	logging::info_master(
 	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
     }

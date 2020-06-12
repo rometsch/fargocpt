@@ -140,8 +140,8 @@ void UpdateLogStockholm(t_data &data, double time)
 	y = data.get_planetary_system().get_planet(i).get_y();
 	r = sqrt(x * x + y * y);
 	m = data.get_planetary_system().get_planet(i).get_mass();
-	if (RocheSmoothing)
-	    smoothing = r * pow(m / 3., 1. / 3.) * parameters::rochesmoothing;
+	if (parameters::roche_smoothing_enabled)
+	    smoothing = r * pow(m / 3., 1. / 3.) * parameters::roche_smoothing_factor;
 	else
 	    smoothing = compute_smoothing_isothermal(r);
 	fc = ComputeForceStockholm(data, x, y, smoothing, m);

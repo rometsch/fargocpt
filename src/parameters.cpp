@@ -127,8 +127,11 @@ double log_after_real_seconds;
 t_opacity opacity;
 
 double thickness_smoothing;
-double rochesmoothing;
+double roche_smoothing_factor;
 double thickness_smoothing_sg;
+
+bool roche_smoothing_enabled;
+bool thickness_smoothing_at_cell;
 
 bool exclude_hill;
 

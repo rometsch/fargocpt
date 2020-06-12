@@ -83,8 +83,6 @@ extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern double hydro_center_mass;
 
 extern int debug, OnlyInit;
-extern bool RocheSmoothing, ThicknessSmoothingAtCell,
-    ThicknessSmoothingAtPlanet;
 extern int GotoNextOutput, ViscosityAlpha, CartesianParticles,
     ParticlesInCartesian;
 extern MPI_Status global_MPI_Status;
