@@ -375,7 +375,7 @@ void init_shakura_sunyaev(t_data &data)
     viscosity::update_viscosity(data);
     /** end init_euler **/
 
-    if (CentrifugalBalance)
+    if (parameters::centrifugal_balance)
 	die("CentrifugalBalance and Shakura-Sunyaev starting values has not yet been implemented!");
 }
 
@@ -690,7 +690,7 @@ void init_gas_velocities(t_data &data)
 
     // Initialization of azimutal velocity with exact centrifugal balance
     /* --------- */
-    if (CentrifugalBalance) {
+    if (parameters::centrifugal_balance) {
 	double vt_int[MAX1D];
 
 	/* vt_int \equiv rOmega� = grad(P)/sigma +  \partial(phi)/\partial(r)  -
@@ -772,7 +772,7 @@ void init_gas_velocities(t_data &data)
     }
 
     // Initialization with self-gravity, without exact centrifugal balance
-    if (parameters::self_gravity && !CentrifugalBalance)
+    if (parameters::self_gravity && !parameters::centrifugal_balance)
 	selfgravity::init_azimuthal_velocity(data[t_data::V_AZIMUTHAL]);
 
     for (unsigned int n_radial = 0;
@@ -799,7 +799,7 @@ void init_gas_velocities(t_data &data)
 
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= OmegaFrame * r;
 
-	    if (CentrifugalBalance)
+	    if (parameters::centrifugal_balance)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    vt_cent[n_radial + IMIN];
 

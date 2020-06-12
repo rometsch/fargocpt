@@ -148,7 +148,7 @@ void create_outputdir(const char *filename)
 void interpret_disk_parameters()
 {
     MASSTAPER = config.get<double>("MASSTAPER", 0.0000001);
-    ROCHESMOOTHING = config.get<double>("ROCHESMOOTHING", 0.0);
+    parameters::rochesmoothing = config.get<double>("ROCHESMOOTHING", 0.0);
     SIGMASLOPE = config.get<double>("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config.get<double>("IMPOSEDDISKDRIFT", 0.0);
 
@@ -413,7 +413,7 @@ void interpret_equation_of_state(char *filename)
 
 void interpret_Nbody_smoothing()
 {
-    if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
+    if ((parameters::thickness_smoothing != 0.0) && (parameters::rochesmoothing != 0.0)) {
 	logging::error_master("You cannot use at the same time\n");
 	logging::error_master("`ThicknessSmoothing' and `RocheSmoothing'.\n");
 	logging::error_master("Edit the parameter file so as to remove\n");
@@ -421,7 +421,7 @@ void interpret_Nbody_smoothing()
 	PersonalExit(1);
     }
 
-    if ((parameters::thickness_smoothing <= 0.0) && (ROCHESMOOTHING <= 0.0)) {
+    if ((parameters::thickness_smoothing <= 0.0) && (parameters::rochesmoothing <= 0.0)) {
 	logging::error_master(
 	    "A non-vanishing potential smoothing length is required.\n");
 	logging::error_master(
@@ -431,7 +431,7 @@ void interpret_Nbody_smoothing()
 	PersonalExit(1);
     }
 
-    if (ROCHESMOOTHING != 0.0) {
+    if (parameters::rochesmoothing != 0.0) {
 	RocheSmoothing = true;
 	logging::info_master(
 	    "Planet potential smoothing scales with their Hill sphere.\n");
@@ -450,7 +450,6 @@ void interpret_Nbody_smoothing()
 
 void interpret_Nbody_interactions()
 {
-    ExcludeHill = config.get_flag("EXCLUDEHILL", false);
     interpret_Nbody_smoothing();
 }
 

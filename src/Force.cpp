@@ -70,7 +70,7 @@ void ComputeForce(t_data &data, Force *force, double x, double y, double mass)
 
     // calculate smoothing length only once if not dependend on radius
     if (RocheSmoothing) {
-	rsmoothing = rh * ROCHESMOOTHING;
+	rsmoothing = rh * parameters::rochesmoothing;
     } else {
 	// Thickness smoothing = smoothing with scale height
 	rsmoothing = compute_smoothing_isothermal(a);

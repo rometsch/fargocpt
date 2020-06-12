@@ -69,6 +69,7 @@ double radiative_diffusion_omega;
 bool radiative_diffusion_omega_auto_enabled;
 unsigned int radiative_diffusion_max_iterations;
 
+bool centrifugal_balance;
 t_initialize_condition sigma_initialize_condition;
 std::string sigma_filename;
 int random_seed;
@@ -126,7 +127,10 @@ double log_after_real_seconds;
 t_opacity opacity;
 
 double thickness_smoothing;
+double rochesmoothing;
 double thickness_smoothing_sg;
+
+bool exclude_hill;
 
 bool initialize_pure_keplerian;
 bool initialize_vradial_zero;
@@ -143,6 +147,7 @@ unsigned int zbuffer_size;
 double zbuffer_maxangle;
 
 double CFL;
+bool sloppy_cfl;
 
 double L0;
 double M0;
@@ -332,15 +337,19 @@ void summarize_parameters()
 	logging::info_master("Using no artificial viscosity.\n");
 	break;
     case artificial_viscosity_TW:
-	logging::info_master("Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\n",
+	logging::info_master(
+	    "Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\n",
 	    parameters::artificial_viscosity_factor);
-	logging::info_master("Artificial viscosity is %s for dissipation.\n",
+	logging::info_master(
+	    "Artificial viscosity is %s for dissipation.\n",
 	    parameters::artificial_viscosity_dissipation ? "used" : "not used");
 	break;
     case artificial_viscosity_SN:
-	logging::info_master("Using Stone-Norman (1991, ZEUS-2D) artificial viscosity with C = %lf.\n",
+	logging::info_master(
+	    "Using Stone-Norman (1991, ZEUS-2D) artificial viscosity with C = %lf.\n",
 	    parameters::artificial_viscosity_factor);
-	logging::info_master("Artificial viscosity is %s for dissipation.\n",
+	logging::info_master(
+	    "Artificial viscosity is %s for dissipation.\n",
 	    parameters::artificial_viscosity_dissipation ? "used" : "not used");
 	break;
     }
@@ -348,110 +357,130 @@ void summarize_parameters()
     // boundary conditions
     switch (boundary_inner) {
     case boundary_condition_open:
-	logging::info_master("Using 'open boundary condition' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'open boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_reflecting:
-	logging::info_master("Using 'reflecting boundary condition' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'reflecting boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_nonreflecting:
-	logging::info_master("Using 'nonreflecting boundary condition' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'nonreflecting boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_evanescent:
-	logging::info_master("Using 'evanescent boundary condition' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'evanescent boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_viscous_outflow:
-	logging::info_master("Using 'viscous outflow boundary condition' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'viscous outflow boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
-	logging::info_master("Using 'boundary layer boundary conditions' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'boundary layer boundary conditions' at inner boundary.\n");
 	break;
     case boundary_condition_keplerian:
-	logging::info_master("Using 'keplarian boundary conditions' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
     }
 
     switch (boundary_outer) {
     case boundary_condition_open:
-	logging::info_master("Using 'open boundary condition' at outer boundary.\n");
+	logging::info_master(
+	    "Using 'open boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_reflecting:
-	logging::info_master("Using 'reflecting boundary condition' at outer boundary.\n");
+	logging::info_master(
+	    "Using 'reflecting boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_nonreflecting:
-	logging::info_master("Using 'nonreflecting boundary condition' at outer boundary.\n");
+	logging::info_master(
+	    "Using 'nonreflecting boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_evanescent:
-	logging::info_master("Using 'evanescent boundary condition' at outer boundary.\n");
+	logging::info_master(
+	    "Using 'evanescent boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_viscous_outflow:
-	logging::info_master("Using 'viscous outflow boundary condition' at outer boundary.\n");
+	logging::info_master(
+	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
-	logging::info_master("Using 'boundary layer boundary conditions' at outer boundary.\n");
+	logging::info_master(
+	    "Using 'boundary layer boundary conditions' at outer boundary.\n");
 	break;
     case boundary_condition_keplerian:
-	logging::info_master("Using 'keplarian boundary conditions' at inner boundary.\n");
+	logging::info_master(
+	    "Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
     }
 
     // Mass Transfer
     if (parameters::massoverflow) {
-	logging::info_master("Mass Transfer of %g M_0/orbit will be spread on %i gridcells (sigma = %g).\n",
+	logging::info_master(
+	    "Mass Transfer of %g M_0/orbit will be spread on %i gridcells (sigma = %g).\n",
 	    parameters::mof_value,
 	    int(NAzimuthal * 3.0 * parameters::mof_sigma), mof_sigma);
     }
 
     // Boundary layer
     if (boundary_inner == boundary_condition_boundary_layer) {
-	logging::info_master("Boundary Layer: Radial velocity at inner boundary is %e * V_Kepler.\n",
+	logging::info_master(
+	    "Boundary Layer: Radial velocity at inner boundary is %e * V_Kepler.\n",
 	    vrad_fraction_of_kepler);
-	logging::info_master("Boundary Layer: Stellar rotation rate is %f * Om_Kepler.\n",
+	logging::info_master(
+	    "Boundary Layer: Stellar rotation rate is %f * Om_Kepler.\n",
 	    stellar_rotation_rate);
     }
     if (boundary_outer == boundary_condition_boundary_layer) {
-	logging::info_master("Boundary Layer: Mass Accretion Rate is %g Solar Masses per Year.\n",
+	logging::info_master(
+	    "Boundary Layer: Mass Accretion Rate is %g Solar Masses per Year.\n",
 	    mass_accretion_rate * units::mass.get_cgs_factor() /
 		units::time.get_cgs_factor() * units::cgs_Year /
 		units::cgs_Msol);
     }
-    logging::info_master("Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n",
+    logging::info_master(
+	"Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n",
 	radial_viscosity_factor);
 
     if (damping) {
 	for (unsigned int i = 0; i < damping_vector.size(); ++i) {
 	    logging::info_master("%s\n",
-				  damping_vector[i].description_inner.c_str());
+				 damping_vector[i].description_inner.c_str());
 	    logging::info_master("%s\n",
-				  damping_vector[i].description_outer.c_str());
+				 damping_vector[i].description_outer.c_str());
 	}
     } else {
 	logging::info_master("Damping at boundaries is disabled.\n");
     }
 
-    logging::info_master("Surface density factor: %g\n",
-			  density_factor);
+    logging::info_master("Surface density factor: %g\n", density_factor);
     logging::info_master("Tau factor: %g\n", tau_factor);
     logging::info_master("Kappa factor: %g\n", kappa_factor);
 
-    logging::info_master("Minimum temperature: %.5e\n",
-			  minimum_temperature);
-    logging::info_master("Maximum temperature: %.5e\n",
-			  maximum_temperature);
+    logging::info_master("Minimum temperature: %.5e\n", minimum_temperature);
+    logging::info_master("Maximum temperature: %.5e\n", maximum_temperature);
 
-    logging::info_master("Heating from star is %s. Using %s model with ramping time of %g and a total factor %g.\n",
+    logging::info_master(
+	"Heating from star is %s. Using %s model with ramping time of %g and a total factor %g.\n",
 	heating_star_enabled ? "enabled" : "disabled",
 	heating_star_simple ? "simplified" : "advanced",
 	heating_star_ramping_time, heating_star_factor);
-    logging::info_master("Heating from viscous dissipation is %s. Using a total factor of %g.\n",
+    logging::info_master(
+	"Heating from viscous dissipation is %s. Using a total factor of %g.\n",
 	heating_viscous_enabled ? "enabled" : "disabled",
 	heating_viscous_factor);
     logging::info_master("Cooling (beta) is %s. Using beta = %g.\n",
-			  cooling_beta_enabled ? "enabled" : "disabled",
-			  cooling_beta);
-    logging::info_master("Cooling (radiative) is %s. Using a total factor of %g.\n",
+			 cooling_beta_enabled ? "enabled" : "disabled",
+			 cooling_beta);
+    logging::info_master(
+	"Cooling (radiative) is %s. Using a total factor of %g.\n",
 	cooling_radiative_enabled ? "enabled" : "disabled",
 	cooling_radiative_factor);
-    logging::info_master("Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
+    logging::info_master(
+	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
@@ -460,7 +489,8 @@ void summarize_parameters()
 
     switch (opacity) {
     case opacity_lin:
-	logging::info_master("Opacity uses tables from Lin & Papaloizou, 1985\n");
+	logging::info_master(
+	    "Opacity uses tables from Lin & Papaloizou, 1985\n");
 	break;
     case opacity_bell:
 	logging::info_master("Opacity uses tables from Bell & Lin, 1994\n");
@@ -469,10 +499,12 @@ void summarize_parameters()
 	logging::info_master("Opacity uses tables from Zhu et al., 2012\n");
 	break;
     case opacity_kramers:
-	logging::info_master("Kramers opacity and constant electron scattering (Thomson) used.\n");
+	logging::info_master(
+	    "Kramers opacity and constant electron scattering (Thomson) used.\n");
 	break;
     case opacity_const_op:
-	logging::info_master("Using constant opacity kappa_R = %e.\n", kappa_const);
+	logging::info_master("Using constant opacity kappa_R = %e.\n",
+			     kappa_const);
 	break;
     }
 
@@ -495,27 +527,31 @@ void summarize_parameters()
 
     // particles
     logging::info_master("Particles are %s.\n",
-			  integrate_particles ? "enabled" : "disabled");
+			 integrate_particles ? "enabled" : "disabled");
     if (integrate_particles) {
-	logging::info_master("Using %u particles with a radius of %g and a density of %g.\n",
+	logging::info_master(
+	    "Using %u particles with a radius of %g and a density of %g.\n",
 	    number_of_particles, particle_radius, particle_density);
-	logging::info_master("Distributing particles with a r^%.2g profile from %g to %g with a eccentricity from 0.0 to %g.\n",
+	logging::info_master(
+	    "Distributing particles with a r^%.2g profile from %g to %g with a eccentricity from 0.0 to %g.\n",
 	    particle_slope, particle_minimum_radius, particle_maximum_radius,
 	    particle_eccentricity);
-	logging::info_master("Particles are considered escaped from the system when they reach a distance of %g or %g.\n",
+	logging::info_master(
+	    "Particles are considered escaped from the system when they reach a distance of %g or %g.\n",
 	    particle_minimum_escape_radius, particle_maximum_escape_radius);
 	logging::info_master("Particles gas drag is %s.\n",
-			      particle_gas_drag_enabled ? "enabled"
-							: "disabled");
+			     particle_gas_drag_enabled ? "enabled"
+						       : "disabled");
 	logging::info_master("Particles disk gravity is %s.\n",
-			      particle_disk_gravity_enabled ? "enabled"
-							    : "disabled");
+			     particle_disk_gravity_enabled ? "enabled"
+							   : "disabled");
 	switch (integrator) {
 	case integrator_explicit:
 	    logging::info_master("Particles use the explicit integrator\n");
 	    break;
 	case integrator_adaptive:
-	    logging::info_master("Particles use the (explicit) adaptive integrator\n");
+	    logging::info_master(
+		"Particles use the (explicit) adaptive integrator\n");
 	    break;
 	case integrator_semiimplicit: // Semi-implicit
 	    logging::info_master("Particles use the semiimplicit integrator\n");
@@ -540,13 +576,13 @@ void write_grid_data_to_file()
     if (CPU_Master) {
 	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(),
 		     "dimensions.dat") == -1) {
-	    logging::error_master(
-				  "Not enough memory for string buffer.\n");
+	    logging::error_master("Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
 	fd = fopen(fd_filename, "w");
 	if (fd == NULL) {
-	    logging::error_master( "Can't write 'dimensions.dat' file. Aborting.\n");
+	    logging::error_master(
+		"Can't write 'dimensions.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -683,7 +719,8 @@ void parse_output_config(t_data &data)
     if (config.contains("WriteLightCurvesRadii")) {
 	// get light curves radii string
 
-	std::string lightcurve_config = config.get<std::string>("WriteLightCurvesRadii");
+	std::string lightcurve_config =
+	    config.get<std::string>("WriteLightCurvesRadii");
 
 	char *lightcurves_radii_string =
 	    new char[lightcurve_config.length() + 1];
@@ -769,8 +806,7 @@ void parse_boundary_config()
     domegadr_zero = config.get_flag("DomegaDrZero", false);
 
     if (!config.contains("OuterBoundary")) {
-	logging::error_master(
-			      "OuterBoundary doesn't exist. Old .par file?\n");
+	logging::error_master("OuterBoundary doesn't exist. Old .par file?\n");
 	die("died for convenience ;)");
     }
 }
@@ -847,9 +883,11 @@ void parse_damping_config()
 void parse_nbody_config()
 {
     default_star = config.get_flag("DefaultStar", true);
-    corotation_reference_body = config.get<unsigned int>("CorotationReferenceBody", 1);
+    corotation_reference_body =
+	config.get<unsigned int>("CorotationReferenceBody", 1);
     thickness_smoothing = config.get<double>("ThicknessSmoothing", 0.0);
     integrate_planets = config.get_flag("IntegratePlanets", true);
+	exclude_hill = config.get_flag("ExcludeHILL", false);
 }
 
 void parse_disk_config()
@@ -859,10 +897,11 @@ void parse_disk_config()
 
     MU = config.get<double>("mu", 1.0);
     minimum_temperature = config.get<double>("MinimumTemperature", 3);
-    maximum_temperature = config.get<double>("MaximumTemperature", std::numeric_limits<double>::max());
-	if (maximum_temperature < 0) {
-		maximum_temperature = std::numeric_limits<double>::max();
-	}
+    maximum_temperature = config.get<double>(
+	"MaximumTemperature", std::numeric_limits<double>::max());
+    if (maximum_temperature < 0) {
+	maximum_temperature = std::numeric_limits<double>::max();
+    }
 
     // TODO: remove temporary warning
     if (config.contains("HeatingViscous") == false) {
@@ -872,11 +911,13 @@ void parse_disk_config()
     heating_viscous_factor = config.get<double>("HeatingViscousFactor", 1.0);
     heating_star_enabled = config.get_flag("HeatingStar", false);
     heating_star_factor = config.get<double>("HeatingStarFactor", 1.0);
-    heating_star_ramping_time = config.get<double>("HeatingStarRampingTime", 0.0);
+    heating_star_ramping_time =
+	config.get<double>("HeatingStarRampingTime", 0.0);
     heating_star_simple = config.get_flag("HeatingStarSimple", false);
 
     radiative_diffusion_enabled = config.get_flag("RadiativeDiffusion", false);
-    radiative_diffusion_omega = config.get<double>("RadiativeDiffusionOmega", 1.5);
+    radiative_diffusion_omega =
+	config.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled =
 	config.get_flag("RadiativeDiffusionAutoOmega", false);
     radiative_diffusion_max_iterations =
@@ -885,7 +926,8 @@ void parse_disk_config()
     zbuffer_size = config.get<unsigned int>("zbufferSize", 100);
     zbuffer_maxangle = config.get<double>("zbufferMaxAngle", 10.0 / 180.0 * PI);
 
-    cooling_radiative_factor = config.get<double>("CoolingRadiativeFactor", 1.0);
+    cooling_radiative_factor =
+	config.get<double>("CoolingRadiativeFactor", 1.0);
     cooling_radiative_enabled = config.get_flag("CoolingRadiativeLocal", false);
     cooling_beta_enabled = config.get_flag("CoolingBetaLocal", false);
     cooling_beta = config.get<double>("CoolingBeta", 1.0);
@@ -898,6 +940,7 @@ void parse_initialization_config()
     initialize_pure_keplerian =
 	config.get_flag("InitializePureKeplerian", false);
     initialize_vradial_zero = config.get_flag("InitializeVradialZero", false);
+    centrifugal_balance = config.get_flag("CentrifugalBalance", false);
 
     switch (tolower(config.get<std::string>("SigmaCondition", "Profile")[0])) {
     case 'p': // Profile
@@ -978,7 +1021,8 @@ void parse_viscosity_config()
     }
     artificial_viscosity_dissipation =
 	config.get_flag("ArtificialViscosityDissipation", true);
-    artificial_viscosity_factor = config.get<double>("ArtificialViscosityFactor", 1.41);
+    artificial_viscosity_factor =
+	config.get<double>("ArtificialViscosityFactor", 1.41);
     // warning
     if (config.contains("CVNR")) {
 	die("Parameter CVNR has been renamed to ArtificialViscosityFactor");
@@ -1029,7 +1073,11 @@ void parse_massoverflow_config()
     mof_value = config.get<double>("mofvalue", 10E-9);
 }
 
-void parse_hydrosolver_config() { CFL = config.get<double>("CFL", 0.5); }
+void parse_hydrosolver_config()
+{
+    CFL = config.get<double>("CFL", 0.5);
+    sloppy_cfl = config.get_flag("SloppyCFL", false);
+}
 
 void parse_boundarylayer_config()
 {
@@ -1047,7 +1095,8 @@ void parse_particle_config()
     particle_radius = config.get<double>("ParticleRadius", 100.0);
     particle_eccentricity = config.get<double>("ParticleEccentricity", 0.0);
     particle_density = config.get<double>("ParticleDensity", 2.65);
-    particle_slope = config.get<double>("ParticleSurfaceDensitySlope", SIGMASLOPE);
+    particle_slope =
+	config.get<double>("ParticleSurfaceDensitySlope", SIGMASLOPE);
     particle_slope =
 	-particle_slope; // particle distribution scales with  r^slope, so we
 			 // introduces the minus here to make it r^-slope (same

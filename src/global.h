@@ -87,10 +87,8 @@ extern bool RocheSmoothing, ThicknessSmoothingAtCell,
     ThicknessSmoothingAtPlanet;
 extern int GotoNextOutput, ViscosityAlpha, CartesianParticles,
     ParticlesInCartesian;
-extern int CentrifugalBalance, ExcludeHill, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
-extern int OverridesOutputdir;
 
 extern std::string OUTPUTDIR;
 
@@ -106,7 +104,6 @@ extern unsigned int NRadial;
 extern double RMIN;
 extern double RMAX;
 
-extern double ROCHESMOOTHING;
 extern double ASPECTRATIO_REF;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;

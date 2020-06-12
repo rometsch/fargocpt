@@ -551,7 +551,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 
 	    recalculate_derived_disk_quantities(data, true);
 
-	    if (!SloppyCFL) {
+	    if (!parameters::sloppy_cfl) {
 		local_gas_time_step_cfl = 1.0;
 		local_gas_time_step_cfl = condition_cfl(
 		    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],

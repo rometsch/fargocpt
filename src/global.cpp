@@ -146,11 +146,8 @@ double hydro_center_mass;
 int debug, OnlyInit;
 bool RocheSmoothing, ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet;
 int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian;
-int CentrifugalBalance, ExcludeHill, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;
-
-int OverridesOutputdir;
 
 std::string OUTPUTDIR;
 
@@ -166,7 +163,6 @@ unsigned int NAzimuthal;
 double RMIN;
 double RMAX;
 
-double ROCHESMOOTHING;
 double ASPECTRATIO_REF;
 double VISCOSITY;
 double ALPHAVISCOSITY;

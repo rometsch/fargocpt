@@ -117,6 +117,8 @@ enum t_initialize_condition {
     initialize_condition_shakura_sunyaev
 };
 
+/// initialize gas to correct value using pressure balance
+extern bool centrifugal_balance;
 /// initialize condition for sigma
 extern t_initialize_condition sigma_initialize_condition;
 /// filename to read sigma profile from
@@ -137,6 +139,8 @@ extern bool sigma_adjust;
 extern double sigma_discmass;
 /// Sigma0
 extern double sigma0;
+/// Aspect ratio at reference radius
+extern double aspectratio_ref;
 
 /// initiliaze condition for energy
 extern t_initialize_condition energy_initialize_condition;
@@ -167,7 +171,10 @@ extern double artificial_viscosity_factor;
 extern bool artificial_viscosity_dissipation;
 
 extern double thickness_smoothing;
+extern double rochesmoothing;
 extern double thickness_smoothing_sg;
+
+extern bool exclude_hill;
 
 /// calculate disk (hydro)
 extern bool calculate_disk;
@@ -250,6 +257,7 @@ extern double mass_accretion_rate;
 
 /// CFL Factor
 extern double CFL;
+extern bool sloppy_cfl;
 
 /// length base unit
 extern double L0;

@@ -102,7 +102,7 @@ void CalculatePotential(t_data &data)
 	if (RocheSmoothing) {
 	    double r_hill = pow(mpl[k] / (3.0 * (M + mpl[k])), 1.0 / 3.0) *
 			    planet.get_semi_major_axis();
-	    smooth_pl[k] = pow2(r_hill * ROCHESMOOTHING);
+	    smooth_pl[k] = pow2(r_hill * parameters::rochesmoothing);
 	} else {
 	    smooth_pl[k] = pow2(compute_smoothing_isothermal(planet.get_r()));
 	}

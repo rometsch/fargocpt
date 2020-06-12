@@ -5,6 +5,7 @@
 #include "Stockholm.h"
 #include "constants.h"
 #include "global.h"
+#include "parameters.h"
 
 Force ComputeForceStockholm(t_data &data, double x, double y, double rsmoothing,
 			    double mass)
@@ -140,7 +141,7 @@ void UpdateLogStockholm(t_data &data, double time)
 	r = sqrt(x * x + y * y);
 	m = data.get_planetary_system().get_planet(i).get_mass();
 	if (RocheSmoothing)
-	    smoothing = r * pow(m / 3., 1. / 3.) * ROCHESMOOTHING;
+	    smoothing = r * pow(m / 3., 1. / 3.) * parameters::rochesmoothing;
 	else
 	    smoothing = compute_smoothing_isothermal(r);
 	fc = ComputeForceStockholm(data, x, y, smoothing, m);
