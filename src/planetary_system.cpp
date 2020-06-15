@@ -332,17 +332,25 @@ void t_planetary_system::list_planets()
 void t_planetary_system::rotate(double angle)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	// rotate positions
-	double old_x = get_planet(i).get_x();
-	double old_y = get_planet(i).get_y();
-	get_planet(i).set_x(old_x * cos(angle) + old_y * sin(angle));
-	get_planet(i).set_y(-old_x * sin(angle) + old_y * cos(angle));
+	    const auto &planet = get_planet(i);
+        const double x = planet.get_x();
+        const double y = planet.get_y();
+        const double vx = planet.get_vx();
+        const double vy = planet.get_vy();
 
-	// rotate velocities
-	double old_vx = get_planet(i).get_vx();
-	double old_vy = get_planet(i).get_vy();
-	get_planet(i).set_vx(old_vx * cos(angle) + old_vy * sin(angle));
-	get_planet(i).set_vy(-old_vx * sin(angle) + old_vy * cos(angle));
+		// rotate positions
+        const double new_x = x*cos(angle) + y*sin(angle);
+        const double new_y = -x*sin(angle) + y*cos(angle);
+
+		// rotate velocities
+        const double new_vx = vx*cos(angle) + vy*sin(angle);
+        const double new_vy = -vx*sin(angle) + vy*cos(angle);
+
+		// save new values
+		planet.set_x(new_x);
+        planet.set_y(new_y);
+        planet.set_vx(new_vx);
+        planet.set_vy(new_vy);
     }
 }
 
