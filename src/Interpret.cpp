@@ -112,7 +112,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
 
-    MASSTAPER = config::value_as_double_default("MASSTAPER", 0.0000001);
     ROCHESMOOTHING = config::value_as_double_default("ROCHESMOOTHING", 0.0);
     SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config::value_as_double_default("IMPOSEDDISKDRIFT", 0.0);

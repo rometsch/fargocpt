@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 	    // write particles
 	    if (parameters::integrate_particles)
 		particles::write(TimeStep);
-	    if ((OnlyInit) || ((GotoNextOutput) && (!StillWriteOneOutput))) {
+	    if (GotoNextOutput && (!StillWriteOneOutput)) {
 		PersonalExit(0);
 	    }
 	    StillWriteOneOutput--;
