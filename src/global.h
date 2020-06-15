@@ -80,14 +80,13 @@ extern int TimeStep;
 extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern double hydro_center_mass;
 
-extern int debug, OnlyInit;
+extern int debug;
 extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
     ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles,
     ParticlesInCartesian;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
-extern int OverridesOutputdir;
 
 extern char *OUTPUTDIR;
 extern char *PLANETCONFIG;
@@ -96,8 +95,6 @@ extern double DT;
 extern unsigned int NINTERM;
 extern unsigned int NTOT;
 extern unsigned int N_iter;
-
-extern double MASSTAPER;
 
 extern unsigned int NAzimuthal;
 extern unsigned int NRadial;

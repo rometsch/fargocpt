@@ -2052,8 +2052,6 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
     }
 
-    // for (unsigned int n_radial = Zero_or_active; n_radial < MaxMO_or_active;
-    // ++n_radial) {
     for (unsigned int n_radial = 1 + (CPUOVERLAP - 1) * (CPU_Rank > 0 ? 1 : 0);
 	 n_radial <
 	 NRadial - 2 - (CPUOVERLAP - 1) * (CPU_Rank < CPU_Number - 1 ? 1 : 0);

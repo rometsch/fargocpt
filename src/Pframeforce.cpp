@@ -22,7 +22,7 @@
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
 extern Pair IndirectTermPlanets;
-extern boolean AllowAccretion, Corotating, Cooling;
+extern boolean AllowAccretion, Cooling;
 
 /**
  * @brief ComputeIndirectTerm: IndirectTerm is the correction therm that needs
