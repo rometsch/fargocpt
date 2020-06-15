@@ -41,7 +41,7 @@ class Config
     bool contains(const std::string &key);
 
     Config get_subconfig(const char *key);
-    std::vector<Config> get_planet_config();
+    std::vector<Config> get_nbody_config();
 };
 
 #endif // CONFIG_H

@@ -131,13 +131,7 @@ double log_after_real_seconds;
 t_opacity opacity;
 
 double thickness_smoothing;
-double roche_smoothing_factor;
 double thickness_smoothing_sg;
-
-bool roche_smoothing_enabled;
-bool thickness_smoothing_at_cell;
-
-bool exclude_hill;
 
 bool initialize_pure_keplerian;
 bool initialize_vradial_zero;
@@ -635,8 +629,8 @@ void parse_grid_config()
     /* grid */
     NRadial = config.get<unsigned int>("NRAD", 64);
     NAzimuthal = config.get<unsigned int>("NSEC", 64);
-    RMIN = config.get<double>("RMIN", 1.0);
-    RMAX = config.get<double>("RMAX", 1.0);
+    RMIN = config.get<double>("RMIN", 0.4);
+    RMAX = config.get<double>("RMAX", 2.5);
 
     exponential_cell_size_factor =
 	config.get<double>("ExponentialCellSizeFactor", 1.41);
@@ -877,12 +871,11 @@ void parse_damping_config()
 
 void parse_nbody_config()
 {
-    default_star = config.get_flag("DefaultStar", true);
+    default_star = config.get_flag("DefaultStar", false);
     corotation_reference_body =
 	config.get<unsigned int>("CorotationReferenceBody", 1);
-    thickness_smoothing = config.get<double>("ThicknessSmoothing", 0.0);
-    integrate_planets = config.get_flag("IntegratePlanets", true);
-	exclude_hill = config.get_flag("ExcludeHILL", false);
+    thickness_smoothing = config.get<double>("ThicknessSmoothing", 0.6);
+    integrate_planets = config.get_flag("IntegratePlanets", false);
 }
 
 void parse_disk_config()
@@ -896,11 +889,6 @@ void parse_disk_config()
 	"MaximumTemperature", std::numeric_limits<double>::max());
     if (maximum_temperature < 0) {
 	maximum_temperature = std::numeric_limits<double>::max();
-    }
-
-    // TODO: remove temporary warning
-    if (config.contains("HeatingViscous") == false) {
-	die("please specify HeatingViscous in config file");
     }
     heating_viscous_enabled = config.get_flag("HeatingViscous", false);
     heating_viscous_factor = config.get<double>("HeatingViscousFactor", 1.0);

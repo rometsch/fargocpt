@@ -70,6 +70,7 @@ class t_planetary_system
     void rotate(double angle);
     void restart(unsigned int timestep);
     void handle_missing_planet_file(unsigned int num_files);
+    void adjust_for_legacy_file_mode();
     
     void create_planet_files();
     void write_planets(unsigned int timestep, bool big_file);

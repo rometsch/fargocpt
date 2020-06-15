@@ -45,16 +45,17 @@ Config Config::get_subconfig(const char *key)
     return Config(json(j[lowercase(key)]));
 }
 
-std::vector<Config> Config::get_planet_config()
+std::vector<Config> Config::get_nbody_config()
 {
     const auto &j = *m_j;
-    std::vector<Config> planets;
-    if (contains("planets")) {
-	for (auto &j_planet : j["planets"]) {
-	    planets.push_back(Config(j_planet));
+    std::vector<Config> nbody_config;
+    if (contains("nbody")) {
+	for (auto &j_body : j["nbody"]) {
+
+	    nbody_config.push_back(Config(j_body));
 	}
     }
-    return planets;
+    return nbody_config;
 }
 
 void Config::load_file(const char *filename)

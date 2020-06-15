@@ -13,17 +13,15 @@
 
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
-#include <limits>
 
 #include <experimental/filesystem> /// To check wether we restart from a legacy simulation
 
 extern int Corotating;
 
-t_planetary_system::t_planetary_system() {
-	legacy_file_mode = false;
-}
+t_planetary_system::t_planetary_system() { legacy_file_mode = false; }
 
 t_planetary_system::~t_planetary_system()
 {
@@ -69,8 +67,15 @@ void t_planetary_system::init_rebound()
 
 void t_planetary_system::initialize_default_star()
 {
+    std::cout << "adding default star now" << std::endl;
+
     t_planet *planet = new t_planet();
-    initialize_planet_legacy(planet, M, 0.0, 0.0, 0.0);
+
+    planet->set_x(0.0);
+    planet->set_y(0.0);
+    planet->set_vx(0.0);
+    planet->set_vy(0.0);
+    planet->set_mass(1.0);
 
     planet->set_name("Default Star");
     planet->set_acc(0.0);
@@ -117,7 +122,7 @@ void t_planetary_system::init_planet(Config &config)
 
     const double temperature = config.get<double>("temperature", 5778.0);
 
-    const bool irradiate = config.get_flag("irradiate", "no");
+    const bool irradiate = config.get_flag("irradiate", false);
 
     const double argument_of_pericenter =
 	config.get<double>("argument of pericenter", 0.0);
@@ -129,10 +134,9 @@ void t_planetary_system::init_planet(Config &config)
 	name = config.get<std::string>("name");
     }
 
-    const bool cell_centered = config.get_flag("cell centered", "no");
+    const bool cell_centered = config.get_flag("cell centered", false);
     if (cell_centered) {
-	// initialization puts centered-in-cell planets (with
-	// excentricity = 0 only)
+	// initialization puts centered-in-cell planets (with excentricity = 0 only)
 	if (eccentricity > 0) {
 	    die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
 	}
@@ -183,8 +187,8 @@ void t_planetary_system::init_system(char *filename)
 
     Config config(filename);
 
-    std::vector<Config> planet_configs = config.get_planet_config();
-    for (auto &planet : planet_configs) {
+    std::vector<Config> nbody_config = config.get_nbody_config();
+    for (auto &planet : nbody_config) {
 	init_planet(planet);
     }
 
@@ -266,9 +270,10 @@ void t_planetary_system::list_planets()
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	logging::info(
 	    " %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
-	    i, get_planet(i).get_name(), get_planet(i).get_mass(),
-	    get_planet(i).get_x(), get_planet(i).get_y(),
-	    get_planet(i).get_vx(), get_planet(i).get_vy());
+	    get_planet(i).get_planet_number(), get_planet(i).get_name(),
+	    get_planet(i).get_mass(), get_planet(i).get_x(),
+	    get_planet(i).get_y(), get_planet(i).get_vx(),
+	    get_planet(i).get_vy());
     }
 
     logging::info("\n");
@@ -280,7 +285,7 @@ void t_planetary_system::list_planets()
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	logging::info(
 	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
-	    i, get_planet(i).get_eccentricity(),
+	    get_planet(i).get_planet_number(), get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
 		(24 * 60 * 60 * 365.2425),
@@ -294,7 +299,8 @@ void t_planetary_system::list_planets()
 	"-----+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	logging::info(" %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n", i,
+	logging::info(" %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
+		      get_planet(i).get_planet_number(),
 		      get_planet(i).get_temperature() * units::temperature,
 		      get_planet(i).get_radius(),
 		      (get_planet(i).get_irradiate()) ? 'X' : '-',
@@ -307,42 +313,71 @@ void t_planetary_system::list_planets()
 void t_planetary_system::rotate(double angle)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	    auto &planet = get_planet(i);
-        const double x = planet.get_x();
-        const double y = planet.get_y();
-        const double vx = planet.get_vx();
-        const double vy = planet.get_vy();
+	auto &planet = get_planet(i);
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double vx = planet.get_vx();
+	const double vy = planet.get_vy();
 
-		// rotate positions
-        const double new_x = x*cos(angle) + y*sin(angle);
-        const double new_y = -x*sin(angle) + y*cos(angle);
+	// rotate positions
+	const double new_x = x * cos(angle) + y * sin(angle);
+	const double new_y = -x * sin(angle) + y * cos(angle);
 
-		// rotate velocities
-        const double new_vx = vx*cos(angle) + vy*sin(angle);
-        const double new_vy = -vx*sin(angle) + vy*cos(angle);
+	// rotate velocities
+	const double new_vx = vx * cos(angle) + vy * sin(angle);
+	const double new_vy = -vx * sin(angle) + vy * cos(angle);
 
-		// save new values
-		planet.set_x(new_x);
-        planet.set_y(new_y);
-        planet.set_vx(new_vx);
-        planet.set_vy(new_vy);
+	// save new values
+	planet.set_x(new_x);
+	planet.set_y(new_y);
+	planet.set_vx(new_vx);
+	planet.set_vy(new_vy);
     }
 }
 
-void t_planetary_system::handle_missing_planet_file(unsigned int num_files) {
-    if (num_files < get_number_of_planets()){
-        die("Did not find enough planet files to start from");
-        const auto& planet = get_planet(0);
-        const double r0 = planet.get_r();
-        if ( r0 < 100*std::numeric_limits<double>::epsilon() && parameters::default_star) {
-            legacy_file_mode = true;
-        }
+void t_planetary_system::handle_missing_planet_file(unsigned int num_files)
+{
+    if (num_files < get_number_of_planets() && parameters::default_star) {
+	const auto &planet = get_planet(0);
+	const double r0 = planet.get_r();
+	if (r0 > 100 * std::numeric_limits<double>::epsilon() &&
+	    parameters::default_star) {
+	    legacy_file_mode = true;
+	    logging::log_master(
+		"Using legacy planet file mode. Default star will be used and not written to file.\n");
+	    adjust_for_legacy_file_mode();
+	}
     }
 }
 
-bool planet_file_exists(unsigned int i) {
-    std::string filename = OUTPUTDIR + "planet" +
-			  std::to_string(i) + ".dat";
+void t_planetary_system::adjust_for_legacy_file_mode()
+{
+    // planet files have been read into planet objects 0 to N-2
+    // copy x,y,vx,vy,mass from previous planet
+    for (unsigned int i = 1; i < get_number_of_planets(); i++) {
+	t_planet *from = m_planets[i - 1];
+	t_planet *to = m_planets[i];
+	to->set_x(from->get_x());
+	to->set_y(from->get_y());
+	to->set_vx(from->get_vx());
+	to->set_vy(from->get_vy());
+	to->set_mass(from->get_mass());
+	// adjust number for output
+	to->set_planet_number(i);
+    }
+    // reinitialize default star as last member
+    initialize_default_star();
+    delete m_planets[0];
+    m_planets[0] = m_planets[m_planets.size() - 1];
+    m_planets[0]->set_planet_number(0);
+    m_planets.pop_back();
+    logging::log("After restart in legacy mode, the planets are:\n");
+    list_planets();
+}
+
+bool planet_file_exists(unsigned int i)
+{
+    std::string filename = OUTPUTDIR + "planet" + std::to_string(i) + ".dat";
     return std::experimental::filesystem::exists(filename);
 }
 
@@ -350,11 +385,10 @@ void t_planetary_system::restart(unsigned int timestep)
 {
     unsigned int i = 0;
     for (i = 0; i < get_number_of_planets(); ++i) {
-        if (!planet_file_exists(i+1)) {
-            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! Did not find file for planet " << i << std::endl;
-            break;
-        }
-        get_planet(i).restart(timestep);
+	if (!planet_file_exists(i + 1)) {
+	    break;
+	}
+	get_planet(i).restart(timestep);
     }
     m_rebound->t = PhysicalTime;
     handle_missing_planet_file(i);
@@ -370,9 +404,11 @@ void t_planetary_system::create_planet_files()
 void t_planetary_system::write_planets(unsigned int timestep, bool big_file)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		if(legacy_file_mode && i == 0) { /// Legacy restart means that the central star has no file, thus we skip writing it
-			continue;
-		}
+	if (legacy_file_mode &&
+	    i == 0) { /// Legacy restart means that the central star has no
+		      /// file, thus we skip writing it
+	    continue;
+	}
 	get_planet(i).write(timestep, big_file);
     }
 }

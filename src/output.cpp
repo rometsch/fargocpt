@@ -640,7 +640,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	const double x = planet.get_x();
 	const double y = planet.get_y();
 	const double mass = planet.get_mass();
-	const double a = planet.get_semi_major_axis();
+	const unsigned int planet_idx = planet.get_planet_number();
 	
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
@@ -683,7 +683,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	}
 
 	char *name;
-	if (asprintf(&name, "1D_torque_planet%i_", n_planet) < 0) {
+	if (asprintf(&name, "1D_torque_planet%i_", planet_idx) < 0) {
 	    die("Not enough memory!");
 	}
 	data[t_data::TORQUE_1D].set_name(name);

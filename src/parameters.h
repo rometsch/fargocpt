@@ -178,13 +178,7 @@ extern double artificial_viscosity_factor;
 extern bool artificial_viscosity_dissipation;
 
 extern double thickness_smoothing;
-extern double roche_smoothing_factor;
 extern double thickness_smoothing_sg;
-
-extern bool roche_smoothing_enabled;
-extern bool thickness_smoothing_at_cell;
-
-extern bool exclude_hill;
 
 /// calculate disk (hydro)
 extern bool calculate_disk;
