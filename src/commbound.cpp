@@ -68,8 +68,7 @@ void AllocateBoundaryCommunicationBuffers()
 
     if ((SendInnerBoundary == NULL) || (SendOuterBoundary == NULL) ||
 	(RecvInnerBoundary == NULL) || (RecvOuterBoundary == NULL)) {
-	logging::print(
-	    LOG_ERROR
+	logging::error(
 	    "CPU %d had not enough memory to allocate communicators.\n",
 	    CPU_Rank);
 	PersonalExit(0);

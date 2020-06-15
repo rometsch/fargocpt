@@ -1,9 +1,11 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#include "config.h"
 #include "radialarray.h"
 #include "types.h"
 #include <mpi.h>
+#include <string>
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -81,15 +83,12 @@ extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern double hydro_center_mass;
 
 extern int debug;
-extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
-    ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles,
+extern int GotoNextOutput, ViscosityAlpha, CartesianParticles,
     ParticlesInCartesian;
-extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
 
-extern char *OUTPUTDIR;
-extern char *PLANETCONFIG;
+extern std::string OUTPUTDIR;
 
 extern double DT;
 extern unsigned int NINTERM;
@@ -101,7 +100,6 @@ extern unsigned int NRadial;
 extern double RMIN;
 extern double RMAX;
 
-extern double ROCHESMOOTHING;
 extern double ASPECTRATIO_REF;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
@@ -113,5 +111,7 @@ extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
 extern BoundaryFlow MassDelta;
+
+extern Config config;
 
 #endif // GLOBAL_H

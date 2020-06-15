@@ -197,31 +197,21 @@ void check_free_space(t_data &data)
     struct dirent *directory_entry;
     struct statvfs fiData;
 
-    if (asprintf(&directory_name, "%s/", OUTPUTDIR) < 0) {
+    if (asprintf(&directory_name, "%s/", OUTPUTDIR.c_str()) < 0) {
 	die("Not enough memory.");
     }
 
-    // Create output directory if it doesn't exist
-    if (CPU_Master) {
-	struct stat buffer;
-	if (stat(OUTPUTDIR, &buffer)) {
-	    mkdir(OUTPUTDIR, 0700);
-	}
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-
     // check if output directory exists
     if ((directory_pointer = opendir(directory_name)) == NULL) {
-	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
-			      OUTPUTDIR);
+	logging::error_master( "Output directory %s doesn't exist!\n",
+			      OUTPUTDIR.c_str());
 	die("Not output directory!");
     }
 
     while ((directory_entry = readdir(directory_pointer))) {
 	if ((strcmp("..", directory_entry->d_name) != 0) &&
 	    (strcmp(".", directory_entry->d_name) != 0)) {
-	    logging::print_master(
-		LOG_NOTICE "Output directory %s is not empty!\n", OUTPUTDIR);
+	    logging::notice_master("Output directory %s is not empty!\n", OUTPUTDIR.c_str());
 	    break;
 	}
     }
@@ -248,28 +238,26 @@ void check_free_space(t_data &data)
     space_needed *= NTOT / NINTERM;
     number_of_files *= NTOT / NINTERM;
 
-    logging::print_master(LOG_INFO "Output information:\n");
-    logging::print_master(LOG_INFO "   Output directory: %s\n", OUTPUTDIR);
-    logging::print_master(LOG_INFO "    Number of files: %u\n",
+    logging::info_master("Output information:\n");
+    logging::info_master("   Output directory: %s\n", OUTPUTDIR.c_str());
+    logging::info_master("    Number of files: %u\n",
 			  number_of_files);
-    logging::print_master(LOG_INFO "  Total output size: %.2f GB\n",
+    logging::info_master("  Total output size: %.2f GB\n",
 			  (double)space_needed / 1024.0 / 1024.0 / 1024.0);
 
     if ((statvfs(directory_name, &fiData)) < 0) {
-	logging::print_master(
-	    LOG_WARNING
+	logging::warning_master(
 	    "Couldn't stat filesystem. You have to check for enough free space manually!\n");
     } else {
 	// free space of device, more precisely number of space available to
 	// non-priv processes (like us)
 	unsigned long int free_space = fiData.f_bavail * fiData.f_frsize;
 
-	logging::print_master(LOG_INFO "    Space Available: %.2f GB\n",
+	logging::info_master("    Space Available: %.2f GB\n",
 			      (double)free_space / 1024.0 / 1024.0 / 1024.0);
 
 	if (space_needed > free_space) {
-	    logging::print_master(
-		LOG_WARNING
+	    logging::warning_master(
 		"There is not enough space for all outputs! The program will fail at same point!\n");
 	}
     }
@@ -279,8 +267,7 @@ void check_free_space(t_data &data)
 
 void write_grids(t_data &data, int index, int iter, double phystime)
 {
-    logging::print_master(
-	LOG_INFO "Writing output %d, Timestep Number %d, Physical Time %f.\n",
+    logging::info_master("Writing output %d, Timestep Number %d, Physical Time %f.\n",
 	index, iter, phystime);
 
     // go thru all grids and write them
@@ -306,8 +293,9 @@ void write_quantities(t_data &data, unsigned int timestep,
 
     if (CPU_Master) {
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "Quantities.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(),
+		     "Quantities.dat") == -1) {
+	    logging::error_master(
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -325,8 +313,7 @@ void write_quantities(t_data &data, unsigned int timestep,
 	    fd = fopen(fd_filename, "a");
 	}
 	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR "Can't write 'Quantities.dat' file. Aborting.\n");
+	    logging::error_master( "Can't write 'Quantities.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -421,8 +408,9 @@ void write_misc(unsigned int timestep)
     static bool fd_created = false;
 
     if (CPU_Master) {
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "misc.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "misc.dat") ==
+	    -1) {
+	    logging::error_master(
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -441,7 +429,7 @@ void write_misc(unsigned int timestep)
 	    fd = fopen(fd_filename, "a");
 	}
 	if (fd == NULL) {
-	    logging::print_master(LOG_ERROR
+	    logging::error_master(
 				  "Can't write 'misc.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
@@ -476,7 +464,7 @@ std::string get_version(std::string filename)
     std::ifstream infile(filename);
 
     if (infile.fail()) {
-	logging::print_master(LOG_ERROR "Error: File %s cannot be opened!\n",
+	logging::error_master( "Error: File %s cannot be opened!\n",
 			      filename.c_str());
 	PersonalExit(1);
     }
@@ -595,7 +583,7 @@ double get_from_ascii_file(std::string filename, unsigned int timestep,
 double get_misc(unsigned int timestep, std::string variable)
 {
     unsigned int column = 0;
-    std::string filename = std::string(OUTPUTDIR) + "misc.dat";
+    std::string filename = OUTPUTDIR + "misc.dat";
     std::string version = get_version(filename);
 
     if (version == "2") {
@@ -729,7 +717,7 @@ void write_1D_info(t_data &data)
 	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
 	    char *tmp;
 
-	    if (asprintf(&tmp, "%s/gas%s1D.info", OUTPUTDIR,
+	    if (asprintf(&tmp, "%s/gas%s1D.info", OUTPUTDIR.c_str(),
 			 data[t_data::t_polargrid_type(i)].get_name()) < 0) {
 		die("Not enough memory!");
 	    }
@@ -760,7 +748,7 @@ void write_1D_info(t_data &data)
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
 
-		free(tmp);
+	    free(tmp);
 	}
     }
 }
@@ -880,8 +868,8 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	char *fd_filename;
 	static bool fd_created_luminosity = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "luminosity.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "luminosity.dat") == -1) {
+	    logging::error_master(
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -902,8 +890,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	    fd = fopen(fd_filename, "a");
 	}
 	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR "Can't write 'luminosity.dat' file. Aborting.\n");
+	    logging::error_master( "Can't write 'luminosity.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -930,9 +917,9 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	// write dissipation
 	static bool fd_created_dissipation = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "dissipation.dat") ==
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "dissipation.dat") ==
 	    -1) {
-	    logging::print_master(LOG_ERROR
+	    logging::error_master(
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -953,8 +940,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	    fd = fopen(fd_filename, "a");
 	}
 	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR "Can't write 'dissipation.dat' file. Aborting.\n");
+	    logging::error_master( "Can't write 'dissipation.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 
@@ -996,8 +982,8 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "timeCoarse.dat") == -1) {
-	    logging::print_master(LOG_ERROR
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "timeCoarse.dat") == -1) {
+	    logging::error_master(
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
 	}
@@ -1017,8 +1003,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 	    fd = fopen(fd_filename, "a");
 	}
 	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR "Can't write 'timeCoarse.dat' file. Aborting.\n");
+	    logging::error_master( "Can't write 'timeCoarse.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 

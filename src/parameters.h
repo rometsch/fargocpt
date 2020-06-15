@@ -3,6 +3,7 @@
 
 #include "data.h"
 
+
 namespace parameters
 {
 
@@ -116,10 +117,12 @@ enum t_initialize_condition {
     initialize_condition_shakura_sunyaev
 };
 
+/// initialize gas to correct value using pressure balance
+extern bool centrifugal_balance;
 /// initialize condition for sigma
 extern t_initialize_condition sigma_initialize_condition;
 /// filename to read sigma profile from
-extern char *sigma_filename;
+extern std::string sigma_filename;
 /// random seed
 extern int random_seed;
 /// randomize sigma?
@@ -136,11 +139,13 @@ extern bool sigma_adjust;
 extern double sigma_discmass;
 /// Sigma0
 extern double sigma0;
+/// Aspect ratio at reference radius
+extern double aspectratio_ref;
 
 /// initiliaze condition for energy
 extern t_initialize_condition energy_initialize_condition;
 /// filename to read energy profile from
-extern char *energy_filename;
+extern std::string energy_filename;
 
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
@@ -173,7 +178,13 @@ extern double artificial_viscosity_factor;
 extern bool artificial_viscosity_dissipation;
 
 extern double thickness_smoothing;
+extern double roche_smoothing_factor;
 extern double thickness_smoothing_sg;
+
+extern bool roche_smoothing_enabled;
+extern bool thickness_smoothing_at_cell;
+
+extern bool exclude_hill;
 
 /// calculate disk (hydro)
 extern bool calculate_disk;
@@ -256,6 +267,7 @@ extern double mass_accretion_rate;
 
 /// CFL Factor
 extern double CFL;
+extern bool sloppy_cfl;
 
 /// length base unit
 extern double L0;
@@ -295,11 +307,24 @@ enum t_particle_integrator {
 extern t_particle_integrator integrator;
 
 void read(char *filename, t_data &data);
+void parse_grid_config();
+void parse_output_config(t_data &data);
+void parse_boundary_config();
+void parse_damping_config();
+void parse_nbody_config();
+void parse_disk_config();
+void parse_initialization_config();
+void parse_viscosity_config();
+void parse_opacity_config();
+void parse_massoverflow_config();
+void parse_hydrosolver_config();
+void parse_boundarylayer_config();
+void parse_particle_config();
+
+
 void summarize_parameters();
 void apply_units();
 void write_grid_data_to_file();
-void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
-			     std::string instruction);
 } // namespace parameters
 
 #endif // PARAMETERS_H

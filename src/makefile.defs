@@ -29,8 +29,8 @@ CFLAGS := $(CFLAGS_$(FARGO_ARCH))
 
 # handle debug ENV variable
 ifeq "$(FARGO_DEBUG)" "1"
-	#CFLAGS += -g -O0 -fsanitize=address
-	#LIBS += -lasan
+	CFLAGS += -g -O0 -fsanitize=address
+	LIBS += -lasan
 else
 	CFLAGS += $(OPTIMIZATION) -DNDEBUG
 endif
@@ -50,5 +50,4 @@ LIBS = -lm -lstdc++fs -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PR
 
 #statically link rebound
 LIBS += -Lrebound -lrebound
-
 

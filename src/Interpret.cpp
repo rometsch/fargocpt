@@ -21,16 +21,18 @@ extern std::vector<parameters::t_DampingType> damping_vector;
 int Corotating, GuidingCenter;
 
 int FastTransport;
-int OuterSourceMass, CICPlanet;
+int OuterSourceMass;
 
 #include <algorithm>
 #include <array>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+namespace fs = std::experimental::filesystem;
 
 #include "options.h"
 #include <sys/stat.h>
@@ -66,153 +68,97 @@ void get_polytropic_constants(char *filename, double &K, double &gamma)
     ss >> gamma;
 }
 
-std::string getFileName(const std::string &s)
+static char lowercase_first_letter(const std::string &s)
 {
-
-    char sep = '/';
-
-#ifdef _WIN32
-    sep = '\\';
-#endif
-
-    size_t i = s.rfind(sep, s.length());
-    if (i != std::string::npos) {
-	return (s.substr(i + 1, s.length() - i));
-    } else {
-	return s;
-    }
-
-    return ("");
+    return tolower(s[0]);
 }
 
-static void _mkdir(const char *dir, mode_t mode)
+std::string launch_cmd(int argc, char **argv)
 {
-    // from
-    // https://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
-    char tmp[256];
-    char *p = NULL;
-    size_t len;
-
-    snprintf(tmp, sizeof(tmp), "%s", dir);
-    len = strlen(tmp);
-    if (tmp[len - 1] == '/')
-	tmp[len - 1] = 0;
-    for (p = tmp + 1; *p; p++)
-	if (*p == '/') {
-	    *p = 0;
-	    mkdir(tmp, mode);
-	    *p = '/';
+    std::string cmd = "";
+    for (int i = 0; i < argc; i++) {
+	cmd += argv[i];
+	if (i < argc - 1) {
+	    cmd += " ";
 	}
-    mkdir(tmp, S_IRWXU);
+    }
+    return cmd;
 }
 
-void ReadVariables(char *filename, t_data &data, int argc, char **argv)
+void write_config_copy_info(const fs::path &file_path,
+			    const fs::path &copy_path, std::string cmd)
 {
-    // read config from
-    // config::read_config_from_file(filename);
-    parameters::read(filename, data);
+    std::ofstream out_file(file_path);
 
-    ROCHESMOOTHING = config::value_as_double_default("ROCHESMOOTHING", 0.0);
-    SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
-    IMPOSEDDISKDRIFT = config::value_as_double_default("IMPOSEDDISKDRIFT", 0.0);
+    out_file << "{" << std::endl;
+    out_file << "\"launch options\" : \"";
+    out_file << cmd;
+    out_file << "\"," << std::endl;
+    out_file << "\"config file\": " << copy_path << std::endl;
+    out_file << "}" << std::endl;
+    out_file.close();
+}
 
-    FLARINGINDEX = config::value_as_double_default("FLARINGINDEX", 0.0);
+void copy_config_file(const char *filename, int argc, char **argv)
+{
+    if (CPU_Master) {
+	// copy setup files into the output folder
 
-    std::string par_file_name = getFileName(filename);
-    par_file_name = par_file_name.substr(0, par_file_name.size() - 4) + "/";
-    if (asprintf(&OUTPUTDIR, "%s",
-		 config::value_as_string_default("OUTPUTDIR",
-						 par_file_name.c_str())) < 0) {
-	logging::print_master(LOG_ERROR "Not enough memory!\n");
+	fs::path startlog_dir = fs::path(OUTPUTDIR) / "startlog";
+	if (!fs::exists(startlog_dir)) {
+	    fs::create_directory(startlog_dir);
+	}
+
+	fs::path config_file(filename);
+	fs::path config_copy_path =
+	    startlog_dir / config_file.filename().stem();
+
+	if (start_mode::mode == start_mode::mode_restart) {
+	    config_copy_path += "_restart_";
+	    config_copy_path += std::to_string(start_mode::restart_from);
+	}
+	fs::path config_info_path(config_copy_path);
+	config_info_path += "_info.json";
+	config_copy_path += config_file.extension();
+
+	std::string cmd = launch_cmd(argc, argv);
+	write_config_copy_info(config_info_path, config_copy_path, cmd);
+
+	fs::remove(config_copy_path);
+	fs::copy_file(config_file, config_copy_path);
     }
+
+    MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void create_outputdir(const char *filename)
+{
+    fs::path config_file_name(filename);
+    OUTPUTDIR = config.get<std::string>("OUTPUTDIR", config_file_name.stem());
 
     // Create output directory if it doesn't exist
     if (CPU_Master) {
-	struct stat buffer;
-	if (stat(OUTPUTDIR, &buffer)) {
-	    _mkdir(OUTPUTDIR, 0700);
-	}
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    // check if planet config exists
-    if ((config::key_exists("PLANETCONFIG")) &&
-	(strlen(config::value_as_string("PLANETCONFIG")) > 0)) {
-	if (asprintf(&PLANETCONFIG, "%s",
-		     config::value_as_string("PLANETCONFIG")) < 0) {
-	    logging::print_master(LOG_ERROR "Not enough memory!\n");
-	}
-    } else {
-	PLANETCONFIG = NULL;
-    }
-
-    start_mode::configure_start_mode();
-
-    if (CPU_Master) {
-	// copy setup files into the output folder
-	std::string output_folder = std::string(OUTPUTDIR);
-	std::string par_file = getFileName(filename);
-	if (output_folder.back() != '/') {
-	    output_folder += "/";
-	}
-	std::string par_filename = output_folder + par_file;
-
-	if (start_mode::mode == start_mode::mode_restart) {
-	    char str[12];
-	    sprintf(str, "%d", start_mode::restart_from);
-
-	    par_filename += "_restart_";
-	    par_filename += str;
-	}
-
-	std::remove(par_filename.c_str());
-	std::ofstream new_par_file;
-	new_par_file.open(par_filename.c_str(),
-			  std::ofstream::out | std::ofstream::trunc);
-
-	new_par_file << "###  Used launch options:";
-	for (int i = 0; i < argc; i++) {
-	    new_par_file << " " << argv[i];
-	}
-	new_par_file << "\n\n\n";
-	new_par_file.close();
-
-	std::filebuf old_par_file, append_new_par_file;
-	old_par_file.open(filename, std::ios::in);
-	append_new_par_file.open(par_filename.c_str(),
-				 std::ios::app | std::ios::out);
-
-	std::copy(std::istreambuf_iterator<char>(&old_par_file), {},
-		  std::ostreambuf_iterator<char>(&append_new_par_file));
-	append_new_par_file.close();
-	old_par_file.close();
-
-	if (PLANETCONFIG != NULL) {
-	    std::string planet_file = std::string(PLANETCONFIG);
-	    std::string planet_filename =
-		output_folder + getFileName(planet_file);
-	    if (start_mode::mode == start_mode::mode_restart) {
-		char str[12];
-		sprintf(str, "%d", start_mode::restart_from);
-		planet_filename += "_restart_";
-		planet_filename += str;
-	    }
-
-	    std::filebuf old_planet_file, append_new_planet_file;
-	    old_planet_file.open(planet_file.c_str(), std::ios::in);
-	    append_new_planet_file.open(planet_filename.c_str(),
-					std::ios::trunc | std::ios::out);
-	    std::copy(std::istreambuf_iterator<char>(&old_planet_file), {},
-		      std::ostreambuf_iterator<char>(&append_new_planet_file));
-	    append_new_planet_file.close();
-	    old_planet_file.close();
+	if (!fs::exists(OUTPUTDIR)) {
+	    fs::create_directory(OUTPUTDIR);
 	}
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    OuterSourceMass = config::value_as_bool_default("OUTERSOURCEMASS", 0);
+}
 
-    switch (tolower(*config::value_as_string_default("TRANSPORT", "Fast"))) {
+void interpret_disk_parameters()
+{
+    MASSTAPER = config.get<double>("MASSTAPER", 0.0000001);
+    parameters::roche_smoothing_factor = config.get<double>("ROCHESMOOTHING", 0.0);
+    SIGMASLOPE = config.get<double>("SIGMASLOPE", 0.0);
+    IMPOSEDDISKDRIFT = config.get<double>("IMPOSEDDISKDRIFT", 0.0);
+
+    FLARINGINDEX = config.get<double>("FLARINGINDEX", 0.0);
+    ASPECTRATIO_REF = config.get<double>("ASPECTRATIO", 0.05);
+}
+
+void interpret_transport_algo()
+{
+    switch (tolower(config.get<std::string>("TRANSPORT", "Fast")[0])) {
     case 'f':
 	FastTransport = 1;
 	break;
@@ -222,12 +168,17 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     default:
 	die("Invalid setting for Transport");
     }
+}
 
-    // time settings
-    NTOT = config::value_as_unsigned_int_default("NTOT", 1000);
-    NINTERM = config::value_as_unsigned_int_default("NINTERM", 10);
-    DT = config::value_as_double_default("DT", 1.0);
+void interpret_output_timesteps()
+{
+    NTOT = config.get<unsigned int>("NTOT", 1000);
+    NINTERM = config.get<unsigned int>("NINTERM", 10);
+    DT = config.get<double>("DT", 1.0);
+}
 
+void interpret_grid()
+{
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
@@ -238,26 +189,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	// cell number by more than 10%
 	if (fabs(((double)NAzimuthal - optimal_N_azimuthal) /
 		 (double)NAzimuthal) > 0.1) {
-	    logging::print_master(
-		LOG_WARNING
+	    logging::warning_master(
 		"You have %u cells in azimuthal direction. This should be %u cells to have quadratic cells!\n",
 		NAzimuthal, lround(optimal_N_azimuthal));
 	}
     }
+}
 
-    // disc
-    ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
-
-    if (!config::key_exists("OuterBoundary")) {
-	logging::print_master(LOG_ERROR
-			      "OuterBoundary doesn't exist. Old .par file?\n");
-	die("died for convenience ;)");
-    }
-
+void interpret_rotating_frame()
+{
     // Frame settings
     Corotating = 0;
     GuidingCenter = 0;
-    switch (tolower(*config::value_as_string_default("Frame", "Fixed"))) {
+    switch (tolower(config.get<std::string>("Frame", "Fixed")[0])) {
     case 'f': // Fixed
 	break;
     case 'c': // Corotating
@@ -270,12 +214,15 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     default:
 	die("Invalid setting for Frame");
     }
-    OMEGAFRAME = config::value_as_double_default("OMEGAFRAME", 0);
+    OMEGAFRAME = config.get<double>("OMEGAFRAME", double(0));
+}
 
+void interpret_coordinate_system_center()
+{
     // Barycenter mode
-    switch (tolower(
-	*config::value_as_string_default("HydroFrameCenter", "primary"))) {
-    case 'p': // primary
+    switch (lowercase_first_letter(
+	config.get<std::string>("HydroFrameCenter", "primary"))) {
+    case 'p': // primarys
 	parameters::n_bodies_for_hydroframe_center = 1;
 	break;
     case 'b': // binary
@@ -293,160 +240,31 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	break;
     default:
 	die("Invalid setting for HydroFrameCenter: %s",
-	    config::value_as_string_default("HydroFrameCenter", "primary"));
+	    config.get<std::string>("HydroFrameCenter", "primary").c_str());
+    }
+}
+
+void interpret_coorindate_system()
+{
+    interpret_rotating_frame();
+    interpret_coordinate_system_center();
+}
+
+void warn_about_indirect_term_flag()
+{
+    if (config.contains("IndirectTerm")) {
+	die("Indirect terms are now handled automatically to avoid unphysical settings.",
+	    "Please remove the setting.");
     }
 
-    parameters::exitOnDeprecatedSetting(
-	"IndirectTerm",
-	"Indirect terms are now handled automatically to avoid unphysical settings.",
-	"Please remove the setting.");
-    parameters::exitOnDeprecatedSetting(
-	"IndirectTermPlanet",
-	"Indirect terms are now handled automatically to avoid unphysical settings.",
-	"Please remove the setting.");
-
-    // Energy equation / Adiabatic
-    char Adiabatic_deprecated =
-	tolower(*config::value_as_string_default("Adiabatic", "false"));
-
-    if (Adiabatic_deprecated == 'n') {
-	logging::print_master(
-	    LOG_INFO
-	    "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
+    if (config.contains("IndirectTermPlanet")) {
+	die("Indirect terms are now handled automatically to avoid unphysical settings.",
+	    "Please remove the setting.");
     }
-    if (Adiabatic_deprecated == 'y') {
-	parameters::Adiabatic = true;
-	logging::print_master(
-	    LOG_INFO
-	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
+}
 
-	ADIABATICINDEX =
-	    config::value_as_double_default("AdiabaticIndex", 7.0 / 5.0);
-	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
-	    logging::print_master(
-		LOG_WARNING
-		"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-	    parameters::Adiabatic = false;
-	}
-    } else {
-	char eos_string[512];
-	strncpy(
-	    eos_string,
-	    config::value_as_string_default("EquationOfState", "Isothermal"),
-	    256); // same as MAXNAME from config.cpp
-	for (char *t = eos_string; *t != '\0'; ++t) {
-	    *t = tolower(*t);
-	}
-
-	bool could_read_eos = false;
-	if (strcmp(eos_string, "isothermal") == 0 ||
-	    strcmp(eos_string, "iso") == 0) {
-	    could_read_eos = true;
-	    parameters::Adiabatic = false;
-	    parameters::Polytropic = false;
-	    parameters::Locally_Isothermal = true;
-	    logging::print_master(LOG_INFO
-				  "Using isothermal equation of state.\n");
-	}
-	if (strcmp(eos_string, "adiabatic") == 0 ||
-	    strcmp(eos_string, "ideal") == 0) {
-	    could_read_eos = true;
-
-	    // Energy equation / Adiabatic
-	    parameters::Adiabatic = true;
-
-	    char ADIABATICINDEX_string[512];
-	    strncpy(
-		ADIABATICINDEX_string,
-		config::value_as_string_default("AdiabaticIndex", "7.0/5.0"),
-		256); // same as MAXNAME from config.cpp
-	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
-		*t = tolower(*t);
-	    }
-
-	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
-		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
-		logging::print_master(
-		    LOG_ERROR
-		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
-		PersonalExit(1);
-	    } else {
-		ADIABATICINDEX = config::value_as_double_default(
-		    "AdiabaticIndex", 7.0 / 5.0);
-	    }
-
-	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
-		logging::print_master(
-		    LOG_WARNING
-		    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-		parameters::Adiabatic = false;
-	    }
-	    logging::print_master(LOG_INFO "Using ideal equation of state.\n");
-	}
-
-	if (strcmp(eos_string, "polytropic") == 0 ||
-	    strcmp(eos_string, "polytrop") == 0 ||
-	    strcmp(eos_string, "poly") == 0) {
-	    could_read_eos = true;
-
-	    // Equation of state / Polytropic
-	    parameters::Polytropic = true;
-	    double K = 0.0;
-	    double gamma = 0.0;
-
-	    char ADIABATICINDEX_string[512];
-	    strncpy(ADIABATICINDEX_string,
-		    config::value_as_string_default("AdiabaticIndex", "2.0"),
-		    256); // same as MAXNAME from config.cpp
-	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
-		*t = tolower(*t);
-	    }
-
-	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
-		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
-		get_polytropic_constants(filename, K, gamma);
-		ADIABATICINDEX = gamma;
-	    } else {
-		ADIABATICINDEX =
-		    config::value_as_double_default("AdiabaticIndex", 2.0);
-	    }
-
-	    char POLYTROPIC_CONSTANT_string[512];
-	    strncpy(
-		POLYTROPIC_CONSTANT_string,
-		config::value_as_string_default("PolytropicConstant", "12.753"),
-		256); // same as MAXNAME from config.cpp
-	    for (char *t = POLYTROPIC_CONSTANT_string; *t != '\0'; ++t) {
-		*t = tolower(*t);
-	    }
-
-	    if (strcmp(POLYTROPIC_CONSTANT_string, "fit_isothermal") == 0 ||
-		strcmp(POLYTROPIC_CONSTANT_string, "fit isothermal") == 0) {
-		if (K == 0.0) // Call script only if needed
-		{
-		    get_polytropic_constants(filename, K, gamma);
-		}
-		POLYTROPIC_CONSTANT = K;
-	    } else {
-		POLYTROPIC_CONSTANT = config::value_as_double_default(
-		    "PolytropicConstant", 12.753);
-	    }
-
-	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
-		logging::print_master(
-		    LOG_WARNING
-		    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-		parameters::Polytropic = false;
-	    }
-	    logging::print_master(LOG_INFO
-				  "Using polytropic equation of state.\n");
-	}
-
-	if (!could_read_eos)
-	    die("Invalid setting for Energy Equation:   %s\n",
-		config::value_as_string("EquationOfState"));
-    }
-
+void remove_energy_damping_if_unused()
+{
     if (!parameters::Adiabatic) // if energy is not needed, delete the energy
 				// damping boundary conditions
     {
@@ -469,80 +287,238 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		       parameters::damping_vector.end(),
 		       delete_damping_condition),
 	parameters::damping_vector.end());
+}
 
-    CICPlanet = config::value_as_bool_default("CICPLANET", 0);
+void interpret_isothermal()
+{
+    parameters::Adiabatic = false;
+    parameters::Polytropic = false;
+    parameters::Locally_Isothermal = true;
+    logging::info_master("Using isothermal equation of state.\n");
+}
+void interpret_adiabatic()
+{
+    // Energy equation / Adiabatic
+    parameters::Adiabatic = true;
 
-    ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
-    VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
+    const std::string ADIABATICINDEX_string =
+	lowercase(config.get<std::string>("AdiabaticIndex", "not set"));
+
+    if (ADIABATICINDEX_string == "fit_isothermal" ||
+	ADIABATICINDEX_string == "fit isothermal") {
+	logging::error_master(
+	    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
+	PersonalExit(1);
+    } else {
+	ADIABATICINDEX = config.get<double>("AdiabaticIndex", 7.0 / 5.0);
+    }
+
+    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
+	logging::warning_master(
+	    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+	parameters::Adiabatic = false;
+    }
+    logging::info_master("Using ideal equation of state.\n");
+}
+void interpret_polytropic(char *filename)
+{
+    // Equation of state / Polytropic
+    parameters::Polytropic = true;
+    double K = 0.0;
+    double gamma = 0.0;
+
+    const std::string ADIABATICINDEX_string =
+	lowercase(config.get<std::string>("AdiabaticIndex", "2.0"));
+
+    if (ADIABATICINDEX_string == "fit_isothermal" ||
+	ADIABATICINDEX_string == "fit isothermal") {
+	get_polytropic_constants(filename, K, gamma);
+	ADIABATICINDEX = gamma;
+    } else {
+	ADIABATICINDEX = config.get<double>("AdiabaticIndex", 2.0);
+    }
+
+    const std::string POLYTROPIC_CONSTANT_string =
+	lowercase(config.get<std::string>("AdiabaticIndex", "not set"));
+
+    if (POLYTROPIC_CONSTANT_string == "fit_isothermal" ||
+	POLYTROPIC_CONSTANT_string == "fit isothermal") {
+	if (K == 0.0) // Call script only if needed
+	{
+	    get_polytropic_constants(filename, K, gamma);
+	}
+	POLYTROPIC_CONSTANT = K;
+    } else {
+	POLYTROPIC_CONSTANT = config.get<double>("PolytropicConstant", 12.753);
+    }
+
+    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
+	logging::warning_master(
+	    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+	parameters::Polytropic = false;
+    }
+    logging::info_master("Using polytropic equation of state.\n");
+}
+
+void interpret_equation_of_state(char *filename)
+{
+    // Energy equation / Adiabatic
+    char Adiabatic_deprecated =
+	lowercase_first_letter(config.get<std::string>("Adiabatic", "false"));
+
+    if (Adiabatic_deprecated == 'n') {
+	logging::info_master(
+	    "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
+    }
+    if (Adiabatic_deprecated == 'y') {
+	parameters::Adiabatic = true;
+	logging::info_master(
+	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
+
+	ADIABATICINDEX = config.get<double>("AdiabaticIndex", 7.0 / 5.0);
+	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
+	    logging::warning_master(
+		"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+	    parameters::Adiabatic = false;
+	}
+    } else {
+
+	const std::string eos_string =
+	    lowercase(config.get<std::string>("EquationOfState", "Isothermal"));
+
+	bool could_read_eos = false;
+	if (eos_string == "isothermal" || eos_string == "iso") {
+	    interpret_isothermal();
+	    could_read_eos = true;
+	}
+	if (eos_string == "adiabatic" || eos_string == "ideal") {
+	    interpret_adiabatic();
+	    could_read_eos = true;
+	}
+
+	if (eos_string == "polytropic" || eos_string == "polytrop" ||
+	    eos_string == "poly") {
+	    could_read_eos = true;
+	}
+
+	if (!could_read_eos) {
+	    const std::string eos_str =
+		config.get<std::string>("EquationOfState");
+	    die("Invalid setting for Energy Equation:   %s\n", eos_str.c_str());
+	}
+    }
+
+    remove_energy_damping_if_unused();
+}
+
+void interpret_Nbody_smoothing()
+{
+    if ((parameters::thickness_smoothing != 0.0) && (parameters::roche_smoothing_factor != 0.0)) {
+	logging::error_master("You cannot use at the same time\n");
+	logging::error_master("`ThicknessSmoothing' and `RocheSmoothing'.\n");
+	logging::error_master("Edit the parameter file so as to remove\n");
+	logging::error_master("one of these variables and run again.\n");
+	PersonalExit(1);
+    }
+
+    if ((parameters::thickness_smoothing <= 0.0) && (parameters::roche_smoothing_factor <= 0.0)) {
+	logging::error_master(
+	    "A non-vanishing potential smoothing length is required.\n");
+	logging::error_master(
+	    "Please use either of the following variables:\n");
+	logging::error_master("`ThicknessSmoothing' *or* `RocheSmoothing'.\n");
+	logging::error_master("before launching the run again.\n");
+	PersonalExit(1);
+    }
+
+    if (parameters::roche_smoothing_factor != 0.0) {
+	parameters::roche_smoothing_enabled = true;
+	logging::info_master(
+	    "Planet potential smoothing scales with their Hill sphere.\n");
+    } else if (config.get_flag("ThicknessSmoothingAtPlanet", false)) {
+	parameters::thickness_smoothing_at_cell = false;
+	logging::info_master(
+	    "Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
+    } else {
+	parameters::thickness_smoothing_at_cell = true;
+	logging::info_master(
+	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
+    }
+}
+
+void interpret_Nbody_interactions()
+{
+    interpret_Nbody_smoothing();
+}
+
+void interpret_viscosity()
+{
+    VISCOSITY = config.get<double>("VISCOSITY", 0.0);
+    ALPHAVISCOSITY = config.get<double>("ALPHAVISCOSITY", 0.0);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
-	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
-	logging::print_master(LOG_ERROR
-			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR
-			      "one of these variables and run again.\n");
+	logging::error_master("You cannot use at the same time\n");
+	logging::error_master("VISCOSITY and ALPHAVISCOSITY.\n");
+	logging::error_master("Edit the parameter file so as to remove\n");
+	logging::error_master("one of these variables and run again.\n");
 	PersonalExit(1);
     }
 
     if (ALPHAVISCOSITY != 0.0) {
 	ViscosityAlpha = YES;
-	logging::print_master(LOG_INFO "Viscosity is of alpha type\n");
+	logging::info_master("Viscosity is of alpha type\n");
     }
+}
 
-    if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
-	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR
-			      "`ThicknessSmoothing' and `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR
-			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR
-			      "one of these variables and run again.\n");
-	PersonalExit(1);
-    }
-
-    if ((parameters::thickness_smoothing <= 0.0) && (ROCHESMOOTHING <= 0.0)) {
-	logging::print_master(
-	    LOG_ERROR
-	    "A non-vanishing potential smoothing length is required.\n");
-	logging::print_master(
-	    LOG_ERROR "Please use either of the following variables:\n");
-	logging::print_master(LOG_ERROR
-			      "`ThicknessSmoothing' *or* `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR "before launching the run again.\n");
-	PersonalExit(1);
-    }
-
-    if (ROCHESMOOTHING != 0.0) {
-	RocheSmoothing = YES;
-	logging::print_master(
-	    LOG_INFO
-	    "Planet potential smoothing scales with their Hill sphere.\n");
-    } else if (config::value_as_bool_default("ThicknessSmoothingAtPlanet", 0)) {
-	ThicknessSmoothingAtCell = NO;
-	ThicknessSmoothingAtPlanet = YES;
-	logging::print_master(
-	    LOG_INFO
-	    "Planet potential smoothing uses disk scale height at planet location (bad choice!).\n");
-    } else {
-	ThicknessSmoothingAtCell = YES;
-	ThicknessSmoothingAtPlanet = NO;
-	logging::print_master(
-	    LOG_INFO
-	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
-    }
-
+void sanitize_output_dir_string()
+{
     // Add a trailing slash to OUTPUTDIR if needed
-    if (OUTPUTDIR[strlen(OUTPUTDIR) - 1] != '/') {
-	unsigned int size = strlen(OUTPUTDIR);
-	OUTPUTDIR = (char *)realloc(OUTPUTDIR, size + 2);
-	OUTPUTDIR[size] = '/';
-	OUTPUTDIR[size + 1] = 0;
+    if (OUTPUTDIR[OUTPUTDIR.length() - 1] != '/') {
+	OUTPUTDIR.append("/");
     }
+}
+
+void interpret_boundary()
+{
+    // perscriped mass accretion through outer boundary
+    OuterSourceMass = config.get_flag("OUTERSOURCEMASS", false);
+}
+
+void ReadVariables(char *filename, t_data &data, int argc, char **argv)
+{
+    parameters::read(filename, data);
+
+    interpret_disk_parameters();
+
+    create_outputdir(filename);
+
+    start_mode::configure_start_mode();
+
+    copy_config_file(filename, argc, argv);
+
+    interpret_transport_algo();
+
+    interpret_output_timesteps();
+
+    interpret_grid();
+
+    interpret_coorindate_system();
+
+    warn_about_indirect_term_flag();
+
+    interpret_equation_of_state(filename);
+
+    interpret_Nbody_interactions();
+
+    interpret_viscosity();
+
+    interpret_boundary();
+
+    sanitize_output_dir_string();
 
     constants::initialize_constants();
 
-    // now we now everything to compute unit factors
+    // now we know everything to compute unit factors
     units::calculate_unit_factors();
 
     // TODO: This should definitely done in parameters.cpp, where values are
@@ -554,54 +530,39 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
 void PrintUsage(char *execname)
 {
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"Usage : %s [-abcdeimnptvz] [-(0-9)] [-s number] [-f scaling] parameters file\n",
 	execname);
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"\n-a : Monitor mass and angular momentum at each timestep\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"-b : Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"-c : Sloppy CFL condition (checked at each DT, not at each timestep)\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"-d : Print some debugging information on 'stdout' at each timestep\n");
-    logging::print_master(LOG_ERROR
-			  "-e : Activate EU test problem torque file output\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master("-e : Activate EU test problem torque file output\n");
+    logging::error_master(
 	"-f : Scale density array by 'scaling'. Useful to increase/decrease\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"     disk surface density after a restart, for instance.            \n");
-    logging::print_master(
-	LOG_ERROR "-i : tabulate Sigma profile as given by restart files\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
+	"-i : tabulate Sigma profile as given by restart files\n");
+    logging::error_master(
 	"-n : Disable simulation. The program just reads parameters file\n");
-    logging::print_master(LOG_ERROR
-			  "-o : Overrides output directory of input file.\n");
-    logging::print_master(
-	LOG_ERROR "-p : Give profiling information at each time step\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master("-o : Overrides output directory of input file.\n");
+    logging::error_master(
+	"-p : Give profiling information at each time step\n");
+    logging::error_master(
 	"-s : Restart simulation, taking #'number' files as initial conditions\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"-v : Verbose mode. Tells everything about parameters file\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"-z : fake sequential built when evaluating sums on HD meshes\n");
-    logging::print_master(
-	LOG_ERROR "-(0-9) : only write initial (or restart) HD meshes,\n");
-    logging::print_master(LOG_ERROR
-			  "     proceed to the next nth output and exit\n");
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
+	"-(0-9) : only write initial (or restart) HD meshes,\n");
+    logging::error_master("     proceed to the next nth output and exit\n");
+    logging::error_master(
 	"     This option must stand alone on one switch (-va -4 is legal, -v4a is not)\n");
     PersonalExit(1);
 }
@@ -620,77 +581,67 @@ void TellEverything()
     if (!CPU_Master)
 	return;
 
-    logging::print_master(LOG_VERBOSE "Disc properties:\n");
-    logging::print_master(LOG_VERBOSE "----------------\n");
-    logging::print_master(LOG_VERBOSE "Inner Radius          : %g\n", RMIN);
-    logging::print_master(LOG_VERBOSE "Outer Radius          : %g\n", RMAX);
-    logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n",
-			  ASPECTRATIO_REF);
-    logging::print_master(LOG_VERBOSE "VKep at inner edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
-    logging::print_master(LOG_VERBOSE "VKep at outer edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 / RMAX));
+    logging::verbose_master("Disc properties:\n");
+    logging::verbose_master("----------------\n");
+    logging::verbose_master("Inner Radius          : %g\n", RMIN);
+    logging::verbose_master("Outer Radius          : %g\n", RMAX);
+    logging::verbose_master("Aspect Ratio          : %g\n", ASPECTRATIO_REF);
+    logging::verbose_master("VKep at inner edge    : %.3g\n",
+			    sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
+    logging::verbose_master("VKep at outer edge    : %.3g\n",
+			    sqrt(constants::G * 1.0 / RMAX));
     /*
-    logging::print_master(LOG_VERBOSE "boundary_inner        : %i\n",
-    parameters::boundary_inner); logging::print_master(LOG_VERBOSE
-    "boundary_outer        : %i\n", parameters::boundary_outer);
+    logging::verbose_master("boundary_inner        : %i\n",
+    parameters::boundary_inner); logging::verbose_master("boundary_outer :
+    %i\n", parameters::boundary_outer);
     */
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
     // - pow(RMIN,2.0-SIGMASLOPE));	/* correct this and what follows... */
-    // logging::print_master(LOG_VERBOSE "Initial Disk Mass             : %g\n",
-    // temp); temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(1.0 -
-    // pow(RMIN,2.0-SIGMASLOPE)); logging::print_master(LOG_VERBOSE "Initial
+    // logging::verbose_master("Initial Disk Mass             :
+    // %g\n", temp); temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(1.0 -
+    // pow(RMIN,2.0-SIGMASLOPE)); logging::verbose_master("Initial
     // Mass inner to r=1.0  : %g \n", temp);
     // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
-    // - 1.0); logging::print_master(LOG_VERBOSE "Initial Mass outer to r=1.0  :
+    // - 1.0); logging::verbose_master("Initial Mass outer to r=1.0 :
     // %g \n", temp);
-    logging::print_master(LOG_VERBOSE
-			  "Travelling time for acoustic density waves :\n");
+    logging::verbose_master("Travelling time for acoustic density waves :\n");
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
-    logging::print_master(
-	LOG_VERBOSE
-	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n",
-	temp, TellNbOrbits(temp), TellNbOutputs(temp));
+    logging::verbose_master(
+	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
-    logging::print_master(
-	LOG_VERBOSE
-	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n",
-	temp, TellNbOrbits(temp), TellNbOutputs(temp));
+    logging::verbose_master(
+	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
-    logging::print_master(
-	LOG_VERBOSE
-	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n",
-	temp, TellNbOrbits(temp), TellNbOutputs(temp));
+    logging::verbose_master(
+	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n", temp,
+	TellNbOrbits(temp), TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
-    logging::print_master(LOG_VERBOSE
-			  "Orbital time at Rmin  : %.3g ~ %.2f outputs\n",
-			  temp, TellNbOutputs(temp));
+    logging::verbose_master("Orbital time at Rmin  : %.3g ~ %.2f outputs\n",
+			    temp, TellNbOutputs(temp));
     temp = 2.0 * PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
-    logging::print_master(LOG_VERBOSE
-			  "Orbital time at Rmax  : %.3g ~ %.2f outputs\n",
-			  temp, TellNbOutputs(temp));
-    logging::print_master(LOG_VERBOSE "Sound speed :\n");
-    logging::print_master(LOG_VERBOSE " * At unit radius     : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0));
-    logging::print_master(LOG_VERBOSE " * At outer edge      : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
-    logging::print_master(LOG_VERBOSE " * At inner edge      : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
-    logging::print_master(LOG_VERBOSE "Grid properties:\n");
-    logging::print_master(LOG_VERBOSE "----------------\n");
-    logging::print_master(LOG_VERBOSE "Number of (local) rings  : %d\n",
-			  NRadial);
-    logging::print_master(LOG_VERBOSE "Number of (global) rings : %d\n",
-			  GlobalNRadial);
-    logging::print_master(LOG_VERBOSE "Number of sectors        : %d\n",
-			  NAzimuthal);
-    logging::print_master(LOG_VERBOSE "Total (local) cells      : %d\n",
-			  NRadial * NAzimuthal);
-    logging::print_master(LOG_VERBOSE "Total (gobal) cells      : %d\n",
-			  GlobalNRadial * NAzimuthal);
-    logging::print_master(LOG_VERBOSE "Outputs properties:\n");
-    logging::print_master(LOG_VERBOSE "-------------------\n");
-    logging::print_master(
-	LOG_VERBOSE "Time increment between outputs : %.3f = %.3f orbits\n",
-	NINTERM * DT, TellNbOrbits(NINTERM * DT));
+    logging::verbose_master("Orbital time at Rmax  : %.3g ~ %.2f outputs\n",
+			    temp, TellNbOutputs(temp));
+    logging::verbose_master("Sound speed :\n");
+    logging::verbose_master(" * At unit radius     : %.3g\n",
+			    ASPECTRATIO_REF * sqrt(constants::G * 1.0));
+    logging::verbose_master(" * At outer edge      : %.3g\n",
+			    ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
+    logging::verbose_master(" * At inner edge      : %.3g\n",
+			    ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
+    logging::verbose_master("Grid properties:\n");
+    logging::verbose_master("----------------\n");
+    logging::verbose_master("Number of (local) rings  : %d\n", NRadial);
+    logging::verbose_master("Number of (global) rings : %d\n", GlobalNRadial);
+    logging::verbose_master("Number of sectors        : %d\n", NAzimuthal);
+    logging::verbose_master("Total (local) cells      : %d\n",
+			    NRadial * NAzimuthal);
+    logging::verbose_master("Total (gobal) cells      : %d\n",
+			    GlobalNRadial * NAzimuthal);
+    logging::verbose_master("Outputs properties:\n");
+    logging::verbose_master("-------------------\n");
+    logging::verbose_master(
+	"Time increment between outputs : %.3f = %.3f orbits\n", NINTERM * DT,
+	TellNbOrbits(NINTERM * DT));
 }

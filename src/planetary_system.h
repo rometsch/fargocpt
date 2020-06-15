@@ -1,6 +1,7 @@
 #ifndef PLANETARY_SYSTEM_H
 #define PLANETARY_SYSTEM_H
 
+#include "config.h"
 #include "planet.h"
 #include "rebound/rebound.h"
 #include <vector>
@@ -10,7 +11,7 @@ class t_planetary_system
   private:
     // list of all planets
     std::vector<t_planet *> m_planets;
-	bool planet_restart_legacy;
+    bool legacy_file_mode;
 
   public:
     struct reb_simulation *m_rebound;
@@ -19,12 +20,8 @@ class t_planetary_system
 
     inline void add_planet(t_planet *planet)
     {
-	int file_id_corrector = 0;
-	if(planet_restart_legacy){
-		file_id_corrector = 1;
-	}
 	m_planets.push_back(planet);
-	planet->set_planet_number(get_number_of_planets()-file_id_corrector);
+    planet->set_planet_number(get_number_of_planets());
     }
     inline unsigned int get_number_of_planets(void) const
     {
@@ -63,11 +60,17 @@ class t_planetary_system
 
     void initialize_default_star();
     void init_rebound();
-	void read_from_file(char *filename, bool restart);
+    void init_hydro_frame_center();
+    void init_corotation_body();
+    void init_planet(Config& config);
+    void config_consistency_checks();
+    void init_system(char *filename);
+
     void list_planets();
     void rotate(double angle);
     void restart(unsigned int timestep);
-
+    void handle_missing_planet_file(unsigned int num_files);
+    
     void create_planet_files();
     void write_planets(unsigned int timestep, bool big_file);
 

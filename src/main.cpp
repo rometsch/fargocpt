@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <mpi.h>
 #include <string.h>
 
@@ -45,7 +46,7 @@ unsigned int nTimeStep;
 // write all polargrids on error
 
 int main(int argc, char *argv[])
-{
+{	
     t_data data;
 
     N_iter = 0;
@@ -67,33 +68,27 @@ int main(int argc, char *argv[])
     CPU_Master = (CPU_Rank == 0 ? 1 : 0);
 
     // print some information about program
-    logging::print_master(LOG_INFO "fargo: This file was compiled on %s, %s.\n",
+    logging::info_master("fargo: This file was compiled on %s, %s.\n",
 			  __DATE__, __TIME__);
 #ifdef GIT_COMMIT
-    logging::print_master(LOG_INFO "fargo: Last git commit: %s\n", GIT_COMMIT);
+    logging::info_master("fargo: Last git commit: %s\n", GIT_COMMIT);
 #endif
 #ifdef GIT_CHANGED
-    logging::print_master(
-	LOG_INFO "fargo: Files changed since git commit: %s\n", GIT_CHANGED);
+    logging::info_master("fargo: Files changed since git commit: %s\n", GIT_CHANGED);
 #endif
 #ifdef _GNU_SOURCE
-    logging::print_master(LOG_INFO
-			  "fargo: This version of FARGO used _GNU_SOURCE\n");
+    logging::info_master("fargo: This version of FARGO used _GNU_SOURCE\n");
 #endif
 #ifdef NDEBUG
-    logging::print_master(
-	LOG_INFO
-	"fargo: This version of FARGO used NDEBUG. So no assertion checks!\n");
+    logging::info_master("fargo: This version of FARGO used NDEBUG. So no assertion checks!\n");
 #else
-    logging::print_master(
-	LOG_INFO
-	"fargo: This version of FARGO does assertion checks! Compile with NDEBUG to speed up!\n");
+    logging::info_master("fargo: This version of FARGO does assertion checks! Compile with NDEBUG to speed up!\n");
 #endif
 
     // print information on which processor we're running
     MPI_Get_processor_name(CPU_Name, &CPU_NameLength);
     CPU_Name[CPU_NameLength] = '\0';
-    logging::print(LOG_INFO "fargo: running on %s\n", CPU_Name);
+    logging::info("fargo: running on %s\n", CPU_Name);
 
     // control behavoir for floating point exceptions trapping (default is not
     // to do anything)
@@ -132,30 +127,22 @@ int main(int argc, char *argv[])
     init_radialarrays();
 
 	// Here planets are initialized feeling star potential
-	data.get_planetary_system().read_from_file(PLANETCONFIG, start_mode::mode == start_mode::mode_restart);
-	logging::print_master(LOG_INFO "planets loaded.\n");
-
-
-    if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
-	(Corotating == YES)) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
-	PersonalExit(1);
-    }
+	auto& planetary_system = data.get_planetary_system();
+	planetary_system.init_system(options::parameter_file);
 
     init_physics(data);
 
 	// update planet velocity due to disk potential
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(data);
+		data.get_planetary_system().correct_velocity_for_disk_accel();
 	}
-	data.get_planetary_system().correct_velocity_for_disk_accel();
-	logging::print_master(LOG_INFO "planets initialised.\n");
+	logging::info_master("planets initialised.\n");
 
     if (parameters::integrate_particles) {
 	particles::init(data);
     }
+
 
     // save starting values (needed for damping)
     copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
@@ -171,16 +158,16 @@ int main(int argc, char *argv[])
 	// TODO: fix for case that NINTERM changes (probably add small time step
 	// to misc.dat)
 	timeStepStart = start_mode::restart_from * NINTERM;
-	logging::print_master(LOG_INFO "Restarting planetary system...\n");
+	logging::info_master("Restarting planetary system...\n");
 
-	logging::print_master(LOG_INFO "Reading misc data...\n");
+	logging::info_master("Reading misc data...\n");
 	PhysicalTime =
 	    output::get_misc(start_mode::restart_from, "physical time");
 	OmegaFrame = output::get_misc(start_mode::restart_from, "omega frame");
 	FrameAngle = output::get_misc(start_mode::restart_from, "frame angle");
 
 	// load grids at t = 0
-	logging::print_master(LOG_INFO "Loading polargrinds at t = 0...\n");
+	logging::info_master("Loading polargrinds at t = 0...\n");
 	data[t_data::DENSITY].read2D((unsigned int)0);
 	data[t_data::V_RADIAL].read2D((unsigned int)0);
 	data[t_data::V_AZIMUTHAL].read2D((unsigned int)0);
@@ -199,7 +186,7 @@ int main(int argc, char *argv[])
 	    RefillEnergy(&data[t_data::ENERGY]);
 
 	// load grids at t = restart_from
-	logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",
+	logging::info_master("Loading polargrinds at t = %u...\n",
 			      start_mode::restart_from);
 	data[t_data::DENSITY].read2D(start_mode::restart_from);
 	data[t_data::V_RADIAL].read2D(start_mode::restart_from);
@@ -304,10 +291,7 @@ int main(int argc, char *argv[])
     logging::print_runtime_final();
 
 	// free up everything
-	config::free_config_list();
 	DeallocateBoundaryCommunicationBuffers();
-	free(OUTPUTDIR);
-	free(PLANETCONFIG);
 	delete[] options::parameter_file;
     FreeEuler();
 

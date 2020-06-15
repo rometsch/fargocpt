@@ -221,9 +221,9 @@ void t_planet::create_planet_file()
 					       variable_units);
 
     // create normal file
-    if (asprintf(&filename, "%splanet%u.dat", OUTPUTDIR, get_planet_number()) ==
+    if (asprintf(&filename, "%splanet%u.dat", OUTPUTDIR.c_str(), get_planet_number()) ==
 	-1) {
-	logging::print(LOG_ERROR "Not enough memory!\n");
+	logging::error( "Not enough memory!\n");
 	PersonalExit(1);
     }
 
@@ -231,7 +231,7 @@ void t_planet::create_planet_file()
     free(filename);
 
     if (fd == NULL) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::error( "Can't write %s file. Aborting.\n", filename);
 	PersonalExit(1);
     }
     fprintf(fd, "#FargoCPT planet file\n");
@@ -240,9 +240,9 @@ void t_planet::create_planet_file()
     fclose(fd);
 
     // create big file
-    if (asprintf(&filename, "%sbigplanet%u.dat", OUTPUTDIR,
+    if (asprintf(&filename, "%sbigplanet%u.dat", OUTPUTDIR.c_str(),
 		 get_planet_number()) == -1) {
-	logging::print(LOG_ERROR "Not enough memory!\n");
+	logging::error( "Not enough memory!\n");
 	PersonalExit(1);
     }
 
@@ -250,7 +250,7 @@ void t_planet::create_planet_file()
     free(filename);
 
     if (fd == NULL) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::error( "Can't write %s file. Aborting.\n", filename);
 	PersonalExit(1);
     }
 
@@ -271,15 +271,15 @@ void t_planet::write(unsigned int timestep, bool big_file)
 
     // create filename
     if (asprintf(&filename, big_file ? "%sbigplanet%u.dat" : "%splanet%u.dat",
-		 OUTPUTDIR, get_planet_number()) == -1) {
-	logging::print(LOG_ERROR "Not enough memory!\n");
+		 OUTPUTDIR.c_str(), get_planet_number()) == -1) {
+	logging::error( "Not enough memory!\n");
 	PersonalExit(1);
     }
 
     // open file
     fd = fopen(filename, "a");
     if (fd == NULL) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::error( "Can't write %s file. Aborting.\n", filename);
 	PersonalExit(1);
     }
     free(filename);

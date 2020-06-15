@@ -128,7 +128,7 @@ void t_polargrid::write2D(unsigned int number) const
     double *from;
     char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
@@ -138,8 +138,7 @@ void t_polargrid::write2D(unsigned int number) const
 	MPI_File_open(MPI_COMM_WORLD, filename,
 		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
     if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
+	logging::error_master(
 	    "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename);
 
@@ -147,12 +146,12 @@ void t_polargrid::write2D(unsigned int number) const
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::error_master( "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::error_master( "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
@@ -230,7 +229,7 @@ void t_polargrid::write1D(unsigned int number) const
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rb : Ra;
 
-    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
@@ -240,8 +239,7 @@ void t_polargrid::write1D(unsigned int number) const
 	MPI_File_open(MPI_COMM_WORLD, filename,
 		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
     if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
+	logging::error_master(
 	    "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename);
 
@@ -249,12 +247,12 @@ void t_polargrid::write1D(unsigned int number) const
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::error_master( "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::error_master( "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
@@ -355,7 +353,7 @@ void t_polargrid::read2D(unsigned int number)
 {
     char *filename;
 
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
@@ -380,8 +378,7 @@ void t_polargrid::read2D(const char *_filename)
     error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,
 			  MPI_INFO_NULL, &fh);
     if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
+	logging::error_master(
 	    "Error while reading from file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename);
 
@@ -389,12 +386,12 @@ void t_polargrid::read2D(const char *_filename)
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::error_master( "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::error_master( "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
@@ -410,7 +407,7 @@ void t_polargrid::read2D(const char *_filename)
 	    size, count);
     }
 
-    logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",
+    logging::info_master("Reading file '%s' with %u bytes.\n",
 			  _filename, size);
 
     // allocate buffer and read file
@@ -452,7 +449,7 @@ void t_polargrid::read1D(unsigned int number, bool skip_min_max)
 {
     char *filename;
 
-    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR, get_name(), number) <
+    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR.c_str(), get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
@@ -481,8 +478,7 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,
 			  MPI_INFO_NULL, &fh);
     if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
+	logging::error_master(
 	    "Error while reading from file '%s'. Check file permissions and IO support of MPI library\n",
 	    filename);
 
@@ -490,12 +486,12 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
 	MPI_Error_class(error, &error_class);
 	MPI_Error_string(error_class, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	logging::error_master( "MPI error class: %s\n", error_string);
 
 	// error code
 	MPI_Error_string(error, error_string, &error_length);
 	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
+	logging::error_master( "MPI error code: %s\n", error_string);
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
@@ -515,8 +511,7 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
 	count -= 1;
     }
 
-    logging::print_master(
-	LOG_INFO "Reading file '%s' with %u bytes. Reading %u values...\n",
+    logging::info_master("Reading file '%s' with %u bytes. Reading %u values...\n",
 	_filename, size, count);
 
     // allocate buffer and read file
@@ -551,8 +546,7 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     // print warning if using spline values outside from provide range
     if ((RMIN < 2 * buffer_radius[0] - buffer_radius[1]) ||
 	(RMAX > 2 * buffer_radius[count - 1] - buffer_radius[count - 2])) {
-	logging::print_master(
-	    LOG_WARNING
+	logging::warning_master(
 	    "Warning: '%s' covers radii from %.5lf to %.5lf, but you're using %.5lf to %.5lf! Spline interpolation isn't performing well here!\n",
 	    _filename, buffer_radius[0], buffer_radius[count - 1], RMIN, RMAX);
     }

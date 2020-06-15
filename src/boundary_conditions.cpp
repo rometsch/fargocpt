@@ -56,8 +56,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	    parameters::boundary_condition_evanescent) {
 	    EvanescentBoundary(data, dt);
 	} else {
-	    logging::print_master(
-		LOG_ERROR
+	    logging::error_master(
 		"Different EvanescentBoundary Parameters. Old .par File?\n");
 	    die("inner/outer evanescent boundary not implemented yet");
 	}
@@ -661,8 +660,7 @@ void mass_overflow(t_data &data)
     // get location of binary star
     if (parameters::mof_planet + 1 >
 	data.get_planetary_system().get_number_of_planets()) {
-	logging::print_master(
-	    LOG_ERROR
+	logging::error_master(
 	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
 	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
     }
@@ -718,9 +716,7 @@ void mass_overflow(t_data &data)
 	    (calculate_omega_kepler(dist) - OmegaFrame) * Rmed[maxradial - 1];
 
 #ifndef NDEBUG
-	logging::print(
-	    LOG_VERBOSE
-	    "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, maxcells %i , noc %i , i %i \n",
+	logging::verbose("dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, maxcells %i , noc %i , i %i \n",
 	    data[t_data::DENSITY](maxradial - 1, gridcell), weight_factor,
 	    angle, nearest_grid_cell, mass_stream, gridcell, maxcells,
 	    number_of_cells * 2 + 1, i);
@@ -729,7 +725,7 @@ void mass_overflow(t_data &data)
 
     // check if mass overflow is constant
     if (!(check > 0.99) || !(check < 1.01)) {
-	logging::print_master(LOG_ERROR "weight_factor %lf should be 0.997 \n",
+	logging::error_master( "weight_factor %lf should be 0.997 \n",
 			      weight_factor);
     }
 }
@@ -756,8 +752,7 @@ void apply_boundary_condition_temperature(t_data &data)
 	    reflecting_boundary_inner(data);
 	    break;
 	default:
-	    logging::print_master(
-		LOG_ERROR
+	    logging::error_master(
 		"Boundary condition at inner boundary not supported for temperature!\n");
 	    break;
 	}
@@ -797,8 +792,7 @@ void apply_boundary_condition_temperature(t_data &data)
 	    reflecting_boundary_outer(data);
 	    break;
 	default:
-	    logging::print_master(
-		LOG_ERROR
+	    logging::error_master(
 		"Boundary condition at outer boundary not supported for temperature!\n");
 	    break;
 	}

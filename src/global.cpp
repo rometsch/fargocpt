@@ -4,9 +4,11 @@
 	Declares all global variables.
 */
 
+#include "config.h"
 #include "radialarray.h"
 #include "types.h"
 #include <mpi.h>
+#include <string>
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */
@@ -141,17 +143,12 @@ double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
-int debug, OnlyInit;
-int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell,
-    ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
-int CentrifugalBalance, SloppyCFL;
+int debug;
+int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;
 
-int OverridesOutputdir;
-
-char *OUTPUTDIR;
-char *PLANETCONFIG;
+std::string OUTPUTDIR;
 
 double DT;
 unsigned int NINTERM;
@@ -165,7 +162,6 @@ unsigned int NAzimuthal;
 double RMIN;
 double RMAX;
 
-double ROCHESMOOTHING;
 double ASPECTRATIO_REF;
 double VISCOSITY;
 double ALPHAVISCOSITY;
@@ -177,3 +173,5 @@ double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
+
+Config config;

@@ -46,7 +46,7 @@ bool is_number(std::string s)
     return true;
 }
 
-static const char short_options[] = "-dvqbcnmh";
+static const char short_options[] = "-dvqnmh";
 
 static const struct option long_options[] = {
     {"help", no_argument, NULL, 'h'},
@@ -61,8 +61,7 @@ static const struct option long_options[] = {
 void usage(int argc, char **argv)
 {
     (void)argc;
-    logging::print_master(
-	LOG_ERROR
+    logging::error_master(
 	"Usage: %s [options] start|restart <N>|auto configfile\n\n"
 	"start                  Start a new simulation from scratch\n"
 	"restart <N>            Restart from an old simulation output, latest if no N specified\n"
@@ -70,10 +69,8 @@ void usage(int argc, char **argv)
 	"-d | --debug           Print some debugging information on 'stdout' at each timestep\n"
 	"-v | --verbose         Verbose mode. Tells everything about parameters file\n"
 	"-q | --quiet           Only print errors and warnings\n"
-	"-b |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
-	"-c |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
 	"-n |                   Disable simulation. The program just reads parameters file\n"
-	"-m |                   estimate memory usage and3df59ec2b9a5f5a5c00028320b2a31224a3686ecprint out\n"
+	"-m |                   estimate memory usage and print out\n"
 	"",
 	argv[0]);
 }
@@ -106,7 +103,7 @@ void parse(int argc, char **argv)
 		    start_mode::mode = start_mode::mode_auto;
 		} else {
 		    usage(argc, argv);
-			logging::print(LOG_ERROR "Invalid start mode '%s'\n", optarg);
+			logging::error( "Invalid start mode '%s'\n", optarg);
 		    PersonalExit(0);
 		}
 	    } else {
@@ -140,14 +137,6 @@ void parse(int argc, char **argv)
 
 	case 'q':
 	    logging::print_level = 2;
-	    break;
-
-	case 'b':
-	    CentrifugalBalance = YES;
-	    break;
-
-	case 'c':
-	    SloppyCFL = YES;
 	    break;
 
 	case 'n':
