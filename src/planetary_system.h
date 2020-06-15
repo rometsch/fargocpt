@@ -12,9 +12,9 @@ class t_planetary_system
     // list of all planets
     std::vector<t_planet *> m_planets;
     bool legacy_file_mode;
+    struct reb_simulation *m_rebound;
 
   public:
-    struct reb_simulation *m_rebound;
     t_planetary_system();
     ~t_planetary_system();
 
