@@ -624,7 +624,7 @@ double get_misc(unsigned int timestep, std::string variable)
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
 	double rsmoothing = 0.0;
-	double xc, yc, cellmass, dx, dy, distance, dist2, rh;
+	double xc, yc, cellmass, dx, dy, distance, dist2;
 
 	const int ns = data[t_data::DENSITY].Nsec;
 	const double* cell_center_x = CellCenterX->Field;
@@ -641,11 +641,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	const double y = planet.get_y();
 	const double mass = planet.get_mass();
 	const double a = planet.get_semi_major_axis();
-
-
-
-	rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
-
+	
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
 	if (parameters::Locally_Isothermal) {

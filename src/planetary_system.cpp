@@ -15,6 +15,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <limits>
 
 #include <experimental/filesystem> /// To check wether we restart from a legacy simulation
 
@@ -330,8 +331,12 @@ void t_planetary_system::rotate(double angle)
 
 void t_planetary_system::handle_missing_planet_file(unsigned int num_files) {
     if (num_files < get_number_of_planets()){
-    die("Did not find enough planet files to start from");
-    legacy_file_mode = true;
+        die("Did not find enough planet files to start from");
+        const auto& planet = get_planet(0);
+        const double r0 = planet.get_r();
+        if ( r0 < 100*std::numeric_limits<double>::epsilon() && parameters::default_star) {
+            legacy_file_mode = true;
+        }
     }
 }
 
@@ -345,7 +350,8 @@ void t_planetary_system::restart(unsigned int timestep)
 {
     unsigned int i = 0;
     for (i = 0; i < get_number_of_planets(); ++i) {
-        if (!planet_file_exists(i)) {
+        if (!planet_file_exists(i+1)) {
+            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! Did not find file for planet " << i << std::endl;
             break;
         }
         get_planet(i).restart(timestep);
