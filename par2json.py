@@ -7,13 +7,15 @@ import argparse
 
 def main():
     args = parse_cli_args()
-    params = parse_ini_file(args.infile)
+    params = parse_ini_file(args.infile, comments_enabled=not args.no_comments)
     try:
-        # planet_config_path = params["PlanetConfig"]["value"]
-        planet_config_path = params["PlanetConfig"]["value"]
+        if args.no_comments:
+            planet_config_path = params["PlanetConfig"]
+        else:
+            planet_config_path = params["PlanetConfig"]["value"]
         if os.path.exists(planet_config_path):
             planet_params = parse_planet_config(planet_config_path)
-            params["planets"] = planet_params
+            params["Nbody"] = planet_params
         else:
             print("Planet config file '{}' not found.".format(planet_config_path))
             print("Hint: are you in the same dir as the fargo binary?")
@@ -54,15 +56,15 @@ def parse_planet_config(planet_config_file):
             values = line.split()
             for key, val in zip(keys, values):
                 planet[key] = val
-        try:
-            del planet["Nbody interaction"]
-        except KeyError:
-            pass
-        planets.append(planet)
+            try:
+                del planet["Nbody interaction"]
+            except KeyError:
+                pass
+            planets.append(planet)
     return planets
 
 
-def parse_ini_file(file_path):
+def parse_ini_file(file_path, comments_enabled=True):
     params = {}
     comment_counter = 0
     with open(file_path, "r") as in_file:
@@ -71,14 +73,19 @@ def parse_ini_file(file_path):
             if len(data) == 0:
                 continue
             if data["type"] == "comment":
+                if not comments_enabled:
+                    continue
                 params["comment{}".format(comment_counter)] = data["comment"]
                 comment_counter += 1
             elif data["type"] == "value":
                 key = data["key"]
                 value = data["value"]
-                del data["type"]
-                del data["key"]
-                params[key] = data
+                if comments_enabled:
+                    del data["type"]
+                    del data["key"]
+                    params[key] = data
+                else:
+                    params[key] = value
                 # params[key] = value
                 # if "comment" in data:
                 #     params[key+"_comment"] = data["comment"]
@@ -153,6 +160,8 @@ def parse_cli_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Path of INI file to be parsed.")
     parser.add_argument("outfile", help="Output json file.")
+    parser.add_argument("-nc", "--no-comments", default=False,
+                        action="store_true", help="Disable all comments.")
     args = parser.parse_args()
     return args
 
