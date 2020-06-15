@@ -668,28 +668,16 @@ void parse_output_config(t_data &data)
 	config.get_flag("WriteSoundSpeed", false));
     data[t_data::PRESSURE].set_write(config.get_flag("WritePressure", false));
     data[t_data::TOOMRE].set_write(config.get_flag("WriteToomre", false));
-    data[t_data::TOOMRE_1D].set_write(
-	config.get_flag("WriteRadialToomre", false));
     data[t_data::QPLUS].set_write(config.get_flag("WriteQPlus", false));
     data[t_data::QMINUS].set_write(config.get_flag("WriteQMinus", false));
     data[t_data::KAPPA].set_write(config.get_flag("WriteKappa", false));
     data[t_data::TAU_COOL].set_write(config.get_flag("WriteTauCool", false));
     data[t_data::ALPHA_GRAV].set_write(
 	config.get_flag("WriteAlphaGrav", false));
-    data[t_data::ALPHA_GRAV_1D].set_write(
-	config.get_flag("WriteRadialAlphaGrav", false));
-    data[t_data::ALPHA_GRAV_MEAN].set_write(
-	config.get_flag("WriteAlphaGravMean", false));
-    data[t_data::ALPHA_GRAV_MEAN_1D].set_write(
-	config.get_flag("WriteRadialAlphaGravMean", false));
     data[t_data::ALPHA_REYNOLDS].set_write(
 	config.get_flag("WriteAlphaReynolds", false));
-    data[t_data::ALPHA_REYNOLDS_1D].set_write(
-	config.get_flag("WriteRadialAlphaReynolds", false));
     data[t_data::ALPHA_REYNOLDS_MEAN].set_write(
 	config.get_flag("WriteAlphaReynoldsMean", false));
-    data[t_data::ALPHA_REYNOLDS_MEAN_1D].set_write(
-	config.get_flag("WriteRadialAlphaReynoldsMean", false));
     data[t_data::VISCOSITY].set_write(config.get_flag("WriteViscosity", false));
     data[t_data::DIV_V].set_write(config.get_flag("WriteDivV", false));
     data[t_data::ECCENTRICITY].set_write(
@@ -1003,10 +991,26 @@ void parse_initialization_config()
     sigma_discmass = config.get<double>("discmass", 0.01);
     density_factor = config.get<double>("DensityFactor", 2.0);
 
-    // profile damping
-    profile_damping = config.get_flag("ProfileDamping", false);
-    profile_damping_point = config.get<double>("ProfileDampingPoint", 0.0);
-    profile_damping_width = config.get<double>("ProfileDampingWidth", 1.0);
+	// profile cutoff outer, legacy names
+	profile_cutoff_outer = config.get_flag("ProfileDamping", false);
+    profile_cutoff_point_outer =
+	config.get<double>("ProfileDampingPoint", 1.0e300);
+    profile_cutoff_width_outer =
+	config.get<double>("ProfileDampingWidth", 1.0);
+
+	// profile damping outer
+	profile_cutoff_outer = config.get_flag("ProfileCutoffOuter", false);
+	profile_cutoff_point_outer =
+	config.get<double>("ProfileCutoffPointOuter", 1.0e300);
+	profile_cutoff_width_outer =
+	config.get<double>("ProfileCutoffWidthOuter", 1.0);
+
+	// profile damping inner
+	profile_cutoff_inner = config.get_flag("ProfileCutoffInner", false);
+	profile_cutoff_point_inner =
+	config.get<double>("ProfileCutoffPointInner", 0.0);
+	profile_cutoff_width_inner =
+	config.get<double>("ProfileCutoffWidthInner", 1.0);
 }
 
 void parse_viscosity_config()

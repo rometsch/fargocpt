@@ -306,7 +306,7 @@ void t_planetary_system::list_planets()
 void t_planetary_system::rotate(double angle)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	    const auto &planet = get_planet(i);
+	    auto &planet = get_planet(i);
         const double x = planet.get_x();
         const double y = planet.get_y();
         const double vx = planet.get_vx();
@@ -329,8 +329,9 @@ void t_planetary_system::rotate(double angle)
 }
 
 void t_planetary_system::handle_missing_planet_file(unsigned int num_files) {
-    if (num_files < get_number_of_planet()){
+    if (num_files < get_number_of_planets()){
     die("Did not find enough planet files to start from");
+    legacy_file_mode = true;
     }
 }
 
@@ -363,7 +364,7 @@ void t_planetary_system::create_planet_files()
 void t_planetary_system::write_planets(unsigned int timestep, bool big_file)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		if(planet_restart_legacy && i == 0) { /// Legacy restart means that the central star has no file, thus we skip writing it
+		if(legacy_file_mode && i == 0) { /// Legacy restart means that the central star has no file, thus we skip writing it
 			continue;
 		}
 	get_planet(i).write(timestep, big_file);

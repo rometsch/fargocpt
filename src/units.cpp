@@ -200,24 +200,24 @@ void print_code_units()
 			  stress.get_cgs_factor(), stress.get_cgs_symbol());
     logging::verbose_master("                   pressure:       p0 = %.16g %s\n",
 			  pressure.get_cgs_factor(), pressure.get_cgs_symbol());
-	logging::print_master(LOG_VERBOSE
+	logging::verbose_master(
 			  "           angular momentum:      L0 = %.16g %s\n",
 			  angular_momentum.get_cgs_factor(),
 			  angular_momentum.get_cgs_symbol());
-	logging::print_master(LOG_VERBOSE
+	logging::verbose_master(
 			  "                      power:       P0 = %.16g %s\n",
 			  power.get_cgs_factor(), power.get_cgs_symbol());
 
-	logging::print_master(LOG_VERBOSE
+	logging::verbose_master(
 			  "                     torque:     tau0 = %.16g %s\n",
 			  torque.get_cgs_factor(), torque.get_cgs_symbol());
-	logging::print_master(LOG_VERBOSE
+	logging::verbose_master(
 			  "                      force:       F0 = %.16g %s\n",
 			  force.get_cgs_factor(), force.get_cgs_symbol());
-	logging::print_master(LOG_VERBOSE
+	logging::verbose_master(
 			  "        mass accretion rate:    Mdot0 = %.16g %s\n",
 			  mass_accretion_rate.get_cgs_factor(), mass_accretion_rate.get_cgs_symbol());
-	logging::print_master(LOG_VERBOSE
+	logging::verbose_master(
 			  "                    opacity:   kappa0 = %.16g %s\n",
 			  opacity.get_cgs_factor(), opacity.get_cgs_symbol());
 }

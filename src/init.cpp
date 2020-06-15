@@ -489,8 +489,7 @@ void init_gas_density(t_data &data)
 
 	// profile cutoff at outer boundary?
 	if (parameters::profile_cutoff_outer) {
-	logging::print_master(
-		LOG_INFO "Cutoff Sigma for r > %g %s over a range from %g %s\n",
+	logging::info_master( "Cutoff Sigma for r > %g %s over a range from %g %s\n",
 		parameters::profile_cutoff_point_outer * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 		parameters::profile_cutoff_width_outer * units::length.get_cgs_factor(),
@@ -515,8 +514,7 @@ void init_gas_density(t_data &data)
 
 	// profile cutoff at inner boundary?
 	if (parameters::profile_cutoff_inner) {
-	logging::print_master(
-		LOG_INFO "Cutoff Sigma for r < %g %s over a range from %g %s\n",
+	logging::info_master( "Cutoff Sigma for r < %g %s over a range from %g %s\n",
 		parameters::profile_cutoff_point_inner * units::length.get_cgs_factor(),
 		units::length.get_cgs_symbol(),
 		parameters::profile_cutoff_width_inner * units::length.get_cgs_factor(),
@@ -640,8 +638,7 @@ void init_gas_energy(t_data &data)
 
 	// profile damping outer?
 	if (parameters::profile_cutoff_outer) {
-	logging::print_master(
-	    LOG_INFO "Damping Energy for r > %g %s over a range of %g %s\n",
+	logging::info_master( "Damping Energy for r > %g %s over a range of %g %s\n",
 		parameters::profile_cutoff_point_outer * units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 		parameters::profile_cutoff_width_outer * units::length.get_cgs_factor(),
@@ -672,8 +669,7 @@ void init_gas_energy(t_data &data)
 
 	// profile damping inner?
 	if (parameters::profile_cutoff_inner) {
-	logging::print_master(
-		LOG_INFO "Damping Energy for r < %g %s over a range of %g %s\n",
+	logging::info_master( "Damping Energy for r < %g %s over a range of %g %s\n",
 		parameters::profile_cutoff_point_inner * units::length.get_cgs_factor(),
 		units::length.get_cgs_symbol(),
 		parameters::profile_cutoff_width_inner * units::length.get_cgs_factor(),

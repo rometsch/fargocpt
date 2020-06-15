@@ -98,6 +98,7 @@ void CalculatePotential(t_data &data)
 	mpl[k] = data.get_planetary_system().get_planet(k).get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
+	}
 
     data[t_data::POTENTIAL].clear();
 

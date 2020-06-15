@@ -646,20 +646,9 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 
 	rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
 
-	bool SmoothingEnabled = (a != 0.0);
-
-	// calculate smoothing length only once if not dependend on radius
-	if (RocheSmoothing) {
-	rsmoothing = rh * ROCHESMOOTHING;
-	} else {
-	// Thickness smoothing = smoothing with scale height
-	rsmoothing = compute_smoothing_isothermal(a);
-	}
-
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
-	if (SmoothingEnabled && ThicknessSmoothingAtCell &&
-		parameters::Locally_Isothermal) {
+	if (parameters::Locally_Isothermal) {
 		rsmoothing = compute_smoothing_isothermal(Rmed[n_radial]);
 	}
 
@@ -669,8 +658,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 		 ++n_azimuthal) {
 		// calculate smoothing length if dependend on radius
 		// i.e. for thickness smoothing with scale height at cell location
-		if (SmoothingEnabled && ThicknessSmoothingAtCell &&
-		(!parameters::Locally_Isothermal)) {
+		if (!parameters::Locally_Isothermal) {
 		rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial,
 						   n_azimuthal);
 		}

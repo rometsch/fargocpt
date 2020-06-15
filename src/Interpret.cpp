@@ -147,7 +147,6 @@ void create_outputdir(const char *filename)
 
 void interpret_disk_parameters()
 {
-    MASSTAPER = config.get<double>("MASSTAPER", 0.0000001);
     parameters::roche_smoothing_factor = config.get<double>("ROCHESMOOTHING", 0.0);
     SIGMASLOPE = config.get<double>("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config.get<double>("IMPOSEDDISKDRIFT", 0.0);
