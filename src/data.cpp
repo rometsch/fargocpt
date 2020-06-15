@@ -60,9 +60,13 @@ t_data::t_data()
 
     m_polargrids[ALPHA_GRAV_MEAN].set_scalar(true);
     m_polargrids[ALPHA_GRAV_MEAN].set_name("alpha_grav_mean");
+	m_polargrids[ALPHA_GRAV_MEAN].set_clear_after_write(true);
+
 
     m_polargrids[ALPHA_REYNOLDS_MEAN].set_scalar(true);
     m_polargrids[ALPHA_REYNOLDS_MEAN].set_name("alpha_reynolds_mean");
+	m_polargrids[ALPHA_REYNOLDS_MEAN].set_clear_after_write(true);
+
 
     m_polargrids[V_RADIAL0].set_vector(true);
     m_polargrids[V_RADIAL0].set_name("vrad0");
@@ -108,6 +112,33 @@ t_data::t_data()
     m_polargrids[VISCOSITY].set_scalar(true);
     m_polargrids[VISCOSITY].set_name("viscosity");
     m_polargrids[VISCOSITY].set_unit(units::kinematic_viscosity);
+
+	m_polargrids[ADVECTION_TORQUE].set_scalar(true);
+	m_polargrids[ADVECTION_TORQUE].set_name("ADVECTION_TORQUE");
+	m_polargrids[ADVECTION_TORQUE].set_unit(units::torque);
+	m_polargrids[ADVECTION_TORQUE].set_do_before_write(
+	&quantities::calculate_advection_torque);
+	m_polargrids[ADVECTION_TORQUE].set_clear_after_write(true);
+	m_polargrids[ADVECTION_TORQUE].set_integrate_azimuthally_for_1D_write(true);
+
+
+	m_polargrids[VISCOUS_TORQUE].set_scalar(true);
+	m_polargrids[VISCOUS_TORQUE].set_name("VISCOUS_TORQUE");
+	m_polargrids[VISCOUS_TORQUE].set_unit(units::torque);
+	m_polargrids[VISCOUS_TORQUE].set_do_before_write(
+	&quantities::calculate_viscous_torque);
+	m_polargrids[VISCOUS_TORQUE].set_clear_after_write(true);
+	m_polargrids[VISCOUS_TORQUE].set_integrate_azimuthally_for_1D_write(true);
+
+
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_scalar(true);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_name("GRAVITATIONAL_TORQUE_NOT_INTEGRATED");
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_unit(units::torque);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_do_before_write(
+	&quantities::calculate_gravitational_torque);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_clear_after_write(true);
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_integrate_azimuthally_for_1D_write(true);
+
 
     // tau_r_r is cell centered
     m_polargrids[TAU_R_R].set_scalar(true);
@@ -195,50 +226,15 @@ t_data::t_data()
     m_polargrids[RHO].set_name("rho");
     m_polargrids[RHO].set_unit(units::density);
 
+	m_polargrids[MASSFLOW].set_scalar(false);
+	m_polargrids[MASSFLOW].set_name("MassFlow");
+	m_polargrids[MASSFLOW].set_unit(units::mass_accretion_rate);
+	m_polargrids[MASSFLOW].set_do_before_write(
+	&quantities::calculate_massflow);
+	m_polargrids[MASSFLOW].set_clear_after_write(true);
+	m_polargrids[MASSFLOW].set_integrate_azimuthally_for_1D_write(true);
+
     // -- radial grids --
-
-    m_radialgrids[DENSITY_1D].set_scalar(true);
-    m_radialgrids[DENSITY_1D].set_name("1D_dens");
-    m_radialgrids[DENSITY_1D].set_unit(units::surface_density);
-
-    m_radialgrids[V_AZIMUTHAL_1D].set_vector(
-	m_polargrids[V_AZIMUTHAL].is_vector());
-    m_radialgrids[V_AZIMUTHAL_1D].set_name("1D_vtheta");
-    m_radialgrids[V_AZIMUTHAL_1D].set_unit(units::velocity);
-
-    m_radialgrids[SOUNDSPEED_1D].set_scalar(true);
-    m_radialgrids[SOUNDSPEED_1D].set_name("1D_soundspeed");
-    m_radialgrids[SOUNDSPEED_1D].set_unit(units::velocity);
-
-    m_radialgrids[TOOMRE_1D].set_scalar(true);
-    m_radialgrids[TOOMRE_1D].set_name("1D_toomre");
-    m_radialgrids[TOOMRE_1D].set_do_before_write(
-	&quantities::calculate_radial_toomre);
-
-    m_radialgrids[ALPHA_GRAV_1D].set_scalar(true);
-    m_radialgrids[ALPHA_GRAV_1D].set_name("1D_alpha_grav");
-    m_radialgrids[ALPHA_GRAV_1D].set_do_before_write(
-	&quantities::calculate_radial_alpha_grav);
-
-    m_radialgrids[ALPHA_REYNOLDS_1D].set_scalar(true);
-    m_radialgrids[ALPHA_REYNOLDS_1D].set_name("1D_alpha_reynolds");
-    m_radialgrids[ALPHA_REYNOLDS_1D].set_do_before_write(
-	&quantities::calculate_radial_alpha_reynolds);
-
-    m_radialgrids[ALPHA_GRAV_MEAN_1D].set_scalar(true);
-    m_radialgrids[ALPHA_GRAV_MEAN_1D].set_name("1D_alpha_grav_mean");
-
-    m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_scalar(true);
-    m_radialgrids[ALPHA_REYNOLDS_MEAN_1D].set_name("1D_alpha_reynolds_mean");
-
-    m_radialgrids[T_GRAVITATIONAL_1D].set_scalar(true);
-    m_radialgrids[T_GRAVITATIONAL_1D].set_name("1D_T_gravitational");
-    m_radialgrids[T_GRAVITATIONAL_1D].set_unit(units::stress);
-
-    m_radialgrids[T_REYNOLDS_1D].set_scalar(true);
-    m_radialgrids[T_REYNOLDS_1D].set_name("1D_T_Reynolds");
-    m_radialgrids[T_REYNOLDS_1D].set_unit(units::stress);
-
     m_radialgrids[LUMINOSITY_1D].set_scalar(true);
     m_radialgrids[LUMINOSITY_1D].set_name("1D_Luminosity");
     m_radialgrids[LUMINOSITY_1D].set_unit(units::power);
@@ -254,13 +250,6 @@ t_data::t_data()
     m_radialgrids[TORQUE_1D].set_scalar(true);
     m_radialgrids[TORQUE_1D].set_name("1D_torque");
     m_radialgrids[TORQUE_1D].set_unit(units::torque);
-
-    m_radialgrids[MASSFLOW_1D].set_scalar(false);
-    m_radialgrids[MASSFLOW_1D].set_name("MassFlow1D");
-    m_radialgrids[MASSFLOW_1D].set_unit(units::mass_accretion_rate);
-    m_radialgrids[MASSFLOW_1D].set_do_before_write(
-	&quantities::calculate_massflow);
-    m_radialgrids[MASSFLOW_1D].set_clear_after_write(true);
 
     pdivv_total = 0.0;
 }

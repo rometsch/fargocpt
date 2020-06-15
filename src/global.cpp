@@ -144,7 +144,7 @@ double hydro_center_mass;
 int debug, OnlyInit;
 int GotoNextOutput, ViscosityAlpha, RocheSmoothing, ThicknessSmoothingAtCell,
     ThicknessSmoothingAtPlanet, CartesianParticles, ParticlesInCartesian;
-int CentrifugalBalance, ExcludeHill, SloppyCFL;
+int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;
 
@@ -177,4 +177,3 @@ double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
-bool Stockholm;

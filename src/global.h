@@ -84,7 +84,7 @@ extern int debug, OnlyInit;
 extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
     ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles,
     ParticlesInCartesian;
-extern int CentrifugalBalance, ExcludeHill, SloppyCFL;
+extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
 extern int OverridesOutputdir;
@@ -116,6 +116,5 @@ extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
 extern BoundaryFlow MassDelta;
-extern bool Stockholm;
 
 #endif // GLOBAL_H

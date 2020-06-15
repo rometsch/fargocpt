@@ -20,63 +20,38 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 #include "parameters.h"
 #include "viscosity.h"
 
-Force *AllocateForce(int dimfxy)
-{
-    int i;
-    Force *force;
-    double *globalforce;
-
-    force = (Force *)malloc(sizeof(Force));
-    globalforce = (double *)malloc(sizeof(double) * 4 * dimfxy);
-
-    if ((force == NULL) || (globalforce == NULL)) {
-	logging::print(LOG_ERROR "Not Enough Memory.\n");
-	PersonalExit(1);
-    }
-
-    for (i = 0; i < 4 * dimfxy; i++)
-	globalforce[i] = 0.;
-    force->GlobalForce = globalforce;
-
-    return force;
-}
-
-void FreeForce(Force *force)
-{
-    free(force->GlobalForce);
-    free(force);
-}
 
 /**
 	Computes the force due to the disk on an object at position (x,y)
 */
-void ComputeForce(t_data &data, Force *force, double x, double y, double mass)
+Pair ComputeAccel(t_data &data, double x, double y, double mass)
 {
+	Pair acceleration;
     int l, ns;
-    double localforce[8] = {0., 0., 0., 0., 0., 0., 0., 0.},
-	   globalforce[8] = {0., 0., 0., 0., 0., 0., 0., 0.};
-    double xc, yc, cellmass, dx, dy, distance, dist2, rh, a;
-    double InvDist3, fxi, fyi, fxhi, fyhi, fxo, fyo, fxho, fyho, hill_cut;
+	double localaccel[4] = {0., 0., 0., 0.},
+	   globalaccel[4] = {0., 0., 0., 0.};
+	double xc, yc, cellmass, dx, dy, distance, dist2, a;
+	double InvDist3, fxi, fyi, fxo, fyo;
     double rsmoothing = 0.0;
 
     ns = data[t_data::DENSITY].Nsec;
     const double* cell_center_x = CellCenterX->Field;
     const double* cell_center_y = CellCenterY->Field;
-    fxi = fyi = fxhi = fyhi = fxo = fyo = fxho = fyho = 0.0;
+	fxi = fyi = fxo = fyo = 0.0;
     a = sqrt(x * x + y * y);
-    rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
 
     bool SmoothingEnabled = (a != 0.0);
 
     // calculate smoothing length only once if not dependend on radius
     if (RocheSmoothing) {
+	const double rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
 	rsmoothing = rh * ROCHESMOOTHING;
     } else {
 	// Thickness smoothing = smoothing with scale height
 	rsmoothing = compute_smoothing_isothermal(a);
     }
 
-    for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
+	for (unsigned int n_radial = One_or_active; n_radial < MaxMO_or_active;
 	 ++n_radial) {
 	if (SmoothingEnabled && ThicknessSmoothingAtCell &&
 	    parameters::Locally_Isothermal) {
@@ -100,43 +75,30 @@ void ComputeForce(t_data &data, Force *force, double x, double y, double mass)
 	    dx = xc - x;
 	    dy = yc - y;
 	    dist2 = dx * dx + dy * dy;
-	    hill_cut = 1. - exp(-dist2 / (rh * rh));
 	    dist2 += rsmoothing * rsmoothing;
 	    distance = sqrt(dist2);
 	    InvDist3 = 1.0 / dist2 / distance;
 	    if (Rmed[n_radial] < a) {
 		fxi += constants::G * cellmass * dx * InvDist3;
 		fyi += constants::G * cellmass * dy * InvDist3;
-		fxhi += constants::G * cellmass * dx * InvDist3 * hill_cut;
-		fyhi += constants::G * cellmass * dy * InvDist3 * hill_cut;
 	    } else {
 		fxo += constants::G * cellmass * dx * InvDist3;
 		fyo += constants::G * cellmass * dy * InvDist3;
-		fxho += constants::G * cellmass * dx * InvDist3 * hill_cut;
-		fyho += constants::G * cellmass * dy * InvDist3 * hill_cut;
 	    }
 	}
     }
 
-    localforce[0] = fxi;
-    localforce[1] = fyi;
-    localforce[2] = fxhi;
-    localforce[3] = fyhi;
-    localforce[4] = fxo;
-    localforce[5] = fyo;
-    localforce[6] = fxho;
-    localforce[7] = fyho;
-    MPI_Allreduce(&localforce, &globalforce, 8, MPI_DOUBLE, MPI_SUM,
+	localaccel[0] = fxi;
+	localaccel[1] = fyi;
+	localaccel[2] = fxo;
+	localaccel[3] = fyo;
+	MPI_Allreduce(&localaccel, &globalaccel, 4, MPI_DOUBLE, MPI_SUM,
 		  MPI_COMM_WORLD);
 
-    force->fx_inner = globalforce[0];
-    force->fy_inner = globalforce[1];
-    force->fx_ex_inner = globalforce[2];
-    force->fy_ex_inner = globalforce[3];
-    force->fx_outer = globalforce[4];
-    force->fy_outer = globalforce[5];
-    force->fx_ex_outer = globalforce[6];
-    force->fy_ex_outer = globalforce[7];
+	acceleration.x = globalaccel[0] + globalaccel[2];
+	acceleration.y = globalaccel[1] + globalaccel[3];
+
+	return acceleration;
 }
 
 double compute_smoothing_isothermal(double r)
@@ -156,41 +118,4 @@ double compute_smoothing(double r, t_data &data, const int n_radial,
 	data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * r;
     smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
-}
-
-void UpdateLog(t_data &data, Force *fc, int outputnb, double time)
-{
-    double x, y, m, vx, vy;
-    FILE *out;
-    char filename[255];
-    for (unsigned int i = 0;
-	 i < data.get_planetary_system().get_number_of_planets(); i++) {
-	x = data.get_planetary_system().get_planet(i).get_x();
-	y = data.get_planetary_system().get_planet(i).get_y();
-	vx = data.get_planetary_system().get_planet(i).get_vx();
-	vy = data.get_planetary_system().get_planet(i).get_vy();
-	m = data.get_planetary_system().get_planet(i).get_mass();
-
-	ComputeForce(data, fc, x, y, m);
-	if (CPU_Rank == CPU_Number - 1) {
-	    sprintf(filename, "%stqwk%d.dat", OUTPUTDIR, i);
-	    out = fopen(filename, "a");
-	    if (out == NULL) {
-		fprintf(stderr, "Can't open %s\n", filename);
-		fprintf(stderr, "Aborted.\n");
-	    }
-	    fprintf(
-		out,
-		"%d\t%.18g\t%.18g\t%.18g\t%.18g\t%.18g\t%.18g\t%.18g\t%.18g\t%.18g\n",
-		outputnb, x * fc->fy_inner - y * fc->fx_inner,
-		x * fc->fy_outer - y * fc->fx_outer,
-		x * fc->fy_ex_inner - y * fc->fx_ex_inner,
-		x * fc->fy_ex_outer - y * fc->fx_ex_outer,
-		vx * fc->fx_inner + vy * fc->fy_inner,
-		vx * fc->fx_outer + vy * fc->fy_outer,
-		vx * fc->fx_ex_inner + vy * fc->fy_ex_inner,
-		vx * fc->fx_ex_outer + vy * fc->fy_ex_outer, time);
-	    fclose(out);
-	}
-    }
 }

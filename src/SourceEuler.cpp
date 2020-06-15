@@ -38,6 +38,8 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "gas_torques.h"
+
 #include <cstring>
 extern boolean Corotating;
 
@@ -276,12 +278,10 @@ void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src)
 }
 
 /**
-
-	\param force
 	\param data
 	\param sys
 */
-void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
+void AlgoGas(unsigned int nTimeStep, t_data &data)
 {
     double local_gas_time_step_cfl = 1.0;
     double global_gas_time_step_cfl;
@@ -308,18 +308,6 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
     dt = DT / global_gas_time_step_cfl;
     boundary_conditions::apply_boundary_condition(data, dt, false);
 
-    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	quantities::calculate_alpha_grav_mean_reset(data);
-    }
-    if (data[t_data::ALPHA_GRAV_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_grav_mean_reset(data);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
-	quantities::calculate_alpha_reynolds_mean_reset(data);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_reynolds_mean_reset(data);
-    }
 
     while (dtemp < DT) {
 	logging::print_master(
@@ -344,7 +332,7 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	}
 
 	if (parameters::disk_feedback) {
-	    ComputeDiskOnNbodyAccel(force, data);
+		ComputeDiskOnNbodyAccel(data);
 	}
 	/* Indirect term star's potential computed here */
 	ComputeNbodyOnNbodyAccel(data.get_planetary_system());
@@ -537,21 +525,23 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	    mdcp = CircumPlanetaryMass(data);
 	    exces_mdcp = mdcp - mdcp0;
 
+		if(data[t_data::ADVECTION_TORQUE].get_write()){
+			gas_torques::calculate_advection_torque(data, dt/DT);
+		}
+		if(data[t_data::VISCOUS_TORQUE].get_write()){
+			gas_torques::calculate_viscous_torque(data, dt/DT);
+		}
+		if(data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()){
+			gas_torques::calculate_gravitational_torque(data, dt/DT);
+		}
+
 	    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
 		quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep,
-							    dt);
-	    }
-	    if (data[t_data::ALPHA_GRAV_MEAN_1D].get_write()) {
-		quantities::calculate_radial_alpha_grav_mean_sumup(
-		    data, nTimeStep, dt);
+								dt/DT);
 	    }
 	    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
 		quantities::calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
-								dt);
-	    }
-	    if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
-		quantities::calculate_radial_alpha_reynolds_mean_sumup(
-		    data, nTimeStep, dt);
+								dt/DT);
 	    }
 	}
 
@@ -578,19 +568,6 @@ void AlgoGas(unsigned int nTimeStep, Force *force, t_data &data)
 	    }
 		accretion::AccreteOntoPlanets(data, dt);
 	}
-    }
-
-    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	quantities::calculate_alpha_grav_mean_finalize(data, DT);
-    }
-    if (data[t_data::ALPHA_GRAV_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_grav_mean_finalize(data, DT);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
-	quantities::calculate_alpha_reynolds_mean_finalize(data, DT);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN_1D].get_write()) {
-	quantities::calculate_radial_alpha_reynolds_mean_finalize(data, DT);
     }
 }
 

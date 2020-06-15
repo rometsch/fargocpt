@@ -9,7 +9,6 @@ void divise_polargrid(t_polargrid &num, t_polargrid &denom,
 		      t_polargrid &result);
 void InitCellCenterCoordinates();
 void FreeCellCenterCoordinates();
-Pair ComputeAccel(Force *force, t_data &data, double x, double y, double mass);
 
 void NonReflectingBoundary_inner(t_data &data, t_polargrid *VRadial,
 				 t_polargrid *Density, t_polargrid *Energy);

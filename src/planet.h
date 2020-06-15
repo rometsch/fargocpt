@@ -45,6 +45,8 @@ class t_planet
     double m_eccentric_anomaly;
     double m_pericenter_angle;
 
+	double m_torque;
+
   public:
     // setter
     inline void set_mass(double value) { m_mass = value; }
@@ -53,6 +55,7 @@ class t_planet
     inline void set_vx(double value) { m_vx = value; }
     inline void set_vy(double value) { m_vy = value; }
     inline void set_acc(double value) { m_acc = value; }
+	inline void set_torque(const double value) { m_torque = value; }
     void set_name(const char *value);
     inline void set_planet_number(unsigned int value)
     {
@@ -128,6 +131,7 @@ class t_planet
     inline double get_true_anomaly() const { return m_true_anomaly; }
     inline double get_eccentric_anomaly() const { return m_eccentric_anomaly; }
     inline double get_pericenter_angle() const { return m_pericenter_angle; }
+	inline double get_torque() const { return m_torque; }
 
     double get_r(void) const;
     double get_phi(void) const;

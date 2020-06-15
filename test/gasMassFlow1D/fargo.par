@@ -86,15 +86,19 @@ Damping			Yes
 DampingInnerLimit	1.05    	# Rmin*Limit
 DampingOuterLimit	0.95    	# Rmax*Limit
 DampingTimeFactor	1.0e-3
-DampingEnergy		No		# Damping of energy [default = no]
-DampingVRadial		Yes		# Damping of radial velocity [default = no]
-DampingVAzimuthal	No		# Damping of azimuthal velocity [default = no]
-DampingSurfaceDensity	Yes		# Damping of surface density [default = no]
+DampingEnergyInner		No		# Damping of energy [default = no]
+DampingVRadialInner		Yes		# Damping of radial velocity [default = no]
+DampingVAzimuthalInner	No		# Damping of azimuthal velocity [default = no]
+DampingSurfaceDensityInner	Yes		# Damping of surface density [default = no]
+DampingEnergyOuter		No		# Damping of energy [default = no]
+DampingVRadialOuter		Yes		# Damping of radial velocity [default = no]
+DampingVAzimuthalOuter	No		# Damping of azimuthal velocity [default = no]
+DampingSurfaceDensityOuter	Yes		# Damping of surface density [default = no]
+
 Disk			YES
 OmegaFrame		1.0
 Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center
-IndirectTerm		NO		# Calculate incfluence of the disk on the star
-FeelsDisk		NO		# star feels the disk
+DiskFeedback		NO		# star feels the disk
 
 ### Mesh parameters
 
@@ -107,8 +111,8 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC or Exponential
 
 ### Output control parameters
 
-Ntot			15000		# Total number of time steps
-Ninterm	 		100		# Time steps between outputs
+Ntot			20		# Total number of time steps
+Ninterm	 		1		# Time steps between outputs
 DT			62.8	# Time step length. 2PI = 1 orbit
 OutputDir		out/
 

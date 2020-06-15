@@ -68,7 +68,29 @@ const std::map<const std::string, const int> planet_file_column_v2_1 = {
     {"true anomaly", 16},
     {"pericenter angle", 17}};
 
-auto planet_files_column = planet_file_column_v2_1;
+// file version 2.2
+const std::map<const std::string, const int> planet_file_column_v2_2 = {
+	{"time step", 0},
+	{"x", 1},
+	{"y", 2},
+	{"vx", 3},
+	{"vy", 4},
+	{"mass", 5},
+	{"physical time", 6},
+	{"omega frame", 7},
+	{"mdcp", 8},
+	{"exces mdcp", 9},
+	{"eccentricity", 10},
+	{"angular momentum", 11},
+	{"semi-major axis", 12},
+	{"omega kepler", 13},
+	{"mean anomaly", 14},
+	{"eccentric anomaly", 15},
+	{"true anomaly", 16},
+	{"pericenter angle", 17},
+	{"torque", 18}};
+
+auto planet_files_column = planet_file_column_v2_2;
 
 const std::map<const std::string, const std::string> variable_units = {
     {"time step", "1"},
@@ -90,7 +112,8 @@ const std::map<const std::string, const std::string> variable_units = {
     {"true anomaly", "1"},
     {"pericenter angle", "1"},
     {"omega", "frequency"},
-    {"omega kepler", "frequency"}};
+	{"omega kepler", "frequency"},
+	{"torque", "torque"}};
 
 
 
@@ -263,12 +286,13 @@ void t_planet::write(unsigned int timestep, bool big_file)
 
     fprintf(
 	fd,
-	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 	timestep, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
 	PhysicalTime, OmegaFrame, mdcp, exces_mdcp, get_eccentricity(),
 	get_angular_momentum(), get_semi_major_axis(), get_omega(),
 	get_mean_anomaly(), get_eccentric_anomaly(), get_true_anomaly(),
-	get_pericenter_angle());
+	get_pericenter_angle(),
+	get_torque());
 
     // close file
     fclose(fd);
@@ -332,6 +356,7 @@ void t_planet::set_orbital_elements_zero()
     m_true_anomaly = 0.0;
     m_eccentric_anomaly = 0.0;
     m_pericenter_angle = 0.0;
+	m_torque = 0;
 }
 
 void t_planet::calculate_orbital_elements(double x, double y, double vx,

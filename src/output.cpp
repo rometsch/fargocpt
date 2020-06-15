@@ -12,12 +12,13 @@
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
+#include "Force.h"
+
 #include <dirent.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/statvfs.h>
 
 #include "unistd.h" // for access()
 #include <cstdio>
@@ -26,6 +27,8 @@
 #include <limits>
 #include <sstream>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <cfloat>
 
 namespace output
 {
@@ -542,7 +545,9 @@ std::string text_file_variable_description(
 					   "erg cm2/s/g")},
 	{"pressure per time", unit_descriptor(units::pressure.get_cgs_factor() /
 						  units::time.get_cgs_factor(),
-					      "dyn/cm/s")}};
+						  "dyn/cm/s")},
+	{"torque", unit_descriptor(units::torque.get_cgs_factor(),
+							  units::torque.get_cgs_symbol())}};
 
     std::string var_descriptor;
     for (auto const &ent : vars_by_column) {
@@ -630,81 +635,79 @@ double get_misc(unsigned int timestep, std::string variable)
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
-    double *global_torques = (double *)malloc(
-	sizeof(*global_torques) *
-	(data.get_planetary_system().get_number_of_planets() + 1));
-    double *local_torques = (double *)malloc(
-	sizeof(*local_torques) *
-	(data.get_planetary_system().get_number_of_planets() + 1));
+	double rsmoothing = 0.0;
+	double xc, yc, cellmass, dx, dy, distance, dist2, rh;
 
-    // central star
-    local_torques[0] = 0.0;
+	const int ns = data[t_data::DENSITY].Nsec;
+	const double* cell_center_x = CellCenterX->Field;
+	const double* cell_center_y = CellCenterY->Field;
 
     // do everything for all planets/stars
     for (unsigned int n_planet = 0;
 	 n_planet < data.get_planetary_system().get_number_of_planets();
 	 ++n_planet) {
-	local_torques[n_planet + 1] = 0;
 	t_planet &planet = data.get_planetary_system().get_planet(n_planet);
-	double smooth = parameters::thickness_smoothing * ASPECTRATIO_REF *
-			pow(planet.get_r(), 1.0 + FLARINGINDEX);
 
-	// hill radius
-	double r_hill = pow(planet.get_mass() / (3.0 * (M + planet.get_mass())),
-			    1.0 / 3.0) *
-			planet.get_semi_major_axis();
-	// 0.8 = cut off parameter
-	double r_taper = 0.8 * r_hill;
 
-	if (r_taper > 0.0) {
-	    for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::TORQUE].get_max_radial();
-		 ++n_radial) {
-		data[t_data::TORQUE_1D](n_radial) = 0.0;
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double mass = planet.get_mass();
+	const double a = planet.get_semi_major_axis();
 
-		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::TORQUE].get_max_azimuthal();
-		     ++n_azimuthal) {
-		    double phi =
-			(double)n_azimuthal /
-			(double)data[t_data::TORQUE].get_size_azimuthal() *
-			2.0 * PI;
-		    double dx = planet.get_x() - Rmed[n_radial] * cos(phi);
-		    double dy = planet.get_y() - Rmed[n_radial] * sin(phi);
-		    double m = data[t_data::DENSITY](n_radial, n_azimuthal) *
-			       Surf[n_radial];
 
-		    double distance2 = pow2(dx) + pow2(dy) + pow2(smooth);
 
-		    double taper = 1.0;
+	rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
 
-		    if (sqrt(pow2(dx) + pow2(dy)) < 4.0 * r_taper) {
-			taper =
-			    1.0 / (exp(-(sqrt(pow2(dx) + pow2(dy)) - r_taper) /
-				       (0.1 * r_taper)) +
-				   1.0);
-		    }
+	bool SmoothingEnabled = (a != 0.0);
 
-		    double F_x = -dx * m * planet.get_mass() *
-				 pow(distance2, -1.5) * taper;
-		    double F_y = -dy * m * planet.get_mass() *
-				 pow(distance2, -1.5) * taper;
+	// calculate smoothing length only once if not dependend on radius
+	if (RocheSmoothing) {
+	rsmoothing = rh * ROCHESMOOTHING;
+	} else {
+	// Thickness smoothing = smoothing with scale height
+	rsmoothing = compute_smoothing_isothermal(a);
+	}
 
-		    data[t_data::TORQUE](n_radial, n_azimuthal) =
-			planet.get_x() * F_y - planet.get_y() * F_x;
-		    data[t_data::TORQUE_1D](n_radial) +=
-			data[t_data::TORQUE](n_radial, n_azimuthal);
-		    if ((n_radial >=
-			 ((CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP)) &&
-			(n_radial <= data[t_data::TORQUE].get_max_radial() -
-					 (CPU_Rank == CPU_Highest
-					      ? GHOSTCELLS_B
-					      : CPUOVERLAP))) {
-			local_torques[n_planet + 1] +=
-			    data[t_data::TORQUE](n_radial, n_azimuthal);
-		    }
+	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
+	 ++n_radial) {
+	if (SmoothingEnabled && ThicknessSmoothingAtCell &&
+		parameters::Locally_Isothermal) {
+		rsmoothing = compute_smoothing_isothermal(Rmed[n_radial]);
+	}
+
+	data[t_data::TORQUE_1D](n_radial) = 0.0;
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 ++n_azimuthal) {
+		// calculate smoothing length if dependend on radius
+		// i.e. for thickness smoothing with scale height at cell location
+		if (SmoothingEnabled && ThicknessSmoothingAtCell &&
+		(!parameters::Locally_Isothermal)) {
+		rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial,
+						   n_azimuthal);
 		}
-	    }
+		const int l = n_azimuthal + n_radial * ns;
+		xc = cell_center_x[l];
+		yc = cell_center_y[l];
+		cellmass =
+		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
+		dx = xc - x;
+		dy = yc - y;
+		dist2 = dx * dx + dy * dy;
+		dist2 += rsmoothing * rsmoothing;
+		distance = sqrt(dist2);
+		const double InvDist3 = 1.0 / dist2 / distance;
+
+		const double Fx = constants::G * cellmass * dx * InvDist3 * mass;
+		const double Fy = constants::G * cellmass * dy * InvDist3 * mass;
+
+		const double Torque = x * Fy - y * Fx;
+
+		data[t_data::TORQUE](n_radial, n_azimuthal) =
+		Torque;
+		data[t_data::TORQUE_1D](n_radial) += Torque;
+
+	}
 	}
 
 	char *name;
@@ -718,64 +721,6 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	    data[t_data::TORQUE_1D].write1D(timestep);
 	}
     }
-
-    MPI_Allreduce(local_torques, global_torques,
-		  data.get_planetary_system().get_number_of_planets() + 1,
-		  MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
-    if (CPU_Master) {
-	// output
-	FILE *fd = 0;
-	char *fd_filename;
-	static bool fd_created = false;
-
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "torques.dat") == -1) {
-	    logging::print_master(LOG_ERROR
-				  "Not enough memory for string buffer.\n");
-	    PersonalExit(1);
-	}
-
-	// check if file exists and we restarted
-	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
-	    fd = fopen(fd_filename, "r");
-	    if (fd) {
-		fd_created = true;
-		fclose(fd);
-	    }
-	}
-	// open logfile
-	if (!fd_created) {
-	    fd = fopen(fd_filename, "w");
-	} else {
-	    fd = fopen(fd_filename, "a");
-	}
-	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR "Can't write 'torques.dat' file. Aborting.\n");
-	    PersonalExit(1);
-	}
-
-	free(fd_filename);
-
-	if (!fd_created) {
-	    // print header
-	    fprintf(fd, "# \n");
-	    fd_created = true;
-	}
-
-	fprintf(fd, "%.20e", PhysicalTime);
-	for (unsigned int i = 0;
-	     i <= data.get_planetary_system().get_number_of_planets(); ++i) {
-	    fprintf(fd, "\t%.20e", global_torques[i] * units::torque);
-	}
-	fprintf(fd, "\n");
-
-	// close file
-	fclose(fd);
-    }
-
-    free(local_torques);
-    free(global_torques);
 }
 
 void write_1D_info(t_data &data)
@@ -818,31 +763,6 @@ void write_1D_info(t_data &data)
 		free(tmp);
 	}
     }
-}
-
-void write_massflow_info(t_data &data)
-{
-    const std::string filename_info =
-	std::string(OUTPUTDIR) + "/gasMassFlow1D.info";
-    std::ofstream info_ofs(filename_info);
-    info_ofs
-	<< "# Mass flow 1d radial, first line radii, from second line on, values at time in Quantities.dat"
-	<< std::endl;
-    info_ofs << "Nr = " << GlobalNRadial + 1 << std::endl;
-    info_ofs << "unit = "
-	     << data[t_data::MASSFLOW_1D].get_unit()->get_cgs_symbol()
-	     << std::endl;
-    info_ofs << "bigendian = " << is_big_endian() << std::endl;
-    const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
-    std::ofstream ofs(filename, std::ios::binary);
-    ofs.write((char *)Radii.array, sizeof(*Radii.array) * (GlobalNRadial + 1));
-}
-
-void write_massflow(t_data &data, unsigned int timestep)
-{
-    (void)timestep;
-    const std::string filename = std::string(OUTPUTDIR) + "/gasMassFlow1D.dat";
-    data[t_data::MASSFLOW_1D].write(filename, TimeStep, data, true, true);
 }
 
 /**

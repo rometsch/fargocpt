@@ -535,14 +535,12 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		    }
 		}
 		if (parameters::write_massflow) {
-		    sum_without_ghost_cells(data[t_data::MASSFLOW_1D](nRadial),
-					    varq_inf, nRadial);
-		    if (CPU_Rank == CPU_Highest &&
+			data[t_data::MASSFLOW](nRadial, nAzimuthal) += varq_inf;
+			if (CPU_Rank == CPU_Highest &&
 			nRadial == Qbase->get_max_radial()) {
-			data[t_data::MASSFLOW_1D](nRadial) +=
-			    varq_sup; // TODO this part is always zero (tested
-				      // with open boundaries)
-		    }
+			data[t_data::MASSFLOW](nRadial, nAzimuthal) +=
+				varq_sup;
+			}
 		}
 	    }
 	}

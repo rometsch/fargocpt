@@ -8,7 +8,6 @@
 #include "Pframeforce.h"
 #include "SideEuler.h"
 #include "SourceEuler.h"
-#include "Stockholm.h"
 #include "Theo.h"
 #include "boundary_conditions.h"
 #include "commbound.h"
@@ -33,7 +32,7 @@
 #include "config.h"
 
 int TimeToWrite;
-int dimfxy = 11, Restart = 0;
+int Restart = 0;
 static int StillWriteOneOutput;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
@@ -56,7 +55,6 @@ int main(int argc, char *argv[])
     unsigned int timeStepStart = 0;
 
     int CPU_NameLength;
-    Force *force;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
 
     // initialize MPI
@@ -132,7 +130,6 @@ int main(int argc, char *argv[])
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
 
     init_radialarrays();
-	force = AllocateForce(dimfxy);
 
 	// Here planets are initialized feeling star potential
 	data.get_planetary_system().read_from_file(PLANETCONFIG, start_mode::mode == start_mode::mode_restart);
@@ -151,7 +148,7 @@ int main(int argc, char *argv[])
 
 	// update planet velocity due to disk potential
 	if (parameters::disk_feedback) {
-		ComputeDiskOnNbodyAccel(force, data);
+		ComputeDiskOnNbodyAccel(data);
 	}
 	data.get_planetary_system().correct_velocity_for_disk_accel();
 	logging::print_master(LOG_INFO "planets initialised.\n");
@@ -229,11 +226,6 @@ int main(int argc, char *argv[])
 	// create 1D info files
 	if (CPU_Master) {
 	    output::write_1D_info(data);
-
-	    // create mass flow info file
-	    if (parameters::write_massflow) {
-		output::write_massflow_info(data);
-	    }
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
     }
@@ -248,6 +240,11 @@ int main(int argc, char *argv[])
 	bool force_update_for_output = true;
 	TimeStep = (nTimeStep / NINTERM); // note: integer division
 	bool write_complete_output = NINTERM * TimeStep == nTimeStep;
+	/// asure planet torques are computed
+	if (!parameters::disk_feedback && (write_complete_output || parameters::write_at_every_timestep)) {
+		ComputeDiskOnNbodyAccel(data);
+	}
+
 	if (write_complete_output) {
 	    // Outputs are done here
 	    TimeToWrite = YES;
@@ -279,9 +276,6 @@ int main(int argc, char *argv[])
 	    // InnerOutputCounter = 0;
 	    data.get_planetary_system().write_planets(TimeStep, true);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
-	    UpdateLog(data, force, TimeStep, PhysicalTime);
-	    if (Stockholm)
-		UpdateLogStockholm(data, PhysicalTime);
 	}
 
 	// write disk quantities like eccentricity, ...
@@ -289,15 +283,13 @@ int main(int argc, char *argv[])
 	    output::write_quantities(data, TimeStep, nTimeStep,
 				     force_update_for_output);
 	}
+
 	if (write_complete_output || parameters::write_torques) {
 	    output::write_torques(data, TimeStep, force_update_for_output);
 	}
 	if (parameters::write_lightcurves &&
 	    (parameters::write_at_every_timestep || write_complete_output)) {
 	    output::write_lightcurves(data, TimeStep, force_update_for_output);
-	}
-	if (parameters::write_massflow && nTimeStep != timeStepStart) {
-	    output::write_massflow(data, TimeStep);
 	}
 
 	// Exit if last timestep reached and last output is written
@@ -306,7 +298,7 @@ int main(int argc, char *argv[])
 	}
 
 	// do hydro and nbody
-	AlgoGas(nTimeStep, force, data);
+	AlgoGas(nTimeStep, data);
     }
 
     logging::print_runtime_final();
@@ -318,7 +310,6 @@ int main(int argc, char *argv[])
 	free(PLANETCONFIG);
 	delete[] options::parameter_file;
     FreeEuler();
-    FreeForce(force);
 
     selfgravity::mpi_finalize();
     FreeSplitDomain();

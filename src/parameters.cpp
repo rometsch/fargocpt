@@ -305,8 +305,6 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WritePressure", false));
     data[t_data::TOOMRE].set_write(
 	config::value_as_bool_default("WriteToomre", false));
-    data[t_data::TOOMRE_1D].set_write(
-	config::value_as_bool_default("WriteRadialToomre", false));
     data[t_data::QPLUS].set_write(
 	config::value_as_bool_default("WriteQPlus", false));
     data[t_data::QMINUS].set_write(
@@ -317,20 +315,12 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteTauCool", false));
     data[t_data::ALPHA_GRAV].set_write(
 	config::value_as_bool_default("WriteAlphaGrav", false));
-    data[t_data::ALPHA_GRAV_1D].set_write(
-	config::value_as_bool_default("WriteRadialAlphaGrav", false));
     data[t_data::ALPHA_GRAV_MEAN].set_write(
 	config::value_as_bool_default("WriteAlphaGravMean", false));
-    data[t_data::ALPHA_GRAV_MEAN_1D].set_write(
-	config::value_as_bool_default("WriteRadialAlphaGravMean", false));
     data[t_data::ALPHA_REYNOLDS].set_write(
 	config::value_as_bool_default("WriteAlphaReynolds", false));
-    data[t_data::ALPHA_REYNOLDS_1D].set_write(
-	config::value_as_bool_default("WriteRadialAlphaReynolds", false));
     data[t_data::ALPHA_REYNOLDS_MEAN].set_write(
 	config::value_as_bool_default("WriteAlphaReynoldsMean", false));
-    data[t_data::ALPHA_REYNOLDS_MEAN_1D].set_write(
-	config::value_as_bool_default("WriteRadialAlphaReynoldsMean", false));
     data[t_data::VISCOSITY].set_write(
 	config::value_as_bool_default("WriteViscosity", false));
     data[t_data::DIV_V].set_write(
@@ -341,6 +331,12 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteTReynolds", false));
     data[t_data::T_GRAVITATIONAL].set_write(
 	config::value_as_bool_default("WriteTGravitational", false));
+	data[t_data::ADVECTION_TORQUE].set_write(
+	config::value_as_bool_default("WriteGasTorques", false));
+	data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
+	config::value_as_bool_default("WriteGasTorques", false));
+	data[t_data::VISCOUS_TORQUE].set_write(
+	config::value_as_bool_default("WriteGasTorques", false));
     data[t_data::P_DIVV].set_write(
 	config::value_as_bool_default("WritepDV", false));
     data[t_data::TAU].set_write(
@@ -365,7 +361,8 @@ void read(char *filename, t_data &data)
     write_lightcurves =
 	config::value_as_bool_default("WriteLightCurves", false);
 
-    write_massflow = config::value_as_bool_default("WriteMassFlow", false);
+	write_massflow = config::value_as_bool_default("WriteMassFlow", false);
+	data[t_data::MASSFLOW].set_write(write_massflow);
 
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =

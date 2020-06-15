@@ -25,36 +25,19 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
 			  bool force_update);
 void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 				     double dt);
-void calculate_alpha_grav_mean_finalize(t_data &data, double dt);
-void calculate_alpha_grav_mean_reset(t_data &data);
 void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 			      bool force_update);
 void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 					 double dt);
-void calculate_alpha_reynolds_mean_finalize(t_data &data, double dt);
-void calculate_alpha_reynolds_mean_reset(t_data &data);
-void calculate_radial_alpha_grav(t_data &data, unsigned int timestep,
-				 bool force_update);
-void calculate_radial_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
-					    double dt);
-void calculate_radial_alpha_grav_mean_finalize(t_data &data, double dt);
-void calculate_radial_alpha_grav_mean_reset(t_data &data);
-void calculate_radial_alpha_reynolds(t_data &data, unsigned int timestep,
-				     bool force_update);
-void calculate_radial_alpha_reynolds_mean_sumup(t_data &data,
-						unsigned int timestep,
-						double dt);
-void calculate_radial_alpha_reynolds_mean_finalize(t_data &data, double dt);
-void calculate_radial_alpha_reynolds_mean_reset(t_data &data);
 void calculate_toomre(t_data &data, unsigned int timestep, bool force_update);
-void calculate_radial_toomre(t_data &data, unsigned int timestep,
-			     bool force_update);
 void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 				 bool force_update);
 void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 				  bool force_update);
 void calculate_massflow(t_data &data, unsigned int timestep, bool force_update);
-
+void calculate_advection_torque(t_data &data, unsigned int timestep, bool force_update);
+void calculate_gravitational_torque(t_data &data, unsigned int timestep, bool force_update);
+void calculate_viscous_torque(t_data &data, unsigned int timestep, bool force_update);
 } // namespace quantities
 
 #endif // QUANTITIES_H

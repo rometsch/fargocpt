@@ -27,6 +27,10 @@ class t_polargrid
     bool m_calculate_on_write;
     /// callback function to be called before write operations
     void (*m_do_before_write)(t_data &, unsigned int, bool);
+	/// set all entries to zero after write operation
+	bool m_clear_after_write;
+	/// for mass flow we want to integrate azimuthally instead of averaging
+	bool m_integrate_1D_for_write;
 
   public:
     t_polargrid();
@@ -49,6 +53,14 @@ class t_polargrid
     {
 	m_do_before_write = value;
     }
+	inline void set_clear_after_write(bool value)
+	{
+	m_clear_after_write = value;
+	}
+	inline void set_integrate_azimuthally_for_1D_write(bool value)
+	{
+	m_integrate_1D_for_write = value;
+	}
 
     // getter
     inline ptrdiff_t get_max_radial() const
@@ -67,13 +79,15 @@ class t_polargrid
     inline bool get_write_1D() const { return m_write_1D; }
     inline bool get_write_2D() const { return m_write_2D; }
     inline bool get_write() const { return m_write_1D || m_write_2D; }
+	inline bool get_clear_after_write() const { return m_clear_after_write; }
+	inline bool get_integrate_azimuthally_for_1D_write() const { return m_integrate_1D_for_write; }
 
     inline bool is_scalar() const { return m_scalar; }
     inline bool is_vector() const { return !m_scalar; }
 
     void clear();
 
-    void write(unsigned int number, t_data &data) const;
+	void write(unsigned int number, t_data &data);
 
     // 2D read/write
     void write2D(unsigned int number) const;

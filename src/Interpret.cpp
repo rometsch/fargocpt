@@ -233,7 +233,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
 	double optimal_N_azimuthal =
-	    M_PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
+			PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
 
 	// check if optimal azimuthal cell number differs from actual azimuthal
 	// cell number by more than 10%
@@ -471,7 +471,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		       delete_damping_condition),
 	parameters::damping_vector.end());
 
-    ExcludeHill = config::value_as_bool_default("EXCLUDEHILL", 0);
     CICPlanet = config::value_as_bool_default("CICPLANET", 0);
 
     ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
