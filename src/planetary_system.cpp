@@ -332,7 +332,7 @@ void t_planetary_system::list_planets()
 void t_planetary_system::rotate(double angle)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	    const auto &planet = get_planet(i);
+	auto &planet = get_planet(i);
         const double x = planet.get_x();
         const double y = planet.get_y();
         const double vx = planet.get_vx();
