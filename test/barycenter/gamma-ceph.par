@@ -1,7 +1,5 @@
 ## Disk parameters
 
-ThicknessSmoothingAtPlanet 1
-
 Sigma0			0.0001		# surface density at r=1 in g/cm^2
 SigmaSlope		1		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		Yes		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]

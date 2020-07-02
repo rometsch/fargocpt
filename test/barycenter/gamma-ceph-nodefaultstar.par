@@ -1,6 +1,5 @@
 ## Disk parameters
 
-ThicknessSmoothingAtPlanet 0
 LogAfterRealSeconds 1
 
 Sigma0			0.0001		# surface density at r=1 in g/cm^2
