@@ -99,13 +99,6 @@ void CalculatePotential(t_data &data)
 	mpl[k] = data.get_planetary_system().get_planet(k).get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
-	if (RocheSmoothing) {
-	    double r_hill = pow(mpl[k] / (3.0 * (M + mpl[k])), 1.0 / 3.0) *
-			    planet.get_semi_major_axis();
-	    smooth_pl[k] = pow2(r_hill * ROCHESMOOTHING);
-	} else {
-	    smooth_pl[k] = pow2(compute_smoothing_isothermal(planet.get_r()));
-	}
     }
 
     data[t_data::POTENTIAL].clear();
@@ -123,14 +116,9 @@ void CalculatePotential(t_data &data)
 	    y = Rmed[n_radial] * sin(angle);
 
 	    for (unsigned int k = 0; k < number_of_planets; k++) {
-		if (!ThicknessSmoothingAtCell) {
-		    smooth = smooth_pl[k];
-		}
-		if (ThicknessSmoothingAtCell) {
-		    smooth = pow2(compute_smoothing(Rmed[n_radial], data,
-						    n_radial, n_azimuthal));
-		}
-		double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
+		smooth = pow2(compute_smoothing(Rmed[n_radial], 
+			data, n_radial, n_azimuthal));
+		const double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
 		if (k == 0)
 		    smooth = 0.0;
 		distancesmooth = sqrt(distance2 + smooth);

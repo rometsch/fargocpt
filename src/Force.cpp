@@ -42,31 +42,17 @@ Pair ComputeAccel(t_data &data, double x, double y, double mass)
 
     bool SmoothingEnabled = (a != 0.0);
 
-    // calculate smoothing length only once if not dependend on radius
-    if (RocheSmoothing) {
-	const double rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
-	rsmoothing = rh * ROCHESMOOTHING;
-    } else {
-	// Thickness smoothing = smoothing with scale height
-	rsmoothing = compute_smoothing_isothermal(a);
-    }
-
 	for (unsigned int n_radial = One_or_active; n_radial < MaxMO_or_active;
 	 ++n_radial) {
-	if (SmoothingEnabled && ThicknessSmoothingAtCell &&
-	    parameters::Locally_Isothermal) {
-	    rsmoothing = compute_smoothing_isothermal(Rmed[n_radial]);
-	}
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
-	    if (SmoothingEnabled && ThicknessSmoothingAtCell &&
-		(!parameters::Locally_Isothermal)) {
+	    if (SmoothingEnabled) {
 		rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial,
 					       n_azimuthal);
-	    }
+		}
 	    l = n_azimuthal + n_radial * ns;
 	    xc = cell_center_x[l];
 	    yc = cell_center_y[l];

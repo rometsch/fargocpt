@@ -490,41 +490,11 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	logging::print_master(LOG_INFO "Viscosity is of alpha type\n");
     }
 
-    if ((parameters::thickness_smoothing != 0.0) && (ROCHESMOOTHING != 0.0)) {
-	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR
-			      "`ThicknessSmoothing' and `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR
-			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR
-			      "one of these variables and run again.\n");
-	PersonalExit(1);
-    }
-
-    if ((parameters::thickness_smoothing <= 0.0) && (ROCHESMOOTHING <= 0.0)) {
+    if (parameters::thickness_smoothing <= 0.0) {
 	logging::print_master(
 	    LOG_ERROR
 	    "A non-vanishing potential smoothing length is required.\n");
-	logging::print_master(
-	    LOG_ERROR "Please use either of the following variables:\n");
-	logging::print_master(LOG_ERROR
-			      "`ThicknessSmoothing' *or* `RocheSmoothing'.\n");
-	logging::print_master(LOG_ERROR "before launching the run again.\n");
-	PersonalExit(1);
-    }
-
-	ThicknessSmoothingAtCell = NO;
-    if (ROCHESMOOTHING != 0.0) {
-	RocheSmoothing = YES;
-	logging::print_master(
-	    LOG_INFO
-	    "Planet potential smoothing scales with their Hill sphere.\n");
-	} else {
-	ThicknessSmoothingAtCell = YES;
-	logging::print_master(
-	    LOG_INFO
-	    "Planet potential smoothing uses disk scale height at gas cell location.\n");
-    }
+	}
 
     // Add a trailing slash to OUTPUTDIR if needed
     if (OUTPUTDIR[strlen(OUTPUTDIR) - 1] != '/') {
