@@ -82,7 +82,7 @@ extern double hydro_center_mass;
 
 extern int debug;
 extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
-    ThicknessSmoothingAtCell, ThicknessSmoothingAtPlanet, CartesianParticles,
+	ThicknessSmoothingAtCell, CartesianParticles,
     ParticlesInCartesian;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
