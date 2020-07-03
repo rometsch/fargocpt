@@ -86,50 +86,51 @@ void CalculatePotential(t_data &data)
 {
     double x, y, angle, distancesmooth;
     double smooth = 0.0;
-    unsigned int number_of_planets =
-	data.get_planetary_system().get_number_of_planets();
-    std::vector<double> xpl(number_of_planets);
-    std::vector<double> ypl(number_of_planets);
-    std::vector<double> mpl(number_of_planets);
-    std::vector<double> smooth_pl(number_of_planets);
+    const unsigned int N_planets = 
+		data.get_planetary_system().get_number_of_planets();
+    std::vector<double> xpl(N_planets);
+    std::vector<double> ypl(N_planets);
+    std::vector<double> mpl(N_planets);
+    std::vector<double> smooth_pl(N_planets);
 
     // setup planet data
-    for (unsigned int k = 0; k < number_of_planets; k++) {
+    for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
 	mpl[k] = data.get_planetary_system().get_planet(k).get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
     }
 
-    data[t_data::POTENTIAL].clear();
+	auto& pot = data[t_data::POTENTIAL];
+    pot.clear();
+	
+	const unsigned int N_rad_max = data[t_data::POTENTIAL].get_max_radial();
+	const unsigned int N_ax_max = data[t_data::POTENTIAL].get_max_azimuthal();
 
-    // gravitational potential from planets on gas
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::POTENTIAL].get_max_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    angle = (double)n_azimuthal /
-		    (double)data[t_data::POTENTIAL].get_size_azimuthal() * 2.0 *
+    for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
+	for (unsigned int n_az = 0; n_az <= N_ax_max; ++n_az) {
+	    angle = (double)n_az /
+		    (double)pot.get_size_azimuthal() * 2.0 *
 		    PI;
-	    x = Rmed[n_radial] * cos(angle);
-	    y = Rmed[n_radial] * sin(angle);
+	    x = Rmed[n_rad] * cos(angle);
+	    y = Rmed[n_rad] * sin(angle);
 
-	    for (unsigned int k = 0; k < number_of_planets; k++) {
-		smooth = pow2(compute_smoothing(Rmed[n_radial], 
-			data, n_radial, n_azimuthal));
+	    for (unsigned int k = 0; k < N_planets; k++) {
+
+		smooth = pow2(compute_smoothing(Rmed[n_rad], 
+			data, n_rad, n_az));
+
 		const double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
 		if (k == 0)
 		    smooth = 0.0;
 		distancesmooth = sqrt(distance2 + smooth);
+
 		// direct term from planet
-		data[t_data::POTENTIAL](n_radial, n_azimuthal) +=
-		    -constants::G * mpl[k] / distancesmooth;
+		pot(n_rad, n_az) += -constants::G * mpl[k] / distancesmooth;
 	    }
 	    // apply indirect term
 	    // correct frame with contributions from disk and planets
-	    data[t_data::POTENTIAL](n_radial, n_azimuthal) +=
-		-IndirectTerm.x * x - IndirectTerm.y * y;
+	    pot(n_rad, n_az) += -IndirectTerm.x * x - IndirectTerm.y * y;
 	}
     }
 }
