@@ -19,6 +19,7 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 #include "logging.h"
 #include "parameters.h"
 #include "viscosity.h"
+#include "util.h"
 
 
 /**
@@ -27,44 +28,39 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 Pair ComputeAccel(t_data &data, double x, double y, double mass)
 {
 	Pair acceleration;
-    int l, ns;
 	double localaccel[4] = {0., 0., 0., 0.},
 	   globalaccel[4] = {0., 0., 0., 0.};
-	double xc, yc, cellmass, dx, dy, distance, dist2, a;
-	double InvDist3, fxi, fyi, fxo, fyo;
-    double rsmoothing = 0.0;
+    double r_sm = 0.0;
 
-    ns = data[t_data::DENSITY].Nsec;
+    const unsigned int N_sec = data[t_data::DENSITY].Nsec;
     const double* cell_center_x = CellCenterX->Field;
     const double* cell_center_y = CellCenterY->Field;
+	double fxi, fyi, fxo, fyo;
 	fxi = fyi = fxo = fyo = 0.0;
-    a = sqrt(x * x + y * y);
+    const double a = sqrt(pow2(x) + pow2(y));
 
     bool SmoothingEnabled = (a != 0.0);
 
-	for (unsigned int n_radial = One_or_active; n_radial < MaxMO_or_active;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
-	     ++n_azimuthal) {
+	const unsigned int N_az_max = data[t_data::POTENTIAL].get_max_azimuthal();
+
+	for (unsigned int n_rad = One_or_active; n_rad < MaxMO_or_active; ++n_rad) {
+	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
 	    if (SmoothingEnabled) {
-		rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial,
-					       n_azimuthal);
+		r_sm = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
 		}
-	    l = n_azimuthal + n_radial * ns;
-	    xc = cell_center_x[l];
-	    yc = cell_center_y[l];
-	    cellmass =
-		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
-	    dx = xc - x;
-	    dy = yc - y;
-	    dist2 = dx * dx + dy * dy;
-	    dist2 += rsmoothing * rsmoothing;
-	    distance = sqrt(dist2);
-	    InvDist3 = 1.0 / dist2 / distance;
-	    if (Rmed[n_radial] < a) {
+	    const unsigned int l = n_az + n_rad * N_sec;
+	    const double xc = cell_center_x[l];
+	    const double yc = cell_center_y[l];
+	    const double cellmass =
+		Surf[n_rad] * data[t_data::DENSITY](n_rad, n_az);
+	    const double dx = xc - x;
+	    const double dy = yc - y;
+	    const double dist2 = pow2(dx) + pow2(dy) + pow2(r_sm);
+	    const double distance = sqrt(dist2);
+	    const double InvDist3 = 1.0 / dist2 / distance;
+	    if (Rmed[n_rad] < a) {
 		fxi += constants::G * cellmass * dx * InvDist3;
 		fyi += constants::G * cellmass * dy * InvDist3;
 	    } else {

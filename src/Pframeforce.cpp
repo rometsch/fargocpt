@@ -22,7 +22,6 @@
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
 extern Pair IndirectTermPlanets;
-extern boolean AllowAccretion, Cooling;
 
 /**
  * @brief ComputeIndirectTerm: IndirectTerm is the correction therm that needs
@@ -47,8 +46,8 @@ void ComputeIndirectTerm(t_data &data)
 	for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
 	     n++) {
 	    t_planet &planet = data.get_planetary_system().get_planet(n);
-	    double mass = planet.get_mass();
-	    Pair accel = planet.get_disk_on_planet_acceleration();
+	    const double mass = planet.get_mass();
+	    const Pair accel = planet.get_disk_on_planet_acceleration();
 	    IndirectTermDisk.x -= mass * accel.x;
 	    IndirectTermDisk.y -= mass * accel.y;
 	    mass_center += mass;
@@ -64,8 +63,8 @@ void ComputeIndirectTerm(t_data &data)
     for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
 	 n++) {
 	t_planet &planet = data.get_planetary_system().get_planet(n);
-	double mass = planet.get_mass();
-	Pair accel = planet.get_nbody_on_planet_acceleration();
+	const double mass = planet.get_mass();
+	const Pair accel = planet.get_nbody_on_planet_acceleration();
 	IndirectTermPlanets.x -= mass * accel.x;
 	IndirectTermPlanets.y -= mass * accel.y;
 	mass_center += mass;
@@ -84,7 +83,6 @@ void ComputeIndirectTerm(t_data &data)
  */
 void CalculatePotential(t_data &data)
 {
-    double x, y, angle, distancesmooth;
     double smooth2 = 0.0;
     const unsigned int N_planets = 
 		data.get_planetary_system().get_number_of_planets();
@@ -105,28 +103,28 @@ void CalculatePotential(t_data &data)
     pot.clear();
 	
 	const unsigned int N_rad_max = data[t_data::POTENTIAL].get_max_radial();
-	const unsigned int N_ax_max = data[t_data::POTENTIAL].get_max_azimuthal();
+	const unsigned int N_az_max = data[t_data::POTENTIAL].get_max_azimuthal();
 
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
-	for (unsigned int n_az = 0; n_az <= N_ax_max; ++n_az) {
-	    angle = (double)n_az /
+	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
+	    const double angle = (double)n_az /
 		    (double)pot.get_size_azimuthal() * 2.0 *
 		    PI;
-	    x = Rmed[n_rad] * cos(angle);
-	    y = Rmed[n_rad] * sin(angle);
+	    const double x = Rmed[n_rad] * cos(angle);
+	    const double y = Rmed[n_rad] * sin(angle);
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		smooth2 = pow2(compute_smoothing(Rmed[n_rad], 
 			data, n_rad, n_az));
-
 		const double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
-		if (k == 0)
+		if (k == 0) {
 		    smooth2 = 0.0;
-		distancesmooth = sqrt(distance2 + smooth2);
+		}
+		const double d_smoothed = sqrt(distance2 + smooth2);
 
 		// direct term from planet
-		pot(n_rad, n_az) += -constants::G * mpl[k] / distancesmooth;
+		pot(n_rad, n_az) += -constants::G * mpl[k] / d_smoothed;
 	    }
 	    // apply indirect term
 	    // correct frame with contributions from disk and planets
@@ -162,18 +160,18 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
     for (unsigned int npl = 0; npl < planetary_system.get_number_of_planets();
 	 npl++) {
 	t_planet &planet = planetary_system.get_planet(npl);
-	double x = planet.get_x();
-	double y = planet.get_y();
+	const double x = planet.get_x();
+	const double y = planet.get_y();
 	double ax = 0.0;
 	double ay = 0.0;
 	for (unsigned int nother = 0;
 	     nother < planetary_system.get_number_of_planets(); nother++) {
 	    if (nother != npl) {
 		t_planet &other_planet = planetary_system.get_planet(nother);
-		double xo = other_planet.get_x();
-		double yo = other_planet.get_y();
-		double mass = other_planet.get_mass();
-		double dist = sqrt(pow2(x - xo) + pow2(y - yo));
+		const double xo = other_planet.get_x();
+		const double yo = other_planet.get_y();
+		const double mass = other_planet.get_mass();
+		const double dist = sqrt(pow2(x - xo) + pow2(y - yo));
 		ax -= constants::G * mass / pow3(dist) * (x - xo);
 		ay -= constants::G * mass / pow3(dist) * (y - yo);
 	    }
@@ -197,9 +195,9 @@ void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
 	    t_planet &planet = data.get_planetary_system().get_planet(k);
 
 	    gamma = planet.get_disk_on_planet_acceleration();
-	    double new_vx =
+	    const double new_vx =
 		planet.get_vx() + dt * gamma.x + dt * IndirectTermDisk.x;
-	    double new_vy =
+	    const double new_vy =
 		planet.get_vy() + dt * gamma.y + dt * IndirectTermDisk.y;
 	    planet.set_vx(new_vx);
 	    planet.set_vy(new_vy);
