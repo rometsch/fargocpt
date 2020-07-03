@@ -85,7 +85,7 @@ void ComputeIndirectTerm(t_data &data)
 void CalculatePotential(t_data &data)
 {
     double x, y, angle, distancesmooth;
-    double smooth = 0.0;
+    double smooth2 = 0.0;
     const unsigned int N_planets = 
 		data.get_planetary_system().get_number_of_planets();
     std::vector<double> xpl(N_planets);
@@ -117,13 +117,13 @@ void CalculatePotential(t_data &data)
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		smooth = pow2(compute_smoothing(Rmed[n_rad], 
+		smooth2 = pow2(compute_smoothing(Rmed[n_rad], 
 			data, n_rad, n_az));
 
 		const double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
 		if (k == 0)
-		    smooth = 0.0;
-		distancesmooth = sqrt(distance2 + smooth);
+		    smooth2 = 0.0;
+		distancesmooth = sqrt(distance2 + smooth2);
 
 		// direct term from planet
 		pot(n_rad, n_az) += -constants::G * mpl[k] / distancesmooth;
