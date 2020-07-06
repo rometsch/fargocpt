@@ -85,13 +85,11 @@ void ComputeIndirectTerm(t_data &data)
 void CalculatePotential(t_data &data)
 {
     double x, y, angle, distancesmooth;
-    double smooth = 0.0;
     unsigned int number_of_planets =
 	data.get_planetary_system().get_number_of_planets();
     std::vector<double> xpl(number_of_planets);
     std::vector<double> ypl(number_of_planets);
     std::vector<double> mpl(number_of_planets);
-    std::vector<double> smooth_pl(number_of_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < number_of_planets; k++) {
@@ -109,19 +107,19 @@ void CalculatePotential(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::POTENTIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
-	    angle = (double)n_azimuthal /
+		const double angle = (double)n_azimuthal /
 		    (double)data[t_data::POTENTIAL].get_size_azimuthal() * 2.0 *
 		    PI;
-	    x = Rmed[n_radial] * cos(angle);
-	    y = Rmed[n_radial] * sin(angle);
+		const double x = Rmed[n_radial] * cos(angle);
+		const double y = Rmed[n_radial] * sin(angle);
 
 	    for (unsigned int k = 0; k < number_of_planets; k++) {
-		smooth = pow2(compute_smoothing(Rmed[n_radial], 
+		double smooth = pow2(compute_smoothing(Rmed[n_radial],
 			data, n_radial, n_azimuthal));
 		const double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
 		if (k == 0)
 		    smooth = 0.0;
-		distancesmooth = sqrt(distance2 + smooth);
+		const double distancesmooth = sqrt(distance2 + smooth);
 		// direct term from planet
 		data[t_data::POTENTIAL](n_radial, n_azimuthal) +=
 		    -constants::G * mpl[k] / distancesmooth;
@@ -143,8 +141,7 @@ void ComputeDiskOnNbodyAccel(t_data &data)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
-		accel = ComputeAccel(data, planet.get_x(), planet.get_y(),
-							 planet.get_mass());
+		accel = ComputeAccel(data, planet.get_x(), planet.get_y());
 		planet.set_disk_on_planet_acceleration(accel);
 
 		const double torque = (planet.get_x() * accel.y - planet.get_y() * accel.x)*planet.get_mass();

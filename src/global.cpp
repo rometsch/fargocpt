@@ -164,7 +164,6 @@ unsigned int NAzimuthal;
 double RMIN;
 double RMAX;
 
-double ROCHESMOOTHING;
 double ASPECTRATIO_REF;
 double VISCOSITY;
 double ALPHAVISCOSITY;

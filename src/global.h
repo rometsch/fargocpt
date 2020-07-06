@@ -100,7 +100,6 @@ extern unsigned int NRadial;
 extern double RMIN;
 extern double RMAX;
 
-extern double ROCHESMOOTHING;
 extern double ASPECTRATIO_REF;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
