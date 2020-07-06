@@ -84,7 +84,6 @@ void ComputeIndirectTerm(t_data &data)
  */
 void CalculatePotential(t_data &data)
 {
-    double x, y, angle, distancesmooth;
     unsigned int number_of_planets =
 	data.get_planetary_system().get_number_of_planets();
     std::vector<double> xpl(number_of_planets);
