@@ -269,8 +269,8 @@ void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src)
 {
     double *tmp;
 
-    assert(dst->Nsec = src->Nsec);
-    assert(dst->Nrad = dst->Nrad);
+	assert(dst->Nsec == src->Nsec);
+	assert(dst->Nrad == dst->Nrad);
 
     tmp = dst->Field;
     dst->Field = src->Field;
