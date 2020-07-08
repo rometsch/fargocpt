@@ -83,8 +83,7 @@ void ComputeIndirectTerm(t_data &data)
  */
 void CalculatePotential(t_data &data)
 {
-    double smooth2 = 0.0;
-    const unsigned int N_planets = 
+	const unsigned int N_planets = 
 		data.get_planetary_system().get_number_of_planets();
     std::vector<double> xpl(N_planets);
     std::vector<double> ypl(N_planets);
@@ -94,7 +93,7 @@ void CalculatePotential(t_data &data)
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = data.get_planetary_system().get_planet(k).get_rampup_mass();
+	mpl[k] = planet.get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
     }
@@ -115,13 +114,9 @@ void CalculatePotential(t_data &data)
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		smooth2 = pow2(compute_smoothing(Rmed[n_rad], 
-			data, n_rad, n_az));
-		const double distance2 = pow2(x - xpl[k]) + pow2(y - ypl[k]);
-		if (k == 0) {
-		    smooth2 = 0.0;
-		}
-		const double d_smoothed = sqrt(distance2 + smooth2);
+		const double dist_smooth = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
+		const double dist2 = std::pow(x - xpl[k], 2) + std::pow(y - ypl[k], 2);
+		const double d_smoothed = std::sqrt(dist2 + std::pow(dist_smooth, 2));
 
 		// direct term from planet
 		pot(n_rad, n_az) += -constants::G * mpl[k] / d_smoothed;
@@ -142,8 +137,7 @@ void ComputeDiskOnNbodyAccel(t_data &data)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 		t_planet &planet = data.get_planetary_system().get_planet(k);
-		accel = ComputeAccel(data, planet.get_x(), planet.get_y(),
-							 planet.get_mass());
+		accel = ComputeAccel(data, planet.get_x(), planet.get_y());
 		planet.set_disk_on_planet_acceleration(accel);
 
 		const double torque = (planet.get_x() * accel.y - planet.get_y() * accel.x)*planet.get_mass();

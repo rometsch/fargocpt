@@ -635,9 +635,6 @@ double get_misc(unsigned int timestep, std::string variable)
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
-	double rsmoothing = 0.0;
-	double xc, yc, cellmass, dx, dy, distance, dist2, rh;
-
 	const int ns = data[t_data::DENSITY].Nsec;
 	const double* cell_center_x = CellCenterX->Field;
 	const double* cell_center_y = CellCenterY->Field;
@@ -654,10 +651,6 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	const double mass = planet.get_mass();
 	const double a = planet.get_semi_major_axis();
 
-
-
-	rh = pow(mass / 3.0, 1. / 3.) * a + DBL_EPSILON;
-
 	bool SmoothingEnabled = (a != 0.0);
 
 	// calculate smoothing length only once if not dependend on radius
@@ -671,20 +664,21 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 		 ++n_azimuthal) {
 		// calculate smoothing length if dependend on radius
 		// i.e. for thickness smoothing with scale height at cell location
+		double rsmoothing = 0.0;
 		if (SmoothingEnabled) {
 		rsmoothing = compute_smoothing(Rmed[n_radial], data, n_radial,
 						   n_azimuthal);
 		}
-		const int l = n_azimuthal + n_radial * ns;
-		xc = cell_center_x[l];
-		yc = cell_center_y[l];
-		cellmass =
+		const int cell_id = n_azimuthal + n_radial * ns;
+		const double xc = cell_center_x[cell_id];
+		const double yc = cell_center_y[cell_id];
+		const double cellmass =
 		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
-		dx = xc - x;
-		dy = yc - y;
-		dist2 = dx * dx + dy * dy;
+		const double dx = xc - x;
+		const double dy = yc - y;
+		double dist2 = dx * dx + dy * dy;
 		dist2 += rsmoothing * rsmoothing;
-		distance = sqrt(dist2);
+		const double distance = sqrt(dist2);
 		const double InvDist3 = 1.0 / dist2 / distance;
 
 		const double Fx = constants::G * cellmass * dx * InvDist3 * mass;
