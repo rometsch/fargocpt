@@ -1480,6 +1480,27 @@ void update_velocity_from_disk_gravity_cart(
     vy += dt * (sin(phi) * sg_radial + cos(phi) * sg_azimuthal);
 }
 
+
+
+/**
+ * @brief compute_smoothing_isothermal
+ * @param r
+ * @return smoothing length for calculating gravitational force due to a vertical gas column
+ */
+static double compute_smoothing_isothermal(double r)
+{
+	double smooth;
+	const double scale_height =
+	ASPECTRATIO_REF * pow(r, 1.0 + FLARINGINDEX); // = H
+	smooth = parameters::thickness_smoothing * scale_height;
+	return smooth;
+}
+/**
+ * @brief update_velocity_from_disk_gravity_cart_old
+ * @abstract horrible inefficient way to calculate gravitational force from gas on dust particles, only use for testing
+ * @param data
+ * @param dt
+ */
 void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 {
     int *number_of_particles = (int *)malloc(sizeof(int) * CPU_Number);

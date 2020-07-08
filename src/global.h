@@ -81,8 +81,7 @@ extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern double hydro_center_mass;
 
 extern int debug;
-extern int GotoNextOutput, ViscosityAlpha, RocheSmoothing,
-	ThicknessSmoothingAtCell, CartesianParticles,
+extern int GotoNextOutput, ViscosityAlpha, CartesianParticles, 
     ParticlesInCartesian;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
@@ -101,7 +100,6 @@ extern unsigned int NRadial;
 extern double RMIN;
 extern double RMAX;
 
-extern double ROCHESMOOTHING;
 extern double ASPECTRATIO_REF;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
