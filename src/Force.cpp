@@ -44,7 +44,7 @@ Pair ComputeAccel(t_data &data, double x, double y)
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
-		const double dist_smooth = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
+		const double smooth = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
 		const int cell_id = n_az + n_rad * ns;
 		const double xc = cell_center_x[cell_id];
 		const double yc = cell_center_y[cell_id];
@@ -53,16 +53,16 @@ Pair ComputeAccel(t_data &data, double x, double y)
 
 		const double dx = xc - x;
 		const double dy = yc - y;
-		const double dist2 = std::pow(dx,2) + std::pow(dy,2);
-		const double dist = sqrt(dist2);
+		const double dist_sm_2 = std::pow(dx,2) + std::pow(dy,2) + std::pow(smooth,2);
+		const double dist_sm_3 = dist_sm_2*std::sqrt(dist_sm_2);
+		const double inv_dist_sm_3 = 1.0 / dist_sm_3;
 
-		const double InvDist3 = 1.0 / (dist2 + std::pow(dist_smooth,2)) / dist;
 	    if (Rmed[n_rad] < a) {
-		axi += constants::G * cellmass * dx * InvDist3;
-		ayi += constants::G * cellmass * dy * InvDist3;
+		axi += constants::G * cellmass * dx * inv_dist_sm_3;
+		ayi += constants::G * cellmass * dy * inv_dist_sm_3;
 	    } else {
-		axo += constants::G * cellmass * dx * InvDist3;
-		ayo += constants::G * cellmass * dy * InvDist3;
+		axo += constants::G * cellmass * dx * inv_dist_sm_3;
+		ayo += constants::G * cellmass * dy * inv_dist_sm_3;
 	    }
 	}
     }

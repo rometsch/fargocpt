@@ -101,8 +101,8 @@ void CalculatePotential(t_data &data)
 	auto& pot = data[t_data::POTENTIAL];
     pot.clear();
 	
-	const unsigned int N_rad_max = data[t_data::POTENTIAL].get_max_radial();
-	const unsigned int N_az_max = data[t_data::POTENTIAL].get_max_azimuthal();
+	const unsigned int N_rad_max = pot.get_max_radial();
+	const unsigned int N_az_max = pot.get_max_azimuthal();
 
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
