@@ -107,16 +107,16 @@ void CalculatePotential(t_data &data)
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const double angle = (double)n_az /
-		    (double)pot.get_size_azimuthal() * 2.0 *
-		    PI;
+		    (double)pot.get_size_azimuthal() * 2.0 * PI;
 	    const double x = Rmed[n_rad] * cos(angle);
 	    const double y = Rmed[n_rad] * sin(angle);
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double dist_smooth = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
-		const double dist2 = std::pow(x - xpl[k], 2) + std::pow(y - ypl[k], 2);
-		const double d_smoothed = std::sqrt(dist2 + std::pow(dist_smooth, 2));
+		const double smooth = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
+		const double dx = x - xpl[k];
+		const double dy = y - ypl[k];
+		const double d_smoothed = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2) + std::pow(smooth, 2));
 
 		// direct term from planet
 		pot(n_rad, n_az) += -constants::G * mpl[k] / d_smoothed;
