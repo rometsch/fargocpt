@@ -765,6 +765,8 @@ void read(char *filename, t_data &data)
     number_of_particles =
 	config::value_as_unsigned_int_default("NumberOfParticles", 0);
     particle_radius = config::value_as_double_default("ParticleRadius", 100.0);
+	particle_species_number = config::value_as_unsigned_int_default("ParticleSpeciesNumber", 5);
+    particle_radius_increase_factor = config::value_as_double_default("ParticleRadiusIncreaseFactor", 10.0);
     particle_eccentricity =
 	config::value_as_double_default("ParticleEccentricity", 0.0);
     particle_density = config::value_as_double_default("ParticleDensity", 2.65);
