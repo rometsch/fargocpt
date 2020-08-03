@@ -82,19 +82,9 @@ void t_planetary_system::initialize_default_star()
     add_planet(planet);
 }
 
-void t_planetary_system::read_from_file(char *filename, bool restart)
+void t_planetary_system::read_from_file(char *filename)
 {
     FILE *fd;
-
-
-	if(restart) {
-	/// Check if last planet file is missing
-	/// If this is the case, we are restarting from a legacy simulation in which the central object did not have a planet file
-   std::string last_filename = std::string(OUTPUTDIR) + "planet" +
-			  std::to_string(get_number_of_planets()) + ".dat";
-   planet_restart_legacy = !std::experimental::filesystem::exists(last_filename);
-	}
-
 
     if (parameters::default_star) {
 	initialize_default_star();
@@ -356,12 +346,27 @@ void t_planetary_system::rotate(double angle)
 
 void t_planetary_system::restart(unsigned int timestep)
 {
-    for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		if(planet_restart_legacy && i == 0) { /// Legacy restart means that the central star has no file, thus we skip restarting it
-			continue;
-		}
-	get_planet(i).restart(timestep);
-    }
+    std::string last_filename = std::string(OUTPUTDIR) + "planet" +
+			  std::to_string(get_number_of_planets()) + ".dat";
+    bool last_planet_files_exit = std::experimental::filesystem::exists(last_filename);
+
+	if (parameters::default_star && ! last_planet_files_exit) {
+	
+    
+	/// Check if last planet file is missing
+	/// If this is the case, we are restarting from a legacy simulation in which the central object did not have a planet file
+	// printf("last file name = %s\n", last_filename.c_str());
+    // printf("planet_restart_legacy = %d, file exists = %d, false = %d\n", planet_restart_legacy, std::experimental::filesystem::exists(last_filename), false);
+	// printf("planet_restart_legacy = %d, file exists = %d, false = %d\n", planet_restart_legacy, std::experimental::filesystem::exists(last_filename), false);
+		planet_restart_legacy = true;
+   		for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
+			get_planet(i).restart(timestep, -1);
+    	}
+	} else {
+		for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+			get_planet(i).restart(timestep, 0);
+    	}
+	}
 	m_rebound->t = PhysicalTime;
 }
 
@@ -644,7 +649,9 @@ void t_planetary_system::calculate_orbital_elements()
     double x, y, vx, vy, M;
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
-	if (i == 0) {
+	printf("Calc elements for planet index = %d\n", i);
+	if (i == 0 && parameters::n_bodies_for_hydroframe_center == 1) {
+		printf("Skipping\n");
 		get_planet(0).set_orbital_elements_zero();
 		continue;
 	}

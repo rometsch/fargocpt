@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
     init_radialarrays();
 
 	// Here planets are initialized feeling star potential
-	data.get_planetary_system().read_from_file(PLANETCONFIG, start_mode::mode == start_mode::mode_restart);
+	data.get_planetary_system().read_from_file(PLANETCONFIG);
 	logging::print_master(LOG_INFO "planets loaded.\n");
 
 

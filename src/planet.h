@@ -146,9 +146,9 @@ class t_planet
 
     void create_planet_file();
 	void write(unsigned int timestep, bool big_file);
-	void restart(unsigned int timestep);
+	void restart(unsigned int timestep, int offset);
 	double get_value_from_file(unsigned int timestep,
-				   std::string variable_name);
+				   std::string variable_name, int offset);
 	~t_planet();
 };
 
