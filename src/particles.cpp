@@ -422,7 +422,7 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 
     particles[i].radius = parameters::particle_radius;
 
-	const unsigned int particle_type = i % parameters::particle_species_number; // 4 different particle sizes
+	const unsigned int particle_type = i % parameters::particle_species_number;
 	particles[i].radius *= std::pow(parameters::particle_radius_increase_factor, particle_type);
 
     double volume = 4.0 / 3.0 * PI * pow3(particles[i].radius);
