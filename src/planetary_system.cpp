@@ -649,9 +649,7 @@ void t_planetary_system::calculate_orbital_elements()
     double x, y, vx, vy, M;
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
-	printf("Calc elements for planet index = %d\n", i);
 	if (i == 0 && parameters::n_bodies_for_hydroframe_center == 1) {
-		printf("Skipping\n");
 		get_planet(0).set_orbital_elements_zero();
 		continue;
 	}
