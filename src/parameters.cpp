@@ -802,6 +802,16 @@ void read(char *filename, t_data &data)
 	}
 
 	break;
+	case 'm': // exponential midpoint
+	integrator = integrator_exponential_midpoint;
+
+	if (!particle_gas_drag_enabled) {
+		logging::print_master(
+		LOG_ERROR
+		"Do not use exponential midpoint particle integrator without gas drag, use the explicit integrator instead.\n");
+	}
+
+	break;
     case 'i': // Implicit
 	integrator = integrator_implicit;
 
@@ -1127,6 +1137,10 @@ void summarize_parameters()
 	    logging::print_master(
 		LOG_INFO "Particles use the semiimplicit integrator\n");
 	    break;
+	case integrator_exponential_midpoint:
+		logging::print_master(
+		LOG_INFO "Particles use the exponential midpoint integrator\n");
+		break;
 	case integrator_implicit: // Implicit
 	    logging::print_master(LOG_INFO
 				  "Particles use the implicit integrator\n");

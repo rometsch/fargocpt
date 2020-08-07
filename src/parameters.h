@@ -289,7 +289,8 @@ extern bool particle_disk_gravity_enabled;
 enum t_particle_integrator {
     integrator_explicit,     // explicit integrator (Cash-Karp, high-order)
     integrator_adaptive,     // adaptive Cash-Karp integrator
-    integrator_semiimplicit, // semi-implicit integrator
+	integrator_semiimplicit, // semi-implicit integrator
+	integrator_exponential_midpoint, // exponential midpoint integrator presented in Mignone et al. 2019: A PARTICLE MODULE FOR THE PLUTO CODE: III - DUST
     integrator_implicit,     // fully implicit integrator
 };
 extern t_particle_integrator integrator;

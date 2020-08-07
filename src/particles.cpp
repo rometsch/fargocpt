@@ -1450,6 +1450,10 @@ void integrate(t_data &data, const double dt)
 	integrate_semiimplicit(data, dt);
 	break;
     }
+	case parameters::integrator_exponential_midpoint: {
+	integrate_exponential_midpoint(data, dt);
+	break;
+	}
     case parameters::integrator_implicit: {
 	integrate_implicit(data, dt);
 	break;
@@ -1581,6 +1585,108 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
     free(all_particles);
     free(force_x);
     free(force_y);
+}
+
+void integrate_exponential_midpoint(t_data &data, const double dt)
+{
+
+	if (parameters::disk_feedback) {
+	update_velocities_from_indirect_term(dt);
+	}
+
+	// Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
+	// eqs. A4-A12)
+	if (parameters::particle_gas_drag_enabled) {
+	compute_rho(data, true);
+	}
+
+	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
+
+	// initialize
+	const double r0 = particles[i].r;
+	const double phi0 = particles[i].phi;
+
+	const double r_dot0 = particles[i].r_dot;
+	const double phi_dot0 = particles[i].phi_dot;
+
+	const double l0 = r0 * r0 * phi_dot0;
+
+	const double hfdt = 0.5 * dt;
+	double tstop = dt;
+	double dt1 = dt;
+	double vrel_r;
+
+	// Half-drift ////////////////////////////////////////////
+	const double r_dot1 = r_dot0;
+	const double l1 = l0;
+	const double phi_dot1 = phi_dot0; // follows from  l1 = l0
+
+	const double r1 = r0 + r_dot0 * hfdt;
+	double phi1 = phi0 + 0.5 * (l0 / pow2(r0) + l0 / pow2(r1)) * hfdt;
+	check_angle(phi1);
+	// END Half-drift /////////////////////////////////////////////////////////
+
+
+	// Kick ///////////////////////////////////////////////////
+	const double r2 = r1;
+	const double phi2 = phi1;
+	double minus_l_rel;
+
+	if (parameters::particle_gas_drag_enabled) {
+		calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
+				 particles[i].radius, vrel_r, minus_l_rel, tstop,
+				 r0, l0);
+		dt1 = dt / (1.0 + hfdt / tstop);
+	}
+	double grav_r_ddot;
+	double minus_grav_l_dot;
+	if (ParticlesInCartesian) {
+		calculate_derivitives_from_star_and_planets_in_cart(
+		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+	} else {
+
+		calculate_derivitives_from_star_and_planets(
+		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+	}
+
+	// exponential propagator  eq.33 (Mignone et al. 2019)
+	const double exp_tstop = std::exp(-dt/tstop);
+	const double h1 = tstop*(1.0 - exp_tstop);
+
+	// updating angular momentum
+	double l2 = exp_tstop*l1 + h1*minus_grav_l_dot;
+	if (parameters::particle_gas_drag_enabled) {
+		const double l_gas = minus_l_rel + l0;
+		l2 += h1*l_gas/tstop;
+	}
+
+	// Updating radial velocity
+	double r_dot2 = exp_tstop*r_dot1;
+	r_dot2 += h1 * 0.5 * (l1 * l1 + l2 * l2) / (r1 * r1 * r1);
+	r_dot2 += h1 * grav_r_ddot;
+
+	if (parameters::particle_gas_drag_enabled) {
+		const double v_r_g = vrel_r + r_dot1;
+		r_dot2 += h1*v_r_g/tstop;
+	}
+	// END kick ///////////////////////////////////////
+
+
+	// Half-drift
+	const double r3 = r1 + r_dot2 * hfdt;
+	const double phi3 = phi2 + 0.5 * (l2 / pow2(r2) + l2 / pow2(r3)) * hfdt;
+
+	// Update
+	particles[i].r_dot = r_dot2;
+	particles[i].r = r3;
+	// particles[i].phi  = phi1 + 0.5*(phi_dot0 + l2/pow2(particles[i].r)) *
+	// hfdt; particles[i].phi  = phi1 +
+	// 0.5*(l1/pow2(r1)+l2/pow2(particles[i].r)) * hfdt;
+	particles[i].phi = phi3;
+	check_angle(particles[i].phi);
+	particles[i].phi_dot = l2 / pow2(particles[i].r);
+	}
+	move();
 }
 
 void integrate_semiimplicit(t_data &data, const double dt)
