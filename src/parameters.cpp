@@ -830,7 +830,8 @@ void read(char *filename, t_data &data)
     }
 
     if (CartesianParticles && ((integrator == integrator_implicit) ||
-			       integrator == integrator_semiimplicit)) {
+				   integrator == integrator_semiimplicit  ||
+							   integrator == integrator_exponential_midpoint)) {
 	// implicit and semiimplicit integrator only implemented in polar
 	// coordiantes, but forces can be calculated in cartesian coordinates
 	CartesianParticles = false;

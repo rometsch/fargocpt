@@ -426,8 +426,9 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
     double phi = dis_twoPi(generator);
     double eccentricity = dis_eccentricity(generator);
 
-    /*
-    // debug setup
+
+	/*
+	// debug setup //////////////////////////////////////////////////////////////
     const int num_particles_per_ring = 10;
     int global_id = i + id_offset;
 
@@ -435,7 +436,8 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
     double rmax = parameters::particle_maximum_radius;
 
     // make sure particles are not initialized on an orbit that moves out of
-    particle-bounds if(RMAX <
+	//particle-bounds
+	if(RMAX <
     parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
 	    rmax =
     parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
@@ -449,8 +451,11 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
     phi = 2.0*PI / num_particles_per_ring * (global_id/num_particles_per_ring);
     semi_major_axis = (rmax - rmin) *
     double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
-    rmin; eccentricity = 0.0;
-    */
+	rmin+0.3;
+	eccentricity = 0.0;
+	///////////////////////////////////////////////////////////////////////////
+	*/
+
 
     particles[i].radius = parameters::particle_radius;
 
@@ -1621,7 +1626,6 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 
 void integrate_exponential_midpoint(t_data &data, const double dt)
 {
-
 	if (parameters::disk_feedback) {
 	update_velocities_from_indirect_term(dt);
 	}
@@ -1645,7 +1649,6 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 	const double hfdt = 0.5 * dt;
 	double tstop = dt;
-	double dt1 = dt;
 	double vrel_r;
 
 	// Half-drift ////////////////////////////////////////////
@@ -1668,7 +1671,8 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 		calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
 				 particles[i].radius, vrel_r, minus_l_rel, tstop,
 				 r0, l0);
-		dt1 = dt / (1.0 + hfdt / tstop);
+	} else {
+		tstop = 1e100;
 	}
 	double grav_r_ddot;
 	double minus_grav_l_dot;
@@ -1683,7 +1687,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 	// exponential propagator  eq.33 (Mignone et al. 2019)
 	const double exp_tstop = std::exp(-dt/tstop);
-	const double h1 = tstop*(1.0 - exp_tstop);
+	const double h1 = tstop*(-expm1(-dt/tstop));
 
 	// updating angular momentum
 	double l2 = exp_tstop*l1 + h1*minus_grav_l_dot;
