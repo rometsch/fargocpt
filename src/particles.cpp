@@ -183,8 +183,8 @@ static double interpolate_bilinear_sg(const double *array1D,
     return ((rp - r) * Qm + (r - rm) * Qp) / (rp - rm);
 }
 
-/*
-static double get_particle_eccentricity(int particle_index)
+
+static double get_particle_eccentricity_polar(int particle_index)
 {
 	// used for debugging the integrators
 	const int i = particle_index;
@@ -200,7 +200,39 @@ pow2(particles[i].r) * particles[i].r_dot * particles[i].phi_dot; const double A
 
 	return eccentricity;
 }
-*/
+
+static double get_particle_eccentricity_cart(int particle_index)
+{
+	   // used for debugging the integrators
+	   const int i = particle_index;
+
+	   // Runge-Lenz vector A = (p x L) - m * G * m * hydro_center_mass * r/|r|
+	   const double m = hydro_center_mass + particles[i].mass;
+
+	   const double x = particles[i].r;
+	   const double y = particles[i].phi;
+
+	   const double d = sqrt(x*x + y*y);
+
+	   const double vx = particles[i].r_dot;
+	   const double vy = particles[i].phi_dot;
+	   const double Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
+	   const double Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
+	   const double e = sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
+
+	   return e;
+}
+
+
+[[maybe_unused]] static double get_particle_eccentricity(int particle_index)
+{
+	   if (CartesianParticles) {
+			   return get_particle_eccentricity_cart(particle_index);
+	   }
+	   else{
+			   return get_particle_eccentricity_polar(particle_index);
+	   }
+}
 
 /**
  * @brief init_particle_timestep init particle timestep for adaptive explicit
@@ -715,8 +747,8 @@ void calculate_accelerations_from_star_and_planets(
     constexpr double epsilon = 0.005;
     constexpr double epsilon_sq = epsilon * epsilon;
 
-    ar = 0.0;
-    aphi = 0.0;
+	ar = r * phi_dot * phi_dot; // Centrifugal force
+	aphi= - 2.0 * r_dot / r * phi_dot;
 
     // planets
     for (unsigned int k = 0;
@@ -778,8 +810,8 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
     constexpr double epsilon = 0.005;
     constexpr double epsilon_sq = epsilon * epsilon;
 
-    grav_r_ddot = 0.0;
-    minus_grav_l_dot = 0.0;
+	grav_r_ddot = 0.0;
+	minus_grav_l_dot = 0.0;
 
     // planets
     for (unsigned int k = 0;
