@@ -11,15 +11,10 @@
 #include <math.h>
 #include <stdio.h>
 
-#include <experimental/filesystem> /// To check wether we restart from a legacy simulation
-
-
 extern boolean CICPlanet;
 extern int Corotating;
 
-t_planetary_system::t_planetary_system() {
-	planet_restart_legacy = false;
-}
+t_planetary_system::t_planetary_system() {}
 
 t_planetary_system::~t_planetary_system()
 {
@@ -212,7 +207,7 @@ void t_planetary_system::read_from_file(char *filename)
 
     if (get_number_of_planets() > 0) {
 	HillRadius =
-	    get_planet(0).get_x() * pow(get_planet(0).get_mass() / 3., 1. / 3.);
+		get_planet(0).get_radius() * pow(get_planet(0).get_mass() / 3., 1. / 3.);
     } else {
 	HillRadius = 0;
     }
@@ -346,27 +341,9 @@ void t_planetary_system::rotate(double angle)
 
 void t_planetary_system::restart(unsigned int timestep)
 {
-    std::string last_filename = std::string(OUTPUTDIR) + "planet" +
-			  std::to_string(get_number_of_planets()) + ".dat";
-    bool last_planet_files_exit = std::experimental::filesystem::exists(last_filename);
-
-	if (parameters::default_star && ! last_planet_files_exit) {
-	
-    
-	/// Check if last planet file is missing
-	/// If this is the case, we are restarting from a legacy simulation in which the central object did not have a planet file
-	// printf("last file name = %s\n", last_filename.c_str());
-    // printf("planet_restart_legacy = %d, file exists = %d, false = %d\n", planet_restart_legacy, std::experimental::filesystem::exists(last_filename), false);
-	// printf("planet_restart_legacy = %d, file exists = %d, false = %d\n", planet_restart_legacy, std::experimental::filesystem::exists(last_filename), false);
-		planet_restart_legacy = true;
-   		for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
-			get_planet(i).restart(timestep, -1);
-    	}
-	} else {
-		for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-			get_planet(i).restart(timestep, 0);
-    	}
-	}
+    for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+	get_planet(i).restart(timestep);
+    }
 	m_rebound->t = PhysicalTime;
 }
 
@@ -380,9 +357,6 @@ void t_planetary_system::create_planet_files()
 void t_planetary_system::write_planets(unsigned int timestep, bool big_file)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-		if(planet_restart_legacy && i == 0) { /// Legacy restart means that the central star has no file, thus we skip writing it
-			continue;
-		}
 	get_planet(i).write(timestep, big_file);
     }
 }

@@ -10,7 +10,6 @@ class t_planetary_system
   private:
     // list of all planets
     std::vector<t_planet *> m_planets;
-	bool planet_restart_legacy;
 
   public:
     struct reb_simulation *m_rebound;
@@ -19,12 +18,8 @@ class t_planetary_system
 
     inline void add_planet(t_planet *planet)
     {
-	int file_id_corrector = 0;
-	if(planet_restart_legacy){
-		file_id_corrector = 1;
-	}
 	m_planets.push_back(planet);
-	planet->set_planet_number(get_number_of_planets()-file_id_corrector);
+	planet->set_planet_number(get_number_of_planets());
     }
     inline unsigned int get_number_of_planets(void) const
     {
