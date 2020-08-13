@@ -39,6 +39,7 @@ double exponential_cell_size_factor;
 t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;
 bool domegadr_zero;
+double viscous_outflow_speed;
 
 bool damping;
 double damping_inner_limit;
@@ -154,6 +155,8 @@ double M0;
 unsigned int number_of_particles;
 bool integrate_particles;
 double particle_radius;
+unsigned int particle_species_number;
+double particle_radius_increase_factor;
 double particle_eccentricity;
 double particle_density;
 double particle_slope;
@@ -453,6 +456,8 @@ void read(char *filename, t_data &data)
     }
 
     domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
+	viscous_outflow_speed = config::value_as_double_default("ViscousOutflowSpeed", 1.0);
+
     damping = config::value_as_bool_default("Damping", false);
 
     damping_inner_limit =
@@ -765,6 +770,8 @@ void read(char *filename, t_data &data)
     number_of_particles =
 	config::value_as_unsigned_int_default("NumberOfParticles", 0);
     particle_radius = config::value_as_double_default("ParticleRadius", 100.0);
+	particle_species_number = config::value_as_unsigned_int_default("ParticleSpeciesNumber", 5);
+    particle_radius_increase_factor = config::value_as_double_default("ParticleRadiusIncreaseFactor", 10.0);
     particle_eccentricity =
 	config::value_as_double_default("ParticleEccentricity", 0.0);
     particle_density = config::value_as_double_default("ParticleDensity", 2.65);

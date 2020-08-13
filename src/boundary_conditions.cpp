@@ -283,12 +283,14 @@ void viscous_outflow_boundary_inner(t_data &data)
 
 	nu_med /= data[t_data::DENSITY].get_size_azimuthal();
 
+	const double s = parameters::viscous_outflow_speed;
+
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
-	    data[t_data::V_RADIAL](1, n_azimuthal) = -1.5 / Rinf[1] * nu_med;
-	    data[t_data::V_RADIAL](0, n_azimuthal) = -1.5 / Rinf[0] * nu_med;
+	    data[t_data::V_RADIAL](1, n_azimuthal) = -1.5 * s / Rinf[1] * nu_med;
+	    data[t_data::V_RADIAL](0, n_azimuthal) = -1.5 * s / Rinf[0] * nu_med;
 	}
     }
 }
