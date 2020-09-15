@@ -298,23 +298,23 @@ void t_planet::write(unsigned int timestep, bool big_file)
     fclose(fd);
 }
 
-void t_planet::restart(unsigned int timestep, int offset)
+void t_planet::restart(unsigned int timestep)
 {
-	m_x = get_value_from_file(timestep, "x", offset);
-	m_y = get_value_from_file(timestep, "y", offset);
-	m_vx = get_value_from_file(timestep, "vx", offset);
-	m_vy = get_value_from_file(timestep, "vy", offset);
-	m_mass = get_value_from_file(timestep, "mass", offset);
+	m_x = get_value_from_file(timestep, "x");
+	m_y = get_value_from_file(timestep, "y");
+	m_vx = get_value_from_file(timestep, "vx");
+	m_vy = get_value_from_file(timestep, "vy");
+	m_mass = get_value_from_file(timestep, "mass");
 }
 
 double t_planet::get_value_from_file(unsigned int timestep,
-					 std::string variable_name, int offset)
+					 std::string variable_name)
 {
 	double value;
     int column = -1;
 
     std::string filename = std::string(OUTPUTDIR) + "planet" +
-			   std::to_string(get_planet_number()+offset) + ".dat";
+			   std::to_string(get_planet_number()) + ".dat";
 
     std::string version = output::get_version(filename);
     auto variable_columns = planet_file_column_v2;
