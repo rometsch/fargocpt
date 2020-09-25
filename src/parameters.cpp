@@ -689,12 +689,6 @@ void read(char *filename, t_data &data)
     mof_sigma = config::value_as_double_default("mofsigma", 1.0);
     mof_value = config::value_as_double_default("mofvalue", 10E-9);
 
-	// profile cutoff outer, legacy names
-	profile_cutoff_outer = config::value_as_bool_default("ProfileDamping", false);
-    profile_cutoff_point_outer =
-	config::value_as_double_default("ProfileDampingPoint", 1.0e300);
-    profile_cutoff_width_outer =
-	config::value_as_double_default("ProfileDampingWidth", 1.0);
 
 	// profile damping outer
 	profile_cutoff_outer = config::value_as_bool_default("ProfileCutoffOuter", false);
@@ -703,12 +697,27 @@ void read(char *filename, t_data &data)
 	profile_cutoff_width_outer =
 	config::value_as_double_default("ProfileCutoffWidthOuter", 1.0);
 
+	// profile cutoff outer, legacy names
+	// only try to read legacy names if new names weren't used
+	if(!config::key_exists("ProfileCutoffOuter")){
+	profile_cutoff_outer = config::value_as_bool_default("ProfileDamping", false);
+	}
+	if(!config::key_exists("ProfileCutoffPointOuter")){
+	profile_cutoff_point_outer =
+	config::value_as_double_default("ProfileDampingPoint", 1.0e300);
+	}
+	if(!config::key_exists("ProfileCutoffWidthOuter")){
+	profile_cutoff_width_outer =
+	config::value_as_double_default("ProfileDampingWidth", 1.0);
+	}
+
 	// profile damping inner
 	profile_cutoff_inner = config::value_as_bool_default("ProfileCutoffInner", false);
 	profile_cutoff_point_inner =
 	config::value_as_double_default("ProfileCutoffPointInner", 0.0);
 	profile_cutoff_width_inner =
 	config::value_as_double_default("ProfileCutoffWidthInner", 1.0);
+
 
     exitOnDeprecatedSetting(
 	"FeelsDisk",
