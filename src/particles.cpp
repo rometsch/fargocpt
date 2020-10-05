@@ -422,26 +422,8 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 
     particles[i].radius = parameters::particle_radius;
 
-    if (true) {
-	const int particle_type = i % 5; // 4 different particle sizes
-	switch (particle_type) {
-	case 0: // very small particles
-	    particles[i].radius *= 1.0;
-	    break;
-	case 1: // small particles
-	    particles[i].radius *= 1e1;
-	    break;
-	case 2: // medium particles
-	    particles[i].radius *= 1e2;
-	    break;
-	case 3: // very large particles
-	    particles[i].radius *= 1e3;
-		break;
-	case 4: // very large particles
-	    particles[i].radius *= 1e4;
-	    break;
-	}
-    }
+	const unsigned int particle_type = i % parameters::particle_species_number;
+	particles[i].radius *= std::pow(parameters::particle_radius_increase_factor, particle_type);
 
     double volume = 4.0 / 3.0 * PI * pow3(particles[i].radius);
 

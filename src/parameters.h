@@ -39,6 +39,8 @@ extern t_boundary_condition boundary_inner;
 extern t_boundary_condition boundary_outer;
 /// set dr/dOmega zero at outer boundary
 extern bool domegadr_zero;
+// speed of the viscous boundary inflow
+extern double viscous_outflow_speed;
 
 /// Struct for handling damping at boundaries
 struct t_DampingType {
@@ -268,6 +270,10 @@ extern unsigned int number_of_particles;
 extern bool integrate_particles;
 /// particle radius
 extern double particle_radius;
+/// number of particle species
+extern unsigned int particle_species_number;
+/// factor of increase from particle species to next larger
+extern double particle_radius_increase_factor;
 /// particle eccentricity
 extern double particle_eccentricity;
 /// particle density
