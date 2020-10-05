@@ -46,6 +46,7 @@ void integrate(t_data &data, double dt);
 void integrate_implicit(t_data &data, const double dt);
 void integrate_explicit(t_data &data, const double dt);
 void integrate_explicit_adaptive(t_data &data, const double dt);
+void integrate_exponential_midpoint(t_data &data, const double dt);
 void integrate_semiimplicit(t_data &data, const double dt);
 void write(unsigned int timestep);
 void move(void);
