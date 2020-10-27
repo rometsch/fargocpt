@@ -376,18 +376,17 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 			correct_v_azimuthal(data[t_data::V_AZIMUTHAL], domega);
 		}
 	    OmegaFrame = OmegaNew;
-
-	    // rotate particle for the angle difference
-	    if (parameters::integrate_particles) {
-		particles::rotate(domega, dt);
-	    }
 	}
 
 	if (parameters::integrate_planets) {
 	    data.get_planetary_system().rotate(OmegaFrame * dt);
 	}
+	if (parameters::integrate_particles) {
+		particles::rotate(OmegaFrame * dt);
+	}
 
 	FrameAngle += OmegaFrame * dt;
+
 
 	/* Now we update gas */
 	if (parameters::calculate_disk) {
