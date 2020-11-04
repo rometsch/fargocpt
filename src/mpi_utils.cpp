@@ -3,7 +3,6 @@
 #include <mpi.h>
 #include <stdlib.h>
 
-
 void mpi_error_check(const int error, const std::string msg)
 {
     const std::string err = LOG_ERROR;
@@ -34,4 +33,20 @@ void mpi_error_check(const int error)
 
 	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
+}
+
+void mpi_error_check_file_write(const int error, const std::string filename)
+{
+    const std::string err_msg =
+	"Error while writing to file" + filename +
+	". Check file permissions and IO support of MPI library\n";
+    mpi_error_check(error, err_msg);
+}
+
+void mpi_error_check_file_read(const int error, const std::string filename)
+{
+    const std::string err_msg =
+	"Error while reading to file" + filename +
+	". Check file permissions and IO support of MPI library\n";
+    mpi_error_check(error, err_msg);
 }
