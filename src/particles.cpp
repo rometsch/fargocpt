@@ -2595,7 +2595,7 @@ void write(unsigned int timestep)
     MPI_File fh;
     MPI_Status status;
 
-    const std::string filename = std::string(OUTPUTDIR) + "/" + std::to_string(timestep) + ".dat";
+    const std::string filename = std::string(OUTPUTDIR) + "/particles" + std::to_string(timestep) + ".dat";
 
     // try to open file
     const std::string err_msg =
