@@ -12,6 +12,7 @@
 #include "polargrid.h"
 #include "radialarray.h"
 #include "radialgrid.h"
+#include "mpi_utils.h"
 
 t_radialgrid::t_radialgrid()
 {
@@ -146,11 +147,10 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 {
     MPI_File fh;
     MPI_Status status;
-    int error, error_class, error_length;
+    int error;
     unsigned int count, from, number_of_values = 2;
     double *buffer;
-    char error_string[MPI_MAX_ERROR_STRING + 1];
-
+ 
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rmed : Rinf;
 
@@ -170,33 +170,14 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 				  MPI_MODE_WRONLY | MPI_MODE_CREATE,
 				  MPI_INFO_NULL, &fh);
 	}
-	// error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
-	// MPI_MODE_WRONLY | MPI_MODE_APPEND, MPI_INFO_NULL, &fh);
+	
     } else {
 	// make a new file for each output
 	error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 			      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL,
 			      &fh);
     }
-    if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n",
-	    filename.c_str());
-
-	// error class
-	MPI_Error_class(error, &error_class);
-	MPI_Error_string(error_class, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
-
-	// error code
-	MPI_Error_string(error, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
-
-	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    }
+    mpi_error_check_file_write(error, filename);
 
     // Move file pointer to correct position
     MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE,
@@ -287,39 +268,17 @@ void t_radialgrid::read1D(const char *_filename)
     MPI_File fh;
     MPI_Status status;
     MPI_Offset size;
-    int error, error_class, error_length;
     unsigned int count, number_of_values = 2;
-    char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
+    const std::string filename = std::string(_filename);
 
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rmed : Rinf;
 
-    filename = new char[strlen(_filename) + 1];
-    strcpy(filename, _filename);
-
     // try to open file
-    error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,
-			  MPI_INFO_NULL, &fh);
-    if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error while reading from file '%s'. Check file permissions and IO support of MPI library\n",
-	    filename);
-
-	// error class
-	MPI_Error_class(error, &error_class);
-	MPI_Error_string(error_class, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
-
-	// error code
-	MPI_Error_string(error, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
-
-	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    }
-    delete[] filename;
+    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+					    MPI_MODE_RDONLY, MPI_INFO_NULL,
+					    &fh),
+			      filename);
 
     // get file size
     MPI_File_get_size(fh, &size);

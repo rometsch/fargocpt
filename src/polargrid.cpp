@@ -12,6 +12,7 @@
 #include <float.h>
 #include <gsl/gsl_spline.h>
 #include <mpi.h>
+#include "mpi_utils.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -123,40 +124,18 @@ void t_polargrid::write2D(unsigned int number) const
 {
     MPI_File fh;
     MPI_Status status;
-    int error, error_class, error_length;
+
     unsigned int count;
     double *from;
-    char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
-	0) {
-	die("Not enough memory!");
-    }
+    const std::string filename = std::string(OUTPUTDIR) + "/gas" +
+				 std::string(get_name()) +
+				 std::to_string(number) + ".dat";
 
-    // try to open file
-    error =
-	MPI_File_open(MPI_COMM_WORLD, filename,
-		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
-    if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n",
-	    filename);
 
-	// error class
-	MPI_Error_class(error, &error_class);
-	MPI_Error_string(error_class, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
+	mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh), filename);
 
-	// error code
-	MPI_Error_string(error, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
-
-	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    }
-    free(filename);
 
     MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE,
 		      const_cast<char *>("native"), MPI_INFO_NULL);
@@ -223,43 +202,21 @@ void t_polargrid::write1D(unsigned int number) const
 {
     MPI_File fh;
     MPI_Status status;
-    int error, error_class, error_length;
     unsigned int count, from, number_of_values = 2;
-    char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rb : Ra;
 
-    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR, get_name(), number) <
-	0) {
-	die("Not enough memory!");
-    }
+
+    const std::string filename = std::string(OUTPUTDIR) + "/gas" +
+				 std::string(get_name()) + + "1D" +
+				 std::to_string(number) + ".dat";
 
     // try to open file
-    error =
-	MPI_File_open(MPI_COMM_WORLD, filename,
-		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh);
-    if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error while writing to file '%s'. Check file permissions and IO support of MPI library\n",
-	    filename);
-
-	// error class
-	MPI_Error_class(error, &error_class);
-	MPI_Error_string(error_class, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
-
-	// error code
-	MPI_Error_string(error, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
-
-	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    }
-	free(filename);
-
+    mpi_error_check_file_write(
+	MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh), filename);
+    
     if (m_write_max_max_1D) {
 	// min/max need additional two values
 	number_of_values += 2;
@@ -370,35 +327,14 @@ void t_polargrid::read2D(const char *_filename)
     MPI_File fh;
     MPI_Status status;
     MPI_Offset size;
-    int error, error_class, error_length;
     unsigned int count;
-    char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
 
-    filename = new char[strlen(_filename) + 1];
-    strcpy(filename, _filename);
+    const std::string filename = std::string(_filename);
 
-    error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,
-			  MPI_INFO_NULL, &fh);
-    if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error while reading from file '%s'. Check file permissions and IO support of MPI library\n",
-	    filename);
-
-	// error class
-	MPI_Error_class(error, &error_class);
-	MPI_Error_string(error_class, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
-
-	// error code
-	MPI_Error_string(error, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
-
-	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    }
-    delete[] filename;
+    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+					    MPI_MODE_RDONLY, MPI_INFO_NULL,
+					    &fh),
+			      filename);
 
     // get file size
     MPI_File_get_size(fh, &size);
@@ -406,12 +342,12 @@ void t_polargrid::read2D(const char *_filename)
     count = (GlobalNRadial + (is_scalar() ? 0 : 1)) * Nsec * sizeof(double);
 
     if (count != size) {
-	die("Filename '%s' has %u bytes but has to be %u bytes.", _filename,
+	die("Filename '%s' has %u bytes but has to be %u bytes.", filename.c_str(),
 	    size, count);
     }
 
     logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",
-			  _filename, size);
+			  filename.c_str(), size);
 
     // allocate buffer and read file
     double *buffer_file = new double[count];
@@ -467,39 +403,18 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     MPI_File fh;
     MPI_Status status;
     MPI_Offset size;
-    int error, error_class, error_length;
     unsigned int count, number_of_values = 2;
-    char *filename, error_string[MPI_MAX_ERROR_STRING + 1];
+
+    const std::string filename = std::string(_filename);
 
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rmed : Rinf;
 
-    filename = new char[strlen(_filename) + 1];
-    strcpy(filename, _filename);
-
     // try to open file
-    error = MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,
-			  MPI_INFO_NULL, &fh);
-    if (error != MPI_SUCCESS) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error while reading from file '%s'. Check file permissions and IO support of MPI library\n",
-	    filename);
-
-	// error class
-	MPI_Error_class(error, &error_class);
-	MPI_Error_string(error_class, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error class: %s\n", error_string);
-
-	// error code
-	MPI_Error_string(error, error_string, &error_length);
-	error_string[error_length] = 0;
-	logging::print_master(LOG_ERROR "MPI error code: %s\n", error_string);
-
-	MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    }
-    delete[] filename;
+    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+					    MPI_MODE_RDONLY, MPI_INFO_NULL,
+					    &fh),
+			      filename);
 
     if (skip_min_max) {
 	// min/max need additional two values
