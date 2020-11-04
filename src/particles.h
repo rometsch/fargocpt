@@ -50,7 +50,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt);
 void integrate_semiimplicit(t_data &data, const double dt);
 void write(unsigned int timestep);
 void move(void);
-void rotate(double Omega, double dt);
+void rotate(const double angle);
 
 } // namespace particles
 

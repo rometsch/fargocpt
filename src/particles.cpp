@@ -2647,7 +2647,7 @@ void write(unsigned int timestep)
     MPI_File_close(&fh);
 }
 
-void rotate(double Omega, double dt)
+void rotate(const double angle)
 {
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	// rotate positions
@@ -2665,15 +2665,13 @@ void rotate(double Omega, double dt)
 	    double &vy = particles[i].phi_dot;
 
 	    // rotate positions
-	    double angle = Omega * dt;
 	    x = x_old * cos(angle) + y_old * sin(angle);
 	    y = -x_old * sin(angle) + y_old * cos(angle);
 	    // rotate velocities
 	    vx = vx_old * cos(angle) + vy_old * sin(angle);
 	    vy = -vx_old * sin(angle) + vy_old * cos(angle);
 	} else {
-
-	    particles[i].phi -= Omega * dt;
+	    particles[i].phi -= angle;
 	    check_angle(particles[i].phi);
 	}
     }
