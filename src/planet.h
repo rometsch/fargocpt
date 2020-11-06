@@ -111,14 +111,6 @@ class t_planet
     {
 	return m_disk_on_planet_acceleration;
     }
-    inline double get_disk_on_planet_acceleration_x(void) const
-    {
-	return m_disk_on_planet_acceleration.x;
-    }
-    inline double get_disk_on_planet_acceleration_y(void) const
-    {
-	return m_disk_on_planet_acceleration.y;
-    }
     inline Pair get_nbody_on_planet_acceleration(void) const
     {
 	return m_nbody_on_planet_acceleration;
