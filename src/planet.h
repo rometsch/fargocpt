@@ -99,11 +99,11 @@ class t_planet
     inline double get_radius(void) const { return m_radius; }
     inline double get_irradiate(void) const { return m_irradiate; }
     inline double get_rampuptime(void) const { return m_rampuptime; }
-    inline Pair get_disk_on_planet_acceleration(void) const
+	inline const Pair get_disk_on_planet_acceleration(void) const
     {
 	return m_disk_on_planet_acceleration;
     }
-    inline Pair get_nbody_on_planet_acceleration(void) const
+	inline const Pair get_nbody_on_planet_acceleration(void) const
     {
 	return m_nbody_on_planet_acceleration;
     }

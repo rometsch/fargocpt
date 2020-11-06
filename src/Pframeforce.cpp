@@ -181,14 +181,12 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 */
 void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
 {
-    Pair gamma;
-
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	if (parameters::disk_feedback) {
 	    t_planet &planet = data.get_planetary_system().get_planet(k);
 
-	    gamma = planet.get_disk_on_planet_acceleration();
+		const Pair gamma = planet.get_disk_on_planet_acceleration();
 	    const double new_vx =
 		planet.get_vx() + dt * gamma.x + dt * IndirectTermDisk.x;
 	    const double new_vy =
