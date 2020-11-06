@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
 	// update planet velocity due to disk potential
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(data);
+		data.get_planetary_system().correct_velocity_for_disk_accel();
 	}
-	data.get_planetary_system().correct_velocity_for_disk_accel();
 	logging::print_master(LOG_INFO "planets initialised.\n");
 
     if (parameters::integrate_particles) {
