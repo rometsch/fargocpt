@@ -69,14 +69,6 @@ class t_planet
     {
 	m_disk_on_planet_acceleration = value;
     }
-    inline void set_disk_on_planet_acceleration_x(double value)
-    {
-	m_disk_on_planet_acceleration.x = value;
-    }
-    inline void set_disk_on_planet_acceleration_y(double value)
-    {
-	m_disk_on_planet_acceleration.y = value;
-    }
     inline void set_nbody_on_planet_acceleration(Pair value)
     {
 	m_nbody_on_planet_acceleration = value;
