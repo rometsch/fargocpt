@@ -5,17 +5,14 @@ import sys
 import os
 from shutil import copy2
 
-# src = sys.argv[1]
-# dst = list(src)
-# dst[-5] = '2'
-# dst = "".join(dst)
+src = sys.argv[1]
+dst = list(src)
+dst[-5] = '2'
+dst = "".join(dst)
 
-# print(src, dst)
+print(src, dst)
 
-# copy2(src,dst)
-
-src = "/home/jordan/debug/fargocpt/ideal_rmin02_double_resolution_open/planet2.dat"
-dst = "/home/jordan/debug/fargocpt/ideal_rmin02_double_resolution_open/planet1.dat"
+copy2(src,dst)
 
 planet = np.loadtxt(src)
 ids = planet[:,0]
@@ -36,8 +33,8 @@ with open(src) as file:
 
 header = "".join(lines)
 
-df.to_csv(dst, sep='\t', index=True, header=False)
-with open(dst, "r+") as f:
+df.to_csv(src, sep='\t', index=True, header=False)
+with open(src, "r+") as f:
     old = f.read() # read everything in the file
     f.seek(0) # rewind
     f.write(header) # write the new line before
