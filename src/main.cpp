@@ -279,7 +279,7 @@ int main(int argc, char *argv[])
 	}
 
 	// write disk quantities like eccentricity, ...
-	if (write_complete_output || parameters::write_at_every_timestep) {
+	if ((write_complete_output || parameters::write_at_every_timestep) && parameters::write_disk_quantities) {
 	    output::write_quantities(data, TimeStep, nTimeStep,
 				     force_update_for_output);
 	}

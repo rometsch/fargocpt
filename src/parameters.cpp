@@ -358,7 +358,7 @@ void read(char *filename, t_data &data)
     write_torques = config::value_as_bool_default("WriteTorques", false);
 
     write_disk_quantities =
-	config::value_as_bool_default("WriteDiskQuantities", false);
+	config::value_as_bool_default("WriteDiskQuantities", true);
     write_at_every_timestep =
 	config::value_as_bool_default("WriteAtEveryTimestep", false);
     write_lightcurves =

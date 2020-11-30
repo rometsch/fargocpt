@@ -511,7 +511,8 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 	    // update density
 	    Qbase->Field[cell] += (varq_inf - varq_sup) * InvSurf[nRadial];
 
-	    if (is_density) {
+		if (is_density) {
+		if(parameters::write_disk_quantities){
 		// TODO: boundary
 		// if ((nRadial == 0) && (parameters::boundary_inner ==
 		// parameters::boundary_condition_open)) if ((nRadial == 0) &&
@@ -533,6 +534,7 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 			sum_without_ghost_cells(MassDelta.OuterPositive,
 						varq_sup, nRadial);
 		    }
+		}
 		}
 		if (parameters::write_massflow) {
 			data[t_data::MASSFLOW](nRadial, nAzimuthal) += varq_inf;
