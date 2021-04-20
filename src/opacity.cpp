@@ -40,6 +40,7 @@ double opacity(double density, double temperature)
 }
 
 /**
+	Opacities after Lin & Papaloizou (1985)
 	evaluate kappa (opacity) as functions of density and temperature
 	Doug's Opacities for Ice, grains, slightly modified
 */
