@@ -208,10 +208,6 @@ t_data::t_data()
     m_polargrids[TAU_EFF].set_scalar(true);
     m_polargrids[TAU_EFF].set_name("tau_eff");
 
-    m_polargrids[TAU2].set_scalar(true);
-    m_polargrids[TAU2].set_name("tau2");
-    m_polargrids[TAU2].set_write_2D(true);
-
     m_polargrids[ASPECTRATIO].set_scalar(true);
     m_polargrids[ASPECTRATIO].set_name("aspectratio");
 

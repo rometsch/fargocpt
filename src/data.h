@@ -59,7 +59,6 @@ class t_data
 	Q_PHI,		 //
 	TAU,		 // optical depth
 	TAU_EFF,	 // effective optical depth (in vertical direction)
-	TAU2,
 	ASPECTRATIO, // aspect ratio H/r
 	VISIBILITY,  //
 	TORQUE,
