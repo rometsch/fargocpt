@@ -34,6 +34,7 @@ FILE(GLOB H_SOURCES "./*.h" "./rebound/*.h")
 # MPI dir to check if we are on BINAC
 string(SUBSTRING ${MPI_INCLUDE_DIR} 0 11 MPI_SUBSTR)
 
+add_subdirectory("${CMAKE_SOURCE_DIR}/rebound")
 if("${MPI_SUBSTR}" STREQUAL "/opt/bwhpc/")
         set(BINAC_FFTW_PATH "/opt/bwhpc/common/numlib/fftw/3.3.8-openmpi-3.1-gnu-7.3")
         set(BINAC_GASL_PATH  "/opt/bwhpc/common/numlib/gsl/2.1")
