@@ -1,0 +1,1 @@
+- Changed tau_factor default value from 1 to 0.5.
