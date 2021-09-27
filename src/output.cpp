@@ -217,15 +217,6 @@ void check_free_space(t_data &data)
 	die("Not output directory!");
     }
 
-    while ((directory_entry = readdir(directory_pointer))) {
-	if ((strcmp("..", directory_entry->d_name) != 0) &&
-	    (strcmp(".", directory_entry->d_name) != 0)) {
-	    logging::print_master(
-		LOG_NOTICE "Output directory %s is not empty!\n", OUTPUTDIR);
-	    break;
-	}
-    }
-
     closedir(directory_pointer);
 
     unsigned long int space_needed = 0l;
