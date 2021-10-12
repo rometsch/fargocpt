@@ -68,6 +68,7 @@ namespace accretion
 		const double* cell_center_y = CellCenterY->Field;
 		const double* vrad = data[t_data::V_RADIAL].Field;
 		const double* vtheta = data[t_data::V_AZIMUTHAL].Field;
+		const double density_floor = parameters::sigma_floor * parameters::sigma0;
 
 		if (planet.get_acc() > 1e-10) {
 			// Hereafter : initialization of W. Kley's parameters
@@ -123,15 +124,18 @@ namespace accretion
 					const double vycell = (vrcell * yc + vtcell * xc) / Rmed[i];
 
 					double deltaM = 0.0;
+					// only allow removal of mass down to density floor
+					double facc_max = 1 - density_floor/dens[l];
 					// handle accretion zone 1
 					if (distance < frac1 * RHill) {
-						deltaM = facc1 * dens[l] * Surf[i];
+						double facc_ceil = std::min(facc1, facc_max);
+						deltaM = facc_ceil * dens[l] * Surf[i];
 						if (i < One_or_active) {
 							deltaM = 0.0;
 						} else if (i >= Max_or_active) {
 							deltaM = 0.0;
 						} else {
-							dens[l] *= (1.0 - facc1);
+							dens[l] *= 1.0 - facc_ceil;
 							dPxPlanet += deltaM * vxcell;
 							dPyPlanet += deltaM * vycell;
 							dMplanet += deltaM;
@@ -139,13 +143,14 @@ namespace accretion
 					}
 					// handle accretion zone 2
 					if (distance < frac2 * RHill) {
-						deltaM = facc2 * dens[l] * Surf[i];
+						double facc_ceil = std::min(facc2, facc_max);
+						deltaM = facc_ceil * dens[l] * Surf[i];
 						if (i < One_or_active) {
 							deltaM = 0.0;
 						} else if (i >= Max_or_active) {
 							deltaM = 0.0;
 						} else {
-							dens[l] *= (1.0 - facc2);
+							dens[l] *= 1.0 - facc_ceil;
 							dPxPlanet += deltaM * vxcell;
 							dPyPlanet += deltaM * vycell;
 							dMplanet += deltaM;
