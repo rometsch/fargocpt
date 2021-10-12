@@ -186,18 +186,13 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 {
     int i, j, l, nr, ns;
     long nitemp;
-    double *vt, *vres, Ntilde, Nround, maxfrac, invdt, dpinvns;
+	double *vt, *vres, Ntilde, Nround, invdt, dpinvns;
     nr = VAzimuthal->Nrad;
     ns = VAzimuthal->Nsec;
     vt = VAzimuthal->Field;
     vres = v_azimuthal_res.Field;
     invdt = 1.0 / dt;
     dpinvns = 2.0 * PI / (double)ns;
-
-    if (FastTransport)
-	maxfrac = 1.0; /* Fast algorithm */
-    else
-	maxfrac = 0.0;
 
     for (i = 0; i < nr; i++) {
 	Ntilde = v_azimuthal_mean(i) * InvRmed[i] * dt * (double)ns / 2.0 / PI;
@@ -208,7 +203,7 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 	    l = j + i * ns;
 	    vt[l] = (Ntilde - Nround) * Rmed[i] * invdt * dpinvns;
 	}
-	if (maxfrac < 0.5) {
+	if (!FastTransport) {
 	    NoSplitAdvection[i] = YES;
 	    for (j = 0; j < ns; j++) {
 		l = j + i * ns;
