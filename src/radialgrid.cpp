@@ -1,9 +1,9 @@
-#include <float.h>
+#include <cfloat>
 #include <gsl/gsl_spline.h>
 #include <mpi.h>
 #include <sstream>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "LowTasks.h"
 #include "constants.h"
@@ -77,9 +77,7 @@ void t_radialgrid::set_scalar(bool value) { m_scalar = value; }
 */
 void t_radialgrid::clear()
 {
-    for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
-	operator()(n_radial) = 0.0;
-    }
+	std::memset(m_data, 0, sizeof(*m_data)*get_size_radial());
 }
 
 void t_radialgrid::write(unsigned int number, t_data &data)

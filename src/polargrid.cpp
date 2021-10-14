@@ -9,13 +9,13 @@
 #include "global.h"
 #include "logging.h"
 #include "util.h"
-#include <float.h>
+#include <cfloat>
 #include <gsl/gsl_spline.h>
 #include <mpi.h>
 #include "mpi_utils.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 t_polargrid::t_polargrid()
 {
@@ -86,12 +86,7 @@ void t_polargrid::set_scalar(bool value) { m_scalar = value; }
 */
 void t_polargrid::clear()
 {
-    for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0; n_azimuthal <= get_max_azimuthal();
-	     ++n_azimuthal) {
-	    operator()(n_radial, n_azimuthal) = 0.0;
-	}
-    }
+	memset(Field, 0, get_size_radial() * get_size_azimuthal() * sizeof(*Field));
 }
 
 void t_polargrid::write(unsigned int number, t_data &data)
