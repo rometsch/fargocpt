@@ -10,9 +10,6 @@
 /// central mass in code units
 const double M = 1.0;
 
-/// Pi
-const double PI = 3.1415926535897932384626433833;
-
 // overlap cells (Zeus-like overlap kernel. 2:transport; 2: source, 1:viscous
 // stress)
 const unsigned int CPUOVERLAP = 5;

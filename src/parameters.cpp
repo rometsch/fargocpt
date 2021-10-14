@@ -568,7 +568,7 @@ void read(char *filename, t_data &data)
 
     zbuffer_size = config::value_as_unsigned_int_default("zbufferSize", 100);
     zbuffer_maxangle =
-	config::value_as_double_default("zbufferMaxAngle", 10.0 / 180.0 * PI);
+	config::value_as_double_default("zbufferMaxAngle", 10.0 / 180.0 * M_PI);
 
     cooling_radiative_factor =
 	config::value_as_double_default("CoolingRadiativeFactor", 1.0);
@@ -1219,7 +1219,7 @@ void write_grid_data_to_file()
 	    fd,
 	    "#RMIN\tRMAX\tPHIMIN\tPHIMAX          \tNRAD\tNAZ\tNGHRAD\tNGHAZ\tRadial_spacing\n");
 	fprintf(fd, "%.16g\t%.16g\t%.16g\t%.16g\t%d\t%d\t%d\t%d\t%s\n", RMIN,
-		RMAX, 0.0, 2 * PI, NRadial, NAzimuthal, 1, 1,
+		RMAX, 0.0, 2 * M_PI, NRadial, NAzimuthal, 1, 1,
 		radial_spacing_str);
 	fclose(fd);
     }

@@ -315,7 +315,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 	limit--;
 
-	double tau = parameters::damping_time_factor * 2.0 * PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
@@ -368,7 +368,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 	limit++;
 
-	double tau = parameters::damping_time_factor * 2.0 * PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
@@ -420,7 +420,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 	limit--;
 
-	double tau = parameters::damping_time_factor * 2.0 * PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
@@ -473,7 +473,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 	limit++;
 
-	double tau = parameters::damping_time_factor * 2.0 * PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
@@ -526,7 +526,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 	limit--;
 
-	double tau = parameters::damping_time_factor * 2.0 * PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// get mean quantity
@@ -589,7 +589,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 	limit++;
 
-	double tau = parameters::damping_time_factor * 2.0 * PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
@@ -674,7 +674,7 @@ void mass_overflow(t_data &data)
 	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
-    double angle = atan2(yplanet, xplanet) / 2 / PI;
+    double angle = atan2(yplanet, xplanet) / 2 / M_PI;
     if (angle < 0) {
 	angle += 1.0;
     }
@@ -698,10 +698,10 @@ void mass_overflow(t_data &data)
 	gridcell = (nearest_grid_cell + i + maxcells) % maxcells;
 
 	// adapt gauss profile
-	weight_factor = 1.0 / (sigmabar * sqrt(2.0 * PI)) *
+	weight_factor = 1.0 / (sigmabar * sqrt(2.0 * M_PI)) *
 			exp(-1.0 / 2.0 * pow2(i / sigmabar));
 	check += weight_factor;
-	mass_stream = weight_factor * parameters::mof_value / 2.0 / PI * DT;
+	mass_stream = weight_factor * parameters::mof_value / 2.0 / M_PI * DT;
 
 	// overflow is given in flow / year
 	// scalar quantities maxradial -1, vectorial quantities maxrad-2

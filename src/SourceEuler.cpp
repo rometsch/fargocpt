@@ -622,7 +622,7 @@ void SubStep1(t_data &data, double dt)
 	    IMPOSEDDISKDRIFT * 0.5 * pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
 	invdxtheta =
 	    1.0 /
-	    (2.0 * PI / (double)data[t_data::V_AZIMUTHAL].get_size_azimuthal() *
+		(2.0 * M_PI / (double)data[t_data::V_AZIMUTHAL].get_size_azimuthal() *
 	     Rmed[n_radial]);
 
 	for (unsigned int n_azimuthal = 0;
@@ -770,7 +770,7 @@ void SubStep2(t_data &data, double dt)
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::V_AZIMUTHAL_NEW].get_max_radial();
 	     ++n_radial) {
-	    dxtheta = 2.0 * PI /
+		dxtheta = 2.0 * M_PI /
 		      (double)data[t_data::DENSITY].get_size_azimuthal() *
 		      Rmed[n_radial];
 	    invdxtheta = 1.0 / dxtheta;
@@ -808,7 +808,7 @@ void SubStep2(t_data &data, double dt)
 		     n_radial <= data[t_data::ENERGY_INT].get_max_radial();
 		     ++n_radial) {
 		    dxtheta =
-			2.0 * PI /
+			2.0 * M_PI /
 			(double)data[t_data::DENSITY].get_size_azimuthal() *
 			Rmed[n_radial];
 		    invdxtheta = 1.0 / dxtheta;
@@ -951,7 +951,7 @@ void calculate_qplus(t_data &data)
 	double ramping = 1.0;
 	if (PhysicalTime < parameters::heating_star_ramping_time * DT) {
 	    ramping =
-		1.0 - pow2(cos(PhysicalTime * PI / 2.0 /
+		1.0 - pow2(cos(PhysicalTime * M_PI / 2.0 /
 			       (parameters::heating_star_ramping_time * DT)));
 	}
 
@@ -1442,7 +1442,7 @@ void radiative_diffusion(t_data &data, double dt)
     compute_aspect_ratio(data, true);
 
     double dphi =
-	2.0 * PI / (double)(data[t_data::TEMPERATURE].get_size_azimuthal());
+	2.0 * M_PI / (double)(data[t_data::TEMPERATURE].get_size_azimuthal());
 
     // calcuate Ka for K(i/2,j)
     for (unsigned int n_radial = 1; n_radial <= Ka.get_max_radial() - 1;
@@ -1933,7 +1933,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	// cell sizes in radial & azimuthal direction
 	double dxRadial = Rsup[n_radial] - Rinf[n_radial];
 	double dxAzimuthal =
-	    Rmed[n_radial] * 2.0 * PI / (double)(v_radial.get_size_azimuthal());
+		Rmed[n_radial] * 2.0 * M_PI / (double)(v_radial.get_size_azimuthal());
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= v_radial.get_max_azimuthal(); ++n_azimuthal) {
@@ -2041,7 +2041,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	 n_radial <
 	 NRadial - 2 - (CPUOVERLAP - 1) * (CPU_Rank < CPU_Number - 1 ? 1 : 0);
 	 ++n_radial) {
-	dtLocal = 2.0 * PI * parameters::CFL / (double)NAzimuthal /
+	dtLocal = 2.0 * M_PI * parameters::CFL / (double)NAzimuthal /
 		  fabs(v_mean[n_radial] * InvRmed[n_radial] -
 		       v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
 

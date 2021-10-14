@@ -62,8 +62,8 @@ unsigned int clamp_phi_id_to_grid(int cell_id)
 }
 
 static void init_cell_finder_log(const double cell_growth_factor, const double first_cell_size){
-	phi_cell_size = 2.0 * PI / (double)NAzimuthal;
-	inv_phi_cell_size = (double)NAzimuthal / 2.0 / PI;
+	phi_cell_size = 2.0 * M_PI / (double)NAzimuthal;
+	inv_phi_cell_size = (double)NAzimuthal / 2.0 / M_PI;
 
 	growth_factor = cell_growth_factor;
 	optimization_const = 3.0/2.0 / RMIN * (1-std::pow(growth_factor, 2.0)) / (1-std::pow(growth_factor, 3.0));
@@ -76,8 +76,8 @@ static void init_cell_finder_log(const double cell_growth_factor, const double f
 }
 
 static void init_cell_finder_arith(const double cell_growth_factor, const double first_cell_size){
-	phi_cell_size = 2.0 * PI / (double)NAzimuthal;
-	inv_phi_cell_size = (double)NAzimuthal / 2.0 / PI;
+	phi_cell_size = 2.0 * M_PI / (double)NAzimuthal;
+	inv_phi_cell_size = (double)NAzimuthal / 2.0 / M_PI;
 	growth_factor = cell_growth_factor;
 
 	// unused
@@ -87,8 +87,8 @@ static void init_cell_finder_arith(const double cell_growth_factor, const double
 }
 
 static void init_cell_finder_exp(const double cell_growth_factor, const double first_cell_size){
-	phi_cell_size = 2.0 * PI / (double)NAzimuthal;
-	inv_phi_cell_size = (double)NAzimuthal / 2.0 / PI;
+	phi_cell_size = 2.0 * M_PI / (double)NAzimuthal;
+	inv_phi_cell_size = (double)NAzimuthal / 2.0 / M_PI;
 	cell_size = first_cell_size;
 	growth_factor = cell_growth_factor;
 	inv_log_growth_factor = 1.0 / std::log(growth_factor);
@@ -96,8 +96,8 @@ static void init_cell_finder_exp(const double cell_growth_factor, const double f
 }
 
 static void init_cell_finder_custom(const double cell_growth_factor, const double first_cell_size){
-	phi_cell_size = 2.0 * PI / (double)NAzimuthal;
-	inv_phi_cell_size = (double)NAzimuthal / 2.0 / PI;
+	phi_cell_size = 2.0 * M_PI / (double)NAzimuthal;
+	inv_phi_cell_size = (double)NAzimuthal / 2.0 / M_PI;
 	// unused
 	(void)cell_growth_factor;
 	(void)first_cell_size;

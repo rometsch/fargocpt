@@ -72,7 +72,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
     double invdphi;
 
     invdphi =
-	1.0 / (2.0 * PI / (double)data[t_data::DENSITY].get_size_azimuthal());
+	1.0 / (2.0 * M_PI / (double)data[t_data::DENSITY].get_size_azimuthal());
 
     double drr, dpp, drp;
 
@@ -209,7 +209,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 			data[t_data::DENSITY](n_radial, n_azimuthal) *
 			pow2(min(
 			    Rsup[n_radial] - Rinf[n_radial],
-				Rmed[n_radial] * 2 * PI /
+				Rmed[n_radial] * 2 * M_PI /
 				data[t_data::DENSITY].get_size_azimuthal())) *
 			(-data[t_data::DIV_V](n_radial, n_azimuthal));
 		} else {
@@ -233,7 +233,7 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 {
     double invdphi;
 
-    invdphi = 1.0 / (2.0 * PI / (double)data[t_data::DENSITY].Nsec);
+    invdphi = 1.0 / (2.0 * M_PI / (double)data[t_data::DENSITY].Nsec);
 
     double n_azimuthal_plus, n_azimuthal_minus;
 

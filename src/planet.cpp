@@ -157,7 +157,7 @@ double t_planet::get_rampup_mass()
 	if (PhysicalTime < get_rampuptime() * DT) {
 	    ramping =
 		1.0 -
-		pow2(cos(PhysicalTime * PI / 2.0 / (get_rampuptime() * DT)));
+		pow2(cos(PhysicalTime * M_PI / 2.0 / (get_rampuptime() * DT)));
 	}
     }
     return get_mass() * ramping;
@@ -168,7 +168,7 @@ double t_planet::get_rampup_mass()
 */
 double t_planet::get_period()
 {
-    return 2.0 * PI *
+    return 2.0 * M_PI *
 	   sqrt(pow3(get_semi_major_axis()) /
 		((hydro_center_mass + get_mass()) * constants::G));
 }
@@ -387,7 +387,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	    E = 0.0;
 	} else if (temp < -1.0) {
 	    // E = acos(-1)
-	    E = PI;
+	    E = M_PI;
 	} else {
 	    E = acos(temp);
 	}
@@ -408,7 +408,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	    V = 0.0;
 	} else if (temp < -1.0) {
 	    // V = acos(-1)
-	    V = PI;
+	    V = M_PI;
 	} else {
 	    V = acos(temp);
 	}

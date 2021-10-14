@@ -179,7 +179,7 @@ void init_radialarrays()
 	// this
 	assert((Rmed[nRadial] - GlobalRmed[nRadial + IMIN]) < DBL_EPSILON);
 
-	Surf[nRadial] = PI * (pow2(Rsup[nRadial]) - pow2(Rinf[nRadial])) /
+	Surf[nRadial] = M_PI * (pow2(Rsup[nRadial]) - pow2(Rinf[nRadial])) /
 			(double)NAzimuthal;
 
 	InvRmed[nRadial] = 1.0 / Rmed[nRadial];
@@ -465,7 +465,7 @@ void init_gas_density(t_data &data)
 		double angle =
 		    (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
-		    PI;
+		    M_PI;
 		double x = r * cos(angle);
 		double y = r * sin(angle);
 

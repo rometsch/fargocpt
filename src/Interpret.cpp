@@ -231,7 +231,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
 	double optimal_N_azimuthal =
-			PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
+			M_PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
 
 	// check if optimal azimuthal cell number differs from actual azimuthal
 	// cell number by more than 10%
@@ -571,7 +571,7 @@ void PrintUsage(char *execname)
 
 double TellNbOrbits(double time)
 {
-    return time / 2.0 / PI * sqrt(constants::G * 1.0 / 1.0 / 1.0 / 1.0);
+    return time / 2.0 / M_PI * sqrt(constants::G * 1.0 / 1.0 / 1.0 / 1.0);
 }
 
 double TellNbOutputs(double time) { return (time / DT / NINTERM); }
@@ -624,11 +624,11 @@ void TellEverything()
 	LOG_VERBOSE
 	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
-    temp = 2.0 * PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
+    temp = 2.0 * M_PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
     logging::print_master(LOG_VERBOSE
 			  "Orbital time at Rmin  : %.3g ~ %.2f outputs\n",
 			  temp, TellNbOutputs(temp));
-    temp = 2.0 * PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
+    temp = 2.0 * M_PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
     logging::print_master(LOG_VERBOSE
 			  "Orbital time at Rmax  : %.3g ~ %.2f outputs\n",
 			  temp, TellNbOutputs(temp));
