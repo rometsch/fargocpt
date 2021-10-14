@@ -194,7 +194,6 @@ void check_free_space(t_data &data)
 {
     char *directory_name;
     DIR *directory_pointer;
-    struct dirent *directory_entry;
     struct statvfs fiData;
 
     if (asprintf(&directory_name, "%s/", OUTPUTDIR) < 0) {
