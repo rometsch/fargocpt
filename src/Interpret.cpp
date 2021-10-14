@@ -244,6 +244,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	}
     }
 
+	dphi = 2.0 * M_PI / (double)NAzimuthal;
+	invdphi = (double)NAzimuthal / (2.0 * M_PI);
+
     // disc
     ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
 

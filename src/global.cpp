@@ -152,6 +152,8 @@ int OverridesOutputdir;
 char *OUTPUTDIR;
 char *PLANETCONFIG;
 
+double dphi;
+double invdphi;
 double DT;
 unsigned int NINTERM;
 unsigned int NTOT;

@@ -670,8 +670,6 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 	     n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
-	    double dphi =
-		2.0 * M_PI / (double)data[t_data::QMINUS].get_size_azimuthal();
 	    data[t_data::LUMINOSITY_1D](n_radial) +=
 		data[t_data::QMINUS](n_radial, n_azimuthal) * Rmed[n_radial] *
 		dr * dphi;
@@ -699,8 +697,7 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
-	    double dphi =
-		2.0 * M_PI / (double)data[t_data::QPLUS].get_size_azimuthal();
+
 	    data[t_data::DISSIPATION_1D](n_radial) +=
 		data[t_data::QPLUS](n_radial, n_azimuthal) * Rmed[n_radial] *
 		dr * dphi;

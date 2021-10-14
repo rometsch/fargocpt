@@ -1441,9 +1441,6 @@ void radiative_diffusion(t_data &data, double dt)
     compute_sound_speed(data, true);
     compute_aspect_ratio(data, true);
 
-    double dphi =
-	2.0 * M_PI / (double)(data[t_data::TEMPERATURE].get_size_azimuthal());
-
     // calcuate Ka for K(i/2,j)
     for (unsigned int n_radial = 1; n_radial <= Ka.get_max_radial() - 1;
 	 ++n_radial) {

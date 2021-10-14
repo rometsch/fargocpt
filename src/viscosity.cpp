@@ -69,11 +69,6 @@ void update_viscosity(t_data &data)
 
 void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 {
-    double invdphi;
-
-    invdphi =
-	1.0 / (2.0 * M_PI / (double)data[t_data::DENSITY].get_size_azimuthal());
-
     double drr, dpp, drp;
 
     // calculate div(v)
