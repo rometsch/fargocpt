@@ -23,8 +23,10 @@ EnergyCondition		Profile		# Initialize energy by Profile, 1D or 2D [default = Pr
 EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 
 AspectRatio     	0.05            # Thickness over Radius in the disk
+TemperatureCGS0     0.0     # Midplane Temperature at 1 au in K, overwrites AspectRaio
 ExplicitViscosity   YES
 StsNu				0.01
+ViscosityInCGS      NO      # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
 Viscosity		1.e-5		# Uniform kinematic viscosity
 AlphaViscosity		0.0		#
 ArtificialViscosity	SN		# Type of artificial viscosity (none, TW, SN) [default = SN]
@@ -52,6 +54,7 @@ MinimumTemperature	3		# minimum Temperature in K
 MaximumTemperature	NaN		# default [NaN = disabled]
 TauFactor		1.0		# correction factor for tau [default = 1.0]
 Opacity			Lin		# opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
+KappaConst		2.0e-6	# used for const and simple opacity (kappa = kappa0 * T**2) 
 CFL				0.5
 # Star Parameters
 StarRadius		0.009304813	# star radius in l0
