@@ -75,11 +75,11 @@ static double power_law_distribution(double x, double n)
 
 static double check_angle(double &phi)
 {
-    if (phi >= 2.0 * PI) {
-	return phi -= 2.0 * PI;
+    if (phi >= 2.0 * M_PI) {
+	return phi -= 2.0 * M_PI;
     } else {
 	if (phi < 0.0) {
-	    return phi += 2.0 * PI;
+	    return phi += 2.0 * M_PI;
 	} else {
 	    return phi;
 	}
@@ -136,7 +136,7 @@ static double interpolate_bilinear_sg(const double *array1D,
 {
 
     const unsigned int last_index = NAzimuthal - 1;
-    double dphi = 2.0 * PI / (double)NAzimuthal;
+    double dphi = 2.0 * M_PI / (double)NAzimuthal;
 
     // values at corners
     double Qmm = array1D[n_radial_minus * NAzimuthal + n_azimuthal_minus];
@@ -151,7 +151,7 @@ static double interpolate_bilinear_sg(const double *array1D,
     double phip;
 
     if (n_azimuthal_minus == last_index) {
-	if (phi < PI) {
+	if (phi < M_PI) {
 	    // particle is inside cell with n_azimuthal = 0
 	    // previous cell is at N_azimuthal_max - 1, but measure distance
 	    // from -0.5*dphi
@@ -170,10 +170,10 @@ static double interpolate_bilinear_sg(const double *array1D,
 	phip = (n_azimuthal_plus + 0.5) * dphi;
     }
 
-    if ((phim > 2.0 * PI) || (phip > 2.0 * PI)) {
-	phim -= PI;
-	phip -= PI;
-	phi -= PI;
+    if ((phim > 2.0 * M_PI) || (phip > 2.0 * M_PI)) {
+	phim -= M_PI;
+	phip -= M_PI;
+	phi -= M_PI;
     }
 
     double Qm = ((rm * phip - rm * phi) * Qmm + (rm * phi - rm * phim) * Qmp) /
@@ -463,7 +463,7 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 	const unsigned int particle_type = i % parameters::particle_species_number;
 	particles[i].radius *= std::pow(parameters::particle_radius_increase_factor, particle_type);
 
-    double volume = 4.0 / 3.0 * PI * pow3(particles[i].radius);
+    double volume = 4.0 / 3.0 * M_PI * pow3(particles[i].radius);
 
     particles[i].mass = volume * parameters::particle_density;
 
@@ -526,7 +526,7 @@ void init(t_data &data)
     // random generator and distributions
     std::mt19937 generator(seed);
     std::uniform_real_distribution<double> dis_one(0.0, 1.0);
-    std::uniform_real_distribution<double> dis_twoPi(0.0, 2.0 * PI);
+    std::uniform_real_distribution<double> dis_twoPi(0.0, 2.0 * M_PI);
 
     std::uniform_real_distribution<double> dis_eccentricity(
 	0.0,
@@ -859,7 +859,7 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 		     unsigned int n_radial_plus, unsigned int n_azimuthal_minus,
 		     unsigned int n_azimuthal_plus, double r, double phi)
 {
-    const double dphi = 2.0 * PI / (double)quantity.get_size_azimuthal();
+    const double dphi = 2.0 * M_PI / (double)quantity.get_size_azimuthal();
     const unsigned int last_index = quantity.get_max_azimuthal();
 
     // values at corners
@@ -888,7 +888,7 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 	}
     } else {
 	if (n_azimuthal_minus == last_index) {
-	    if (phi < PI) {
+	    if (phi < M_PI) {
 		// particle is inside cell with n_azimuthal = 0
 		// previous cell is at N_azimuthal_max - 1, but measure distance
 		// from -0.5*dphi
@@ -952,7 +952,7 @@ static void calculate_tstop(const double r, const double phi,
 	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
-	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (PI * m0));
+	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
 
     // calculate relative velocities
     minus_r_dotel_r = vg_radial - r_dot;
@@ -963,7 +963,7 @@ static void calculate_tstop(const double r, const double phi,
     const double vrel = sqrt(pow2(minus_r_dotel_r) + pow2(vrel_phi));
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-    double sigma = (PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+    double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1038,7 +1038,7 @@ static void calculate_tstop2(const double r, const double phi,
 	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
-	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (PI * m0));
+	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
 
     // calculate relative velocities
     minus_r_dotel_r = vg_radial - r_dot;
@@ -1049,7 +1049,7 @@ static void calculate_tstop2(const double r, const double phi,
     minus_l_rel = r * vg_azimuthal - l0;
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-    double sigma = (PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+    double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1140,7 +1140,7 @@ void check_tstop(t_data &data)
 	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
 	const double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
-				     temperature / (PI * m0));
+				     temperature / (M_PI * m0));
 
 	// calculate relative velocities
 	double minus_r_dotel_r = vg_radial - r_dot;
@@ -1149,7 +1149,7 @@ void check_tstop(t_data &data)
 	const double vrel = sqrt(pow2(minus_r_dotel_r) + pow2(vrel_phi));
 
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = (PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+	double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1291,9 +1291,9 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 
 	double m0 = parameters::MU * constants::m_u.get_code_value();
 	double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
-			       temperature / (PI * m0));
+			       temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = (PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+	double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1310,7 +1310,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	}
 
 	double fdrag_temp =
-	    -0.5 * Cd * PI * pow2(particles[i].radius) * rho * vrel;
+	    -0.5 * Cd * M_PI * pow2(particles[i].radius) * rho * vrel;
 	double fdrag_x = fdrag_temp * vrel_x;
 	double fdrag_y = fdrag_temp * vrel_y;
 
@@ -1380,10 +1380,10 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
 	const double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
-				     temperature / (PI * m0));
+				     temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
 	const double sigma =
-	    (PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+	    (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
 	const double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1399,7 +1399,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	    Cd = 0.44;
 	}
 
-	const double fdrag_temp = -0.5 * Cd * PI * pow2(particles[i].radius) *
+	const double fdrag_temp = -0.5 * Cd * M_PI * pow2(particles[i].radius) *
 				  rho * vrel / particles[i].mass;
 
 	const double fdrag_r = dt * fdrag_temp * vrel_r;
@@ -1539,7 +1539,7 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 	force_y[i] = 0;
     }
 
-    double dphi = 2.0 * PI / (double)data[t_data::DENSITY].get_size_azimuthal();
+    double dphi = 2.0 * M_PI / (double)data[t_data::DENSITY].get_size_azimuthal();
     for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;

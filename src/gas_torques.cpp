@@ -77,8 +77,6 @@ void calculate_viscous_torque(t_data &data, const double dt)
 	t_polargrid &vr = data[t_data::V_RADIAL];
 	t_polargrid &dens = data[t_data::DENSITY];
 
-	const double invdphi = (double)t_visc.get_size_azimuthal() /(2.0 * M_PI);
-
 	for (unsigned int n_r = 1; n_r < t_visc.get_max_radial(); ++n_r) {
 
 		const double r = Rmed[n_r];
@@ -143,8 +141,6 @@ void calculate_gravitational_torque(t_data &data, const double dt)
 
 	t_polargrid &t_grav = data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED];
 	t_polargrid &pot_grav = data[t_data::POTENTIAL];
-
-	const double invdphi = (double)t_grav.get_size_azimuthal() /(2.0 * PI);
 
 	for (unsigned int n_r = 0; n_r <= t_grav.get_max_radial(); ++n_r) {
 

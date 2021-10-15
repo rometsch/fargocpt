@@ -90,7 +90,11 @@ extern t_polargrid *CellCenterX, *CellCenterY;
 extern char *OUTPUTDIR;
 extern char *PLANETCONFIG;
 
+extern double dphi;
+extern double invdphi;
 extern double DT;
+extern double dt_parabolic_local;
+
 extern unsigned int NINTERM;
 extern unsigned int NTOT;
 extern unsigned int N_iter;
@@ -101,6 +105,8 @@ extern double RMIN;
 extern double RMAX;
 
 extern double ASPECTRATIO_REF;
+extern int EXPLICIT_VISCOSITY;
+extern double STS_NU;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
 extern double SIGMASLOPE;

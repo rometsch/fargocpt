@@ -150,7 +150,7 @@ void init(t_data &data)
     }
 
     r_step = log(Radii[GlobalNRadial] / Radii[0]) / (double)GlobalNRadial;
-    t_step = 2.0 * PI / (double)NAzimuthal;
+    t_step = 2.0 * M_PI / (double)NAzimuthal;
 
     // allocate memory
     K_radial = fftw_alloc_real(2 * total_local_size);
@@ -326,7 +326,7 @@ void compute_FFT_kernel()
 	for (unsigned int j = 0; j < NAzimuthal; j++) {
 	    double denominator;
 	    int l = i * stride + j;
-	    theta = 2.0 * PI * (double)j / (double)NAzimuthal;
+	    theta = 2.0 * M_PI * (double)j / (double)NAzimuthal;
 
 	    denominator = pow(2 * (cosh(u) - cos(theta)) +
 				  lambda_sq * (exp(u) + exp(-u) - 2) + chi_sq,

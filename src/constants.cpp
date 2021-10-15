@@ -128,7 +128,7 @@ void initialize_constants()
 
     sigma.set_symbol("sigma");
     sigma.set_cgs_value(
-	2. * pow(PI, 5) * pow(k_B.get_cgs_value(), 4) /
+	2. * pow(M_PI, 5) * pow(k_B.get_cgs_value(), 4) /
 	(15. * pow(h.get_cgs_value(), 3) * pow(c.get_cgs_value(), 2)));
     sigma.set_cgs_unit_symbol("erg cm^-2 s^-1 K^-4");
 }

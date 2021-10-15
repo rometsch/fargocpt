@@ -4,7 +4,6 @@
 #include "data.h"
 #include "types.h"
 
-int DetectCrash(t_polargrid *array);
 bool assure_minimum_value(t_polargrid &dst, double minimum_value);
 bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
 				double minimum_value);
@@ -38,6 +37,9 @@ void compute_pressure(t_data &data, bool force_update);
 void compute_temperature(t_data &data, bool force_update);
 void compute_rho(t_data &data, bool force_update);
 
+void ComputeViscousStressTensor(t_data &data);
 double CircumPlanetaryMass(t_data &data);
+void SetTemperatureFloorCeilValues(t_data &data, std::string filename,
+				   int line);
 
 #endif // SOURCEEULER_H

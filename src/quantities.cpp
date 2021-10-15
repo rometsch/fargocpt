@@ -445,7 +445,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    // location of the cell
 	    angle = (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
-		    PI;
+		    M_PI;
 	    r_x = Rmed[n_radial] * cos(angle);
 	    r_y = Rmed[n_radial] * sin(angle);
 
@@ -644,7 +644,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	    // n_azimuthal));
 	    data[t_data::TOOMRE](n_radial, n_azimuthal) =
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) * kappa /
-		(PI * constants::G *
+		(M_PI * constants::G *
 		 data[t_data::DENSITY](n_radial, n_azimuthal));
 	}
     }
@@ -670,8 +670,6 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 	     n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
-	    double dphi =
-		2.0 * PI / (double)data[t_data::QMINUS].get_size_azimuthal();
 	    data[t_data::LUMINOSITY_1D](n_radial) +=
 		data[t_data::QMINUS](n_radial, n_azimuthal) * Rmed[n_radial] *
 		dr * dphi;
@@ -699,8 +697,7 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
-	    double dphi =
-		2.0 * PI / (double)data[t_data::QPLUS].get_size_azimuthal();
+
 	    data[t_data::DISSIPATION_1D](n_radial) +=
 		data[t_data::QPLUS](n_radial, n_azimuthal) * Rmed[n_radial] *
 		dr * dphi;

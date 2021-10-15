@@ -32,7 +32,7 @@ double t_particle::get_angle() const
 	double phi_ = atan2(y, x);
 
 	if (phi_ < 0) {
-	    phi_ += 2 * PI;
+	    phi_ += 2 * M_PI;
 	}
 
 	return phi_;

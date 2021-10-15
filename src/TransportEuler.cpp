@@ -192,10 +192,10 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
     vt = VAzimuthal->Field;
     vres = v_azimuthal_res.Field;
     invdt = 1.0 / dt;
-    dpinvns = 2.0 * PI / (double)ns;
+    dpinvns = 2.0 * M_PI / (double)ns;
 
     for (i = 0; i < nr; i++) {
-	Ntilde = v_azimuthal_mean(i) * InvRmed[i] * dt * (double)ns / 2.0 / PI;
+	Ntilde = v_azimuthal_mean(i) * InvRmed[i] * dt * (double)ns / 2.0 / M_PI;
 	Nround = floor(Ntilde + 0.5);
 	nitemp = (long)Nround;
 	Nshift[i] = (long)nitemp;
@@ -351,7 +351,7 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
     double dqp, dqm, dxtheta, ksi, invdxtheta;
 
     for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	dxtheta = 2.0 * PI / (double)Qbase->Nsec * Rmed[nRadial];
+	dxtheta = 2.0 * M_PI / (double)Qbase->Nsec * Rmed[nRadial];
 	invdxtheta = 1.0 / dxtheta;
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * Qbase->Nsec;
@@ -488,7 +488,7 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		     *Work); // work = qbase/densityint
     compute_star_radial(Work, VRadial, QRStar, dt);
 
-    dtheta = 2.0 * PI / (double)Qbase->Nsec;
+    dtheta = 2.0 * M_PI / (double)Qbase->Nsec;
 
     for (nRadial = 0; nRadial <= Qbase->get_max_radial(); ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal <= Qbase->get_max_azimuthal();

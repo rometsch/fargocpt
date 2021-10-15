@@ -25,6 +25,8 @@ constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
 
 namespace parameters
 {
+bool ShockTube = false;
+bool SpreadingRing = false;
 
 // energy euations
 bool Adiabatic = false;
@@ -568,7 +570,7 @@ void read(char *filename, t_data &data)
 
     zbuffer_size = config::value_as_unsigned_int_default("zbufferSize", 100);
     zbuffer_maxangle =
-	config::value_as_double_default("zbufferMaxAngle", 10.0 / 180.0 * PI);
+	config::value_as_double_default("zbufferMaxAngle", 10.0 / 180.0 * M_PI);
 
     cooling_radiative_factor =
 	config::value_as_double_default("CoolingRadiativeFactor", 1.0);
@@ -655,6 +657,15 @@ void read(char *filename, t_data &data)
 
     tau_factor = config::value_as_double_default("TauFactor", 0.5);
     kappa_factor = config::value_as_double_default("KappaFactor", 1.0);
+
+	EXPLICIT_VISCOSITY =
+	config::value_as_bool_default("ExplicitViscosity", true);
+
+	if (EXPLICIT_VISCOSITY) {
+	logging::print_master(LOG_INFO "Using EXPLICIT VISCOSITY\n");
+	} else {
+	logging::print_master(LOG_INFO "Using SUPER TIMESTEPPINGG VISCOSITY\n");
+	}
 
     // artificial visocisty
     switch (tolower(
@@ -749,6 +760,10 @@ void read(char *filename, t_data &data)
 	break;
     case 'c': // Constant
 	opacity = opacity_const_op;
+	kappa_const = config::value_as_double_default("KappaConst", 1.0);
+	break;
+	case 's': // simple, see Gennaro D'Angelo et al. 2003
+	opacity = opacity_simple;
 	kappa_const = config::value_as_double_default("KappaConst", 1.0);
 	break;
     default:
@@ -1099,6 +1114,12 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO "Using constant opacity kappa_R = %e.\n",
 			      kappa_const);
 	break;
+	case opacity_simple:
+	logging::print_master(
+	LOG_INFO
+	"Using opacity from Gennaro D'Angelo et al. 2003 with kappa_0 = %e.\n",
+	kappa_const);
+	break;
     }
 
     if (write_lightcurves) {
@@ -1219,7 +1240,7 @@ void write_grid_data_to_file()
 	    fd,
 	    "#RMIN\tRMAX\tPHIMIN\tPHIMAX          \tNRAD\tNAZ\tNGHRAD\tNGHAZ\tRadial_spacing\n");
 	fprintf(fd, "%.16g\t%.16g\t%.16g\t%.16g\t%d\t%d\t%d\t%d\t%s\n", RMIN,
-		RMAX, 0.0, 2 * PI, NRadial, NAzimuthal, 1, 1,
+		RMAX, 0.0, 2 * M_PI, NRadial, NAzimuthal, 1, 1,
 		radial_spacing_str);
 	fclose(fd);
     }

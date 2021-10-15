@@ -159,10 +159,10 @@ void InitCellCenterCoordinates()
 	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * CellCenterX->Nsec;
 	    CellCenterX->Field[cell] =
-		Rmed[nRadial] * cos(2.0 * PI * (double)nAzimuthal /
+		Rmed[nRadial] * cos(2.0 * M_PI * (double)nAzimuthal /
 				    (double)(CellCenterX->Nsec));
 	    CellCenterY->Field[cell] =
-		Rmed[nRadial] * sin(2.0 * PI * (double)nAzimuthal /
+		Rmed[nRadial] * sin(2.0 * M_PI * (double)nAzimuthal /
 				    (double)(CellCenterX->Nsec));
 	}
     }
@@ -207,7 +207,7 @@ void NonReflectingBoundary_inner(t_data &data, t_polargrid *VRadial,
 	// We need to know the orbital frequency of the nearest planet
 	dangle = (pow(Rinf[1], -1.5) - 1.0) / (.5 * (cs0 + cs1));
 	dangle *= (Rmed[1] - Rmed[0]);
-	i_angle = (int)(dangle / 2.0 / PI * (double)NAzimuthal + .5);
+	i_angle = (int)(dangle / 2.0 / M_PI * (double)NAzimuthal + .5);
 
 	for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * Density->Nsec;
@@ -280,7 +280,7 @@ void NonReflectingBoundary_outer(t_data &data, t_polargrid *VRadial,
 	dangle = (pow(Rinf[Density->Nrad - 2], -1.5) - 1.0) /
 		 (.5 * (csnrm1 + csnrm2));
 	dangle *= (Rmed[Density->Nrad - 1] - Rmed[Density->Nrad - 2]);
-	i_angle = (int)(dangle / 2.0 / PI * (double)NAzimuthal + .5);
+	i_angle = (int)(dangle / 2.0 / M_PI * (double)NAzimuthal + .5);
 
 	for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * Density->Nsec;
@@ -344,8 +344,8 @@ void EvanescentBoundary(t_data &data, double step)
     energ = data[t_data::ENERGY].Field;
 
     /* Orbital period at inner and outer boundary */
-    Tin = 2.0 * PI * pow(GlobalRmed[0], 3. / 2);
-    Tout = 2.0 * PI * pow(GlobalRmed[GlobalNRadial - 1], 3. / 2);
+    Tin = 2.0 * M_PI * pow(GlobalRmed[0], 3. / 2);
+    Tout = 2.0 * M_PI * pow(GlobalRmed[GlobalNRadial - 1], 3. / 2);
 
     /* DRMIN AND DRMAX are global Radii boundaries of killing wave zones */
     xp = data.get_planetary_system().get_planet(0).get_x();

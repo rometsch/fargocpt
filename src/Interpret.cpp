@@ -112,6 +112,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
 
+	parameters::ShockTube = config::value_as_bool_default("ShockTube", 0);
+	parameters::SpreadingRing =
+	config::value_as_bool_default("SpreadingRing", NO);
+
     SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config::value_as_double_default("IMPOSEDDISKDRIFT", 0.0);
 
@@ -231,7 +235,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
 	double optimal_N_azimuthal =
-			PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
+			M_PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
 
 	// check if optimal azimuthal cell number differs from actual azimuthal
 	// cell number by more than 10%
@@ -243,6 +247,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		NAzimuthal, lround(optimal_N_azimuthal));
 	}
     }
+
+	dphi = 2.0 * M_PI / (double)NAzimuthal;
+	invdphi = (double)NAzimuthal / (2.0 * M_PI);
 
     // disc
     ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
@@ -474,6 +481,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
     VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
 
+	if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
+	(parameters::artificial_viscosity_factor == 0.0 ||
+	 parameters::artificial_viscosity ==
+		 parameters::artificial_viscosity_none) &&
+	VISCOSITY == 0.0) {
+	logging::print_master(
+		LOG_ERROR
+		"You cannot use super time-stepping without any viscosity!\n");
+	PersonalExit(1);
+	}
+
+	STS_NU = config::value_as_double_default("STSNU", 0.01);
+
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
 	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
@@ -507,6 +527,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     // now we now everything to compute unit factors
     units::calculate_unit_factors();
+
+	const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
+	if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
+	ASPECTRATIO_REF =
+		sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
+		 constants::R / parameters::MU);
+
+	const bool VISCOSITY_in_CGS =
+	config::value_as_bool_default("VISCOSITYINCGS", false);
+	if (VISCOSITY_in_CGS) {
+	VISCOSITY =
+		VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
+	}
 
     // TODO: This should definitely done in parameters.cpp, where values are
     // read, but parameters::read() is called before
@@ -571,7 +604,7 @@ void PrintUsage(char *execname)
 
 double TellNbOrbits(double time)
 {
-    return time / 2.0 / PI * sqrt(constants::G * 1.0 / 1.0 / 1.0 / 1.0);
+    return time / 2.0 / M_PI * sqrt(constants::G * 1.0 / 1.0 / 1.0 / 1.0);
 }
 
 double TellNbOutputs(double time) { return (time / DT / NINTERM); }
@@ -624,11 +657,11 @@ void TellEverything()
 	LOG_VERBOSE
 	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
-    temp = 2.0 * PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
+    temp = 2.0 * M_PI * sqrt(RMIN * RMIN * RMIN / constants::G / 1.0);
     logging::print_master(LOG_VERBOSE
 			  "Orbital time at Rmin  : %.3g ~ %.2f outputs\n",
 			  temp, TellNbOutputs(temp));
-    temp = 2.0 * PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
+    temp = 2.0 * M_PI * sqrt(RMAX * RMAX * RMAX / constants::G / 1.0);
     logging::print_master(LOG_VERBOSE
 			  "Orbital time at Rmax  : %.3g ~ %.2f outputs\n",
 			  temp, TellNbOutputs(temp));
