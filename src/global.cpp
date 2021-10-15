@@ -155,6 +155,8 @@ char *PLANETCONFIG;
 double dphi;
 double invdphi;
 double DT;
+double dt_parabolic_local;
+
 unsigned int NINTERM;
 unsigned int NTOT;
 unsigned int N_iter;
@@ -167,6 +169,8 @@ double RMIN;
 double RMAX;
 
 double ASPECTRATIO_REF;
+int EXPLICIT_VISCOSITY;
+double STS_NU;
 double VISCOSITY;
 double ALPHAVISCOSITY;
 double SIGMASLOPE;

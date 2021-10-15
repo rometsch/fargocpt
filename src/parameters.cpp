@@ -656,6 +656,15 @@ void read(char *filename, t_data &data)
     tau_factor = config::value_as_double_default("TauFactor", 0.5);
     kappa_factor = config::value_as_double_default("KappaFactor", 1.0);
 
+	EXPLICIT_VISCOSITY =
+	config::value_as_bool_default("ExplicitViscosity", true);
+
+	if (EXPLICIT_VISCOSITY) {
+	logging::print_master(LOG_INFO "Using EXPLICIT VISCOSITY\n");
+	} else {
+	logging::print_master(LOG_INFO "Using SUPER TIMESTEPPINGG VISCOSITY\n");
+	}
+
     // artificial visocisty
     switch (tolower(
 	*config::value_as_string_default("ArtificialViscosity", "SN"))) {

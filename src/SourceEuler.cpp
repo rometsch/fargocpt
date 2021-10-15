@@ -488,6 +488,10 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    SubStep1(data, dt);
 	    SubStep2(data, dt);
 
+		if (!EXPLICIT_VISCOSITY) {
+		Sts(data, dt);
+		}
+
 	    boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    if (parameters::Adiabatic) {
@@ -655,17 +659,19 @@ void SubStep1(t_data &data, double dt)
 	selfgravity::compute(data, dt, true);
     }
 
-    // compute and add acceleartions due to disc viscosity as a source term
-    if (parameters::artificial_viscosity ==
-	parameters::artificial_viscosity_TW) {
-	viscosity::compute_viscous_terms(data, true);
-    } else {
-	viscosity::compute_viscous_terms(data, false);
-    }
+	if (EXPLICIT_VISCOSITY) {
+	// compute and add acceleartions due to disc viscosity as a source term
+	if (parameters::artificial_viscosity ==
+		parameters::artificial_viscosity_TW) {
+		viscosity::compute_viscous_terms(data, true);
+	} else {
+		viscosity::compute_viscous_terms(data, false);
+	}
 
-    viscosity::update_velocities_with_viscosity(
-	data, data[t_data::V_RADIAL_SOURCETERMS],
-	data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
+	viscosity::update_velocities_with_viscosity(
+		data, data[t_data::V_RADIAL_SOURCETERMS],
+		data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
+	}
 
     if ((parameters::boundary_inner !=
 	 parameters::boundary_condition_evanescent) ||
@@ -690,7 +696,8 @@ void SubStep1(t_data &data, double dt)
 void SubStep2(t_data &data, double dt)
 {
     if (parameters::artificial_viscosity ==
-	parameters::artificial_viscosity_SN) {
+	parameters::artificial_viscosity_SN &&
+			EXPLICIT_VISCOSITY) {
 	double dxtheta, invdxtheta;
 
 	// calculate q_r and q_phi
@@ -843,10 +850,12 @@ void calculate_qplus(t_data &data)
     const double* cell_center_x = CellCenterX->Field;
     const double* cell_center_y = CellCenterY->Field;
 
-    // clear up all Qplus terms
-    data[t_data::QPLUS].clear();
+	if (EXPLICIT_VISCOSITY) {
+	// clear up all Qplus terms
+	data[t_data::QPLUS].clear();
+	}
 
-    if (parameters::heating_viscous_enabled) {
+	if (parameters::heating_viscous_enabled && EXPLICIT_VISCOSITY) {
 	/* We calculate the heating source term Qplus from i=1 to max-1 */
 	for (unsigned int n_radial = 1;
 	     n_radial <= data[t_data::QPLUS].get_max_radial() - 1; ++n_radial) {
@@ -1888,6 +1897,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
 		     double deltaT)
 {
+	dt_parabolic_local = 1e300;
 	std::vector<double> v_mean(v_radial.get_size_radial());
 	std::vector<double> v_residual(v_radial.get_size_azimuthal());
     double dtGlobal, dtLocal;
@@ -1984,10 +1994,23 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	    invdt5 = 4.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
 		     max(1 / pow2(dxRadial), 1 / pow2(dxAzimuthal));
 
-	    // calculate new dt based on different limits
-	    dtLocal = parameters::CFL /
-		      sqrt(pow2(invdt1) + pow2(invdt2) + pow2(invdt3) +
-			   pow2(invdt4) + pow2(invdt5));
+		if (EXPLICIT_VISCOSITY) {
+		// calculate new dt based on different limits
+		dtLocal = parameters::CFL /
+			  sqrt(pow2(invdt1) + pow2(invdt2) + pow2(invdt3) +
+				   pow2(invdt4) + pow2(invdt5));
+		} else {
+		// viscous timestep
+		dt_parabolic_local =
+			min(dt_parabolic_local,
+			parameters::CFL / sqrt(pow2(invdt4) + pow2(invdt5)));
+
+		// calculate new dt based on different limits
+		dtLocal = parameters::CFL /
+			  sqrt(pow2(invdt1) + pow2(invdt2) + pow2(invdt3));
+
+		dtLocal = min(dtLocal, 3.0 * dt_parabolic_local);
+		}
 
 	    if (dtLocal < dtGlobal) {
 		dtGlobal = dtLocal;

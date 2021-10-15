@@ -23,6 +23,8 @@ EnergyCondition		Profile		# Initialize energy by Profile, 1D or 2D [default = Pr
 EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 
 AspectRatio     	0.05            # Thickness over Radius in the disk
+ExplicitViscosity   YES
+StsNu				0.01
 Viscosity		1.e-5		# Uniform kinematic viscosity
 AlphaViscosity		0.0		#
 ArtificialViscosity	SN		# Type of artificial viscosity (none, TW, SN) [default = SN]

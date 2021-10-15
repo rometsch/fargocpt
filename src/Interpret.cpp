@@ -477,6 +477,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
     VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
 
+	if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
+	(parameters::artificial_viscosity_factor == 0.0 ||
+	 parameters::artificial_viscosity ==
+		 parameters::artificial_viscosity_none) &&
+	VISCOSITY == 0.0) {
+	logging::print_master(
+		LOG_ERROR
+		"You cannot use super time-stepping without any viscosity!\n");
+	PersonalExit(1);
+	}
+
+	STS_NU = config::value_as_double_default("STSNU", 0.01);
+
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
 	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
