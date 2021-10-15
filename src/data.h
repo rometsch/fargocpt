@@ -50,8 +50,6 @@ class t_data
 	V_RADIAL_SOURCETERMS,	 // v_radial with sourceterms (after substep 1)
 	V_AZIMUTHAL_SOURCETERMS, // v_azimuthal with sourceterms (after substep
 				 // 1)
-	V_RADIAL_NEW,	 // new v_radial after all substeps
-	V_AZIMUTHAL_NEW, // new v_azimuthal after all substeps
 	ENERGY_NEW,	 //
 	ENERGY_INT,	 //
 	DENSITY_INT,	 //

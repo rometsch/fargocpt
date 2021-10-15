@@ -406,11 +406,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    SubStep1(data, dt);
 	    SubStep2(data, dt);
 
-	    // set new velocities
-	    copy_polargrid(data[t_data::V_RADIAL], data[t_data::V_RADIAL_NEW]);
-	    copy_polargrid(data[t_data::V_AZIMUTHAL],
-			   data[t_data::V_AZIMUTHAL_NEW]);
-
 	    boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    if (parameters::Adiabatic) {
@@ -748,14 +743,14 @@ void SubStep2(t_data &data, double dt)
 
 	// add artificial viscous pressure source term to v_radial
 	for (unsigned int n_radial = 1;
-	     n_radial <= data[t_data::V_RADIAL_NEW].get_max_radial() - 1;
+		 n_radial <= data[t_data::V_RADIAL].get_max_radial() - 1;
 	     ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::V_RADIAL_NEW].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// 1/Sigma dq_r/dr : Sigma is calculated as a mean value between
 		// the neightbour cells
-		data[t_data::V_RADIAL_NEW](n_radial, n_azimuthal) =
+		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal) -
 		    dt * 2.0 /
 			(data[t_data::DENSITY](n_radial, n_azimuthal) +
@@ -768,7 +763,7 @@ void SubStep2(t_data &data, double dt)
 
 	// add artificial viscous pressure source term to v_azimuthal
 	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::V_AZIMUTHAL_NEW].get_max_radial();
+		 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
 	     ++n_radial) {
 		dxtheta = 2.0 * M_PI /
 		      (double)data[t_data::DENSITY].get_size_azimuthal() *
@@ -776,11 +771,11 @@ void SubStep2(t_data &data, double dt)
 	    invdxtheta = 1.0 / dxtheta;
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <=
-		 data[t_data::V_AZIMUTHAL_NEW].get_max_azimuthal();
+		 data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// 1/Sigma 1/r dq_phi/dphi : Sigma is calculated as a mean value
 		// between the neightbour cells
-		data[t_data::V_AZIMUTHAL_NEW](n_radial, n_azimuthal) =
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial,
 							  n_azimuthal) -
 		    dt * 2.0 /
@@ -843,9 +838,9 @@ void SubStep2(t_data &data, double dt)
 	    }
 	}
     } else {
-	copy_polargrid(data[t_data::V_RADIAL_NEW],
+	copy_polargrid(data[t_data::V_RADIAL],
 		       data[t_data::V_RADIAL_SOURCETERMS]);
-	copy_polargrid(data[t_data::V_AZIMUTHAL_NEW],
+	copy_polargrid(data[t_data::V_AZIMUTHAL],
 		       data[t_data::V_AZIMUTHAL_SOURCETERMS]);
 	copy_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
     }

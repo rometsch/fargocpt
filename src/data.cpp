@@ -175,15 +175,6 @@ t_data::t_data()
     m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_name("vtheta_sourceterms");
     m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_unit(units::velocity);
 
-    m_polargrids[V_RADIAL_NEW].set_vector(true);
-    m_polargrids[V_RADIAL_NEW].set_name("vrad_new");
-    m_polargrids[V_RADIAL_NEW].set_unit(units::velocity);
-
-    m_polargrids[V_AZIMUTHAL_NEW].set_vector(
-	m_polargrids[V_AZIMUTHAL].is_vector());
-    m_polargrids[V_AZIMUTHAL_NEW].set_name("vtheta_new");
-    m_polargrids[V_AZIMUTHAL_NEW].set_unit(units::velocity);
-
     m_polargrids[ENERGY_NEW].set_scalar(true);
     m_polargrids[ENERGY_NEW].set_name("energy_new");
     m_polargrids[ENERGY_NEW].set_unit(units::energy_density);
