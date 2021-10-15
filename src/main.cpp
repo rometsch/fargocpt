@@ -213,7 +213,6 @@ int main(int argc, char *argv[])
 	// restart planetary system
 	data.get_planetary_system().restart(start_mode::restart_from);
 
-
 	CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
 			      &data[t_data::V_AZIMUTHAL],
 			      &data[t_data::ENERGY]);

@@ -1,0 +1,192 @@
+## Disk parameters
+
+Sigma0			197		# surface density at r=1 in g/cm^2
+SigmaSlope		0.0		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+SetSigma0		NO		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
+DiscMass		0.03		# only used when SetSigma0 = true [default = 0.01]
+SigmaFloor		1e-9		# floor surface density in multiples of sigma0 [default = 1e-9]
+SigmaCondition		Profile		# Initialize surface density by Profile, 1D or 2D [default = Profile]
+SigmaFilename		""		# File to read surface density from (when Condition = 1D or 2D)
+DensityFactor		2.0		# Factor for convertion from surface density to density [default = 2.0]
+
+ProfileDamping		No		# enable profile damping [default = no]
+ProfileDampingPoint	40.0
+ProfileDampingWidth	0.5
+
+EnergyCondition		Profile		# Initialize energy by Profile, 1D or 2D [default = Profile]
+EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
+
+AspectRatio     	0.03            # Thickness over Radius in the disk
+TemperatureCGS0     352.0     # Midplane Temperature at 1 au in K, overwrites AspectRaio
+ExplicitViscosity   No
+ViscosityInCGS		Yes		# Uniform kinematic viscosity
+Viscosity		5.0e16		# Uniform kinematic viscosity
+AlphaViscosity		0.0		#
+ArtificialViscosity	NONE		# Type of artificial viscosity (none, TW, SN) [default = SN]
+ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation function [default = yes]
+ArtificialViscosityFactor	3.00 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
+StabilizeViscosity  YES
+FlaringIndex		0.5		# Slope of Temperature/radius profile
+SelfGravity		No		# choose: Yes, Z or No
+EquationOfState		Ideal		# Isothermal Ideal Polytropic [default = Isothermal]
+AdiabaticIndex		1.4		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+PolytropicConstant		FIT_ISOTHERMAL		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+CoolingRadiativeLocal	Yes		# enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+CoolingBetaLocal	No		# enable beta cooling Q- = T * Omega/beta [default = no]
+CoolingBeta		10
+RadiativeDiffusion	No		#
+RadiativeDiffusionOmega 		1.5 # [default = 1.5]
+RadiativeDiffusionAutoOmega	No  # [default = no]
+RadiativeDiffusionMaxIterations 50000 # [default = 50000]
+HeatingViscous		Yes		# enable viscous heating
+HeatingViscousFactor	1.0
+HeatingStar		No
+HeatingStarRampingTime	5		# Ramping time for star heating in timesteps
+HeatingStarFactor	1.0
+HeatingStarSimple	No			# Use simplified star heating [default = No]
+MinimumTemperature	3		# minimum Temperature in K
+MaximumTemperature	NaN		# default [NaN = disabled]
+TauFactor		1.0		# correction factor for tau [default = 1.0]
+Opacity			Simple		# opacity table to use (Lin, Bell, Zhu, Kramers, Const, Simple) [default = Lin]
+KappaConst      2.0e-6
+CFL				0.5
+# Star Parameters
+StarRadius		0.009304813	# star radius in l0
+StarTemperature		5778		# star temperature in K
+
+zbufferSize		100
+zbufferMaxAngle		0.174
+
+## Units
+l0			1.0		# Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
+m0			1.0		# Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
+mu			2.35		# mean molecular weight [default=1.0]
+
+ImposedDiskDrift	0.0		# Impose a radial drift of the disk material (default = 0)
+InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
+InitializeVradialZero   Yes             # Initialize VRadial=0  [default = no]
+
+MassOverflow		No		# [default = No]
+MOFPLANET		0		# Number of Planet in Planetary System where the massoverflow comes from, starting with 0
+MOFSIGMA		0.05		# Sigma value for normal distribution
+MOFVALUE		1E-9		# Mass Overflow in host star masses (m0) / Year
+
+### Planet parameters
+
+#PlanetConfig		setups/old/Jup-res.cfg
+IntegratePlanets	Yes		# [default = yes]
+HydroFrameCenter	primary # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+DefaultStar         Yes     # add a default central object to nbody system if true, else load central object from planet file
+
+ThicknessSmoothing 	0.6		# Softening parameters in disk thickness [default = 0.0]
+ThicknessSmoothingSG	0.0		# Softening parameter for SG [default = ThicknessSmoothing]
+ThicknessSmoothingAtPlanet   No  # use the scale height at the radius of the planet for thickness smoothing. This flag should always be NO to use the scale height at the gas cell location expect for comparison reasons.
+
+### Boundary layer parameters
+
+VRadIn			1e-3		# value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
+StellarRotation		0.1		# Stellar rotation rate in terms of Keplerian angular velocity Om_kepler [default = 0.1]
+MassAccretionRate	1		# Mass accretion rate (from secondary, young stellar cloud, etc.)
+RadialViscosityFactor	1 	# Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
+
+
+### Numerical method parameters
+
+Transport		FARGO
+#InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
+InnerBoundary		RIGID
+OuterBoundary		RIGID
+DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
+Damping			Yes      # NO, YES [default = no]
+DampingInnerLimit	1.10    	# Rmin*Limit
+DampingOuterLimit	0.90    	# Rmax*Limit
+DampingTimeFactor	1.0e-2
+
+DampingEnergyInner		none		# Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialInner		zero		# Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalInner	none		# Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityInner	none		# Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
+DampingEnergyOuter		none		# Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialOuter		none		# Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalOuter	Initial		# Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityOuter	none		# Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none] 
+
+Disk			YES
+OmegaFrame		0.0
+Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center
+DiskFeedback		NO		# Calculate incfluence of the disk on the star
+
+### Mesh parameters
+
+Nrad			100 #512 128		# Radial number of zones
+Nsec			4 #1536 384		# Azimuthal number of 
+# zones (sectors)
+Rmin			1.0		# Inner boundary radius
+Rmax			20.0		# Outer boundary radius
+RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC or Exponential
+
+### Output control parameters
+
+Ntot			10000		# Total number of time steps
+Ninterm	 		1000		# Time steps between outputs
+DT			6.28	# Time step length. 2PI = 1 orbit
+
+WriteAtEveryTimestep	Yes		# Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+
+WriteDensity		Yes		# Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy		Yes		# Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteTemperature	Yes		# Write temperature. [default = no]
+WriteVelocity		Yes		# Write velocites. This is needed for restart of simulations. [default = yes]
+WriteSoundspeed		No		# Write sound speed [default = no]
+WriteToomre		No		# Write Toomre parameter Q. [default = no]
+WriteRadialToomre	No		# Write Toomre azimthally averaged [default = no]
+WriteQMinus		No		# Write QMinus. [default = no]
+WriteQPlus		No		# Write QPlus. [default = no]
+WriteViscosity		No		# Write Viscosity. [default = no]
+WriteTauCool		No		# Write TauCool. [default = no]
+WriteKappa		No		# Write Kappa. [default = no]
+WriteAlphaGrav		No		# Write AlphaGrav. [default = no]
+WriteRadialAlphaGrav		No		# Write AlphaGrav azimthally averaged . [default = no]
+WriteAlphaGravMean	No		# Write AlphaGrav time average. [default = no]
+WriteRadialAlphaGravMean	No		# Write AlphaGrav time average azimthally averaged . [default = no]
+WriteAlphaReynolds	No		# Write AlphaReynolds [default = no]
+WriteRadialAlphaReynolds	No		# Write AlphaReynolds azimthally averaged  [default = no]
+WriteAlphaReynoldsMean	No		# Write AlphaReynolds time average [default = no]
+WriteRadialAlphaReynoldsMean	No		# Write AlphaReynolds time average azimthally averaged [default = no]
+WriteEccentricity	No		# Write eccentricity. [default = no]
+WriteTReynolds		No		# Write Reynolds stress tensor. [default = no]
+WriteTGravitational	No		# Write gravitational stress tensor. [default = no]
+WritepdV		No		# Write pdV. [default = no]
+WriteDiskQuantities	No		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteRadialLuminosity	No		# Write radial luminosity [default = no]
+WriteRadialDissipation	No		# Write radial dissipation [default = no]
+WriteLightCurves	No		# Write light curves [default = no]
+WriteLightcurvesRadii   0.4,5.2
+WriteMassFlow		Yes		# Write a 1d radial file with mass flow at each interface [default = no]
+
+WritePressure		No		# Write pressure [default = no]
+WriteAspectRatio	No		# Write aspect ratio [default = no]
+WriteTorques		No		# Calculate and write torques acting in planet/star
+WriteVerticalOpticalDepth	No 	# Write optical depth in vertical direction (tau_eff by Hubeny [1990])
+
+RandomSeed		1337		# random seed integer value
+RandomSigma 		No		# randomize sigma start values?
+RandomFactor		0.1		# randomize by +- 10%
+FeatureSize		0.05		# Feature size of the open somplex algorithm
+
+
+## particles
+IntegrateParticles	NO     # enable particle integrator [default = no]	
+CartesianParticles	YES     # enable particle integrator [default = no]	
+ParticleIntegrator  explicit
+NumberOfParticles	1002      # number of particles [default = 0]
+ParticleRadius		1e3   # particle radius in cm [default = 100]
+ParticleEccentricity 0.03 # particle maximum Eccentricity
+ParticleDensity		2.65   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
+ParticleSlope		0      # [default = 0]
+ParticleMinimumRadius	0.4  # [default = RMIN]
+ParticleMaximumRadius	2.5  # [default = RMAX]
+ParticleMinimumEscapeRadius 0.4 # [default = ParticleMinimumRadius]
+ParticleMaximumEscapeRadius 2.5 # [default = ParticleMaximumRadius]
+ParticleGasDragEnabled	yes # [default = YES]
+ParticleDiskGravityEnabled no # [default = no]

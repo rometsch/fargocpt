@@ -112,6 +112,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
 
+	parameters::ShockTube = config::value_as_bool_default("ShockTube", 0);
+	parameters::SpreadingRing =
+	config::value_as_bool_default("SpreadingRing", NO);
+
     SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config::value_as_double_default("IMPOSEDDISKDRIFT", 0.0);
 
@@ -523,6 +527,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     // now we now everything to compute unit factors
     units::calculate_unit_factors();
+
+	const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
+	if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
+	ASPECTRATIO_REF =
+		sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
+		 constants::R / parameters::MU);
+
+	const bool VISCOSITY_in_CGS =
+	config::value_as_bool_default("VISCOSITYINCGS", false);
+	if (VISCOSITY_in_CGS) {
+	VISCOSITY =
+		VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
+	}
 
     // TODO: This should definitely done in parameters.cpp, where values are
     // read, but parameters::read() is called before

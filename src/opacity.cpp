@@ -32,6 +32,10 @@ double opacity(double density, double temperature)
 	return parameters::kappa_const;
 	break;
 
+	case parameters::opacity_simple:
+	return parameters::kappa_const * pow2(temperature);
+	break;
+
     default:
 	die("Invalid opacity!");
 	return 0;

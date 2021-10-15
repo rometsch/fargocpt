@@ -5,6 +5,8 @@
 
 namespace parameters
 {
+extern bool ShockTube;
+extern bool SpreadingRing;
 
 // energy euations
 extern bool Adiabatic;
@@ -231,7 +233,10 @@ enum t_opacity {
     opacity_zhu,     // opacity based on Zhu, Hartmann & Gammie, 2008
     opacity_kramers, // opacity based on Kramers Law plus electron scattering
 		     // (Thomson)
-    opacity_const_op // constant opacity
+	opacity_const_op, // constant opacity
+	opacity_simple    // eq. 30 from 'Thermohydrodynamics of Circumstellar Disks
+			  // with High-Mass Planets
+	// Gennaro D'Angelo1, Thomas Henning, and Willy Kley, 2003'
 };
 
 extern t_opacity opacity;

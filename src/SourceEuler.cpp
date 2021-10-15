@@ -35,6 +35,7 @@
 #include "quantities.h"
 #include "selfgravity.h"
 #include "stress.h"
+#include "sts.h"
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
@@ -1258,7 +1259,12 @@ void calculate_qminus(t_data &data)
 		    1.0 /
 			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
 
-
+		if (parameters::opacity ==
+			parameters::opacity_simple) { // Compare D'Angelo et. al
+						  // 2003 eq.(28)
+			data[t_data::TAU_EFF](n_radial, n_azimuthal) =
+			3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal);
+		}
 		// Q = factor 2 sigma_sb T^4 / tau_eff
 
 		const double factor = parameters::cooling_radiative_factor;

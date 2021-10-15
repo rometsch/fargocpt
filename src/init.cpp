@@ -22,6 +22,8 @@
 #include "util.h"
 #include "viscosity.h"
 #include "find_cell_id.h"
+#include <gsl/gsl_sf_bessel.h>
+
 
 #include "open-simplex-noise.h"
 #include "options.h"
@@ -248,14 +250,18 @@ void init_physics(t_data &data)
 	die("Both Sigma and Energy have to be initialised by Shakura & Sunyaev Standard-Solution. Other initialisation not yet implemented!");
     }
 
-    // gas density initialization
-    init_gas_density(data);
+	if (parameters::ShockTube) {
+	init_shock_tube_test(data);
+	} else {
+	// gas density initialization
+	init_gas_density(data);
 
-    // if energy equation is taken into account, we initialize the gas thermal
-    // energy
-    if (parameters::Adiabatic) {
-	init_gas_energy(data);
-    }
+	// if energy equation is taken into account, we initialize the gas
+	// thermal energy
+	if (parameters::Adiabatic) {
+		init_gas_energy(data);
+	}
+	}
 
     if (parameters::self_gravity) {
 	// if SelfGravity = YES or Z, planets are initialized feeling disk
@@ -384,6 +390,161 @@ void init_shakura_sunyaev(t_data &data)
 }
 
 /**
+	Initializes density and energy for the spreading ring test.
+	Intented to be used with spreading_ring.par
+	See R. Speith and W. Kley 2003: Stability of the viscously spreading
+   ring
+*/
+void init_spreading_ring_test(t_data &data)
+{
+
+	const double R0 = 1.0;
+	double R0_ = R0;
+
+	unsigned int R0_id = 0;
+	for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
+	 ++n_radial) {
+	if (Rsup[n_radial] > R0 && R0 > Rinf[n_radial]) {
+		R0_ = Rmed[n_radial];
+		R0_id = n_radial;
+	}
+	}
+
+	if (R0_id != 0)
+	logging::print(
+		LOG_INFO "Initializing Spreading Ring at radius = %.5e\n", R0_);
+
+	const double Disk_Mass = parameters::sigma_discmass;
+	const double tau0 = 0.016;
+
+	const double x = Rmed[R0_id] / R0;
+	const double I = gsl_sf_bessel_Inu(0.25, 2.0 * x / tau0);
+	const double Sigma0 = Disk_Mass / (M_PI * R0 * R0) * 1.0 /
+			  (tau0 * std::pow(x, 0.25)) * I *
+			  std::exp(-(1.0 + x * x) / tau0);
+
+	for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
+	 ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
+		const double density_floor = Sigma0 * parameters::sigma_floor;
+		const double energy = 0.0;
+
+		const double x = Rmed[n_radial] / R0;
+		const double I = gsl_sf_bessel_Inu(0.25, 2.0 * x / tau0);
+		double density = Disk_Mass / (M_PI * R0 * R0) * 1.0 /
+				 (tau0 * std::pow(x, 0.25)) * I *
+				 std::exp(-(1.0 + x * x) / tau0);
+
+		density = std::max(density, density_floor);
+
+		data[t_data::DENSITY](n_radial, n_azimuthal) = density;
+		data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
+	}
+	}
+
+	// set SigmaMed/SigmaInf
+	RefillSigma(&data[t_data::DENSITY]);
+	RefillEnergy(&data[t_data::ENERGY]);
+}
+
+/**
+	Initializes density and energy for Shock Tube test.
+	Intented to be used with shock_tube.par
+*/
+void init_shock_tube_test(t_data &data)
+{
+	logging::print_master(LOG_INFO "Initializing ShockTube\n");
+
+	for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
+	 ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
+		double density = 1.0;
+		double energy = 2.5;
+
+		if (Rmed[n_radial] - GlobalRmed[0] > 0.5) {
+		density = 0.125;
+		energy = 2.0 * 0.125;
+		}
+
+		data[t_data::DENSITY](n_radial, n_azimuthal) = density;
+		data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
+	}
+	}
+
+	units::length.set_cgs_factor(1.0);
+	units::length.set_cgs_symbol("1");
+
+	units::mass.set_cgs_factor(1.0);
+	units::mass.set_cgs_symbol("1");
+
+	units::time.set_cgs_factor(1.0);
+	units::time.set_cgs_symbol("1");
+
+	units::energy.set_cgs_factor(1.0);
+	units::energy.set_cgs_symbol("1");
+
+	units::energy_density.set_cgs_factor(1.0);
+	units::energy_density.set_cgs_symbol("1");
+
+	units::temperature.set_cgs_factor(1.0);
+	units::temperature.set_cgs_symbol("1");
+
+	units::density.set_cgs_factor(1.0);
+	units::density.set_cgs_symbol("1");
+
+	units::surface_density.set_cgs_factor(1.0);
+	units::surface_density.set_cgs_symbol("1");
+
+	units::opacity.set_cgs_factor(1.0);
+	units::opacity.set_cgs_symbol("1");
+
+	units::energy_flux.set_cgs_factor(1.0);
+	units::energy_flux.set_cgs_symbol("1");
+
+	units::velocity.set_cgs_factor(1.0);
+	units::velocity.set_cgs_symbol("1");
+
+	units::acceleration.set_cgs_factor(1.0);
+	units::acceleration.set_cgs_symbol("1");
+
+	units::angular_momentum.set_cgs_factor(1.0);
+	units::angular_momentum.set_cgs_symbol("1");
+
+	units::kinematic_viscosity.set_cgs_factor(1.0);
+	units::kinematic_viscosity.set_cgs_symbol("1");
+
+	units::dynamic_viscosity.set_cgs_factor(1.0);
+	units::dynamic_viscosity.set_cgs_symbol("1");
+
+	units::stress.set_cgs_factor(1.0);
+	units::stress.set_cgs_symbol("1");
+
+	units::pressure.set_cgs_factor(1.0);
+	units::pressure.set_cgs_symbol("1");
+
+	units::power.set_cgs_factor(1.0);
+	units::power.set_cgs_symbol("1");
+
+	units::torque.set_cgs_factor(1.0);
+	units::torque.set_cgs_symbol("1");
+
+	units::force.set_cgs_factor(1.0);
+	units::force.set_cgs_symbol("1");
+
+	units::mass_accretion_rate.set_cgs_factor(1.0);
+	units::mass_accretion_rate.set_cgs_symbol("1");
+
+	// after all units have calculated, calculate constants in code units
+	constants::calculate_constants_in_code_units();
+
+	// set SigmaMed/SigmaInf
+	RefillSigma(&data[t_data::DENSITY]);
+	RefillEnergy(&data[t_data::ENERGY]);
+}
+
+/**
 	Initializes gas density.
 */
 void init_gas_density(t_data &data)
@@ -442,6 +603,10 @@ void init_gas_density(t_data &data)
 	// 			}
 	// 			break;
     }
+
+	if (parameters::SpreadingRing) {
+	init_spreading_ring_test(data);
+	}
 
     if (parameters::sigma_randomize) {
 

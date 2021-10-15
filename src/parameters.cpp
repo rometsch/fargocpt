@@ -25,6 +25,8 @@ constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
 
 namespace parameters
 {
+bool ShockTube = false;
+bool SpreadingRing = false;
 
 // energy euations
 bool Adiabatic = false;
@@ -760,6 +762,10 @@ void read(char *filename, t_data &data)
 	opacity = opacity_const_op;
 	kappa_const = config::value_as_double_default("KappaConst", 1.0);
 	break;
+	case 's': // simple, see Gennaro D'Angelo et al. 2003
+	opacity = opacity_simple;
+	kappa_const = config::value_as_double_default("KappaConst", 1.0);
+	break;
     default:
 	die("Invalid setting for Opacity: %s",
 	    config::value_as_string_default("Opacity", "Lin"));
@@ -1107,6 +1113,12 @@ void summarize_parameters()
     case opacity_const_op:
 	logging::print_master(LOG_INFO "Using constant opacity kappa_R = %e.\n",
 			      kappa_const);
+	break;
+	case opacity_simple:
+	logging::print_master(
+	LOG_INFO
+	"Using opacity from Gennaro D'Angelo et al. 2003 with kappa_0 = %e.\n",
+	kappa_const);
 	break;
     }
 
