@@ -175,10 +175,6 @@ t_data::t_data()
     m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_name("vtheta_sourceterms");
     m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_unit(units::velocity);
 
-    m_polargrids[ENERGY_NEW].set_scalar(true);
-    m_polargrids[ENERGY_NEW].set_name("energy_new");
-    m_polargrids[ENERGY_NEW].set_unit(units::energy_density);
-
     m_polargrids[Q_PHI].set_vector(false);
     m_polargrids[Q_PHI].set_name("q_phi");
 
