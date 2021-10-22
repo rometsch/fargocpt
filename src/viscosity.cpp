@@ -23,6 +23,7 @@
 #include "util.h"
 #include "viscosity.h"
 #include <cmath>
+#include <cassert>
 
 namespace viscosity
 {
@@ -33,18 +34,6 @@ namespace viscosity
 */
 void update_viscosity(t_data &data)
 {
-
-
-	data[t_data::V_RADIAL](50, 1) *= 0.9;
-	data[t_data::V_AZIMUTHAL](50, 1) *= 0.9;
-
-	data[t_data::V_RADIAL](50, 0) *= 1.1;
-	data[t_data::V_AZIMUTHAL](50, 0) *= 1.1;
-
-	data[t_data::V_RADIAL](51, 0) *= 0.9;
-	data[t_data::V_AZIMUTHAL](51, 0) *= 0.9;
-
-
     static bool calculated = false;
     // if alpha-viscosity
     if (ViscosityAlpha) {
@@ -250,8 +239,6 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	}
 	}
 
-
-
 	for (unsigned int n_radial = 1; n_radial < data[t_data::V_RADIAL].get_max_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -293,10 +280,6 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
 			   data[t_data::DENSITY](n_radial, n_azimuthal_minus));
 
-		/// test passed
-		//if(n_radial == 50 && n_azimuthal == 0)
-		//	printf("used cpp = %.12e	%.12e\n", (cphi_pp) /(sigma_avg_phi * Rmed[n_radial]), (cphi_rp) /(sigma_avg_phi * Rmed[n_radial]));
-
 		const double c1_phi = (cphi_rp + cphi_pp) /(sigma_avg_phi * Rmed[n_radial]);
 		data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial, n_azimuthal) = c1_phi;
 
@@ -310,106 +293,19 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 
 		const double cr_rp = -(NuSig_rp_jp + NuSig_rp) / (dphi*dphi * Ra[n_radial]);
 
-		/// test passed
-		//if(n_radial == 50 && n_azimuthal == 0)
-		//printf("used cr_rp = %.12e	%.12e	%.5e\n", (-NuSig_rp_jp) / (dphi*dphi * Ra[n_radial]), (-NuSig_rp) / (dphi*dphi * Ra[n_radial]), cr_rp);
-
 		const double cr_pp_1 = 2.0*NuSigma * (0.5*InvRmed[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial])) - NuArt * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]);
 		const double cr_pp_2 = 2.0*NuSigma_im * (0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])) + NuArt_im * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]);
 		const double cr_pp = -0.5*(cr_pp_1 + cr_pp_2);
 
-		/*if(n_radial == 62 && n_azimuthal == 5)
-		{
-			printf("\nused pp1\n");
-			printf("NuSigma1 = %.12e\n", (-NuSigma));
-			printf("dpp1 = %.12e\n", 0.5*InvRmed[n_radial]);
-			printf("DIV_V1 = %.12e\n", 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
-			printf("Nu1 = %.12e\n", 2.0*NuSigma * (0.5*InvRmed[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial])));
-			printf("NuArt1 = %.12e	%.5e	%.5e\n\n", 0.5*NuArt * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]), NuArt, -Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
-		}*/
-
-
-		/*if(n_radial == 62 && n_azimuthal == 5){
-			//printf("used pp2 = %.5e	%.5e	%.5e	%.5e	%.5e\n", -NuSigma_im, 0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]), Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]), NuArt_im * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]), -2*(-NuSigma_im * (0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])) + NuArt_im * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])));
-			printf("\nused pp2\n");
-			printf("NuSigma2 = %.12e\n", (-NuSigma_im));
-			printf("dpp2 = %.12e\n", 0.5*InvRmed[n_radial-1]);
-			printf("DIV_V2 = %.12e\n", - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
-			printf("Nu2 = %.12e\n", (-2.0) * NuSigma_im * (0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])));
-			printf("NuArt2 = %.12e\n\n", -0.5*NuArt_im * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
-		}*/
-
-		/// test passed
-		//if(n_radial == 62 && n_azimuthal == 5)
-		//printf("used cr_pp = %.12e	%.12e\n", cr_pp_1,cr_pp_2);
-
-
-		////
-		/// \brief cr_rr_1
-		///
-		/*
-		const int n_radial_im = n_radial - 1;
-		const double nu = data[t_data::VISCOSITY](n_radial_im, n_azimuthal);
-		const double sigma = data[t_data::DENSITY](n_radial_im, n_azimuthal);
-		const double nu_art = data[t_data::ARTIFICIAL_VISCOSITY](n_radial_im, n_azimuthal);
-		const double DIV_V_R_2 = Ra[n_radial_im + 1] * InvDiffRsup[n_radial_im] * InvRb[n_radial_im];
-		const double dpp_2 = 0.5 * InvRmed[n_radial_im];
-		double tau_pp_1 = 2.0 * nu * sigma * (dpp_2 - 1.0 / 3.0 * DIV_V_R_2);
-		tau_pp_1 += nu_art * DIV_V_R_2;
-
-		if(n_radial == 50 && n_azimuthal == 0){
-		printf("check cr_pp2 = %.12e	%.12e\n", cr_pp_2, -0.5 * tau_pp_1);
-		}*/
-		///
-		///
-
 		const double cr_rr_1 = Rmed[n_radial] * (2.0 * NuSigma * (-InvDiffRsup[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial])) - NuArt*Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
 		const double cr_rr_2 = Rmed[n_radial-1] * (-2.0 * NuSigma_im * (InvDiffRsup[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])) - NuArt_im*Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
-
-		/*
-		if(n_radial == 50 && n_azimuthal == 0){
-		printf("\nused crr1\n");
-		printf("NuSigma1 = %.12e\n", 2.0 * NuSigma);
-		printf("drr1 = %.12e\n", -InvDiffRsup[n_radial]);
-		printf("DIV_V1 = %.12e\n", 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
-		printf("Nu1 = %.12e\n", 2.0 * NuSigma * (-InvDiffRsup[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial])));
-		printf("NuArt1 = %.12e\n", - NuArt*Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
-		}*/
-
-		/*if(n_radial == 50 && n_azimuthal == 0){
-		printf("\nused crr2\n");
-		printf("NuSigma2 = %.12e\n", 2.0 * NuSigma_im);
-		printf("drr2 = %.12e\n", InvDiffRsup[n_radial-1]);
-		printf("DIV_V2 = %.12e\n", -1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
-		printf("Nu2 = %.12e\n", 2.0 * NuSigma_im * (InvDiffRsup[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])));
-		printf("NuArt2 = %.12e\n\n", NuArt_im*Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
-		}*/
-
-		/// test passed
-		//if(n_radial == 50 && n_azimuthal == 0)
-		//printf("used cr_rr = %.12e	%.12e	%.12e\n", InvDiffRmed[n_radial] * cr_rr_1, InvDiffRmed[n_radial] * cr_rr_2, InvDiffRmed[n_radial] * (cr_rr_1 + cr_rr_2));
-
 		const double cr_rr = InvDiffRmed[n_radial] * (cr_rr_1 + cr_rr_2);
 
-		//if(n_radial == 50 && n_azimuthal == 0){
-		//const double test =												  Ra[n_radial  ]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]);
-		//printf("used drr = %.5e	%.5e	%.5e\n", InvDiffRsup[n_radial-1], Ra[n_radial  ]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]), test);
-		//}
-
-
-		/*
-		const double c1 = parameters::radial_viscosity_factor * (cr_rr) / (sigma_avg_r * Rinf[n_radial]);
-		const double c2 = parameters::radial_viscosity_factor * (cr_rp) / (sigma_avg_r * Rinf[n_radial]);
-		const double c3 = parameters::radial_viscosity_factor * (cr_pp) / (sigma_avg_r * Rinf[n_radial]);
-		*/
-		/// test passed
-		//if(n_radial == 50 && n_azimuthal == 0)
-		//printf("used crr = %.12e	%.12e	%.12e		%.12e\n", c1, c2, c3, c1+c2+c3);
-
-		//if(n_radial == 62 && n_azimuthal == 5)
-		//printf("used crr = %.12e	%.12e	%.12e		%.12e\n", c1, c2, c3, c1+c2+c3);
-
 		const double c1_r = parameters::radial_viscosity_factor * (cr_rr + cr_rp + cr_pp) / (sigma_avg_r * Rinf[n_radial]);
+
+		assert(c1_r < 0.0);
+		assert(c1_phi < 0.0);
+
 		data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal) = c1_r;
 
 		/// END Calc V_r correction factor	//////////////////////////////////////
@@ -466,11 +362,6 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 		n_azimuthal) - data[t_data::TAU_PHI_PHI](n_radial,
 		n_azimuthal_minus)) * invdphi);
 
-		// const double c1 = data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial, n_azimuthal);
-		//if(n_radial == 50 && n_azimuthal == 0)
-		//printf("v_phi_upd = %.5e	c1 = %.5e	dt = %.5e\n", v_phi_upd_e, c1, dt);
-
-
 	    // a_r = 1/(r*Sigma) ( d(r*tau_r_r)/dr + d(tau_r_phi)/dphi -
 	    // tau_phi_phi )
 	    sigma_avg =
@@ -493,12 +384,16 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Only debug functionality below
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+///
+/// \brief get_tau_rp
+/// Split up the Tau_r_phi in two components such that Tau_r_phi = Trp1*vphi + Trp2
+///
 static void get_tau_rp(t_data &data, double &tau_rp_1, double &tau_rp_2, const int n_radial, const int n_azimuthal, bool r_id_p)
 {
-
 	int n_azimuthal_minus =
 	(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
 			  : n_azimuthal - 1);
@@ -570,7 +465,10 @@ static void get_tau_rp(t_data &data, double &tau_rp_1, double &tau_rp_2, const i
 	}
 }
 
-
+///
+/// \brief get_tau_pp
+/// Split up the Tau_phi_phi in two components such that Tau_phi_phi = Tpp1*vphi + Tpp2
+///
 static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2, const int n_radial, const int n_azimuthal, bool include_artifical_viscosity, bool p_id_m)
 {
 
@@ -735,7 +633,10 @@ static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2, const i
 
 }
 
-
+///
+/// \brief get_tau_pp
+/// Split up the Tau_phi_phi in two componentss such that Tau_phi_phi = Tpp1*vr + Tpp2
+///
 static void get_r_pp(t_data &data, double &tau_pp_1, double &tau_pp_2, const int n_radial, const int n_azimuthal, bool include_artifical_viscosity, bool r_id_m)
 {
 	// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
@@ -882,7 +783,10 @@ static void get_r_pp(t_data &data, double &tau_pp_1, double &tau_pp_2, const int
 
 }
 
-
+///
+/// \brief get_tau_r_rp
+/// Split up the Tau_r_phi in two componentss such that Tau_r_phi = Trp1*vr + Trp2
+///
 static void get_tau_r_rp(t_data &data, double &tau_rp_1, double &tau_rp_2, const int n_radial, const int n_azimuthal, bool p_id_p)
 {
 
@@ -992,7 +896,10 @@ static void get_tau_r_rp(t_data &data, double &tau_rp_1, double &tau_rp_2, const
 	}
 }
 
-
+///
+/// \brief get_tau_rr
+/// Split up the Tau_r_r in two componentss such that Tau_r_r = Trr1*vr + Trr2
+///
 static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2, const int n_radial, const int n_azimuthal, bool include_artifical_viscosity, bool r_id_m)
 {
 
@@ -1119,7 +1026,13 @@ static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2, const i
 	}
 }
 
-
+///
+/// \brief debug_function_viscous_terms
+///	took the standart viscosity velocity updates, split them into their components
+/// then sort them by the velocity of the cell such that delta v = c1*v + c2
+/// compared the resulting velocity update with the original computation
+/// and compared the resulting constants with the one computed in compute_viscous_terms
+///
 void debug_function_viscous_terms(t_data &data, bool include_artifical_viscosity, const double dt)
 {
 
