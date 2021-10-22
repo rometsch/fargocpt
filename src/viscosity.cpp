@@ -264,10 +264,6 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		const double NuSigma_jm = data[t_data::VISCOSITY_SIGMA](n_radial, n_azimuthal_minus);
 		const double NuSigma_im = data[t_data::VISCOSITY_SIGMA](n_radial-1, n_azimuthal);
 
-		const double NuArt = data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal);
-		const double NuArt_im = data[t_data::ARTIFICIAL_VISCOSITY](n_radial-1, n_azimuthal);
-		const double NuArt_jm = data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal_minus);
-
 		/// END Load general data	////////////////////////////////////////////////////////////
 
 		/// Calc V_phi correction factor	//////////////////////////////////////
@@ -275,7 +271,13 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		const double Ra3NuSigmaInvDiffRmed_p = NuSig_rp_ip * std::pow(Ra[n_radial+1], 3) * InvDiffRmed[n_radial+1];
 
 		const double cphi_rp = - TwoDiffRaSqRb[n_radial] * (Ra3NuSigmaInvDiffRmed_p + Ra3NuSigmaInvDiffRmed);
-		const double cphi_pp = - FourThirdInvRbInvdphiSq[n_radial] * (NuSigma + NuSigma_jm) + (NuArt + NuArt_jm) * (-invdphi * invdphi * InvRmed[n_radial]);
+		double cphi_pp = - FourThirdInvRbInvdphiSq[n_radial] * (NuSigma + NuSigma_jm);
+
+		if(include_artifical_viscosity){
+			const double NuArt = data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal);
+			const double NuArt_jm = data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal_minus);
+			cphi_pp += (NuArt + NuArt_jm) * (-invdphi * invdphi * InvRmed[n_radial]);
+		}
 
 		const double sigma_avg_phi =
 		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
@@ -294,12 +296,25 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 
 		const double cr_rp = -(NuSig_rp_jp + NuSig_rp) / (dphi*dphi * Ra[n_radial]);
 
-		const double cr_pp_1 = 2.0*NuSigma * (0.5*InvRmed[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial])) - NuArt * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]);
-		const double cr_pp_2 = 2.0*NuSigma_im * (0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])) + NuArt_im * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]);
-		const double cr_pp = -0.5*(cr_pp_1 + cr_pp_2);
+		double cr_pp_1 = 2.0*NuSigma * (0.5*InvRmed[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
+		double cr_pp_2 = 2.0*NuSigma_im * (0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
 
-		const double cr_rr_1 = Rmed[n_radial] * (2.0 * NuSigma * (-InvDiffRsup[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial])) - NuArt*Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
-		const double cr_rr_2 = Rmed[n_radial-1] * (-2.0 * NuSigma_im * (InvDiffRsup[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])) - NuArt_im*Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
+		double cr_rr_1 = Rmed[n_radial] * 2.0 * NuSigma * (-InvDiffRsup[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
+		double cr_rr_2 = Rmed[n_radial-1] * (-2.0 * NuSigma_im * (InvDiffRsup[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])));
+
+		if(include_artifical_viscosity){
+		const double NuArt = data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal);
+		const double NuArt_im = data[t_data::ARTIFICIAL_VISCOSITY](n_radial-1, n_azimuthal);
+
+		cr_pp_1 -= NuArt * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]);
+		cr_pp_2 += NuArt_im * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]);
+
+		cr_rr_1 -= Rmed[n_radial] * NuArt*Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]);
+		cr_rr_2 -= Rmed[n_radial-1] * NuArt_im*Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]);
+		}
+
+
+		const double cr_pp = -0.5*(cr_pp_1 + cr_pp_2);
 		const double cr_rr = InvDiffRmed[n_radial] * (cr_rr_1 + cr_rr_2);
 
 		const double c1_r = parameters::radial_viscosity_factor * (cr_rr + cr_rp + cr_pp) / (sigma_avg_r * Rinf[n_radial]);
@@ -1034,14 +1049,6 @@ static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2, const i
 void debug_function_viscous_terms(t_data &data, bool include_artifical_viscosity, const double dt)
 {
 
-	//update_viscosity(data);
-	//compute_viscous_terms(data, include_artifical_viscosity);
-
-
-	double invdphi;
-
-	invdphi = 1.0 / (2.0 * M_PI / (double)data[t_data::DENSITY].Nsec);
-
 	int n_azimuthal_plus, n_azimuthal_minus;
 
 	for (unsigned int n_radial = 1; n_radial <= data[t_data::V_RADIAL].get_max_radial() - 1;
@@ -1105,8 +1112,8 @@ void debug_function_viscous_terms(t_data &data, bool include_artifical_viscosity
 		const double crp = dt*(vp*crp_1 + crp_2);
 
 		if(crp != 0.0){
-		if(std::fabs((crp - crp_org)/crp) > 1e-5){
-			printf("crp failed with upd = %.5e	alt = %.5e	rel = %.5e\n", crp_org, crp, std::fabs(crp_org - crp)/crp_org);
+		if(std::fabs((crp - crp_org)/crp) > 1e-4 && crp / (std::fabs(vp*crp_1) + std::fabs(crp_2)) > 5e-14){
+			printf("crp failed with upd = %.5e	alt = %.5e	rel = %.5e	c12 = (%.3e	%.3e)\n", crp_org, crp, std::fabs(crp_org - crp)/crp_org, vp*crp_1, crp_2);
 		}}
 
 		double TAU_PP_1;
@@ -1123,7 +1130,7 @@ void debug_function_viscous_terms(t_data &data, bool include_artifical_viscosity
 		double cpp = dt*(vp*cpp_1 + cpp_2);
 
 		if(cpp != 0.0){
-		if(std::fabs((cpp - cpp_org)/cpp) > 1e-2){
+		if(std::fabs((cpp - cpp_org)/cpp) > 1e-4 && cpp / (std::fabs(vp*cpp_1) + std::fabs(cpp_2)) > 1e-13){
 			printf("cpp failed with upd = %.5e	alt = %.5e	rel = %.5e\n", cpp_org, cpp, std::fabs(cpp_org - cpp)/cpp_org);
 		}}
 
@@ -1133,19 +1140,19 @@ void debug_function_viscous_terms(t_data &data, bool include_artifical_viscosity
 		}}
 
 		if(v_phi_upd_rp != 0.0){
-		if(std::fabs((v_phi_upd_rp - crp)/v_phi_upd_rp) > 1e-5){
+		if(std::fabs((v_phi_upd_rp - crp)/v_phi_upd_rp) > 1e-5 && crp / (std::fabs(vp*crp_1) + std::fabs(crp_2)) > 5e-13){
 			printf("v_phi_rp (%d %d) failed with upd = %.5e	alt = %.5e	rel = %.5e\n", n_radial, n_azimuthal, v_phi_upd_rp, crp, std::fabs(v_phi_upd_rp - crp)/v_phi_upd_rp);
 		}}
 
 		if(v_phi_upd_pp != 0.0){
-		if(std::fabs((v_phi_upd_pp - cpp)/v_phi_upd_pp) > 1e-2){
+		if(std::fabs((v_phi_upd_pp - cpp)/v_phi_upd_pp) > 1e-2  && cpp / (std::fabs(vp*cpp_1) + std::fabs(cpp_2)) > 1e-14){
 			printf("v_phi_pp (%d %d) failed with upd = %.5e	alt = %.5e	rel = %.5e\n", n_radial, n_azimuthal, v_phi_upd_pp, cpp, std::fabs(v_phi_upd_pp - cpp)/v_phi_upd_pp);
 		}}
 
 		const double add_crp_cpp = (crp + cpp);
 		if(v_phi_upd != 0.0){
-		if(std::fabs((v_phi_upd - add_crp_cpp)/v_phi_upd) > 1e-5){
-			printf("v_phi (%d %d) failed with upd = %.5e	alt = %.5e	rel = %.5e\n", n_radial, n_azimuthal, v_phi_upd, cpp+crp, std::fabs(v_phi_upd - add_crp_cpp)/v_phi_upd);
+		if(std::fabs((v_phi_upd - add_crp_cpp)/v_phi_upd) > 1e-3  && std::fabs(add_crp_cpp/vp) > 1e-13){
+			printf("v_phi (%d %d) failed with upd = %.5e	alt = %.5e	vp = %.5e	rel = %.5e\n", n_radial, n_azimuthal, v_phi_upd, cpp+crp, vp, std::fabs(v_phi_upd - add_crp_cpp)/v_phi_upd);
 		}}
 
 		/// test passed
