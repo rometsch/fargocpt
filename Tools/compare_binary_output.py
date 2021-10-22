@@ -39,6 +39,7 @@ def compare(file1, file2):
         print("max relative diff = ", np.max(reldelta))
         print("avg relative diff = ", np.mean(reldelta))
         print("median relative diff = ", np.median(reldelta))
+        print("max relative diff id = ", np.argmax(reldelta))
     else:
         print("Files are identical")
 

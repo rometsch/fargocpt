@@ -119,7 +119,6 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
 		(drr - 1.0 / 3.0 * data[t_data::DIV_V](n_radial, n_azimuthal));
-
 	}
     }
 
@@ -228,13 +227,11 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		    nu_art = 0;
 		}
 
-
-		data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal) = nu_art;
-
 		data[t_data::TAU_R_R](n_radial, n_azimuthal) +=
 		    nu_art * data[t_data::DIV_V](n_radial, n_azimuthal);
 		data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +=
 			nu_art * data[t_data::DIV_V](n_radial, n_azimuthal);
+		data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal) = nu_art;
 	    }
 	}
 	}
