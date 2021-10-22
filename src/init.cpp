@@ -50,6 +50,9 @@ void resize_radialarrays(unsigned int size)
     InvSurf.resize(size);
     InvDiffRmed.resize(size);
     InvDiffRsup.resize(size);
+	InvDiffRsupRb.resize(size);
+	TwoDiffRaSqRb.resize(size);
+	FourThirdInvRbInvdphiSq.resize(size);
     Radii.resize(size);
     GlobalRmed.resize(size);
     SigmaInf.resize(size);
@@ -187,6 +190,9 @@ void init_radialarrays()
 	InvRmed[nRadial] = 1.0 / Rmed[nRadial];
 	InvSurf[nRadial] = 1.0 / Surf[nRadial];
 	InvDiffRsup[nRadial] = 1.0 / (Rsup[nRadial] - Rinf[nRadial]);
+	InvDiffRsupRb[nRadial] = 1.0 / ((Rsup[nRadial] - Rinf[nRadial])*Rmed[nRadial]);
+	TwoDiffRaSqRb[nRadial] = 2.0 / ((Rsup[nRadial]*Rsup[nRadial] - Rinf[nRadial]*Rinf[nRadial])*Rmed[nRadial]);
+	FourThirdInvRbInvdphiSq[nRadial] = 4.0 / 3.0 / Rmed[nRadial] * invdphi * invdphi;
 	InvRinf[nRadial] = 1.0 / Rinf[nRadial];
     }
 

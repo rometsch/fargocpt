@@ -113,6 +113,21 @@ t_data::t_data()
     m_polargrids[VISCOSITY].set_name("viscosity");
     m_polargrids[VISCOSITY].set_unit(units::kinematic_viscosity);
 
+	m_polargrids[ARTIFICIAL_VISCOSITY].set_scalar(true);
+	m_polargrids[ARTIFICIAL_VISCOSITY].set_name("artificial_viscosity");
+
+	m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_scalar(true);
+	m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_name("viscosity_correction_factor_r");
+
+	m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_scalar(true);
+	m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_name("viscosity_correction_factor_phi");
+
+	m_polargrids[VISCOSITY_SIGMA_RP].set_scalar(true);
+	m_polargrids[VISCOSITY_SIGMA_RP].set_name("viscosity_correction_factor_phi_helper_rp");
+
+	m_polargrids[VISCOSITY_SIGMA].set_scalar(true);
+	m_polargrids[VISCOSITY_SIGMA].set_name("viscosity_correction_factor_phi_helper_pp");
+
 	m_polargrids[ADVECTION_TORQUE].set_scalar(true);
 	m_polargrids[ADVECTION_TORQUE].set_name("ADVECTION_TORQUE");
 	m_polargrids[ADVECTION_TORQUE].set_unit(units::torque);

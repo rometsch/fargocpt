@@ -499,6 +499,14 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 		ComputeViscousStressTensor(data);
 
+		if ((parameters::artificial_viscosity ==
+		 parameters::artificial_viscosity_TW) &&
+		(parameters::artificial_viscosity_dissipation)) {
+		viscosity::debug_function_viscous_terms(data, true, dt);
+		} else {
+		viscosity::debug_function_viscous_terms(data, false, dt);
+		}
+
 		SubStep3(data, dt);
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 
@@ -662,12 +670,7 @@ void SubStep1(t_data &data, double dt)
 
 	if (EXPLICIT_VISCOSITY) {
 	// compute and add acceleartions due to disc viscosity as a source term
-	if (parameters::artificial_viscosity ==
-		parameters::artificial_viscosity_TW) {
-		viscosity::compute_viscous_terms(data, true);
-	} else {
-		viscosity::compute_viscous_terms(data, false);
-	}
+	ComputeViscousStressTensor(data);
 
 	viscosity::update_velocities_with_viscosity(
 		data, data[t_data::V_RADIAL_SOURCETERMS],
