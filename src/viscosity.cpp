@@ -283,10 +283,10 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
 		       data[t_data::DENSITY](n_radial - 1, n_azimuthal));
 	    v_radial(n_radial, n_azimuthal) +=
-		dt * InvRb[n_radial] /
+		dt * InvRinf[n_radial] /
 		(sigma_avg)*parameters::radial_viscosity_factor *
-		((Ra[n_radial] * data[t_data::TAU_R_R](n_radial, n_azimuthal) -
-		  Ra[n_radial - 1] *
+		((Rmed[n_radial] * data[t_data::TAU_R_R](n_radial, n_azimuthal) -
+		  Rmed[n_radial - 1] *
 		      data[t_data::TAU_R_R](n_radial - 1, n_azimuthal)) *
 		     InvDiffRmed[n_radial] +
 		 (data[t_data::TAU_R_PHI](n_radial, n_azimuthal_plus) -
