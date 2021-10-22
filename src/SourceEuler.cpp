@@ -2016,8 +2016,12 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		if(StabilizeViscosity == 2){
 			const double cphi = data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial, n_azimuthal);
 			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal);
-			const double c = std::min(cphi, cr);
-			dtLocal = std::min(dtLocal, -1.0/(c*parameters::CFL));
+			const double c = std::min(cphi, cr); // c < 0.0 is negative, so take min to get 'larger' negative number
+
+			if(c!= 0.0){
+			const double dtStable = -parameters::CFL/c;
+			dtLocal = std::min(dtLocal, dtStable);
+			}
 		}
 
 	    if (dtLocal < dtGlobal) {
