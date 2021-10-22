@@ -145,7 +145,7 @@ int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
-int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian;
+int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian, StabilizeViscosity;
 int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;

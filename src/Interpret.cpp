@@ -534,6 +534,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
 		 constants::R / parameters::MU);
 
+	StabilizeViscosity =
+	config::value_as_int_default("STABILIZEVISCOSITY", 0);
+
 	const bool VISCOSITY_in_CGS =
 	config::value_as_bool_default("VISCOSITYINCGS", false);
 	if (VISCOSITY_in_CGS) {

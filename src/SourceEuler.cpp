@@ -2013,6 +2013,13 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		dtLocal = min(dtLocal, 3.0 * dt_parabolic_local);
 		}
 
+		if(StabilizeViscosity == 2){
+			const double cphi = data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial, n_azimuthal);
+			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal);
+			const double c = std::min(cphi, cr);
+			dtLocal = std::min(dtLocal, -1.0/(c*parameters::CFL));
+		}
+
 	    if (dtLocal < dtGlobal) {
 		dtGlobal = dtLocal;
 		if (debug) {

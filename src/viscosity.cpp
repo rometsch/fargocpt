@@ -239,6 +239,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	}
 	}
 
+	if (StabilizeViscosity) {
 	for (unsigned int n_radial = 1; n_radial < data[t_data::V_RADIAL].get_max_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -307,11 +308,8 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		assert(c1_phi < 0.0);
 
 		data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal) = c1_r;
-
 		/// END Calc V_r correction factor	//////////////////////////////////////
-
-	}
-	}
+	}}}
 }
 
 /**
@@ -320,65 +318,68 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 				      t_polargrid &v_azimuthal, double dt)
 {
-    double invdphi;
-
-    invdphi = 1.0 / (2.0 * M_PI / (double)data[t_data::DENSITY].Nsec);
-
-    double n_azimuthal_plus, n_azimuthal_minus;
 
     for (unsigned int n_radial = 1; n_radial <= v_radial.get_max_radial() - 1;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= v_radial.get_max_azimuthal(); ++n_azimuthal) {
-	    n_azimuthal_plus =
+		const int n_azimuthal_plus =
 		(n_azimuthal == data[t_data::DENSITY].get_max_azimuthal()
 		     ? 0
 		     : n_azimuthal + 1);
-	    n_azimuthal_minus =
+		const int n_azimuthal_minus =
 		(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
 				  : n_azimuthal - 1);
 
 	    double sigma_avg =
 		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
 		       data[t_data::DENSITY](n_radial, n_azimuthal_minus));
-	    v_azimuthal(n_radial, n_azimuthal) +=
-		dt * InvRb[n_radial] / (sigma_avg) *
-		((2.0 / (pow2(Ra[n_radial + 1]) - pow2(Ra[n_radial]))) *
-		     (pow2(Ra[n_radial + 1]) *
-			  data[t_data::TAU_R_PHI](n_radial + 1, n_azimuthal) -
-		      pow2(Ra[n_radial]) *
-			  data[t_data::TAU_R_PHI](n_radial, n_azimuthal)) +
-		 (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) -
-		  data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal_minus)) *
-		     invdphi);
 
-		const double v_phi_upd_e = dt * InvRb[n_radial] / (sigma_avg) *
-				((2.0 / (pow2(Ra[n_radial + 1]) -
-		pow2(Ra[n_radial]))) * (pow2(Ra[n_radial + 1]) *
-					  data[t_data::TAU_R_PHI](n_radial + 1,
-		n_azimuthal) - pow2(Ra[n_radial]) *
-					  data[t_data::TAU_R_PHI](n_radial,
-		n_azimuthal)) + (data[t_data::TAU_PHI_PHI](n_radial,
-		n_azimuthal) - data[t_data::TAU_PHI_PHI](n_radial,
-		n_azimuthal_minus)) * invdphi);
+		double dVp = dt * InvRb[n_radial] / (sigma_avg) *
+				((2.0 / (pow2(Ra[n_radial + 1]) - pow2(Ra[n_radial]))) *
+					 (pow2(Ra[n_radial + 1]) *
+					  data[t_data::TAU_R_PHI](n_radial + 1, n_azimuthal) -
+					  pow2(Ra[n_radial]) *
+					  data[t_data::TAU_R_PHI](n_radial, n_azimuthal)) +
+				 (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) -
+				  data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal_minus)) *
+					 invdphi);
+
+		if(StabilizeViscosity == 1){
+			const double cphi = data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial, n_azimuthal);
+			const double corr = 1.0/(std::max(1.0 + dt*cphi, 0.0) -dt*cphi);
+			dVp *= corr;
+		}
+
+		v_azimuthal(n_radial, n_azimuthal) += dVp;
+
+
 
 	    // a_r = 1/(r*Sigma) ( d(r*tau_r_r)/dr + d(tau_r_phi)/dphi -
 	    // tau_phi_phi )
 	    sigma_avg =
 		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
 		       data[t_data::DENSITY](n_radial - 1, n_azimuthal));
-	    v_radial(n_radial, n_azimuthal) +=
-		dt * InvRinf[n_radial] /
-		(sigma_avg)*parameters::radial_viscosity_factor *
-		((Rmed[n_radial] * data[t_data::TAU_R_R](n_radial, n_azimuthal) -
-		  Rmed[n_radial - 1] *
-		      data[t_data::TAU_R_R](n_radial - 1, n_azimuthal)) *
-		     InvDiffRmed[n_radial] +
-		 (data[t_data::TAU_R_PHI](n_radial, n_azimuthal_plus) -
-		  data[t_data::TAU_R_PHI](n_radial, n_azimuthal)) *
-		     invdphi -
-		 0.5 * (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +
-			data[t_data::TAU_PHI_PHI](n_radial - 1, n_azimuthal)));
+		double dVr = dt * InvRinf[n_radial] /
+				(sigma_avg)*parameters::radial_viscosity_factor *
+				((Rmed[n_radial] * data[t_data::TAU_R_R](n_radial, n_azimuthal) -
+				  Rmed[n_radial - 1] *
+					  data[t_data::TAU_R_R](n_radial - 1, n_azimuthal)) *
+					 InvDiffRmed[n_radial] +
+				 (data[t_data::TAU_R_PHI](n_radial, n_azimuthal_plus) -
+				  data[t_data::TAU_R_PHI](n_radial, n_azimuthal)) *
+					 invdphi -
+				 0.5 * (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +
+					data[t_data::TAU_PHI_PHI](n_radial - 1, n_azimuthal)));
+
+
+		if(StabilizeViscosity == 1){
+			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal);
+			const double corr = 1.0/(std::max(1.0 + dt*cr, 0.0) -dt*cr);
+			dVr *= corr;
+		}
+
+		v_radial(n_radial, n_azimuthal) += dVr;
 	}
     }
 }
@@ -628,9 +629,6 @@ static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2, const i
 	}}
 	}
 	}
-
-
-
 }
 
 ///
