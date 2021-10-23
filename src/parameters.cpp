@@ -893,9 +893,9 @@ void read(char *filename, t_data &data)
     }
 
     particle_maximum_escape_radius_sq =
-	pow2(particle_maximum_escape_radius) - DBL_EPSILON; // DBL for safety
+	std::pow(particle_maximum_escape_radius, 2) - DBL_EPSILON; // DBL for safety
     particle_minimum_escape_radius_sq =
-	pow2(particle_minimum_escape_radius) + DBL_EPSILON;
+	std::pow(particle_minimum_escape_radius, 2) + DBL_EPSILON;
 }
 
 void apply_units()

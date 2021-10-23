@@ -286,7 +286,7 @@ double gas_kinematic_energy(t_data &data)
 	    local_kinematic_energy +=
 		0.5 * Surf[n_radial] *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		(pow2(v_radial_center) + pow2(v_azimuthal_center));
+		(std::pow(v_radial_center, 2) + std::pow(v_azimuthal_center, 2));
 	}
     }
 
@@ -324,7 +324,7 @@ double gas_radial_kinematic_energy(t_data &data)
 	    local_kinematic_energy +=
 		0.5 * Surf[n_radial] *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		pow2(v_radial_center);
+		std::pow(v_radial_center, 2);
 	}
     }
 
@@ -365,7 +365,7 @@ double gas_azimuthal_kinematic_energy(t_data &data)
 	    local_kinematic_energy +=
 		0.5 * Surf[n_radial] *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		pow2(v_azimuthal_center);
+		std::pow(v_azimuthal_center, 2);
 	}
     }
 
@@ -486,7 +486,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 		  r_y / Rmed[n_radial];
 
 	    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
-		sqrt(pow2(e_x) + pow2(e_y));
+		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 	    if (FrameAngle != 0.0) {
 		// periastron grid is rotated to non-rotating coordinate system
@@ -494,11 +494,11 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 		// you would have had if you back-transform the output
 		// periastron values
 		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
-		    atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
+			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
 			  e_x * cosFrameAngle - e_y * sinFrameAngle);
 	    } else {
 		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
-		    atan2(e_y, e_x);
+			std::atan2(e_y, e_x);
 	    }
 	}
     }
@@ -540,7 +540,7 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
 		2.0 / 3.0 *
 		data[t_data::T_GRAVITATIONAL](n_radial, n_azimuthal) /
 		(data[t_data::DENSITY](n_radial, n_azimuthal) *
-		 pow2(data[t_data::SOUNDSPEED](n_radial, n_azimuthal)));
+		 std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal), 2));
 	}
     }
 }
@@ -592,7 +592,7 @@ void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 	    data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) =
 		2.0 / 3.0 * data[t_data::T_REYNOLDS](n_radial, n_azimuthal) /
 		(data[t_data::DENSITY](n_radial, n_azimuthal) *
-		 pow2(data[t_data::SOUNDSPEED](n_radial, n_azimuthal)));
+		 std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal), 2));
 	}
     }
 }
@@ -631,10 +631,10 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
 	    kappa = sqrt(fabs(
 		std::pow(InvRmed[n_radial], 3) *
-		(pow2(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) *
-		      Rmed[n_radial]) -
-		 pow2(data[t_data::V_AZIMUTHAL](n_radial - 1, n_azimuthal) *
-		      Rmed[n_radial - 1])) *
+		(std::pow(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) *
+			  Rmed[n_radial], 2) -
+		 std::pow(data[t_data::V_AZIMUTHAL](n_radial - 1, n_azimuthal) *
+			  Rmed[n_radial - 1], 2)) *
 		InvDiffRmed[n_radial]));
 
 	    // Q = (c_s kappa) / (Pi G Sigma)

@@ -7,7 +7,7 @@ double t_particle::get_squared_distance_to_star()
     if (CartesianParticles) {
 	const double &x = r;
 	const double &y = phi;
-	return pow2(x) + pow2(y);
+	return std::pow(x, 2) + std::pow(y, 2);
     } else {
 	return r * r;
     }

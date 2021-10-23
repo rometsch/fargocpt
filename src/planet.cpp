@@ -145,7 +145,7 @@ double t_planet::get_phi() const { return atan2(m_y, m_x); }
 /**
 	get planet distance to coordinate center
 */
-double t_planet::get_r() const { return sqrt(pow2(m_x) + pow2(m_y)); }
+double t_planet::get_r() const { return sqrt(std::pow(m_x, 2) + std::pow(m_y, 2)); }
 
 /**
 	get ramp up mass of the planet
@@ -157,7 +157,7 @@ double t_planet::get_rampup_mass()
 	if (PhysicalTime < get_rampuptime() * DT) {
 	    ramping =
 		1.0 -
-		pow2(cos(PhysicalTime * M_PI / 2.0 / (get_rampuptime() * DT)));
+		std::pow(std::cos(PhysicalTime * M_PI / 2.0 / (get_rampuptime() * DT)), 2);
 	}
     }
     return get_mass() * ramping;

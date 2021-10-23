@@ -33,7 +33,7 @@ double opacity(double density, double temperature)
 	break;
 
 	case parameters::opacity_simple:
-	return parameters::kappa_const * pow2(temperature);
+	return parameters::kappa_const * std::pow(temperature, 2);
 	break;
 
     default:

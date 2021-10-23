@@ -124,7 +124,7 @@ t_radialarray InvDiffRmed;
 
 t_radialarray InvDiffRsup;
 t_radialarray InvDiffRsupRb;
-t_radialarray TwoDiffRaSqRb;
+t_radialarray TwoDiffRaSq;
 t_radialarray FourThirdInvRbInvdphiSq;
 t_radialarray Radii;
 t_radialarray GlobalRmed;

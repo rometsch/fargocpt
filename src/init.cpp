@@ -51,7 +51,7 @@ void resize_radialarrays(unsigned int size)
     InvDiffRmed.resize(size);
     InvDiffRsup.resize(size);
 	InvDiffRsupRb.resize(size);
-	TwoDiffRaSqRb.resize(size);
+	TwoDiffRaSq.resize(size);
 	FourThirdInvRbInvdphiSq.resize(size);
     Radii.resize(size);
     GlobalRmed.resize(size);
@@ -184,14 +184,14 @@ void init_radialarrays()
 	// this
 	assert((Rmed[nRadial] - GlobalRmed[nRadial + IMIN]) < DBL_EPSILON);
 
-	Surf[nRadial] = M_PI * (pow2(Rsup[nRadial]) - pow2(Rinf[nRadial])) /
+	Surf[nRadial] = M_PI * (std::pow(Rsup[nRadial], 2) - std::pow(Rinf[nRadial], 2)) /
 			(double)NAzimuthal;
 
 	InvRmed[nRadial] = 1.0 / Rmed[nRadial];
 	InvSurf[nRadial] = 1.0 / Surf[nRadial];
 	InvDiffRsup[nRadial] = 1.0 / (Rsup[nRadial] - Rinf[nRadial]);
 	InvDiffRsupRb[nRadial] = 1.0 / ((Rsup[nRadial] - Rinf[nRadial])*Rmed[nRadial]);
-	TwoDiffRaSqRb[nRadial] = 2.0 / ((Rsup[nRadial]*Rsup[nRadial] - Rinf[nRadial]*Rinf[nRadial])*Rmed[nRadial]);
+	TwoDiffRaSq[nRadial] = 2.0 / (Rsup[nRadial]*Rsup[nRadial] - Rinf[nRadial]*Rinf[nRadial]);
 	FourThirdInvRbInvdphiSq[nRadial] = 4.0 / 3.0 / Rmed[nRadial] * invdphi * invdphi;
 	InvRinf[nRadial] = 1.0 / Rinf[nRadial];
     }
@@ -766,11 +766,11 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		pow2(ASPECTRATIO_REF) * units::energy.get_cgs_factor(),
+		std::pow(ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
 	    -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
-	    parameters::MU / constants::R * pow2(ASPECTRATIO_REF) 
+		parameters::MU / constants::R * std::pow(ASPECTRATIO_REF, 2)
 		* constants::G * hydro_center_mass *
 		units::temperature.get_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
@@ -784,8 +784,8 @@ void init_gas_energy(t_data &data)
 		 ++n_azimuthal) {
 		const double energy =
 		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    pow2(ASPECTRATIO_REF) *
-		    pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX)
+			std::pow(ASPECTRATIO_REF, 2) *
+			std::pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX)
 			* constants::G * hydro_center_mass;
 		const double temperature_floor =
 		    parameters::minimum_temperature *
@@ -1027,8 +1027,8 @@ void init_gas_velocities(t_data &data)
 		// v_azimuthal = Omega_K * r * (...)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    r * calculate_omega_kepler(r) *
-		    sqrt(1.0 - pow2(ASPECTRATIO_REF) *
-				   pow(r, 2.0 * FLARINGINDEX) *
+			sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				   std::pow(r, 2.0 * FLARINGINDEX) *
 				   (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 	    }
 

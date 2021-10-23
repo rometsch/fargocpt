@@ -123,8 +123,8 @@ static void update_kernel(t_data &data)
 	    aspect_ratio = ASPECTRATIO_REF;
 	}
 
-	lambda_sq = pow2(0.4571 * aspect_ratio + 0.6737 * sqrt(aspect_ratio));
-	chi_sq = pow2((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio);
+	lambda_sq = std::pow(0.4571 * aspect_ratio + 0.6737 * sqrt(aspect_ratio), 2);
+	chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
 
 	compute_FFT_kernel();
 
@@ -565,10 +565,10 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
     for (unsigned int n_radial = 0;
 	 n_radial <= v_azimuthal.get_max_radial() - GHOSTCELLS_B; ++n_radial) {
 	// this corresponds to equation (3.42) in Baruteau, 2008
-	double temp = pow2(calculate_omega_kepler(Rmed[n_radial])) *
+	double temp = std::pow(calculate_omega_kepler(Rmed[n_radial]), 2) *
 			  (1.0 - (1. + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-				     pow2(ASPECTRATIO_REF) *
-				     pow(Rmed[n_radial], 2.0 * FLARINGINDEX)) -
+					 std::pow(ASPECTRATIO_REF, 2) *
+					 std::pow(Rmed[n_radial], 2.0 * FLARINGINDEX)) -
 		      GLOBAL_AxiSGAccr[n_radial + IMIN] / Rmed[n_radial];
 	if (temp < 0) {
 	    logging::print(

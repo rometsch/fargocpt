@@ -165,7 +165,7 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 		const double xo = other_planet.get_x();
 		const double yo = other_planet.get_y();
 		const double mass = other_planet.get_mass();
-		const double dist = sqrt(pow2(x - xo) + pow2(y - yo));
+		const double dist = sqrt(std::pow(x - xo, 2) + std::pow(y - yo, 2));
 		ax -= constants::G * mass / std::pow(dist, 3) * (x - xo);
 		ay -= constants::G * mass / std::pow(dist, 3) * (y - yo);
 	    }

@@ -39,7 +39,7 @@ void DerivMotionRK5(double *q_init, double *masses, double *deriv,
 	for (unsigned int nother = 0; nother < number_of_planets; nother++) {
 	    if (nother != npl) {
 		dist =
-		    sqrt(pow2(x[npl] - x[nother]) + pow2(y[npl] - y[nother]));
+			sqrt(std::pow(x[npl] - x[nother], 2) + std::pow(y[npl] - y[nother], 2));
 		ax += -constants::G * masses[nother] / std::pow(dist, 3) *
 		      (x[npl] - x[nother]);
 		ay += -constants::G * masses[nother] / std::pow(dist, 3) *

@@ -22,6 +22,7 @@
 #include <vector>
 #include "find_cell_id.h"
 #include "mpi_utils.h"
+#include <cstring>
 
 extern Pair IndirectTerm;
 
@@ -194,9 +195,9 @@ static double get_particle_eccentricity_polar(int particle_index)
 particles[i].mass; const double reduced_mass =
 hydro_center_mass*particles[i].mass / (hydro_center_mass + particles[i].mass);
 	const double A_r = reduced_mass * std::pow(particles[i].r, 3) *
-pow2(particles[i].phi_dot) - kappa; const double A_phi = reduced_mass *
-pow2(particles[i].r) * particles[i].r_dot * particles[i].phi_dot; const double A
-= sqrt(A_r*A_r + A_phi*A_phi); const double eccentricity = A / kappa;
+std::pow(particles[i].phi_dot, 2) - kappa; const double A_phi = reduced_mass *
+std::pow(particles[i].r, 2) * particles[i].r_dot * particles[i].phi_dot; const double A
+= std::sqrt(A_r*A_r + A_phi*A_phi); const double eccentricity = A / kappa;
 
 	return eccentricity;
 }
@@ -212,7 +213,7 @@ static double get_particle_eccentricity_cart(int particle_index)
 	   const double x = particles[i].r;
 	   const double y = particles[i].phi;
 
-	   const double d = sqrt(x*x + y*y);
+	   const double d = std::sqrt(x*x + y*y);
 
 	   const double vx = particles[i].r_dot;
 	   const double vy = particles[i].phi_dot;
@@ -760,8 +761,8 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	double r2 = pow2(planet.get_x() - x) + pow2(planet.get_y() - y);
-	const double r = sqrt(r2);
+	double r2 = std::pow(planet.get_x() - x, 2) + std::pow(planet.get_y() - y, 2);
+	const double r = std::sqrt(r2);
 	r2 += epsilon_sq;
 	const double factor = constants::G * planet.get_mass() / (r * r2);
 
@@ -959,10 +960,10 @@ static void calculate_tstop(const double r, const double phi,
 
     minus_l_rel = r * vrel_phi;
 
-    const double vrel = sqrt(pow2(minus_r_dotel_r) + pow2(vrel_phi));
+	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-    double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+	double sigma = (M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2));
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1037,18 +1038,18 @@ static void calculate_tstop2(const double r, const double phi,
 	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
-	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
+	std::sqrt(8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
 
     // calculate relative velocities
     minus_r_dotel_r = vg_radial - r_dot;
     const double vrel_phi = vg_azimuthal - phi_dot * r0;
 
-    const double vrel = sqrt(pow2(minus_r_dotel_r) + pow2(vrel_phi));
+	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
     minus_l_rel = r * vg_azimuthal - l0;
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-    double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+	double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1138,17 +1139,17 @@ void check_tstop(t_data &data)
 		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
 	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
-	const double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
+	const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				     temperature / (M_PI * m0));
 
 	// calculate relative velocities
 	double minus_r_dotel_r = vg_radial - r_dot;
 	const double vrel_phi = vg_azimuthal - phi_dot * r;
 
-	const double vrel = sqrt(pow2(minus_r_dotel_r) + pow2(vrel_phi));
+	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+	double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1275,9 +1276,9 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 
 	// calculate gas velocities in cartesian coordinates
 	double vg_x =
-		cos(phi) * vg_radial - sin(phi) * vg_azimuthal;
+		std::cos(phi) * vg_radial - std::sin(phi) * vg_azimuthal;
 	double vg_y =
-		sin(phi) * vg_radial + cos(phi) * vg_azimuthal;
+		std::sin(phi) * vg_radial + std::cos(phi) * vg_azimuthal;
 
 	// particles store cartesian data
 	double &vx = particles[i].r_dot;
@@ -1286,13 +1287,13 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	// calculate relative velocities
 	double vrel_x = vx - vg_x;
 	double vrel_y = vy - vg_y;
-	double vrel = sqrt(pow2(vrel_x) + pow2(vrel_y));
+	double vrel = std::sqrt(std::pow(vrel_x, 2) + std::pow(vrel_y, 2));
 
 	double m0 = parameters::MU * constants::m_u.get_code_value();
-	double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
+	double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 			       temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+	double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1303,13 +1304,13 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	if (reynolds < 1.0) {
 	    Cd = 24.0 / reynolds;
 	} else if (reynolds < 800.0) {
-	    Cd = 24.0 * pow(reynolds, -0.6);
+		Cd = 24.0 * std::pow(reynolds, -0.6);
 	} else {
 	    Cd = 0.44;
 	}
 
 	double fdrag_temp =
-	    -0.5 * Cd * M_PI * pow2(particles[i].radius) * rho * vrel;
+		-0.5 * Cd * M_PI * std::pow(particles[i].radius, 2) * rho * vrel;
 	double fdrag_x = fdrag_temp * vrel_x;
 	double fdrag_y = fdrag_temp * vrel_y;
 
@@ -1375,14 +1376,14 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	const double vrel_r = particles[i].r_dot - vg_radial;
 	const double vrel_phi =
 		r * particles[i].phi_dot - vg_azimuthal;
-	const double vrel = sqrt(pow2(vrel_r) + pow2(vrel_phi));
+	const double vrel = std::sqrt(std::pow(vrel_r, 2) + std::pow(vrel_phi, 2));
 
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
-	const double vthermal = sqrt(8.0 * constants::k_B.get_code_value() *
+	const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				     temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
 	const double sigma =
-	    (M_PI * pow2(1.5e-8 / units::length.get_cgs_factor()));
+		M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
 	const double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1393,12 +1394,12 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	if (reynolds < 1.0) {
 	    Cd = 24.0 / reynolds;
 	} else if (reynolds < 800.0) {
-	    Cd = 24.0 * pow(reynolds, -0.6);
+		Cd = 24.0 * std::pow(reynolds, -0.6);
 	} else {
 	    Cd = 0.44;
 	}
 
-	const double fdrag_temp = -0.5 * Cd * M_PI * pow2(particles[i].radius) *
+	const double fdrag_temp = -0.5 * Cd * M_PI * std::pow(particles[i].radius, 2) *
 				  rho * vrel / particles[i].mass;
 
 	const double fdrag_r = dt * fdrag_temp * vrel_r;
@@ -1533,10 +1534,8 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 		   all_particles, number_of_particles, particle_offsets,
 		   mpi_particle, MPI_COMM_WORLD);
 
-    for (unsigned int i = 0; i < global_number_of_particles; ++i) {
-	force_x[i] = 0;
-	force_y[i] = 0;
-    }
+	std::memset(force_x, 0, sizeof(*force_x)*global_number_of_particles);
+	std::memset(force_y, 0, sizeof(*force_y)*global_number_of_particles);
 
     double dphi = 2.0 * M_PI / (double)data[t_data::DENSITY].get_size_azimuthal();
     for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
@@ -1557,7 +1556,7 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 		double d_x = cell_x - x;
 		double d_y = cell_y - y;
 		double invdist3 =
-		    pow(pow2(d_x) + pow2(d_y) + pow2(smoothing), -3.0 / 2.0);
+			std::pow(std::pow(d_x, 2) + std::pow(d_y, 2) + std::pow(smoothing, 2), -3.0 / 2.0);
 
 		force_x[i] += constants::G * cell_mass * d_x * invdist3;
 		force_y[i] += constants::G * cell_mass * d_y * invdist3;
@@ -1620,7 +1619,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	const double phi_dot1 = phi_dot0; // follows from  l1 = l0
 
 	const double r1 = r0 + r_dot0 * hfdt;
-	double phi1 = phi0 + 0.5 * (l0 / pow2(r0) + l0 / pow2(r1)) * hfdt;
+	double phi1 = phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * hfdt;
 	check_angle(phi1);
 	// END Half-drift /////////////////////////////////////////////////////////
 
@@ -1628,7 +1627,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	// Kick ///////////////////////////////////////////////////
 	const double r2 = r1;
 	const double phi2 = phi1;
-	double minus_l_rel;
+	double minus_l_rel = 0.0;
 
 	if (parameters::particle_gas_drag_enabled) {
 		calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
@@ -1673,17 +1672,14 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 	// Half-drift
 	const double r3 = r1 + r_dot2 * hfdt;
-	const double phi3 = phi2 + 0.5 * (l2 / pow2(r2) + l2 / pow2(r3)) * hfdt;
+	const double phi3 = phi2 + 0.5 * (l2 / std::pow(r2, 2) + l2 / std::pow(r3, 2)) * hfdt;
 
 	// Update
 	particles[i].r_dot = r_dot2;
 	particles[i].r = r3;
-	// particles[i].phi  = phi1 + 0.5*(phi_dot0 + l2/pow2(particles[i].r)) *
-	// hfdt; particles[i].phi  = phi1 +
-	// 0.5*(l1/pow2(r1)+l2/pow2(particles[i].r)) * hfdt;
 	particles[i].phi = phi3;
 	check_angle(particles[i].phi);
-	particles[i].phi_dot = l2 / pow2(particles[i].r);
+	particles[i].phi_dot = l2 / std::pow(particles[i].r, 2);
 	}
 	move();
 }
@@ -1715,7 +1711,7 @@ void integrate_semiimplicit(t_data &data, const double dt)
 	const double hfdt = 0.5 * dt;
 	double tstop = dt;
 	double dt1 = dt;
-	double vrel_r;
+	double vrel_r = 0.0;
 
 	// Half-drift
 	const double r_dot1 = r_dot0;
@@ -1723,13 +1719,13 @@ void integrate_semiimplicit(t_data &data, const double dt)
 	const double phi_dot1 = phi_dot0; // follows from  l1 = l0
 
 	const double r1 = r0 + r_dot0 * hfdt;
-	double phi1 = phi0 + 0.5 * (l0 / pow2(r0) + l0 / pow2(r1)) * hfdt;
+	double phi1 = phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * hfdt;
 	check_angle(phi1);
 
 	// Kick
 	const double r2 = r1;
 	const double phi2 = phi1;
-	double minus_l_rel;
+	double minus_l_rel = 0.0;
 
 	if (parameters::particle_gas_drag_enabled) {
 	    calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
@@ -1764,16 +1760,13 @@ void integrate_semiimplicit(t_data &data, const double dt)
 
 	// Half-drift
 	const double r3 = r1 + r_dot2 * hfdt;
-	const double phi3 = phi2 + 0.5 * (l2 / pow2(r2) + l2 / pow2(r3)) * hfdt;
+	const double phi3 = phi2 + 0.5 * (l2 / std::pow(r2, 2) + l2 / std::pow(r3, 2)) * hfdt;
 
 	particles[i].r_dot = r_dot2;
 	particles[i].r = r3;
-	// particles[i].phi  = phi1 + 0.5*(phi_dot0 + l2/pow2(particles[i].r)) *
-	// hfdt; particles[i].phi  = phi1 +
-	// 0.5*(l1/pow2(r1)+l2/pow2(particles[i].r)) * hfdt;
 	particles[i].phi = phi3;
 	check_angle(particles[i].phi);
-	particles[i].phi_dot = l2 / pow2(particles[i].r);
+	particles[i].phi_dot = l2 / std::pow(particles[i].r, 2);
     }
     move();
 }
@@ -1811,7 +1804,7 @@ void integrate_implicit(t_data &data, const double dt)
 
 	// Half-drift
 	r1 = r0 + r_dot0 * dt;
-	phi1 = phi0 + 0.5 * (l0 / pow2(r0) + l0 / pow2(r1)) * dt;
+	phi1 = phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * dt;
 	check_angle(phi1);
 
 	// Kick
@@ -1855,7 +1848,7 @@ void integrate_implicit(t_data &data, const double dt)
 
 	r_dot1 = r_dot0;
 	r_dot1 += (r_ddot0 + r_ddot1 * dt0) * dt1;
-	r_dot1 += (pow2(l0) / std::pow(r0, 3) + pow2(l1) / std::pow(r1, 3) * dt0) * dt1;
+	r_dot1 += (std::pow(l0, 2) / std::pow(r0, 3) + std::pow(l1, 2) / std::pow(r1, 3) * dt0) * dt1;
 	if (parameters::particle_gas_drag_enabled) {
 	    r_dot1 +=
 		(minus_r_dot_rel0 / tstop0 + minus_r_dot_rel1 / tstop1 * dt0) *
@@ -1864,12 +1857,12 @@ void integrate_implicit(t_data &data, const double dt)
 
 	// Half-drift
 	const double r2 = r0 + (r_dot0 + r_dot1) * hfdt;
-	const double phi2 = phi0 + (l0 / pow2(r0) + l1 / pow2(r2)) * hfdt;
+	const double phi2 = phi0 + (l0 / std::pow(r0, 2) + l1 / std::pow(r2, 2)) * hfdt;
 	particles[i].r_dot = r_dot1;
 	particles[i].r = r2;
 	particles[i].phi = phi2;
 	check_angle(particles[i].phi);
-	particles[i].phi_dot = l1 / pow2(particles[i].r);
+	particles[i].phi_dot = l1 / std::pow(particles[i].r, 2);
     }
 
     move();
@@ -2443,8 +2436,8 @@ void move(void)
 	return;
 
     // check if particles are still on correct node
-    double local_r_min_squared = pow2(local_r_min);
-    double local_r_max_squared = pow2(local_r_max);
+	double local_r_min_squared = std::pow(local_r_min, 2);
+	double local_r_max_squared = std::pow(local_r_max, 2);
 
     // move particles inwards starting from the outer most node
 

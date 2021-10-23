@@ -319,9 +319,9 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMIN);
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
-	    double factor = pow2(
+		double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
-		(RMIN - RMIN * parameters::damping_inner_limit));
+		(RMIN - RMIN * parameters::damping_inner_limit), 2);
 	    double exp_factor = exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
@@ -373,9 +373,9 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 
 	for (unsigned int n_radial = limit;
 	     n_radial <= quantity.get_max_radial(); ++n_radial) {
-	    double factor = pow2(
+		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-		(RMAX - RMAX * parameters::damping_outer_limit));
+		(RMAX - RMAX * parameters::damping_outer_limit), 2);
 	    double exp_factor = exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
@@ -424,9 +424,9 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMIN);
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
-	    double factor = pow2(
+		double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
-		(RMIN - RMIN * parameters::damping_inner_limit));
+		(RMIN - RMIN * parameters::damping_inner_limit), 2);
 	    double exp_factor = exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
@@ -478,9 +478,9 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 
 	for (unsigned int n_radial = limit;
 	     n_radial <= quantity.get_max_radial(); ++n_radial) {
-	    double factor = pow2(
+		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-		(RMAX - RMAX * parameters::damping_outer_limit));
+		(RMAX - RMAX * parameters::damping_outer_limit), 2);
 	    double exp_factor = exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
@@ -540,9 +540,9 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
-	    double factor = pow2(
+		double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
-		(RMIN - RMIN * parameters::damping_inner_limit));
+		(RMIN - RMIN * parameters::damping_inner_limit), 2);
 	    double exp_factor = exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
@@ -604,9 +604,9 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 
 	for (unsigned int n_radial = limit;
 	     n_radial <= quantity.get_max_radial(); ++n_radial) {
-	    double factor = pow2(
+		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-		(RMAX - RMAX * parameters::damping_outer_limit));
+		(RMAX - RMAX * parameters::damping_outer_limit), 2);
 	    double exp_factor = exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
@@ -699,7 +699,7 @@ void mass_overflow(t_data &data)
 
 	// adapt gauss profile
 	weight_factor = 1.0 / (sigmabar * sqrt(2.0 * M_PI)) *
-			exp(-1.0 / 2.0 * pow2(i / sigmabar));
+			std::exp(-1.0 / 2.0 * std::pow((double)i / sigmabar, 2));
 	check += weight_factor;
 	mass_stream = weight_factor * parameters::mof_value / 2.0 / M_PI * DT;
 
@@ -922,17 +922,17 @@ void keplerian2d_boundary_inner(t_data &data)
 	 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	 ++n_azimuthal) {
 	data[t_data::DENSITY](1, n_azimuthal) =
-	    parameters::sigma0 * pow(Rmed[1], -SIGMASLOPE);
+		parameters::sigma0 * std::pow(Rmed[1], -SIGMASLOPE);
 	data[t_data::DENSITY](0, n_azimuthal) =
-	    parameters::sigma0 * pow(Rmed[0], -SIGMASLOPE);
+		parameters::sigma0 * std::pow(Rmed[0], -SIGMASLOPE);
 	data[t_data::ENERGY](1, n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    pow2(ASPECTRATIO_REF) *
-	    pow(Rmed[1], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+		std::pow(ASPECTRATIO_REF, 2) *
+		std::pow(Rmed[1], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::ENERGY](0, n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    pow2(ASPECTRATIO_REF) *
-	    pow(Rmed[0], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+		std::pow(ASPECTRATIO_REF, 2) *
+	    std::pow(Rmed[0], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::TEMPERATURE](1, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal) /
 	    data[t_data::DENSITY](1, n_azimuthal) * (ADIABATICINDEX - 1.0) *
@@ -959,22 +959,22 @@ void keplerian2d_boundary_outer(t_data &data)
 	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
 			      n_azimuthal) =
 	    parameters::sigma0 *
-	    pow(Rmed[data[t_data::DENSITY].get_max_radial()], -SIGMASLOPE);
+		std::pow(Rmed[data[t_data::DENSITY].get_max_radial()], -SIGMASLOPE);
 	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
 			      n_azimuthal) =
 	    parameters::sigma0 *
-	    pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1], -SIGMASLOPE);
+		std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1], -SIGMASLOPE);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    pow2(ASPECTRATIO_REF) *
-	    pow(Rmed[data[t_data::DENSITY].get_max_radial()],
+		std::pow(ASPECTRATIO_REF, 2) *
+		std::pow(Rmed[data[t_data::DENSITY].get_max_radial()],
 		-SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 			     n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    pow2(ASPECTRATIO_REF) *
-	    pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1],
+		std::pow(ASPECTRATIO_REF, 2) *
+		std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1],
 		-SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::TEMPERATURE](data[t_data::TEMPERATURE].get_max_radial(),
 				  n_azimuthal) =
