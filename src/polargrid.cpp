@@ -271,10 +271,10 @@ void t_polargrid::write1D(unsigned int number) const
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= get_max_azimuthal(); ++n_azimuthal) {
 		buffer[number_of_values * n_radial + 2] =
-		    min(buffer[number_of_values * n_radial + 2],
+			std::min(buffer[number_of_values * n_radial + 2],
 			operator()(from + n_radial, n_azimuthal));
 		buffer[number_of_values * n_radial + 3] =
-		    max(buffer[number_of_values * n_radial + 3],
+			std::max(buffer[number_of_values * n_radial + 3],
 			operator()(from + n_radial, n_azimuthal));
 	    }
 	}

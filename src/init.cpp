@@ -573,7 +573,7 @@ void init_gas_density(t_data &data)
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
-		    max(density, density_floor);
+			std::max(density, density_floor);
 	    }
 	}
 	break;
@@ -684,7 +684,7 @@ void init_gas_density(t_data &data)
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
-		    max(density_damped, density_floor);
+			std::max(density_damped, density_floor);
 	    }
 	}
     }
@@ -710,7 +710,7 @@ void init_gas_density(t_data &data)
 		const double density_floor =
 			parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
-			max(density_damped, density_floor);
+			std::max(density_damped, density_floor);
 		}
 	}
 	}
@@ -796,7 +796,7 @@ void init_gas_energy(t_data &data)
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
-		    max(energy, energy_floor);
+			std::max(energy, energy_floor);
 	    }
 	}
 	break;
@@ -845,7 +845,7 @@ void init_gas_energy(t_data &data)
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
-		    max(energy_damped, energy_floor);
+			std::max(energy_damped, energy_floor);
 	    }
 	}
     }
@@ -877,7 +877,7 @@ void init_gas_energy(t_data &data)
 			parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
-			max(energy_damped, energy_floor);
+			std::max(energy_damped, energy_floor);
 		}
 	}
 	}

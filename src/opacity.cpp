@@ -130,8 +130,8 @@ double lin(double density, double temperature)
 	    double o4 = bk4 * density23 / (ts48 * ts4);
 	    double o5 = bk5 * density23 * ts42 * ts4;
 	    /* parameters used for smoothing */
-	    double o4an = pow4(o4);
-	    double o3an = pow4(o3);
+		double o4an = std::pow(o4, 4);
+		double o3an = std::pow(o3, 4);
 
 	    /* smoothed and continuous opacity law for regions 3, 4, and 5 */
 	    return pow((o4an * o3an / (o4an + o3an)) +

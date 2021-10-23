@@ -15,12 +15,6 @@ template <typename T> inline T pow2(T x) { return x * x; }
 
 template <typename T> inline T pow3(T x) { return x * x * x; }
 
-template <typename T> inline T pow4(T x) { return x * x * x * x; }
-
-template <typename T> inline T min(T x, T y) { return x < y ? x : y; }
-
-template <typename T> inline T max(T x, T y) { return x > y ? x : y; }
-
 double cutoff_outer(double point, double width, double x);
 double cutoff_inner(double point, double width, double x);
 bool is_big_endian(void);

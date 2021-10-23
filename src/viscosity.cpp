@@ -218,7 +218,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		    nu_art =
 			parameters::artificial_viscosity_factor *
 			data[t_data::DENSITY](n_radial, n_azimuthal) *
-			pow2(min(
+			pow2(std::min(
 			    Rsup[n_radial] - Rinf[n_radial],
 				Rmed[n_radial] * 2 * M_PI /
 				data[t_data::DENSITY].get_size_azimuthal())) *
@@ -610,7 +610,7 @@ static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2, const i
 		nu_art =
 		parameters::artificial_viscosity_factor *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		pow2(min(
+		pow2(std::min(
 			Rsup[n_radial] - Rinf[n_radial],
 			Rmed[n_radial] * 2 * M_PI /
 			data[t_data::DENSITY].get_size_azimuthal())) *
@@ -766,7 +766,7 @@ static void get_r_pp(t_data &data, double &tau_pp_1, double &tau_pp_2, const int
 		nu_art =
 		parameters::artificial_viscosity_factor *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		pow2(min(
+		pow2(std::min(
 			Rsup[n_radial] - Rinf[n_radial],
 			Rmed[n_radial] * 2 * M_PI /
 			data[t_data::DENSITY].get_size_azimuthal())) *
@@ -1007,7 +1007,7 @@ static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2, const i
 		nu_art =
 		parameters::artificial_viscosity_factor *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		pow2(min(
+		pow2(std::min(
 			Rsup[n_radial] - Rinf[n_radial],
 			Rmed[n_radial] * 2 * M_PI /
 			data[t_data::DENSITY].get_size_azimuthal())) *

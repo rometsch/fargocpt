@@ -992,7 +992,7 @@ void calculate_qplus(t_data &data)
 		    // parameters::heating_star_factor L_star = 4 pi R_star^2
 		    // sigma_sb T_star^4
 		    double qplus = 2 * (1 - eps); // 2*(1-eps)
-		    qplus *= sigma * pow4(T_star) *
+			qplus *= sigma * std::pow(T_star, 4) *
 			     pow2(R_star / distance); // *L_star/(4 pi r^2)
 		    qplus *= dlogH_dlogr - 1;	      // *(dlogH/dlogr - 1)
 		    qplus *= HoverR;		      // * H/r
@@ -1152,7 +1152,7 @@ void calculate_qplus(t_data &data)
 		    double qplus =
 			ramping * visibility * parameters::heating_star_factor *
 			2.0 * alpha * constants::sigma.get_code_value() *
-			pow4(parameters::star_temperature) *
+			std::pow(parameters::star_temperature, 4) *
 			pow2(parameters::star_radius / Rmed[n_radial]);
 
 		    data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
@@ -1272,7 +1272,7 @@ void calculate_qminus(t_data &data)
 
 		const double factor = parameters::cooling_radiative_factor;
 		const double sigma_sb = constants::sigma.get_code_value();
-		const double T4 = pow4(data[t_data::TEMPERATURE](n_radial, n_azimuthal));
+		const double T4 = std::pow(data[t_data::TEMPERATURE](n_radial, n_azimuthal), 4);
 		const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
 
 		const double qminus = factor * 2 * sigma_sb * T4 / tau_eff;
@@ -1377,7 +1377,7 @@ void SubStep3(t_data &data, double dt)
 		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
 		const double divV = data[t_data::DIV_V](n_radial, n_azimuthal);
 
-	    const double inv_pow4 = pow4( mu * (gamma - 1.0) / (Rgas * sigma));
+		const double inv_pow4 = std::pow( mu * (gamma - 1.0) / (Rgas * sigma), 4);
 	    double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * pow3(eint);
 
 	    num = dt * qplus - dt * qminus + alpha * eint;
@@ -1968,7 +1968,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	    // sound speed limit
 	    invdt1 = soundspeed(n_radial, n_azimuthal) /
-		     (min(dxRadial, dxAzimuthal));
+			 (std::min(dxRadial, dxAzimuthal));
 
 	    // radial motion limit
 	    invdt2 = fabs(v_radial(n_radial, n_azimuthal)) / dxRadial;
@@ -1993,7 +1993,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		}
 
 		invdt4 = 4.0 * pow2(parameters::artificial_viscosity_factor) *
-			 max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal);
+			 std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal);
 	    } else {
 		invdt4 = 0.0;
 	    }
@@ -2001,7 +2001,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	    // kinematic viscosity limit
 	    // TODO: Factor 4 on errors!
 	    invdt5 = 4.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-		     max(1 / pow2(dxRadial), 1 / pow2(dxAzimuthal));
+			 std::max(1 / pow2(dxRadial), 1 / pow2(dxAzimuthal));
 
 		if (EXPLICIT_VISCOSITY) {
 		// calculate new dt based on different limits
@@ -2011,14 +2011,14 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		} else {
 		// viscous timestep
 		dt_parabolic_local =
-			min(dt_parabolic_local,
+			std::min(dt_parabolic_local,
 			parameters::CFL / sqrt(pow2(invdt4) + pow2(invdt5)));
 
 		// calculate new dt based on different limits
 		dtLocal = parameters::CFL /
 			  sqrt(pow2(invdt1) + pow2(invdt2) + pow2(invdt3));
 
-		dtLocal = min(dtLocal, 3.0 * dt_parabolic_local);
+		dtLocal = std::min(dtLocal, 3.0 * dt_parabolic_local);
 		}
 
 		if(StabilizeViscosity == 2){
@@ -2113,7 +2113,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
     }
 
-    return max(deltaT / dtGlobal, 1.0);
+	return std::max(deltaT / dtGlobal, 1.0);
 }
 
 /**
