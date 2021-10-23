@@ -293,23 +293,22 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 
 		const double cr_rp = -(NuSig_rp_jp + NuSig_rp) / (dphi*dphi * Ra[n_radial]);
 
-		double cr_pp_1 = 2.0*NuSigma * (0.5*InvRmed[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
-		double cr_pp_2 = 2.0*NuSigma_im * (0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]));
+		double cr_pp_1 = 2.0*NuSigma * (0.5*InvRmed[n_radial] + 1.0/3.0 * Ra[n_radial]*InvDiffRsupRb[n_radial]);
+		double cr_pp_2 = 2.0*NuSigma_im * (0.5*InvRmed[n_radial-1] - 1.0/3.0 * Ra[n_radial]*InvDiffRsupRb[n_radial-1]);
 
-		double cr_rr_1 = Rmed[n_radial] * 2.0 * NuSigma * (-InvDiffRsup[n_radial] + 1.0/3.0 * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]));
-		double cr_rr_2 = Rmed[n_radial-1] * (-2.0 * NuSigma_im * (InvDiffRsup[n_radial-1] - 1.0/3.0 * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1])));
+		double cr_rr_1 = Rmed[n_radial] * 2.0 * NuSigma * (-InvDiffRsup[n_radial] + 1.0/3.0 * Ra[n_radial]*InvDiffRsupRb[n_radial]);
+		double cr_rr_2 = -1.0 * Rmed[n_radial-1] * 2.0 * NuSigma_im * (InvDiffRsup[n_radial-1] - 1.0/3.0 * Ra[n_radial]*InvDiffRsupRb[n_radial-1]);
 
 		if(include_artifical_viscosity){
 		const double NuArt = data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal);
 		const double NuArt_im = data[t_data::ARTIFICIAL_VISCOSITY](n_radial-1, n_azimuthal);
 
-		cr_pp_1 -= NuArt * Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]);
-		cr_pp_2 += NuArt_im * Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]);
+		cr_pp_1 -= NuArt * Ra[n_radial]*InvDiffRsupRb[n_radial];
+		cr_pp_2 += NuArt_im * Ra[n_radial]*InvDiffRsupRb[n_radial-1];
 
-		cr_rr_1 -= Rmed[n_radial] * NuArt*Ra[n_radial]/((Ra[n_radial+1] - Ra[n_radial])*Rmed[n_radial]);
-		cr_rr_2 -= Rmed[n_radial-1] * NuArt_im*Ra[n_radial]/((Ra[n_radial] - Ra[n_radial-1])*Rmed[n_radial-1]);
+		cr_rr_1 -= NuArt*Ra[n_radial]*InvDiffRsup[n_radial];
+		cr_rr_2 -= NuArt_im*Ra[n_radial]*InvDiffRsup[n_radial-1];
 		}
-
 
 		const double cr_pp = -0.5*(cr_pp_1 + cr_pp_2);
 		const double cr_rr = InvDiffRmed[n_radial] * (cr_rr_1 + cr_rr_2);
@@ -1227,7 +1226,7 @@ void debug_function_viscous_terms(t_data &data, bool include_artifical_viscosity
 
 		/// test passed
 		//if(n_radial == 50 && n_azimuthal == 0)
-		//printf("calc cr_rr = %.12e		%.12e	%.12e\n", Rmed[n_radial] * TAU_RR_1 * InvDiffRmed[n_radial], - Rmed[n_radial - 1] * TAU_RR_im_1 * InvDiffRmed[n_radial], (Rmed[n_radial] * TAU_RR_1 - Rmed[n_radial - 1] * TAU_RR_im_1) *
+		//printf("calc cr_rr = %.12e	%.12e	%.12e\n", Rmed[n_radial] * TAU_RR_1 * InvDiffRmed[n_radial], - Rmed[n_radial - 1] * TAU_RR_im_1 * InvDiffRmed[n_radial], (Rmed[n_radial] * TAU_RR_1 - Rmed[n_radial - 1] * TAU_RR_im_1) *
 		//		InvDiffRmed[n_radial]);
 
 		const double crr = dt*(vr*crr_r1 + crr_r2);
