@@ -103,7 +103,7 @@ static void transform_cart_to_cyl(const double * const cart, double * const cyl,
     cyl[1] += cart[1] * cos(phi);
 }
 
-void find_nearest(unsigned int &n_radial_a_minus,
+static void find_nearest(unsigned int &n_radial_a_minus,
 		  unsigned int &n_radial_a_plus,
 		  unsigned int &n_azimuthal_a_minus,
 		  unsigned int &n_azimuthal_a_plus,
@@ -123,7 +123,6 @@ void find_nearest(unsigned int &n_radial_a_minus,
 
 	n_azimuthal_b_minus = clamp_phi_id_to_grid(get_med_azimuthal_id(phi));
 	n_azimuthal_b_plus = get_next_azimuthal_id(n_azimuthal_b_minus);
-
 
 }
 
@@ -811,7 +810,7 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
     }
 }
 
-void calculate_derivitives_from_star_and_planets_in_cart(
+static void calculate_derivitives_from_star_and_planets_in_cart(
     double &grav_r_ddot, double &minus_grav_l_dot, const double r,
     const double phi, t_data &data)
 {
@@ -1205,7 +1204,7 @@ void check_tstop(t_data &data)
 }
 
 // apply disk feedback on primary onto the particles
-void update_velocities_from_indirect_term(const double dt)
+static void update_velocities_from_indirect_term(const double dt)
 {
     // Naming of r and phi weird!!!!!!!
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {

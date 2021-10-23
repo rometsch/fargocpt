@@ -36,7 +36,7 @@ int OuterSourceMass, CICPlanet;
 #include <sys/stat.h>
 
 // used for calling python script needed for getting the polytropic constants
-std::string exec(const char *cmd)
+static std::string exec(const char *cmd)
 {
     std::array<char, 128> buffer;
     std::string result;
@@ -50,7 +50,7 @@ std::string exec(const char *cmd)
     return result;
 }
 
-void get_polytropic_constants(char *filename, double &K, double &gamma)
+static void get_polytropic_constants(char *filename, double &K, double &gamma)
 {
     char command[1024];
     strcpy(command, "python Tools/get_polytropic_constants.py ");
@@ -66,7 +66,7 @@ void get_polytropic_constants(char *filename, double &K, double &gamma)
     ss >> gamma;
 }
 
-std::string getFileName(const std::string &s)
+static std::string getFileName(const std::string &s)
 {
 
     char sep = '/';

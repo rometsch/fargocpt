@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include "util.h"
 
 namespace start_mode
 {
@@ -15,7 +16,7 @@ namespace start_mode
 StartMode mode = mode_none;
 std::int32_t restart_from = -1;
 
-std::string &rtrim(std::string &str, const std::string &chars = "\t\n\v\f\r ")
+static std::string &rtrim(std::string &str, const std::string &chars = "\t\n\v\f\r ")
 {
     str.erase(str.find_last_not_of(chars) + 1);
     return str;
@@ -73,22 +74,13 @@ void configure_start_mode()
 	MPI_Bcast(&mode, 1, MPI_UINT32_T, 0, MPI_COMM_WORLD);
 }
 
-std::string get_last_line(std::ifstream &in)
+static std::string get_last_line(std::ifstream &in)
 {
     std::string line;
     while (in >> std::ws && std::getline(in, line))
 	;
 
     return line;
-}
-
-bool is_number(std::string s)
-{
-    for (std::uint32_t i = 0; i < s.length(); i++)
-	if (isdigit(s[i]) == false)
-	    return false;
-
-    return true;
 }
 
 std::int32_t get_latest_output_num()

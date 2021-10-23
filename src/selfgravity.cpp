@@ -109,7 +109,7 @@ void mpi_finalize(void)
  * constants or Baruteau, 2008 for info on the self gravity module.
  * @param data
  */
-void update_kernel(t_data &data)
+static void update_kernel(t_data &data)
 {
     // only update every 10th timestep
     constexpr int update_every_nth_step = 10;

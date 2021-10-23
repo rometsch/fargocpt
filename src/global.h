@@ -44,9 +44,6 @@ extern unsigned int One_or_active;
 extern unsigned int MaxMO_or_active; /* MO: Minus One */
 extern unsigned int GlobalNRadial;
 
-void sum_without_ghost_cells(double &accumulator, const double &addend,
-			     const unsigned int &n_radial);
-
 extern int *RootNradialLocalSizes;    // Needed for MPI_Gatherv
 extern int *RootNradialDisplacements; // Needed for MPI_Gatherv
 extern int *RootIMAX;

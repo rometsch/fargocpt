@@ -489,7 +489,7 @@ std::string get_version(std::string filename)
     return "1";
 }
 
-std::string unit_descriptor(double value, std::string unit)
+static std::string unit_descriptor(double value, std::string unit)
 {
     // produce a string containing the pair of value and unit as
     // a string such as '1.7823468234...e16 g'

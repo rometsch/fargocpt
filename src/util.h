@@ -1,6 +1,16 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <string>
+
+bool is_number(std::string s);
+
+unsigned int get_next_azimuthal_id(const unsigned int id);
+unsigned int get_prev_azimuthal_id(const unsigned int id);
+
+void sum_without_ghost_cells(double &accumulator, const double &addend,
+				 const unsigned int &n_radial);
+
 template <typename T> inline T pow2(T x) { return x * x; }
 
 template <typename T> inline T pow3(T x) { return x * x * x; }

@@ -187,7 +187,7 @@ void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
     }
 }
 
-t_DampingType write_damping_type(t_damping_type type_inner,
+static t_DampingType write_damping_type(t_damping_type type_inner,
 				 t_damping_type type_outer,
 				 t_data::t_polargrid_type quantity,
 				 t_data::t_polargrid_type quantity0,

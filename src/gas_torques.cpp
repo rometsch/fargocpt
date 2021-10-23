@@ -2,35 +2,11 @@
 #include "data.h"
 #include "global.h"
 #include "constants.h"
-
+#include "util.h"
 #include <cmath>
 
 namespace gas_torques
 {
-
-
-unsigned int get_next_azimuthal_id(const unsigned int id)
-{
-	unsigned int id_next = id + 1;
-	if(id_next == NAzimuthal) {
-		return 0;
-	}
-	else{
-		return id_next;
-	}
-}
-
-unsigned int get_prev_azimuthal_id(const unsigned int id)
-{
-	if(id == 0){
-		return  NAzimuthal -1;
-	}
-	else{
-		return id - 1;
-	}
-}
-
-
 
 void calculate_advection_torque(t_data &data, const double dt)
 {

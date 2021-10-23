@@ -23,6 +23,7 @@ velocity in each zone by a proper averaging).
 #include "global.h"
 #include "macros.h"
 #include "parameters.h"
+#include "util.h"
 
 // radial momentum is split to be cell centered
 static t_polargrid radial_momentum_plus;
