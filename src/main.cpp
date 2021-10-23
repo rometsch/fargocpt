@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
 	PersonalExit(1);
     }
 
+	boundary_conditions::init_prescribed_time_variable_boundaries(data);
     init_physics(data);
 
 	// update planet velocity due to disk potential
@@ -307,6 +308,7 @@ int main(int argc, char *argv[])
 	DeallocateBoundaryCommunicationBuffers();
 	free(OUTPUTDIR);
 	free(PLANETCONFIG);
+	free(PRESCRIBED_BOUNDARY_OUTER_FILE);
 	delete[] options::parameter_file;
     FreeEuler();
 

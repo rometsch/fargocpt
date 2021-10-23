@@ -146,6 +146,9 @@ int OverridesOutputdir;
 char *OUTPUTDIR;
 char *PLANETCONFIG;
 
+char *PRESCRIBED_BOUNDARY_OUTER_FILE;
+int PRESCRIBED_TIME_SEGMENT_NUMBER;
+
 double dphi;
 double invdphi;
 double DT;

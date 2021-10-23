@@ -88,7 +88,7 @@ void init_radialarrays()
 	case parameters::logarithmic_spacing:
 		{
 		cell_growth_factor = std::pow((RMAX/RMIN), 1.0/((double)GlobalNRadial-2.0));
-	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
+		for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
 
 		Radii[nRadial] = RMIN * std::pow(cell_growth_factor, (double)nRadial-1.0);
 		}
@@ -98,7 +98,7 @@ void init_radialarrays()
 		{
 		cell_growth_factor = ((double)GlobalNRadial - 2.0) / (RMAX-RMIN);
 		const double interval = (RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
-	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
+		for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
 		Radii[nRadial] = RMIN + interval * (double)(nRadial - 1.0);
 	    }
 	    break;
@@ -118,7 +118,7 @@ void init_radialarrays()
 					(Nr * std::pow(exp_growth_factor, Nr-1.0) - f);
 		}
 		cell_growth_factor = exp_growth_factor;
-	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
+		for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
 			Radii[nRadial] = RMIN + first_cell_size * (std::pow(exp_growth_factor, (double)nRadial-1.0) - 1.0) / (exp_growth_factor-1.0);
 	    }
 	    break;
@@ -148,10 +148,11 @@ void init_radialarrays()
 	init_cell_finder(cell_growth_factor, first_cell_size);
 
     /* if input file is open, close it */
-    if (fd_input != NULL)
+	if (fd_input != NULL){
 	fclose(fd_input);
+	}
 
-    for (nRadial = 0; nRadial < GlobalNRadial; ++nRadial) {
+	for (nRadial = 0; nRadial < GlobalNRadial + 1; ++nRadial) {
 	// Rmed is in the center of the cell where the center of mass is
 	// Rmed = 1/2 * [ (4/3 Pi r_sup^3) - (4/3 Pi r_inf^3) ] / [ (Pi r_sup^2)
 	// - (Pi r_inf^2) ]
@@ -170,7 +171,7 @@ void init_radialarrays()
 	parameters::radial_grid_names[parameters::radial_grid_type], Radii[1],
 	Radii[GlobalNRadial - 1], Radii[0], Radii[GlobalNRadial]);
 
-    for (nRadial = 0; nRadial < NRadial; ++nRadial) {
+	for (nRadial = 0; nRadial < NRadial + 1; ++nRadial) {
 	Rinf[nRadial] = Radii[nRadial + IMIN];
 	Rsup[nRadial] = Radii[nRadial + IMIN + 1];
 
@@ -199,7 +200,7 @@ void init_radialarrays()
     Rinf[NRadial] = Radii[NRadial + IMIN];
     InvRinf[NRadial] = 1.0 / Rinf[NRadial];
 
-    for (nRadial = 1; nRadial < NRadial; ++nRadial) {
+	for (nRadial = 1; nRadial < NRadial + 1; ++nRadial) {
 	InvDiffRmed[nRadial] = 1.0 / (Rmed[nRadial] - Rmed[nRadial - 1]);
     }
 

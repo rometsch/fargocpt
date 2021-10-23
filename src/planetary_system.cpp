@@ -247,10 +247,10 @@ void t_planetary_system::read_from_file(char *filename)
 
 void t_planetary_system::list_planets()
 {
-    if (!CPU_Master)
-	return;
+	calculate_orbital_elements();
 
-    calculate_orbital_elements();
+	if (!CPU_Master)
+	return;
 
     if (get_number_of_planets() == 0) {
 	// logging::print(LOG_INFO "Planet overview: No planets specified.\n");

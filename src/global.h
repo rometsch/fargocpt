@@ -90,6 +90,9 @@ extern t_polargrid *CellCenterX, *CellCenterY;
 extern char *OUTPUTDIR;
 extern char *PLANETCONFIG;
 
+extern char *PRESCRIBED_BOUNDARY_OUTER_FILE;
+extern int PRESCRIBED_TIME_SEGMENT_NUMBER;
+
 extern double dphi;
 extern double invdphi;
 extern double DT;

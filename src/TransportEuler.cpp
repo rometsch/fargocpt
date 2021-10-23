@@ -331,7 +331,9 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 	// TODO: check here
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 		(*QStar)(0, nAzimuthal) = 0.0;
+		if(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable){
 		(*QStar)(QStar->get_max_radial(), nAzimuthal) = 0.0;
+		}
     }
 }
 

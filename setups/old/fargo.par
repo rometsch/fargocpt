@@ -99,9 +99,10 @@ RadialViscosityFactor	1 	# Viscosity in radial direction is mutliplied with this
 ### Numerical method parameters
 
 Transport		FARGO
-#InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
+#InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer, PRESCRIBED_TIME_VARIABLE
 InnerBoundary		OPEN
 OuterBoundary		EVANESCENT
+PrescribedBoundaryFileOuter	boundary_data_folder ## Only needed when PRESCRIBED_TIME_VARIABLE is active
 DomegaDrZero		Yes		# Set dOmega/dr = 0 at outer boundary
 Damping			Yes      # NO, YES [default = no]
 DampingInnerLimit	1.10    	# Rmin*Limit

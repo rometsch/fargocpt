@@ -424,6 +424,9 @@ void read(char *filename, t_data &data)
     case 'k':
 	boundary_inner = boundary_condition_keplerian;
 	break;
+	case 'p':
+	boundary_inner = boundary_condition_precribed_time_variable;
+	break;
     default:
 	die("Invalid setting for InnerBoundary: %s",
 	    config::value_as_string_default("InnerBoundary", "Open"));
@@ -452,10 +455,25 @@ void read(char *filename, t_data &data)
     case 'k':
 	boundary_outer = boundary_condition_keplerian;
 	break;
+	case 'p':
+	boundary_outer = boundary_condition_precribed_time_variable;
+	break;
     default:
 	die("Invalid setting for OuterBoundary: %s",
 	    config::value_as_string_default("OuterBoundary", "Open"));
     }
+
+	// check if file for prescribed time variable boundary exists
+	if (config::key_exists("PRESCRIBEDBOUNDARYFILEOUTER")  &&
+	(strlen(config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) > 0)) {
+	if (asprintf(&PRESCRIBED_BOUNDARY_OUTER_FILE, "%s",
+			 config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) < 0) {
+		logging::print_master(LOG_ERROR "Not enough memory!\n");
+	}
+	} else {
+	PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
+	die("Outer precribed time variable boundary condition is enabled but the folder path could not be read!\n");
+	}
 
     domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
 	viscous_outflow_speed = config::value_as_double_default("ViscousOutflowSpeed", 1.0);

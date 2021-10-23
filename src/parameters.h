@@ -29,10 +29,11 @@ enum t_boundary_condition {
     boundary_condition_open,
     boundary_condition_reflecting,
     boundary_condition_nonreflecting,
-    boundary_condition_evanescent,
     boundary_condition_viscous_outflow,
     boundary_condition_boundary_layer,
-    boundary_condition_keplerian
+	boundary_condition_precribed_time_variable,
+	boundary_condition_keplerian,
+	boundary_condition_evanescent
 };
 
 /// type of inner boundary
