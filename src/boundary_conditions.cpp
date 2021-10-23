@@ -60,9 +60,10 @@ void init_prescribed_time_variable_boundaries(t_data &data){
 
 
 	if(CPU_Rank == CPU_Highest){
-	if((PRESCRIBED_BOUNDARY_OUTER_FILE == NULL) && (parameters::boundary_outer == parameters::boundary_condition_precribed_time_variable)){
-		die("Outer precribed time variable boundary condition is enabled but the supplied file folder is not found!\n");
-	} else{
+	if(parameters::boundary_outer == parameters::boundary_condition_precribed_time_variable){
+	if(PRESCRIBED_BOUNDARY_OUTER_FILE == NULL){
+		die("Outer prescribed time variable boundary condition is enabled but the supplied file folder is not found!\n");
+	} else {
 
 
 		// TODO: naming convention might need adjustment
@@ -165,6 +166,7 @@ void init_prescribed_time_variable_boundaries(t_data &data){
 				}
 			}
 		}
+	}
 	}
 	}
 }

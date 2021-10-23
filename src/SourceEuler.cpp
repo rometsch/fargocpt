@@ -499,14 +499,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 		ComputeViscousStressTensor(data);
 
-		if ((parameters::artificial_viscosity ==
-		 parameters::artificial_viscosity_TW) &&
-		(parameters::artificial_viscosity_dissipation)) {
-		viscosity::debug_function_viscous_terms(data, true, dt);
-		} else {
-		viscosity::debug_function_viscous_terms(data, false, dt);
-		}
-
 		SubStep3(data, dt);
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 

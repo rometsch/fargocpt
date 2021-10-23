@@ -464,15 +464,17 @@ void read(char *filename, t_data &data)
     }
 
 	// check if file for prescribed time variable boundary exists
-	if (config::key_exists("PRESCRIBEDBOUNDARYFILEOUTER")  &&
-	(strlen(config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) > 0)) {
+	if (config::key_exists("PRESCRIBEDBOUNDARYFILEOUTER")){
+	if (strlen(config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) > 0) {
 	if (asprintf(&PRESCRIBED_BOUNDARY_OUTER_FILE, "%s",
 			 config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) < 0) {
 		logging::print_master(LOG_ERROR "Not enough memory!\n");
 	}
 	} else {
-	PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
-	die("Outer precribed time variable boundary condition is enabled but the folder path could not be read!\n");
+	die("Error looking for data for the prescribed time variable boundary condition. Path could not be read!\n");
+	}
+	} else {
+		PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
 	}
 
     domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
@@ -990,6 +992,9 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
+	case boundary_condition_precribed_time_variable:
+		die("Inner precribed time variable boundary condition is not implemented yet!\n");
+	break;
     }
 
     switch (boundary_outer) {
@@ -1026,6 +1031,11 @@ void summarize_parameters()
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'keplarian boundary conditions' at inner boundary.\n");
+	break;
+	case boundary_condition_precribed_time_variable:
+	logging::print_master(
+		LOG_INFO
+		"Using 'time variable boundary conditions' at inner boundary.\n");
 	break;
     }
 

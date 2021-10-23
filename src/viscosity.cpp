@@ -406,6 +406,13 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 ///
 static void get_tau_rp(t_data &data, double &tau_rp_1, double &tau_rp_2, const int n_radial, const int n_azimuthal, bool r_id_p)
 {
+
+	if(n_radial == data[t_data::TAU_R_PHI].get_max_radial()){
+		tau_rp_1 = 0.0;
+		tau_rp_2 = 0.0;
+		return;
+	}
+
 	int n_azimuthal_minus =
 	(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
 			  : n_azimuthal - 1);
@@ -1097,7 +1104,6 @@ void debug_function_viscous_terms(t_data &data, bool include_artifical_viscosity
 		double crp_org = dt * InvRb[n_radial] / (sigma_avg_phi) * (TwoDiffRaSq[n_radial] * (std::pow(Ra[n_radial + 1], 2) * (vp*TAU_RP_ip_1 + TAU_RP_ip_2) - std::pow(Ra[n_radial], 2) * (vp*TAU_RP_1 + TAU_RP_2)));
 
 		double crp_1 = InvRb[n_radial] / (sigma_avg_phi) * (TwoDiffRaSq[n_radial] * (std::pow(Ra[n_radial + 1], 2) * TAU_RP_ip_1 - std::pow(Ra[n_radial], 2) * TAU_RP_1));
-
 		double crp_2 = InvRb[n_radial] / (sigma_avg_phi) * (TwoDiffRaSq[n_radial] * (std::pow(Ra[n_radial + 1], 2) * TAU_RP_ip_2 - std::pow(Ra[n_radial], 2) * TAU_RP_2));
 
 		const double crp = dt*(vp*crp_1 + crp_2);
