@@ -630,7 +630,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	     ++n_azimuthal) {
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
 	    kappa = sqrt(fabs(
-		pow3(InvRmed[n_radial]) *
+		std::pow(InvRmed[n_radial], 3) *
 		(pow2(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) *
 		      Rmed[n_radial]) -
 		 pow2(data[t_data::V_AZIMUTHAL](n_radial - 1, n_azimuthal) *

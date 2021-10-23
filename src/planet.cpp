@@ -169,7 +169,7 @@ double t_planet::get_rampup_mass()
 double t_planet::get_period()
 {
     return 2.0 * M_PI *
-	   sqrt(pow3(get_semi_major_axis()) /
+	   sqrt(std::pow(get_semi_major_axis(), 3) /
 		((hydro_center_mass + get_mass()) * constants::G));
 }
 
@@ -180,7 +180,7 @@ double t_planet::get_omega()
 {
     double distance = get_r();
     if (!is_distance_zero(distance)) {
-	return sqrt(((hydro_center_mass + get_mass()) * constants::G) / pow3(distance));
+	return sqrt(((hydro_center_mass + get_mass()) * constants::G) / std::pow(distance, 3));
     } else {
 	return 0.0;
     }

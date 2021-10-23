@@ -1378,7 +1378,7 @@ void SubStep3(t_data &data, double dt)
 		const double divV = data[t_data::DIV_V](n_radial, n_azimuthal);
 
 		const double inv_pow4 = std::pow( mu * (gamma - 1.0) / (Rgas * sigma), 4);
-	    double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * pow3(eint);
+		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * std::pow(eint, 3);
 
 	    num = dt * qplus - dt * qminus + alpha * eint;
 	    den = alpha + (gamma - 1.0) * dt * divV;
@@ -1564,7 +1564,7 @@ void radiative_diffusion(t_data &data, double dt)
 
 	    Ka(n_radial, n_azimuthal) = 8.0 * 4.0 *
 					constants::sigma.get_code_value() *
-					lambda * H * pow3(temperature) * denom;
+					lambda * H * std::pow(temperature, 3) * denom;
 	    // Ka(n_radial, n_azimuthal)
 	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
 	}
@@ -1632,7 +1632,7 @@ void radiative_diffusion(t_data &data, double dt)
 
 	    Kb(n_radial, n_azimuthal) = 8 * 4 *
 					constants::sigma.get_code_value() *
-					lambda * H * pow3(temperature) * denom;
+					lambda * H * std::pow(temperature, 3) * denom;
 	    // Kb(n_radial, n_azimuthal)
 	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
 	}

@@ -193,7 +193,7 @@ static double get_particle_eccentricity_polar(int particle_index)
 	const double kappa = constants::G * hydro_center_mass *
 particles[i].mass; const double reduced_mass =
 hydro_center_mass*particles[i].mass / (hydro_center_mass + particles[i].mass);
-	const double A_r = reduced_mass * pow3(particles[i].r) *
+	const double A_r = reduced_mass * std::pow(particles[i].r, 3) *
 pow2(particles[i].phi_dot) - kappa; const double A_phi = reduced_mass *
 pow2(particles[i].r) * particles[i].r_dot * particles[i].phi_dot; const double A
 = sqrt(A_r*A_r + A_phi*A_phi); const double eccentricity = A / kappa;
@@ -462,7 +462,7 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 	const unsigned int particle_type = i % parameters::particle_species_number;
 	particles[i].radius *= std::pow(parameters::particle_radius_increase_factor, particle_type);
 
-    double volume = 4.0 / 3.0 * M_PI * pow3(particles[i].radius);
+	double volume = 4.0 / 3.0 * M_PI * std::pow(particles[i].radius, 3);
 
     particles[i].mass = volume * parameters::particle_density;
 
@@ -1855,7 +1855,7 @@ void integrate_implicit(t_data &data, const double dt)
 
 	r_dot1 = r_dot0;
 	r_dot1 += (r_ddot0 + r_ddot1 * dt0) * dt1;
-	r_dot1 += (pow2(l0) / pow3(r0) + pow2(l1) / pow3(r1) * dt0) * dt1;
+	r_dot1 += (pow2(l0) / std::pow(r0, 3) + pow2(l1) / std::pow(r1, 3) * dt0) * dt1;
 	if (parameters::particle_gas_drag_enabled) {
 	    r_dot1 +=
 		(minus_r_dot_rel0 / tstop0 + minus_r_dot_rel1 / tstop1 * dt0) *

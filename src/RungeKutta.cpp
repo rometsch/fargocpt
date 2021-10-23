@@ -40,9 +40,9 @@ void DerivMotionRK5(double *q_init, double *masses, double *deriv,
 	    if (nother != npl) {
 		dist =
 		    sqrt(pow2(x[npl] - x[nother]) + pow2(y[npl] - y[nother]));
-		ax += -constants::G * masses[nother] / pow3(dist) *
+		ax += -constants::G * masses[nother] / std::pow(dist, 3) *
 		      (x[npl] - x[nother]);
-		ay += -constants::G * masses[nother] / pow3(dist) *
+		ay += -constants::G * masses[nother] / std::pow(dist, 3) *
 		      (y[npl] - y[nother]);
 	    }
 	}
