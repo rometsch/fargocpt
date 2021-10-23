@@ -365,11 +365,11 @@ static double STS_FindRoot(double x0, double dtr, double dta)
 	    (1.0 - std::sqrt(STS_NU)) / (1.0 + std::sqrt(STS_NU));
 	const static double sqrt_sts_nu = std::sqrt(STS_NU);
 
-	b = pow(a, 2.0 * Ns);
+	b = std::pow(a, 2.0 * Ns);
 	c = (1.0 - b) / (1.0 + b);
 	Ns1 = Ns + (dta - dtr * Ns / (2.0 * sqrt_sts_nu) * c) /
 		       (dtr / (2.0 * sqrt_sts_nu) *
-			(c - 2.0 * Ns * b * log(a) * (1.0 + c) / (1.0 + b)));
+			(c - 2.0 * Ns * b * std::log(a) * (1.0 + c) / (1.0 + b)));
 	n += 1;
 	if (n == 128) {
 	    printf("! STS_FindRoot: max number of iterations exceeded");
@@ -390,7 +390,7 @@ static double STS_CorrectTimeStep(int n0, double dta)
     const static double a =
 	(1.0 - std::sqrt(STS_NU)) / (1.0 + std::sqrt(STS_NU));
     const static double sqrt_sts_nu = std::sqrt(STS_NU);
-    const double b = pow(a, 2.0 * n0);
+	const double b = std::pow(a, 2.0 * n0);
     const double c = (1.0 - b) / (1.0 + b);
 
     dtr = dta * 2.0 * sqrt_sts_nu / (n0 * c);

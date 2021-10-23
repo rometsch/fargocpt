@@ -108,8 +108,8 @@ void CalculatePotential(t_data &data)
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const double angle = (double)n_az /
 		    (double)pot.get_size_azimuthal() * 2.0 * M_PI;
-	    const double x = Rmed[n_rad] * cos(angle);
-	    const double y = Rmed[n_rad] * sin(angle);
+		const double x = Rmed[n_rad] * std::cos(angle);
+		const double y = Rmed[n_rad] * std::sin(angle);
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 

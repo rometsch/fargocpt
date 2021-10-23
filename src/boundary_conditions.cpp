@@ -322,7 +322,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
 		(RMIN - RMIN * parameters::damping_inner_limit), 2);
-	    double exp_factor = exp(-dt * factor / tau);
+		double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -376,7 +376,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		(RMAX - RMAX * parameters::damping_outer_limit), 2);
-	    double exp_factor = exp(-dt * factor / tau);
+		double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -427,7 +427,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
 		(RMIN - RMIN * parameters::damping_inner_limit), 2);
-	    double exp_factor = exp(-dt * factor / tau);
+		double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -481,7 +481,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		(RMAX - RMAX * parameters::damping_outer_limit), 2);
-	    double exp_factor = exp(-dt * factor / tau);
+		double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -543,7 +543,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
 		(RMIN - RMIN * parameters::damping_inner_limit), 2);
-	    double exp_factor = exp(-dt * factor / tau);
+		double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -607,7 +607,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		(RMAX - RMAX * parameters::damping_outer_limit), 2);
-	    double exp_factor = exp(-dt * factor / tau);
+		double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -674,7 +674,7 @@ void mass_overflow(t_data &data)
 	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
-    double angle = atan2(yplanet, xplanet) / 2 / M_PI;
+	double angle = std::atan2(yplanet, xplanet) / 2 / M_PI;
     if (angle < 0) {
 	angle += 1.0;
     }
@@ -698,7 +698,7 @@ void mass_overflow(t_data &data)
 	gridcell = (nearest_grid_cell + i + maxcells) % maxcells;
 
 	// adapt gauss profile
-	weight_factor = 1.0 / (sigmabar * sqrt(2.0 * M_PI)) *
+	weight_factor = 1.0 / (sigmabar * std::sqrt(2.0 * M_PI)) *
 			std::exp(-1.0 / 2.0 * std::pow((double)i / sigmabar, 2));
 	check += weight_factor;
 	mass_stream = weight_factor * parameters::mof_value / 2.0 / M_PI * DT;
@@ -847,13 +847,13 @@ void boundary_layer_inner_boundary(t_data &data)
 
 	// set vrad to fraction of Keplerian velocity
 	data[t_data::V_RADIAL](1, n_azimuthal) =
-	    -1. * parameters::vrad_fraction_of_kepler * sqrt(1. / Ra[1]);
+		-1. * parameters::vrad_fraction_of_kepler * std::sqrt(1. / Ra[1]);
 	data[t_data::V_RADIAL](0, n_azimuthal) =
 	    data[t_data::V_RADIAL](1, n_azimuthal);
 
 	// set vphi to stellar rotation rate
 	data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
-	    parameters::stellar_rotation_rate * sqrt(1. / Rb[0]);
+		parameters::stellar_rotation_rate * std::sqrt(1. / Rb[0]);
     }
 }
 
@@ -876,13 +876,13 @@ void boundary_layer_outer_boundary(t_data &data)
 			      n_azimuthal) =
 	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
 				  n_azimuthal) *
-	    sqrt(Ra[data[t_data::DENSITY].get_max_radial() - 1] /
+		std::sqrt(Ra[data[t_data::DENSITY].get_max_radial() - 1] /
 		 Ra[data[t_data::DENSITY].get_max_radial()]);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 				 n_azimuthal) *
-	    pow(Ra[data[t_data::ENERGY].get_max_radial() - 1] /
+		std::pow(Ra[data[t_data::ENERGY].get_max_radial() - 1] /
 		    Ra[data[t_data::ENERGY].get_max_radial()],
 		1.25);
 
@@ -891,21 +891,21 @@ void boundary_layer_outer_boundary(t_data &data)
 	    -1. *
 	    fabs(data[t_data::V_RADIAL](
 		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal)) *
-	    sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
+		std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
 		 Ra[data[t_data::V_RADIAL].get_max_radial() - 1]);
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
 			       n_azimuthal) =
 	    -1. *
 	    fabs(data[t_data::V_RADIAL](
 		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal)) *
-	    sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
+		std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
 		 Ra[data[t_data::V_RADIAL].get_max_radial()]);
 
 	// Omega at outer boundary equals calculate_omega_kepler (plus leading
 	// order pressure correction)
 	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
 				  n_azimuthal) =
-	    1. / sqrt(Rb[data[t_data::DENSITY].get_max_radial()]);
+		1. / std::sqrt(Rb[data[t_data::DENSITY].get_max_radial()]);
 	// TODO: Include pressure correction, like in uphi[*jN]
 	// = 1./sqrt(Rb[*jN]) +
 	// 0.5/Sigma[*jN]*sqrt(pow3(Rb[*jN])*pow2(Rb[*jN]))*.5/Rb[*jN]*(P[*jN+1]-P[*jN-1])/DeltaRa[*jN+1];
@@ -945,9 +945,9 @@ void keplerian2d_boundary_inner(t_data &data)
 	data[t_data::V_RADIAL](0, n_azimuthal) =
 	    -data[t_data::V_RADIAL](2, n_azimuthal);
 	data[t_data::V_AZIMUTHAL](1, n_azimuthal) =
-	    sqrt(constants::G * hydro_center_mass / Rmed[1]);
+		std::sqrt(constants::G * hydro_center_mass / Rmed[1]);
 	data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
-	    sqrt(constants::G * hydro_center_mass / Rmed[0]);
+		std::sqrt(constants::G * hydro_center_mass / Rmed[0]);
     }
 }
 
@@ -998,11 +998,11 @@ void keplerian2d_boundary_outer(t_data &data)
 			       n_azimuthal) = 0.0;
 	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
 				  n_azimuthal) =
-	    sqrt(constants::G * hydro_center_mass /
+		std::sqrt(constants::G * hydro_center_mass /
 		 Rmed[data[t_data::DENSITY].get_max_radial()]);
 	data[t_data::V_AZIMUTHAL](
 	    data[t_data::V_AZIMUTHAL].get_max_radial() - 1, n_azimuthal) =
-	    sqrt(constants::G * hydro_center_mass /
+		std::sqrt(constants::G * hydro_center_mass /
 		 Rmed[data[t_data::DENSITY].get_max_radial() - 1]);
     }
 }

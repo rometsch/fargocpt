@@ -348,8 +348,8 @@ static void handle_corotation(t_data &data, const double dt,
 	auto &planet = data.get_planetary_system().get_planet(n);
 	const double x = planet.get_x();
 	const double y = planet.get_y();
-	const double distance_new = sqrt(std::pow(x, 2) + std::pow(y, 2));
-	const double distance_old = sqrt(std::pow(corot_old_x, 2) + std::pow(corot_old_y, 2));
+	const double distance_new = std::sqrt(std::pow(x, 2) + std::pow(y, 2));
+	const double distance_old = std::sqrt(std::pow(corot_old_x, 2) + std::pow(corot_old_y, 2));
 	const double cross = corot_old_x * y - x * corot_old_y;
 
 	// new = r_new x r_old = distance_new * distance_old * sin(alpha*dt)
@@ -618,7 +618,7 @@ void SubStep1(t_data &data, double dt)
 	 n_radial <= data[t_data::V_AZIMUTHAL_SOURCETERMS].get_max_radial();
 	 ++n_radial) {
 	supp_torque =
-	    IMPOSEDDISKDRIFT * 0.5 * pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
+		IMPOSEDDISKDRIFT * 0.5 * std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
 	invdxtheta =
 	    1.0 /
 		(2.0 * M_PI / (double)data[t_data::V_AZIMUTHAL].get_size_azimuthal() *
@@ -914,15 +914,15 @@ void calculate_qplus(t_data &data)
 		double qplus =
 		    data[t_data::QPLUS](
 			data[t_data::QPLUS].get_max_radial() - 1, n_azimuthal) *
-		    exp(log(data[t_data::QPLUS](
+			std::exp(std::log(data[t_data::QPLUS](
 				data[t_data::QPLUS].get_max_radial() - 1,
 				n_azimuthal) /
 			    data[t_data::QPLUS](
 				data[t_data::QPLUS].get_max_radial() - 2,
 				n_azimuthal)) *
-			log(Rmed[data[t_data::QPLUS].get_max_radial()] /
+			std::log(Rmed[data[t_data::QPLUS].get_max_radial()] /
 			    Rmed[data[t_data::QPLUS].get_max_radial() - 1]) /
-			log(Rmed[data[t_data::QPLUS].get_max_radial() - 1] /
+			std::log(Rmed[data[t_data::QPLUS].get_max_radial() - 1] /
 			    Rmed[data[t_data::QPLUS].get_max_radial() - 2]));
 
 		data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial(),
@@ -937,9 +937,9 @@ void calculate_qplus(t_data &data)
 		// power-law extrapolation
 		double qplus =
 		    data[t_data::QPLUS](1, n_azimuthal) *
-		    exp(log(data[t_data::QPLUS](1, n_azimuthal) /
+			std::exp(std::log(data[t_data::QPLUS](1, n_azimuthal) /
 			    data[t_data::QPLUS](2, n_azimuthal)) *
-			log(Rmed[0] / Rmed[1]) / log(Rmed[1] / Rmed[2]));
+			std::log(Rmed[0] / Rmed[1]) / std::log(Rmed[1] / Rmed[2]));
 
 		data[t_data::QPLUS](0, n_azimuthal) += qplus;
 	    }
@@ -950,7 +950,7 @@ void calculate_qplus(t_data &data)
 	double ramping = 1.0;
 	if (PhysicalTime < parameters::heating_star_ramping_time * DT) {
 	    ramping =
-		1.0 - std::pow(cos(PhysicalTime * M_PI / 2.0 /
+		1.0 - std::pow(std::cos(PhysicalTime * M_PI / 2.0 /
 				   (parameters::heating_star_ramping_time * DT)), 2);
 	}
 
@@ -975,7 +975,7 @@ void calculate_qplus(t_data &data)
 				n_azimuthal;
 			const double xc = cell_center_x[ncell];
 			const double yc = cell_center_y[ncell];
-			const double distance = sqrt(std::pow(x_star-xc, 2) + std::pow(y_star-yc, 2));
+			const double distance = std::sqrt(std::pow(x_star-xc, 2) + std::pow(y_star-yc, 2));
 		    const double HoverR =
 			data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
 		    const double sigma = constants::sigma.get_code_value();
@@ -1206,7 +1206,7 @@ void calculate_qminus(t_data &data)
 		double beta_inv = 1 / parameters::cooling_beta;
 		if (t_ramp_up > 0.0) {
 		    const double t = PhysicalTime;
-		    double ramp_factor = 1 - exp(-pow(2 * t / t_ramp_up, 2));
+			double ramp_factor = 1 - std::exp(-std::pow(2 * t / t_ramp_up, 2));
 		    beta_inv = beta_inv * ramp_factor;
 		}
 
@@ -1238,7 +1238,7 @@ void calculate_qminus(t_data &data)
 		densityCGS = data[t_data::DENSITY](n_radial, n_azimuthal) /
 			     (parameters::density_factor *
 			      data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
-			      sqrt(ADIABATICINDEX) /
+				  std::sqrt(ADIABATICINDEX) /
 			      calculate_omega_kepler(Rmed[n_radial])) *
 			     units::density;
 
@@ -1258,7 +1258,7 @@ void calculate_qminus(t_data &data)
 		//  tau_eff = 3/8 tau + sqrt(3)/4 + 1/(4*tau+tau_min)
 		data[t_data::TAU_EFF](n_radial, n_azimuthal) =
 		    3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal) +
-		    sqrt(3.0) / 4.0 +
+			std::sqrt(3.0) / 4.0 +
 		    1.0 /
 			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
 
@@ -1794,7 +1794,7 @@ void radiative_diffusion(t_data &data, double dt)
 	double tmp = absolute_norm;
 	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM,
 		      MPI_COMM_WORLD);
-	absolute_norm = sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
+	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
 
 	norm_change = fabs(absolute_norm - norm_change);
 	iterations++;
@@ -2135,19 +2135,19 @@ void compute_sound_speed(t_data &data, bool force_update)
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic) {
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		    sqrt(ADIABATICINDEX * (ADIABATICINDEX - 1.0) *
+			std::sqrt(ADIABATICINDEX * (ADIABATICINDEX - 1.0) *
 			 data[t_data::ENERGY](n_radial, n_azimuthal) /
 			 data[t_data::DENSITY](n_radial, n_azimuthal));
 	    } else if (parameters::Polytropic) {
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		    sqrt(ADIABATICINDEX * constants::R / parameters::MU *
+			std::sqrt(ADIABATICINDEX * constants::R / parameters::MU *
 			 data[t_data::TEMPERATURE](n_radial, n_azimuthal));
 	    } else { // isothermal
 		// This follows from: cs/v_Kepler = H/r
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
 		    ASPECTRATIO_REF *
-		    sqrt(constants::G * hydro_center_mass / Rb[n_radial]) *
-		    pow(Rb[n_radial], FLARINGINDEX);
+			std::sqrt(constants::G * hydro_center_mass / Rb[n_radial]) *
+			std::pow(Rb[n_radial], FLARINGINDEX);
 	    }
 	}
     }
@@ -2177,7 +2177,7 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 		// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
 		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
-		    (sqrt(ADIABATICINDEX)) * inv_v_kepler;
+			(std::sqrt(ADIABATICINDEX)) * inv_v_kepler;
 	    } else {
 		// h = H/r = c_s/v_k
 		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
@@ -2250,7 +2250,7 @@ void compute_temperature(t_data &data, bool force_update)
 	    } else if (parameters::Polytropic) {
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    parameters::MU / constants::R * POLYTROPIC_CONSTANT *
-		    pow(data[t_data::DENSITY](n_radial, n_azimuthal),
+			std::pow(data[t_data::DENSITY](n_radial, n_azimuthal),
 			ADIABATICINDEX - 1.0);
 	    } else { // Isothermal
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
@@ -2287,7 +2287,7 @@ void compute_rho(t_data &data, bool force_update)
 		H = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
 		    Rb[n_radial];
 	    } else {
-		H = ASPECTRATIO_REF * pow(Rb[n_radial], 1.0 + FLARINGINDEX);
+		H = ASPECTRATIO_REF * std::pow(Rb[n_radial], 1.0 + FLARINGINDEX);
 	    }
 	    data[t_data::RHO](n_radial, n_azimuthal) =
 		data[t_data::DENSITY](n_radial, n_azimuthal) /
@@ -2325,7 +2325,7 @@ double CircumPlanetaryMass(t_data &data)
 	    unsigned int cell =
 		n_radial * data[t_data::DENSITY].get_size_azimuthal() +
 		n_azimuthal;
-	    dist = sqrt((cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
+		dist = std::sqrt((cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
 			(cell_center_y[cell] - ypl) * (cell_center_y[cell] - ypl));
 	    if (dist < HillRadius) {
 		mdcplocal += Surf[n_radial] *

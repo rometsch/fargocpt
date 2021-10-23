@@ -79,23 +79,23 @@ double lin(double density, double temperature)
     const double bk8 = 0.348;
 
     /* test T against (T_23 * T_34 * T_34)**0.333333333 */
-    if (temperature > t234 * pow(density, power1)) {
+	if (temperature > t234 * std::pow(density, power1)) {
 	/* to avoid overflow */
 	double ts4 = 1.e-4 * temperature;
-	double density13 = pow(density, 1.0 / 3.0);
+	double density13 = std::pow(density, 1.0 / 3.0);
 	double density23 = density13 * density13;
 	double ts42 = ts4 * ts4;
 	double ts44 = ts42 * ts42;
 	double ts48 = ts44 * ts44;
 
 	/* test T against (T_45 * T_56)**0.5 */
-	if (temperature > t456 * pow(density, power2)) {
-	    if ((temperature < t678 * pow(density, power3)) ||
+	if (temperature > t456 * std::pow(density, power2)) {
+		if ((temperature < t678 * std::pow(density, power3)) ||
 		(density <= 1e-10)) {
 		/* disjoint opacity laws for 5, 6, and 7 */
 		double o5 = bk5 * density23 * ts42 * ts4;
 		double o6 = bk6 * density13 * ts48 * ts42;
-		double o7 = bk7 * density / (ts42 * sqrt(ts4));
+		double o7 = bk7 * density / (ts42 * std::sqrt(ts4));
 
 		/* parameters used for smoothing */
 		double o6an = o6 * o6;
@@ -103,15 +103,15 @@ double lin(double density, double temperature)
 
 		/* smoothed and continuous opacity law for regions 5, 6, and 7
 		 */
-		return pow(
-		    pow(o6an * o7an / (o6an + o7an), 2) +
-			pow(o5 / (1.0 + pow(ts4 / (1.1 * pow(density, 0.04762)),
+		return std::pow(
+			std::pow(o6an * o7an / (o6an + o7an), 2) +
+			std::pow(o5 / (1.0 + std::pow(ts4 / (1.1 * std::pow(density, 0.04762)),
 					    10.0)),
 			    4.0),
 		    0.25);
 	    } else {
 		/* disjoint opacity laws for 7 and 8 */
-		double o7 = bk7 * density / (ts42 * sqrt(ts4));
+		double o7 = bk7 * density / (ts42 * std::sqrt(ts4));
 		double o8 = bk8;
 
 		/* parameters used for smoothing */
@@ -119,7 +119,7 @@ double lin(double density, double temperature)
 		double o8an = o8 * o8;
 
 		/* smoothed and continuous opacity law for regions 7 and 8 */
-		return pow(o7an * o7an + o8an * o8an, 0.25);
+		return std::pow(o7an * o7an + o8an * o8an, 0.25);
 
 		/* no scattering */
 		// return bk7*density/(ts42*sqrt(ts4));
@@ -155,8 +155,8 @@ double lin(double density, double temperature)
 	double o2an = o2 * o2;
 
 	/* smoothed and continuous opacity law for regions 1, 2, and 3 */
-	return pow(pow(o1an * o2an / (o1an + o2an), 2) +
-		       pow(o3 / (1 + 1.e22 / t10), 4),
+	return std::pow(std::pow(o1an * o2an / (o1an + o2an), 2) +
+			   std::pow(o3 / (1 + 1.e22 / t10), 4),
 		   0.25);
     }
 }
@@ -206,27 +206,28 @@ double bell(double density, double temperature)
     const double bk7 = 1.5e10;
     const double bk8 = 0.348;
 
-    if (temperature < 1)
+	if (temperature < 1.0){
 	temperature = 10.0;
+	}
 
-    if (temperature > t234 * pow(density, power1)) {
+	if (temperature > t234 * std::pow(density, power1)) {
 	/* to avoid overflow */
 	double ts4 = 1.e-4 * temperature;
-	double density13 = pow(density, 1.0 / 3.0);
+	double density13 = std::pow(density, 1.0 / 3.0);
 	double density23 = density13 * density13;
 	double ts42 = ts4 * ts4;
 	double ts44 = ts42 * ts42;
 	double ts48 = ts44 * ts44;
 
 	/* test T against (T_45 * T_56)**0.5 */
-	if (temperature > t456 * pow(density, power2)) {
+	if (temperature > t456 * std::pow(density, power2)) {
 	    /* test T against (T67 * T78)**.5 */
-	    if ((temperature < t678 * pow(density, power3)) ||
+		if ((temperature < t678 * std::pow(density, power3)) ||
 		(((density <= 1e10) && (temperature < 1e4)))) {
 		/* disjoint opacity laws for 5, 6, and 7 */
 		double o5 = bk5 * density23 * ts42 * ts4;
 		double o6 = bk6 * density13 * ts48 * ts42;
-		double o7 = bk7 * density / (ts42 * sqrt(ts4));
+		double o7 = bk7 * density / (ts42 * std::sqrt(ts4));
 
 		/* parameters used for smoothing */
 		double o6an = o6 * o6;
@@ -234,16 +235,16 @@ double bell(double density, double temperature)
 
 		/* smoothed and continuous opacity law for regions 5, 6, and 7
 		 */
-		return pow(
-		    pow((o6an * o7an / (o6an + o7an)), 2) +
-			pow((o5 /
+		return std::pow(
+			std::pow((o6an * o7an / (o6an + o7an)), 2) +
+			std::pow((o5 /
 			     (1 +
-			      pow((ts4 / (1.1 * pow(density, 0.04762))), 10))),
+				  std::pow((ts4 / (1.1 * std::pow(density, 0.04762))), 10))),
 			    4),
 		    0.25);
 	    } else {
 		/* disjoint opacity laws for 7 and 8 */
-		double o7 = bk7 * density / (ts42 * sqrt(ts4));
+		double o7 = bk7 * density / (ts42 * std::sqrt(ts4));
 		double o8 = bk8;
 
 		/* parameters used for smoothing */
@@ -251,21 +252,21 @@ double bell(double density, double temperature)
 		double o8an = o8 * o8;
 
 		/* smoothed and continuous opacity law for regions 7 and 8 */
-		return pow(o7an * o7an + o8an * o8an, 0.25);
+		return std::pow(o7an * o7an + o8an * o8an, 0.25);
 	    }
 	} else {
 	    /* disjoint opacity laws for 3, 4, and 5 */
-	    double o3 = bk3 * sqrt(ts4);
+		double o3 = bk3 * std::sqrt(ts4);
 	    double o4 = bk4 * density / (ts48 * ts48 * ts48);
 	    double o5 = bk5 * density23 * ts42 * ts4;
 
 	    /* parameters used for smoothing */
-	    double o4an = pow(o4, 4);
-	    double o3an = pow(o3, 4);
+		double o4an = std::pow(o4, 4);
+		double o3an = std::pow(o3, 4);
 
 	    /* smoothed and continuous opacity law for regions 3, 4, and 5 */
-	    return pow((o4an * o3an / (o4an + o3an)) +
-			   pow(o5 / (1 + 6.561e-5 / ts48 * 1e2 * density23), 4),
+		return std::pow((o4an * o3an / (o4an + o3an)) +
+			   std::pow(o5 / (1 + 6.561e-5 / ts48 * 1e2 * density23), 4),
 		       0.25);
 	}
     } else {
@@ -278,15 +279,15 @@ double bell(double density, double temperature)
 	/* disjoint opacity laws */
 	double o1 = ak1 * t2;
 	double o2 = ak2 * temperature / t8;
-	double o3 = ak3 * sqrt(temperature);
+	double o3 = ak3 * std::sqrt(temperature);
 
 	/* parameters used for smoothing */
 	double o1an = o1 * o1;
 	double o2an = o2 * o2;
 
 	/* smoothed and continuous opacity law for regions 1, 2, and 3 */
-	return pow(pow(o1an * o2an / (o1an + o2an), 2) +
-		       pow(o3 / (1 + 1.e22 / t10), 4),
+	return std::pow(std::pow(o1an * o2an / (o1an + o2an), 2) +
+			   std::pow(o3 / (1 + 1.e22 / t10), 4),
 		   0.25);
     }
 }
@@ -341,7 +342,7 @@ double zhu(double density, double temperature)
 	xlop = 3.586 * xlt - 16.85;
     }
 
-    rosstabd = pow(10., xlop);
+	rosstabd = std::pow(10., xlop);
 
     return rosstabd;
 }
@@ -351,7 +352,7 @@ double kramers(double density, double temperature)
     double kappa_kramer, thomson_scattering;
 
     thomson_scattering = 0.335;
-    kappa_kramer = 5.e24 * density * pow(temperature, -3.5);
+	kappa_kramer = 5.e24 * density * std::pow(temperature, -3.5);
 
     return thomson_scattering + kappa_kramer;
 }

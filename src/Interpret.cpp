@@ -235,7 +235,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
 	double optimal_N_azimuthal =
-			M_PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
+			M_PI / ((std::exp(c / NRadial) - 1.0) / (std::exp(c / NRadial) + 1.0));
 
 	// check if optimal azimuthal cell number differs from actual azimuthal
 	// cell number by more than 10%
@@ -626,9 +626,9 @@ void TellEverything()
     logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n",
 			  ASPECTRATIO_REF);
     logging::print_master(LOG_VERBOSE "VKep at inner edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
+			  std::sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
     logging::print_master(LOG_VERBOSE "VKep at outer edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 / RMAX));
+			  std::sqrt(constants::G * 1.0 / RMAX));
     /*
     logging::print_master(LOG_VERBOSE "boundary_inner        : %i\n",
     parameters::boundary_inner); logging::print_master(LOG_VERBOSE

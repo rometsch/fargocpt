@@ -123,7 +123,7 @@ static void update_kernel(t_data &data)
 	    aspect_ratio = ASPECTRATIO_REF;
 	}
 
-	lambda_sq = std::pow(0.4571 * aspect_ratio + 0.6737 * sqrt(aspect_ratio), 2);
+	lambda_sq = std::pow(0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
 	chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
 
 	compute_FFT_kernel();
@@ -149,7 +149,7 @@ void init(t_data &data)
 	PersonalExit(1);
     }
 
-    r_step = log(Radii[GlobalNRadial] / Radii[0]) / (double)GlobalNRadial;
+	r_step = std::log(Radii[GlobalNRadial] / Radii[0]) / (double)GlobalNRadial;
     t_step = 2.0 * M_PI / (double)NAzimuthal;
 
     // allocate memory
@@ -250,7 +250,7 @@ void compute_FFT_density(t_polargrid &density)
 		ih = i + Zero_or_active;
 		lh = ih * NAzimuthal + j;
 		/* S_r = sigma(u,phi) exp(u/2) */
-		S_radial[l] = dens[lh] * sqrt(Rmed[ih] / GlobalRmed[0]);
+		S_radial[l] = dens[lh] * std::sqrt(Rmed[ih] / GlobalRmed[0]);
 		/* S_t = sigma(u,phi) exp(3*u/2) */
 		S_azimuthal[l] = S_radial[l] * Rmed[ih] / GlobalRmed[0];
 	    }
@@ -264,7 +264,7 @@ void compute_FFT_density(t_polargrid &density)
 		ir = i + IMIN + Zero_or_active;
 		if ((i + local_i_start) < GlobalNRadial) {
 		    S_radial[l] =
-			dens_friend[lh] * sqrt(GlobalRmed[ir] / GlobalRmed[0]);
+			dens_friend[lh] * std::sqrt(GlobalRmed[ir] / GlobalRmed[0]);
 		    S_azimuthal[l] =
 			S_radial[l] * GlobalRmed[ir] / GlobalRmed[0];
 		} else {
@@ -283,7 +283,7 @@ void compute_FFT_density(t_polargrid &density)
 		ih = i + Zero_or_active;
 		if ((i + local_i_start) < GlobalNRadial) {
 		    lh = ih * NAzimuthal + j;
-		    S_radial[l] = dens[lh] * sqrt(Rmed[ih] / GlobalRmed[0]);
+			S_radial[l] = dens[lh] * std::sqrt(Rmed[ih] / GlobalRmed[0]);
 		    S_azimuthal[l] = S_radial[l] * Rmed[ih] / GlobalRmed[0];
 		} else {
 		    S_radial[l] = 0.;
@@ -318,9 +318,9 @@ void compute_FFT_kernel()
 
     for (unsigned int i = 0; i < (unsigned int)local_Nx; i++) {
 	if (i + local_i_start < GlobalNRadial) {
-	    u = log(Radii[i + local_i_start] / Radii[0]);
+		u = std::log(Radii[i + local_i_start] / Radii[0]);
 	} else {
-	    u = -log(Radii[2 * GlobalNRadial - (i + local_i_start)] / Radii[0]);
+		u = -std::log(Radii[2 * GlobalNRadial - (i + local_i_start)] / Radii[0]);
 	}
 
 	for (unsigned int j = 0; j < NAzimuthal; j++) {
@@ -328,13 +328,13 @@ void compute_FFT_kernel()
 	    int l = i * stride + j;
 	    theta = 2.0 * M_PI * (double)j / (double)NAzimuthal;
 
-	    denominator = pow(2 * (cosh(u) - cos(theta)) +
-				  lambda_sq * (exp(u) + exp(-u) - 2) + chi_sq,
+		denominator = std::pow(2 * (std::cosh(u) - std::cos(theta)) +
+				  lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
 			      -1.5);
 
-	    K_radial[l] = 1.0 - cos(theta) * exp(-u);
+		K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
 	    K_radial[l] *= denominator;
-	    K_azimuthal[l] = sin(theta);
+		K_azimuthal[l] = std::sin(theta);
 	    K_azimuthal[l] *= denominator;
 	}
     }
@@ -502,8 +502,8 @@ void compute_acceleration(t_polargrid &density)
 	normaccr = r_step * t_step /
 		   ((double)(2 * GlobalNRadial) * (double)NAzimuthal);
 	normacct = normaccr;
-	normaccr /= sqrt(Rmed[i] / GlobalRmed[0]);
-	normacct /= (Rmed[i] / GlobalRmed[0] * sqrt(Rmed[i] / GlobalRmed[0]));
+	normaccr /= std::sqrt(Rmed[i] / GlobalRmed[0]);
+	normacct /= (Rmed[i] / GlobalRmed[0] * std::sqrt(Rmed[i] / GlobalRmed[0]));
 	for (j = 0; j < NAzimuthal; j++) {
 	    l = i * NAzimuthal + j;
 	    g_radial[l] *= normaccr;
@@ -575,7 +575,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 		"Radicand %lg < 0 in init_azimuthal_velocity! Maybe ThicknessSmoothingSG (%lg) is too small!\n",
 		temp, parameters::thickness_smoothing_sg);
 	}
-	omega = sqrt(temp);
+	omega = std::sqrt(temp);
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= v_azimuthal.get_max_azimuthal(); ++n_azimuthal) {

@@ -66,10 +66,10 @@ static double power_law_distribution(double x, double n)
 	       (1.0 - parameters::particle_eccentricity);
 
     if (n == -1) {
-	return exp(log(rmax / rmin) * x) * rmin;
+	return std::exp(std::log(rmax / rmin) * x) * rmin;
     } else {
-	return exp(
-	    log(x * (-pow(rmin, n + 1) + pow(rmax, n + 1)) + pow(rmin, n + 1)) /
+	return std::exp(
+		std::log(x * (-std::pow(rmin, n + 1) + std::pow(rmax, n + 1)) + std::pow(rmin, n + 1)) /
 	    (n + 1));
     }
 }
@@ -97,11 +97,11 @@ static double corret_v_gas_azimuthal_omega_frame(const double v_az_gas, const do
 static void transform_cart_to_cyl(const double * const cart, double * const cyl, const double r, const double phi)
 {
     (void)r;
-    cyl[0] = cart[0] * cos(phi);
-    cyl[0] += cart[1] * sin(phi);
+	cyl[0] = cart[0] * std::cos(phi);
+	cyl[0] += cart[1] * std::sin(phi);
 
-    cyl[1] = -cart[0] * sin(phi);
-    cyl[1] += cart[1] * cos(phi);
+	cyl[1] = -cart[0] * std::sin(phi);
+	cyl[1] += cart[1] * std::cos(phi);
 }
 
 static void find_nearest(unsigned int &n_radial_a_minus,
@@ -219,7 +219,7 @@ static double get_particle_eccentricity_cart(int particle_index)
 	   const double vy = particles[i].phi_dot;
 	   const double Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
 	   const double Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
-	   const double e = sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
+	   const double e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
 
 	   return e;
 }
@@ -308,7 +308,7 @@ static void init_particle_timestep(t_data &data)
 	if ((dnf <= 1.0E-10) || (dny <= 1.0E-10))
 	    particles[i].timestep = 1.0E-6;
 	else
-	    particles[i].timestep = sqrt(dny / dnf) * 0.01;
+		particles[i].timestep = std::sqrt(dny / dnf) * 0.01;
 
 	// perform an explicit Euler step
 	temp_r = particles[i].r + particles[i].timestep * k1_r;
@@ -352,15 +352,15 @@ static void init_particle_timestep(t_data &data)
 	sqr = (k2_phi_dot - k1_phi_dot) / sk;
 	der2 += sqr * sqr;
 
-	der2 = sqrt(der2) / particles[i].timestep;
+	der2 = std::sqrt(der2) / particles[i].timestep;
 
 	// step size is computed such that h**iord * max_d(norm(f0),norm(der2))
 	// = 0.01
-	der12 = fmax(fabs(der2), sqrt(dnf));
+	der12 = std::fmax(std::fabs(der2), std::sqrt(dnf));
 	if (der12 <= 1.0E-15)
-	    h1 = fmax(1.0E-6, fabs(particles[i].timestep) * 1.0E-3);
+		h1 = std::fmax(1.0E-6, std::fabs(particles[i].timestep) * 1.0E-3);
 	else
-	    h1 = pow(0.01 / der12, 1.0 / (double)iord);
+		h1 = std::pow(0.01 / der12, 1.0 / (double)iord);
 	particles[i].timestep = fmin(100.0 * particles[i].timestep, h1);
     }
 }
@@ -397,7 +397,7 @@ static void correct_for_self_gravity(const unsigned int i)
     double v = sqrt(constants::G * (hydro_center_mass + particles[i].mass) /
 			semi_major_axis -
 		    sg_radial * semi_major_axis) *
-	       sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
+		   std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
 
     // only need to update velocities, set accelerations to 0 anyway
     if (CartesianParticles) {
@@ -468,9 +468,9 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
     particles[i].mass = volume * parameters::particle_density;
 
     double r = semi_major_axis * (1.0 + eccentricity);
-    double v = sqrt(constants::G * (hydro_center_mass + particles[i].mass) /
+	double v = std::sqrt(constants::G * (hydro_center_mass + particles[i].mass) /
 		    semi_major_axis) *
-	       sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
+		   std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
 
     if (CartesianParticles) {
 	// Beware: cartesian particles still use the names of polar coordinates
@@ -478,11 +478,11 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 	// y = phi
 	// vx = r_dot
 	// vy = phi_dot
-	particles[i].r = r * cos(phi);
-	particles[i].phi = r * sin(phi);
+	particles[i].r = r * std::cos(phi);
+	particles[i].phi = r * std::sin(phi);
 
-	particles[i].r_dot = -v * sin(phi);
-	particles[i].phi_dot = v * cos(phi);
+	particles[i].r_dot = -v * std::sin(phi);
+	particles[i].phi_dot = v * std::cos(phi);
     } else {
 	particles[i].r = r;
 	particles[i].phi = phi;
@@ -732,7 +732,7 @@ void calculate_accelerations_from_star_and_planets(
 	double cos_delta_phi;
 	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
 
-	const double distance_to_planet = sqrt(
+	const double distance_to_planet = std::sqrt(
 	    r * r + r_planet * r_planet - 2 * r * r_planet * cos_delta_phi);
 	const double distance_to_planet_pow2_smoothed =
 	    distance_to_planet * distance_to_planet + epsilon_sq;
@@ -796,7 +796,7 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 	double cos_delta_phi;
 	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
 
-	const double distance_to_planet = sqrt(
+	const double distance_to_planet = std::sqrt(
 	    r * r + r_planet * r_planet - 2.0 * r * r_planet * cos_delta_phi);
 	const double distance_to_planet_smoothed_pow2 =
 	    distance_to_planet * distance_to_planet + epsilon_sq;
@@ -824,8 +824,8 @@ static void calculate_derivitives_from_star_and_planets_in_cart(
     acart[0] = 0.0;
     acart[1] = 0.0;
 
-    const double x = r * cos(phi);
-    const double y = r * sin(phi);
+	const double x = r * std::cos(phi);
+	const double y = r * std::sin(phi);
 
     // planets
     for (unsigned int k = 0;
@@ -840,7 +840,7 @@ static void calculate_derivitives_from_star_and_planets_in_cart(
 	const double y_dist = y - y_planet;
 
 	double dist2 = x_dist * x_dist + y_dist * y_dist;
-	const double dist = sqrt(dist2);
+	const double dist = std::sqrt(dist2);
 	dist2 += epsilon_sq;
 
 	// direct term
@@ -974,7 +974,7 @@ static void calculate_tstop(const double r, const double phi,
     if (reynolds < 1.0) {
 	Cd = 24.0 / reynolds;
     } else if (reynolds < 800.0) {
-	Cd = 24.0 * pow(reynolds, -0.6);
+	Cd = 24.0 * std::pow(reynolds, -0.6);
     } else {
 	Cd = 0.44;
     }
@@ -1060,7 +1060,7 @@ static void calculate_tstop2(const double r, const double phi,
     if (reynolds < 1.0) {
 	Cd = 24.0 / reynolds;
     } else if (reynolds < 800.0) {
-	Cd = 24.0 * pow(reynolds, -0.6);
+	Cd = 24.0 * std::pow(reynolds, -0.6);
     } else {
 	Cd = 0.44;
     }
@@ -1160,7 +1160,7 @@ void check_tstop(t_data &data)
 	if (reynolds < 1.0) {
 	    Cd = 24.0 / reynolds;
 	} else if (reynolds < 800.0) {
-	    Cd = 24.0 * pow(reynolds, -0.6);
+		Cd = 24.0 * std::pow(reynolds, -0.6);
 	} else {
 	    Cd = 0.44;
 	}
@@ -1222,11 +1222,11 @@ static void update_velocities_from_indirect_term(const double dt)
 	    const double r_dot = particles[i].r_dot;
 	    const double phi_dot = particles[i].phi_dot;
 
-	    indirect_q1_dot = r_dot + dt * (IndirectTerm.x * cos(phi) +
+		indirect_q1_dot = r_dot + dt * (IndirectTerm.x * std::cos(phi) +
 					    IndirectTerm.y * sin(phi));
 	    indirect_q2_dot =
 		phi_dot +
-		dt * (-IndirectTerm.x * sin(phi) + IndirectTerm.y * cos(phi)) /
+		dt * (-IndirectTerm.x * sin(phi) + IndirectTerm.y * std::cos(phi)) /
 		    r;
 	}
 
@@ -1481,8 +1481,8 @@ void update_velocity_from_disk_gravity_cart(
     double &vx = particles[particle_id].r_dot;
     double &vy = particles[particle_id].phi_dot;
 
-    vx += dt * (cos(phi) * sg_radial - sin(phi) * sg_azimuthal);
-    vy += dt * (sin(phi) * sg_radial + cos(phi) * sg_azimuthal);
+	vx += dt * (std::cos(phi) * sg_radial - std::sin(phi) * sg_azimuthal);
+	vy += dt * (std::sin(phi) * sg_radial + std::cos(phi) * sg_azimuthal);
 }
 
 
@@ -1496,7 +1496,7 @@ static double compute_smoothing_isothermal(double r)
 {
 	double smooth;
 	const double scale_height =
-	ASPECTRATIO_REF * pow(r, 1.0 + FLARINGINDEX); // = H
+	ASPECTRATIO_REF * std::pow(r, 1.0 + FLARINGINDEX); // = H
 	smooth = parameters::thickness_smoothing * scale_height;
 	return smooth;
 }
@@ -1544,8 +1544,8 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double cell_angle = n_azimuthal * dphi;
-	    double cell_x = Rmed[n_radial] * cos(cell_angle);
-	    double cell_y = Rmed[n_radial] * sin(cell_angle);
+		double cell_x = Rmed[n_radial] * std::cos(cell_angle);
+		double cell_y = Rmed[n_radial] * std::sin(cell_angle);
 	    double cell_mass =
 		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
 	    for (unsigned int i = 0; i < global_number_of_particles; ++i) {
@@ -2161,7 +2161,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	    sqr = k2_phi_dot / sk;
 	    err += sqr * sqr;
 
-	    err = sqrt(err / (double)(4));
+		err = std::sqrt(err / (double)(4));
 	    // computation of hnew
 	    fac11 = pow(err, expo1);
 	    // Lund-stabilization
@@ -2618,11 +2618,11 @@ void rotate(const double angle)
 	    double &vy = particles[i].phi_dot;
 
 	    // rotate positions
-	    x = x_old * cos(angle) + y_old * sin(angle);
-	    y = -x_old * sin(angle) + y_old * cos(angle);
+		x = x_old * std::cos(angle) + y_old * std::sin(angle);
+		y = -x_old * std::sin(angle) + y_old * std::cos(angle);
 	    // rotate velocities
-	    vx = vx_old * cos(angle) + vy_old * sin(angle);
-	    vy = -vx_old * sin(angle) + vy_old * cos(angle);
+		vx = vx_old * std::cos(angle) + vy_old * std::sin(angle);
+		vy = -vx_old * std::sin(angle) + vy_old * std::cos(angle);
 	} else {
 	    particles[i].phi -= angle;
 	    check_angle(particles[i].phi);

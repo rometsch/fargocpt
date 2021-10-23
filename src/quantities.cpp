@@ -431,8 +431,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	}
     }
     // calculations outside the loop for speedup
-    double sinFrameAngle = sin(FrameAngle);
-    double cosFrameAngle = cos(FrameAngle);
+	double sinFrameAngle = std::sin(FrameAngle);
+	double cosFrameAngle = std::cos(FrameAngle);
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -446,15 +446,15 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    angle = (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
 		    M_PI;
-	    r_x = Rmed[n_radial] * cos(angle);
-	    r_y = Rmed[n_radial] * sin(angle);
+		r_x = Rmed[n_radial] * std::cos(angle);
+		r_y = Rmed[n_radial] * std::sin(angle);
 
 	    // averaged velocities
 	    v_xmed =
-		cos(angle) * 0.5 *
+		std::cos(angle) * 0.5 *
 		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 		     data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) -
-		sin(angle) *
+		std::sin(angle) *
 		    (0.5 *
 			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 			  data[t_data::V_AZIMUTHAL](
@@ -464,10 +464,10 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 					    : n_azimuthal + 1)) +
 		     OmegaFrame * Rmed[n_radial]);
 	    v_ymed =
-		sin(angle) * 0.5 *
+		std::sin(angle) * 0.5 *
 		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 		     data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) +
-		cos(angle) *
+		std::cos(angle) *
 		    (0.5 *
 			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 			  data[t_data::V_AZIMUTHAL](
@@ -629,7 +629,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	     n_azimuthal <= data[t_data::TOOMRE].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
-	    kappa = sqrt(fabs(
+		kappa = std::sqrt(std::fabs(
 		std::pow(InvRmed[n_radial], 3) *
 		(std::pow(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) *
 			  Rmed[n_radial], 2) -
