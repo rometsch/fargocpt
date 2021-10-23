@@ -537,6 +537,13 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	StabilizeViscosity =
 	config::value_as_int_default("STABILIZEVISCOSITY", 0);
 
+	if(StabilizeViscosity == 1){
+		logging::print_master(LOG_INFO "Using pseudo implicit viscosity to limit the viscosity update step\n");
+	}
+	if(StabilizeViscosity == 2){
+		logging::print_master(LOG_INFO "Using pseudo implicit viscosity to limit the time step size\n");
+	}
+
 	const bool VISCOSITY_in_CGS =
 	config::value_as_bool_default("VISCOSITYINCGS", false);
 	if (VISCOSITY_in_CGS) {
