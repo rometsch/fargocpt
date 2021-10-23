@@ -963,7 +963,7 @@ static void calculate_tstop(const double r, const double phi,
 	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = (M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2));
+	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1011,7 +1011,7 @@ static void calculate_tstop2(const double r, const double phi,
     // particle is still inside the domain the gas values are determined at the
     // edge of the domain if particle is outside the domain
     double r_tmp = fmax(r, local_r_min);
-    r_tmp = fmin(r, local_r_max);
+	r_tmp = fmin(r_tmp, local_r_max);
 
     unsigned int n_radial_a_minus = 0, n_radial_a_plus = 1,
 		 n_radial_b_minus = 0, n_radial_b_plus = 1;
@@ -1049,7 +1049,7 @@ static void calculate_tstop2(const double r, const double phi,
     minus_l_rel = r * vg_azimuthal - l0;
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
+	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1091,7 +1091,7 @@ static void calculate_tstop2(const double r, const double phi,
 void check_tstop(t_data &data)
 {
 
-    double dt = DT;
+	double dt;
 
     double local_gas_time_step_cfl = 1.0;
     double global_gas_time_step_cfl = 1.0;
@@ -1149,7 +1149,7 @@ void check_tstop(t_data &data)
 	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
+	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1293,7 +1293,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 			       temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
+	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1383,7 +1383,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 				     temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
 	const double sigma =
-		M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
+		M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
 	const double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1611,7 +1611,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 	const double hfdt = 0.5 * dt;
 	double tstop = dt;
-	double vrel_r;
+	double vrel_r = 0.0;
 
 	// Half-drift ////////////////////////////////////////////
 	const double r_dot1 = r_dot0;
@@ -1781,7 +1781,9 @@ void integrate_implicit(t_data &data, const double dt)
     // 2014, eqs. A15-A18)
     double r1, phi1, l1, r_dot1, tstop1, tstop0, dt0, dt1;
     double r_ddot0, minus_l_dot0, r_ddot1, minus_l_dot1, hfdt, minus_r_dot_rel0,
-	minus_l_rel0, minus_r_dot_rel1, minus_l_rel1;
+	minus_l_rel0, minus_r_dot_rel1;
+
+	double minus_l_rel1 = 0.0;
 
     // initialize with failsave values to suppress compiler warning
     // "-Wmaybe-uninitialized"
