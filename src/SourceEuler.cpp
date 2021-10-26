@@ -393,6 +393,21 @@ void copy_polargrid(t_polargrid &dst, t_polargrid &src)
 }
 
 /**
+	switch one polar grid with another
+
+	\param dst destination polar grid
+	\param src source polar grid
+*/
+void move_polargrid(t_polargrid &dst, t_polargrid &src)
+{
+	assert((dst.get_size_radial() == src.get_size_radial()) &&
+	   (dst.get_size_azimuthal() == src.get_size_azimuthal()));
+
+	std::swap(dst.Field, src.Field);
+}
+
+
+/**
 	switches polar grids
 
 	\param dst destination polar grid
@@ -833,15 +848,15 @@ void SubStep2(t_data &data, double dt)
 		    }
 		}
 	    } else {
-		copy_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
+		move_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
 	    }
 	}
     } else {
-	copy_polargrid(data[t_data::V_RADIAL],
+	move_polargrid(data[t_data::V_RADIAL],
 		       data[t_data::V_RADIAL_SOURCETERMS]);
-	copy_polargrid(data[t_data::V_AZIMUTHAL],
+	move_polargrid(data[t_data::V_AZIMUTHAL],
 		       data[t_data::V_AZIMUTHAL_SOURCETERMS]);
-	copy_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
+	move_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
     }
 }
 

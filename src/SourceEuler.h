@@ -10,6 +10,7 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
 bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 				double maximum_value);
 
+void move_polargrid(t_polargrid &dst, t_polargrid &src);
 void copy_polargrid(t_polargrid &dst, t_polargrid &src);
 void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src);
 
