@@ -490,19 +490,24 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		update_with_sourceterms(data, dt);
 
 		if (EXPLICIT_VISCOSITY) {
-		update_with_artificial_viscosity(data, dt);
-
 		// compute and add acceleartions due to disc viscosity as a source term
 		ComputeViscousStressTensor(data);
+
+		update_with_artificial_viscosity(data, dt);
 
 		viscosity::update_velocities_with_viscosity(
 			data, data[t_data::V_RADIAL],
 			data[t_data::V_AZIMUTHAL], dt);
 		}
 
+		printf("Before STS: Vr = %.5e\n", data[t_data::V_RADIAL](50, 0));
 		if (!EXPLICIT_VISCOSITY) {
 		Sts(data, dt);
 		}
+		printf("After STS: Vr = %.5e\n", data[t_data::V_RADIAL](50, 0));
+
+
+
 
 	    boundary_conditions::apply_boundary_condition(data, dt, false);
 
@@ -703,13 +708,13 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 			(parameters::boundary_inner != parameters::boundary_condition_boundary_layer) &&
 			(parameters::boundary_inner != parameters::boundary_condition_precribed_time_variable);
 	if(add_kep_inner){
-	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL_SOURCETERMS]);
+	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
 	}
 
 	if((parameters::boundary_outer != parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_outer != parameters::boundary_condition_boundary_layer) &&
 	(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable)){
-	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL_SOURCETERMS], add_kep_inner);
+	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL], add_kep_inner);
 	}
 
     if (parameters::artificial_viscosity ==
@@ -723,9 +728,9 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 		 n_azimuthal <= data[t_data::Q_R].get_max_azimuthal();
 		 ++n_azimuthal) {
 		double dv_r =
-		    data[t_data::V_RADIAL_SOURCETERMS](n_radial + 1,
+			data[t_data::V_RADIAL](n_radial + 1,
 						       n_azimuthal) -
-		    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal);
+			data[t_data::V_RADIAL](n_radial, n_azimuthal);
 		if (dv_r < 0.0) {
 		    data[t_data::Q_R](n_radial, n_azimuthal) =
 			std::pow(parameters::artificial_viscosity_factor, 2) *
@@ -736,13 +741,13 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 		}
 
 		double dv_phi =
-		    data[t_data::V_AZIMUTHAL_SOURCETERMS](
+			data[t_data::V_AZIMUTHAL](
 			n_radial,
-			n_azimuthal == data[t_data::V_AZIMUTHAL_SOURCETERMS]
+			n_azimuthal == data[t_data::V_AZIMUTHAL]
 					   .get_max_azimuthal()
 			    ? 0
 			    : n_azimuthal + 1) -
-		    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial,
+			data[t_data::V_AZIMUTHAL](n_radial,
 							  n_azimuthal);
 		if (dv_phi < 0.0) {
 		    data[t_data::Q_PHI](n_radial, n_azimuthal) =
@@ -765,7 +770,7 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 		// 1/Sigma dq_r/dr : Sigma is calculated as a mean value between
 		// the neightbour cells
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal) -
+			data[t_data::V_RADIAL](n_radial, n_azimuthal) -
 		    dt * 2.0 /
 			(data[t_data::DENSITY](n_radial, n_azimuthal) +
 			 data[t_data::DENSITY](n_radial - 1, n_azimuthal)) *
@@ -788,7 +793,7 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 		// 1/Sigma 1/r dq_phi/dphi : Sigma is calculated as a mean value
 		// between the neightbour cells
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial,
+			data[t_data::V_AZIMUTHAL](n_radial,
 							  n_azimuthal) -
 		    dt * 2.0 /
 			(data[t_data::DENSITY](n_radial, n_azimuthal) +
@@ -823,21 +828,21 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 			data[t_data::ENERGY_INT](n_radial, n_azimuthal) =
 			    data[t_data::ENERGY](n_radial, n_azimuthal) -
 			    dt * data[t_data::Q_R](n_radial, n_azimuthal) *
-				(data[t_data::V_RADIAL_SOURCETERMS](
+				(data[t_data::V_RADIAL](
 				     n_radial + 1, n_azimuthal) -
-				 data[t_data::V_RADIAL_SOURCETERMS](
+				 data[t_data::V_RADIAL](
 				     n_radial, n_azimuthal)) *
 				InvDiffRsup[n_radial] -
 			    dt * data[t_data::Q_PHI](n_radial, n_azimuthal) *
-				(data[t_data::V_AZIMUTHAL_SOURCETERMS](
+				(data[t_data::V_AZIMUTHAL](
 				     n_radial,
 				     n_azimuthal ==
 					     data[t_data::
-						      V_AZIMUTHAL_SOURCETERMS]
+							  V_AZIMUTHAL]
 						 .get_max_azimuthal()
 					 ? 0
 					 : n_azimuthal + 1) -
-				 data[t_data::V_AZIMUTHAL_SOURCETERMS](
+				 data[t_data::V_AZIMUTHAL](
 				     n_radial, n_azimuthal)) *
 				invdxtheta;
 		    }
@@ -847,10 +852,6 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 	    }
 	}
     } else {
-	copy_polargrid(data[t_data::V_RADIAL],
-		       data[t_data::V_RADIAL_SOURCETERMS]);
-	copy_polargrid(data[t_data::V_AZIMUTHAL],
-		       data[t_data::V_AZIMUTHAL_SOURCETERMS]);
 	copy_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
     }
 }
