@@ -441,13 +441,12 @@ void Sts(t_data &data, double dt)
 
 	tau = ts[n - m - 1];
 
+	StsStep2(data, tau);
 	recalculate_derived_disk_quantities(data, true);
 	ComputeViscousStressTensor(data);
 	viscosity::update_velocities_with_viscosity(
 	    data, data[t_data::V_RADIAL_SOURCETERMS],
 	    data[t_data::V_AZIMUTHAL_SOURCETERMS], tau);
-
-	StsStep2(data, tau);
 
 	boundary_conditions::apply_boundary_condition(data, tau, false);
 
