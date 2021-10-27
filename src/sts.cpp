@@ -70,7 +70,6 @@ static void StsStep2(t_data &data, double dt)
 
 	if (parameters::artificial_viscosity ==
 	parameters::artificial_viscosity_SN) {
-	double dxtheta, invdxtheta;
 
 	// calculate q_r and q_phi
 	for (int n_radial = 0; n_radial <= data[t_data::Q_R].get_max_radial();
@@ -135,9 +134,9 @@ static void StsStep2(t_data &data, double dt)
 	for (int n_radial = 0;
 		 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
 		 ++n_radial) {
-		dxtheta = dphi *
+		const double dxtheta = dphi *
 			  Rmed[n_radial];
-		invdxtheta = 1.0 / dxtheta;
+		const double invdxtheta = 1.0 / dxtheta;
 		for (int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -171,16 +170,15 @@ static void StsStep2(t_data &data, double dt)
 		for (int n_radial = 0;
 			 n_radial <= data[t_data::QPLUS].get_max_radial();
 			 ++n_radial) {
-			dxtheta =
+			const double dxtheta =
 			dphi *
 			Rmed[n_radial];
-			invdxtheta = 1.0 / dxtheta;
+			const double invdxtheta = 1.0 / dxtheta;
 			for (int n_azimuthal = 0;
 			 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
 			 ++n_azimuthal) {
 			data[t_data::QPLUS](n_radial, n_azimuthal) =
-				data[t_data::QPLUS](n_radial, n_azimuthal) -
-				data[t_data::Q_R](n_radial, n_azimuthal) *
+				-data[t_data::Q_R](n_radial, n_azimuthal) *
 				(data[t_data::V_RADIAL](
 					 n_radial + 1, n_azimuthal) -
 				 data[t_data::V_RADIAL](
@@ -416,8 +414,8 @@ void Sts(t_data &data, double dt)
 	double N = ceil(STS_FindRoot(1.0, dt_par, dt));
 	n = (int)N;
 
-	// printf("\nN = %.5e	%.5e	%.5e	%.5e	N = %.5e\n", N, dt_par,
-	// dt, dt_parabolic_local, STS_FindRoot(1.0, dt_par, dt));
+	//printf("\nN = %d %.5e	%.5e	%.5e	%.5e	N = %.5e\n",n, N, dt_par,
+	//dt, dt_parabolic_local, STS_FindRoot(1.0, dt_par, dt));
 	if (n > STS_MAX_STEPS) {
 	logging::print(LOG_ERROR "STS: the number of substeps (%d) is > %d\n",
 			   N, STS_MAX_STEPS);
@@ -436,11 +434,8 @@ void Sts(t_data &data, double dt)
 
 	tau = ts[n - m - 1];
 
-	printf("m = %d	n = %d	dt = (%.5e	%.5e)\n", m, n, dt, tau);
-
 	StsStep2(data, tau);
 
-	recalculate_derived_disk_quantities(data, true);
 	ComputeViscousStressTensor(data);
 	viscosity::update_velocities_with_viscosity(
 		data, data[t_data::V_RADIAL],
@@ -454,8 +449,14 @@ void Sts(t_data &data, double dt)
 		calculateQvis(data);
 		StsStep(data, tau);
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+		recalculate_derived_disk_quantities(data, true);
 	}
 
 	m++;
+	}
+
+	if (parameters::Adiabatic) {
+	// clear up all Qplus terms
+	data[t_data::QPLUS].clear();
 	}
 }

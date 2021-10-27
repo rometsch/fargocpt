@@ -53,10 +53,7 @@ class t_data
 	T_GRAVITATIONAL,     // graviational Stress tensor
 	POTENTIAL, // the gravitational potential felt by any fluid elements
 		   // (introduced by Fargo-ADSG)
-	V_RADIAL_SOURCETERMS,	 // v_radial with sourceterms (after substep 1)
-	V_AZIMUTHAL_SOURCETERMS, // v_azimuthal with sourceterms (after substep
 				 // 1)
-	ENERGY_INT,	 //
 	DENSITY_INT,	 //
 	Q_R,		 //
 	Q_PHI,		 //

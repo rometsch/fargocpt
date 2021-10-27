@@ -248,7 +248,6 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 	    if (energy(n_radial, n_azimuthal) >
 		maximum_value * density(n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0)) {
-			//printf("Max energy found (%d	%d)\n", n_radial, n_azimuthal);
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
@@ -491,31 +490,25 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 		if (EXPLICIT_VISCOSITY) {
 		// compute and add acceleartions due to disc viscosity as a source term
-		ComputeViscousStressTensor(data);
-
 		update_with_artificial_viscosity(data, dt);
 
+		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(
 			data, data[t_data::V_RADIAL],
 			data[t_data::V_AZIMUTHAL], dt);
 		}
 
-		printf("Before STS: Vr = %.5e\n", data[t_data::V_RADIAL](50, 0));
 		if (!EXPLICIT_VISCOSITY) {
 		Sts(data, dt);
 		}
-		printf("After STS: Vr = %.5e\n", data[t_data::V_RADIAL](50, 0));
-
-
-
 
 	    boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    if (parameters::Adiabatic) {
 
 		//ComputeViscousStressTensor(data);
-
 		SubStep3(data, dt);
+
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 
 		if (parameters::radiative_diffusion_enabled) {
@@ -555,7 +548,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
 	    recalculate_derived_disk_quantities(data, true);
-
 		dt = CalculateHydroTimeStep(data, dt, false);
 
 		accretion::AccreteOntoPlanets(data, dt);
@@ -817,15 +809,15 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 	if (parameters::Adiabatic) {
 	    if (parameters::artificial_viscosity_dissipation) {
 		for (unsigned int n_radial = 0;
-		     n_radial <= data[t_data::ENERGY_INT].get_max_radial();
+			 n_radial <= data[t_data::ENERGY].get_max_radial();
 		     ++n_radial) {
 			const double dxtheta = dphi * Rmed[n_radial];
 			const double invdxtheta = 1.0 / dxtheta;
 		    for (unsigned int n_azimuthal = 0;
 			 n_azimuthal <=
-			 data[t_data::ENERGY_INT].get_max_azimuthal();
+			 data[t_data::ENERGY].get_max_azimuthal();
 			 ++n_azimuthal) {
-			data[t_data::ENERGY_INT](n_radial, n_azimuthal) =
+			data[t_data::ENERGY](n_radial, n_azimuthal) =
 			    data[t_data::ENERGY](n_radial, n_azimuthal) -
 			    dt * data[t_data::Q_R](n_radial, n_azimuthal) *
 				(data[t_data::V_RADIAL](
@@ -847,13 +839,9 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 				invdxtheta;
 		    }
 		}
-	    } else {
-		copy_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
-	    }
+		}
 	}
-    } else {
-	copy_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
-    }
+	}
 }
 
 void calculate_qplus(t_data &data)
@@ -1201,9 +1189,9 @@ void calculate_qminus(t_data &data)
     // beta cooling
     if (parameters::cooling_beta_enabled) {
 	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::QPLUS].get_max_radial(); ++n_radial) {
+		 n_radial <= data[t_data::QMINUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// Q- = E Omega/beta
 		const double r = Rmed[n_radial];
@@ -1380,7 +1368,7 @@ void SubStep3(t_data &data, double dt)
 	    const double H = h*R;
 		
 		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
-		const double eint = data[t_data::ENERGY_INT](n_radial, n_azimuthal);
+		const double eint = data[t_data::ENERGY](n_radial, n_azimuthal);
 		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
 		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
 		const double divV = data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal);
