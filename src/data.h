@@ -47,7 +47,8 @@ class t_data
 	TAU_R_R,	     // viscous stress tensor r,r component
 	TAU_R_PHI,	     // viscous stress tensor r,phi component
 	TAU_PHI_PHI,	     // viscous stress tensor phi,phi component
-	DIV_V,		     // divergence of velocity
+	DIV_V,		     // divergence of velocity used for viscosity
+	DIV_V_SOURCE,		     // divergence of velocity used for source terms
 	T_REYNOLDS,	     // Reynold Stress tensor
 	T_GRAVITATIONAL,     // graviational Stress tensor
 	POTENTIAL, // the gravitational potential felt by any fluid elements

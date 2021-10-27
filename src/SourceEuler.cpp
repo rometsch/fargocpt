@@ -248,6 +248,7 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 	    if (energy(n_radial, n_azimuthal) >
 		maximum_value * density(n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0)) {
+			//printf("Max energy found (%d	%d)\n", n_radial, n_azimuthal);
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
@@ -507,7 +508,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 	    if (parameters::Adiabatic) {
 
-		ComputeViscousStressTensor(data);
+		//ComputeViscousStressTensor(data);
 
 		SubStep3(data, dt);
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
@@ -567,6 +568,29 @@ void SubStep1(t_data &data, double dt)
     double gradp, gradphi, vt2;
     double invdxtheta;
     double supp_torque = 0.0; // for imposed disk drift
+
+
+	// calculate div(v) used for pdv heating in SubStep3
+	for (unsigned int n_radial = 0;
+	 n_radial <= data[t_data::DIV_V_SOURCE].get_max_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::DIV_V_SOURCE].get_max_azimuthal();
+		 ++n_azimuthal) {
+		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+		data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal) =
+		(data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) *
+			 Ra[n_radial + 1] -
+		 data[t_data::V_RADIAL](n_radial, n_azimuthal) * Ra[n_radial]) *
+			InvDiffRsup[n_radial] * InvRb[n_radial] +
+		(data[t_data::V_AZIMUTHAL](
+			 n_radial,
+			 n_azimuthal == data[t_data::DIV_V_SOURCE].get_max_azimuthal()
+			 ? 0
+			 : n_azimuthal + 1) -
+		 data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal)) *
+			invdphi * InvRb[n_radial];
+	}
+	}
 
     // update v_radial with source terms
     for (unsigned int n_radial = 1;
@@ -1369,7 +1393,7 @@ void SubStep3(t_data &data, double dt)
 		const double eint = data[t_data::ENERGY_INT](n_radial, n_azimuthal);
 		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
 		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
-		const double divV = data[t_data::DIV_V](n_radial, n_azimuthal);
+		const double divV = data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal);
 
 		const double inv_pow4 = std::pow( mu * (gamma - 1.0) / (Rgas * sigma), 4);
 		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * std::pow(eint, 3);
