@@ -496,8 +496,8 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		ComputeViscousStressTensor(data);
 
 		viscosity::update_velocities_with_viscosity(
-			data, data[t_data::V_RADIAL_SOURCETERMS],
-			data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
+			data, data[t_data::V_RADIAL],
+			data[t_data::V_AZIMUTHAL], dt);
 		}
 
 		if (!EXPLICIT_VISCOSITY) {
