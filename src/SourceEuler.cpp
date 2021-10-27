@@ -699,14 +699,15 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 	const bool add_kep_inner = (parameters::boundary_inner != parameters::boundary_condition_evanescent) &&
 			(parameters::boundary_inner != parameters::boundary_condition_boundary_layer) &&
 			(parameters::boundary_inner != parameters::boundary_condition_precribed_time_variable);
+
 	if(add_kep_inner){
-	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
+		ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
 	}
 
 	if((parameters::boundary_outer != parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_outer != parameters::boundary_condition_boundary_layer) &&
 	(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable)){
-	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL], add_kep_inner);
+		ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL], add_kep_inner);
 	}
 
     if (parameters::artificial_viscosity ==

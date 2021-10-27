@@ -381,7 +381,6 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 				 0.5 * (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +
 					data[t_data::TAU_PHI_PHI](n_radial - 1, n_azimuthal)));
 
-
 		if(StabilizeViscosity == 1){
 			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal);
 			const double corr = 1.0/(std::max(1.0 + dt*cr, 0.0) -dt*cr);

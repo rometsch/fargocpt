@@ -41,6 +41,7 @@ double exponential_cell_size_factor;
 t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;
 bool domegadr_zero;
+
 double viscous_outflow_speed;
 
 bool damping;
@@ -477,7 +478,12 @@ void read(char *filename, t_data &data)
 		PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
 	}
 
-    domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
+	domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
+
+	if(domegadr_zero)
+	logging::print_master(LOG_INFO "Using to Torque condition at outer boundary\n");
+
+
 	viscous_outflow_speed = config::value_as_double_default("ViscousOutflowSpeed", 1.0);
 
     damping = config::value_as_bool_default("Damping", false);
@@ -1013,6 +1019,9 @@ void summarize_parameters()
 	    "Using 'nonreflecting boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_evanescent:
+	if(domegadr_zero){
+		die("domegadr_zero = true and evanescent outer boundary condition is not allowed!\n");
+	}
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'evanescent boundary condition' at outer boundary.\n");
@@ -1023,6 +1032,9 @@ void summarize_parameters()
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
+	if(domegadr_zero){
+	die("domegadr_zero = true and boundary layer outer boundary condition is not allowed!\n");
+	}
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'boundary layer boundary conditions' at outer boundary.\n");
@@ -1033,6 +1045,9 @@ void summarize_parameters()
 	    "Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
 	case boundary_condition_precribed_time_variable:
+	if(domegadr_zero){
+		die("domegadr_zero = true and prescribed time variable outer boundary condition is not allowed!\n");
+	}
 	logging::print_master(
 		LOG_INFO
 		"Using 'time variable boundary conditions' at inner boundary.\n");
