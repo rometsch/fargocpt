@@ -669,18 +669,6 @@ void SubStep1(t_data &data, double dt)
 		data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
 	}
 
-    if ((parameters::boundary_inner !=
-	 parameters::boundary_condition_evanescent) ||
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_evanescent) ||
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_boundary_layer) ||
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_boundary_layer))
-	ApplySubKeplerianBoundary(data[t_data::V_AZIMUTHAL_SOURCETERMS]);
-
-    /* if ( !Evanescent )
-	    ApplySubKeplerianBoundary(&v_azimuthal_sourceterms); */
 }
 
 /**
@@ -691,6 +679,20 @@ void SubStep1(t_data &data, double dt)
 */
 void SubStep2(t_data &data, double dt)
 {
+
+	const bool add_kep_inner = (parameters::boundary_inner != parameters::boundary_condition_evanescent) &&
+			(parameters::boundary_inner != parameters::boundary_condition_boundary_layer) &&
+			(parameters::boundary_inner != parameters::boundary_condition_precribed_time_variable);
+	if(add_kep_inner){
+	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL_SOURCETERMS]);
+	}
+
+	if((parameters::boundary_outer != parameters::boundary_condition_evanescent) &&
+	(parameters::boundary_outer != parameters::boundary_condition_boundary_layer) &&
+	(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable)){
+	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL_SOURCETERMS], add_kep_inner);
+	}
+
     if (parameters::artificial_viscosity ==
 	parameters::artificial_viscosity_SN &&
 			EXPLICIT_VISCOSITY) {

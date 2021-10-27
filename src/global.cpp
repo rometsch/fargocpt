@@ -130,6 +130,7 @@ t_radialarray Radii;
 t_radialarray GlobalRmed;
 t_radialarray SigmaInf;
 t_radialarray GLOBAL_bufarray;
+t_radialarray GLOBAL_AxiSGAccr;
 
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 int TimeStep;

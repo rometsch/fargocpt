@@ -57,15 +57,16 @@ static void StsStep2(t_data &data, double dt)
 	data[t_data::QPLUS].clear();
     }
 
-    if ((parameters::boundary_inner !=
-	 parameters::boundary_condition_evanescent) ||
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_evanescent) ||
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_boundary_layer) ||
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_boundary_layer))
-	ApplySubKeplerianBoundary(data[t_data::V_AZIMUTHAL_SOURCETERMS]);
+	const bool add_kep_inner = (parameters::boundary_inner != parameters::boundary_condition_evanescent) &&
+			(parameters::boundary_inner != parameters::boundary_condition_boundary_layer) &&
+			(parameters::boundary_inner != parameters::boundary_condition_precribed_time_variable);
+	if(add_kep_inner){
+	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL_SOURCETERMS]);}
+
+	if((parameters::boundary_outer != parameters::boundary_condition_evanescent) &&
+	(parameters::boundary_outer != parameters::boundary_condition_boundary_layer) &&
+	(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable)){
+	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL_SOURCETERMS], add_kep_inner);}
 
     if (parameters::artificial_viscosity ==
 	parameters::artificial_viscosity_SN) {
@@ -203,7 +204,7 @@ static void StsStep2(t_data &data, double dt)
 	}
     } else {
 	copy_polargrid(data[t_data::V_RADIAL],
-		       data[t_data::V_RADIAL_SOURCETERMS]);
+			   data[t_data::V_RADIAL_SOURCETERMS]);
 	copy_polargrid(data[t_data::V_AZIMUTHAL],
 		       data[t_data::V_AZIMUTHAL_SOURCETERMS]);
     }

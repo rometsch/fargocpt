@@ -57,6 +57,7 @@ void resize_radialarrays(unsigned int size)
     GlobalRmed.resize(size);
     SigmaInf.resize(size);
     GLOBAL_bufarray.resize(size);
+	GLOBAL_AxiSGAccr.resize(size);
 }
 
 /**
