@@ -592,11 +592,11 @@ void update_with_sourceterms(t_data &data, double dt)
 
     // update v_radial with source terms
     for (unsigned int n_radial = 1;
-	 n_radial <= data[t_data::V_RADIAL_SOURCETERMS].get_max_radial() - 1;
+	 n_radial <= data[t_data::V_RADIAL].get_max_radial() - 1;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <=
-	     data[t_data::V_RADIAL_SOURCETERMS].get_max_azimuthal();
+		 data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // 1/Sigma * dP/dr : Sigma is calculated as a mean value between the
 	    // neightbour cells
@@ -631,7 +631,7 @@ void update_with_sourceterms(t_data &data, double dt)
 
 	    // add all terms to new v_radial: v_radial_new = v_radial +
 	    // dt*(source terms)
-	    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal) =
+		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 		dt * (-gradp - gradphi + vt2 * InvRinf[n_radial]);
 	}
@@ -639,7 +639,7 @@ void update_with_sourceterms(t_data &data, double dt)
 
     // update v_azimuthal with source terms
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::V_AZIMUTHAL_SOURCETERMS].get_max_radial();
+	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
 	 ++n_radial) {
 	supp_torque =
 		IMPOSEDDISKDRIFT * 0.5 * std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
@@ -647,7 +647,7 @@ void update_with_sourceterms(t_data &data, double dt)
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <=
-	     data[t_data::V_AZIMUTHAL_SOURCETERMS].get_max_azimuthal();
+		 data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // 1/Sigma 1/r dP/dphi
 		const double gradp =
@@ -675,12 +675,12 @@ void update_with_sourceterms(t_data &data, double dt)
 
 	    // add all terms to new v_azimuthal: v_azimuthal_new = v_azimuthal +
 	    // dt*(source terms)
-	    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial, n_azimuthal) =
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 		dt * (-gradp - gradphi);
 
 	    // add term for imposed disk drift
-	    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial, n_azimuthal) +=
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +=
 		dt * supp_torque;
 	}
     }
