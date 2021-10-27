@@ -487,6 +487,16 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		HandleCrash(data);
 
 	    SubStep1(data, dt);
+
+		if (EXPLICIT_VISCOSITY) {
+		// compute and add acceleartions due to disc viscosity as a source term
+		ComputeViscousStressTensor(data);
+
+		viscosity::update_velocities_with_viscosity(
+			data, data[t_data::V_RADIAL_SOURCETERMS],
+			data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
+		}
+
 	    SubStep2(data, dt);
 
 		if (!EXPLICIT_VISCOSITY) {
@@ -659,16 +669,6 @@ void SubStep1(t_data &data, double dt)
     if (parameters::self_gravity) {
 	selfgravity::compute(data, dt, true);
     }
-
-	if (EXPLICIT_VISCOSITY) {
-	// compute and add acceleartions due to disc viscosity as a source term
-	ComputeViscousStressTensor(data);
-
-	viscosity::update_velocities_with_viscosity(
-		data, data[t_data::V_RADIAL_SOURCETERMS],
-		data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
-	}
-
 }
 
 /**
