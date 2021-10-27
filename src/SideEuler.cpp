@@ -510,7 +510,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 					  2.0 * FLARINGINDEX)));
 	} else {
 
-	if(did_sg){
+	if(!did_sg){
 	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
 	}
 
