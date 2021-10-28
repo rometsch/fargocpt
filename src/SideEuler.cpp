@@ -551,3 +551,39 @@ void correct_v_azimuthal(t_polargrid &v_azimuthal, double dOmega)
 	}
     }
 }
+
+/*
+void ApplyNoTorqueBoundaryInner(t_polargrid &v_azimuthal)
+{
+	if (CPU_Rank == 0) {
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= v_azimuthal.get_max_azimuthal();
+		 ++n_azimuthal) {
+		// this is a work around as long as V_AZIMUTHAL is defined as a
+		// vector
+			const double R_outer = Rmed[1];
+			const double R_inner = Rmed[0];
+			v_azimuthal(0, n_azimuthal) =
+			std::sqrt(R_inner / R_outer) *
+			v_azimuthal(1, n_azimuthal);
+		}
+	}
+}
+
+void ApplyNoTorqueBoundaryOuter(t_polargrid &v_azimuthal)
+{
+	if (CPU_Rank == CPU_Highest) {
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= v_azimuthal.get_max_azimuthal();
+		 ++n_azimuthal) {
+		// this is a work around as long as V_AZIMUTHAL is defined as a
+		// vector
+			const double R_outer = Rmed[v_azimuthal.get_max_radial()];
+			const double R_inner = Rmed[v_azimuthal.get_max_radial() - 1];
+			v_azimuthal( v_azimuthal.get_max_radial(), n_azimuthal) =
+			std::sqrt(R_outer / R_inner) *
+			v_azimuthal(v_azimuthal.get_max_radial() - 1, n_azimuthal);
+		}
+	}
+}
+*/
