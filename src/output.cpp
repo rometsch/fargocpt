@@ -13,6 +13,7 @@
 #include "util.h"
 #include "viscosity.h"
 #include "Force.h"
+#include "Pframeforce.h"
 
 #include <dirent.h>
 #include <math.h>
@@ -351,6 +352,10 @@ void write_quantities(t_data &data, unsigned int timestep,
 	quantities::gas_radial_kinematic_energy(data);
     double azimuthalKinematicEnergy =
 	quantities::gas_azimuthal_kinematic_energy(data);
+
+	if(!parameters::body_force_from_potential){
+		CalculatePotential(data);
+	}
     double gravitationalEnergy = quantities::gas_gravitational_energy(data);
     double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
     double scale_height = quantities::gas_aspect_ratio(data);
