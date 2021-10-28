@@ -53,8 +53,9 @@ Pair ComputeAccel(t_data &data, double x, double y)
 
 		const double dx = xc - x;
 		const double dy = yc - y;
-		const double dist_sm_2 = std::pow(dx,2) + std::pow(dy,2) + std::pow(smooth,2);
-		const double dist_sm_3 = dist_sm_2*std::sqrt(dist_sm_2);
+		const double dist_2 = std::pow(dx,2) + std::pow(dy,2);
+		const double dist_sm_2 = dist_2 + std::pow(smooth,2);
+		const double dist_sm_3 = dist_sm_2*std::sqrt(dist_2);
 		const double inv_dist_sm_3 = 1.0 / dist_sm_3;
 
 	    if (Rmed[n_rad] < a) {
