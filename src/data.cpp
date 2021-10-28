@@ -170,6 +170,9 @@ t_data::t_data()
     m_polargrids[DIV_V].set_scalar(true);
     m_polargrids[DIV_V].set_name("div_v");
 
+	m_polargrids[DIV_V_SOURCE].set_scalar(true);
+	m_polargrids[DIV_V_SOURCE].set_name("div_v_source");
+
     m_polargrids[T_GRAVITATIONAL].set_scalar(true);
     m_polargrids[T_GRAVITATIONAL].set_name("T_gravitational");
     m_polargrids[T_GRAVITATIONAL].set_unit(units::stress);
@@ -181,24 +184,11 @@ t_data::t_data()
     m_polargrids[POTENTIAL].set_scalar(true);
     m_polargrids[POTENTIAL].set_name("potential");
 
-    m_polargrids[V_RADIAL_SOURCETERMS].set_vector(true);
-    m_polargrids[V_RADIAL_SOURCETERMS].set_name("vrad_sourceterms");
-    m_polargrids[V_RADIAL_SOURCETERMS].set_unit(units::velocity);
-
-    m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_vector(
-	m_polargrids[V_AZIMUTHAL].is_vector());
-    m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_name("vtheta_sourceterms");
-    m_polargrids[V_AZIMUTHAL_SOURCETERMS].set_unit(units::velocity);
-
     m_polargrids[Q_PHI].set_vector(false);
     m_polargrids[Q_PHI].set_name("q_phi");
 
     m_polargrids[Q_R].set_vector(false);
     m_polargrids[Q_R].set_name("q_r");
-
-    m_polargrids[ENERGY_INT].set_scalar(true);
-    m_polargrids[ENERGY_INT].set_name("energy_int");
-    m_polargrids[ENERGY_INT].set_unit(units::energy_density);
 
     m_polargrids[DENSITY_INT].set_scalar(true);
     m_polargrids[DENSITY_INT].set_name("dens_int");

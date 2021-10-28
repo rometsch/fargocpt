@@ -20,8 +20,8 @@ void FreeEuler();
 
 void AlgoGas(unsigned int nTimeStep, t_data &data);
 
-void SubStep1(t_data &data, double dt);
-void SubStep2(t_data &data, double dt);
+void update_with_sourceterms(t_data &data, double dt);
+void update_with_artificial_viscosity(t_data &data, double dt);
 void SubStep3(t_data &data, double dt);
 void radiative_diffusion(t_data &data, double dt);
 

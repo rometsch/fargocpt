@@ -205,8 +205,8 @@ void compute(t_data &data, double dt, bool update)
 	// Computes polar components of acceleration and updates values of vrad,
 	// vtheta at each step
 
-	auto &v_radial = data[t_data::V_RADIAL_SOURCETERMS];
-	auto &v_azimuthal = data[t_data::V_AZIMUTHAL_SOURCETERMS];
+	auto &v_radial = data[t_data::V_RADIAL];
+	auto &v_azimuthal = data[t_data::V_AZIMUTHAL];
 	update_velocities(v_radial, v_azimuthal, dt);
     }
 }

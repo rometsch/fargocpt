@@ -71,6 +71,7 @@ extern t_radialarray Radii;
 extern t_radialarray GlobalRmed;
 extern t_radialarray SigmaInf;
 extern t_radialarray GLOBAL_bufarray;
+extern t_radialarray GLOBAL_AxiSGAccr;
 
 extern t_radialarray EnergyMed;
 extern t_radialarray SigmaMed;

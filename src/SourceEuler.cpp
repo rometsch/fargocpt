@@ -501,8 +501,17 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	if (parameters::calculate_disk) {
 		HandleCrash(data);
 
-	    SubStep1(data, dt);
-	    SubStep2(data, dt);
+		update_with_sourceterms(data, dt);
+
+		if (EXPLICIT_VISCOSITY) {
+		// compute and add acceleartions due to disc viscosity as a source term
+		update_with_artificial_viscosity(data, dt);
+
+		ComputeViscousStressTensor(data);
+		viscosity::update_velocities_with_viscosity(
+			data, data[t_data::V_RADIAL],
+			data[t_data::V_AZIMUTHAL], dt);
+		}
 
 		if (!EXPLICIT_VISCOSITY) {
 		Sts(data, dt);
@@ -512,9 +521,9 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 	    if (parameters::Adiabatic) {
 
-		ComputeViscousStressTensor(data);
-
+		//ComputeViscousStressTensor(data);
 		SubStep3(data, dt);
+
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 
 		if (parameters::radiative_diffusion_enabled) {
@@ -554,7 +563,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
 	    recalculate_derived_disk_quantities(data, true);
-
 		dt = CalculateHydroTimeStep(data, dt, false);
 
 		accretion::AccreteOntoPlanets(data, dt);
@@ -567,23 +575,44 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
    We evolve velocities with pressure gradients, gravitational forces and
    curvature terms
 */
-void SubStep1(t_data &data, double dt)
+void update_with_sourceterms(t_data &data, double dt)
 {
-    double gradp, gradphi, vt2;
-    double invdxtheta;
     double supp_torque = 0.0; // for imposed disk drift
+
+
+	// calculate div(v) used for pdv heating in SubStep3
+	for (unsigned int n_radial = 0;
+	 n_radial <= data[t_data::DIV_V_SOURCE].get_max_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::DIV_V_SOURCE].get_max_azimuthal();
+		 ++n_azimuthal) {
+		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+		data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal) =
+		(data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) *
+			 Ra[n_radial + 1] -
+		 data[t_data::V_RADIAL](n_radial, n_azimuthal) * Ra[n_radial]) *
+			InvDiffRsup[n_radial] * InvRb[n_radial] +
+		(data[t_data::V_AZIMUTHAL](
+			 n_radial,
+			 n_azimuthal == data[t_data::DIV_V_SOURCE].get_max_azimuthal()
+			 ? 0
+			 : n_azimuthal + 1) -
+		 data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal)) *
+			invdphi * InvRb[n_radial];
+	}
+	}
 
     // update v_radial with source terms
     for (unsigned int n_radial = 1;
-	 n_radial <= data[t_data::V_RADIAL_SOURCETERMS].get_max_radial() - 1;
+	 n_radial <= data[t_data::V_RADIAL].get_max_radial() - 1;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <=
-	     data[t_data::V_RADIAL_SOURCETERMS].get_max_azimuthal();
+		 data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // 1/Sigma * dP/dr : Sigma is calculated as a mean value between the
 	    // neightbour cells
-	    gradp = 2.0 /
+		const double gradp = 2.0 /
 		    (data[t_data::DENSITY](n_radial, n_azimuthal) +
 		     data[t_data::DENSITY](n_radial - 1, n_azimuthal)) *
 		    (data[t_data::PRESSURE](n_radial, n_azimuthal) -
@@ -591,12 +620,12 @@ void SubStep1(t_data &data, double dt)
 		    InvDiffRmed[n_radial];
 
 	    // dPhi/dr
-	    gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
+		const double gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
 		       data[t_data::POTENTIAL](n_radial - 1, n_azimuthal)) *
 		      InvDiffRmed[n_radial];
 
 	    // v_phi^2/r : v_phi^2 is calculated by a mean in both directions
-	    vt2 =
+		double vt2 =
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 		data[t_data::V_AZIMUTHAL](
 		    n_radial,
@@ -614,7 +643,7 @@ void SubStep1(t_data &data, double dt)
 
 	    // add all terms to new v_radial: v_radial_new = v_radial +
 	    // dt*(source terms)
-	    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal) =
+		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 		dt * (-gradp - gradphi + vt2 * InvRinf[n_radial]);
 	}
@@ -622,21 +651,18 @@ void SubStep1(t_data &data, double dt)
 
     // update v_azimuthal with source terms
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::V_AZIMUTHAL_SOURCETERMS].get_max_radial();
+	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
 	 ++n_radial) {
 	supp_torque =
 		IMPOSEDDISKDRIFT * 0.5 * std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
-	invdxtheta =
-	    1.0 /
-		(2.0 * M_PI / (double)data[t_data::V_AZIMUTHAL].get_size_azimuthal() *
-	     Rmed[n_radial]);
+	const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <=
-	     data[t_data::V_AZIMUTHAL_SOURCETERMS].get_max_azimuthal();
+		 data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // 1/Sigma 1/r dP/dphi
-	    gradp =
+		const double gradp =
 		2.0 /
 		(data[t_data::DENSITY](n_radial, n_azimuthal) +
 		 data[t_data::DENSITY](
@@ -651,7 +677,7 @@ void SubStep1(t_data &data, double dt)
 		invdxtheta;
 
 	    // 1/r dPhi/dphi
-	    gradphi =
+		const double gradphi =
 		(data[t_data::POTENTIAL](n_radial, n_azimuthal) -
 		 data[t_data::POTENTIAL](
 		     n_radial, n_azimuthal == 0
@@ -661,12 +687,12 @@ void SubStep1(t_data &data, double dt)
 
 	    // add all terms to new v_azimuthal: v_azimuthal_new = v_azimuthal +
 	    // dt*(source terms)
-	    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial, n_azimuthal) =
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 		dt * (-gradp - gradphi);
 
 	    // add term for imposed disk drift
-	    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial, n_azimuthal) +=
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +=
 		dt * supp_torque;
 	}
     }
@@ -674,28 +700,6 @@ void SubStep1(t_data &data, double dt)
     if (parameters::self_gravity) {
 	selfgravity::compute(data, dt, true);
     }
-
-	if (EXPLICIT_VISCOSITY) {
-	// compute and add acceleartions due to disc viscosity as a source term
-	ComputeViscousStressTensor(data);
-
-	viscosity::update_velocities_with_viscosity(
-		data, data[t_data::V_RADIAL_SOURCETERMS],
-		data[t_data::V_AZIMUTHAL_SOURCETERMS], dt);
-	}
-
-    if ((parameters::boundary_inner !=
-	 parameters::boundary_condition_evanescent) ||
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_evanescent) ||
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_boundary_layer) ||
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_boundary_layer))
-	ApplySubKeplerianBoundary(data[t_data::V_AZIMUTHAL_SOURCETERMS]);
-
-    /* if ( !Evanescent )
-	    ApplySubKeplerianBoundary(&v_azimuthal_sourceterms); */
 }
 
 /**
@@ -704,12 +708,26 @@ void SubStep1(t_data &data, double dt)
    constant; Beware of misprint in Stone and Norman's paper : use C2^2 instead
    of C2
 */
-void SubStep2(t_data &data, double dt)
+void update_with_artificial_viscosity(t_data &data, double dt)
 {
+
+	const bool add_kep_inner = (parameters::boundary_inner != parameters::boundary_condition_evanescent) &&
+			(parameters::boundary_inner != parameters::boundary_condition_boundary_layer) &&
+			(parameters::boundary_inner != parameters::boundary_condition_precribed_time_variable);
+
+	if(add_kep_inner){
+		ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
+	}
+
+	if((parameters::boundary_outer != parameters::boundary_condition_evanescent) &&
+	(parameters::boundary_outer != parameters::boundary_condition_boundary_layer) &&
+	(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable)){
+		ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL], add_kep_inner);
+	}
+
     if (parameters::artificial_viscosity ==
 	parameters::artificial_viscosity_SN &&
 			EXPLICIT_VISCOSITY) {
-	double dxtheta, invdxtheta;
 
 	// calculate q_r and q_phi
 	for (unsigned int n_radial = 0;
@@ -718,9 +736,9 @@ void SubStep2(t_data &data, double dt)
 		 n_azimuthal <= data[t_data::Q_R].get_max_azimuthal();
 		 ++n_azimuthal) {
 		double dv_r =
-		    data[t_data::V_RADIAL_SOURCETERMS](n_radial + 1,
+			data[t_data::V_RADIAL](n_radial + 1,
 						       n_azimuthal) -
-		    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal);
+			data[t_data::V_RADIAL](n_radial, n_azimuthal);
 		if (dv_r < 0.0) {
 		    data[t_data::Q_R](n_radial, n_azimuthal) =
 			std::pow(parameters::artificial_viscosity_factor, 2) *
@@ -731,13 +749,13 @@ void SubStep2(t_data &data, double dt)
 		}
 
 		double dv_phi =
-		    data[t_data::V_AZIMUTHAL_SOURCETERMS](
+			data[t_data::V_AZIMUTHAL](
 			n_radial,
-			n_azimuthal == data[t_data::V_AZIMUTHAL_SOURCETERMS]
+			n_azimuthal == data[t_data::V_AZIMUTHAL]
 					   .get_max_azimuthal()
 			    ? 0
 			    : n_azimuthal + 1) -
-		    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial,
+			data[t_data::V_AZIMUTHAL](n_radial,
 							  n_azimuthal);
 		if (dv_phi < 0.0) {
 		    data[t_data::Q_PHI](n_radial, n_azimuthal) =
@@ -760,7 +778,7 @@ void SubStep2(t_data &data, double dt)
 		// 1/Sigma dq_r/dr : Sigma is calculated as a mean value between
 		// the neightbour cells
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal) -
+			data[t_data::V_RADIAL](n_radial, n_azimuthal) -
 		    dt * 2.0 /
 			(data[t_data::DENSITY](n_radial, n_azimuthal) +
 			 data[t_data::DENSITY](n_radial - 1, n_azimuthal)) *
@@ -774,10 +792,8 @@ void SubStep2(t_data &data, double dt)
 	for (unsigned int n_radial = 0;
 		 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
 	     ++n_radial) {
-		dxtheta = 2.0 * M_PI /
-		      (double)data[t_data::DENSITY].get_size_azimuthal() *
-		      Rmed[n_radial];
-	    invdxtheta = 1.0 / dxtheta;
+		const double dxtheta = dphi * Rmed[n_radial];
+		const double invdxtheta = 1.0 / dxtheta;
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <=
 		 data[t_data::V_AZIMUTHAL].get_max_azimuthal();
@@ -785,7 +801,7 @@ void SubStep2(t_data &data, double dt)
 		// 1/Sigma 1/r dq_phi/dphi : Sigma is calculated as a mean value
 		// between the neightbour cells
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		    data[t_data::V_AZIMUTHAL_SOURCETERMS](n_radial,
+			data[t_data::V_AZIMUTHAL](n_radial,
 							  n_azimuthal) -
 		    dt * 2.0 /
 			(data[t_data::DENSITY](n_radial, n_azimuthal) +
@@ -809,50 +825,39 @@ void SubStep2(t_data &data, double dt)
 	if (parameters::Adiabatic) {
 	    if (parameters::artificial_viscosity_dissipation) {
 		for (unsigned int n_radial = 0;
-		     n_radial <= data[t_data::ENERGY_INT].get_max_radial();
+			 n_radial <= data[t_data::ENERGY].get_max_radial();
 		     ++n_radial) {
-		    dxtheta =
-			2.0 * M_PI /
-			(double)data[t_data::DENSITY].get_size_azimuthal() *
-			Rmed[n_radial];
-		    invdxtheta = 1.0 / dxtheta;
+			const double dxtheta = dphi * Rmed[n_radial];
+			const double invdxtheta = 1.0 / dxtheta;
 		    for (unsigned int n_azimuthal = 0;
 			 n_azimuthal <=
-			 data[t_data::ENERGY_INT].get_max_azimuthal();
+			 data[t_data::ENERGY].get_max_azimuthal();
 			 ++n_azimuthal) {
-			data[t_data::ENERGY_INT](n_radial, n_azimuthal) =
+			data[t_data::ENERGY](n_radial, n_azimuthal) =
 			    data[t_data::ENERGY](n_radial, n_azimuthal) -
 			    dt * data[t_data::Q_R](n_radial, n_azimuthal) *
-				(data[t_data::V_RADIAL_SOURCETERMS](
+				(data[t_data::V_RADIAL](
 				     n_radial + 1, n_azimuthal) -
-				 data[t_data::V_RADIAL_SOURCETERMS](
+				 data[t_data::V_RADIAL](
 				     n_radial, n_azimuthal)) *
 				InvDiffRsup[n_radial] -
 			    dt * data[t_data::Q_PHI](n_radial, n_azimuthal) *
-				(data[t_data::V_AZIMUTHAL_SOURCETERMS](
+				(data[t_data::V_AZIMUTHAL](
 				     n_radial,
 				     n_azimuthal ==
 					     data[t_data::
-						      V_AZIMUTHAL_SOURCETERMS]
+							  V_AZIMUTHAL]
 						 .get_max_azimuthal()
 					 ? 0
 					 : n_azimuthal + 1) -
-				 data[t_data::V_AZIMUTHAL_SOURCETERMS](
+				 data[t_data::V_AZIMUTHAL](
 				     n_radial, n_azimuthal)) *
 				invdxtheta;
 		    }
 		}
-	    } else {
-		move_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
-	    }
+		}
 	}
-    } else {
-	move_polargrid(data[t_data::V_RADIAL],
-		       data[t_data::V_RADIAL_SOURCETERMS]);
-	move_polargrid(data[t_data::V_AZIMUTHAL],
-		       data[t_data::V_AZIMUTHAL_SOURCETERMS]);
-	move_polargrid(data[t_data::ENERGY_INT], data[t_data::ENERGY]);
-    }
+	}
 }
 
 void calculate_qplus(t_data &data)
@@ -1200,9 +1205,9 @@ void calculate_qminus(t_data &data)
     // beta cooling
     if (parameters::cooling_beta_enabled) {
 	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::QPLUS].get_max_radial(); ++n_radial) {
+		 n_radial <= data[t_data::QMINUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// Q- = E Omega/beta
 		const double r = Rmed[n_radial];
@@ -1379,10 +1384,10 @@ void SubStep3(t_data &data, double dt)
 	    const double H = h*R;
 		
 		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
-		const double eint = data[t_data::ENERGY_INT](n_radial, n_azimuthal);
+		const double eint = data[t_data::ENERGY](n_radial, n_azimuthal);
 		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
 		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
-		const double divV = data[t_data::DIV_V](n_radial, n_azimuthal);
+		const double divV = data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal);
 
 		const double inv_pow4 = std::pow( mu * (gamma - 1.0) / (Rgas * sigma), 4);
 		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * std::pow(eint, 3);

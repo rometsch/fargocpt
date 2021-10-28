@@ -249,47 +249,25 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     }
 
-    if (CPU_Rank == CPU_Highest) {
-	if ((parameters::domegadr_zero) &&
-	    (parameters::boundary_outer !=
-	     parameters::boundary_condition_boundary_layer)) {
-	    for (unsigned int n_azimuthal = 0;
+	if (CPU_Rank == CPU_Highest) {
+	if (parameters::domegadr_zero) {
+		for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// this is a work around as long as V_AZIMUTHAL is defined as a
 		// vector
-		if (data[t_data::V_AZIMUTHAL].is_vector()) {
-		    data[t_data::V_AZIMUTHAL](
-			data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
-			n_azimuthal) =
-			Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1] /
-			Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 2] *
+			const double R_outer = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
+			const double R_inner = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
+
 			data[t_data::V_AZIMUTHAL](
-			    data[t_data::V_AZIMUTHAL].get_max_radial() - 2,
-			    n_azimuthal);
-		} else {
-		    data[t_data::V_AZIMUTHAL](
 			data[t_data::V_AZIMUTHAL].get_max_radial(),
-			n_azimuthal) =
-			Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()] /
-			Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1] *
+			n_azimuthal) = R_outer / R_inner *
 			data[t_data::V_AZIMUTHAL](
-			    data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
-			    n_azimuthal);
+				data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
+				n_azimuthal);
 		}
-	    }
-	} else {
-	    /* seems to be done by ApplySubKeplerianBoundary
-	    for (unsigned int n_azimuthal = 0; n_azimuthal <=
-	    data[t_data::V_AZIMUTHAL].get_max_azimuthal(); ++n_azimuthal) {
-			    data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
-	    n_azimuthal) =
-	    data[t_data::V_AZIMUTHAL0](data[t_data::V_AZIMUTHAL0].get_max_radial(),
-	    n_azimuthal);
-	    }
-	    */
 	}
-    }
+	}
 
     if (OuterSourceMass)
 	ApplyOuterSourceMass(&data[t_data::DENSITY], &data[t_data::V_RADIAL]);

@@ -42,6 +42,7 @@ extern t_boundary_condition boundary_inner;
 extern t_boundary_condition boundary_outer;
 /// set dr/dOmega zero at outer boundary
 extern bool domegadr_zero;
+
 // speed of the viscous boundary inflow
 extern double viscous_outflow_speed;
 

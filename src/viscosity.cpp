@@ -79,8 +79,6 @@ void update_viscosity(t_data &data)
 void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 {
 
-    double drr, dpp, drp;
-
     // calculate div(v)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::DIV_V].get_max_radial(); ++n_radial) {
@@ -110,7 +108,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	     n_azimuthal <= data[t_data::TAU_R_R].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // d(v_r)/dr (cell centered)
-	    drr = (data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) -
+		const double drr = (data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) -
 		   data[t_data::V_RADIAL](n_radial, n_azimuthal)) *
 		  InvDiffRsup[n_radial];
 
@@ -129,7 +127,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	     n_azimuthal <= data[t_data::TAU_PHI_PHI].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // 1/r d(v_phi)/dphi + v_r/r (cell centered)
-	    dpp = (data[t_data::V_AZIMUTHAL](
+		const double dpp = (data[t_data::V_AZIMUTHAL](
 		       n_radial,
 		       n_azimuthal ==
 			       data[t_data::TAU_PHI_PHI].get_max_azimuthal()
@@ -177,7 +175,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		invdphi;
 
 	    // r*d(v_phi/r)/dr + 1/r d(v_r)/dphi (edge)
-	    drp = Ra[n_radial] * dvphirdr + dvrdphi * InvRa[n_radial];
+		const double drp = Ra[n_radial] * dvphirdr + dvrdphi * InvRa[n_radial];
 
 	    unsigned int n_azimuthal_minus =
 		(n_azimuthal == 0 ? data[t_data::VISCOSITY].get_max_azimuthal()
@@ -383,7 +381,6 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 					 invdphi -
 				 0.5 * (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +
 					data[t_data::TAU_PHI_PHI](n_radial - 1, n_azimuthal)));
-
 
 		if(StabilizeViscosity == 1){
 			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal);
