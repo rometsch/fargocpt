@@ -853,106 +853,147 @@ void damping(t_data &data, double dt)
 
 void mass_overflow(t_data &data)
 {
-	if (CPU_Rank != CPU_Highest)
-	return;
-	// get location of binary star
-	if (parameters::mof_planet + 1 >
-	data.get_planetary_system().get_number_of_planets()) {
-	logging::print_master(
-		LOG_ERROR
-		"Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
-	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
-	}
-	double xplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
-	double yplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
-	// get grid cell where binary star is nearest
-	// atan2(y,x) is from -PI to PI
-	double angle = std::atan2(yplanet, xplanet) *0.5 * M_1_PI;
-	if (angle < 0) {
-	angle += 1.0;
-	}
-	int maxcells = data[t_data::DENSITY].get_size_azimuthal();
-	int nearest_grid_cell = maxcells * angle; // nearest gridcell to binary star
-	double sigma = parameters::mof_temperature * 0.5 * M_1_PI;
-	int number_of_cells =
-	maxcells * 3 * sigma; // walk through 3 sigma, so we get 99.7% accuracy
-	double sigmabar = maxcells * sigma;
+    if (CPU_Rank != CPU_Highest) {
+    return;
+    }
 
-	double weight_factor = 0.0;
-	double check = 0.0;
-	int gridcell = 0;
-	int maxradial = data[t_data::DENSITY].get_max_radial() + 2;
-	double dist =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_r();
-	double v_stream = -0.001 * (calculate_omega_kepler(dist)) * dist;
-	// double l_cell = 2*PI*Rinf[maxradial - 2]/maxcells; //outer length of a
-	// cell
-	double l_cell =
-	Rsup[maxradial - 2] - Rinf[maxradial - 2]; // outer length of a cell
-	double mass_factor = units::mass.get_cgs_factor() /
-			 1.98892e33; // multiply with mof_value to get m0/year
-	double time_factor =
-	units::cgs_Year *
-	units::time
-		.get_inverse_cgs_factor(); // multiply to get 1/year in code units
-	double sigma_stream =
-	-parameters::mof_value * mass_factor * time_factor * l_cell / v_stream /
-	Surf[maxradial -
-		 2]; //-parameters::mof_value * mass_factor * time_factor / v_stream
-		 /// l_cell;//minus sign because v_stream < 0
-	// double mass = 0.0; //debug
-	if (sigma * maxcells < 1) {
-	number_of_cells = 0;
-	}
-	for (int i = -number_of_cells; i <= number_of_cells; i++) {
-	gridcell = (nearest_grid_cell + i + maxcells) % maxcells;
-	// printf("gridcell= %d\n",gridcell );//debugging
-	// adapt gauss profile
-	weight_factor = 1.0 / (sigmabar * sqrt(2.0 * M_PI)) *
-			exp(-1.0 / 2.0 * std::pow(i / sigmabar, 2));
-	check += weight_factor;
-	if (number_of_cells < 1) {
-		weight_factor = 1.0;
-	}
+    static double last_PhysicalTime = 0.0;
 
-	data[t_data::DENSITY](maxradial - 2, gridcell) =
-		weight_factor * sigma_stream;
+    double dt = PhysicalTime - last_PhysicalTime;
+
+    if (dt == 0.0){
+        return;
+    }
+
+    last_PhysicalTime = PhysicalTime;
+
+    // get location of binary star
+    if (parameters::mof_planet + 1 >
+    data.get_planetary_system().get_number_of_planets()) {
+    logging::print_master(
+        LOG_ERROR
+        "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
+    die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
+    }
+    const double xplanet =
+    data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
+    const double yplanet =
+    data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
+    const double abin =
+    data.get_planetary_system().get_planet(parameters::mof_planet).get_r();
+
+    const double omega_planet = data.get_planetary_system()
+                    .get_planet(parameters::mof_planet)
+                    .get_omega();
+    // get grid cell where binary star is nearest
+    // atan2(y,x) is from -PI to PI
+    double angle = atan2(yplanet, xplanet) / 2 / PI;
+    if (angle < 0) {
+    angle += 1.0;
+    }
+
+    const unsigned int Nrad = data[t_data::DENSITY].get_max_radial();
+    const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
+    const double dtheta =
+    2 * PI / (double)data[t_data::DENSITY].get_size_azimuthal();
+    const double r_cell = Rmed[Nrad];
+
+    const double vr_fraction = 0.002;
+    const double vr_stream =
+    -omega_planet * r_cell *
+    vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
+             // vr_fraction = 0.002)
+    const double vphi_stream =
+    (omega_planet - OmegaFrame) *
+    r_cell; // set angular velocity to zero (in co-rotating frame)
+
+    const double mdot_cgs = parameters::mof_value * units::cgs_Msol / units::cgs_Year;
+
+    const double mdot_code = mdot_cgs * units::time.get_cgs_factor() * units::mass.get_inverse_cgs_factor();
+
+    const double Sigma_stream = mdot_code * dt / Surf[Nrad - 2];
 
 
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 3 + 2,
-				   gridcell) = v_stream; // debug
+    int nearest_grid_cell =
+    (int)((double)Nphi * angle + 0.5); // nearest gridcell to binary star
+    nearest_grid_cell = nearest_grid_cell % Nphi;
 
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 2 + 2,
-				   gridcell) = v_stream; // debug
+    // Calculate sigma from temperature according to
+    // Meyer & Meyer-Hofmeister (1983a) equation 17
+    const double Porb =
+    2.0 * PI / omega_planet * units::time.get_cgs_factor() / 3600.0;
+    // cross section Q
+    const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
+    // stream radius W
+    const double W = sqrt(Q / PI);
+    // circumference circ
+    const double circ = 2.0 * PI * r_cell * units::length.get_cgs_factor();
+
+    double sigma = 2 * W / circ;
+    int number_of_cells =
+    (double)Nphi * 3.0 *
+    sigma; // walk through 3 sigma, so we get 99.7% accuracy
+    double sigmabar = Nphi * sigma;
+
+    double check = 0.0;
+    for (int i = -number_of_cells; i <= number_of_cells; i++) {
+
+    // adapt gauss profile
+    double weight_factor;
+    int gridcell;
+    if (number_of_cells == 0) {
+        gridcell = nearest_grid_cell;
+        weight_factor = 1.0;
+    } else {
+        gridcell = (nearest_grid_cell + i + Nphi) % Nphi;
+        weight_factor = 1.0 / (sigmabar * sqrt(2.0 * PI)) *
+                exp(-1.0 / 2.0 * pow(i / sigmabar, 2));
+    }
+    check += weight_factor;
+
+    int gridcell_r = gridcell + 1;
+    gridcell_r = gridcell_r % Nphi;
+
+    double dens = weight_factor * Sigma_stream;
+    if (dens < parameters::sigma0 * parameters::sigma_floor) {
+        dens = parameters::sigma0 * parameters::sigma_floor;
+    }
+
+    if (parameters::Adiabatic) {
+        const double T_stream =
+        parameters::mof_temperature; // Stream Temperature in Kelvin
+        const double e_stream =
+        T_stream * units::temperature.get_inverse_cgs_factor() * dens /
+        parameters::MU * constants::R /
+        (ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
+
+        data[t_data::ENERGY](Nrad - 2, gridcell) = e_stream;
+    }
 
 
-	data[t_data::V_AZIMUTHAL](data[t_data::V_RADIAL].get_max_radial() - 1,
-				  gridcell) =
-		(calculate_omega_kepler(dist) - OmegaFrame) *
-		Rmed[maxradial - 2]; // debug
-	data[t_data::V_AZIMUTHAL](data[t_data::V_RADIAL].get_max_radial() - 1,
-				  gridcell + 1) =
-		(calculate_omega_kepler(dist) - OmegaFrame) * Rmed[maxradial - 2];
+    data[t_data::DENSITY](Nrad - 2, gridcell) += dens;
+
+    data[t_data::V_RADIAL](Nrad - 2, gridcell) = vr_stream;
+    data[t_data::V_RADIAL](Nrad - 1, gridcell) = vr_stream;
+    data[t_data::V_AZIMUTHAL](Nrad - 2, gridcell) = vphi_stream;
+    data[t_data::V_AZIMUTHAL](Nrad - 2, gridcell_r) = vphi_stream;
 
 #ifndef NDEBUG
-	logging::print(
-		LOG_VERBOSE
-		"dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, maxcells %i , noc %i , i %i \n",
-		data[t_data::DENSITY](maxradial - 1, gridcell), weight_factor,
-		angle, nearest_grid_cell, mass_stream, gridcell, maxcells,
-		number_of_cells * 2 + 1, i);
+    logging::print(
+        LOG_VERBOSE
+        "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, Nphi %i , noc %i , i %i \n",
+        data[t_data::DENSITY](Nrad, gridcell), 1.0, angle, gridcell,
+        Sigma_stream, gridcell, Nrad, Nphi * 2 + 1, 0);
 #endif
-	}
-	// printf("mass= %e\n",mass);//debugging
-	// printf("dt= %e\n", dt);//debugging
-	// check if mass overflow is constant
-	if (!(check > 0.99) || !(check < 1.01)) {
-	logging::print_master(LOG_ERROR "weight_factor %lf should be 0.997 \n",
-				  weight_factor);
-	}
+    }
+
+    // check if mass overflow is constant
+    if (!(check > 0.99) || !(check < 1.01)) {
+    logging::print_master(LOG_ERROR "weight_factor %lf should be 0.997 \n",
+                  check);
+    }
 }
+
 
 /**
  *	Mass overflow function copied from RH2D
