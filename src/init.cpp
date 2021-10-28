@@ -50,6 +50,9 @@ void resize_radialarrays(unsigned int size)
     InvSurf.resize(size);
     InvDiffRmed.resize(size);
     InvDiffRsup.resize(size);
+	InvDiffRsupRb.resize(size);
+	TwoDiffRaSq.resize(size);
+	FourThirdInvRbInvdphiSq.resize(size);
     Radii.resize(size);
     GlobalRmed.resize(size);
     SigmaInf.resize(size);
@@ -85,7 +88,7 @@ void init_radialarrays()
 	case parameters::logarithmic_spacing:
 		{
 		cell_growth_factor = std::pow((RMAX/RMIN), 1.0/((double)GlobalNRadial-2.0));
-	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
+		for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
 
 		Radii[nRadial] = RMIN * std::pow(cell_growth_factor, (double)nRadial-1.0);
 		}
@@ -95,7 +98,7 @@ void init_radialarrays()
 		{
 		cell_growth_factor = ((double)GlobalNRadial - 2.0) / (RMAX-RMIN);
 		const double interval = (RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
-	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
+		for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
 		Radii[nRadial] = RMIN + interval * (double)(nRadial - 1.0);
 	    }
 	    break;
@@ -115,7 +118,7 @@ void init_radialarrays()
 					(Nr * std::pow(exp_growth_factor, Nr-1.0) - f);
 		}
 		cell_growth_factor = exp_growth_factor;
-	    for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
+		for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
 			Radii[nRadial] = RMIN + first_cell_size * (std::pow(exp_growth_factor, (double)nRadial-1.0) - 1.0) / (exp_growth_factor-1.0);
 	    }
 	    break;
@@ -145,10 +148,11 @@ void init_radialarrays()
 	init_cell_finder(cell_growth_factor, first_cell_size);
 
     /* if input file is open, close it */
-    if (fd_input != NULL)
+	if (fd_input != NULL){
 	fclose(fd_input);
+	}
 
-    for (nRadial = 0; nRadial < GlobalNRadial; ++nRadial) {
+	for (nRadial = 0; nRadial < GlobalNRadial + 1; ++nRadial) {
 	// Rmed is in the center of the cell where the center of mass is
 	// Rmed = 1/2 * [ (4/3 Pi r_sup^3) - (4/3 Pi r_inf^3) ] / [ (Pi r_sup^2)
 	// - (Pi r_inf^2) ]
@@ -167,7 +171,7 @@ void init_radialarrays()
 	parameters::radial_grid_names[parameters::radial_grid_type], Radii[1],
 	Radii[GlobalNRadial - 1], Radii[0], Radii[GlobalNRadial]);
 
-    for (nRadial = 0; nRadial < NRadial; ++nRadial) {
+	for (nRadial = 0; nRadial < NRadial + 1; ++nRadial) {
 	Rinf[nRadial] = Radii[nRadial + IMIN];
 	Rsup[nRadial] = Radii[nRadial + IMIN + 1];
 
@@ -181,19 +185,22 @@ void init_radialarrays()
 	// this
 	assert((Rmed[nRadial] - GlobalRmed[nRadial + IMIN]) < DBL_EPSILON);
 
-	Surf[nRadial] = M_PI * (pow2(Rsup[nRadial]) - pow2(Rinf[nRadial])) /
+	Surf[nRadial] = M_PI * (std::pow(Rsup[nRadial], 2) - std::pow(Rinf[nRadial], 2)) /
 			(double)NAzimuthal;
 
 	InvRmed[nRadial] = 1.0 / Rmed[nRadial];
 	InvSurf[nRadial] = 1.0 / Surf[nRadial];
 	InvDiffRsup[nRadial] = 1.0 / (Rsup[nRadial] - Rinf[nRadial]);
+	InvDiffRsupRb[nRadial] = 1.0 / ((Rsup[nRadial] - Rinf[nRadial])*Rmed[nRadial]);
+	TwoDiffRaSq[nRadial] = 2.0 / (Rsup[nRadial]*Rsup[nRadial] - Rinf[nRadial]*Rinf[nRadial]);
+	FourThirdInvRbInvdphiSq[nRadial] = 4.0 / 3.0 / Rmed[nRadial] * invdphi * invdphi;
 	InvRinf[nRadial] = 1.0 / Rinf[nRadial];
     }
 
     Rinf[NRadial] = Radii[NRadial + IMIN];
     InvRinf[NRadial] = 1.0 / Rinf[NRadial];
 
-    for (nRadial = 1; nRadial < NRadial; ++nRadial) {
+	for (nRadial = 1; nRadial < NRadial + 1; ++nRadial) {
 	InvDiffRmed[nRadial] = 1.0 / (Rmed[nRadial] - Rmed[nRadial - 1]);
     }
 
@@ -308,54 +315,54 @@ void init_shakura_sunyaev(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < data[t_data::TEMPERATURE].Nsec; ++n_azimuthal) {
 
-	    factor = pow(
-		1. - sqrt(parameters::star_radius /
+		factor = std::pow(
+		1. - std::sqrt(parameters::star_radius /
 			  (Rb[n_radial] + 2. * (RMAX - RMIN) / GlobalNRadial)),
 		0.25);
 
 	    data[t_data::DENSITY](n_radial, n_azimuthal) =
-		(5.2 * pow(ALPHAVISCOSITY, -4. / 5.) *
-		 pow(parameters::mass_accretion_rate *
+		(5.2 * std::pow(ALPHAVISCOSITY, -4. / 5.) *
+		 std::pow(parameters::mass_accretion_rate *
 			 units::mass_accretion_rate.get_cgs_factor() / 1.e16,
 		     7. / 10.) *
-		 pow(parameters::M0, 0.25) *
-		 pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
+		 std::pow(parameters::M0, 0.25) *
+		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 		     -0.75) *
-		 pow(factor, 14. / 5.)) /
+		 std::pow(factor, 14. / 5.)) /
 		units::surface_density.get_cgs_factor();
 	    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
-		(1.7e8 * pow(ALPHAVISCOSITY, -1. / 10.) *
-		 pow(parameters::mass_accretion_rate *
+		(1.7e8 * std::pow(ALPHAVISCOSITY, -1. / 10.) *
+		 std::pow(parameters::mass_accretion_rate *
 			 units::mass_accretion_rate.get_cgs_factor() / 1.e16,
 		     3. / 20.) *
-		 pow(parameters::M0, -3. / 8.) *
-		 pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
+		 std::pow(parameters::M0, -3. / 8.) *
+		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 		     9. / 8.) *
-		 pow(factor, 3. / 5.)) /
+		 std::pow(factor, 3. / 5.)) /
 		(Rb[n_radial] * units::length.get_cgs_factor());
 	    data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-		(1.4e4 * pow(ALPHAVISCOSITY, -1. / 5.) *
-		 pow(parameters::mass_accretion_rate *
+		(1.4e4 * std::pow(ALPHAVISCOSITY, -1. / 5.) *
+		 std::pow(parameters::mass_accretion_rate *
 			 units::mass_accretion_rate.get_cgs_factor() / 1.e16,
 		     3. / 10.) *
-		 pow(parameters::M0, 0.25) *
-		 pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
+		 std::pow(parameters::M0, 0.25) *
+		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 		     -0.75) *
-		 pow(factor, 6. / 5.)) /
+		 std::pow(factor, 6. / 5.)) /
 		units::temperature.get_cgs_factor();
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		-(2.7e4 * pow(ALPHAVISCOSITY, 4. / 5.) *
-		  pow(parameters::mass_accretion_rate *
+		-(2.7e4 * std::pow(ALPHAVISCOSITY, 4. / 5.) *
+		  std::pow(parameters::mass_accretion_rate *
 			  units::mass_accretion_rate.get_cgs_factor() / 1.e16,
 		      3. / 10.) *
-		  pow(parameters::M0, -0.25) *
-		  pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
+		  std::pow(parameters::M0, -0.25) *
+		  std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 		      -0.25) *
-		  pow(factor, -14. / 5.)) /
+		  std::pow(factor, -14. / 5.)) /
 		units::velocity.get_cgs_factor();
 
 	    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		sqrt(constants::R / parameters::MU * ADIABATICINDEX *
+		std::sqrt(constants::R / parameters::MU * ADIABATICINDEX *
 		     data[t_data::TEMPERATURE](n_radial, n_azimuthal));
 	    data[t_data::ENERGY](n_radial, n_azimuthal) =
 		constants::R / parameters::MU * 1. / (ADIABATICINDEX - 1.) *
@@ -563,11 +570,11 @@ void init_gas_density(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
 		const double density =
-		    parameters::sigma0 * pow(Rmed[n_radial], -SIGMASLOPE);
+			parameters::sigma0 * std::pow(Rmed[n_radial], -SIGMASLOPE);
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
-		    max(density, density_floor);
+			std::max(density, density_floor);
 	    }
 	}
 	break;
@@ -631,8 +638,8 @@ void init_gas_density(t_data &data)
 		    (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
 		    M_PI;
-		double x = r * cos(angle);
-		double y = r * sin(angle);
+		double x = r * std::cos(angle);
+		double y = r * std::sin(angle);
 
 		double f = parameters::sigma_feature_size;
 
@@ -678,7 +685,7 @@ void init_gas_density(t_data &data)
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
-		    max(density_damped, density_floor);
+			std::max(density_damped, density_floor);
 	    }
 	}
     }
@@ -704,7 +711,7 @@ void init_gas_density(t_data &data)
 		const double density_floor =
 			parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
-			max(density_damped, density_floor);
+			std::max(density_damped, density_floor);
 		}
 	}
 	}
@@ -760,11 +767,11 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		pow2(ASPECTRATIO_REF) * units::energy.get_cgs_factor(),
+		std::pow(ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
 	    -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
-	    parameters::MU / constants::R * pow2(ASPECTRATIO_REF) 
+		parameters::MU / constants::R * std::pow(ASPECTRATIO_REF, 2)
 		* constants::G * hydro_center_mass *
 		units::temperature.get_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
@@ -778,8 +785,8 @@ void init_gas_energy(t_data &data)
 		 ++n_azimuthal) {
 		const double energy =
 		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    pow2(ASPECTRATIO_REF) *
-		    pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX)
+			std::pow(ASPECTRATIO_REF, 2) *
+			std::pow(Rmed[n_radial], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX)
 			* constants::G * hydro_center_mass;
 		const double temperature_floor =
 		    parameters::minimum_temperature *
@@ -790,7 +797,7 @@ void init_gas_energy(t_data &data)
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
-		    max(energy, energy_floor);
+			std::max(energy, energy_floor);
 	    }
 	}
 	break;
@@ -839,7 +846,7 @@ void init_gas_energy(t_data &data)
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
-		    max(energy_damped, energy_floor);
+			std::max(energy_damped, energy_floor);
 	    }
 	}
     }
@@ -871,7 +878,7 @@ void init_gas_energy(t_data &data)
 			parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
-			max(energy_damped, energy_floor);
+			std::max(energy_damped, energy_floor);
 		}
 	}
 	}
@@ -907,7 +914,7 @@ void init_gas_velocities(t_data &data)
 		 ++n_azimuthal) {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		    sqrt(constants::G * hydro_center_mass / r);
+			std::sqrt(constants::G * hydro_center_mass / r);
 	    }
 	}
 
@@ -987,7 +994,7 @@ void init_gas_velocities(t_data &data)
 	}
 
 	for (unsigned int i = 1; i < GlobalNRadial; i++)
-	    vt_int[i] = sqrt(vt_int[i] * Radii[i]) - Radii[i] * OmegaFrame;
+		vt_int[i] = std::sqrt(vt_int[i] * Radii[i]) - Radii[i] * OmegaFrame;
 
 	t1 = vt_cent[0] = vt_int[1] + .75 * (vt_int[1] - vt_int[2]);
 	r1 = ConstructSequence(vt_cent, vt_int, GlobalNRadial);
@@ -1021,8 +1028,8 @@ void init_gas_velocities(t_data &data)
 		// v_azimuthal = Omega_K * r * (...)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    r * calculate_omega_kepler(r) *
-		    sqrt(1.0 - pow2(ASPECTRATIO_REF) *
-				   pow(r, 2.0 * FLARINGINDEX) *
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				   std::pow(r, 2.0 * FLARINGINDEX) *
 				   (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 	    }
 

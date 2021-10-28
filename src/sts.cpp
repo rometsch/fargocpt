@@ -83,9 +83,9 @@ static void StsStep2(t_data &data, double dt)
 		    data[t_data::V_RADIAL_SOURCETERMS](n_radial, n_azimuthal);
 		if (dv_r < 0.0) {
 		    data[t_data::Q_R](n_radial, n_azimuthal) =
-			pow2(parameters::artificial_viscosity_factor) *
+			std::pow(parameters::artificial_viscosity_factor, 2) *
 			data[t_data::DENSITY](n_radial, n_azimuthal) *
-			pow2(dv_r);
+			std::pow(dv_r, 2);
 		} else {
 		    data[t_data::Q_R](n_radial, n_azimuthal) = 0.0;
 		}
@@ -101,9 +101,9 @@ static void StsStep2(t_data &data, double dt)
 							  n_azimuthal);
 		if (dv_phi < 0.0) {
 		    data[t_data::Q_PHI](n_radial, n_azimuthal) =
-			pow2(parameters::artificial_viscosity_factor) *
+			std::pow(parameters::artificial_viscosity_factor, 2) *
 			data[t_data::DENSITY](n_radial, n_azimuthal) *
-			pow2(dv_phi);
+			std::pow(dv_phi, 2);
 		} else {
 		    data[t_data::Q_PHI](n_radial, n_azimuthal) = 0.0;
 		}
@@ -242,14 +242,14 @@ static void calculateQvis(t_data &data)
 			1.0 /
 			(2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
 			 data[t_data::DENSITY](n_radial, n_azimuthal)) *
-			(pow2(data[t_data::TAU_R_R](n_radial, n_azimuthal)) +
-			 2 * pow2(tau_r_phi) +
-			 pow2(
-			     data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal)));
+			(std::pow(data[t_data::TAU_R_R](n_radial, n_azimuthal), 2) +
+			 2 * std::pow(tau_r_phi, 2) +
+			 std::pow(
+				 data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal), 2));
 		    qplus += (2.0 / 9.0) *
 			     data[t_data::VISCOSITY](n_radial, n_azimuthal) *
 			     data[t_data::DENSITY](n_radial, n_azimuthal) *
-			     pow2(data[t_data::DIV_V](n_radial, n_azimuthal));
+				 std::pow(data[t_data::DIV_V](n_radial, n_azimuthal), 2);
 
 		    qplus *= parameters::heating_viscous_factor;
 		    data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
@@ -267,15 +267,15 @@ static void calculateQvis(t_data &data)
 		double qplus =
 		    data[t_data::QPLUS](
 			data[t_data::QPLUS].get_max_radial() - 1, n_azimuthal) *
-		    exp(log(data[t_data::QPLUS](
+			std::exp(std::log(data[t_data::QPLUS](
 				data[t_data::QPLUS].get_max_radial() - 1,
 				n_azimuthal) /
 			    data[t_data::QPLUS](
 				data[t_data::QPLUS].get_max_radial() - 2,
 				n_azimuthal)) *
-			log(Rmed[data[t_data::QPLUS].get_max_radial()] /
+			std::log(Rmed[data[t_data::QPLUS].get_max_radial()] /
 			    Rmed[data[t_data::QPLUS].get_max_radial() - 1]) /
-			log(Rmed[data[t_data::QPLUS].get_max_radial() - 1] /
+			std::log(Rmed[data[t_data::QPLUS].get_max_radial() - 1] /
 			    Rmed[data[t_data::QPLUS].get_max_radial() - 2]));
 
 		data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial(),
@@ -290,9 +290,9 @@ static void calculateQvis(t_data &data)
 		// power-law extrapolation
 		double qplus =
 		    data[t_data::QPLUS](1, n_azimuthal) *
-		    exp(log(data[t_data::QPLUS](1, n_azimuthal) /
+			std::exp(std::log(data[t_data::QPLUS](1, n_azimuthal) /
 			    data[t_data::QPLUS](2, n_azimuthal)) *
-			log(Rmed[0] / Rmed[1]) / log(Rmed[1] / Rmed[2]));
+			std::log(Rmed[0] / Rmed[1]) / std::log(Rmed[1] / Rmed[2]));
 
 		data[t_data::QPLUS](0, n_azimuthal) += qplus;
 	    }
@@ -365,11 +365,11 @@ static double STS_FindRoot(double x0, double dtr, double dta)
 	    (1.0 - std::sqrt(STS_NU)) / (1.0 + std::sqrt(STS_NU));
 	const static double sqrt_sts_nu = std::sqrt(STS_NU);
 
-	b = pow(a, 2.0 * Ns);
+	b = std::pow(a, 2.0 * Ns);
 	c = (1.0 - b) / (1.0 + b);
 	Ns1 = Ns + (dta - dtr * Ns / (2.0 * sqrt_sts_nu) * c) /
 		       (dtr / (2.0 * sqrt_sts_nu) *
-			(c - 2.0 * Ns * b * log(a) * (1.0 + c) / (1.0 + b)));
+			(c - 2.0 * Ns * b * std::log(a) * (1.0 + c) / (1.0 + b)));
 	n += 1;
 	if (n == 128) {
 	    printf("! STS_FindRoot: max number of iterations exceeded");
@@ -390,7 +390,7 @@ static double STS_CorrectTimeStep(int n0, double dta)
     const static double a =
 	(1.0 - std::sqrt(STS_NU)) / (1.0 + std::sqrt(STS_NU));
     const static double sqrt_sts_nu = std::sqrt(STS_NU);
-    const double b = pow(a, 2.0 * n0);
+	const double b = std::pow(a, 2.0 * n0);
     const double c = (1.0 - b) / (1.0 + b);
 
     dtr = dta * 2.0 * sqrt_sts_nu / (n0 * c);

@@ -108,8 +108,8 @@ void CalculatePotential(t_data &data)
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const double angle = (double)n_az /
 		    (double)pot.get_size_azimuthal() * 2.0 * M_PI;
-	    const double x = Rmed[n_rad] * cos(angle);
-	    const double y = Rmed[n_rad] * sin(angle);
+		const double x = Rmed[n_rad] * std::cos(angle);
+		const double y = Rmed[n_rad] * std::sin(angle);
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
@@ -165,9 +165,9 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 		const double xo = other_planet.get_x();
 		const double yo = other_planet.get_y();
 		const double mass = other_planet.get_mass();
-		const double dist = sqrt(pow2(x - xo) + pow2(y - yo));
-		ax -= constants::G * mass / pow3(dist) * (x - xo);
-		ay -= constants::G * mass / pow3(dist) * (y - yo);
+		const double dist = sqrt(std::pow(x - xo, 2) + std::pow(y - yo, 2));
+		ax -= constants::G * mass / std::pow(dist, 3) * (x - xo);
+		ay -= constants::G * mass / std::pow(dist, 3) * (y - yo);
 	    }
 	}
 	planet.set_nbody_on_planet_acceleration_x(ax);

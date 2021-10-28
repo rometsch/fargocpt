@@ -140,12 +140,12 @@ void t_planet::set_name(const char *name)
  * @brief t_planet::get_angle get phi coordinate
  * @return
  */
-double t_planet::get_phi() const { return atan2(m_y, m_x); }
+double t_planet::get_phi() const { return std::atan2(m_y, m_x); }
 
 /**
 	get planet distance to coordinate center
 */
-double t_planet::get_r() const { return sqrt(pow2(m_x) + pow2(m_y)); }
+double t_planet::get_r() const { return std::sqrt(std::pow(m_x, 2) + std::pow(m_y, 2)); }
 
 /**
 	get ramp up mass of the planet
@@ -157,7 +157,7 @@ double t_planet::get_rampup_mass()
 	if (PhysicalTime < get_rampuptime() * DT) {
 	    ramping =
 		1.0 -
-		pow2(cos(PhysicalTime * M_PI / 2.0 / (get_rampuptime() * DT)));
+		std::pow(std::cos(PhysicalTime * M_PI / 2.0 / (get_rampuptime() * DT)), 2);
 	}
     }
     return get_mass() * ramping;
@@ -169,7 +169,7 @@ double t_planet::get_rampup_mass()
 double t_planet::get_period()
 {
     return 2.0 * M_PI *
-	   sqrt(pow3(get_semi_major_axis()) /
+	   std::sqrt(std::pow(get_semi_major_axis(), 3) /
 		((hydro_center_mass + get_mass()) * constants::G));
 }
 
@@ -180,7 +180,7 @@ double t_planet::get_omega()
 {
     double distance = get_r();
     if (!is_distance_zero(distance)) {
-	return sqrt(((hydro_center_mass + get_mass()) * constants::G) / pow3(distance));
+	return std::sqrt(((hydro_center_mass + get_mass()) * constants::G) / std::pow(distance, 3));
     } else {
 	return 0.0;
     }
@@ -194,7 +194,7 @@ double t_planet::get_rhill()
     const double r = get_r();
 	const double Mp = get_mass();
 	const double Mstar = hydro_center_mass;
-	const double rhill = pow(Mp/(3*Mstar), 1.0/3.0)*r;\
+	const double rhill = std::pow(Mp/(3*Mstar), 1.0/3.0)*r;\
 	return rhill;
 }
 
@@ -370,14 +370,14 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
     double m = com_mass + get_mass();
 
     h = x * vy - y * vx;
-    d = sqrt(x * x + y * y);
+	d = std::sqrt(x * x + y * y);
     if (is_distance_zero(d) || h == 0.0) {
 	set_orbital_elements_zero();
 	return;
     }
     Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
     Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
-    e = sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
+	e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
     a = h * h / constants::G / m / (1.0 - e * e);
 
     if (e != 0.0) {
@@ -389,7 +389,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	    // E = acos(-1)
 	    E = M_PI;
 	} else {
-	    E = acos(temp);
+		E = std::acos(temp);
 	}
     } else {
 	E = 0.0;
@@ -399,7 +399,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	E = -E;
     }
 
-    M = E - e * sin(E);
+	M = E - e * std::sin(E);
 
     if (e != 0.0) {
 	temp = (a * (1.0 - e * e) / d - 1.0) / e;
@@ -410,7 +410,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	    // V = acos(-1)
 	    V = M_PI;
 	} else {
-	    V = acos(temp);
+		V = std::acos(temp);
 	}
     } else {
 	V = 0.0;
@@ -421,9 +421,9 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
     }
 
     if (e != 0.0) {
-	PerihelionPA = atan2(Ay, Ax);
+	PerihelionPA = std::atan2(Ay, Ax);
     } else {
-	PerihelionPA = atan2(y, x);
+	PerihelionPA = std::atan2(y, x);
     }
 
     m_semi_major_axis = a;

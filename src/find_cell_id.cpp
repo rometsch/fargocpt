@@ -276,17 +276,6 @@ static int get_rinf_id_custom(const double r){
 	return id;
 }
 
-unsigned int get_next_azimuthal_id(const unsigned int id_low)
-{
-	unsigned int id_high = id_low + 1;
-	if(id_high == NAzimuthal)
-	{
-		id_high = 0;
-	}
-
-	return id_high;
-}
-
 int get_inf_azimuthal_id(const double phi){
 
 	double did = phi * inv_phi_cell_size;

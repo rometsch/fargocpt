@@ -187,7 +187,7 @@ void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
     }
 }
 
-t_DampingType write_damping_type(t_damping_type type_inner,
+static t_DampingType write_damping_type(t_damping_type type_inner,
 				 t_damping_type type_outer,
 				 t_data::t_polargrid_type quantity,
 				 t_data::t_polargrid_type quantity0,
@@ -424,6 +424,9 @@ void read(char *filename, t_data &data)
     case 'k':
 	boundary_inner = boundary_condition_keplerian;
 	break;
+	case 'p':
+	boundary_inner = boundary_condition_precribed_time_variable;
+	break;
     default:
 	die("Invalid setting for InnerBoundary: %s",
 	    config::value_as_string_default("InnerBoundary", "Open"));
@@ -452,10 +455,27 @@ void read(char *filename, t_data &data)
     case 'k':
 	boundary_outer = boundary_condition_keplerian;
 	break;
+	case 'p':
+	boundary_outer = boundary_condition_precribed_time_variable;
+	break;
     default:
 	die("Invalid setting for OuterBoundary: %s",
 	    config::value_as_string_default("OuterBoundary", "Open"));
     }
+
+	// check if file for prescribed time variable boundary exists
+	if (config::key_exists("PRESCRIBEDBOUNDARYFILEOUTER")){
+	if (strlen(config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) > 0) {
+	if (asprintf(&PRESCRIBED_BOUNDARY_OUTER_FILE, "%s",
+			 config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) < 0) {
+		logging::print_master(LOG_ERROR "Not enough memory!\n");
+	}
+	} else {
+	die("Error looking for data for the prescribed time variable boundary condition. Path could not be read!\n");
+	}
+	} else {
+		PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
+	}
 
     domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
 	viscous_outflow_speed = config::value_as_double_default("ViscousOutflowSpeed", 1.0);
@@ -893,9 +913,9 @@ void read(char *filename, t_data &data)
     }
 
     particle_maximum_escape_radius_sq =
-	pow2(particle_maximum_escape_radius) - DBL_EPSILON; // DBL for safety
+	std::pow(particle_maximum_escape_radius, 2) - DBL_EPSILON; // DBL for safety
     particle_minimum_escape_radius_sq =
-	pow2(particle_minimum_escape_radius) + DBL_EPSILON;
+	std::pow(particle_minimum_escape_radius, 2) + DBL_EPSILON;
 }
 
 void apply_units()
@@ -972,6 +992,9 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
+	case boundary_condition_precribed_time_variable:
+		die("Inner precribed time variable boundary condition is not implemented yet!\n");
+	break;
     }
 
     switch (boundary_outer) {
@@ -1008,6 +1031,11 @@ void summarize_parameters()
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'keplarian boundary conditions' at inner boundary.\n");
+	break;
+	case boundary_condition_precribed_time_variable:
+	logging::print_master(
+		LOG_INFO
+		"Using 'time variable boundary conditions' at inner boundary.\n");
 	break;
     }
 

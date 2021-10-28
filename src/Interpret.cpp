@@ -36,7 +36,7 @@ int OuterSourceMass, CICPlanet;
 #include <sys/stat.h>
 
 // used for calling python script needed for getting the polytropic constants
-std::string exec(const char *cmd)
+static std::string exec(const char *cmd)
 {
     std::array<char, 128> buffer;
     std::string result;
@@ -50,7 +50,7 @@ std::string exec(const char *cmd)
     return result;
 }
 
-void get_polytropic_constants(char *filename, double &K, double &gamma)
+static void get_polytropic_constants(char *filename, double &K, double &gamma)
 {
     char command[1024];
     strcpy(command, "python Tools/get_polytropic_constants.py ");
@@ -66,7 +66,7 @@ void get_polytropic_constants(char *filename, double &K, double &gamma)
     ss >> gamma;
 }
 
-std::string getFileName(const std::string &s)
+static std::string getFileName(const std::string &s)
 {
 
     char sep = '/';
@@ -235,7 +235,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
 	double optimal_N_azimuthal =
-			M_PI / ((exp(c / NRadial) - 1.0) / (exp(c / NRadial) + 1.0));
+			M_PI / ((std::exp(c / NRadial) - 1.0) / (std::exp(c / NRadial) + 1.0));
 
 	// check if optimal azimuthal cell number differs from actual azimuthal
 	// cell number by more than 10%
@@ -534,6 +534,16 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
 		 constants::R / parameters::MU);
 
+	StabilizeViscosity =
+	config::value_as_int_default("STABILIZEVISCOSITY", 0);
+
+	if(StabilizeViscosity == 1){
+		logging::print_master(LOG_INFO "Using pseudo implicit viscosity to limit the viscosity update step\n");
+	}
+	if(StabilizeViscosity == 2){
+		logging::print_master(LOG_INFO "Using pseudo implicit viscosity to limit the time step size\n");
+	}
+
 	const bool VISCOSITY_in_CGS =
 	config::value_as_bool_default("VISCOSITYINCGS", false);
 	if (VISCOSITY_in_CGS) {
@@ -623,9 +633,9 @@ void TellEverything()
     logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n",
 			  ASPECTRATIO_REF);
     logging::print_master(LOG_VERBOSE "VKep at inner edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
+			  std::sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
     logging::print_master(LOG_VERBOSE "VKep at outer edge    : %.3g\n",
-			  sqrt(constants::G * 1.0 / RMAX));
+			  std::sqrt(constants::G * 1.0 / RMAX));
     /*
     logging::print_master(LOG_VERBOSE "boundary_inner        : %i\n",
     parameters::boundary_inner); logging::print_master(LOG_VERBOSE

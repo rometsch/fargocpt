@@ -76,15 +76,6 @@ unsigned int One_or_active;
 unsigned int MaxMO_or_active; /* MO: Minus One */
 unsigned int GlobalNRadial;
 
-/** sum up a quantity inside the processes domain without ghost cells */
-void sum_without_ghost_cells(double &accumulator, const double &addend,
-			     const unsigned int &n_radial)
-{
-    if (One_or_active <= n_radial && n_radial < Max_or_active) {
-	accumulator += addend;
-    }
-}
-
 int *RootNradialLocalSizes;    // Needed for MPI_Gatherv
 int *RootNradialDisplacements; // Needed for MPI_Gatherv
 int *RootIMAX;
@@ -132,6 +123,9 @@ t_radialarray SigmaMed;
 t_radialarray InvDiffRmed;
 
 t_radialarray InvDiffRsup;
+t_radialarray InvDiffRsupRb;
+t_radialarray TwoDiffRaSq;
+t_radialarray FourThirdInvRbInvdphiSq;
 t_radialarray Radii;
 t_radialarray GlobalRmed;
 t_radialarray SigmaInf;
@@ -142,7 +136,7 @@ int TimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
-int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian;
+int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian, StabilizeViscosity;
 int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;
@@ -151,6 +145,9 @@ int OverridesOutputdir;
 
 char *OUTPUTDIR;
 char *PLANETCONFIG;
+
+char *PRESCRIBED_BOUNDARY_OUTER_FILE;
+int PRESCRIBED_TIME_SEGMENT_NUMBER;
 
 double dphi;
 double invdphi;

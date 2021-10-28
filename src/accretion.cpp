@@ -8,6 +8,7 @@
 #include <tuple>
 #include <cmath>
 
+#include "accretion.h"
 #include "constants.h"
 #include "global.h"
 #include "parameters.h"
@@ -16,7 +17,7 @@
 
 namespace accretion
 {
-	std::tuple<unsigned int,unsigned int> hill_radial_index(const double Rplanet,
+	static std::tuple<unsigned int,unsigned int> hill_radial_index(const double Rplanet,
 										  const double RHill) {
 		/* Calculate the indeces in radial direction where
 		   the Hill sphere starts and stops */
@@ -27,7 +28,7 @@ namespace accretion
 	}
 
 
-	std::tuple<int, int> hill_azimuthal_index(const double angle,
+	static std::tuple<int, int> hill_azimuthal_index(const double angle,
 											  const double Rplanet,
 											  const double RHill) {
 		/* Calculate the index in azimuthal direction
@@ -38,7 +39,7 @@ namespace accretion
 		return ids;
 	}
 
-	void update_planet(t_planet &planet,
+	static void update_planet(t_planet &planet,
 					   const double dMplanet,
 					   const double dPxPlanet,
 					   const double dPyPlanet) {
@@ -60,7 +61,7 @@ namespace accretion
 	}
 
 
-	bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt) {
+	static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt) {
 		bool mass_changed = false;
 		const int ns = data[t_data::DENSITY].Nsec;
 		double* dens = data[t_data::DENSITY].Field;
@@ -181,7 +182,7 @@ namespace accretion
 
 
 
-	void AccreteOntoPlanets(t_data &data, double dt)
+	void AccreteOntoPlanets(t_data &data, const double dt)
 	{
 		bool masses_changed = false;
 

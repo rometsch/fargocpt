@@ -44,9 +44,6 @@ extern unsigned int One_or_active;
 extern unsigned int MaxMO_or_active; /* MO: Minus One */
 extern unsigned int GlobalNRadial;
 
-void sum_without_ghost_cells(double &accumulator, const double &addend,
-			     const unsigned int &n_radial);
-
 extern int *RootNradialLocalSizes;    // Needed for MPI_Gatherv
 extern int *RootNradialDisplacements; // Needed for MPI_Gatherv
 extern int *RootIMAX;
@@ -67,6 +64,9 @@ extern t_radialarray Surf;
 extern t_radialarray InvSurf;
 extern t_radialarray InvDiffRmed;
 extern t_radialarray InvDiffRsup;
+extern t_radialarray InvDiffRsupRb;
+extern t_radialarray TwoDiffRaSq;
+extern t_radialarray FourThirdInvRbInvdphiSq;
 extern t_radialarray Radii;
 extern t_radialarray GlobalRmed;
 extern t_radialarray SigmaInf;
@@ -82,13 +82,16 @@ extern double hydro_center_mass;
 
 extern int debug;
 extern int GotoNextOutput, ViscosityAlpha, CartesianParticles, 
-    ParticlesInCartesian;
+	ParticlesInCartesian, StabilizeViscosity;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
 
 extern char *OUTPUTDIR;
 extern char *PLANETCONFIG;
+
+extern char *PRESCRIBED_BOUNDARY_OUTER_FILE;
+extern int PRESCRIBED_TIME_SEGMENT_NUMBER;
 
 extern double dphi;
 extern double invdphi;

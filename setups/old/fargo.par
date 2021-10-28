@@ -27,9 +27,10 @@ TemperatureCGS0     0.0     # Midplane Temperature at 1 au in K, overwrites Aspe
 ExplicitViscosity   YES
 StsNu				0.01
 ViscosityInCGS      NO      # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
-Viscosity		1.e-5		# Uniform kinematic viscosity
-AlphaViscosity		0.0		#
-ArtificialViscosity	SN		# Type of artificial viscosity (none, TW, SN) [default = SN]
+Viscosity		0.e-5		# Uniform kinematic viscosity
+AlphaViscosity		1.0e-3		#
+StabilizeViscosity	0		# 1 for limiting viscosity update step, 2 for limiting dt
+ArtificialViscosity	TW		# Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor	1.41 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex		0.0		# Slope of Temperature/radius profile
@@ -98,9 +99,11 @@ RadialViscosityFactor	1 	# Viscosity in radial direction is mutliplied with this
 ### Numerical method parameters
 
 Transport		FARGO
-#InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
+#InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer, PRESCRIBED_TIME_VARIABLE
 InnerBoundary		OPEN
 OuterBoundary		EVANESCENT
+PrescribedBoundaryFileOuter	boundary_data_folder ## Only needed when PRESCRIBED_TIME_VARIABLE is active
+
 DomegaDrZero		Yes		# Set dOmega/dr = 0 at outer boundary
 Damping			Yes      # NO, YES [default = no]
 DampingInnerLimit	1.10    	# Rmin*Limit

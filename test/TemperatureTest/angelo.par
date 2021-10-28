@@ -25,7 +25,7 @@ AlphaViscosity		0.0		#
 ArtificialViscosity	NONE		# Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor	3.00 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
-StabilizeViscosity  YES
+StabilizeViscosity  0
 FlaringIndex		0.5		# Slope of Temperature/radius profile
 SelfGravity		No		# choose: Yes, Z or No
 EquationOfState		Ideal		# Isothermal Ideal Polytropic [default = Isothermal]

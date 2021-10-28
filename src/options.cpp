@@ -37,15 +37,6 @@ char *parameter_file;
 bool memory_usage = false;
 bool disable = false;
 
-bool is_number(std::string s)
-{
-    for (std::uint32_t i = 0; i < s.length(); i++)
-	if (isdigit(s[i]) == false)
-	    return false;
-
-    return true;
-}
-
 static const char short_options[] = "-dvqbcnmh";
 
 static const struct option long_options[] = {

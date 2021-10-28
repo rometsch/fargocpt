@@ -7,7 +7,7 @@ double t_particle::get_squared_distance_to_star()
     if (CartesianParticles) {
 	const double &x = r;
 	const double &y = phi;
-	return pow2(x) + pow2(y);
+	return std::pow(x, 2) + std::pow(y, 2);
     } else {
 	return r * r;
     }
@@ -16,7 +16,7 @@ double t_particle::get_squared_distance_to_star()
 double t_particle::get_distance_to_star()
 {
     if (CartesianParticles) {
-	return sqrt(get_squared_distance_to_star());
+	return std::sqrt(get_squared_distance_to_star());
     } else {
 	return r;
     }
@@ -29,7 +29,7 @@ double t_particle::get_angle() const
 	const double &x = r;
 	const double &y = phi;
 
-	double phi_ = atan2(y, x);
+	double phi_ = std::atan2(y, x);
 
 	if (phi_ < 0) {
 	    phi_ += 2 * M_PI;
@@ -50,7 +50,7 @@ double t_particle::get_r_dot() const
 	const double &vx = r_dot;
 	const double &vy = phi_dot;
 
-	const double local_r = sqrt(x * x + y * y);
+	const double local_r = std::sqrt(x * x + y * y);
 
 	const double local_r_dot = (x * vx + y * vy) / local_r;
 	return local_r_dot;
@@ -68,7 +68,7 @@ double t_particle::get_phi_dot() const
 	const double &vx = r_dot;
 	const double &vy = phi_dot;
 
-	const double local_r = sqrt(x * x + y * y);
+	const double local_r = std::sqrt(x * x + y * y);
 
 	const double local_phi_dot = (x * vy - vx * y) / (local_r * local_r);
 	return local_phi_dot;

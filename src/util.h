@@ -1,15 +1,15 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-template <typename T> inline T pow2(T x) { return x * x; }
+#include <string>
 
-template <typename T> inline T pow3(T x) { return x * x * x; }
+bool is_number(std::string s);
 
-template <typename T> inline T pow4(T x) { return x * x * x * x; }
+unsigned int get_next_azimuthal_id(const unsigned int id);
+unsigned int get_prev_azimuthal_id(const unsigned int id);
 
-template <typename T> inline T min(T x, T y) { return x < y ? x : y; }
-
-template <typename T> inline T max(T x, T y) { return x > y ? x : y; }
+void sum_without_ghost_cells(double &accumulator, const double &addend,
+				 const unsigned int &n_radial);
 
 double cutoff_outer(double point, double width, double x);
 double cutoff_inner(double point, double width, double x);
