@@ -472,8 +472,11 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	if (parameters::calculate_disk) {
 	    /* Gravitational potential from star and planet(s) is computed and
 	     * stored here*/
+		if(parameters::body_force_from_potential) {
 	    CalculatePotential(data);
+		} else {
 		CalculateAccel(data);
+		}
 	}
 
 	/* Planets' velocities are updated here from gravitationnal
@@ -621,11 +624,14 @@ void update_with_sourceterms(t_data &data, double dt)
 		    InvDiffRmed[n_radial];
 
 	    // dPhi/dr
-		const double gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
+		double gradphi;
+		if(parameters::body_force_from_potential){
+		gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
 		       data[t_data::POTENTIAL](n_radial - 1, n_azimuthal)) *
 		      InvDiffRmed[n_radial];
-
-		//const double a_r = -data[t_data::ACCEL_RADIAL](n_radial, n_azimuthal);
+		} else {
+			gradphi = -data[t_data::ACCEL_RADIAL](n_radial, n_azimuthal);
+		}
 
 	    // v_phi^2/r : v_phi^2 is calculated by a mean in both directions
 		double vt2 =
@@ -664,6 +670,10 @@ void update_with_sourceterms(t_data &data, double dt)
 	     n_azimuthal <=
 		 data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 	     ++n_azimuthal) {
+
+		const double n_az_minus = (n_azimuthal == 0
+				? data[t_data::PRESSURE].get_max_azimuthal()
+				: n_azimuthal - 1);
 	    // 1/Sigma 1/r dP/dphi
 		const double gradp =
 		2.0 /
@@ -674,21 +684,20 @@ void update_with_sourceterms(t_data &data, double dt)
 				   : n_azimuthal - 1)) *
 		(data[t_data::PRESSURE](n_radial, n_azimuthal) -
 		 data[t_data::PRESSURE](
-		     n_radial, n_azimuthal == 0
-				   ? data[t_data::PRESSURE].get_max_azimuthal()
-				   : n_azimuthal - 1)) *
+			 n_radial, n_az_minus)) *
 		invdxtheta;
 
 	    // 1/r dPhi/dphi
-		const double gradphi =
+		double gradphi;
+		if(parameters::body_force_from_potential){
+		gradphi =
 		(data[t_data::POTENTIAL](n_radial, n_azimuthal) -
 		 data[t_data::POTENTIAL](
-		     n_radial, n_azimuthal == 0
-				   ? data[t_data::POTENTIAL].get_max_azimuthal()
-				   : n_azimuthal - 1)) *
+			 n_radial, n_az_minus)) *
 		invdxtheta;
-
-		//const double a_p = -data[t_data::ACCEL_AZIMUTHAL](n_radial, n_azimuthal);
+		} else {
+			gradphi = -data[t_data::ACCEL_AZIMUTHAL](n_radial, n_azimuthal);
+		}
 
 	    // add all terms to new v_azimuthal: v_azimuthal_new = v_azimuthal +
 	    // dt*(source terms)

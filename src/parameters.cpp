@@ -119,6 +119,8 @@ double tau_factor;
 double kappa_factor;
 
 bool self_gravity;
+bool body_force_from_potential;
+
 
 bool write_torques;
 
@@ -769,6 +771,19 @@ void read(char *filename, t_data &data)
 
     // self gravity
     self_gravity = config::value_as_bool_default("SelfGravity", 0);
+
+	if(self_gravity){
+	logging::print_master(LOG_INFO "Self gravity enabled.\n");
+	}
+
+	body_force_from_potential = config::value_as_bool_default("BodyForceFromPotiential", 0);
+	if(body_force_from_potential){
+		logging::print_master(LOG_INFO "Body force on gas computed via potential.\n");
+	} else {
+		logging::print_master(LOG_INFO "Body force on gas computed via force.\n");
+	}
+
+
 
     // opacity
     switch (tolower(*config::value_as_string_default("Opacity", "Lin"))) {

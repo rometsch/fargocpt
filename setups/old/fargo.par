@@ -105,7 +105,7 @@ InnerBoundary		OPEN
 OuterBoundary		EVANESCENT
 PrescribedBoundaryFileOuter	boundary_data_folder ## Only needed when PRESCRIBED_TIME_VARIABLE is active
 
-DomegaDrZero		Yes		# Set dOmega/dr = 0 at outer boundary
+DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
 Damping			Yes      # NO, YES [default = no]
 DampingInnerLimit	1.10    	# Rmin*Limit
 DampingOuterLimit	0.90    	# Rmax*Limit

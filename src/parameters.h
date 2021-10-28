@@ -214,6 +214,8 @@ extern bool integrate_planets;
 // self gravity
 extern bool self_gravity;
 
+extern bool body_force_from_potential;
+
 // output
 extern bool write_torques;
 

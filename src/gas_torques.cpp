@@ -3,6 +3,7 @@
 #include "global.h"
 #include "constants.h"
 #include "util.h"
+#include "parameters.h"
 #include <cmath>
 
 namespace gas_torques
@@ -129,7 +130,12 @@ void calculate_gravitational_torque(t_data &data, const double dt)
 		//dPhi/dphi
 		//const double gradphi_minus = (pot_grav(n_r, n_az) - pot_grav(n_r, n_az == 0 ? pot_grav.get_max_azimuthal() : n_az - 1))*invdphi;
 		//const double gradphi = (pot_grav(n_r, n_az == pot_grav.get_max_azimuthal() ? 0 : n_az+1) - pot_grav(n_r, n_az))*invdphi;
-		const double gradphi = (pot_grav(n_r, get_next_azimuthal_id(n_az)) - pot_grav(n_r, get_prev_azimuthal_id(n_az)))*invdphi*0.5;
+		double gradphi;
+		if(parameters::body_force_from_potential){
+		gradphi = (pot_grav(n_r, get_next_azimuthal_id(n_az)) - pot_grav(n_r, get_prev_azimuthal_id(n_az)))*invdphi*0.5;
+		} else {
+			gradphi = -data[t_data::ACCEL_AZIMUTHAL](n_r, n_az)*r;
+		}
 		t_grav(n_r, n_az) += -r * sigma_cell * gradphi * dr * dt/DT;
 	}
 	}
