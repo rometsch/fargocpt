@@ -128,6 +128,152 @@ void CalculatePotential(t_data &data)
     }
 }
 
+
+void CalculateAccel(t_data &data)
+{
+	const int ns = data[t_data::DENSITY].Nsec;
+
+	const unsigned int N_planets =
+		data.get_planetary_system().get_number_of_planets();
+	std::vector<double> xpl(N_planets);
+	std::vector<double> ypl(N_planets);
+	std::vector<double> mpl(N_planets);
+	std::vector<double> smooth_pl(N_planets);
+
+	// setup planet data
+	for (unsigned int k = 0; k < N_planets; k++) {
+	t_planet &planet = data.get_planetary_system().get_planet(k);
+	mpl[k] = planet.get_rampup_mass();
+	xpl[k] = planet.get_x();
+	ypl[k] = planet.get_y();
+	}
+
+	double* acc_r = data[t_data::ACCEL_RADIAL].Field;
+	const unsigned int N_az_max = data[t_data::ACCEL_RADIAL].get_size_azimuthal();
+
+	for (unsigned int n_rad = 1; n_rad < data[t_data::ACCEL_RADIAL].get_size_radial()-1; ++n_rad) {
+	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
+
+		const double phi = (double)n_az * dphi;
+		const double r = Rinf[n_rad];
+
+		const double x = r * std::cos(phi);
+		const double y = r * std::sin(phi);
+		const double smooth = compute_smoothing_r(data, n_rad, n_az);
+
+		pair ar = IndirectTerm;
+		for (unsigned int k = 0; k < N_planets; k++) {
+
+		const double dx = x - xpl[k];
+		const double dy = y - ypl[k];
+		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
+		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
+		const double dist_3_sm = std::sqrt(dist_2) * dist_2_sm;
+		const double inv_dist_3_sm = 1.0 / dist_3_sm;
+
+		// direct term from planet
+		ar.x -= dx * constants::G * mpl[k] * inv_dist_3_sm;
+		ar.y -= dy * constants::G * mpl[k] * inv_dist_3_sm;
+		}
+
+		const double accel = std::cos(phi) * ar.x + std::sin(phi) * ar.y;
+
+
+		/*
+		/// DEBUG, by comparing with accel from potential
+		const double gradphi = (data[t_data::POTENTIAL](n_rad, n_az) -
+			   data[t_data::POTENTIAL](n_rad - 1, n_az)) *
+			  InvDiffRmed[n_rad];
+
+		if(accel != 0.0){
+		const double rel_err = std::fabs((gradphi + accel)/accel);
+
+		const double dx = x - xpl[1];
+		const double dy = y - ypl[1];
+		const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+
+		double diff_phi = phi - data.get_planetary_system().get_planet(1).get_phi();
+		const double diff_r = r - data.get_planetary_system().get_planet(1).get_r();
+		diff_phi = std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI));
+
+		if(rel_err > 1.e-1){
+		printf("(%d %d)	accel r	= (%.5e	%.5e)	%.5e	(%.5e	%.5e)\n", n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
+		}}
+		/// END DEBUG
+		*/
+
+		const int cell_id = n_az + n_rad * ns;
+		acc_r[cell_id] = accel;
+	}
+	}
+
+	double* accel_phi = data[t_data::ACCEL_AZIMUTHAL].Field;
+	for (unsigned int n_rad = 0; n_rad < data[t_data::ACCEL_AZIMUTHAL].get_size_radial(); ++n_rad) {
+	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
+
+		const double phi = ((double)n_az - 0.5) * dphi;
+		const double r = Rmed[n_rad];
+
+		const double x = r * std::cos(phi);
+		const double y = r * std::sin(phi);
+		const double smooth = compute_smoothing_az(data, n_rad, n_az);
+
+		pair aphi = IndirectTerm;
+		for (unsigned int k = 0; k < N_planets; k++) {
+
+		const double dx = x - xpl[k];
+		const double dy = y - ypl[k];
+		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
+		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
+		const double dist_3_sm = std::sqrt(dist_2) * dist_2_sm;
+		const double inv_dist_3_sm = 1.0 / dist_3_sm;
+
+		// direct term from planet
+		aphi.x -= dx * constants::G * mpl[k] * inv_dist_3_sm;
+		aphi.y -= dy * constants::G * mpl[k] * inv_dist_3_sm;
+		}
+
+		const double accel = std::cos(phi) * aphi.y - std::sin(phi) * aphi.x;
+
+
+		/*
+		/// DEBUG, compare with accel from potential
+		const double invdxtheta = 1.0 / (dphi * Rmed[n_rad]);
+
+		// 1/r dPhi/dphi
+		const double gradphi =
+		(data[t_data::POTENTIAL](n_rad, n_az) -
+		 data[t_data::POTENTIAL](
+			 n_rad, n_az == 0
+				   ? data[t_data::POTENTIAL].get_max_azimuthal()
+				   : n_az - 1)) *
+		invdxtheta;
+
+		if(accel != 0.0){
+		const double rel_err = std::fabs((gradphi + accel)/accel);
+
+		const double dx = x - xpl[1];
+		const double dy = y - ypl[1];
+		const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+
+		double diff_phi = phi - data.get_planetary_system().get_planet(1).get_phi();
+		diff_phi = std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI));
+		const double diff_r = r - data.get_planetary_system().get_planet(1).get_r();
+		if(rel_err < 1e-5){
+		printf("(%d %d )	accel p	= (%.5e	%.5e)	%.5e	(%.5e %.5e)\n", n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
+		}}
+		/// END DEBUG
+		*/
+
+		const int cell_id = n_az + n_rad * ns;
+		accel_phi[cell_id] = accel;
+	}
+	}
+}
+
+
+
+
 /**
    Update disk forces onto planets if *diskfeedback* is turned on
 */

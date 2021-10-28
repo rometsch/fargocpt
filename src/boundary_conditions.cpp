@@ -879,23 +879,19 @@ void mass_overflow(t_data &data)
     data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
     const double yplanet =
     data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
-    const double abin =
-    data.get_planetary_system().get_planet(parameters::mof_planet).get_r();
 
     const double omega_planet = data.get_planetary_system()
                     .get_planet(parameters::mof_planet)
                     .get_omega();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
-    double angle = atan2(yplanet, xplanet) / 2 / PI;
+	double angle = atan2(yplanet, xplanet) * 0.5 * M_1_PI;
     if (angle < 0) {
     angle += 1.0;
     }
 
     const unsigned int Nrad = data[t_data::DENSITY].get_max_radial();
     const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
-    const double dtheta =
-    2 * PI / (double)data[t_data::DENSITY].get_size_azimuthal();
     const double r_cell = Rmed[Nrad];
 
     const double vr_fraction = 0.002;
@@ -921,13 +917,13 @@ void mass_overflow(t_data &data)
     // Calculate sigma from temperature according to
     // Meyer & Meyer-Hofmeister (1983a) equation 17
     const double Porb =
-    2.0 * PI / omega_planet * units::time.get_cgs_factor() / 3600.0;
+	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0;
     // cross section Q
     const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
     // stream radius W
-    const double W = sqrt(Q / PI);
+	const double W = std::sqrt(Q / M_PI);
     // circumference circ
-    const double circ = 2.0 * PI * r_cell * units::length.get_cgs_factor();
+	const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor();
 
     double sigma = 2 * W / circ;
     int number_of_cells =
@@ -946,8 +942,8 @@ void mass_overflow(t_data &data)
         weight_factor = 1.0;
     } else {
         gridcell = (nearest_grid_cell + i + Nphi) % Nphi;
-        weight_factor = 1.0 / (sigmabar * sqrt(2.0 * PI)) *
-                exp(-1.0 / 2.0 * pow(i / sigmabar, 2));
+		weight_factor = 1.0 / (sigmabar * std::sqrt(2.0 * M_PI)) *
+				std::exp(-1.0 / 2.0 * std::pow(i / sigmabar, 2));
     }
     check += weight_factor;
 

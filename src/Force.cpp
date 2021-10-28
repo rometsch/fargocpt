@@ -32,16 +32,14 @@ Pair ComputeAccel(t_data &data, double x, double y)
 	double globalaccel[4] = {0., 0., 0., 0.};
 	double axi, ayi, axo, ayo;
 
-	const int ns = data[t_data::DENSITY].Nsec;
+	const unsigned int ns = data[t_data::DENSITY].Nsec;
     const double* cell_center_x = CellCenterX->Field;
     const double* cell_center_y = CellCenterY->Field;
 	axi = ayi = axo = ayo = 0.0;
 	const double a = sqrt(x * x + y * y);
 
-	const unsigned int N_az_max = data[t_data::POTENTIAL].get_max_azimuthal();
-
 	for (unsigned int n_rad = One_or_active; n_rad < MaxMO_or_active; ++n_rad) {
-	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
+	for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
 		const double smooth = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
@@ -90,3 +88,33 @@ double compute_smoothing(double r, t_data &data, const int n_radial,
     smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
+
+///
+/// \brief compute_smoothing_r
+/// compute smoothing length at the bottom interface of the cell where v_radial is defined
+///
+double compute_smoothing_r(t_data &data, const int n_radial,
+			 const int n_azimuthal)
+{
+	double smooth;
+	const double scale_height =
+	0.5*(data[t_data::ASPECTRATIO](n_radial, n_azimuthal) + data[t_data::ASPECTRATIO](n_radial - 1, n_azimuthal))  * Rinf[n_radial];
+	smooth = parameters::thickness_smoothing * scale_height;
+	return smooth;
+}
+
+///
+/// \brief compute_smoothing_az
+/// compute smoothing length at the left interface of the cell where v_azimuthal is defined
+///
+double compute_smoothing_az(t_data &data, const int n_radial,
+			 const int n_azimuthal)
+{
+	int prev_n_az = n_azimuthal == 0 ? data[t_data::ASPECTRATIO].get_max_azimuthal() : n_azimuthal-1;
+	double smooth;
+	const double scale_height =
+	0.5*(data[t_data::ASPECTRATIO](n_radial, n_azimuthal) + data[t_data::ASPECTRATIO](n_radial, prev_n_az))  * Rmed[n_radial];
+	smooth = parameters::thickness_smoothing * scale_height;
+	return smooth;
+}
+

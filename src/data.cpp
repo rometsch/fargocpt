@@ -34,6 +34,14 @@ t_data::t_data()
     m_polargrids[PRESSURE].set_name("pressure");
     m_polargrids[PRESSURE].set_unit(units::pressure);
 
+	m_polargrids[ACCEL_RADIAL].set_vector(true);
+	m_polargrids[ACCEL_RADIAL].set_name("arad");
+	m_polargrids[ACCEL_RADIAL].set_unit(units::acceleration);
+
+	m_polargrids[ACCEL_AZIMUTHAL].set_vector(false);
+	m_polargrids[ACCEL_AZIMUTHAL].set_name("atheta");
+	m_polargrids[ACCEL_AZIMUTHAL].set_unit(units::acceleration);
+
     m_polargrids[TOOMRE].set_scalar(true);
     m_polargrids[TOOMRE].set_name("Toomre");
     m_polargrids[TOOMRE].set_do_before_write(&quantities::calculate_toomre);

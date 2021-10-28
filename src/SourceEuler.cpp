@@ -473,6 +473,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    /* Gravitational potential from star and planet(s) is computed and
 	     * stored here*/
 	    CalculatePotential(data);
+		CalculateAccel(data);
 	}
 
 	/* Planets' velocities are updated here from gravitationnal
@@ -624,6 +625,8 @@ void update_with_sourceterms(t_data &data, double dt)
 		       data[t_data::POTENTIAL](n_radial - 1, n_azimuthal)) *
 		      InvDiffRmed[n_radial];
 
+		//const double a_r = -data[t_data::ACCEL_RADIAL](n_radial, n_azimuthal);
+
 	    // v_phi^2/r : v_phi^2 is calculated by a mean in both directions
 		double vt2 =
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
@@ -684,6 +687,8 @@ void update_with_sourceterms(t_data &data, double dt)
 				   ? data[t_data::POTENTIAL].get_max_azimuthal()
 				   : n_azimuthal - 1)) *
 		invdxtheta;
+
+		//const double a_p = -data[t_data::ACCEL_AZIMUTHAL](n_radial, n_azimuthal);
 
 	    // add all terms to new v_azimuthal: v_azimuthal_new = v_azimuthal +
 	    // dt*(source terms)

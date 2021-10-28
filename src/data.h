@@ -22,6 +22,8 @@ class t_data
 	TEMPERATURE,	     // temperature
 	PRESSURE,	     // pressure
 	SOUNDSPEED,	     // soundspeed c_s (introduced by Fargo-ADSG)
+	ACCEL_RADIAL,	     // gas accerleration in r direction
+	ACCEL_AZIMUTHAL,	     // gas acceleration in phi direction
 	TOOMRE,		     // Toomre parameter Q
 	ECCENTRICITY,	     // disk eccentricity
 	PERIASTRON,	     // disk periastron
