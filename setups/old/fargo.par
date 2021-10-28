@@ -74,9 +74,10 @@ InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (
 InitializeVradialZero   No             # Initialize VRadial=0  [default = no]
 
 MassOverflow		No		# [default = No]
-MOFPLANET		0		# Number of Planet in Planetary System where the massoverflow comes from, starting with 0
-MOFSIGMA		0.05		# Sigma value for normal distribution
-MOFVALUE		1E-9		# Mass Overflow in host star masses (m0) / Year
+mofvalue		1.0e-9 	#given in solar mass per year
+mofplanet		1		
+moftemperature		1500		
+
 
 ### Planet parameters
 

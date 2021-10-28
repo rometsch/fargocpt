@@ -18,6 +18,7 @@ void reflecting_boundary_outer(t_data &data);
 void viscous_outflow_boundary_inner(t_data &data);
 void damping(t_data &data, double dt);
 void mass_overflow(t_data &data);
+void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport);
 void boundary_layer_inner_boundary(t_data &data);
 void boundary_layer_outer_boundary(t_data &data);
 void keplerian2d_boundary_inner(t_data &data);

@@ -191,7 +191,7 @@ extern unsigned int corotation_reference_body;
 
 extern bool massoverflow;
 extern unsigned int mof_planet;
-extern double mof_sigma;
+extern double mof_temperature;
 extern double mof_value;
 
 /// disk applies force onto star

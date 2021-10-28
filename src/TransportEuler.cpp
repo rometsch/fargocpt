@@ -15,6 +15,7 @@ velocity in each zone by a proper averaging).
 #include "polargrid.h"
 #include "radialgrid.h"
 
+#include "boundary_conditions.h"
 #include "LowTasks.h"
 #include "SideEuler.h"
 #include "SourceEuler.h"
@@ -132,6 +133,9 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 		CPU_Rank == CPU_Highest) {
 		boundary_layer_mass_influx(DensityStar, VRadial);
 	}
+
+	if (parameters::massoverflow)
+	boundary_conditions::mass_overflow_willy(data, DensityStar, true);
 
     copy_polargrid(data[t_data::DENSITY_INT], *Density);
 

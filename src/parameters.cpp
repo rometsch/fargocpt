@@ -99,7 +99,7 @@ unsigned int corotation_reference_body;
 
 bool massoverflow;
 unsigned int mof_planet;
-double mof_sigma;
+double mof_temperature;
 double mof_value;
 
 bool profile_cutoff_outer;
@@ -727,9 +727,9 @@ void read(char *filename, t_data &data)
 
     // mass overflow
     massoverflow = config::value_as_bool_default("massoverflow", false);
-    mof_planet = config::value_as_int_default("mofplanet", 0);
-    mof_sigma = config::value_as_double_default("mofsigma", 1.0);
-    mof_value = config::value_as_double_default("mofvalue", 10E-9);
+	mof_planet = config::value_as_int_default("mofplanet", 1);
+	mof_temperature = config::value_as_double_default("moftemperature", 1000.0);
+	mof_value = config::value_as_double_default("mofvalue", 10E-9);
 
 
 	// profile damping outer
@@ -1054,14 +1054,12 @@ void summarize_parameters()
 	break;
     }
 
-    // Mass Transfer
-    if (parameters::massoverflow) {
+	// Mass Transfer
+	if (parameters::massoverflow) {
 	logging::print_master(
-	    LOG_INFO
-	    "Mass Transfer of %g M_0/orbit will be spread on %i gridcells (sigma = %g).\n",
-	    parameters::mof_value,
-	    int(NAzimuthal * 3.0 * parameters::mof_sigma), mof_sigma);
-    }
+		LOG_INFO "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K.\n",
+		mof_planet, mof_value, mof_temperature);
+	}
 
     // Boundary layer
     if (boundary_inner == boundary_condition_boundary_layer) {
