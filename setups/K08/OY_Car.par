@@ -1,10 +1,9 @@
 ###  Used launch options: ./fargo start setups/OY_Car/OY_Car.par
 
-
 ## Disk parameters
 
 CFL 0.5
-Sigma0			7.16e11 #1e-7#2571.8		# surface density at r=1 in g/cm^2
+Sigma0			12.5    # surface density at r=1 in g/cm^2
 SigmaSlope		0.5		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
 DiscMass		0.01		# only used when SetSigma0 = true [default = 0.01]
@@ -25,14 +24,14 @@ EnergyCondition		Profile		# Initialize energy by Profile, 1D or 2D [default = Pr
 EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 
 AspectRatio     	0.05            # Thickness over Radius in the disk
-Viscosity		1.0e-4		# Uniform kinematic viscosity
-AlphaViscosity		0.0e-3		#
+Viscosity		0.0e-3		# Uniform kinematic viscosity
+AlphaViscosity		1.0e-2		#
 ArtificialViscosity	SN
 ArtificialViscosityDissipation YES
-ArtificialViscosityFactor	4	# artificial viscosity (von Neumann-Richtmyer constant) [default = 1.41]
+ArtificialViscosityFactor	2	# artificial viscosity (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex		0		# Slope of Temperature/radius profile
 SelfGravity		NO		# choose: Yes, Z or No
-EquationOfState		Isothermal
+EquationOfState		Ideal
 PolytropicConstant    12.09520351949007
 AdiabaticIndex        1.4
 CoolingRadiativeLocal	No		# enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
@@ -41,7 +40,7 @@ CoolingBeta		10
 HeatingViscous		No		# enable viscous heating
 HeatingViscousFactor	1.0
 MinimumTemperature	10		# minimum Temperature in K
-MaximumTemperature	50000		# minimum Temperature in K
+MaximumTemperature	1000000		# minimum Temperature in K
 TauFactor		0.5
 
 Massoverflow		true
@@ -55,7 +54,7 @@ m0			0.685		# Base mass unit in times of solar mass = 1.98892e30 kg. The central
 mu			2.35		# mean molecular weight [default=1.0]
 
 ImposedDiskDrift	0.0		# Impose a radial drift of the disk material (default = 0)
-InitializePureKeplerian	Yes		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
+InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 
 ### Planet parameters
 
@@ -68,7 +67,7 @@ ThicknessSmoothing 	0.6		# Softening parameters in disk thickness
 Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT
 #InnerBoundary		REFLECTING
-InnerBoundary		VISCOUS
+InnerBoundary		VISCOUS_OUTFLOW
 OuterBoundary		OPEN
 ViscousOutflowSpeed	5.0
 DomegaDrZero		NO		# Set dOmega/dr = 0 at outer boundary
@@ -108,7 +107,7 @@ Rmax			0.7		# Outer boundary radius
 # Rmax			0.00204109		# Outer boundary radius
 
 # RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
-RadialSpacing 		Arithmetic		# Logarithmic or ARITHMETIC
+RadialSpacing 		Log		# Logarithmic or ARITHMETIC
 
 ### Output control parameters
 
@@ -133,6 +132,6 @@ WriteTReynolds		No		# Write Reynolds stress tensor. [default = no]
 WriteTGravitational	No		# Write gravitational stress tensor. [default = no]
 WritepdV		No		# Write pdV. [default = no]
 WriteDiskQuantities     Yes
-WriteMassFlow		Yes		# Write a 1d radial file with mass flow at each interface [default = no]
+WriteMassFlow		No		# Write a 1d radial file with mass flow at each interface [default = no]
 RandomSigma 		No		# randomize sigma start values?
 RandomFactor		0.1		# randomize by +- 10%
