@@ -776,7 +776,7 @@ void read(char *filename, t_data &data)
 	logging::print_master(LOG_INFO "Self gravity enabled.\n");
 	}
 
-	body_force_from_potential = config::value_as_bool_default("BodyForceFromPotiential", 0);
+	body_force_from_potential = config::value_as_bool_default("BodyForceFromPotiential", YES);
 	if(body_force_from_potential){
 		logging::print_master(LOG_INFO "Body force on gas computed via potential.\n");
 	} else {
