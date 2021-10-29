@@ -80,10 +80,10 @@ moftemperature		1500
 
 
 ### Planet parameters
-
 PlanetConfig		setups/old/Jup-res.cfg
 IntegratePlanets	Yes		# [default = yes]
 HydroFrameCenter	primary # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+BodyForceFromPotiential Yes
 DefaultStar         Yes     # add a default central object to nbody system if true, else load central object from planet file
 
 ThicknessSmoothing 	0.6		# Softening parameters in disk thickness [default = 0.0]
