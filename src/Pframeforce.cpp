@@ -81,7 +81,7 @@ void ComputeIndirectTerm(t_data &data)
  * @brief CalculatePotential: Nbody Potential caused by stars and planets
  * @param data
  */
-void CalculatePotential(t_data &data)
+void CalculateNbodyPotential(t_data &data)
 {
 	const unsigned int N_planets = 
 		data.get_planetary_system().get_number_of_planets();
@@ -129,7 +129,7 @@ void CalculatePotential(t_data &data)
 }
 
 
-void CalculateAccel(t_data &data)
+void CalculateAccelOnGas(t_data &data)
 {
 	const int ns = data[t_data::DENSITY].Nsec;
 

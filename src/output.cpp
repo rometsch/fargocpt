@@ -354,7 +354,7 @@ void write_quantities(t_data &data, unsigned int timestep,
 	quantities::gas_azimuthal_kinematic_energy(data);
 
 	if(!parameters::body_force_from_potential){
-		CalculatePotential(data);
+		CalculateNbodyPotential(data);
 	}
     double gravitationalEnergy = quantities::gas_gravitational_energy(data);
     double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;

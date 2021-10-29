@@ -473,9 +473,9 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    /* Gravitational potential from star and planet(s) is computed and
 	     * stored here*/
 		if(parameters::body_force_from_potential) {
-	    CalculatePotential(data);
+		CalculateNbodyPotential(data);
 		} else {
-		CalculateAccel(data);
+		CalculateAccelOnGas(data);
 		}
 	}
 

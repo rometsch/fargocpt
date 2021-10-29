@@ -25,7 +25,7 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 /**
 	Computes the acceleration due to the disk on an object at position (x,y)
 */
-Pair ComputeAccel(t_data &data, double x, double y)
+Pair ComputeDiskOnNbodyAccel(t_data &data, double x, double y)
 {
 	Pair acceleration;
 	double localaccel[4] = {0., 0., 0., 0.};
