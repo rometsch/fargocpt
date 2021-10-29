@@ -34,10 +34,10 @@ SelfGravity		NO		# choose: Yes, Z or No
 EquationOfState		Ideal
 PolytropicConstant    12.09520351949007
 AdiabaticIndex        1.4
-CoolingRadiativeLocal	No		# enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+CoolingRadiativeLocal	Yes		# enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal	No		# enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta		10
-HeatingViscous		No		# enable viscous heating
+HeatingViscous		Yes		# enable viscous heating
 HeatingViscousFactor	1.0
 MinimumTemperature	10		# minimum Temperature in K
 MaximumTemperature	1000000		# minimum Temperature in K
