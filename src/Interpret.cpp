@@ -344,6 +344,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    *t = tolower(*t);
 	}
 
+
 	bool could_read_eos = false;
 	if (strcmp(eos_string, "isothermal") == 0 ||
 	    strcmp(eos_string, "iso") == 0) {
@@ -351,8 +352,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    parameters::Adiabatic = false;
 	    parameters::Polytropic = false;
 	    parameters::Locally_Isothermal = true;
+		ADIABATICINDEX = config::value_as_double_default(
+			"AdiabaticIndex", 7.0 / 5.0);
 	    logging::print_master(LOG_INFO
-				  "Using isothermal equation of state.\n");
+				  "Using isothermal equation of state. AdiabaticIndex = %.3f.\n", ADIABATICINDEX);
 	}
 	if (strcmp(eos_string, "adiabatic") == 0 ||
 	    strcmp(eos_string, "ideal") == 0) {
@@ -387,7 +390,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 		parameters::Adiabatic = false;
 	    }
-	    logging::print_master(LOG_INFO "Using ideal equation of state.\n");
+		logging::print_master(LOG_INFO "Using ideal equation of state. AdiabaticIndex = %.3f.\n", ADIABATICINDEX);
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||
@@ -445,8 +448,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		parameters::Polytropic = false;
 	    }
 	    logging::print_master(LOG_INFO
-				  "Using polytropic equation of state.\n");
+				  "Using polytropic equation of state. AdiabaticIndex = %.3f.\n", ADIABATICINDEX);
 	}
+
 
 	if (!could_read_eos)
 	    die("Invalid setting for Energy Equation:   %s\n",
