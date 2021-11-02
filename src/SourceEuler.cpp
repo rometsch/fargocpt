@@ -662,8 +662,10 @@ void update_with_sourceterms(t_data &data, double dt)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
 	 ++n_radial) {
+	if(IMPOSEDDISKDRIFT != 0.0){
 	supp_torque =
 		IMPOSEDDISKDRIFT * 0.5 * std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
+	}
 	const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
 
 	for (unsigned int n_azimuthal = 0;
@@ -705,9 +707,11 @@ void update_with_sourceterms(t_data &data, double dt)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 		dt * (-gradp - gradphi);
 
+		if(IMPOSEDDISKDRIFT != 0.0){
 	    // add term for imposed disk drift
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +=
 		dt * supp_torque;
+		}
 	}
     }
 
@@ -783,6 +787,44 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 	    }
 	}
 
+	// If gas disk is adiabatic, we add artificial viscosity as a source
+	// term for advection of thermal energy polargrid
+	if (parameters::Adiabatic) {
+		if (parameters::artificial_viscosity_dissipation) {
+		for (unsigned int n_radial = 0;
+			 n_radial <= data[t_data::ENERGY].get_max_radial();
+			 ++n_radial) {
+			const double dxtheta = dphi * Rmed[n_radial];
+			const double invdxtheta = 1.0 / dxtheta;
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal <=
+			 data[t_data::ENERGY].get_max_azimuthal();
+			 ++n_azimuthal) {
+			data[t_data::ENERGY](n_radial, n_azimuthal) =
+				data[t_data::ENERGY](n_radial, n_azimuthal) -
+				dt * data[t_data::Q_R](n_radial, n_azimuthal) *
+				(data[t_data::V_RADIAL](
+					 n_radial + 1, n_azimuthal) -
+				 data[t_data::V_RADIAL](
+					 n_radial, n_azimuthal)) *
+				InvDiffRsup[n_radial] -
+				dt * data[t_data::Q_PHI](n_radial, n_azimuthal) *
+				(data[t_data::V_AZIMUTHAL](
+					 n_radial,
+					 n_azimuthal ==
+						 data[t_data::
+							  V_AZIMUTHAL]
+						 .get_max_azimuthal()
+					 ? 0
+					 : n_azimuthal + 1) -
+				 data[t_data::V_AZIMUTHAL](
+					 n_radial, n_azimuthal)) *
+				invdxtheta;
+			}
+		}
+		}
+	}
+
 	// add artificial viscous pressure source term to v_radial
 	for (unsigned int n_radial = 1;
 		 n_radial <= data[t_data::V_RADIAL].get_max_radial() - 1;
@@ -833,44 +875,6 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 				 : n_azimuthal - 1)) *
 			invdxtheta;
 	    }
-	}
-
-	// If gas disk is adiabatic, we add artificial viscosity as a source
-	// term for advection of thermal energy polargrid
-	if (parameters::Adiabatic) {
-	    if (parameters::artificial_viscosity_dissipation) {
-		for (unsigned int n_radial = 0;
-			 n_radial <= data[t_data::ENERGY].get_max_radial();
-		     ++n_radial) {
-			const double dxtheta = dphi * Rmed[n_radial];
-			const double invdxtheta = 1.0 / dxtheta;
-		    for (unsigned int n_azimuthal = 0;
-			 n_azimuthal <=
-			 data[t_data::ENERGY].get_max_azimuthal();
-			 ++n_azimuthal) {
-			data[t_data::ENERGY](n_radial, n_azimuthal) =
-			    data[t_data::ENERGY](n_radial, n_azimuthal) -
-			    dt * data[t_data::Q_R](n_radial, n_azimuthal) *
-				(data[t_data::V_RADIAL](
-				     n_radial + 1, n_azimuthal) -
-				 data[t_data::V_RADIAL](
-				     n_radial, n_azimuthal)) *
-				InvDiffRsup[n_radial] -
-			    dt * data[t_data::Q_PHI](n_radial, n_azimuthal) *
-				(data[t_data::V_AZIMUTHAL](
-				     n_radial,
-				     n_azimuthal ==
-					     data[t_data::
-							  V_AZIMUTHAL]
-						 .get_max_azimuthal()
-					 ? 0
-					 : n_azimuthal + 1) -
-				 data[t_data::V_AZIMUTHAL](
-				     n_radial, n_azimuthal)) *
-				invdxtheta;
-		    }
-		}
-		}
 	}
 	}
 }
