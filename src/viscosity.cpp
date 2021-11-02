@@ -212,14 +212,14 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		 ++n_azimuthal) {
 		double nu_art;
 
+		const double dx_2 = std::pow(std::min(
+									Rsup[n_radial] - Rinf[n_radial],
+									Rmed[n_radial] * dphi), 2);
 		if (data[t_data::DIV_V](n_radial, n_azimuthal) < 0) {
 		    nu_art =
 			parameters::artificial_viscosity_factor *
 			data[t_data::DENSITY](n_radial, n_azimuthal) *
-			std::pow(std::min(
-			    Rsup[n_radial] - Rinf[n_radial],
-				Rmed[n_radial] * 2 * M_PI /
-				data[t_data::DENSITY].get_size_azimuthal()), 2) *
+					dx_2 *
 			(-data[t_data::DIV_V](n_radial, n_azimuthal));
 		} else {
 		    nu_art = 0;
