@@ -81,7 +81,7 @@ axs = np.ravel(axs)
 
 analytic(axs)
 test('../../shocktube/', 'SN', 'red', dt)
-test('../../shocktube_no_artVis/', 'TW', 'blue', dt)
+test('../../shocktube_TW/', 'TW', 'blue', dt)
 test('../../shocktube_STS/', 'SN STS', 'gold', dt)
 
 
