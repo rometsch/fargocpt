@@ -789,6 +789,7 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 
 	// If gas disk is adiabatic, we add artificial viscosity as a source
 	// term for advection of thermal energy polargrid
+	// perform this update before the velocities are updated
 	if (parameters::Adiabatic) {
 		if (parameters::artificial_viscosity_dissipation) {
 		for (unsigned int n_radial = 0;
