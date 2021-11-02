@@ -67,7 +67,8 @@ static void StsStep2(t_data &data, double dt)
 
 	if((parameters::boundary_outer != parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_outer != parameters::boundary_condition_boundary_layer) &&
-	(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable)){
+	(parameters::boundary_outer != parameters::boundary_condition_precribed_time_variable) &&
+			(!parameters::massoverflow)){
 			ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL], add_kep_inner);
 	}
 
