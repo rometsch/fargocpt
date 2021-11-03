@@ -511,6 +511,8 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		// compute and add acceleartions due to disc viscosity as a source term
 		update_with_artificial_viscosity(data, dt);
 
+		recalculate_derived_disk_quantities(data, true);
+
 		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(
 			data, data[t_data::V_RADIAL],
