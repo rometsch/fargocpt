@@ -1411,7 +1411,7 @@ void SubStep3(t_data &data, double dt)
 		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
 		const double divV = data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal);
 
-		const double inv_pow4 = std::pow( mu * (gamma - 1.0) / (Rgas * sigma), 4);
+		const double inv_pow4 = std::pow(mu * (gamma - 1.0) / (Rgas * sigma), 4);
 		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * std::pow(eint, 3);
 
 	    num = dt * qplus - dt * qminus + alpha * eint;
