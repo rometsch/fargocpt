@@ -178,9 +178,6 @@ t_data::t_data()
     m_polargrids[DIV_V].set_scalar(true);
     m_polargrids[DIV_V].set_name("div_v");
 
-	m_polargrids[DIV_V_SOURCE].set_scalar(true);
-	m_polargrids[DIV_V_SOURCE].set_name("div_v_source");
-
     m_polargrids[T_GRAVITATIONAL].set_scalar(true);
     m_polargrids[T_GRAVITATIONAL].set_name("T_gravitational");
     m_polargrids[T_GRAVITATIONAL].set_unit(units::stress);

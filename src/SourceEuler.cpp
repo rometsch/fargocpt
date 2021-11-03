@@ -586,25 +586,50 @@ void update_with_sourceterms(t_data &data, double dt)
     double supp_torque = 0.0; // for imposed disk drift
 
 
-	// calculate div(v) used for pdv heating in SubStep3
+	if(parameters::Adiabatic){
 	for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::DIV_V_SOURCE].get_max_radial(); ++n_radial) {
+	 n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::DIV_V_SOURCE].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
-		data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal) =
+		const double DIV_V =
 		(data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) *
 			 Ra[n_radial + 1] -
 		 data[t_data::V_RADIAL](n_radial, n_azimuthal) * Ra[n_radial]) *
 			InvDiffRsup[n_radial] * InvRb[n_radial] +
 		(data[t_data::V_AZIMUTHAL](
 			 n_radial,
-			 n_azimuthal == data[t_data::DIV_V_SOURCE].get_max_azimuthal()
+			 n_azimuthal == data[t_data::ENERGY].get_max_azimuthal()
 			 ? 0
 			 : n_azimuthal + 1) -
 		 data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal)) *
 			invdphi * InvRb[n_radial];
+
+		const double gamma = ADIABATICINDEX;
+		/*
+		// Like D'Angelo et al. 2003 eq. 25
+		const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double dE = dt * (-P*DIV_V + 0.5*(gamma - 1.0) * P * dt * std::pow(DIV_V, 2));
+		const double energy_old = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double energy_new = energy_old + dE;
+		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
+		*/
+
+		// Like D'Angelo et al. 2003 eq. 24
+		const double energy_old = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double energy_new = energy_old * std::exp(-(gamma - 1.0)*dt*DIV_V);
+		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
+
+		/*
+		// Zeus2D like, see Stone & Norman 1992
+		// produces poor results with shock tube test
+		const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double energy_old = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double energy_new = energy_old*(1.0 - 0.5*dt*P*DIV_V)/(1.0 + 0.5*dt*P*DIV_V);
+		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
+		*/
+	}
 	}
 	}
 
@@ -1406,16 +1431,15 @@ void SubStep3(t_data &data, double dt)
 	    const double H = h*R;
 		
 		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
-		const double eint = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
 		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
 		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
-		const double divV = data[t_data::DIV_V_SOURCE](n_radial, n_azimuthal);
 
 		const double inv_pow4 = std::pow(mu * (gamma - 1.0) / (Rgas * sigma), 4);
-		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * std::pow(eint, 3);
+		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb/c * inv_pow4 * std::pow(energy, 3);
 
-	    num = dt * qplus - dt * qminus + alpha * eint;
-	    den = alpha + (gamma - 1.0) * dt * divV;
+		num = dt * qplus - dt * qminus + alpha * energy;
+		den = alpha;
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) = num / den;
 	}
