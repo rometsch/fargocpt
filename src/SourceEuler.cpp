@@ -624,7 +624,7 @@ void update_with_sourceterms(t_data &data, double dt)
 		/*
 		// Zeus2D like, see Stone & Norman 1992
 		// produces poor results with shock tube test
-		const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double P = (gamma - 1.0);
 		const double energy_old = data[t_data::ENERGY](n_radial, n_azimuthal);
 		const double energy_new = energy_old*(1.0 - 0.5*dt*P*DIV_V)/(1.0 + 0.5*dt*P*DIV_V);
 		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
@@ -1395,30 +1395,6 @@ void SubStep3(t_data &data, double dt)
 	for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	     ++n_azimuthal) {
-	    // original
-	    /*num = dt*data[t_data::QPLUS](n_radial, n_azimuthal)
-		- dt*data[t_data::QMINUS](n_radial, n_azimuthal)
-		+ data[t_data::ENERGY_INT](n_radial, n_azimuthal);
-	    den = 1.0+(ADIABATICINDEX-1.0)*dt*data[t_data::DIV_V](n_radial,
-	    n_azimuthal);
-	    */
-	    // ZEUS2D like
-	    /*num =
-	    (1.0-(dt/2.0)*(ADIABATICINDEX-1.0)*data[t_data::DIV_V](n_radial,
-	    n_azimuthal))*data[t_data::ENERGY_INT](n_radial,
-	    n_azimuthal)+dt*data[t_data::QPLUS](n_radial,
-	    n_azimuthal)-dt*data[t_data::QMINUS](n_radial, n_azimuthal); den =
-	    (1.0+(dt/2.0)*(ADIABATICINDEX-1.0)*data[t_data::DIV_V](n_radial,
-	    n_azimuthal));
-	    */
-
-	    // TWAM original with H/R = initial:
-	    // const double alpha = 1.0 + 2.0 *
-	    // ASPECTRATIO_REF*pow(Rmed[n_radial],1+FLARINGINDEX)*4.0
-	    // 	*constants::sigma/constants::c
-	    // 	/pow4((constants::R/parameters::MU)/(ADIABATICINDEX-1.0)*data[t_data::DENSITY](n_radial,
-	    // n_azimuthal)) 	*pow3(data[t_data::ENERGY_INT](n_radial,
-	    // n_azimuthal));
 	    
 		const double sigma_sb = constants::sigma;
 		const double c = constants::c;
