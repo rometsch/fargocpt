@@ -322,89 +322,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	"Indirect terms are now handled automatically to avoid unphysical settings.",
 	"Please remove the setting.");
 
-    if (!parameters::Adiabatic) // if energy is not needed, delete the energy
-				// damping boundary conditions
-    {
-	parameters::damping_vector.erase(parameters::damping_vector.begin() +
-					 parameters::damping_energy_id);
-    }
-
-    // delete unneeded calls to damping functions
-    // this must be performed after deleting the energy damping boundary,
-    // otherwise damping_energy_id would be incorrect.
-    auto delete_damping_condition =
-	[&](const parameters::t_DampingType damper) {
-	    return damper.inner_damping_function == nullptr &&
-			   damper.outer_damping_function == nullptr
-		       ? true
-		       : false;
-	};
-    parameters::damping_vector.erase(
-	std::remove_if(parameters::damping_vector.begin(),
-		       parameters::damping_vector.end(),
-		       delete_damping_condition),
-	parameters::damping_vector.end());
-
-    CICPlanet = config::value_as_bool_default("CICPLANET", 0);
-
-    ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
-    VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
-
-	if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
-	(parameters::artificial_viscosity_factor == 0.0 ||
-	 parameters::artificial_viscosity ==
-		 parameters::artificial_viscosity_none) &&
-	VISCOSITY == 0.0) {
-	logging::print_master(
-		LOG_ERROR
-		"You cannot use super time-stepping without any viscosity!\n");
-	PersonalExit(1);
-	}
-
-	STS_NU = config::value_as_double_default("STSNU", 0.01);
-
-    if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
-	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
-	logging::print_master(LOG_ERROR
-			      "Edit the parameter file so as to remove\n");
-	logging::print_master(LOG_ERROR
-			      "one of these variables and run again.\n");
-	PersonalExit(1);
-    }
-
-    if (ALPHAVISCOSITY != 0.0) {
-	ViscosityAlpha = YES;
-	logging::print_master(LOG_INFO "Viscosity is of alpha type\n");
-    }
-
-    if (parameters::thickness_smoothing <= 0.0) {
-	logging::print_master(
-	    LOG_ERROR
-	    "A non-vanishing potential smoothing length is required.\n");
-	}
-
-    // Add a trailing slash to OUTPUTDIR if needed
-    if (OUTPUTDIR[strlen(OUTPUTDIR) - 1] != '/') {
-	unsigned int size = strlen(OUTPUTDIR);
-	OUTPUTDIR = (char *)realloc(OUTPUTDIR, size + 2);
-	OUTPUTDIR[size] = '/';
-	OUTPUTDIR[size + 1] = 0;
-    }
-
-	const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
-	if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
-	ASPECTRATIO_REF =
-		sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
-		 constants::R / parameters::MU);
-
-	const bool VISCOSITY_in_CGS =
-	config::value_as_bool_default("VISCOSITYINCGS", false);
-	if (VISCOSITY_in_CGS) {
-	VISCOSITY =
-		VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
-	}
-
 	/// EoS can only be read after apply_units(), because fitting
 	/// polytropic constants requires parameters::sigma0 to be in code units.
 	// Energy equation / Adiabatic
@@ -547,6 +464,89 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	if (!could_read_eos)
 		die("Invalid setting for Energy Equation:   %s\n",
 		config::value_as_string("EquationOfState"));
+	}
+
+    if (!parameters::Adiabatic) // if energy is not needed, delete the energy
+				// damping boundary conditions
+    {
+	parameters::damping_vector.erase(parameters::damping_vector.begin() +
+					 parameters::damping_energy_id);
+    }
+
+    // delete unneeded calls to damping functions
+    // this must be performed after deleting the energy damping boundary,
+    // otherwise damping_energy_id would be incorrect.
+    auto delete_damping_condition =
+	[&](const parameters::t_DampingType damper) {
+	    return damper.inner_damping_function == nullptr &&
+			   damper.outer_damping_function == nullptr
+		       ? true
+		       : false;
+	};
+    parameters::damping_vector.erase(
+	std::remove_if(parameters::damping_vector.begin(),
+		       parameters::damping_vector.end(),
+		       delete_damping_condition),
+	parameters::damping_vector.end());
+
+    CICPlanet = config::value_as_bool_default("CICPLANET", 0);
+
+    ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
+    VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
+
+	if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
+	(parameters::artificial_viscosity_factor == 0.0 ||
+	 parameters::artificial_viscosity ==
+		 parameters::artificial_viscosity_none) &&
+	VISCOSITY == 0.0) {
+	logging::print_master(
+		LOG_ERROR
+		"You cannot use super time-stepping without any viscosity!\n");
+	PersonalExit(1);
+	}
+
+	STS_NU = config::value_as_double_default("STSNU", 0.01);
+
+    if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
+	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
+	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
+	logging::print_master(LOG_ERROR
+			      "Edit the parameter file so as to remove\n");
+	logging::print_master(LOG_ERROR
+			      "one of these variables and run again.\n");
+	PersonalExit(1);
+    }
+
+    if (ALPHAVISCOSITY != 0.0) {
+	ViscosityAlpha = YES;
+	logging::print_master(LOG_INFO "Viscosity is of alpha type\n");
+    }
+
+    if (parameters::thickness_smoothing <= 0.0) {
+	logging::print_master(
+	    LOG_ERROR
+	    "A non-vanishing potential smoothing length is required.\n");
+	}
+
+    // Add a trailing slash to OUTPUTDIR if needed
+    if (OUTPUTDIR[strlen(OUTPUTDIR) - 1] != '/') {
+	unsigned int size = strlen(OUTPUTDIR);
+	OUTPUTDIR = (char *)realloc(OUTPUTDIR, size + 2);
+	OUTPUTDIR[size] = '/';
+	OUTPUTDIR[size + 1] = 0;
+    }
+
+	const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
+	if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
+	ASPECTRATIO_REF =
+		sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
+		 constants::R / parameters::MU);
+
+	const bool VISCOSITY_in_CGS =
+	config::value_as_bool_default("VISCOSITYINCGS", false);
+	if (VISCOSITY_in_CGS) {
+	VISCOSITY =
+		VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
 	}
 }
 
