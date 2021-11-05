@@ -52,8 +52,18 @@ std::string exec(const char *cmd)
 
 void get_polytropic_constants(double &K, double &gamma)
 {
-	gamma = (-1.0 - SIGMASLOPE + 2.0*FLARINGINDEX)/(-SIGMASLOPE);
-	K = std::pow(ASPECTRATIO_REF, 2) * std::pow(parameters::sigma0, 1.0-gamma);
+	// P_poly = K * Sigma**gamma
+	// P_poly = K * Sigma0**gamma * r**(-p * gamma)
+	// P_iso = Sigma * C_s**2
+	// with Sigma = Sigma0 * r**(-p); C_s = h * vk * r**(F)
+	// P_iso = Sigma0 * h**2 * G*M * r**(-1) * r**(2*F)
+	// P_iso = Sigma0 * h**2 * G*M * r**(-1 - p + 2*F)
+	// through comparisson of coefficients, we find the following relations:
+	const double p = SIGMASLOPE;
+	const double F = FLARINGINDEX;
+	const double h = ASPECTRATIO_REF;
+	gamma = (-1.0 - p + 2.0*F)/(-p);
+	K = std::pow(h, 2) * std::pow(parameters::sigma0, 1.0-gamma);
 }
 
 std::string getFileName(const std::string &s)
