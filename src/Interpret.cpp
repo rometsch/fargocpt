@@ -112,6 +112,17 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
 
+	constants::initialize_constants();
+
+	// now we now everything to compute unit factors
+	units::calculate_unit_factors();
+
+	// TODO: This should definitely done in parameters.cpp, where values are
+	// read, but parameters::read() is called before
+	// units::calculate_unit_factors() so it is not possible. Moving the read()
+	// call causes an error.
+	parameters::apply_units();
+
 	parameters::ShockTube = config::value_as_bool_default("ShockTube", 0);
 	parameters::SpreadingRing =
 	config::value_as_bool_default("SpreadingRing", NO);
@@ -381,11 +392,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	OUTPUTDIR[size + 1] = 0;
     }
 
-    constants::initialize_constants();
-
-    // now we now everything to compute unit factors
-    units::calculate_unit_factors();
-
 	const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
 	if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
 	ASPECTRATIO_REF =
@@ -398,12 +404,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	VISCOSITY =
 		VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
 	}
-
-    // TODO: This should definitely done in parameters.cpp, where values are
-    // read, but parameters::read() is called before
-    // units::calculate_unit_factors() so it is not possible. Moving the read()
-    // call causes an error.
-	parameters::apply_units();
 
 	/// EoS can only be read after apply_units(), because fitting
 	/// polytropic constants requires parameters::sigma0 to be in code units.
