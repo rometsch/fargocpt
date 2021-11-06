@@ -58,23 +58,23 @@ def get_units(data_folder):
 
             if len(l2) > 1:
                 if l2[0] == 'm0':
-                    unit_dict['m0'] = np.float(l2[1])
+                    unit_dict['m0'] = float(l2[1])
                 if l2[0] == 'T0':
-                    unit_dict['T0'] = np.float(l2[1])
+                    unit_dict['T0'] = float(l2[1])
                 if l2[0] == 'Sigma0':
-                    unit_dict['Sigma0'] = np.float(l2[1])
+                    unit_dict['Sigma0'] = float(l2[1])
                 if l2[0] == 'l0':
-                    unit_dict['l0'] = np.float(l2[1])
+                    unit_dict['l0'] = float(l2[1])
                 if l2[0] == 'rho0':
-                    unit_dict['rho0'] = np.float(l2[1])
+                    unit_dict['rho0'] = float(l2[1])
                 if l2[0] == 'E0':
-                    unit_dict['E0'] = np.float(l2[1])
+                    unit_dict['E0'] = float(l2[1])
                 if l2[0] == 'v0':
-                    unit_dict['v0'] = np.float(l2[1])
+                    unit_dict['v0'] = float(l2[1])
                 if l2[0] == 'p0':
-                    unit_dict['p0'] = np.float(l2[1])
+                    unit_dict['p0'] = float(l2[1])
                 if l2[0] == 't0':
-                    unit_dict['t0'] = np.float(l[ind+1])
+                    unit_dict['t0'] = float(l[ind+1])
     else:
         print("Error in get_units 2D, could not find : " + data_folder + " !\n")
         return 0
@@ -83,7 +83,6 @@ def get_units(data_folder):
 
 def cutoff(point, width, x):
 	return 1.0/(1.0+np.exp((x-point)/width))
-
 
 def Ppoly(K, gamma, density):
     return K * (density**gamma)
@@ -94,7 +93,6 @@ def Ppoly_optimizer(Kgamma, density, pressure):
 
 
 def SigmaPoly(Sigma_inner, K, gamma, r, r_inner):
-
     sigma = ((gamma-1)/(K*gamma) * (1/r - 1/r_inner) + Sigma_inner**(gamma-1))**(1 / (gamma -1))
     return sigma
 
@@ -136,21 +134,28 @@ if __name__ == "__main__":
         Rmed[nRadial] = Rmed[nRadial] / (Radii[nRadial+1]*Radii[nRadial+1]-Radii[nRadial]*Radii[nRadial])
 
 
-    sigma0 = par['Sigma0']
+    cgs_Msol = 1.98892e33
+    cgs_AU = 1.495978707e13
+    cgs_G = 6.6738480e-8
+    m = par['m0']*cgs_Msol
+    l = par['l0']*cgs_AU
+    surface_density = m/l/l
+    time = np.sqrt(l**3 /(m*cgs_G))
+
+    sigma0 = par['Sigma0'] / surface_density
     SIGMASLOPE = par['SigmaSlope']
 
     density = np.empty_like(Rmed)
     for n_radial in range(GlobalNRadial):
         density[n_radial] = sigma0*pow(Rmed[n_radial],-SIGMASLOPE)
 
-
     if par['ProfileDamping'] == 'Yes':
         # print('ProfileDamping')
         for n_radial in range(len(density)):
             density[n_radial] *= cutoff(par['ProfileDampingPoint'], par['ProfileDampingWidth'], Rmed[n_radial])
 
+    ring_area = np.pi * (Rsup**2 - Rinf**2)
     if par['SetSigma0'] == 'Yes':
-        ring_area = np.pi * (Rsup**2 - Rinf**2)
         total_mass = 0
         for dens, surface in zip(density[1:-1], ring_area[1:-1]):
             total_mass += dens*surface
@@ -179,6 +184,10 @@ if __name__ == "__main__":
     opt_result = scipy.optimize.minimize(f, x0=[12, 2], method='Powell', tol=xatol)
     K, gamma = opt_result.x
 
+    gamma2 = (-1 - par['SigmaSlope'] + 2.0 * par['FlaringIndex'])/(- par['SigmaSlope'])
+    K2 = par['AspectRatio']**2 * sigma0**(1-gamma2)
+    print('K = ', K2, 'gamma = ', gamma)
+
     if not low_output:
         print('Fitting the Pressure from the Polytropic equations to the Pressure from the Isothermal Equations\nunsing the Input file: ', file_path)
         print('PolytropicConstant   ', K, '\nAdiabaticIndex       ', gamma)
@@ -187,9 +196,9 @@ if __name__ == "__main__":
 
 
     # Plotting for Testing
-    DO_PLOT = False
+    DO_PLOT = True
     if DO_PLOT:
-        print(par)
+        # print(par)
         out_folder = 'out'
         units = get_units('../' + out_folder + '/')
 
@@ -209,18 +218,18 @@ if __name__ == "__main__":
 
         for dt in time:
             fargo_dens = np.fromfile('../' + out_folder + '/gasdens1D' + str(dt) + '.dat')
-            fargo_dens_radius = fargo_dens[::4]
-            fargo_dens = fargo_dens[1::4]/units['Sigma0']
-            ax.plot(fargo_dens_radius, fargo_dens, '--m')#, label='Fargo')
-            total_mass = 0
-            for dens, surface in zip(fargo_dens[1:-1], ring_area[1:-1]):
-                total_mass += dens*surface
-            print('Mass = ', total_mass)
+            print('len = ', len(fargo_dens)/128)
+            # fargo_dens_radius = fargo_dens[::4]
+            # fargo_dens = fargo_dens[1::4]/units['Sigma0']
+            # ax.plot(fargo_dens_radius, fargo_dens, '--m')#, label='Fargo')
 
-            Sigma0 = fargo_dens[1]
-            r_inner = fargo_dens_radius[1]
-            theo_dens = SigmaPoly(Sigma0, par['PolytropicConstant'], par['AdiabaticIndex'], fargo_dens_radius, r_inner)
-            ax.plot(fargo_dens_radius, theo_dens, '--g')#, label='Fargo')
+            # total_mass = 0
+            # for dens, surface in zip(fargo_dens[1:-1], ring_area[1:-1]):
+            #     total_mass += dens*surface
+            # print('Mass = ', total_mass)
+
+            theo_dens = SigmaPoly(density[0], K, gamma, Rmed, Rmed[0])
+            ax.plot(Rmed, theo_dens, '--g')#, label='Fargo')
         ax.legend(loc='upper right')
 
 
@@ -245,11 +254,11 @@ if __name__ == "__main__":
         ax.plot(Rmed, temperature, '-b', label='Iso')
         ax.plot(Rmed, (par['mu'] * Ppoly(K, gamma, density)/density), '--r', label='Poly')
 
-        for dt in time:
-            fargo_temp = np.fromfile('../' + out_folder + '/gasTemperature1D' + str(dt) +  '.dat')
-            fargo_temp_radius = fargo_temp[::4]
-            fargo_temp = fargo_temp[1::4]
-            ax.plot(fargo_temp_radius, fargo_temp/units['T0'], '--m')#, label='Fargo')
+        # for dt in time:
+        #     fargo_temp = np.fromfile('../' + out_folder + '/gasTemperature1D' + str(dt) +  '.dat')
+        #     fargo_temp_radius = fargo_temp[::4]
+        #     fargo_temp = fargo_temp[1::4]
+        #     ax.plot(fargo_temp_radius, fargo_temp/units['T0'], '--m')#, label='Fargo')
 
         ax.legend(loc='upper right')
         plt.show()
