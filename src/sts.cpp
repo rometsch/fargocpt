@@ -439,6 +439,7 @@ void Sts(t_data &data, double dt)
 	tau = ts[n - m - 1];
 
 	StsStep2(data, tau);
+	recalculate_derived_disk_quantities(data, true);
 
 	ComputeViscousStressTensor(data);
 	viscosity::update_velocities_with_viscosity(
