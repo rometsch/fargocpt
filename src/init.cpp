@@ -157,13 +157,7 @@ void init_radialarrays()
 	// Rmed is in the center of the cell where the center of mass is
 	// Rmed = 1/2 * [ (4/3 Pi r_sup^3) - (4/3 Pi r_inf^3) ] / [ (Pi r_sup^2)
 	// - (Pi r_inf^2) ]
-	GlobalRmed[nRadial] =
-	    2.0 / 3.0 *
-	    (Radii[nRadial + 1] * Radii[nRadial + 1] * Radii[nRadial + 1] -
-	     Radii[nRadial] * Radii[nRadial] * Radii[nRadial]);
-	GlobalRmed[nRadial] =
-	    GlobalRmed[nRadial] / (Radii[nRadial + 1] * Radii[nRadial + 1] -
-				   Radii[nRadial] * Radii[nRadial]);
+	GlobalRmed[nRadial] = 0.5*(Radii[nRadial + 1] - Radii[nRadial]);
     }
 
     logging::print_master(
