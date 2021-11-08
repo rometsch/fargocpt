@@ -66,6 +66,7 @@ extern t_radialarray InvDiffRmed;
 extern t_radialarray InvDiffRsup;
 extern t_radialarray InvDiffRsupRb;
 extern t_radialarray TwoDiffRaSq;
+extern t_radialarray TwoDiffRbSq;
 extern t_radialarray FourThirdInvRbInvdphiSq;
 extern t_radialarray Radii;
 extern t_radialarray GlobalRmed;

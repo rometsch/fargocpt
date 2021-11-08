@@ -52,6 +52,7 @@ void resize_radialarrays(unsigned int size)
     InvDiffRsup.resize(size);
 	InvDiffRsupRb.resize(size);
 	TwoDiffRaSq.resize(size);
+	TwoDiffRbSq.resize(size);
 	FourThirdInvRbInvdphiSq.resize(size);
     Radii.resize(size);
     GlobalRmed.resize(size);
@@ -203,6 +204,7 @@ void init_radialarrays()
 
 	for (nRadial = 1; nRadial < NRadial + 1; ++nRadial) {
 	InvDiffRmed[nRadial] = 1.0 / (Rmed[nRadial] - Rmed[nRadial - 1]);
+	TwoDiffRbSq[nRadial] = 2.0 / (Rmed[nRadial]*Rmed[nRadial] - Rmed[nRadial-1]*Rmed[nRadial-1]);
     }
 
     /* output radii to used_rad.dat (on master only) */
