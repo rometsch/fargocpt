@@ -4,5 +4,5 @@
 
 namespace accretion
 {
-	void AccreteOntoPlanets(t_data &data, const double dt);
+void AccreteOntoPlanets(t_data &data, const double dt);
 } // namespace accretion

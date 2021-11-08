@@ -58,7 +58,7 @@ class t_planetary_system
 
     void initialize_default_star();
     void init_rebound();
-	void read_from_file(char *filename);
+    void read_from_file(char *filename);
     void list_planets();
     void rotate(double angle);
     void restart(unsigned int timestep);
@@ -66,10 +66,10 @@ class t_planetary_system
     void create_planet_files();
     void write_planets(unsigned int timestep, bool big_file);
 
-	void integrate(double time, double dt);
-	void copy_data_to_rebound();
-	void copy_data_from_rebound();
-	void correct_velocity_for_disk_accel();
+    void integrate(double time, double dt);
+    void copy_data_to_rebound();
+    void copy_data_from_rebound();
+    void correct_velocity_for_disk_accel();
 };
 
 #endif // PLANETARY_SYSTEM_H

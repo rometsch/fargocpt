@@ -136,10 +136,11 @@ void CheckAngularMomentumConservation(t_data &data)
 */
 void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
 {
-	const unsigned int Nmax = result.get_size_radial() * result.get_size_azimuthal();
-	for (unsigned int n=0; n < Nmax; n++) {
-	    result.Field[n] = num.Field[n] / (denom.Field[n] + DBL_EPSILON);
-	}
+    const unsigned int Nmax =
+	result.get_size_radial() * result.get_size_azimuthal();
+    for (unsigned int n = 0; n < Nmax; n++) {
+	result.Field[n] = num.Field[n] / (denom.Field[n] + DBL_EPSILON);
+    }
 }
 
 /**
@@ -149,11 +150,11 @@ void InitCellCenterCoordinates()
 {
     unsigned int nRadial, nAzimuthal, cell;
 
-	delete CellCenterY;
-	delete CellCenterX;
+    delete CellCenterY;
+    delete CellCenterX;
 
-	CellCenterX = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_x");
-	CellCenterY = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_y");
+    CellCenterX = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_x");
+    CellCenterY = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_y");
 
     for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
@@ -170,8 +171,8 @@ void InitCellCenterCoordinates()
 
 void FreeCellCenterCoordinates()
 {
-	delete CellCenterY;
-	delete CellCenterX;
+    delete CellCenterY;
+    delete CellCenterX;
 }
 
 /**
@@ -463,7 +464,7 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
 */
 void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 {
-	double VKepIn = 0.0;
+    double VKepIn = 0.0;
     if (!parameters::self_gravity) {
 	/* (3.4) on page 44 */
 	VKepIn = sqrt(constants::G * hydro_center_mass / Rb[0] *
@@ -493,50 +494,49 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
     }
 }
 
-
 /**
 	\param VAzimuthal azimuthal velocity polar grid
 */
 void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 {
-	double VKepOut = 0.0;
-	if (!parameters::self_gravity) {
+    double VKepOut = 0.0;
+    if (!parameters::self_gravity) {
 	/* (3.4) on page 44 */
 	VKepOut = sqrt(constants::G * hydro_center_mass /
-			   Rb[v_azimuthal.get_max_radial()] *
-			   (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
+		       Rb[v_azimuthal.get_max_radial()] *
+		       (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
 				  pow(ASPECTRATIO_REF, 2.0) *
 				  pow(Rb[v_azimuthal.get_max_radial()],
-					  2.0 * FLARINGINDEX)));
-	} else {
+				      2.0 * FLARINGINDEX)));
+    } else {
 
-	if(!did_sg){
-	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
+	if (!did_sg) {
+	    mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
 	}
 
 	/* (3.42) on page 55 */
 	/* VKepOut is only needed on outermost CPU */
 	if (CPU_Rank == CPU_Highest) {
-		// viscosity::aspect_ratio(Rmed[VAzimuthal->Nrad-1])
-		VKepOut =
+	    // viscosity::aspect_ratio(Rmed[VAzimuthal->Nrad-1])
+	    VKepOut =
 		sqrt(constants::G * hydro_center_mass /
 			 Rb[v_azimuthal.get_max_radial()] *
 			 (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-					pow(ASPECTRATIO_REF, 2.0) *
-					pow(Rb[v_azimuthal.get_max_radial()],
+				    pow(ASPECTRATIO_REF, 2.0) *
+				    pow(Rb[v_azimuthal.get_max_radial()],
 					2.0 * FLARINGINDEX)) -
-			 Rb[v_azimuthal.get_max_radial()] *
+		     Rb[v_azimuthal.get_max_radial()] *
 			 GLOBAL_AxiSGAccr[v_azimuthal.get_max_radial() + IMIN]);
 	}
-	}
+    }
 
-	if (CPU_Rank == CPU_Highest) {
+    if (CPU_Rank == CPU_Highest) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= v_azimuthal.get_max_azimuthal(); n_azimuthal++) {
-		v_azimuthal(v_azimuthal.get_max_radial(), n_azimuthal) =
+	     n_azimuthal <= v_azimuthal.get_max_azimuthal(); n_azimuthal++) {
+	    v_azimuthal(v_azimuthal.get_max_radial(), n_azimuthal) =
 		VKepOut - Rb[v_azimuthal.get_max_radial()] * OmegaFrame;
 	}
-	}
+    }
 }
 
 void correct_v_azimuthal(t_polargrid &v_azimuthal, double dOmega)
@@ -578,11 +578,12 @@ void ApplyNoTorqueBoundaryOuter(t_polargrid &v_azimuthal)
 		 ++n_azimuthal) {
 		// this is a work around as long as V_AZIMUTHAL is defined as a
 		// vector
-			const double R_outer = Rmed[v_azimuthal.get_max_radial()];
-			const double R_inner = Rmed[v_azimuthal.get_max_radial() - 1];
-			v_azimuthal( v_azimuthal.get_max_radial(), n_azimuthal) =
-			std::sqrt(R_outer / R_inner) *
-			v_azimuthal(v_azimuthal.get_max_radial() - 1, n_azimuthal);
+			const double R_outer =
+Rmed[v_azimuthal.get_max_radial()]; const double R_inner =
+Rmed[v_azimuthal.get_max_radial() - 1]; v_azimuthal(
+v_azimuthal.get_max_radial(), n_azimuthal) = std::sqrt(R_outer / R_inner) *
+			v_azimuthal(v_azimuthal.get_max_radial() - 1,
+n_azimuthal);
 		}
 	}
 }

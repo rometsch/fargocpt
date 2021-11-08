@@ -34,9 +34,9 @@ bool Polytropic = false;
 bool Locally_Isothermal = false;
 
 t_radial_grid radial_grid_type;
-const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential", "custom"};
+const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",
+				   "custom"};
 double exponential_cell_size_factor;
-
 
 t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;
@@ -121,7 +121,6 @@ double kappa_factor;
 bool self_gravity;
 bool body_force_from_potential;
 
-
 bool write_torques;
 
 bool write_disk_quantities;
@@ -191,10 +190,10 @@ void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 }
 
 static t_DampingType write_damping_type(t_damping_type type_inner,
-				 t_damping_type type_outer,
-				 t_data::t_polargrid_type quantity,
-				 t_data::t_polargrid_type quantity0,
-				 std::string description)
+					t_damping_type type_outer,
+					t_data::t_polargrid_type quantity,
+					t_data::t_polargrid_type quantity0,
+					std::string description)
 {
     t_DampingType damping_type;
     damping_type.array_to_damp = quantity;
@@ -276,7 +275,8 @@ void read(char *filename, t_data &data)
     RMIN = config::value_as_double_default("RMIN", 1.0);
     RMAX = config::value_as_double_default("RMAX", 1.0);
 
-	exponential_cell_size_factor = config::value_as_double_default("ExponentialCellSizeFactor", 1.41);
+    exponential_cell_size_factor =
+	config::value_as_double_default("ExponentialCellSizeFactor", 1.41);
     switch (tolower(
 	*config::value_as_string_default("RadialSpacing", "ARITHMETIC"))) {
     case 'a': // arithmetic
@@ -339,11 +339,11 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteTReynolds", false));
     data[t_data::T_GRAVITATIONAL].set_write(
 	config::value_as_bool_default("WriteTGravitational", false));
-	data[t_data::ADVECTION_TORQUE].set_write(
+    data[t_data::ADVECTION_TORQUE].set_write(
 	config::value_as_bool_default("WriteGasTorques", false));
-	data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
+    data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
 	config::value_as_bool_default("WriteGasTorques", false));
-	data[t_data::VISCOUS_TORQUE].set_write(
+    data[t_data::VISCOUS_TORQUE].set_write(
 	config::value_as_bool_default("WriteGasTorques", false));
     data[t_data::P_DIVV].set_write(
 	config::value_as_bool_default("WritepDV", false));
@@ -369,8 +369,8 @@ void read(char *filename, t_data &data)
     write_lightcurves =
 	config::value_as_bool_default("WriteLightCurves", false);
 
-	write_massflow = config::value_as_bool_default("WriteMassFlow", false);
-	data[t_data::MASSFLOW].set_write(write_massflow);
+    write_massflow = config::value_as_bool_default("WriteMassFlow", false);
+    data[t_data::MASSFLOW].set_write(write_massflow);
 
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =
@@ -380,7 +380,8 @@ void read(char *filename, t_data &data)
     if (config::key_exists("WriteLightCurvesRadii")) {
 	// get light curves radii string
 	char *lightcurves_radii_string =
-	    new char[strlen(config::value_as_string("WriteLightCurvesRadii"))+1];
+	    new char[strlen(config::value_as_string("WriteLightCurvesRadii")) +
+		     1];
 	strcpy(lightcurves_radii_string,
 	       config::value_as_string("WriteLightCurvesRadii"));
 
@@ -427,7 +428,7 @@ void read(char *filename, t_data &data)
     case 'k':
 	boundary_inner = boundary_condition_keplerian;
 	break;
-	case 'p':
+    case 'p':
 	boundary_inner = boundary_condition_precribed_time_variable;
 	break;
     default:
@@ -458,7 +459,7 @@ void read(char *filename, t_data &data)
     case 'k':
 	boundary_outer = boundary_condition_keplerian;
 	break;
-	case 'p':
+    case 'p':
 	boundary_outer = boundary_condition_precribed_time_variable;
 	break;
     default:
@@ -466,27 +467,30 @@ void read(char *filename, t_data &data)
 	    config::value_as_string_default("OuterBoundary", "Open"));
     }
 
-	// check if file for prescribed time variable boundary exists
-	if (config::key_exists("PRESCRIBEDBOUNDARYFILEOUTER")){
-	if (strlen(config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) > 0) {
-	if (asprintf(&PRESCRIBED_BOUNDARY_OUTER_FILE, "%s",
-			 config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) < 0) {
+    // check if file for prescribed time variable boundary exists
+    if (config::key_exists("PRESCRIBEDBOUNDARYFILEOUTER")) {
+	if (strlen(config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) >
+	    0) {
+	    if (asprintf(&PRESCRIBED_BOUNDARY_OUTER_FILE, "%s",
+			 config::value_as_string(
+			     "PRESCRIBEDBOUNDARYFILEOUTER")) < 0) {
 		logging::print_master(LOG_ERROR "Not enough memory!\n");
-	}
+	    }
 	} else {
-	die("Error looking for data for the prescribed time variable boundary condition. Path could not be read!\n");
+	    die("Error looking for data for the prescribed time variable boundary condition. Path could not be read!\n");
 	}
-	} else {
-		PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
-	}
+    } else {
+	PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
+    }
 
-	domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
+    domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
 
-	if(domegadr_zero)
-	logging::print_master(LOG_INFO "Using to Torque condition at outer boundary\n");
+    if (domegadr_zero)
+	logging::print_master(LOG_INFO
+			      "Using to Torque condition at outer boundary\n");
 
-
-	viscous_outflow_speed = config::value_as_double_default("ViscousOutflowSpeed", 1.0);
+    viscous_outflow_speed =
+	config::value_as_double_default("ViscousOutflowSpeed", 1.0);
 
     damping = config::value_as_bool_default("Damping", false);
 
@@ -681,19 +685,20 @@ void read(char *filename, t_data &data)
     sigma0 = config::value_as_double_default("SIGMA0", 173.);
     sigma_adjust = config::value_as_bool_default("SetSigma0", false);
     sigma_discmass = config::value_as_double_default("discmass", 0.01);
-	density_factor = config::value_as_double_default("DensityFactor", std::sqrt(2.0*M_PI));
+    density_factor =
+	config::value_as_double_default("DensityFactor", std::sqrt(2.0 * M_PI));
 
     tau_factor = config::value_as_double_default("TauFactor", 0.5);
     kappa_factor = config::value_as_double_default("KappaFactor", 1.0);
 
-	EXPLICIT_VISCOSITY =
+    EXPLICIT_VISCOSITY =
 	config::value_as_bool_default("ExplicitViscosity", true);
 
-	if (EXPLICIT_VISCOSITY) {
+    if (EXPLICIT_VISCOSITY) {
 	logging::print_master(LOG_INFO "Using EXPLICIT VISCOSITY\n");
-	} else {
+    } else {
 	logging::print_master(LOG_INFO "Using SUPER TIMESTEPPINGG VISCOSITY\n");
-	}
+    }
 
     // artificial visocisty
     switch (tolower(
@@ -729,39 +734,40 @@ void read(char *filename, t_data &data)
 
     // mass overflow
     massoverflow = config::value_as_bool_default("massoverflow", false);
-	mof_planet = config::value_as_int_default("mofplanet", 1);
-	mof_temperature = config::value_as_double_default("moftemperature", 1000.0);
-	mof_value = config::value_as_double_default("mofvalue", 10E-9);
+    mof_planet = config::value_as_int_default("mofplanet", 1);
+    mof_temperature = config::value_as_double_default("moftemperature", 1000.0);
+    mof_value = config::value_as_double_default("mofvalue", 10E-9);
 
-
-	// profile damping outer
-	profile_cutoff_outer = config::value_as_bool_default("ProfileCutoffOuter", false);
-	profile_cutoff_point_outer =
+    // profile damping outer
+    profile_cutoff_outer =
+	config::value_as_bool_default("ProfileCutoffOuter", false);
+    profile_cutoff_point_outer =
 	config::value_as_double_default("ProfileCutoffPointOuter", 1.0e300);
-	profile_cutoff_width_outer =
+    profile_cutoff_width_outer =
 	config::value_as_double_default("ProfileCutoffWidthOuter", 1.0);
 
-	// profile cutoff outer, legacy names
-	// only try to read legacy names if new names weren't used
-	if(!config::key_exists("ProfileCutoffOuter")){
-	profile_cutoff_outer = config::value_as_bool_default("ProfileDamping", false);
-	}
-	if(!config::key_exists("ProfileCutoffPointOuter")){
+    // profile cutoff outer, legacy names
+    // only try to read legacy names if new names weren't used
+    if (!config::key_exists("ProfileCutoffOuter")) {
+	profile_cutoff_outer =
+	    config::value_as_bool_default("ProfileDamping", false);
+    }
+    if (!config::key_exists("ProfileCutoffPointOuter")) {
 	profile_cutoff_point_outer =
-	config::value_as_double_default("ProfileDampingPoint", 1.0e300);
-	}
-	if(!config::key_exists("ProfileCutoffWidthOuter")){
+	    config::value_as_double_default("ProfileDampingPoint", 1.0e300);
+    }
+    if (!config::key_exists("ProfileCutoffWidthOuter")) {
 	profile_cutoff_width_outer =
-	config::value_as_double_default("ProfileDampingWidth", 1.0);
-	}
+	    config::value_as_double_default("ProfileDampingWidth", 1.0);
+    }
 
-	// profile damping inner
-	profile_cutoff_inner = config::value_as_bool_default("ProfileCutoffInner", false);
-	profile_cutoff_point_inner =
+    // profile damping inner
+    profile_cutoff_inner =
+	config::value_as_bool_default("ProfileCutoffInner", false);
+    profile_cutoff_point_inner =
 	config::value_as_double_default("ProfileCutoffPointInner", 0.0);
-	profile_cutoff_width_inner =
+    profile_cutoff_width_inner =
 	config::value_as_double_default("ProfileCutoffWidthInner", 1.0);
-
 
     exitOnDeprecatedSetting(
 	"FeelsDisk",
@@ -772,18 +778,19 @@ void read(char *filename, t_data &data)
     // self gravity
     self_gravity = config::value_as_bool_default("SelfGravity", 0);
 
-	if(self_gravity){
+    if (self_gravity) {
 	logging::print_master(LOG_INFO "Self gravity enabled.\n");
-	}
+    }
 
-	body_force_from_potential = config::value_as_bool_default("BodyForceFromPotiential", YES);
-	if(body_force_from_potential){
-		logging::print_master(LOG_INFO "Body force on gas computed via potential.\n");
-	} else {
-		logging::print_master(LOG_INFO "Body force on gas computed via force.\n");
-	}
-
-
+    body_force_from_potential =
+	config::value_as_bool_default("BodyForceFromPotiential", YES);
+    if (body_force_from_potential) {
+	logging::print_master(LOG_INFO
+			      "Body force on gas computed via potential.\n");
+    } else {
+	logging::print_master(LOG_INFO
+			      "Body force on gas computed via force.\n");
+    }
 
     // opacity
     switch (tolower(*config::value_as_string_default("Opacity", "Lin"))) {
@@ -803,7 +810,7 @@ void read(char *filename, t_data &data)
 	opacity = opacity_const_op;
 	kappa_const = config::value_as_double_default("KappaConst", 1.0);
 	break;
-	case 's': // simple, see Gennaro D'Angelo et al. 2003
+    case 's': // simple, see Gennaro D'Angelo et al. 2003
 	opacity = opacity_simple;
 	kappa_const = config::value_as_double_default("KappaConst", 1.0);
 	break;
@@ -835,14 +842,22 @@ void read(char *filename, t_data &data)
     number_of_particles =
 	config::value_as_unsigned_int_default("NumberOfParticles", 0);
     particle_radius = config::value_as_double_default("ParticleRadius", 100.0);
-	particle_species_number = config::value_as_unsigned_int_default("ParticleSpeciesNumber", 5);
-    particle_radius_increase_factor = config::value_as_double_default("ParticleRadiusIncreaseFactor", 10.0);
+    particle_species_number =
+	config::value_as_unsigned_int_default("ParticleSpeciesNumber", 5);
+    particle_radius_increase_factor =
+	config::value_as_double_default("ParticleRadiusIncreaseFactor", 10.0);
     particle_eccentricity =
 	config::value_as_double_default("ParticleEccentricity", 0.0);
     particle_density = config::value_as_double_default("ParticleDensity", 2.65);
-	particle_slope = config::value_as_double_default("ParticleSurfaceDensitySlope", SIGMASLOPE);
-	particle_slope = -particle_slope; // particle distribution scales with  r^slope, so we introduces the minus here to make it r^-slope (same as for gas)
-	particle_slope += 1.0; // particles are distributed over a whole simulation ring which introduces a factor 1/r for the particle surface density
+    particle_slope = config::value_as_double_default(
+	"ParticleSurfaceDensitySlope", SIGMASLOPE);
+    particle_slope =
+	-particle_slope; // particle distribution scales with  r^slope, so we
+			 // introduces the minus here to make it r^-slope (same
+			 // as for gas)
+    particle_slope +=
+	1.0; // particles are distributed over a whole simulation ring which
+	     // introduces a factor 1/r for the particle surface density
     particle_minimum_radius =
 	config::value_as_double_default("ParticleMinimumRadius", RMIN);
     particle_maximum_radius =
@@ -874,11 +889,11 @@ void read(char *filename, t_data &data)
 	}
 
 	break;
-	case 'm': // exponential midpoint
+    case 'm': // exponential midpoint
 	integrator = integrator_exponential_midpoint;
 
 	if (!particle_gas_drag_enabled) {
-		logging::print_master(
+	    logging::print_master(
 		LOG_ERROR
 		"Do not use exponential midpoint particle integrator without gas drag, use the explicit integrator instead.\n");
 	}
@@ -902,8 +917,8 @@ void read(char *filename, t_data &data)
     }
 
     if (CartesianParticles && ((integrator == integrator_implicit) ||
-				   integrator == integrator_semiimplicit  ||
-							   integrator == integrator_exponential_midpoint)) {
+			       integrator == integrator_semiimplicit ||
+			       integrator == integrator_exponential_midpoint)) {
 	// implicit and semiimplicit integrator only implemented in polar
 	// coordiantes, but forces can be calculated in cartesian coordinates
 	CartesianParticles = false;
@@ -934,7 +949,8 @@ void read(char *filename, t_data &data)
     }
 
     particle_maximum_escape_radius_sq =
-	std::pow(particle_maximum_escape_radius, 2) - DBL_EPSILON; // DBL for safety
+	std::pow(particle_maximum_escape_radius, 2) -
+	DBL_EPSILON; // DBL for safety
     particle_minimum_escape_radius_sq =
 	std::pow(particle_minimum_escape_radius, 2) + DBL_EPSILON;
 }
@@ -1013,8 +1029,8 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
-	case boundary_condition_precribed_time_variable:
-		die("Inner precribed time variable boundary condition is not implemented yet!\n");
+    case boundary_condition_precribed_time_variable:
+	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
     }
 
@@ -1034,8 +1050,8 @@ void summarize_parameters()
 	    "Using 'nonreflecting boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_evanescent:
-	if(domegadr_zero){
-		die("domegadr_zero = true and evanescent outer boundary condition is not allowed!\n");
+	if (domegadr_zero) {
+	    die("domegadr_zero = true and evanescent outer boundary condition is not allowed!\n");
 	}
 	logging::print_master(
 	    LOG_INFO
@@ -1047,8 +1063,8 @@ void summarize_parameters()
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
-	if(domegadr_zero){
-	die("domegadr_zero = true and boundary layer outer boundary condition is not allowed!\n");
+	if (domegadr_zero) {
+	    die("domegadr_zero = true and boundary layer outer boundary condition is not allowed!\n");
 	}
 	logging::print_master(
 	    LOG_INFO
@@ -1059,22 +1075,23 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'keplarian boundary conditions' at inner boundary.\n");
 	break;
-	case boundary_condition_precribed_time_variable:
-	if(domegadr_zero){
-		die("domegadr_zero = true and prescribed time variable outer boundary condition is not allowed!\n");
+    case boundary_condition_precribed_time_variable:
+	if (domegadr_zero) {
+	    die("domegadr_zero = true and prescribed time variable outer boundary condition is not allowed!\n");
 	}
 	logging::print_master(
-		LOG_INFO
-		"Using 'time variable boundary conditions' at inner boundary.\n");
+	    LOG_INFO
+	    "Using 'time variable boundary conditions' at inner boundary.\n");
 	break;
     }
 
-	// Mass Transfer
-	if (parameters::massoverflow) {
+    // Mass Transfer
+    if (parameters::massoverflow) {
 	logging::print_master(
-		LOG_INFO "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K.\n",
-		mof_planet, mof_value, mof_temperature);
-	}
+	    LOG_INFO
+	    "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K.\n",
+	    mof_planet, mof_value, mof_temperature);
+    }
 
     // Boundary layer
     if (boundary_inner == boundary_condition_boundary_layer) {
@@ -1170,11 +1187,11 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO "Using constant opacity kappa_R = %e.\n",
 			      kappa_const);
 	break;
-	case opacity_simple:
+    case opacity_simple:
 	logging::print_master(
-	LOG_INFO
-	"Using opacity from Gennaro D'Angelo et al. 2003 with kappa_0 = %e.\n",
-	kappa_const);
+	    LOG_INFO
+	    "Using opacity from Gennaro D'Angelo et al. 2003 with kappa_0 = %e.\n",
+	    kappa_const);
 	break;
     }
 
@@ -1232,9 +1249,9 @@ void summarize_parameters()
 		LOG_INFO "Particles use the semiimplicit integrator\n");
 	    break;
 	case integrator_exponential_midpoint:
-		logging::print_master(
+	    logging::print_master(
 		LOG_INFO "Particles use the exponential midpoint integrator\n");
-		break;
+	    break;
 	case integrator_implicit: // Implicit
 	    logging::print_master(LOG_INFO
 				  "Particles use the implicit integrator\n");
@@ -1286,10 +1303,10 @@ void write_grid_data_to_file()
 	    strncpy(radial_spacing_str, "Exponential", 256);
 	    break;
 	}
-		case (custom_spacing): {
-			strncpy(radial_spacing_str, "Custom", 256);
-			break;
-		}
+	case (custom_spacing): {
+	    strncpy(radial_spacing_str, "Custom", 256);
+	    break;
+	}
 	}
 
 	fprintf(

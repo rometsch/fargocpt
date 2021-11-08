@@ -34,13 +34,13 @@ t_data::t_data()
     m_polargrids[PRESSURE].set_name("pressure");
     m_polargrids[PRESSURE].set_unit(units::pressure);
 
-	m_polargrids[ACCEL_RADIAL].set_vector(true);
-	m_polargrids[ACCEL_RADIAL].set_name("arad");
-	m_polargrids[ACCEL_RADIAL].set_unit(units::acceleration);
+    m_polargrids[ACCEL_RADIAL].set_vector(true);
+    m_polargrids[ACCEL_RADIAL].set_name("arad");
+    m_polargrids[ACCEL_RADIAL].set_unit(units::acceleration);
 
-	m_polargrids[ACCEL_AZIMUTHAL].set_vector(false);
-	m_polargrids[ACCEL_AZIMUTHAL].set_name("atheta");
-	m_polargrids[ACCEL_AZIMUTHAL].set_unit(units::acceleration);
+    m_polargrids[ACCEL_AZIMUTHAL].set_vector(false);
+    m_polargrids[ACCEL_AZIMUTHAL].set_name("atheta");
+    m_polargrids[ACCEL_AZIMUTHAL].set_unit(units::acceleration);
 
     m_polargrids[TOOMRE].set_scalar(true);
     m_polargrids[TOOMRE].set_name("Toomre");
@@ -68,13 +68,11 @@ t_data::t_data()
 
     m_polargrids[ALPHA_GRAV_MEAN].set_scalar(true);
     m_polargrids[ALPHA_GRAV_MEAN].set_name("alpha_grav_mean");
-	m_polargrids[ALPHA_GRAV_MEAN].set_clear_after_write(true);
-
+    m_polargrids[ALPHA_GRAV_MEAN].set_clear_after_write(true);
 
     m_polargrids[ALPHA_REYNOLDS_MEAN].set_scalar(true);
     m_polargrids[ALPHA_REYNOLDS_MEAN].set_name("alpha_reynolds_mean");
-	m_polargrids[ALPHA_REYNOLDS_MEAN].set_clear_after_write(true);
-
+    m_polargrids[ALPHA_REYNOLDS_MEAN].set_clear_after_write(true);
 
     m_polargrids[V_RADIAL0].set_vector(true);
     m_polargrids[V_RADIAL0].set_name("vrad0");
@@ -121,47 +119,51 @@ t_data::t_data()
     m_polargrids[VISCOSITY].set_name("viscosity");
     m_polargrids[VISCOSITY].set_unit(units::kinematic_viscosity);
 
-	m_polargrids[ARTIFICIAL_VISCOSITY].set_scalar(true);
-	m_polargrids[ARTIFICIAL_VISCOSITY].set_name("artificial_viscosity");
+    m_polargrids[ARTIFICIAL_VISCOSITY].set_scalar(true);
+    m_polargrids[ARTIFICIAL_VISCOSITY].set_name("artificial_viscosity");
 
-	m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_scalar(true);
-	m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_name("viscosity_correction_factor_r");
+    m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_scalar(true);
+    m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_name(
+	"viscosity_correction_factor_r");
 
-	m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_scalar(true);
-	m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_name("viscosity_correction_factor_phi");
+    m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_scalar(true);
+    m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_name(
+	"viscosity_correction_factor_phi");
 
-	m_polargrids[VISCOSITY_SIGMA_RP].set_scalar(true);
-	m_polargrids[VISCOSITY_SIGMA_RP].set_name("viscosity_correction_factor_phi_helper_rp");
+    m_polargrids[VISCOSITY_SIGMA_RP].set_scalar(true);
+    m_polargrids[VISCOSITY_SIGMA_RP].set_name(
+	"viscosity_correction_factor_phi_helper_rp");
 
-	m_polargrids[VISCOSITY_SIGMA].set_scalar(true);
-	m_polargrids[VISCOSITY_SIGMA].set_name("viscosity_correction_factor_phi_helper_pp");
+    m_polargrids[VISCOSITY_SIGMA].set_scalar(true);
+    m_polargrids[VISCOSITY_SIGMA].set_name(
+	"viscosity_correction_factor_phi_helper_pp");
 
-	m_polargrids[ADVECTION_TORQUE].set_scalar(true);
-	m_polargrids[ADVECTION_TORQUE].set_name("ADVECTION_TORQUE");
-	m_polargrids[ADVECTION_TORQUE].set_unit(units::torque);
-	m_polargrids[ADVECTION_TORQUE].set_do_before_write(
+    m_polargrids[ADVECTION_TORQUE].set_scalar(true);
+    m_polargrids[ADVECTION_TORQUE].set_name("ADVECTION_TORQUE");
+    m_polargrids[ADVECTION_TORQUE].set_unit(units::torque);
+    m_polargrids[ADVECTION_TORQUE].set_do_before_write(
 	&quantities::calculate_advection_torque);
-	m_polargrids[ADVECTION_TORQUE].set_clear_after_write(true);
-	m_polargrids[ADVECTION_TORQUE].set_integrate_azimuthally_for_1D_write(true);
+    m_polargrids[ADVECTION_TORQUE].set_clear_after_write(true);
+    m_polargrids[ADVECTION_TORQUE].set_integrate_azimuthally_for_1D_write(true);
 
-
-	m_polargrids[VISCOUS_TORQUE].set_scalar(true);
-	m_polargrids[VISCOUS_TORQUE].set_name("VISCOUS_TORQUE");
-	m_polargrids[VISCOUS_TORQUE].set_unit(units::torque);
-	m_polargrids[VISCOUS_TORQUE].set_do_before_write(
+    m_polargrids[VISCOUS_TORQUE].set_scalar(true);
+    m_polargrids[VISCOUS_TORQUE].set_name("VISCOUS_TORQUE");
+    m_polargrids[VISCOUS_TORQUE].set_unit(units::torque);
+    m_polargrids[VISCOUS_TORQUE].set_do_before_write(
 	&quantities::calculate_viscous_torque);
-	m_polargrids[VISCOUS_TORQUE].set_clear_after_write(true);
-	m_polargrids[VISCOUS_TORQUE].set_integrate_azimuthally_for_1D_write(true);
+    m_polargrids[VISCOUS_TORQUE].set_clear_after_write(true);
+    m_polargrids[VISCOUS_TORQUE].set_integrate_azimuthally_for_1D_write(true);
 
-
-	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_scalar(true);
-	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_name("GRAVITATIONAL_TORQUE_NOT_INTEGRATED");
-	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_unit(units::torque);
-	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_do_before_write(
+    m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_scalar(true);
+    m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_name(
+	"GRAVITATIONAL_TORQUE_NOT_INTEGRATED");
+    m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_unit(units::torque);
+    m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_do_before_write(
 	&quantities::calculate_gravitational_torque);
-	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_clear_after_write(true);
-	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_integrate_azimuthally_for_1D_write(true);
-
+    m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_clear_after_write(
+	true);
+    m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
+	.set_integrate_azimuthally_for_1D_write(true);
 
     // tau_r_r is cell centered
     m_polargrids[TAU_R_R].set_scalar(true);
@@ -219,13 +221,12 @@ t_data::t_data()
     m_polargrids[RHO].set_name("rho");
     m_polargrids[RHO].set_unit(units::density);
 
-	m_polargrids[MASSFLOW].set_scalar(false);
-	m_polargrids[MASSFLOW].set_name("MassFlow");
-	m_polargrids[MASSFLOW].set_unit(units::mass_accretion_rate);
-	m_polargrids[MASSFLOW].set_do_before_write(
-	&quantities::calculate_massflow);
-	m_polargrids[MASSFLOW].set_clear_after_write(true);
-	m_polargrids[MASSFLOW].set_integrate_azimuthally_for_1D_write(true);
+    m_polargrids[MASSFLOW].set_scalar(false);
+    m_polargrids[MASSFLOW].set_name("MassFlow");
+    m_polargrids[MASSFLOW].set_unit(units::mass_accretion_rate);
+    m_polargrids[MASSFLOW].set_do_before_write(&quantities::calculate_massflow);
+    m_polargrids[MASSFLOW].set_clear_after_write(true);
+    m_polargrids[MASSFLOW].set_integrate_azimuthally_for_1D_write(true);
 
     // -- radial grids --
     m_radialgrids[LUMINOSITY_1D].set_scalar(true);
@@ -244,21 +245,22 @@ t_data::t_data()
     m_radialgrids[TORQUE_1D].set_name("1D_torque");
     m_radialgrids[TORQUE_1D].set_unit(units::torque);
 
-	m_polargrids[PRESCRIBED_ENERGY_OUTER].set_scalar(true);
-	m_polargrids[PRESCRIBED_ENERGY_OUTER].set_name("prescribed_energy_inner");
-	m_polargrids[PRESCRIBED_ENERGY_OUTER].set_unit(units::energy_density);
+    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_scalar(true);
+    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_name("prescribed_energy_inner");
+    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_unit(units::energy_density);
 
-	m_polargrids[PRESCRIBED_DENSITY_OUTER].set_scalar(true);
-	m_polargrids[PRESCRIBED_DENSITY_OUTER].set_name("prescribed_energy_inner");
-	m_polargrids[PRESCRIBED_DENSITY_OUTER].set_unit(units::surface_density);
+    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_scalar(true);
+    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_name("prescribed_energy_inner");
+    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_unit(units::surface_density);
 
-	m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_scalar(true);
-	m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_name("prescribed_energy_inner");
-	m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_unit(units::velocity);
+    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_scalar(true);
+    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_name(
+	"prescribed_energy_inner");
+    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_unit(units::velocity);
 
-	m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_scalar(true);
-	m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
-	m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
+    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_scalar(true);
+    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
+    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
 
     pdivv_total = 0.0;
 }

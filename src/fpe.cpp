@@ -21,8 +21,7 @@
 #include "logging.h"
 #include "output.h"
 
-
-//void register_exception_handler()
+// void register_exception_handler()
 // void setfpe()
 // {
 //  struct sigaction sigact;
@@ -52,7 +51,8 @@
 	Use GNU compiler extension to trap divide by zero
 	as floating point exception
  */
-void enable_trap_fpe_gnu() {
+void enable_trap_fpe_gnu()
+{
     /* Can also be any of the value below:
 	    FE_INEXACT           inexact result
 	    FE_DIVBYZERO         division by zero
@@ -65,11 +65,12 @@ void enable_trap_fpe_gnu() {
 }
 
 /***
-	Disable usage of 
+	Disable usage of
     GNU compiler extension to trap divide by zero
 	as floating point exception
  */
-void disable_trap_fpe_gnu() {
+void disable_trap_fpe_gnu()
+{
     /* Can also be any of the value below:
 	    FE_INEXACT           inexact result
 	    FE_DIVBYZERO         division by zero
@@ -80,7 +81,6 @@ void disable_trap_fpe_gnu() {
     */
     fedisableexcept(FE_DIVBYZERO | FE_INVALID);
 }
-
 
 void fpe_sighandler(int sig, siginfo_t *info, void *secret)
 {
@@ -143,18 +143,17 @@ void fpe_sighandler(int sig, siginfo_t *info, void *secret)
 void setfpe()
 {
 #ifdef _TRAP_FPE
-	enable_trap_fpe_gnu();
+    enable_trap_fpe_gnu();
 
     // install our signal handler
     struct sigaction sa;
 
     sa.sa_sigaction = &fpe_sighandler;
-	//sa.sa_sigaction = &crit_err_hdlr;
-	//sa.sa_sigaction = &bt_sighandler;
+    // sa.sa_sigaction = &crit_err_hdlr;
+    // sa.sa_sigaction = &bt_sighandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART | SA_SIGINFO;
 
     sigaction(SIGFPE, &sa, NULL);
 #endif
 }
-

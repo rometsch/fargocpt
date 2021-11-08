@@ -45,7 +45,7 @@ class t_planet
     double m_eccentric_anomaly;
     double m_pericenter_angle;
 
-	double m_torque;
+    double m_torque;
 
   public:
     // setter
@@ -55,7 +55,7 @@ class t_planet
     inline void set_vx(double value) { m_vx = value; }
     inline void set_vy(double value) { m_vy = value; }
     inline void set_acc(double value) { m_acc = value; }
-	inline void set_torque(const double value) { m_torque = value; }
+    inline void set_torque(const double value) { m_torque = value; }
     void set_name(const char *value);
     inline void set_planet_number(unsigned int value)
     {
@@ -99,15 +99,14 @@ class t_planet
     inline double get_radius(void) const { return m_radius; }
     inline double get_irradiate(void) const { return m_irradiate; }
     inline double get_rampuptime(void) const { return m_rampuptime; }
-	inline const Pair get_disk_on_planet_acceleration(void) const
+    inline const Pair get_disk_on_planet_acceleration(void) const
     {
 	return m_disk_on_planet_acceleration;
     }
-	inline const Pair get_nbody_on_planet_acceleration(void) const
+    inline const Pair get_nbody_on_planet_acceleration(void) const
     {
 	return m_nbody_on_planet_acceleration;
     }
-
 
     inline double get_semi_major_axis() const { return m_semi_major_axis; }
     inline double get_eccentricity() const { return m_eccentricity; }
@@ -115,25 +114,25 @@ class t_planet
     inline double get_true_anomaly() const { return m_true_anomaly; }
     inline double get_eccentric_anomaly() const { return m_eccentric_anomaly; }
     inline double get_pericenter_angle() const { return m_pericenter_angle; }
-	inline double get_torque() const { return m_torque; }
+    inline double get_torque() const { return m_torque; }
 
     double get_r(void) const;
     double get_phi(void) const;
     double get_angular_momentum();
     double get_period();
     double get_omega();
-	double get_rhill();
+    double get_rhill();
 
     void calculate_orbital_elements(double x, double y, double vx, double vy,
 				    double com_mass);
     void set_orbital_elements_zero();
 
     void create_planet_file();
-	void write(unsigned int timestep, bool big_file);
-	void restart(unsigned int timestep);
-	double get_value_from_file(unsigned int timestep,
-				   std::string variable_name);
-	~t_planet();
+    void write(unsigned int timestep, bool big_file);
+    void restart(unsigned int timestep);
+    double get_value_from_file(unsigned int timestep,
+			       std::string variable_name);
+    ~t_planet();
 };
 
 #endif // PLANET_H

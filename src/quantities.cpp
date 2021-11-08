@@ -286,7 +286,8 @@ double gas_kinematic_energy(t_data &data)
 	    local_kinematic_energy +=
 		0.5 * Surf[n_radial] *
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		(std::pow(v_radial_center, 2) + std::pow(v_azimuthal_center, 2));
+		(std::pow(v_radial_center, 2) +
+		 std::pow(v_azimuthal_center, 2));
 	}
     }
 
@@ -431,8 +432,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	}
     }
     // calculations outside the loop for speedup
-	double sinFrameAngle = std::sin(FrameAngle);
-	double cosFrameAngle = std::cos(FrameAngle);
+    double sinFrameAngle = std::sin(FrameAngle);
+    double cosFrameAngle = std::cos(FrameAngle);
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -446,8 +447,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    angle = (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
 		    M_PI;
-		r_x = Rmed[n_radial] * std::cos(angle);
-		r_y = Rmed[n_radial] * std::sin(angle);
+	    r_x = Rmed[n_radial] * std::cos(angle);
+	    r_y = Rmed[n_radial] * std::sin(angle);
 
 	    // averaged velocities
 	    v_xmed =
@@ -494,11 +495,11 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 		// you would have had if you back-transform the output
 		// periastron values
 		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
-			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
-			  e_x * cosFrameAngle - e_y * sinFrameAngle);
+		    std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
+			       e_x * cosFrameAngle - e_y * sinFrameAngle);
 	    } else {
 		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
-			std::atan2(e_y, e_x);
+		    std::atan2(e_y, e_x);
 	    }
 	}
     }
@@ -545,7 +546,6 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
     }
 }
 
-
 void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 				     double dt)
 {
@@ -569,7 +569,7 @@ void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 	alpha(R) = |d ln Omega/d ln R|^-1 (Trey)/(Sigma cs^2)
 */
 void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
-				     bool force_update)
+			      bool force_update)
 {
     static int last_timestep_calculated = -1;
 
@@ -629,12 +629,14 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	     n_azimuthal <= data[t_data::TOOMRE].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
-		kappa = std::sqrt(std::fabs(
+	    kappa = std::sqrt(std::fabs(
 		std::pow(InvRmed[n_radial], 3) *
 		(std::pow(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) *
-			  Rmed[n_radial], 2) -
+			      Rmed[n_radial],
+			  2) -
 		 std::pow(data[t_data::V_AZIMUTHAL](n_radial - 1, n_azimuthal) *
-			  Rmed[n_radial - 1], 2)) *
+			      Rmed[n_radial - 1],
+			  2)) *
 		InvDiffRmed[n_radial]));
 
 	    // Q = (c_s kappa) / (Pi G Sigma)
@@ -707,94 +709,99 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 
 void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 {
-	(void)timestep;
-	(void)force_update;
+    (void)timestep;
+    (void)force_update;
 
-	double denom;
-	denom = NINTERM*DT;
+    double denom;
+    denom = NINTERM * DT;
 
-	// divide the data in massflow by the large timestep DT before writing out
-	// to obtain the massflow from the mass difference
-	for (unsigned int nRadial = 0;
+    // divide the data in massflow by the large timestep DT before writing out
+    // to obtain the massflow from the mass difference
+    for (unsigned int nRadial = 0;
 	 nRadial < data[t_data::MASSFLOW].get_size_radial(); ++nRadial) {
-		for (unsigned int n_azimuthal = 0;
-			 n_azimuthal <= data[t_data::MASSFLOW].get_max_azimuthal();
-			 ++n_azimuthal) {
-			data[t_data::MASSFLOW](nRadial, n_azimuthal) *= 1. / denom;
-		}
+	for (unsigned int n_azimuthal = 0;
+	     n_azimuthal <= data[t_data::MASSFLOW].get_max_azimuthal();
+	     ++n_azimuthal) {
+	    data[t_data::MASSFLOW](nRadial, n_azimuthal) *= 1. / denom;
 	}
+    }
 }
 
-
-void calculate_viscous_torque(t_data &data, unsigned int timestep, bool force_update)
+void calculate_viscous_torque(t_data &data, unsigned int timestep,
+			      bool force_update)
 {
-	(void)timestep;
-	(void)force_update;
+    (void)timestep;
+    (void)force_update;
 
-	double denom;
+    double denom;
 
-	if(!parameters::write_at_every_timestep)
-	{
-		denom = (double)NINTERM;
-		// divide the data in massflow by the large timestep DT before writing out
-		// to obtain the massflow from the mass difference
-		for (unsigned int nRadial = 0;
-			 nRadial < data[t_data::VISCOUS_TORQUE].get_size_radial(); ++nRadial) {
-			for(unsigned int nAzimuthal = 0;
-				nAzimuthal < data[t_data::VISCOUS_TORQUE].get_size_azimuthal(); ++nAzimuthal){
-				data[t_data::VISCOUS_TORQUE](nRadial, nAzimuthal) *= 1. / denom;
-			}
-		}
+    if (!parameters::write_at_every_timestep) {
+	denom = (double)NINTERM;
+	// divide the data in massflow by the large timestep DT before writing
+	// out to obtain the massflow from the mass difference
+	for (unsigned int nRadial = 0;
+	     nRadial < data[t_data::VISCOUS_TORQUE].get_size_radial();
+	     ++nRadial) {
+	    for (unsigned int nAzimuthal = 0;
+		 nAzimuthal < data[t_data::VISCOUS_TORQUE].get_size_azimuthal();
+		 ++nAzimuthal) {
+		data[t_data::VISCOUS_TORQUE](nRadial, nAzimuthal) *= 1. / denom;
+	    }
 	}
+    }
 }
 
-
-void calculate_gravitational_torque(t_data &data, unsigned int timestep, bool force_update)
+void calculate_gravitational_torque(t_data &data, unsigned int timestep,
+				    bool force_update)
 {
-	(void)timestep;
-	(void)force_update;
+    (void)timestep;
+    (void)force_update;
 
-	double denom;
+    double denom;
 
-	if(!parameters::write_at_every_timestep)
-	{
-		denom = (double)NINTERM;
-		// divide the data in massflow by the large timestep DT before writing out
-		// to obtain the massflow from the mass difference
-		for (unsigned int nRadial = 0;
-			 nRadial < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_size_radial(); ++nRadial) {
-			for(unsigned int nAzimuthal = 0;
-				nAzimuthal < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_size_azimuthal(); ++nAzimuthal){
-				data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED](nRadial, nAzimuthal) *= 1. / denom;
-			}
-		}
+    if (!parameters::write_at_every_timestep) {
+	denom = (double)NINTERM;
+	// divide the data in massflow by the large timestep DT before writing
+	// out to obtain the massflow from the mass difference
+	for (unsigned int nRadial = 0;
+	     nRadial < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
+			   .get_size_radial();
+	     ++nRadial) {
+	    for (unsigned int nAzimuthal = 0;
+		 nAzimuthal < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
+				  .get_size_azimuthal();
+		 ++nAzimuthal) {
+		data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED](
+		    nRadial, nAzimuthal) *= 1. / denom;
+	    }
 	}
+    }
 }
 
-
-void calculate_advection_torque(t_data &data, unsigned int timestep, bool force_update)
+void calculate_advection_torque(t_data &data, unsigned int timestep,
+				bool force_update)
 {
-	(void)timestep;
-	(void)force_update;
+    (void)timestep;
+    (void)force_update;
 
-	double denom;
+    double denom;
 
-	if(!parameters::write_at_every_timestep)
-	{
-		denom = (double)NINTERM;
-		// divide the data in massflow by the large timestep DT before writing out
-		// to obtain the massflow from the mass difference
-		for (unsigned int nRadial = 0;
-			 nRadial < data[t_data::ADVECTION_TORQUE].get_size_radial(); ++nRadial) {
-			for(unsigned int nAzimuthal = 0;
-				nAzimuthal < data[t_data::ADVECTION_TORQUE].get_size_azimuthal(); ++nAzimuthal){
-				data[t_data::ADVECTION_TORQUE](nRadial, nAzimuthal) *= 1. / denom;
-			}
-		}
+    if (!parameters::write_at_every_timestep) {
+	denom = (double)NINTERM;
+	// divide the data in massflow by the large timestep DT before writing
+	// out to obtain the massflow from the mass difference
+	for (unsigned int nRadial = 0;
+	     nRadial < data[t_data::ADVECTION_TORQUE].get_size_radial();
+	     ++nRadial) {
+	    for (unsigned int nAzimuthal = 0;
+		 nAzimuthal <
+		 data[t_data::ADVECTION_TORQUE].get_size_azimuthal();
+		 ++nAzimuthal) {
+		data[t_data::ADVECTION_TORQUE](nRadial, nAzimuthal) *=
+		    1. / denom;
+	    }
 	}
+    }
 }
-
-
-
 
 } // namespace quantities

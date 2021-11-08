@@ -16,9 +16,9 @@ extern bool Locally_Isothermal;
 /// Type of radial Grid
 enum t_radial_grid {
     logarithmic_spacing,
-	arithmetic_spacing,
-	exponential_spacing,
-	custom_spacing
+    arithmetic_spacing,
+    exponential_spacing,
+    custom_spacing
 };
 extern t_radial_grid radial_grid_type;
 extern const char *radial_grid_names[];
@@ -31,9 +31,9 @@ enum t_boundary_condition {
     boundary_condition_nonreflecting,
     boundary_condition_viscous_outflow,
     boundary_condition_boundary_layer,
-	boundary_condition_precribed_time_variable,
-	boundary_condition_keplerian,
-	boundary_condition_evanescent
+    boundary_condition_precribed_time_variable,
+    boundary_condition_keplerian,
+    boundary_condition_evanescent
 };
 
 /// type of inner boundary
@@ -232,15 +232,15 @@ extern double log_after_real_seconds;
 
 // type of opacity
 enum t_opacity {
-    opacity_lin,     // opacity based on Lin & Papaloizou, 1985
-    opacity_bell,    // opacity based on Bell & Lin, 1994
-    opacity_zhu,     // opacity based on Zhu, Hartmann & Gammie, 2008
-    opacity_kramers, // opacity based on Kramers Law plus electron scattering
-		     // (Thomson)
-	opacity_const_op, // constant opacity
-	opacity_simple    // eq. 30 from 'Thermohydrodynamics of Circumstellar Disks
-			  // with High-Mass Planets
-	// Gennaro D'Angelo1, Thomas Henning, and Willy Kley, 2003'
+    opacity_lin,      // opacity based on Lin & Papaloizou, 1985
+    opacity_bell,     // opacity based on Bell & Lin, 1994
+    opacity_zhu,      // opacity based on Zhu, Hartmann & Gammie, 2008
+    opacity_kramers,  // opacity based on Kramers Law plus electron scattering
+		      // (Thomson)
+    opacity_const_op, // constant opacity
+    opacity_simple    // eq. 30 from 'Thermohydrodynamics of Circumstellar Disks
+		      // with High-Mass Planets
+    // Gennaro D'Angelo1, Thomas Henning, and Willy Kley, 2003'
 };
 
 extern t_opacity opacity;
@@ -304,9 +304,12 @@ extern bool particle_disk_gravity_enabled;
 enum t_particle_integrator {
     integrator_explicit,     // explicit integrator (Cash-Karp, high-order)
     integrator_adaptive,     // adaptive Cash-Karp integrator
-	integrator_semiimplicit, // semi-implicit integrator
-	integrator_exponential_midpoint, // exponential midpoint integrator presented in Mignone et al. 2019: A PARTICLE MODULE FOR THE PLUTO CODE: III - DUST
-    integrator_implicit,     // fully implicit integrator
+    integrator_semiimplicit, // semi-implicit integrator
+    integrator_exponential_midpoint, // exponential midpoint integrator
+				     // presented in Mignone et al. 2019: A
+				     // PARTICLE MODULE FOR THE PLUTO CODE: III
+				     // - DUST
+    integrator_implicit,	     // fully implicit integrator
 };
 extern t_particle_integrator integrator;
 

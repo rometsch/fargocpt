@@ -123,7 +123,8 @@ static void update_kernel(t_data &data)
 	    aspect_ratio = ASPECTRATIO_REF;
 	}
 
-	lambda_sq = std::pow(0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
+	lambda_sq = std::pow(
+	    0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
 	chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
 
 	compute_FFT_kernel();
@@ -149,7 +150,7 @@ void init(t_data &data)
 	PersonalExit(1);
     }
 
-	r_step = std::log(Radii[GlobalNRadial] / Radii[0]) / (double)GlobalNRadial;
+    r_step = std::log(Radii[GlobalNRadial] / Radii[0]) / (double)GlobalNRadial;
     t_step = 2.0 * M_PI / (double)NAzimuthal;
 
     // allocate memory
@@ -263,8 +264,8 @@ void compute_FFT_density(t_polargrid &density)
 		lh = ih * NAzimuthal + j;
 		ir = i + IMIN + Zero_or_active;
 		if ((i + local_i_start) < GlobalNRadial) {
-		    S_radial[l] =
-			dens_friend[lh] * std::sqrt(GlobalRmed[ir] / GlobalRmed[0]);
+		    S_radial[l] = dens_friend[lh] *
+				  std::sqrt(GlobalRmed[ir] / GlobalRmed[0]);
 		    S_azimuthal[l] =
 			S_radial[l] * GlobalRmed[ir] / GlobalRmed[0];
 		} else {
@@ -283,7 +284,8 @@ void compute_FFT_density(t_polargrid &density)
 		ih = i + Zero_or_active;
 		if ((i + local_i_start) < GlobalNRadial) {
 		    lh = ih * NAzimuthal + j;
-			S_radial[l] = dens[lh] * std::sqrt(Rmed[ih] / GlobalRmed[0]);
+		    S_radial[l] =
+			dens[lh] * std::sqrt(Rmed[ih] / GlobalRmed[0]);
 		    S_azimuthal[l] = S_radial[l] * Rmed[ih] / GlobalRmed[0];
 		} else {
 		    S_radial[l] = 0.;
@@ -318,9 +320,10 @@ void compute_FFT_kernel()
 
     for (unsigned int i = 0; i < (unsigned int)local_Nx; i++) {
 	if (i + local_i_start < GlobalNRadial) {
-		u = std::log(Radii[i + local_i_start] / Radii[0]);
+	    u = std::log(Radii[i + local_i_start] / Radii[0]);
 	} else {
-		u = -std::log(Radii[2 * GlobalNRadial - (i + local_i_start)] / Radii[0]);
+	    u = -std::log(Radii[2 * GlobalNRadial - (i + local_i_start)] /
+			  Radii[0]);
 	}
 
 	for (unsigned int j = 0; j < NAzimuthal; j++) {
@@ -328,13 +331,14 @@ void compute_FFT_kernel()
 	    int l = i * stride + j;
 	    theta = 2.0 * M_PI * (double)j / (double)NAzimuthal;
 
-		denominator = std::pow(2 * (std::cosh(u) - std::cos(theta)) +
-				  lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
-			      -1.5);
+	    denominator = std::pow(
+		2 * (std::cosh(u) - std::cos(theta)) +
+		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
+		-1.5);
 
-		K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
+	    K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
 	    K_radial[l] *= denominator;
-		K_azimuthal[l] = std::sin(theta);
+	    K_azimuthal[l] = std::sin(theta);
 	    K_azimuthal[l] *= denominator;
 	}
     }
@@ -503,7 +507,8 @@ void compute_acceleration(t_polargrid &density)
 		   ((double)(2 * GlobalNRadial) * (double)NAzimuthal);
 	normacct = normaccr;
 	normaccr /= std::sqrt(Rmed[i] / GlobalRmed[0]);
-	normacct /= (Rmed[i] / GlobalRmed[0] * std::sqrt(Rmed[i] / GlobalRmed[0]));
+	normacct /=
+	    (Rmed[i] / GlobalRmed[0] * std::sqrt(Rmed[i] / GlobalRmed[0]));
 	for (j = 0; j < NAzimuthal; j++) {
 	    l = i * NAzimuthal + j;
 	    g_radial[l] *= normaccr;
@@ -565,11 +570,12 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
     for (unsigned int n_radial = 0;
 	 n_radial <= v_azimuthal.get_max_radial() - GHOSTCELLS_B; ++n_radial) {
 	// this corresponds to equation (3.42) in Baruteau, 2008
-	double temp = std::pow(calculate_omega_kepler(Rmed[n_radial]), 2) *
-			  (1.0 - (1. + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-					 std::pow(ASPECTRATIO_REF, 2) *
-					 std::pow(Rmed[n_radial], 2.0 * FLARINGINDEX)) -
-		      GLOBAL_AxiSGAccr[n_radial + IMIN] / Rmed[n_radial];
+	double temp =
+	    std::pow(calculate_omega_kepler(Rmed[n_radial]), 2) *
+		(1.0 - (1. + SIGMASLOPE - 2.0 * FLARINGINDEX) *
+			   std::pow(ASPECTRATIO_REF, 2) *
+			   std::pow(Rmed[n_radial], 2.0 * FLARINGINDEX)) -
+	    GLOBAL_AxiSGAccr[n_radial + IMIN] / Rmed[n_radial];
 	if (temp < 0) {
 	    logging::print(
 		"Radicand %lg < 0 in init_azimuthal_velocity! Maybe ThicknessSmoothingSG (%lg) is too small!\n",

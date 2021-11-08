@@ -4,8 +4,8 @@
 #include "parameters.h"
 #include <cstdio>
 
-
-void init_cell_finder(const double cell_growth_factor, const double first_cell_size);
+void init_cell_finder(const double cell_growth_factor,
+		      const double first_cell_size);
 int get_rmed_id(const double r);
 int get_rinf_id(const double r);
 

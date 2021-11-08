@@ -23,8 +23,7 @@ t_planetary_system::~t_planetary_system()
     }
 
     m_planets.clear();
-	reb_free_simulation(m_rebound);
-
+    reb_free_simulation(m_rebound);
 }
 
 void t_planetary_system::init_rebound()
@@ -106,7 +105,7 @@ void t_planetary_system::read_from_file(char *filename)
 
 	// read line by line
 	while (fgets(buffer, sizeof(buffer), fd) != NULL) {
-		char name[256], feeldisk[8], feelother[8], irradiate[8];
+	    char name[256], feeldisk[8], feelother[8], irradiate[8];
 	    double semi_major_axis, mass, acc, eccentricity = 0.0, temperature,
 					       radius, phi, rampuptime;
 	    int num_args;
@@ -206,8 +205,8 @@ void t_planetary_system::read_from_file(char *filename)
     }
 
     if (get_number_of_planets() > 0) {
-	HillRadius =
-		get_planet(0).get_radius() * pow(get_planet(0).get_mass() / 3., 1. / 3.);
+	HillRadius = get_planet(0).get_radius() *
+		     pow(get_planet(0).get_mass() / 3., 1. / 3.);
     } else {
 	HillRadius = 0;
     }
@@ -242,14 +241,14 @@ void t_planetary_system::read_from_file(char *filename)
 	LOG_INFO "The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
 
-	init_rebound();
+    init_rebound();
 }
 
 void t_planetary_system::list_planets()
 {
-	calculate_orbital_elements();
+    calculate_orbital_elements();
 
-	if (!CPU_Master)
+    if (!CPU_Master)
 	return;
 
     if (get_number_of_planets() == 0) {
@@ -291,7 +290,7 @@ void t_planetary_system::list_planets()
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
 		(24 * 60 * 60 * 365.2425),
-		get_planet(i).get_acc(), '-', '-');
+	    get_planet(i).get_acc(), '-', '-');
     }
 
     logging::print(LOG_INFO "\n");
@@ -318,24 +317,24 @@ void t_planetary_system::rotate(double angle)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	auto &planet = get_planet(i);
-        const double x = planet.get_x();
-        const double y = planet.get_y();
-        const double vx = planet.get_vx();
-        const double vy = planet.get_vy();
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double vx = planet.get_vx();
+	const double vy = planet.get_vy();
 
-		// rotate positions
-        const double new_x = x*cos(angle) + y*sin(angle);
-        const double new_y = -x*sin(angle) + y*cos(angle);
+	// rotate positions
+	const double new_x = x * cos(angle) + y * sin(angle);
+	const double new_y = -x * sin(angle) + y * cos(angle);
 
-		// rotate velocities
-        const double new_vx = vx*cos(angle) + vy*sin(angle);
-        const double new_vy = -vx*sin(angle) + vy*cos(angle);
+	// rotate velocities
+	const double new_vx = vx * cos(angle) + vy * sin(angle);
+	const double new_vy = -vx * sin(angle) + vy * cos(angle);
 
-		// save new values
-		planet.set_x(new_x);
-        planet.set_y(new_y);
-        planet.set_vx(new_vx);
-        planet.set_vy(new_vy);
+	// save new values
+	planet.set_x(new_x);
+	planet.set_y(new_y);
+	planet.set_vx(new_vx);
+	planet.set_vy(new_vy);
     }
 }
 
@@ -344,7 +343,7 @@ void t_planetary_system::restart(unsigned int timestep)
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).restart(timestep);
     }
-	m_rebound->t = PhysicalTime;
+    m_rebound->t = PhysicalTime;
 }
 
 void t_planetary_system::create_planet_files()
@@ -624,8 +623,8 @@ void t_planetary_system::calculate_orbital_elements()
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
 	if (i == 0 && parameters::n_bodies_for_hydroframe_center == 1) {
-		get_planet(0).set_orbital_elements_zero();
-		continue;
+	    get_planet(0).set_orbital_elements_zero();
+	    continue;
 	}
 
 	Pair com_pos = get_center_of_mass(i);
@@ -641,57 +640,58 @@ void t_planetary_system::calculate_orbital_elements()
     }
 }
 
-
 /**
    Copy positions, velocities and masses
    from planetary system to rebound.
 */
-void t_planetary_system::copy_data_to_rebound() {
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	    auto &planet = get_planet(i);
-	    m_rebound->particles[i].x = planet.get_x();
-	    m_rebound->particles[i].y = planet.get_y();
-	    m_rebound->particles[i].vx = planet.get_vx();
-	    m_rebound->particles[i].vy = planet.get_vy();
-	    m_rebound->particles[i].m = planet.get_mass();
-	}
+void t_planetary_system::copy_data_to_rebound()
+{
+    for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	auto &planet = get_planet(i);
+	m_rebound->particles[i].x = planet.get_x();
+	m_rebound->particles[i].y = planet.get_y();
+	m_rebound->particles[i].vx = planet.get_vx();
+	m_rebound->particles[i].vy = planet.get_vy();
+	m_rebound->particles[i].m = planet.get_mass();
+    }
 }
 
 /**
    Copy positions, velocities and masses back
    from rebound to planetary system.
 */
-void t_planetary_system::copy_data_from_rebound() {
-		for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	    auto &planet = get_planet(i);
-	    planet.set_x(m_rebound->particles[i].x);
-	    planet.set_y(m_rebound->particles[i].y);
-	    planet.set_vx(m_rebound->particles[i].vx);
-	    planet.set_vy(m_rebound->particles[i].vy);
-	}
+void t_planetary_system::copy_data_from_rebound()
+{
+    for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	auto &planet = get_planet(i);
+	planet.set_x(m_rebound->particles[i].x);
+	planet.set_y(m_rebound->particles[i].y);
+	planet.set_vx(m_rebound->particles[i].vx);
+	planet.set_vy(m_rebound->particles[i].vy);
+    }
 }
 
 /**
    Integrate the nbody system forward in time using rebound.
 */
-void t_planetary_system::integrate(double time, double dt) {
+void t_planetary_system::integrate(double time, double dt)
+{
     if (get_number_of_planets() < 2) {
 	// don't integrate a single particle that doesn't move
-		return;
+	return;
     }
 
-	copy_data_to_rebound();
-	m_rebound->t = time;
+    copy_data_to_rebound();
+    m_rebound->t = time;
 
-	disable_trap_fpe_gnu();
-	reb_integrate(m_rebound, time + dt);
-	enable_trap_fpe_gnu();
+    disable_trap_fpe_gnu();
+    reb_integrate(m_rebound, time + dt);
+    enable_trap_fpe_gnu();
 
-	copy_data_from_rebound();
+    copy_data_from_rebound();
 
-	move_to_hydro_frame_center();
+    move_to_hydro_frame_center();
 }
-
 
 /**
 	Updates planets velocities due to disk influence if "DiskFeedback" is
@@ -700,44 +700,45 @@ void t_planetary_system::integrate(double time, double dt) {
 void t_planetary_system::correct_velocity_for_disk_accel()
 {
 
-	if (!parameters::disk_feedback){
-		return;
+    if (!parameters::disk_feedback) {
+	return;
+    }
+
+    for (unsigned int k = 0; k < get_number_of_planets(); k++) {
+
+	/*
+	 * from centrifugal balance folows
+	 * v_new**2 / r = a_disk + v_old**2 / r
+	 * v_new = sqrt(v_old**2 - r * a_disk)
+	 */
+	t_planet &planet = get_planet(k);
+
+	const Pair gas_accel = planet.get_disk_on_planet_acceleration();
+	const double vx_old = planet.get_vx();
+	const double vy_old = planet.get_vy();
+	const double v_old =
+	    std::sqrt(std::pow(vx_old, 2.0) + std::pow(vy_old, 2.0));
+
+	if (v_old == 0.0) {
+	    continue;
 	}
 
-	for (unsigned int k = 0; k < get_number_of_planets(); k++) {
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double specific_torque_gas =
+	    gas_accel.x * x + gas_accel.y * y; // = a_disk * r
 
-		/*
-		 * from centrifugal balance folows
-		 * v_new**2 / r = a_disk + v_old**2 / r
-		 * v_new = sqrt(v_old**2 - r * a_disk)
-		 */
-		t_planet &planet = get_planet(k);
-
-		const Pair gas_accel = planet.get_disk_on_planet_acceleration();
-		const double vx_old = planet.get_vx();
-		const double vy_old = planet.get_vy();
-		const double v_old = std::sqrt(std::pow(vx_old, 2.0) + std::pow(vy_old, 2.0));
-
-		if(v_old == 0.0)
-		{
-			continue;
-		}
-
-		const double x = planet.get_x();
-		const double y = planet.get_y();
-		const double specific_torque_gas = gas_accel.x * x + gas_accel.y * y; // = a_disk * r
-
-		if(specific_torque_gas > std::pow(v_old, 2.0))
-		{
-			continue;
-		}
-
-		const double v_new = std::sqrt(std::pow(v_old, 2.0) - specific_torque_gas);
-
-		const double new_vx = v_new / v_old * vx_old;
-		const double new_vy = v_new / v_old * vy_old;
-
-		planet.set_vx(new_vx);
-		planet.set_vy(new_vy);
+	if (specific_torque_gas > std::pow(v_old, 2.0)) {
+	    continue;
 	}
+
+	const double v_new =
+	    std::sqrt(std::pow(v_old, 2.0) - specific_torque_gas);
+
+	const double new_vx = v_new / v_old * vx_old;
+	const double new_vy = v_new / v_old * vy_old;
+
+	planet.set_vx(new_vx);
+	planet.set_vy(new_vy);
+    }
 }

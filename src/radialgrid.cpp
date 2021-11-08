@@ -1,18 +1,18 @@
 #include <cfloat>
+#include <cstdlib>
+#include <cstring>
 #include <gsl/gsl_spline.h>
 #include <mpi.h>
 #include <sstream>
-#include <cstdlib>
-#include <cstring>
 
 #include "LowTasks.h"
 #include "constants.h"
 #include "global.h"
 #include "logging.h"
+#include "mpi_utils.h"
 #include "polargrid.h"
 #include "radialarray.h"
 #include "radialgrid.h"
-#include "mpi_utils.h"
 
 t_radialgrid::t_radialgrid()
 {
@@ -77,7 +77,7 @@ void t_radialgrid::set_scalar(bool value) { m_scalar = value; }
 */
 void t_radialgrid::clear()
 {
-	std::memset(m_data, 0, sizeof(*m_data)*get_size_radial());
+    std::memset(m_data, 0, sizeof(*m_data) * get_size_radial());
 }
 
 void t_radialgrid::write(unsigned int number, t_data &data)
@@ -90,7 +90,7 @@ void t_radialgrid::write(unsigned int number, t_data &data)
 	(*m_do_before_write)(data, number, false);
     }
 
-	write1D(number);
+    write1D(number);
 
     if (m_clear_after_write) {
 	clear();
@@ -115,7 +115,7 @@ void t_radialgrid::write(std::string filename, unsigned int number,
 	(*m_do_before_write)(data, number, false);
     }
 
-	write1D(filename, one_file);
+    write1D(filename, one_file);
 
     if (m_clear_after_write) {
 	clear();
@@ -138,7 +138,7 @@ void t_radialgrid::write1D(unsigned int timestep) const
     */
     std::stringstream filename;
     filename << OUTPUTDIR << "/gas" << get_name() << timestep << ".dat";
-	write1D(filename.str(), false);
+    write1D(filename.str(), false);
 }
 
 void t_radialgrid::write1D(std::string filename, bool one_file) const
@@ -148,7 +148,7 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
     int error;
     unsigned int count, from, number_of_values = 2;
     double *buffer;
- 
+
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rmed : Rinf;
 
@@ -168,7 +168,7 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 				  MPI_MODE_WRONLY | MPI_MODE_CREATE,
 				  MPI_INFO_NULL, &fh);
 	}
-	
+
     } else {
 	// make a new file for each output
 	error = MPI_File_open(MPI_COMM_WORLD, filename.c_str(),

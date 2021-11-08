@@ -10,6 +10,7 @@
 #include "Theo.h"
 #include "axilib.h"
 #include "constants.h"
+#include "find_cell_id.h"
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
@@ -17,7 +18,6 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
-#include "find_cell_id.h"
 
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
@@ -83,8 +83,8 @@ void ComputeIndirectTerm(t_data &data)
  */
 void CalculateNbodyPotential(t_data &data)
 {
-	const unsigned int N_planets = 
-		data.get_planetary_system().get_number_of_planets();
+    const unsigned int N_planets =
+	data.get_planetary_system().get_number_of_planets();
     std::vector<double> xpl(N_planets);
     std::vector<double> ypl(N_planets);
     std::vector<double> mpl(N_planets);
@@ -98,25 +98,27 @@ void CalculateNbodyPotential(t_data &data)
 	ypl[k] = planet.get_y();
     }
 
-	auto& pot = data[t_data::POTENTIAL];
+    auto &pot = data[t_data::POTENTIAL];
     pot.clear();
-	
-	const unsigned int N_rad_max = pot.get_max_radial();
-	const unsigned int N_az_max = pot.get_max_azimuthal();
+
+    const unsigned int N_rad_max = pot.get_max_radial();
+    const unsigned int N_az_max = pot.get_max_azimuthal();
 
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
-	    const double angle = (double)n_az /
-		    (double)pot.get_size_azimuthal() * 2.0 * M_PI;
-		const double x = Rmed[n_rad] * std::cos(angle);
-		const double y = Rmed[n_rad] * std::sin(angle);
+	    const double angle =
+		(double)n_az / (double)pot.get_size_azimuthal() * 2.0 * M_PI;
+	    const double x = Rmed[n_rad] * std::cos(angle);
+	    const double y = Rmed[n_rad] * std::sin(angle);
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double smooth = compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
+		const double smooth =
+		    compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
-		const double d_smoothed = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2) + std::pow(smooth, 2));
+		const double d_smoothed = std::sqrt(
+		    std::pow(dx, 2) + std::pow(dy, 2) + std::pow(smooth, 2));
 
 		// direct term from planet
 		pot(n_rad, n_az) += -constants::G * mpl[k] / d_smoothed;
@@ -128,41 +130,42 @@ void CalculateNbodyPotential(t_data &data)
     }
 }
 
-
 void CalculateAccelOnGas(t_data &data)
 {
-	const int ns = data[t_data::DENSITY].Nsec;
+    const int ns = data[t_data::DENSITY].Nsec;
 
-	const unsigned int N_planets =
-		data.get_planetary_system().get_number_of_planets();
-	std::vector<double> xpl(N_planets);
-	std::vector<double> ypl(N_planets);
-	std::vector<double> mpl(N_planets);
-	std::vector<double> smooth_pl(N_planets);
+    const unsigned int N_planets =
+	data.get_planetary_system().get_number_of_planets();
+    std::vector<double> xpl(N_planets);
+    std::vector<double> ypl(N_planets);
+    std::vector<double> mpl(N_planets);
+    std::vector<double> smooth_pl(N_planets);
 
-	// setup planet data
-	for (unsigned int k = 0; k < N_planets; k++) {
+    // setup planet data
+    for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
 	mpl[k] = planet.get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
-	}
+    }
 
-	double* acc_r = data[t_data::ACCEL_RADIAL].Field;
-	const unsigned int N_az_max = data[t_data::ACCEL_RADIAL].get_size_azimuthal();
+    double *acc_r = data[t_data::ACCEL_RADIAL].Field;
+    const unsigned int N_az_max =
+	data[t_data::ACCEL_RADIAL].get_size_azimuthal();
 
-	for (unsigned int n_rad = 1; n_rad < data[t_data::ACCEL_RADIAL].get_size_radial()-1; ++n_rad) {
+    for (unsigned int n_rad = 1;
+	 n_rad < data[t_data::ACCEL_RADIAL].get_size_radial() - 1; ++n_rad) {
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
 
-		const double phi = (double)n_az * dphi;
-		const double r = Rinf[n_rad];
+	    const double phi = (double)n_az * dphi;
+	    const double r = Rinf[n_rad];
 
-		const double x = r * std::cos(phi);
-		const double y = r * std::sin(phi);
-		const double smooth = compute_smoothing_r(data, n_rad, n_az);
+	    const double x = r * std::cos(phi);
+	    const double y = r * std::sin(phi);
+	    const double smooth = compute_smoothing_r(data, n_rad, n_az);
 
-		pair ar = IndirectTerm;
-		for (unsigned int k = 0; k < N_planets; k++) {
+	    pair ar = IndirectTerm;
+	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
@@ -174,52 +177,54 @@ void CalculateAccelOnGas(t_data &data)
 		// direct term from planet
 		ar.x -= dx * constants::G * mpl[k] * inv_dist_3_sm;
 		ar.y -= dy * constants::G * mpl[k] * inv_dist_3_sm;
-		}
+	    }
 
-		const double accel = std::cos(phi) * ar.x + std::sin(phi) * ar.y;
+	    const double accel = std::cos(phi) * ar.x + std::sin(phi) * ar.y;
 
+	    /*
+	    /// DEBUG, by comparing with accel from potential
+	    const double gradphi = (data[t_data::POTENTIAL](n_rad, n_az) -
+		       data[t_data::POTENTIAL](n_rad - 1, n_az)) *
+		      InvDiffRmed[n_rad];
 
-		/*
-		/// DEBUG, by comparing with accel from potential
-		const double gradphi = (data[t_data::POTENTIAL](n_rad, n_az) -
-			   data[t_data::POTENTIAL](n_rad - 1, n_az)) *
-			  InvDiffRmed[n_rad];
+	    if(accel != 0.0){
+	    const double rel_err = std::fabs((gradphi + accel)/accel);
 
-		if(accel != 0.0){
-		const double rel_err = std::fabs((gradphi + accel)/accel);
+	    const double dx = x - xpl[1];
+	    const double dy = y - ypl[1];
+	    const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
 
-		const double dx = x - xpl[1];
-		const double dy = y - ypl[1];
-		const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+	    double diff_phi = phi -
+	    data.get_planetary_system().get_planet(1).get_phi(); const double
+	    diff_r = r - data.get_planetary_system().get_planet(1).get_r();
+	    diff_phi = std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI));
 
-		double diff_phi = phi - data.get_planetary_system().get_planet(1).get_phi();
-		const double diff_r = r - data.get_planetary_system().get_planet(1).get_r();
-		diff_phi = std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI));
+	    if(rel_err > 1.e-1){
+	    printf("(%d %d)	accel r	= (%.5e	%.5e)	%.5e	(%.5e
+	    %.5e)\n", n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
+	    }}
+	    /// END DEBUG
+	    */
 
-		if(rel_err > 1.e-1){
-		printf("(%d %d)	accel r	= (%.5e	%.5e)	%.5e	(%.5e	%.5e)\n", n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
-		}}
-		/// END DEBUG
-		*/
-
-		const int cell_id = n_az + n_rad * ns;
-		acc_r[cell_id] = accel;
+	    const int cell_id = n_az + n_rad * ns;
+	    acc_r[cell_id] = accel;
 	}
-	}
+    }
 
-	double* accel_phi = data[t_data::ACCEL_AZIMUTHAL].Field;
-	for (unsigned int n_rad = 0; n_rad < data[t_data::ACCEL_AZIMUTHAL].get_size_radial(); ++n_rad) {
+    double *accel_phi = data[t_data::ACCEL_AZIMUTHAL].Field;
+    for (unsigned int n_rad = 0;
+	 n_rad < data[t_data::ACCEL_AZIMUTHAL].get_size_radial(); ++n_rad) {
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
 
-		const double phi = ((double)n_az - 0.5) * dphi;
-		const double r = Rmed[n_rad];
+	    const double phi = ((double)n_az - 0.5) * dphi;
+	    const double r = Rmed[n_rad];
 
-		const double x = r * std::cos(phi);
-		const double y = r * std::sin(phi);
-		const double smooth = compute_smoothing_az(data, n_rad, n_az);
+	    const double x = r * std::cos(phi);
+	    const double y = r * std::sin(phi);
+	    const double smooth = compute_smoothing_az(data, n_rad, n_az);
 
-		pair aphi = IndirectTerm;
-		for (unsigned int k = 0; k < N_planets; k++) {
+	    pair aphi = IndirectTerm;
+	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
@@ -231,48 +236,47 @@ void CalculateAccelOnGas(t_data &data)
 		// direct term from planet
 		aphi.x -= dx * constants::G * mpl[k] * inv_dist_3_sm;
 		aphi.y -= dy * constants::G * mpl[k] * inv_dist_3_sm;
-		}
+	    }
 
-		const double accel = std::cos(phi) * aphi.y - std::sin(phi) * aphi.x;
+	    const double accel =
+		std::cos(phi) * aphi.y - std::sin(phi) * aphi.x;
 
+	    /*
+	    /// DEBUG, compare with accel from potential
+	    const double invdxtheta = 1.0 / (dphi * Rmed[n_rad]);
 
-		/*
-		/// DEBUG, compare with accel from potential
-		const double invdxtheta = 1.0 / (dphi * Rmed[n_rad]);
+	    // 1/r dPhi/dphi
+	    const double gradphi =
+	    (data[t_data::POTENTIAL](n_rad, n_az) -
+	     data[t_data::POTENTIAL](
+		     n_rad, n_az == 0
+			       ? data[t_data::POTENTIAL].get_max_azimuthal()
+			       : n_az - 1)) *
+	    invdxtheta;
 
-		// 1/r dPhi/dphi
-		const double gradphi =
-		(data[t_data::POTENTIAL](n_rad, n_az) -
-		 data[t_data::POTENTIAL](
-			 n_rad, n_az == 0
-				   ? data[t_data::POTENTIAL].get_max_azimuthal()
-				   : n_az - 1)) *
-		invdxtheta;
+	    if(accel != 0.0){
+	    const double rel_err = std::fabs((gradphi + accel)/accel);
 
-		if(accel != 0.0){
-		const double rel_err = std::fabs((gradphi + accel)/accel);
+	    const double dx = x - xpl[1];
+	    const double dy = y - ypl[1];
+	    const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
 
-		const double dx = x - xpl[1];
-		const double dy = y - ypl[1];
-		const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+	    double diff_phi = phi -
+	    data.get_planetary_system().get_planet(1).get_phi(); diff_phi =
+	    std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI)); const double
+	    diff_r = r - data.get_planetary_system().get_planet(1).get_r();
+	    if(rel_err < 1e-5){
+	    printf("(%d %d )	accel p	= (%.5e	%.5e)	%.5e	(%.5e %.5e)\n",
+	    n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
+	    }}
+	    /// END DEBUG
+	    */
 
-		double diff_phi = phi - data.get_planetary_system().get_planet(1).get_phi();
-		diff_phi = std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI));
-		const double diff_r = r - data.get_planetary_system().get_planet(1).get_r();
-		if(rel_err < 1e-5){
-		printf("(%d %d )	accel p	= (%.5e	%.5e)	%.5e	(%.5e %.5e)\n", n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
-		}}
-		/// END DEBUG
-		*/
-
-		const int cell_id = n_az + n_rad * ns;
-		accel_phi[cell_id] = accel;
+	    const int cell_id = n_az + n_rad * ns;
+	    accel_phi[cell_id] = accel;
 	}
-	}
+    }
 }
-
-
-
 
 /**
    Update disk forces onto planets if *diskfeedback* is turned on
@@ -282,12 +286,14 @@ void ComputeDiskOnNbodyAccel(t_data &data)
     Pair accel;
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
-		t_planet &planet = data.get_planetary_system().get_planet(k);
-		accel = ComputeDiskOnNbodyAccel(data, planet.get_x(), planet.get_y());
-		planet.set_disk_on_planet_acceleration(accel);
+	t_planet &planet = data.get_planetary_system().get_planet(k);
+	accel = ComputeDiskOnNbodyAccel(data, planet.get_x(), planet.get_y());
+	planet.set_disk_on_planet_acceleration(accel);
 
-		const double torque = (planet.get_x() * accel.y - planet.get_y() * accel.x)*planet.get_mass();
-		planet.set_torque(torque);
+	const double torque =
+	    (planet.get_x() * accel.y - planet.get_y() * accel.x) *
+	    planet.get_mass();
+	planet.set_torque(torque);
     }
 }
 
@@ -311,7 +317,8 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 		const double xo = other_planet.get_x();
 		const double yo = other_planet.get_y();
 		const double mass = other_planet.get_mass();
-		const double dist = sqrt(std::pow(x - xo, 2) + std::pow(y - yo, 2));
+		const double dist =
+		    sqrt(std::pow(x - xo, 2) + std::pow(y - yo, 2));
 		ax -= constants::G * mass / std::pow(dist, 3) * (x - xo);
 		ay -= constants::G * mass / std::pow(dist, 3) * (y - yo);
 	    }
@@ -332,7 +339,7 @@ void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
 	if (parameters::disk_feedback) {
 	    t_planet &planet = data.get_planetary_system().get_planet(k);
 
-		const Pair gamma = planet.get_disk_on_planet_acceleration();
+	    const Pair gamma = planet.get_disk_on_planet_acceleration();
 	    const double new_vx =
 		planet.get_vx() + dt * gamma.x + dt * IndirectTermDisk.x;
 	    const double new_vy =

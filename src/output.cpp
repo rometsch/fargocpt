@@ -1,5 +1,7 @@
 #include "output.h"
+#include "Force.h"
 #include "LowTasks.h"
+#include "Pframeforce.h"
 #include "SideEuler.h"
 #include "constants.h"
 #include "global.h"
@@ -12,8 +14,6 @@
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
-#include "Force.h"
-#include "Pframeforce.h"
 
 #include <dirent.h>
 #include <math.h>
@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "unistd.h" // for access()
+#include <cfloat>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -29,7 +30,6 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
-#include <cfloat>
 
 namespace output
 {
@@ -353,9 +353,9 @@ void write_quantities(t_data &data, unsigned int timestep,
     double azimuthalKinematicEnergy =
 	quantities::gas_azimuthal_kinematic_energy(data);
 
-	if(!parameters::body_force_from_potential){
-		CalculateNbodyPotential(data);
-	}
+    if (!parameters::body_force_from_potential) {
+	CalculateNbodyPotential(data);
+    }
     double gravitationalEnergy = quantities::gas_gravitational_energy(data);
     double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
     double scale_height = quantities::gas_aspect_ratio(data);
@@ -540,9 +540,9 @@ std::string text_file_variable_description(
 					   "erg cm2/s/g")},
 	{"pressure per time", unit_descriptor(units::pressure.get_cgs_factor() /
 						  units::time.get_cgs_factor(),
-						  "dyn/cm/s")},
+					      "dyn/cm/s")},
 	{"torque", unit_descriptor(units::torque.get_cgs_factor(),
-							  units::torque.get_cgs_symbol())}};
+				   units::torque.get_cgs_symbol())}};
 
     std::string var_descriptor;
     for (auto const &ent : vars_by_column) {
@@ -630,16 +630,15 @@ double get_misc(unsigned int timestep, std::string variable)
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
-	const int ns = data[t_data::DENSITY].Nsec;
-	const double* cell_center_x = CellCenterX->Field;
-	const double* cell_center_y = CellCenterY->Field;
+    const int ns = data[t_data::DENSITY].Nsec;
+    const double *cell_center_x = CellCenterX->Field;
+    const double *cell_center_y = CellCenterY->Field;
 
     // do everything for all planets/stars
     for (unsigned int n_planet = 0;
 	 n_planet < data.get_planetary_system().get_number_of_planets();
 	 ++n_planet) {
 	t_planet &planet = data.get_planetary_system().get_planet(n_planet);
-
 
 	const double x = planet.get_x();
 	const double y = planet.get_y();
@@ -648,38 +647,41 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	// calculate smoothing length only once if not dependend on radius
 
 	for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
-	 ++n_radial) {
+	     ++n_radial) {
 
-	data[t_data::TORQUE_1D](n_radial) = 0.0;
-	for (unsigned int n_azimuthal = 0;
+	    data[t_data::TORQUE_1D](n_radial) = 0.0;
+	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// calculate smoothing length if dependend on radius
-		// i.e. for thickness smoothing with scale height at cell location
+		// i.e. for thickness smoothing with scale height at cell
+		// location
 
-		const double smooth = compute_smoothing(Rmed[n_radial], data, n_radial,
-						   n_azimuthal);
+		const double smooth = compute_smoothing(Rmed[n_radial], data,
+							n_radial, n_azimuthal);
 		const int cell_id = n_azimuthal + n_radial * ns;
 		const double xc = cell_center_x[cell_id];
 		const double yc = cell_center_y[cell_id];
 		const double cellmass =
-		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
+		    Surf[n_radial] *
+		    data[t_data::DENSITY](n_radial, n_azimuthal);
 		const double dx = xc - x;
 		const double dy = yc - y;
-		const double dist_sm_2 = std::pow(dx,2) + std::pow(dy,2) + std::pow(smooth,2);
-		const double dist_sm_3 = dist_sm_2*std::sqrt(dist_sm_2);
+		const double dist_sm_2 =
+		    std::pow(dx, 2) + std::pow(dy, 2) + std::pow(smooth, 2);
+		const double dist_sm_3 = dist_sm_2 * std::sqrt(dist_sm_2);
 		const double inv_dist_sm_3 = 1.0 / dist_sm_3;
 
-		const double Fx = constants::G * cellmass * dx * inv_dist_sm_3 * mass;
-		const double Fy = constants::G * cellmass * dy * inv_dist_sm_3 * mass;
+		const double Fx =
+		    constants::G * cellmass * dx * inv_dist_sm_3 * mass;
+		const double Fy =
+		    constants::G * cellmass * dy * inv_dist_sm_3 * mass;
 
 		const double Torque = x * Fy - y * Fx;
 
-		data[t_data::TORQUE](n_radial, n_azimuthal) =
-		Torque;
+		data[t_data::TORQUE](n_radial, n_azimuthal) = Torque;
 		data[t_data::TORQUE_1D](n_radial) += Torque;
-
-	}
+	    }
 	}
 
 	char *name;
@@ -732,7 +734,7 @@ void write_1D_info(t_data &data)
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
 
-		free(tmp);
+	    free(tmp);
 	}
     }
 }

@@ -11,6 +11,7 @@
 #include "Theo.h"
 #include "boundary_conditions.h"
 #include "commbound.h"
+#include "config.h"
 #include "constants.h"
 #include "data.h"
 #include "fpe.h"
@@ -29,7 +30,6 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
-#include "config.h"
 
 int TimeToWrite;
 int Restart = 0;
@@ -131,10 +131,9 @@ int main(int argc, char *argv[])
 
     init_radialarrays();
 
-	// Here planets are initialized feeling star potential
-	data.get_planetary_system().read_from_file(PLANETCONFIG);
-	logging::print_master(LOG_INFO "planets loaded.\n");
-
+    // Here planets are initialized feeling star potential
+    data.get_planetary_system().read_from_file(PLANETCONFIG);
+    logging::print_master(LOG_INFO "planets loaded.\n");
 
     if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
 	(Corotating == YES)) {
@@ -144,15 +143,15 @@ int main(int argc, char *argv[])
 	PersonalExit(1);
     }
 
-	boundary_conditions::init_prescribed_time_variable_boundaries(data);
+    boundary_conditions::init_prescribed_time_variable_boundaries(data);
     init_physics(data);
 
-	// update planet velocity due to disk potential
-	if (parameters::disk_feedback) {
-		ComputeDiskOnNbodyAccel(data);
-		data.get_planetary_system().correct_velocity_for_disk_accel();
-	}
-	logging::print_master(LOG_INFO "planets initialised.\n");
+    // update planet velocity due to disk potential
+    if (parameters::disk_feedback) {
+	ComputeDiskOnNbodyAccel(data);
+	data.get_planetary_system().correct_velocity_for_disk_accel();
+    }
+    logging::print_master(LOG_INFO "planets initialised.\n");
 
     if (parameters::integrate_particles) {
 	particles::init(data);
@@ -241,8 +240,9 @@ int main(int argc, char *argv[])
 	TimeStep = (nTimeStep / NINTERM); // note: integer division
 	bool write_complete_output = NINTERM * TimeStep == nTimeStep;
 	/// asure planet torques are computed
-	if (!parameters::disk_feedback && (write_complete_output || parameters::write_at_every_timestep)) {
-		ComputeDiskOnNbodyAccel(data);
+	if (!parameters::disk_feedback &&
+	    (write_complete_output || parameters::write_at_every_timestep)) {
+	    ComputeDiskOnNbodyAccel(data);
 	}
 
 	if (write_complete_output) {
@@ -279,7 +279,8 @@ int main(int argc, char *argv[])
 	}
 
 	// write disk quantities like eccentricity, ...
-	if ((write_complete_output || parameters::write_at_every_timestep) && parameters::write_disk_quantities) {
+	if ((write_complete_output || parameters::write_at_every_timestep) &&
+	    parameters::write_disk_quantities) {
 	    output::write_quantities(data, TimeStep, nTimeStep,
 				     force_update_for_output);
 	}
@@ -303,13 +304,13 @@ int main(int argc, char *argv[])
 
     logging::print_runtime_final();
 
-	// free up everything
-	config::free_config_list();
-	DeallocateBoundaryCommunicationBuffers();
-	free(OUTPUTDIR);
-	free(PLANETCONFIG);
-	free(PRESCRIBED_BOUNDARY_OUTER_FILE);
-	delete[] options::parameter_file;
+    // free up everything
+    config::free_config_list();
+    DeallocateBoundaryCommunicationBuffers();
+    free(OUTPUTDIR);
+    free(PLANETCONFIG);
+    free(PRESCRIBED_BOUNDARY_OUTER_FILE);
+    delete[] options::parameter_file;
     FreeEuler();
 
     selfgravity::mpi_finalize();

@@ -10,19 +10,19 @@
 #include "SourceEuler.h"
 #include "commbound.h"
 #include "constants.h"
+#include "find_cell_id.h"
 #include "global.h"
 #include "logging.h"
+#include "mpi_utils.h"
 #include "parameters.h"
 #include "selfgravity.h"
 #include "util.h"
+#include <cstring>
 #include <math.h>
 #include <mpi.h>
 #include <random>
 #include <stdlib.h>
 #include <vector>
-#include "find_cell_id.h"
-#include "mpi_utils.h"
-#include <cstring>
 
 extern Pair IndirectTerm;
 
@@ -69,7 +69,8 @@ static double power_law_distribution(double x, double n)
 	return std::exp(std::log(rmax / rmin) * x) * rmin;
     } else {
 	return std::exp(
-		std::log(x * (-std::pow(rmin, n + 1) + std::pow(rmax, n + 1)) + std::pow(rmin, n + 1)) /
+	    std::log(x * (-std::pow(rmin, n + 1) + std::pow(rmax, n + 1)) +
+		     std::pow(rmin, n + 1)) /
 	    (n + 1));
     }
 }
@@ -87,44 +88,42 @@ static double check_angle(double &phi)
     }
 }
 
-
-static double corret_v_gas_azimuthal_omega_frame(const double v_az_gas, const double r_particle)
+static double corret_v_gas_azimuthal_omega_frame(const double v_az_gas,
+						 const double r_particle)
 {
-	const double v_az_corrected = v_az_gas + r_particle * OmegaFrame;
-	return v_az_corrected;
+    const double v_az_corrected = v_az_gas + r_particle * OmegaFrame;
+    return v_az_corrected;
 }
 
-static void transform_cart_to_cyl(const double * const cart, double * const cyl, const double r, const double phi)
+static void transform_cart_to_cyl(const double *const cart, double *const cyl,
+				  const double r, const double phi)
 {
     (void)r;
-	cyl[0] = cart[0] * std::cos(phi);
-	cyl[0] += cart[1] * std::sin(phi);
+    cyl[0] = cart[0] * std::cos(phi);
+    cyl[0] += cart[1] * std::sin(phi);
 
-	cyl[1] = -cart[0] * std::sin(phi);
-	cyl[1] += cart[1] * std::cos(phi);
+    cyl[1] = -cart[0] * std::sin(phi);
+    cyl[1] += cart[1] * std::cos(phi);
 }
 
-static void find_nearest(unsigned int &n_radial_a_minus,
-		  unsigned int &n_radial_a_plus,
-		  unsigned int &n_azimuthal_a_minus,
-		  unsigned int &n_azimuthal_a_plus,
-		  unsigned int &n_radial_b_minus, unsigned int &n_radial_b_plus,
-		  unsigned int &n_azimuthal_b_minus,
-		  unsigned int &n_azimuthal_b_plus, const double r,
-		  const double phi)
+static void
+find_nearest(unsigned int &n_radial_a_minus, unsigned int &n_radial_a_plus,
+	     unsigned int &n_azimuthal_a_minus,
+	     unsigned int &n_azimuthal_a_plus, unsigned int &n_radial_b_minus,
+	     unsigned int &n_radial_b_plus, unsigned int &n_azimuthal_b_minus,
+	     unsigned int &n_azimuthal_b_plus, const double r, const double phi)
 {
-	n_radial_a_minus = get_rinf_id(r);
-	n_radial_a_plus = n_radial_a_minus + 1;
+    n_radial_a_minus = get_rinf_id(r);
+    n_radial_a_plus = n_radial_a_minus + 1;
 
-	n_radial_b_minus = get_rmed_id(r);
-	n_radial_b_plus = n_radial_b_minus + 1;
+    n_radial_b_minus = get_rmed_id(r);
+    n_radial_b_plus = n_radial_b_minus + 1;
 
-	n_azimuthal_a_minus = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));
-	n_azimuthal_a_plus = get_next_azimuthal_id(n_azimuthal_a_minus);
+    n_azimuthal_a_minus = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));
+    n_azimuthal_a_plus = get_next_azimuthal_id(n_azimuthal_a_minus);
 
-	n_azimuthal_b_minus = clamp_phi_id_to_grid(get_med_azimuthal_id(phi));
-	n_azimuthal_b_plus = get_next_azimuthal_id(n_azimuthal_b_minus);
-
+    n_azimuthal_b_minus = clamp_phi_id_to_grid(get_med_azimuthal_id(phi));
+    n_azimuthal_b_plus = get_next_azimuthal_id(n_azimuthal_b_minus);
 }
 
 static double interpolate_bilinear_sg(const double *array1D,
@@ -184,55 +183,55 @@ static double interpolate_bilinear_sg(const double *array1D,
     return ((rp - r) * Qm + (r - rm) * Qp) / (rp - rm);
 }
 
-
 static double get_particle_eccentricity_polar(int particle_index)
 {
-	// used for debugging the integrators
-	const int i = particle_index;
+    // used for debugging the integrators
+    const int i = particle_index;
 
-	// Runge-Lenz vector A = (p x L) - m * G * m * hydro_center_mass * r/|r|
-	const double kappa = constants::G * hydro_center_mass *
-particles[i].mass; const double reduced_mass =
-hydro_center_mass*particles[i].mass / (hydro_center_mass + particles[i].mass);
-	const double A_r = reduced_mass * std::pow(particles[i].r, 3) *
-std::pow(particles[i].phi_dot, 2) - kappa; const double A_phi = reduced_mass *
-std::pow(particles[i].r, 2) * particles[i].r_dot * particles[i].phi_dot; const double A
-= std::sqrt(A_r*A_r + A_phi*A_phi); const double eccentricity = A / kappa;
+    // Runge-Lenz vector A = (p x L) - m * G * m * hydro_center_mass * r/|r|
+    const double kappa = constants::G * hydro_center_mass * particles[i].mass;
+    const double reduced_mass = hydro_center_mass * particles[i].mass /
+				(hydro_center_mass + particles[i].mass);
+    const double A_r = reduced_mass * std::pow(particles[i].r, 3) *
+			   std::pow(particles[i].phi_dot, 2) -
+		       kappa;
+    const double A_phi = reduced_mass * std::pow(particles[i].r, 2) *
+			 particles[i].r_dot * particles[i].phi_dot;
+    const double A = std::sqrt(A_r * A_r + A_phi * A_phi);
+    const double eccentricity = A / kappa;
 
-	return eccentricity;
+    return eccentricity;
 }
 
 static double get_particle_eccentricity_cart(int particle_index)
 {
-	   // used for debugging the integrators
-	   const int i = particle_index;
+    // used for debugging the integrators
+    const int i = particle_index;
 
-	   // Runge-Lenz vector A = (p x L) - m * G * m * hydro_center_mass * r/|r|
-	   const double m = hydro_center_mass + particles[i].mass;
+    // Runge-Lenz vector A = (p x L) - m * G * m * hydro_center_mass * r/|r|
+    const double m = hydro_center_mass + particles[i].mass;
 
-	   const double x = particles[i].r;
-	   const double y = particles[i].phi;
+    const double x = particles[i].r;
+    const double y = particles[i].phi;
 
-	   const double d = std::sqrt(x*x + y*y);
+    const double d = std::sqrt(x * x + y * y);
 
-	   const double vx = particles[i].r_dot;
-	   const double vy = particles[i].phi_dot;
-	   const double Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
-	   const double Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
-	   const double e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
+    const double vx = particles[i].r_dot;
+    const double vy = particles[i].phi_dot;
+    const double Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
+    const double Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
+    const double e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
 
-	   return e;
+    return e;
 }
-
 
 [[maybe_unused]] static double get_particle_eccentricity(int particle_index)
 {
-	   if (CartesianParticles) {
-			   return get_particle_eccentricity_cart(particle_index);
-	   }
-	   else{
-			   return get_particle_eccentricity_polar(particle_index);
-	   }
+    if (CartesianParticles) {
+	return get_particle_eccentricity_cart(particle_index);
+    } else {
+	return get_particle_eccentricity_polar(particle_index);
+    }
 }
 
 /**
@@ -308,7 +307,7 @@ static void init_particle_timestep(t_data &data)
 	if ((dnf <= 1.0E-10) || (dny <= 1.0E-10))
 	    particles[i].timestep = 1.0E-6;
 	else
-		particles[i].timestep = std::sqrt(dny / dnf) * 0.01;
+	    particles[i].timestep = std::sqrt(dny / dnf) * 0.01;
 
 	// perform an explicit Euler step
 	temp_r = particles[i].r + particles[i].timestep * k1_r;
@@ -358,9 +357,9 @@ static void init_particle_timestep(t_data &data)
 	// = 0.01
 	der12 = std::fmax(std::fabs(der2), std::sqrt(dnf));
 	if (der12 <= 1.0E-15)
-		h1 = std::fmax(1.0E-6, std::fabs(particles[i].timestep) * 1.0E-3);
+	    h1 = std::fmax(1.0E-6, std::fabs(particles[i].timestep) * 1.0E-3);
 	else
-		h1 = std::pow(0.01 / der12, 1.0 / (double)iord);
+	    h1 = std::pow(0.01 / der12, 1.0 / (double)iord);
 	particles[i].timestep = fmin(100.0 * particles[i].timestep, h1);
     }
 }
@@ -384,10 +383,9 @@ static void correct_for_self_gravity(const unsigned int i)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(n_radial_a_minus, n_radial_a_plus,
-		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
-		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
-		     r, phi);
+	find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		     n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		     n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	sg_radial = interpolate_bilinear_sg(
 	    selfgravity::g_radial, n_radial_a_minus, n_radial_a_plus,
@@ -397,7 +395,7 @@ static void correct_for_self_gravity(const unsigned int i)
     double v = sqrt(constants::G * (hydro_center_mass + particles[i].mass) /
 			semi_major_axis -
 		    sg_radial * semi_major_axis) *
-		   std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
+	       std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
 
     // only need to update velocities, set accelerations to 0 anyway
     if (CartesianParticles) {
@@ -423,54 +421,55 @@ init_particle(const unsigned int &i, const unsigned int &id_offset,
 	      std::uniform_real_distribution<double> &dis_twoPi,
 	      std::uniform_real_distribution<double> &dis_eccentricity)
 {
-	double semi_major_axis = power_law_distribution(dis_one(generator), parameters::particle_slope);
+    double semi_major_axis =
+	power_law_distribution(dis_one(generator), parameters::particle_slope);
     double phi = dis_twoPi(generator);
     double eccentricity = dis_eccentricity(generator);
 
+    /*
+    // debug setup
+////////////////////////////////////////////////////////////// const int
+num_particles_per_ring = 10; int global_id = i + id_offset;
 
-	/*
-	// debug setup //////////////////////////////////////////////////////////////
-    const int num_particles_per_ring = 10;
-    int global_id = i + id_offset;
+double rmin = parameters::particle_minimum_radius;
+double rmax = parameters::particle_maximum_radius;
 
-    double rmin = parameters::particle_minimum_radius;
-    double rmax = parameters::particle_maximum_radius;
+// make sure particles are not initialized on an orbit that moves out of
+    //particle-bounds
+    if(RMAX <
+parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
+	rmax =
+parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
 
-    // make sure particles are not initialized on an orbit that moves out of
-	//particle-bounds
-	if(RMAX <
-    parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
-	    rmax =
-    parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
-
-    if(RMIN >
-    parameters::particle_minimum_radius*(1.0-parameters::particle_eccentricity))
-	    rmin =
-    parameters::particle_minimum_radius/(1.0-parameters::particle_eccentricity);
+if(RMIN >
+parameters::particle_minimum_radius*(1.0-parameters::particle_eccentricity))
+	rmin =
+parameters::particle_minimum_radius/(1.0-parameters::particle_eccentricity);
 
 
-    phi = 2.0*PI / num_particles_per_ring * (global_id/num_particles_per_ring);
-    semi_major_axis = (rmax - rmin) *
-    double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
-	rmin+0.3;
-	eccentricity = 0.0;
-	///////////////////////////////////////////////////////////////////////////
-	*/
-
+phi = 2.0*PI / num_particles_per_ring * (global_id/num_particles_per_ring);
+semi_major_axis = (rmax - rmin) *
+double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
+    rmin+0.3;
+    eccentricity = 0.0;
+    ///////////////////////////////////////////////////////////////////////////
+    */
 
     particles[i].radius = parameters::particle_radius;
 
-	const unsigned int particle_type = i % parameters::particle_species_number;
-	particles[i].radius *= std::pow(parameters::particle_radius_increase_factor, particle_type);
+    const unsigned int particle_type = i % parameters::particle_species_number;
+    particles[i].radius *=
+	std::pow(parameters::particle_radius_increase_factor, particle_type);
 
-	double volume = 4.0 / 3.0 * M_PI * std::pow(particles[i].radius, 3);
+    double volume = 4.0 / 3.0 * M_PI * std::pow(particles[i].radius, 3);
 
     particles[i].mass = volume * parameters::particle_density;
 
     double r = semi_major_axis * (1.0 + eccentricity);
-	double v = std::sqrt(constants::G * (hydro_center_mass + particles[i].mass) /
-		    semi_major_axis) *
-		   std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
+    double v =
+	std::sqrt(constants::G * (hydro_center_mass + particles[i].mass) /
+		  semi_major_axis) *
+	std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
 
     if (CartesianParticles) {
 	// Beware: cartesian particles still use the names of polar coordinates
@@ -561,9 +560,9 @@ void init(t_data &data)
     int mpi_particle_lengths[11] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     MPI_Aint mpi_particle_offsets[11];
     MPI_Datatype mpi_particle_types[11] = {MPI_UNSIGNED, MPI_DOUBLE, MPI_DOUBLE,
-					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE,
-					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE,
-					   MPI_DOUBLE,   MPI_DOUBLE};
+					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
+					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
+					   MPI_DOUBLE,	 MPI_DOUBLE};
 
     // calculate offsets
     MPI_Aint base;
@@ -597,7 +596,7 @@ void init(t_data &data)
 
     if (parameters::particle_disk_gravity_enabled) {
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-		correct_for_self_gravity(i);
+	    correct_for_self_gravity(i);
 	}
     }
     check_tstop(data);
@@ -670,10 +669,11 @@ void restart(unsigned int timestep)
     MPI_Status status;
 
     // try to open file
-    
-    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename, MPI_MODE_RDONLY,
-				  MPI_INFO_NULL, &fh),
-		    filename);
+
+    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename,
+					    MPI_MODE_RDONLY, MPI_INFO_NULL,
+					    &fh),
+			      filename);
 
     logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",
 			  filename, size);
@@ -716,8 +716,8 @@ void calculate_accelerations_from_star_and_planets(
     constexpr double epsilon = 0.005;
     constexpr double epsilon_sq = epsilon * epsilon;
 
-	ar = r * phi_dot * phi_dot; // Centrifugal force
-	aphi= - 2.0 * r_dot / r * phi_dot;
+    ar = r * phi_dot * phi_dot; // Centrifugal force
+    aphi = -2.0 * r_dot / r * phi_dot;
 
     // planets
     for (unsigned int k = 0;
@@ -761,7 +761,8 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	double r2 = std::pow(planet.get_x() - x, 2) + std::pow(planet.get_y() - y, 2);
+	double r2 =
+	    std::pow(planet.get_x() - x, 2) + std::pow(planet.get_y() - y, 2);
 	const double r = std::sqrt(r2);
 	r2 += epsilon_sq;
 	const double factor = constants::G * planet.get_mass() / (r * r2);
@@ -779,8 +780,8 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
     constexpr double epsilon = 0.005;
     constexpr double epsilon_sq = epsilon * epsilon;
 
-	grav_r_ddot = 0.0;
-	minus_grav_l_dot = 0.0;
+    grav_r_ddot = 0.0;
+    minus_grav_l_dot = 0.0;
 
     // planets
     for (unsigned int k = 0;
@@ -824,8 +825,8 @@ static void calculate_derivitives_from_star_and_planets_in_cart(
     acart[0] = 0.0;
     acart[1] = 0.0;
 
-	const double x = r * std::cos(phi);
-	const double y = r * std::sin(phi);
+    const double x = r * std::cos(phi);
+    const double y = r * std::sin(phi);
 
     // planets
     for (unsigned int k = 0;
@@ -848,7 +849,7 @@ static void calculate_derivitives_from_star_and_planets_in_cart(
 	acart[1] += -constants::G * planet_mass * y_dist / (dist * dist2);
     }
 
-	transform_cart_to_cyl(acart, acyl, r, phi);
+    transform_cart_to_cyl(acart, acyl, r, phi);
     grav_r_ddot = acyl[0];
     minus_grav_l_dot = acyl[1] * r;
 }
@@ -931,10 +932,9 @@ static void calculate_tstop(const double r, const double phi,
 		 n_radial_b_minus = 0, n_radial_b_plus = 1;
     unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(n_radial_a_minus, n_radial_a_plus,
-		 n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
-		 n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r,
-		 phi);
+    find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		 n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		 n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
     // calculate gas quantities at the particle location
     const double rho = interpolate_bilinear(
@@ -946,10 +946,11 @@ static void calculate_tstop(const double r, const double phi,
     const double vg_radial = interpolate_bilinear(
 	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
 	n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	const double vg_azimuthal_temp = interpolate_bilinear(
-		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
-	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
+    const double vg_azimuthal_temp = interpolate_bilinear(
+	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+    const double vg_azimuthal =
+	corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal =
 	sqrt(8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
@@ -960,10 +961,12 @@ static void calculate_tstop(const double r, const double phi,
 
     minus_l_rel = r * vrel_phi;
 
-	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
+    const double vrel =
+	std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
+    double sigma =
+	M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1011,16 +1014,15 @@ static void calculate_tstop2(const double r, const double phi,
     // particle is still inside the domain the gas values are determined at the
     // edge of the domain if particle is outside the domain
     double r_tmp = fmax(r, local_r_min);
-	r_tmp = fmin(r_tmp, local_r_max);
+    r_tmp = fmin(r_tmp, local_r_max);
 
     unsigned int n_radial_a_minus = 0, n_radial_a_plus = 1,
 		 n_radial_b_minus = 0, n_radial_b_plus = 1;
     unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(n_radial_a_minus, n_radial_a_plus,
-		 n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
-		 n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
-		 r_tmp, phi);
+    find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		 n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		 n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
 
     // calculate gas quantities at the particle location
     const double rho = interpolate_bilinear(
@@ -1032,24 +1034,27 @@ static void calculate_tstop2(const double r, const double phi,
     const double vg_radial = interpolate_bilinear(
 	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
 	n_azimuthal_b_minus, n_azimuthal_b_plus, r_tmp, phi);
-	const double vg_azimuthal_temp = interpolate_bilinear(
-		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
-	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
+    const double vg_azimuthal_temp = interpolate_bilinear(
+	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+    const double vg_azimuthal =
+	corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
     const double m0 = parameters::MU * constants::m_u.get_code_value();
-    const double vthermal =
-	std::sqrt(8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
+    const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
+				      temperature / (M_PI * m0));
 
     // calculate relative velocities
     minus_r_dotel_r = vg_radial - r_dot;
     const double vrel_phi = vg_azimuthal - phi_dot * r0;
 
-	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
+    const double vrel =
+	std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
     minus_l_rel = r * vg_azimuthal - l0;
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
+    double sigma =
+	M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1091,7 +1096,7 @@ static void calculate_tstop2(const double r, const double phi,
 void check_tstop(t_data &data)
 {
 
-	double dt;
+    double dt;
 
     double local_gas_time_step_cfl = 1.0;
     double global_gas_time_step_cfl = 1.0;
@@ -1119,10 +1124,9 @@ void check_tstop(t_data &data)
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
 		     n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
 
-	find_nearest(n_radial_a_minus, n_radial_a_plus,
-		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
-		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
-		     r, phi);
+	find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		     n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		     n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate gas quantities at the particle location
 	const double rho = interpolate_bilinear(
@@ -1136,20 +1140,23 @@ void check_tstop(t_data &data)
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 	const double vg_azimuthal_temp = interpolate_bilinear(
 	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
-	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
+	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal =
+	    corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
-	const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
-				     temperature / (M_PI * m0));
+	const double vthermal = std::sqrt(
+	    8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
 
 	// calculate relative velocities
 	double minus_r_dotel_r = vg_radial - r_dot;
 	const double vrel_phi = vg_azimuthal - phi_dot * r;
 
-	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
+	const double vrel =
+	    std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
+	double sigma =
+	    M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1160,7 +1167,7 @@ void check_tstop(t_data &data)
 	if (reynolds < 1.0) {
 	    Cd = 24.0 / reynolds;
 	} else if (reynolds < 800.0) {
-		Cd = 24.0 * std::pow(reynolds, -0.6);
+	    Cd = 24.0 * std::pow(reynolds, -0.6);
 	} else {
 	    Cd = 0.44;
 	}
@@ -1191,7 +1198,7 @@ void check_tstop(t_data &data)
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!");
-		PersonalExit(1);
+	    PersonalExit(1);
 	}
 
 	if (tstop < 0.005 * dt && parameters::particle_gas_drag_enabled &&
@@ -1199,7 +1206,7 @@ void check_tstop(t_data &data)
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!");
-		PersonalExit(1);
+	    PersonalExit(1);
 	}
     }
 }
@@ -1222,12 +1229,12 @@ static void update_velocities_from_indirect_term(const double dt)
 	    const double r_dot = particles[i].r_dot;
 	    const double phi_dot = particles[i].phi_dot;
 
-		indirect_q1_dot = r_dot + dt * (IndirectTerm.x * std::cos(phi) +
+	    indirect_q1_dot = r_dot + dt * (IndirectTerm.x * std::cos(phi) +
 					    IndirectTerm.y * sin(phi));
-	    indirect_q2_dot =
-		phi_dot +
-		dt * (-IndirectTerm.x * sin(phi) + IndirectTerm.y * std::cos(phi)) /
-		    r;
+	    indirect_q2_dot = phi_dot + dt *
+					    (-IndirectTerm.x * sin(phi) +
+					     IndirectTerm.y * std::cos(phi)) /
+					    r;
 	}
 
 	particles[i].r_dot = indirect_q1_dot;
@@ -1254,10 +1261,9 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(n_radial_a_minus, n_radial_a_plus,
-		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
-		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
-		     r, phi);
+	find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		     n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		     n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate quantities needed
 	double rho = interpolate_bilinear(
@@ -1267,18 +1273,17 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 	const double vg_azimuthal_temp = interpolate_bilinear(
-		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
-	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
+	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal =
+	    corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	double temperature = interpolate_bilinear(
 	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
 	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate gas velocities in cartesian coordinates
-	double vg_x =
-		std::cos(phi) * vg_radial - std::sin(phi) * vg_azimuthal;
-	double vg_y =
-		std::sin(phi) * vg_radial + std::cos(phi) * vg_azimuthal;
+	double vg_x = std::cos(phi) * vg_radial - std::sin(phi) * vg_azimuthal;
+	double vg_y = std::sin(phi) * vg_radial + std::cos(phi) * vg_azimuthal;
 
 	// particles store cartesian data
 	double &vx = particles[i].r_dot;
@@ -1291,9 +1296,10 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 
 	double m0 = parameters::MU * constants::m_u.get_code_value();
 	double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
-			       temperature / (M_PI * m0));
+				    temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma = M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
+	double sigma =
+	    M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
 	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1304,13 +1310,13 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	if (reynolds < 1.0) {
 	    Cd = 24.0 / reynolds;
 	} else if (reynolds < 800.0) {
-		Cd = 24.0 * std::pow(reynolds, -0.6);
+	    Cd = 24.0 * std::pow(reynolds, -0.6);
 	} else {
 	    Cd = 0.44;
 	}
 
 	double fdrag_temp =
-		-0.5 * Cd * M_PI * std::pow(particles[i].radius, 2) * rho * vrel;
+	    -0.5 * Cd * M_PI * std::pow(particles[i].radius, 2) * rho * vrel;
 	double fdrag_x = fdrag_temp * vrel_x;
 	double fdrag_y = fdrag_temp * vrel_y;
 
@@ -1352,10 +1358,9 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
 	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
 	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(n_radial_a_minus, n_radial_a_plus,
-		     n_azimuthal_a_minus, n_azimuthal_a_plus, n_radial_b_minus,
-		     n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus,
-		     r, phi);
+	find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		     n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		     n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate quantities needed
 	const double rho = interpolate_bilinear(
@@ -1365,25 +1370,26 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 	const double vg_azimuthal_temp = interpolate_bilinear(
-		data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-		n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
-	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
+	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+	const double vg_azimuthal =
+	    corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 	const double temperature = interpolate_bilinear(
 	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
 	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate relative velocities
 	const double vrel_r = particles[i].r_dot - vg_radial;
-	const double vrel_phi =
-		r * particles[i].phi_dot - vg_azimuthal;
-	const double vrel = std::sqrt(std::pow(vrel_r, 2) + std::pow(vrel_phi, 2));
+	const double vrel_phi = r * particles[i].phi_dot - vg_azimuthal;
+	const double vrel =
+	    std::sqrt(std::pow(vrel_r, 2) + std::pow(vrel_phi, 2));
 
 	const double m0 = parameters::MU * constants::m_u.get_code_value();
-	const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
-				     temperature / (M_PI * m0));
+	const double vthermal = std::sqrt(
+	    8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
 	const double sigma =
-		M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
+	    M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
 	const double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
@@ -1394,13 +1400,14 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	if (reynolds < 1.0) {
 	    Cd = 24.0 / reynolds;
 	} else if (reynolds < 800.0) {
-		Cd = 24.0 * std::pow(reynolds, -0.6);
+	    Cd = 24.0 * std::pow(reynolds, -0.6);
 	} else {
 	    Cd = 0.44;
 	}
 
-	const double fdrag_temp = -0.5 * Cd * M_PI * std::pow(particles[i].radius, 2) *
-				  rho * vrel / particles[i].mass;
+	const double fdrag_temp = -0.5 * Cd * M_PI *
+				  std::pow(particles[i].radius, 2) * rho *
+				  vrel / particles[i].mass;
 
 	const double fdrag_r = dt * fdrag_temp * vrel_r;
 	const double fdrag_phi = dt * fdrag_temp * vrel_phi / r;
@@ -1451,10 +1458,10 @@ void integrate(t_data &data, const double dt)
 	integrate_semiimplicit(data, dt);
 	break;
     }
-	case parameters::integrator_exponential_midpoint: {
+    case parameters::integrator_exponential_midpoint: {
 	integrate_exponential_midpoint(data, dt);
 	break;
-	}
+    }
     case parameters::integrator_implicit: {
 	integrate_implicit(data, dt);
 	break;
@@ -1481,28 +1488,28 @@ void update_velocity_from_disk_gravity_cart(
     double &vx = particles[particle_id].r_dot;
     double &vy = particles[particle_id].phi_dot;
 
-	vx += dt * (std::cos(phi) * sg_radial - std::sin(phi) * sg_azimuthal);
-	vy += dt * (std::sin(phi) * sg_radial + std::cos(phi) * sg_azimuthal);
+    vx += dt * (std::cos(phi) * sg_radial - std::sin(phi) * sg_azimuthal);
+    vy += dt * (std::sin(phi) * sg_radial + std::cos(phi) * sg_azimuthal);
 }
-
-
 
 /**
  * @brief compute_smoothing_isothermal
  * @param r
- * @return smoothing length for calculating gravitational force due to a vertical gas column
+ * @return smoothing length for calculating gravitational force due to a
+ * vertical gas column
  */
 static double compute_smoothing_isothermal(double r)
 {
-	double smooth;
-	const double scale_height =
+    double smooth;
+    const double scale_height =
 	ASPECTRATIO_REF * std::pow(r, 1.0 + FLARINGINDEX); // = H
-	smooth = parameters::thickness_smoothing * scale_height;
-	return smooth;
+    smooth = parameters::thickness_smoothing * scale_height;
+    return smooth;
 }
 /**
  * @brief update_velocity_from_disk_gravity_cart_old
- * @abstract horrible inefficient way to calculate gravitational force from gas on dust particles, only use for testing
+ * @abstract horrible inefficient way to calculate gravitational force from gas
+ * on dust particles, only use for testing
  * @param data
  * @param dt
  */
@@ -1534,18 +1541,19 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 		   all_particles, number_of_particles, particle_offsets,
 		   mpi_particle, MPI_COMM_WORLD);
 
-	std::memset(force_x, 0, sizeof(*force_x)*global_number_of_particles);
-	std::memset(force_y, 0, sizeof(*force_y)*global_number_of_particles);
+    std::memset(force_x, 0, sizeof(*force_x) * global_number_of_particles);
+    std::memset(force_y, 0, sizeof(*force_y) * global_number_of_particles);
 
-    double dphi = 2.0 * M_PI / (double)data[t_data::DENSITY].get_size_azimuthal();
+    double dphi =
+	2.0 * M_PI / (double)data[t_data::DENSITY].get_size_azimuthal();
     for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double cell_angle = n_azimuthal * dphi;
-		double cell_x = Rmed[n_radial] * std::cos(cell_angle);
-		double cell_y = Rmed[n_radial] * std::sin(cell_angle);
+	    double cell_x = Rmed[n_radial] * std::cos(cell_angle);
+	    double cell_y = Rmed[n_radial] * std::sin(cell_angle);
 	    double cell_mass =
 		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
 	    for (unsigned int i = 0; i < global_number_of_particles; ++i) {
@@ -1555,8 +1563,9 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 		    all_particles[i].get_distance_to_star());
 		double d_x = cell_x - x;
 		double d_y = cell_y - y;
-		double invdist3 =
-			std::pow(std::pow(d_x, 2) + std::pow(d_y, 2) + std::pow(smoothing, 2), -3.0 / 2.0);
+		double invdist3 = std::pow(std::pow(d_x, 2) + std::pow(d_y, 2) +
+					       std::pow(smoothing, 2),
+					   -3.0 / 2.0);
 
 		force_x[i] += constants::G * cell_mass * d_x * invdist3;
 		force_y[i] += constants::G * cell_mass * d_y * invdist3;
@@ -1588,17 +1597,17 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 
 void integrate_exponential_midpoint(t_data &data, const double dt)
 {
-	if (parameters::disk_feedback) {
+    if (parameters::disk_feedback) {
 	update_velocities_from_indirect_term(dt);
-	}
+    }
 
-	// Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
-	// eqs. A4-A12)
-	if (parameters::particle_gas_drag_enabled) {
+    // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
+    // eqs. A4-A12)
+    if (parameters::particle_gas_drag_enabled) {
 	compute_rho(data, true);
-	}
+    }
 
-	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
+    for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	// initialize
 	const double r0 = particles[i].r;
@@ -1619,10 +1628,11 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	const double phi_dot1 = phi_dot0; // follows from  l1 = l0
 
 	const double r1 = r0 + r_dot0 * hfdt;
-	double phi1 = phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * hfdt;
+	double phi1 =
+	    phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * hfdt;
 	check_angle(phi1);
-	// END Half-drift /////////////////////////////////////////////////////////
-
+	// END Half-drift
+	// /////////////////////////////////////////////////////////
 
 	// Kick ///////////////////////////////////////////////////
 	const double r2 = r1;
@@ -1630,49 +1640,49 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	double minus_l_rel = 0.0;
 
 	if (parameters::particle_gas_drag_enabled) {
-		calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
-				 particles[i].radius, vrel_r, minus_l_rel, tstop,
-				 r0, l0);
+	    calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
+			     particles[i].radius, vrel_r, minus_l_rel, tstop,
+			     r0, l0);
 	} else {
-		tstop = 1e100;
+	    tstop = 1e100;
 	}
 	double grav_r_ddot;
 	double minus_grav_l_dot;
 	if (ParticlesInCartesian) {
-		calculate_derivitives_from_star_and_planets_in_cart(
+	    calculate_derivitives_from_star_and_planets_in_cart(
 		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
 	} else {
 
-		calculate_derivitives_from_star_and_planets(
+	    calculate_derivitives_from_star_and_planets(
 		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
 	}
 
 	// exponential propagator  eq.33 (Mignone et al. 2019)
-	const double exp_tstop = std::exp(-dt/tstop);
-	const double h1 = tstop*(-expm1(-dt/tstop));
+	const double exp_tstop = std::exp(-dt / tstop);
+	const double h1 = tstop * (-expm1(-dt / tstop));
 
 	// updating angular momentum
-	double l2 = exp_tstop*l1 + h1*minus_grav_l_dot;
+	double l2 = exp_tstop * l1 + h1 * minus_grav_l_dot;
 	if (parameters::particle_gas_drag_enabled) {
-		const double l_gas = minus_l_rel + l0;
-		l2 += h1*l_gas/tstop;
+	    const double l_gas = minus_l_rel + l0;
+	    l2 += h1 * l_gas / tstop;
 	}
 
 	// Updating radial velocity
-	double r_dot2 = exp_tstop*r_dot1;
+	double r_dot2 = exp_tstop * r_dot1;
 	r_dot2 += h1 * 0.5 * (l1 * l1 + l2 * l2) / (r1 * r1 * r1);
 	r_dot2 += h1 * grav_r_ddot;
 
 	if (parameters::particle_gas_drag_enabled) {
-		const double v_r_g = vrel_r + r_dot1;
-		r_dot2 += h1*v_r_g/tstop;
+	    const double v_r_g = vrel_r + r_dot1;
+	    r_dot2 += h1 * v_r_g / tstop;
 	}
 	// END kick ///////////////////////////////////////
 
-
 	// Half-drift
 	const double r3 = r1 + r_dot2 * hfdt;
-	const double phi3 = phi2 + 0.5 * (l2 / std::pow(r2, 2) + l2 / std::pow(r3, 2)) * hfdt;
+	const double phi3 =
+	    phi2 + 0.5 * (l2 / std::pow(r2, 2) + l2 / std::pow(r3, 2)) * hfdt;
 
 	// Update
 	particles[i].r_dot = r_dot2;
@@ -1680,8 +1690,8 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	particles[i].phi = phi3;
 	check_angle(particles[i].phi);
 	particles[i].phi_dot = l2 / std::pow(particles[i].r, 2);
-	}
-	move();
+    }
+    move();
 }
 
 void integrate_semiimplicit(t_data &data, const double dt)
@@ -1719,7 +1729,8 @@ void integrate_semiimplicit(t_data &data, const double dt)
 	const double phi_dot1 = phi_dot0; // follows from  l1 = l0
 
 	const double r1 = r0 + r_dot0 * hfdt;
-	double phi1 = phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * hfdt;
+	double phi1 =
+	    phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * hfdt;
 	check_angle(phi1);
 
 	// Kick
@@ -1760,7 +1771,8 @@ void integrate_semiimplicit(t_data &data, const double dt)
 
 	// Half-drift
 	const double r3 = r1 + r_dot2 * hfdt;
-	const double phi3 = phi2 + 0.5 * (l2 / std::pow(r2, 2) + l2 / std::pow(r3, 2)) * hfdt;
+	const double phi3 =
+	    phi2 + 0.5 * (l2 / std::pow(r2, 2) + l2 / std::pow(r3, 2)) * hfdt;
 
 	particles[i].r_dot = r_dot2;
 	particles[i].r = r3;
@@ -1783,7 +1795,7 @@ void integrate_implicit(t_data &data, const double dt)
     double r_ddot0, minus_l_dot0, r_ddot1, minus_l_dot1, hfdt, minus_r_dot_rel0,
 	minus_l_rel0, minus_r_dot_rel1;
 
-	double minus_l_rel1 = 0.0;
+    double minus_l_rel1 = 0.0;
 
     // initialize with failsave values to suppress compiler warning
     // "-Wmaybe-uninitialized"
@@ -1850,7 +1862,9 @@ void integrate_implicit(t_data &data, const double dt)
 
 	r_dot1 = r_dot0;
 	r_dot1 += (r_ddot0 + r_ddot1 * dt0) * dt1;
-	r_dot1 += (std::pow(l0, 2) / std::pow(r0, 3) + std::pow(l1, 2) / std::pow(r1, 3) * dt0) * dt1;
+	r_dot1 += (std::pow(l0, 2) / std::pow(r0, 3) +
+		   std::pow(l1, 2) / std::pow(r1, 3) * dt0) *
+		  dt1;
 	if (parameters::particle_gas_drag_enabled) {
 	    r_dot1 +=
 		(minus_r_dot_rel0 / tstop0 + minus_r_dot_rel1 / tstop1 * dt0) *
@@ -1859,7 +1873,8 @@ void integrate_implicit(t_data &data, const double dt)
 
 	// Half-drift
 	const double r2 = r0 + (r_dot0 + r_dot1) * hfdt;
-	const double phi2 = phi0 + (l0 / std::pow(r0, 2) + l1 / std::pow(r2, 2)) * hfdt;
+	const double phi2 =
+	    phi0 + (l0 / std::pow(r0, 2) + l1 / std::pow(r2, 2)) * hfdt;
 	particles[i].r_dot = r_dot1;
 	particles[i].r = r2;
 	particles[i].phi = phi2;
@@ -2161,7 +2176,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	    sqr = k2_phi_dot / sk;
 	    err += sqr * sqr;
 
-		err = std::sqrt(err / (double)(4));
+	    err = std::sqrt(err / (double)(4));
 	    // computation of hnew
 	    fac11 = pow(err, expo1);
 	    // Lund-stabilization
@@ -2438,8 +2453,8 @@ void move(void)
 	return;
 
     // check if particles are still on correct node
-	double local_r_min_squared = std::pow(local_r_min, 2);
-	double local_r_max_squared = std::pow(local_r_max, 2);
+    double local_r_min_squared = std::pow(local_r_min, 2);
+    double local_r_max_squared = std::pow(local_r_max, 2);
 
     // move particles inwards starting from the outer most node
 
@@ -2570,13 +2585,14 @@ void write(unsigned int timestep)
     MPI_File fh;
     MPI_Status status;
 
-    const std::string filename = std::string(OUTPUTDIR) + "/particles" + std::to_string(timestep) + ".dat";
+    const std::string filename = std::string(OUTPUTDIR) + "/particles" +
+				 std::to_string(timestep) + ".dat";
 
     // try to open file
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
-				  MPI_MODE_WRONLY | MPI_MODE_CREATE,
-				  MPI_INFO_NULL, &fh),
-				  filename);
+					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
+					     MPI_INFO_NULL, &fh),
+			       filename);
 
     // get number of local particles from all nodes to compute correct offsets
     std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
@@ -2618,11 +2634,11 @@ void rotate(const double angle)
 	    double &vy = particles[i].phi_dot;
 
 	    // rotate positions
-		x = x_old * std::cos(angle) + y_old * std::sin(angle);
-		y = -x_old * std::sin(angle) + y_old * std::cos(angle);
+	    x = x_old * std::cos(angle) + y_old * std::sin(angle);
+	    y = -x_old * std::sin(angle) + y_old * std::cos(angle);
 	    // rotate velocities
-		vx = vx_old * std::cos(angle) + vy_old * std::sin(angle);
-		vy = -vx_old * std::sin(angle) + vy_old * std::cos(angle);
+	    vx = vx_old * std::cos(angle) + vy_old * std::sin(angle);
+	    vy = -vx_old * std::sin(angle) + vy_old * std::cos(angle);
 	} else {
 	    particles[i].phi -= angle;
 	    check_angle(particles[i].phi);

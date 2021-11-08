@@ -35,9 +35,12 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 				  bool force_update);
 void calculate_massflow(t_data &data, unsigned int timestep, bool force_update);
-void calculate_advection_torque(t_data &data, unsigned int timestep, bool force_update);
-void calculate_gravitational_torque(t_data &data, unsigned int timestep, bool force_update);
-void calculate_viscous_torque(t_data &data, unsigned int timestep, bool force_update);
+void calculate_advection_torque(t_data &data, unsigned int timestep,
+				bool force_update);
+void calculate_gravitational_torque(t_data &data, unsigned int timestep,
+				    bool force_update);
+void calculate_viscous_torque(t_data &data, unsigned int timestep,
+			      bool force_update);
 } // namespace quantities
 
 #endif // QUANTITIES_H

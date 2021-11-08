@@ -35,21 +35,20 @@ int OuterSourceMass, CICPlanet;
 #include "options.h"
 #include <sys/stat.h>
 
-
 void get_polytropic_constants(double &K, double &gamma)
 {
-	// P_poly = K * Sigma**gamma
-	// P_poly = K * Sigma0**gamma * r**(-p * gamma)
-	// P_iso = Sigma * C_s**2
-	// with Sigma = Sigma0 * r**(-p); C_s = h * vk * r**(F)
-	// P_iso = Sigma0 * h**2 * G*M * r**(-1) * r**(2*F)
-	// P_iso = Sigma0 * h**2 * G*M * r**(-1 - p + 2*F)
-	// through comparisson of coefficients, we find the following relations:
-	const double p = SIGMASLOPE;
-	const double F = FLARINGINDEX;
-	const double h = ASPECTRATIO_REF;
-	gamma = (-1.0 - p + 2.0*F)/(-p);
-	K = std::pow(h, 2) * std::pow(parameters::sigma0, 1.0-gamma);
+    // P_poly = K * Sigma**gamma
+    // P_poly = K * Sigma0**gamma * r**(-p * gamma)
+    // P_iso = Sigma * C_s**2
+    // with Sigma = Sigma0 * r**(-p); C_s = h * vk * r**(F)
+    // P_iso = Sigma0 * h**2 * G*M * r**(-1) * r**(2*F)
+    // P_iso = Sigma0 * h**2 * G*M * r**(-1 - p + 2*F)
+    // through comparisson of coefficients, we find the following relations:
+    const double p = SIGMASLOPE;
+    const double F = FLARINGINDEX;
+    const double h = ASPECTRATIO_REF;
+    gamma = (-1.0 - p + 2.0 * F) / (-p);
+    K = std::pow(h, 2) * std::pow(parameters::sigma0, 1.0 - gamma);
 }
 
 static std::string getFileName(const std::string &s)
@@ -98,19 +97,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
 
-	constants::initialize_constants();
+    constants::initialize_constants();
 
-	// now we now everything to compute unit factors
-	units::calculate_unit_factors();
+    // now we now everything to compute unit factors
+    units::calculate_unit_factors();
 
-	// TODO: This should definitely done in parameters.cpp, where values are
-	// read, but parameters::read() is called before
-	// units::calculate_unit_factors() so it is not possible. Moving the read()
-	// call causes an error.
-	parameters::apply_units();
+    // TODO: This should definitely done in parameters.cpp, where values are
+    // read, but parameters::read() is called before
+    // units::calculate_unit_factors() so it is not possible. Moving the read()
+    // call causes an error.
+    parameters::apply_units();
 
-	parameters::ShockTube = config::value_as_bool_default("ShockTube", 0);
-	parameters::SpreadingRing =
+    parameters::ShockTube = config::value_as_bool_default("ShockTube", 0);
+    parameters::SpreadingRing =
 	config::value_as_bool_default("SpreadingRing", NO);
 
     SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
@@ -231,8 +230,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
-	double optimal_N_azimuthal =
-			M_PI / ((std::exp(c / NRadial) - 1.0) / (std::exp(c / NRadial) + 1.0));
+	double optimal_N_azimuthal = M_PI / ((std::exp(c / NRadial) - 1.0) /
+					     (std::exp(c / NRadial) + 1.0));
 
 	// check if optimal azimuthal cell number differs from actual azimuthal
 	// cell number by more than 10%
@@ -245,8 +244,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	}
     }
 
-	dphi = 2.0 * M_PI / (double)NAzimuthal;
-	invdphi = (double)NAzimuthal / (2.0 * M_PI);
+    dphi = 2.0 * M_PI / (double)NAzimuthal;
+    invdphi = (double)NAzimuthal / (2.0 * M_PI);
 
     // disc
     ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
@@ -308,41 +307,40 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	"Indirect terms are now handled automatically to avoid unphysical settings.",
 	"Please remove the setting.");
 
-	/// EoS can only be read after apply_units(), because fitting
-	/// polytropic constants requires parameters::sigma0 to be in code units.
-	// Energy equation / Adiabatic
-	char Adiabatic_deprecated =
+    /// EoS can only be read after apply_units(), because fitting
+    /// polytropic constants requires parameters::sigma0 to be in code units.
+    // Energy equation / Adiabatic
+    char Adiabatic_deprecated =
 	tolower(*config::value_as_string_default("Adiabatic", "false"));
 
-	if (Adiabatic_deprecated == 'n') {
+    if (Adiabatic_deprecated == 'n') {
 	logging::print_master(
-		LOG_INFO
-		"Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
-	}
-	if (Adiabatic_deprecated == 'y') {
+	    LOG_INFO
+	    "Warning : Setting the isothermal equation of state with the flag 'Adiabatic   NO' is deprecated. Use 'EquationOfState   Isothermal' instead.\n");
+    }
+    if (Adiabatic_deprecated == 'y') {
 	parameters::Adiabatic = true;
 	logging::print_master(
-		LOG_INFO
-		"Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
+	    LOG_INFO
+	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
 	ADIABATICINDEX =
-		config::value_as_double_default("AdiabaticIndex", 7.0 / 5.0);
+	    config::value_as_double_default("AdiabaticIndex", 7.0 / 5.0);
 	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
-		logging::print_master(
+	    logging::print_master(
 		LOG_WARNING
 		"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
-		parameters::Adiabatic = false;
+	    parameters::Adiabatic = false;
 	}
-	} else {
+    } else {
 	char eos_string[512];
 	strncpy(
-		eos_string,
-		config::value_as_string_default("EquationOfState", "Isothermal"),
-		256); // same as MAXNAME from config.cpp
+	    eos_string,
+	    config::value_as_string_default("EquationOfState", "Isothermal"),
+	    256); // same as MAXNAME from config.cpp
 	for (char *t = eos_string; *t != '\0'; ++t) {
-		*t = tolower(*t);
+	    *t = tolower(*t);
 	}
-
 
 	bool could_read_eos = false;
 	if (strcmp(eos_string, "isothermal") == 0 ||
@@ -351,110 +349,116 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    parameters::Adiabatic = false;
 	    parameters::Polytropic = false;
 	    parameters::Locally_Isothermal = true;
-		ADIABATICINDEX = config::value_as_double_default(
-			"AdiabaticIndex", 7.0 / 5.0);
-	    logging::print_master(LOG_INFO
-				  "Using isothermal equation of state. AdiabaticIndex = %.3f.\n", ADIABATICINDEX);
+	    ADIABATICINDEX =
+		config::value_as_double_default("AdiabaticIndex", 7.0 / 5.0);
+	    logging::print_master(
+		LOG_INFO
+		"Using isothermal equation of state. AdiabaticIndex = %.3f.\n",
+		ADIABATICINDEX);
 	}
 	if (strcmp(eos_string, "adiabatic") == 0 ||
-		strcmp(eos_string, "ideal") == 0) {
-		could_read_eos = true;
+	    strcmp(eos_string, "ideal") == 0) {
+	    could_read_eos = true;
 
-		// Energy equation / Adiabatic
-		parameters::Adiabatic = true;
+	    // Energy equation / Adiabatic
+	    parameters::Adiabatic = true;
 
-		char ADIABATICINDEX_string[512];
-		strncpy(
+	    char ADIABATICINDEX_string[512];
+	    strncpy(
 		ADIABATICINDEX_string,
 		config::value_as_string_default("AdiabaticIndex", "7.0/5.0"),
 		256); // same as MAXNAME from config.cpp
-		for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
+	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
-		}
+	    }
 
-		if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
+	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
 		logging::print_master(
-			LOG_ERROR
-			"Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
+		    LOG_ERROR
+		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
-		} else {
+	    } else {
 		ADIABATICINDEX = config::value_as_double_default(
-			"AdiabaticIndex", 7.0 / 5.0);
-		}
+		    "AdiabaticIndex", 7.0 / 5.0);
+	    }
 
-		if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
+	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
 		logging::print_master(
-			LOG_WARNING
-			"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+		    LOG_WARNING
+		    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 		parameters::Adiabatic = false;
 	    }
-		logging::print_master(LOG_INFO "Using ideal equation of state. AdiabaticIndex = %.3f.\n", ADIABATICINDEX);
+	    logging::print_master(
+		LOG_INFO
+		"Using ideal equation of state. AdiabaticIndex = %.3f.\n",
+		ADIABATICINDEX);
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||
-		strcmp(eos_string, "polytrop") == 0 ||
-		strcmp(eos_string, "poly") == 0) {
-		could_read_eos = true;
+	    strcmp(eos_string, "polytrop") == 0 ||
+	    strcmp(eos_string, "poly") == 0) {
+	    could_read_eos = true;
 
-		// Equation of state / Polytropic
-		parameters::Polytropic = true;
-		double K = 0.0;
-		double gamma = 0.0;
+	    // Equation of state / Polytropic
+	    parameters::Polytropic = true;
+	    double K = 0.0;
+	    double gamma = 0.0;
 
-		char ADIABATICINDEX_string[512];
-		strncpy(ADIABATICINDEX_string,
-			config::value_as_string_default("AdiabaticIndex", "2.0"),
-			256); // same as MAXNAME from config.cpp
-		for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
+	    char ADIABATICINDEX_string[512];
+	    strncpy(ADIABATICINDEX_string,
+		    config::value_as_string_default("AdiabaticIndex", "2.0"),
+		    256); // same as MAXNAME from config.cpp
+	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
-		}
+	    }
 
-		if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
+	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
 		get_polytropic_constants(K, gamma);
 		ADIABATICINDEX = gamma;
-		} else {
+	    } else {
 		ADIABATICINDEX =
-			config::value_as_double_default("AdiabaticIndex", 2.0);
-		}
+		    config::value_as_double_default("AdiabaticIndex", 2.0);
+	    }
 
-		char POLYTROPIC_CONSTANT_string[512];
-		strncpy(
+	    char POLYTROPIC_CONSTANT_string[512];
+	    strncpy(
 		POLYTROPIC_CONSTANT_string,
 		config::value_as_string_default("PolytropicConstant", "12.753"),
 		256); // same as MAXNAME from config.cpp
-		for (char *t = POLYTROPIC_CONSTANT_string; *t != '\0'; ++t) {
+	    for (char *t = POLYTROPIC_CONSTANT_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
-		}
+	    }
 
-		if (strcmp(POLYTROPIC_CONSTANT_string, "fit_isothermal") == 0 ||
+	    if (strcmp(POLYTROPIC_CONSTANT_string, "fit_isothermal") == 0 ||
 		strcmp(POLYTROPIC_CONSTANT_string, "fit isothermal") == 0) {
 		if (K == 0.0) // Call script only if needed
 		{
-			get_polytropic_constants(K, gamma);
+		    get_polytropic_constants(K, gamma);
 		}
 		POLYTROPIC_CONSTANT = K;
-		} else {
+	    } else {
 		POLYTROPIC_CONSTANT = config::value_as_double_default(
-			"PolytropicConstant", 12.753);
-		}
+		    "PolytropicConstant", 12.753);
+	    }
 
-		if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
+	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
 		logging::print_master(
-			LOG_WARNING
-			"You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
+		    LOG_WARNING
+		    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
 		parameters::Polytropic = false;
 	    }
-	    logging::print_master(LOG_INFO
-				  "Using polytropic equation of state. AdiabaticIndex = %.3f.\n", ADIABATICINDEX);
+	    logging::print_master(
+		LOG_INFO
+		"Using polytropic equation of state. AdiabaticIndex = %.3f.\n",
+		ADIABATICINDEX);
 	}
-
 
 	if (!could_read_eos)
-		die("Invalid setting for Energy Equation:   %s\n",
+	    die("Invalid setting for Energy Equation:   %s\n",
 		config::value_as_string("EquationOfState"));
-	}
+    }
 
     if (!parameters::Adiabatic) // if energy is not needed, delete the energy
 				// damping boundary conditions
@@ -484,18 +488,18 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     ALPHAVISCOSITY = config::value_as_double_default("ALPHAVISCOSITY", 0.0);
     VISCOSITY = config::value_as_double_default("VISCOSITY", 0.0);
 
-	if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
+    if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
 	(parameters::artificial_viscosity_factor == 0.0 ||
 	 parameters::artificial_viscosity ==
-		 parameters::artificial_viscosity_none) &&
+	     parameters::artificial_viscosity_none) &&
 	VISCOSITY == 0.0) {
 	logging::print_master(
-		LOG_ERROR
-		"You cannot use super time-stepping without any viscosity!\n");
+	    LOG_ERROR
+	    "You cannot use super time-stepping without any viscosity!\n");
 	PersonalExit(1);
-	}
+    }
 
-	STS_NU = config::value_as_double_default("STSNU", 0.01);
+    STS_NU = config::value_as_double_default("STSNU", 0.01);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
@@ -516,7 +520,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	logging::print_master(
 	    LOG_ERROR
 	    "A non-vanishing potential smoothing length is required.\n");
-	}
+    }
 
     // Add a trailing slash to OUTPUTDIR if needed
     if (OUTPUTDIR[strlen(OUTPUTDIR) - 1] != '/') {
@@ -526,28 +530,31 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	OUTPUTDIR[size + 1] = 0;
     }
 
-	const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
-	if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
+    const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
+    if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
 	ASPECTRATIO_REF =
-		sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
+	    sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
 		 constants::R / parameters::MU);
 
-	StabilizeViscosity =
-	config::value_as_int_default("STABILIZEVISCOSITY", 0);
+    StabilizeViscosity = config::value_as_int_default("STABILIZEVISCOSITY", 0);
 
-	if(StabilizeViscosity == 1){
-		logging::print_master(LOG_INFO "Using pseudo implicit viscosity to limit the viscosity update step\n");
-	}
-	if(StabilizeViscosity == 2){
-		logging::print_master(LOG_INFO "Using pseudo implicit viscosity to limit the time step size\n");
-	}
+    if (StabilizeViscosity == 1) {
+	logging::print_master(
+	    LOG_INFO
+	    "Using pseudo implicit viscosity to limit the viscosity update step\n");
+    }
+    if (StabilizeViscosity == 2) {
+	logging::print_master(
+	    LOG_INFO
+	    "Using pseudo implicit viscosity to limit the time step size\n");
+    }
 
-	const bool VISCOSITY_in_CGS =
+    const bool VISCOSITY_in_CGS =
 	config::value_as_bool_default("VISCOSITYINCGS", false);
-	if (VISCOSITY_in_CGS) {
+    if (VISCOSITY_in_CGS) {
 	VISCOSITY =
-		VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
-	}
+	    VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
+    }
 }
 
 void PrintUsage(char *execname)

@@ -32,14 +32,13 @@ static size_t bufferSize;
 /// flag if buffers for boundary communication already have been allocated
 static int buffersAllocated = 0;
 
-
 void DeallocateBoundaryCommunicationBuffers()
 {
-	/* deallocate the buffers */
-	free(SendInnerBoundary);
-	free(SendOuterBoundary);
-	free(RecvInnerBoundary);
-	free(RecvOuterBoundary);
+    /* deallocate the buffers */
+    free(SendInnerBoundary);
+    free(SendOuterBoundary);
+    free(RecvInnerBoundary);
+    free(RecvOuterBoundary);
 }
 
 /**
@@ -53,9 +52,9 @@ void AllocateBoundaryCommunicationBuffers()
     bufferSize = 3;
 
     /* if we calculate adiabatic, energy is additional needed */
-	if (parameters::Adiabatic){
+    if (parameters::Adiabatic) {
 	bufferSize++;
-	}
+    }
 
     /* each variable has to be stored NAzimuthal times overlap cells. */
     bufferSize *= NAzimuthal * CPUOVERLAP;
@@ -93,9 +92,9 @@ void CommunicateBoundaries(t_polargrid *Density, t_polargrid *Vrad,
     MPI_Request req1, req2, req3, req4;
 
     // check if buffers have already been allocted
-	if (!buffersAllocated){
+    if (!buffersAllocated) {
 	AllocateBoundaryCommunicationBuffers();
-	}
+    }
 
     ptrdiff_t l = CPUOVERLAP * NAzimuthal;
     ptrdiff_t oo = (Density->Nrad - CPUOVERLAP) * NAzimuthal;

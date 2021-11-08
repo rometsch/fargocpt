@@ -104,13 +104,12 @@ static void add_to_config_list(const char *key, const char *value)
 void free_config_list()
 {
 
-	for(unsigned int i = 0; i < list.size;++i){
-		free(list.data[i].key);
-		free(list.data[i].value);
-	}
-	free(list.data);
+    for (unsigned int i = 0; i < list.size; ++i) {
+	free(list.data[i].key);
+	free(list.data[i].value);
+    }
+    free(list.data);
 }
-
 
 /**
 	check if a char is a valid key character
@@ -344,10 +343,9 @@ int read_config_from_file(const char *filename)
 	file_name = NULL;
     }
 
-	if(f != NULL)
-	{
-		fclose(f);
-	}
+    if (f != NULL) {
+	fclose(f);
+    }
     return ret;
 }
 

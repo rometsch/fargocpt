@@ -15,51 +15,51 @@ class t_data
     ~t_data();
 
     enum t_polargrid_type {
-	DENSITY,	     // surface density
-	V_RADIAL,	     // radial velocity
-	V_AZIMUTHAL,	     // azimuthal velocity
-	ENERGY,		     // energy
-	TEMPERATURE,	     // temperature
-	PRESSURE,	     // pressure
-	SOUNDSPEED,	     // soundspeed c_s (introduced by Fargo-ADSG)
-	ACCEL_RADIAL,	     // gas accerleration in r direction
-	ACCEL_AZIMUTHAL,	     // gas acceleration in phi direction
-	TOOMRE,		     // Toomre parameter Q
-	ECCENTRICITY,	     // disk eccentricity
-	PERIASTRON,	     // disk periastron
-	ALPHA_GRAV,	     // alpha grav
-	ALPHA_GRAV_MEAN,     // alpha grav time average
-	ALPHA_REYNOLDS,	     // alpha reynolds
-	ALPHA_REYNOLDS_MEAN, // alpha reynolds time average
-	V_RADIAL0,	     // radial velocity at beginning
-	V_AZIMUTHAL0,	     // azimuthal velocity at beginning
-	DENSITY0,	     // radial velocity at beginning
-	ENERGY0,	     // azimuthal velocity at beginning
-	KAPPA,		     // opacity
-	TAU_COOL,	     // cooling time
-	QPLUS,		     // heating terms
-	QMINUS,		     // cooling terms
-	P_DIVV,		     // pdV work
-	VISCOSITY,	     // (kinematic) viscosity
-	ARTIFICIAL_VISCOSITY,	     // (artificial) viscosity
+	DENSITY,	      // surface density
+	V_RADIAL,	      // radial velocity
+	V_AZIMUTHAL,	      // azimuthal velocity
+	ENERGY,		      // energy
+	TEMPERATURE,	      // temperature
+	PRESSURE,	      // pressure
+	SOUNDSPEED,	      // soundspeed c_s (introduced by Fargo-ADSG)
+	ACCEL_RADIAL,	      // gas accerleration in r direction
+	ACCEL_AZIMUTHAL,      // gas acceleration in phi direction
+	TOOMRE,		      // Toomre parameter Q
+	ECCENTRICITY,	      // disk eccentricity
+	PERIASTRON,	      // disk periastron
+	ALPHA_GRAV,	      // alpha grav
+	ALPHA_GRAV_MEAN,      // alpha grav time average
+	ALPHA_REYNOLDS,	      // alpha reynolds
+	ALPHA_REYNOLDS_MEAN,  // alpha reynolds time average
+	V_RADIAL0,	      // radial velocity at beginning
+	V_AZIMUTHAL0,	      // azimuthal velocity at beginning
+	DENSITY0,	      // radial velocity at beginning
+	ENERGY0,	      // azimuthal velocity at beginning
+	KAPPA,		      // opacity
+	TAU_COOL,	      // cooling time
+	QPLUS,		      // heating terms
+	QMINUS,		      // cooling terms
+	P_DIVV,		      // pdV work
+	VISCOSITY,	      // (kinematic) viscosity
+	ARTIFICIAL_VISCOSITY, // (artificial) viscosity
 	VISCOSITY_CORRECTION_FACTOR_R,
 	VISCOSITY_CORRECTION_FACTOR_PHI,
 	VISCOSITY_SIGMA_RP,
 	VISCOSITY_SIGMA,
-	TAU_R_R,	     // viscous stress tensor r,r component
-	TAU_R_PHI,	     // viscous stress tensor r,phi component
-	TAU_PHI_PHI,	     // viscous stress tensor phi,phi component
-	DIV_V,		     // divergence of velocity used for viscosity
-	T_REYNOLDS,	     // Reynold Stress tensor
-	T_GRAVITATIONAL,     // graviational Stress tensor
+	TAU_R_R,	 // viscous stress tensor r,r component
+	TAU_R_PHI,	 // viscous stress tensor r,phi component
+	TAU_PHI_PHI,	 // viscous stress tensor phi,phi component
+	DIV_V,		 // divergence of velocity used for viscosity
+	T_REYNOLDS,	 // Reynold Stress tensor
+	T_GRAVITATIONAL, // graviational Stress tensor
 	POTENTIAL, // the gravitational potential felt by any fluid elements
 		   // (introduced by Fargo-ADSG)
-				 // 1)
-	DENSITY_INT,	 //
-	Q_R,		 //
-	Q_PHI,		 //
-	TAU,		 // optical depth
-	TAU_EFF,	 // effective optical depth (in vertical direction)
+		   // 1)
+	DENSITY_INT, //
+	Q_R,	     //
+	Q_PHI,	     //
+	TAU,	     // optical depth
+	TAU_EFF,     // effective optical depth (in vertical direction)
 	ASPECTRATIO, // aspect ratio H/r
 	VISIBILITY,  //
 	TORQUE,
@@ -78,7 +78,7 @@ class t_data
     };
 
     enum t_radialgrid_type {
-	LUMINOSITY_1D,		//
+	LUMINOSITY_1D, //
 	DISSIPATION_1D,
 	TORQUE_1D,
 

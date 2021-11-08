@@ -70,25 +70,25 @@ const std::map<const std::string, const int> planet_file_column_v2_1 = {
 
 // file version 2.2
 const std::map<const std::string, const int> planet_file_column_v2_2 = {
-	{"time step", 0},
-	{"x", 1},
-	{"y", 2},
-	{"vx", 3},
-	{"vy", 4},
-	{"mass", 5},
-	{"physical time", 6},
-	{"omega frame", 7},
-	{"mdcp", 8},
-	{"exces mdcp", 9},
-	{"eccentricity", 10},
-	{"angular momentum", 11},
-	{"semi-major axis", 12},
-	{"omega kepler", 13},
-	{"mean anomaly", 14},
-	{"eccentric anomaly", 15},
-	{"true anomaly", 16},
-	{"pericenter angle", 17},
-	{"torque", 18}};
+    {"time step", 0},
+    {"x", 1},
+    {"y", 2},
+    {"vx", 3},
+    {"vy", 4},
+    {"mass", 5},
+    {"physical time", 6},
+    {"omega frame", 7},
+    {"mdcp", 8},
+    {"exces mdcp", 9},
+    {"eccentricity", 10},
+    {"angular momentum", 11},
+    {"semi-major axis", 12},
+    {"omega kepler", 13},
+    {"mean anomaly", 14},
+    {"eccentric anomaly", 15},
+    {"true anomaly", 16},
+    {"pericenter angle", 17},
+    {"torque", 18}};
 
 auto planet_files_column = planet_file_column_v2_2;
 
@@ -112,15 +112,10 @@ const std::map<const std::string, const std::string> variable_units = {
     {"true anomaly", "1"},
     {"pericenter angle", "1"},
     {"omega", "frequency"},
-	{"omega kepler", "frequency"},
-	{"torque", "torque"}};
+    {"omega kepler", "frequency"},
+    {"torque", "torque"}};
 
-
-
-t_planet::~t_planet()
-{
-	delete[] m_name;
-}
+t_planet::~t_planet() { delete[] m_name; }
 
 /**
 	set name of planet
@@ -145,7 +140,10 @@ double t_planet::get_phi() const { return std::atan2(m_y, m_x); }
 /**
 	get planet distance to coordinate center
 */
-double t_planet::get_r() const { return std::sqrt(std::pow(m_x, 2) + std::pow(m_y, 2)); }
+double t_planet::get_r() const
+{
+    return std::sqrt(std::pow(m_x, 2) + std::pow(m_y, 2));
+}
 
 /**
 	get ramp up mass of the planet
@@ -155,9 +153,9 @@ double t_planet::get_rampup_mass()
     double ramping = 1.0;
     if (get_rampuptime() > 0) {
 	if (PhysicalTime < get_rampuptime() * DT) {
-	    ramping =
-		1.0 -
-		std::pow(std::cos(PhysicalTime * M_PI / 2.0 / (get_rampuptime() * DT)), 2);
+	    ramping = 1.0 - std::pow(std::cos(PhysicalTime * M_PI / 2.0 /
+					      (get_rampuptime() * DT)),
+				     2);
 	}
     }
     return get_mass() * ramping;
@@ -170,7 +168,7 @@ double t_planet::get_period()
 {
     return 2.0 * M_PI *
 	   std::sqrt(std::pow(get_semi_major_axis(), 3) /
-		((hydro_center_mass + get_mass()) * constants::G));
+		     ((hydro_center_mass + get_mass()) * constants::G));
 }
 
 /**
@@ -180,7 +178,8 @@ double t_planet::get_omega()
 {
     double distance = get_r();
     if (!is_distance_zero(distance)) {
-	return std::sqrt(((hydro_center_mass + get_mass()) * constants::G) / std::pow(distance, 3));
+	return std::sqrt(((hydro_center_mass + get_mass()) * constants::G) /
+			 std::pow(distance, 3));
     } else {
 	return 0.0;
     }
@@ -192,12 +191,11 @@ double t_planet::get_omega()
 double t_planet::get_rhill()
 {
     const double r = get_r();
-	const double Mp = get_mass();
-	const double Mstar = hydro_center_mass;
-	const double rhill = std::pow(Mp/(3*Mstar), 1.0/3.0)*r;\
-	return rhill;
+    const double Mp = get_mass();
+    const double Mstar = hydro_center_mass;
+    const double rhill = std::pow(Mp / (3 * Mstar), 1.0 / 3.0) * r;
+    return rhill;
 }
-
 
 /**
 	get angular momentum of planet
@@ -267,7 +265,7 @@ void t_planet::write(unsigned int timestep, bool big_file)
 	return;
 
     FILE *fd;
-	char *filename = 0;
+    char *filename = 0;
 
     // create filename
     if (asprintf(&filename, big_file ? "%sbigplanet%u.dat" : "%splanet%u.dat",
@@ -291,8 +289,7 @@ void t_planet::write(unsigned int timestep, bool big_file)
 	PhysicalTime, OmegaFrame, mdcp, exces_mdcp, get_eccentricity(),
 	get_angular_momentum(), get_semi_major_axis(), get_omega(),
 	get_mean_anomaly(), get_eccentric_anomaly(), get_true_anomaly(),
-	get_pericenter_angle(),
-	get_torque());
+	get_pericenter_angle(), get_torque());
 
     // close file
     fclose(fd);
@@ -300,17 +297,17 @@ void t_planet::write(unsigned int timestep, bool big_file)
 
 void t_planet::restart(unsigned int timestep)
 {
-	m_x = get_value_from_file(timestep, "x");
-	m_y = get_value_from_file(timestep, "y");
-	m_vx = get_value_from_file(timestep, "vx");
-	m_vy = get_value_from_file(timestep, "vy");
-	m_mass = get_value_from_file(timestep, "mass");
+    m_x = get_value_from_file(timestep, "x");
+    m_y = get_value_from_file(timestep, "y");
+    m_vx = get_value_from_file(timestep, "vx");
+    m_vy = get_value_from_file(timestep, "vy");
+    m_mass = get_value_from_file(timestep, "mass");
 }
 
 double t_planet::get_value_from_file(unsigned int timestep,
-					 std::string variable_name)
+				     std::string variable_name)
 {
-	double value;
+    double value;
     int column = -1;
 
     std::string filename = std::string(OUTPUTDIR) + "planet" +
@@ -356,7 +353,7 @@ void t_planet::set_orbital_elements_zero()
     m_true_anomaly = 0.0;
     m_eccentric_anomaly = 0.0;
     m_pericenter_angle = 0.0;
-	m_torque = 0;
+    m_torque = 0;
 }
 
 void t_planet::calculate_orbital_elements(double x, double y, double vx,
@@ -370,14 +367,14 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
     double m = com_mass + get_mass();
 
     h = x * vy - y * vx;
-	d = std::sqrt(x * x + y * y);
+    d = std::sqrt(x * x + y * y);
     if (is_distance_zero(d) || h == 0.0) {
 	set_orbital_elements_zero();
 	return;
     }
     Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
     Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
-	e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
+    e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
     a = h * h / constants::G / m / (1.0 - e * e);
 
     if (e != 0.0) {
@@ -389,7 +386,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	    // E = acos(-1)
 	    E = M_PI;
 	} else {
-		E = std::acos(temp);
+	    E = std::acos(temp);
 	}
     } else {
 	E = 0.0;
@@ -399,7 +396,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	E = -E;
     }
 
-	M = E - e * std::sin(E);
+    M = E - e * std::sin(E);
 
     if (e != 0.0) {
 	temp = (a * (1.0 - e * e) / d - 1.0) / e;
@@ -410,7 +407,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	    // V = acos(-1)
 	    V = M_PI;
 	} else {
-		V = std::acos(temp);
+	    V = std::acos(temp);
 	}
     } else {
 	V = 0.0;

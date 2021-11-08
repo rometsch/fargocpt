@@ -8,14 +8,14 @@
 #include "constants.h"
 #include "global.h"
 #include "logging.h"
+#include "mpi_utils.h"
 #include "util.h"
 #include <cfloat>
-#include <gsl/gsl_spline.h>
-#include <mpi.h>
-#include "mpi_utils.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <gsl/gsl_spline.h>
+#include <mpi.h>
 
 t_polargrid::t_polargrid()
 {
@@ -30,8 +30,8 @@ t_polargrid::t_polargrid()
     m_calculate_on_write = false;
     m_write_max_max_1D = true;
     m_do_before_write = NULL;
-	m_clear_after_write = false;
-	m_integrate_1D_for_write = false;
+    m_clear_after_write = false;
+    m_integrate_1D_for_write = false;
 }
 
 t_polargrid::~t_polargrid()
@@ -63,8 +63,8 @@ void t_polargrid::set_size(ptrdiff_t size_radial, ptrdiff_t size_azimuthal)
 */
 void t_polargrid::set_name(const char *name)
 {
-	// delete old name
-	delete[] m_name;
+    // delete old name
+    delete[] m_name;
 
     // aquire space for new name
     m_name = new char[strlen(name) + 1];
@@ -86,7 +86,7 @@ void t_polargrid::set_scalar(bool value) { m_scalar = value; }
 */
 void t_polargrid::clear()
 {
-	memset(Field, 0, get_size_radial() * get_size_azimuthal() * sizeof(*Field));
+    memset(Field, 0, get_size_radial() * get_size_azimuthal() * sizeof(*Field));
 }
 
 void t_polargrid::write(unsigned int number, t_data &data)
@@ -95,19 +95,19 @@ void t_polargrid::write(unsigned int number, t_data &data)
 	if (m_do_before_write != NULL) {
 	    (*m_do_before_write)(data, number, false);
 	}
-	}
+    }
 
-	if (get_write_1D()){
+    if (get_write_1D()) {
 	write1D(number);
-	}
+    }
 
-	if (get_write_2D()){
+    if (get_write_2D()) {
 	write2D(number);
-	}
+    }
 
-	if(get_clear_after_write()){
-		clear();
-	}
+    if (get_clear_after_write()) {
+	clear();
+    }
 }
 
 /**
@@ -127,10 +127,10 @@ void t_polargrid::write2D(unsigned int number) const
 				 std::string(get_name()) +
 				 std::to_string(number) + ".dat";
 
-
-	mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
-		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh), filename);
-
+    mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
+					     MPI_INFO_NULL, &fh),
+			       filename);
 
     MPI_File_set_view(fh, 0, MPI_DOUBLE, MPI_DOUBLE,
 		      const_cast<char *>("native"), MPI_INFO_NULL);
@@ -202,16 +202,16 @@ void t_polargrid::write1D(unsigned int number) const
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rb : Ra;
 
-
     const std::string filename = std::string(OUTPUTDIR) + "/gas" +
-				 std::string(get_name()) + + "1D" +
+				 std::string(get_name()) + +"1D" +
 				 std::to_string(number) + ".dat";
 
     // try to open file
-    mpi_error_check_file_write(
-	MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
-		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh), filename);
-    
+    mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
+					     MPI_INFO_NULL, &fh),
+			       filename);
+
     if (m_write_max_max_1D) {
 	// min/max need additional two values
 	number_of_values += 2;
@@ -242,7 +242,7 @@ void t_polargrid::write1D(unsigned int number) const
 	count -= CPUOVERLAP;
     }
 
-	double *buffer;
+    double *buffer;
     buffer = new double[number_of_values * count];
 
     for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
@@ -255,8 +255,9 @@ void t_polargrid::write1D(unsigned int number) const
 		from + n_radial, n_azimuthal);
 	}
 
-	if(!get_integrate_azimuthally_for_1D_write()){
-		buffer[number_of_values * n_radial + 1] /= (double)get_size_azimuthal();
+	if (!get_integrate_azimuthally_for_1D_write()) {
+	    buffer[number_of_values * n_radial + 1] /=
+		(double)get_size_azimuthal();
 	}
     }
 
@@ -271,11 +272,11 @@ void t_polargrid::write1D(unsigned int number) const
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= get_max_azimuthal(); ++n_azimuthal) {
 		buffer[number_of_values * n_radial + 2] =
-			std::min(buffer[number_of_values * n_radial + 2],
-			operator()(from + n_radial, n_azimuthal));
+		    std::min(buffer[number_of_values * n_radial + 2],
+			     operator()(from + n_radial, n_azimuthal));
 		buffer[number_of_values * n_radial + 3] =
-			std::max(buffer[number_of_values * n_radial + 3],
-			operator()(from + n_radial, n_azimuthal));
+		    std::max(buffer[number_of_values * n_radial + 3],
+			     operator()(from + n_radial, n_azimuthal));
 	    }
 	}
     }
@@ -294,7 +295,7 @@ void t_polargrid::write1D(unsigned int number) const
 	}
     }
 
-	MPI_File_write_all(fh, buffer, count * number_of_values, MPI_DOUBLE,
+    MPI_File_write_all(fh, buffer, count * number_of_values, MPI_DOUBLE,
 		       &status);
 
     delete[] buffer;
@@ -337,8 +338,8 @@ void t_polargrid::read2D(const char *_filename)
     count = (GlobalNRadial + (is_scalar() ? 0 : 1)) * Nsec * sizeof(double);
 
     if (count != size) {
-	die("Filename '%s' has %u bytes but has to be %u bytes.", filename.c_str(),
-	    size, count);
+	die("Filename '%s' has %u bytes but has to be %u bytes.",
+	    filename.c_str(), size, count);
     }
 
     logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",

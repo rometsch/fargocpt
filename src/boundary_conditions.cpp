@@ -14,11 +14,10 @@
 #include <math.h>
 #include <vector>
 
+#include "constants.h"
 #include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
-#include "constants.h"
-
 
 // temporary
 #include "LowTasks.h"
@@ -29,146 +28,178 @@ extern std::vector<parameters::t_DampingType> parameters::damping_vector;
 namespace boundary_conditions
 {
 
-void init_prescribed_time_variable_boundaries(t_data &data){
+void init_prescribed_time_variable_boundaries(t_data &data)
+{
 
-	// delete old data
-	if(data[t_data::PRESCRIBED_DENSITY_OUTER].Field == nullptr){
+    // delete old data
+    if (data[t_data::PRESCRIBED_DENSITY_OUTER].Field == nullptr) {
 	delete[] data[t_data::PRESCRIBED_DENSITY_OUTER].Field;
 	data[t_data::PRESCRIBED_DENSITY_OUTER].Field = nullptr;
-	}
-	if(data[t_data::PRESCRIBED_ENERGY_OUTER].Field == nullptr){
+    }
+    if (data[t_data::PRESCRIBED_ENERGY_OUTER].Field == nullptr) {
 	delete[] data[t_data::PRESCRIBED_ENERGY_OUTER].Field;
 	data[t_data::PRESCRIBED_ENERGY_OUTER].Field = nullptr;
-	}
-	if(data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field == nullptr){
+    }
+    if (data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field == nullptr) {
 	delete[] data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field;
 	data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field = nullptr;
-	}
-	if(data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field == nullptr){
+    }
+    if (data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field == nullptr) {
 	delete[] data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field;
 	data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field = nullptr;
+    }
+
+    if (CPU_Rank != 0 && CPU_Rank != CPU_Highest)
+	return;
+
+    if (CPU_Rank == 0) {
+	if (parameters::boundary_inner ==
+	    parameters::boundary_condition_precribed_time_variable) {
+	    die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	}
+    }
 
-	if(CPU_Rank != 0 && CPU_Rank != CPU_Highest)
-		return;
-
-	if(CPU_Rank == 0){
-	if(parameters::boundary_inner == parameters::boundary_condition_precribed_time_variable){
-		die("Inner precribed time variable boundary condition is not implemented yet!\n");
-	}
-	}
-
-
-	if(CPU_Rank == CPU_Highest){
-	if(parameters::boundary_outer == parameters::boundary_condition_precribed_time_variable){
-	if(PRESCRIBED_BOUNDARY_OUTER_FILE == NULL){
+    if (CPU_Rank == CPU_Highest) {
+	if (parameters::boundary_outer ==
+	    parameters::boundary_condition_precribed_time_variable) {
+	    if (PRESCRIBED_BOUNDARY_OUTER_FILE == NULL) {
 		die("Outer prescribed time variable boundary condition is enabled but the supplied file folder is not found!\n");
-	} else {
-
+	    } else {
 
 		// TODO: naming convention might need adjustment
-		const int Nphi = data[t_data::PRESCRIBED_DENSITY_OUTER].get_size_azimuthal();
-		char* file_name_body_char;
-		asprintf(&file_name_body_char, "%s/%dshift",PRESCRIBED_BOUNDARY_OUTER_FILE, Nphi);
+		const int Nphi =
+		    data[t_data::PRESCRIBED_DENSITY_OUTER].get_size_azimuthal();
+		char *file_name_body_char;
+		asprintf(&file_name_body_char, "%s/%dshift",
+			 PRESCRIBED_BOUNDARY_OUTER_FILE, Nphi);
 		std::string file_name_body{file_name_body_char};
-
 
 		// get number of files
 		int num_files = 0;
-		const std::experimental::filesystem::path File_Folder{PRESCRIBED_BOUNDARY_OUTER_FILE};
-		for(auto const& dir_entry: std::experimental::filesystem::directory_iterator{File_Folder}){
-			std::string path_string{dir_entry.path()};
-			if(path_string.find(file_name_body) != std::string::npos)
-			{
+		const std::experimental::filesystem::path File_Folder{
+		    PRESCRIBED_BOUNDARY_OUTER_FILE};
+		for (auto const &dir_entry :
+		     std::experimental::filesystem::directory_iterator{
+			 File_Folder}) {
+		    std::string path_string{dir_entry.path()};
+		    if (path_string.find(file_name_body) != std::string::npos) {
 			num_files++;
-			}
+		    }
 		}
 
 		PRESCRIBED_TIME_SEGMENT_NUMBER = num_files;
 
 		// load data from files
-		int num_cells = num_files*Nphi;
+		int num_cells = num_files * Nphi;
 
 		// assign new memory
-		data[t_data::PRESCRIBED_DENSITY_OUTER].Field = new double[num_cells];
-		data[t_data::PRESCRIBED_ENERGY_OUTER].Field = new double[num_cells];
-		data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field = new double[num_cells];
-		data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field = new double[num_cells];
+		data[t_data::PRESCRIBED_DENSITY_OUTER].Field =
+		    new double[num_cells];
+		data[t_data::PRESCRIBED_ENERGY_OUTER].Field =
+		    new double[num_cells];
+		data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field =
+		    new double[num_cells];
+		data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field =
+		    new double[num_cells];
 
 		// set to 0
-		memset(data[t_data::PRESCRIBED_DENSITY_OUTER].Field, 0, num_cells*sizeof(double));
-		memset(data[t_data::PRESCRIBED_ENERGY_OUTER].Field, 0, num_cells*sizeof(double));
-		memset(data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field, 0, num_cells*sizeof(double));
-		memset(data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field, 0, num_cells*sizeof(double));
-
-
+		memset(data[t_data::PRESCRIBED_DENSITY_OUTER].Field, 0,
+		       num_cells * sizeof(double));
+		memset(data[t_data::PRESCRIBED_ENERGY_OUTER].Field, 0,
+		       num_cells * sizeof(double));
+		memset(data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field, 0,
+		       num_cells * sizeof(double));
+		memset(data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field, 0,
+		       num_cells * sizeof(double));
 
 		// read data
-		for(auto const& dir_entry: std::experimental::filesystem::directory_iterator{File_Folder}){
-			std::string path_string{dir_entry.path()};
-			if(path_string.find(file_name_body) != std::string::npos)
-			{
-				int file_id = 0;
-				std::string filename = file_name_body + "%d.dat";
-				std::sscanf( path_string.c_str(), filename.c_str(), &file_id );
-				std::fstream infile(path_string, std::ios_base::in);
-				std::string line;
-				int n_azimuthal = 0;
-				while (std::getline(infile, line)){
+		for (auto const &dir_entry :
+		     std::experimental::filesystem::directory_iterator{
+			 File_Folder}) {
+		    std::string path_string{dir_entry.path()};
+		    if (path_string.find(file_name_body) != std::string::npos) {
+			int file_id = 0;
+			std::string filename = file_name_body + "%d.dat";
+			std::sscanf(path_string.c_str(), filename.c_str(),
+				    &file_id);
+			std::fstream infile(path_string, std::ios_base::in);
+			std::string line;
+			int n_azimuthal = 0;
+			while (std::getline(infile, line)) {
 
-					// TODO for now, hardcoded units for the loaded data
-					const double pluto_m0 = 1.8*units::cgs_Msol;
-					const double pluto_l0 = 20.0*units::cgs_AU;
-					const double pluto_sigma = pluto_m0 / pluto_l0 / pluto_l0;
-					const double pluto_t0 = std::sqrt(pluto_l0*pluto_l0*pluto_l0/(pluto_m0*constants::_G.get_cgs_value()));
-					const double pluto_v0 = pluto_l0 / pluto_t0;
-					const double pluto_aspect_ratio = 0.1;
+			    // TODO for now, hardcoded units for the loaded data
+			    const double pluto_m0 = 1.8 * units::cgs_Msol;
+			    const double pluto_l0 = 20.0 * units::cgs_AU;
+			    const double pluto_sigma =
+				pluto_m0 / pluto_l0 / pluto_l0;
+			    const double pluto_t0 = std::sqrt(
+				pluto_l0 * pluto_l0 * pluto_l0 /
+				(pluto_m0 * constants::_G.get_cgs_value()));
+			    const double pluto_v0 = pluto_l0 / pluto_t0;
+			    const double pluto_aspect_ratio = 0.1;
 
-					double phi;
-					double sigma;
-					double vr;
-					double vphi;
+			    double phi;
+			    double sigma;
+			    double vr;
+			    double vphi;
 
-					sscanf(line.c_str(), "%lf	%lf	%lf	%lf\n", &phi, &sigma, &vr, &vphi);
+			    sscanf(line.c_str(),
+				   "%lf	%lf	%lf	%lf\n", &phi,
+				   &sigma, &vr, &vphi);
 
-					/*
-					double phi_calc = 2*M_PI / (double)(Nphi-0.5) * (double(n_azimuthal) - 1.0);
-					if(file_id == 0)
-					printf("phi = (%.5e	%.5e)	%.5e	%.5e	%.5e	%.5e\n",
-						   phi, phi_calc, (phi-phi_calc)/phi, sigma, vr,vphi);
-						   */
+			    /*
+			    double phi_calc = 2*M_PI / (double)(Nphi-0.5) *
+			    (double(n_azimuthal) - 1.0); if(file_id == 0)
+			    printf("phi = (%.5e	%.5e)	%.5e	%.5e	%.5e
+			    %.5e\n", phi, phi_calc, (phi-phi_calc)/phi, sigma,
+			    vr,vphi);
+				       */
 
-					sigma = std::max(sigma * pluto_sigma * units::surface_density.get_inverse_cgs_factor(), parameters::sigma_floor * parameters::sigma0);
-					vr = vr * pluto_v0 * units::velocity.get_inverse_cgs_factor();
-					vphi = vphi * pluto_v0 * units::velocity.get_inverse_cgs_factor();
+			    sigma = std::max(sigma * pluto_sigma *
+						 units::surface_density
+						     .get_inverse_cgs_factor(),
+					     parameters::sigma_floor *
+						 parameters::sigma0);
+			    vr = vr * pluto_v0 *
+				 units::velocity.get_inverse_cgs_factor();
+			    vphi = vphi * pluto_v0 *
+				   units::velocity.get_inverse_cgs_factor();
 
+			    const double Cs =
+				pluto_aspect_ratio *
+				sqrt(constants::G * hydro_center_mass / RMAX) *
+				std::pow(RMAX, FLARINGINDEX);
+			    const double P = sigma * Cs * Cs;
+			    const double T =
+				parameters::MU / constants::R * P / sigma;
+			    const double energy = T * sigma / parameters::MU *
+						  constants::R /
+						  (ADIABATICINDEX - 1.0);
 
-					const double Cs = pluto_aspect_ratio *
-							sqrt(constants::G * hydro_center_mass / RMAX) *
-							std::pow(RMAX, FLARINGINDEX);
-					const double P = sigma * Cs*Cs;
-					const double T = parameters::MU / constants::R * P / sigma;
-					const double energy = T * sigma / parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+			    data[t_data::PRESCRIBED_DENSITY_OUTER](
+				file_id, n_azimuthal) = sigma;
+			    data[t_data::PRESCRIBED_ENERGY_OUTER](
+				file_id, n_azimuthal) = energy;
+			    data[t_data::PRESCRIBED_V_RADIAL_OUTER](
+				file_id, n_azimuthal) = vr;
+			    data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](
+				file_id, n_azimuthal) = vphi;
 
-					data[t_data::PRESCRIBED_DENSITY_OUTER](file_id, n_azimuthal) = sigma;
-					data[t_data::PRESCRIBED_ENERGY_OUTER](file_id, n_azimuthal) = energy;
-					data[t_data::PRESCRIBED_V_RADIAL_OUTER](file_id, n_azimuthal) = vr;
-					data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](file_id, n_azimuthal) = vphi;
-
-					n_azimuthal++;
-					/*
-					// debugging output of data
-					if(file_id == 0)
-					printf("Nphi = %d	Sigma = %.5e	T = %.5e	vr = %.5e	vphi = %.5e\n",
-						   n_azimuthal, sigma*units::surface_density.get_cgs_factor(), T*units::temperature.get_cgs_factor(), vr, vphi);
-						   */
-
-				}
+			    n_azimuthal++;
+			    /*
+			    // debugging output of data
+			    if(file_id == 0)
+			    printf("Nphi = %d	Sigma = %.5e	T = %.5e	vr
+			    = %.5e	vphi = %.5e\n", n_azimuthal,
+			    sigma*units::surface_density.get_cgs_factor(),
+			    T*units::temperature.get_cgs_factor(), vr, vphi);
+				       */
 			}
+		    }
 		}
+	    }
 	}
-	}
-	}
+    }
 }
 
 void apply_boundary_condition(t_data &data, double dt, bool final)
@@ -213,7 +244,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_keplerian:
 	keplerian2d_boundary_inner(data);
 	break;
-	case parameters::boundary_condition_precribed_time_variable:
+    case parameters::boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
     }
@@ -234,7 +265,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 				    &data[t_data::DENSITY],
 				    &data[t_data::ENERGY]);
 	break;
-	case parameters::boundary_condition_precribed_time_variable:
+    case parameters::boundary_condition_precribed_time_variable:
 	boundary_condition_precribed_time_variable_outer(data);
 	break;
     case parameters::boundary_condition_viscous_outflow:
@@ -249,33 +280,35 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     }
 
-	if (CPU_Rank == CPU_Highest) {
+    if (CPU_Rank == CPU_Highest) {
 	if (parameters::domegadr_zero) {
-		for (unsigned int n_azimuthal = 0;
+	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// this is a work around as long as V_AZIMUTHAL is defined as a
 		// vector
-			const double R_outer = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-			const double R_inner = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
+		const double R_outer =
+		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
+		const double R_inner =
+		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
 
-			data[t_data::V_AZIMUTHAL](
-			data[t_data::V_AZIMUTHAL].get_max_radial(),
-			n_azimuthal) = R_outer / R_inner *
-			data[t_data::V_AZIMUTHAL](
-				data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
-				n_azimuthal);
-		}
+		data[t_data::V_AZIMUTHAL](
+		    data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) =
+		    R_outer / R_inner *
+		    data[t_data::V_AZIMUTHAL](
+			data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
+			n_azimuthal);
+	    }
 	}
-	}
+    }
 
-	if (OuterSourceMass){
+    if (OuterSourceMass) {
 	ApplyOuterSourceMass(&data[t_data::DENSITY], &data[t_data::V_RADIAL]);
-	}
+    }
 
-	if (parameters::massoverflow){
+    if (parameters::massoverflow) {
 	mass_overflow_willy(data, nullptr, false);
-	}
+    }
 }
 
 /**
@@ -376,60 +409,75 @@ void reflecting_boundary_inner(t_data &data)
 */
 void boundary_condition_precribed_time_variable_outer(t_data &data)
 {
-	if (CPU_Rank == CPU_Highest) {
-		const int n_radial = data[t_data::DENSITY].get_max_radial();
-		const double T_bin = data.get_planetary_system().get_planet(1).get_period();
+    if (CPU_Rank == CPU_Highest) {
+	const int n_radial = data[t_data::DENSITY].get_max_radial();
+	const double T_bin =
+	    data.get_planetary_system().get_planet(1).get_period();
 
-		const double step_size = T_bin / (double)PRESCRIBED_TIME_SEGMENT_NUMBER;
-		const double real_time = PhysicalTime / step_size;
-		const int integer_time = (int)std::floor(real_time);
-		const int time_id = integer_time % PRESCRIBED_TIME_SEGMENT_NUMBER;
-		const int time_id_next = (time_id + 1) % PRESCRIBED_TIME_SEGMENT_NUMBER;
-		const double percent_to_next_timestep = real_time - double(integer_time);
-
+	const double step_size = T_bin / (double)PRESCRIBED_TIME_SEGMENT_NUMBER;
+	const double real_time = PhysicalTime / step_size;
+	const int integer_time = (int)std::floor(real_time);
+	const int time_id = integer_time % PRESCRIBED_TIME_SEGMENT_NUMBER;
+	const int time_id_next = (time_id + 1) % PRESCRIBED_TIME_SEGMENT_NUMBER;
+	const double percent_to_next_timestep =
+	    real_time - double(integer_time);
 
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
-		 ++n_azimuthal) {
+	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	     ++n_azimuthal) {
 
-		const double sigma = data[t_data::PRESCRIBED_DENSITY_OUTER](time_id, n_azimuthal);
-		const double sigma_next = data[t_data::PRESCRIBED_DENSITY_OUTER](time_id_next, n_azimuthal);
-		const double sigma_cell = sigma + percent_to_next_timestep * (sigma_next - sigma);
+	    const double sigma =
+		data[t_data::PRESCRIBED_DENSITY_OUTER](time_id, n_azimuthal);
+	    const double sigma_next = data[t_data::PRESCRIBED_DENSITY_OUTER](
+		time_id_next, n_azimuthal);
+	    const double sigma_cell =
+		sigma + percent_to_next_timestep * (sigma_next - sigma);
 
-		const double energy = data[t_data::PRESCRIBED_ENERGY_OUTER](time_id, n_azimuthal);
-		const double energy_next = data[t_data::PRESCRIBED_ENERGY_OUTER](time_id_next, n_azimuthal);
-		const double energy_cell = energy + percent_to_next_timestep * (energy_next - energy);
+	    const double energy =
+		data[t_data::PRESCRIBED_ENERGY_OUTER](time_id, n_azimuthal);
+	    const double energy_next = data[t_data::PRESCRIBED_ENERGY_OUTER](
+		time_id_next, n_azimuthal);
+	    const double energy_cell =
+		energy + percent_to_next_timestep * (energy_next - energy);
 
-		const double vr = data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id, n_azimuthal);
-		const double vr_next = data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id_next, n_azimuthal);
-		const double vr_cell = vr + percent_to_next_timestep * (vr_next - vr);
+	    const double vr =
+		data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id, n_azimuthal);
+	    const double vr_next = data[t_data::PRESCRIBED_V_RADIAL_OUTER](
+		time_id_next, n_azimuthal);
+	    const double vr_cell =
+		vr + percent_to_next_timestep * (vr_next - vr);
 
-		const double vphi = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id, n_azimuthal);
-		const double vphi_next = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id_next, n_azimuthal);
-		const double vphi_cell = vphi + percent_to_next_timestep * (vphi_next - vphi);
+	    const double vphi = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](
+		time_id, n_azimuthal);
+	    const double vphi_next = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](
+		time_id_next, n_azimuthal);
+	    const double vphi_cell =
+		vphi + percent_to_next_timestep * (vphi_next - vphi);
 
-		// copy interpolated values into outer ghost ring
-		data[t_data::DENSITY](n_radial, n_azimuthal) = sigma_cell;
-		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_cell;
-		data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr_cell;
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi_cell;
+	    // copy interpolated values into outer ghost ring
+	    data[t_data::DENSITY](n_radial, n_azimuthal) = sigma_cell;
+	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_cell;
+	    data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr_cell;
+	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi_cell;
 
-		/*
-		const double r = Rmed[n_radial];
-		const double v_kep = sqrt(constants::G * hydro_center_mass / r);
+	    /*
+	    const double r = Rmed[n_radial];
+	    const double v_kep = sqrt(constants::G * hydro_center_mass / r);
 
 
-		printf("Nphi = %d	dens = (%.3e	%.3e)	vr = (%.3e	%.3e)	vphi = (%.3e	%.3e	%.3e)\n", n_azimuthal,
-			   data[t_data::PRESCRIBED_DENSITY_OUTER](time_id, n_azimuthal)*units::surface_density.get_cgs_factor(),
-				data[t_data::DENSITY](n_radial-5, n_azimuthal)*units::surface_density.get_cgs_factor(),
-				data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id, n_azimuthal),
-				data[t_data::V_RADIAL](n_radial-5, n_azimuthal),
-				data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id, n_azimuthal),
-				data[t_data::V_AZIMUTHAL](n_radial-5, n_azimuthal),
-				v_kep);*/
-
+	    printf("Nphi = %d	dens = (%.3e	%.3e)	vr = (%.3e	%.3e)
+	    vphi = (%.3e	%.3e	%.3e)\n", n_azimuthal,
+		       data[t_data::PRESCRIBED_DENSITY_OUTER](time_id,
+	    n_azimuthal)*units::surface_density.get_cgs_factor(),
+			    data[t_data::DENSITY](n_radial-5,
+	    n_azimuthal)*units::surface_density.get_cgs_factor(),
+			    data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id,
+	    n_azimuthal), data[t_data::V_RADIAL](n_radial-5, n_azimuthal),
+			    data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id,
+	    n_azimuthal), data[t_data::V_AZIMUTHAL](n_radial-5, n_azimuthal),
+			    v_kep);*/
 	}
-	}
+    }
 }
 
 /**
@@ -484,8 +532,10 @@ void viscous_outflow_boundary_inner(t_data &data)
 	     n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
-	    data[t_data::V_RADIAL](1, n_azimuthal) = -1.5 * s / Rinf[1] * nu_med;
-	    data[t_data::V_RADIAL](0, n_azimuthal) = -1.5 * s / Rinf[0] * nu_med;
+	    data[t_data::V_RADIAL](1, n_azimuthal) =
+		-1.5 * s / Rinf[1] * nu_med;
+	    data[t_data::V_RADIAL](0, n_azimuthal) =
+		-1.5 * s / Rinf[0] * nu_med;
 	}
     }
 }
@@ -514,10 +564,11 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMIN);
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
-		double factor = std::pow(
+	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
-		(RMIN - RMIN * parameters::damping_inner_limit), 2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		    (RMIN - RMIN * parameters::damping_inner_limit),
+		2);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -568,10 +619,11 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 
 	for (unsigned int n_radial = limit;
 	     n_radial <= quantity.get_max_radial(); ++n_radial) {
-		double factor = std::pow(
+	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-		(RMAX - RMAX * parameters::damping_outer_limit), 2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		    (RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -619,10 +671,11 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMIN);
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
-		double factor = std::pow(
+	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
-		(RMIN - RMIN * parameters::damping_inner_limit), 2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		    (RMIN - RMIN * parameters::damping_inner_limit),
+		2);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -673,10 +726,11 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 
 	for (unsigned int n_radial = limit;
 	     n_radial <= quantity.get_max_radial(); ++n_radial) {
-		double factor = std::pow(
+	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-		(RMAX - RMAX * parameters::damping_outer_limit), 2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		    (RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -735,10 +789,11 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
-		double factor = std::pow(
+	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
-		(RMIN - RMIN * parameters::damping_inner_limit), 2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		    (RMIN - RMIN * parameters::damping_inner_limit),
+		2);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -799,10 +854,11 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 
 	for (unsigned int n_radial = limit;
 	     n_radial <= quantity.get_max_radial(); ++n_radial) {
-		double factor = std::pow(
+	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-		(RMAX - RMAX * parameters::damping_outer_limit), 2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		    (RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
@@ -854,40 +910,40 @@ void damping(t_data &data, double dt)
 void mass_overflow(t_data &data)
 {
     if (CPU_Rank != CPU_Highest) {
-    return;
+	return;
     }
 
     static double last_PhysicalTime = 0.0;
 
     double dt = PhysicalTime - last_PhysicalTime;
 
-    if (dt == 0.0){
-        return;
+    if (dt == 0.0) {
+	return;
     }
 
     last_PhysicalTime = PhysicalTime;
 
     // get location of binary star
     if (parameters::mof_planet + 1 >
-    data.get_planetary_system().get_number_of_planets()) {
-    logging::print_master(
-        LOG_ERROR
-        "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
-    die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
+	data.get_planetary_system().get_number_of_planets()) {
+	logging::print_master(
+	    LOG_ERROR
+	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
+	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
     }
     const double xplanet =
-    data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
+	data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
     const double yplanet =
-    data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
+	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
 
     const double omega_planet = data.get_planetary_system()
-                    .get_planet(parameters::mof_planet)
-                    .get_omega();
+				    .get_planet(parameters::mof_planet)
+				    .get_omega();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
-	double angle = atan2(yplanet, xplanet) * 0.5 * M_1_PI;
+    double angle = atan2(yplanet, xplanet) * 0.5 * M_1_PI;
     if (angle < 0) {
-    angle += 1.0;
+	angle += 1.0;
     }
 
     const unsigned int Nrad = data[t_data::DENSITY].get_max_radial();
@@ -896,22 +952,23 @@ void mass_overflow(t_data &data)
 
     const double vr_fraction = 0.002;
     const double vr_stream =
-    -omega_planet * r_cell *
-    vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
-             // vr_fraction = 0.002)
+	-omega_planet * r_cell *
+	vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
+		     // vr_fraction = 0.002)
     const double vphi_stream =
-    (omega_planet - OmegaFrame) *
-    r_cell; // set angular velocity to zero (in co-rotating frame)
+	(omega_planet - OmegaFrame) *
+	r_cell; // set angular velocity to zero (in co-rotating frame)
 
-    const double mdot_cgs = parameters::mof_value * units::cgs_Msol / units::cgs_Year;
+    const double mdot_cgs =
+	parameters::mof_value * units::cgs_Msol / units::cgs_Year;
 
-    const double mdot_code = mdot_cgs * units::time.get_cgs_factor() * units::mass.get_inverse_cgs_factor();
+    const double mdot_code = mdot_cgs * units::time.get_cgs_factor() *
+			     units::mass.get_inverse_cgs_factor();
 
     const double Sigma_stream = mdot_code * dt / Surf[Nrad - 2];
 
-
     int nearest_grid_cell =
-    (int)((double)Nphi * angle + 0.5); // nearest gridcell to binary star
+	(int)((double)Nphi * angle + 0.5); // nearest gridcell to binary star
     nearest_grid_cell = nearest_grid_cell % Nphi;
 
     // Calculate sigma from temperature according to
@@ -921,163 +978,29 @@ void mass_overflow(t_data &data)
     // cross section Q
     const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
     // stream radius W
-	const double W = std::sqrt(Q / M_PI);
+    const double W = std::sqrt(Q / M_PI);
     // circumference circ
-	const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor();
+    const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor();
 
     double sigma = 2 * W / circ;
     int number_of_cells =
-    (double)Nphi * 3.0 *
-    sigma; // walk through 3 sigma, so we get 99.7% accuracy
+	(double)Nphi * 3.0 *
+	sigma; // walk through 3 sigma, so we get 99.7% accuracy
     double sigmabar = Nphi * sigma;
 
     double check = 0.0;
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
 
-    // adapt gauss profile
-    double weight_factor;
-    int gridcell;
-    if (number_of_cells == 0) {
-        gridcell = nearest_grid_cell;
-        weight_factor = 1.0;
-    } else {
-        gridcell = (nearest_grid_cell + i + Nphi) % Nphi;
-		weight_factor = 1.0 / (sigmabar * std::sqrt(2.0 * M_PI)) *
-				std::exp(-1.0 / 2.0 * std::pow(i / sigmabar, 2));
-    }
-    check += weight_factor;
-
-    int gridcell_r = gridcell + 1;
-    gridcell_r = gridcell_r % Nphi;
-
-    double dens = weight_factor * Sigma_stream;
-    if (dens < parameters::sigma0 * parameters::sigma_floor) {
-        dens = parameters::sigma0 * parameters::sigma_floor;
-    }
-
-    if (parameters::Adiabatic) {
-        const double T_stream =
-        parameters::mof_temperature; // Stream Temperature in Kelvin
-        const double e_stream =
-        T_stream * units::temperature.get_inverse_cgs_factor() * dens /
-        parameters::MU * constants::R /
-        (ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
-
-        data[t_data::ENERGY](Nrad - 2, gridcell) = e_stream;
-    }
-
-
-    data[t_data::DENSITY](Nrad - 2, gridcell) += dens;
-
-    data[t_data::V_RADIAL](Nrad - 2, gridcell) = vr_stream;
-    data[t_data::V_RADIAL](Nrad - 1, gridcell) = vr_stream;
-    data[t_data::V_AZIMUTHAL](Nrad - 2, gridcell) = vphi_stream;
-    data[t_data::V_AZIMUTHAL](Nrad - 2, gridcell_r) = vphi_stream;
-
-#ifndef NDEBUG
-    logging::print(
-        LOG_VERBOSE
-        "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, Nphi %i , noc %i , i %i \n",
-        data[t_data::DENSITY](Nrad, gridcell), 1.0, angle, gridcell,
-        Sigma_stream, gridcell, Nrad, Nphi * 2 + 1, 0);
-#endif
-    }
-
-    // check if mass overflow is constant
-    if (!(check > 0.99) || !(check < 1.01)) {
-    logging::print_master(LOG_ERROR "weight_factor %lf should be 0.997 \n",
-                  check);
-    }
-}
-
-
-/**
- *	Mass overflow function copied from RH2D
- *	added gaussian profile to stream
- */
-void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
-{
-	if (CPU_Rank != CPU_Highest) {
-	return;
-	}
-
-	// get location of binary star
-	if (parameters::mof_planet + 1 >
-	data.get_planetary_system().get_number_of_planets()) {
-	logging::print_master(
-		LOG_ERROR
-		"Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
-	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
-	}
-	const double xplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
-	const double yplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
-
-	const double omega_planet = data.get_planetary_system()
-					.get_planet(parameters::mof_planet)
-					.get_omega();
-	// get grid cell where binary star is nearest
-	// atan2(y,x) is from -PI to PI
-	double angle = std::atan2(yplanet, xplanet) *0.5 * M_1_PI;
-	if (angle < 0) {
-	angle += 1.0;
-	}
-
-	const unsigned int Nrad = data[t_data::DENSITY].get_max_radial();
-	const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
-	const double r_cell = Rmed[Nrad];
-
-	const double vr_fraction = 0.002;
-	const double vr_stream =
-	-omega_planet * r_cell *
-	vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
-			 // vr_fraction = 0.002)
-	const double vphi_stream =
-	(omega_planet - OmegaFrame) *
-	r_cell; // set angular velocity to zero (in co-rotating frame)
-
-	const double stream_mdot_cgs =
-	parameters::mof_value * units::cgs_Msol / units::cgs_Year;
-	const double stream_mdot_code = stream_mdot_cgs *
-					units::mass.get_inverse_cgs_factor() *
-					units::time.get_cgs_factor();
-	const double Sigma_stream =
-	fabs(stream_mdot_code / (dphi * Rinf[Nrad] * vr_stream));
-
-	const int nearest_grid_cell =
-	((int)((double)Nphi * angle + 0.5)) % Nphi; // nearest gridcell to binary star
-
-	// Calculate sigma from temperature according to
-	// Meyer & Meyer-Hofmeister (1983a) equation 17
-	const double Porb =
-	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0;
-	// cross section Q
-	const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
-	// stream radius W
-	const double W = std::sqrt(Q * M_1_PI);
-	// circumference circ
-	const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor();
-
-	double sigma = 2.0 * W / circ;
-	int number_of_cells =
-	(double)Nphi * 3.0 *
-	sigma; // walk through 3 sigma, so we get 99.7% accuracy
-	double sigmabar = Nphi * sigma;
-
-	double check = 0.0;
-	for (int i = -number_of_cells; i <= number_of_cells; i++) {
-
 	// adapt gauss profile
 	double weight_factor;
 	int gridcell;
 	if (number_of_cells == 0) {
-		gridcell = nearest_grid_cell;
-		weight_factor = 1.0;
+	    gridcell = nearest_grid_cell;
+	    weight_factor = 1.0;
 	} else {
-		gridcell = (nearest_grid_cell + i + Nphi) % Nphi;
-		weight_factor = 1.0 / (sigmabar * std::sqrt(2.0 * M_PI)) *
-				std::exp(-1.0 / 2.0 * std::pow(i / sigmabar, 2));
+	    gridcell = (nearest_grid_cell + i + Nphi) % Nphi;
+	    weight_factor = 1.0 / (sigmabar * std::sqrt(2.0 * M_PI)) *
+			    std::exp(-1.0 / 2.0 * std::pow(i / sigmabar, 2));
 	}
 	check += weight_factor;
 
@@ -1086,24 +1009,156 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 
 	double dens = weight_factor * Sigma_stream;
 	if (dens < parameters::sigma0 * parameters::sigma_floor) {
-		dens = parameters::sigma0 * parameters::sigma_floor;
+	    dens = parameters::sigma0 * parameters::sigma_floor;
 	}
 
 	if (parameters::Adiabatic) {
-		const double T_stream =
+	    const double T_stream =
 		parameters::mof_temperature; // Stream Temperature in Kelvin
-		const double e_stream =
+	    const double e_stream =
 		T_stream * units::temperature.get_inverse_cgs_factor() * dens /
 		parameters::MU * constants::R /
 		(ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
 
-		data[t_data::ENERGY](Nrad, gridcell) = e_stream;
+	    data[t_data::ENERGY](Nrad - 2, gridcell) = e_stream;
+	}
+
+	data[t_data::DENSITY](Nrad - 2, gridcell) += dens;
+
+	data[t_data::V_RADIAL](Nrad - 2, gridcell) = vr_stream;
+	data[t_data::V_RADIAL](Nrad - 1, gridcell) = vr_stream;
+	data[t_data::V_AZIMUTHAL](Nrad - 2, gridcell) = vphi_stream;
+	data[t_data::V_AZIMUTHAL](Nrad - 2, gridcell_r) = vphi_stream;
+
+#ifndef NDEBUG
+	logging::print(
+	    LOG_VERBOSE
+	    "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, Nphi %i , noc %i , i %i \n",
+	    data[t_data::DENSITY](Nrad, gridcell), 1.0, angle, gridcell,
+	    Sigma_stream, gridcell, Nrad, Nphi * 2 + 1, 0);
+#endif
+    }
+
+    // check if mass overflow is constant
+    if (!(check > 0.99) || !(check < 1.01)) {
+	logging::print_master(LOG_ERROR "weight_factor %lf should be 0.997 \n",
+			      check);
+    }
+}
+
+/**
+ *	Mass overflow function copied from RH2D
+ *	added gaussian profile to stream
+ */
+void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
+{
+    if (CPU_Rank != CPU_Highest) {
+	return;
+    }
+
+    // get location of binary star
+    if (parameters::mof_planet + 1 >
+	data.get_planetary_system().get_number_of_planets()) {
+	logging::print_master(
+	    LOG_ERROR
+	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
+	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
+    }
+    const double xplanet =
+	data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
+    const double yplanet =
+	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
+
+    const double omega_planet = data.get_planetary_system()
+				    .get_planet(parameters::mof_planet)
+				    .get_omega();
+    // get grid cell where binary star is nearest
+    // atan2(y,x) is from -PI to PI
+    double angle = std::atan2(yplanet, xplanet) * 0.5 * M_1_PI;
+    if (angle < 0) {
+	angle += 1.0;
+    }
+
+    const unsigned int Nrad = data[t_data::DENSITY].get_max_radial();
+    const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
+    const double r_cell = Rmed[Nrad];
+
+    const double vr_fraction = 0.002;
+    const double vr_stream =
+	-omega_planet * r_cell *
+	vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
+		     // vr_fraction = 0.002)
+    const double vphi_stream =
+	(omega_planet - OmegaFrame) *
+	r_cell; // set angular velocity to zero (in co-rotating frame)
+
+    const double stream_mdot_cgs =
+	parameters::mof_value * units::cgs_Msol / units::cgs_Year;
+    const double stream_mdot_code = stream_mdot_cgs *
+				    units::mass.get_inverse_cgs_factor() *
+				    units::time.get_cgs_factor();
+    const double Sigma_stream =
+	fabs(stream_mdot_code / (dphi * Rinf[Nrad] * vr_stream));
+
+    const int nearest_grid_cell = ((int)((double)Nphi * angle + 0.5)) %
+				  Nphi; // nearest gridcell to binary star
+
+    // Calculate sigma from temperature according to
+    // Meyer & Meyer-Hofmeister (1983a) equation 17
+    const double Porb =
+	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0;
+    // cross section Q
+    const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
+    // stream radius W
+    const double W = std::sqrt(Q * M_1_PI);
+    // circumference circ
+    const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor();
+
+    double sigma = 2.0 * W / circ;
+    int number_of_cells =
+	(double)Nphi * 3.0 *
+	sigma; // walk through 3 sigma, so we get 99.7% accuracy
+    double sigmabar = Nphi * sigma;
+
+    double check = 0.0;
+    for (int i = -number_of_cells; i <= number_of_cells; i++) {
+
+	// adapt gauss profile
+	double weight_factor;
+	int gridcell;
+	if (number_of_cells == 0) {
+	    gridcell = nearest_grid_cell;
+	    weight_factor = 1.0;
+	} else {
+	    gridcell = (nearest_grid_cell + i + Nphi) % Nphi;
+	    weight_factor = 1.0 / (sigmabar * std::sqrt(2.0 * M_PI)) *
+			    std::exp(-1.0 / 2.0 * std::pow(i / sigmabar, 2));
+	}
+	check += weight_factor;
+
+	int gridcell_r = gridcell + 1;
+	gridcell_r = gridcell_r % Nphi;
+
+	double dens = weight_factor * Sigma_stream;
+	if (dens < parameters::sigma0 * parameters::sigma_floor) {
+	    dens = parameters::sigma0 * parameters::sigma_floor;
+	}
+
+	if (parameters::Adiabatic) {
+	    const double T_stream =
+		parameters::mof_temperature; // Stream Temperature in Kelvin
+	    const double e_stream =
+		T_stream * units::temperature.get_inverse_cgs_factor() * dens /
+		parameters::MU * constants::R /
+		(ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
+
+	    data[t_data::ENERGY](Nrad, gridcell) = e_stream;
 	}
 
 	if (transport && (densitystar != nullptr)) {
-		(*densitystar)(Nrad, gridcell) = dens;
+	    (*densitystar)(Nrad, gridcell) = dens;
 	} else {
-		data[t_data::DENSITY](Nrad, gridcell) = dens;
+	    data[t_data::DENSITY](Nrad, gridcell) = dens;
 	}
 
 	data[t_data::V_RADIAL](Nrad, gridcell) = vr_stream;
@@ -1113,18 +1168,18 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 
 #ifndef NDEBUG
 	logging::print(
-		LOG_VERBOSE
-		"dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, Nphi %i , noc %i , i %i \n",
-		data[t_data::DENSITY](Nrad, gridcell), 1.0, angle, gridcell,
-		Sigma_stream, gridcell, Nrad, Nphi * 2 + 1, 0);
+	    LOG_VERBOSE
+	    "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, Nphi %i , noc %i , i %i \n",
+	    data[t_data::DENSITY](Nrad, gridcell), 1.0, angle, gridcell,
+	    Sigma_stream, gridcell, Nrad, Nphi * 2 + 1, 0);
 #endif
-	}
+    }
 
-	// check if mass overflow is constant
-	if (!(check > 0.99) || !(check < 1.01)) {
+    // check if mass overflow is constant
+    if (!(check > 0.99) || !(check < 1.01)) {
 	logging::print_master(LOG_ERROR "weight_factor %lf should be 0.997 \n",
-				  check);
-	}
+			      check);
+    }
 }
 
 void apply_boundary_condition_temperature(t_data &data)
@@ -1238,13 +1293,13 @@ void boundary_layer_inner_boundary(t_data &data)
 
 	// set vrad to fraction of Keplerian velocity
 	data[t_data::V_RADIAL](1, n_azimuthal) =
-		-1. * parameters::vrad_fraction_of_kepler * std::sqrt(1. / Ra[1]);
+	    -1. * parameters::vrad_fraction_of_kepler * std::sqrt(1. / Ra[1]);
 	data[t_data::V_RADIAL](0, n_azimuthal) =
 	    data[t_data::V_RADIAL](1, n_azimuthal);
 
 	// set vphi to stellar rotation rate
 	data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
-		parameters::stellar_rotation_rate * std::sqrt(1. / Rb[0]);
+	    parameters::stellar_rotation_rate * std::sqrt(1. / Rb[0]);
     }
 }
 
@@ -1267,36 +1322,36 @@ void boundary_layer_outer_boundary(t_data &data)
 			      n_azimuthal) =
 	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
 				  n_azimuthal) *
-		std::sqrt(Ra[data[t_data::DENSITY].get_max_radial() - 1] /
-		 Ra[data[t_data::DENSITY].get_max_radial()]);
+	    std::sqrt(Ra[data[t_data::DENSITY].get_max_radial() - 1] /
+		      Ra[data[t_data::DENSITY].get_max_radial()]);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 				 n_azimuthal) *
-		std::pow(Ra[data[t_data::ENERGY].get_max_radial() - 1] /
-		    Ra[data[t_data::ENERGY].get_max_radial()],
-		1.25);
+	    std::pow(Ra[data[t_data::ENERGY].get_max_radial() - 1] /
+			 Ra[data[t_data::ENERGY].get_max_radial()],
+		     1.25);
 
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 1,
 			       n_azimuthal) =
 	    -1. *
 	    fabs(data[t_data::V_RADIAL](
 		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal)) *
-		std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
-		 Ra[data[t_data::V_RADIAL].get_max_radial() - 1]);
+	    std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
+		      Ra[data[t_data::V_RADIAL].get_max_radial() - 1]);
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
 			       n_azimuthal) =
 	    -1. *
 	    fabs(data[t_data::V_RADIAL](
 		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal)) *
-		std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
-		 Ra[data[t_data::V_RADIAL].get_max_radial()]);
+	    std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
+		      Ra[data[t_data::V_RADIAL].get_max_radial()]);
 
 	// Omega at outer boundary equals calculate_omega_kepler (plus leading
 	// order pressure correction)
 	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
 				  n_azimuthal) =
-		1. / std::sqrt(Rb[data[t_data::DENSITY].get_max_radial()]);
+	    1. / std::sqrt(Rb[data[t_data::DENSITY].get_max_radial()]);
 	// TODO: Include pressure correction, like in uphi[*jN]
 	// = 1./sqrt(Rb[*jN]) +
 	// 0.5/Sigma[*jN]*sqrt(pow3(Rb[*jN])*pow2(Rb[*jN]))*.5/Rb[*jN]*(P[*jN+1]-P[*jN-1])/DeltaRa[*jN+1];
@@ -1313,16 +1368,16 @@ void keplerian2d_boundary_inner(t_data &data)
 	 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	 ++n_azimuthal) {
 	data[t_data::DENSITY](1, n_azimuthal) =
-		parameters::sigma0 * std::pow(Rmed[1], -SIGMASLOPE);
+	    parameters::sigma0 * std::pow(Rmed[1], -SIGMASLOPE);
 	data[t_data::DENSITY](0, n_azimuthal) =
-		parameters::sigma0 * std::pow(Rmed[0], -SIGMASLOPE);
+	    parameters::sigma0 * std::pow(Rmed[0], -SIGMASLOPE);
 	data[t_data::ENERGY](1, n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		std::pow(ASPECTRATIO_REF, 2) *
-		std::pow(Rmed[1], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+	    std::pow(ASPECTRATIO_REF, 2) *
+	    std::pow(Rmed[1], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::ENERGY](0, n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		std::pow(ASPECTRATIO_REF, 2) *
+	    std::pow(ASPECTRATIO_REF, 2) *
 	    std::pow(Rmed[0], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::TEMPERATURE](1, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal) /
@@ -1336,9 +1391,9 @@ void keplerian2d_boundary_inner(t_data &data)
 	data[t_data::V_RADIAL](0, n_azimuthal) =
 	    -data[t_data::V_RADIAL](2, n_azimuthal);
 	data[t_data::V_AZIMUTHAL](1, n_azimuthal) =
-		std::sqrt(constants::G * hydro_center_mass / Rmed[1]);
+	    std::sqrt(constants::G * hydro_center_mass / Rmed[1]);
 	data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
-		std::sqrt(constants::G * hydro_center_mass / Rmed[0]);
+	    std::sqrt(constants::G * hydro_center_mass / Rmed[0]);
     }
 }
 
@@ -1350,23 +1405,24 @@ void keplerian2d_boundary_outer(t_data &data)
 	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
 			      n_azimuthal) =
 	    parameters::sigma0 *
-		std::pow(Rmed[data[t_data::DENSITY].get_max_radial()], -SIGMASLOPE);
+	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial()], -SIGMASLOPE);
 	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
 			      n_azimuthal) =
 	    parameters::sigma0 *
-		std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1], -SIGMASLOPE);
+	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1],
+		     -SIGMASLOPE);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		std::pow(ASPECTRATIO_REF, 2) *
-		std::pow(Rmed[data[t_data::DENSITY].get_max_radial()],
-		-SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+	    std::pow(ASPECTRATIO_REF, 2) *
+	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial()],
+		     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 			     n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		std::pow(ASPECTRATIO_REF, 2) *
-		std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1],
-		-SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+	    std::pow(ASPECTRATIO_REF, 2) *
+	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1],
+		     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::TEMPERATURE](data[t_data::TEMPERATURE].get_max_radial(),
 				  n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
@@ -1389,12 +1445,12 @@ void keplerian2d_boundary_outer(t_data &data)
 			       n_azimuthal) = 0.0;
 	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
 				  n_azimuthal) =
-		std::sqrt(constants::G * hydro_center_mass /
-		 Rmed[data[t_data::DENSITY].get_max_radial()]);
+	    std::sqrt(constants::G * hydro_center_mass /
+		      Rmed[data[t_data::DENSITY].get_max_radial()]);
 	data[t_data::V_AZIMUTHAL](
 	    data[t_data::V_AZIMUTHAL].get_max_radial() - 1, n_azimuthal) =
-		std::sqrt(constants::G * hydro_center_mass /
-		 Rmed[data[t_data::DENSITY].get_max_radial() - 1]);
+	    std::sqrt(constants::G * hydro_center_mass /
+		      Rmed[data[t_data::DENSITY].get_max_radial() - 1]);
     }
 }
 

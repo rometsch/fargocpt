@@ -97,7 +97,8 @@ void parse(int argc, char **argv)
 		    start_mode::mode = start_mode::mode_auto;
 		} else {
 		    usage(argc, argv);
-			logging::print(LOG_ERROR "Invalid start mode '%s'\n", optarg);
+		    logging::print(LOG_ERROR "Invalid start mode '%s'\n",
+				   optarg);
 		    PersonalExit(0);
 		}
 	    } else {
