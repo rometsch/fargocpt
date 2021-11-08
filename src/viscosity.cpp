@@ -373,11 +373,13 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 		0.5 * (Sigma(nr, naz) +
 			   Sigma(nr - 1, naz));
 
-		double dVr = dt * InvRinf[nr] /
+		double dVr = dt /
 				(sigma_avg)*parameters::radial_viscosity_factor *
-				((Rb[nr] * Trr(nr, naz) - Rb[nr - 1] * Trr(nr - 1, naz)) * InvDiffRmed[nr]
-				+ (Trp(nr, naz_plus) - Trp(nr, naz)) * invdphi -
-				 0.5 * (Tpp(nr, naz) + Tpp(nr - 1, naz)));
+				(
+					(Rb[nr] * Trr(nr, naz) - Rb[nr - 1] * Trr(nr - 1, naz)) * TwoDiffRbSq[nr]
+				+  InvRinf[nr] * ((Trp(nr, naz_plus) - Trp(nr, naz)) * invdphi -
+				 0.5 * (Tpp(nr, naz) + Tpp(nr - 1, naz)))
+				);
 
 		if(StabilizeViscosity == 1){
 			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](nr, naz);
