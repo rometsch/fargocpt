@@ -328,70 +328,64 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 				      t_polargrid &v_azimuthal, double dt)
 {
 
-    for (unsigned int n_radial = 1; n_radial <= v_radial.get_max_radial() - 1;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= v_radial.get_max_azimuthal(); ++n_azimuthal) {
-		const int n_azimuthal_plus =
-		(n_azimuthal == data[t_data::DENSITY].get_max_azimuthal()
+	t_polargrid &Sigma = data[t_data::DENSITY];
+	t_polargrid &Trp = data[t_data::TAU_R_PHI];
+	t_polargrid &Trr = data[t_data::TAU_R_R];
+	t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
+	for (unsigned int nr = 1; nr <= v_radial.get_max_radial() - 1;
+	 ++nr) {
+	for (unsigned int naz = 0;
+		 naz <= v_radial.get_max_azimuthal(); ++naz) {
+		const int naz_plus =
+		(naz == Sigma.get_max_azimuthal()
 		     ? 0
-		     : n_azimuthal + 1);
-		const int n_azimuthal_minus =
-		(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
-				  : n_azimuthal - 1);
+			 : naz + 1);
+		const int naz_minus =
+		(naz == 0 ? Sigma.get_max_azimuthal()
+				  : naz - 1);
 
 	    double sigma_avg =
-		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-		       data[t_data::DENSITY](n_radial, n_azimuthal_minus));
+		0.5 * (Sigma(nr, naz) +
+			   Sigma(nr, naz_minus));
 
 		// a_phi = 1/(r*Sigma) ( d(r*tau_r_phi)/dr + d(tau_phi_phi)/dphi + tau_r_phi )
 		double dVp =
-		dt * InvRb[n_radial] / (sigma_avg) *
-		((2.0 / (std::pow(Ra[n_radial + 1], 2) - std::pow(Ra[n_radial], 2))) *
-			 (std::pow(Ra[n_radial + 1], 2) *
-			  data[t_data::TAU_R_PHI](n_radial + 1, n_azimuthal) -
-			  std::pow(Ra[n_radial], 2) *
-			  data[t_data::TAU_R_PHI](n_radial, n_azimuthal)) +
-		 (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) -
-		  data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal_minus)) *
+		dt * InvRb[nr] / (sigma_avg) *
+		((2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2))) *
+			 (std::pow(Ra[nr + 1], 2) * Trp(nr + 1, naz) - std::pow(Ra[nr], 2) *
+			  Trp(nr, naz)) + (Tpp(nr, naz) - Tpp(nr, naz_minus)) *
 			 invdphi);
 
 
 		if(StabilizeViscosity == 1){
-			const double cphi = data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial, n_azimuthal);
+			const double cphi = data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](nr, naz);
 			const double corr = 1.0/(std::max(1.0 + dt*cphi, 0.0) -dt*cphi);
 			dVp *= corr;
 		}
 
-		v_azimuthal(n_radial, n_azimuthal) += dVp;
+		v_azimuthal(nr, naz) += dVp;
 
 
 
 	    // a_r = 1/(r*Sigma) ( d(r*tau_r_r)/dr + d(tau_r_phi)/dphi -
 	    // tau_phi_phi )
 	    sigma_avg =
-		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-		       data[t_data::DENSITY](n_radial - 1, n_azimuthal));
+		0.5 * (Sigma(nr, naz) +
+			   Sigma(nr - 1, naz));
 
-		double dVr = dt * InvRinf[n_radial] /
+		double dVr = dt * InvRinf[nr] /
 				(sigma_avg)*parameters::radial_viscosity_factor *
-				((Rmed[n_radial] * data[t_data::TAU_R_R](n_radial, n_azimuthal) -
-				  Rmed[n_radial - 1] *
-					  data[t_data::TAU_R_R](n_radial - 1, n_azimuthal)) *
-					 InvDiffRmed[n_radial] +
-				 (data[t_data::TAU_R_PHI](n_radial, n_azimuthal_plus) -
-				  data[t_data::TAU_R_PHI](n_radial, n_azimuthal)) *
-					 invdphi -
-				 0.5 * (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +
-					data[t_data::TAU_PHI_PHI](n_radial - 1, n_azimuthal)));
+				((Rb[nr] * Trr(nr, naz) - Rb[nr - 1] * Trr(nr - 1, naz)) * InvDiffRmed[nr]
+				+ (Trp(nr, naz_plus) - Trp(nr, naz)) * invdphi -
+				 0.5 * (Tpp(nr, naz) + Tpp(nr - 1, naz)));
 
 		if(StabilizeViscosity == 1){
-			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial, n_azimuthal);
+			const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](nr, naz);
 			const double corr = 1.0/(std::max(1.0 + dt*cr, 0.0) -dt*cr);
 			dVr *= corr;
 		}
 
-		v_radial(n_radial, n_azimuthal) += dVr;
+		v_radial(nr, naz) += dVr;
 	}
     }
 }
