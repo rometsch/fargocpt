@@ -1129,8 +1129,6 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 		ramp_factor = 1.0;
 	}
 
-	printf("ramp=%e", ramp_factor);
-
     double check = 0.0;
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
 
