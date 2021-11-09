@@ -1120,6 +1120,17 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	sigma; // walk through 3 sigma, so we get 99.7% accuracy
     double sigmabar = Nphi * sigma;
 
+	//ramping over 5 orbits
+	const double t_ramp = 5.0 * 2.0 * M_PI /omega_planet;
+	double ramp_factor;
+	if (PhysicalTime < t_ramp){
+		ramp_factor = std::pow(std::sin(PhysicalTime*M_PI/2.0/t_ramp), 2);
+	}else{
+		ramp_factor = 1.0;
+	}
+
+	printf("ramp=%e", ramp_factor);
+
     double check = 0.0;
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
 
@@ -1139,7 +1150,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	int gridcell_r = gridcell + 1;
 	gridcell_r = gridcell_r % Nphi;
 
-	double dens = weight_factor * Sigma_stream;
+	double dens = ramp_factor * weight_factor * Sigma_stream;
 	if (dens < parameters::sigma0 * parameters::sigma_floor) {
 	    dens = parameters::sigma0 * parameters::sigma_floor;
 	}
