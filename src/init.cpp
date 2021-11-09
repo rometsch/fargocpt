@@ -173,7 +173,7 @@ void init_radialarrays()
 			GlobalRmed[nRadial] / (Radii[nRadial + 1] * Radii[nRadial + 1] -
 					   Radii[nRadial] * Radii[nRadial]);
 
-		GlobalRmed[nRadial] = 0.5 * (Radii[nRadial + 1]  + Radii[nRadial]);
+		//GlobalRmed[nRadial] = 0.5 * (Radii[nRadial + 1]  + Radii[nRadial]);
 
     }
 
