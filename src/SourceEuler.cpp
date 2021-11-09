@@ -454,7 +454,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
     boundary_conditions::apply_boundary_condition(data, dt, false);
 
     // keep mass constant
-    const double total_disk_mass_old = quantities::gas_total_mass(data);
+    //const double total_disk_mass_old = quantities::gas_total_mass(data);
 
     while (dtemp < DT) {
 	logging::print_master(
@@ -563,10 +563,10 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 	    CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
 
-	    const double total_disk_mass_new = quantities::gas_total_mass(data);
+	    //const double total_disk_mass_new = quantities::gas_total_mass(data);
 
-	    data[t_data::DENSITY] *=
-		(total_disk_mass_old / total_disk_mass_new);
+	    //data[t_data::DENSITY] *=
+		//(total_disk_mass_old / total_disk_mass_new);
 	}
 
 	PhysicalTime += dt;
