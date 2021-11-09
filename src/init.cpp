@@ -173,8 +173,6 @@ void init_radialarrays()
 			GlobalRmed[nRadial] / (Radii[nRadial + 1] * Radii[nRadial + 1] -
 					   Radii[nRadial] * Radii[nRadial]);
 
-		//GlobalRmed[nRadial] = 0.5 * (Radii[nRadial + 1]  + Radii[nRadial]);
-
     }
 
     logging::print_master(
@@ -192,7 +190,6 @@ void init_radialarrays()
 			 Rinf[nRadial] * Rinf[nRadial] * Rinf[nRadial]);
 	Rmed[nRadial] = Rmed[nRadial] / (Rsup[nRadial] * Rsup[nRadial] -
 					 Rinf[nRadial] * Rinf[nRadial]);
-	//Rmed[nRadial] = 0.5 * (Rsup[nRadial] + Rinf[nRadial]);
 
 	// TODO: Is already calculated a few lines above. assert should check
 	// this

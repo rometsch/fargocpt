@@ -380,10 +380,10 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 				      t_polargrid &v_azimuthal, double dt)
 {
 
-    t_polargrid &Sigma = data[t_data::DENSITY];
-    t_polargrid &Trp = data[t_data::TAU_R_PHI];
-    t_polargrid &Trr = data[t_data::TAU_R_R];
-    t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
+	const t_polargrid &Sigma = data[t_data::DENSITY];
+	const t_polargrid &Trp = data[t_data::TAU_R_PHI];
+	const t_polargrid &Trr = data[t_data::TAU_R_R];
+	const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
     for (unsigned int nr = 1; nr <= v_radial.get_max_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz <= v_radial.get_max_azimuthal(); ++naz) {
 	    const int naz_plus =
