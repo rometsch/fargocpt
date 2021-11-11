@@ -2,14 +2,13 @@
 
   Baruteau 2008 writes the viscosity updates as:
 
-
 ** Radial velocity
   
-  $a_r^{visc} = \frac{1}{r\Sigma}[\frac{\partial (r \tau_{rr})}{\partial r} + \frac{\partial (\tau_{r\varphi})}{\partial \varphi} - \tau_{\varphi \varphi}]$
+  $\frac{\partial \Sigma v_r}{\partial \mathrm{d}t} = \frac{1}{r}[\frac{\partial (r \tau_{rr})}{\partial r} + \frac{\partial (\tau_{r\varphi})}{\partial \varphi} - \tau_{\varphi \varphi}]$
 
 Looking at the $r$ part, the non-conservative form is discretized as
 
-$\frac{\partial v_r}{dt} = \frac{1}{\Sigma r}\frac{\partial (r \tau_{rr})}{\partial r} = \frac{1}{\Sigma^i R_a^i}\frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{R_b^i - R_b^{i-1}}$
+$\frac{\partial \Sigma v_r}{dt} = \frac{1}{r}\frac{\partial (r \tau_{rr})}{\partial r} = \frac{1}{R_a^i}\frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{R_b^i - R_b^{i-1}}$
 
 The conservative form can is derived as follows:
 
@@ -77,7 +76,6 @@ Considering both these things, the velocity update in Masset 2002:
   can be rewritten to the angular momentum update seen in D'Angelo et al. 2002
 
   $\frac{\partial \Sigma l}{\partial t} = \frac{1}{r}\frac{\partial (r^2 \tau_{r\varphi})}{\partial r} + \frac{\partial (\tau_{\varphi \varphi})}{\partial \varphi}$
-
   
 Again we integrate over $\mathrm{d}V = r \mathrm{d}r \matrm{d} \varphi$, we
 have: we have $\varphi$ ranging over $\varphi^{j+1}$ to $\varphi^{j}$ and
