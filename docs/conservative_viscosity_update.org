@@ -27,7 +27,6 @@ $\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r
 
 $\frac{\partial v_r}{dt} = \frac{2}{\Sigma}\frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{(R_b^i)^2 - (R_b^{i-1})^2}$
 
-
 $\frac{\partial v_r}{dt} = \frac{1}{\Sigma}\frac{2}{R_b^i + R_b^{i-1}} \frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{R_b^i - R_b^{i-1}}$
 
 
