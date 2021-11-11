@@ -357,9 +357,10 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		const double cr_rr =
 		    InvDiffRmed[n_radial] * (cr_rr_1 + cr_rr_2);
 
+		const double Rmed_mid = 0.5 * (Rb[n_radial] + Rb[n_radial-1]);
 		const double c1_r = parameters::radial_viscosity_factor *
 				    (cr_rr + cr_rp + cr_pp) /
-				    (sigma_avg_r * Rinf[n_radial]);
+					(sigma_avg_r * Rmed_mid);
 
 		assert(c1_r < 0.0);
 		assert(c1_phi < 0.0);
@@ -418,10 +419,11 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 
 	    double dVr =
 		dt / (sigma_avg)*parameters::radial_viscosity_factor *
+		2.0 / (Rb[nr] + Rb[nr-1]) *
 		((Rb[nr] * Trr(nr, naz) - Rb[nr - 1] * Trr(nr - 1, naz)) *
-		     TwoDiffRbSq[nr] +
-		 InvRinf[nr] * ((Trp(nr, naz_plus) - Trp(nr, naz)) * invdphi -
-				0.5 * (Tpp(nr, naz) + Tpp(nr - 1, naz))));
+			 InvDiffRmed[nr] +
+		 (Trp(nr, naz_plus) - Trp(nr, naz)) * invdphi -
+				0.5 * (Tpp(nr, naz) + Tpp(nr - 1, naz)));
 
 	    if (StabilizeViscosity == 1) {
 		const double cr =
