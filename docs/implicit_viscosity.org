@@ -151,7 +151,7 @@ $c_{1,\varphi\varphi} = -\frac{2}{3}\frac{1}{R_b \Delta \varphi}\left[\frac{(2\n
 
 * Vr case
 
-    $\frac{d v}{dt} = \frac{1}{R_a^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}[(R_a^{i} \tau_{rr}^{i} - R_a^{i-1} \tau_{rr}^{i-1}) \cdot \frac{1}{\Delta R_b} + (\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi} + \frac{1}{2}(\tau_{\varphi\varphi}^{i} + \tau_{\varphi\varphi}^{i-1})]$
+    $\frac{d v}{dt} = \frac{2}{R_b^i + R_b^{i-1}} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}[(R_b^{i} \tau_{rr}^{i} - R_b^{i-1} \tau_{rr}^{i-1}) \cdot \frac{1}{\Delta R_b} + (\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi} + \frac{1}{2}(\tau_{\varphi\varphi}^{i} + \tau_{\varphi\varphi}^{i-1})]$
   
 
   For simplicity, we compute the terms separately and combine them again later:
