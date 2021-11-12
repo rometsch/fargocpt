@@ -767,6 +767,7 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
+		if(Rmed[n_radial] <= quantities_radius_limit){
 	    // eccentricity and semi major axis weighted with cellmass
 	    local_mass =
 		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
@@ -776,6 +777,7 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	    // n_azimuthal) * local_mass;
 	    local_periastron +=
 		data[t_data::PERIASTRON](n_radial, n_azimuthal) * local_mass;
+		}
 	}
     }
 

@@ -167,6 +167,7 @@ unsigned int NRadial;
 unsigned int NAzimuthal;
 double RMIN;
 double RMAX;
+double quantities_radius_limit;
 
 double ASPECTRATIO_REF;
 int EXPLICIT_VISCOSITY;

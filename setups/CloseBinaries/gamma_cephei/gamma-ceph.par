@@ -90,6 +90,7 @@ Rmin			0.5		# Inner boundary radius
 Rmax			12		# Outer boundary radius
 RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
 #RadialSpacing 		Arithmetic		# Logarithmic or ARITHMETIC
+QuantitiesRadiusLimit 6.235819185031789   ## Roche radius for gamma ceph during periastron passage
 
 ### Output control parameters
 

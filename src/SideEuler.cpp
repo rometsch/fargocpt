@@ -53,7 +53,7 @@ void CheckAngularMomentumConservation(t_data &data)
     double xplanet, yplanet, vxplanet, vyplanet;
     double rpl, thetapl, vazimpl, masspl;
 
-    gasAngularMomentum = quantities::gas_angular_momentum(data);
+	gasAngularMomentum = quantities::gas_angular_momentum(data, false);
 
     // computate angular momentum for each planet and sum up
     for (nPlanet = 0;

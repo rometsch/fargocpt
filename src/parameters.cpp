@@ -275,6 +275,9 @@ void read(char *filename, t_data &data)
     RMIN = config::value_as_double_default("RMIN", 1.0);
     RMAX = config::value_as_double_default("RMAX", 1.0);
 
+	quantities_radius_limit
+	 = config::value_as_double_default("QUANTITIESRADIUSLIMIT", 2.0*RMAX);
+
     exponential_cell_size_factor =
 	config::value_as_double_default("ExponentialCellSizeFactor", 1.41);
     switch (tolower(

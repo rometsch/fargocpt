@@ -109,6 +109,8 @@ extern unsigned int NRadial;
 extern double RMIN;
 extern double RMAX;
 
+extern double quantities_radius_limit;
+
 extern double ASPECTRATIO_REF;
 extern int EXPLICIT_VISCOSITY;
 extern double STS_NU;

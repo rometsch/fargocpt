@@ -765,10 +765,11 @@ void init_gas_density(t_data &data)
 	}
     } else {
 	double total_mass = quantities::gas_total_mass(data);
-	logging::print_master(LOG_INFO "Total disk is mass is %g = %g %s.\n",
+	logging::print_master(LOG_INFO "Total disk is mass is %g = %g %s (inside r < %.3e).\n",
 			      total_mass,
 			      total_mass * units::mass.get_cgs_factor(),
-			      units::mass.get_cgs_symbol());
+				  units::mass.get_cgs_symbol(),
+				  quantities_radius_limit);
     }
 
     // set SigmaMed/SigmaInf
