@@ -531,7 +531,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		Sts(data, dt);
 	    }
 
-	    boundary_conditions::apply_boundary_condition(data, dt, false);
+		//boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    if (parameters::Adiabatic) {
 
@@ -545,6 +545,9 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 	    }
+
+		/// TODO moved apply boundaries here
+		boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
 		      &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY], dt);

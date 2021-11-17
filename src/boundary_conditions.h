@@ -8,7 +8,7 @@ namespace boundary_conditions
 {
 
 void init_prescribed_time_variable_boundaries(t_data &data);
-void boundary_condition_precribed_time_variable_outer(t_data &data);
+void boundary_condition_precribed_time_variable_outer(t_data &data, t_polargrid* densitystar);
 void apply_boundary_condition_temperature(t_data &data);
 void apply_boundary_condition(t_data &data, double dt, bool final);
 void open_boundary_inner(t_data &data);

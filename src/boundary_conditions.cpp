@@ -403,7 +403,7 @@ void reflecting_boundary_inner(t_data &data)
 /**
 	outer boundary_condition_precribed_time_variable_outer
 */
-void boundary_condition_precribed_time_variable_outer(t_data &data)
+void boundary_condition_precribed_time_variable_outer(t_data &data, t_polargrid *densitystar)
 {
     if (CPU_Rank == CPU_Highest) {
 	const int n_radial = data[t_data::DENSITY].get_max_radial();
@@ -451,7 +451,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data)
 		vphi + percent_to_next_timestep * (vphi_next - vphi);
 
 	    // copy interpolated values into outer ghost ring
-	    data[t_data::DENSITY](n_radial, n_azimuthal) = sigma_cell;
+		(*densitystar)(n_radial, n_azimuthal) = sigma_cell;
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_cell;
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr_cell;
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi_cell;
