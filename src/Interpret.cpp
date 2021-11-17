@@ -35,7 +35,7 @@ int OuterSourceMass, CICPlanet;
 #include "options.h"
 #include <sys/stat.h>
 
-void get_polytropic_constants(double &K, double &gamma)
+static void get_polytropic_constants(double &K, double &gamma)
 {
     // P_poly = K * Sigma**gamma
     // P_poly = K * Sigma0**gamma * r**(-p * gamma)
