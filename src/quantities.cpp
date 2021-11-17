@@ -497,7 +497,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / Rmed[n_radial];
 
-	    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
+		data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
 		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 	    if (FrameAngle != 0.0) {

@@ -128,14 +128,23 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     compute_star_radial(Density, VRadial, DensityStar, dt);
 
     // boundary layer:
+	if(CPU_Rank == CPU_Highest){
+
     if (parameters::boundary_outer ==
-	    parameters::boundary_condition_boundary_layer &&
-	CPU_Rank == CPU_Highest) {
+		parameters::boundary_condition_boundary_layer) {
 	boundary_layer_mass_influx(DensityStar, VRadial);
     }
 
-    if (parameters::massoverflow)
+	// prescribed time variable boundary
+	if (parameters::boundary_outer ==
+		parameters::boundary_condition_precribed_time_variable){
+	boundary_conditions::boundary_condition_precribed_time_variable_outer(data);
+	}
+
+	if (parameters::massoverflow){
 	boundary_conditions::mass_overflow_willy(data, DensityStar, true);
+	}
+	}
 
     copy_polargrid(data[t_data::DENSITY_INT], *Density);
 

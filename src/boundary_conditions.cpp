@@ -266,7 +266,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 				    &data[t_data::ENERGY]);
 	break;
     case parameters::boundary_condition_precribed_time_variable:
-	boundary_condition_precribed_time_variable_outer(data);
+	//boundary_condition_precribed_time_variable_outer(data);
 	break;
     case parameters::boundary_condition_viscous_outflow:
 	die("outer viscous outflow boundary not implemented");
@@ -304,10 +304,6 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 
     if (OuterSourceMass) {
 	ApplyOuterSourceMass(&data[t_data::DENSITY], &data[t_data::V_RADIAL]);
-    }
-
-    if (parameters::massoverflow) {
-	mass_overflow_willy(data, nullptr, false);
     }
 }
 

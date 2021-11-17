@@ -2156,6 +2156,10 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
     }
 
     if (debug) {
+	double dtGlobalLocal;
+	MPI_Allreduce(&mdtdbg, &dtGlobalLocal, 1, MPI_DOUBLE, MPI_MIN,
+		  MPI_COMM_WORLD);
+
 	logging::print(LOG_DEBUG "Timestep control information for CPU %d: \n",
 		       CPU_Rank);
 	logging::print(
@@ -2186,7 +2190,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	logging::print(LOG_DEBUG "Limit time step for this cell  : %g\n",
 		       mdtdbg);
 	logging::print(LOG_DEBUG "Limit time step adopted        : %g\n",
-		       dtGlobal);
+			   dtGlobalLocal);
 	if (dtGlobal < mdtdbg) {
 	    logging::print(LOG_DEBUG "Discrepancy arise either from shear.\n");
 	    logging::print(LOG_DEBUG "or from the imposed DT interval.\n");
