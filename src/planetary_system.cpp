@@ -289,7 +289,7 @@ void t_planetary_system::list_planets()
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
 	    get_planet(i).get_period() * units::time.get_cgs_factor() /
-		(24 * 60 * 60 * 365.2425),
+		units::cgs_Year,
 	    get_planet(i).get_acc(), '-', '-');
     }
 
