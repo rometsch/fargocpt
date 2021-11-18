@@ -164,6 +164,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	double temp;
 	MPI_Allreduce(&dMplanet, &temp, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 	dMplanet = temp;
+
+	if(parameters::disk_feedback){ // only update planets if they feel the disk
 	MPI_Allreduce(&dPxPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
 		      MPI_COMM_WORLD);
 	dPxPlanet = temp;
@@ -173,8 +175,13 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 
 	// update planet momentum
 	update_planet(planet, dMplanet, dPxPlanet, dPyPlanet);
-
 	mass_changed = dMplanet > 0;
+	}
+
+	// monitoring purpose only
+	planet.add_accreted_mass(dMplanet);
+
+
     }
     return mass_changed;
 }

@@ -106,6 +106,9 @@ class t_planet
     inline double get_eccentric_anomaly() const { return m_eccentric_anomaly; }
     inline double get_pericenter_angle() const { return m_pericenter_angle; }
     inline double get_torque() const { return m_torque; }
+	inline double get_accreted_mass() { const double tmp = m_accreted_mass;
+											  m_accreted_mass = 0.0; // needs to be flushed, since we are summing up otherwise restarting causes weird outputs
+											return tmp; }
 
     double get_r(void) const;
     double get_phi(void) const;
