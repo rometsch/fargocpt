@@ -38,15 +38,15 @@ class t_planet
     double m_torque;
 
   public:
-    // setter
-    inline void set_mass(double value) { m_mass = value; }
-    inline void set_x(double value) { m_x = value; }
-    inline void set_y(double value) { m_y = value; }
-    inline void set_vx(double value) { m_vx = value; }
-    inline void set_vy(double value) { m_vy = value; }
-    inline void set_acc(double value) { m_acc = value; }
-	inline void set_accreted_mass(double value) { m_accreted_mass = value; }
-    inline void set_torque(const double value) { m_torque = value; }
+	inline void add_accreted_mass(double value) { m_accreted_mass += value; }
+	// setter
+	inline void set_mass(double value) { m_mass = value; }
+	inline void set_x(double value) { m_x = value; }
+	inline void set_y(double value) { m_y = value; }
+	inline void set_vx(double value) { m_vx = value; }
+	inline void set_vy(double value) { m_vy = value; }
+	inline void set_acc(double value) { m_acc = value; }
+	inline void set_torque(const double value) { m_torque = value; }
     void set_name(const char *value);
     inline void set_planet_number(unsigned int value)
     {
