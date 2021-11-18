@@ -1307,9 +1307,6 @@ void calculate_qminus(t_data &data)
 
     // local radiative cooling
     if (parameters::cooling_radiative_enabled) {
-	double kappaCGS;
-	double temperatureCGS;
-	double densityCGS;
 
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::QMINUS].get_max_radial(); ++n_radial) {
@@ -1318,19 +1315,18 @@ void calculate_qminus(t_data &data)
 		 ++n_azimuthal) {
 		// calculate Rosseland mean opacity kappa. opaclin needs values
 		// in cgs units
-		temperatureCGS =
+		const double temperatureCGS =
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
 		    units::temperature;
 
-		// TODO: user aspect ratio
-		densityCGS = data[t_data::DENSITY](n_radial, n_azimuthal) /
-			     (parameters::density_factor *
-			      data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
-			      std::sqrt(ADIABATICINDEX) /
-			      calculate_omega_kepler(Rmed[n_radial])) *
+		const double H = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
+			Rb[n_radial];
+
+		const double densityCGS = data[t_data::DENSITY](n_radial, n_azimuthal) /
+				 (parameters::density_factor * H) *
 			     units::density;
 
-		kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+		const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
 
 		data[t_data::KAPPA](n_radial, n_azimuthal) =
 		    parameters::kappa_factor * kappaCGS *
@@ -2439,7 +2435,6 @@ void compute_rho(t_data &data, bool force_update)
     }
     last_physicaltime_calculated = PhysicalTime;
 
-    double H;
 
     compute_aspect_ratio(data, force_update);
 
@@ -2448,13 +2443,8 @@ void compute_rho(t_data &data, bool force_update)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::RHO].get_max_azimuthal();
 	     ++n_azimuthal) {
-	    if (parameters::Adiabatic) {
-		H = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
+		const double H = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
 		    Rb[n_radial];
-	    } else {
-		H = ASPECTRATIO_REF *
-		    std::pow(Rb[n_radial], 1.0 + FLARINGINDEX);
-	    }
 	    data[t_data::RHO](n_radial, n_azimuthal) =
 		data[t_data::DENSITY](n_radial, n_azimuthal) /
 		(parameters::density_factor * H);
