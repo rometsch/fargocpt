@@ -94,6 +94,7 @@ ThicknessSmoothingSG	0.0		# Softening parameter for SG [default = ThicknessSmoot
 VRadIn			1e-3		# value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
 StellarRotation		0.1		# Stellar rotation rate in terms of Keplerian angular velocity Om_kepler [default = 0.1]
 MassAccretionRate	1		# Mass accretion rate (from secondary, young stellar cloud, etc.)
+MassAccretionRadius 1		# Mass accretion radius in unints of R_hill / 2
 RadialViscosityFactor	1 	# Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 
@@ -164,7 +165,7 @@ WriteEccentricity	No		# Write eccentricity. [default = no]
 WriteTReynolds		No		# Write Reynolds stress tensor. [default = no]
 WriteTGravitational	No		# Write gravitational stress tensor. [default = no]
 WritepdV		No		# Write pdV. [default = no]
-WriteDiskQuantities	No		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteDiskQuantities	Yes		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
 WriteRadialLuminosity	No		# Write radial luminosity [default = no]
 WriteRadialDissipation	No		# Write radial dissipation [default = no]
 WriteLightCurves	No		# Write light curves [default = no]
