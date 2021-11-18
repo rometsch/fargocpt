@@ -107,7 +107,7 @@ void CalculateNbodyPotential(t_data &data)
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 		const double angle =
-		(double)n_az * 2.0 * M_PI / (double)pot.get_size_azimuthal();
+		2.0 * M_PI / (double)pot.get_size_azimuthal() * (double)n_az;
 		const int cell = get_cell_id(n_rad, n_az);
 		const double x = Rmed[n_rad] * std::cos(angle);
 		const double y = Rmed[n_rad] * std::sin(angle);
