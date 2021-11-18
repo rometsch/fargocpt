@@ -10,33 +10,23 @@ class t_planet
     friend class t_planetary_system;
 
   private:
-    /// mass
     double m_mass;
-    /// x position
     double m_x;
-    /// y position
     double m_y;
-    /// x velocity
     double m_vx;
-    /// y velocity
     double m_vy;
     /// accretion times^-1
     double m_acc;
-    /// name
+	double m_accreted_mass;
     char *m_name;
-    /// planet number
     unsigned int m_planet_number;
-    /// temperature
     double m_temperature;
-    /// radius
     double m_radius;
-    /// irradiate
     bool m_irradiate;
-    /// rampup time
     double m_rampuptime;
-    /// accelerations onto planet
     Pair m_disk_on_planet_acceleration;
     Pair m_nbody_on_planet_acceleration;
+
     /// orbital elements
     double m_semi_major_axis;
     double m_eccentricity;
@@ -55,6 +45,7 @@ class t_planet
     inline void set_vx(double value) { m_vx = value; }
     inline void set_vy(double value) { m_vy = value; }
     inline void set_acc(double value) { m_acc = value; }
+	inline void set_accreted_mass(double value) { m_accreted_mass = value; }
     inline void set_torque(const double value) { m_torque = value; }
     void set_name(const char *value);
     inline void set_planet_number(unsigned int value)
@@ -133,6 +124,7 @@ class t_planet
     double get_value_from_file(unsigned int timestep,
 			       std::string variable_name);
     ~t_planet();
+	t_planet();
 };
 
 #endif // PLANET_H

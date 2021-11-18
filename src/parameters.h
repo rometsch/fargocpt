@@ -264,6 +264,7 @@ extern double radial_viscosity_factor;
 extern double vrad_fraction_of_kepler;
 extern double stellar_rotation_rate;
 extern double mass_accretion_rate;
+extern double accretion_radius;
 
 /// CFL Factor
 extern double CFL;

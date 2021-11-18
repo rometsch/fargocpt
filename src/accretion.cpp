@@ -78,8 +78,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	const double facc = dt * planet.get_acc() * planet.get_omega();
 	const double facc1 = 1.0 / 3.0 * facc;
 	const double facc2 = 2.0 / 3.0 * facc;
-	const double frac1 = 0.5;
-	const double frac2 = 0.25;
+	const double frac1 = 0.5 * parameters::accretion_radius;
+	const double frac2 = 0.25 * parameters::accretion_radius;
 	// W. Kley's parameters initialization finished
 
 	const double Xplanet = planet.get_x();

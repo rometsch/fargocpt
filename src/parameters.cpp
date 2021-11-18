@@ -147,6 +147,7 @@ double radial_viscosity_factor;
 double vrad_fraction_of_kepler;
 double stellar_rotation_rate;
 double mass_accretion_rate;
+double accretion_radius;
 
 unsigned int zbuffer_size;
 double zbuffer_maxangle;
@@ -834,6 +835,8 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("StellarRotation", 0.1);
     mass_accretion_rate =
 	config::value_as_double_default("MassAccretionRate", 1.e-9);
+	accretion_radius =
+	config::value_as_double_default("MassAccretionRadius", 1.0);
 
     CFL = config::value_as_double_default("CFL", 0.5);
 

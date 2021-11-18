@@ -117,6 +117,33 @@ const std::map<const std::string, const std::string> variable_units = {
 
 t_planet::~t_planet() { delete[] m_name; }
 
+t_planet::t_planet() {
+	 m_mass = 0.0;
+	 m_x = 0.0;
+	 m_y = 0.0;
+	 m_vx = 0.0;
+	 m_vy = 0.0;
+
+	 m_acc = 0.0;
+	 m_accreted_mass = 0.0;
+
+	 m_name = nullptr;
+	 m_planet_number = 0;
+	 m_temperature = 0.0;
+	 m_radius = 0.0;
+	 m_irradiate = false;
+	 m_rampuptime = 0.0;
+	 m_disk_on_planet_acceleration = {0.0, 0.0};
+	 m_nbody_on_planet_acceleration = {0.0, 0.0};
+	 m_semi_major_axis = 0.0;
+	 m_eccentricity = 0.0;
+	 m_mean_anomaly = 0.0;
+	 m_true_anomaly = 0.0;
+	 m_eccentric_anomaly = 0.0;
+	 m_pericenter_angle = 0.0;
+	 m_torque = 0.0;
+}
+
 /**
 	set name of planet
 */
