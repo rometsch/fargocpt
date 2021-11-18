@@ -34,6 +34,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 void compute_sound_speed(t_data &data, bool force_update);
 void compute_aspect_ratio(t_data &data, bool force_update);
+void compute_aspect_ratio_nbody(t_data &data, bool force_update);
 void compute_pressure(t_data &data, bool force_update);
 void compute_temperature(t_data &data, bool force_update);
 void compute_rho(t_data &data, bool force_update);

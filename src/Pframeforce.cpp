@@ -83,12 +83,12 @@ void ComputeIndirectTerm(t_data &data)
  */
 void CalculateNbodyPotential(t_data &data)
 {
-    const unsigned int N_planets =
+	static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-    std::vector<double> xpl(N_planets);
-    std::vector<double> ypl(N_planets);
-    std::vector<double> mpl(N_planets);
-    std::vector<double> smooth_pl(N_planets);
+	static std::vector<double> xpl(N_planets);
+	static std::vector<double> ypl(N_planets);
+	static std::vector<double> mpl(N_planets);
+	static std::vector<double> smooth_pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
@@ -106,10 +106,11 @@ void CalculateNbodyPotential(t_data &data)
 
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
-	    const double angle =
+		const double angle =
 		(double)n_az / (double)pot.get_size_azimuthal() * 2.0 * M_PI;
-	    const double x = Rmed[n_rad] * std::cos(angle);
-	    const double y = Rmed[n_rad] * std::sin(angle);
+		const int cell = get_cell_id(n_rad, n_az);
+		const double x = Rmed[n_rad] * std::cos(angle);
+		const double y = Rmed[n_rad] * std::sin(angle);
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
@@ -134,12 +135,12 @@ void CalculateAccelOnGas(t_data &data)
 {
     const int ns = data[t_data::DENSITY].Nsec;
 
-    const unsigned int N_planets =
+	static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-    std::vector<double> xpl(N_planets);
-    std::vector<double> ypl(N_planets);
-    std::vector<double> mpl(N_planets);
-    std::vector<double> smooth_pl(N_planets);
+	static std::vector<double> xpl(N_planets);
+	static std::vector<double> ypl(N_planets);
+	static std::vector<double> mpl(N_planets);
+	static std::vector<double> smooth_pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {

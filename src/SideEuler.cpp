@@ -153,18 +153,16 @@ void InitCellCenterCoordinates()
     delete CellCenterY;
     delete CellCenterX;
 
-    CellCenterX = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_x");
-    CellCenterY = CreatePolarGrid(NRadial, NAzimuthal, "cell_center_y");
+	CellCenterX = CreatePolarGrid(NRadial+1, NAzimuthal, "cell_center_x");
+	CellCenterY = CreatePolarGrid(NRadial+1, NAzimuthal, "cell_center_y");
 
     for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * CellCenterX->Nsec;
 	    CellCenterX->Field[cell] =
-		Rmed[nRadial] * cos(2.0 * M_PI * (double)nAzimuthal /
-				    (double)(CellCenterX->Nsec));
+		Rmed[nRadial] * cos(dphi * (double)nAzimuthal);
 	    CellCenterY->Field[cell] =
-		Rmed[nRadial] * sin(2.0 * M_PI * (double)nAzimuthal /
-				    (double)(CellCenterX->Nsec));
+		Rmed[nRadial] * sin(dphi * (double)nAzimuthal);
 	}
     }
 }

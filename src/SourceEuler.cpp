@@ -2276,6 +2276,41 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 }
 
 /**
+	computes aspect ratio
+*/
+void compute_aspect_ratio_nbody(t_data &data, bool force_update)
+{
+	static double last_physicaltime_calculated = -1;
+
+	if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+	return;
+	}
+	last_physicaltime_calculated = PhysicalTime;
+
+	for (unsigned int n_radial = 0;
+	 n_radial <= data[t_data::ASPECTRATIO].get_max_radial(); ++n_radial) {
+	double inv_v_kepler =
+		1.0 / (calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial]);
+
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::ASPECTRATIO].get_max_azimuthal();
+		 ++n_azimuthal) {
+		if (parameters::Adiabatic || parameters::Polytropic) {
+		// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
+		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
+			data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
+			(std::sqrt(ADIABATICINDEX)) * inv_v_kepler;
+		} else {
+		// h = H/r = c_s/v_k
+		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
+			data[t_data::SOUNDSPEED](n_radial, n_azimuthal) *
+			inv_v_kepler;
+		}
+	}
+	}
+}
+
+/**
 	computes pressure
 */
 void compute_pressure(t_data &data, bool force_update)

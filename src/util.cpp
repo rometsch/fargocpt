@@ -33,6 +33,11 @@ unsigned int get_prev_azimuthal_id(const unsigned int id)
     }
 }
 
+unsigned int get_cell_id(const int nRadial, const int nAzimuthal)
+{
+	return nAzimuthal + (nRadial * NAzimuthal);
+}
+
 /** helper function to sum up a quantity inside the processes domain without
  * ghost cells */
 void sum_without_ghost_cells(double &accumulator, const double &addend,
