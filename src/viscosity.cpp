@@ -39,9 +39,6 @@ void update_viscosity(t_data &data)
     if (ViscosityAlpha) {
 	for (unsigned int n_rad = 0;
 	     n_rad <= data[t_data::VISCOSITY].get_max_radial(); ++n_rad) {
-	    const double inv_omega_kepler =
-		1.0 / calculate_omega_kepler(Rb[n_rad]);
-
 	    for (unsigned int n_az = 0;
 		 n_az <= data[t_data::VISCOSITY].get_max_azimuthal(); ++n_az) {
 		// H = c_s^iso / Omega_K = c_s_adb / Omega_K / sqrt(gamma)
@@ -50,10 +47,9 @@ void update_viscosity(t_data &data)
 		// nu = alpha * c_s_adb * H = alpha * c_s_adb^2 / sqrt(gamma) /
 		// Omega_K
 		const double alpha = ALPHAVISCOSITY;
-		const double gamma = ADIABATICINDEX;
 		const double c_s_adb = data[t_data::SOUNDSPEED](n_rad, n_az);
-		const double nu = alpha * std::pow(c_s_adb, 2) *
-				  inv_omega_kepler / std::sqrt(gamma);
+		const double H = data[t_data::ASPECTRATIO](n_rad, n_az) * Rmed[n_rad];
+		const double nu = alpha * H * c_s_adb;
 
 		data[t_data::VISCOSITY](n_rad, n_az) = nu;
 	    }
@@ -670,8 +666,7 @@ static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2,
 		data[t_data::DENSITY](n_radial, n_azimuthal) *
 		std::pow(
 		    std::min(Rsup[n_radial] - Rinf[n_radial],
-			     Rmed[n_radial] * 2 * M_PI /
-				 data[t_data::DENSITY].get_size_azimuthal()),
+				 Rmed[n_radial] * dphi),
 		    2) *
 		(-DIV_V);
 	} else {

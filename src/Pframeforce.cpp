@@ -131,7 +131,6 @@ void CalculateNbodyPotential(t_data &data)
 
 void CalculateAccelOnGas(t_data &data)
 {
-    const int ns = data[t_data::DENSITY].Nsec;
 
 	static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
@@ -205,7 +204,7 @@ void CalculateAccelOnGas(t_data &data)
 	    /// END DEBUG
 	    */
 
-	    const int cell_id = n_az + n_rad * ns;
+		const int cell_id = get_cell_id(n_rad, n_az);
 	    acc_r[cell_id] = accel;
 	}
     }
@@ -271,8 +270,8 @@ void CalculateAccelOnGas(t_data &data)
 	    /// END DEBUG
 	    */
 
-	    const int cell_id = n_az + n_rad * ns;
-	    accel_phi[cell_id] = accel;
+		const int cell_id = get_cell_id(n_rad, n_az);
+		accel_phi[cell_id] = accel;
 	}
     }
 }

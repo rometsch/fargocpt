@@ -2243,6 +2243,7 @@ void compute_sound_speed(t_data &data, bool force_update)
 /**
 	computes aspect ratio
 */
+/*
 void compute_aspect_ratio(t_data &data, bool force_update)
 {
     static double last_physicaltime_calculated = -1;
@@ -2273,12 +2274,12 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 	    }
 	}
     }
-}
+}*/
 
 /**
-	computes aspect ratio
+	computes aspect ratio for an entire Nbody system
 */
-void compute_aspect_ratio_nbody(t_data &data, bool force_update)
+void compute_aspect_ratio(t_data &data, bool force_update)
 {
 	static double last_physicaltime_calculated = -1;
 
@@ -2287,25 +2288,65 @@ void compute_aspect_ratio_nbody(t_data &data, bool force_update)
 	}
 	last_physicaltime_calculated = PhysicalTime;
 
-	for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ASPECTRATIO].get_max_radial(); ++n_radial) {
-	double inv_v_kepler =
-		1.0 / (calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial]);
+	static const unsigned int N_planets =
+	data.get_planetary_system().get_number_of_planets();
+	static std::vector<double> xpl(N_planets);
+	static std::vector<double> ypl(N_planets);
+	static std::vector<double> mpl(N_planets);
+	static std::vector<double> rpl(N_planets);
 
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::ASPECTRATIO].get_max_azimuthal();
-		 ++n_azimuthal) {
-		if (parameters::Adiabatic || parameters::Polytropic) {
-		// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
-			data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
-			(std::sqrt(ADIABATICINDEX)) * inv_v_kepler;
-		} else {
-		// h = H/r = c_s/v_k
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
-			data[t_data::SOUNDSPEED](n_radial, n_azimuthal) *
-			inv_v_kepler;
+	// setup planet data
+	for (unsigned int k = 0; k < N_planets; k++) {
+	t_planet &planet = data.get_planetary_system().get_planet(k);
+	mpl[k] = planet.get_rampup_mass();
+	xpl[k] = planet.get_x();
+	ypl[k] = planet.get_y();
+	rpl[k] = planet.get_radius();
+	}
+
+	// h = H/r
+	// H = = c_s,iso / (GM/r^3) = c_s/sqrt(gamma) / / (GM/r^3)
+	// for an Nbody system, H^-2 = sum_n (H_n)^-2
+	// See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
+	// Better see Thun et al. 2017 Eq. 8 instead.
+	for (unsigned int n_rad = 0;
+	 n_rad <= data[t_data::ASPECTRATIO].get_max_radial(); ++n_rad) {
+	for (unsigned int n_az = 0;
+		 n_az <= data[t_data::ASPECTRATIO].get_max_azimuthal();
+		 ++n_az) {
+
+		const int cell = get_cell_id(n_rad, n_az);
+		const double x = CellCenterX->Field[cell];
+		const double y = CellCenterY->Field[cell];
+		const double cs2 = std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
+
+		double inv_H2 = 0; // inverse aspectratio squared
+
+		for (unsigned int k = 0; k < N_planets; k++) {
+
+			/// since the mass is distributed homogeniously distributed inside the cell,
+			/// we assume that the planet is always at least cell_size / 2 plus planet radius away from the gas
+			/// this is an rough estimate without explanation
+			/// alternatively you can think about it yourself
+			const double min_dist =  0.5*std::max(Rsup[n_rad] - Rinf[n_rad],
+									   Rmed[n_rad] * dphi) + rpl[k];
+
+			const double dx = x - xpl[k];
+			const double dy = y - ypl[k];
+
+			const double dist = std::max(std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+			const double dist3 = std::pow(dist, 3);
+
+			// H^2 = GM / dist^3 / Cs_iso^2
+			if (parameters::Adiabatic || parameters::Polytropic) {
+				inv_H2 += constants::G * mpl[k] * ADIABATICINDEX / (dist3 * cs2);
+			} else {
+				inv_H2 += constants::G * mpl[k] / (dist3 * cs2);
+			}
 		}
+
+		const double H = std::sqrt(1.0/inv_H2);
+		data[t_data::ASPECTRATIO](n_rad, n_az) = H * InvRmed[n_rad];
 	}
 	}
 }
