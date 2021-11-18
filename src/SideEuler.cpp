@@ -65,7 +65,7 @@ void CheckAngularMomentumConservation(t_data &data)
 	thetapl = atan2(yplanet, xplanet);
 	vxplanet = data.get_planetary_system().get_planet(nPlanet).get_vx();
 	vyplanet = data.get_planetary_system().get_planet(nPlanet).get_vy();
-	vazimpl = -vxplanet * sin(thetapl) + vyplanet * cos(thetapl);
+	vazimpl = -vxplanet * std::sin(thetapl) + vyplanet * std::cos(thetapl);
 	masspl = data.get_planetary_system().get_planet(nPlanet).get_mass();
 	planetAngularMomentum = masspl * rpl * vazimpl;
 	planetsAngularMomentum += planetAngularMomentum;
@@ -160,9 +160,9 @@ void InitCellCenterCoordinates()
 	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * CellCenterX->Nsec;
 	    CellCenterX->Field[cell] =
-		Rmed[nRadial] * cos(dphi * (double)nAzimuthal);
+		Rmed[nRadial] * std::cos(dphi * (double)nAzimuthal);
 	    CellCenterY->Field[cell] =
-		Rmed[nRadial] * sin(dphi * (double)nAzimuthal);
+		Rmed[nRadial] * std::sin(dphi * (double)nAzimuthal);
 	}
     }
 }

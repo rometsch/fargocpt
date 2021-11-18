@@ -323,12 +323,12 @@ void t_planetary_system::rotate(double angle)
 	const double vy = planet.get_vy();
 
 	// rotate positions
-	const double new_x = x * cos(angle) + y * sin(angle);
-	const double new_y = -x * sin(angle) + y * cos(angle);
+	const double new_x = x * std::cos(angle) + y * std::sin(angle);
+	const double new_y = -x * std::sin(angle) + y * std::cos(angle);
 
 	// rotate velocities
-	const double new_vx = vx * cos(angle) + vy * sin(angle);
-	const double new_vy = -vx * sin(angle) + vy * cos(angle);
+	const double new_vx = vx * std::cos(angle) + vy * std::sin(angle);
+	const double new_vy = -vx * std::sin(angle) + vy * std::cos(angle);
 
 	// save new values
 	planet.set_x(new_x);
@@ -371,15 +371,15 @@ void t_planetary_system::initialize_planet_legacy(t_planet *planet, double mass,
     planet->set_mass(mass);
     // planets starts at Apastron
     double r = semi_major_axis * (1.0 + eccentricity);
-    planet->set_x(r * cos(phi));
-    planet->set_y(r * sin(phi));
+	planet->set_x(r * std::cos(phi));
+	planet->set_y(r * std::sin(phi));
     double v = 0.0;
     if (semi_major_axis != 0.0) {
-	v = sqrt(constants::G * (1.0 + mass) / semi_major_axis) *
-	    sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
+	v = std::sqrt(constants::G * (1.0 + mass) / semi_major_axis) *
+		std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
     }
-    planet->set_vx(-v * sin(phi));
-    planet->set_vy(v * cos(phi));
+	planet->set_vx(-v * std::sin(phi));
+	planet->set_vy(v * std::cos(phi));
 }
 
 /**
@@ -449,12 +449,12 @@ void t_planetary_system::initialize_planet_jacobi(t_planet *planet, double mass,
     double com_mass = get_mass();    // of all previously added planets
 
     // some temporary variables for optimization and legibility
-    double cos_ota = cos(omega + true_anomaly);
-    double sin_ota = sin(omega + true_anomaly);
-    double cos_o = cos(omega);
-    double sin_o = sin(omega);
-    double cos_ta = cos(true_anomaly);
-    double sin_ta = sin(true_anomaly);
+	double cos_ota = std::cos(omega + true_anomaly);
+	double sin_ota = std::sin(omega + true_anomaly);
+	double cos_o = std::cos(omega);
+	double sin_o = std::sin(omega);
+	double cos_ta = std::cos(true_anomaly);
+	double sin_ta = std::sin(true_anomaly);
 
     double r = semi_major_axis * (1 - eccentricity * eccentricity) /
 	       (1 + eccentricity * cos_ta);

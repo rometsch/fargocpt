@@ -403,8 +403,8 @@ static void correct_for_self_gravity(const unsigned int i)
 	// vx = r_dot
 	// vy = phi_dot
 
-	particles[i].r_dot = -v * sin(phi);
-	particles[i].phi_dot = v * cos(phi);
+	particles[i].r_dot = -v * std::sin(phi);
+	particles[i].phi_dot = v * std::cos(phi);
     } else {
 	particles[i].r_dot = 0.0;
 	particles[i].phi_dot = v / r;
@@ -1230,9 +1230,9 @@ static void update_velocities_from_indirect_term(const double dt)
 	    const double phi_dot = particles[i].phi_dot;
 
 	    indirect_q1_dot = r_dot + dt * (IndirectTerm.x * std::cos(phi) +
-					    IndirectTerm.y * sin(phi));
+						IndirectTerm.y * std::sin(phi));
 	    indirect_q2_dot = phi_dot + dt *
-					    (-IndirectTerm.x * sin(phi) +
+						(-IndirectTerm.x * std::sin(phi) +
 					     IndirectTerm.y * std::cos(phi)) /
 					    r;
 	}
