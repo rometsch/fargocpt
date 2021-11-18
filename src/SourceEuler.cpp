@@ -1416,8 +1416,8 @@ void SubStep3(t_data &data, double dt)
     }
 
     // Now we can update energy with source terms
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
+	for (unsigned int n_radial = One_or_active;
+	 n_radial <= MaxMO_or_active; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	     ++n_azimuthal) {
