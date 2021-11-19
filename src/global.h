@@ -112,6 +112,7 @@ extern double RMAX;
 extern double quantities_radius_limit;
 
 extern double ASPECTRATIO_REF;
+extern int ASPECTRATIO_NBODY;
 extern int EXPLICIT_VISCOSITY;
 extern double STS_NU;
 extern double VISCOSITY;

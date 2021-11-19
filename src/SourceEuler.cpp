@@ -2239,8 +2239,7 @@ void compute_sound_speed(t_data &data, bool force_update)
 /**
 	computes aspect ratio
 */
-/*
-void compute_aspect_ratio(t_data &data, bool force_update)
+void compute_aspect_ratio_old(t_data &data, const bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
@@ -2270,12 +2269,12 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 	    }
 	}
     }
-}*/
+}
 
 /**
 	computes aspect ratio for an entire Nbody system
 */
-void compute_aspect_ratio(t_data &data, bool force_update)
+void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 {
 	static double last_physicaltime_calculated = -1;
 
@@ -2345,6 +2344,14 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 
 		data[t_data::ASPECTRATIO](n_rad, n_az) = H * InvRmed[n_rad];
 	}
+	}
+}
+
+void compute_aspect_ratio(t_data &data, const bool force_update){
+	if(ASPECTRATIO_NBODY){
+		compute_aspect_ratio_nbody(data, force_update);
+	} else {
+		compute_aspect_ratio_old(data, force_update);
 	}
 }
 

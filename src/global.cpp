@@ -170,6 +170,7 @@ double RMAX;
 double quantities_radius_limit;
 
 double ASPECTRATIO_REF;
+int ASPECTRATIO_NBODY;
 int EXPLICIT_VISCOSITY;
 double STS_NU;
 double VISCOSITY;

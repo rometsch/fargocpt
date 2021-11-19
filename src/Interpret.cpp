@@ -249,6 +249,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     // disc
     ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
+	ASPECTRATIO_NBODY =
+	config::value_as_bool_default("AspectRatioNbody", false);
 
     if (!config::key_exists("OuterBoundary")) {
 	logging::print_master(LOG_ERROR
