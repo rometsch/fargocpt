@@ -2335,13 +2335,14 @@ void compute_aspect_ratio(t_data &data, bool force_update)
 
 			// H^2 = GM / dist^3 / Cs_iso^2
 			if (parameters::Adiabatic || parameters::Polytropic) {
-				inv_H2 += constants::G * mpl[k] * ADIABATICINDEX / (dist3 * cs2);
+				inv_H2 += std::min(constants::G * mpl[k] * ADIABATICINDEX / (dist3 * cs2), 1.0 / std::pow(min_dist, 2));
 			} else {
 				inv_H2 += constants::G * mpl[k] / (dist3 * cs2);
 			}
 		}
 
 		const double H = std::sqrt(1.0/inv_H2);
+
 		data[t_data::ASPECTRATIO](n_rad, n_az) = H * InvRmed[n_rad];
 	}
 	}

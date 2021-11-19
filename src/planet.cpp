@@ -203,9 +203,9 @@ double t_planet::get_rampup_mass()
 {
     double ramping = 1.0;
     if (get_rampuptime() > 0) {
-	if (PhysicalTime < get_rampuptime() * DT) {
-	    ramping = 1.0 - std::pow(std::cos(PhysicalTime * M_PI / 2.0 /
-					      (get_rampuptime() * DT)),
+	if (PhysicalTime < get_rampuptime() * get_period()) {
+		ramping = 1.0 - std::pow(std::cos(PhysicalTime * M_PI_2 /
+						  (get_rampuptime() * get_period())),
 				     2);
 	}
     }
@@ -215,7 +215,7 @@ double t_planet::get_rampup_mass()
 /**
 	get planet period T
 */
-double t_planet::get_period()
+double t_planet::get_period() const
 {
     return 2.0 * M_PI *
 	   std::sqrt(std::pow(get_semi_major_axis(), 3) /
@@ -225,7 +225,7 @@ double t_planet::get_period()
 /**
 	get omega_kepler at current planet location
 */
-double t_planet::get_omega()
+double t_planet::get_omega() const
 {
     double distance = get_r();
     if (!is_distance_zero(distance)) {

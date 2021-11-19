@@ -1060,14 +1060,12 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
 	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
     }
-    const double xplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
-    const double yplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
 
-    const double omega_planet = data.get_planetary_system()
-				    .get_planet(parameters::mof_planet)
-				    .get_omega();
+	const t_planet &planet = data.get_planetary_system().get_planet(parameters::mof_planet);
+	const double xplanet = planet.get_x();
+	const double yplanet = planet.get_y();
+
+	const double omega_planet = planet.get_omega();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
     double angle = std::atan2(yplanet, xplanet) * 0.5 * M_1_PI;
@@ -1117,10 +1115,10 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
     double sigmabar = Nphi * sigma;
 
 	//ramping over 5 orbits
-	const double t_ramp = 5.0 * 2.0 * M_PI /omega_planet;
+	const double t_ramp = planet.get_rampuptime() * planet.get_period();
 	double ramp_factor;
 	if (PhysicalTime < t_ramp){
-		ramp_factor = std::pow(std::sin(PhysicalTime*M_PI/2.0/t_ramp), 2);
+		ramp_factor = std::pow(std::sin(PhysicalTime*M_PI_2/t_ramp), 2);
 	}else{
 		ramp_factor = 1.0;
 	}

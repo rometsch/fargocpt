@@ -113,8 +113,8 @@ class t_planet
     double get_r(void) const;
     double get_phi(void) const;
     double get_angular_momentum();
-    double get_period();
-    double get_omega();
+	double get_period() const;
+	double get_omega() const;
     double get_rhill();
 
     void calculate_orbital_elements(double x, double y, double vx, double vy,
