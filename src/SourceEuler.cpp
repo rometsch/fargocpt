@@ -535,6 +535,8 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 	    if (parameters::Adiabatic) {
 
+		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+
 		// ComputeViscousStressTensor(data);
 		SubStep3(data, dt);
 
