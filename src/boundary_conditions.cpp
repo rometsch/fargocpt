@@ -13,6 +13,7 @@
 #include <cstring>
 #include <math.h>
 #include <vector>
+#include <algorithm>
 
 #include "constants.h"
 #include <experimental/filesystem>
@@ -32,19 +33,19 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 {
 
     // delete old data
-    if (data[t_data::PRESCRIBED_DENSITY_OUTER].Field == nullptr) {
+	if (data[t_data::PRESCRIBED_DENSITY_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_DENSITY_OUTER].Field;
 	data[t_data::PRESCRIBED_DENSITY_OUTER].Field = nullptr;
     }
-    if (data[t_data::PRESCRIBED_ENERGY_OUTER].Field == nullptr) {
+	if (data[t_data::PRESCRIBED_ENERGY_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_ENERGY_OUTER].Field;
 	data[t_data::PRESCRIBED_ENERGY_OUTER].Field = nullptr;
     }
-    if (data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field == nullptr) {
+	if (data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field;
 	data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field = nullptr;
     }
-    if (data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field == nullptr) {
+	if (data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field;
 	data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field = nullptr;
     }
@@ -74,6 +75,13 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			 PRESCRIBED_BOUNDARY_OUTER_FILE, Nphi);
 		std::string file_name_body{file_name_body_char};
 
+		char *file_name_test_char;
+		asprintf(&file_name_test_char, "%s0.dat",
+			 file_name_body_char);
+		if(!std::experimental::filesystem::exists(file_name_test_char)){
+			die("Prescribed boundary file %s does not exist!\n", file_name_test_char);
+		}
+
 		// get number of files
 		int num_files = 0;
 		const std::experimental::filesystem::path File_Folder{
@@ -92,6 +100,11 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 		// load data from files
 		int num_cells = num_files * Nphi;
 
+		data[t_data::PRESCRIBED_DENSITY_OUTER].Nrad = num_files;
+		data[t_data::PRESCRIBED_ENERGY_OUTER].Nrad = num_files;
+		data[t_data::PRESCRIBED_V_RADIAL_OUTER].Nrad = num_files;
+		data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Nrad = num_files;
+
 		// assign new memory
 		data[t_data::PRESCRIBED_DENSITY_OUTER].Field =
 		    new double[num_cells];
@@ -103,14 +116,12 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 		    new double[num_cells];
 
 		// set to 0
-		memset(data[t_data::PRESCRIBED_DENSITY_OUTER].Field, 0,
-		       num_cells * sizeof(double));
-		memset(data[t_data::PRESCRIBED_ENERGY_OUTER].Field, 0,
-		       num_cells * sizeof(double));
-		memset(data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field, 0,
-		       num_cells * sizeof(double));
-		memset(data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field, 0,
-		       num_cells * sizeof(double));
+		data[t_data::PRESCRIBED_DENSITY_OUTER].clear();
+		data[t_data::PRESCRIBED_ENERGY_OUTER].clear();
+		data[t_data::PRESCRIBED_V_RADIAL_OUTER].clear();
+		data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].clear();
+
+		std::vector<int> count_files;
 
 		// read data
 		for (auto const &dir_entry :
@@ -118,10 +129,17 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			 File_Folder}) {
 		    std::string path_string{dir_entry.path()};
 		    if (path_string.find(file_name_body) != std::string::npos) {
-			int file_id = 0;
+			int file_id;
 			std::string filename = file_name_body + "%d.dat";
 			std::sscanf(path_string.c_str(), filename.c_str(),
 				    &file_id);
+
+			count_files.push_back(file_id);
+
+			if(file_id >= num_files){
+				die("file_id %d is out of range for %d number of files!\n", file_id, num_files);
+			}
+
 			std::fstream infile(path_string, std::ios_base::in);
 			std::string line;
 			int n_azimuthal = 0;
@@ -195,8 +213,23 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    T*units::temperature.get_cgs_factor(), vr, vphi);
 				       */
 			}
+			if(n_azimuthal != data[t_data::PRESCRIBED_DENSITY_OUTER].get_size_azimuthal()){
+				die("Could not read full ring from file %s, only %d / %d lines found\n", path_string.c_str(), n_azimuthal, data[t_data::PRESCRIBED_DENSITY_OUTER].get_max_azimuthal());
+			}
 		    }
 		}
+
+		if(count_files.size() != (unsigned int)num_files){
+			die("Only prescribed boundary files %d / %d files were loaded!\n");
+		}
+
+		std::sort(count_files.begin(), count_files.end());
+		for(unsigned int i = 0; i < count_files.size(); ++i){
+			if(i != (unsigned int)count_files[i]){
+				die("Prescribed boundary file number %d was not loaded correctly!\n");
+			}
+		}
+
 	    }
 	}
     }
