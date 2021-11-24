@@ -200,23 +200,22 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 {
     int i, j, l, nr, ns;
     long nitemp;
-    double *vt, *vres, Ntilde, Nround, invdt, dpinvns;
+	double *vt, *vres, Ntilde, Nround, invdt;
     nr = VAzimuthal->Nrad;
     ns = VAzimuthal->Nsec;
     vt = VAzimuthal->Field;
     vres = v_azimuthal_res.Field;
     invdt = 1.0 / dt;
-    dpinvns = 2.0 * M_PI / (double)ns;
 
     for (i = 0; i < nr; i++) {
 	Ntilde =
-	    v_azimuthal_mean(i) * InvRmed[i] * dt * (double)ns / 2.0 / M_PI;
+		v_azimuthal_mean(i) * InvRmed[i] * dt * invdphi;
 	Nround = floor(Ntilde + 0.5);
 	nitemp = (long)Nround;
 	Nshift[i] = (long)nitemp;
 	for (j = 0; j < ns; j++) {
 	    l = j + i * ns;
-	    vt[l] = (Ntilde - Nround) * Rmed[i] * invdt * dpinvns;
+		vt[l] = (Ntilde - Nround) * Rmed[i] * invdt * dphi;
 	}
 	if (!FastTransport) {
 	    NoSplitAdvection[i] = YES;
@@ -373,7 +372,7 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
     double dqp, dqm, dxtheta, ksi, invdxtheta;
 
     for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	dxtheta = 2.0 * M_PI / (double)Qbase->Nsec * Rmed[nRadial];
+	dxtheta = dphi * Rmed[nRadial];
 	invdxtheta = 1.0 / dxtheta;
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * Qbase->Nsec;
@@ -498,7 +497,6 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		   double dt)
 {
     unsigned int nRadial, nAzimuthal;
-    double dtheta;
     bool is_density = false;
     units::t_unit *unit = Qbase->get_unit();
     if (unit != nullptr) {
@@ -510,8 +508,6 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		     *Work); // work = qbase/densityint
     compute_star_radial(Work, VRadial, QRStar, dt);
 
-    dtheta = 2.0 * M_PI / (double)Qbase->Nsec;
-
     for (nRadial = 0; nRadial <= Qbase->get_max_radial(); ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal <= Qbase->get_max_azimuthal();
 	     ++nAzimuthal) {
@@ -519,11 +515,11 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 	    const int lip = cell + Qbase->Nsec;
 	    // mass crossing inf interface
 	    const double varq_inf =
-		dt * dtheta * Rinf[nRadial] * QRStar->Field[cell] *
+		dt * dphi * Rinf[nRadial] * QRStar->Field[cell] *
 		DensityStar->Field[cell] * VRadial->Field[cell];
 	    // mass crossing sup interface
 	    const double varq_sup =
-		dt * dtheta * Rsup[nRadial] * QRStar->Field[lip] *
+		dt * dphi * Rsup[nRadial] * QRStar->Field[lip] *
 		DensityStar->Field[lip] * VRadial->Field[lip];
 	    // update density
 	    Qbase->Field[cell] += (varq_inf - varq_sup) * InvSurf[nRadial];
