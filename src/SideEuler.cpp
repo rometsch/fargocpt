@@ -29,6 +29,7 @@
 #include "selfgravity.h"
 #include "util.h"
 #include "viscosity.h"
+#include <assert.h>
 
 extern boolean Damping;
 extern boolean OuterSourceMass;
@@ -138,7 +139,9 @@ void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
 {
 	const unsigned int Nmax = result.get_size_radial() * result.get_size_azimuthal();
 	for (unsigned int n=0; n < Nmax; n++) {
-	    result.Field[n] = num.Field[n] / (denom.Field[n] + DBL_EPSILON);
+		assert(denom.Field[n] > 0.0);
+		/// denom + DBL_EPSILON can cause problems because DBL_EPSILON can be bigger than denom, depending on units.
+		result.Field[n] = num.Field[n] / denom.Field[n]; /// in case of crash, use (denom.Field[n] + 1.0e-200) instead.
 	}
 }
 
