@@ -579,10 +579,6 @@ void read(char *filename, t_data &data)
     maximum_temperature =
 	config::value_as_double_default("MaximumTemperature", 1.0e300);
 
-    // TODO: remove temporary warning
-    if (config::key_exists("HeatingViscous") == false) {
-	die("please specify HeatingViscous in config file");
-    }
     heating_viscous_enabled =
 	config::value_as_bool_default("HeatingViscous", false);
     heating_viscous_factor =
