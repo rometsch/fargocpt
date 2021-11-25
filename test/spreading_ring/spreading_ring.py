@@ -155,8 +155,8 @@ def test_3D(out, ax, dt):
 
 
 
-# compile_fargo('../../')
-# run('../../', 'test/spreading_ring/spreading_ring.par')
+compile_fargo('../../')
+run('../../', 'test/spreading_ring/speith2003_log_grid.par')
 
 dts = [0,9,18,27, 32, 50]#, 6, 14, 18, 22, 30]
 dts = np.array([7, 17, 30, 43, 70, 86])*2-7#, 6, 14, 18, 22, 30]
