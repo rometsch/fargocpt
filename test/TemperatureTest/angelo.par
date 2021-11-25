@@ -96,19 +96,19 @@ Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 InnerBoundary		RIGID
 OuterBoundary		RIGID
-DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
+DomegaDrZero		Yes		# Set dOmega/dr = 0 at outer boundary
 Damping			Yes      # NO, YES [default = no]
-DampingInnerLimit	1.10    	# Rmin*Limit
-DampingOuterLimit	0.90    	# Rmax*Limit
-DampingTimeFactor	1.0e-2
+DampingInnerLimit	1.05    	# Rmin*Limit
+DampingOuterLimit	0.95    	# Rmax*Limit
+DampingTimeFactor	1.0e-1
 
 DampingEnergyInner		none		# Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialInner		zero		# Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner	none		# Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingSurfaceDensityInner	none		# Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
 DampingEnergyOuter		none		# Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
-DampingVRadialOuter		none		# Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
-DampingVAzimuthalOuter	Initial		# Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialOuter		zero		# Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalOuter	none		# Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
 DampingSurfaceDensityOuter	none		# Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none] 
 
 Disk			YES

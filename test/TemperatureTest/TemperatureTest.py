@@ -68,7 +68,7 @@ def test(out1, dt):
     ax2.set_title('Density', color='black', y = 1.06)
     dens = 300*np.sqrt(5/r1.flatten())
     ax2.plot(r1.flatten(), dens, '--k', label='Theory', lw=2.5)
-    ax2.plot(r1.flatten(), quant2, '-r', label='Code', lw=2.5)
+    ax2.plot(r1.flatten(), quant2, '.r', label='Code', lw=2.5)
 
     vmin2 = np.min(dens)
     vmax2 = np.max(dens)
