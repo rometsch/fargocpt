@@ -821,7 +821,15 @@ void read(char *filename, t_data &data)
 
     // star parameters
     star_temperature = config::value_as_double_default("StarTemperature", 5778);
-    star_radius = config::value_as_double_default("StarRadius", 0.009304813);
+	star_radius = config::value_as_double_default("StarRadius", 1.0); // solar radius in [R_sol]
+
+	if(heating_star_enabled){
+	if(star_radius < 0.1){
+		die("Star radius is smaller than Jupiter with %.3e [R_sol]. This cannot be an active star\n", star_radius);
+	}
+	}
+	const double solar_radius_in_au = 0.00465047;
+	star_radius *= solar_radius_in_au / L0; // convert to code units
 
     // boundary layer parameters
     radial_viscosity_factor =

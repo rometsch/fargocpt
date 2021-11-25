@@ -128,11 +128,11 @@ void t_planetary_system::read_from_file(char *filename)
 	    }
 
 	    if (num_args < 8) {
-		radius = 0.009304813;
+		radius = 1.0; // solar radius in [R_sol]
 	    }
 
 	    if (num_args < 9) {
-		temperature = 5778.0;
+		temperature = 5778.0; // approx temperature of sun's photosphere
 	    }
 
 	    if (num_args < 10) {
@@ -186,7 +186,7 @@ void t_planetary_system::read_from_file(char *filename)
 		LOG_WARNING,
 		"Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
 
-	    planet->set_radius(radius);
+		planet->set_radius(radius * 0.00465047 / parameters::L0);
 	    planet->set_temperature(temperature / units::temperature);
 	    planet->set_irradiate(tolower(irradiate[0]) == 'y');
 	    planet->set_rampuptime(rampuptime);
