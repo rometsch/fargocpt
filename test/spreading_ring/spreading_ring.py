@@ -29,7 +29,7 @@ def run(fargo_path, par_file):
 
 def test_1D(out, ax, dt):
 
-    Radii = np.loadtxt(out + "used_rad.dat", skiprows=0)
+    Radii = np.loadtxt(out + "/used_rad.dat", skiprows=0)
     Radii = Radii
     Rinf = Radii[:-1]
     Rsup = Radii[1:]
@@ -40,8 +40,7 @@ def test_1D(out, ax, dt):
     R0 = 1
     R0_id = np.argmin(np.abs(Rmed-R0))
     M = 1e-10 * 8887231.453904748
-    nu = 3e-7 / R0**2
-    nu = 4e-5 / R0**2
+    nu = 4.77e-5 / R0**2
 
     Quantities = np.loadtxt(out + '/Quantities.dat', skiprows=26)
     t = Quantities[int(dt*10),2]
@@ -84,7 +83,7 @@ def test_1D(out, ax, dt):
 
 def test_2D(out, ax, dt):
 
-    Radii = np.loadtxt(out + "used_rad.dat", skiprows=0)
+    Radii = np.loadtxt(out + "/used_rad.dat", skiprows=0)
     Radii = Radii
     Rinf = Radii[:-1]
     Rsup = Radii[1:]
@@ -117,7 +116,7 @@ def test_2D(out, ax, dt):
 
 def test_3D(out, ax, dt):
 
-    Radii = np.loadtxt(out + "used_rad.dat", skiprows=0)
+    Radii = np.loadtxt(out + "/used_rad.dat", skiprows=0)
     Radii = Radii
     Rinf = Radii[:-1]
     Rsup = Radii[1:]
@@ -154,9 +153,9 @@ def test_3D(out, ax, dt):
     return data
 
 
-
+parfile = "speith2003_log_grid.par"
 compile_fargo('../../')
-run('../../', 'test/spreading_ring/speith2003_log_grid.par')
+run('../../', 'test/spreading_ring/' + parfile)
 
 dts = [0,9,18,27, 32, 50]#, 6, 14, 18, 22, 30]
 dts = np.array([7, 17, 30, 43, 70, 86])*2-7#, 6, 14, 18, 22, 30]
@@ -173,7 +172,7 @@ for i in range(len(dts)):
         axs[i].get_shared_y_axes().join(axs[i],axs[i-1])
     dt = dts[i]
     ax = axs[i]
-    data = test_3D('ring/', ax, dt)
+    data = test_1D("../../" + parfile[:-4], ax, dt)
 
 
 

@@ -174,7 +174,7 @@ WriteVerticalOpticalDepth	No 	# Write optical depth in vertical direction (tau_e
 
 RandomSeed		1337		# random seed integer value
 RandomSigma 		Yes		# randomize sigma start values?
-RandomFactor		0.01		# randomize by +- 10%
+RandomFactor		0.01		# randomize by +- 1%
 FeatureSize		0.05		# Feature size of the open somplex algorithm
 
 
