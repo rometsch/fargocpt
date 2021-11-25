@@ -59,7 +59,7 @@ Opacity			Lin		# opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst		2.0e-6	# used for const and simple opacity (kappa = kappa0 * T**2) 
 CFL				0.5
 # Star Parameters
-StarRadius		0.009304813	# star radius in l0
+StarRadius		1.0	# star radius in Solar Radii
 StarTemperature		5778		# star temperature in K
 
 zbufferSize		100
