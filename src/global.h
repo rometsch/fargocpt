@@ -126,4 +126,6 @@ extern double POLYTROPIC_CONSTANT;
 
 extern BoundaryFlow MassDelta;
 
+extern int debug_outputs;
+
 #endif // GLOBAL_H

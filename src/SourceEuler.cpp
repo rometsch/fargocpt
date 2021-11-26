@@ -580,7 +580,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 	PhysicalTime += dt;
 	N_iter = N_iter + 1;
-	logging::print_runtime_info(nTimeStep / NINTERM, nTimeStep, dt);
+	logging::print_runtime_info(data, nTimeStep / NINTERM, nTimeStep, dt);
 
 	if (parameters::calculate_disk) {
 	    CommunicateBoundaries(

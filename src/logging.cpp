@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "output.h"
 
 namespace logging
 {
@@ -139,7 +140,7 @@ void print_runtime_final()
 	N_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
-void print_runtime_info(unsigned int output_number,
+void print_runtime_info(t_data &data, unsigned int output_number,
 			unsigned int time_step_coarse, double dt)
 {
     // Print a line with information about the runtime: current hyrdro step,
@@ -190,6 +191,12 @@ void print_runtime_info(unsigned int output_number,
 	    realtime / 1000000.0, time_per_step_ms);
 	n_last_log = N_iter;
 	realtime_last_log = realtime_now;
+
+	if(debug_outputs){
+		output::write_grids(data, TimeStep, N_iter, PhysicalTime, false);
+		data.get_planetary_system().write_planets(TimeStep, false);
+		output::write_misc(TimeStep);
+	}
     }
 }
 

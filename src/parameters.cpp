@@ -380,6 +380,7 @@ void read(char *filename, t_data &data)
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =
 	config::value_as_double_default("LogAfterRealSeconds", 600.0);
+	debug_outputs = config::value_as_bool_default("DebugOutputs", NO);
 
     // parse light curve radii
     if (config::key_exists("WriteLightCurvesRadii")) {

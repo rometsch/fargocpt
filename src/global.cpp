@@ -183,3 +183,5 @@ double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
+
+int debug_outputs;

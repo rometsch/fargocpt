@@ -140,12 +140,16 @@ QuantitiesRadiusLimit 2.5 # Disk quantities will be computed only within this ra
 
 ### Output control parameters
 
-Ntot			7		# Total number of time steps
+Ntot			2		# Total number of time steps
 Ninterm	 		1		# Time steps between outputs
 DT			0.628	# Time step length. 2PI = 1 orbit
 OutputDir		out/
 
-DoWrite1DFiles			Yes
+LogAfterRealSeconds	600
+LogAfterSteps		0
+DebugOutputs		No
+
+DoWrite1DFiles			No
 WriteAtEveryTimestep	Yes		# Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 
 WriteDensity		Yes		# Write surface density. This is needed for restart of simulations. [default = yes]
