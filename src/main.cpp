@@ -251,7 +251,7 @@ int main(int argc, char *argv[])
 	    force_update_for_output = false;
 
 	    // write polar grids
-		output::write_grids(data, TimeStep, N_iter, PhysicalTime, true);
+		output::write_grids(data, TimeStep, N_iter, PhysicalTime, false);
 	    // write planet data
 	    data.get_planetary_system().write_planets(TimeStep, false);
 	    // write misc stuff (important for resuming)

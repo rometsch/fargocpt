@@ -184,16 +184,24 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 	    time_per_step_ms =
 		realtime_since_last / (1000.0 * (N_iter - n_last_log));
 	}
+	if(debug_outputs){
 	logging::print_master(
 	    LOG_INFO
-	    "output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
+		"DEBUG output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 	    output_number, time_step_coarse, N_iter, PhysicalTime, dt,
 	    realtime / 1000000.0, time_per_step_ms);
+	} else {
+		logging::print_master(
+		LOG_INFO
+		"Logging info: output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
+		output_number, time_step_coarse, N_iter, PhysicalTime, dt,
+		realtime / 1000000.0, time_per_step_ms);
+	}
 	n_last_log = N_iter;
 	realtime_last_log = realtime_now;
 
 	if(debug_outputs){
-		output::write_grids(data, TimeStep, N_iter, PhysicalTime, false);
+		output::write_grids(data, TimeStep, N_iter, PhysicalTime, true);
 		data.get_planetary_system().write_planets(TimeStep, false);
 		output::write_misc(TimeStep);
 	}

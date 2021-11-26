@@ -12,7 +12,7 @@ namespace output
 
 void check_free_space(t_data &data);
 
-void write_grids(t_data &data, int index, int iter, double phystime, bool do_clear);
+void write_grids(t_data &data, int index, int iter, double phystime, bool debug);
 void write_quantities(t_data &data, unsigned int timestep,
 		      unsigned int nTimeStep, bool force_update);
 void write_misc(unsigned int timestep);

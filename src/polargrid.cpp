@@ -89,7 +89,7 @@ void t_polargrid::clear()
     memset(Field, 0, get_size_radial() * get_size_azimuthal() * sizeof(*Field));
 }
 
-void t_polargrid::write_polargrid(unsigned int number, t_data &data)
+void t_polargrid::write_polargrid(unsigned int number, t_data &data, bool debug = false)
 {
     if (get_write_1D() || get_write_2D() || m_calculate_on_write) {
 	if (m_do_before_write != NULL) {
@@ -97,18 +97,15 @@ void t_polargrid::write_polargrid(unsigned int number, t_data &data)
 	}
     }
 
-	if (get_write_1D()) {
+	if (get_write_1D() && (!debug)) {
 	write1D(number);
     }
 
     if (get_write_2D()) {
-	write2D(number);
+	write2D(number, debug);
     }
-}
 
-void t_polargrid::clear_polargrid_if_needed()
-{
-	if (get_clear_after_write()) {
+	if (get_clear_after_write() && (!debug)) {
 	clear();
 	}
 }
@@ -118,7 +115,7 @@ void t_polargrid::clear_polargrid_if_needed()
 
 	\param number file number
 */
-void t_polargrid::write2D(unsigned int number) const
+void t_polargrid::write2D(const unsigned int number, const bool debug) const
 {
     MPI_File fh;
     MPI_Status status;
@@ -126,9 +123,15 @@ void t_polargrid::write2D(unsigned int number) const
     unsigned int count;
     double *from;
 
-    const std::string filename = std::string(OUTPUTDIR) + "/gas" +
+	std::string filename = std::string(OUTPUTDIR) + "/gas" +
 				 std::string(get_name()) +
 				 std::to_string(number) + ".dat";
+
+	if(debug){
+		filename = std::string(OUTPUTDIR) + "/gas" +
+						 std::string(get_name()) +
+						 "_DEBUG.dat";
+	}
 
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,

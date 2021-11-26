@@ -91,10 +91,7 @@ void t_radialgrid::write_radialgrid(unsigned int number, t_data &data)
     }
 
     write1D(number);
-}
 
-void t_radialgrid::clear_radialgrid_if_needed()
-{
 	if (m_clear_after_write) {
 	clear();
 	}
