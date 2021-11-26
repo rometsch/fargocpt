@@ -301,68 +301,69 @@ void read(char *filename, t_data &data)
     M0 = config::value_as_double_default("m0", 1.0);
 
     // output settings
+	bool do_write_1D = config::value_as_bool_default("DoWrite1DFiles", true);
     data[t_data::DENSITY].set_write(
-	config::value_as_bool_default("WriteDensity", true));
+	config::value_as_bool_default("WriteDensity", true), do_write_1D);
     data[t_data::V_RADIAL].set_write(
-	config::value_as_bool_default("WriteVelocity", true));
+	config::value_as_bool_default("WriteVelocity", true), do_write_1D);
     data[t_data::V_AZIMUTHAL].set_write(
-	config::value_as_bool_default("WriteVelocity", true));
+	config::value_as_bool_default("WriteVelocity", true), do_write_1D);
     data[t_data::ENERGY].set_write(
-	config::value_as_bool_default("WriteEnergy", true));
+	config::value_as_bool_default("WriteEnergy", true), do_write_1D);
     data[t_data::TEMPERATURE].set_write(
-	config::value_as_bool_default("WriteTemperature", false));
+	config::value_as_bool_default("WriteTemperature", false), do_write_1D);
     data[t_data::SOUNDSPEED].set_write(
-	config::value_as_bool_default("WriteSoundSpeed", false));
+	config::value_as_bool_default("WriteSoundSpeed", false), do_write_1D);
     data[t_data::PRESSURE].set_write(
-	config::value_as_bool_default("WritePressure", false));
+	config::value_as_bool_default("WritePressure", false), do_write_1D);
     data[t_data::TOOMRE].set_write(
-	config::value_as_bool_default("WriteToomre", false));
+	config::value_as_bool_default("WriteToomre", false), do_write_1D);
     data[t_data::QPLUS].set_write(
-	config::value_as_bool_default("WriteQPlus", false));
+	config::value_as_bool_default("WriteQPlus", false), do_write_1D);
     data[t_data::QMINUS].set_write(
-	config::value_as_bool_default("WriteQMinus", false));
+	config::value_as_bool_default("WriteQMinus", false), do_write_1D);
     data[t_data::KAPPA].set_write(
-	config::value_as_bool_default("WriteKappa", false));
+	config::value_as_bool_default("WriteKappa", false), do_write_1D);
     data[t_data::TAU_COOL].set_write(
-	config::value_as_bool_default("WriteTauCool", false));
+	config::value_as_bool_default("WriteTauCool", false), do_write_1D);
     data[t_data::ALPHA_GRAV].set_write(
-	config::value_as_bool_default("WriteAlphaGrav", false));
+	config::value_as_bool_default("WriteAlphaGrav", false), do_write_1D);
     data[t_data::ALPHA_GRAV_MEAN].set_write(
-	config::value_as_bool_default("WriteAlphaGravMean", false));
+	config::value_as_bool_default("WriteAlphaGravMean", false), do_write_1D);
     data[t_data::ALPHA_REYNOLDS].set_write(
-	config::value_as_bool_default("WriteAlphaReynolds", false));
+	config::value_as_bool_default("WriteAlphaReynolds", false), do_write_1D);
     data[t_data::ALPHA_REYNOLDS_MEAN].set_write(
-	config::value_as_bool_default("WriteAlphaReynoldsMean", false));
+	config::value_as_bool_default("WriteAlphaReynoldsMean", false), do_write_1D);
     data[t_data::VISCOSITY].set_write(
-	config::value_as_bool_default("WriteViscosity", false));
+	config::value_as_bool_default("WriteViscosity", false), do_write_1D);
     data[t_data::DIV_V].set_write(
-	config::value_as_bool_default("WriteDivV", false));
+	config::value_as_bool_default("WriteDivV", false), do_write_1D);
     data[t_data::ECCENTRICITY].set_write(
-	config::value_as_bool_default("WriteEccentricity", false));
+	config::value_as_bool_default("WriteEccentricity", false), do_write_1D);
     data[t_data::T_REYNOLDS].set_write(
-	config::value_as_bool_default("WriteTReynolds", false));
+	config::value_as_bool_default("WriteTReynolds", false), do_write_1D);
     data[t_data::T_GRAVITATIONAL].set_write(
-	config::value_as_bool_default("WriteTGravitational", false));
+	config::value_as_bool_default("WriteTGravitational", false), do_write_1D);
     data[t_data::ADVECTION_TORQUE].set_write(
-	config::value_as_bool_default("WriteGasTorques", false));
+	config::value_as_bool_default("WriteGasTorques", false), do_write_1D);
     data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
-	config::value_as_bool_default("WriteGasTorques", false));
+	config::value_as_bool_default("WriteGasTorques", false), do_write_1D);
     data[t_data::VISCOUS_TORQUE].set_write(
-	config::value_as_bool_default("WriteGasTorques", false));
+	config::value_as_bool_default("WriteGasTorques", false), do_write_1D);
     data[t_data::P_DIVV].set_write(
-	config::value_as_bool_default("WritepDV", false));
+	config::value_as_bool_default("WritepDV", false), do_write_1D);
     data[t_data::TAU].set_write(
-	config::value_as_bool_default("WriteTau", false));
+	config::value_as_bool_default("WriteTau", false), do_write_1D);
     data[t_data::ASPECTRATIO].set_write(
-	config::value_as_bool_default("WriteAspectRatio", false));
+	config::value_as_bool_default("WriteAspectRatio", false), do_write_1D);
     data[t_data::VISIBILITY].set_write(
-	config::value_as_bool_default("WriteVisibility", false));
+	config::value_as_bool_default("WriteVisibility", false), do_write_1D);
     data[t_data::LUMINOSITY_1D].set_write(
 	config::value_as_bool_default("WriteRadialLuminosity", false));
     data[t_data::DISSIPATION_1D].set_write(
 	config::value_as_bool_default("WriteRadialDissipation", false));
     data[t_data::TAU_EFF].set_write(
-	config::value_as_bool_default("WriteVerticalOpticalDepth", false));
+	config::value_as_bool_default("WriteVerticalOpticalDepth", false), do_write_1D);
 
     write_torques = config::value_as_bool_default("WriteTorques", false);
 
@@ -374,7 +375,7 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteLightCurves", false);
 
     write_massflow = config::value_as_bool_default("WriteMassFlow", false);
-    data[t_data::MASSFLOW].set_write(write_massflow);
+	data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
 
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =

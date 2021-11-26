@@ -97,7 +97,7 @@ void t_polargrid::write(unsigned int number, t_data &data)
 	}
     }
 
-    if (get_write_1D()) {
+	if (get_write_1D()) {
 	write1D(number);
     }
 

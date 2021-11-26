@@ -66,7 +66,6 @@ class t_radialgrid
     inline char *get_name() const { return m_name; }
     inline units::t_unit *get_unit() const { return m_unit; }
     inline bool get_write_1D() const { return m_write_1D; }
-    inline bool get_write() const { return m_write_1D; }
 
     inline bool is_scalar() const { return m_scalar; }
     inline bool is_vector() const { return !m_scalar; }

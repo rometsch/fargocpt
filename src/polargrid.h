@@ -44,9 +44,9 @@ class t_polargrid
     void set_vector(bool value);
     inline void set_write_1D(bool value) { m_write_1D = value; }
     inline void set_write_2D(bool value) { m_write_2D = value; }
-    inline void set_write(bool value)
+	inline void set_write(bool value, bool write1D)
     {
-	set_write_1D(value);
+	set_write_1D(value && write1D);
 	set_write_2D(value);
     }
     inline void set_do_before_write(void (*value)(t_data &, unsigned int, bool))
