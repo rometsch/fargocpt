@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
 				     force_update_for_output);
 	}
 
-	if (write_complete_output || parameters::write_torques) {
+	if (write_complete_output && parameters::write_torques) {
 	    output::write_torques(data, TimeStep, force_update_for_output);
 	}
 	if (parameters::write_lightcurves &&
