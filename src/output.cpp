@@ -268,7 +268,7 @@ void check_free_space(t_data &data)
     free(directory_name);
 }
 
-void write_grids(t_data &data, int index, int iter, double phystime)
+void write_grids(t_data &data, int index, int iter, double phystime, bool do_clear = true)
 {
     logging::print_master(
 	LOG_INFO "Writing output %d, Timestep Number %d, Physical Time %f.\n",
@@ -277,11 +277,17 @@ void write_grids(t_data &data, int index, int iter, double phystime)
     // go thru all grids and write them
     for (unsigned int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
 	data[(t_data::t_polargrid_type)i].write_polargrid(index, data);
+	if(do_clear){
+		data[(t_data::t_polargrid_type)i].clear_polargrid_if_needed();
+	}
     }
 
     // go thru all grids and write them
     for (unsigned int i = 0; i < t_data::N_RADIALGRID_TYPES; ++i) {
 	data[(t_data::t_radialgrid_type)i].write_radialgrid(index, data);
+	if(do_clear){
+		data[(t_data::t_radialgrid_type)i].clear_radialgrid_if_needed();
+	}
     }
 }
 

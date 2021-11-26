@@ -104,10 +104,13 @@ void t_polargrid::write_polargrid(unsigned int number, t_data &data)
     if (get_write_2D()) {
 	write2D(number);
     }
+}
 
-    if (get_clear_after_write()) {
+void t_polargrid::clear_polargrid_if_needed()
+{
+	if (get_clear_after_write()) {
 	clear();
-    }
+	}
 }
 
 /**

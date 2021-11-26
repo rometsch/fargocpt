@@ -91,10 +91,13 @@ void t_radialgrid::write_radialgrid(unsigned int number, t_data &data)
     }
 
     write1D(number);
+}
 
-    if (m_clear_after_write) {
+void t_radialgrid::clear_radialgrid_if_needed()
+{
+	if (m_clear_after_write) {
 	clear();
-    }
+	}
 }
 
 /**
@@ -105,6 +108,7 @@ void t_radialgrid::write_radialgrid(unsigned int number, t_data &data)
 	 \param t_data data : data construct
 	 \param bool one_file : write array without radii to one single file
 */
+/* NO LONGER USED; writing repeatedly to single filed with mpi corrupted the files after too many entries.
 void t_radialgrid::write(std::string filename, unsigned int number,
 			 t_data &data, bool one_file, bool force_write)
 {
@@ -120,7 +124,7 @@ void t_radialgrid::write(std::string filename, unsigned int number,
     if (m_clear_after_write) {
 	clear();
     }
-}
+}*/
 
 /**
 	write radial average values of polargrid to filename
