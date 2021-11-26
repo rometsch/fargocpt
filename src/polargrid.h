@@ -90,7 +90,7 @@ class t_polargrid
 
     void clear();
 
-    void write(unsigned int number, t_data &data);
+	void write_polargrid(unsigned int number, t_data &data);
 
     // 2D read/write
     void write2D(unsigned int number) const;

@@ -89,7 +89,7 @@ void t_polargrid::clear()
     memset(Field, 0, get_size_radial() * get_size_azimuthal() * sizeof(*Field));
 }
 
-void t_polargrid::write(unsigned int number, t_data &data)
+void t_polargrid::write_polargrid(unsigned int number, t_data &data)
 {
     if (get_write_1D() || get_write_2D() || m_calculate_on_write) {
 	if (m_do_before_write != NULL) {

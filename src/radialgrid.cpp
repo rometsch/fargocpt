@@ -80,7 +80,7 @@ void t_radialgrid::clear()
     std::memset(m_data, 0, sizeof(*m_data) * get_size_radial());
 }
 
-void t_radialgrid::write(unsigned int number, t_data &data)
+void t_radialgrid::write_radialgrid(unsigned int number, t_data &data)
 {
     if (!get_write_1D()) {
 	return;
