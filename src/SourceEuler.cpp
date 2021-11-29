@@ -63,7 +63,9 @@ static int DetectCrash(t_polargrid *array)
     for (unsigned int n_radial = 0; n_radial < array->Nrad; ++n_radial) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal < array->Nsec;
 	     ++n_azimuthal) {
-	    if ((*array)(n_radial, n_azimuthal) < 0.0) {
+		/// since nan < 0 is false and nan > 0 is false
+		/// we need to assure that array > 0 to catch bad values
+		if (!((*array)(n_radial, n_azimuthal) > 0.0)) {
 		logging::print(LOG_WARNING "%s negative in cell: (%u,%u)=%g\n",
 			       array->get_name(), n_radial, n_azimuthal,
 			       (*array)(n_radial, n_azimuthal));
@@ -236,7 +238,7 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
 bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 				double maximum_value)
 {
-    if (isnan(maximum_value))
+	if (isnan(maximum_value)) // Warning: this is compiled away with fast math enabled
 	return false;
 
     bool found = false;
