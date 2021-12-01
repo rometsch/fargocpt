@@ -10,6 +10,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <stdio.h>
+#include <fstream>
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -269,7 +270,7 @@ void t_planetary_system::list_planets()
 	logging::print(
 	    LOG_INFO
 	    " %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
-	    i, get_planet(i).get_name(), get_planet(i).get_mass(),
+		i, get_planet(i).get_name().c_str(), get_planet(i).get_mass(),
 	    get_planet(i).get_x(), get_planet(i).get_y(),
 	    get_planet(i).get_vx(), get_planet(i).get_vy());
     }
@@ -338,26 +339,51 @@ void t_planetary_system::rotate(double angle)
     }
 }
 
-void t_planetary_system::restart(unsigned int timestep)
+void t_planetary_system::restart(unsigned int timestep, bool debug)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	get_planet(i).restart(timestep);
+	get_planet(i).restart(timestep, debug);
     }
-    m_rebound->t = PhysicalTime;
+
+	if(debug_outputs){
+	reb_free_simulation(m_rebound);
+	char* reb_name = nullptr;
+	if(debug){
+		asprintf(&reb_name, "%s", (std::string(OUTPUTDIR) + std::string("debugsnapshot.bin")).c_str());
+	} else {
+		asprintf(&reb_name, (std::string(OUTPUTDIR) + "snapshot%d.bin").c_str(), timestep);
+	}
+	m_rebound = reb_create_simulation_from_binary(reb_name);
+	}
+
 }
 
 void t_planetary_system::create_planet_files()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	get_planet(i).create_planet_file();
+	get_planet(i).create_planet_file(false);
+	if(debug_outputs){
+		get_planet(i).create_planet_file(true);
+	}
     }
 }
 
-void t_planetary_system::write_planets(unsigned int timestep, bool big_file)
+void t_planetary_system::write_planets(unsigned int timestep, int file_type)
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	get_planet(i).write(timestep, big_file);
+	get_planet(i).write(timestep, file_type);
     }
+
+	if(debug_outputs && CPU_Master){
+	char* reb_name = nullptr;
+	if(file_type == 2){
+		asprintf(&reb_name, "%s%s", OUTPUTDIR, std::string("debugsnapshot.bin").c_str());
+		reb_output_binary(m_rebound, reb_name);
+	} else if (file_type == 0) {
+		asprintf(&reb_name, "%ssnapshot%d.bin", OUTPUTDIR, timestep);
+		reb_output_binary(m_rebound, reb_name);
+	}
+	}
 }
 
 /**

@@ -164,31 +164,9 @@ void t_polargrid::write2D(const unsigned int number, const bool debug) const
 	count -= CPUOVERLAP;
     }
 
-    // if unit is set, copy values to temporary buffer and multiply them by
-    // factor
-    if (m_unit) {
-	double *buffer;
-
-	// copy data to temporary buffer
-	buffer = new double[count * get_size_azimuthal()];
-
-	// add unit factor
-	memcpy(buffer, from, (count) * (get_size_azimuthal()) * sizeof(double));
-	for (unsigned int i = 0; i < (count * get_size_azimuthal()); ++i) {
-	    buffer[i] *= m_unit->get_cgs_factor();
-	}
-
-	// write data from temporary buffer
-	MPI_File_write(fh, buffer, (count) * (get_size_azimuthal()), MPI_DOUBLE,
-		       &status);
-
-	// delete temporary buffer
-	delete[] buffer;
-    } else {
 	// write data from buffer
 	MPI_File_write(fh, from, (count) * (get_size_azimuthal()), MPI_DOUBLE,
 		       &status);
-    }
 
     // close file
     MPI_File_close(&fh);
@@ -287,20 +265,6 @@ void t_polargrid::write1D(unsigned int number) const
 	}
     }
 
-    // if unit is set multiply values by factor
-    if (m_unit) {
-	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-	    buffer[number_of_values * n_radial + 1] *= m_unit->get_cgs_factor();
-
-	    if (m_write_max_max_1D) {
-		buffer[number_of_values * n_radial + 2] *=
-		    m_unit->get_cgs_factor();
-		buffer[number_of_values * n_radial + 3] *=
-		    m_unit->get_cgs_factor();
-	    }
-	}
-    }
-
     MPI_File_write_all(fh, buffer, count * number_of_values, MPI_DOUBLE,
 		       &status);
 
@@ -310,14 +274,21 @@ void t_polargrid::write1D(unsigned int number) const
     MPI_File_close(&fh);
 }
 
-void t_polargrid::read2D(unsigned int number)
+void t_polargrid::read2D(unsigned int number, bool debug = false)
 {
     char *filename;
 
+	if(debug){
+	if (asprintf(&filename, "%s/gas%s_DEBUG.dat", OUTPUTDIR, get_name()) <
+	0) {
+	die("Not enough memory!");
+	}
+	} else {
     if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
 	0) {
 	die("Not enough memory!");
     }
+	}
 
     read2D(filename);
 
@@ -361,13 +332,6 @@ void t_polargrid::read2D(const char *_filename)
 
     // close file
     MPI_File_close(&fh);
-
-    // if unit is set multiply values by factor
-    if (m_unit) {
-	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-	    buffer_file[n_radial] /= m_unit->get_cgs_factor();
-	}
-    }
 
     // copy data into polargrid
     for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
@@ -448,14 +412,6 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     // close file
     MPI_File_close(&fh);
 
-    // if unit is set multiply values by factor
-    if (m_unit) {
-	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-	    buffer_file[number_of_values * n_radial + 1] /=
-		m_unit->get_cgs_factor();
-	}
-    }
-
     // allocate buffers for radius & value and copy values from buffer to it
     double *buffer_radius = new double[count];
     double *buffer_value = new double[count];
@@ -505,7 +461,7 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
 /**
 	calculate how much bytes are need for one 1D output
 */
-unsigned int t_polargrid::bytes_needed_1D()
+unsigned int t_polargrid::bytes_needed_1D() const
 {
     // factor 2 is because of radius and value
     unsigned int number_of_values = 2;
@@ -519,7 +475,7 @@ unsigned int t_polargrid::bytes_needed_1D()
 /**
 	calculate how much bytes are needed for one 2D output
 */
-unsigned int t_polargrid::bytes_needed_2D()
+unsigned int t_polargrid::bytes_needed_2D() const
 {
     // factor 2 is because of radius and value
     return 2.0 * sizeof(double) * get_size_azimuthal() * get_size_radial();
@@ -562,7 +518,7 @@ t_polargrid &t_polargrid::operator/=(double c)
 }
 
 unsigned int t_polargrid::get_memory_usage(ptrdiff_t size_radial,
-					   ptrdiff_t size_azimuthal)
+					   ptrdiff_t size_azimuthal) const
 {
     return (m_scalar ? size_radial : size_radial + 1) * (size_azimuthal) *
 	   sizeof(double);

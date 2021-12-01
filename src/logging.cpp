@@ -202,8 +202,8 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 
 	if(debug_outputs){
 		output::write_grids(data, TimeStep, N_iter, PhysicalTime, true);
-		data.get_planetary_system().write_planets(TimeStep, false);
-		output::write_misc(TimeStep);
+		data.get_planetary_system().write_planets(TimeStep, 2);
+		output::write_misc(true);
 	}
     }
 }

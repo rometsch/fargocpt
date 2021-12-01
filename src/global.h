@@ -79,6 +79,8 @@ extern t_radialarray SigmaMed;
 
 extern double OmegaFrame, PhysicalTime, PhysicalTimeInitial, FrameAngle;
 extern int TimeStep;
+extern unsigned int nTimeStep;
+
 extern double HillRadius, mdcp, mdcp0, exces_mdcp;
 extern double hydro_center_mass;
 
@@ -126,6 +128,7 @@ extern double POLYTROPIC_CONSTANT;
 
 extern BoundaryFlow MassDelta;
 
+extern double dtemp;
 extern int debug_outputs;
 
 #endif // GLOBAL_H

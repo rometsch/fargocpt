@@ -117,13 +117,13 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     FLARINGINDEX = config::value_as_double_default("FLARINGINDEX", 0.0);
 
-    std::string par_file_name = getFileName(filename);
+	std::string par_file_name = getFileName(filename);
     par_file_name = par_file_name.substr(0, par_file_name.size() - 4) + "/";
     if (asprintf(&OUTPUTDIR, "%s",
 		 config::value_as_string_default("OUTPUTDIR",
 						 par_file_name.c_str())) < 0) {
 	logging::print_master(LOG_ERROR "Not enough memory!\n");
-    }
+	}
 
     // Create output directory if it doesn't exist
     if (CPU_Master) {

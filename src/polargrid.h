@@ -91,33 +91,32 @@ class t_polargrid
     void clear();
 
 	void write_polargrid(unsigned int number, t_data &data, bool debug);
-	void clear_polargrid_if_needed();
-    // 2D read/write
+	// 2D read/write
 	void write2D(const unsigned int number, const bool debug) const;
     void read2D(const char *filename);
-    void read2D(unsigned int number);
+	void read2D(unsigned int number, bool debug);
 
     // 1D read/write
     void write1D(unsigned int number) const;
     void read1D(const char *filename, bool skip_min_max);
     void read1D(unsigned int number, bool skip_min_max);
 
-    unsigned int bytes_needed_1D();
-    unsigned int bytes_needed_2D();
+	unsigned int bytes_needed_1D() const;
+	unsigned int bytes_needed_2D() const;
 
     unsigned int get_memory_usage(ptrdiff_t size_radial,
-				  ptrdiff_t size_azimuthal);
+				  ptrdiff_t size_azimuthal) const;
 
     inline unsigned int cell(ptrdiff_t nRadial, ptrdiff_t nAzimuthal) const
     {
 	return nAzimuthal + (nRadial * Nsec);
     }
 
-    inline double &operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal)
+	inline double &operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal)
     {
 	return Field[cell(nRadial, nAzimuthal)];
-    }
-    inline double operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal) const
+	}
+	inline double operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal) const
     {
 	return Field[cell(nRadial, nAzimuthal)];
     }

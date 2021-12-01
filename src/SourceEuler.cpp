@@ -48,7 +48,6 @@ extern boolean FastTransport;
 Pair IndirectTerm;
 Pair IndirectTermDisk;
 Pair IndirectTermPlanets;
-double dtemp;
 
 /**
 	Checks polargrid for negative entries.
@@ -295,17 +294,17 @@ void init_euler(t_data &data)
     InitTransport();
 
     if (parameters::Locally_Isothermal) {
-	compute_sound_speed(data, false);
-	compute_pressure(data, false);
-	compute_temperature(data, false);
-	compute_aspect_ratio(data, false);
+	compute_sound_speed(data, true);
+	compute_pressure(data, true);
+	compute_temperature(data, true);
+	compute_aspect_ratio(data, true);
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
-	compute_temperature(data, false);
-	compute_sound_speed(data, false);
-	compute_aspect_ratio(data, false);
-	compute_pressure(data, false);
+	compute_temperature(data, true);
+	compute_sound_speed(data, true);
+	compute_aspect_ratio(data, true);
+	compute_pressure(data, true);
     }
 
     viscosity::update_viscosity(data);
@@ -441,8 +440,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
     // old coordinates of corotation body
     double planet_corot_ref_old_x = 0.0;
     double planet_corot_ref_old_y = 0.0;
-
-    dtemp = 0.0;
 
     if (parameters::calculate_disk) {
 	CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],

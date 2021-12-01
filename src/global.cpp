@@ -135,6 +135,7 @@ t_radialarray GLOBAL_AxiSGAccr;
 
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 int TimeStep;
+unsigned int nTimeStep;
 double HillRadius, mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
@@ -184,4 +185,5 @@ double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
 
+double dtemp;
 int debug_outputs;

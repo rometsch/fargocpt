@@ -61,10 +61,10 @@ class t_planetary_system
     void read_from_file(char *filename);
     void list_planets();
     void rotate(double angle);
-    void restart(unsigned int timestep);
+	void restart(unsigned int timestep, bool debug);
 
     void create_planet_files();
-    void write_planets(unsigned int timestep, bool big_file);
+	void write_planets(unsigned int timestep, int file_type);
 
     void integrate(double time, double dt);
     void copy_data_to_rebound();

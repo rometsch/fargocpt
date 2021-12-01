@@ -2,6 +2,7 @@
 #include "LowTasks.h"
 #include "global.h"
 #include "logging.h"
+#include "output.h"
 
 #include "util.h"
 #include <cstdint>
@@ -15,6 +16,7 @@ namespace start_mode
 
 StartMode mode = mode_none;
 std::int32_t restart_from = -1;
+std::int32_t restart_debug = false;
 
 static std::string &rtrim(std::string &str,
 			  const std::string &chars = "\t\n\v\f\r ")
@@ -60,56 +62,63 @@ void configure_start_mode()
 	    }
 	case mode_restart:
 	    if (restart_from < 0) {
-		restart_from = get_latest_output_num();
+		restart_from = get_latest_output_num(false);
 	    }
 
 	    if (restart_from < 0) {
 		die("Can't restart, no valid output file found. Check misc.dat");
 	    }
 	    break;
+	case mode_debug:
+			if (restart_from < 0) {
+			restart_from = get_latest_output_num(true);
+			}
+
+			restart_debug = true;
+			mode = mode_restart;
+
+			if (restart_from < 0) {
+			die("Can't restart, no valid output file found. Check misc.dat");
+			}
+			break;
 	default:
 	    die("Invalid start_mode");
 	}
     }
+
+	MPI_Bcast(&restart_debug, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&restart_from, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&mode, 1, MPI_UINT32_T, 0, MPI_COMM_WORLD);
 }
 
-static std::string get_last_line(std::ifstream &in)
+std::int32_t get_latest_output_num(bool debug = false)
 {
-    std::string line;
-    while (in >> std::ws && std::getline(in, line))
-	;
-
-    return line;
-}
-
-std::int32_t get_latest_output_num()
-{
-    std::ifstream misc_file;
     std::experimental::filesystem::path path;
-
     path = OUTPUTDIR;
-    path /= "misc.dat";
+	if(debug){
+	path /= "misc.bin";
+	} else {
+	path /= "debugmisc.bin";
+	}
 
-    misc_file.open(path);
+	std::ifstream misc_file (path, std::ios::in | std::ios::binary);
 
-    if (!misc_file.is_open()) {
-	return -1;
-    }
+	if (!misc_file.is_open()) {
+		logging::print_master(LOG_ERROR
+				  "Can't read '%s' file. Aborting.\n", path.c_str());
+		PersonalExit(1);
+	}
+
+	output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0};
 
     // find last line
-    std::string last_line = get_last_line(misc_file);
+	while(!misc_file.eof()){
+		misc_file.read((char*) &entry, sizeof(output::misc_entry));
+	}
     misc_file.close();
 
-    std::string first_word =
-	last_line.substr(0, last_line.find_first_of(" \t"));
+	return entry.timestep;
 
-    if (first_word.length() < 1 || !is_number(first_word)) {
-	return -1;
-    } else {
-	return std::stoi(first_word);
-    }
 }
 
 } // namespace start_mode

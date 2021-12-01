@@ -34,29 +34,6 @@
 namespace output
 {
 
-// info on variables in misc file
-const std::map<const std::string, const int> misc_file_column_v1 = {
-    {"time step", 0},
-    {"physical time", 1},
-    {"omega frame", 2},
-    {"lost mass", 3},
-    {"frame angle", 4}};
-
-const std::map<const std::string, const int> misc_file_column_v2 = {
-    {"time step", 0},
-    {"physical time", 1},
-    {"omega frame", 2},
-    {"frame angle", 3}};
-
-auto misc_file_columns = misc_file_column_v2;
-
-const std::map<const std::string, const std::string> misc_file_variables = {
-    {"time step", "1"},
-    {"physical time", "time"},
-    {"omega frame", "frequency"},
-    {"lost mass", "mass"},
-    {"frame angle", "1"}};
-
 const std::map<const std::string, const int> quantities_file_column_v2 = {
     {"time step", 0},
     {"physical time", 1},
@@ -413,60 +390,63 @@ void write_quantities(t_data &data, unsigned int timestep,
 /**
 	log misc. data
 */
-void write_misc(unsigned int timestep)
+
+void write_misc(const bool debug_file)
 {
-    FILE *fd = 0;
-    char *fd_filename;
-    static bool fd_created = false;
+	if (!CPU_Master){
+		return;
+	}
 
-    if (CPU_Master) {
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "misc.dat") == -1) {
-	    logging::print_master(LOG_ERROR
-				  "Not enough memory for string buffer.\n");
-	    PersonalExit(1);
-	}
-	// check if file exists and we restarted
-	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
-	    fd = fopen(fd_filename, "r");
-	    if (fd) {
-		fd_created = true;
-	    }
-	    fclose(fd);
-	}
-	// open logfile
-	if (!fd_created) {
-	    fd = fopen(fd_filename, "w");
+	std::ofstream wf;
+
+	std::string filename;
+	if(debug_file){
+		filename = std::string(OUTPUTDIR) + "debugmisc.bin";
 	} else {
-	    fd = fopen(fd_filename, "a");
+		filename = std::string(OUTPUTDIR) + "misc.bin";
 	}
-	if (fd == NULL) {
+
+    static bool fd_created = false;
+	static bool fd_debug_created = false;
+
+	// check if file exists and we restarted
+	if ((start_mode::mode == start_mode::mode_restart)
+			&& (debug_file ? !(fd_debug_created) : !(fd_created))) {
+		wf = std::ofstream (filename.c_str(), std::ios::in | std::ios::binary);
+		if (wf.good()) {
+			if(debug_file){
+				fd_debug_created = true;
+			}else{
+				fd_created = true;
+			}
+	    }
+		wf.close();
+	}
+
+	// open logfile
+	if (debug_file ? !(fd_debug_created) : !(fd_created)) {
+		wf = std::ofstream (filename.c_str(), std::ios::out | std::ios::binary);
+		if(debug_file){
+		fd_debug_created = true;
+		} else {
+		fd_created = true;
+		}
+	} else {
+		wf = std::ofstream (filename.c_str(), std::ios::out | std::ios::binary | std::ios::app);
+	}
+
+	if (!wf.is_open()) {
 	    logging::print_master(LOG_ERROR
-				  "Can't write 'misc.dat' file. Aborting.\n");
+				  "Can't write '%s' file. Aborting.\n", filename.c_str());
 	    PersonalExit(1);
 	}
 
-	free(fd_filename);
+	misc_entry misc{TimeStep, nTimeStep, PhysicalTime, OmegaFrame, FrameAngle, dtemp};
 
-	if (!fd_created) {
-	    // print header
-	    fprintf(fd, "#FargoCPT misc file\n");
-	    fprintf(fd, "#version: 2\n");
-	    fprintf(fd, "%s",
-		    text_file_variable_description(misc_file_columns,
-						   misc_file_variables)
-			.c_str());
-	    fd_created = true;
-	}
-    }
+	wf.write((char*) &misc, sizeof(misc));
 
-    if (CPU_Master) {
-	// print to logfile
-	fprintf(fd, "%u\t%#.18g\t%#.18g\t%#.18g\n", timestep, PhysicalTime,
-		OmegaFrame, FrameAngle);
+	wf.close();
 
-	// close file
-	fclose(fd);
-    }
 }
 
 std::string get_version(std::string filename)
@@ -560,12 +540,34 @@ std::string text_file_variable_description(
 }
 
 double get_from_ascii_file(std::string filename, unsigned int timestep,
-			   unsigned int column)
+			   unsigned int column, bool debug_restart)
 {
     unsigned int line_timestep = 0;
     std::ifstream infile(filename);
     std::string line_start;
 
+	if(!infile.is_open()){
+		die("Error: could not open %s\n", filename.c_str());
+	}
+
+	if(debug_restart){ // just jump to the last line of the file
+		infile.seekg(-1, std::ios_base::end);
+		if(infile.peek() == '\n')
+		{
+		  infile.seekg(-1, std::ios_base::cur);
+		  for(int i = infile.tellg(); i > 0; i--)
+		  {
+			if(infile.peek() == '\n')
+			{
+			  //Found
+			  infile.get();
+			  break;
+			}
+			infile.seekg(i, std::ios_base::beg);
+		  }
+		}
+		infile >> line_start; // read fist element, same as non debug version. Otherwise column is not correct.
+	} else {
     while (infile >> line_start) {
 	// search the file until the correct timestep is found
 	if (line_start.substr(0, 1) == "#") {
@@ -583,53 +585,58 @@ double get_from_ascii_file(std::string filename, unsigned int timestep,
 	    }
 	}
     }
-    double rv;
+	}
+	double rv = std::nan("1");
     // read as many times as needed to reach the desired value
     for (unsigned int i = 0; i < column; i++) {
 	infile >> rv;
     }
+
     return rv;
 }
 
-double get_misc(unsigned int timestep, std::string variable)
+int get_misc(const int timestep, const bool debug)
 {
-    unsigned int column = 0;
-    std::string filename = std::string(OUTPUTDIR) + "misc.dat";
-    std::string version = get_version(filename);
+	std::string filename;
+	if(debug){
+		filename = std::string(OUTPUTDIR) + "debugmisc.bin";
+	} else {
+		filename = std::string(OUTPUTDIR) + "misc.bin";
+	}
 
-    if (version == "2") {
-	if (variable == "timestep")
-	    column = 0;
-	else if (variable == "physical time")
-	    column = 1;
-	else if (variable == "omega frame")
-	    column = 2;
-	else if (variable == "frame angle")
-	    column = 3;
-	else {
-	    printf("Don't know variable '%s' in misc.dat v2\n",
-		   variable.c_str());
-	    PersonalExit(1);
+	std::ifstream rf (filename, std::ios::in | std::ios::binary);
+
+	if (!rf.is_open()) {
+		logging::print_master(LOG_ERROR
+				  "Can't read '%s' file. Aborting.\n", filename.c_str());
+		PersonalExit(1);
 	}
-    } else if (version == "1") {
-	if (variable == "timestep")
-	    column = 0;
-	else if (variable == "physical time")
-	    column = 1;
-	else if (variable == "omega frame")
-	    column = 2;
-	else if (variable == "lost mass")
-	    column = 3;
-	else if (variable == "frame angle")
-	    column = 4;
-	else {
-	    printf("Don't know variable '%s' in misc.dat v1\n",
-		   variable.c_str());
-	    PersonalExit(1);
+
+	misc_entry misc;
+
+	rf.read((char*) &misc, sizeof(misc));
+	while(misc.timestep != timestep && !rf.eof())
+	{
+		if(rf.eof() && !debug){
+			logging::print(LOG_ERROR "Can't read %s at timestep %d. Aborting.\n", filename.c_str(), timestep);
+			die("End\n");
+		}
+		rf.read((char*) &misc, sizeof(misc_entry));
 	}
-    }
-    double rv = get_from_ascii_file(filename, timestep, column);
-    return rv;
+
+	if(timestep != misc.timestep && (!debug)){
+		logging::print(LOG_ERROR "Can't find timestep %d in %s. Aborting.\n", timestep, filename.c_str());
+		die("End\n");
+	}
+
+	nTimeStep = misc.nTimeStep;
+	PhysicalTime = misc.PhysicalTime;
+	OmegaFrame = misc.OmegaFrame;
+	FrameAngle = misc.FrameAngle;
+	dtemp = misc.dtemp;
+
+	rf.close();
+	return misc.timestep;
 }
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
@@ -1008,7 +1015,9 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 	    // print header
 	    fprintf(
 		fd,
-		"# Time log for course output.\n# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n");
+		"# Time log for course output.\n"
+		"# One DT is %.18g (code) and %.18g (cgs).\n"
+		"# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n", DT, DT*units::time.get_cgs_factor());
 	    fd_created = true;
 	}
     }
