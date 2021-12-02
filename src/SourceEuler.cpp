@@ -2335,11 +2335,11 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 			const double dist = std::max(std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 			const double dist3 = std::pow(dist, 3);
 
-			// H^2 = GM / dist^3 / Cs_iso^2
+			// H^2 = (GM / dist^3 / Cs_iso^2)^-1
 			if (parameters::Adiabatic || parameters::Polytropic) {
 				inv_H2 += std::min(constants::G * mpl[k] * ADIABATICINDEX / (dist3 * cs2), 1.0 / std::pow(min_dist, 2));
 			} else {
-				inv_H2 += constants::G * mpl[k] / (dist3 * cs2);
+				inv_H2 += std::min(constants::G * mpl[k] / (dist3 * cs2), 1.0 / std::pow(min_dist, 2));;
 			}
 		}
 
