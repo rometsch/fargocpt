@@ -78,7 +78,7 @@ void configure_start_mode()
 			mode = mode_restart;
 
 			if (restart_from < 0) {
-			die("Can't restart, no valid output file found. Check misc.dat");
+			die("Can't restart, no valid output file debugmisc.bin found. Was the simulation run with \"DebugOutputs	YES?\"");
 			}
 			break;
 	default:
@@ -96,16 +96,16 @@ std::int32_t get_latest_output_num(bool debug = false)
     std::experimental::filesystem::path path;
     path = OUTPUTDIR;
 	if(debug){
-	path /= "misc.bin";
-	} else {
 	path /= "debugmisc.bin";
+	} else {
+	path /= "misc.bin";
 	}
 
 	std::ifstream misc_file (path, std::ios::in | std::ios::binary);
 
 	if (!misc_file.is_open()) {
 		logging::print_master(LOG_ERROR
-				  "Can't read '%s' file. Aborting.\n", path.c_str());
+				  "Can't read '%s' file in \"get_latest_output_num\". Aborting.\n", path.c_str());
 		PersonalExit(1);
 	}
 

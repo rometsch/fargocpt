@@ -437,7 +437,7 @@ void write_misc(const bool debug_file)
 
 	if (!wf.is_open()) {
 	    logging::print_master(LOG_ERROR
-				  "Can't write '%s' file. Aborting.\n", filename.c_str());
+				  "Can't write '%s' file in \"write_misc\". Aborting.\n", filename.c_str());
 	    PersonalExit(1);
 	}
 
@@ -608,7 +608,7 @@ int get_misc(const int timestep, const bool debug)
 
 	if (!rf.is_open()) {
 		logging::print_master(LOG_ERROR
-				  "Can't read '%s' file. Aborting.\n", filename.c_str());
+				  "Can't read '%s' file in \"get_misc\". Aborting.\n", filename.c_str());
 		PersonalExit(1);
 	}
 
