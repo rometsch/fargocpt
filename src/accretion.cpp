@@ -132,13 +132,9 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		if (distance < frac1 * RHill) {
 		    double facc_ceil = std::min(facc1, facc_max);
 		    deltaM = facc_ceil * dens[l] * Surf[i];
-		    if (i < One_or_active) {
-			deltaM = 0.0;
-		    } else if (i >= Max_or_active) {
-			deltaM = 0.0;
-		    } else {
 			dens[l] *= 1.0 - facc_ceil;
 			energy[l] *= 1.0 - facc1;
+			if (Zero_or_active < i && i < MaxMO_or_active) { // Only add active cells to planet
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
 			dMplanet += deltaM;
@@ -148,13 +144,9 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		if (distance < frac2 * RHill) {
 		    double facc_ceil = std::min(facc2, facc_max);
 		    deltaM = facc_ceil * dens[l] * Surf[i];
-		    if (i < One_or_active) {
-			deltaM = 0.0;
-		    } else if (i >= Max_or_active) {
-			deltaM = 0.0;
-		    } else {
 			dens[l] *= 1.0 - facc_ceil;
 			energy[l] *= 1.0 - facc2;
+			if (Zero_or_active < i && i < MaxMO_or_active) { // Only add active cells to planet
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
 			dMplanet += deltaM;
