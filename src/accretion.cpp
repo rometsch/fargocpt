@@ -65,6 +65,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     bool mass_changed = false;
     const int ns = data[t_data::DENSITY].Nsec;
     double *dens = data[t_data::DENSITY].Field;
+	double *energy = data[t_data::ENERGY].Field;
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     const double *vrad = data[t_data::V_RADIAL].Field;
@@ -137,6 +138,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 			deltaM = 0.0;
 		    } else {
 			dens[l] *= 1.0 - facc_ceil;
+			energy[l] *= 1.0 - facc1;
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
 			dMplanet += deltaM;
@@ -152,6 +154,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 			deltaM = 0.0;
 		    } else {
 			dens[l] *= 1.0 - facc_ceil;
+			energy[l] *= 1.0 - facc2;
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
 			dMplanet += deltaM;
