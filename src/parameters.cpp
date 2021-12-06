@@ -462,6 +462,9 @@ void read(char *filename, t_data &data)
     case 'b':
 	boundary_outer = boundary_condition_boundary_layer;
 	break;
+	case 'i':
+	boundary_outer = boundary_condition_initial_center_of_mass;
+	break;
     case 'k':
 	boundary_outer = boundary_condition_keplerian;
 	break;
@@ -1073,6 +1076,11 @@ void summarize_parameters()
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
+	break;
+	case boundary_condition_initial_center_of_mass:
+		logging::print_master(
+			LOG_INFO
+			"Using 'initial boundary in center of mass frame' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
 	if (domegadr_zero) {
