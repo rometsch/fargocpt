@@ -339,13 +339,10 @@ static void STS_ComputeSubSteps(double dtex, double *tau, int ssorder)
  *********************************************************************** */
 {
     int i;
-    double S = 0.0;
-
     for (i = 0; i < ssorder; i++) {
 	tau[i] = dtex / ((-1.0 + STS_NU) *
-			     cos(((2.0 * i + 1.0) * M_PI) / (2.0 * ssorder)) +
+				 std::cos(((2.0 * i + 1.0) * M_PI) / (2.0 * ssorder)) +
 			 1.0 + STS_NU);
-	S += tau[i];
     }
 }
 

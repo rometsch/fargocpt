@@ -1976,7 +1976,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
 		     double deltaT)
 {
-    dt_parabolic_local = 1e300;
+	dt_parabolic_local = 1e100;
     std::vector<double> v_mean(v_radial.get_size_radial());
     std::vector<double> v_residual(v_radial.get_size_azimuthal());
     double dtGlobal, dtLocal;
@@ -2083,10 +2083,12 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 				    std::pow(invdt5, 2));
 	    } else {
 		// viscous timestep
+		if(invdt4 > 0.0 && invdt5 > 0.0){
 		dt_parabolic_local =
 		    std::min(dt_parabolic_local,
 			     parameters::CFL / std::sqrt(std::pow(invdt4, 2) +
 							 std::pow(invdt5, 2)));
+		}
 
 		// calculate new dt based on different limits
 		dtLocal = parameters::CFL /
