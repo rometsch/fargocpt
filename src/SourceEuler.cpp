@@ -299,20 +299,6 @@ void init_euler(t_data &data)
 	compute_pressure(data, true);
 	compute_temperature(data, true);
 	compute_aspect_ratio(data, true);
-
-	if (ASPECTRATIO_NBODY) {
-		const double h_max = data[t_data::SCALE_HEIGHT].get_max();
-	    logging::print_master(
-		LOG_INFO
-		"Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n",
-		ASPECTRATIO_REF, ASPECTRATIO_REF * ASPECTRATIO_REF / h_max);
-	    ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
-
-	    compute_sound_speed(data, true);
-	    compute_pressure(data, true);
-	    compute_temperature(data, true);
-	    compute_aspect_ratio(data, true);
-	}
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
@@ -320,20 +306,6 @@ void init_euler(t_data &data)
 	compute_sound_speed(data, true);
 	compute_aspect_ratio(data, true);
 	compute_pressure(data, true);
-
-	if (ASPECTRATIO_NBODY) {
-		const double h_max = data[t_data::SCALE_HEIGHT].get_max();
-	    logging::print_master(
-		LOG_INFO
-		"Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n",
-		ASPECTRATIO_REF, ASPECTRATIO_REF * ASPECTRATIO_REF / h_max);
-	    ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
-
-	    compute_temperature(data, true);
-	    compute_sound_speed(data, true);
-	    compute_aspect_ratio(data, true);
-	    compute_pressure(data, true);
-	}
     }
 
     viscosity::update_viscosity(data);
@@ -2312,9 +2284,9 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 		/// this is an rough estimate without explanation
 		/// alternatively you can think about it yourself
 		const double min_dist =
-		    0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+			0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
 				   Rmed[n_rad] * dphi) +
-		    rpl[k];
+			rpl[k];
 
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
@@ -2340,9 +2312,11 @@ void compute_sound_speed(t_data &data, bool force_update)
 	}
 
 	if (parameters::Locally_Isothermal){
+	if(ASPECTRATIO_NBODY){
 	compute_iso_sound_speed_nbody(data, force_update);
 	} else {
 	compute_sound_speed_normal(data, force_update);
+	}
 	}
 }
 
@@ -2369,11 +2343,13 @@ void compute_aspect_ratio_old(t_data &data, const bool force_update)
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic || parameters::Polytropic) {
 		// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
+		// H = h*r = c_s,iso / W_k = c_s/sqrt(gamma) / W_k
 		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
 			(std::sqrt(ADIABATICINDEX)) * inv_omega_kepler;
 	    } else {
 		// h = H/r = c_s/v_k
+		// H = h*r = c_s/v_k * R = c_s / W_k
 		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) *
 			inv_omega_kepler;
@@ -2436,9 +2412,9 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 		/// this is an rough estimate without explanation
 		/// alternatively you can think about it yourself
 		const double min_dist =
-		    0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+			0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
 				   Rmed[n_rad] * dphi) +
-		    rpl[k];
+			rpl[k];
 
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
@@ -2455,7 +2431,6 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 		} else {
 		    inv_H2 += std::min(constants::G * mpl[k] / (dist3 * cs2),
 				       1.0 / std::pow(min_dist, 2));
-		    ;
 		}
 	    }
 

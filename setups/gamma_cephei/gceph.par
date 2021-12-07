@@ -16,7 +16,8 @@ ProfileDampingWidth	0.5
 EnergyCondition		Profile		# Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 
-AspectRatio     	0.04            # Thickness over Radius in the disk
+AspectRatio     	0.035            # Thickness over Radius in the disk
+AspectRatioNbody	Yes		# Compute the aspectratio considering all Bodies and not just the central object
 Viscosity		0		# Uniform kinematic viscosity
 AlphaViscosity		0.001		#
 StabilizeViscosity	1		# 1 for limiting viscosity update step, 2 for limiting dt
@@ -47,7 +48,7 @@ InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (
 
 ### Planet parameters
 
-PlanetConfig		in/gamma-ceph.cfg
+PlanetConfig		setups/gamma_cephei/gamma-ceph.cfg
 ForcedCircular		No
 ThicknessSmoothing 	0.6		# Softening parameters in disk thickness
 BodyForceFromPotiential Yes
@@ -56,7 +57,7 @@ BodyForceFromPotiential Yes
 Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT
 InnerBoundary		VISCOUS_OUTFLOW
-OuterBoundary		prescribed
+OuterBoundary		OPEN
 PrescribedBoundaryFileOuter	boundary_data_folder
 ViscousOutflowSpeed	5.0
 
@@ -96,9 +97,9 @@ QuantitiesRadiusLimit 0   ## Roche radius for gamma ceph during periastron passa
 
 ### Output control parameters
 
-Ntot			50000	# Total number of time steps
-Ninterm	 		25		# Time steps between outputs
-DT			4.956246157	# 1/100th of a binary orbit
+Ntot                   50000   # Total number of time steps
+Ninterm                25              # Time steps between outputs
+DT                     4.956246157     # 1/100th of a binary orbit
 
 LogAfterRealSeconds	1800
 LogAfterSteps		0
@@ -110,6 +111,8 @@ WriteDensity		Yes		# Write surface density. This is needed for restart of simula
 WriteEnergy		Yes		# Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
 WriteTemperature	No		# Write temperature. [default = no]
 WriteVelocity		Yes		# Write velocites. This is needed for restart of simulations. [default = yes]
+WriteSoundSpeed		No		# Write velocites. This is needed for restart of simulations. [default = yes]
+WriteScaleHeight	No
 WriteToomre		No		# Write Toomre parameter Q. [default = no]
 WriteQMinus		No		# Write QMinus. [default = no]
 WriteQPlus		No		# Write QPlus. [default = no]

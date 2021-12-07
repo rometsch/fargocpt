@@ -180,7 +180,7 @@ WriteMassFlow		No		# Write a 1d radial file with mass flow at each interface [de
 WriteGasTorques     No      # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017  
 
 WritePressure		No		# Write pressure [default = no]
-WriteAspectRatio	No		# Write aspect ratio [default = no]
+WriteScaleHeight	No		# Write scale height [default = no]
 WriteTorques		No		# Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth	No 	# Write optical depth in vertical direction (tau_eff by Hubeny [1990])
 

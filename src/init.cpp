@@ -780,9 +780,6 @@ void init_gas_density(t_data &data)
     RefillSigma(&data[t_data::DENSITY]);
 }
 
-/**
-	Initializes gas energy.
-*/
 void init_gas_energy(t_data &data)
 {
     if (ADIABATICINDEX == 1.0) {
