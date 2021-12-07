@@ -281,7 +281,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
 	case parameters::boundary_condition_initial_center_of_mass:
-	die("Inner precribed time variable boundary condition is not implemented yet!\n");
+	die("Inner initial center of mass boundary is not implemented yet!\n");
 	break;
     }
 
