@@ -481,20 +481,31 @@ unsigned int t_polargrid::bytes_needed_2D() const
     return 2.0 * sizeof(double) * get_size_azimuthal() * get_size_radial();
 }
 
+
+double t_polargrid::get_max()
+{
+	double local_max = - DBL_MAX;
+
+	const unsigned int Nmax = Nrad * Nsec;
+	for (unsigned int n=0; n < Nmax; n++) {
+		local_max = std::max(local_max, Field[n]);
+	}
+
+	double global_max;
+	MPI_Allreduce(&local_max, &global_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+	return global_max;
+}
+
 /**
 	multiply each polargrid entry with a constant
 */
 t_polargrid &t_polargrid::operator*=(double c)
 {
-    // TODO: Speed up by using only one loop and so skipping calculation of
-    // cells. This should be done if backward-compability bug (size =
-    // (Nrad+1)*(Nsec+1) ) is fixed.
-
-    for (unsigned int n_radial = 0; n_radial < Nrad; ++n_radial) {
-	for (unsigned int n_azimuthal = 0; n_azimuthal < Nsec; ++n_azimuthal) {
-	    operator()(n_radial, n_azimuthal) *= c;
+	const unsigned int Nmax = Nrad * Nsec;
+	for (unsigned int n=0; n < Nmax; n++) {
+		Field[n] *= c;
 	}
-    }
 
     return *this;
 }
@@ -504,15 +515,11 @@ t_polargrid &t_polargrid::operator*=(double c)
 */
 t_polargrid &t_polargrid::operator/=(double c)
 {
-    // TODO: Speed up by using only one loop and so skipping calculation of
-    // cells. This should be done if backward-compability bug (size =
-    // (Nrad+1)*(Nsec+1) ) is fixed.
 
-    for (unsigned int n_radial = 0; n_radial < Nrad; ++n_radial) {
-	for (unsigned int n_azimuthal = 0; n_azimuthal < Nsec; ++n_azimuthal) {
-	    operator()(n_radial, n_azimuthal) /= c;
+	const unsigned int Nmax = Nrad * Nsec;
+	for (unsigned int n=0; n < Nmax; n++) {
+		Field[n] /= c;
 	}
-    }
 
     return *this;
 }

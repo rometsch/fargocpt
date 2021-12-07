@@ -2204,10 +2204,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
     return std::max(deltaT / dtGlobal, 1.0);
 }
 
-/**
-	computes soundspeed
-*/
-void compute_sound_speed(t_data &data, bool force_update)
+static void compute_sound_speed_normal(t_data &data, bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
@@ -2239,6 +2236,79 @@ void compute_sound_speed(t_data &data, bool force_update)
 	    }
 	}
     }
+}
+
+
+static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
+{
+
+	static double last_physicaltime_calculated = -1;
+
+	if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+	return;
+	}
+	last_physicaltime_calculated = PhysicalTime;
+
+	static const unsigned int N_planets =
+	data.get_planetary_system().get_number_of_planets();
+	static std::vector<double> xpl(N_planets);
+	static std::vector<double> ypl(N_planets);
+	static std::vector<double> mpl(N_planets);
+	static std::vector<double> rpl(N_planets);
+
+	// setup planet data
+	for (unsigned int k = 0; k < N_planets; k++) {
+	t_planet &planet = data.get_planetary_system().get_planet(k);
+	mpl[k] = planet.get_rampup_mass();
+	xpl[k] = planet.get_x();
+	ypl[k] = planet.get_y();
+	rpl[k] = planet.get_radius();
+	}
+
+	// Cs^2 = h^2 * vk * r ^ 2*Flaring
+	for (unsigned int n_rad = 0;
+	 n_rad <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_rad) {
+	for (unsigned int n_az = 0;
+		 n_az <= data[t_data::SOUNDSPEED].get_max_azimuthal();
+		 ++n_az) {
+
+		const int cell = get_cell_id(n_rad, n_az);
+		const double x = CellCenterX->Field[cell];
+		const double y = CellCenterY->Field[cell];
+
+		double Cs2 = 0;
+
+		for (unsigned int k = 0; k < N_planets; k++) {
+
+			/// since the mass is distributed homogeniously distributed inside the cell,
+			/// we assume that the planet is always at least cell_size / 2 plus planet radius away from the gas
+			/// this is an rough estimate without explanation
+			/// alternatively you can think about it yourself
+			const double min_dist =  0.5*std::max(Rsup[n_rad] - Rinf[n_rad],
+									   Rmed[n_rad] * dphi) + rpl[k];
+
+			const double dx = x - xpl[k];
+			const double dy = y - ypl[k];
+
+			const double dist = std::max(std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+
+			Cs2 += constants::G * mpl[k] / dist * std::pow(dist, 2*FLARINGINDEX);
+		}
+
+		const double Cs = std::sqrt(Cs2);
+
+		data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
+	}
+	}
+}
+
+void compute_sound_speed(t_data &data, bool force_update){
+	if (parameters::Adiabatic || parameters::Polytropic  || (!ASPECTRATIO_NBODY))
+	{
+		compute_sound_speed_normal(data, force_update);
+	} else {
+		compute_iso_sound_speed_nbody(data, force_update);
+	}
 }
 
 /**
