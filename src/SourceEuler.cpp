@@ -276,7 +276,14 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 {
 
     if (parameters::Locally_Isothermal) {
+	if(ASPECTRATIO_NBODY){
+	compute_sound_speed(data, force_update);
 	compute_pressure(data, force_update);
+	compute_temperature(data, force_update);
+	compute_aspect_ratio(data, force_update);
+	} else {
+	compute_pressure(data, force_update);
+	}
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
@@ -2049,15 +2056,14 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	    // artificial viscosity limit
 	    if (parameters::artificial_viscosity ==
 		parameters::artificial_viscosity_SN) {
-		// TODO: Change to sizes defined by constants of compiler
 		if (dvRadial >= 0.0) {
-		    dvRadial = 1e-10;
+			dvRadial = std::numeric_limits< double >::min();
 		} else {
 		    dvRadial = -dvRadial;
 		}
 
 		if (dvAzimuthal >= 0.0) {
-		    dvAzimuthal = 1e-10;
+			dvAzimuthal = std::numeric_limits< double >::min();
 		} else {
 		    dvAzimuthal = -dvAzimuthal;
 		}
