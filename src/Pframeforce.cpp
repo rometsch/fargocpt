@@ -83,12 +83,12 @@ void ComputeIndirectTerm(t_data &data)
  */
 void CalculateNbodyPotential(t_data &data)
 {
-	static const unsigned int N_planets =
+    static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-	static std::vector<double> xpl(N_planets);
-	static std::vector<double> ypl(N_planets);
-	static std::vector<double> mpl(N_planets);
-	static std::vector<double> smooth_pl(N_planets);
+    static std::vector<double> xpl(N_planets);
+    static std::vector<double> ypl(N_planets);
+    static std::vector<double> mpl(N_planets);
+    static std::vector<double> smooth_pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
@@ -106,9 +106,9 @@ void CalculateNbodyPotential(t_data &data)
 
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
-		const int cell = get_cell_id(n_rad, n_az);
-		const double x = CellCenterX->Field[cell];
-		const double y = CellCenterY->Field[cell];
+	    const int cell = get_cell_id(n_rad, n_az);
+	    const double x = CellCenterX->Field[cell];
+	    const double y = CellCenterY->Field[cell];
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
@@ -132,12 +132,12 @@ void CalculateNbodyPotential(t_data &data)
 void CalculateAccelOnGas(t_data &data)
 {
 
-	static const unsigned int N_planets =
+    static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-	static std::vector<double> xpl(N_planets);
-	static std::vector<double> ypl(N_planets);
-	static std::vector<double> mpl(N_planets);
-	static std::vector<double> smooth_pl(N_planets);
+    static std::vector<double> xpl(N_planets);
+    static std::vector<double> ypl(N_planets);
+    static std::vector<double> mpl(N_planets);
+    static std::vector<double> smooth_pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
@@ -204,7 +204,7 @@ void CalculateAccelOnGas(t_data &data)
 	    /// END DEBUG
 	    */
 
-		const int cell_id = get_cell_id(n_rad, n_az);
+	    const int cell_id = get_cell_id(n_rad, n_az);
 	    acc_r[cell_id] = accel;
 	}
     }
@@ -270,8 +270,8 @@ void CalculateAccelOnGas(t_data &data)
 	    /// END DEBUG
 	    */
 
-		const int cell_id = get_cell_id(n_rad, n_az);
-		accel_phi[cell_id] = accel;
+	    const int cell_id = get_cell_id(n_rad, n_az);
+	    accel_phi[cell_id] = accel;
 	}
     }
 }

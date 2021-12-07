@@ -276,12 +276,12 @@ void read(char *filename, t_data &data)
     RMIN = config::value_as_double_default("RMIN", 1.0);
     RMAX = config::value_as_double_default("RMAX", 1.0);
 
-	quantities_radius_limit
-	 = config::value_as_double_default("QUANTITIESRADIUSLIMIT", 2.0*RMAX);
+    quantities_radius_limit =
+	config::value_as_double_default("QUANTITIESRADIUSLIMIT", 2.0 * RMAX);
 
-	if(quantities_radius_limit == 0.0){
-		quantities_radius_limit = 2.0*RMAX;
-	}
+    if (quantities_radius_limit == 0.0) {
+	quantities_radius_limit = 2.0 * RMAX;
+    }
 
     exponential_cell_size_factor =
 	config::value_as_double_default("ExponentialCellSizeFactor", 1.41);
@@ -305,7 +305,7 @@ void read(char *filename, t_data &data)
     M0 = config::value_as_double_default("m0", 1.0);
 
     // output settings
-	bool do_write_1D = config::value_as_bool_default("DoWrite1DFiles", true);
+    bool do_write_1D = config::value_as_bool_default("DoWrite1DFiles", true);
     data[t_data::DENSITY].set_write(
 	config::value_as_bool_default("WriteDensity", true), do_write_1D);
     data[t_data::V_RADIAL].set_write(
@@ -333,11 +333,14 @@ void read(char *filename, t_data &data)
     data[t_data::ALPHA_GRAV].set_write(
 	config::value_as_bool_default("WriteAlphaGrav", false), do_write_1D);
     data[t_data::ALPHA_GRAV_MEAN].set_write(
-	config::value_as_bool_default("WriteAlphaGravMean", false), do_write_1D);
+	config::value_as_bool_default("WriteAlphaGravMean", false),
+	do_write_1D);
     data[t_data::ALPHA_REYNOLDS].set_write(
-	config::value_as_bool_default("WriteAlphaReynolds", false), do_write_1D);
+	config::value_as_bool_default("WriteAlphaReynolds", false),
+	do_write_1D);
     data[t_data::ALPHA_REYNOLDS_MEAN].set_write(
-	config::value_as_bool_default("WriteAlphaReynoldsMean", false), do_write_1D);
+	config::value_as_bool_default("WriteAlphaReynoldsMean", false),
+	do_write_1D);
     data[t_data::VISCOSITY].set_write(
 	config::value_as_bool_default("WriteViscosity", false), do_write_1D);
     data[t_data::DIV_V].set_write(
@@ -347,7 +350,8 @@ void read(char *filename, t_data &data)
     data[t_data::T_REYNOLDS].set_write(
 	config::value_as_bool_default("WriteTReynolds", false), do_write_1D);
     data[t_data::T_GRAVITATIONAL].set_write(
-	config::value_as_bool_default("WriteTGravitational", false), do_write_1D);
+	config::value_as_bool_default("WriteTGravitational", false),
+	do_write_1D);
     data[t_data::ADVECTION_TORQUE].set_write(
 	config::value_as_bool_default("WriteGasTorques", false), do_write_1D);
     data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
@@ -367,7 +371,8 @@ void read(char *filename, t_data &data)
     data[t_data::DISSIPATION_1D].set_write(
 	config::value_as_bool_default("WriteRadialDissipation", false));
     data[t_data::TAU_EFF].set_write(
-	config::value_as_bool_default("WriteVerticalOpticalDepth", false), do_write_1D);
+	config::value_as_bool_default("WriteVerticalOpticalDepth", false),
+	do_write_1D);
 
     write_torques = config::value_as_bool_default("WriteTorques", false);
 
@@ -379,12 +384,12 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteLightCurves", false);
 
     write_massflow = config::value_as_bool_default("WriteMassFlow", false);
-	data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
+    data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
 
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =
 	config::value_as_double_default("LogAfterRealSeconds", 600.0);
-	debug_outputs = config::value_as_bool_default("DebugOutputs", NO);
+    debug_outputs = config::value_as_bool_default("DebugOutputs", NO);
 
     // parse light curve radii
     if (config::key_exists("WriteLightCurvesRadii")) {
@@ -466,7 +471,7 @@ void read(char *filename, t_data &data)
     case 'b':
 	boundary_outer = boundary_condition_boundary_layer;
 	break;
-	case 'i':
+    case 'i':
 	boundary_outer = boundary_condition_initial_center_of_mass;
 	break;
     case 'k':
@@ -830,15 +835,17 @@ void read(char *filename, t_data &data)
 
     // star parameters
     star_temperature = config::value_as_double_default("StarTemperature", 5778);
-	star_radius = config::value_as_double_default("StarRadius", 1.0); // solar radius in [R_sol]
+    star_radius = config::value_as_double_default(
+	"StarRadius", 1.0); // solar radius in [R_sol]
 
-	if(heating_star_enabled){
-	if(star_radius < 0.1){
-		die("Star radius is smaller than Jupiter with %.3e [R_sol]. This cannot be an active star\n", star_radius);
+    if (heating_star_enabled) {
+	if (star_radius < 0.1) {
+	    die("Star radius is smaller than Jupiter with %.3e [R_sol]. This cannot be an active star\n",
+		star_radius);
 	}
-	}
-	const double solar_radius_in_au = 0.00465047;
-	star_radius *= solar_radius_in_au / L0; // convert to code units
+    }
+    const double solar_radius_in_au = 0.00465047;
+    star_radius *= solar_radius_in_au / L0; // convert to code units
 
     // boundary layer parameters
     radial_viscosity_factor =
@@ -848,7 +855,7 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("StellarRotation", 0.1);
     mass_accretion_rate =
 	config::value_as_double_default("MassAccretionRate", 1.e-9);
-	accretion_radius =
+    accretion_radius =
 	config::value_as_double_default("MassAccretionRadius", 1.0);
 
     CFL = config::value_as_double_default("CFL", 0.5);
@@ -1051,7 +1058,7 @@ void summarize_parameters()
     case boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
-	case boundary_condition_initial_center_of_mass:
+    case boundary_condition_initial_center_of_mass:
 	die("Inner boundary initial condition in center of mass is not implemented yet!\n");
 	break;
     }
@@ -1084,10 +1091,10 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
 	break;
-	case boundary_condition_initial_center_of_mass:
-		logging::print_master(
-			LOG_INFO
-			"Using 'initial boundary in center of mass frame' at outer boundary.\n");
+    case boundary_condition_initial_center_of_mass:
+	logging::print_master(
+	    LOG_INFO
+	    "Using 'initial boundary in center of mass frame' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
 	if (domegadr_zero) {

@@ -48,7 +48,8 @@ void update_viscosity(t_data &data)
 		// Omega_K
 		const double alpha = ALPHAVISCOSITY;
 		const double c_s_adb = data[t_data::SOUNDSPEED](n_rad, n_az);
-		const double H = data[t_data::ASPECTRATIO](n_rad, n_az) * Rmed[n_rad];
+		const double H =
+		    data[t_data::ASPECTRATIO](n_rad, n_az) * Rmed[n_rad];
 		const double nu = alpha * H * c_s_adb;
 
 		data[t_data::VISCOSITY](n_rad, n_az) = nu;
@@ -353,10 +354,10 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		const double cr_rr =
 		    InvDiffRmed[n_radial] * (cr_rr_1 + cr_rr_2);
 
-		const double Rmed_mid = 0.5 * (Rb[n_radial] + Rb[n_radial-1]);
+		const double Rmed_mid = 0.5 * (Rb[n_radial] + Rb[n_radial - 1]);
 		const double c1_r = parameters::radial_viscosity_factor *
 				    (cr_rr + cr_rp + cr_pp) /
-					(sigma_avg_r * Rmed_mid);
+				    (sigma_avg_r * Rmed_mid);
 
 		assert(c1_r < 0.0);
 		assert(c1_phi < 0.0);
@@ -377,10 +378,10 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 				      t_polargrid &v_azimuthal, double dt)
 {
 
-	const t_polargrid &Sigma = data[t_data::DENSITY];
-	const t_polargrid &Trp = data[t_data::TAU_R_PHI];
-	const t_polargrid &Trr = data[t_data::TAU_R_R];
-	const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
+    const t_polargrid &Sigma = data[t_data::DENSITY];
+    const t_polargrid &Trp = data[t_data::TAU_R_PHI];
+    const t_polargrid &Trr = data[t_data::TAU_R_R];
+    const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
     for (unsigned int nr = 1; nr <= v_radial.get_max_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz <= v_radial.get_max_azimuthal(); ++naz) {
 	    const int naz_plus =
@@ -390,9 +391,10 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 
 	    double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr, naz_minus));
 
-		// See D'Angelo et al. 2002 Nested-grid calculations of disk-planet interaction
-		// It is important to use the conservative form here and not the one from Fargo / Baruteau.
-		// a_phi = 1/(r*Sigma) ( 1/r d(r^2 * tau_r_phi)/dr + d(tau_phi_phi)/dphi )
+	    // See D'Angelo et al. 2002 Nested-grid calculations of disk-planet
+	    // interaction It is important to use the conservative form here and
+	    // not the one from Fargo / Baruteau. a_phi = 1/(r*Sigma) ( 1/r
+	    // d(r^2 * tau_r_phi)/dr + d(tau_phi_phi)/dphi )
 	    double dVp =
 		dt * InvRb[nr] / (sigma_avg) *
 		((2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2))) *
@@ -415,12 +417,12 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 	    sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr - 1, naz));
 
 	    double dVr =
-		dt / (sigma_avg)*parameters::radial_viscosity_factor *
-		2.0 / (Rb[nr] + Rb[nr-1]) *
+		dt / (sigma_avg)*parameters::radial_viscosity_factor * 2.0 /
+		(Rb[nr] + Rb[nr - 1]) *
 		((Rb[nr] * Trr(nr, naz) - Rb[nr - 1] * Trr(nr - 1, naz)) *
-			 InvDiffRmed[nr] +
+		     InvDiffRmed[nr] +
 		 (Trp(nr, naz_plus) - Trp(nr, naz)) * invdphi -
-				0.5 * (Tpp(nr, naz) + Tpp(nr - 1, naz)));
+		 0.5 * (Tpp(nr, naz) + Tpp(nr - 1, naz)));
 
 	    if (StabilizeViscosity == 1) {
 		const double cr =
@@ -662,14 +664,12 @@ static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2,
     if (include_artifical_viscosity) {
 	double nu_art;
 	if (DIV_V < 0) {
-	    nu_art =
-		parameters::artificial_viscosity_factor *
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		std::pow(
-		    std::min(Rsup[n_radial] - Rinf[n_radial],
-				 Rmed[n_radial] * dphi),
-		    2) *
-		(-DIV_V);
+	    nu_art = parameters::artificial_viscosity_factor *
+		     data[t_data::DENSITY](n_radial, n_azimuthal) *
+		     std::pow(std::min(Rsup[n_radial] - Rinf[n_radial],
+				       Rmed[n_radial] * dphi),
+			      2) *
+		     (-DIV_V);
 	} else {
 	    nu_art = 0;
 	}
@@ -854,7 +854,7 @@ static void get_r_pp(t_data &data, double &tau_pp_1, double &tau_pp_2,
 	    tau_pp_1 += nu_art * DIV_V_R_1;
 	    // if(n_radial == 62 && n_azimuthal == 5)
 	    //	printf("NuArt1 = %.12e	%.5e	%.5e\n\n", -0.5*nu_art *
-	    //DIV_V_R_1, nu_art, DIV_V_R_1);
+	    // DIV_V_R_1, nu_art, DIV_V_R_1);
 
 	    tau_pp_2 += nu_art * (DIV_V_R_2 + DIV_V_P);
 	} else {
@@ -1146,7 +1146,7 @@ static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2,
 ///
 /// \brief debug_function_viscous_terms
 ///	took the standart viscosity velocity updates, split them into their
-///components
+/// components
 /// then sort them by the velocity of the cell such that delta v = c1*v + c2
 /// compared the resulting velocity update with the original computation
 /// and compared the resulting constants with the one computed in
@@ -1342,7 +1342,7 @@ void debug_function_viscous_terms(t_data &data,
 		       data[t_data::DENSITY](n_radial - 1, n_azimuthal));
 
 	    const double v_r_upd_org =
-		dt * 2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		dt * 2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		((Rmed[n_radial] *
 		      data[t_data::TAU_R_R](n_radial, n_azimuthal) -
@@ -1356,7 +1356,7 @@ void debug_function_viscous_terms(t_data &data,
 			data[t_data::TAU_PHI_PHI](n_radial - 1, n_azimuthal)));
 
 	    const double v_r_upd_r_org =
-		dt * 2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		dt * 2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		((Rmed[n_radial] *
 		      data[t_data::TAU_R_R](n_radial, n_azimuthal) -
@@ -1382,37 +1382,38 @@ void debug_function_viscous_terms(t_data &data,
 	    TAU_RR_im_1) * InvDiffRmed[n_radial]);*/
 
 	    const double crr_r1 =
-		2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		(Rmed[n_radial] * TAU_RR_1 - Rmed[n_radial - 1] * TAU_RR_im_1) *
 		InvDiffRmed[n_radial];
 
 	    const double crr_r2 =
-		2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		(Rmed[n_radial] * TAU_RR_2 - Rmed[n_radial - 1] * TAU_RR_im_2) *
 		InvDiffRmed[n_radial];
 
 	    /// test passed
 	    // if(n_radial == 50 && n_azimuthal == 0)
-	    // printf("calc cr_rr = %.12e	%.12e	%.12e\n", Rmed[n_radial] *
-	    // TAU_RR_1 * InvDiffRmed[n_radial], - Rmed[n_radial - 1] *
+	    // printf("calc cr_rr = %.12e	%.12e	%.12e\n", Rmed[n_radial]
+	    // * TAU_RR_1 * InvDiffRmed[n_radial], - Rmed[n_radial - 1] *
 	    // TAU_RR_im_1 * InvDiffRmed[n_radial], (Rmed[n_radial] * TAU_RR_1 -
-	    // Rmed[n_radial - 1] * TAU_RR_im_1) * 		InvDiffRmed[n_radial]);
+	    // Rmed[n_radial - 1] * TAU_RR_im_1) *
+	    // InvDiffRmed[n_radial]);
 
 	    const double crr = dt * (vr * crr_r1 + crr_r2);
 
 	    if (crr != 0.0) {
 		if (std::fabs((crr - v_r_upd_r_org) / crr) > 1e-7) {
 		    printf(
-			"v_r_upd_r (%d	%d) failed with upd = %.5e	alt = %.5e	rel = %.5e\n", n_radial, n_azimuthal,
-			v_r_upd_r_org, crr,
+			"v_r_upd_r (%d	%d) failed with upd = %.5e	alt = %.5e	rel = %.5e\n",
+			n_radial, n_azimuthal, v_r_upd_r_org, crr,
 			std::fabs(crr - v_r_upd_r_org) / crr);
 		}
 	    }
 
 	    const double v_r_upd_p_org =
-		dt * 2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		dt * 2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		(-0.5 * (data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +
 			 data[t_data::TAU_PHI_PHI](n_radial - 1, n_azimuthal)));
@@ -1425,17 +1426,17 @@ void debug_function_viscous_terms(t_data &data,
 		     include_artifical_viscosity, true);
 
 	    const double cpp_r1 =
-		2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		(-0.5 * (TAU_PP_1 + TAU_PP_im_1));
 
 	    /// test passed
 	    // if(n_radial == 62 && n_azimuthal == 5)
-	    // printf("calc cr_pp = %.12e	%.12e\n\n", -0.5 * TAU_PP_1,-0.5 *
-	    // TAU_PP_im_1);
+	    // printf("calc cr_pp = %.12e	%.12e\n\n", -0.5 * TAU_PP_1,-0.5
+	    // * TAU_PP_im_1);
 
 	    const double cpp_r2 =
-		2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		(-0.5 * (TAU_PP_2 + TAU_PP_im_2));
 
@@ -1451,7 +1452,7 @@ void debug_function_viscous_terms(t_data &data,
 	    }
 
 	    const double v_r_upd_rp_org =
-		dt * 2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		dt * 2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		((data[t_data::TAU_R_PHI](n_radial, n_azimuthal_plus) -
 		  data[t_data::TAU_R_PHI](n_radial, n_azimuthal)) *
@@ -1465,18 +1466,18 @@ void debug_function_viscous_terms(t_data &data,
 			 n_azimuthal_plus, true);
 
 	    const double crpr_1 =
-		2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		(TAU_RP_jp_1 - TAU_RP_1) * invdphi;
 
 	    /// test passed
 	    // if(n_radial == 50 && n_azimuthal == 0)
-	    // printf("calc cr_rp = %.12e	%.12e	%.5e\n\n", (TAU_RP_jp_1) *
-	    // invdphi, (-TAU_RP_1) * invdphi, (TAU_RP_jp_1 - TAU_RP_1) *
+	    // printf("calc cr_rp = %.12e	%.12e	%.5e\n\n", (TAU_RP_jp_1)
+	    // * invdphi, (-TAU_RP_1) * invdphi, (TAU_RP_jp_1 - TAU_RP_1) *
 	    // invdphi);
 
 	    const double v_r_upd_rp_2 =
-		2.0 / (Rb[n_radial] + Rb[n_radial-1]) /
+		2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /
 		(sigma_avg_r)*parameters::radial_viscosity_factor *
 		(TAU_RP_jp_2 - TAU_RP_2) * invdphi;
 
@@ -1505,20 +1506,20 @@ void debug_function_viscous_terms(t_data &data,
 
 	    /// test passed
 	    // if(n_radial == 50 && n_azimuthal == 0)
-	    //	printf("calc crr = %.12e	%.12e	%.12e		%.12e\n", crr_r1,
-	    //crpr_1, cpp_r1,
+	    //	printf("calc crr = %.12e	%.12e	%.12e		%.12e\n",
+	    //crr_r1, crpr_1, cpp_r1,
 	    //(data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
-	    //n_azimuthal) - (crr_r1 + crpr_1 +
-	    //cpp_r1))/data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
-	    //n_azimuthal));
+	    // n_azimuthal) - (crr_r1 + crpr_1 +
+	    // cpp_r1))/data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
+	    // n_azimuthal));
 
 	    // if(n_radial == 62 && n_azimuthal == 5)
-	    //	printf("calc crr = %.12e	%.12e	%.12e		%.12e\n", crr_r1,
-	    //crpr_1, cpp_r1,
+	    //	printf("calc crr = %.12e	%.12e	%.12e		%.12e\n",
+	    //crr_r1, crpr_1, cpp_r1,
 	    //(data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
-	    //n_azimuthal) - (crr_r1 + crpr_1 +
-	    //cpp_r1))/data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
-	    //n_azimuthal));
+	    // n_azimuthal) - (crr_r1 + crpr_1 +
+	    // cpp_r1))/data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
+	    // n_azimuthal));
 
 	    const double c1r_alt = cpp_r1 + crpr_1 + crr_r1;
 	    const double c1r = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](

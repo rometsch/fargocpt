@@ -6,13 +6,13 @@
 #include "logging.h"
 
 #include "global.h"
+#include "output.h"
 #include "parameters.h"
 #include <chrono>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "output.h"
 
 namespace logging
 {
@@ -184,14 +184,14 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 	    time_per_step_ms =
 		realtime_since_last / (1000.0 * (N_iter - n_last_log));
 	}
-	if(debug_outputs){
-	logging::print_master(
-	    LOG_INFO
+	if (debug_outputs) {
+	    logging::print_master(
+		LOG_INFO
 		"DEBUG output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
-	    output_number, time_step_coarse, N_iter, PhysicalTime, dt,
-	    realtime / 1000000.0, time_per_step_ms);
+		output_number, time_step_coarse, N_iter, PhysicalTime, dt,
+		realtime / 1000000.0, time_per_step_ms);
 	} else {
-		logging::print_master(
+	    logging::print_master(
 		LOG_INFO
 		"Logging info: output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
 		output_number, time_step_coarse, N_iter, PhysicalTime, dt,
@@ -200,10 +200,10 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 	n_last_log = N_iter;
 	realtime_last_log = realtime_now;
 
-	if(debug_outputs){
-		output::write_grids(data, TimeStep, N_iter, PhysicalTime, true);
-		data.get_planetary_system().write_planets(TimeStep, 2);
-		output::write_misc(true);
+	if (debug_outputs) {
+	    output::write_grids(data, TimeStep, N_iter, PhysicalTime, true);
+	    data.get_planetary_system().write_planets(TimeStep, 2);
+	    output::write_misc(true);
 	}
     }
 }

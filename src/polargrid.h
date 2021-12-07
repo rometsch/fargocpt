@@ -44,7 +44,7 @@ class t_polargrid
     void set_vector(bool value);
     inline void set_write_1D(bool value) { m_write_1D = value; }
     inline void set_write_2D(bool value) { m_write_2D = value; }
-	inline void set_write(bool value, bool write1D)
+    inline void set_write(bool value, bool write1D)
     {
 	set_write_1D(value && write1D);
 	set_write_2D(value);
@@ -90,19 +90,19 @@ class t_polargrid
 
     void clear();
 
-	void write_polargrid(unsigned int number, t_data &data, bool debug);
-	// 2D read/write
-	void write2D(const unsigned int number, const bool debug) const;
+    void write_polargrid(unsigned int number, t_data &data, bool debug);
+    // 2D read/write
+    void write2D(const unsigned int number, const bool debug) const;
     void read2D(const char *filename);
-	void read2D(unsigned int number, bool debug);
+    void read2D(unsigned int number, bool debug);
 
     // 1D read/write
     void write1D(unsigned int number) const;
     void read1D(const char *filename, bool skip_min_max);
     void read1D(unsigned int number, bool skip_min_max);
 
-	unsigned int bytes_needed_1D() const;
-	unsigned int bytes_needed_2D() const;
+    unsigned int bytes_needed_1D() const;
+    unsigned int bytes_needed_2D() const;
 
     unsigned int get_memory_usage(ptrdiff_t size_radial,
 				  ptrdiff_t size_azimuthal) const;
@@ -112,16 +112,16 @@ class t_polargrid
 	return nAzimuthal + (nRadial * Nsec);
     }
 
-	inline double &operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal)
+    inline double &operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal)
     {
 	return Field[cell(nRadial, nAzimuthal)];
-	}
-	inline double operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal) const
+    }
+    inline double operator()(ptrdiff_t nRadial, ptrdiff_t nAzimuthal) const
     {
 	return Field[cell(nRadial, nAzimuthal)];
     }
 
-	double get_max() const;
+    double get_max() const;
     t_polargrid &operator*=(double);
     t_polargrid &operator/=(double);
 

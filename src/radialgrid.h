@@ -72,7 +72,7 @@ class t_radialgrid
 
     void clear();
 
-	void write_radialgrid(unsigned int number, t_data &data);
+    void write_radialgrid(unsigned int number, t_data &data);
     void write(std::string filename, unsigned int number, t_data &data,
 	       bool one_file, bool force_write);
     // 1D read/write

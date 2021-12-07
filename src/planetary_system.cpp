@@ -8,9 +8,9 @@
 #include "types.h"
 #include <cstring>
 #include <ctype.h>
+#include <fstream>
 #include <math.h>
 #include <stdio.h>
-#include <fstream>
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -187,7 +187,7 @@ void t_planetary_system::read_from_file(char *filename)
 		LOG_WARNING,
 		"Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
 
-		planet->set_radius(radius * 0.00465047 / parameters::L0);
+	    planet->set_radius(radius * 0.00465047 / parameters::L0);
 	    planet->set_temperature(temperature / units::temperature);
 	    planet->set_irradiate(tolower(irradiate[0]) == 'y');
 	    planet->set_rampuptime(rampuptime);
@@ -270,7 +270,7 @@ void t_planetary_system::list_planets()
 	logging::print(
 	    LOG_INFO
 	    " %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
-		i, get_planet(i).get_name().c_str(), get_planet(i).get_mass(),
+	    i, get_planet(i).get_name().c_str(), get_planet(i).get_mass(),
 	    get_planet(i).get_x(), get_planet(i).get_y(),
 	    get_planet(i).get_vx(), get_planet(i).get_vy());
     }
@@ -345,25 +345,28 @@ void t_planetary_system::restart(unsigned int timestep, bool debug)
 	get_planet(i).restart(timestep, debug);
     }
 
-	if(debug_outputs){
+    if (debug_outputs) {
 	reb_free_simulation(m_rebound);
-	char* reb_name = nullptr;
-	if(debug){
-		asprintf(&reb_name, "%s", (std::string(OUTPUTDIR) + std::string("debugsnapshot.bin")).c_str());
+	char *reb_name = nullptr;
+	if (debug) {
+	    asprintf(&reb_name, "%s",
+		     (std::string(OUTPUTDIR) + std::string("debugsnapshot.bin"))
+			 .c_str());
 	} else {
-		asprintf(&reb_name, (std::string(OUTPUTDIR) + "snapshot%d.bin").c_str(), timestep);
+	    asprintf(&reb_name,
+		     (std::string(OUTPUTDIR) + "snapshot%d.bin").c_str(),
+		     timestep);
 	}
 	m_rebound = reb_create_simulation_from_binary(reb_name);
-	}
-
+    }
 }
 
 void t_planetary_system::create_planet_files()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).create_planet_file(false);
-	if(debug_outputs){
-		get_planet(i).create_planet_file(true);
+	if (debug_outputs) {
+	    get_planet(i).create_planet_file(true);
 	}
     }
 }
@@ -374,16 +377,17 @@ void t_planetary_system::write_planets(unsigned int timestep, int file_type)
 	get_planet(i).write(timestep, file_type);
     }
 
-	if(debug_outputs && CPU_Master){
-	char* reb_name = nullptr;
-	if(file_type == 2){
-		asprintf(&reb_name, "%s%s", OUTPUTDIR, std::string("debugsnapshot.bin").c_str());
-		reb_output_binary(m_rebound, reb_name);
+    if (debug_outputs && CPU_Master) {
+	char *reb_name = nullptr;
+	if (file_type == 2) {
+	    asprintf(&reb_name, "%s%s", OUTPUTDIR,
+		     std::string("debugsnapshot.bin").c_str());
+	    reb_output_binary(m_rebound, reb_name);
 	} else if (file_type == 0) {
-		asprintf(&reb_name, "%ssnapshot%d.bin", OUTPUTDIR, timestep);
-		reb_output_binary(m_rebound, reb_name);
+	    asprintf(&reb_name, "%ssnapshot%d.bin", OUTPUTDIR, timestep);
+	    reb_output_binary(m_rebound, reb_name);
 	}
-	}
+    }
 }
 
 /**
@@ -397,15 +401,15 @@ void t_planetary_system::initialize_planet_legacy(t_planet *planet, double mass,
     planet->set_mass(mass);
     // planets starts at Apastron
     double r = semi_major_axis * (1.0 + eccentricity);
-	planet->set_x(r * std::cos(phi));
-	planet->set_y(r * std::sin(phi));
+    planet->set_x(r * std::cos(phi));
+    planet->set_y(r * std::sin(phi));
     double v = 0.0;
     if (semi_major_axis != 0.0) {
 	v = std::sqrt(constants::G * (1.0 + mass) / semi_major_axis) *
-		std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
+	    std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
     }
-	planet->set_vx(-v * std::sin(phi));
-	planet->set_vy(v * std::cos(phi));
+    planet->set_vx(-v * std::sin(phi));
+    planet->set_vy(v * std::cos(phi));
 }
 
 /**
@@ -475,12 +479,12 @@ void t_planetary_system::initialize_planet_jacobi(t_planet *planet, double mass,
     double com_mass = get_mass();    // of all previously added planets
 
     // some temporary variables for optimization and legibility
-	double cos_ota = std::cos(omega + true_anomaly);
-	double sin_ota = std::sin(omega + true_anomaly);
-	double cos_o = std::cos(omega);
-	double sin_o = std::sin(omega);
-	double cos_ta = std::cos(true_anomaly);
-	double sin_ta = std::sin(true_anomaly);
+    double cos_ota = std::cos(omega + true_anomaly);
+    double sin_ota = std::sin(omega + true_anomaly);
+    double cos_o = std::cos(omega);
+    double sin_o = std::sin(omega);
+    double cos_ta = std::cos(true_anomaly);
+    double sin_ta = std::sin(true_anomaly);
 
     double r = semi_major_axis * (1 - eccentricity * eccentricity) /
 	       (1 + eccentricity * cos_ta);

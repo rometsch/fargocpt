@@ -89,7 +89,8 @@ void t_polargrid::clear()
     memset(Field, 0, get_size_radial() * get_size_azimuthal() * sizeof(*Field));
 }
 
-void t_polargrid::write_polargrid(unsigned int number, t_data &data, bool debug = false)
+void t_polargrid::write_polargrid(unsigned int number, t_data &data,
+				  bool debug = false)
 {
     if (get_write_1D() || get_write_2D() || m_calculate_on_write) {
 	if (m_do_before_write != NULL) {
@@ -97,7 +98,7 @@ void t_polargrid::write_polargrid(unsigned int number, t_data &data, bool debug 
 	}
     }
 
-	if (get_write_1D() && (!debug)) {
+    if (get_write_1D() && (!debug)) {
 	write1D(number);
     }
 
@@ -105,9 +106,9 @@ void t_polargrid::write_polargrid(unsigned int number, t_data &data, bool debug 
 	write2D(number, debug);
     }
 
-	if (get_clear_after_write() && (!debug)) {
+    if (get_clear_after_write() && (!debug)) {
 	clear();
-	}
+    }
 }
 
 /**
@@ -123,15 +124,14 @@ void t_polargrid::write2D(const unsigned int number, const bool debug) const
     unsigned int count;
     double *from;
 
-	std::string filename = std::string(OUTPUTDIR) + "/gas" +
-				 std::string(get_name()) +
-				 std::to_string(number) + ".dat";
+    std::string filename = std::string(OUTPUTDIR) + "/gas" +
+			   std::string(get_name()) + std::to_string(number) +
+			   ".dat";
 
-	if(debug){
-		filename = std::string(OUTPUTDIR) + "/gas" +
-						 std::string(get_name()) +
-						 "_DEBUG.dat";
-	}
+    if (debug) {
+	filename = std::string(OUTPUTDIR) + "/gas" + std::string(get_name()) +
+		   "_DEBUG.dat";
+    }
 
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
@@ -164,9 +164,9 @@ void t_polargrid::write2D(const unsigned int number, const bool debug) const
 	count -= CPUOVERLAP;
     }
 
-	// write data from buffer
-	MPI_File_write(fh, from, (count) * (get_size_azimuthal()), MPI_DOUBLE,
-		       &status);
+    // write data from buffer
+    MPI_File_write(fh, from, (count) * (get_size_azimuthal()), MPI_DOUBLE,
+		   &status);
 
     // close file
     MPI_File_close(&fh);
@@ -278,17 +278,17 @@ void t_polargrid::read2D(unsigned int number, bool debug = false)
 {
     char *filename;
 
-	if(debug){
+    if (debug) {
 	if (asprintf(&filename, "%s/gas%s_DEBUG.dat", OUTPUTDIR, get_name()) <
-	0) {
-	die("Not enough memory!");
+	    0) {
+	    die("Not enough memory!");
 	}
-	} else {
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
-	0) {
-	die("Not enough memory!");
+    } else {
+	if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(),
+		     number) < 0) {
+	    die("Not enough memory!");
+	}
     }
-	}
 
     read2D(filename);
 
@@ -481,20 +481,20 @@ unsigned int t_polargrid::bytes_needed_2D() const
     return 2.0 * sizeof(double) * get_size_azimuthal() * get_size_radial();
 }
 
-
 double t_polargrid::get_max() const
 {
-	double local_max = - DBL_MAX;
+    double local_max = -DBL_MAX;
 
-	const unsigned int Nmax = Nrad * Nsec;
-	for (unsigned int n=0; n < Nmax; n++) {
-		local_max = std::max(local_max, Field[n]);
-	}
+    const unsigned int Nmax = Nrad * Nsec;
+    for (unsigned int n = 0; n < Nmax; n++) {
+	local_max = std::max(local_max, Field[n]);
+    }
 
-	double global_max;
-	MPI_Allreduce(&local_max, &global_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    double global_max;
+    MPI_Allreduce(&local_max, &global_max, 1, MPI_DOUBLE, MPI_MAX,
+		  MPI_COMM_WORLD);
 
-	return global_max;
+    return global_max;
 }
 
 /**
@@ -502,10 +502,10 @@ double t_polargrid::get_max() const
 */
 t_polargrid &t_polargrid::operator*=(double c)
 {
-	const unsigned int Nmax = Nrad * Nsec;
-	for (unsigned int n=0; n < Nmax; n++) {
-		Field[n] *= c;
-	}
+    const unsigned int Nmax = Nrad * Nsec;
+    for (unsigned int n = 0; n < Nmax; n++) {
+	Field[n] *= c;
+    }
 
     return *this;
 }
@@ -516,10 +516,10 @@ t_polargrid &t_polargrid::operator*=(double c)
 t_polargrid &t_polargrid::operator/=(double c)
 {
 
-	const unsigned int Nmax = Nrad * Nsec;
-	for (unsigned int n=0; n < Nmax; n++) {
-		Field[n] /= c;
-	}
+    const unsigned int Nmax = Nrad * Nsec;
+    for (unsigned int n = 0; n < Nmax; n++) {
+	Field[n] /= c;
+    }
 
     return *this;
 }

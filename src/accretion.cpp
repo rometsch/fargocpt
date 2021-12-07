@@ -65,7 +65,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     bool mass_changed = false;
     const int ns = data[t_data::DENSITY].Nsec;
     double *dens = data[t_data::DENSITY].Field;
-	double *energy = data[t_data::ENERGY].Field;
+    double *energy = data[t_data::ENERGY].Field;
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     const double *vrad = data[t_data::V_RADIAL].Field;
@@ -132,9 +132,11 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		if (distance < frac1 * RHill) {
 		    double facc_ceil = std::min(facc1, facc_max);
 		    deltaM = facc_ceil * dens[l] * Surf[i];
-			dens[l] *= 1.0 - facc_ceil;
-			energy[l] *= 1.0 - facc1;
-			if (Zero_or_active < i && i < MaxMO_or_active) { // Only add active cells to planet
+		    dens[l] *= 1.0 - facc_ceil;
+		    energy[l] *= 1.0 - facc1;
+		    if (Zero_or_active < i &&
+			i < MaxMO_or_active) { // Only add active cells to
+					       // planet
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
 			dMplanet += deltaM;
@@ -144,9 +146,11 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		if (distance < frac2 * RHill) {
 		    double facc_ceil = std::min(facc2, facc_max);
 		    deltaM = facc_ceil * dens[l] * Surf[i];
-			dens[l] *= 1.0 - facc_ceil;
-			energy[l] *= 1.0 - facc2;
-			if (Zero_or_active < i && i < MaxMO_or_active) { // Only add active cells to planet
+		    dens[l] *= 1.0 - facc_ceil;
+		    energy[l] *= 1.0 - facc2;
+		    if (Zero_or_active < i &&
+			i < MaxMO_or_active) { // Only add active cells to
+					       // planet
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
 			dMplanet += deltaM;
@@ -163,20 +167,19 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	// monitoring purpose only
 	planet.add_accreted_mass(dMplanet);
 
-	if(parameters::disk_feedback){ // only update planets if they feel the disk
-	MPI_Allreduce(&dPxPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
-		      MPI_COMM_WORLD);
-	dPxPlanet = temp;
-	MPI_Allreduce(&dPyPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
-		      MPI_COMM_WORLD);
-	dPyPlanet = temp;
+	if (parameters::disk_feedback) { // only update planets if they feel the
+					 // disk
+	    MPI_Allreduce(&dPxPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
+			  MPI_COMM_WORLD);
+	    dPxPlanet = temp;
+	    MPI_Allreduce(&dPyPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
+			  MPI_COMM_WORLD);
+	    dPyPlanet = temp;
 
-	// update planet momentum
-	update_planet(planet, dMplanet, dPxPlanet, dPyPlanet);
-	mass_changed = dMplanet > 0;
+	    // update planet momentum
+	    update_planet(planet, dMplanet, dPxPlanet, dPyPlanet);
+	    mass_changed = dMplanet > 0;
 	}
-
-
     }
     return mass_changed;
 }

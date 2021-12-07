@@ -10,10 +10,10 @@
 #include "logging.h"
 #include "parameters.h"
 #include "util.h"
+#include <algorithm>
 #include <cstring>
 #include <math.h>
 #include <vector>
-#include <algorithm>
 
 #include "constants.h"
 #include <experimental/filesystem>
@@ -33,19 +33,19 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 {
 
     // delete old data
-	if (data[t_data::PRESCRIBED_DENSITY_OUTER].Field != nullptr) {
+    if (data[t_data::PRESCRIBED_DENSITY_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_DENSITY_OUTER].Field;
 	data[t_data::PRESCRIBED_DENSITY_OUTER].Field = nullptr;
     }
-	if (data[t_data::PRESCRIBED_ENERGY_OUTER].Field != nullptr) {
+    if (data[t_data::PRESCRIBED_ENERGY_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_ENERGY_OUTER].Field;
 	data[t_data::PRESCRIBED_ENERGY_OUTER].Field = nullptr;
     }
-	if (data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field != nullptr) {
+    if (data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field;
 	data[t_data::PRESCRIBED_V_RADIAL_OUTER].Field = nullptr;
     }
-	if (data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field != nullptr) {
+    if (data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field != nullptr) {
 	delete[] data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field;
 	data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER].Field = nullptr;
     }
@@ -76,10 +76,11 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 		std::string file_name_body{file_name_body_char};
 
 		char *file_name_test_char;
-		asprintf(&file_name_test_char, "%s0.dat",
-			 file_name_body_char);
-		if(!std::experimental::filesystem::exists(file_name_test_char)){
-			die("Prescribed boundary file %s does not exist!\n", file_name_test_char);
+		asprintf(&file_name_test_char, "%s0.dat", file_name_body_char);
+		if (!std::experimental::filesystem::exists(
+			file_name_test_char)) {
+		    die("Prescribed boundary file %s does not exist!\n",
+			file_name_test_char);
 		}
 
 		// get number of files
@@ -136,8 +137,9 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 
 			count_files.push_back(file_id);
 
-			if(file_id >= num_files){
-				die("file_id %d is out of range for %d number of files!\n", file_id, num_files);
+			if (file_id >= num_files) {
+			    die("file_id %d is out of range for %d number of files!\n",
+				file_id, num_files);
 			}
 
 			std::fstream infile(path_string, std::ios_base::in);
@@ -161,9 +163,8 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    double vr;
 			    double vphi;
 
-			    sscanf(line.c_str(),
-				   "%lf	%lf	%lf	%lf\n", &phi,
-				   &sigma, &vr, &vphi);
+			    sscanf(line.c_str(), "%lf	%lf	%lf	%lf\n",
+				   &phi, &sigma, &vr, &vphi);
 
 			    /*
 			    double phi_calc = 2*M_PI / (double)(Nphi-0.5) *
@@ -207,29 +208,33 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    /*
 			    // debugging output of data
 			    if(file_id == 0)
-			    printf("Nphi = %d	Sigma = %.5e	T = %.5e	vr
-			    = %.5e	vphi = %.5e\n", n_azimuthal,
+			    printf("Nphi = %d	Sigma = %.5e	T = %.5e
+			    vr = %.5e	vphi = %.5e\n", n_azimuthal,
 			    sigma*units::surface_density.get_cgs_factor(),
 			    T*units::temperature.get_cgs_factor(), vr, vphi);
 				       */
 			}
-			if(n_azimuthal != data[t_data::PRESCRIBED_DENSITY_OUTER].get_size_azimuthal()){
-				die("Could not read full ring from file %s, only %d / %d lines found\n", path_string.c_str(), n_azimuthal, data[t_data::PRESCRIBED_DENSITY_OUTER].get_max_azimuthal());
+			if (n_azimuthal !=
+			    data[t_data::PRESCRIBED_DENSITY_OUTER]
+				.get_size_azimuthal()) {
+			    die("Could not read full ring from file %s, only %d / %d lines found\n",
+				path_string.c_str(), n_azimuthal,
+				data[t_data::PRESCRIBED_DENSITY_OUTER]
+				    .get_max_azimuthal());
 			}
 		    }
 		}
 
-		if(count_files.size() != (unsigned int)num_files){
-			die("Only prescribed boundary files %d / %d files were loaded!\n");
+		if (count_files.size() != (unsigned int)num_files) {
+		    die("Only prescribed boundary files %d / %d files were loaded!\n");
 		}
 
 		std::sort(count_files.begin(), count_files.end());
-		for(unsigned int i = 0; i < count_files.size(); ++i){
-			if(i != (unsigned int)count_files[i]){
-				die("Prescribed boundary file number %d was not loaded correctly!\n");
-			}
+		for (unsigned int i = 0; i < count_files.size(); ++i) {
+		    if (i != (unsigned int)count_files[i]) {
+			die("Prescribed boundary file number %d was not loaded correctly!\n");
+		    }
 		}
-
 	    }
 	}
     }
@@ -280,7 +285,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
-	case parameters::boundary_condition_initial_center_of_mass:
+    case parameters::boundary_condition_initial_center_of_mass:
 	die("Inner initial center of mass boundary is not implemented yet!\n");
 	break;
     }
@@ -293,7 +298,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_reflecting:
 	reflecting_boundary_outer(data);
 	break;
-	case parameters::boundary_condition_initial_center_of_mass:
+    case parameters::boundary_condition_initial_center_of_mass:
 	initial_center_of_mass_boundary(data);
 	break;
     case parameters::boundary_condition_boundary_layer:
@@ -305,7 +310,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 				    &data[t_data::ENERGY]);
 	break;
     case parameters::boundary_condition_precribed_time_variable:
-	//boundary_condition_precribed_time_variable_outer(data);
+	// boundary_condition_precribed_time_variable_outer(data);
 	break;
     case parameters::boundary_condition_viscous_outflow:
 	die("outer viscous outflow boundary not implemented");
@@ -442,7 +447,8 @@ void reflecting_boundary_inner(t_data &data)
 /**
 	outer boundary_condition_precribed_time_variable_outer
 */
-void boundary_condition_precribed_time_variable_outer(t_data &data, t_polargrid *densitystar)
+void boundary_condition_precribed_time_variable_outer(t_data &data,
+						      t_polargrid *densitystar)
 {
     if (CPU_Rank == CPU_Highest) {
 	const int n_radial = data[t_data::DENSITY].get_max_radial();
@@ -490,7 +496,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data, t_polargrid 
 		vphi + percent_to_next_timestep * (vphi_next - vphi);
 
 	    // copy interpolated values into outer ghost ring
-		(*densitystar)(n_radial, n_azimuthal) = sigma_cell;
+	    (*densitystar)(n_radial, n_azimuthal) = sigma_cell;
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_cell;
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr_cell;
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi_cell;
@@ -1100,11 +1106,12 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
     }
 
-	const t_planet &planet = data.get_planetary_system().get_planet(parameters::mof_planet);
-	const double xplanet = planet.get_x();
-	const double yplanet = planet.get_y();
+    const t_planet &planet =
+	data.get_planetary_system().get_planet(parameters::mof_planet);
+    const double xplanet = planet.get_x();
+    const double yplanet = planet.get_y();
 
-	const double omega_planet = planet.get_omega();
+    const double omega_planet = planet.get_omega();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
     double angle = std::atan2(yplanet, xplanet) * 0.5 * M_1_PI;
@@ -1153,14 +1160,14 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	sigma; // walk through 3 sigma, so we get 99.7% accuracy
     double sigmabar = Nphi * sigma;
 
-	//ramping over 5 orbits
-	const double t_ramp = planet.get_rampuptime() * planet.get_period();
-	double ramp_factor;
-	if (PhysicalTime < t_ramp){
-		ramp_factor = std::pow(std::sin(PhysicalTime*M_PI_2/t_ramp), 2);
-	}else{
-		ramp_factor = 1.0;
-	}
+    // ramping over 5 orbits
+    const double t_ramp = planet.get_rampuptime() * planet.get_period();
+    double ramp_factor;
+    if (PhysicalTime < t_ramp) {
+	ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 2);
+    } else {
+	ramp_factor = 1.0;
+    }
 
     double check = 0.0;
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
@@ -1496,123 +1503,127 @@ void keplerian2d_boundary_outer(t_data &data)
     }
 }
 
-
 /**
  * @brief initial_center_of_mass_boundary: sets the outer boundary
- *  to the initial profile in the center of mass and then shifts it to the primary center.
- *  Lucas thinks this is important when simulating a circumbinary disk when the coordination system
- *  is centered on the primary.
+ *  to the initial profile in the center of mass and then shifts it to the
+ * primary center. Lucas thinks this is important when simulating a circumbinary
+ * disk when the coordination system is centered on the primary.
  * @param data
  */
 void initial_center_of_mass_boundary(t_data &data)
 {
 
-	if (CPU_Rank != CPU_Highest)
+    if (CPU_Rank != CPU_Highest)
 	return;
 
-	const unsigned int np = data.get_planetary_system().get_number_of_planets();
-	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
-	const Pair com_vel = data.get_planetary_system().get_center_of_mass_velocity(np);
-	const double com_mass = data.get_planetary_system().get_mass(np);
+    const unsigned int np = data.get_planetary_system().get_number_of_planets();
+    const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
+    const Pair com_vel =
+	data.get_planetary_system().get_center_of_mass_velocity(np);
+    const double com_mass = data.get_planetary_system().get_mass(np);
 
-	auto &sigma = data[t_data::DENSITY];
-	auto &energy = data[t_data::ENERGY];
-	auto &vrad = data[t_data::V_RADIAL];
-	auto &vaz = data[t_data::V_AZIMUTHAL];
+    auto &sigma = data[t_data::DENSITY];
+    auto &energy = data[t_data::ENERGY];
+    auto &vrad = data[t_data::V_RADIAL];
+    auto &vaz = data[t_data::V_AZIMUTHAL];
 
-	const unsigned int nr = data[t_data::DENSITY].get_max_radial();
-	for (unsigned int naz = 0;
-	 naz <= data[t_data::DENSITY].get_max_azimuthal();
+    const unsigned int nr = data[t_data::DENSITY].get_max_radial();
+    for (unsigned int naz = 0; naz <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++naz) {
 
+	{ /// V_PHI
+	    const double phi = ((double)naz - 0.5) * dphi;
+	    const double rmed = Rmed[nr];
 
-		{ /// V_PHI
-		const double phi = ((double)naz - 0.5) * dphi;
-		const double rmed = Rmed[nr];
+	    const double cell_x = rmed * std::cos(phi);
+	    const double cell_y = rmed * std::sin(phi);
 
-		const double cell_x = rmed * std::cos(phi);
-		const double cell_y = rmed * std::sin(phi);
+	    // Position in center of mass frame
+	    const double x_com = cell_x - com_pos.x;
+	    const double y_com = cell_y - com_pos.y;
+	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		// Position in center of mass frame
-		const double x_com = cell_x - com_pos.x;
-		const double y_com = cell_y - com_pos.y;
-		const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
+	    // Velocity in center of mass frame
+	    const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com);
+	    const double cell_vr_com = 0.0;
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com = std::sqrt(constants::G * com_mass / r_com);
-		const double cell_vr_com = 0.0;
+	    const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+	    const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
-		const double cell_vx_com = (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
-		const double cell_vy_com = (cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+	    // shift velocity from center of mass frame to primary frame
+	    const double cell_vx = cell_vx_com - com_vel.x;
+	    const double cell_vy = cell_vy_com - com_vel.y;
 
-		// shift velocity from center of mass frame to primary frame
-		const double cell_vx = cell_vx_com - com_vel.x;
-		const double cell_vy = cell_vy_com - com_vel.y;
+	    const double cell_vphi =
+		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
+	    vaz(nr, naz) = cell_vphi;
+	} /// END V_PHI
 
-		const double cell_vphi = (cell_x * cell_vy - cell_vx * cell_y) / rmed;
-		vaz(nr, naz) = cell_vphi;
-		} /// END V_PHI
+	{ /// V_R
+	    const double phi = (double)naz * dphi;
+	    const double rinf = Rinf[nr];
 
-		{ /// V_R
-		const double phi = (double)naz * dphi;
-		const double rinf = Rinf[nr];
+	    const double cell_x = rinf * std::cos(phi);
+	    const double cell_y = rinf * std::sin(phi);
 
-		const double cell_x = rinf * std::cos(phi);
-		const double cell_y = rinf * std::sin(phi);
+	    // Position in center of mass frame
+	    const double x_com = cell_x - com_pos.x;
+	    const double y_com = cell_y - com_pos.y;
+	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		// Position in center of mass frame
-		const double x_com = cell_x - com_pos.x;
-		const double y_com = cell_y - com_pos.y;
-		const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
+	    // Velocity in center of mass frame
+	    const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com);
+	    const double cell_vr_com = 0.0;
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com = std::sqrt(constants::G * com_mass / r_com);
-		const double cell_vr_com = 0.0;
+	    const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+	    const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
-		const double cell_vx_com = (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
-		const double cell_vy_com = (cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+	    // shift velocity from center of mass frame to primary frame
+	    const double cell_vx = cell_vx_com - com_vel.x;
+	    const double cell_vy = cell_vy_com - com_vel.y;
 
-		// shift velocity from center of mass frame to primary frame
-		const double cell_vx = cell_vx_com - com_vel.x;
-		const double cell_vy = cell_vy_com - com_vel.y;
+	    const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+	    vrad(nr, naz) = cell_vr;
+	} /// END V_R
 
-		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
-		vrad(nr, naz) = cell_vr;
-		} /// END V_R
+	{ /// DENSITY and ENERGY
+	    const double cell_x = (*CellCenterX)(nr, naz);
+	    const double cell_y = (*CellCenterY)(nr, naz);
 
+	    // Position in center of mass frame
+	    const double x_com = cell_x - com_pos.x;
+	    const double y_com = cell_y - com_pos.y;
+	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		{ /// DENSITY and ENERGY
-		const double cell_x = (*CellCenterX)(nr, naz);
-		const double cell_y = (*CellCenterY)(nr, naz);
+	    const double cell_sigma =
+		parameters::sigma0 *
+		std::pow(r_com,
+			 -SIGMASLOPE); // we assume the floor is not reached.
+	    sigma(nr, naz) = cell_sigma;
 
-		// Position in center of mass frame
-		const double x_com = cell_x - com_pos.x;
-		const double y_com = cell_y - com_pos.y;
-		const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
+	    const double cell_energy =
+		1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
+		std::pow(ASPECTRATIO_REF, 2) *
+		std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+		constants::G * com_mass;
 
-		const double cell_sigma =
-			parameters::sigma0 * std::pow(r_com, -SIGMASLOPE); // we assume the floor is not reached.
-		sigma(nr, naz) = cell_sigma;
+	    const double temperature_floor =
+		parameters::minimum_temperature *
+		units::temperature.get_inverse_cgs_factor();
 
-		const double cell_energy =
-			1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-			std::pow(ASPECTRATIO_REF, 2) *
-			std::pow(r_com,
-				 -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
-			constants::G * com_mass;
+	    const double energy_floor = temperature_floor * cell_sigma /
+					parameters::MU * constants::R /
+					(ADIABATICINDEX - 1.0);
 
-		const double temperature_floor =
-			parameters::minimum_temperature *
-			units::temperature.get_inverse_cgs_factor();
-
-		const double energy_floor =
-			temperature_floor *
-			cell_sigma /
-			parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
-
-		energy(nr, naz) = std::max(cell_energy, energy_floor);
-		} /// END DENSITY and ENERGY
-	}
+	    energy(nr, naz) = std::max(cell_energy, energy_floor);
+	} /// END DENSITY and ENERGY
+    }
 }
 
 } // namespace boundary_conditions

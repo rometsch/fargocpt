@@ -245,25 +245,27 @@ void check_free_space(t_data &data)
     free(directory_name);
 }
 
-void write_grids(t_data &data, int index, int iter, double phystime, bool debug = false)
+void write_grids(t_data &data, int index, int iter, double phystime,
+		 bool debug = false)
 {
-	if(!debug){
+    if (!debug) {
 	logging::print_master(
-	LOG_INFO "Writing output %d, Timestep Number %d, Physical Time %f.\n",
-	index, iter, phystime);
-	}
+	    LOG_INFO
+	    "Writing output %d, Timestep Number %d, Physical Time %f.\n",
+	    index, iter, phystime);
+    }
 
     // go thru all grids and write them
     for (unsigned int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
 	data[(t_data::t_polargrid_type)i].write_polargrid(index, data, debug);
     }
 
-	if(!debug){
-    // go thru all grids and write them
-    for (unsigned int i = 0; i < t_data::N_RADIALGRID_TYPES; ++i) {
-	data[(t_data::t_radialgrid_type)i].write_radialgrid(index, data);
-    }
+    if (!debug) {
+	// go thru all grids and write them
+	for (unsigned int i = 0; i < t_data::N_RADIALGRID_TYPES; ++i) {
+	    data[(t_data::t_radialgrid_type)i].write_radialgrid(index, data);
 	}
+    }
 }
 
 /**
@@ -393,60 +395,62 @@ void write_quantities(t_data &data, unsigned int timestep,
 
 void write_misc(const bool debug_file)
 {
-	if (!CPU_Master){
-		return;
-	}
+    if (!CPU_Master) {
+	return;
+    }
 
-	std::ofstream wf;
+    std::ofstream wf;
 
-	std::string filename;
-	if(debug_file){
-		filename = std::string(OUTPUTDIR) + "debugmisc.bin";
-	} else {
-		filename = std::string(OUTPUTDIR) + "misc.bin";
-	}
+    std::string filename;
+    if (debug_file) {
+	filename = std::string(OUTPUTDIR) + "debugmisc.bin";
+    } else {
+	filename = std::string(OUTPUTDIR) + "misc.bin";
+    }
 
     static bool fd_created = false;
-	static bool fd_debug_created = false;
+    static bool fd_debug_created = false;
 
-	// check if file exists and we restarted
-	if ((start_mode::mode == start_mode::mode_restart)
-			&& (debug_file ? !(fd_debug_created) : !(fd_created))) {
-		wf = std::ofstream (filename.c_str(), std::ios::in | std::ios::binary);
-		if (wf.good()) {
-			if(debug_file){
-				fd_debug_created = true;
-			}else{
-				fd_created = true;
-			}
-	    }
-		wf.close();
-	}
-
-	// open logfile
-	if (debug_file ? !(fd_debug_created) : !(fd_created)) {
-		wf = std::ofstream (filename.c_str(), std::ios::out | std::ios::binary);
-		if(debug_file){
+    // check if file exists and we restarted
+    if ((start_mode::mode == start_mode::mode_restart) &&
+	(debug_file ? !(fd_debug_created) : !(fd_created))) {
+	wf = std::ofstream(filename.c_str(), std::ios::in | std::ios::binary);
+	if (wf.good()) {
+	    if (debug_file) {
 		fd_debug_created = true;
-		} else {
+	    } else {
 		fd_created = true;
-		}
-	} else {
-		wf = std::ofstream (filename.c_str(), std::ios::out | std::ios::binary | std::ios::app);
+	    }
 	}
-
-	if (!wf.is_open()) {
-	    logging::print_master(LOG_ERROR
-				  "Can't write '%s' file in \"write_misc\". Aborting.\n", filename.c_str());
-	    PersonalExit(1);
-	}
-
-	misc_entry misc{TimeStep, nTimeStep, PhysicalTime, OmegaFrame, FrameAngle, dtemp};
-
-	wf.write((char*) &misc, sizeof(misc));
-
 	wf.close();
+    }
 
+    // open logfile
+    if (debug_file ? !(fd_debug_created) : !(fd_created)) {
+	wf = std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
+	if (debug_file) {
+	    fd_debug_created = true;
+	} else {
+	    fd_created = true;
+	}
+    } else {
+	wf = std::ofstream(filename.c_str(),
+			   std::ios::out | std::ios::binary | std::ios::app);
+    }
+
+    if (!wf.is_open()) {
+	logging::print_master(
+	    LOG_ERROR "Can't write '%s' file in \"write_misc\". Aborting.\n",
+	    filename.c_str());
+	PersonalExit(1);
+    }
+
+    misc_entry misc{TimeStep,	nTimeStep,  PhysicalTime,
+		    OmegaFrame, FrameAngle, dtemp};
+
+    wf.write((char *)&misc, sizeof(misc));
+
+    wf.close();
 }
 
 std::string get_version(std::string filename)
@@ -546,47 +550,46 @@ double get_from_ascii_file(std::string filename, unsigned int timestep,
     std::ifstream infile(filename);
     std::string line_start;
 
-	if(!infile.is_open()){
-		die("Error: could not open %s\n", filename.c_str());
-	}
+    if (!infile.is_open()) {
+	die("Error: could not open %s\n", filename.c_str());
+    }
 
-	if(debug_restart){ // just jump to the last line of the file
-		infile.seekg(-1, std::ios_base::end);
-		if(infile.peek() == '\n')
-		{
-		  infile.seekg(-1, std::ios_base::cur);
-		  for(int i = infile.tellg(); i > 0; i--)
-		  {
-			if(infile.peek() == '\n')
-			{
-			  //Found
-			  infile.get();
-			  break;
-			}
-			infile.seekg(i, std::ios_base::beg);
-		  }
+    if (debug_restart) { // just jump to the last line of the file
+	infile.seekg(-1, std::ios_base::end);
+	if (infile.peek() == '\n') {
+	    infile.seekg(-1, std::ios_base::cur);
+	    for (int i = infile.tellg(); i > 0; i--) {
+		if (infile.peek() == '\n') {
+		    // Found
+		    infile.get();
+		    break;
 		}
-		infile >> line_start; // read fist element, same as non debug version. Otherwise column is not correct.
-	} else {
-    while (infile >> line_start) {
-	// search the file until the correct timestep is found
-	if (line_start.substr(0, 1) == "#") {
-	    // jump to next line
-	    infile.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-	} else {
-	    // check the timestep
-	    line_timestep = std::stoul(line_start);
-	    if (line_timestep == timestep) {
-		break;
-	    } else {
+		infile.seekg(i, std::ios_base::beg);
+	    }
+	}
+	infile >> line_start; // read fist element, same as non debug version.
+			      // Otherwise column is not correct.
+    } else {
+	while (infile >> line_start) {
+	    // search the file until the correct timestep is found
+	    if (line_start.substr(0, 1) == "#") {
 		// jump to next line
 		infile.ignore(std::numeric_limits<std::streamsize>::max(),
 			      '\n');
+	    } else {
+		// check the timestep
+		line_timestep = std::stoul(line_start);
+		if (line_timestep == timestep) {
+		    break;
+		} else {
+		    // jump to next line
+		    infile.ignore(std::numeric_limits<std::streamsize>::max(),
+				  '\n');
+		}
 	    }
 	}
     }
-	}
-	double rv = std::nan("1");
+    double rv = std::nan("1");
     // read as many times as needed to reach the desired value
     for (unsigned int i = 0; i < column; i++) {
 	infile >> rv;
@@ -597,46 +600,49 @@ double get_from_ascii_file(std::string filename, unsigned int timestep,
 
 int get_misc(const int timestep, const bool debug)
 {
-	std::string filename;
-	if(debug){
-		filename = std::string(OUTPUTDIR) + "debugmisc.bin";
-	} else {
-		filename = std::string(OUTPUTDIR) + "misc.bin";
+    std::string filename;
+    if (debug) {
+	filename = std::string(OUTPUTDIR) + "debugmisc.bin";
+    } else {
+	filename = std::string(OUTPUTDIR) + "misc.bin";
+    }
+
+    std::ifstream rf(filename, std::ios::in | std::ios::binary);
+
+    if (!rf.is_open()) {
+	logging::print_master(
+	    LOG_ERROR "Can't read '%s' file in \"get_misc\". Aborting.\n",
+	    filename.c_str());
+	PersonalExit(1);
+    }
+
+    misc_entry misc;
+
+    rf.read((char *)&misc, sizeof(misc));
+    while (misc.timestep != timestep && !rf.eof()) {
+	if (rf.eof() && !debug) {
+	    logging::print(LOG_ERROR
+			   "Can't read %s at timestep %d. Aborting.\n",
+			   filename.c_str(), timestep);
+	    die("End\n");
 	}
+	rf.read((char *)&misc, sizeof(misc_entry));
+    }
 
-	std::ifstream rf (filename, std::ios::in | std::ios::binary);
+    if (timestep != misc.timestep && (!debug)) {
+	logging::print(LOG_ERROR "Can't find timestep %d in %s. Aborting.\n",
+		       timestep, filename.c_str());
+	die("End\n");
+    }
 
-	if (!rf.is_open()) {
-		logging::print_master(LOG_ERROR
-				  "Can't read '%s' file in \"get_misc\". Aborting.\n", filename.c_str());
-		PersonalExit(1);
-	}
+    nTimeStep = misc.nTimeStep;
+    PhysicalTime = misc.PhysicalTime;
+    OmegaFrame = misc.OmegaFrame;
+    FrameAngle = misc.FrameAngle;
+    dtemp = misc.dtemp;
 
-	misc_entry misc;
-
-	rf.read((char*) &misc, sizeof(misc));
-	while(misc.timestep != timestep && !rf.eof())
-	{
-		if(rf.eof() && !debug){
-			logging::print(LOG_ERROR "Can't read %s at timestep %d. Aborting.\n", filename.c_str(), timestep);
-			die("End\n");
-		}
-		rf.read((char*) &misc, sizeof(misc_entry));
-	}
-
-	if(timestep != misc.timestep && (!debug)){
-		logging::print(LOG_ERROR "Can't find timestep %d in %s. Aborting.\n", timestep, filename.c_str());
-		die("End\n");
-	}
-
-	nTimeStep = misc.nTimeStep;
-	PhysicalTime = misc.PhysicalTime;
-	OmegaFrame = misc.OmegaFrame;
-	FrameAngle = misc.FrameAngle;
-	dtemp = misc.dtemp;
-
-	rf.close();
-	return misc.timestep;
+    rf.close();
+    return misc.timestep;
 }
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
@@ -778,17 +784,20 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    // eccentricity and semi major axis weighted with cellmass
-	    local_mass =
-		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
-	    local_eccentricity +=
-		data[t_data::ECCENTRICITY](n_radial, n_azimuthal) * local_mass;
-	    // local_semi_major_axis += data[t_data::SEMI_MAJOR_AXIS](n_radial,
-	    // n_azimuthal) * local_mass;
-	    local_periastron +=
-		data[t_data::PERIASTRON](n_radial, n_azimuthal) * local_mass;
-		}
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		// eccentricity and semi major axis weighted with cellmass
+		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
+			     Surf[n_radial];
+		local_eccentricity +=
+		    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) *
+		    local_mass;
+		// local_semi_major_axis +=
+		// data[t_data::SEMI_MAJOR_AXIS](n_radial, n_azimuthal) *
+		// local_mass;
+		local_periastron +=
+		    data[t_data::PERIASTRON](n_radial, n_azimuthal) *
+		    local_mass;
+	    }
 	}
     }
 
@@ -1017,7 +1026,8 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 		fd,
 		"# Time log for course output.\n"
 		"# One DT is %.18g (code) and %.18g (cgs).\n"
-		"# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n", DT, DT*units::time.get_cgs_factor());
+		"# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n",
+		DT, DT * units::time.get_cgs_factor());
 	    fd_created = true;
 	}
     }

@@ -130,7 +130,7 @@ t_data::t_data()
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_name(
 	"viscosity_correction_factor_phi");
 
-	m_polargrids[VISCOSITY_SIGMA_RP].set_vector(true);
+    m_polargrids[VISCOSITY_SIGMA_RP].set_vector(true);
     m_polargrids[VISCOSITY_SIGMA_RP].set_name(
 	"viscosity_correction_factor_phi_helper_rp");
 

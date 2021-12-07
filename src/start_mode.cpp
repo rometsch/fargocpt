@@ -70,23 +70,23 @@ void configure_start_mode()
 	    }
 	    break;
 	case mode_debug:
-			if (restart_from < 0) {
-			restart_from = get_latest_output_num(true);
-			}
+	    if (restart_from < 0) {
+		restart_from = get_latest_output_num(true);
+	    }
 
-			restart_debug = true;
-			mode = mode_restart;
+	    restart_debug = true;
+	    mode = mode_restart;
 
-			if (restart_from < 0) {
-			die("Can't restart, no valid output file debugmisc.bin found. Was the simulation run with \"DebugOutputs	YES?\"");
-			}
-			break;
+	    if (restart_from < 0) {
+		die("Can't restart, no valid output file debugmisc.bin found. Was the simulation run with \"DebugOutputs	YES?\"");
+	    }
+	    break;
 	default:
 	    die("Invalid start_mode");
 	}
     }
 
-	MPI_Bcast(&restart_debug, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&restart_debug, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&restart_from, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&mode, 1, MPI_UINT32_T, 0, MPI_COMM_WORLD);
 }
@@ -95,30 +95,31 @@ std::int32_t get_latest_output_num(bool debug = false)
 {
     std::experimental::filesystem::path path;
     path = OUTPUTDIR;
-	if(debug){
+    if (debug) {
 	path /= "debugmisc.bin";
-	} else {
+    } else {
 	path /= "misc.bin";
-	}
+    }
 
-	std::ifstream misc_file (path, std::ios::in | std::ios::binary);
+    std::ifstream misc_file(path, std::ios::in | std::ios::binary);
 
-	if (!misc_file.is_open()) {
-		logging::print_master(LOG_ERROR
-				  "Can't read '%s' file in \"get_latest_output_num\". Aborting.\n", path.c_str());
-		PersonalExit(1);
-	}
+    if (!misc_file.is_open()) {
+	logging::print_master(
+	    LOG_ERROR
+	    "Can't read '%s' file in \"get_latest_output_num\". Aborting.\n",
+	    path.c_str());
+	PersonalExit(1);
+    }
 
-	output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0};
+    output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0};
 
     // find last line
-	while(!misc_file.eof()){
-		misc_file.read((char*) &entry, sizeof(output::misc_entry));
-	}
+    while (!misc_file.eof()) {
+	misc_file.read((char *)&entry, sizeof(output::misc_entry));
+    }
     misc_file.close();
 
-	return entry.timestep;
-
+    return entry.timestep;
 }
 
 } // namespace start_mode

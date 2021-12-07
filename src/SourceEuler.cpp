@@ -62,9 +62,9 @@ static int DetectCrash(t_polargrid *array)
     for (unsigned int n_radial = 0; n_radial < array->Nrad; ++n_radial) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal < array->Nsec;
 	     ++n_azimuthal) {
-		/// since nan < 0 is false and nan > 0 is false
-		/// we need to assure that array > 0 to catch bad values
-		if (!((*array)(n_radial, n_azimuthal) > 0.0)) {
+	    /// since nan < 0 is false and nan > 0 is false
+	    /// we need to assure that array > 0 to catch bad values
+	    if (!((*array)(n_radial, n_azimuthal) > 0.0)) {
 		logging::print(LOG_WARNING "%s negative in cell: (%u,%u)=%g\n",
 			       array->get_name(), n_radial, n_azimuthal,
 			       (*array)(n_radial, n_azimuthal));
@@ -237,7 +237,8 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
 bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 				double maximum_value)
 {
-	if (isnan(maximum_value)) // Warning: this is compiled away with fast math enabled
+    if (isnan(maximum_value)) // Warning: this is compiled away with fast math
+			      // enabled
 	return false;
 
     bool found = false;
@@ -299,17 +300,19 @@ void init_euler(t_data &data)
 	compute_temperature(data, true);
 	compute_aspect_ratio(data, true);
 
-	if(ASPECTRATIO_NBODY){
-	const double h_max = data[t_data::ASPECTRATIO].get_max();
-	logging::print_master(LOG_INFO "Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n", ASPECTRATIO_REF, ASPECTRATIO_REF*ASPECTRATIO_REF/h_max);
-	ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
+	if (ASPECTRATIO_NBODY) {
+	    const double h_max = data[t_data::ASPECTRATIO].get_max();
+	    logging::print_master(
+		LOG_INFO
+		"Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n",
+		ASPECTRATIO_REF, ASPECTRATIO_REF * ASPECTRATIO_REF / h_max);
+	    ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
 
-	compute_sound_speed(data, true);
-	compute_pressure(data, true);
-	compute_temperature(data, true);
-	compute_aspect_ratio(data, true);
+	    compute_sound_speed(data, true);
+	    compute_pressure(data, true);
+	    compute_temperature(data, true);
+	    compute_aspect_ratio(data, true);
 	}
-
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
@@ -318,18 +321,20 @@ void init_euler(t_data &data)
 	compute_aspect_ratio(data, true);
 	compute_pressure(data, true);
 
-	if(ASPECTRATIO_NBODY){
-	const double h_max = data[t_data::ASPECTRATIO].get_max();
-	logging::print_master(LOG_INFO "Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n", ASPECTRATIO_REF, ASPECTRATIO_REF*ASPECTRATIO_REF/h_max);
-	ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
+	if (ASPECTRATIO_NBODY) {
+	    const double h_max = data[t_data::ASPECTRATIO].get_max();
+	    logging::print_master(
+		LOG_INFO
+		"Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n",
+		ASPECTRATIO_REF, ASPECTRATIO_REF * ASPECTRATIO_REF / h_max);
+	    ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
 
-	compute_temperature(data, true);
-	compute_sound_speed(data, true);
-	compute_aspect_ratio(data, true);
-	compute_pressure(data, true);
-
-    }
+	    compute_temperature(data, true);
+	    compute_sound_speed(data, true);
+	    compute_aspect_ratio(data, true);
+	    compute_pressure(data, true);
 	}
+    }
 
     viscosity::update_viscosity(data);
 }
@@ -477,7 +482,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
     boundary_conditions::apply_boundary_condition(data, dt, false);
 
     // keep mass constant
-    //const double total_disk_mass_old = quantities::gas_total_mass(data);
+    // const double total_disk_mass_old = quantities::gas_total_mass(data);
 
     while (dtemp < DT) {
 	logging::print_master(
@@ -543,7 +548,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		recalculate_derived_disk_quantities(data, true);
 
 		if (parameters::Adiabatic) {
-		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 
 		ComputeViscousStressTensor(data);
@@ -556,7 +561,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		Sts(data, dt);
 	    }
 
-		//boundary_conditions::apply_boundary_condition(data, dt, false);
+	    // boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    if (parameters::Adiabatic) {
 
@@ -573,8 +578,8 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		}
 	    }
 
-		/// TODO moved apply boundaries here
-		boundary_conditions::apply_boundary_condition(data, dt, false);
+	    /// TODO moved apply boundaries here
+	    boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
 		      &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY], dt);
@@ -595,10 +600,11 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 	    CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
 
-	    //const double total_disk_mass_new = quantities::gas_total_mass(data);
+	    // const double total_disk_mass_new =
+	    // quantities::gas_total_mass(data);
 
-	    //data[t_data::DENSITY] *=
-		//(total_disk_mass_old / total_disk_mass_new);
+	    // data[t_data::DENSITY] *=
+	    //(total_disk_mass_old / total_disk_mass_new);
 	}
 
 	PhysicalTime += dt;
@@ -1346,14 +1352,16 @@ void calculate_qminus(t_data &data)
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
 		    units::temperature;
 
-		const double H = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
-			Rb[n_radial];
+		const double H =
+		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
+		    Rb[n_radial];
 
-		const double densityCGS = data[t_data::DENSITY](n_radial, n_azimuthal) /
-				 (parameters::density_factor * H) *
-			     units::density;
+		const double densityCGS =
+		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+		    (parameters::density_factor * H) * units::density;
 
-		const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+		const double kappaCGS =
+		    opacity::opacity(densityCGS, temperatureCGS);
 
 		data[t_data::KAPPA](n_radial, n_azimuthal) =
 		    parameters::kappa_factor * kappaCGS *
@@ -1443,7 +1451,7 @@ void SubStep3(t_data &data, double dt)
     }
 
     // Now we can update energy with source terms
-	for (unsigned int n_radial = 1;
+    for (unsigned int n_radial = 1;
 	 n_radial < data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
@@ -2000,7 +2008,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
 		     double deltaT)
 {
-	dt_parabolic_local = 1e100;
+    dt_parabolic_local = 1e100;
     std::vector<double> v_mean(v_radial.get_size_radial());
     std::vector<double> v_residual(v_radial.get_size_azimuthal());
     double dtGlobal, dtLocal;
@@ -2107,11 +2115,11 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 				    std::pow(invdt5, 2));
 	    } else {
 		// viscous timestep
-		if(invdt4 > 0.0 && invdt5 > 0.0){
-		dt_parabolic_local =
-		    std::min(dt_parabolic_local,
-			     parameters::CFL / std::sqrt(std::pow(invdt4, 2) +
-							 std::pow(invdt5, 2)));
+		if (invdt4 > 0.0 && invdt5 > 0.0) {
+		    dt_parabolic_local = std::min(
+			dt_parabolic_local,
+			parameters::CFL / std::sqrt(std::pow(invdt4, 2) +
+						    std::pow(invdt5, 2)));
 		}
 
 		// calculate new dt based on different limits
@@ -2186,7 +2194,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
     if (debug) {
 	double dtGlobalLocal;
 	MPI_Allreduce(&mdtdbg, &dtGlobalLocal, 1, MPI_DOUBLE, MPI_MIN,
-		  MPI_COMM_WORLD);
+		      MPI_COMM_WORLD);
 
 	logging::print(LOG_DEBUG "Timestep control information for CPU %d: \n",
 		       CPU_Rank);
@@ -2218,7 +2226,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	logging::print(LOG_DEBUG "Limit time step for this cell  : %g\n",
 		       mdtdbg);
 	logging::print(LOG_DEBUG "Limit time step adopted        : %g\n",
-			   dtGlobalLocal);
+		       dtGlobalLocal);
 	if (dtGlobal < mdtdbg) {
 	    logging::print(LOG_DEBUG "Discrepancy arise either from shear.\n");
 	    logging::print(LOG_DEBUG "or from the imposed DT interval.\n");
@@ -2262,76 +2270,80 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
     }
 }
 
-
 static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 {
 
-	static double last_physicaltime_calculated = -1;
+    static double last_physicaltime_calculated = -1;
 
-	if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
 	return;
-	}
-	last_physicaltime_calculated = PhysicalTime;
+    }
+    last_physicaltime_calculated = PhysicalTime;
 
-	static const unsigned int N_planets =
+    static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-	static std::vector<double> xpl(N_planets);
-	static std::vector<double> ypl(N_planets);
-	static std::vector<double> mpl(N_planets);
-	static std::vector<double> rpl(N_planets);
+    static std::vector<double> xpl(N_planets);
+    static std::vector<double> ypl(N_planets);
+    static std::vector<double> mpl(N_planets);
+    static std::vector<double> rpl(N_planets);
 
-	// setup planet data
-	for (unsigned int k = 0; k < N_planets; k++) {
+    // setup planet data
+    for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
 	mpl[k] = planet.get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	rpl[k] = planet.get_radius();
-	}
+    }
 
-	// Cs^2 = h^2 * vk * r ^ 2*Flaring
-	for (unsigned int n_rad = 0;
+    // Cs^2 = h^2 * vk * r ^ 2*Flaring
+    for (unsigned int n_rad = 0;
 	 n_rad <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
-		 n_az <= data[t_data::SOUNDSPEED].get_max_azimuthal();
-		 ++n_az) {
+	     n_az <= data[t_data::SOUNDSPEED].get_max_azimuthal(); ++n_az) {
 
-		const int cell = get_cell_id(n_rad, n_az);
-		const double x = CellCenterX->Field[cell];
-		const double y = CellCenterY->Field[cell];
+	    const int cell = get_cell_id(n_rad, n_az);
+	    const double x = CellCenterX->Field[cell];
+	    const double y = CellCenterY->Field[cell];
 
-		double Cs2 = 0;
+	    double Cs2 = 0;
 
-		for (unsigned int k = 0; k < N_planets; k++) {
+	    for (unsigned int k = 0; k < N_planets; k++) {
 
-			/// since the mass is distributed homogeniously distributed inside the cell,
-			/// we assume that the planet is always at least cell_size / 2 plus planet radius away from the gas
-			/// this is an rough estimate without explanation
-			/// alternatively you can think about it yourself
-			const double min_dist =  0.5*std::max(Rsup[n_rad] - Rinf[n_rad],
-									   Rmed[n_rad] * dphi) + rpl[k];
+		/// since the mass is distributed homogeniously distributed
+		/// inside the cell, we assume that the planet is always at
+		/// least cell_size / 2 plus planet radius away from the gas
+		/// this is an rough estimate without explanation
+		/// alternatively you can think about it yourself
+		const double min_dist =
+		    0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+				   Rmed[n_rad] * dphi) +
+		    rpl[k];
 
-			const double dx = x - xpl[k];
-			const double dy = y - ypl[k];
+		const double dx = x - xpl[k];
+		const double dy = y - ypl[k];
 
-			const double dist = std::max(std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+		const double dist = std::max(
+		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
-			Cs2 += constants::G * mpl[k] / dist * std::pow(dist, 2*FLARINGINDEX);
-		}
+		Cs2 += constants::G * mpl[k] / dist *
+		       std::pow(dist, 2 * FLARINGINDEX);
+	    }
 
-		const double Cs = ASPECTRATIO_REF * std::sqrt(Cs2);
-		data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
+	    const double Cs = ASPECTRATIO_REF * std::sqrt(Cs2);
+	    data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}
-	}
+    }
 }
 
-void compute_sound_speed(t_data &data, bool force_update){
-	if (parameters::Adiabatic || parameters::Polytropic  || (!ASPECTRATIO_NBODY))
-	{
-		compute_sound_speed_normal(data, force_update);
-	} else {
-		compute_iso_sound_speed_nbody(data, force_update);
-	}
+void compute_sound_speed(t_data &data, bool force_update)
+{
+    if (parameters::Adiabatic || parameters::Polytropic ||
+	(!ASPECTRATIO_NBODY)) {
+	compute_sound_speed_normal(data, force_update);
+    } else {
+	compute_iso_sound_speed_nbody(data, force_update);
+    }
 }
 
 /**
@@ -2374,83 +2386,92 @@ void compute_aspect_ratio_old(t_data &data, const bool force_update)
 */
 void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 {
-	static double last_physicaltime_calculated = -1;
+    static double last_physicaltime_calculated = -1;
 
-	if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
 	return;
-	}
-	last_physicaltime_calculated = PhysicalTime;
+    }
+    last_physicaltime_calculated = PhysicalTime;
 
-	static const unsigned int N_planets =
+    static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-	static std::vector<double> xpl(N_planets);
-	static std::vector<double> ypl(N_planets);
-	static std::vector<double> mpl(N_planets);
-	static std::vector<double> rpl(N_planets);
+    static std::vector<double> xpl(N_planets);
+    static std::vector<double> ypl(N_planets);
+    static std::vector<double> mpl(N_planets);
+    static std::vector<double> rpl(N_planets);
 
-	// setup planet data
-	for (unsigned int k = 0; k < N_planets; k++) {
+    // setup planet data
+    for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
 	mpl[k] = planet.get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	rpl[k] = planet.get_radius();
-	}
+    }
 
-	// h = H/r
-	// H = = c_s,iso / (GM/r^3) = c_s/sqrt(gamma) / / (GM/r^3)
-	// for an Nbody system, H^-2 = sum_n (H_n)^-2
-	// See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
-	// Better see Thun et al. 2017 Eq. 8 instead.
-	for (unsigned int n_rad = 0;
+    // h = H/r
+    // H = = c_s,iso / (GM/r^3) = c_s/sqrt(gamma) / / (GM/r^3)
+    // for an Nbody system, H^-2 = sum_n (H_n)^-2
+    // See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
+    // Better see Thun et al. 2017 Eq. 8 instead.
+    for (unsigned int n_rad = 0;
 	 n_rad <= data[t_data::ASPECTRATIO].get_max_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
-		 n_az <= data[t_data::ASPECTRATIO].get_max_azimuthal();
-		 ++n_az) {
+	     n_az <= data[t_data::ASPECTRATIO].get_max_azimuthal(); ++n_az) {
 
-		const int cell = get_cell_id(n_rad, n_az);
-		const double x = CellCenterX->Field[cell];
-		const double y = CellCenterY->Field[cell];
-		const double cs2 = std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
+	    const int cell = get_cell_id(n_rad, n_az);
+	    const double x = CellCenterX->Field[cell];
+	    const double y = CellCenterY->Field[cell];
+	    const double cs2 =
+		std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
 
-		double inv_H2 = 0; // inverse aspectratio squared
+	    double inv_H2 = 0; // inverse aspectratio squared
 
-		for (unsigned int k = 0; k < N_planets; k++) {
+	    for (unsigned int k = 0; k < N_planets; k++) {
 
-			/// since the mass is distributed homogeniously distributed inside the cell,
-			/// we assume that the planet is always at least cell_size / 2 plus planet radius away from the gas
-			/// this is an rough estimate without explanation
-			/// alternatively you can think about it yourself
-			const double min_dist =  0.5*std::max(Rsup[n_rad] - Rinf[n_rad],
-									   Rmed[n_rad] * dphi) + rpl[k];
+		/// since the mass is distributed homogeniously distributed
+		/// inside the cell, we assume that the planet is always at
+		/// least cell_size / 2 plus planet radius away from the gas
+		/// this is an rough estimate without explanation
+		/// alternatively you can think about it yourself
+		const double min_dist =
+		    0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+				   Rmed[n_rad] * dphi) +
+		    rpl[k];
 
-			const double dx = x - xpl[k];
-			const double dy = y - ypl[k];
+		const double dx = x - xpl[k];
+		const double dy = y - ypl[k];
 
-			const double dist = std::max(std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
-			const double dist3 = std::pow(dist, 3);
+		const double dist = std::max(
+		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+		const double dist3 = std::pow(dist, 3);
 
-			// H^2 = (GM / dist^3 / Cs_iso^2)^-1
-			if (parameters::Adiabatic || parameters::Polytropic) {
-				inv_H2 += std::min(constants::G * mpl[k] * ADIABATICINDEX / (dist3 * cs2), 1.0 / std::pow(min_dist, 2));
-			} else {
-				inv_H2 += std::min(constants::G * mpl[k] / (dist3 * cs2), 1.0 / std::pow(min_dist, 2));;
-			}
+		// H^2 = (GM / dist^3 / Cs_iso^2)^-1
+		if (parameters::Adiabatic || parameters::Polytropic) {
+		    inv_H2 += std::min(constants::G * mpl[k] * ADIABATICINDEX /
+					   (dist3 * cs2),
+				       1.0 / std::pow(min_dist, 2));
+		} else {
+		    inv_H2 += std::min(constants::G * mpl[k] / (dist3 * cs2),
+				       1.0 / std::pow(min_dist, 2));
+		    ;
 		}
+	    }
 
-		const double H = std::sqrt(1.0/inv_H2);
+	    const double H = std::sqrt(1.0 / inv_H2);
 
-		data[t_data::ASPECTRATIO](n_rad, n_az) = H * InvRmed[n_rad];
+	    data[t_data::ASPECTRATIO](n_rad, n_az) = H * InvRmed[n_rad];
 	}
-	}
+    }
 }
 
-void compute_aspect_ratio(t_data &data, const bool force_update){
-	if(ASPECTRATIO_NBODY){
-		compute_aspect_ratio_nbody(data, force_update);
-	} else {
-		compute_aspect_ratio_old(data, force_update);
-	}
+void compute_aspect_ratio(t_data &data, const bool force_update)
+{
+    if (ASPECTRATIO_NBODY) {
+	compute_aspect_ratio_nbody(data, force_update);
+    } else {
+	compute_aspect_ratio_old(data, force_update);
+    }
 }
 
 /**
@@ -2541,7 +2562,6 @@ void compute_rho(t_data &data, bool force_update)
     }
     last_physicaltime_calculated = PhysicalTime;
 
-
     compute_aspect_ratio(data, force_update);
 
     for (unsigned int n_radial = 0;
@@ -2549,8 +2569,8 @@ void compute_rho(t_data &data, bool force_update)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::RHO].get_max_azimuthal();
 	     ++n_azimuthal) {
-		const double H = data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
-		    Rb[n_radial];
+	    const double H =
+		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * Rb[n_radial];
 	    data[t_data::RHO](n_radial, n_azimuthal) =
 		data[t_data::DENSITY](n_radial, n_azimuthal) /
 		(parameters::density_factor * H);

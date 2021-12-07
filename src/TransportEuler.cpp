@@ -128,23 +128,25 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     compute_star_radial(Density, VRadial, DensityStar, dt);
 
     // boundary layer:
-	if(CPU_Rank == CPU_Highest){
+    if (CPU_Rank == CPU_Highest) {
 
-    if (parameters::boundary_outer ==
-		parameters::boundary_condition_boundary_layer) {
-	boundary_layer_mass_influx(DensityStar, VRadial);
-    }
+	if (parameters::boundary_outer ==
+	    parameters::boundary_condition_boundary_layer) {
+	    boundary_layer_mass_influx(DensityStar, VRadial);
+	}
 
 	// prescribed time variable boundary
 	if (parameters::boundary_outer ==
-		parameters::boundary_condition_precribed_time_variable){
-	boundary_conditions::boundary_condition_precribed_time_variable_outer(data, DensityStar);
+	    parameters::boundary_condition_precribed_time_variable) {
+	    boundary_conditions::
+		boundary_condition_precribed_time_variable_outer(data,
+								 DensityStar);
 	}
 
-	if (parameters::massoverflow){
-	boundary_conditions::mass_overflow_willy(data, DensityStar, true);
+	if (parameters::massoverflow) {
+	    boundary_conditions::mass_overflow_willy(data, DensityStar, true);
 	}
-	}
+    }
 
     copy_polargrid(data[t_data::DENSITY_INT], *Density);
 
@@ -200,7 +202,7 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 {
     int i, j, l, nr, ns;
     long nitemp;
-	double *vt, *vres, Ntilde, Nround, invdt;
+    double *vt, *vres, Ntilde, Nround, invdt;
     nr = VAzimuthal->Nrad;
     ns = VAzimuthal->Nsec;
     vt = VAzimuthal->Field;
@@ -208,14 +210,13 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
     invdt = 1.0 / dt;
 
     for (i = 0; i < nr; i++) {
-	Ntilde =
-		v_azimuthal_mean(i) * InvRmed[i] * dt * invdphi;
+	Ntilde = v_azimuthal_mean(i) * InvRmed[i] * dt * invdphi;
 	Nround = floor(Ntilde + 0.5);
 	nitemp = (long)Nround;
 	Nshift[i] = (long)nitemp;
 	for (j = 0; j < ns; j++) {
 	    l = j + i * ns;
-		vt[l] = (Ntilde - Nround) * Rmed[i] * invdt * dphi;
+	    vt[l] = (Ntilde - Nround) * Rmed[i] * invdt * dphi;
 	}
 	if (!FastTransport) {
 	    NoSplitAdvection[i] = YES;

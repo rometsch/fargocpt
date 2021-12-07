@@ -54,7 +54,7 @@ void CheckAngularMomentumConservation(t_data &data)
     double xplanet, yplanet, vxplanet, vyplanet;
     double rpl, thetapl, vazimpl, masspl;
 
-	gasAngularMomentum = quantities::gas_angular_momentum(data, false);
+    gasAngularMomentum = quantities::gas_angular_momentum(data, false);
 
     // computate angular momentum for each planet and sum up
     for (nPlanet = 0;
@@ -137,12 +137,17 @@ void CheckAngularMomentumConservation(t_data &data)
 */
 void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
 {
-	const unsigned int Nmax = result.get_size_radial() * result.get_size_azimuthal();
-	for (unsigned int n=0; n < Nmax; n++) {
-		assert(denom.Field[n] > 0.0);
-		/// denom + DBL_EPSILON can cause problems because DBL_EPSILON can be bigger than denom, depending on units.
-		result.Field[n] = num.Field[n] / denom.Field[n]; /// in case of crash, use something like (denom.Field[n] + 1.0e-200) instead.
-	}
+    const unsigned int Nmax =
+	result.get_size_radial() * result.get_size_azimuthal();
+    for (unsigned int n = 0; n < Nmax; n++) {
+	assert(denom.Field[n] > 0.0);
+	/// denom + DBL_EPSILON can cause problems because DBL_EPSILON can be
+	/// bigger than denom, depending on units.
+	result.Field[n] =
+	    num.Field[n] /
+	    denom.Field[n]; /// in case of crash, use something like
+			    /// (denom.Field[n] + 1.0e-200) instead.
+    }
 }
 
 /**
@@ -155,8 +160,8 @@ void InitCellCenterCoordinates()
     delete CellCenterY;
     delete CellCenterX;
 
-	CellCenterX = CreatePolarGrid(NRadial+1, NAzimuthal, "cell_center_x");
-	CellCenterY = CreatePolarGrid(NRadial+1, NAzimuthal, "cell_center_y");
+    CellCenterX = CreatePolarGrid(NRadial + 1, NAzimuthal, "cell_center_x");
+    CellCenterY = CreatePolarGrid(NRadial + 1, NAzimuthal, "cell_center_y");
 
     for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {

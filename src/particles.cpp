@@ -1230,9 +1230,9 @@ static void update_velocities_from_indirect_term(const double dt)
 	    const double phi_dot = particles[i].phi_dot;
 
 	    indirect_q1_dot = r_dot + dt * (IndirectTerm.x * std::cos(phi) +
-						IndirectTerm.y * std::sin(phi));
+					    IndirectTerm.y * std::sin(phi));
 	    indirect_q2_dot = phi_dot + dt *
-						(-IndirectTerm.x * std::sin(phi) +
+					    (-IndirectTerm.x * std::sin(phi) +
 					     IndirectTerm.y * std::cos(phi)) /
 					    r;
 	}

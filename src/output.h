@@ -11,17 +11,18 @@ namespace output
 {
 
 struct misc_entry {
-	int timestep;
-	unsigned int nTimeStep;
-	double PhysicalTime;
-	double OmegaFrame;
-	double FrameAngle;
-	double dtemp;
+    int timestep;
+    unsigned int nTimeStep;
+    double PhysicalTime;
+    double OmegaFrame;
+    double FrameAngle;
+    double dtemp;
 };
 
 void check_free_space(t_data &data);
 
-void write_grids(t_data &data, int index, int iter, double phystime, bool debug);
+void write_grids(t_data &data, int index, int iter, double phystime,
+		 bool debug);
 void write_quantities(t_data &data, unsigned int timestep,
 		      unsigned int nTimeStep, bool force_update);
 void write_misc(const bool debug_file);

@@ -37,7 +37,6 @@ static int StillWriteOneOutput;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
 
-
 // TODO: NRad darf nicht größer sein als MAX1D
 // copy operator for t_polargrid
 // Handle SIGTERM
@@ -51,7 +50,7 @@ int main(int argc, char *argv[])
 
     resize_radialarrays(MAX1D);
 
-	nTimeStep = 0;
+    nTimeStep = 0;
 
     int CPU_NameLength;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
@@ -166,12 +165,12 @@ int main(int argc, char *argv[])
     // density field
     mdcp0 = CircumPlanetaryMass(data);
 
-	bool dont_do_restart_output_at_start = false;
+    bool dont_do_restart_output_at_start = false;
     if (start_mode::mode == start_mode::mode_restart) {
 	dont_do_restart_output_at_start = true;
 
-	start_mode::restart_from = output::get_misc(start_mode::restart_from, start_mode::restart_debug);
-
+	start_mode::restart_from = output::get_misc(start_mode::restart_from,
+						    start_mode::restart_debug);
 
 	// load grids at t = 0
 	logging::print_master(LOG_INFO "Loading polargrinds at t = 0...\n");
@@ -179,7 +178,7 @@ int main(int argc, char *argv[])
 	data[t_data::V_RADIAL].read2D((unsigned int)0, false);
 	data[t_data::V_AZIMUTHAL].read2D((unsigned int)0, false);
 	if (parameters::Adiabatic) {
-		data[t_data::ENERGY].read2D((unsigned int)0, false);
+	    data[t_data::ENERGY].read2D((unsigned int)0, false);
 	}
 
 	// save starting values (needed for damping)
@@ -196,22 +195,27 @@ int main(int argc, char *argv[])
 	// load grids at t = restart_from
 	logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",
 			      start_mode::restart_from);
-	data[t_data::DENSITY].read2D(start_mode::restart_from, start_mode::restart_debug);
-	data[t_data::V_RADIAL].read2D(start_mode::restart_from, start_mode::restart_debug);
-	data[t_data::V_AZIMUTHAL].read2D(start_mode::restart_from, start_mode::restart_debug);
+	data[t_data::DENSITY].read2D(start_mode::restart_from,
+				     start_mode::restart_debug);
+	data[t_data::V_RADIAL].read2D(start_mode::restart_from,
+				      start_mode::restart_debug);
+	data[t_data::V_AZIMUTHAL].read2D(start_mode::restart_from,
+					 start_mode::restart_debug);
 	if (parameters::Adiabatic)
-		data[t_data::ENERGY].read2D(start_mode::restart_from, start_mode::restart_debug);
+	    data[t_data::ENERGY].read2D(start_mode::restart_from,
+					start_mode::restart_debug);
 
-	if (parameters::integrate_particles){
-		if(start_mode::restart_debug){
-			die("Debug restart not implemented for particles yet!\n");
-		}
+	if (parameters::integrate_particles) {
+	    if (start_mode::restart_debug) {
+		die("Debug restart not implemented for particles yet!\n");
+	    }
 	    particles::restart(start_mode::restart_from);
 	}
 
 	// restart planetary system
 	logging::print_master(LOG_INFO "Restarting planetary system...\n");
-	data.get_planetary_system().restart(start_mode::restart_from, start_mode::restart_debug);
+	data.get_planetary_system().restart(start_mode::restart_from,
+					    start_mode::restart_debug);
 
 	recalculate_derived_disk_quantities(data, true);
     } else {
@@ -229,24 +233,21 @@ int main(int argc, char *argv[])
 
     logging::start_timer();
 
-	CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
-				  &data[t_data::V_AZIMUTHAL],
-				  &data[t_data::ENERGY]);
+    CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
+			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
-	CommunicateBoundaries(&data[t_data::DENSITY0], &data[t_data::V_RADIAL0],
-				  &data[t_data::V_AZIMUTHAL0],
-				  &data[t_data::ENERGY0]);
+    CommunicateBoundaries(&data[t_data::DENSITY0], &data[t_data::V_RADIAL0],
+			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
-	for (;nTimeStep <= NTOT; ++nTimeStep) {
+    for (; nTimeStep <= NTOT; ++nTimeStep) {
 	data.get_planetary_system().calculate_orbital_elements();
 	// write outputs
 
 	bool force_update_for_output = true;
 	TimeStep = (nTimeStep / NINTERM); // note: integer division
 	bool write_complete_output = NINTERM * TimeStep == nTimeStep;
-	if(dont_do_restart_output_at_start)
-	{
-		write_complete_output = false;
+	if (dont_do_restart_output_at_start) {
+	    write_complete_output = false;
 	}
 	/// asure planet torques are computed
 	if (!parameters::disk_feedback &&
@@ -260,11 +261,11 @@ int main(int argc, char *argv[])
 	    force_update_for_output = false;
 
 	    // write polar grids
-		output::write_grids(data, TimeStep, N_iter, PhysicalTime, false);
+	    output::write_grids(data, TimeStep, N_iter, PhysicalTime, false);
 	    // write planet data
-		data.get_planetary_system().write_planets(TimeStep, 0);
+	    data.get_planetary_system().write_planets(TimeStep, 0);
 	    // write misc stuff (important for resuming)
-		output::write_misc(false);
+	    output::write_misc(false);
 	    // write time info for coarse output
 	    output::write_coarse_time(TimeStep, nTimeStep);
 	    // write particles
@@ -281,14 +282,16 @@ int main(int argc, char *argv[])
 	//(void) InnerOutputCounter;
 	// InnerOutputCounter++;
 	// if (InnerOutputCounter == 1) {
-	if ((write_complete_output || parameters::write_at_every_timestep) && !(dont_do_restart_output_at_start)) {
+	if ((write_complete_output || parameters::write_at_every_timestep) &&
+	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
-		data.get_planetary_system().write_planets(TimeStep, 1);
+	    data.get_planetary_system().write_planets(TimeStep, 1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
 	}
 
 	// write disk quantities like eccentricity, ...
-	if ((write_complete_output || parameters::write_at_every_timestep) && !(dont_do_restart_output_at_start) &&
+	if ((write_complete_output || parameters::write_at_every_timestep) &&
+	    !(dont_do_restart_output_at_start) &&
 	    parameters::write_disk_quantities) {
 	    output::write_quantities(data, TimeStep, nTimeStep,
 				     force_update_for_output);
@@ -298,7 +301,8 @@ int main(int argc, char *argv[])
 	    output::write_torques(data, TimeStep, force_update_for_output);
 	}
 	if (parameters::write_lightcurves &&
-		(parameters::write_at_every_timestep || write_complete_output) && !(dont_do_restart_output_at_start)) {
+	    (parameters::write_at_every_timestep || write_complete_output) &&
+	    !(dont_do_restart_output_at_start)) {
 	    output::write_lightcurves(data, TimeStep, force_update_for_output);
 	}
 	dont_do_restart_output_at_start = false;

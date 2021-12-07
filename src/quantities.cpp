@@ -33,10 +33,10 @@ double gas_total_mass(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    local_mass +=
-		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
-		}
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		local_mass += Surf[n_radial] *
+			      data[t_data::DENSITY](n_radial, n_azimuthal);
+	    }
 	}
     }
 
@@ -63,12 +63,13 @@ double gas_aspect_ratio(t_data &data)
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // eccentricity and semi major axis weighted with cellmass
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    local_mass =
-		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
-	    local_aspect_ratio +=
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * local_mass;
-		}
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
+			     Surf[n_radial];
+		local_aspect_ratio +=
+		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
+		    local_mass;
+	    }
 	}
     }
 
@@ -150,18 +151,20 @@ double gas_angular_momentum(t_data &data, bool limit_the_radius)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if((Rmed[n_radial] <= quantities_radius_limit) && limit_the_radius){
-	    local_angular_momentum +=
-		Surf[n_radial] * 0.5 *
-		(data[t_data::DENSITY](n_radial, n_azimuthal) +
-		 data[t_data::DENSITY](
-		     n_radial, n_azimuthal == 0
-				   ? data[t_data::DENSITY].get_max_azimuthal()
-				   : n_azimuthal - 1)) *
-		Rmed[n_radial] *
-		(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
-		 OmegaFrame * Rmed[n_radial]);
-		}
+	    if ((Rmed[n_radial] <= quantities_radius_limit) &&
+		limit_the_radius) {
+		local_angular_momentum +=
+		    Surf[n_radial] * 0.5 *
+		    (data[t_data::DENSITY](n_radial, n_azimuthal) +
+		     data[t_data::DENSITY](
+			 n_radial,
+			 n_azimuthal == 0
+			     ? data[t_data::DENSITY].get_max_azimuthal()
+			     : n_azimuthal - 1)) *
+		    Rmed[n_radial] *
+		    (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+		     OmegaFrame * Rmed[n_radial]);
+	    }
 	    // local_angular_momentum +=
 	    // Surf[n_radial]*data[t_data::DENSITY](n_radial,n_azimuthal)*Rmed[n_radial]*(0.5*(data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal)+data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal
 	    // == data[t_data::V_AZIMUTHAL].get_max_azimuthal() ? 0 :
@@ -190,10 +193,11 @@ double gas_internal_energy(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    local_internal_energy +=
-		Surf[n_radial] * data[t_data::ENERGY](n_radial, n_azimuthal);
-		}
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		local_internal_energy +=
+		    Surf[n_radial] *
+		    data[t_data::ENERGY](n_radial, n_azimuthal);
+	    }
 	}
     }
 
@@ -218,10 +222,10 @@ double gas_qplus(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    local_qplus +=
-		Surf[n_radial] * data[t_data::QPLUS](n_radial, n_azimuthal);
-		}
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		local_qplus +=
+		    Surf[n_radial] * data[t_data::QPLUS](n_radial, n_azimuthal);
+	    }
 	}
     }
 
@@ -246,10 +250,10 @@ double gas_qminus(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    local_qminus +=
-		Surf[n_radial] * data[t_data::QMINUS](n_radial, n_azimuthal);
-		}
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		local_qminus += Surf[n_radial] *
+				data[t_data::QMINUS](n_radial, n_azimuthal);
+	    }
 	}
     }
 
@@ -277,31 +281,31 @@ double gas_kinematic_energy(t_data &data)
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // centered-in-cell radial velocity
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    v_radial_center =
-		(Rmed[n_radial] - Rinf[n_radial]) *
-		    data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
-		(Rsup[n_radial] - Rmed[n_radial]) *
-		    data[t_data::V_RADIAL](n_radial, n_azimuthal);
-	    v_radial_center /= (Rsup[n_radial] - Rinf[n_radial]);
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		v_radial_center =
+		    (Rmed[n_radial] - Rinf[n_radial]) *
+			data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
+		    (Rsup[n_radial] - Rmed[n_radial]) *
+			data[t_data::V_RADIAL](n_radial, n_azimuthal);
+		v_radial_center /= (Rsup[n_radial] - Rinf[n_radial]);
 
-	    // centered-in-cell azimuthal velocity
-	    v_azimuthal_center =
-		0.5 * (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
-		       data[t_data::V_AZIMUTHAL](
-			   n_radial,
-			   n_azimuthal ==
-				   data[t_data::V_AZIMUTHAL].get_max_azimuthal()
-			       ? 0
-			       : n_azimuthal + 1)) +
-		Rmed[n_radial] * OmegaFrame;
+		// centered-in-cell azimuthal velocity
+		v_azimuthal_center =
+		    0.5 *
+			(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			 data[t_data::V_AZIMUTHAL](
+			     n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+							  .get_max_azimuthal()
+					   ? 0
+					   : n_azimuthal + 1)) +
+		    Rmed[n_radial] * OmegaFrame;
 
-	    local_kinematic_energy +=
-		0.5 * Surf[n_radial] *
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		(std::pow(v_radial_center, 2) +
-		 std::pow(v_azimuthal_center, 2));
-		}
+		local_kinematic_energy +=
+		    0.5 * Surf[n_radial] *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    (std::pow(v_radial_center, 2) +
+		     std::pow(v_azimuthal_center, 2));
+	    }
 	}
     }
 
@@ -328,20 +332,20 @@ double gas_radial_kinematic_energy(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    // centered-in-cell radial velocity
-	    v_radial_center =
-		(Rmed[n_radial] - Rinf[n_radial]) *
-		    data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
-		(Rsup[n_radial] - Rmed[n_radial]) *
-		    data[t_data::V_RADIAL](n_radial, n_azimuthal);
-	    v_radial_center /= (Rsup[n_radial] - Rinf[n_radial]);
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		// centered-in-cell radial velocity
+		v_radial_center =
+		    (Rmed[n_radial] - Rinf[n_radial]) *
+			data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
+		    (Rsup[n_radial] - Rmed[n_radial]) *
+			data[t_data::V_RADIAL](n_radial, n_azimuthal);
+		v_radial_center /= (Rsup[n_radial] - Rinf[n_radial]);
 
-	    local_kinematic_energy +=
-		0.5 * Surf[n_radial] *
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		std::pow(v_radial_center, 2);
-		}
+		local_kinematic_energy +=
+		    0.5 * Surf[n_radial] *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    std::pow(v_radial_center, 2);
+	    }
 	}
     }
 
@@ -368,23 +372,23 @@ double gas_azimuthal_kinematic_energy(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    // centered-in-cell azimuthal velocity
-	    v_azimuthal_center =
-		0.5 * (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
-		       data[t_data::V_AZIMUTHAL](
-			   n_radial,
-			   n_azimuthal ==
-				   data[t_data::V_AZIMUTHAL].get_max_azimuthal()
-			       ? 0
-			       : n_azimuthal + 1)) +
-		Rmed[n_radial] * OmegaFrame;
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		// centered-in-cell azimuthal velocity
+		v_azimuthal_center =
+		    0.5 *
+			(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			 data[t_data::V_AZIMUTHAL](
+			     n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+							  .get_max_azimuthal()
+					   ? 0
+					   : n_azimuthal + 1)) +
+		    Rmed[n_radial] * OmegaFrame;
 
-	    local_kinematic_energy +=
-		0.5 * Surf[n_radial] *
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
-		std::pow(v_azimuthal_center, 2);
-		}
+		local_kinematic_energy +=
+		    0.5 * Surf[n_radial] *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    std::pow(v_azimuthal_center, 2);
+	    }
 	}
     }
 
@@ -409,11 +413,12 @@ double gas_gravitational_energy(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if(Rmed[n_radial] <= quantities_radius_limit){
-	    local_gravitational_energy +=
-		-Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal) *
-		data[t_data::POTENTIAL](n_radial, n_azimuthal);
-		}
+	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		local_gravitational_energy +=
+		    -Surf[n_radial] *
+		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    data[t_data::POTENTIAL](n_radial, n_azimuthal);
+	    }
 	}
     }
 
@@ -497,7 +502,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / Rmed[n_radial];
 
-		data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
+	    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
 		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 	    if (FrameAngle != 0.0) {
@@ -543,7 +548,7 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
 	 n_radial <= data[t_data::ALPHA_GRAV].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::ALPHA_GRAV].get_max_azimuthal();
-		 ++n_azimuthal) {
+	     ++n_azimuthal) {
 	    /*data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) = -2.0/3.0 *
 	     * (data[t_data::T_GRAVITATIONAL](n_radial,n_azimuthal)+data[t_data::T_REYNOLDS](n_radial,
 	     * n_azimuthal))/(data[t_data::DENSITY](n_radial,n_azimuthal)*pow2(data[t_data::SOUNDSPEED](n_radial,

@@ -8,7 +8,8 @@ namespace boundary_conditions
 {
 
 void init_prescribed_time_variable_boundaries(t_data &data);
-void boundary_condition_precribed_time_variable_outer(t_data &data, t_polargrid* densitystar);
+void boundary_condition_precribed_time_variable_outer(t_data &data,
+						      t_polargrid *densitystar);
 void apply_boundary_condition_temperature(t_data &data);
 void apply_boundary_condition(t_data &data, double dt, bool final);
 void open_boundary_inner(t_data &data);
@@ -25,7 +26,6 @@ void boundary_layer_outer_boundary(t_data &data);
 void keplerian2d_boundary_inner(t_data &data);
 void keplerian2d_boundary_outer(t_data &data);
 void initial_center_of_mass_boundary(t_data &data);
-
 
 void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 			  double dt);

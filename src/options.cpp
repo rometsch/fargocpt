@@ -96,7 +96,7 @@ void parse(int argc, char **argv)
 		} else if (!strcicmp(optarg, "auto")) {
 		    start_mode::mode = start_mode::mode_auto;
 		} else if (!strcicmp(optarg, "debug")) {
-			start_mode::mode = start_mode::mode_debug;
+		    start_mode::mode = start_mode::mode_debug;
 		} else {
 		    usage(argc, argv);
 		    logging::print(LOG_ERROR "Invalid start mode '%s'\n",
