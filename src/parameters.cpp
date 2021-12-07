@@ -1047,6 +1047,9 @@ void summarize_parameters()
     case boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
+	case boundary_condition_initial_center_of_mass:
+	die("Inner boundary initial condition in center of mass is not implemented yet!\n");
+	break;
     }
 
     switch (boundary_outer) {
