@@ -67,7 +67,7 @@ double gas_aspect_ratio(t_data &data)
 		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
 			     Surf[n_radial];
 		local_aspect_ratio +=
-		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
+			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal)*InvRmed[n_radial] *
 		    local_mass;
 	    }
 	}

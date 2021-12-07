@@ -49,7 +49,7 @@ void update_viscosity(t_data &data)
 		const double alpha = ALPHAVISCOSITY;
 		const double c_s_adb = data[t_data::SOUNDSPEED](n_rad, n_az);
 		const double H =
-		    data[t_data::ASPECTRATIO](n_rad, n_az) * Rmed[n_rad];
+			data[t_data::SCALE_HEIGHT](n_rad, n_az);
 		const double nu = alpha * H * c_s_adb;
 
 		data[t_data::VISCOSITY](n_rad, n_az) = nu;

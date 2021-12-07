@@ -207,8 +207,8 @@ t_data::t_data()
     m_polargrids[TAU_EFF].set_scalar(true);
     m_polargrids[TAU_EFF].set_name("tau_eff");
 
-    m_polargrids[ASPECTRATIO].set_scalar(true);
-    m_polargrids[ASPECTRATIO].set_name("aspectratio");
+	m_polargrids[SCALE_HEIGHT].set_scalar(true);
+	m_polargrids[SCALE_HEIGHT].set_name("scale_height");
 
     m_polargrids[VISIBILITY].set_scalar(true);
     m_polargrids[VISIBILITY].set_name("visiblity");

@@ -301,7 +301,7 @@ void init_euler(t_data &data)
 	compute_aspect_ratio(data, true);
 
 	if (ASPECTRATIO_NBODY) {
-	    const double h_max = data[t_data::ASPECTRATIO].get_max();
+		const double h_max = data[t_data::SCALE_HEIGHT].get_max();
 	    logging::print_master(
 		LOG_INFO
 		"Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n",
@@ -322,7 +322,7 @@ void init_euler(t_data &data)
 	compute_pressure(data, true);
 
 	if (ASPECTRATIO_NBODY) {
-	    const double h_max = data[t_data::ASPECTRATIO].get_max();
+		const double h_max = data[t_data::SCALE_HEIGHT].get_max();
 	    logging::print_master(
 		LOG_INFO
 		"Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n",
@@ -1096,7 +1096,7 @@ void calculate_qplus(t_data &data)
 		    const double distance = std::sqrt(std::pow(x_star - xc, 2) +
 						      std::pow(y_star - yc, 2));
 		    const double HoverR =
-			data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
+			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) * InvRmed[n_radial];
 		    const double sigma = constants::sigma.get_code_value();
 		    const double T_star = parameters::star_temperature;
 		    const double R_star = parameters::star_radius;
@@ -1151,7 +1151,7 @@ void calculate_qplus(t_data &data)
 			double theta = (double)n_theta * dtheta;
 
 			if (tan(theta) <
-			    data[t_data::ASPECTRATIO](n_radial, n_azimuthal)) {
+				data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal)*InvRmed[n_radial]) {
 			    if (zbuffer[n_azimuthal * parameters::zbuffer_size +
 					n_theta] > IMIN + n_radial) {
 				zbuffer[n_azimuthal * parameters::zbuffer_size +
@@ -1188,7 +1188,7 @@ void calculate_qplus(t_data &data)
 
 		    // get next nt
 		    while ((tan(n_theta * dtheta) <=
-			    data[t_data::ASPECTRATIO](n_radial, n_azimuthal)) &&
+				data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal)*InvRmed[n_radial]) &&
 			   (n_theta < parameters::zbuffer_size))
 			n_theta++;
 
@@ -1256,13 +1256,12 @@ void calculate_qplus(t_data &data)
 
 		    // see Günther et. al (2004) or Phil Armitage "Astrophysics
 		    // of Planet Format" p. 46
+			/// TODO: adjust for change h -> H
 		    double alpha =
-			(data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
-			     Rmed[n_radial] -
-			 data[t_data::ASPECTRATIO](n_radial - 1, n_azimuthal) *
-			     Rmed[n_radial - 1]) *
+			(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) -
+			 data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal)) *
 			    InvDiffRmed[n_radial] -
-			data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
+			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal)*InvRmed[n_radial];
 
 		    if (alpha < 0.0) {
 			alpha = 0.0;
@@ -1353,8 +1352,7 @@ void calculate_qminus(t_data &data)
 		    units::temperature;
 
 		const double H =
-		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
-		    Rb[n_radial];
+			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 
 		const double densityCGS =
 		    data[t_data::DENSITY](n_radial, n_azimuthal) /
@@ -1463,9 +1461,7 @@ void SubStep3(t_data &data, double dt)
 	    const double gamma = ADIABATICINDEX;
 	    const double Rgas = constants::R;
 
-	    const double R = Rmed[n_radial];
-	    const double h = data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
-	    const double H = h * R;
+		const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 
 	    const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
 	    const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
@@ -1560,11 +1556,11 @@ void radiative_diffusion(t_data &data, double dt)
 		0.5 * (data[t_data::DENSITY](n_radial - 1, n_azimuthal) +
 		       data[t_data::DENSITY](n_radial, n_azimuthal));
 	    double aspectratio =
-		0.5 * (data[t_data::ASPECTRATIO](n_radial - 1, n_azimuthal) +
-		       data[t_data::ASPECTRATIO](n_radial, n_azimuthal));
+		0.5 * (data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal) +
+			   data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal));
 
 	    double temperatureCGS = temperature * units::temperature;
-	    double H = aspectratio * Ra[n_radial];
+		double H = aspectratio;
 	    double densityCGS =
 		density / (parameters::density_factor * H) * units::density;
 
@@ -1618,12 +1614,12 @@ void radiative_diffusion(t_data &data, double dt)
 		     data[t_data::DENSITY](n_radial_adjusted, n_azimuthal));
 		double aspectratio =
 		    0.5 *
-		    (data[t_data::ASPECTRATIO](n_radial_adjusted - 1,
+			(data[t_data::SCALE_HEIGHT](n_radial_adjusted - 1,
 					       n_azimuthal) +
-		     data[t_data::ASPECTRATIO](n_radial_adjusted, n_azimuthal));
+			 data[t_data::SCALE_HEIGHT](n_radial_adjusted, n_azimuthal));
 
 		double temperatureCGS = temperature * units::temperature;
-		double H = aspectratio * Ra[n_radial_adjusted];
+		double H = aspectratio;
 		double densityCGS =
 		    density / (parameters::density_factor * H) * units::density;
 
@@ -1687,11 +1683,11 @@ void radiative_diffusion(t_data &data, double dt)
 		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal_minus) +
 		       data[t_data::DENSITY](n_radial, n_azimuthal));
 	    double aspectratio =
-		0.5 * (data[t_data::ASPECTRATIO](n_radial, n_azimuthal_minus) +
-		       data[t_data::ASPECTRATIO](n_radial, n_azimuthal));
+		0.5 * (data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal_minus) +
+			   data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal));
 
 	    double temperatureCGS = temperature * units::temperature;
-	    double H = aspectratio * Rb[n_radial];
+		double H = aspectratio;
 	    double densityCGS =
 		density / (parameters::density_factor * H) * units::density;
 
@@ -1748,7 +1744,7 @@ void radiative_diffusion(t_data &data, double dt)
 	     n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double H =
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * Rb[n_radial];
+		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 	    // -dt H /(Sigma * c_v)
 	    double common_factor =
 		-dt * parameters::density_factor * H /
@@ -2364,23 +2360,23 @@ void compute_aspect_ratio_old(t_data &data, const bool force_update)
     last_physicaltime_calculated = PhysicalTime;
 
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ASPECTRATIO].get_max_radial(); ++n_radial) {
-	double inv_v_kepler =
-	    1.0 / (calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial]);
+	 n_radial <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_radial) {
+	double inv_omega_kepler =
+		1.0 / calculate_omega_kepler(Rb[n_radial]);
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ASPECTRATIO].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::SCALE_HEIGHT].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic || parameters::Polytropic) {
 		// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
+		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
-		    (std::sqrt(ADIABATICINDEX)) * inv_v_kepler;
+			(std::sqrt(ADIABATICINDEX)) * inv_omega_kepler;
 	    } else {
 		// h = H/r = c_s/v_k
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
+		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) *
-		    inv_v_kepler;
+			inv_omega_kepler;
 	    }
 	}
     }
@@ -2420,9 +2416,9 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
     // See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
     // Better see Thun et al. 2017 Eq. 8 instead.
     for (unsigned int n_rad = 0;
-	 n_rad <= data[t_data::ASPECTRATIO].get_max_radial(); ++n_rad) {
+	 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
-	     n_az <= data[t_data::ASPECTRATIO].get_max_azimuthal(); ++n_az) {
+		 n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
 
 	    const int cell = get_cell_id(n_rad, n_az);
 	    const double x = CellCenterX->Field[cell];
@@ -2465,7 +2461,7 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 
 	    const double H = std::sqrt(1.0 / inv_H2);
 
-	    data[t_data::ASPECTRATIO](n_rad, n_az) = H * InvRmed[n_rad];
+		data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
 	}
     }
 }
@@ -2575,7 +2571,7 @@ void compute_rho(t_data &data, bool force_update)
 	     n_azimuthal <= data[t_data::RHO].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    const double H =
-		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * Rb[n_radial];
+		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 	    data[t_data::RHO](n_radial, n_azimuthal) =
 		data[t_data::DENSITY](n_radial, n_azimuthal) /
 		(parameters::density_factor * H);

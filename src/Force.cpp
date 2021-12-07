@@ -84,7 +84,7 @@ double compute_smoothing(double r, t_data &data, const int n_radial,
 {
     double smooth;
     const double scale_height =
-	data[t_data::ASPECTRATIO](n_radial, n_azimuthal) * r;
+	data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
     smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
@@ -100,9 +100,8 @@ double compute_smoothing_r(t_data &data, const int n_radial,
     double smooth;
     const double scale_height =
 	0.5 *
-	(data[t_data::ASPECTRATIO](n_radial, n_azimuthal) +
-	 data[t_data::ASPECTRATIO](n_radial - 1, n_azimuthal)) *
-	Rinf[n_radial];
+	(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
+	 data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal));
     smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
@@ -116,14 +115,13 @@ double compute_smoothing_az(t_data &data, const int n_radial,
 			    const int n_azimuthal)
 {
     int prev_n_az = n_azimuthal == 0
-			? data[t_data::ASPECTRATIO].get_max_azimuthal()
+			? data[t_data::SCALE_HEIGHT].get_max_azimuthal()
 			: n_azimuthal - 1;
     double smooth;
     const double scale_height =
 	0.5 *
-	(data[t_data::ASPECTRATIO](n_radial, n_azimuthal) +
-	 data[t_data::ASPECTRATIO](n_radial, prev_n_az)) *
-	Rmed[n_radial];
+	(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
+	 data[t_data::SCALE_HEIGHT](n_radial, prev_n_az));
     smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }

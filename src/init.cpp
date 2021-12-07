@@ -322,8 +322,14 @@ void init_shakura_sunyaev(t_data &data)
 {
     double factor;
 
-    if (!parameters::Adiabatic)
+	if (!parameters::Adiabatic){
 	die("Isothermal equation of state and Shakura & Sunyaev starting conditions has not yet been implemented!");
+	}
+
+	if(ASPECTRATIO_NBODY){
+	die("ASPECTRATIO_NBODY and Shakura & Sunyaev starting conditions has not yet been implemented!");
+	}
+
 
     for (unsigned int n_radial = 0; n_radial < data[t_data::TEMPERATURE].Nrad;
 	 ++n_radial) {
@@ -347,7 +353,7 @@ void init_shakura_sunyaev(t_data &data)
 			  -0.75) *
 		 std::pow(factor, 14. / 5.)) /
 		units::surface_density.get_cgs_factor();
-	    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) =
+		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		(1.7e8 * std::pow(ALPHAVISCOSITY, -1. / 10.) *
 		 std::pow(parameters::mass_accretion_rate *
 			      units::mass_accretion_rate.get_cgs_factor() /
@@ -357,7 +363,7 @@ void init_shakura_sunyaev(t_data &data)
 		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 			  9. / 8.) *
 		 std::pow(factor, 3. / 5.)) /
-		(Rb[n_radial] * units::length.get_cgs_factor());
+		(Rb[n_radial] * units::length.get_cgs_factor()) * Rb[n_radial];
 	    data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		(1.4e4 * std::pow(ALPHAVISCOSITY, -1. / 5.) *
 		 std::pow(parameters::mass_accretion_rate *
