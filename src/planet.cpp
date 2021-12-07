@@ -356,10 +356,6 @@ void t_planet::write(const unsigned int timestep, const unsigned int file_type)
 				PersonalExit(1);
 			}
 			write_ascii(filename, timestep);
-			// reset accreted mass, total accreted mass should be computed in postprocessing
-			// don't forget to only use unique values to not overestimate mass accreted.
-			// otherwise restarting simulations causes confusion as accreted mass would start from 0 again
-			m_accreted_mass = 0.0;
 			break;
 		case 2:
 			if(asprintf(&filename, "%sdebugplanet%u.bin",
