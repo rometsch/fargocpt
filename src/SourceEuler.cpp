@@ -301,7 +301,7 @@ void init_euler(t_data &data)
 
 	if(ASPECTRATIO_NBODY){
 	const double h_max = data[t_data::ASPECTRATIO].get_max();
-	ASPECTRATIO_REF = ASPECTRATIO_REF / h_max;
+	ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
 
 	compute_sound_speed(data, true);
 	compute_pressure(data, true);
@@ -2307,7 +2307,6 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 		}
 
 		const double Cs = ASPECTRATIO_REF * std::sqrt(Cs2);
-
 		data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}
 	}
