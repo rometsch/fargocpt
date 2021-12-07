@@ -390,8 +390,9 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 
 	    double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr, naz_minus));
 
-	    // a_phi = 1/(r*Sigma) ( d(r*tau_r_phi)/dr + d(tau_phi_phi)/dphi +
-	    // tau_r_phi )
+		// See D'Angelo et al. 2002 Nested-grid calculations of disk-planet interaction
+		// It is important to use the conservative form here and not the one from Fargo / Baruteau.
+		// a_phi = 1/(r*Sigma) ( 1/r d(r^2 * tau_r_phi)/dr + d(tau_phi_phi)/dphi )
 	    double dVp =
 		dt * InvRb[nr] / (sigma_avg) *
 		((2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2))) *
