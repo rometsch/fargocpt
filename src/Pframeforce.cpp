@@ -113,7 +113,7 @@ void CalculateNbodyPotential(t_data &data)
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double smooth =
-		    compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
+			compute_smoothing(data, n_rad, n_az);
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
 		const double d_smoothed = std::sqrt(

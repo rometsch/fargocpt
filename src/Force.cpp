@@ -42,7 +42,7 @@ Pair ComputeDiskOnNbodyAccel(t_data &data, double x, double y)
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
 	    const double smooth =
-		compute_smoothing(Rmed[n_rad], data, n_rad, n_az);
+		compute_smoothing(data, n_rad, n_az);
 	    const int cell_id = n_az + n_rad * ns;
 	    const double xc = cell_center_x[cell_id];
 	    const double yc = cell_center_y[cell_id];
@@ -79,13 +79,12 @@ Pair ComputeDiskOnNbodyAccel(t_data &data, double x, double y)
     return acceleration;
 }
 
-double compute_smoothing(double r, t_data &data, const int n_radial,
+double compute_smoothing(t_data &data, const int n_radial,
 			 const int n_azimuthal)
 {
-    double smooth;
     const double scale_height =
 	data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
-    smooth = parameters::thickness_smoothing * scale_height;
+	const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
 
@@ -97,12 +96,11 @@ double compute_smoothing(double r, t_data &data, const int n_radial,
 double compute_smoothing_r(t_data &data, const int n_radial,
 			   const int n_azimuthal)
 {
-    double smooth;
     const double scale_height =
 	0.5 *
 	(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
 	 data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal));
-    smooth = parameters::thickness_smoothing * scale_height;
+	const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
 
@@ -117,11 +115,10 @@ double compute_smoothing_az(t_data &data, const int n_radial,
     int prev_n_az = n_azimuthal == 0
 			? data[t_data::SCALE_HEIGHT].get_max_azimuthal()
 			: n_azimuthal - 1;
-    double smooth;
     const double scale_height =
 	0.5 *
 	(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
 	 data[t_data::SCALE_HEIGHT](n_radial, prev_n_az));
-    smooth = parameters::thickness_smoothing * scale_height;
+	const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }

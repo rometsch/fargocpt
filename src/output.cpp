@@ -674,7 +674,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 		// i.e. for thickness smoothing with scale height at cell
 		// location
 
-		const double smooth = compute_smoothing(Rmed[n_radial], data,
+		const double smooth = compute_smoothing(data,
 							n_radial, n_azimuthal);
 		const int cell_id = n_azimuthal + n_radial * ns;
 		const double xc = cell_center_x[cell_id];
