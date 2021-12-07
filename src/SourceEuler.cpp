@@ -2338,13 +2338,18 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 
 void compute_sound_speed(t_data &data, bool force_update)
 {
-    if (parameters::Adiabatic || parameters::Polytropic ||
-	(!ASPECTRATIO_NBODY)) {
+	if (parameters::Adiabatic || parameters::Polytropic)
+	{
 	compute_sound_speed_normal(data, force_update);
-    } else {
+	}
+
+	if (parameters::Locally_Isothermal){
 	compute_iso_sound_speed_nbody(data, force_update);
-    }
+	} else {
+	compute_sound_speed_normal(data, force_update);
+	}
 }
+
 
 /**
 	computes aspect ratio
