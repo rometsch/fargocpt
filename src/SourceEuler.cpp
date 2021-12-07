@@ -298,6 +298,17 @@ void init_euler(t_data &data)
 	compute_pressure(data, true);
 	compute_temperature(data, true);
 	compute_aspect_ratio(data, true);
+
+	if(ASPECTRATIO_NBODY){
+	const double h_max = data[t_data::ASPECTRATIO].get_max();
+	ASPECTRATIO_REF = ASPECTRATIO_REF / h_max;
+
+	compute_sound_speed(data, true);
+	compute_pressure(data, true);
+	compute_temperature(data, true);
+	compute_aspect_ratio(data, true);
+	}
+
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
@@ -2295,7 +2306,7 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 			Cs2 += constants::G * mpl[k] / dist * std::pow(dist, 2*FLARINGINDEX);
 		}
 
-		const double Cs = std::sqrt(Cs2);
+		const double Cs = ASPECTRATIO_REF * std::sqrt(Cs2);
 
 		data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}

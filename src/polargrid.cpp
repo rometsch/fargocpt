@@ -482,7 +482,7 @@ unsigned int t_polargrid::bytes_needed_2D() const
 }
 
 
-double t_polargrid::get_max()
+double t_polargrid::get_max() const
 {
 	double local_max = - DBL_MAX;
 
