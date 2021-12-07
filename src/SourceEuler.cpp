@@ -301,6 +301,7 @@ void init_euler(t_data &data)
 
 	if(ASPECTRATIO_NBODY){
 	const double h_max = data[t_data::ASPECTRATIO].get_max();
+	logging::print_master(LOG_INFO "Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n", ASPECTRATIO_REF, ASPECTRATIO_REF*ASPECTRATIO_REF/h_max);
 	ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
 
 	compute_sound_speed(data, true);
@@ -316,7 +317,19 @@ void init_euler(t_data &data)
 	compute_sound_speed(data, true);
 	compute_aspect_ratio(data, true);
 	compute_pressure(data, true);
+
+	if(ASPECTRATIO_NBODY){
+	const double h_max = data[t_data::ASPECTRATIO].get_max();
+	logging::print_master(LOG_INFO "Aspectratio Nbody options changed ASPECTRATIO_REF from %.5e	to %.5e\n", ASPECTRATIO_REF, ASPECTRATIO_REF*ASPECTRATIO_REF/h_max);
+	ASPECTRATIO_REF *= ASPECTRATIO_REF / h_max;
+
+	compute_temperature(data, true);
+	compute_sound_speed(data, true);
+	compute_aspect_ratio(data, true);
+	compute_pressure(data, true);
+
     }
+	}
 
     viscosity::update_viscosity(data);
 }
