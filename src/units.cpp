@@ -39,6 +39,7 @@ t_unit acceleration;
 t_unit stress;
 t_unit pressure;
 t_unit power;
+t_unit potential;
 t_unit torque;
 t_unit force;
 t_unit mass_accretion_rate;
@@ -154,6 +155,9 @@ void calculate_unit_factors()
     power.set_cgs_factor(mass * length * length / (time * time * time));
     power.set_cgs_symbol("erg/s");
 
+	potential.set_cgs_factor(length * length / (time * time));
+	potential.set_cgs_symbol("erg/g");
+
     torque.set_cgs_factor(length * length * mass / (time * time));
     torque.set_cgs_symbol("erg");
 
@@ -221,6 +225,10 @@ void print_code_units()
     logging::print_master(LOG_VERBOSE
 			  "                      power:       P0 = %.16g %s\n",
 			  power.get_cgs_factor(), power.get_cgs_symbol());
+
+	logging::print_master(LOG_VERBOSE
+			  "                      potential:       V0 = %.16g %s\n",
+			  potential.get_cgs_factor(), potential.get_cgs_symbol());
 
     logging::print_master(LOG_VERBOSE
 			  "                     torque:     tau0 = %.16g %s\n",
@@ -301,6 +309,8 @@ void write_code_unit_file()
 		angular_momentum.get_cgs_symbol());
 	fprintf(fd, "#                     power:       P0 = %.16g %s\n",
 		power.get_cgs_factor(), power.get_cgs_symbol());
+	fprintf(fd, "#                     potential:	V0 = %.16g %s\n",
+		potential.get_cgs_factor(), potential.get_cgs_symbol());
 	fprintf(fd, "#                    torque:     tau0 = %.16g %s\n",
 		torque.get_cgs_factor(), torque.get_cgs_symbol());
 	fprintf(fd, "#                     force:       F0 = %.16g %s\n",

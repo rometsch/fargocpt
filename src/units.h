@@ -60,6 +60,7 @@ extern t_unit energy_density;
 extern t_unit density;
 extern t_unit surface_density;
 extern t_unit opacity;
+extern t_unit potential;
 extern t_unit energy_flux;
 extern t_unit velocity;
 extern t_unit angular_momentum;

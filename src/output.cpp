@@ -526,6 +526,7 @@ std::string text_file_variable_description(
 					       units::length.get_cgs_factor() *
 					       units::length.get_cgs_factor(),
 					   "erg cm2/s/g")},
+	{"potential", units::potential.get_cgs_factor_symbol()},
 	{"pressure per time", unit_descriptor(units::pressure.get_cgs_factor() /
 						  units::time.get_cgs_factor(),
 					      "dyn/cm/s")},
@@ -916,7 +917,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
 	    fprintf(fd, "%.20e\t",
-		    luminosity_values[i] * units::power.get_cgs_factor());
+			luminosity_values[i]);
 	}
 	fprintf(fd, "\n");
 
@@ -967,7 +968,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
 	    fprintf(fd, "%.20e\t",
-		    dissipation_values[i] * units::power.get_cgs_factor());
+			dissipation_values[i]);
 	}
 	fprintf(fd, "\n");
 

@@ -322,6 +322,8 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WritePressure", false), do_write_1D);
     data[t_data::TOOMRE].set_write(
 	config::value_as_bool_default("WriteToomre", false), do_write_1D);
+	data[t_data::POTENTIAL].set_write(
+	config::value_as_bool_default("WritePotential", false), do_write_1D);
     data[t_data::QPLUS].set_write(
 	config::value_as_bool_default("WriteQPlus", false), do_write_1D);
     data[t_data::QMINUS].set_write(

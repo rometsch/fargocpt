@@ -190,6 +190,7 @@ t_data::t_data()
 
     m_polargrids[POTENTIAL].set_scalar(true);
     m_polargrids[POTENTIAL].set_name("potential");
+	m_polargrids[POTENTIAL].set_unit(units::potential);
 
     m_polargrids[Q_PHI].set_vector(false);
     m_polargrids[Q_PHI].set_name("q_phi");

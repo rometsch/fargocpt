@@ -560,6 +560,9 @@ void init_shock_tube_test(t_data &data)
     units::power.set_cgs_factor(1.0);
     units::power.set_cgs_symbol("1");
 
+	units::potential.set_cgs_factor(1.0);
+	units::potential.set_cgs_symbol("1");
+
     units::torque.set_cgs_factor(1.0);
     units::torque.set_cgs_symbol("1");
 
