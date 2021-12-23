@@ -448,6 +448,12 @@ void read(char *filename, t_data &data)
     case 'p':
 	boundary_inner = boundary_condition_precribed_time_variable;
 	break;
+	case 'c':
+	boundary_outer = boundary_condition_center_of_mass_initial;
+	break;
+	case 'i':
+	boundary_inner = boundary_condition_initial;
+	break;
     default:
 	die("Invalid setting for InnerBoundary: %s",
 	    config::value_as_string_default("InnerBoundary", "Open"));
@@ -455,6 +461,9 @@ void read(char *filename, t_data &data)
 
     switch (
 	tolower(*config::value_as_string_default("OuterBoundary", "Open"))) {
+	case 'c':
+	boundary_outer = boundary_condition_center_of_mass_initial;
+	break;
     case 'o':
 	boundary_outer = boundary_condition_open;
 	break;
@@ -470,11 +479,11 @@ void read(char *filename, t_data &data)
     case 'v':
 	boundary_outer = boundary_condition_viscous_outflow;
 	break;
+	case 'i':
+	boundary_outer = boundary_condition_initial;
+	break;
     case 'b':
 	boundary_outer = boundary_condition_boundary_layer;
-	break;
-    case 'i':
-	boundary_outer = boundary_condition_initial_center_of_mass;
 	break;
     case 'k':
 	boundary_outer = boundary_condition_keplerian;
@@ -641,6 +650,9 @@ void read(char *filename, t_data &data)
     case 'p': // Profile
 	sigma_initialize_condition = initialize_condition_profile;
 	break;
+	case 'n': // Profile
+	sigma_initialize_condition = initialize_condition_profile_Nbody_centered;
+	break;
     case '1': // 1D
 	sigma_initialize_condition = initialize_condition_read1D;
 	break;
@@ -668,6 +680,9 @@ void read(char *filename, t_data &data)
 	*config::value_as_string_default("EnergyCondition", "Profile"))) {
     case 'p': // Profile
 	energy_initialize_condition = initialize_condition_profile;
+	break;
+	case 'n': // Profile
+	energy_initialize_condition = initialize_condition_profile_Nbody_centered;
 	break;
     case '1': // 1D
 	energy_initialize_condition = initialize_condition_read1D;
@@ -1060,8 +1075,11 @@ void summarize_parameters()
     case boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
-    case boundary_condition_initial_center_of_mass:
+	case boundary_condition_center_of_mass_initial:
 	die("Inner boundary initial condition in center of mass is not implemented yet!\n");
+	break;
+	case boundary_condition_initial:
+	die("Inner boundary initial condition is not implemented yet!\n");
 	break;
     }
 
@@ -1093,10 +1111,15 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
 	break;
-    case boundary_condition_initial_center_of_mass:
+	case boundary_condition_center_of_mass_initial:
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'initial boundary in center of mass frame' at outer boundary.\n");
+	break;
+	case boundary_condition_initial:
+	logging::print_master(
+		LOG_INFO
+		"Using 'initial boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
 	if (domegadr_zero) {

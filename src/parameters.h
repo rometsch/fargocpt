@@ -31,7 +31,8 @@ enum t_boundary_condition {
     boundary_condition_nonreflecting,
     boundary_condition_viscous_outflow,
     boundary_condition_boundary_layer,
-    boundary_condition_initial_center_of_mass,
+	boundary_condition_center_of_mass_initial,
+	boundary_condition_initial,
     boundary_condition_precribed_time_variable,
     boundary_condition_keplerian,
     boundary_condition_evanescent
@@ -118,6 +119,7 @@ extern unsigned int radiative_diffusion_max_iterations;
 // initialisation
 enum t_initialize_condition {
     initialize_condition_profile,
+	initialize_condition_profile_Nbody_centered,
     initialize_condition_read1D,
     initialize_condition_read2D,
     initialize_condition_shakura_sunyaev

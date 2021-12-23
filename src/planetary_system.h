@@ -55,6 +55,7 @@ class t_planetary_system
     Pair get_center_of_mass();
     Pair get_center_of_mass(unsigned int n);
     Pair get_center_of_mass_velocity(unsigned int n);
+	Pair get_center_of_mass_velocity();
 
     void initialize_default_star();
     void init_rebound();

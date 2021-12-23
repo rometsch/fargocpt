@@ -576,6 +576,12 @@ Pair t_planetary_system::get_center_of_mass_velocity(unsigned int n)
     return vcom;
 }
 
+Pair t_planetary_system::get_center_of_mass_velocity()
+{
+	return get_center_of_mass_velocity(get_number_of_planets());
+}
+
+
 /**
    Get the center of mass of all particles
 */

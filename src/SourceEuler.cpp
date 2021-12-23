@@ -2300,6 +2300,7 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 		const double dist = std::max(
 		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
+		/// TODO: 1/r^2 * dist^3
 		Cs2 += constants::G * mpl[k] / dist *
 		       std::pow(dist, 2 * FLARINGINDEX);
 	    }

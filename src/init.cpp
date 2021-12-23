@@ -608,6 +608,39 @@ void init_gas_density(t_data &data)
 	}
 	break;
 
+	case parameters::initialize_condition_profile_Nbody_centered:
+	{
+	logging::print_master(
+		LOG_INFO "Initializing from CMS Sigma(r) = %g = %g %s * [r/(%g AU)]^(%g)\n",
+		parameters::sigma0,
+		parameters::sigma0 * units::surface_density.get_cgs_factor(),
+		units::surface_density.get_cgs_symbol(),
+		units::length.get_cgs_factor() / units::cgs_AU, -SIGMASLOPE);
+
+		Pair cms = data.get_planetary_system().get_center_of_mass();
+		const double cms_x = cms.x;
+		const double cms_y = cms.y;
+
+		for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
+			++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+				n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
+
+					const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
+					const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+					const double r = std::sqrt(x*x + y*y);
+
+					const double density =
+						parameters::sigma0 * std::pow(r, -SIGMASLOPE);
+					const double density_floor =
+						parameters::sigma_floor * parameters::sigma0;
+						data[t_data::DENSITY](n_radial, n_azimuthal) =
+							std::max(density, density_floor);
+			}
+		}
+		}
+		break;
+
     case parameters::initialize_condition_read1D:
 	logging::print_master(LOG_INFO "Loading Sigma from '%s' (1D).\n",
 			      parameters::sigma_filename);
@@ -709,11 +742,23 @@ void init_gas_density(t_data &data)
 		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// Cutoff density to 0 for r > profile_cutoff_point_outer
+			double r;
+			if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+				Pair cms = data.get_planetary_system().get_center_of_mass();
+				const double cms_x = cms.x;
+				const double cms_y = cms.y;
+
+				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
+				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				r = std::sqrt(x*x + y*y);
+			} else {
+				 r = Rmed[n_radial];
+			}
 		const double density_damped =
 		    data[t_data::DENSITY](n_radial, n_azimuthal) *
 		    cutoff_outer(parameters::profile_cutoff_point_outer,
 				 parameters::profile_cutoff_width_outer,
-				 Rmed[n_radial]);
+				 r);
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
@@ -738,11 +783,22 @@ void init_gas_density(t_data &data)
 		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// Cutoff density to 0 for r < profile_cutoff_point_inner
+			double r;
+			if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+				Pair cms = data.get_planetary_system().get_center_of_mass();
+				const double cms_x = cms.x;
+				const double cms_y = cms.y;
+
+				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
+				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				r = std::sqrt(x*x + y*y);
+			} else {
+				r = Rmed[n_radial];
+			}
 		const double density_damped =
 		    data[t_data::DENSITY](n_radial, n_azimuthal) *
 		    cutoff_inner(parameters::profile_cutoff_point_inner,
-				 parameters::profile_cutoff_width_inner,
-				 Rmed[n_radial]);
+				 parameters::profile_cutoff_width_inner, r);
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
@@ -834,6 +890,59 @@ void init_gas_energy(t_data &data)
 	}
 	break;
 
+		case parameters::initialize_condition_profile_Nbody_centered:
+		{
+		const double mass = data.get_planetary_system().get_mass();
+		logging::print_master(
+			LOG_INFO
+			"Initializing CMS Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
+			1.0 / ((ADIABATICINDEX - 1.0)) * parameters::sigma0 *
+			std::pow(ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
+			units::energy.get_cgs_symbol(),
+			units::length.get_cgs_factor() / units::cgs_AU,
+			-SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
+			parameters::MU / constants::R * std::pow(ASPECTRATIO_REF, 2) *
+			constants::G * mass *
+			units::temperature.get_cgs_factor(),
+			units::temperature.get_cgs_symbol(),
+			units::length.get_cgs_factor() / units::cgs_AU,
+			-1.0 + 2.0 * FLARINGINDEX);
+
+		for (unsigned int n_radial = 0;
+			 n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
+			 ++n_azimuthal) {
+
+			const Pair cms = data.get_planetary_system().get_center_of_mass();
+			const double cms_x = cms.x;
+			const double cms_y = cms.y;
+
+			const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
+			const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+			const double r = std::sqrt(x*x + y*y);
+
+			const double energy =
+				1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
+				std::pow(ASPECTRATIO_REF, 2) *
+				std::pow(r,
+					 -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+				constants::G * mass;
+			const double temperature_floor =
+				parameters::minimum_temperature *
+				units::temperature.get_inverse_cgs_factor();
+			const double energy_floor =
+				temperature_floor *
+				data[t_data::DENSITY](n_radial, n_azimuthal) /
+				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+			data[t_data::ENERGY](n_radial, n_azimuthal) =
+				std::max(energy, energy_floor);
+			}
+		}
+		}
+		break;
+
     case parameters::initialize_condition_read1D:
 	logging::print_master(LOG_INFO "Loading Energy from '%s' (1D).\n",
 			      parameters::energy_filename);
@@ -867,11 +976,23 @@ void init_gas_energy(t_data &data)
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// damp energy to 0 for r > profile_cutoff_point_outer
+			double r;
+			if(parameters::energy_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+				Pair cms = data.get_planetary_system().get_center_of_mass();
+				const double cms_x = cms.x;
+				const double cms_y = cms.y;
+
+				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
+				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				r = std::sqrt(x*x + y*y);
+			} else {
+				r = Rmed[n_radial];
+			}
 		const double energy_damped =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) *
 		    cutoff_outer(parameters::profile_cutoff_point_outer,
 				 parameters::profile_cutoff_width_outer,
-				 Rmed[n_radial]);
+				 r);
 		const double temperature_floor =
 		    parameters::minimum_temperature *
 		    units::temperature.get_inverse_cgs_factor();
@@ -901,12 +1022,24 @@ void init_gas_energy(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
+			double r;
+			if(parameters::energy_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+				Pair cms = data.get_planetary_system().get_center_of_mass();
+				const double cms_x = cms.x;
+				const double cms_y = cms.y;
+
+				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
+				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				r = std::sqrt(x*x + y*y);
+			} else {
+				r = Rmed[n_radial];
+			}
 		// damp energy to 0 for r < profile_cutoff_point_inner
 		const double energy_damped =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) *
 		    cutoff_inner(parameters::profile_cutoff_point_inner,
 				 parameters::profile_cutoff_width_inner,
-				 Rmed[n_radial]);
+				 r);
 		const double temperature_floor =
 		    parameters::minimum_temperature *
 		    units::temperature.get_inverse_cgs_factor();
@@ -937,9 +1070,80 @@ void init_gas_velocities(t_data &data)
 
     // Check if pure keplerian initialization is set
     if (parameters::initialize_pure_keplerian) {
+	if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered)
+	{
+		const double mass = data.get_planetary_system().get_mass();
+		for (unsigned int n_radial = 0;
+			 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
+			 ++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
+			 ++n_azimuthal) {
+
+			Pair cms = data.get_planetary_system().get_center_of_mass();
+			const double cms_x = cms.x;
+			const double cms_y = cms.y;
+
+			const double phi = (double)n_azimuthal * dphi;
+			double r;
+			if (n_radial == data[t_data::V_AZIMUTHAL].Nrad) {
+			r = Rinf[data[t_data::V_AZIMUTHAL].Nrad-1];
+			} else {
+			r = Rinf[n_radial];
+			}
+
+			const double x = r * std::cos(phi) - cms_x;
+			const double y = r * std::sin(phi) - cms_y;
+			const double dist = std::sqrt(x*x + y*y);
+
+			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
+			const double vr_cms = 0.0;
+			const double vaz_cms = std::sqrt(constants::G * mass / dist);
+
+			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) - v_cms.x;
+			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) - v_cms.y;
+			const double vr = vx*std::cos(phi) + vy*std::sin(phi);
+			data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr;
+			}
+		}
+
+		for (unsigned int n_radial = 0;
+			 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
+			 ++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
+			 ++n_azimuthal) {
+
+			Pair cms = data.get_planetary_system().get_center_of_mass();
+			const double cms_x = cms.x;
+			const double cms_y = cms.y;
+
+			const double phi = ((double)n_azimuthal - 0.5) * dphi;
+			double r;
+			if (n_radial == data[t_data::V_AZIMUTHAL].Nrad) {
+				r = Rmed[data[t_data::V_AZIMUTHAL].Nrad-1];
+			} else {
+				r = Rmed[n_radial];
+			}
+
+			const double x = r * std::cos(phi) - cms_x;
+			const double y = r * std::sin(phi) - cms_y;
+			const double dist = std::sqrt(x*x + y*y);
+
+			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
+			const double vr_cms = 0.0;
+			const double vaz_cms = std::sqrt(constants::G * mass / dist);
+
+			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) - v_cms.x;
+			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) - v_cms.y;
+			const double vaz = vy*std::cos(phi) - vx*std::sin(phi);
+			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
+			}
+		}
+	} else {
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
-	     ++n_radial) {
+		 ++n_radial) {
 	    // TODO: This should be Rinf but seems to produce incorrect data
 	    if (n_radial == data[t_data::V_AZIMUTHAL].Nrad) {
 		r = Rmed[data[t_data::V_AZIMUTHAL].Nrad - 1];
@@ -954,6 +1158,7 @@ void init_gas_velocities(t_data &data)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    std::sqrt(constants::G * hydro_center_mass / r);
 	    }
+	}
 	}
 
 	return;

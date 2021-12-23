@@ -285,7 +285,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
-    case parameters::boundary_condition_initial_center_of_mass:
+	case parameters::boundary_condition_center_of_mass_initial:
 	die("Inner initial center of mass boundary is not implemented yet!\n");
 	break;
     }
@@ -298,7 +298,10 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_reflecting:
 	reflecting_boundary_outer(data);
 	break;
-    case parameters::boundary_condition_initial_center_of_mass:
+	case parameters::boundary_condition_center_of_mass_initial:
+	initial_center_of_mass_boundary(data);
+	break;
+	case parameters::boundary_condition_initial:
 	initial_center_of_mass_boundary(data);
 	break;
     case parameters::boundary_condition_boundary_layer:
@@ -1625,5 +1628,37 @@ void initial_center_of_mass_boundary(t_data &data)
 	} /// END DENSITY and ENERGY
     }
 }
+
+
+/**
+ * @brief initial_boundary: sets the outer boundary
+ *  to the initial profile.
+ * @param data
+ */
+void initial_boundary(t_data &data)
+{
+
+	if (CPU_Rank != CPU_Highest)
+	return;
+	auto &sigma = data[t_data::DENSITY];
+	auto &energy = data[t_data::ENERGY];
+	auto &vrad = data[t_data::V_RADIAL];
+	auto &vaz = data[t_data::V_AZIMUTHAL];
+
+	auto &sigma0 = data[t_data::DENSITY0];
+	auto &energy0 = data[t_data::ENERGY0];
+	auto &vrad0 = data[t_data::V_RADIAL0];
+	auto &vaz0 = data[t_data::V_AZIMUTHAL0];
+
+	const unsigned int nr = data[t_data::DENSITY].get_max_radial();
+	for (unsigned int naz = 0; naz <= data[t_data::DENSITY].get_max_azimuthal();
+	 ++naz) {
+		vaz(nr, naz) = vaz0(nr, naz);
+		vrad(nr+1, naz) = vrad0(nr+1, naz);
+		sigma(nr, naz) = sigma0(nr, naz);
+		energy(nr, naz) = energy0(nr, naz);
+	}
+}
+
 
 } // namespace boundary_conditions
