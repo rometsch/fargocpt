@@ -211,6 +211,11 @@ t_data::t_data()
 	m_polargrids[SCALE_HEIGHT].set_scalar(true);
 	m_polargrids[SCALE_HEIGHT].set_name("scale_height");
 
+	m_polargrids[ASPECTRATIO].set_scalar(true);
+	m_polargrids[ASPECTRATIO].set_name("aspectratio");
+	m_polargrids[ASPECTRATIO].set_do_before_write(&quantities::compute_aspectratio);
+
+
     m_polargrids[VISIBILITY].set_scalar(true);
     m_polargrids[VISIBILITY].set_name("visiblity");
 

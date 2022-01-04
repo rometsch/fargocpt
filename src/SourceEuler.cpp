@@ -2270,6 +2270,11 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 	rpl[k] = planet.get_radius();
     }
 
+	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+	const double m_cm = data.get_planetary_system().get_mass();
+
+	assert(N_planets > 1);
+
     // Cs^2 = h^2 * vk * r ^ 2*Flaring
     for (unsigned int n_rad = 0;
 	 n_rad <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_rad) {
@@ -2282,7 +2287,25 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 
 	    double Cs2 = 0;
 
+		// cell_r is the distance to the closest body used for computing the sound speed
+		// the cell belongs to a body, if it is inside its roche radius.
+		// if no close body is found, the center of mass is used instead
+		double cell_r = 0.0;
+		double roche_radius;
+
 	    for (unsigned int k = 0; k < N_planets; k++) {
+
+			// primary object uses next object to compute the roche radius
+			// while all other objects use the primary object.
+			if(k == 0){
+				const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[1], 2) + std::pow(ypl[k] - ypl[1], 2));
+				const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
+				roche_radius = eggleton_1983(mass_q , partner_dist);
+			} else {
+				const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[0], 2) + std::pow(ypl[k] - ypl[0], 2));
+				const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
+				roche_radius = eggleton_1983(mass_q , partner_dist);
+			}
 
 		/// since the mass is distributed homogeniously distributed
 		/// inside the cell, we assume that the planet is always at
@@ -2300,12 +2323,18 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 		const double dist = std::max(
 		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
-		/// TODO: 1/r^2 * dist^3
-		Cs2 += constants::G * mpl[k] / dist *
-		       std::pow(dist, 2 * FLARINGINDEX);
+		if(dist < roche_radius){
+			cell_r = dist;
+		}
+
+		Cs2 += constants::G * mpl[k] / std::pow(dist, 3);
 	    }
 
-	    const double Cs = ASPECTRATIO_REF * std::sqrt(Cs2);
+		if(cell_r == 0.0){
+			cell_r = std::sqrt(std::pow(x - r_cm.x, 2) + std::pow(y - r_cm.y, 2));
+		}
+
+		const double Cs = ASPECTRATIO_REF * cell_r * std::pow(cell_r, FLARINGINDEX) * std::sqrt(Cs2);
 	    data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}
     }
@@ -2432,11 +2461,13 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 
 		// H^2 = (GM / dist^3 / Cs_iso^2)^-1
 		if (parameters::Adiabatic || parameters::Polytropic) {
-		    inv_H2 += std::min(constants::G * mpl[k] * ADIABATICINDEX /
-					   (dist3 * cs2),
+			const double tmp_inv_H2 = constants::G * mpl[k] * ADIABATICINDEX /
+					(dist3 * cs2);
+			inv_H2 += std::min(tmp_inv_H2,
 				       1.0 / std::pow(min_dist, 2));
 		} else {
-		    inv_H2 += std::min(constants::G * mpl[k] / (dist3 * cs2),
+			const double tmp_inv_H2 = constants::G * mpl[k] / (dist3 * cs2);
+			inv_H2 += std::min(tmp_inv_H2,
 				       1.0 / std::pow(min_dist, 2));
 		}
 	    }

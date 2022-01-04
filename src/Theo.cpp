@@ -51,3 +51,9 @@ double calculate_omega_kepler(double r)
 {
     return sqrt(constants::G * hydro_center_mass / (r * r * r));
 }
+
+double eggleton_1983(const double q, const double r)
+{
+	const double rL = 0.49 * std::pow(q, 2.0/3.0) / (0.6 * std::pow(q, 2.0/3.0) + std::log(1.0 + std::pow(q, 1.0/3.0)));
+	return rL * r;
+}

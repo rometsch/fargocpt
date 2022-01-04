@@ -61,6 +61,7 @@ class t_data
 	TAU,	     // optical depth
 	TAU_EFF,     // effective optical depth (in vertical direction)
 	SCALE_HEIGHT, // scale height H
+	ASPECTRATIO, // aspectratio h = H / r
 	VISIBILITY,  //
 	TORQUE,
 	RHO,
