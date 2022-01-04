@@ -23,7 +23,7 @@ EnergyCondition		Profile		# Initialize energy by Profile, 1D or 2D [default = Pr
 EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 
 AspectRatio     	0.05            # Thickness over Radius in the disk
-AspectRatioNbody	No		# Compute the aspectratio considering all Bodies and not just the central object
+AspectRatioMode		0		# Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 TemperatureCGS0     0.0     # Midplane Temperature at 1 au in K, overwrites AspectRaio
 ExplicitViscosity   YES
 StsNu				0.01

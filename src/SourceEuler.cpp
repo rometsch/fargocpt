@@ -276,7 +276,7 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 {
 
     if (parameters::Locally_Isothermal) {
-	if(ASPECTRATIO_NBODY){
+	if(ASPECTRATIO_MODE > 0){
 	compute_sound_speed(data, force_update);
 	compute_pressure(data, force_update);
 	compute_temperature(data, force_update);
@@ -2244,6 +2244,53 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
     }
 }
 
+
+static void compute_iso_sound_speed_center_of_mass(t_data &data, const bool force_update)
+{
+	static double last_physicaltime_calculated = -1;
+
+	if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+	return;
+	}
+	last_physicaltime_calculated = PhysicalTime;
+
+	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+	const double m_cm = data.get_planetary_system().get_mass();
+
+
+	// Cs^2 = h^2 * vk * r ^ 2*Flaring
+	for (unsigned int n_rad = 0;
+	 n_rad <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_rad) {
+	for (unsigned int n_az = 0;
+		 n_az <= data[t_data::SOUNDSPEED].get_max_azimuthal(); ++n_az) {
+
+		const int cell = get_cell_id(n_rad, n_az);
+		const double x = CellCenterX->Field[cell];
+		const double y = CellCenterY->Field[cell];
+
+		/// since the mass is distributed homogeniously distributed
+		/// inside the cell, we assume that the planet is always at
+		/// least cell_size / 2 plus planet radius away from the gas
+		/// this is an rough estimate without explanation
+		/// alternatively you can think about it yourself
+		const double min_dist =
+			0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+				   Rmed[n_rad] * dphi);
+
+		const double dx = x - r_cm.x;
+		const double dy = y - r_cm.y;
+
+		const double dist = std::max(
+			std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+
+		const double Cs2 = constants::G * m_cm / dist;
+
+		const double Cs = ASPECTRATIO_REF * std::pow(dist, FLARINGINDEX) * std::sqrt(Cs2);
+		data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
+	}
+	}
+}
+
 static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 {
 
@@ -2348,10 +2395,18 @@ void compute_sound_speed(t_data &data, bool force_update)
 	}
 
 	if (parameters::Locally_Isothermal){
-	if(ASPECTRATIO_NBODY){
-	compute_iso_sound_speed_nbody(data, force_update);
-	} else {
-	compute_sound_speed_normal(data, force_update);
+	switch(ASPECTRATIO_MODE){
+		case 0:
+			compute_sound_speed_normal(data, force_update);
+			break;
+		case 1:
+			compute_iso_sound_speed_nbody(data, force_update); // has discontinuities
+			break;
+		case 2:
+			compute_iso_sound_speed_center_of_mass(data, force_update);
+			break;
+		default:
+			compute_sound_speed_normal(data, force_update);
 	}
 	}
 }
@@ -2479,13 +2534,79 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
     }
 }
 
+
+/**
+	computes aspect ratio with respect to the center of mass
+*/
+void compute_aspect_ratio_center_of_mass(t_data &data, const bool force_update)
+{
+	static double last_physicaltime_calculated = -1;
+
+	if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+	return;
+	}
+	last_physicaltime_calculated = PhysicalTime;
+
+	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+	const double m_cm = data.get_planetary_system().get_mass();
+
+	for (unsigned int n_rad = 0;
+	 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
+	for (unsigned int n_az = 0;
+		 n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
+
+		const int cell = get_cell_id(n_rad, n_az);
+		const double x = CellCenterX->Field[cell];
+		const double y = CellCenterY->Field[cell];
+		const double cs2 =
+		std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
+
+		//const double min_dist =
+		//	0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+		//		   Rmed[n_rad] * dphi);
+
+		const double dx = x - r_cm.x;
+		const double dy = y - r_cm.y;
+
+		//const double dist = std::max(
+		//	std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+		const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+		const double dist3 = std::pow(dist, 3);
+
+		// H^2 = (GM / dist^3 / Cs_iso^2)^-1
+		if (parameters::Adiabatic || parameters::Polytropic) {
+			/// Convert sound speed to isothermal sound speed cs,iso = cs / sqrt(gamma)
+			const double H2_tmp = (dist3 * cs2) / (constants::G * m_cm * ADIABATICINDEX);
+			//const double H2 = std::max(H2_tmp, std::pow(min_dist, 2));
+			const double H2 = H2_tmp;
+			const double H = std::sqrt(H2);
+			data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+		} else { // locally isothermal
+			const double H2_tmp = (dist3 * cs2) / (constants::G * m_cm);
+			//const double H2 = std::max(H2_tmp, std::pow(min_dist, 2));
+			const double H2 = H2_tmp;
+			const double H = std::sqrt(H2);
+			data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+		}
+	}
+	}
+}
+
 void compute_aspect_ratio(t_data &data, const bool force_update)
 {
-    if (ASPECTRATIO_NBODY) {
-	compute_aspect_ratio_nbody(data, force_update);
-    } else {
-	compute_aspect_ratio_old(data, force_update);
-    }
+	switch(ASPECTRATIO_MODE) {
+		case 0:
+			compute_aspect_ratio_old(data, force_update);
+			break;
+		case 1:
+			compute_aspect_ratio_nbody(data, force_update);
+			break;
+		case 2:
+			compute_aspect_ratio_center_of_mass(data, force_update);
+			break;
+		default:
+			compute_aspect_ratio_old(data, force_update);
+	}
 }
 
 /**

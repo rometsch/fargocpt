@@ -751,82 +751,148 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 	return;
 	}
 
-	static const unsigned int N_planets =
-	data.get_planetary_system().get_number_of_planets();
-	static std::vector<double> xpl(N_planets);
-	static std::vector<double> ypl(N_planets);
-	static std::vector<double> mpl(N_planets);
-	static std::vector<double> rpl(N_planets);
-
-	// setup planet data
-	for (unsigned int k = 0; k < N_planets; k++) {
-	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass();
-	xpl[k] = planet.get_x();
-	ypl[k] = planet.get_y();
-	rpl[k] = planet.get_radius();
-	}
-
-	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
-	const double m_cm = data.get_planetary_system().get_mass();
-
-	for (unsigned int nRad = 0;
-	 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-	for (unsigned int nAz = 0;
-		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
-		 ++nAz) {
-
-		const int cell = get_cell_id(nRad, nAz);
-		const double x = CellCenterX->Field[cell];
-		const double y = CellCenterY->Field[cell];
-
-		// cell_r is the distance to the closest body used for computing the sound speed
-		// the cell belongs to a body, if it is inside its roche radius.
-		// if no close body is found, the center of mass is used instead
-		double cell_r = 0.0;
-		double roche_radius;
-
-		for (unsigned int k = 0; k < N_planets; k++) {
-
-			// primary object uses next object to compute the roche radius
-			// while all other objects use the primary object.
-			if(k == 0){
-				const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[1], 2) + std::pow(ypl[k] - ypl[1], 2));
-				const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
-				roche_radius = eggleton_1983(mass_q , partner_dist);
-			} else {
-				const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[0], 2) + std::pow(ypl[k] - ypl[0], 2));
-				const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
-				roche_radius = eggleton_1983(mass_q , partner_dist);
+	switch(ASPECTRATIO_MODE){
+		case 0:
+		{
+			for (unsigned int nRad = 0;
+			 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+			for (unsigned int nAz = 0;
+				 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
+				 ++nAz) {
+			data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
+			}
 			}
 
-		/// since the mass is distributed homogeniously distributed
-		/// inside the cell, we assume that the planet is always at
-		/// least cell_size / 2 plus planet radius away from the gas
-		/// this is an rough estimate without explanation
-		/// alternatively you can think about it yourself
-		const double min_dist =
-			0.5 * std::max(Rsup[nRad] - Rinf[nRad],
-				   Rmed[nRad] * dphi) +
-			rpl[k];
-
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
-
-		const double dist = std::max(
-			std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
-
-		if(dist < roche_radius){
-			cell_r = dist;
+			break;
 		}
-		}
+		case 1:
+		{
+			static const unsigned int N_planets =
+			data.get_planetary_system().get_number_of_planets();
+			static std::vector<double> xpl(N_planets);
+			static std::vector<double> ypl(N_planets);
+			static std::vector<double> mpl(N_planets);
+			static std::vector<double> rpl(N_planets);
 
-		if(cell_r == 0.0){
-			cell_r = std::sqrt(std::pow(x - r_cm.x, 2) + std::pow(y - r_cm.y, 2));
-		}
+			// setup planet data
+			for (unsigned int k = 0; k < N_planets; k++) {
+			t_planet &planet = data.get_planetary_system().get_planet(k);
+			mpl[k] = planet.get_rampup_mass();
+			xpl[k] = planet.get_x();
+			ypl[k] = planet.get_y();
+			rpl[k] = planet.get_radius();
+			}
 
-		data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / cell_r;
-	}
+			const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+			const double m_cm = data.get_planetary_system().get_mass();
+
+			for (unsigned int nRad = 0;
+			 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+			for (unsigned int nAz = 0;
+				 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
+				 ++nAz) {
+
+				const int cell = get_cell_id(nRad, nAz);
+				const double x = CellCenterX->Field[cell];
+				const double y = CellCenterY->Field[cell];
+
+				// cell_r is the distance to the closest body used for computing the sound speed
+				// the cell belongs to a body, if it is inside its roche radius.
+				// if no close body is found, the center of mass is used instead
+				double cell_r = 0.0;
+				double roche_radius;
+
+				for (unsigned int k = 0; k < N_planets; k++) {
+
+					// primary object uses next object to compute the roche radius
+					// while all other objects use the primary object.
+					if(k == 0){
+						const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[1], 2) + std::pow(ypl[k] - ypl[1], 2));
+						const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
+						roche_radius = eggleton_1983(mass_q , partner_dist);
+					} else {
+						const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[0], 2) + std::pow(ypl[k] - ypl[0], 2));
+						const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
+						roche_radius = eggleton_1983(mass_q , partner_dist);
+					}
+
+				/// since the mass is distributed homogeniously distributed
+				/// inside the cell, we assume that the planet is always at
+				/// least cell_size / 2 plus planet radius away from the gas
+				/// this is an rough estimate without explanation
+				/// alternatively you can think about it yourself
+				const double min_dist =
+					0.5 * std::max(Rsup[nRad] - Rinf[nRad],
+						   Rmed[nRad] * dphi) +
+					rpl[k];
+
+				const double dx = x - xpl[k];
+				const double dy = y - ypl[k];
+
+				const double dist = std::max(
+					std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+
+				if(dist < roche_radius){
+					cell_r = dist;
+				}
+				}
+
+				if(cell_r == 0.0){
+					cell_r = std::sqrt(std::pow(x - r_cm.x, 2) + std::pow(y - r_cm.y, 2));
+				}
+
+				data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / cell_r;
+			}
+			}
+			break;
+		}
+		case 2:
+		{
+			const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+
+			for (unsigned int nRad = 0;
+			 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+			for (unsigned int nAz = 0;
+				 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
+				 ++nAz) {
+
+				const int cell = get_cell_id(nRad, nAz);
+				const double x = CellCenterX->Field[cell];
+				const double y = CellCenterY->Field[cell];
+
+
+				/// since the mass is distributed homogeniously distributed
+				/// inside the cell, we assume that the planet is always at
+				/// least cell_size / 2 plus planet radius away from the gas
+				/// this is an rough estimate without explanation
+				/// alternatively you can think about it yourself
+				//const double min_dist =
+				//	0.5 * std::max(Rsup[nRad] - Rinf[nRad],
+				//		   Rmed[nRad] * dphi);
+
+				const double dx = x - r_cm.x;
+				const double dy = y - r_cm.y;
+
+				//const double dist = std::max(
+				//	std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+
+				const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+				data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / dist;
+			}
+			}
+			break;
+		}
+		default:
+		{
+				for (unsigned int nRad = 0;
+				 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+				for (unsigned int nAz = 0;
+					 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
+					 ++nAz) {
+				data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
+			}
+			}
+		}
 	}
 }
 

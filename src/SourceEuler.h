@@ -36,6 +36,7 @@ void compute_sound_speed(t_data &data, bool force_update);
 void compute_aspect_ratio(t_data &data, const bool force_update);
 void compute_aspect_ratio_old(t_data &data, const bool force_update);
 void compute_aspect_ratio_nbody(t_data &data, const bool force_update);
+void compute_aspect_ratio_center_of_mass(t_data &data, const bool force_update);
 void compute_pressure(t_data &data, bool force_update);
 void compute_temperature(t_data &data, bool force_update);
 void compute_rho(t_data &data, bool force_update);
