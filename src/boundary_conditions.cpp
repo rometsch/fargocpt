@@ -266,6 +266,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_viscous_outflow:
 	viscous_outflow_boundary_inner(data);
 	break;
+	case parameters::boundary_condition_initial:
+	die("inner initial boundary condition not implemented yet");
+	break;
     case parameters::boundary_condition_evanescent: // evanescent works only for
 						    // inner and outer together
 						    // until now
@@ -302,7 +305,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	initial_center_of_mass_boundary(data);
 	break;
 	case parameters::boundary_condition_initial:
-	initial_center_of_mass_boundary(data);
+	initial_boundary_outer(data);
 	break;
     case parameters::boundary_condition_boundary_layer:
 	boundary_layer_outer_boundary(data);
@@ -1635,7 +1638,7 @@ void initial_center_of_mass_boundary(t_data &data)
  *  to the initial profile.
  * @param data
  */
-void initial_boundary(t_data &data)
+void initial_boundary_outer(t_data &data)
 {
 
 	if (CPU_Rank != CPU_Highest)
