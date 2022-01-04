@@ -366,6 +366,8 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteTau", false), do_write_1D);
 	data[t_data::SCALE_HEIGHT].set_write(
 	config::value_as_bool_default("WriteScaleHeight", false), do_write_1D);
+	data[t_data::ASPECTRATIO].set_write(
+	config::value_as_bool_default("WriteAspectratio", false), do_write_1D);
     data[t_data::VISIBILITY].set_write(
 	config::value_as_bool_default("WriteVisibility", false), do_write_1D);
     data[t_data::LUMINOSITY_1D].set_write(

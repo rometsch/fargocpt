@@ -67,7 +67,7 @@ double gas_aspect_ratio(t_data &data)
 		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
 			     Surf[n_radial];
 		local_aspect_ratio +=
-			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal)*InvRmed[n_radial] *
+			data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
 		    local_mass;
 	    }
 	}
@@ -745,8 +745,11 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 
 void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 {
-	(void)timestep;
-	(void)force_update;
+	static int last_timestep_calculated = -1;
+
+	if ((!force_update) && (last_timestep_calculated == (int)timestep)) {
+	return;
+	}
 
 	static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();

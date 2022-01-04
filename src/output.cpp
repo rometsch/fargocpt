@@ -341,6 +341,8 @@ void write_quantities(t_data &data, unsigned int timestep,
     }
     double gravitationalEnergy = quantities::gas_gravitational_energy(data);
     double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
+
+	quantities::compute_aspectratio(data, timestep, force_update);
     double scale_height = quantities::gas_aspect_ratio(data);
 
     double pdivv_total = 0.0;
