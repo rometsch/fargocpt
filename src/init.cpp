@@ -310,7 +310,7 @@ void init_physics(t_data &data)
     // only gas velocities remain to be initialized
     init_euler(data);
     init_gas_velocities(data);
-    boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	//boundary_conditions::apply_boundary_condition(data, 0.0, false);
 }
 
 /**
