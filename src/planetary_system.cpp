@@ -509,7 +509,7 @@ void t_planetary_system::initialize_planet_jacobi(t_planet *planet, double mass,
 /**
    Get the sum of masses of the first n particles
 */
-double t_planetary_system::get_mass(unsigned int n)
+double t_planetary_system::get_mass(unsigned int n) const
 {
     double mass = 0.0;
     for (unsigned int i = 0; i < n; i++) {
@@ -521,7 +521,7 @@ double t_planetary_system::get_mass(unsigned int n)
 /**
    Get the sum of masses of all particles
 */
-double t_planetary_system::get_mass()
+double t_planetary_system::get_mass() const
 {
     return get_mass(get_number_of_planets());
 }
@@ -529,7 +529,7 @@ double t_planetary_system::get_mass()
 /**
    Get the center of mass of the first n particles
 */
-Pair t_planetary_system::get_center_of_mass(unsigned int n)
+Pair t_planetary_system::get_center_of_mass(unsigned int n) const
 {
     double x = 0.0;
     double y = 0.0;
@@ -554,7 +554,7 @@ Pair t_planetary_system::get_center_of_mass(unsigned int n)
 /**
    Get the velocity of the center of mass of the first n particles
 */
-Pair t_planetary_system::get_center_of_mass_velocity(unsigned int n)
+Pair t_planetary_system::get_center_of_mass_velocity(unsigned int n) const
 {
     double vx = 0.0;
     double vy = 0.0;
@@ -576,7 +576,7 @@ Pair t_planetary_system::get_center_of_mass_velocity(unsigned int n)
     return vcom;
 }
 
-Pair t_planetary_system::get_center_of_mass_velocity()
+Pair t_planetary_system::get_center_of_mass_velocity() const
 {
 	return get_center_of_mass_velocity(get_number_of_planets());
 }
@@ -585,7 +585,7 @@ Pair t_planetary_system::get_center_of_mass_velocity()
 /**
    Get the center of mass of all particles
 */
-Pair t_planetary_system::get_center_of_mass()
+Pair t_planetary_system::get_center_of_mass() const
 {
     return get_center_of_mass(get_number_of_planets());
 }
@@ -596,7 +596,7 @@ Pair t_planetary_system::get_center_of_mass()
    This is the function to be called later in the code
    whenever the distance to the center is used.
 */
-Pair t_planetary_system::get_hydro_frame_center_position()
+Pair t_planetary_system::get_hydro_frame_center_position() const
 {
     return get_center_of_mass(parameters::n_bodies_for_hydroframe_center);
 }
@@ -605,7 +605,7 @@ Pair t_planetary_system::get_hydro_frame_center_position()
    Analogous to get_hydro_frame_center but returns its velocity.
 */
 
-Pair t_planetary_system::get_hydro_frame_center_velocity()
+Pair t_planetary_system::get_hydro_frame_center_velocity() const
 {
     return get_center_of_mass_velocity(
 	parameters::n_bodies_for_hydroframe_center);
@@ -615,7 +615,7 @@ Pair t_planetary_system::get_hydro_frame_center_velocity()
    Analogous to get_hydro_frame_center but returns its mass.
 */
 
-double t_planetary_system::get_hydro_frame_center_mass()
+double t_planetary_system::get_hydro_frame_center_mass() const
 {
     return get_mass(parameters::n_bodies_for_hydroframe_center);
 }

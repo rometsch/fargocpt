@@ -104,7 +104,7 @@ class t_planet
 
     // getter
     inline double get_mass(void) const { return m_mass; }
-    double get_rampup_mass();
+	double get_rampup_mass() const;
     inline double get_x(void) const { return m_x; }
     inline double get_y(void) const { return m_y; }
     inline double get_vx(void) const { return m_vx; }

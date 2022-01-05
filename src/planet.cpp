@@ -192,7 +192,7 @@ double t_planet::get_r() const
 /**
 	get ramp up mass of the planet
 */
-double t_planet::get_rampup_mass()
+double t_planet::get_rampup_mass() const
 {
     double ramping = 1.0;
     if (get_rampuptime() > 0) {

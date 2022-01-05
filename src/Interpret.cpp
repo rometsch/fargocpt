@@ -252,6 +252,20 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	ASPECTRATIO_MODE =
 	config::value_as_int_default("AspectRatioMode", 0);
 
+	switch(ASPECTRATIO_MODE){
+		case 0:
+			logging::print_master(LOG_INFO "Computing scale height with respect to primary object.\n");
+			break;
+		case 1:
+			logging::print_master(LOG_INFO "Computing scale height with respect to nbody system.\n");
+			break;
+		case 2:
+			logging::print_master(LOG_INFO "Computing scale height with respect to center of mass.\n");
+			break;
+		default:
+			logging::print_master(LOG_INFO "Computing scale height with respect to primary object.\n");
+	}
+
     if (!config::key_exists("OuterBoundary")) {
 	logging::print_master(LOG_ERROR
 			      "OuterBoundary doesn't exist. Old .par file?\n");

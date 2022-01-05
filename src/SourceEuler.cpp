@@ -280,7 +280,7 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 	compute_sound_speed(data, force_update);
 	compute_pressure(data, force_update);
 	compute_temperature(data, force_update);
-	compute_aspect_ratio(data, force_update);
+	compute_scale_height(data, force_update);
 	} else {
 	compute_pressure(data, force_update);
 	}
@@ -289,7 +289,7 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
     if (parameters::Adiabatic || parameters::Polytropic) {
 	compute_temperature(data, force_update);
 	compute_sound_speed(data, force_update);
-	compute_aspect_ratio(data, force_update);
+	compute_scale_height(data, force_update);
 	compute_pressure(data, force_update);
     }
 
@@ -305,13 +305,13 @@ void init_euler(t_data &data)
 	compute_sound_speed(data, true);
 	compute_pressure(data, true);
 	compute_temperature(data, true);
-	compute_aspect_ratio(data, true);
+	compute_scale_height(data, true);
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
 	compute_temperature(data, true);
 	compute_sound_speed(data, true);
-	compute_aspect_ratio(data, true);
+	compute_scale_height(data, true);
 	compute_pressure(data, true);
     }
 
@@ -1515,7 +1515,7 @@ void radiative_diffusion(t_data &data, double dt)
     // update temperature, soundspeed and aspect ratio
     compute_temperature(data, true);
     compute_sound_speed(data, true);
-    compute_aspect_ratio(data, true);
+	compute_scale_height(data, true);
 
     // calcuate Ka for K(i/2,j)
     for (unsigned int n_radial = 1; n_radial <= Ka.get_max_radial() - 1;
@@ -2415,7 +2415,7 @@ void compute_sound_speed(t_data &data, bool force_update)
 /**
 	computes aspect ratio
 */
-void compute_aspect_ratio_old(t_data &data, const bool force_update)
+void compute_scale_height_old(t_data &data, const bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
@@ -2452,8 +2452,10 @@ void compute_aspect_ratio_old(t_data &data, const bool force_update)
 /**
 	computes aspect ratio for an entire Nbody system
 */
-void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
+void compute_scale_height_nbody(t_data &data, const bool force_update)
 {
+	printf("compute_aspect_ratio_nbody\n");
+
     static double last_physicaltime_calculated = -1;
 
     if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
@@ -2470,12 +2472,14 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
-	t_planet &planet = data.get_planetary_system().get_planet(k);
+	const t_planet &planet = data.get_planetary_system().get_planet(k);
 	mpl[k] = planet.get_rampup_mass();
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	rpl[k] = planet.get_radius();
     }
+	const double m_cm = data.get_planetary_system().get_mass();
+
 
     // h = H/r
     // H = = c_s,iso / (GM/r^3) = c_s/sqrt(gamma) / / (GM/r^3)
@@ -2497,15 +2501,26 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
+
 		/// since the mass is distributed homogeniously distributed
 		/// inside the cell, we assume that the planet is always at
 		/// least cell_size / 2 plus planet radius away from the gas
 		/// this is an rough estimate without explanation
 		/// alternatively you can think about it yourself
-		const double min_dist =
+		const double min_height =
 			0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
 				   Rmed[n_rad] * dphi) +
 			rpl[k];
+
+		double min_dist;
+		if(k != 0)
+		{
+			const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[0], 2) + std::pow(ypl[k] - ypl[0], 2));
+			const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
+			min_dist = eggleton_1983(mass_q , partner_dist);
+		} else {
+			min_dist = 0.0;
+		}
 
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
@@ -2519,11 +2534,11 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 			const double tmp_inv_H2 = constants::G * mpl[k] * ADIABATICINDEX /
 					(dist3 * cs2);
 			inv_H2 += std::min(tmp_inv_H2,
-				       1.0 / std::pow(min_dist, 2));
+					   1.0 / std::pow(min_height, 2));
 		} else {
 			const double tmp_inv_H2 = constants::G * mpl[k] / (dist3 * cs2);
 			inv_H2 += std::min(tmp_inv_H2,
-				       1.0 / std::pow(min_dist, 2));
+					   1.0 / std::pow(min_height, 2));
 		}
 	    }
 
@@ -2538,7 +2553,7 @@ void compute_aspect_ratio_nbody(t_data &data, const bool force_update)
 /**
 	computes aspect ratio with respect to the center of mass
 */
-void compute_aspect_ratio_center_of_mass(t_data &data, const bool force_update)
+void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
 {
 	static double last_physicaltime_calculated = -1;
 
@@ -2592,20 +2607,20 @@ void compute_aspect_ratio_center_of_mass(t_data &data, const bool force_update)
 	}
 }
 
-void compute_aspect_ratio(t_data &data, const bool force_update)
+void compute_scale_height(t_data &data, const bool force_update)
 {
 	switch(ASPECTRATIO_MODE) {
 		case 0:
-			compute_aspect_ratio_old(data, force_update);
+			compute_scale_height_old(data, force_update);
 			break;
 		case 1:
-			compute_aspect_ratio_nbody(data, force_update);
+			compute_scale_height_nbody(data, force_update);
 			break;
 		case 2:
-			compute_aspect_ratio_center_of_mass(data, force_update);
+			compute_scale_height_center_of_mass(data, force_update);
 			break;
 		default:
-			compute_aspect_ratio_old(data, force_update);
+			compute_scale_height_old(data, force_update);
 	}
 }
 
@@ -2697,7 +2712,7 @@ void compute_rho(t_data &data, bool force_update)
     }
     last_physicaltime_calculated = PhysicalTime;
 
-    compute_aspect_ratio(data, force_update);
+	compute_scale_height(data, force_update);
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::RHO].get_max_radial(); ++n_radial) {

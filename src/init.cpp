@@ -326,7 +326,7 @@ void init_shakura_sunyaev(t_data &data)
 	die("Isothermal equation of state and Shakura & Sunyaev starting conditions has not yet been implemented!");
 	}
 
-	if(ASPECTRATIO_MODE){
+	if(ASPECTRATIO_MODE > 0){
 	die("ASPECTRATIO_NBODY and Shakura & Sunyaev starting conditions has not yet been implemented!");
 	}
 

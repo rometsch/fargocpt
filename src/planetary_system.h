@@ -42,20 +42,20 @@ class t_planetary_system
 	t_planet *planet, double mass, double semi_major_axis,
 	double eccentricity, double omega, double true_anomaly);
 
-    Pair get_hydro_frame_center_position();
-    Pair get_hydro_frame_center_velocity();
-    double get_hydro_frame_center_mass();
+	Pair get_hydro_frame_center_position() const;
+	Pair get_hydro_frame_center_velocity() const;
+	double get_hydro_frame_center_mass() const;
     void move_to_hydro_frame_center();
 
     void update_global_hydro_frame_center_mass();
-    void calculate_orbital_elements();
+	void calculate_orbital_elements();
 
-    double get_mass();
-    double get_mass(unsigned int n);
-    Pair get_center_of_mass();
-    Pair get_center_of_mass(unsigned int n);
-    Pair get_center_of_mass_velocity(unsigned int n);
-	Pair get_center_of_mass_velocity();
+	double get_mass() const;
+	double get_mass(unsigned int n) const;
+	Pair get_center_of_mass() const;
+	Pair get_center_of_mass(unsigned int n) const;
+	Pair get_center_of_mass_velocity(unsigned int n) const;
+	Pair get_center_of_mass_velocity() const;
 
     void initialize_default_star();
     void init_rebound();
