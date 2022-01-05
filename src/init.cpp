@@ -621,13 +621,15 @@ void init_gas_density(t_data &data)
 		const double cms_x = cms.x;
 		const double cms_y = cms.y;
 
-		for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
+		for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].get_size_radial();
 			++n_radial) {
 			for (unsigned int n_azimuthal = 0;
-				n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
+				n_azimuthal < data[t_data::DENSITY].get_size_azimuthal(); ++n_azimuthal) {
 
-					const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
-					const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				const double phi = (double)n_azimuthal * dphi;
+				const double rmed = Rmed[n_radial];
+					const double x = rmed * std::cos(phi) - cms_x;
+					const double y = rmed * std::sin(phi) - cms_y;
 					const double r = std::sqrt(x*x + y*y);
 
 					const double density =
@@ -748,8 +750,10 @@ void init_gas_density(t_data &data)
 				const double cms_x = cms.x;
 				const double cms_y = cms.y;
 
-				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
-				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				const double phi = (double)n_azimuthal * dphi;
+				const double rmed = Rmed[n_radial];
+				const double x = rmed * std::cos(phi) - cms_x;
+				const double y = rmed * std::sin(phi) - cms_y;
 				r = std::sqrt(x*x + y*y);
 			} else {
 				 r = Rmed[n_radial];
@@ -789,8 +793,10 @@ void init_gas_density(t_data &data)
 				const double cms_x = cms.x;
 				const double cms_y = cms.y;
 
-				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
-				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				const double phi = (double)n_azimuthal * dphi;
+				const double rmed = Rmed[n_radial];
+				const double x = rmed * std::cos(phi) - cms_x;
+				const double y = rmed * std::sin(phi) - cms_y;
 				r = std::sqrt(x*x + y*y);
 			} else {
 				r = Rmed[n_radial];
@@ -918,8 +924,10 @@ void init_gas_energy(t_data &data)
 			const double cms_x = cms.x;
 			const double cms_y = cms.y;
 
-			const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
-			const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+			const double phi = (double)n_azimuthal * dphi;
+			const double rmed = Rmed[n_radial];
+			const double x = rmed * std::cos(phi) - cms_x;
+			const double y = rmed * std::sin(phi) - cms_y;
 			const double r = std::sqrt(x*x + y*y);
 
 			const double energy =
@@ -982,8 +990,10 @@ void init_gas_energy(t_data &data)
 				const double cms_x = cms.x;
 				const double cms_y = cms.y;
 
-				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
-				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				const double phi = (double)n_azimuthal * dphi;
+				const double rmed = Rmed[n_radial];
+				const double x = rmed * std::cos(phi) - cms_x;
+				const double y = rmed * std::sin(phi) - cms_y;
 				r = std::sqrt(x*x + y*y);
 			} else {
 				r = Rmed[n_radial];
@@ -1028,8 +1038,10 @@ void init_gas_energy(t_data &data)
 				const double cms_x = cms.x;
 				const double cms_y = cms.y;
 
-				const double x = (*CellCenterX)(n_radial, n_azimuthal) - cms_x;
-				const double y = (*CellCenterY)(n_radial, n_azimuthal) - cms_y;
+				const double phi = (double)n_azimuthal * dphi;
+				const double rmed = Rmed[n_radial];
+				const double x = rmed * std::cos(phi) - cms_x;
+				const double y = rmed * std::sin(phi) - cms_y;
 				r = std::sqrt(x*x + y*y);
 			} else {
 				r = Rmed[n_radial];

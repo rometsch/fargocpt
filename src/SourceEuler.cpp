@@ -2454,8 +2454,6 @@ void compute_scale_height_old(t_data &data, const bool force_update)
 */
 void compute_scale_height_nbody(t_data &data, const bool force_update)
 {
-	printf("compute_aspect_ratio_nbody\n");
-
     static double last_physicaltime_calculated = -1;
 
     if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
