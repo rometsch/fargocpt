@@ -66,7 +66,7 @@ void configure_start_mode()
 	    }
 
 	    if (restart_from < 0) {
-		die("Can't restart, no valid output file found. Check misc.dat");
+		mode = mode_start;
 	    }
 	    break;
 	case mode_debug:
@@ -105,10 +105,10 @@ std::int32_t get_latest_output_num(bool debug = false)
 
     if (!misc_file.is_open()) {
 	logging::print_master(
-	    LOG_ERROR
-	    "Can't read '%s' file in \"get_latest_output_num\". Aborting.\n",
+		LOG_INFO
+		"Can't read '%s' file in \"get_latest_output_num\". Attempting to start fresh simulation.\n",
 	    path.c_str());
-	PersonalExit(1);
+	return -1;
     }
 
     output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0};
