@@ -106,7 +106,7 @@ std::int32_t get_latest_output_num(bool debug = false)
     if (!misc_file.is_open()) {
 	logging::print_master(
 		LOG_INFO
-		"Can't read '%s' file in \"get_latest_output_num\". Attempting to start fresh simulation.\n",
+		"Can't read '%s' file in \"get_latest_output_num.\nAttempting to start fresh simulation.\n",
 	    path.c_str());
 	return -1;
     }
