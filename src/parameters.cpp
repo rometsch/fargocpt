@@ -654,6 +654,10 @@ void read(char *filename, t_data &data)
 	break;
 	case 'n': // Profile
 	sigma_initialize_condition = initialize_condition_profile_Nbody_centered;
+	energy_initialize_condition = initialize_condition_profile_Nbody_centered;
+	if(!initialize_pure_keplerian){
+		die("initialize_condition_profile_Nbody_centered option requires initialize_pure_keplerian to be true!\n(Due to missing global arrays for initialzation)\n");
+	}
 	break;
     case '1': // 1D
 	sigma_initialize_condition = initialize_condition_read1D;
@@ -684,6 +688,7 @@ void read(char *filename, t_data &data)
 	energy_initialize_condition = initialize_condition_profile;
 	break;
 	case 'n': // Profile
+	sigma_initialize_condition = initialize_condition_profile_Nbody_centered;
 	energy_initialize_condition = initialize_condition_profile_Nbody_centered;
 	break;
     case '1': // 1D
