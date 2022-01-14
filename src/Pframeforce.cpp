@@ -68,7 +68,7 @@ void ComputeIndirectTerm(t_data &data)
 	IndirectTermPlanets.x -= mass * accel.x;
 	IndirectTermPlanets.y -= mass * accel.y;
 	mass_center += mass;
-    }
+	}
     IndirectTermPlanets.x /= mass_center;
     IndirectTermPlanets.y /= mass_center;
 

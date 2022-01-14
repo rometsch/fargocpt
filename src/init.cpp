@@ -1112,8 +1112,8 @@ void init_gas_velocities(t_data &data)
 			const double vr_cms = 0.0;
 			const double vaz_cms = std::sqrt(constants::G * mass / dist);
 
-			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) - v_cms.x;
-			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) - v_cms.y;
+			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) + v_cms.x;
+			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) + v_cms.y;
 			const double vr = vx*std::cos(phi) + vy*std::sin(phi);
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr;
 			}
@@ -1146,8 +1146,8 @@ void init_gas_velocities(t_data &data)
 			const double vr_cms = 0.0;
 			const double vaz_cms = std::sqrt(constants::G * mass / dist);
 
-			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) - v_cms.x;
-			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) - v_cms.y;
+			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) + v_cms.x;
+			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) + v_cms.y;
 			const double vaz = vy*std::cos(phi) - vx*std::sin(phi);
 			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
 			}
