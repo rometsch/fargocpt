@@ -1560,8 +1560,8 @@ void initial_center_of_mass_boundary(t_data &data)
 		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
 	    // shift velocity from center of mass frame to primary frame
-	    const double cell_vx = cell_vx_com - com_vel.x;
-	    const double cell_vy = cell_vy_com - com_vel.y;
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
 
 	    const double cell_vphi =
 		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
@@ -1591,8 +1591,8 @@ void initial_center_of_mass_boundary(t_data &data)
 		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
 	    // shift velocity from center of mass frame to primary frame
-	    const double cell_vx = cell_vx_com - com_vel.x;
-	    const double cell_vy = cell_vy_com - com_vel.y;
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
 
 	    const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
 	    vrad(nr, naz) = cell_vr;
