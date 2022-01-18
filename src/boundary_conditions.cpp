@@ -978,14 +978,12 @@ void mass_overflow(t_data &data)
 	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
 	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
     }
-    const double xplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_x();
-    const double yplanet =
-	data.get_planetary_system().get_planet(parameters::mof_planet).get_y();
+	const t_planet &planet =
+	data.get_planetary_system().get_planet(parameters::mof_planet);
+	const double xplanet = planet.get_x();
+	const double yplanet = planet.get_y();
 
-    const double omega_planet = data.get_planetary_system()
-				    .get_planet(parameters::mof_planet)
-				    .get_omega();
+	const double omega_planet = planet.get_omega();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
 	double angle = std::atan2(yplanet, xplanet) * 0.5 * M_1_PI;
@@ -1038,6 +1036,15 @@ void mass_overflow(t_data &data)
     double check = 0.0;
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
 
+		const double t_ramp = parameters::mof_rampingtime * planet.get_period();
+
+		double ramp_factor;
+		if (PhysicalTime < t_ramp) {
+		ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 4);
+		} else {
+		ramp_factor = 1.0;
+		}
+
 	// adapt gauss profile
 	double weight_factor;
 	int gridcell;
@@ -1054,7 +1061,7 @@ void mass_overflow(t_data &data)
 	int gridcell_r = gridcell + 1;
 	gridcell_r = gridcell_r % Nphi;
 
-	double dens = weight_factor * Sigma_stream;
+	double dens = ramp_factor * weight_factor * Sigma_stream;
 	if (dens < parameters::sigma0 * parameters::sigma_floor) {
 	    dens = parameters::sigma0 * parameters::sigma_floor;
 	}
