@@ -75,10 +75,10 @@ InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (
 InitializeVradialZero   No             # Initialize VRadial=0  [default = no]
 
 MassOverflow		No		# [default = No]
-mofvalue		1.0e-9 	#given in solar mass per year
-mofplanet		1		
-moftemperature		1500		
-
+mofValue		1.0e-9 	#given in solar mass per year
+mofPlanet		1		
+mofTemperature		1500		
+mofRampingTime		30
 
 ### Planet parameters
 PlanetConfig		setups/old/Jup-res.cfg
