@@ -1166,11 +1166,11 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	sigma; // walk through 3 sigma, so we get 99.7% accuracy
     double sigmabar = Nphi * sigma;
 
-    // ramping over 5 orbits
-    const double t_ramp = planet.get_rampuptime() * planet.get_period();
+	const double t_ramp = parameters::mof_rampingtime * planet.get_period();
+
     double ramp_factor;
     if (PhysicalTime < t_ramp) {
-	ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 2);
+	ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 6);
     } else {
 	ramp_factor = 1.0;
     }

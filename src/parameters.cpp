@@ -101,6 +101,7 @@ bool massoverflow;
 unsigned int mof_planet;
 double mof_temperature;
 double mof_value;
+double mof_rampingtime;
 
 bool profile_cutoff_outer;
 double profile_cutoff_point_outer;
@@ -775,6 +776,7 @@ void read(char *filename, t_data &data)
     mof_planet = config::value_as_int_default("mofplanet", 1);
     mof_temperature = config::value_as_double_default("moftemperature", 1000.0);
     mof_value = config::value_as_double_default("mofvalue", 10E-9);
+	mof_rampingtime = config::value_as_double_default("moframpingtime", 30.0);
 
     // profile damping outer
     profile_cutoff_outer =
@@ -1155,8 +1157,9 @@ void summarize_parameters()
     if (parameters::massoverflow) {
 	logging::print_master(
 	    LOG_INFO
-	    "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K.\n",
-	    mof_planet, mof_value, mof_temperature);
+		"Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K and ramping time t_ramp = %g P_orb.\n",
+			mof_planet, mof_value, mof_temperature, mof_rampingtime);
+
     }
 
     // Boundary layer

@@ -196,6 +196,7 @@ extern bool massoverflow;
 extern unsigned int mof_planet;
 extern double mof_temperature;
 extern double mof_value;
+extern double mof_rampingtime;
 
 /// disk applies force onto star
 /// and correction terms due to off barycenter system are applied
