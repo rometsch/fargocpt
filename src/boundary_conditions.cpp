@@ -988,7 +988,7 @@ void mass_overflow(t_data &data)
 				    .get_omega();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
-    double angle = atan2(yplanet, xplanet) * 0.5 * M_1_PI;
+	double angle = std::atan2(yplanet, xplanet) * 0.5 * M_1_PI;
     if (angle < 0) {
 	angle += 1.0;
     }
