@@ -457,13 +457,13 @@ void t_planet::restart(unsigned int timestep, bool debug)
 	PersonalExit(1);
     }
 
-    // rf.ignore(timestep * sizeof(planet_member_variables));
+	rf.ignore(timestep * sizeof(planet_member_variables));
 
     planet_member_variables pl;
     rf.read((char *)&pl, sizeof(planet_member_variables));
 
     while (pl.timestep != timestep) {
-	printf("pl.timestep = %d	%d\n", pl.timestep, timestep);
+	printf("[%d] pl.timestep = %d	%d\n", CPU_Rank, pl.timestep, timestep);
 	if (rf.eof()) {
 	    logging::print_master(LOG_ERROR
 				  "Could not read timestep %d in %s\n",
