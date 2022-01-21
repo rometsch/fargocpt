@@ -1086,10 +1086,10 @@ void init_gas_velocities(t_data &data)
 	{
 		const double mass = data.get_planetary_system().get_mass();
 		for (unsigned int n_radial = 0;
-			 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
+			 n_radial <= data[t_data::V_RADIAL].get_max_radial();
 			 ++n_radial) {
 			for (unsigned int n_azimuthal = 0;
-			 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
+			 n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 			 ++n_azimuthal) {
 
 			Pair cms = data.get_planetary_system().get_center_of_mass();
@@ -1104,16 +1104,19 @@ void init_gas_velocities(t_data &data)
 			r = Rinf[n_radial];
 			}
 
-			const double x = r * std::cos(phi) - cms_x;
-			const double y = r * std::sin(phi) - cms_y;
-			const double dist = std::sqrt(x*x + y*y);
+			const double cell_x = r * std::cos(phi);
+			const double cell_y = r * std::sin(phi);
+
+			const double x_com = cell_x - cms_x;
+			const double y_com = cell_y - cms_y;
+			const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
 
 			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
-			const double vr_cms = 0.0;
-			const double vaz_cms = std::sqrt(constants::G * mass / dist);
+			const double vr_com = 0.0;
+			const double vaz_com = std::sqrt(constants::G * mass / r_com);
 
-			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) + v_cms.x;
-			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) + v_cms.y;
+			const double vx = (vr_com*x_com - vaz_com*y_com)/r_com + v_cms.x;
+			const double vy = (vr_com*y_com + vaz_com*x_com)/r_com + v_cms.y;
 			const double vr = vx*std::cos(phi) + vy*std::sin(phi);
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr;
 			}
@@ -1138,16 +1141,19 @@ void init_gas_velocities(t_data &data)
 				r = Rmed[n_radial];
 			}
 
-			const double x = r * std::cos(phi) - cms_x;
-			const double y = r * std::sin(phi) - cms_y;
-			const double dist = std::sqrt(x*x + y*y);
+			const double cell_x = r * std::cos(phi);
+			const double cell_y = r * std::sin(phi);
+
+			const double x_com = cell_x - cms_x;
+			const double y_com = cell_y - cms_y;
+			const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
 
 			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
-			const double vr_cms = 0.0;
-			const double vaz_cms = std::sqrt(constants::G * mass / dist);
+			const double vr_com = 0.0;
+			const double vaz_com = std::sqrt(constants::G * mass / r_com);
 
-			const double vx = vr_cms*std::cos(phi) - vaz_cms*std::sin(phi) + v_cms.x;
-			const double vy = vr_cms*std::sin(phi) + vaz_cms*std::cos(phi) + v_cms.y;
+			const double vx = (vr_com*x_com - vaz_com*y_com)/r_com + v_cms.x;
+			const double vy = (vr_com*y_com + vaz_com*x_com)/r_com + v_cms.y;
 			const double vaz = vy*std::cos(phi) - vx*std::sin(phi);
 			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
 			}

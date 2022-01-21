@@ -1605,6 +1605,36 @@ void initial_center_of_mass_boundary(t_data &data)
 	    vrad(nr, naz) = cell_vr;
 	} /// END V_R
 
+	{ /// V_R GHOST CELL
+		const double phi = (double)naz * dphi;
+		const double rinf = Rsup[nr];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com);
+		const double cell_vr_com = 0.0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+		vrad(nr+1, naz) = cell_vr;
+	} /// END V_R GHOST CELL
+
 	{ /// DENSITY and ENERGY
 	    const double cell_x = (*CellCenterX)(nr, naz);
 	    const double cell_y = (*CellCenterY)(nr, naz);

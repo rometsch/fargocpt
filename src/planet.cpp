@@ -449,12 +449,13 @@ void t_planet::restart(unsigned int timestep, bool debug)
 		   std::to_string(get_planet_number()) + ".bin";
     }
 
+	try{
     std::ifstream rf(filename, std::ofstream::binary | std::ios::in);
 
     if (!rf.is_open()) {
-	logging::print_master(LOG_ERROR "Can't read '%s' file. Aborting.\n",
+	logging::print_master(LOG_ERROR "Can't read '%s' file.\n",
 			      filename.c_str());
-	PersonalExit(1);
+	throw 0;
     }
 
 	rf.ignore(timestep * sizeof(planet_member_variables));
@@ -463,18 +464,21 @@ void t_planet::restart(unsigned int timestep, bool debug)
     rf.read((char *)&pl, sizeof(planet_member_variables));
 
     while (pl.timestep != timestep) {
-	printf("[%d] pl.timestep = %d	%d\n", CPU_Rank, pl.timestep, timestep);
+	printf("[%d]	%s	pl.timestep = %d	%d\n", CPU_Rank, this->m_name.c_str(), pl.timestep, timestep);
 	if (rf.eof()) {
 	    logging::print_master(LOG_ERROR
 				  "Could not read timestep %d in %s\n",
 				  timestep, filename.c_str());
-	    die("End\n");
+		throw 0;
 	}
 	rf.read((char *)&pl, sizeof(planet_member_variables));
     }
 
     copy(pl);
     rf.close();
+	} catch(...) {
+		logging::print_master("Could not restart planet \"%s\". Planet is initialized from starting parameters\n", this->m_name.c_str());
+	}
 }
 
 double t_planet::get_value_from_file(unsigned int timestep,
