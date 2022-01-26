@@ -31,8 +31,6 @@ enum t_boundary_condition {
     boundary_condition_nonreflecting,
     boundary_condition_viscous_outflow,
     boundary_condition_boundary_layer,
-	boundary_condition_center_of_mass_initial,
-	boundary_condition_initial,
     boundary_condition_precribed_time_variable,
     boundary_condition_keplerian,
     boundary_condition_evanescent

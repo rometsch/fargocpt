@@ -25,7 +25,6 @@ void boundary_layer_inner_boundary(t_data &data);
 void boundary_layer_outer_boundary(t_data &data);
 void keplerian2d_boundary_inner(t_data &data);
 void keplerian2d_boundary_outer(t_data &data);
-void initial_center_of_mass_boundary(t_data &data);
 
 void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 			  double dt);
@@ -39,7 +38,6 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 			       double dt);
 void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 			       double dt);
-void initial_boundary_outer(t_data &data);
 } // namespace boundary_conditions
 
 #endif // BOUNDARY_CONDITIONS_H
