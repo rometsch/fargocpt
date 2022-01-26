@@ -451,6 +451,9 @@ void read(char *filename, t_data &data)
     case 'p':
 	boundary_inner = boundary_condition_precribed_time_variable;
 	break;
+	case 'z':
+	boundary_inner = boundary_condition_zero_gradient;
+	break;
     default:
 	die("Invalid setting for InnerBoundary: %s",
 	    config::value_as_string_default("InnerBoundary", "Open"));
@@ -481,6 +484,9 @@ void read(char *filename, t_data &data)
 	break;
     case 'p':
 	boundary_outer = boundary_condition_precribed_time_variable;
+	break;
+	case 'z':
+	boundary_outer = boundary_condition_zero_gradient;
 	break;
     default:
 	die("Invalid setting for OuterBoundary: %s",
@@ -1044,6 +1050,10 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'reflecting boundary condition' at inner boundary.\n");
 	break;
+	case boundary_condition_zero_gradient:
+	logging::print_master(
+		LOG_INFO "Using 'zero gradient boundary condition' at inner boundary.\n");
+	break;
     case boundary_condition_nonreflecting:
 	logging::print_master(
 	    LOG_INFO
@@ -1083,6 +1093,10 @@ void summarize_parameters()
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'reflecting boundary condition' at outer boundary.\n");
+	break;
+	case boundary_condition_zero_gradient:
+	logging::print_master(
+		LOG_INFO "Using 'zero gradient boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_nonreflecting:
 	logging::print_master(

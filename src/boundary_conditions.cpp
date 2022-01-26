@@ -255,6 +255,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_reflecting:
 	reflecting_boundary_inner(data);
 	break;
+	case parameters::boundary_condition_zero_gradient:
+	zero_gradient_boundary_inner(data);
+	break;
     case parameters::boundary_condition_boundary_layer:
 	boundary_layer_inner_boundary(data);
 	break;
@@ -294,6 +297,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     case parameters::boundary_condition_reflecting:
 	reflecting_boundary_outer(data);
+	break;
+	case parameters::boundary_condition_zero_gradient:
+	zero_gradient_boundary_outer(data);
 	break;
     case parameters::boundary_condition_boundary_layer:
 	boundary_layer_outer_boundary(data);
@@ -415,6 +421,58 @@ void open_boundary_outer(t_data &data)
 	}
     }
 }
+
+void zero_gradient_boundary_inner(t_data &data)
+{
+	if (CPU_Rank != 0)
+	return;
+
+	for (unsigned int n_azimuthal = 0;
+	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 ++n_azimuthal) {
+	// copy first ring into ghost ring
+	data[t_data::DENSITY](0, n_azimuthal) =
+		data[t_data::DENSITY](1, n_azimuthal);
+	data[t_data::ENERGY](0, n_azimuthal) =
+		data[t_data::ENERGY](1, n_azimuthal);
+
+	data[t_data::V_RADIAL](1, n_azimuthal) =
+	data[t_data::V_RADIAL](2, n_azimuthal);
+
+	data[t_data::V_RADIAL](0, n_azimuthal) =
+	data[t_data::V_RADIAL](2, n_azimuthal);
+	}
+}
+
+void zero_gradient_boundary_outer(t_data &data)
+{
+	if (CPU_Rank != CPU_Highest)
+	return;
+
+	for (unsigned int n_azimuthal = 0;
+	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 ++n_azimuthal) {
+	// copy last ring into ghost ring
+	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
+				  n_azimuthal) =
+		data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
+				  n_azimuthal);
+	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
+				 n_azimuthal) =
+		data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
+				 n_azimuthal);
+
+	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 1,
+				  n_azimuthal) =
+	data[t_data::V_RADIAL](
+		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
+				  n_azimuthal) =
+	data[t_data::V_RADIAL](
+		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+	}
+}
+
 
 /**
 	inner reflecting boundary condition

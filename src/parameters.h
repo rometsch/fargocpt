@@ -28,6 +28,7 @@ extern double exponential_cell_size_factor;
 enum t_boundary_condition {
     boundary_condition_open,
     boundary_condition_reflecting,
+	boundary_condition_zero_gradient,
     boundary_condition_nonreflecting,
     boundary_condition_viscous_outflow,
     boundary_condition_boundary_layer,
