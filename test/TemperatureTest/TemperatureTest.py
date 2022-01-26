@@ -48,6 +48,8 @@ def test(out1, dt):
     sigma = 5.6704e-05 # erg cm^-2 s^-1 K^-4
     l0 = 14959787070000
     m0 = 1.98892e+33
+    Sigma0 = m0 / l0 / l0
+    T0 = 1.0756431684186062e+05
     G = 6.674e-8 # dyne cm^2/g^2
     omega_k = np.sqrt(G*m0*(r*l0)**(-3))
     ax.axis('auto')
@@ -58,11 +60,11 @@ def test(out1, dt):
     vmin = min(vmin, np.min(T))
     vmax = max(vmax, np.max(T))
 
-    ax.plot(r1.flatten(), quant1.flatten(), '.r', label='Code', lw=2.5)
+    ax.plot(r1.flatten(), quant1.flatten() * T0, '.r', label='Code', lw=2.5)
 
     file_name = out1 + 'gasdens1D' + str(dt) + ".dat"
     data_dens = np.fromfile(file_name)
-    quant2 = data_dens[1::4]
+    quant2 = data_dens[1::4] * Sigma0
 
     ax2.axis('auto')
     ax2.set_title('Density', color='black', y = 1.06)
