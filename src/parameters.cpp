@@ -513,7 +513,7 @@ void read(char *filename, t_data &data)
 
     if (domegadr_zero)
 	logging::print_master(LOG_INFO
-			      "Using to Torque condition at outer boundary\n");
+				  "Using zero torque condition at outer boundary\n");
 
     viscous_outflow_speed =
 	config::value_as_double_default("ViscousOutflowSpeed", 1.0);
