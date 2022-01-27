@@ -470,6 +470,18 @@ void zero_gradient_boundary_outer(t_data &data)
 				  n_azimuthal) =
 	data[t_data::V_RADIAL](
 		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+
+	const double R_outer =
+		Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
+	const double R_inner =
+		Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
+
+	data[t_data::V_AZIMUTHAL](
+		data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) =
+		std::sqrt(R_outer / R_inner) *
+		data[t_data::V_AZIMUTHAL](
+		data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
+		n_azimuthal);
 	}
 }
 
