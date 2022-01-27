@@ -948,7 +948,7 @@ void calculate_qplus(t_data &data)
     if (parameters::heating_viscous_enabled && EXPLICIT_VISCOSITY) {
 	/* We calculate the heating source term Qplus from i=1 to max-1 */
 	for (unsigned int n_radial = 1;
-	     n_radial <= data[t_data::QPLUS].get_max_radial() - 1; ++n_radial) {
+		 n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -992,51 +992,6 @@ void calculate_qplus(t_data &data)
 		}
 	    }
 	}
-
-	/* We calculate the heating source term Qplus for i=max */
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    if (data[t_data::VISCOSITY](data[t_data::QPLUS].get_max_radial(),
-					n_azimuthal) != 0.0) {
-		// power-law extrapolation
-		double qplus =
-		    data[t_data::QPLUS](
-			data[t_data::QPLUS].get_max_radial() - 1, n_azimuthal) *
-		    std::exp(
-			std::log(data[t_data::QPLUS](
-				     data[t_data::QPLUS].get_max_radial() - 1,
-				     n_azimuthal) /
-				 data[t_data::QPLUS](
-				     data[t_data::QPLUS].get_max_radial() - 2,
-				     n_azimuthal)) *
-			std::log(
-			    Rmed[data[t_data::QPLUS].get_max_radial()] /
-			    Rmed[data[t_data::QPLUS].get_max_radial() - 1]) /
-			std::log(
-			    Rmed[data[t_data::QPLUS].get_max_radial() - 1] /
-			    Rmed[data[t_data::QPLUS].get_max_radial() - 2]));
-
-		data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial(),
-				    n_azimuthal) += qplus;
-	    }
-	}
-	/* We calculate the heating source term Qplus for i=0 */
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    if (data[t_data::VISCOSITY](0, n_azimuthal) != 0.0) {
-		// power-law extrapolation
-		double qplus =
-		    data[t_data::QPLUS](1, n_azimuthal) *
-		    std::exp(std::log(data[t_data::QPLUS](1, n_azimuthal) /
-				      data[t_data::QPLUS](2, n_azimuthal)) *
-			     std::log(Rmed[0] / Rmed[1]) /
-			     std::log(Rmed[1] / Rmed[2]));
-
-		data[t_data::QPLUS](0, n_azimuthal) += qplus;
-	    }
-	}
     }
 
     if (parameters::heating_star_enabled) {
@@ -1061,7 +1016,7 @@ void calculate_qplus(t_data &data)
 
 	    // Simple star heating (see Masterthesis Alexandros Ziampras)
 	    for (unsigned int n_radial = 1;
-		 n_radial <= data[t_data::QPLUS].get_max_radial() - 1;
+		 n_radial < data[t_data::QPLUS].get_max_radial();
 		 ++n_radial) {
 		for (unsigned int n_azimuthal = 0;
 		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
@@ -1181,7 +1136,7 @@ void calculate_qplus(t_data &data)
 	    }
 
 	    for (unsigned int n_radial = 1;
-		 n_radial <= data[t_data::QPLUS].get_max_radial() - 1;
+		 n_radial < data[t_data::QPLUS].get_max_radial();
 		 ++n_radial) {
 		for (unsigned int n_azimuthal = 0;
 		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
@@ -1290,8 +1245,8 @@ void calculate_qminus(t_data &data)
 
     // beta cooling
     if (parameters::cooling_beta_enabled) {
-	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::QMINUS].get_max_radial(); ++n_radial) {
+	for (unsigned int n_radial = 1;
+		 n_radial < data[t_data::QMINUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -1319,8 +1274,8 @@ void calculate_qminus(t_data &data)
     // local radiative cooling
     if (parameters::cooling_radiative_enabled) {
 
-	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::QMINUS].get_max_radial(); ++n_radial) {
+	for (unsigned int n_radial = 1;
+		 n_radial < data[t_data::QMINUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
 		 ++n_azimuthal) {
