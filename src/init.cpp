@@ -1112,10 +1112,15 @@ void init_gas_velocities(t_data &data)
 			const double y_com = cell_y - cms_y;
 			const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
 
+			// pressure support correction
+			const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+							std::pow(r, 2.0 * FLARINGINDEX) *
+							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+
 			// Velocities in center of mass frame
 			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
 			const double vr_com = 0.0;
-			const double vaz_com = std::sqrt(constants::G * mass / r_com);
+			const double vaz_com = std::sqrt(constants::G * mass / r_com) * corr;
 
 			const double vx_com = (vr_com*x_com - vaz_com*y_com)/r_com;
 			const double vy_com = (vr_com*y_com + vaz_com*x_com)/r_com;
@@ -1156,10 +1161,15 @@ void init_gas_velocities(t_data &data)
 			const double y_com = cell_y - cms_y;
 			const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
 
+			// pressure support correction
+			const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+							std::pow(r_com, 2.0 * FLARINGINDEX) *
+							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+
 			// Velocities in center of mass frame
 			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
 			const double vr_com = 0.0;
-			const double vaz_com = std::sqrt(constants::G * mass / r_com);
+			const double vaz_com = std::sqrt(constants::G * mass / r_com) * corr;
 
 			const double vx_com = (vr_com*x_com - vaz_com*y_com)/r_com;
 			const double vy_com = (vr_com*y_com + vaz_com*x_com)/r_com;
