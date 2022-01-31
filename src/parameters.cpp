@@ -433,6 +433,9 @@ void read(char *filename, t_data &data)
     case 'n':
 	boundary_inner = boundary_condition_nonreflecting;
 	break;
+	case 'c':
+	boundary_inner = boundary_condition_center_of_mass_initial;
+	break;
     case 'e':
 	boundary_inner = boundary_condition_evanescent;
 	break;
@@ -466,6 +469,9 @@ void read(char *filename, t_data &data)
 	break;
     case 'n':
 	boundary_outer = boundary_condition_nonreflecting;
+	break;
+	case 'c':
+	boundary_outer = boundary_condition_center_of_mass_initial;
 	break;
     case 'e':
 	boundary_outer = boundary_condition_evanescent;
@@ -1082,6 +1088,9 @@ void summarize_parameters()
     case boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
+	case boundary_condition_center_of_mass_initial:
+	die("Inner boundary initial condition in center of mass is not implemented yet!\n");
+	break;
     }
 
     switch (boundary_outer) {
@@ -1136,6 +1145,11 @@ void summarize_parameters()
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'time variable boundary conditions' at inner boundary.\n");
+	break;
+	case boundary_condition_center_of_mass_initial:
+	logging::print_master(
+		LOG_INFO
+		"Using 'initial boundary in center of mass frame' at outer boundary.\n");
 	break;
     }
 

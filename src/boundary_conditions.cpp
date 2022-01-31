@@ -195,7 +195,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 						  constants::R /
 						  (ADIABATICINDEX - 1.0);
 
-			    data[t_data::PRESCRIBED_DENSITY_OUTER](
+				data[t_data::PRESCRIBED_DENSITY_OUTER](
 				file_id, n_azimuthal) = sigma;
 			    data[t_data::PRESCRIBED_ENERGY_OUTER](
 				file_id, n_azimuthal) = energy;
@@ -288,6 +288,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
+	case parameters::boundary_condition_center_of_mass_initial:
+	die("Inner initial center of mass boundary is not implemented yet!\n");
+	break;
     }
 
     // outer boundary
@@ -297,6 +300,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     case parameters::boundary_condition_reflecting:
 	reflecting_boundary_outer(data);
+	break;
+	case parameters::boundary_condition_center_of_mass_initial:
+	initial_center_of_mass_boundary(data);
 	break;
 	case parameters::boundary_condition_zero_gradient:
 	zero_gradient_boundary_outer(data);
@@ -1573,5 +1579,159 @@ void keplerian2d_boundary_outer(t_data &data)
 		      Rmed[data[t_data::DENSITY].get_max_radial() - 1]);
     }
 }
+
+/**
+ * @brief initial_center_of_mass_boundary: sets the outer boundary
+ *  to the initial profile in the center of mass and then shifts it to the
+ * primary center. Lucas thinks this is important when simulating a circumbinary
+ * disk when the coordination system is centered on the primary.
+ * @param data
+ */
+void initial_center_of_mass_boundary(t_data &data)
+{
+
+	if (CPU_Rank != CPU_Highest)
+	return;
+
+	const unsigned int np = data.get_planetary_system().get_number_of_planets();
+	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
+	const Pair com_vel =
+	data.get_planetary_system().get_center_of_mass_velocity(np);
+	const double com_mass = data.get_planetary_system().get_mass(np);
+
+	auto &sigma = data[t_data::DENSITY];
+	auto &energy = data[t_data::ENERGY];
+	auto &vrad = data[t_data::V_RADIAL];
+	auto &vaz = data[t_data::V_AZIMUTHAL];
+
+	const unsigned int nr = data[t_data::DENSITY].get_max_radial();
+	for (unsigned int naz = 0; naz <= data[t_data::DENSITY].get_max_azimuthal();
+	 ++naz) {
+
+	{ /// V_PHI
+		const double phi = ((double)naz - 0.5) * dphi;
+		const double rmed = Rmed[nr];
+
+		const double cell_x = rmed * std::cos(phi);
+		const double cell_y = rmed * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com);
+		const double cell_vr_com = 0.0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double cell_vphi =
+		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
+		vaz(nr, naz) = cell_vphi;
+	} /// END V_PHI
+
+	{ /// V_R
+		const double phi = (double)naz * dphi;
+		const double rinf = Rinf[nr];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com);
+		const double cell_vr_com = 0.0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+		vrad(nr, naz) = cell_vr;
+	} /// END V_R
+
+	{ /// V_R GHOST CELL
+		const double phi = (double)naz * dphi;
+		const double rinf = Rsup[nr];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com);
+		const double cell_vr_com = 0.0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+		vrad(nr+1, naz) = cell_vr;
+	} /// END V_R GHOST CELL
+
+	{ /// DENSITY and ENERGY
+		const double cell_x = (*CellCenterX)(nr, naz);
+		const double cell_y = (*CellCenterY)(nr, naz);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		const double cell_sigma =
+		parameters::sigma0 *
+		std::pow(r_com,
+			 -SIGMASLOPE); // we assume the floor is not reached.
+		sigma(nr, naz) = cell_sigma;
+
+		const double cell_energy =
+		1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
+		std::pow(ASPECTRATIO_REF, 2) *
+		std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+		constants::G * com_mass;
+
+		const double temperature_floor =
+		parameters::minimum_temperature *
+		units::temperature.get_inverse_cgs_factor();
+
+		const double energy_floor = temperature_floor * cell_sigma /
+					parameters::MU * constants::R /
+					(ADIABATICINDEX - 1.0);
+
+		energy(nr, naz) = std::max(cell_energy, energy_floor);
+	} /// END DENSITY and ENERGY
+	}
+}
+
 
 } // namespace boundary_conditions
