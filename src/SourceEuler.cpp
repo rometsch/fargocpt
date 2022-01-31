@@ -527,6 +527,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		recalculate_derived_disk_quantities(data, true);
 
 		ComputeViscousStressTensor(data);
+
 		viscosity::update_velocities_with_viscosity(
 		    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
 		    dt);

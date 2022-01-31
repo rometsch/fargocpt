@@ -5,6 +5,7 @@
 */
 
 #include "boundary_conditions.h"
+#include "find_cell_id.h"
 #include "Theo.h"
 #include "global.h"
 #include "logging.h"
@@ -302,8 +303,14 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	reflecting_boundary_outer(data);
 	break;
 	case parameters::boundary_condition_center_of_mass_initial:
+	{
 	initial_center_of_mass_boundary(data);
+	if(final)
+	{
+		damping_initial_center_of_mass_outer(data, dt);
+	}
 	break;
+	}
 	case parameters::boundary_condition_zero_gradient:
 	zero_gradient_boundary_outer(data);
 	break;
@@ -992,6 +999,85 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	    }
 	}
     }
+}
+
+void damping_initial_center_of_mass_outer(t_data &data,
+				   double dt)
+{
+	const unsigned int np = data.get_planetary_system().get_number_of_planets();
+	const auto &planet = data.get_planetary_system().get_planet(np-1);
+	const double T_bin = planet.get_period();
+
+	if(PhysicalTime > 100.0*T_bin)
+		return;
+
+	const double ramping = std::pow(std::cos(PhysicalTime * M_PI_2 /
+											 (100.0*T_bin)),
+											2);
+
+	// use the correct radius array corresponding to quantity
+	const t_radialarray &radius = Rinf;
+	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
+
+	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
+	const Pair com_vel =
+	data.get_planetary_system().get_center_of_mass_velocity(np);
+	const double com_mass = data.get_planetary_system().get_mass(np);
+
+	// is this CPU in the outer damping domain?
+	if ((parameters::damping_outer_limit < 1.0) &&
+	(radius[vrad_arr.get_max_radial()] >
+	 RMAX * parameters::damping_outer_limit)) {
+
+	const unsigned int limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1);
+
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+			 calculate_omega_kepler(RMAX);
+
+	for (unsigned int n_radial = limit;
+		 n_radial <= vrad_arr.get_max_radial(); ++n_radial) {
+		double factor = std::pow(
+		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor * ramping / tau);
+
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= vrad_arr.get_max_azimuthal(); ++n_azimuthal) {
+
+		const double phi = (double)n_azimuthal * dphi;
+		const double rinf = radius[n_radial];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com);
+		const double cell_vr_com = 0.0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+
+		const double vr = vrad_arr(n_radial, n_azimuthal);
+		const double vr_new = (vr - vr0) * exp_factor + vr0;
+		vrad_arr(n_radial, n_azimuthal) = vr_new;
+		}
+	}
+	}
 }
 
 /**
