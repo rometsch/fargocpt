@@ -1004,21 +1004,12 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 void damping_initial_center_of_mass_outer(t_data &data,
 				   double dt)
 {
-	const unsigned int np = data.get_planetary_system().get_number_of_planets();
-	const auto &planet = data.get_planetary_system().get_planet(np-1);
-	const double T_bin = planet.get_period();
-
-	if(PhysicalTime > 100.0*T_bin)
-		return;
-
-	const double ramping = std::pow(std::cos(PhysicalTime * M_PI_2 /
-											 (100.0*T_bin)),
-											2);
 
 	// use the correct radius array corresponding to quantity
 	const t_radialarray &radius = Rinf;
 	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
 
+	const unsigned int np = data.get_planetary_system().get_number_of_planets();
 	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
 	const Pair com_vel =
 	data.get_planetary_system().get_center_of_mass_velocity(np);
@@ -1040,7 +1031,7 @@ void damping_initial_center_of_mass_outer(t_data &data,
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-		double exp_factor = std::exp(-dt * factor * ramping / tau);
+		double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= vrad_arr.get_max_azimuthal(); ++n_azimuthal) {
