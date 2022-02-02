@@ -1008,6 +1008,7 @@ void damping_initial_center_of_mass_outer(t_data &data,
 	// use the correct radius array corresponding to quantity
 	const t_radialarray &radius = Rinf;
 	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
+	t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
 
 	const unsigned int np = data.get_planetary_system().get_number_of_planets();
 	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
@@ -1073,6 +1074,58 @@ void damping_initial_center_of_mass_outer(t_data &data,
 		vrad_arr(n_radial, n_azimuthal) = vr_new;
 		}
 	}
+
+
+	for (unsigned int n_radial = limit;
+		 n_radial <= vphi_arr.get_max_radial(); ++n_radial) {
+		double factor = std::pow(
+		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= vphi_arr.get_max_azimuthal(); ++n_azimuthal) {
+
+			const double phi = ((double)n_azimuthal - 0.5) * dphi;
+			const double rmed = Rmed[n_radial];
+
+			const double cell_x = rmed * std::cos(phi);
+			const double cell_y = rmed * std::sin(phi);
+
+			// Position in center of mass frame
+			const double x_com = cell_x - com_pos.x;
+			const double y_com = cell_y - com_pos.y;
+			const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+			// pressure support correction
+			const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+							std::pow(r_com, 2.0 * FLARINGINDEX) *
+							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+
+			// Velocity in center of mass frame
+			const double cell_vphi_com =
+			std::sqrt(constants::G * com_mass / r_com) * corr;
+			const double cell_vr_com = 0.0;
+
+			const double cell_vx_com =
+			(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+			const double cell_vy_com =
+			(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+			// shift velocity from center of mass frame to primary frame
+			const double cell_vx = cell_vx_com + com_vel.x;
+			const double cell_vy = cell_vy_com + com_vel.y;
+
+			const double vp0 =
+			(cell_x * cell_vy - cell_vx * cell_y) / rmed;
+
+		const double vp = vphi_arr(n_radial, n_azimuthal);
+		const double vp_new = (vp - vp0) * exp_factor + vp0;
+		vphi_arr(n_radial, n_azimuthal) = vp_new;
+		}
+	}
+
 	}
 }
 
