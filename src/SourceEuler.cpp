@@ -1474,40 +1474,40 @@ void radiative_diffusion(t_data &data, double dt)
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= Ka.get_max_azimuthal(); ++n_azimuthal) {
-	    unsigned int n_azimuthal_plus =
+		const unsigned int n_azimuthal_plus =
 		(n_azimuthal == Ka.get_max_azimuthal() ? 0 : n_azimuthal + 1);
-	    unsigned int n_azimuthal_minus =
+		const unsigned int n_azimuthal_minus =
 		(n_azimuthal == 0 ? Ka.get_max_azimuthal() : n_azimuthal - 1);
 
 	    // average temperature radially
-	    double temperature =
+		const double temperature =
 		0.5 * (data[t_data::TEMPERATURE](n_radial - 1, n_azimuthal) +
 		       data[t_data::TEMPERATURE](n_radial, n_azimuthal));
-	    double density =
+		const double density =
 		0.5 * (data[t_data::DENSITY](n_radial - 1, n_azimuthal) +
 		       data[t_data::DENSITY](n_radial, n_azimuthal));
-	    double aspectratio =
+		const double scale_height =
 		0.5 * (data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal) +
 			   data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal));
 
-	    double temperatureCGS = temperature * units::temperature;
-		double H = aspectratio;
-	    double densityCGS =
+		const double temperatureCGS = temperature * units::temperature;
+		const double H = scale_height;
+		const double densityCGS =
 		density / (parameters::density_factor * H) * units::density;
 
-	    double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
-	    double kappa = parameters::kappa_factor * kappaCGS *
+		const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+		const double kappa = parameters::kappa_factor * kappaCGS *
 			   units::opacity.get_inverse_cgs_factor();
 
-	    double denom = 1.0 / (density * kappa);
+		const double denom = 1.0 / (density * kappa);
 
 	    // Levermore & Pomraning 1981
 	    // R = 4 |nabla T\/T * 1/(rho kappa)
-	    double dT_dr =
+		const double dT_dr =
 		(data[t_data::TEMPERATURE](n_radial, n_azimuthal) -
 		 data[t_data::TEMPERATURE](n_radial - 1, n_azimuthal)) *
 		InvDiffRmed[n_radial];
-	    double dT_dphi =
+		const double dT_dphi =
 		InvRinf[n_radial] *
 		(0.5 * (data[t_data::TEMPERATURE](n_radial - 1,
 						  n_azimuthal_plus) +
@@ -1518,7 +1518,7 @@ void radiative_diffusion(t_data &data, double dt)
 		      data[t_data::TEMPERATURE](n_radial, n_azimuthal_minus))) /
 		(2 * dphi);
 
-	    double nabla_T =
+		const double nabla_T =
 		std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
 	    double R;
@@ -1534,40 +1534,40 @@ void radiative_diffusion(t_data &data, double dt)
 		} else {
 		    n_radial_adjusted = n_radial - 1;
 		}
-		double temperature =
+		const double temperature =
 		    0.5 *
 		    (data[t_data::TEMPERATURE](n_radial_adjusted - 1,
 					       n_azimuthal) +
 		     data[t_data::TEMPERATURE](n_radial_adjusted, n_azimuthal));
-		double density =
+		const double density =
 		    0.5 *
 		    (data[t_data::DENSITY](n_radial_adjusted - 1, n_azimuthal) +
 		     data[t_data::DENSITY](n_radial_adjusted, n_azimuthal));
-		double aspectratio =
+		const double scale_height =
 		    0.5 *
 			(data[t_data::SCALE_HEIGHT](n_radial_adjusted - 1,
 					       n_azimuthal) +
 			 data[t_data::SCALE_HEIGHT](n_radial_adjusted, n_azimuthal));
 
-		double temperatureCGS = temperature * units::temperature;
-		double H = aspectratio;
-		double densityCGS =
+		const double temperatureCGS = temperature * units::temperature;
+		const double H = scale_height ;
+		const double densityCGS =
 		    density / (parameters::density_factor * H) * units::density;
 
-		double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
-		double kappa = parameters::kappa_factor * kappaCGS *
+		const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+		const double kappa = parameters::kappa_factor * kappaCGS *
 			       units::opacity.get_inverse_cgs_factor();
 
-		double denom = 1.0 / (density * kappa);
+		const double denom = 1.0 / (density * kappa);
 
 		// Levermore & Pomraning 1981
 		// R = 4 |nabla T\/T * 1/(rho kappa)
-		double dT_dr =
+		const double dT_dr =
 		    (data[t_data::TEMPERATURE](n_radial_adjusted, n_azimuthal) -
 		     data[t_data::TEMPERATURE](n_radial_adjusted - 1,
 					       n_azimuthal)) *
 		    InvDiffRmed[n_radial];
-		double dT_dphi =
+		const double dT_dphi =
 		    InvRinf[n_radial] *
 		    (0.5 * (data[t_data::TEMPERATURE](n_radial_adjusted - 1,
 						      n_azimuthal_plus) +
@@ -1579,14 +1579,14 @@ void radiative_diffusion(t_data &data, double dt)
 						      n_azimuthal_minus))) /
 		    (2 * dphi);
 
-		double nabla_T =
+		const double nabla_T =
 		    std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
 		R = 4.0 * nabla_T / temperature * denom * H *
 		    parameters::density_factor;
 	    }
 
-	    double lambda = flux_limiter(R);
+		const double lambda = flux_limiter(R);
 
 	    Ka(n_radial, n_azimuthal) =
 		8.0 * 4.0 * constants::sigma.get_code_value() * lambda * H *
@@ -1603,34 +1603,34 @@ void radiative_diffusion(t_data &data, double dt)
 	     n_azimuthal <= Kb.get_max_azimuthal(); ++n_azimuthal) {
 	    // unsigned int n_azimuthal_plus = (n_azimuthal ==
 	    // Kb.get_max_azimuthal() ? 0 : n_azimuthal + 1);
-	    unsigned int n_azimuthal_minus =
+		const unsigned int n_azimuthal_minus =
 		(n_azimuthal == 0 ? Kb.get_max_azimuthal() : n_azimuthal - 1);
 
 	    // average temperature azimuthally
-	    double temperature =
+		const double temperature =
 		0.5 * (data[t_data::TEMPERATURE](n_radial, n_azimuthal_minus) +
 		       data[t_data::TEMPERATURE](n_radial, n_azimuthal));
-	    double density =
+		const double density =
 		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal_minus) +
 		       data[t_data::DENSITY](n_radial, n_azimuthal));
-	    double aspectratio =
+		const double scale_height =
 		0.5 * (data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal_minus) +
 			   data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal));
 
-	    double temperatureCGS = temperature * units::temperature;
-		double H = aspectratio;
-	    double densityCGS =
+		const double temperatureCGS = temperature * units::temperature;
+		const double H = scale_height;
+		const double densityCGS =
 		density / (parameters::density_factor * H) * units::density;
 
-	    double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
-	    double kappa = parameters::kappa_factor * kappaCGS *
+		const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+		const double kappa = parameters::kappa_factor * kappaCGS *
 			   units::opacity.get_inverse_cgs_factor();
 
-	    double denom = 1.0 / (density * kappa);
+		const double denom = 1.0 / (density * kappa);
 
 	    // Levermore & Pomraning 1981
 	    // R = 4 |nabla T\/T * 1/(rho kappa)
-	    double dT_dr =
+		const double dT_dr =
 		(0.5 * (data[t_data::TEMPERATURE](n_radial - 1,
 						  n_azimuthal_minus) +
 			data[t_data::TEMPERATURE](n_radial - 1, n_azimuthal)) -
@@ -1638,19 +1638,19 @@ void radiative_diffusion(t_data &data, double dt)
 						  n_azimuthal_minus) +
 			data[t_data::TEMPERATURE](n_radial + 1, n_azimuthal))) /
 		(Ra[n_radial - 1] - Ra[n_radial + 1]);
-	    double dT_dphi =
+		const double dT_dphi =
 		InvRmed[n_radial] *
 		(data[t_data::TEMPERATURE](n_radial, n_azimuthal) -
 		 data[t_data::TEMPERATURE](n_radial, n_azimuthal_minus)) /
 		dphi;
 
-	    double nabla_T =
+		const double nabla_T =
 		std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    double R = 4.0 * nabla_T / temperature * denom * H *
+		const double R = 4.0 * nabla_T / temperature * denom * H *
 		       parameters::density_factor;
 
-	    double lambda = flux_limiter(R);
+		const double lambda = flux_limiter(R);
 	    /*if (n_radial == 4) {
 		    printf("kb:
 	    phi=%lg\tR=%lg\tlambda=%lg\tdphi=%lg\tdr=%lg\tnabla=%lg\tT=%lg\tH=%lg\n",
@@ -1665,7 +1665,7 @@ void radiative_diffusion(t_data &data, double dt)
 	}
     }
 
-    double c_v = constants::R / (parameters::MU * (ADIABATICINDEX - 1.0));
+	const double c_v = constants::R / (parameters::MU * (ADIABATICINDEX - 1.0));
 
     // calculate A,B,C,D,E
     for (unsigned int n_radial = 1;
@@ -1674,15 +1674,15 @@ void radiative_diffusion(t_data &data, double dt)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal();
 	     ++n_azimuthal) {
-	    double H =
+		const double H =
 		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 	    // -dt H /(Sigma * c_v)
-	    double common_factor =
+		const double common_factor =
 		-dt * parameters::density_factor * H /
 		(data[t_data::DENSITY](n_radial, n_azimuthal) * c_v);
 
 	    // 2/(dR^2)
-	    double common_AC =
+		const double common_AC =
 		common_factor * 2.0 /
 		(std::pow(Ra[n_radial + 1], 2) - std::pow(Ra[n_radial], 2));
 	    A(n_radial, n_azimuthal) = common_AC * Ka(n_radial, n_azimuthal) *
@@ -1692,7 +1692,7 @@ void radiative_diffusion(t_data &data, double dt)
 		InvDiffRmed[n_radial + 1];
 
 	    // 1/(r^2 dphi^2)
-	    double common_DE =
+		const double common_DE =
 		common_factor / (std::pow(Rb[n_radial], 2) * std::pow(dphi, 2));
 	    D(n_radial, n_azimuthal) = common_DE * Kb(n_radial, n_azimuthal);
 	    E(n_radial, n_azimuthal) =
@@ -1734,9 +1734,9 @@ void radiative_diffusion(t_data &data, double dt)
     double absolute_norm = DBL_MAX;
     double norm_change = DBL_MAX;
 
-    int l = CPUOVERLAP * NAzimuthal;
-    int oo = (data[t_data::TEMPERATURE].Nrad - CPUOVERLAP) * NAzimuthal;
-    int o = (data[t_data::TEMPERATURE].Nrad - 2 * CPUOVERLAP) * NAzimuthal;
+	const int l = CPUOVERLAP * NAzimuthal;
+	const int oo = (data[t_data::TEMPERATURE].Nrad - CPUOVERLAP) * NAzimuthal;
+	const int o = (data[t_data::TEMPERATURE].Nrad - 2 * CPUOVERLAP) * NAzimuthal;
 
     // do SOR
     while ((norm_change > 1e-12) &&
@@ -1772,14 +1772,14 @@ void radiative_diffusion(t_data &data, double dt)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal();
 		 ++n_azimuthal) {
-		double old_value =
+		const double old_value =
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal);
-		unsigned int n_azimuthal_plus =
+		const unsigned int n_azimuthal_plus =
 		    (n_azimuthal ==
 			     data[t_data::TEMPERATURE].get_max_azimuthal()
 			 ? 0
 			 : n_azimuthal + 1);
-		unsigned int n_azimuthal_minus =
+		const unsigned int n_azimuthal_minus =
 		    (n_azimuthal == 0
 			 ? data[t_data::TEMPERATURE].get_max_azimuthal()
 			 : n_azimuthal - 1);
@@ -1804,9 +1804,9 @@ void radiative_diffusion(t_data &data, double dt)
 
 		// only non ghostcells to norm and don't count overlap cell's
 		// twice
-		bool isnot_ghostcell_rank_0 =
+		const bool isnot_ghostcell_rank_0 =
 		    n_radial > ((CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP);
-		bool isnot_ghostcell_rank_highest =
+		const bool isnot_ghostcell_rank_highest =
 		    (n_radial <
 		     (data[t_data::TEMPERATURE].get_max_radial() -
 		      ((CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP)));
