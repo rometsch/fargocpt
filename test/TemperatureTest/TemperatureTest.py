@@ -35,6 +35,7 @@ def test(out1, dt):
     ax2 = fig.add_subplot(122)
 
     rmax = np.max(r1)
+    rmin = np.min(r1)
     vmin = np.min(quant1)/1.01
     vmax = np.max(quant1)*1.01
 
@@ -72,8 +73,8 @@ def test(out1, dt):
     ax2.plot(r1.flatten(), dens, '--k', label='Theory', lw=2.5)
     ax2.plot(r1.flatten(), quant2, '.r', label='Code', lw=2.5)
 
-    vmin2 = np.min(dens)
-    vmax2 = np.max(dens)
+    vmin2 = np.min(quant2)
+    vmax2 = np.max(quant2)
 
 
     # ax.plot(r2.flatten(), quant2.flatten(), '--b', label='Expl', lw=2)
@@ -85,13 +86,13 @@ def test(out1, dt):
 
 
     log = True
-    ax.set_xlim(1,rmax)
+    ax.set_xlim(rmin,rmax)
     ax.set_ylim(vmin,vmax)
     if log:
         ax.set_yscale("log", nonpositive='clip')
         ax.set_xscale("log")
 
-    ax2.set_xlim(1,rmax)
+    ax2.set_xlim(rmin,rmax)
     ax2.set_ylim(vmin2,vmax2)
     if log:
         ax2.set_yscale("log", nonpositive='clip')
