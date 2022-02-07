@@ -1983,7 +1983,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= v_radial.get_max_azimuthal(); ++n_azimuthal) {
-	    double invdt1, invdt2, invdt3, invdt4, invdt5;
+		double invdt1, invdt2, invdt3, invdt4, invdt5, invdt6;
 
 	    // velocity differences in radial & azimuthal direction
 	    double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
@@ -2033,12 +2033,24 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     std::max(1 / std::pow(dxRadial, 2),
 			      1 / std::pow(dxAzimuthal, 2));
 
+		// heating / cooling limit
+		if(parameters::Adiabatic) {
+		// Limit energy update from heating / cooling to 0.5% per dt
+		const double inv_limit = 100.0; // 1/200 == 0.05%
+		const double Qp = data[t_data::QPLUS](n_radial, n_azimuthal);
+		const double Qm = data[t_data::QMINUS](n_radial, n_azimuthal);
+		const double E = data[t_data::ENERGY](n_radial, n_azimuthal);
+		invdt6 = inv_limit * std::fabs((Qp - Qm) / E);
+		} else {
+			invdt6 = 0.0;
+		}
+
 	    if (EXPLICIT_VISCOSITY) {
 		// calculate new dt based on different limits
 		dtLocal = parameters::CFL /
 			  std::sqrt(std::pow(invdt1, 2) + std::pow(invdt2, 2) +
 				    std::pow(invdt3, 2) + std::pow(invdt4, 2) +
-				    std::pow(invdt5, 2));
+					std::pow(invdt5, 2) + std::pow(invdt6, 2));
 	    } else {
 		// viscous timestep
 		if (invdt4 > 0.0 && invdt5 > 0.0) {
