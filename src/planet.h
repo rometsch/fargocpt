@@ -67,6 +67,7 @@ class t_planet
     double m_torque;
 
   public:
+	void print();
     inline void add_accreted_mass(double value) { m_accreted_mass += value; }
     // setter
     inline void set_mass(double value) { m_mass = value; }
@@ -154,8 +155,7 @@ class t_planet
     void write_ascii(const char *filename, const unsigned int timestep) const;
     void write_binary(const char *filename, const unsigned int timestep) const;
     void restart(unsigned int timestep, bool debug);
-    double get_value_from_file(unsigned int timestep, std::string variable_name,
-			       bool debug);
+	double get_value_from_file(unsigned int timestep, std::string variable_name);
     ~t_planet();
     t_planet();
 };

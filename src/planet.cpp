@@ -144,30 +144,56 @@ t_planet::~t_planet() {}
 
 t_planet::t_planet()
 {
-    m_mass = 0.0;
-    m_x = 0.0;
-    m_y = 0.0;
-    m_vx = 0.0;
-    m_vy = 0.0;
+	m_mass = 0.0;
+	m_x = 0.0;
+	m_y = 0.0;
+	m_vx = 0.0;
+	m_vy = 0.0;
 
-    m_acc = 0.0;
-    m_accreted_mass = 0.0;
-    m_name = "";
+	m_acc = 0.0;
+	m_accreted_mass = 0.0;
+	m_name = "";
 
-    m_planet_number = 0;
-    m_temperature = 0.0;
-    m_radius = 0.0;
-    m_irradiate = false;
-    m_rampuptime = 0.0;
-    m_disk_on_planet_acceleration = {0.0, 0.0};
-    m_nbody_on_planet_acceleration = {0.0, 0.0};
-    m_semi_major_axis = 0.0;
-    m_eccentricity = 0.0;
-    m_mean_anomaly = 0.0;
-    m_true_anomaly = 0.0;
-    m_eccentric_anomaly = 0.0;
-    m_pericenter_angle = 0.0;
-    m_torque = 0.0;
+	m_planet_number = 0;
+	m_temperature = 0.0;
+	m_radius = 0.0;
+	m_irradiate = false;
+	m_rampuptime = 0.0;
+	m_disk_on_planet_acceleration = {0.0, 0.0};
+	m_nbody_on_planet_acceleration = {0.0, 0.0};
+	m_semi_major_axis = 0.0;
+	m_eccentricity = 0.0;
+	m_mean_anomaly = 0.0;
+	m_true_anomaly = 0.0;
+	m_eccentric_anomaly = 0.0;
+	m_pericenter_angle = 0.0;
+	m_torque = 0.0;
+}
+
+void t_planet::print()
+{
+	std::cout << "Planet #" << m_planet_number << "\n";
+	std::cout << "Name: " << m_name << "\n";
+	std::cout << "(x, y): (" << m_x << ", " << m_y << "\n";
+	std::cout << "(vx, vy): (" << m_vx << ", " << m_vy << "\n";
+	std::cout << "Accretion: " << m_acc << "\n";
+	std::cout << "Accreted mass: " << m_accreted_mass << "\n";
+
+	std::cout << "Temperature: " << m_temperature << "\n";
+	std::cout << "Radius: " << m_radius << "\n";
+	std::cout << "Does irradiate: " << m_irradiate << "\n";
+	std::cout << "m_rampuptime: " << m_rampuptime << "\n";
+
+	std::cout << "m_disk_on_planet_acceleration: " << m_disk_on_planet_acceleration.x << ", " << m_disk_on_planet_acceleration.y << "\n";
+	std::cout << "m_nbody_on_planet_acceleration: " << m_nbody_on_planet_acceleration.x << ", " << m_nbody_on_planet_acceleration.y << "\n";
+
+	std::cout << "m_semi_major_axis: " << m_semi_major_axis << "\n";
+	std::cout << "m_eccentricity: " << m_eccentricity << "\n";
+	std::cout << "m_mean_anomaly: " << m_mean_anomaly << "\n";
+	std::cout << "m_true_anomaly: " << m_true_anomaly << "\n";
+	std::cout << "m_eccentric_anomaly: " << m_eccentric_anomaly << "\n";
+	std::cout << "m_pericenter_angle: " << m_pericenter_angle << "\n";
+	std::cout << "m_torque: " << m_torque << "\n";
 }
 
 /**
@@ -286,7 +312,7 @@ void t_planet::create_planet_file(bool debug_output)
     if (!CPU_Master)
 	return;
 
-    FILE *fd;
+	FILE *fd;
     char *filename = 0;
 
     std::string header_variable_description =
@@ -482,19 +508,14 @@ void t_planet::restart(unsigned int timestep, bool debug)
 }
 
 double t_planet::get_value_from_file(unsigned int timestep,
-				     std::string variable_name, bool debug)
+					 std::string variable_name)
 {
     double value;
     int column = -1;
 
     std::string filename;
-    if (debug) {
-	filename = std::string(OUTPUTDIR) + "debugplanet" +
+	filename = std::string(OUTPUTDIR) + "bigplanet" +
 		   std::to_string(get_planet_number()) + ".dat";
-    } else {
-	filename = std::string(OUTPUTDIR) + "planet" +
-		   std::to_string(get_planet_number()) + ".dat";
-    }
 
     std::string version = output::get_version(filename);
     auto variable_columns = planet_file_column_v2;
@@ -515,7 +536,7 @@ double t_planet::get_value_from_file(unsigned int timestep,
 	column = iter->second;
     } else {
 	std::cerr << "Unknown variable '" << variable_name
-		  << "' for planet.dat file version '" << version << "'\n"
+		  << "' for bigplanet.dat file version '" << version << "'\n"
 		  << std::endl;
     }
 
