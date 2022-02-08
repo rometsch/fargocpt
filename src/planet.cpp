@@ -193,7 +193,8 @@ void t_planet::print()
 	std::cout << "m_true_anomaly: " << m_true_anomaly << "\n";
 	std::cout << "m_eccentric_anomaly: " << m_eccentric_anomaly << "\n";
 	std::cout << "m_pericenter_angle: " << m_pericenter_angle << "\n";
-	std::cout << "m_torque: " << m_torque << "\n";
+	std::cout << "m_torque: " << m_torque << std::endl;
+	return;
 }
 
 /**
@@ -309,8 +310,9 @@ void t_planet::copy(const planet_member_variables &other)
 
 void t_planet::create_planet_file(bool debug_output)
 {
-    if (!CPU_Master)
+	if (!CPU_Master){
 	return;
+	}
 
 	FILE *fd;
     char *filename = 0;
@@ -498,7 +500,7 @@ void t_planet::restart(unsigned int timestep, bool debug)
 		throw 0;
 	}
 	rf.read((char *)&pl, sizeof(planet_member_variables));
-    }
+	}
 
     copy(pl);
     rf.close();
