@@ -2063,7 +2063,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		// calculate new dt based on different limits
 		dtLocal = parameters::CFL /
 			  std::sqrt(std::pow(invdt1, 2) + std::pow(invdt2, 2) +
-				    std::pow(invdt3, 2));
+					std::pow(invdt3, 2) + std::pow(invdt6, 2));
 
 		dtLocal = std::min(dtLocal, 3.0 * dt_parabolic_local);
 	    }
