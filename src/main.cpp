@@ -217,6 +217,9 @@ int main(int argc, char *argv[])
 	data.get_planetary_system().restart(start_mode::restart_from,
 					    start_mode::restart_debug);
 
+	MPI_Barrier(MPI_COMM_WORLD);
+	logging::print_master(LOG_INFO "Finished restarting planetary system.\n");
+
 	recalculate_derived_disk_quantities(data, true);
     } else {
 	// create planet files
