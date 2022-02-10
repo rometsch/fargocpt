@@ -1049,9 +1049,14 @@ void damping_initial_center_of_mass_outer(t_data &data,
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-						std::pow(r_com, 2.0 * FLARINGINDEX) *
-						(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		double corr;
+		if(parameters::initialize_pure_keplerian){
+			corr = 1.0;
+		} else {
+			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+							std::pow(r_com, 2.0 * FLARINGINDEX) *
+							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
@@ -1099,9 +1104,14 @@ void damping_initial_center_of_mass_outer(t_data &data,
 			const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 			// pressure support correction
-			const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-							std::pow(r_com, 2.0 * FLARINGINDEX) *
-							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			double corr;
+			if(parameters::initialize_pure_keplerian){
+				corr = 1.0;
+			} else {
+				corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+								std::pow(r_com, 2.0 * FLARINGINDEX) *
+								(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			}
 
 			// Velocity in center of mass frame
 			const double cell_vphi_com =
@@ -1756,9 +1766,14 @@ void initial_center_of_mass_boundary(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-						std::pow(r_com, 2.0 * FLARINGINDEX) *
-						(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		double corr;
+		if(parameters::initialize_pure_keplerian){
+			corr = 1.0;
+		} else {
+			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+							std::pow(r_com, 2.0 * FLARINGINDEX) *
+							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
@@ -1792,9 +1807,14 @@ void initial_center_of_mass_boundary(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-						std::pow(r_com, 2.0 * FLARINGINDEX) *
-						(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		double corr;
+		if(parameters::initialize_pure_keplerian){
+			corr = 1.0;
+		} else {
+			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+							std::pow(r_com, 2.0 * FLARINGINDEX) *
+							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
@@ -1827,9 +1847,14 @@ void initial_center_of_mass_boundary(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-						std::pow(r_com, 2.0 * FLARINGINDEX) *
-						(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		double corr;
+		if(parameters::initialize_pure_keplerian){
+			corr = 1.0;
+		} else {
+			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+							std::pow(r_com, 2.0 * FLARINGINDEX) *
+							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =

@@ -1080,8 +1080,6 @@ void init_gas_velocities(t_data &data)
     double t1, t2, r1, r2;
     double vt_cent[MAX1D];
 
-    // Check if pure keplerian initialization is set
-    if (parameters::initialize_pure_keplerian) {
 	if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered)
 	{
 		const double mass = data.get_planetary_system().get_mass();
@@ -1113,9 +1111,14 @@ void init_gas_velocities(t_data &data)
 			const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
 
 			// pressure support correction
-			const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-							std::pow(r, 2.0 * FLARINGINDEX) *
-							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			double corr;
+			if(parameters::initialize_pure_keplerian){
+				corr = 1.0;
+			} else {
+				corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+								std::pow(r_com, 2.0 * FLARINGINDEX) *
+								(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			}
 
 			// Velocities in center of mass frame
 			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
@@ -1162,9 +1165,14 @@ void init_gas_velocities(t_data &data)
 			const double r_com = std::sqrt(x_com*x_com + y_com*y_com);
 
 			// pressure support correction
-			const double corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-							std::pow(r_com, 2.0 * FLARINGINDEX) *
-							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			double corr;
+			if(parameters::initialize_pure_keplerian){
+				corr = 1.0;
+			} else {
+				corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+								std::pow(r_com, 2.0 * FLARINGINDEX) *
+								(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			}
 
 			// Velocities in center of mass frame
 			Pair v_cms = data.get_planetary_system().get_center_of_mass_velocity();
@@ -1182,7 +1190,12 @@ void init_gas_velocities(t_data &data)
 			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
 			}
 		}
-	} else {
+
+		return;
+	}
+
+    // Check if pure keplerian initialization is set
+    if (parameters::initialize_pure_keplerian) {
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial();
 		 ++n_radial) {
@@ -1201,8 +1214,6 @@ void init_gas_velocities(t_data &data)
 		    std::sqrt(constants::G * hydro_center_mass / r);
 	    }
 	}
-	}
-
 	return;
     }
 
