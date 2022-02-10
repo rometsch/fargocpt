@@ -341,10 +341,14 @@ void t_planetary_system::rotate(double angle)
 
 void t_planetary_system::restart(unsigned int timestep, bool debug)
 {
+
+	logging::print_master(LOG_INFO "Loading planets ...");
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).restart(timestep, debug);
     }
+	logging::print_master(LOG_INFO " done\n");
 
+	logging::print_master(LOG_INFO "Loading rebound ...");
     if (debug_outputs) {
 	reb_free_simulation(m_rebound);
 	char *reb_name = nullptr;
@@ -359,6 +363,7 @@ void t_planetary_system::restart(unsigned int timestep, bool debug)
 	}
 	m_rebound = reb_create_simulation_from_binary(reb_name);
     }
+	logging::print_master(LOG_INFO " done\n");
 }
 
 void t_planetary_system::create_planet_files()
