@@ -246,6 +246,7 @@ double t_planet::get_period() const
 /**
 	get omega_kepler at current planet location
 */
+/*
 double t_planet::get_omega() const
 {
     double distance = get_r();
@@ -255,6 +256,18 @@ double t_planet::get_omega() const
     } else {
 	return 0.0;
     }
+}
+*/
+
+double t_planet::get_omega() const
+{
+	double distance = get_semi_major_axis();
+	if (!is_distance_zero(distance)) {
+	return std::sqrt(((hydro_center_mass + get_mass()) * constants::G) /
+			 std::pow(distance, 3));
+	} else {
+	return 0.0;
+	}
 }
 
 /**

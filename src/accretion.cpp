@@ -75,8 +75,9 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     if (planet.get_acc() > 1e-10) {
 	// Hereafter : initialization of W. Kley's parameters
 	// remove a ratio of facc = planet.get_acc() of the mass inside the
-	// Hill sphere every free fall time at the Hill radius
-	const double facc = dt * planet.get_acc() * planet.get_omega();
+	// Hill sphere every planet orbit
+	const double facc = dt * planet.get_acc() / planet.get_period() * std::log(2);
+
 	const double facc1 = 1.0 / 3.0 * facc;
 	const double facc2 = 2.0 / 3.0 * facc;
 	const double frac1 = 0.5 * parameters::accretion_radius;
