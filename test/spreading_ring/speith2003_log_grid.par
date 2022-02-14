@@ -5,7 +5,7 @@ SpreadingRing		Yes
 Sigma0			1.0	# surface density at r=1 in g/cm^2
 SigmaSlope		0.0		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass		1.0e-10		# only used when SetSigma0 = true [default = 0.01]
+DiscMass		1.0		# only used when SetSigma0 = true [default = 0.01]
 SigmaFloor		1.e-8	# floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition		Profile		# Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename		""		# File to read surface density from (when Condition = 1D or 2D)
@@ -123,8 +123,8 @@ DiskFeedback		NO		# Calculate incfluence of the disk on the star
 
 ### Mesh parameters
 
-Nrad			256 #512 128		# Radial number of zones
-Nsec			256 #1536 384		# Azimuthal number of 
+Nrad			128 #512 128		# Radial number of zones
+Nsec			128 #1536 384		# Azimuthal number of 
 # zones (sectors)
 Rmin			0.2		# Inner boundary radius
 Rmax			1.8		# Outer boundary radius
@@ -134,7 +134,7 @@ ExponentialCellSizeFactor 1.41      # Scaling used on the size of the first cell
 
 ### Output control parameters
 
-Ntot			1801		# Total number of time steps
+Ntot			2401		# Total number of time steps
 Ninterm	 		10		# Time steps between outputs
 DT			0.314159265359	# Time step length. 2PI = 1 orbit
 
@@ -174,8 +174,8 @@ WriteVerticalOpticalDepth	No 	# Write optical depth in vertical direction (tau_e
 
 RandomSeed		1337		# random seed integer value
 RandomSigma 		Yes		# randomize sigma start values?
-RandomFactor		0.01		# randomize by +- 1%
-FeatureSize		0.05		# Feature size of the open somplex algorithm
+RandomFactor		0.001		# randomize by +- 1%
+FeatureSize		0.01		# Feature size of the open somplex algorithm
 
 
 ## particles
