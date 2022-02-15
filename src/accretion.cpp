@@ -73,10 +73,14 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double density_floor = parameters::sigma_floor * parameters::sigma0;
 
     if (planet.get_acc() > 1e-10) {
+	const double Xplanet = planet.get_x();
+	const double Yplanet = planet.get_y();
+	const double Rplanet = planet.get_r();
+
 	// Hereafter : initialization of W. Kley's parameters
 	// remove a ratio of facc = planet.get_acc() of the mass inside the
 	// Hill sphere every planet orbit
-	const double facc = dt * planet.get_acc() / planet.get_period() * std::log(2);
+	const double facc = dt * planet.get_acc() / std::pow(Rplanet, 2) / planet.get_period() * std::log(2);
 
 	const double facc1 = 1.0 / 3.0 * facc;
 	const double facc2 = 2.0 / 3.0 * facc;
@@ -84,10 +88,6 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	const double frac2 = 0.25 * parameters::accretion_radius;
 	// W. Kley's parameters initialization finished
 
-	const double Xplanet = planet.get_x();
-	const double Yplanet = planet.get_y();
-
-	const double Rplanet = planet.get_r();
 	const double RHill = planet.get_rhill();
 
 	// calculate range of indeces to iterate over

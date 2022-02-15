@@ -296,6 +296,7 @@ void init_physics(t_data &data)
 
     // ListPlanets(sys);
     data.get_planetary_system().list_planets();
+	data.get_planetary_system().correct_planet_accretion();
 
     OmegaFrame = OMEGAFRAME;
 

@@ -783,3 +783,22 @@ void t_planetary_system::correct_velocity_for_disk_accel()
 	planet.set_vy(new_vy);
     }
 }
+
+/**
+ * @brief t_planetary_system::correct_planet_accretion
+ * the planet accretion area scales with planet radius^2
+ * thus we scale the planet accretion rate with a^2 / r_current^2
+ * the scaling with 1 / r_current^2 happens in AccreteOntoSinglePlanet.
+ */
+void t_planetary_system::correct_planet_accretion()
+{
+for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+
+auto &planet = get_planet(i);
+double acc = planet.get_acc();
+const double a = planet.get_semi_major_axis();
+
+acc *= a*a;
+planet.set_acc(acc);
+}
+}

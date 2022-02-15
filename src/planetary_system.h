@@ -71,6 +71,7 @@ class t_planetary_system
     void copy_data_to_rebound();
     void copy_data_from_rebound();
     void correct_velocity_for_disk_accel();
+	void correct_planet_accretion();
 };
 
 #endif // PLANETARY_SYSTEM_H
