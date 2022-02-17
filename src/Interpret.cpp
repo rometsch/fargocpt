@@ -529,7 +529,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     if (ALPHAVISCOSITY != 0.0) {
 	ViscosityAlpha = YES;
-	logging::print_master(LOG_INFO "Viscosity is of alpha type\n");
+	logging::print_master(LOG_INFO "Viscosity is of alpha type with alpha = %.3e\n", ALPHAVISCOSITY);
     }
 
     if (parameters::thickness_smoothing <= 0.0) {
@@ -565,9 +565,13 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    "Using pseudo implicit viscosity to limit the time step size\n");
     }
 
+	if(VISCOSITY != 0.0){
+		logging::print_master(LOG_INFO "Viscosity is kinematic viscosity with nu = %.3e\n", VISCOSITY);
+	}
     const bool VISCOSITY_in_CGS =
 	config::value_as_bool_default("VISCOSITYINCGS", false);
     if (VISCOSITY_in_CGS) {
+		logging::print_master(LOG_INFO "Viscosity changed to code units from %.3e cgs to %.3e code\n", VISCOSITY, VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor());
 	VISCOSITY =
 	    VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
     }

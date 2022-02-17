@@ -270,6 +270,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_viscous_outflow:
 	viscous_outflow_boundary_inner(data);
 	break;
+	case parameters::boundary_condition_jibin_spreading_ring:
+	jibin_boundary_inner(data);
+	break;
     case parameters::boundary_condition_evanescent: // evanescent works only for
 						    // inner and outer together
 						    // until now
@@ -321,6 +324,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	NonReflectingBoundary_outer(data, &data[t_data::V_RADIAL],
 				    &data[t_data::DENSITY],
 				    &data[t_data::ENERGY]);
+	break;
+	case parameters::boundary_condition_jibin_spreading_ring:
+	jibin_boundary_outer(data);
 	break;
     case parameters::boundary_condition_precribed_time_variable:
 	// boundary_condition_precribed_time_variable_outer(data);
@@ -1905,6 +1911,71 @@ void initial_center_of_mass_boundary(t_data &data)
 
 		energy(nr, naz) = std::max(cell_energy, energy_floor);
 	} /// END DENSITY and ENERGY
+	}
+}
+
+
+/**
+	for viscous spreading ring comparison simulations for Jibin
+*/
+void jibin_boundary_inner(t_data &data)
+{
+	if (CPU_Rank != 0)
+	return;
+
+	const double h = ASPECTRATIO_REF;
+	const double p = SIGMASLOPE;
+	const double q = 2.0*FLARINGINDEX - 1.0;
+	const double R = Rmed[0];
+	const double OmegaK = 1.0/(R*std::sqrt(R));
+	const double corr = std::sqrt(1.0 + (p+q)*h*h);
+	const double vaz = R*OmegaK * corr - R*OmegaFrame;
+
+	for (unsigned int n_azimuthal = 0;
+	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 ++n_azimuthal) {
+
+	// copy first ring into ghost ring
+	data[t_data::DENSITY](0, n_azimuthal) =
+		data[t_data::DENSITY](1, n_azimuthal);
+
+	data[t_data::V_AZIMUTHAL](0, n_azimuthal) = vaz;
+
+	if (data[t_data::V_RADIAL](2, n_azimuthal) <= 0.0) { // outflow
+		data[t_data::V_RADIAL](1, n_azimuthal) =
+		data[t_data::V_RADIAL](2, n_azimuthal);
+		data[t_data::V_RADIAL](0, n_azimuthal) =
+		data[t_data::V_RADIAL](2, n_azimuthal);
+	} else { // reflective
+		data[t_data::V_RADIAL](1, n_azimuthal) =
+		-data[t_data::V_RADIAL](2, n_azimuthal);
+		data[t_data::V_RADIAL](0, n_azimuthal) =
+		-data[t_data::V_RADIAL](2, n_azimuthal);
+	}
+	}
+}
+
+/**
+	for viscous spreading ring comparison simulations for Jibin
+*/
+void jibin_boundary_outer(t_data &data)
+{
+	if (CPU_Rank == CPU_Highest) {
+
+	const double h = ASPECTRATIO_REF;
+	const double p = SIGMASLOPE;
+	const double q = 2.0*FLARINGINDEX - 1.0;
+	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
+	const double OmegaK = 1.0/(R*std::sqrt(R));
+	const double corr = std::sqrt(1.0 + (p+q)*h*h);
+	const double vaz = R*OmegaK * corr - R*OmegaFrame;
+
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 ++n_azimuthal) {
+		data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
+				  n_azimuthal) = vaz;
+	}
 	}
 }
 
