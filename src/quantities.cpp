@@ -207,10 +207,7 @@ double gas_internal_energy(t_data &data)
     return global_internal_energy;
 }
 
-/**
-	Calculates gas qplus
-*/
-double gas_qplus(t_data &data)
+double gas_viscous_dissipation(t_data &data)
 {
     double local_qplus = 0.0;
     double global_qplus = 0.0;
@@ -235,10 +232,7 @@ double gas_qplus(t_data &data)
     return global_qplus;
 }
 
-/**
-	Calculates gas qminus
-*/
-double gas_qminus(t_data &data)
+double gas_luminosity(t_data &data)
 {
     double local_qminus = 0.0;
     double global_qminus = 0.0;

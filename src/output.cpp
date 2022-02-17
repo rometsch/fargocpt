@@ -124,8 +124,8 @@ const std::map<const std::string, const int> quantities_file_column_v2_3 = {
     {"azimuthal kinetic energy", 11},
     {"eccentricity", 12},
     {"periastron", 13},
-    {"qplus", 14},
-    {"qminus", 15},
+	{"viscous dissipation", 14},
+	{"luminosity", 15},
     {"pdivv", 16},
     {"delta mass inner positive", 17},
     {"delta mass inner negative", 18},
@@ -145,8 +145,8 @@ const std::map<const std::string, const std::string> quantities_file_variables =
      {"internal energy", "energy"},
      {"kinematic energy", "energy"},
      {"potential energy", "energy"},
-     {"qplus", "specific power"},
-     {"qminus", "specific power"},
+	 {"viscous dissipation", "power"},
+	 {"luminosity", "power"},
      {"pdivv", "pressure per time"},
      {"radial kinetic energy", "energy"},
      {"azimuthal kinetic energy", "energy"},
@@ -328,8 +328,8 @@ void write_quantities(t_data &data, unsigned int timestep,
     double diskRadius = quantities::gas_disk_radius(data, totalMass);
     double totalAngularMomentum = quantities::gas_angular_momentum(data);
     double internalEnergy = quantities::gas_internal_energy(data);
-    double qplus = quantities::gas_qplus(data);
-    double qminus = quantities::gas_qminus(data);
+	double qplus = quantities::gas_viscous_dissipation(data);
+	double qminus = quantities::gas_luminosity(data);
     double kinematicEnergy = quantities::gas_kinematic_energy(data);
     double radialKinematicEnergy =
 	quantities::gas_radial_kinematic_energy(data);
