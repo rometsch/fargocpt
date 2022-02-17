@@ -1407,7 +1407,17 @@ void SubStep3(t_data &data, double dt)
 	    num = dt * qplus - dt * qminus + alpha * energy;
 	    den = alpha;
 
-	    data[t_data::ENERGY](n_radial, n_azimuthal) = num / den;
+		double energy_new = num / den;
+		const double cfl = std::fabs((qplus - qminus) / energy_new);
+		if(cfl > 100.0){
+			const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
+			const double e4 = qplus * tau_eff / (2.0 * sigma_sb);
+			const double constant = (Rgas / mu * sigma / (gamma - 1.0));
+			energy_new = std::pow(e4, 1.0/4.0) * constant;
+			data[t_data::QMINUS](n_radial, n_azimuthal) = - qplus;
+		}
+
+		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
 	}
     }
 }
@@ -1944,7 +1954,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
     double viscRadial = 0.0, viscAzimuthal = 0.0;
     unsigned int n_azimuthal_debug = 0, n_radial_debug = 0;
     double itdbg1 = DBL_MAX, itdbg2 = DBL_MAX, itdbg3 = DBL_MAX,
-	   itdbg4 = DBL_MAX, itdbg5 = DBL_MAX, mdtdbg = DBL_MAX;
+	   itdbg4 = DBL_MAX, itdbg5 = DBL_MAX, itdbg6 = DBL_MAX, mdtdbg = DBL_MAX;
 
     dtGlobal = DBL_MAX;
 
@@ -2036,7 +2046,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		// heating / cooling limit
 		if(parameters::Adiabatic) {
 		// Limit energy update from heating / cooling to 0.5% per dt
-		const double inv_limit = 100.0; // 1/200 == 0.05%
+		const double inv_limit = 20.0; // 1/20 == 0.5%
 		const double Qp = data[t_data::QPLUS](n_radial, n_azimuthal);
 		const double Qm = data[t_data::QMINUS](n_radial, n_azimuthal);
 		const double E = data[t_data::ENERGY](n_radial, n_azimuthal);
@@ -2089,16 +2099,18 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		if (debug) {
 		    n_radial_debug = n_radial;
 		    n_azimuthal_debug = n_azimuthal;
-		    if (invdt1 != 0)
-			itdbg1 = 1.0 / invdt1;
-		    if (invdt2 != 0)
-			itdbg2 = 1.0 / invdt2;
-		    if (invdt3 != 0)
-			itdbg3 = 1.0 / invdt3;
-		    if (invdt4 != 0)
-			itdbg4 = 1.0 / invdt4;
-		    if (invdt5 != 0)
-			itdbg5 = 1.0 / invdt5;
+			if (invdt1 != 0){
+			itdbg1 = 1.0 / invdt1;}
+			if (invdt2 != 0){
+			itdbg2 = 1.0 / invdt2;}
+			if (invdt3 != 0){
+			itdbg3 = 1.0 / invdt3;}
+			if (invdt4 != 0){
+			itdbg4 = 1.0 / invdt4;}
+			if (invdt5 != 0){
+			itdbg5 = 1.0 / invdt5;}
+			if (invdt6 != 0){
+			itdbg6 = 1.0 / invdt6;}
 		    mdtdbg = dtGlobal;
 		    if ((parameters::artificial_viscosity ==
 			 parameters::artificial_viscosity_SN) &&
@@ -2161,6 +2173,8 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
 	logging::print(LOG_DEBUG "Kinematic viscosity limit      : %g\n",
 		       itdbg5);
+	logging::print(LOG_DEBUG "Heating cooling limit      : %g\n",
+			   itdbg6);
 	logging::print(LOG_DEBUG "Limit time step for this cell  : %g\n",
 		       mdtdbg);
 	logging::print(LOG_DEBUG "Limit time step adopted        : %g\n",
