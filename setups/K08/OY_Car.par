@@ -2,7 +2,8 @@
 
 ## Disk parameters
 
-CFL 0.5
+CFL 0.4
+HeatingCoolingCFLlimit	0.05 # energy change dT/T in substep3 only allowed to change by this fraction.
 Sigma0			12.5    # surface density at r=1 in g/cm^2
 SigmaSlope		0.5		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
@@ -43,7 +44,7 @@ MinimumTemperature	10		# minimum Temperature in K
 MaximumTemperature	1000000		# minimum Temperature in K
 TauFactor		0.5
 
-Massoverflow		true
+Massoverflow		yes
 mofvalue		1.0e-9 	#given in solar mass per year
 mofplanet		1		
 moftemperature		1500		
@@ -114,6 +115,8 @@ RadialSpacing 		Log		# Logarithmic or ARITHMETIC
 Ntot			40000 # Total number of time steps
 Ninterm	 	100	# Time steps between outputs
 DT			0.06283185307179586  # 1/100th of a binary orbit
+
+# LogAfterSteps		10
 
 WriteAtEveryTimestep    Yes             # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity		Yes		# Write surface density. This is needed for restart of simulations. [default = yes]
