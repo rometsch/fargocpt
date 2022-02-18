@@ -154,6 +154,7 @@ unsigned int zbuffer_size;
 double zbuffer_maxangle;
 
 double CFL;
+double HEATING_COOLING_INV_CFL_LIMIT;
 
 double L0;
 double M0;
@@ -891,6 +892,7 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("MassAccretionRadius", 1.0);
 
     CFL = config::value_as_double_default("CFL", 0.5);
+	HEATING_COOLING_INV_CFL_LIMIT = 1.0/config::value_as_double_default("HEATINGCOOLINGCFLLIMIT", 5.0e-2);
 
     // particles
     CartesianParticles =
@@ -1248,7 +1250,7 @@ void summarize_parameters()
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
 
-    logging::print_master(LOG_INFO "CFL parameter: %g\n", CFL);
+	logging::print_master(LOG_INFO "CFL parameter: %g	heating/cooling (dT/T) limited to %g%% per hydro step\n", CFL, 100.0 / HEATING_COOLING_INV_CFL_LIMIT);
 
     switch (opacity) {
     case opacity_lin:

@@ -1408,13 +1408,19 @@ void SubStep3(t_data &data, double dt)
 	    den = alpha;
 
 		double energy_new = num / den;
+		/// In condition_cfl we guarantee dt < (E / dE) * HEATING_COOLING_INV_CFL_LIMIT
+		/// Here we filter out cells that have sudden large energy changes larger than
+		/// 5 * HEATING_COOLING_INV_CFL_LIMIT to prevent sudden dt freezes.
+		/// we do this by finding an approximate analytical solution to Qplus = -Qminus
+		/// that ignores tau_rp dependency on other cell's viscosity and opactiy temperature dependency
 		const double cfl = std::fabs((qplus - qminus) / energy_new);
-		if(cfl > 100.0){
+		if(cfl > 5.0e2*parameters::HEATING_COOLING_INV_CFL_LIMIT){
 			const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
 			const double e4 = qplus * tau_eff / (2.0 * sigma_sb);
 			const double constant = (Rgas / mu * sigma / (gamma - 1.0));
 			energy_new = std::pow(e4, 1.0/4.0) * constant;
 			data[t_data::QMINUS](n_radial, n_azimuthal) = - qplus;
+
 		}
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
@@ -2045,8 +2051,8 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 		// heating / cooling limit
 		if(parameters::Adiabatic) {
-		// Limit energy update from heating / cooling to 0.5% per dt
-		const double inv_limit = 20.0; // 1/20 == 0.5%
+		// Limit energy update from heating / cooling to given fraction per dt
+		const double inv_limit = parameters::HEATING_COOLING_INV_CFL_LIMIT;
 		const double Qp = data[t_data::QPLUS](n_radial, n_azimuthal);
 		const double Qm = data[t_data::QMINUS](n_radial, n_azimuthal);
 		const double E = data[t_data::ENERGY](n_radial, n_azimuthal);

@@ -58,6 +58,7 @@ TauFactor		1.0		# correction factor for tau [default = 1.0]
 Opacity			Lin		# opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst		2.0e-6	# used for const and simple opacity (kappa = kappa0 * T**2) 
 CFL				0.5
+HeatingCoolingCFLlimit	0.05 # energy change dT/T in substep3 only allowed to change by this fraction.
 # Star Parameters
 StarRadius		1.0	# star radius in Solar Radii
 StarTemperature		5778		# star temperature in K
