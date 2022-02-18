@@ -1409,7 +1409,7 @@ void SubStep3(t_data &data, double dt)
 		/// we do this by finding an approximate analytical solution to Qplus = -Qminus
 		/// that ignores tau_rp dependency on other cell's viscosity and opactiy temperature dependency
 		const double cfl = std::fabs((qplus - qminus) / energy_new);
-		if(cfl > 5.0*parameters::HEATING_COOLING_INV_CFL_LIMIT){
+		if(cfl > 1.0/(5.0*parameters::HEATING_COOLING_CFL_LIMIT)){
 			const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
 			const double e4 = qplus * tau_eff / (2.0 * sigma_sb);
 			const double constant = (Rgas / mu * sigma / (gamma - 1.0));
@@ -2046,7 +2046,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		// heating / cooling limit
 		if(parameters::Adiabatic) {
 		// Limit energy update from heating / cooling to given fraction per dt
-		const double inv_limit = parameters::HEATING_COOLING_INV_CFL_LIMIT;
+		const double inv_limit = 1.0 / parameters::HEATING_COOLING_CFL_LIMIT;
 		const double Qp = data[t_data::QPLUS](n_radial, n_azimuthal);
 		const double Qm = data[t_data::QMINUS](n_radial, n_azimuthal);
 		const double E = data[t_data::ENERGY](n_radial, n_azimuthal);
