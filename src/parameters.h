@@ -273,6 +273,7 @@ extern double accretion_radius;
 
 /// CFL Factor
 extern double CFL;
+extern double CFL_max_var;
 extern double HEATING_COOLING_INV_CFL_LIMIT;
 
 /// length base unit

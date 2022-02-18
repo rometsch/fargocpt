@@ -100,6 +100,7 @@ extern int PRESCRIBED_TIME_SEGMENT_NUMBER;
 extern double dphi;
 extern double invdphi;
 extern double DT;
+extern double last_dt;
 extern double dt_parabolic_local;
 
 extern unsigned int NINTERM;

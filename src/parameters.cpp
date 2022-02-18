@@ -154,6 +154,7 @@ unsigned int zbuffer_size;
 double zbuffer_maxangle;
 
 double CFL;
+double CFL_max_var;
 double HEATING_COOLING_INV_CFL_LIMIT;
 
 double L0;
@@ -892,7 +893,9 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("MassAccretionRadius", 1.0);
 
     CFL = config::value_as_double_default("CFL", 0.5);
-	HEATING_COOLING_INV_CFL_LIMIT = 1.0/config::value_as_double_default("HEATINGCOOLINGCFLLIMIT", 5.0e-2);
+	HEATING_COOLING_INV_CFL_LIMIT = 1.0/config::value_as_double_default("HeatingCoolingCFLlimit", 5.0e-2);
+
+	CFL_max_var = config::value_as_double_default("CFLmaxVar", 1.1);
 
     // particles
     CartesianParticles =

@@ -320,19 +320,14 @@ void init_euler(t_data &data)
 
 static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 {
-    double local_gas_time_step_cfl = 1.0;
-    double global_gas_time_step_cfl;
 
-    if (!SloppyCFL || force_calc) {
-	local_gas_time_step_cfl = 1.0;
-	local_gas_time_step_cfl = condition_cfl(
-	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-	    data[t_data::SOUNDSPEED], DT - dtemp);
-	MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1,
-		      MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-	dt = (DT - dtemp) / global_gas_time_step_cfl;
-    }
-    return dt;
+	if (!SloppyCFL || force_calc) {
+	   const double local_gas_time_step_cfl = condition_cfl(
+		   data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
+		   data[t_data::SOUNDSPEED], DT - dtemp);
+	   dt = (DT - dtemp) / local_gas_time_step_cfl;
+	}
+	return dt;
 }
 
 static void init_corotation(t_data &data, double &planet_corot_ref_old_x,
@@ -1414,13 +1409,12 @@ void SubStep3(t_data &data, double dt)
 		/// we do this by finding an approximate analytical solution to Qplus = -Qminus
 		/// that ignores tau_rp dependency on other cell's viscosity and opactiy temperature dependency
 		const double cfl = std::fabs((qplus - qminus) / energy_new);
-		if(cfl > 5.0e2*parameters::HEATING_COOLING_INV_CFL_LIMIT){
+		if(cfl > 5.0*parameters::HEATING_COOLING_INV_CFL_LIMIT){
 			const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
 			const double e4 = qplus * tau_eff / (2.0 * sigma_sb);
 			const double constant = (Rgas / mu * sigma / (gamma - 1.0));
 			energy_new = std::pow(e4, 1.0/4.0) * constant;
 			data[t_data::QMINUS](n_radial, n_azimuthal) = - qplus;
-
 		}
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
@@ -2191,7 +2185,14 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
     }
 
-    return std::max(deltaT / dtGlobal, 1.0);
+	double global_global_dt;
+	MPI_Allreduce(&dtGlobal, &global_global_dt, 1,
+			  MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+
+	global_global_dt = std::min(parameters::CFL_max_var * last_dt, global_global_dt);
+	last_dt = global_global_dt;
+
+	return std::max(deltaT / global_global_dt, 1.0);
 }
 
 static void compute_sound_speed_normal(t_data &data, bool force_update)

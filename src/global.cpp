@@ -156,6 +156,7 @@ int PRESCRIBED_TIME_SEGMENT_NUMBER;
 double dphi;
 double invdphi;
 double DT;
+double last_dt;
 double dt_parabolic_local;
 
 unsigned int NINTERM;
