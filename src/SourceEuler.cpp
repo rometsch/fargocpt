@@ -1409,7 +1409,7 @@ void SubStep3(t_data &data, double dt)
 		/// we do this by finding an approximate analytical solution to Qplus = -Qminus
 		/// that ignores tau_rp dependency on other cell's viscosity and opactiy temperature dependency
 		const double cfl = std::fabs((qplus - qminus) / energy_new);
-		if(cfl > 1.0/(5.0*parameters::HEATING_COOLING_CFL_LIMIT)){
+		if(cfl > 5.0*parameters::HEATING_COOLING_CFL_LIMIT){
 			const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
 			const double e4 = qplus * tau_eff / (2.0 * sigma_sb);
 			const double constant = (Rgas / mu * sigma / (gamma - 1.0));
