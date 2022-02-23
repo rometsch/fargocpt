@@ -82,6 +82,10 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	// Hill sphere every planet orbit
 	const double facc = dt * planet.get_acc() / std::pow(Rplanet, 2) / planet.get_period() * std::log(2);
 
+	/// TODO
+	//const double facc_visc = dt * 3 * M_PI;
+	// * visc * Sigma
+
 	const double facc1 = 1.0 / 3.0 * facc;
 	const double facc2 = 2.0 / 3.0 * facc;
 	const double frac1 = 0.5 * parameters::accretion_radius;
