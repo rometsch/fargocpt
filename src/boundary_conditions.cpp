@@ -329,7 +329,10 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	jibin_boundary_outer(data);
 	break;
     case parameters::boundary_condition_precribed_time_variable:
-	// boundary_condition_precribed_time_variable_outer(data);
+		{
+			boundary_condition_precribed_time_variable_outer(data,
+										  &data[t_data::DENSITY]);
+		}
 	break;
     case parameters::boundary_condition_viscous_outflow:
 	die("outer viscous outflow boundary not implemented");
@@ -550,6 +553,15 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
 
+		const double vr =
+		data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id, n_azimuthal);
+		const double vr_next = data[t_data::PRESCRIBED_V_RADIAL_OUTER](
+		time_id_next, n_azimuthal);
+		const double vr_cell =
+		vr + percent_to_next_timestep * (vr_next - vr);
+
+		if(vr < 0.0) // allow inflow
+		{
 	    const double sigma =
 		data[t_data::PRESCRIBED_DENSITY_OUTER](time_id, n_azimuthal);
 	    const double sigma_next = data[t_data::PRESCRIBED_DENSITY_OUTER](
@@ -563,13 +575,6 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 		time_id_next, n_azimuthal);
 	    const double energy_cell =
 		energy + percent_to_next_timestep * (energy_next - energy);
-
-	    const double vr =
-		data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id, n_azimuthal);
-	    const double vr_next = data[t_data::PRESCRIBED_V_RADIAL_OUTER](
-		time_id_next, n_azimuthal);
-	    const double vr_cell =
-		vr + percent_to_next_timestep * (vr_next - vr);
 
 	    const double vphi = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](
 		time_id, n_azimuthal);
@@ -600,6 +605,28 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 			    data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id,
 	    n_azimuthal), data[t_data::V_AZIMUTHAL](n_radial-5, n_azimuthal),
 			    v_kep);*/
+		} else { // normal outflow
+			// copy last ring into ghost ring
+			(*densitystar)(data[t_data::ENERGY].get_max_radial(),
+						  n_azimuthal) =
+				(*densitystar)(data[t_data::ENERGY].get_max_radial() - 1,
+						  n_azimuthal);
+
+			data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
+						 n_azimuthal) =
+				data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
+						 n_azimuthal);
+
+			data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 1,
+					   n_azimuthal) =
+			data[t_data::V_RADIAL](
+				data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+
+			data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
+					   n_azimuthal) =
+			data[t_data::V_RADIAL](
+				data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+		}
 	}
     }
 }
