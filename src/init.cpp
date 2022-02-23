@@ -495,7 +495,7 @@ void init_spreading_ring_test_jibin(t_data &data)
 {
 
     const double Disk_Mass = parameters::sigma_discmass;
-	const double Ring_Mass = 1e-4;
+	const double Ring_Mass = 1.0e-4;
 	const double h = ASPECTRATIO_REF;
 	const double p = SIGMASLOPE;
 	const double q = 2.0*FLARINGINDEX - 1.0;
@@ -504,13 +504,15 @@ void init_spreading_ring_test_jibin(t_data &data)
 	const double Rmax = RMAX;
 
 	const double sig0 = Disk_Mass / (2.0 * M_PI) * (p+2.0) / (std::pow(Rmax, p+2.0) - std::pow(Rmin, p+2.0));
+	parameters::sigma0 = sig0;
 
-	printf("sig0code = %.5e	sig0cgs = %.5e\n", sig0, sig0*units::surface_density.get_cgs_factor());
 
 
 	logging::print_master(
 		LOG_INFO "Initializing viscous spreading ring\n");
 
+	logging::print_master(
+		LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", sig0, sig0*units::surface_density.get_cgs_factor());
 
     for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
 	 ++n_radial) {
