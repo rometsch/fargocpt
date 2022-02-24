@@ -528,7 +528,7 @@ void init_spreading_ring_test_jibin(t_data &data)
 		const double sig_disk = sig0 * std::pow(R, p);
 	    const double energy = 0.0;
 
-		const double sig_noise = 0.005 * sig_disk * (1.0 - 2.0*(rand() / (double)RAND_MAX));
+		const double sig_noise = 0.05 * sig_disk * (1.0 - 2.0*(rand() / (double)RAND_MAX));
 		const double vr = 0.0;
 		const double corr = std::sqrt(1.0 + (p+q)*h*h);
 		const double vaz = R*OmegaK * corr - R*OmegaFrame;
