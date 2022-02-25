@@ -1253,7 +1253,11 @@ void summarize_parameters()
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
 
+	if(Adiabatic){
 	logging::print_master(LOG_INFO "CFL parameter: %g	heating/cooling (dT/T) limited to %g%% per hydro step\n", CFL, 100.0 * HEATING_COOLING_CFL_LIMIT);
+	} else {
+		logging::print_master(LOG_INFO "CFL parameter: %g\n", CFL);
+	}
 
     switch (opacity) {
     case opacity_lin:
