@@ -299,7 +299,8 @@ void t_planet::copy(const planet_member_variables &other)
     m_vx = other.m_vx;
     m_vy = other.m_vy;
 
-    m_acc = other.m_acc;
+	// do not copy accretion rate so we can change it in the config file
+	// m_acc = other.m_acc;
     m_accreted_mass = other.m_accreted_mass;
 
     m_planet_number = other.m_planet_number;

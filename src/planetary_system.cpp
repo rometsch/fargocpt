@@ -790,6 +790,7 @@ void t_planetary_system::correct_velocity_for_disk_accel()
  * thus we scale the planet accretion rate with a^2 / r_current^2
  * the scaling with 1 / r_current^2 happens in AccreteOntoSinglePlanet.
  */
+/*
 void t_planetary_system::correct_planet_accretion()
 {
 for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
@@ -801,4 +802,4 @@ const double a = planet.get_semi_major_axis();
 acc *= a*a;
 planet.set_acc(acc);
 }
-}
+}*/
