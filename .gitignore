@@ -8,6 +8,11 @@ src/build/
 *.dat
 fargo
 
+# vim files
+*~
+*.swp
+*.swo
+
 # Qt creator files
 *.user
 *.files
