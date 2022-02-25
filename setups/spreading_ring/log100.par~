@@ -24,9 +24,10 @@ EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 
 AspectRatio     	0.0005  # Thickness over Radius in the disk
 TemperatureCGS0     0.0     # Midplane Temperature at 1 au in K, overwrites AspectRaio
-ViscosityInCGS      No     # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
-Viscosity			1.476288e-05	# Uniform kinematic viscosity
-AlphaViscosity		0.0		#
+ViscosityInCGS      Yes     # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
+Viscosity			1.0e15	# Uniform kinematic viscosity
+# Viscosity			1.476288e-05	# code unit equal to 1e15 [cgs]
+# Viscosity			4.77e-05	# Uniform kinematic viscosity
 ArtificialViscosity	None		# Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation No	# Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor	1.41 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
@@ -119,8 +120,8 @@ DiskFeedback		NO		# Calculate incfluence of the disk on the star
 
 ### Mesh parameters
 
-Nrad			128 #512 128		# Radial number of zones
-Nsec			128 #1536 384		# Azimuthal number of 
+Nrad			100 #512 128		# Radial number of zones
+Nsec			256 #1536 384		# Azimuthal number of 
 # zones (sectors)
 Rmin			0.2		# Inner boundary radius
 Rmax			2.0		# Outer boundary radius
@@ -130,10 +131,14 @@ ExponentialCellSizeFactor 1.41      # Scaling used on the size of the first cell
 
 ### Output control parameters
 
-Ntot			100		# Total number of time steps
-Ninterm	 		1		# Time steps between outputs
-DT				1.693437e+01	# Time step length. 2PI = 1 orbit
-# DT				14.765485471	# Time step length. 2PI = 1 orbit
+Ntot			1000		# Total number of time steps
+Ninterm	 		10		# Time steps between outputs
+# DT				1.693437e+01	# Time step length. 2PI = 1 orbit
+DT				2.35	# Time step length. 2PI = 1 orbit
+FirstDT		1.0e-6
+CFLmaxVar	1.1
+
+
 
 WriteAtEveryTimestep	Yes		# Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 

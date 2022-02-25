@@ -37,9 +37,10 @@ def test_1D(out, ax, dt):
     Rmed = Rmed / (Rsup*Rsup-Rinf*Rinf)
 
     M = 1.0e-10
-    nu = 1.476288e-05
+    nu = 9.841919e-06
 
     Quantities = np.loadtxt(out + '/Quantities.dat', skiprows=26)
+    # t = Quantities[int(dt),2]
     t = Quantities[int(dt),2]
     x = Rmed
     tau0 = 0.018
@@ -142,11 +143,11 @@ def test_3D(out, ax, dt):
     ax.pcolormesh(X,Y, data, cmap=cmap)
 
     R0 = 1
-    nu = 4.77e-5 / R0**2
+    nu = 9.841919e-06
 
     Quantities = np.loadtxt(out + '/Quantities.dat', skiprows=26)
-    t = Quantities[int(dt*10),2]
-    tau0 = 0.016
+    t = Quantities[int(dt),2]
+    tau0 = 0.018
     tau = 12 * nu * t / R0**2 + tau0
 
     time = (tau) * R0**2 / (12 * nu * 2 * np.pi)
@@ -155,11 +156,12 @@ def test_3D(out, ax, dt):
     return data
 
 
-parfile = "ring_jibin.par"
+parfile = "log100.par"
 #compile_fargo('../../')
 #run('../../', 'test/spreading_ring/' + parfile)
 
 dts = np.array([0, 12, 36, 48, 60, 84])#, 6, 14, 18, 22, 30]
+dts = np.array([0, 20, 40, 60, 80, 100])#, 6, 14, 18, 22, 30]
 
 # dts = np.array([18,54,126,162,198, 270]) - 18#, 6, 14, 18, 22, 30]
 fig, axs = plt.subplots(2,3,figsize=(8,4))
@@ -174,7 +176,7 @@ for i in range(len(dts)):
         axs[i].get_shared_y_axes().join(axs[i],axs[i-1])
     dt = dts[i]
     ax = axs[i]
-    data = test_2D("../../" + parfile[:-4], ax, dt)
+    data = test_1D("../../" + parfile[:-4], ax, dt)
 
 
 
