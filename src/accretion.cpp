@@ -84,8 +84,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 
 	const double facc1 = 1.0 / 3.0 * facc;
 	const double facc2 = 2.0 / 3.0 * facc;
-	const double frac1 = 0.5 * parameters::accretion_radius;
-	const double frac2 = 0.25 * parameters::accretion_radius;
+	const double frac1 = 0.5 * parameters::accretion_radius_fraction;
+	const double frac2 = 0.25 * parameters::accretion_radius_fraction;
 	// W. Kley's parameters initialization finished
 
 	const double RHill = planet.get_rhill();
@@ -211,17 +211,16 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 	// Hereafter : initialization of W. Kley's parameters
 	// remove a ratio of facc = planet.get_acc() of the mass inside the
 	// Hill sphere every planet orbit
-	const double facc = dt * 3.0 * M_PI;
+	const double facc = dt * 3.0 * M_PI * parameters::viscous_outflow_speed;
 
-	const double facc1 = 1.0 / 3.0 * facc;
-	const double frac1 = 0.5 * parameters::accretion_radius;
+	const double frac = parameters::accretion_radius_fraction;
 	// W. Kley's parameters initialization finished
 
 	const double RHill = planet.get_rhill();
 	// search radius is bigger fraction + 2 dphi cell sizes to capture all cells
-	const double search_radius = RHill * frac1  + 2.0*Rplanet/ns;
+	const double search_radius = RHill * frac  + 2.0*Rplanet/ns;
 
-	const double dist_max = RHill*frac1;
+	const double dist_max = RHill*frac;
 	const double f_const = 3.0 / M_PI / std::pow(dist_max, 2);
 
 	// calculate range of indeces to iterate over
@@ -254,10 +253,12 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 		const double nu = data[t_data::VISCOSITY].Field[l];
 
 		const double spread = f_const * (1.0 - distance / dist_max) * Surf[i];
-		static double acc_max = 0.0;
-		const double acc = 3.0 * nu * M_PI * spread * planet.get_period() / std::log(2);
-		if(acc > acc_max)
-			acc_max = acc;
+
+		// debug variables
+		//static double acc_max = 0.0;
+		//const double acc = 3.0 * nu * M_PI * spread * parameters::viscous_outflow_speed * planet.get_period() / std::log(2);
+		//if(acc > acc_max)
+		//	acc_max = acc;
 
 		// interpolate velocities to cell centers
 		const double vtcell =
@@ -271,15 +272,15 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 		// only allow removal of mass down to density floor
 		double facc_max = 1 - density_floor / dens[l];
 		// handle accretion zone 1
-		if (distance < frac1 * RHill) {
-			printf("Cell1 (%d %d) acc = %.3e	(%.3e)	1/acc = %.3e	%.3e	i(%d %d) j(%d %d)\n", i, j, acc, planet.get_acc(), 1.0/acc, 1.0/acc_max, i_min, i_max, j_min, j_max);
+		if (distance < frac * RHill) {
+			//printf("Cell1 (%d %d) acc = %.3e	(%.3e)	1/acc = %.3e	%.3e	i(%d %d) j(%d %d)\n", i, j, acc, planet.get_acc(), 1.0/acc, 1.0/acc_max, i_min, i_max, j_min, j_max);
 
-			const double facc_tmp = facc1 * nu * spread;
+			const double facc_tmp = facc * nu * spread;
 			const double facc_ceil = std::min(facc_tmp, facc_max);
 			deltaM = facc_ceil * dens[l] * Surf[i];
 			dens[l] *= 1.0 - facc_ceil;
 			if (parameters::Adiabatic) {
-			energy[l] *= 1.0 - facc1;
+			energy[l] *= 1.0 - facc;
 			}
 			if (Zero_or_active < i &&
 			i < MaxMO_or_active) { // Only add active cells to

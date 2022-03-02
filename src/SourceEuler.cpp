@@ -1319,8 +1319,10 @@ void calculate_qminus(t_data &data)
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal), 4);
 		const double tau_eff =
 		    data[t_data::TAU_EFF](n_radial, n_azimuthal);
+		const double Tmin4 = std::pow(parameters::minimum_temperature *
+									  units::temperature.get_inverse_cgs_factor(), 4);
 
-		const double qminus = factor * 2 * sigma_sb * T4 / tau_eff;
+		const double qminus = factor * 2 * sigma_sb * (T4 - Tmin4) / tau_eff;
 
 		data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
 	    }
@@ -1391,30 +1393,34 @@ void SubStep3(t_data &data, double dt)
 
 	    const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
 	    const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
-	    const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
-	    const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
 
 	    const double inv_pow4 =
 		std::pow(mu * (gamma - 1.0) / (Rgas * sigma), 4);
 	    double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb / c * inv_pow4 *
 				     std::pow(energy, 3);
 
+		data[t_data::QPLUS](n_radial, n_azimuthal) /= alpha;
+		data[t_data::QMINUS](n_radial, n_azimuthal) /= alpha;
+		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
+		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
+
 	    num = dt * qplus - dt * qminus + alpha * energy;
 	    den = alpha;
 
 		double energy_new = num / den;
-		/// In condition_cfl we guarantee dt < (E / dE) * HEATING_COOLING_INV_CFL_LIMIT
-		/// Here we filter out cells that have sudden large energy changes larger than
-		/// 5 * HEATING_COOLING_INV_CFL_LIMIT to prevent sudden dt freezes.
-		/// we do this by finding an approximate analytical solution to Qplus = -Qminus
-		/// that ignores tau_rp dependency on other cell's viscosity and opactiy temperature dependency
-		const double cfl = std::fabs((qplus - qminus) / energy_new);
-		if(cfl > 5.0*parameters::HEATING_COOLING_CFL_LIMIT){
+
+		const double SigmaFloor = 10.0 * parameters::sigma0 * parameters::sigma_floor;
+		// If the cell is too close to the density floor
+		// we set energy to equilibrium energy
+		if(sigma < SigmaFloor){
 			const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
 			const double e4 = qplus * tau_eff / (2.0 * sigma_sb);
 			const double constant = (Rgas / mu * sigma / (gamma - 1.0));
-			energy_new = std::pow(e4, 1.0/4.0) * constant;
-			data[t_data::QMINUS](n_radial, n_azimuthal) = - qplus;
+			// energy, where current heating cooling rate are in equilibirum
+			const double eq_energy = std::pow(e4, 1.0/4.0) * constant;
+
+			data[t_data::QMINUS](n_radial, n_azimuthal) = qplus;
+			energy_new = eq_energy;
 		}
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
@@ -1943,7 +1949,7 @@ void radiative_diffusion(t_data &data, double dt)
 */
 double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
-		     double deltaT)
+			 const double deltaT)
 {
     dt_parabolic_local = 1e100;
     std::vector<double> v_mean(v_radial.get_size_radial());
