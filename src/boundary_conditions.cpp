@@ -371,6 +371,11 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     if (OuterSourceMass) {
 	ApplyOuterSourceMass(&data[t_data::DENSITY], &data[t_data::V_RADIAL]);
     }
+
+	if (parameters::massoverflow) {
+		boundary_conditions::mass_overflow_willy(data, nullptr, false);
+	}
+
 }
 
 /**
