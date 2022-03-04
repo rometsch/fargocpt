@@ -1336,8 +1336,6 @@ void calculate_qminus(t_data &data)
 */
 void SubStep3(t_data &data, double dt)
 {
-    double num, den;
-
     calculate_qminus(data); // first to calculate teff
     calculate_qplus(data);
 
@@ -1401,25 +1399,22 @@ void SubStep3(t_data &data, double dt)
 
 		data[t_data::QPLUS](n_radial, n_azimuthal) /= alpha;
 		data[t_data::QMINUS](n_radial, n_azimuthal) /= alpha;
-		const double qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
-		const double qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
+		const double Qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
+		const double Qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
 
-	    num = dt * qplus - dt * qminus + alpha * energy;
-	    den = alpha;
-
-		double energy_new = num / den;
+		double energy_new = energy + dt * (Qplus - Qminus);
 
 		const double SigmaFloor = 10.0 * parameters::sigma0 * parameters::sigma_floor;
 		// If the cell is too close to the density floor
 		// we set energy to equilibrium energy
 		if(sigma < SigmaFloor){
 			const double tau_eff = data[t_data::TAU_EFF](n_radial, n_azimuthal);
-			const double e4 = qplus * tau_eff / (2.0 * sigma_sb);
+			const double e4 = Qplus * tau_eff / (2.0 * sigma_sb);
 			const double constant = (Rgas / mu * sigma / (gamma - 1.0));
 			// energy, where current heating cooling rate are in equilibirum
 			const double eq_energy = std::pow(e4, 1.0/4.0) * constant;
 
-			data[t_data::QMINUS](n_radial, n_azimuthal) = qplus;
+			data[t_data::QMINUS](n_radial, n_azimuthal) = Qplus;
 			energy_new = eq_energy;
 		}
 
