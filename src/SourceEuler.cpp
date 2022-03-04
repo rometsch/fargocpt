@@ -626,6 +626,18 @@ void update_with_sourceterms(t_data &data, double dt)
 			invdphi * InvRb[n_radial];
 
 		const double gamma = ADIABATICINDEX;
+		const double sigma_sb = constants::sigma;
+		const double c = constants::c;
+		const double mu = parameters::MU;
+		const double Rgas = constants::R;
+		const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+		const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double inv_pow4 =
+		std::pow(mu * (gamma - 1.0) / (Rgas * sigma), 4);
+		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb / c * inv_pow4 *
+					 std::pow(energy, 3);
+
 		/*
 		// Like D'Angelo et al. 2003 eq. 25
 		const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial,
@@ -636,11 +648,12 @@ void update_with_sourceterms(t_data &data, double dt)
 		n_azimuthal) = energy_new;
 		*/
 
+
 		// Like D'Angelo et al. 2003 eq. 24
 		const double energy_old =
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
 		const double energy_new =
-		    energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
+			energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V/alpha);
 		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
 
 		/*
