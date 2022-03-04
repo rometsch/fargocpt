@@ -1983,7 +1983,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	v_mean[n_radial] /= (double)(v_azimuthal.get_size_azimuthal());
     }
 
-    for (unsigned int n_radial = One_or_active; n_radial < Max_or_active;
+	for (unsigned int n_radial = One_or_active; n_radial < MaxMO_or_active;
 	 ++n_radial) {
 	// cell sizes in radial & azimuthal direction
 	double dxRadial = Rsup[n_radial] - Rinf[n_radial];
@@ -2143,9 +2143,9 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
     }
 
-    for (unsigned int n_radial = 1 + (CPUOVERLAP - 1) * (CPU_Rank > 0 ? 1 : 0);
+	for (unsigned int n_radial = One_or_active;
 	 n_radial <
-	 NRadial - 2 - (CPUOVERLAP - 1) * (CPU_Rank < CPU_Number - 1 ? 1 : 0);
+	 MaxMO_or_active;
 	 ++n_radial) {
 	dtLocal = 2.0 * M_PI * parameters::CFL / (double)NAzimuthal /
 		  fabs(v_mean[n_radial] * InvRmed[n_radial] -
@@ -2768,4 +2768,45 @@ double CircumPlanetaryMass(t_data &data)
 		  MPI_COMM_WORLD);
 
     return mdcptotal;
+}
+
+
+void compute_heating_cooling_for_CFL(t_data &data)
+{
+	if(parameters::Adiabatic){
+
+	viscosity::update_viscosity(data);
+	ComputeViscousStressTensor(data);
+
+
+	calculate_qminus(data); // first to calculate teff
+	calculate_qplus(data);
+
+	for (unsigned int n_radial = 1;
+	 n_radial < data[t_data::ENERGY].get_max_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
+		 ++n_azimuthal) {
+
+		const double sigma_sb = constants::sigma;
+		const double c = constants::c;
+		const double mu = parameters::MU;
+		const double gamma = ADIABATICINDEX;
+		const double Rgas = constants::R;
+
+		const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+
+		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+		const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
+
+		const double inv_pow4 =
+		std::pow(mu * (gamma - 1.0) / (Rgas * sigma), 4);
+		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb / c * inv_pow4 *
+					 std::pow(energy, 3);
+
+		data[t_data::QPLUS](n_radial, n_azimuthal) /= alpha;
+		data[t_data::QMINUS](n_radial, n_azimuthal) /= alpha;
+	}
+	}
+	}
 }

@@ -46,4 +46,6 @@ double CircumPlanetaryMass(t_data &data);
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename,
 				   int line);
 
+void compute_heating_cooling_for_CFL(t_data &data);
+
 #endif // SOURCEEULER_H
