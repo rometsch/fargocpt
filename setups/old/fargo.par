@@ -1,5 +1,6 @@
 ## Disk parameters
 
+Sigma0InCodeUnits	No
 Sigma0			1890.6732476597317		# surface density at r=1 in g/cm^2
 SigmaSlope		0.5		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
@@ -8,7 +9,6 @@ SigmaFloor		1e-9		# floor surface density in multiples of sigma0 [default = 1e-9
 SigmaCondition		Profile		# Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename		""		# File to read surface density from (when Condition = 1D or 2D)
 DensityFactor		2.0		# Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
-
 
 ProfileCutoffInner		No		# enable profile cutoff [default = no]
 ProfileCutoffPointInner	4.0     # in [au], [default = 0]
@@ -58,7 +58,7 @@ TauFactor		1.0		# correction factor for tau [default = 1.0]
 Opacity			Lin		# opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst		2.0e-6	# used for const and simple opacity (kappa = kappa0 * T**2) 
 CFL				0.5
-HeatingCoolingCFLlimit	0.05 # energy change dT/T in substep3 only allowed to change by this fraction.
+HeatingCoolingCFLlimit	1.0 # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 # Star Parameters
 StarRadius		1.0	# star radius in Solar Radii
 StarTemperature		5778		# star temperature in K

@@ -81,6 +81,7 @@ double sigma_random_factor;
 double sigma_floor;
 double sigma_feature_size;
 bool sigma_adjust;
+bool sigma0_in_code_units;
 double sigma_discmass;
 double sigma0;
 t_initialize_condition energy_initialize_condition;
@@ -730,7 +731,8 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("FeatureSize", (RMAX - RMIN) / 150);
     sigma_floor = config::value_as_double_default("SigmaFloor", 1e-9);
     sigma0 = config::value_as_double_default("SIGMA0", 173.);
-    sigma_adjust = config::value_as_bool_default("SetSigma0", false);
+	sigma0_in_code_units = config::value_as_bool_default("Sigma0InCodeUnits", false);
+	sigma_adjust = config::value_as_bool_default("SetSigma0", false);
     sigma_discmass = config::value_as_double_default("discmass", 0.01);
     density_factor =
 	config::value_as_double_default("DensityFactor", std::sqrt(2.0 * M_PI));
@@ -1024,7 +1026,10 @@ void apply_units()
     mass_accretion_rate = mass_accretion_rate *
 			  (units::cgs_Msol / units::cgs_Year) * 1. /
 			  units::mass_accretion_rate.get_cgs_factor();
-    sigma0 /= units::surface_density.get_cgs_factor();
+
+	if(!sigma0_in_code_units) {
+		sigma0 /= units::surface_density.get_cgs_factor();
+	}
     particle_radius /= units::length.get_cgs_factor();
     particle_density /= units::density.get_cgs_factor();
 }
