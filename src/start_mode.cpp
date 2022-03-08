@@ -111,7 +111,7 @@ std::int32_t get_latest_output_num(bool debug = false)
 	return -1;
     }
 
-    output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0};
+	output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
     // find last line
     while (!misc_file.eof()) {

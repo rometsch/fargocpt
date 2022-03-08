@@ -17,6 +17,7 @@ struct misc_entry {
     double OmegaFrame;
     double FrameAngle;
     double dtemp;
+	double last_dt;
 };
 
 void check_free_space(t_data &data);

@@ -242,7 +242,9 @@ int main(int argc, char *argv[])
     CommunicateBoundaries(&data[t_data::DENSITY0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
-    for (; nTimeStep <= NTOT; ++nTimeStep) {
+	compute_heating_cooling_for_CFL(data);
+
+	for (; nTimeStep <= NTOT; ++nTimeStep) {
 	data.get_planetary_system().calculate_orbital_elements();
 	// write outputs
 
