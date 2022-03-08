@@ -105,9 +105,7 @@ void ComputeViscousStressTensor(t_data &data)
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
 {
     if (assure_minimum_temperature(
-	    data[t_data::ENERGY], data[t_data::DENSITY],
-	    parameters::minimum_temperature *
-		units::temperature.get_inverse_cgs_factor())) {
+		data[t_data::ENERGY], data[t_data::DENSITY])) {
 	logging::print(LOG_DEBUG "Found temperature < %g %s in %s: %d.\n",
 		       parameters::minimum_temperature,
 		       units::temperature.get_cgs_symbol(), filename.c_str(),
@@ -115,9 +113,7 @@ void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
     }
 
     if (assure_maximum_temperature(
-	    data[t_data::ENERGY], data[t_data::DENSITY],
-	    parameters::maximum_temperature *
-		units::temperature.get_inverse_cgs_factor())) {
+		data[t_data::ENERGY], data[t_data::DENSITY])) {
 	logging::print(LOG_DEBUG "Found temperature < %g %s in %s: %d.\n",
 		       parameters::maximum_temperature,
 		       units::temperature.get_cgs_symbol(), filename.c_str(),
@@ -188,24 +184,22 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
     return found;
 }
 
-/**
-	Assures a miminum temperature in each cell.
-
-	\param energy energy polar grid
-	\param minimum_value minimum temperature
-*/
-bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
-				double minimum_value)
+bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density)
 {
     bool found = false;
+
+	const double Tmin = parameters::minimum_temperature *
+			units::temperature.get_inverse_cgs_factor();
 
     for (unsigned int n_radial = 0; n_radial <= energy.get_max_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= energy.get_max_azimuthal(); ++n_azimuthal) {
-	    if (energy(n_radial, n_azimuthal) <
-		minimum_value * density(n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0)) {
+
+		const double minimum_energy = Tmin * density(n_radial, n_azimuthal) /
+				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+		if (!(energy(n_radial, n_azimuthal) > minimum_energy)) {
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_minimum_temperature: (%u,%u)=%g<%g\n",
@@ -214,11 +208,11 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
 			units::temperature.get_cgs_factor() /
 			density(n_radial, n_azimuthal) * parameters::MU /
 			constants::R * (ADIABATICINDEX - 1.0),
-		    minimum_value * units::temperature.get_cgs_factor(),
-		    minimum_value);
+			Tmin * units::temperature.get_cgs_factor(),
+			Tmin);
 #endif
 		energy(n_radial, n_azimuthal) =
-		    minimum_value * density(n_radial, n_azimuthal) /
+			Tmin * density(n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 		found = true;
 	    }
@@ -228,18 +222,16 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density,
     return found;
 }
 
-/**
-	Assures a miminum temperature in each cell.
-
-	\param energy energy polar grid
-	\param minimum_value minimum temperature
-*/
-bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
-				double maximum_value)
+bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density)
 {
-    if (isnan(maximum_value)) // Warning: this is compiled away with fast math
+
+	const double Tmax = parameters::maximum_temperature *
+			units::temperature.get_inverse_cgs_factor();
+
+	if (isnan(Tmax)){ // Warning: this is compiled away with fast math
 			      // enabled
 	return false;
+	}
 
     bool found = false;
 
@@ -247,9 +239,11 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= energy.get_max_azimuthal(); ++n_azimuthal) {
-	    if (energy(n_radial, n_azimuthal) >
-		maximum_value * density(n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0)) {
+
+		const double maximum_energy = Tmax * density(n_radial, n_azimuthal) /
+				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+		if (!(energy(n_radial, n_azimuthal) < maximum_energy)) {
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
@@ -258,11 +252,11 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density,
 			units::temperature.get_cgs_factor() /
 			density(n_radial, n_azimuthal) * parameters::MU /
 			constants::R * (ADIABATICINDEX - 1.0),
-		    maximum_value * units::temperature.get_cgs_factor(),
-		    maximum_value);
+			Tmax * units::temperature.get_cgs_factor(),
+			Tmax);
 #endif
 		energy(n_radial, n_azimuthal) =
-		    maximum_value * density(n_radial, n_azimuthal) /
+			Tmax * density(n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 		found = true;
 	    }
