@@ -516,6 +516,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		// source term
 		update_with_artificial_viscosity(data, dt);
 
+		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		recalculate_derived_disk_quantities(data, true);
 
 		ComputeViscousStressTensor(data);
@@ -533,14 +534,13 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 	    if (parameters::Adiabatic) {
 
-		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-
 		// ComputeViscousStressTensor(data);
 		SubStep3(data, dt);
 
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 
 		if (parameters::radiative_diffusion_enabled) {
+			compute_temperature(data, true);
 		    radiative_diffusion(data, dt);
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
@@ -1192,7 +1192,6 @@ void calculate_qplus(t_data &data)
 
 		    // see Günther et. al (2004) or Phil Armitage "Astrophysics
 		    // of Planet Format" p. 46
-			/// TODO: adjust for change h -> H
 		    double alpha =
 			(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) -
 			 data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal)) *
