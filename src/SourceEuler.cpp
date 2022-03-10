@@ -540,7 +540,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 
 		if (parameters::radiative_diffusion_enabled) {
-			compute_temperature(data, true);
 		    radiative_diffusion(data, dt);
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
