@@ -11,7 +11,8 @@ SigmaSlope		1		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-Sigma
 SetSigma0		NO		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
 DiscMass		0.007142857		# only used when SetSigma0 = true [default = 0.01]
 SigmaFloor		1e-8		# floor surface density in multiples of sigma0 [default = 1e-9]
-SigmaCondition		Profile		# Initialize surface density by Profile, 1D or 2D [default = Profile]
+SigmaCondition      Nbody       # Initialize surface density by Profile, 1D or 2D [default = Profile]                 
+EnergyCondition     Nbody       # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename		""		# File to read surface density from (when Condition = 1D or 2D)
 DensityFactor		2.5
 
@@ -50,7 +51,7 @@ m0			1.4		# Base mass unit in times of solar mass = 1.98892e30 kg. The central s
 mu			2.35		# mean molecular weight [default=1.0]
 
 ImposedDiskDrift	0.0		# Impose a radial drift of the disk material (default = 0)
-InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
+InitializePureKeplerian	Yes		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 
 ### Planet parameters
 
@@ -64,7 +65,7 @@ MassAccretionRadius 0.08333333333	# Mass accretion radius in unints of R_hill / 
 Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT
 InnerBoundary		VISCOUS
-OuterBoundary		OPEN
+OuterBoundary		CENTER
 DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
 ViscousOutflowSpeed	5.0
 
@@ -91,13 +92,13 @@ DiskFeedback		NO
 
 ### Mesh parameters
 
-Nrad			1142 #512 128		# Radial number of zones
-Nsec			1162 #1536 384		# Azimuthal number of 
+Nrad			1140 #512 128		# Radial number of zones
+Nsec			910 #1536 384		# Azimuthal number of 
 #Nrad			400 #512 128		# Radial number of zones
 #Nsec			400 #1536 384		# Azimuthal number of 
 # zones (sectors)
 Rmin			0.3		# Inner boundary radius
-Rmax			790		# Outer boundary radius
+Rmax			780		# Outer boundary radius
 RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC
 #RadialSpacing 		Arithmetic		# Logarithmic or ARITHMETIC
 
