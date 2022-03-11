@@ -741,6 +741,9 @@ value_as_boudary_damping_default(const char *key, const char *defvalue)
     case 'z':
 	boundary_condition = parameters::t_damping_type::damping_zero;
 	break;
+	case 'v':
+	boundary_condition = parameters::t_damping_type::damping_visc;
+	break;
     default:
 	boundary_condition = parameters::t_damping_type::damping_none;
     }

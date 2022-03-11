@@ -65,7 +65,8 @@ enum t_damping_type {
     damping_none,
     damping_initial,
     damping_mean,
-    damping_zero
+	damping_zero,
+	damping_visc
 };
 extern bool damping;
 /// inner damping limit

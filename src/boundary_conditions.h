@@ -47,6 +47,8 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 			       double dt);
 void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 			       double dt);
+void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
+									double dt);
 } // namespace boundary_conditions
 
 #endif // BOUNDARY_CONDITIONS_H

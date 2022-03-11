@@ -254,7 +254,7 @@ static int get_rmed_id_custom(const double r)
 
 static int get_rinf_id_log(const double r)
 {
-    double did = log(r / RMIN) * inv_log_growth_factor;
+	double did = std::log(r / RMIN) * inv_log_growth_factor;
     int id = (int)std::floor(did) - IMIN + 1;
     return id;
 }

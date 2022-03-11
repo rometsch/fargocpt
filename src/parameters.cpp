@@ -230,6 +230,12 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	description_inner =
 	    "Damping " + description + " to zero at inner boundary.";
 	break;
+	case damping_visc:
+	damping_type.inner_damping_function =
+		&boundary_conditions::damping_vradial_inner_visc;
+	description_inner =
+		"Damping " + description + " to viscous radial speed at inner boundary.";
+	break;
     }
 
     damping_type.description_inner = description_inner;
@@ -257,6 +263,9 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	    &boundary_conditions::damping_single_outer_zero;
 	description_outer =
 	    "Damping " + description + " to zero at outer boundary.";
+	break;
+	case damping_visc:
+	die(("Damping " + description + " to viscous radial speed at outer boundary not implemented!\n").c_str());
 	break;
     }
 
@@ -559,9 +568,15 @@ void read(char *filename, t_data &data)
     tmp_damping_outer =
 	config::value_as_boudary_damping_default("DampingVRadialOuter", "None");
 
+	if(tmp_damping_inner == parameters::t_damping_type::damping_visc){
     damping_vector.push_back(
 	write_damping_type(tmp_damping_inner, tmp_damping_outer,
-			   t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
+			   t_data::V_RADIAL, t_data::VISCOSITY, "VRadial"));
+	} else {
+		damping_vector.push_back(
+		write_damping_type(tmp_damping_inner, tmp_damping_outer,
+				   t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
+	}
 
     if (config::key_exists("DampingVAzimuthal"))
 	die("DampingVRadial flag is decrepated used DampingVAzimuthalInner and DampingVAzimuthalOuter instead!");

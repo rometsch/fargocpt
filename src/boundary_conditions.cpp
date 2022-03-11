@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "constants.h"
+#include <cassert>
 #include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
@@ -668,30 +669,30 @@ void reflecting_boundary_outer(t_data &data)
 void viscous_outflow_boundary_inner(t_data &data)
 {
     if (CPU_Rank == 0) {
-	double nu_med = 0.0;
-
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::VISCOSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-	    nu_med += data[t_data::VISCOSITY](1, n_azimuthal);
 	    data[t_data::DENSITY](0, n_azimuthal) =
 		data[t_data::DENSITY](1, n_azimuthal);
 	    data[t_data::ENERGY](0, n_azimuthal) =
 		data[t_data::ENERGY](1, n_azimuthal);
 	}
 
-	nu_med /= data[t_data::DENSITY].get_size_azimuthal();
-
 	const double s = parameters::viscous_outflow_speed;
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
+
+		const double Nu0 = data[t_data::VISCOSITY](0, n_azimuthal);
+		const double Nu1 = data[t_data::VISCOSITY](1, n_azimuthal);
+		const double Nu = 0.5*(Nu0 + Nu1);
+
 	    // V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
 	    data[t_data::V_RADIAL](1, n_azimuthal) =
-		-1.5 * s / Rinf[1] * nu_med;
+		-1.5 * s / Rinf[1] * Nu;
 	    data[t_data::V_RADIAL](0, n_azimuthal) =
-		-1.5 * s / Rinf[0] * nu_med;
+		-1.5 * s / Rinf[0] * Nu;
 	}
     }
 }
@@ -972,6 +973,56 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	    }
 	}
     }
+}
+
+
+
+void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
+				   double dt)
+{
+	bool is_vrad = strcmp(vrad.get_name(), "vrad") == 0;
+	assert(is_vrad);
+	(void) is_vrad; /// removes IDE 'unused' warning
+
+	t_radialarray &rinf =Ra;
+
+	// is this CPU in the inner damping domain?
+	if ((parameters::damping_inner_limit > 1.0) &&
+	(rinf[0] < RMIN * parameters::damping_inner_limit)) {
+	// find range
+
+	const unsigned int limit = get_rinf_id(RMIN * parameters::damping_inner_limit);
+
+	const double tau = parameters::damping_time_factor * 2.0 * M_PI /
+			 calculate_omega_kepler(RMIN);
+
+	const double s = parameters::viscous_outflow_speed;
+
+
+	// n_radial = 0 and 1 are set in the boundary condition)
+	for (unsigned int n_radial = 2; n_radial <= limit; ++n_radial) {
+		double factor = std::pow(
+		(rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
+			(RMIN - RMIN * parameters::damping_inner_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= vrad.get_max_azimuthal(); ++n_azimuthal) {
+		const double viscosity_above = viscosity(n_radial, n_azimuthal);
+		const double viscosity_below = viscosity(n_radial-1, n_azimuthal);
+		const double Nu = 0.5*(viscosity_above + viscosity_below);
+
+		// V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
+		const double V_rad = -1.5 * s / Rinf[n_radial] * Nu;
+
+		const double X = vrad(n_radial, n_azimuthal);
+		const double X0 = V_rad;
+		const double Xnew = (X - X0) * exp_factor + X0;
+		vrad(n_radial, n_azimuthal) = Xnew;
+		}
+	}
+	}
 }
 
 void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
