@@ -201,10 +201,23 @@ int main(int argc, char *argv[])
 				      start_mode::restart_debug);
 	data[t_data::V_AZIMUTHAL].read2D(start_mode::restart_from,
 					 start_mode::restart_debug);
-	if (parameters::Adiabatic)
+	if (parameters::Adiabatic){
 	    data[t_data::ENERGY].read2D(start_mode::restart_from,
 					start_mode::restart_debug);
 
+		if(data[t_data::QPLUS].get_write_2D()){
+			data[t_data::QPLUS].read2D(start_mode::restart_from,
+						start_mode::restart_debug);
+		} else {
+			logging::print_master(LOG_INFO "Cannot read Qplus, no bitwise identical restarting possible!\n");
+		}
+		if(data[t_data::QMINUS].get_write_2D()){
+			data[t_data::QMINUS].read2D(start_mode::restart_from,
+						start_mode::restart_debug);
+		} else {
+			logging::print_master(LOG_INFO "Cannot read Qminus, no bitwise identical restarting possible!\n");
+		}
+	}
 	if (parameters::integrate_particles) {
 	    if (start_mode::restart_debug) {
 		die("Debug restart not implemented for particles yet!\n");
@@ -241,8 +254,6 @@ int main(int argc, char *argv[])
 
     CommunicateBoundaries(&data[t_data::DENSITY0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
-
-	compute_heating_cooling_for_CFL(data);
 
 	for (; nTimeStep <= NTOT; ++nTimeStep) {
 	data.get_planetary_system().calculate_orbital_elements();

@@ -388,7 +388,7 @@ void t_planet::write(const unsigned int timestep, const unsigned int file_type)
 	    logging::print(LOG_ERROR "Not enough memory!\n");
 	    PersonalExit(1);
 	}
-	write_binary(filename, timestep);
+	write_binary(filename, timestep, false);
 	break;
     case 1:
 	if (asprintf(&filename, "%sbigplanet%u.dat", OUTPUTDIR,
@@ -404,7 +404,7 @@ void t_planet::write(const unsigned int timestep, const unsigned int file_type)
 	    logging::print(LOG_ERROR "Not enough memory!\n");
 	    PersonalExit(1);
 	}
-	write_binary(filename, timestep);
+	write_binary(filename, timestep, true);
 	break;
     default:
 	die("Bad file_type value for writing planet files!\n");
@@ -437,11 +437,18 @@ void t_planet::write_ascii(const char *filename,
 }
 
 void t_planet::write_binary(const char *filename,
-			    const unsigned int timestep) const
+				const unsigned int timestep, const bool debug) const
 {
 
-    std::ofstream wf(filename,
-		     std::ios::out | std::ios::binary | std::ios::app);
+	std::ofstream wf;
+
+	if(debug){
+	wf = std::ofstream(filename,
+					   std::ios::out | std::ios::binary); // overwrite for debug file
+	} else {
+	wf = std::ofstream(filename,
+					   std::ios::out | std::ios::binary | std::ios::app);
+	}
     if (!wf) {
 	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
 	die("End\n");
@@ -500,13 +507,14 @@ void t_planet::restart(unsigned int timestep, bool debug)
 	throw 0;
     }
 
+	if(!debug){
 	rf.ignore(timestep * sizeof(planet_member_variables));
+	}
 
     planet_member_variables pl;
     rf.read((char *)&pl, sizeof(planet_member_variables));
 
     while (pl.timestep != timestep) {
-	printf("[%d]	%s	pl.timestep = %d	%d\n", CPU_Rank, this->m_name.c_str(), pl.timestep, timestep);
 	if (rf.eof()) {
 	    logging::print_master(LOG_ERROR
 				  "Could not read timestep %d in %s\n",

@@ -18,6 +18,7 @@ struct misc_entry {
     double FrameAngle;
     double dtemp;
 	double last_dt;
+	unsigned int N_iter;
 };
 
 void check_free_space(t_data &data);

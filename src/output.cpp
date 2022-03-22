@@ -448,7 +448,7 @@ void write_misc(const bool debug_file)
     }
 
     misc_entry misc{TimeStep,	nTimeStep,  PhysicalTime,
-			OmegaFrame, FrameAngle, dtemp, last_dt};
+			OmegaFrame, FrameAngle, dtemp, last_dt, N_iter};
 
     wf.write((char *)&misc, sizeof(misc));
 
@@ -644,6 +644,7 @@ int get_misc(const int timestep, const bool debug)
     FrameAngle = misc.FrameAngle;
     dtemp = misc.dtemp;
 	last_dt = misc.last_dt;
+	N_iter = misc.N_iter;
 
     rf.close();
     return misc.timestep;

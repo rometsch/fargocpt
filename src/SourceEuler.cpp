@@ -310,6 +310,8 @@ void init_euler(t_data &data)
     }
 
     viscosity::update_viscosity(data);
+	compute_heating_cooling_for_CFL(data);
+
 }
 
 static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
@@ -445,9 +447,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
     }
     // recalculate timestep, even for no_disk = true, so that particle drag has
     // reasonable timestep size
-	if(debug_outputs){
-		compute_heating_cooling_for_CFL(data);
-	}
     double dt = CalculateHydroTimeStep(data, 0.0, true);
 
     boundary_conditions::apply_boundary_condition(data, dt, false);
