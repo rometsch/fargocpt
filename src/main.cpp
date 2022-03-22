@@ -205,14 +205,16 @@ int main(int argc, char *argv[])
 	    data[t_data::ENERGY].read2D(start_mode::restart_from,
 					start_mode::restart_debug);
 
-		if(data[t_data::QPLUS].get_write_2D()){
+		if(data[t_data::QPLUS].get_write_2D() && data[t_data::QPLUS].file_exists(start_mode::restart_from,
+																				  start_mode::restart_debug)){
 			data[t_data::QPLUS].read2D(start_mode::restart_from,
 						start_mode::restart_debug);
 		} else {
 			logging::print_master(LOG_INFO "Cannot read Qplus, no bitwise identical restarting possible!\n");
 			compute_heating_cooling_for_CFL(data);
 		}
-		if(data[t_data::QMINUS].get_write_2D()){
+		if(data[t_data::QMINUS].get_write_2D() && data[t_data::QMINUS].file_exists(start_mode::restart_from,
+																				   start_mode::restart_debug)){
 			data[t_data::QMINUS].read2D(start_mode::restart_from,
 						start_mode::restart_debug);
 		} else {

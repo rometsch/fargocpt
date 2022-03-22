@@ -95,6 +95,8 @@ class t_polargrid
     void write2D(const unsigned int number, const bool debug) const;
     void read2D(const char *filename);
     void read2D(unsigned int number, bool debug);
+	bool file_exists(unsigned int number, bool debug);
+
 
     // 1D read/write
     void write1D(unsigned int number) const;

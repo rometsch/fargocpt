@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <gsl/gsl_spline.h>
+#include <experimental/filesystem>
 #include <mpi.h>
 
 t_polargrid::t_polargrid()
@@ -289,10 +290,32 @@ void t_polargrid::read2D(unsigned int number, bool debug = false)
 	    die("Not enough memory!");
 	}
     }
-
     read2D(filename);
 
     free(filename);
+}
+
+bool t_polargrid::file_exists(unsigned int number, bool debug = false)
+{
+	char *filename;
+
+	if (debug) {
+	if (asprintf(&filename, "%s/gas%s_DEBUG.dat", OUTPUTDIR, get_name()) <
+		0) {
+		die("Not enough memory!");
+	}
+	} else {
+	if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(),
+			 number) < 0) {
+		die("Not enough memory!");
+	}
+	}
+
+	bool exists = std::experimental::filesystem::exists(filename);
+
+	free(filename);
+
+	return exists;
 }
 
 void t_polargrid::read2D(const char *_filename)
