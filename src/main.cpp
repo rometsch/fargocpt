@@ -210,12 +210,14 @@ int main(int argc, char *argv[])
 						start_mode::restart_debug);
 		} else {
 			logging::print_master(LOG_INFO "Cannot read Qplus, no bitwise identical restarting possible!\n");
+			compute_heating_cooling_for_CFL(data);
 		}
 		if(data[t_data::QMINUS].get_write_2D()){
 			data[t_data::QMINUS].read2D(start_mode::restart_from,
 						start_mode::restart_debug);
 		} else {
 			logging::print_master(LOG_INFO "Cannot read Qminus, no bitwise identical restarting possible!\n");
+			compute_heating_cooling_for_CFL(data);
 		}
 	}
 	if (parameters::integrate_particles) {
