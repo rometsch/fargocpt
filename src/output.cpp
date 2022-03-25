@@ -318,32 +318,32 @@ void write_quantities(t_data &data, unsigned int timestep,
 	}
     }
 
-    auto disk_quantities = reduce_disk_quantities(data, timestep, force_update);
-    double disk_eccentricity = disk_quantities[0];
-    double disk_periastron = disk_quantities[1];
+	const auto disk_quantities = reduce_disk_quantities(data, timestep, force_update);
+	const double disk_eccentricity = disk_quantities[0];
+	const double disk_periastron = disk_quantities[1];
 
     // computate absolute deviation from start values (this has to be done on
     // all nodes!)
-    double totalMass = quantities::gas_total_mass(data);
-    double diskRadius = quantities::gas_disk_radius(data, totalMass);
-    double totalAngularMomentum = quantities::gas_angular_momentum(data);
-    double internalEnergy = quantities::gas_internal_energy(data);
-	double qplus = quantities::gas_viscous_dissipation(data);
-	double qminus = quantities::gas_luminosity(data);
-    double kinematicEnergy = quantities::gas_kinematic_energy(data);
-    double radialKinematicEnergy =
+	const double totalMass = quantities::gas_total_mass(data);
+	const double diskRadius = quantities::gas_disk_radius(data, totalMass);
+	const double totalAngularMomentum = quantities::gas_angular_momentum(data);
+	const double internalEnergy = quantities::gas_internal_energy(data);
+	const double qplus = quantities::gas_viscous_dissipation(data);
+	const double qminus = quantities::gas_luminosity(data);
+	const double kinematicEnergy = quantities::gas_kinematic_energy(data);
+	const double radialKinematicEnergy =
 	quantities::gas_radial_kinematic_energy(data);
-    double azimuthalKinematicEnergy =
+	const double azimuthalKinematicEnergy =
 	quantities::gas_azimuthal_kinematic_energy(data);
 
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data);
     }
-    double gravitationalEnergy = quantities::gas_gravitational_energy(data);
-    double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
+	const double gravitationalEnergy = quantities::gas_gravitational_energy(data);
+	const double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
 
 	quantities::compute_aspectratio(data, timestep, force_update);
-    double scale_height = quantities::gas_aspect_ratio(data);
+	const double scale_height = quantities::gas_aspect_ratio(data);
 
     double pdivv_total = 0.0;
     double InnerPositive = 0.0;

@@ -67,7 +67,7 @@ void t_planetary_system::initialize_default_star()
     planet->set_name("Default Star");
     planet->set_acc(0.0);
 
-    planet->set_radius(parameters::star_radius);
+	planet->set_planet_radial_extend(parameters::star_radius);
     planet->set_temperature(parameters::star_temperature);
     planet->set_irradiate(false);
     planet->set_rampuptime(0.0);
@@ -187,7 +187,7 @@ void t_planetary_system::read_from_file(char *filename)
 		LOG_WARNING,
 		"Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
 
-	    planet->set_radius(radius * 0.00465047 / parameters::L0);
+		planet->set_planet_radial_extend(radius * units::solar_radius_in_au / parameters::L0);
 	    planet->set_temperature(temperature / units::temperature);
 	    planet->set_irradiate(tolower(irradiate[0]) == 'y');
 	    planet->set_rampuptime(rampuptime);
@@ -281,8 +281,8 @@ void t_planetary_system::list_planets()
 	    LOG_INFO
 	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
 	    i, get_planet(i).get_eccentricity(),
-	    get_planet(i).get_semi_major_axis(), get_planet(i).get_period(),
-	    get_planet(i).get_period() * units::time.get_cgs_factor() /
+		get_planet(i).get_semi_major_axis(), get_planet(i).get_orbital_period(),
+		get_planet(i).get_orbital_period() * units::time.get_cgs_factor() /
 		units::cgs_Year,
 	    get_planet(i).get_acc(), '-', '-');
     }
@@ -299,7 +299,7 @@ void t_planetary_system::list_planets()
 	logging::print(LOG_INFO
 		       " %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
 		       i, get_planet(i).get_temperature() * units::temperature,
-		       get_planet(i).get_radius(),
+			   get_planet(i).get_planet_radial_extend(),
 		       (get_planet(i).get_irradiate()) ? 'X' : '-',
 		       get_planet(i).get_rampuptime());
     }

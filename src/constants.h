@@ -63,6 +63,7 @@ extern t_constant _R;
 /// Stefan-Boltzmann constant
 extern t_constant sigma;
 
+
 // _G and _R are always defined with _ and are linked to G and R with compilied
 // without NDEBUG otherswise to const double 1
 #ifndef NDEBUG

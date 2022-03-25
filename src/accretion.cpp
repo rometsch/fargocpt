@@ -80,7 +80,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	// remove a ratio of facc = planet.get_acc() of the mass inside the
 	// Hill sphere every planet orbit
 	//const double facc = dt * planet.get_acc() / std::pow(Rplanet, 2) / planet.get_period() * std::log(2);
-	const double facc = dt * planet.get_acc() / planet.get_period() * std::log(2);
+	const double facc = dt * planet.get_acc() / planet.get_orbital_period() * std::log(2);
 
 	const double facc1 = 1.0 / 3.0 * facc;
 	const double facc2 = 2.0 / 3.0 * facc;

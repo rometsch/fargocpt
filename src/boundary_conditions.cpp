@@ -545,7 +545,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
     if (CPU_Rank == CPU_Highest) {
 	const int n_radial = data[t_data::DENSITY].get_max_radial();
 	const double T_bin =
-	    data.get_planetary_system().get_planet(1).get_period();
+		data.get_planetary_system().get_planet(1).get_orbital_period();
 
 	const double step_size = T_bin / (double)PRESCRIBED_TIME_SEGMENT_NUMBER;
 	const double real_time = PhysicalTime / step_size;
@@ -1334,7 +1334,7 @@ void mass_overflow(t_data &data)
     double check = 0.0;
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
 
-		const double t_ramp = parameters::mof_rampingtime * planet.get_period();
+		const double t_ramp = parameters::mof_rampingtime * planet.get_orbital_period();
 
 		double ramp_factor;
 		if (PhysicalTime < t_ramp) {
@@ -1471,7 +1471,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	sigma; // walk through 3 sigma, so we get 99.7% accuracy
     double sigmabar = Nphi * sigma;
 
-	const double t_ramp = parameters::mof_rampingtime * planet.get_period();
+	const double t_ramp = parameters::mof_rampingtime * planet.get_orbital_period();
 
     double ramp_factor;
     if (PhysicalTime < t_ramp) {

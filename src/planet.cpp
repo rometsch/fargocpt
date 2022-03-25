@@ -223,10 +223,10 @@ double t_planet::get_rampup_mass() const
 {
     double ramping = 1.0;
     if (get_rampuptime() > 0) {
-	if (PhysicalTime < get_rampuptime() * get_period()) {
+	if (PhysicalTime < get_rampuptime() * get_orbital_period()) {
 	    ramping =
 		1.0 - std::pow(std::cos(PhysicalTime * M_PI_2 /
-					(get_rampuptime() * get_period())),
+					(get_rampuptime() * get_orbital_period())),
 			       2);
 	}
     }
@@ -236,7 +236,7 @@ double t_planet::get_rampup_mass() const
 /**
 	get planet period T
 */
-double t_planet::get_period() const
+double t_planet::get_orbital_period() const
 {
     return 2.0 * M_PI *
 	   std::sqrt(std::pow(get_semi_major_axis(), 3) /

@@ -895,8 +895,7 @@ void read(char *filename, t_data &data)
 		star_radius);
 	}
     }
-    const double solar_radius_in_au = 0.00465047;
-    star_radius *= solar_radius_in_au / L0; // convert to code units
+	star_radius *= units::solar_radius_in_au / L0; // convert to code units
 
     // boundary layer parameters
     radial_viscosity_factor =

@@ -83,7 +83,7 @@ class t_planet
 	m_planet_number = value;
     }
     inline void set_temperature(double value) { m_temperature = value; }
-    inline void set_radius(double value) { m_radius = value; }
+	inline void set_planet_radial_extend(double value) { m_radius = value; }
     inline void set_irradiate(bool value) { m_irradiate = value; }
     inline void set_rampuptime(double value) { m_rampuptime = value; }
     inline void set_disk_on_planet_acceleration(Pair value)
@@ -117,7 +117,7 @@ class t_planet
 	return m_planet_number;
     }
     inline double get_temperature(void) const { return m_temperature; }
-    inline double get_radius(void) const { return m_radius; }
+	inline double get_planet_radial_extend(void) const { return m_radius; }
     inline double get_irradiate(void) const { return m_irradiate; }
     inline double get_rampuptime(void) const { return m_rampuptime; }
     inline const Pair get_disk_on_planet_acceleration(void) const
@@ -141,7 +141,7 @@ class t_planet
     double get_r(void) const;
     double get_phi(void) const;
     double get_angular_momentum() const;
-    double get_period() const;
+	double get_orbital_period() const;
     double get_omega() const;
 	double get_rhill() const;
 

@@ -774,7 +774,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 			mpl[k] = planet.get_rampup_mass();
 			xpl[k] = planet.get_x();
 			ypl[k] = planet.get_y();
-			rpl[k] = planet.get_radius();
+			rpl[k] = planet.get_planet_radial_extend();
 			}
 
 			const Pair r_cm = data.get_planetary_system().get_center_of_mass();
