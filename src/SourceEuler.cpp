@@ -2724,19 +2724,24 @@ void compute_rho(t_data &data, bool force_update)
 */
 double CircumPlanetaryMass(t_data &data)
 {
-    double xpl, ypl;
+
+	const int planet_to_monitor_id = 1; // Central star = 0
     double dist, mdcplocal, mdcptotal;
 
     /* if there's no planet, there is no mass inside its Roche lobe ;) */
-    if (data.get_planetary_system().get_number_of_planets() == 0)
+	if (data.get_planetary_system().get_number_of_planets() < 2){
 	return 0;
+	}
 
-    // TODO: non global
+	// TODO: non global
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
 
-    xpl = data.get_planetary_system().get_planet(0).get_x();
-    ypl = data.get_planetary_system().get_planet(0).get_y();
+	const auto &planet = data.get_planetary_system().get_planet(planet_to_monitor_id);
+
+	const double xpl = planet.get_x();
+	const double ypl = planet.get_y();
+	const double HillRadius = planet.get_rhill();
 
     mdcplocal = 0.0;
     mdcptotal = 0.0;

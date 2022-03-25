@@ -273,7 +273,7 @@ double t_planet::get_omega() const
 /**
 	get hill radius at current planet location
 */
-double t_planet::get_rhill()
+double t_planet::get_rhill() const
 {
     const double r = get_r();
     const double Mp = get_mass();

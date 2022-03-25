@@ -205,13 +205,6 @@ void t_planetary_system::read_from_file(char *filename)
 			      get_number_of_planets());
     }
 
-    if (get_number_of_planets() > 0) {
-	HillRadius = get_planet(0).get_radius() *
-		     pow(get_planet(0).get_mass() / 3., 1. / 3.);
-    } else {
-	HillRadius = 0;
-    }
-
     // set up hydro frame center
     if (get_number_of_planets() == 0) {
 	die("No stars or planets!");
