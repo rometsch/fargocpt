@@ -157,10 +157,10 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
     bool found = false;
     bool is_dens = strcmp(dst.get_name(), "dens") == 0;
 
-    for (unsigned int n_radial = 0; n_radial <= dst.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < dst.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= dst.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < dst.get_size_azimuthal(); ++n_azimuthal) {
 	    if (dst(n_radial, n_azimuthal) < minimum_value) {
 		if (is_dens) {
 		    double mass_delta =
@@ -191,10 +191,10 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density)
 	const double Tmin = parameters::minimum_temperature *
 			units::temperature.get_inverse_cgs_factor();
 
-    for (unsigned int n_radial = 0; n_radial <= energy.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= energy.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double minimum_energy = Tmin * density(n_radial, n_azimuthal) /
 				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
@@ -235,10 +235,10 @@ bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density)
 
     bool found = false;
 
-    for (unsigned int n_radial = 0; n_radial <= energy.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= energy.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double maximum_energy = Tmax * density(n_radial, n_azimuthal) /
 				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
@@ -1489,10 +1489,10 @@ void radiative_diffusion(t_data &data, double dt)
 	compute_scale_height(data, true);
 
     // calcuate Ka for K(i/2,j)
-    for (unsigned int n_radial = 1; n_radial <= Ka.get_max_radial() - 1;
+	for (unsigned int n_radial = 1; n_radial < Ka.get_size_radial() - 1;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= Ka.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < Ka.get_size_azimuthal(); ++n_azimuthal) {
 		const unsigned int n_azimuthal_plus =
 		(n_azimuthal == Ka.get_max_azimuthal() ? 0 : n_azimuthal + 1);
 		const unsigned int n_azimuthal_minus =
@@ -1616,10 +1616,10 @@ void radiative_diffusion(t_data &data, double dt)
     }
 
     // calcuate Kb for K(i,j/2)
-    for (unsigned int n_radial = 1; n_radial <= Kb.get_max_radial() - 1;
+	for (unsigned int n_radial = 1; n_radial < Kb.get_size_radial() - 1;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= Kb.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < Kb.get_size_azimuthal(); ++n_azimuthal) {
 	    // unsigned int n_azimuthal_plus = (n_azimuthal ==
 	    // Kb.get_max_azimuthal() ? 0 : n_azimuthal + 1);
 		const unsigned int n_azimuthal_minus =
@@ -1968,17 +1968,17 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
     dtGlobal = DBL_MAX;
 
     // Calculate and fill VMean array
-    for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
 	 ++n_radial) {
 	v_mean[n_radial] = 0.0;
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= v_azimuthal.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
 	    v_mean[n_radial] += v_azimuthal(n_radial, n_azimuthal);
 	}
 	v_mean[n_radial] /= (double)(v_azimuthal.get_size_azimuthal());
     }
 
-	for (unsigned int n_radial = One_or_active; n_radial < MaxMO_or_active;
+	for (unsigned int n_radial = radial_first_active; n_radial < radial_active_size;
 	 ++n_radial) {
 	// cell sizes in radial & azimuthal direction
 	double dxRadial = Rsup[n_radial] - Rinf[n_radial];
@@ -1986,7 +1986,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 			     (double)(v_radial.get_size_azimuthal());
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= v_radial.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
 	    if (FastTransport) {
 		// FARGO algorithm
 		v_residual[n_azimuthal] =
@@ -2001,7 +2001,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	// v_residual[v_radial.Nsec]=v_residual[0];
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= v_radial.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
 		double invdt1, invdt2, invdt3, invdt4, invdt5, invdt6;
 
 	    // velocity differences in radial & azimuthal direction
@@ -2138,9 +2138,9 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
     }
 
-	for (unsigned int n_radial = One_or_active;
+	for (unsigned int n_radial = radial_first_active;
 	 n_radial <
-	 MaxMO_or_active;
+	 radial_active_size;
 	 ++n_radial) {
 	dtLocal = 2.0 * M_PI * parameters::CFL / (double)NAzimuthal /
 		  fabs(v_mean[n_radial] * InvRmed[n_radial] -

@@ -861,7 +861,7 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 		     unsigned int n_azimuthal_plus, double r, double phi)
 {
     const double dphi = 2.0 * M_PI / (double)quantity.get_size_azimuthal();
-    const unsigned int last_index = quantity.get_max_azimuthal();
+	const unsigned int last_phi_index = quantity.get_max_azimuthal();
 
     // values at corners
     double Qmm = quantity(n_radial_minus, n_azimuthal_minus);
@@ -888,7 +888,7 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 	    phip = n_azimuthal_plus * dphi;
 	}
     } else {
-	if (n_azimuthal_minus == last_index) {
+	if (n_azimuthal_minus == last_phi_index) {
 	    if (phi < M_PI) {
 		// particle is inside cell with n_azimuthal = 0
 		// previous cell is at N_azimuthal_max - 1, but measure distance

@@ -43,7 +43,7 @@ unsigned int get_cell_id(const int nRadial, const int nAzimuthal)
 void sum_without_ghost_cells(double &accumulator, const double &addend,
 			     const unsigned int &n_radial)
 {
-    if (One_or_active <= n_radial && n_radial < Max_or_active) {
+	if (radial_first_active <= n_radial && n_radial < radial_active_size) {
 	accumulator += addend;
     }
 }

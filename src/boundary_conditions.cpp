@@ -712,7 +712,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 	// find range
 	unsigned int limit = 0;
 	while ((radius[limit] < RMIN * parameters::damping_inner_limit) &&
-	       (limit <= quantity.get_max_radial())) {
+		   (limit < quantity.get_size_radial())) {
 	    limit++;
 	}
 	limit--;
@@ -728,7 +728,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		X = quantity(n_radial, n_azimuthal);
 		X0 = quantity0(n_radial, n_azimuthal);
 		Xnew = (X - X0) * exp_factor + X0;
@@ -775,7 +775,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
-	     n_radial <= quantity.get_max_radial(); ++n_radial) {
+		 n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -783,7 +783,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		X = quantity(n_radial, n_azimuthal);
 		X0 = quantity0(n_radial, n_azimuthal);
 		Xnew = (X - X0) * exp_factor + X0;
@@ -819,7 +819,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	// find range
 	unsigned int limit = 0;
 	while ((radius[limit] < RMIN * parameters::damping_inner_limit) &&
-	       (limit <= quantity.get_max_radial())) {
+		   (limit < quantity.get_size_radial())) {
 	    limit++;
 	}
 	limit--;
@@ -835,7 +835,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		const double X = quantity(n_radial, n_azimuthal);
 		const double X0 = 0.0;
 		const double Xnew = (X - X0) * exp_factor + X0;
@@ -882,7 +882,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
-	     n_radial <= quantity.get_max_radial(); ++n_radial) {
+		 n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -890,7 +890,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		const double X = quantity(n_radial, n_azimuthal);
 		const double X0 = 0.0;
 		const double Xnew = (X - X0) * exp_factor + X0;
@@ -927,7 +927,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	// find range
 	unsigned int limit = 0;
 	while ((radius[limit] < RMIN * parameters::damping_inner_limit) &&
-	       (limit <= quantity.get_max_radial())) {
+		   (limit < quantity.get_size_radial())) {
 	    limit++;
 	}
 	limit--;
@@ -939,7 +939,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 	    quantity0(n_radial, 0) = 0.0;
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		quantity0(n_radial, 0) += quantity(n_radial, n_azimuthal);
 	    }
 	    quantity0(n_radial, 0) /= quantity.get_size_azimuthal();
@@ -953,7 +953,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		X = quantity(n_radial, n_azimuthal);
 		X0 = quantity0(n_radial, 0);
 		Xnew = (X - X0) * exp_factor + X0;
@@ -1008,7 +1008,7 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 		double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= vrad.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < vrad.get_size_azimuthal(); ++n_azimuthal) {
 		const double viscosity_above = viscosity(n_radial, n_azimuthal);
 		const double viscosity_below = viscosity(n_radial-1, n_azimuthal);
 		const double Nu = 0.5*(viscosity_above + viscosity_below);
@@ -1050,17 +1050,17 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
-	     n_radial <= quantity.get_max_radial(); ++n_radial) {
+		 n_radial < quantity.get_size_radial(); ++n_radial) {
 	    quantity0(n_radial, 0) = 0.0;
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		quantity0(n_radial, 0) += quantity(n_radial, n_azimuthal);
 	    }
 	    quantity0(n_radial, 0) /= quantity.get_size_azimuthal();
 	}
 
 	for (unsigned int n_radial = limit;
-	     n_radial <= quantity.get_max_radial(); ++n_radial) {
+		 n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -1068,7 +1068,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= quantity.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		X = quantity(n_radial, n_azimuthal);
 		X0 = quantity0(n_radial, 0);
 		Xnew = (X - X0) * exp_factor + X0;
@@ -1110,13 +1110,13 @@ void damping_initial_center_of_mass_outer(t_data &data,
 	(radius[vrad_arr.get_max_radial()] >
 	 RMAX * parameters::damping_outer_limit)) {
 
-	const unsigned int limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1);
+	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, vrad_arr.is_vector());
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 			 calculate_omega_kepler(RMAX);
 
-	for (unsigned int n_radial = limit;
-		 n_radial <= vrad_arr.get_max_radial(); ++n_radial) {
+	for (unsigned int n_radial = clamped_vrad_id;
+		 n_radial < vrad_arr.get_size_radial(); ++n_radial) {
 		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
@@ -1124,7 +1124,7 @@ void damping_initial_center_of_mass_outer(t_data &data,
 		double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= vrad_arr.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = (double)n_azimuthal * dphi;
 		const double rinf = radius[n_radial];
@@ -1169,9 +1169,10 @@ void damping_initial_center_of_mass_outer(t_data &data,
 		}
 	}
 
+	const unsigned int clamped_vphi_id = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, vphi_arr.is_vector());
 
-	for (unsigned int n_radial = limit;
-		 n_radial <= vphi_arr.get_max_radial(); ++n_radial) {
+	for (unsigned int n_radial = clamped_vphi_id;
+		 n_radial < vphi_arr.get_size_radial(); ++n_radial) {
 		double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
@@ -1179,7 +1180,7 @@ void damping_initial_center_of_mass_outer(t_data &data,
 		double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= vphi_arr.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 			const double phi = ((double)n_azimuthal - 0.5) * dphi;
 			const double rmed = Rmed[n_radial];

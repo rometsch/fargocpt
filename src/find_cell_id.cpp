@@ -13,10 +13,10 @@ static double cell_size;
 static double inv_phi_cell_size;
 static double phi_cell_size;
 
-unsigned int clamp_r_id_to_rmed_grid(int cell_id)
+unsigned int clamp_r_id_to_rmed_grid(int cell_id, const bool is_vector)
 {
 
-    const int Nr_max = (int)NRadial - 2;
+	const int Nr_max = (int)NRadial - (is_vector? 0 : 1);
     if (cell_id < 0) {
 	cell_id = 0;
     } else if (cell_id > Nr_max) {
@@ -26,10 +26,10 @@ unsigned int clamp_r_id_to_rmed_grid(int cell_id)
     return (unsigned int)cell_id;
 }
 
-unsigned int clamp_r_id_to_radii_grid(int cell_id)
+unsigned int clamp_r_id_to_radii_grid(int cell_id, const bool is_vector)
 {
 
-    const int Nr_max = (int)NRadial - 1;
+	const int Nr_max = (int)NRadial - (is_vector? 0 : 1);
     if (cell_id < 0) {
 	cell_id = 0;
     } else if (cell_id > Nr_max) {

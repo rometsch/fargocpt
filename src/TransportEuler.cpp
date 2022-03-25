@@ -169,12 +169,12 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 */
 void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal)
 {
-    for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
 	 ++n_radial) {
 	double v_azimuthal_sum = 0.0;
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= v_azimuthal.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
 	    v_azimuthal_sum += v_azimuthal(n_radial, n_azimuthal);
 	}
 
@@ -188,10 +188,10 @@ void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal)
 */
 void compute_residual_velocity(t_polargrid &v_azimuthal)
 {
-    for (unsigned int n_radial = 0; n_radial <= v_azimuthal.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= v_azimuthal.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
 	    v_azimuthal_res(n_radial, n_azimuthal) =
 		v_azimuthal(n_radial, n_azimuthal) - v_azimuthal_mean(n_radial);
 	}
@@ -421,10 +421,10 @@ void compute_momenta_from_velocities(t_polargrid &density,
 				     t_polargrid &v_radial,
 				     t_polargrid &v_azimuthal)
 {
-    for (unsigned int n_radial = 0; n_radial <= density.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < density.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= density.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < density.get_size_azimuthal(); ++n_azimuthal) {
 	    radial_momentum_plus(n_radial, n_azimuthal) =
 		density(n_radial, n_azimuthal) *
 		v_radial(n_radial + 1, n_azimuthal);
@@ -455,10 +455,10 @@ void compute_velocities_from_momenta(t_polargrid &density,
 				     t_polargrid &v_radial,
 				     t_polargrid &v_azimuthal)
 {
-    for (unsigned int n_radial = 0; n_radial <= density.get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < density.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= density.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < density.get_size_azimuthal(); ++n_azimuthal) {
 	    unsigned int n_azimuthal_minus =
 		(n_azimuthal == 0 ? density.get_max_azimuthal()
 				  : n_azimuthal - 1);
@@ -509,8 +509,8 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		     *Work); // work = qbase/densityint
     compute_star_radial(Work, VRadial, QRStar, dt);
 
-    for (nRadial = 0; nRadial <= Qbase->get_max_radial(); ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal <= Qbase->get_max_azimuthal();
+	for (nRadial = 0; nRadial < Qbase->get_size_radial(); ++nRadial) {
+	for (nAzimuthal = 0; nAzimuthal < Qbase->get_size_azimuthal();
 	     ++nAzimuthal) {
 	    const unsigned int cell = nAzimuthal + nRadial * Qbase->Nsec;
 	    const int lip = cell + Qbase->Nsec;
@@ -619,7 +619,7 @@ void boundary_layer_mass_influx(PolarGrid *QStar, PolarGrid *VRadial)
     // QStar->get_max_radial(), VRadial->get_max_radial());
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= QStar->get_max_azimuthal(); ++n_azimuthal) {
+	 n_azimuthal < QStar->get_size_azimuthal(); ++n_azimuthal) {
 	(*QStar)(QStar->get_max_radial() - 1, n_azimuthal) =
 	    -parameters::mass_accretion_rate /
 	    ((*VRadial)(VRadial->get_max_radial() - 1, n_azimuthal) *

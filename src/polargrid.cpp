@@ -234,7 +234,7 @@ void t_polargrid::write1D(unsigned int number) const
 	buffer[number_of_values * n_radial] = radius[from + n_radial];
 	buffer[number_of_values * n_radial + 1] = 0;
 
-	for (unsigned int n_azimuthal = 0; n_azimuthal <= get_max_azimuthal();
+	for (unsigned int n_azimuthal = 0; n_azimuthal < get_size_azimuthal();
 	     ++n_azimuthal) {
 	    buffer[number_of_values * n_radial + 1] += operator()(
 		from + n_radial, n_azimuthal);
@@ -255,7 +255,7 @@ void t_polargrid::write1D(unsigned int number) const
 	    buffer[number_of_values * n_radial + 3] = -DBL_MAX;
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < get_size_azimuthal(); ++n_azimuthal) {
 		buffer[number_of_values * n_radial + 2] =
 		    std::min(buffer[number_of_values * n_radial + 2],
 			     operator()(from + n_radial, n_azimuthal));
@@ -357,7 +357,7 @@ void t_polargrid::read2D(const char *_filename)
     MPI_File_close(&fh);
 
     // copy data into polargrid
-    for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
+	for (unsigned int n_radial = 0; n_radial < get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal < Nsec; ++n_azimuthal) {
 	    operator()(n_radial, n_azimuthal) =
 		buffer_file[(IMIN + n_radial) * Nsec + n_azimuthal];
@@ -468,8 +468,8 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     delete[] buffer_value;
 
     // evaluate spline on all points needed and write into polargrid
-    for (unsigned int n_radial = 0; n_radial <= get_max_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0; n_azimuthal <= get_max_azimuthal();
+	for (unsigned int n_radial = 0; n_radial < get_size_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0; n_azimuthal < get_size_azimuthal();
 	     ++n_azimuthal) {
 	    operator()(n_radial, n_azimuthal) =
 		gsl_spline_eval(spline, radius[n_radial], acc);

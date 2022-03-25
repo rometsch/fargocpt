@@ -20,10 +20,12 @@ namespace accretion
 static std::tuple<unsigned int, unsigned int>
 hill_radial_index(const double Rplanet, const double RHill)
 {
+
+	const bool is_vector = false;
     /* Calculate the indeces in radial direction where
        the Hill sphere starts and stops */
-    unsigned i_min = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet - RHill));
-    unsigned i_max = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet + RHill) + 1);
+	unsigned i_min = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet - RHill), is_vector);
+	unsigned i_max = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet + RHill) + 1, is_vector);
     std::tuple<unsigned int, unsigned int> ids(i_min, i_max);
     return ids;
 }
@@ -140,7 +142,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		    energy[l] *= 1.0 - facc1;
 			}
 		    if (Zero_or_active < i &&
-			i < MaxMO_or_active) { // Only add active cells to
+			i < radial_active_size) { // Only add active cells to
 					       // planet
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
@@ -156,7 +158,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		    energy[l] *= 1.0 - facc2;
 			}
 		    if (Zero_or_active < i &&
-			i < MaxMO_or_active) { // Only add active cells to
+			i < radial_active_size) { // Only add active cells to
 					       // planet
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;
@@ -283,7 +285,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 			energy[l] *= 1.0 - facc;
 			}
 			if (Zero_or_active < i &&
-			i < MaxMO_or_active) { // Only add active cells to
+			i < radial_active_size) { // Only add active cells to
 						   // planet
 			dPxPlanet += deltaM * vxcell;
 			dPyPlanet += deltaM * vycell;

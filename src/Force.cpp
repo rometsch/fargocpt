@@ -37,7 +37,7 @@ Pair ComputeDiskOnNbodyAccel(t_data &data, double x, double y)
     axi = ayi = axo = ayo = 0.0;
     const double a = sqrt(x * x + y * y);
 
-    for (unsigned int n_rad = One_or_active; n_rad < MaxMO_or_active; ++n_rad) {
+	for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size; ++n_rad) {
 	for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location

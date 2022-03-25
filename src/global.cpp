@@ -72,8 +72,8 @@ unsigned int Zero_or_active;
  * excluding ghost cells (!) */
 unsigned int Max_or_active;
 
-unsigned int One_or_active;
-unsigned int MaxMO_or_active; /* MO: Minus One */
+unsigned int radial_first_active;
+unsigned int radial_active_size;
 unsigned int GlobalNRadial;
 
 int *RootNradialLocalSizes;    // Needed for MPI_Gatherv

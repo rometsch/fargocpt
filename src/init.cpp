@@ -886,7 +886,7 @@ void init_gas_density(t_data &data)
 
     // renormalize sigma0?
     if (parameters::sigma_adjust) {
-	double total_mass = quantities::gas_total_mass(data);
+	double total_mass = quantities::gas_total_mass(data, RMAX);
 	parameters::sigma0 *= parameters::sigma_discmass / total_mass;
 	logging::print_master(
 	    LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
@@ -905,7 +905,7 @@ void init_gas_density(t_data &data)
 	    }
 	}
     } else {
-	double total_mass = quantities::gas_total_mass(data);
+	double total_mass = quantities::gas_total_mass(data, RMAX);
 	logging::print_master(
 	    LOG_INFO "Total disk is mass is %g = %g %s (inside r < %.3e).\n",
 	    total_mass, total_mass * units::mass.get_cgs_factor(),

@@ -374,11 +374,11 @@ t_radialgrid &t_radialgrid::operator=(const t_polargrid &polargrid)
 {
     if ((polargrid.get_size_radial() == get_size_radial()) &&
 	(polargrid.is_scalar() == is_scalar())) {
-	for (unsigned int n_radial = 0; n_radial <= get_max_radial();
+	for (unsigned int n_radial = 0; n_radial < get_size_radial();
 	     ++n_radial) {
 	    operator()(n_radial) = 0.0;
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= polargrid.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < polargrid.get_size_azimuthal(); ++n_azimuthal) {
 		operator()(n_radial) += polargrid(n_radial, n_azimuthal);
 	    }
 	    operator()(n_radial) /= (double)polargrid.get_size_azimuthal();

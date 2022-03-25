@@ -17,53 +17,52 @@ extern double M0;
 namespace quantities
 {
 
+
 /**
 	Calculates total gas mass.
 */
-double gas_total_mass(t_data &data)
+double gas_total_mass(t_data &data, const double quantitiy_radius)
 {
-    double local_mass = 0.0;
-    double global_mass = 0.0;
+	double local_mass = 0.0;
+	double global_mass = 0.0;
 
-    // calculate mass of this process' cells
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::DENSITY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	// calculate mass of this process' cells
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+		 ++n_azimuthal) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		local_mass += Surf[n_radial] *
-			      data[t_data::DENSITY](n_radial, n_azimuthal);
-	    }
+				  data[t_data::DENSITY](n_radial, n_azimuthal);
+		}
 	}
-    }
+	}
 
-    MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
+	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
 		  MPI_COMM_WORLD);
 
-    return global_mass;
+	return global_mass;
 }
 
-double gas_aspect_ratio(t_data &data)
+double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
 {
     double local_mass = 0.0;
-    const double gas_total_mass = quantities::gas_total_mass(data);
+	const double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
     double aspect_ratio = 0.0;
     double local_aspect_ratio = 0.0;
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::DENSITY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // eccentricity and semi major axis weighted with cellmass
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
 			     Surf[n_radial];
 		local_aspect_ratio +=
@@ -90,10 +89,8 @@ double gas_aspect_ratio(t_data &data)
 double gas_disk_radius(t_data &data, const double total_mass)
 {
 
-    const unsigned int local_array_start = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
-    const unsigned int local_array_end =
-	data[t_data::DENSITY].get_size_radial() -
-	(CPU_Rank == CPU_Highest ? 0 : CPUOVERLAP);
+	const unsigned int local_array_start = Zero_or_active;
+	const unsigned int local_array_end = Max_or_active;
     const unsigned int send_size = local_array_end - local_array_start;
 
     std::vector<double> local_mass(send_size);
@@ -102,7 +99,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	 ++n_radial) {
 	local_mass[n_radial - local_array_start] = 0.0;
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    local_mass[n_radial - local_array_start] +=
 		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
@@ -138,21 +135,18 @@ double gas_disk_radius(t_data &data, const double total_mass)
 /**
 	Calculates angular gas momentum.
 */
-double gas_angular_momentum(t_data &data, bool limit_the_radius)
+double gas_angular_momentum(t_data &data, const double quantitiy_radius)
 {
     double local_angular_momentum = 0.0;
     double global_angular_momentum = 0.0;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? (GHOSTCELLS_B) : CPUOVERLAP;
-	 n_radial <=
-	 data[t_data::DENSITY].get_max_radial() -
-	     (CPU_Rank == CPU_Highest ? (GHOSTCELLS_B) : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    if ((Rmed[n_radial] <= quantities_radius_limit) &&
-		limit_the_radius) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		local_angular_momentum +=
 		    Surf[n_radial] * 0.5 *
 		    (data[t_data::DENSITY](n_radial, n_azimuthal) +
@@ -181,19 +175,18 @@ double gas_angular_momentum(t_data &data, bool limit_the_radius)
 /**
 	Calculates gas internal energy
 */
-double gas_internal_energy(t_data &data)
+double gas_internal_energy(t_data &data, const double quantitiy_radius)
 {
     double local_internal_energy = 0.0;
     double global_internal_energy = 0.0;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::ENERGY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		local_internal_energy +=
 		    Surf[n_radial] *
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
@@ -207,19 +200,18 @@ double gas_internal_energy(t_data &data)
     return global_internal_energy;
 }
 
-double gas_viscous_dissipation(t_data &data)
+double gas_viscous_dissipation(t_data &data, const double quantitiy_radius)
 {
     double local_qplus = 0.0;
     double global_qplus = 0.0;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::ENERGY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+		 n_azimuthal < data[t_data::QPLUS].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		local_qplus +=
 		    Surf[n_radial] * data[t_data::QPLUS](n_radial, n_azimuthal);
 	    }
@@ -232,19 +224,18 @@ double gas_viscous_dissipation(t_data &data)
     return global_qplus;
 }
 
-double gas_luminosity(t_data &data)
+double gas_luminosity(t_data &data, const double quantitiy_radius)
 {
     double local_qminus = 0.0;
     double global_qminus = 0.0;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::ENERGY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
+		 n_azimuthal < data[t_data::QMINUS].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		local_qminus += Surf[n_radial] *
 				data[t_data::QMINUS](n_radial, n_azimuthal);
 	    }
@@ -260,22 +251,21 @@ double gas_luminosity(t_data &data)
 /**
 	Calculates gas kinematic energy
 */
-double gas_kinematic_energy(t_data &data)
+double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
 {
     double local_kinematic_energy = 0.0;
     double global_kinematic_energy = 0.0;
 
     double v_radial_center, v_azimuthal_center;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::DENSITY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // centered-in-cell radial velocity
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		v_radial_center =
 		    (Rmed[n_radial] - Rinf[n_radial]) *
 			data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
@@ -312,21 +302,20 @@ double gas_kinematic_energy(t_data &data)
 /**
 	Calculates gas kinematic energy
 */
-double gas_radial_kinematic_energy(t_data &data)
+double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius)
 {
     double local_kinematic_energy = 0.0;
     double global_kinematic_energy = 0.0;
 
     double v_radial_center;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::DENSITY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell radial velocity
 		v_radial_center =
 		    (Rmed[n_radial] - Rinf[n_radial]) *
@@ -352,21 +341,20 @@ double gas_radial_kinematic_energy(t_data &data)
 /**
 	Calculates gas kinematic energy
 */
-double gas_azimuthal_kinematic_energy(t_data &data)
+double gas_azimuthal_kinematic_energy(t_data &data, const double quantitiy_radius)
 {
     double local_kinematic_energy = 0.0;
     double global_kinematic_energy = 0.0;
 
     double v_azimuthal_center;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::DENSITY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell azimuthal velocity
 		v_azimuthal_center =
 		    0.5 *
@@ -395,19 +383,18 @@ double gas_azimuthal_kinematic_energy(t_data &data)
 /**
 	Calculates gas gravitational energy
 */
-double gas_gravitational_energy(t_data &data)
+double gas_gravitational_energy(t_data &data, const double quantitiy_radius)
 {
     double local_gravitational_energy = 0.0;
     double global_gravitational_energy = 0.0;
 
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::DENSITY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		local_gravitational_energy +=
 		    -Surf[n_radial] *
 		    data[t_data::DENSITY](n_radial, n_azimuthal) *
@@ -445,9 +432,9 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
     double sinFrameAngle = std::sin(FrameAngle);
     double cosFrameAngle = std::cos(FrameAngle);
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
+	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    total_mass =
 		hydro_center_mass +
@@ -539,9 +526,9 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
     stress::calculate_gravitational_stress(data);
 
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV].get_max_radial(); ++n_radial) {
+	 n_radial < data[t_data::ALPHA_GRAV].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ALPHA_GRAV].get_max_azimuthal();
+		 n_azimuthal < data[t_data::ALPHA_GRAV].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    /*data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) = -2.0/3.0 *
 	     * (data[t_data::T_GRAVITATIONAL](n_radial,n_azimuthal)+data[t_data::T_REYNOLDS](n_radial,
@@ -562,10 +549,10 @@ void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
     calculate_alpha_grav(data, timestep, true);
 
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_GRAV_MEAN].get_max_radial();
+	 n_radial < data[t_data::ALPHA_GRAV_MEAN].get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ALPHA_GRAV_MEAN].get_max_azimuthal();
+		 n_azimuthal < data[t_data::ALPHA_GRAV_MEAN].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::ALPHA_GRAV_MEAN](n_radial, n_azimuthal) +=
 		data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) * dt;
@@ -594,10 +581,10 @@ void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
     }
 
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS].get_max_radial();
+	 n_radial < data[t_data::ALPHA_REYNOLDS].get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ALPHA_REYNOLDS].get_max_azimuthal();
+		 n_azimuthal < data[t_data::ALPHA_REYNOLDS].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) =
 		2.0 / 3.0 * data[t_data::T_REYNOLDS](n_radial, n_azimuthal) /
@@ -613,11 +600,11 @@ void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
     calculate_alpha_reynolds(data, timestep, true);
 
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ALPHA_REYNOLDS_MEAN].get_max_radial();
+	 n_radial < data[t_data::ALPHA_REYNOLDS_MEAN].get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <=
-	     data[t_data::ALPHA_REYNOLDS_MEAN].get_max_azimuthal();
+		 n_azimuthal <
+		 data[t_data::ALPHA_REYNOLDS_MEAN].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::ALPHA_REYNOLDS_MEAN](n_radial, n_azimuthal) +=
 		data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) * dt;
@@ -634,9 +621,9 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
     double kappa;
 
     for (unsigned int n_radial = 1;
-	 n_radial <= data[t_data::TOOMRE].get_max_radial(); ++n_radial) {
+	 n_radial < data[t_data::TOOMRE].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::TOOMRE].get_max_azimuthal();
+		 n_azimuthal < data[t_data::TOOMRE].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
 	    kappa = std::sqrt(std::fabs(
@@ -674,12 +661,12 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
     last_timestep_calculated = timestep;
 
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::LUMINOSITY_1D].get_max_radial(); ++n_radial) {
+	 n_radial < data[t_data::LUMINOSITY_1D].get_size_radial(); ++n_radial) {
 	// L = int( int(sigma T^4 r ,phi) ,r);
 	data[t_data::LUMINOSITY_1D](n_radial) = 0.0;
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
+		 n_azimuthal < data[t_data::QMINUS].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
 	    data[t_data::LUMINOSITY_1D](n_radial) +=
@@ -701,12 +688,12 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
     last_timestep_calculated = timestep;
 
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::DISSIPATION_1D].get_max_radial();
+	 n_radial < data[t_data::DISSIPATION_1D].get_size_radial();
 	 ++n_radial) {
 	data[t_data::DISSIPATION_1D](n_radial) = 0.0;
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+		 n_azimuthal < data[t_data::QPLUS].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
 
@@ -730,7 +717,7 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     for (unsigned int nRadial = 0;
 	 nRadial < data[t_data::MASSFLOW].get_size_radial(); ++nRadial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::MASSFLOW].get_max_azimuthal();
+		 n_azimuthal < data[t_data::MASSFLOW].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::MASSFLOW](nRadial, n_azimuthal) *= 1. / denom;
 	}

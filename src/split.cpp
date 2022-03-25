@@ -63,13 +63,10 @@ void SplitDomain()
 	/* set local NRadial */
 	NRadial = IMAX - IMIN + 1;
 
-	Zero_or_active = CPUOVERLAP * (CPU_Rank > 0 ? 1 : 0);
-	One_or_active = 1 + (CPUOVERLAP - 1) * (CPU_Rank > 0 ? 1 : 0);
-	Max_or_active =
-	    NRadial - CPUOVERLAP * (CPU_Rank < CPU_Number - 1 ? 1 : 0);
-	MaxMO_or_active =
-	    NRadial - 1 -
-	    (CPUOVERLAP - 1) * (CPU_Rank < CPU_Number - 1 ? 1 : 0);
+	Zero_or_active = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
+	radial_first_active = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
+	Max_or_active = NRadial - ((CPU_Rank == CPU_Number - 1) ? 0 : CPUOVERLAP);
+	radial_active_size = NRadial - ((CPU_Rank == CPU_Number - 1) ? GHOSTCELLS_B : CPUOVERLAP);
 
 	CPU_Highest = CPU_Number - 1;
 
@@ -248,10 +245,10 @@ void SplitDomain()
 	}
 
 	Zero_or_active = CPUOVERLAP * (CPU_Rank > 0 ? 1 : 0);
-	One_or_active = 1 + (CPUOVERLAP - 1) * (CPU_Rank > 0 ? 1 : 0);
+	radial_first_active = 1 + (CPUOVERLAP - 1) * (CPU_Rank > 0 ? 1 : 0);
 	Max_or_active =
 	    NRadial - CPUOVERLAP * (CPU_Rank != CPU_Highest ? 1 : 0);
-	MaxMO_or_active =
+	radial_active_size =
 	    NRadial - 1 - (CPUOVERLAP - 1) * (CPU_Rank != CPU_Highest ? 1 : 0);
 	hydro_totalsize = NRadial * NAzimuthal;
 	active_hydro_totalsize =
@@ -346,11 +343,11 @@ void SplitDomain()
 	logging::print(LOG_DEBUG "SplitDomain: Zero_or_active: %d\n",
 		       Zero_or_active);
 	logging::print(LOG_DEBUG "SplitDomain: One_or_active: %d\n",
-		       One_or_active);
+			   radial_first_active);
 	logging::print(LOG_DEBUG "SplitDomain: Max_or_active: %d\n",
 		       Max_or_active);
 	logging::print(LOG_DEBUG "SplitDomain: MaxMO_or_active: %d\n",
-		       MaxMO_or_active);
+			   radial_active_size);
 	logging::print(LOG_DEBUG "SplitDomain: GLOB: %d\n", GlobalNRadial);
 	logging::print(LOG_DEBUG "SplitDomain: CPUOVERLAP: %d\n", CPUOVERLAP);
 	if (parameters::self_gravity) {

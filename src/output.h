@@ -37,7 +37,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 		       unsigned int fineOutputNumber);
 
 std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update);
+					   bool force_update, const double quantitiy_radius);
 
 int get_misc(const int timestep, const bool debug);
 double get_from_ascii_file(std::string filename, unsigned int timestep,

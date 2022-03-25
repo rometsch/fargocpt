@@ -40,8 +40,8 @@ extern unsigned int IMIN;
 extern unsigned int IMAX;
 extern unsigned int Zero_or_active;
 extern unsigned int Max_or_active;
-extern unsigned int One_or_active;
-extern unsigned int MaxMO_or_active; /* MO: Minus One */
+extern unsigned int radial_first_active;
+extern unsigned int radial_active_size;
 extern unsigned int GlobalNRadial;
 
 extern int *RootNradialLocalSizes;    // Needed for MPI_Gatherv

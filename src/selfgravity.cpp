@@ -117,7 +117,7 @@ static void update_kernel(t_data &data)
     static int since_last_calculated = update_every_nth_step;
 
     if (since_last_calculated >= (update_every_nth_step - 1)) {
-	double aspect_ratio = quantities::gas_aspect_ratio(data);
+	double aspect_ratio = quantities::gas_aspect_ratio(data, RMAX);
 
 	if (aspect_ratio == 0.0) {
 	    aspect_ratio = ASPECTRATIO_REF;
@@ -568,7 +568,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
     mpi_make1Dprofile(g_radial, GLOBAL_AxiSGAccr);
 
     for (unsigned int n_radial = 0;
-	 n_radial <= v_azimuthal.get_max_radial() - GHOSTCELLS_B; ++n_radial) {
+	 n_radial < v_azimuthal.get_size_radial() - GHOSTCELLS_B; ++n_radial) {
 	// this corresponds to equation (3.42) in Baruteau, 2008
 	double temp =
 	    std::pow(calculate_omega_kepler(Rmed[n_radial]), 2) *
@@ -584,7 +584,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 	omega = std::sqrt(temp);
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= v_azimuthal.get_max_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
 	    v_azimuthal(n_radial, n_azimuthal) = Rmed[n_radial] * omega;
 	}
     }

@@ -318,32 +318,35 @@ void write_quantities(t_data &data, unsigned int timestep,
 	}
     }
 
-	const auto disk_quantities = reduce_disk_quantities(data, timestep, force_update);
+	const double quantities_limit_radius = quantities_radius_limit;
+
+	const auto disk_quantities = reduce_disk_quantities(data, timestep, force_update, quantities_limit_radius);
 	const double disk_eccentricity = disk_quantities[0];
 	const double disk_periastron = disk_quantities[1];
 
     // computate absolute deviation from start values (this has to be done on
     // all nodes!)
-	const double totalMass = quantities::gas_total_mass(data);
+
+	const double totalMass = quantities::gas_total_mass(data, quantities_limit_radius);
 	const double diskRadius = quantities::gas_disk_radius(data, totalMass);
-	const double totalAngularMomentum = quantities::gas_angular_momentum(data);
-	const double internalEnergy = quantities::gas_internal_energy(data);
-	const double qplus = quantities::gas_viscous_dissipation(data);
-	const double qminus = quantities::gas_luminosity(data);
-	const double kinematicEnergy = quantities::gas_kinematic_energy(data);
+	const double totalAngularMomentum = quantities::gas_angular_momentum(data, quantities_limit_radius);
+	const double internalEnergy = quantities::gas_internal_energy(data, quantities_limit_radius);
+	const double qplus = quantities::gas_viscous_dissipation(data, quantities_limit_radius);
+	const double qminus = quantities::gas_luminosity(data, quantities_limit_radius);
+	const double kinematicEnergy = quantities::gas_kinematic_energy(data, quantities_limit_radius);
 	const double radialKinematicEnergy =
-	quantities::gas_radial_kinematic_energy(data);
+	quantities::gas_radial_kinematic_energy(data, quantities_limit_radius);
 	const double azimuthalKinematicEnergy =
-	quantities::gas_azimuthal_kinematic_energy(data);
+	quantities::gas_azimuthal_kinematic_energy(data, quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data);
     }
-	const double gravitationalEnergy = quantities::gas_gravitational_energy(data);
+	const double gravitationalEnergy = quantities::gas_gravitational_energy(data, quantities_limit_radius);
 	const double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
 
 	quantities::compute_aspectratio(data, timestep, force_update);
-	const double scale_height = quantities::gas_aspect_ratio(data);
+	const double scale_height = quantities::gas_aspect_ratio(data, quantities_limit_radius);
 
     double pdivv_total = 0.0;
     double InnerPositive = 0.0;
@@ -766,10 +769,10 @@ void write_1D_info(t_data &data)
    the radial cells
 */
 std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update)
+					   bool force_update, const double quantitiy_radius)
 {
     double local_eccentricity = 0.0;
-    double gas_total_mass = quantities::gas_total_mass(data);
+	double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
     double disk_eccentricity = 0.0;
     // double semi_major_axis = 0.0;
     // double local_semi_major_axis = 0.0;
@@ -789,7 +792,7 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantities_radius_limit) {
+		if (Rmed[n_radial] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
 		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
 			     Surf[n_radial];

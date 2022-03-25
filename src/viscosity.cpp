@@ -382,8 +382,8 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
     const t_polargrid &Trp = data[t_data::TAU_R_PHI];
     const t_polargrid &Trr = data[t_data::TAU_R_R];
     const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
-    for (unsigned int nr = 1; nr <= v_radial.get_max_radial() - 1; ++nr) {
-	for (unsigned int naz = 0; naz <= v_radial.get_max_azimuthal(); ++naz) {
+	for (unsigned int nr = 1; nr < v_radial.get_size_radial() - 1; ++nr) {
+	for (unsigned int naz = 0; naz < v_radial.get_size_azimuthal(); ++naz) {
 	    const int naz_plus =
 		(naz == Sigma.get_max_azimuthal() ? 0 : naz + 1);
 	    const int naz_minus =
