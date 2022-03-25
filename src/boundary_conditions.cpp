@@ -710,12 +710,12 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
     if ((parameters::damping_inner_limit > 1.0) &&
 	(radius[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
-	unsigned int limit = 0;
-	while ((radius[limit] < RMIN * parameters::damping_inner_limit) &&
-		   (limit < quantity.get_size_radial())) {
-	    limit++;
+	unsigned int limit;
+	if(quantity.is_scalar()){
+		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMIN * parameters::damping_inner_limit), false);
+	} else {
+		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
-	limit--;
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
@@ -764,12 +764,12 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 	(radius[quantity.get_max_radial()] >
 	 RMAX * parameters::damping_outer_limit)) {
 	// find range
-	unsigned int limit = quantity.get_max_radial();
-	while ((radius[limit] > RMAX * parameters::damping_outer_limit) &&
-	       (limit > 0)) {
-	    limit--;
+	unsigned int limit;
+	if(quantity.is_scalar()){
+		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
+	} else {
+		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
-	limit++;
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
@@ -817,12 +817,12 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
     if ((parameters::damping_inner_limit > 1.0) &&
 	(radius[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
-	unsigned int limit = 0;
-	while ((radius[limit] < RMIN * parameters::damping_inner_limit) &&
-		   (limit < quantity.get_size_radial())) {
-	    limit++;
+	unsigned int limit;
+	if(quantity.is_scalar()){
+		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMIN * parameters::damping_inner_limit), false);
+	} else {
+		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
-	limit--;
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
@@ -871,12 +871,12 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	(radius[quantity.get_max_radial()] >
 	 RMAX * parameters::damping_outer_limit)) {
 	// find range
-	unsigned int limit = quantity.get_max_radial();
-	while ((radius[limit] > RMAX * parameters::damping_outer_limit) &&
-	       (limit > 0)) {
-	    limit--;
+	unsigned int limit;
+	if(quantity.is_scalar()){
+		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
+	} else {
+		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
-	limit++;
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
@@ -925,12 +925,12 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
     if ((parameters::damping_inner_limit > 1.0) &&
 	(radius[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
-	unsigned int limit = 0;
-	while ((radius[limit] < RMIN * parameters::damping_inner_limit) &&
-		   (limit < quantity.get_size_radial())) {
-	    limit++;
+	unsigned int limit;
+	if(quantity.is_scalar()){
+		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMIN * parameters::damping_inner_limit), false);
+	} else {
+		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
-	limit--;
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
@@ -1039,12 +1039,12 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	(radius[quantity.get_max_radial()] >
 	 RMAX * parameters::damping_outer_limit)) {
 	// find range
-	unsigned int limit = quantity.get_max_radial();
-	while ((radius[limit] > RMAX * parameters::damping_outer_limit) &&
-	       (limit > 0)) {
-	    limit--;
+	unsigned int limit;
+	if(quantity.is_scalar()){
+		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
+	} else {
+		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
-	limit++;
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
