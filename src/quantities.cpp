@@ -48,8 +48,13 @@ double gas_total_mass(t_data &data, const double quantitiy_radius)
 
 double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
 {
-    double local_mass = 0.0;
 	const double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
+
+	if(gas_total_mass <= 0.0){
+		return ASPECTRATIO_REF;
+	}
+
+	double local_mass = 0.0;
     double aspect_ratio = 0.0;
     double local_aspect_ratio = 0.0;
 

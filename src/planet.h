@@ -22,6 +22,10 @@ struct planet_member_variables {
     Pair m_disk_on_planet_acceleration;
     Pair m_nbody_on_planet_acceleration;
 
+	double m_distance_to_primary;
+	double m_dimensionless_roche_radius;
+	double m_circumplanetary_mass;
+
     /// orbital elements
     double m_semi_major_axis;
     double m_eccentricity;
@@ -56,6 +60,10 @@ class t_planet
     Pair m_disk_on_planet_acceleration;
     Pair m_nbody_on_planet_acceleration;
 
+	double m_circumplanetary_mass;
+	double m_distance_to_primary;
+	double m_dimensionless_roche_radius;
+
     /// orbital elements
     double m_semi_major_axis;
     double m_eccentricity;
@@ -70,38 +78,47 @@ class t_planet
 	void print();
     inline void add_accreted_mass(double value) { m_accreted_mass += value; }
     // setter
-    inline void set_mass(double value) { m_mass = value; }
-    inline void set_x(double value) { m_x = value; }
-    inline void set_y(double value) { m_y = value; }
-    inline void set_vx(double value) { m_vx = value; }
-    inline void set_vy(double value) { m_vy = value; }
-    inline void set_acc(double value) { m_acc = value; }
+	inline void set_mass(const double value) { m_mass = value; }
+	inline void set_x(const double value) { m_x = value; }
+	inline void set_y(const double value) { m_y = value; }
+	inline void set_vx(const double value) { m_vx = value; }
+	inline void set_vy(const double value) { m_vy = value; }
+	inline void set_acc(const double value) { m_acc = value; }
     inline void set_torque(const double value) { m_torque = value; }
     void set_name(const std::string value);
-    inline void set_planet_number(unsigned int value)
+	inline void set_planet_number(const unsigned int value)
     {
 	m_planet_number = value;
     }
-    inline void set_temperature(double value) { m_temperature = value; }
-	inline void set_planet_radial_extend(double value) { m_radius = value; }
-    inline void set_irradiate(bool value) { m_irradiate = value; }
-    inline void set_rampuptime(double value) { m_rampuptime = value; }
-    inline void set_disk_on_planet_acceleration(Pair value)
+	inline void set_temperature(const double value) { m_temperature = value; }
+	inline void set_planet_radial_extend(const double value) { m_radius = value; }
+	inline void set_irradiate(const bool value) { m_irradiate = value; }
+	inline void set_rampuptime(const double value) { m_rampuptime = value; }
+	inline void set_disk_on_planet_acceleration(const Pair value)
     {
 	m_disk_on_planet_acceleration = value;
     }
-    inline void set_nbody_on_planet_acceleration(Pair value)
+	inline void set_nbody_on_planet_acceleration(const Pair value)
     {
 	m_nbody_on_planet_acceleration = value;
     }
-    inline void set_nbody_on_planet_acceleration_x(double value)
+	inline void set_nbody_on_planet_acceleration_x(const double value)
     {
 	m_nbody_on_planet_acceleration.x = value;
     }
-    inline void set_nbody_on_planet_acceleration_y(double value)
+	inline void set_nbody_on_planet_acceleration_y(const double value)
     {
 	m_nbody_on_planet_acceleration.y = value;
     }
+	inline void set_dimensionless_roche_radius(const double value){
+	m_dimensionless_roche_radius = value;
+	}
+	inline void set_distance_to_primary(const double value){
+	m_distance_to_primary = value;
+	}
+	inline void set_circumplanetary_mass(const double value){
+	m_circumplanetary_mass = value;
+	}
 
     // getter
     inline double get_mass(void) const { return m_mass; }
@@ -129,6 +146,9 @@ class t_planet
 	return m_nbody_on_planet_acceleration;
     }
 
+	inline double get_dimensionless_roche_radius() const {return m_dimensionless_roche_radius;}
+	inline double get_distance_to_primary() const {return m_distance_to_primary;}
+	inline double get_circumplanetary_mass() const {return m_circumplanetary_mass;}
     inline double get_semi_major_axis() const { return m_semi_major_axis; }
     inline double get_eccentricity() const { return m_eccentricity; }
     inline double get_mean_anomaly() const { return m_mean_anomaly; }

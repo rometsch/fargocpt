@@ -136,7 +136,6 @@ t_radialarray GLOBAL_AxiSGAccr;
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 int TimeStep;
 unsigned int nTimeStep;
-double mdcp, mdcp0, exces_mdcp;
 double hydro_center_mass;
 int debug, OnlyInit;
 int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian,

@@ -131,6 +131,9 @@ int main(int argc, char *argv[])
 
     // Here planets are initialized feeling star potential
     data.get_planetary_system().read_from_file(PLANETCONFIG);
+	data.get_planetary_system().compute_dist_to_primary();
+	data.get_planetary_system().init_roche_radii();
+
     logging::print_master(LOG_INFO "planets loaded.\n");
 
     if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
@@ -160,10 +163,6 @@ int main(int argc, char *argv[])
     copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
     copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
     copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
-
-    // Initial Density is used to compute the circumplanetary mass with initial
-    // density field
-    mdcp0 = CircumPlanetaryMass(data);
 
     bool dont_do_restart_output_at_start = false;
     if (start_mode::mode == start_mode::mode_restart) {
@@ -260,7 +259,9 @@ int main(int argc, char *argv[])
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
 	for (; nTimeStep <= NTOT; ++nTimeStep) {
+	data.get_planetary_system().compute_dist_to_primary();
 	data.get_planetary_system().calculate_orbital_elements();
+	ComputeCircumPlanetaryMasses(data);
 	// write outputs
 
 	bool force_update_for_output = true;

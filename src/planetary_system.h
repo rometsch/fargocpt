@@ -72,6 +72,9 @@ class t_planetary_system
     void copy_data_from_rebound();
     void correct_velocity_for_disk_accel();
 	void correct_planet_accretion();
+	void compute_dist_to_primary();
+	void init_roche_radii();
+	void update_roche_radii();
 };
 
 #endif // PLANETARY_SYSTEM_H

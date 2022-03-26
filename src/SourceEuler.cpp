@@ -124,9 +124,6 @@ void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
 static void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 						     int nTimeStep, double dt)
 {
-    // mdcp = CircumPlanetaryMass(data);
-    // exces_mdcp = mdcp - mdcp0;
-
     if (data[t_data::ADVECTION_TORQUE].get_write()) {
 	gas_torques::calculate_advection_torque(data, dt / DT);
     }
@@ -452,7 +449,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
     boundary_conditions::apply_boundary_condition(data, dt, false);
 
     // keep mass constant
-    // const double total_disk_mass_old = quantities::gas_total_mass(data);
+	// const double total_disk_mass_old = quantities::gas_total_mass(data, 2.0*RMAX);
 
     while (dtemp < DT) {
 	logging::print_master(
@@ -490,7 +487,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	}
 
 	if (parameters::integrate_particles) {
-	    particles::integrate(data, dt);
+		particles::integrate(data, dt);
 	}
 
 	/* Planets' positions and velocities are updated from gravitational
@@ -561,13 +558,10 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    }
 	    boundary_conditions::apply_boundary_condition(data, dt, true);
 
-	    mdcp = CircumPlanetaryMass(data);
-	    exces_mdcp = mdcp - mdcp0;
-
 	    CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
 
 	    // const double total_disk_mass_new =
-	    // quantities::gas_total_mass(data);
+		// quantities::gas_total_mass(data, 2.0*RMAX);
 
 	    // data[t_data::DENSITY] *=
 	    //(total_disk_mass_old / total_disk_mass_new);
@@ -2720,31 +2714,24 @@ void compute_rho(t_data &data, bool force_update)
     }
 }
 /**
-	Calculates the gas mass inside the planet's Roche lobe
+	Calculates the gas mass inside the planets Roche lobe
 */
-double CircumPlanetaryMass(t_data &data)
+void ComputeCircumPlanetaryMasses(t_data &data)
 {
-
-	const int planet_to_monitor_id = 1; // Central star = 0
-    double dist, mdcplocal, mdcptotal;
-
-    /* if there's no planet, there is no mass inside its Roche lobe ;) */
-	if (data.get_planetary_system().get_number_of_planets() < 2){
-	return 0;
-	}
+	for(unsigned int k = 1; k < data.get_planetary_system().get_number_of_planets(); ++k){
 
 	// TODO: non global
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
 
-	const auto &planet = data.get_planetary_system().get_planet(planet_to_monitor_id);
+	auto &planet = data.get_planetary_system().get_planet(k);
+	const double dist = planet.get_distance_to_primary();
+	const double roche_radius = dist * planet.get_dimensionless_roche_radius();
 
 	const double xpl = planet.get_x();
 	const double ypl = planet.get_y();
-	const double HillRadius = planet.get_rhill();
 
-    mdcplocal = 0.0;
-    mdcptotal = 0.0;
+	double mdcplocal = 0.0;
 
     for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
@@ -2754,20 +2741,22 @@ double CircumPlanetaryMass(t_data &data)
 	    unsigned int cell =
 		n_radial * data[t_data::DENSITY].get_size_azimuthal() +
 		n_azimuthal;
-	    dist = std::sqrt(
+		const double dist = std::sqrt(
 		(cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
 		(cell_center_y[cell] - ypl) * (cell_center_y[cell] - ypl));
-	    if (dist < HillRadius) {
+		if (dist < roche_radius) {
 		mdcplocal += Surf[n_radial] *
 			     data[t_data::DENSITY](n_radial, n_azimuthal);
 	    }
 	}
     }
 
+	double mdcptotal = 0.0;
     MPI_Allreduce(&mdcplocal, &mdcptotal, 1, MPI_DOUBLE, MPI_SUM,
 		  MPI_COMM_WORLD);
 
-    return mdcptotal;
+	planet.set_circumplanetary_mass(mdcptotal);
+	}
 }
 
 

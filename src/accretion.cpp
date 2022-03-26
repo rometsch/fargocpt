@@ -14,6 +14,7 @@
 #include "global.h"
 #include "parameters.h"
 #include "planet.h"
+#include "Theo.h"
 
 namespace accretion
 {
@@ -344,6 +345,7 @@ void AccreteOntoPlanets(t_data &data, const double dt)
     // update hydro center mass
     if (masses_changed) {
 	planetary_system.update_global_hydro_frame_center_mass();
+	planetary_system.update_roche_radii();
     }
 }
 

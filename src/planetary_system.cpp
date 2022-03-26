@@ -11,6 +11,7 @@
 #include <fstream>
 #include <math.h>
 #include <stdio.h>
+#include "Theo.h"
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -112,8 +113,9 @@ void t_planetary_system::read_from_file(char *filename)
 	    int num_args;
 
 	    // check if this line is a comment
-	    if ((strlen(buffer) > 0) && (buffer[0] == '#'))
+		if ((strlen(buffer) > 0) && (buffer[0] == '#')){
 		continue;
+		}
 
 	    // try to cut line into pieces
 	    num_args = sscanf(
@@ -775,6 +777,76 @@ void t_planetary_system::correct_velocity_for_disk_accel()
 	planet.set_vx(new_vx);
 	planet.set_vy(new_vy);
     }
+}
+
+void t_planetary_system::compute_dist_to_primary(){
+
+	if(get_number_of_planets() < 2){
+		return;
+	}
+
+	auto &primary = get_planet(0);
+	const double x = primary.get_x();
+	const double y = primary.get_y();
+
+	for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
+		auto &planet = get_planet(i);
+		const double dx = planet.get_x() - x;
+		const double dy = planet.get_y() - y;
+
+		const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+		planet.set_distance_to_primary(dist);
+
+		if(i == 1){ // primary looks at secondary
+			primary.set_distance_to_primary(dist);
+		}
+
+
+	}
+}
+
+void t_planetary_system::init_roche_radii(){
+
+	auto &primary = get_planet(0);
+	if(get_number_of_planets() < 2){
+		primary.set_dimensionless_roche_radius(1.0);
+		primary.set_distance_to_primary(2.0*RMAX);
+		return;
+	}
+
+	const double M = primary.get_mass();
+	for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
+		auto &planet = get_planet(i);
+		const double m = planet.get_mass();
+		double x = init_l1(M, m);
+		planet.set_dimensionless_roche_radius(x);
+
+		if(i == 1){
+			primary.set_dimensionless_roche_radius(1.0 - x);
+		}
+
+	}
+}
+
+void t_planetary_system::update_roche_radii(){
+
+	if(get_number_of_planets() < 2){
+		return;
+	}
+
+	auto &primary = get_planet(0);
+	const double M = primary.get_mass();
+	for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
+		auto &planet = get_planet(i);
+		const double m = planet.get_mass();
+		double x = planet.get_dimensionless_roche_radius();
+		update_l1(M, m, x);
+		planet.set_dimensionless_roche_radius(x);
+
+		if(i == 1){
+			primary.set_dimensionless_roche_radius(1.0 - x);
+		}
+	}
 }
 
 /**

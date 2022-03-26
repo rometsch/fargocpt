@@ -91,7 +91,7 @@ const std::map<const std::string, const int> planet_file_column_v2_2 = {
     {"pericenter angle", 17},
     {"torque", 18}};
 
-// file version 2.2
+// file version 2.3
 const std::map<const std::string, const int> planet_file_column_v2_3 = {
     {"time step", 0},
     {"x", 1},
@@ -114,7 +114,30 @@ const std::map<const std::string, const int> planet_file_column_v2_3 = {
     {"torque", 18},
     {"accreted mass", 19}};
 
-auto planet_files_column = planet_file_column_v2_3;
+
+// file version 2.4
+const std::map<const std::string, const int> planet_file_column_v2_4 = {
+	{"time step", 0},
+	{"x", 1},
+	{"y", 2},
+	{"vx", 3},
+	{"vy", 4},
+	{"mass", 5},
+	{"physical time", 6},
+	{"omega frame", 7},
+	{"mdcp", 8},
+	{"eccentricity", 9},
+	{"angular momentum", 10},
+	{"semi-major axis", 11},
+	{"omega kepler", 12},
+	{"mean anomaly", 13},
+	{"eccentric anomaly", 14},
+	{"true anomaly", 15},
+	{"pericenter angle", 16},
+	{"torque", 17},
+	{"accreted mass", 18}};
+
+auto planet_files_column = planet_file_column_v2_4;
 
 const std::map<const std::string, const std::string> variable_units = {
     {"time step", "1"},
@@ -162,6 +185,9 @@ t_planet::t_planet()
 	m_disk_on_planet_acceleration = {0.0, 0.0};
 	m_nbody_on_planet_acceleration = {0.0, 0.0};
 	m_semi_major_axis = 0.0;
+	m_distance_to_primary = 0.0;
+	m_dimensionless_roche_radius = 0.0;
+	m_circumplanetary_mass = 0.0;
 	m_eccentricity = 0.0;
 	m_mean_anomaly = 0.0;
 	m_true_anomaly = 0.0;
@@ -186,6 +212,10 @@ void t_planet::print()
 
 	std::cout << "m_disk_on_planet_acceleration: " << m_disk_on_planet_acceleration.x << ", " << m_disk_on_planet_acceleration.y << "\n";
 	std::cout << "m_nbody_on_planet_acceleration: " << m_nbody_on_planet_acceleration.x << ", " << m_nbody_on_planet_acceleration.y << "\n";
+
+	std::cout << "m_distance_primary: " << m_distance_to_primary << "\n";
+	std::cout << "m_dimensionless_roche_radius: " << m_dimensionless_roche_radius << "\n";
+	std::cout << "m_circumplanetary_mass: " << m_circumplanetary_mass << "\n";
 
 	std::cout << "m_semi_major_axis: " << m_semi_major_axis << "\n";
 	std::cout << "m_eccentricity: " << m_eccentricity << "\n";
@@ -304,22 +334,27 @@ void t_planet::copy(const planet_member_variables &other)
     m_accreted_mass = other.m_accreted_mass;
 
     m_planet_number = other.m_planet_number;
-    m_temperature = other.m_temperature;
-    m_radius = other.m_radius;
-    m_irradiate = other.m_irradiate;
-    m_rampuptime = other.m_rampuptime;
-    m_disk_on_planet_acceleration = other.m_disk_on_planet_acceleration;
-    m_nbody_on_planet_acceleration = other.m_nbody_on_planet_acceleration;
+	//m_temperature = other.m_temperature;
+	//m_radius = other.m_radius;
+	//m_irradiate = other.m_irradiate;
+	//m_rampuptime = other.m_rampuptime;
+	//m_disk_on_planet_acceleration = other.m_disk_on_planet_acceleration;
+	//m_nbody_on_planet_acceleration = other.m_nbody_on_planet_acceleration;
+
+	//m_distance_to_primary = other.m_distance_to_primary;
+	//m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
+	//m_circumplanetary_mass = other.m_circumplanetary_mass;
+
 
     /// orbital elements
-    m_semi_major_axis = other.m_semi_major_axis;
-    m_eccentricity = other.m_eccentricity;
-    m_mean_anomaly = other.m_mean_anomaly;
-    m_true_anomaly = other.m_true_anomaly;
-    m_eccentric_anomaly = other.m_eccentric_anomaly;
-    m_pericenter_angle = other.m_pericenter_angle;
+	//m_semi_major_axis = other.m_semi_major_axis;
+	//m_eccentricity = other.m_eccentricity;
+	//m_mean_anomaly = other.m_mean_anomaly;
+	//m_true_anomaly = other.m_true_anomaly;
+	//m_eccentric_anomaly = other.m_eccentric_anomaly;
+	//m_pericenter_angle = other.m_pericenter_angle;
 
-    m_torque = other.m_torque;
+	//m_torque = other.m_torque;
 }
 
 void t_planet::create_planet_file(bool debug_output)
@@ -425,9 +460,9 @@ void t_planet::write_ascii(const char *filename,
 
     fprintf(
 	fd,
-	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 	timestep, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
-	PhysicalTime, OmegaFrame, mdcp, exces_mdcp, get_eccentricity(),
+	PhysicalTime, OmegaFrame, get_circumplanetary_mass(), get_eccentricity(),
 	get_angular_momentum(), get_semi_major_axis(), get_omega(),
 	get_mean_anomaly(), get_eccentric_anomaly(), get_true_anomaly(),
 	get_pericenter_angle(), get_torque(), get_accreted_mass());
@@ -471,6 +506,10 @@ void t_planet::write_binary(const char *filename,
     pl.m_rampuptime = m_rampuptime;
     pl.m_disk_on_planet_acceleration = m_disk_on_planet_acceleration;
     pl.m_nbody_on_planet_acceleration = m_nbody_on_planet_acceleration;
+
+	pl.m_distance_to_primary = m_distance_to_primary;
+	pl.m_dimensionless_roche_radius = m_dimensionless_roche_radius;
+	pl.m_circumplanetary_mass = m_circumplanetary_mass;
 
     /// orbital elements
     pl.m_semi_major_axis = m_semi_major_axis;
@@ -575,6 +614,7 @@ double t_planet::get_value_from_file(unsigned int timestep,
 
 void t_planet::set_orbital_elements_zero()
 {
+
     m_semi_major_axis = 0.0;
     m_eccentricity = 0.0;
     m_mean_anomaly = 0.0;

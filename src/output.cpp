@@ -14,6 +14,7 @@
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
+#include "Theo.h"
 
 #include <dirent.h>
 #include <math.h>
@@ -318,7 +319,16 @@ void write_quantities(t_data &data, unsigned int timestep,
 	}
     }
 
-	const double quantities_limit_radius = quantities_radius_limit;
+	double quantities_limit_radius;
+	if(quantities_radius_limit < 0.0){
+		auto &primary = data.get_planetary_system().get_planet(0);
+		// distance to primary is distance to secondary for the primary
+		quantities_limit_radius = primary.get_distance_to_primary() * primary.get_dimensionless_roche_radius();
+		printf("%d dist = %.5e quantities_limit_radius = %.5e\n", CPU_Rank, primary.get_distance_to_primary(), quantities_limit_radius);
+
+	} else {
+		quantities_limit_radius = quantities_radius_limit;
+	}
 
 	const auto disk_quantities = reduce_disk_quantities(data, timestep, force_update, quantities_limit_radius);
 	const double disk_eccentricity = disk_quantities[0];
@@ -328,6 +338,11 @@ void write_quantities(t_data &data, unsigned int timestep,
     // all nodes!)
 
 	const double totalMass = quantities::gas_total_mass(data, quantities_limit_radius);
+
+	if(totalMass <= 0.0){ // If roche lobe is smaller than RMIN
+		quantities::gas_total_mass(data, RMAX);
+	}
+
 	const double diskRadius = quantities::gas_disk_radius(data, totalMass);
 	const double totalAngularMomentum = quantities::gas_angular_momentum(data, quantities_limit_radius);
 	const double internalEnergy = quantities::gas_internal_energy(data, quantities_limit_radius);
@@ -785,9 +800,8 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::DENSITY].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
@@ -817,9 +831,14 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
     MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0,
 	       MPI_COMM_WORLD);
 
+	if(gas_total_mass > 0.0){
     disk_eccentricity /= gas_total_mass;
     // semi_major_axis /= gas_total_mass;
     periastron /= gas_total_mass;
+	} else {
+		disk_eccentricity = 0.0;
+		periastron = 0.0;
+	}
 
     std::vector<double> rv = {disk_eccentricity, periastron};
 
@@ -853,9 +872,8 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
     }
 
     unsigned int current_lightcurves_bin = 0;
-    for (unsigned int n_radial = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	 n_radial <= data[t_data::LUMINOSITY_1D].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+	for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size;
 	 ++n_radial) {
 	while ((current_lightcurves_bin <
 		parameters::lightcurves_radii.size() - 1) &&
