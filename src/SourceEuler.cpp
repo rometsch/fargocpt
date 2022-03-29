@@ -1115,7 +1115,7 @@ void calculate_qplus(t_data &data)
 		    unsigned int n_theta = 0;
 
 		    // get next nt
-		    while ((tan(n_theta * dtheta) <=
+			while ((std::tan(n_theta * dtheta) <=
 				data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal)*InvRmed[n_radial]) &&
 			   (n_theta < parameters::zbuffer_size))
 			n_theta++;
@@ -2455,6 +2455,8 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
     static std::vector<double> ypl(N_planets);
     static std::vector<double> mpl(N_planets);
     static std::vector<double> rpl(N_planets);
+	static std::vector<double> dist_to_prim_pl(N_planets);
+	static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
@@ -2463,9 +2465,9 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	rpl[k] = planet.get_planet_radial_extend();
+	dist_to_prim_pl[k] = planet.get_distance_to_primary();
+	l1pl[k] = planet.get_dimensionless_roche_radius();
     }
-	const double m_cm = data.get_planetary_system().get_mass();
-
 
     // h = H/r
     // H = = c_s,iso / (GM/r^3) = c_s/sqrt(gamma) / / (GM/r^3)
@@ -2499,11 +2501,9 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 			rpl[k];
 
 		double min_dist;
-		if(k != 0)
-		{
-			const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[0], 2) + std::pow(ypl[k] - ypl[0], 2));
-			const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
-			min_dist = eggleton_1983(mass_q , partner_dist);
+		if(k != 0){
+			// position of the l1 point between planet and central star.
+			min_dist = l1pl[k] * dist_to_prim_pl[k];
 		} else {
 			min_dist = 0.0;
 		}
