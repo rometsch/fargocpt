@@ -115,6 +115,7 @@ double profile_cutoff_width_inner;
 bool disk_feedback;
 
 bool integrate_planets;
+bool do_init_secondary_disk;
 
 double density_factor;
 double tau_factor;
@@ -795,6 +796,7 @@ void read(char *filename, t_data &data)
     thickness_smoothing_sg = config::value_as_double_default(
 	"ThicknessSmoothingSG", thickness_smoothing);
     integrate_planets = config::value_as_bool_default("IntegratePlanets", true);
+	do_init_secondary_disk = config::value_as_bool_default("SecondaryDisk", false);
 
     // mass overflow
     massoverflow = config::value_as_bool_default("massoverflow", false);

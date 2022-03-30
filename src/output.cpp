@@ -324,8 +324,6 @@ void write_quantities(t_data &data, unsigned int timestep,
 		auto &primary = data.get_planetary_system().get_planet(0);
 		// distance to primary is distance to secondary for the primary
 		quantities_limit_radius = primary.get_distance_to_primary() * primary.get_dimensionless_roche_radius();
-		printf("%d dist = %.5e quantities_limit_radius = %.5e\n", CPU_Rank, primary.get_distance_to_primary(), quantities_limit_radius);
-
 	} else {
 		quantities_limit_radius = quantities_radius_limit;
 	}

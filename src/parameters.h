@@ -219,6 +219,7 @@ extern double kappa_factor;
 
 ///
 extern bool integrate_planets;
+extern bool do_init_secondary_disk;
 
 // self gravity
 extern bool self_gravity;

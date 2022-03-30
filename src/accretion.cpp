@@ -273,17 +273,29 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 
 		double deltaM = 0.0;
 		// only allow removal of mass down to density floor
-		double facc_max = 1 - density_floor / dens[l];
+		const double facc_max_dens = 1 - density_floor / dens[l];
+		double facc_max_energy = 0.0;
+		if(parameters::Adiabatic){
+			const double temperature_floor =
+				parameters::minimum_temperature *
+				units::temperature.get_inverse_cgs_factor();
+			const double energy_floor =
+				temperature_floor *
+				dens[l] /
+				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+			facc_max_energy = 1 - energy_floor / energy[l];
+		}
 		// handle accretion zone 1
 		if (distance < frac * RHill) {
 			//printf("Cell1 (%d %d) acc = %.3e	(%.3e)	1/acc = %.3e	%.3e	i(%d %d) j(%d %d)\n", i, j, acc, planet.get_acc(), 1.0/acc, 1.0/acc_max, i_min, i_max, j_min, j_max);
 
 			const double facc_tmp = facc * nu * spread;
-			const double facc_ceil = std::min(facc_tmp, facc_max);
-			deltaM = facc_ceil * dens[l] * Surf[i];
-			dens[l] *= 1.0 - facc_ceil;
+			const double facc_ceil_dens = std::min(facc_tmp, facc_max_dens);
+			deltaM = facc_ceil_dens * dens[l] * Surf[i];
+			dens[l] *= 1.0 - facc_ceil_dens;
 			if (parameters::Adiabatic) {
-			energy[l] *= 1.0 - facc;
+			const double facc_ceil_energy = std::min(facc_tmp, facc_max_energy);
+			energy[l] *= 1.0 - facc_ceil_energy;
 			}
 			if (Zero_or_active < i &&
 			i < radial_active_size) { // Only add active cells to

@@ -2503,9 +2503,9 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 		double min_dist;
 		if(k != 0){
 			// position of the l1 point between planet and central star.
-			min_dist = l1pl[k] * dist_to_prim_pl[k];
+			min_dist = min_height; //l1pl[k] * dist_to_prim_pl[k];
 		} else {
-			min_dist = 0.0;
+			min_dist = min_height; // to prevent divide by 0 crash
 		}
 
 		const double dx = x - xpl[k];
@@ -2517,8 +2517,14 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 
 		// H^2 = (GM / dist^3 / Cs_iso^2)^-1
 		if (parameters::Adiabatic || parameters::Polytropic) {
-			const double tmp_inv_H2 = constants::G * mpl[k] * ADIABATICINDEX /
+			double tmp_inv_H2 = constants::G * mpl[k] * ADIABATICINDEX /
 					(dist3 * cs2);
+
+			if(k != 0){
+				const double H_tmp  = ASPECTRATIO_REF * dist * std::pow(dist, FLARINGINDEX);
+				tmp_inv_H2 = 1.0 / std::pow(H_tmp, 2);
+			}
+
 			inv_H2 += std::min(tmp_inv_H2,
 					   1.0 / std::pow(min_height, 2));
 		} else {
