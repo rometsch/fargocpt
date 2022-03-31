@@ -512,7 +512,10 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		// source term
 		update_with_artificial_viscosity(data, dt);
 
+		if (parameters::Adiabatic) {
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+		}
+
 		recalculate_derived_disk_quantities(data, true);
 
 		ComputeViscousStressTensor(data);
