@@ -338,11 +338,11 @@ void t_planet::copy(const planet_member_variables &other)
 	//m_radius = other.m_radius;
 	//m_irradiate = other.m_irradiate;
 	//m_rampuptime = other.m_rampuptime;
-	//m_disk_on_planet_acceleration = other.m_disk_on_planet_acceleration;
-	//m_nbody_on_planet_acceleration = other.m_nbody_on_planet_acceleration;
+	m_disk_on_planet_acceleration = other.m_disk_on_planet_acceleration;
+	m_nbody_on_planet_acceleration = other.m_nbody_on_planet_acceleration;
 
-	//m_distance_to_primary = other.m_distance_to_primary;
-	//m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
+	m_distance_to_primary = other.m_distance_to_primary;
+	m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
 	//m_circumplanetary_mass = other.m_circumplanetary_mass;
 
 
