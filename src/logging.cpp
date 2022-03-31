@@ -185,10 +185,14 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 		realtime_since_last / (1000.0 * (N_iter - n_last_log));
 	}
 	if (debug_outputs) {
+		time_t t = time(NULL);
+		struct tm *tm = localtime(&t);
+		char s[64];
+		strftime(s, sizeof(s), "%c", tm);
 	    logging::print_master(
 		LOG_INFO
-		"DEBUG output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
-		output_number, time_step_coarse, N_iter, PhysicalTime, dt,
+		"%s	DEBUG output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
+		s, output_number, time_step_coarse, N_iter, PhysicalTime, dt,
 		realtime / 1000000.0, time_per_step_ms);
 	} else {
 	    logging::print_master(
