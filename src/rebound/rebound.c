@@ -597,7 +597,7 @@ void reb_init_simulation(struct reb_simulation* r){
 
 #else // MPI
 #ifndef LIBREBOUND
-    printf("Process id: %d.\n", getpid());
+	//printf("Process id: %d.\n", getpid());
 #endif // LIBREBOUND
 #endif // MPI
 #ifdef OPENMP
