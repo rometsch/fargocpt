@@ -283,6 +283,13 @@ void init_physics(t_data &data)
 	if (parameters::Adiabatic) {
 	    init_gas_energy(data);
 	}
+
+	if(parameters::do_init_secondary_disk){
+		init_secondary_disk_densities(data);
+		if (parameters::Adiabatic) {
+		init_secondary_disk_energies(data);
+		}
+	}
     }
 
     if (parameters::self_gravity) {
@@ -311,6 +318,11 @@ void init_physics(t_data &data)
     // only gas velocities remain to be initialized
     init_euler(data);
     init_gas_velocities(data);
+	if(parameters::do_init_secondary_disk){
+		init_secondary_disk_velocities(data);
+	}
+
+
 	//boundary_conditions::apply_boundary_condition(data, 0.0, false);
 }
 
@@ -652,10 +664,10 @@ void init_shock_tube_test(t_data &data)
 }
 
 
-void init_secondary_disk(t_data &data){
+void init_secondary_disk_densities(t_data &data){
 
 	logging::print_master(
-		LOG_INFO "Initializing Secondary disk\n");
+		LOG_INFO "Initializing Secondary disk densities\n");
 
 
 	if(data.get_planetary_system().get_number_of_planets() < 2){
@@ -692,7 +704,29 @@ void init_secondary_disk(t_data &data){
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
 				std::max(density, density_old);
 		}}}
+}
 
+void init_secondary_disk_energies(t_data &data){
+
+	if(!parameters::Adiabatic){
+		return;
+	}
+	logging::print_master(
+		LOG_INFO "Initializing Secondary disk energies\n");
+
+
+	if(data.get_planetary_system().get_number_of_planets() < 2){
+		die("Error: cannot initialize secondary disk with only %d nbody objects!\n", data.get_planetary_system().get_number_of_planets());
+	}
+
+	const auto &planet = data.get_planetary_system().get_planet(1);
+	const double disk_size = parameters::profile_cutoff_point_outer * planet.get_dimensionless_roche_radius() / (1.0 - planet.get_dimensionless_roche_radius());
+	const double cutoff_width = parameters::profile_cutoff_width_outer;
+	const double mass_q = planet.get_mass() / data.get_planetary_system().get_planet(0).get_mass();
+	const double compute_radius = eggleton_1983(mass_q, planet.get_distance_to_primary());
+	const double scaling_factor = std::sqrt(planet.get_mass());
+
+	const double min_dist = RMIN/3.0;
 
 	for (unsigned int n_radial = 0;
 		 n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
@@ -718,7 +752,33 @@ void init_secondary_disk(t_data &data){
 			data[t_data::ENERGY](n_radial, n_azimuthal) =
 				std::max(energy, energy_old);
 		}}}
+}
 
+void init_secondary_disk_velocities(t_data &data){
+
+	logging::print_master(
+		LOG_INFO "Initializing Secondary disk velocities\n");
+
+	if (CentrifugalBalance){
+		logging::print_master(
+			LOG_INFO "CentrifugalBalance not tested with secondary disk!");
+	}
+
+	if (parameters::self_gravity){
+		logging::print_master(
+			LOG_INFO "Self gravity not tested with secondary disk!");
+	}
+
+
+	if(data.get_planetary_system().get_number_of_planets() < 2){
+		die("Error: cannot initialize secondary disk with only %d nbody objects!\n", data.get_planetary_system().get_number_of_planets());
+	}
+
+	const auto &planet = data.get_planetary_system().get_planet(1);
+	const double mass_q = planet.get_mass() / data.get_planetary_system().get_planet(0).get_mass();
+	const double compute_radius = eggleton_1983(mass_q, planet.get_distance_to_primary());
+
+	const double min_dist = RMIN/3.0;
 
 	for (unsigned int n_radial = 0;
 		 n_radial <= data[t_data::V_RADIAL].get_max_radial();
