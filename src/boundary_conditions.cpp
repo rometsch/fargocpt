@@ -991,7 +991,7 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 	(rinf[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
 
-	const unsigned int limit = get_rinf_id(RMIN * parameters::damping_inner_limit);
+	const static unsigned int limit = get_rinf_id(RMIN * parameters::damping_inner_limit);
 
 	const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 			 calculate_omega_kepler(RMIN);
