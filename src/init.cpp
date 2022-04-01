@@ -290,6 +290,8 @@ void init_physics(t_data &data)
 		init_secondary_disk_energies(data);
 		}
 	}
+
+	renormalize_sigma_and_report(data);
     }
 
     if (parameters::self_gravity) {
@@ -1111,37 +1113,39 @@ void init_gas_density(t_data &data)
 	    }
 	}
     }
+}
 
-    // renormalize sigma0?
-    if (parameters::sigma_adjust) {
-	double total_mass = quantities::gas_total_mass(data, RMAX);
+void renormalize_sigma_and_report(t_data &data){
+	// renormalize sigma0?
+	if (parameters::sigma_adjust) {
+	double total_mass = quantities::gas_total_mass(data, 2.0*RMAX);
 	parameters::sigma0 *= parameters::sigma_discmass / total_mass;
 	logging::print_master(
-	    LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
-	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
-	    units::surface_density.get_cgs_symbol(), total_mass,
-	    parameters::sigma_discmass);
+		LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
+		parameters::sigma0 * units::surface_density.get_cgs_factor(),
+		units::surface_density.get_cgs_symbol(), total_mass,
+		parameters::sigma_discmass);
 
 	// update density grid
 	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
+		 n_radial <= data[t_data::DENSITY].get_max_radial(); ++n_radial) {
+		for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		data[t_data::DENSITY](n_radial, n_azimuthal) *=
-		    parameters::sigma_discmass / total_mass;
-	    }
+			parameters::sigma_discmass / total_mass;
+		}
 	}
-    } else {
-	double total_mass = quantities::gas_total_mass(data, RMAX);
+	} else {
+	double total_mass = quantities::gas_total_mass(data, 2.0*RMAX);
 	logging::print_master(
-	    LOG_INFO "Total disk is mass is %g = %g %s (inside r < %.3e).\n",
-	    total_mass, total_mass * units::mass.get_cgs_factor(),
-	    units::mass.get_cgs_symbol(), quantities_radius_limit);
-    }
+		LOG_INFO "Total disk is mass is %g = %g %s.\n",
+		total_mass, total_mass * units::mass.get_cgs_factor(),
+		units::mass.get_cgs_symbol());
+	}
 
-    // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::DENSITY]);
+	// set SigmaMed/SigmaInf
+	RefillSigma(&data[t_data::DENSITY]);
 }
 
 void init_gas_energy(t_data &data)
