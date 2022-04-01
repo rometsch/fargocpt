@@ -549,14 +549,11 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    assure_minimum_value(data[t_data::DENSITY],
 				 parameters::sigma_floor * parameters::sigma0);
 
-	    if (parameters::Adiabatic) {
+		if (parameters::Adiabatic) {
 		// assure minimum temperature after all substeps & transport. it
 		// is crucial the check minimum density before!
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-	    }
-	    boundary_conditions::apply_boundary_condition(data, dt, true);
-
-	    CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
+		}
 
 	    // const double total_disk_mass_new =
 		// quantities::gas_total_mass(data, 2.0*RMAX);
@@ -570,14 +567,21 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	logging::print_runtime_info(data, nTimeStep / NINTERM, nTimeStep, dt);
 
 	if (parameters::calculate_disk) {
-	    CommunicateBoundaries(
+		CommunicateBoundaries(
 		&data[t_data::DENSITY], &data[t_data::V_RADIAL],
 		&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
-	    recalculate_derived_disk_quantities(data, true);
+		accretion::AccreteOntoPlanets(data, dt);
+
+		boundary_conditions::apply_boundary_condition(data, dt, true);
+
+		CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
+
+		// this must be done after CommunicateBoundaries
+		recalculate_derived_disk_quantities(data, true);
+
 	    dt = CalculateHydroTimeStep(data, dt, false);
 
-	    accretion::AccreteOntoPlanets(data, dt);
 	}
     }
 }
