@@ -998,9 +998,7 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 
 	const double s = parameters::viscous_outflow_speed;
 
-
-	// n_radial = 0 and 1 are set in the boundary condition)
-	for (unsigned int n_radial = 2; n_radial <= limit; ++n_radial) {
+	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 		double factor = std::pow(
 		(rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
 			(RMIN - RMIN * parameters::damping_inner_limit),
