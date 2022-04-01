@@ -2733,22 +2733,20 @@ void ComputeCircumPlanetaryMasses(t_data &data)
     const double *cell_center_y = CellCenterY->Field;
 
 	auto &planet = data.get_planetary_system().get_planet(k);
-	const double dist = planet.get_distance_to_primary();
-	const double roche_radius = dist * planet.get_dimensionless_roche_radius();
+	const double planet_to_prim_dist = planet.get_distance_to_primary();
+	const double roche_radius = planet_to_prim_dist * planet.get_dimensionless_roche_radius();
 
 	const double xpl = planet.get_x();
 	const double ypl = planet.get_y();
 
 	double mdcplocal = 0.0;
 
-    for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
+	for (unsigned int n_radial = radial_first_active; n_radial < radial_active_size;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    unsigned int cell =
-		n_radial * data[t_data::DENSITY].get_size_azimuthal() +
-		n_azimuthal;
+		unsigned int cell = get_cell_id(n_radial, n_azimuthal);
 		const double dist = std::sqrt(
 		(cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
 		(cell_center_y[cell] - ypl) * (cell_center_y[cell] - ypl));
