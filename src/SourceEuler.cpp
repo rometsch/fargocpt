@@ -2506,7 +2506,7 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 		double min_dist;
 		if(k != 0){
 			// position of the l1 point between planet and central star.
-			min_dist = min_height; //l1pl[k] * dist_to_prim_pl[k];
+			min_dist = l1pl[k] * dist_to_prim_pl[k];
 		} else {
 			min_dist = min_height; // to prevent divide by 0 crash
 		}
