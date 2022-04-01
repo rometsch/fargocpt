@@ -19,5 +19,6 @@ void init_gas_velocities(t_data &data);
 void init_secondary_disk_densities(t_data &data);
 void init_secondary_disk_energies(t_data &data);
 void init_secondary_disk_velocities(t_data &data);
+void renormalize_sigma_and_report(t_data &data);
 
 #endif // INIT_H
