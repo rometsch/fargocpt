@@ -2132,7 +2132,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	for (unsigned int n_radial = radial_first_active;
 	 n_radial <
-	 radial_active_size;
+	 radial_active_size - 1;
 	 ++n_radial) {
 	dtLocal = 2.0 * M_PI * parameters::CFL / (double)NAzimuthal /
 		  fabs(v_mean[n_radial] * InvRmed[n_radial] -
