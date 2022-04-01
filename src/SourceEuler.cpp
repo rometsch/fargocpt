@@ -222,15 +222,10 @@ bool assure_minimum_temperature(t_polargrid &energy, t_polargrid &density)
 bool assure_maximum_temperature(t_polargrid &energy, t_polargrid &density)
 {
 
+	bool found = false;
+
 	const double Tmax = parameters::maximum_temperature *
 			units::temperature.get_inverse_cgs_factor();
-
-	if (isnan(Tmax)){ // Warning: this is compiled away with fast math
-			      // enabled
-	return false;
-	}
-
-    bool found = false;
 
 	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
 	 ++n_radial) {
