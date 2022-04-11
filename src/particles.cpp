@@ -733,9 +733,9 @@ void calculate_accelerations_from_star_and_planets(
 	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
 
 	const double distance_to_planet = std::sqrt(
-	    r * r + r_planet * r_planet - 2 * r * r_planet * cos_delta_phi);
+		r * r + r_planet * r_planet - 2 * r * r_planet * cos_delta_phi + epsilon_sq);
 	const double distance_to_planet_pow2_smoothed =
-	    distance_to_planet * distance_to_planet + epsilon_sq;
+		distance_to_planet * distance_to_planet;
 
 	const double factor =
 	    constants::G * planet.get_mass() /
@@ -763,8 +763,8 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 	t_planet &planet = data.get_planetary_system().get_planet(k);
 	double r2 =
 	    std::pow(planet.get_x() - x, 2) + std::pow(planet.get_y() - y, 2);
-	const double r = std::sqrt(r2);
 	r2 += epsilon_sq;
+	const double r = std::sqrt(r2);
 	const double factor = constants::G * planet.get_mass() / (r * r2);
 
 	ax += factor * (planet.get_x() - x);
@@ -841,8 +841,8 @@ static void calculate_derivitives_from_star_and_planets_in_cart(
 	const double y_dist = y - y_planet;
 
 	double dist2 = x_dist * x_dist + y_dist * y_dist;
-	const double dist = std::sqrt(dist2);
 	dist2 += epsilon_sq;
+	const double dist = std::sqrt(dist2);
 
 	// direct term
 	acart[0] += -constants::G * planet_mass * x_dist / (dist * dist2);
