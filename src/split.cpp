@@ -63,6 +63,7 @@ void SplitDomain()
 	/* set local NRadial */
 	NRadial = IMAX - IMIN + 1;
 
+	Zero_no_ghost = (CPU_Rank == 0) ? 1 : 0;
 	Zero_or_active = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
 	radial_first_active = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
 	Max_or_active = NRadial - ((CPU_Rank == CPU_Number - 1) ? 0 : CPUOVERLAP);
@@ -244,6 +245,7 @@ void SplitDomain()
 	    PersonalExit(1);
 	}
 
+	Zero_no_ghost = (CPU_Rank == 0) ? 1 : 0;
 	Zero_or_active = CPUOVERLAP * (CPU_Rank > 0 ? 1 : 0);
 	radial_first_active = 1 + (CPUOVERLAP - 1) * (CPU_Rank > 0 ? 1 : 0);
 	Max_or_active =

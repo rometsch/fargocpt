@@ -64,6 +64,8 @@ unsigned int IMIN;
  * including ghost cells (!) */
 unsigned int IMAX;
 
+unsigned int Zero_no_ghost;
+
 /** radial index of the inner most cell in global radial mesh of this process
  * excluding ghost cells (!) */
 unsigned int Zero_or_active;
