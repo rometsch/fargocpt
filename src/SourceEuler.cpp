@@ -571,6 +571,8 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		&data[t_data::DENSITY], &data[t_data::V_RADIAL],
 		&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
+		// We only recompute once, assuming that cells hit by planet accretion
+		// are not also hit by viscous accretion at inner boundary.
 		if(VISCOUS_ACCRETION){
 			compute_sound_speed(data, true);
 			compute_scale_height(data, true);
