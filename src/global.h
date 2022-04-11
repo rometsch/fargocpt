@@ -119,6 +119,7 @@ extern int EXPLICIT_VISCOSITY;
 extern double STS_NU;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
+extern int VISCOUS_ACCRETION;
 extern double SIGMASLOPE;
 extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;

@@ -134,7 +134,22 @@ int main(int argc, char *argv[])
 	data.get_planetary_system().compute_dist_to_primary();
 	data.get_planetary_system().init_roche_radii();
 
+	VISCOUS_ACCRETION = false;
+	if(parameters::boundary_inner == parameters::boundary_condition_viscous_outflow){
+		VISCOUS_ACCRETION = true;
+	}
+	for(unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k){
+		if(data.get_planetary_system().get_planet(k).get_acc() < 0.0){
+			VISCOUS_ACCRETION = true;
+		}
+	}
+
     logging::print_master(LOG_INFO "planets loaded.\n");
+
+
+	if(VISCOUS_ACCRETION){
+		logging::print_master(LOG_INFO "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
+	}
 
     if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
 	(Corotating == YES)) {

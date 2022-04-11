@@ -571,6 +571,12 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		&data[t_data::DENSITY], &data[t_data::V_RADIAL],
 		&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
+		if(VISCOUS_ACCRETION){
+			compute_sound_speed(data, true);
+			compute_scale_height(data, true);
+			viscosity::update_viscosity(data);
+		}
+
 		accretion::AccreteOntoPlanets(data, dt);
 
 		boundary_conditions::apply_boundary_condition(data, dt, true);

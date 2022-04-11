@@ -339,7 +339,6 @@ void AccreteOntoPlanets(t_data &data, const double dt)
 
 	// Negative accretion enables viscous accretion
 	if(planet.get_acc() < 0.0){
-		viscosity::update_viscosity(data);
 		const bool changed = AccreteOntoSinglePlanetViscous(data, planet, dt);
 		masses_changed = masses_changed || changed;
 	}
