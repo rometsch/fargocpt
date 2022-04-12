@@ -24,7 +24,7 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 /**
 	Computes the acceleration due to the disk on an object at position (x,y)
 */
-Pair ComputeDiskOnNbodyAccel(t_data &data, double x, double y)
+Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y, const double l1)
 {
     Pair acceleration;
     double localaccel[4] = {0., 0., 0., 0.};
@@ -56,12 +56,29 @@ Pair ComputeDiskOnNbodyAccel(t_data &data, double x, double y)
 		const double dist_sm_3 = dist_sm_2 * std::sqrt(dist_sm_2);
 	    const double inv_dist_sm_3 = 1.0 / dist_sm_3;
 
+		// just to be consistent with the force the gas feels from the planets
+		double smooth_factor_klahr = 1.0;
+		if(ASPECTRATIO_MODE == 1){
+			/// scale height is reduced by the planets and can cause the epsilon smoothing be not sufficient
+			/// for numerical stability.
+			/// Thus we add the gravitational potential smoothing proposed by Klahr & Kley 2005;
+			/// but the derivative of it, since we apply it directly on the force
+			if (l1 > 0.0) {
+				const double r_sm = l1 * parameters::accretion_radius_fraction;
+				const double dist = std::sqrt(dist_2);
+
+				if(dist < r_sm){
+				smooth_factor_klahr = - (3.0 * std::pow(dist / r_sm, 4.0) - 4.0 * std::pow(dist / r_sm, 3.0));
+				}
+			}
+		}
+
 	    if (Rmed[n_rad] < a) {
-		axi += constants::G * cellmass * dx * inv_dist_sm_3;
-		ayi += constants::G * cellmass * dy * inv_dist_sm_3;
+		axi += constants::G * cellmass * dx * inv_dist_sm_3 * smooth_factor_klahr;
+		ayi += constants::G * cellmass * dy * inv_dist_sm_3 * smooth_factor_klahr;
 	    } else {
-		axo += constants::G * cellmass * dx * inv_dist_sm_3;
-		ayo += constants::G * cellmass * dy * inv_dist_sm_3;
+		axo += constants::G * cellmass * dx * inv_dist_sm_3 * smooth_factor_klahr;
+		ayo += constants::G * cellmass * dy * inv_dist_sm_3 * smooth_factor_klahr;
 	    }
 	}
     }

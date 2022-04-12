@@ -316,6 +316,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    config::value_as_string_default("HydroFrameCenter", "primary"));
     }
 
+	if(parameters::n_bodies_for_hydroframe_center != 1 && ASPECTRATIO_MODE == 1){
+		logging::print_master(LOG_INFO "WARNING: MORE THAN 1 CENTRAL OBJECT AND NBODY ASPECTRATIO IS NOT TESTED OR DEBUGGED!\n");
+	}
+
     parameters::exitOnDeprecatedSetting(
 	"IndirectTerm",
 	"Indirect terms are now handled automatically to avoid unphysical settings.",

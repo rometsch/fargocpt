@@ -2465,8 +2465,6 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
     static std::vector<double> ypl(N_planets);
     static std::vector<double> mpl(N_planets);
     static std::vector<double> rpl(N_planets);
-	static std::vector<double> dist_to_prim_pl(N_planets);
-	static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
@@ -2475,8 +2473,6 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	rpl[k] = planet.get_planet_radial_extend();
-	dist_to_prim_pl[k] = planet.get_distance_to_primary();
-	l1pl[k] = planet.get_dimensionless_roche_radius();
     }
 
     // h = H/r
@@ -2509,14 +2505,7 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 			0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
 				   Rmed[n_rad] * dphi) +
 			rpl[k];
-
-		double min_dist;
-		if(k != 0){
-			// position of the l1 point between planet and central star.
-			min_dist = l1pl[k] * dist_to_prim_pl[k];
-		} else {
-			min_dist = min_height; // to prevent divide by 0 crash
-		}
+		const double min_dist = min_height;
 
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
@@ -2530,11 +2519,6 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 			double tmp_inv_H2 = constants::G * mpl[k] * ADIABATICINDEX /
 					(dist3 * cs2);
 
-			if(k != 0){
-				const double H_tmp  = ASPECTRATIO_REF * dist * std::pow(dist, FLARINGINDEX);
-				tmp_inv_H2 = 1.0 / std::pow(H_tmp, 2);
-			}
-
 			inv_H2 += std::min(tmp_inv_H2,
 					   1.0 / std::pow(min_height, 2));
 		} else {
@@ -2542,6 +2526,7 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 			inv_H2 += std::min(tmp_inv_H2,
 					   1.0 / std::pow(min_height, 2));
 		}
+
 	    }
 
 	    const double H = std::sqrt(1.0 / inv_H2);
