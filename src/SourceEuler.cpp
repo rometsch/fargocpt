@@ -2227,6 +2227,7 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
 		    std::sqrt(ADIABATICINDEX * (ADIABATICINDEX - 1.0) *
 			      data[t_data::ENERGY](n_radial, n_azimuthal) /
 			      data[t_data::DENSITY](n_radial, n_azimuthal));
+
 	    } else if (parameters::Polytropic) {
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
 		    std::sqrt(ADIABATICINDEX * constants::R / parameters::MU *
@@ -2501,11 +2502,9 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 		/// least cell_size / 2 plus planet radius away from the gas
 		/// this is an rough estimate without explanation
 		/// alternatively you can think about it yourself
-		const double min_height =
-			0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
-				   Rmed[n_rad] * dphi) +
-			rpl[k];
-		const double min_dist = min_height;
+		const double min_dist = 0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+											Rmed[n_rad] * dphi) +
+											rpl[k];
 
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
@@ -2519,12 +2518,11 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 			double tmp_inv_H2 = constants::G * mpl[k] * ADIABATICINDEX /
 					(dist3 * cs2);
 
-			inv_H2 += std::min(tmp_inv_H2,
-					   1.0 / std::pow(min_height, 2));
+			inv_H2 += tmp_inv_H2;
+
 		} else {
 			const double tmp_inv_H2 = constants::G * mpl[k] / (dist3 * cs2);
-			inv_H2 += std::min(tmp_inv_H2,
-					   1.0 / std::pow(min_height, 2));
+			inv_H2 += tmp_inv_H2;
 		}
 
 	    }

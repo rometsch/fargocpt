@@ -54,7 +54,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y, cons
 	    const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 	    const double dist_sm_2 = dist_2 + std::pow(smooth, 2);
 		const double dist_sm_3 = dist_sm_2 * std::sqrt(dist_sm_2);
-	    const double inv_dist_sm_3 = 1.0 / dist_sm_3;
+		const double inv_dist_sm_3 = 1.0 / dist_sm_3;
 
 		// just to be consistent with the force the gas feels from the planets
 		double smooth_factor_klahr = 1.0;
@@ -67,7 +67,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y, cons
 				const double r_sm = l1 * parameters::accretion_radius_fraction;
 				const double dist = std::sqrt(dist_2);
 
-				if(dist < r_sm){
+				if(dist < r_sm && r_sm > 0.0){
 				smooth_factor_klahr = - (3.0 * std::pow(dist / r_sm, 4.0) - 4.0 * std::pow(dist / r_sm, 3.0));
 				}
 			}

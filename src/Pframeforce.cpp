@@ -356,10 +356,11 @@ void ComputeDiskOnNbodyAccel(t_data &data)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	double l1 = 0.0;
+	double l1 = -1.0; // l1 = 0.0 causes divide by 0 error. I believe its because of lazy if(...) evaluation.
 	if(k > 0){
 		l1 = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
 	}
+
 	accel = ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
 	planet.set_disk_on_planet_acceleration(accel);
 
@@ -367,7 +368,7 @@ void ComputeDiskOnNbodyAccel(t_data &data)
 	    (planet.get_x() * accel.y - planet.get_y() * accel.x) *
 	    planet.get_mass();
 	planet.set_torque(torque);
-    }
+	}
 }
 
 /**

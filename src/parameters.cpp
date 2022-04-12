@@ -850,7 +850,7 @@ void read(char *filename, t_data &data)
     }
 
     body_force_from_potential =
-	config::value_as_bool_default("BodyForceFromPotiential", YES);
+	config::value_as_bool_default("BodyForceFromPotential", YES);
     if (body_force_from_potential) {
 	logging::print_master(LOG_INFO
 			      "Body force on gas computed via potential.\n");

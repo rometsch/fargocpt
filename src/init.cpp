@@ -701,7 +701,8 @@ void init_secondary_disk_densities(t_data &data){
 			parameters::sigma0 * scaling_factor * std::pow(r, -SIGMASLOPE)
 				* cutoff_outer(disk_size, cutoff_width, r);
 
-		const double density_old = data[t_data::DENSITY](n_radial, n_azimuthal);
+		const double density_old = std::max(data[t_data::DENSITY](n_radial, n_azimuthal),
+				parameters::sigma_floor * parameters::sigma0);
 
 		data[t_data::DENSITY](n_radial, n_azimuthal) =
 				std::max(density, density_old);
@@ -723,7 +724,7 @@ void init_secondary_disk_energies(t_data &data){
 
 	const auto &planet = data.get_planetary_system().get_planet(1);
 	const double disk_size = parameters::profile_cutoff_point_outer * planet.get_dimensionless_roche_radius() / (1.0 - planet.get_dimensionless_roche_radius());
-	const double cutoff_width = parameters::profile_cutoff_width_outer;
+	const double cutoff_width = parameters::profile_cutoff_width_outer * planet.get_dimensionless_roche_radius() / (1.0 - planet.get_dimensionless_roche_radius());
 	const double mass_q = planet.get_mass() / data.get_planetary_system().get_planet(0).get_mass();
 	const double compute_radius = eggleton_1983(mass_q, planet.get_distance_to_primary());
 	const double scaling_factor = std::sqrt(planet.get_mass());
@@ -750,9 +751,25 @@ void init_secondary_disk_energies(t_data &data){
 					 -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
 				constants::G * planet.get_mass() * cutoff_outer(disk_size, cutoff_width, r);
 
-			const double energy_old = data[t_data::ENERGY](n_radial, n_azimuthal);
+			const double temperature_floor =
+				parameters::minimum_temperature *
+				units::temperature.get_inverse_cgs_factor();
+			const double energy_floor =
+				temperature_floor *
+				data[t_data::DENSITY](n_radial, n_azimuthal) /
+				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+			const double temperature_ceil =
+				parameters::maximum_temperature *
+				units::temperature.get_inverse_cgs_factor();
+			const double energy_ceil =
+				temperature_ceil *
+				data[t_data::DENSITY](n_radial, n_azimuthal) /
+				parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+
+			const double energy_old = std::max(data[t_data::ENERGY](n_radial, n_azimuthal), energy_floor);
 			data[t_data::ENERGY](n_radial, n_azimuthal) =
-				std::max(energy, energy_old);
+				std::min(std::max(energy, energy_old), energy_ceil);
 		}}}
 }
 
