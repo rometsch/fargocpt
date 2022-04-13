@@ -212,13 +212,13 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 	const double Yplanet = planet.get_y();
 	const double Rplanet = planet.get_r();
 
-	// Hereafter : initialization of W. Kley's parameters
 	// remove a ratio of facc = planet.get_acc() of the mass inside the
 	// Hill sphere every planet orbit
+	// we use M_dot = 3 pi nu Sigma / (1 - sqrt(R_in / R))
+	// to derive the fraction we need to remove
 	const double facc = dt * 3.0 * M_PI * parameters::viscous_outflow_speed;
 
 	const double frac = parameters::accretion_radius_fraction;
-	// W. Kley's parameters initialization finished
 
 	const double RHill = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
 	// search radius is bigger fraction + 2 dphi cell sizes to capture all cells
