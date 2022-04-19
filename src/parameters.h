@@ -275,6 +275,7 @@ extern double vrad_fraction_of_kepler;
 extern double stellar_rotation_rate;
 extern double mass_accretion_rate;
 extern double accretion_radius_fraction;
+extern double klahr_smoothing_radius;
 
 /// CFL Factor
 extern double CFL;

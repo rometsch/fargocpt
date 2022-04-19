@@ -151,6 +151,7 @@ double vrad_fraction_of_kepler;
 double stellar_rotation_rate;
 double mass_accretion_rate;
 double accretion_radius_fraction;
+double klahr_smoothing_radius;
 
 unsigned int zbuffer_size;
 double zbuffer_maxangle;
@@ -909,6 +910,8 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("MassAccretionRate", 1.e-9);
 	accretion_radius_fraction =
 	config::value_as_double_default("MassAccretionRadius", 1.0);
+	klahr_smoothing_radius =
+	config::value_as_double_default("KlahrSmoothingRadius", accretion_radius_fraction);
 
     CFL = config::value_as_double_default("CFL", 0.5);
 	HEATING_COOLING_CFL_LIMIT = config::value_as_double_default("HeatingCoolingCFLlimit", 5.0e-2);

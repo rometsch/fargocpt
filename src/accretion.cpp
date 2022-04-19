@@ -218,7 +218,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 	// to derive the fraction we need to remove
 	const double facc = dt * 3.0 * M_PI * parameters::viscous_outflow_speed;
 
-	const double frac = parameters::accretion_radius_fraction;
+	const double frac = 0.5*parameters::accretion_radius_fraction;
 
 	const double RHill = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
 	// search radius is bigger fraction + 2 dphi cell sizes to capture all cells

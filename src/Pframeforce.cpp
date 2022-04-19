@@ -134,7 +134,7 @@ void CalculateNbodyPotential(t_data &data)
 			if (k > 0) { // only for non central objects
 				// position of the l1 point between planet and central star.
 				const double l1 = l1pl[k] * dist_to_prim_pl[k];
-				const double r_sm = l1 * parameters::accretion_radius_fraction;
+				const double r_sm = l1 * parameters::klahr_smoothing_radius;
 
 				const double dist = std::sqrt(dist_2);
 
@@ -214,7 +214,7 @@ void CalculateAccelOnGas(t_data &data)
 			if (k > 0) { // only for non central objects
 				// position of the l1 point between planet and central star.
 				const double l1 = l1pl[k] * dist_to_prim_pl[k];
-				const double r_sm = l1 * parameters::accretion_radius_fraction;
+				const double r_sm = l1 * parameters::klahr_smoothing_radius;
 
 				const double dist = std::sqrt(dist_2);
 
@@ -293,7 +293,7 @@ void CalculateAccelOnGas(t_data &data)
 			if (k > 0) { // only for non central objects
 				// position of the l1 point between planet and central star.
 				const double l1 = l1pl[k] * dist_to_prim_pl[k];
-				const double r_sm = l1 * parameters::accretion_radius_fraction;
+				const double r_sm = l1 * parameters::klahr_smoothing_radius;
 
 				const double dist = std::sqrt(dist_2);
 
