@@ -623,7 +623,6 @@ void t_planet::set_orbital_elements_zero()
     m_pericenter_angle = 0.0;
 
     m_torque = 0.0;
-    m_accreted_mass = 0.0;
 }
 
 void t_planet::calculate_orbital_elements(double x, double y, double vx,
