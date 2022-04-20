@@ -800,8 +800,6 @@ void t_planetary_system::compute_dist_to_primary(){
 		if(i == 1){ // primary looks at secondary
 			primary.set_distance_to_primary(dist);
 		}
-
-
 	}
 }
 
@@ -818,13 +816,18 @@ void t_planetary_system::init_roche_radii(){
 	for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
 		auto &planet = get_planet(i);
 		const double m = planet.get_mass();
-		double x = init_l1(M, m);
+
+		double x = 0.0;
+		if(M > m){
+			x = init_l1(M, m);
+		} else {
+			x = 1.0 - init_l1(m, M);
+		}
 		planet.set_dimensionless_roche_radius(x);
 
 		if(i == 1){
 			primary.set_dimensionless_roche_radius(1.0 - x);
 		}
-
 	}
 }
 
@@ -840,8 +843,15 @@ void t_planetary_system::update_roche_radii(){
 		auto &planet = get_planet(i);
 		const double m = planet.get_mass();
 		double x = planet.get_dimensionless_roche_radius();
+
+		if(M > m){
 		update_l1(M, m, x);
 		planet.set_dimensionless_roche_radius(x);
+		} else {
+			x = 1.0 - x;
+			update_l1(m, M, x);
+			x = 1.0 - x;
+		}
 
 		if(i == 1){
 			primary.set_dimensionless_roche_radius(1.0 - x);
