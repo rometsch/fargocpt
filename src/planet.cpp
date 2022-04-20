@@ -4,6 +4,7 @@
 #include "global.h"
 #include "logging.h"
 #include "output.h"
+#include "parameters.h"
 #include "util.h"
 #include <cstdio>
 #include <fstream>
@@ -137,7 +138,30 @@ const std::map<const std::string, const int> planet_file_column_v2_4 = {
 	{"torque", 17},
 	{"accreted mass", 18}};
 
-auto planet_files_column = planet_file_column_v2_4;
+// file version 2.4
+const std::map<const std::string, const int> planet_file_column_v2_5 = {
+	{"time step", 0},
+	{"x", 1},
+	{"y", 2},
+	{"vx", 3},
+	{"vy", 4},
+	{"mass", 5},
+	{"physical time", 6},
+	{"omega frame", 7},
+	{"mdcp", 8},
+	{"eccentricity", 9},
+	{"angular momentum", 10},
+	{"semi-major axis", 11},
+	{"omega kepler", 12},
+	{"mean anomaly", 13},
+	{"eccentric anomaly", 14},
+	{"true anomaly", 15},
+	{"pericenter angle", 16},
+	{"torque", 17},
+	{"accreted mass", 18},
+	{"accretion rate", 19}};
+
+auto planet_files_column = planet_file_column_v2_5;
 
 const std::map<const std::string, const std::string> variable_units = {
     {"time step", "1"},
@@ -161,7 +185,8 @@ const std::map<const std::string, const std::string> variable_units = {
     {"omega", "frequency"},
     {"omega kepler", "frequency"},
     {"torque", "torque"},
-    {"accreted mass", "mass"}};
+	{"accreted mass", "mass"},
+	{"accretion rate", "mass accretion rate"}};
 
 t_planet::~t_planet() {}
 
@@ -432,6 +457,7 @@ void t_planet::write(const unsigned int timestep, const unsigned int file_type)
 	    PersonalExit(1);
 	}
 	write_ascii(filename, timestep);
+	reset_accreted_mass();
 	break;
     case 2:
 	if (asprintf(&filename, "%sdebugplanet%u.bin", OUTPUTDIR,
@@ -458,14 +484,25 @@ void t_planet::write_ascii(const char *filename,
 	PersonalExit(1);
     }
 
+	const double accreted_mass = get_accreted_mass();
+	double div;
+
+	if(parameters::write_at_every_timestep){
+		div = DT;
+	} else {
+		div = DT * NINTERM;
+	}
+
+	const double accretion_rate = accreted_mass / div;
+
     fprintf(
 	fd,
-	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 	timestep, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
 	PhysicalTime, OmegaFrame, get_circumplanetary_mass(), get_eccentricity(),
 	get_angular_momentum(), get_semi_major_axis(), get_omega(),
 	get_mean_anomaly(), get_eccentric_anomaly(), get_true_anomaly(),
-	get_pericenter_angle(), get_torque(), get_accreted_mass());
+	get_pericenter_angle(), get_torque(), accreted_mass, accretion_rate);
 
     // close file
     fclose(fd);

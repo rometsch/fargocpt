@@ -532,6 +532,7 @@ std::string text_file_variable_description(
     // could also do this somewhere in initialization...
     std::map<std::string, std::string> unit_descriptors = {
 	{"mass", units::mass.get_cgs_factor_symbol()},
+	{"mass accretion rate", units::mass_accretion_rate.get_cgs_factor_symbol()},
 	{"angular_momentum", units::angular_momentum.get_cgs_factor_symbol()},
 	{"time", units::time.get_cgs_factor_symbol()},
 	{"energy", units::energy.get_cgs_factor_symbol()},

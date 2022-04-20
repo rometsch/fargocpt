@@ -77,6 +77,7 @@ class t_planet
   public:
 	void print();
     inline void add_accreted_mass(double value) { m_accreted_mass += value; }
+	inline void reset_accreted_mass() { m_accreted_mass = 0.0; }
     // setter
 	inline void set_mass(const double value) { m_mass = value; }
 	inline void set_x(const double value) { m_x = value; }
