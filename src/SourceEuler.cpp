@@ -554,12 +554,6 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		// is crucial the check minimum density before!
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-
-	    // const double total_disk_mass_new =
-		// quantities::gas_total_mass(data, 2.0*RMAX);
-
-	    // data[t_data::DENSITY] *=
-	    //(total_disk_mass_old / total_disk_mass_new);
 	}
 
 	PhysicalTime += dt;
@@ -582,6 +576,12 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		accretion::AccreteOntoPlanets(data, dt);
 
 		boundary_conditions::apply_boundary_condition(data, dt, true);
+
+		//const double total_disk_mass_new =
+		// quantities::gas_total_mass(data, 2.0*RMAX);
+
+		 //data[t_data::DENSITY] *=
+		//(total_disk_mass_old / total_disk_mass_new);
 
 		CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
 
