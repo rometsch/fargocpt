@@ -837,7 +837,12 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		const double X = quantity(n_radial, n_azimuthal);
-		const double X0 = 0.0;
+		double X0;
+		if(is_density){
+			X0 = parameters::sigma_floor * parameters::sigma0;
+		} else {
+			X0 = 0.0;
+		}
 		const double Xnew = (X - X0) * exp_factor + X0;
 		quantity(n_radial, n_azimuthal) = Xnew;
 		const double delta = Xnew - X;
