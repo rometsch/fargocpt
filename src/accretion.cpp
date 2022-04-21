@@ -132,13 +132,12 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
 		const double vycell = (vrcell * yc + vtcell * xc) / Rmed[i];
 
-		double deltaM = 0.0;
 		// only allow removal of mass down to density floor
-		double facc_max = 1 - density_floor / dens[l];
+		const double facc_max = 1 - density_floor / dens[l];
 		// handle accretion zone 1
 		if (distance < frac1 * RHill) {
-		    double facc_ceil = std::min(facc1, facc_max);
-		    deltaM = facc_ceil * dens[l] * Surf[i];
+			const double facc_ceil = std::min(facc1, facc_max);
+			const double deltaM = facc_ceil * dens[l] * Surf[i];
 		    dens[l] *= 1.0 - facc_ceil;
 			if (parameters::Adiabatic) {
 			energy[l] *= 1.0 - facc_ceil;
@@ -153,8 +152,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		}
 		// handle accretion zone 2
 		if (distance < frac2 * RHill) {
-		    double facc_ceil = std::min(facc2, facc_max);
-		    deltaM = facc_ceil * dens[l] * Surf[i];
+			const double facc_ceil = std::min(facc2, facc_max);
+			const double deltaM = facc_ceil * dens[l] * Surf[i];
 		    dens[l] *= 1.0 - facc_ceil;
 			if (parameters::Adiabatic) {
 		    energy[l] *= 1.0 - facc2;
@@ -272,7 +271,6 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 		const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
 		const double vycell = (vrcell * yc + vtcell * xc) / Rmed[i];
 
-		double deltaM = 0.0;
 		// only allow removal of mass down to density floor
 		const double facc_max_dens = 1 - density_floor / dens[l];
 		// handle accretion zone 1
@@ -281,7 +279,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet, doubl
 
 			const double facc_tmp = facc * nu * spread;
 			const double facc_ceil = std::min(facc_tmp, facc_max_dens);
-			deltaM = facc_ceil * dens[l] * Surf[i];
+			const double deltaM = facc_ceil * dens[l] * Surf[i];
 			dens[l] *= 1.0 - facc_ceil;
 			if (parameters::Adiabatic) {
 			// We reduce energy by the same fraction as density,
