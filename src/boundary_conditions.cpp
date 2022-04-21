@@ -1008,8 +1008,15 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 		for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vrad.get_size_azimuthal(); ++n_azimuthal) {
 		const double viscosity_above = viscosity(n_radial, n_azimuthal);
+
+		double Nu;
+
+		if(n_radial == 0){
+		Nu = viscosity_above;
+		} else {
 		const double viscosity_below = viscosity(n_radial-1, n_azimuthal);
-		const double Nu = 0.5*(viscosity_above + viscosity_below);
+		Nu = 0.5*(viscosity_above + viscosity_below);
+		}
 
 		// V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
 		const double V_rad = -1.5 * s / Rinf[n_radial] * Nu;
