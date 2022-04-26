@@ -6,6 +6,7 @@
 
 #include "radialarray.h"
 #include "types.h"
+#include "pvte_law.h"
 #include <mpi.h>
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
@@ -187,6 +188,13 @@ double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
+
+//lookup tables for the pve equation of state
+std::vector<double> mu_table;
+std::vector<double> gammeff_table;
+std::vector<double> gamma1_table;
+std::vector<double> lnT;
+std::vector<double> funcdum;
 
 double dtemp;
 int debug_outputs;

@@ -14,6 +14,7 @@ void init_shock_tube_test(t_data &data);
 void init_spreading_ring_test_jibin(t_data &data);
 void init_spreading_ring_test(t_data &data);
 void init_gas_density(t_data &data);
+void init_eos_arrays(t_data &data);
 void init_gas_energy(t_data &data);
 void init_gas_velocities(t_data &data);
 void init_secondary_disk_densities(t_data &data);

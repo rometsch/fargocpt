@@ -13,6 +13,8 @@ extern bool Adiabatic;
 extern bool Polytropic;
 extern bool Locally_Isothermal;
 
+extern bool variableGamma;
+
 /// Type of radial Grid
 enum t_radial_grid {
     logarithmic_spacing,

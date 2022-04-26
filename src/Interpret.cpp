@@ -385,6 +385,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    // Energy equation / Adiabatic
 	    parameters::Adiabatic = true;
 
+		parameters::variableGamma =
+		config::value_as_bool_default("variableGamma", false);
+
 	    char ADIABATICINDEX_string[512];
 	    strncpy(
 		ADIABATICINDEX_string,
@@ -415,6 +418,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		LOG_INFO
 		"Using ideal equation of state. AdiabaticIndex = %.3f.\n",
 		ADIABATICINDEX);
+		if (parameters::variableGamma){
+		logging::print_master(LOG_INFO "Using variable AdiabaticIndex. \n");
+		}
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||

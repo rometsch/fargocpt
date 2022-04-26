@@ -1,0 +1,492 @@
+#include <assert.h>
+#include <float.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <vector>
+
+#include "pvte_law.h"
+#include "constants.h"
+#include "parameters.h"
+#include "logging.h"
+#include "data.h"
+
+namespace pvte
+{
+//Ni = number of density gridpoints
+const double Ni = 1000.0;
+
+//Nj = number of energy gridpoints
+const double Nj = 1000.0;
+
+//smallest and largest density for the lookup tables
+const double rhomin = 1.0e-23;
+const double rhomax = 1.0;
+
+//smalles and largest energy for the lookup tables
+const double emin = 1.0e8;
+const double emax = 1.0e15;
+
+//logarithmic grid spacing
+const double deltaLogRho = std::log10(rhomax/rhomin)/Ni;
+const double deltaLogE = std::log10(emax/emin)/Nj;
+
+//parameters for zeta tables
+const double ORTHO_PARA_MODE = 1;
+
+const double THETA_V =  6140.0;
+const double THETA_R = 85.5;
+
+const double Nzeta = 5000;
+const double Temp0 = 1.0;
+const double Tmax = 1.0e12;
+
+
+
+
+void  makeZetaTables(){
+    int    i,j;
+    double dy = std::log(Tmax/Temp0)*(1./Nzeta);
+    double dT = Temp0*std::exp(dy); 
+    double T, a, b, b1, scrh, inv_T2;
+    double zetaP, dzetaP, zetaO, dzetaO, zetaR, dzetaR;
+    double dum1, dum2, dum3;
+    double alpha, beta, gamma;
+    double dzO_zO_m, db, sum1, sum2;
+
+    logging::print_master(LOG_INFO " generating Zeta tables...\n");
+    lnT.resize(Nzeta);
+    funcdum.resize(Nzeta);
+    if (ORTHO_PARA_MODE == 0){ 
+        alpha = 1.0; beta = 0.0; gamma = 0.0;
+    }
+    else if(ORTHO_PARA_MODE == 2){ 
+        alpha = 0.25; beta = 0.75; gamma = 0.0;
+    }
+    else{
+        alpha = 1.0; beta = 0.0; gamma = 1.0;
+    }
+
+    b1 = 2.0 * THETA_R;
+    for (j = 0; j < Nzeta; j++){
+        T = Temp0*std::exp(j*dy);
+        inv_T2 = 1.0/(T*T);
+        zetaO = zetaP = dzetaP = dzetaO = 0.0;
+        dzO_zO_m = sum1 = sum2 = 0.0;    
+        for (i = 0; i <= 10000; i++){
+            a = 2*i + 1;
+            b = i*(i + 1) * THETA_R;
+            if ((i % 2) == 0){
+                scrh    = a*std::exp(-b/T);
+                zetaP  += scrh;
+                dzetaP += scrh*b;
+            }
+            else{
+                db    = b - b1;
+                scrh  = a*std::exp(-db/T);
+                sum1 += scrh;
+                sum2 += scrh*db;
+            }
+        }
+
+        dzetaP *= inv_T2;
+        zetaO  = std::exp(-b1/T)*sum1;
+        dzetaO = std::exp(-b1/T)*(b1*sum1 + sum2)*inv_T2;
+        dzO_zO_m = sum2/sum1*inv_T2;
+        lnT[j]  = std::log(T);
+        
+        scrh   = zetaO*std::exp(2.0 * THETA_R/T);
+        
+        zetaR  = std::pow(zetaP,alpha)*std::pow(scrh,beta) + 3.0*gamma*zetaO;
+        dzetaR = (zetaR - 3.0*gamma*zetaO)*(alpha*(dzetaP/zetaP) + 
+				          beta*dzO_zO_m)  + 3.0*gamma*dzetaO;
+        dum1  = THETA_V / T;                            
+        dum2  = dum1*std::exp(-dum1)/(1.0 - std::exp(-dum1));  
+        dum3  = (T/zetaR)*dzetaR;
+        funcdum[j] = 1.5 + dum2 + dum3;
+    }
+
+}
+    
+double get_funcDum(double temperatureCGS){
+    double y = std::log(temperatureCGS);
+    double funcdum_val;
+    double dy;
+    int indx;
+    
+    if (y > lnT[Nzeta-2]){
+        funcdum_val = funcdum[Nzeta-2];
+    }
+    else if (y < lnT[0]){
+        funcdum_val = funcdum[0];
+    }
+    else{
+        dy   = lnT[1] - lnT[0];
+        indx = (int)(std::floor((y - lnT[0])/dy));
+
+        if (indx >= Nzeta || indx < 0){
+            logging::print_master (LOG_ERROR "! GetFuncDum: indx out of range, indx = %d\n",indx);
+        }
+    }
+    
+    funcdum_val = (funcdum[indx]*(lnT[indx+1] - y) + funcdum[indx+1]*(y - lnT[indx]))/dy;
+    return funcdum_val;
+}
+
+void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &gammaeff_table,
+std::vector<double> &gamma1_table){
+    mu_table.resize(Ni * Nj);
+    gammaeff_table.resize(Ni * Nj);
+    gamma1_table.resize(Ni * Nj);
+    
+    makeZetaTables();
+
+    for (int i = 0; i < Ni; ++i){
+        for (int j = 0; j < Nj; ++j){
+            double rhoi = std::pow(10.0, (deltaLogRho * i)) * rhomin;
+            double ej = std::pow(10.0, (deltaLogE * j)) * emin;
+            double T = energy_to_temperature( ej, rhoi);
+            double mu = mean_molecular_weight(T, rhoi);
+            double geff = gammaeff(T, rhoi);
+            double g1 = gamma1(T, rhoi);
+
+            int index = j + i * Nj;
+            mu_table[index] = mu;
+            gammaeff_table[index] = geff;
+            gamma1_table[index] = g1;
+        }
+    }
+}
+
+//interpolate values from lookup table
+double interpolate(std::vector<double> &table,int i ,int j,double x,double y){
+    const int ind1 = j + (i + 1) * Nj;
+    const int ind2 = j + i * Nj;
+    const int ind3 = j + 1 + (i + 1) * Nj;
+    const int ind4 = j + 1 + i * Nj;
+    double S_ij = table[ind1] * x + table[ind2]*(1.0 - x);
+    double S_ijp1 = table[ind3] * x + table[ind4] * (1.0 - x);
+    return S_ij * (1.0 - y) + S_ijp1 * y;
+}
+
+//get the interpolated quantities
+t_eosQuantities lookup(std::vector<double> &mu_tab, std::vector<double> &gammeff_tab,
+std::vector<double> &gamma1_tab, double densityCGS, double energyCGS){
+    int i = int(std::floor(std::log10(densityCGS/rhomin)/deltaLogRho));
+    int j = int(std::floor(std::log10(energyCGS/emin)/deltaLogE));
+    if (i >= Ni - 1){
+        i = Ni - 2;
+    }
+    if (i < 0){
+        i = 0;
+    }
+    if (j >= Nj - 1){
+        j = Nj - 2;
+    }
+        if (j < 0){
+        j = 0;
+    }
+
+    const double rhoi = std::pow(10,(deltaLogRho * i)) * rhomin;
+    const double rhoip1 = std::pow(10, (deltaLogRho * (i+1))) * rhomin;
+    const double ej = std::pow(10, (deltaLogE * j)) * emin;
+    const double ejp1 = std::pow(10, (deltaLogE * (j+1))) * emin;
+    const double x = (densityCGS - rhoi)/(rhoip1 - rhoi);
+    const double y = (energyCGS - ej)/(ejp1 - ej);
+    const double geff = interpolate(gammeff_tab, i, j, x, y);
+    const double mu = interpolate(mu_tab,i, j, x, y);
+    const double gamma1 = interpolate(gamma1_tab,i,j, x, y);
+    t_eosQuantities result;
+    result.geff = geff;
+    result.mow = mu;
+    result.g1 = gamma1;
+    return result;
+}
+   
+//hydrogen ionization fraction
+double Hfraction (double densityCGS, double temperatureCGS){
+    double x = 1.0;
+    double Ax = 5.3890039e-09 * std::pow(temperatureCGS,1.5) * std::exp(-157821.45 / temperatureCGS) / densityCGS;
+    if (Ax < 1.0e8){
+        x = 0.5 * (-Ax + std::sqrt(Ax * Ax + 4.0 * Ax));
+    }
+    return x;
+}
+
+//hydrogen dissociation fraction
+double H2fraction (double densityCGS, double temperatureCGS){
+    double y = 1.0;
+    double Ay =  7.5035099e-05 * std::pow(temperatureCGS,1.5) * std::exp(-51988.24 / temperatureCGS) / densityCGS;
+    if (Ay < 1.0e8){
+        y = 0.5 * (-Ay + std::sqrt(Ay * Ay + 4.0 * Ay));
+    }
+    return y;
+}
+
+//mean molecular weight mu
+double mean_molecular_weight (double temperatureCGS, double densityCGS){
+    double xMF = 0.75;
+
+    double x = Hfraction(densityCGS, temperatureCGS);
+
+    double y = H2fraction(densityCGS, temperatureCGS);
+
+    return 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
+}
+
+//energy contributions to the internal energy of the gas
+double gasEnergyContributions(double xMF, double x, 
+double y, double temperatureCGS){
+    double epsH2 = 0.5 * xMF * (1.0 - y) * get_funcDum(temperatureCGS);
+    double epsHII =  157821.45 * xMF * x * y / temperatureCGS;
+    double epsHH = 25994.12 * xMF * y / temperatureCGS;
+    double epsHe = 0.375 * (1.0 - xMF);
+    double epsHI = 1.5 * xMF * (1.0 + x) * y;
+    return epsH2 + epsHII + epsHH + epsHe + epsHI;
+}
+
+//effective adiabatic index to relate pressure and internal energy
+double gammaeff(double temperatureCGS, double densityCGS){
+    //hydrogen mass fraction xMF
+	double xMF = 0.75;
+
+	//hydrogen ionization fraction x
+	double x = Hfraction(densityCGS, temperatureCGS);
+
+	//hydrogen dissociation fraction y
+	double y = H2fraction(densityCGS, temperatureCGS);
+
+	double mu = mean_molecular_weight(temperatureCGS, densityCGS);
+
+	double gammaeff = 1.0 + 1.0/(mu * 
+		gasEnergyContributions(xMF, x, y, temperatureCGS));
+
+    return gammaeff;
+}
+
+//first adiabatic index to calculate the speed of sound
+double gamma1(double temperatureCGS, double densityCGS){
+    double xMF = 0.75;
+    double epsilon = 1.0e-4;
+    double temperatureLeft = temperatureCGS * (1.0 - epsilon);
+    double temperatureRight = temperatureCGS * (1.0 + epsilon);
+    double deltaTemperature = temperatureLeft - temperatureRight;
+    //hydrogen ionization fraction x
+    double xL = Hfraction(densityCGS, temperatureLeft);
+
+    double xR = Hfraction(densityCGS, temperatureRight);
+
+    double xc = Hfraction(densityCGS, temperatureCGS);
+	
+    //hydrogen dissociation fraction y
+    double yL = H2fraction(densityCGS, temperatureLeft);
+
+    double yR = H2fraction(densityCGS, temperatureRight);
+
+    double yc = H2fraction(densityCGS, temperatureCGS);
+			
+    double frotL = get_funcDum(temperatureLeft);
+    double frotR = get_funcDum(temperatureRight);
+    double frotc = get_funcDum(temperatureCGS);
+        
+	//contributions to the internal energy
+    double eps = gasEnergyContributions(xMF, xc, yc, temperatureCGS);
+
+    double eL = (gasEnergyContributions(xMF,xL, yL, temperatureLeft))*temperatureLeft;
+    double eR =  (gasEnergyContributions(xMF, xR, yR, temperatureRight))*temperatureRight;
+    double e =  eps * temperatureCGS;
+
+    double cv =  (eL - eR)/deltaTemperature;
+
+    double muL = 4.0 / (2.0 * xMF * (1.0 + yL + 2.0 * yL * xL) + 1.0 - xMF);
+    double muR = 4.0 / (2.0 * xMF * (1.0 + yR + 2.0 * yR * xR) + 1.0 - xMF);
+    double muc = 4.0 / (2.0 * xMF * (1.0 + yc + 2.0 * yc * xc) + 1.0 - xMF);
+
+    double gammaeff = 1.0 + 1.0/(muc * eps);
+
+    double p = (gammaeff - 1.0)*e;
+
+    double chiT = 1.0 - temperatureCGS / muc * (muL - muR)/deltaTemperature;
+    
+    //Derivative with respect to the density
+    double rhoL = densityCGS * (1.0 - epsilon);
+    double rhoR = densityCGS * (1.0 + epsilon);
+    double deltaRho = rhoL - rhoR;
+
+    //hydrogen ionization fraction x
+    xL = Hfraction(rhoL, temperatureCGS);
+
+    xR = Hfraction(rhoR, temperatureCGS);
+
+    //hydrogen dissociation fraction y
+    yL = H2fraction(rhoL, temperatureCGS);
+
+    yR = H2fraction(rhoR, temperatureCGS);
+
+    muL = 4.0 / (2.0 * xMF * (1.0 + yL + 2.0 * yL * xL) + 1.0 - xMF);
+    muR = 4.0 / (2.0 * xMF * (1.0 + yR + 2.0 * yR * xR) + 1.0 - xMF);
+    muc = 4.0 / (2.0 * xMF * (1.0 + yc + 2.0 * yc * xc) + 1.0 - xMF);
+
+    double chiRho = 1.0 - densityCGS / muc * (muL - muR) / deltaRho;
+
+    return p * std::pow(chiT, 2) / (cv * temperatureCGS) + chiRho;
+}
+
+//root finding problem for the calculation of the temperature
+double gamma_mu_root(double temperatureCGS, double densityCGS, double energyCGS){
+    //hydrogen mass fraction xMF
+	double xMF = 0.75;
+
+	//hydrogen ionization fraction x
+	double x = Hfraction(densityCGS, temperatureCGS);
+
+	//hydrogen dissociation fraction y
+	double y = H2fraction(densityCGS, temperatureCGS);
+
+	double mu = 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
+    
+	double gamma = 1.0 + 1.0/(mu * 
+		gasEnergyContributions(xMF, x, y, temperatureCGS));
+
+
+	double temperature = mu * 
+			energyCGS*(gamma- 1.0) /
+			constants::_R.get_cgs_value();
+
+	return temperature - temperatureCGS;
+}
+
+
+//solving the root finding problem
+double energy_to_temperature(double energyCGS, double densityCGS){
+    //Brent's root finding method
+	double delta = 1.0e-3;
+    double a = 1.0e0;//parameters::minimum_temperature;
+	double b = 1.0e7;//parameters::maximum_temperature;
+	double c;
+	double d;
+	double s;
+	double fa = gamma_mu_root(a, densityCGS, energyCGS);
+    double fb = gamma_mu_root(b, densityCGS, energyCGS);
+	double fs, fc;
+    if (std::abs(fa) < std::abs(fb)){
+		std::swap(a, b);
+		std::swap(fa, fb);
+	}
+    c = a;
+	fc = fa;
+    bool mflag = true;
+   	while (std::abs(b - a) > delta){
+		if ((fa != fc) && (fb != fc)){
+		    s = a * fb * fc / ( ( fa - fb ) * ( fa - fc ) ) + 
+		    b * fa * fc / ( ( fb - fa ) * ( fb - fc ) ) + 
+			c * fa * fb / ( ( fc - fa ) * ( fc - fb ) );
+		}
+        else{
+			s = b - fb*(b - a) / (fb - fa);
+		}
+		
+        if (((s < std::min((3.0*a + b)/4.0, b)) && (s > std::max((3.0*a + b)/4.0, b))) || 
+			(mflag && (std::abs(s-b) >= std::abs(b-c)/2.0)) || 
+			(!mflag && (std::abs(s-b) >= std::abs(c - d)/2.0)) || 
+			(mflag && (std::abs(b - c) < delta)) || 
+			(!mflag and (std::abs(c - d) < delta))){
+            s = (a + b)/2.0;
+            mflag = true;
+		}
+        else{
+            mflag = false;
+		}
+        fs = gamma_mu_root(s, densityCGS, energyCGS);
+        d = c;
+        c = b;
+       	if (fa*fs < 0.0){
+            b = s;
+		}
+		else{
+            a = s;
+		}
+
+        if (std::abs(fa) < std::abs(fb)){
+            std::swap(a,b);
+			std::swap(fa, fb);
+		}
+		}
+    	return b;
+}
+
+double temperature_to_energy(double temperatureCGS, double densityCGS){
+    const double gamma = gammaeff(temperatureCGS, densityCGS);
+    const double mu = mean_molecular_weight(temperatureCGS, densityCGS);
+    return temperatureCGS * constants::_R.get_cgs_value()/(mu*(gamma-1.0));
+}
+
+void compute_gamma_mu(t_data &data)
+{
+    /*
+	static bool lookupTablesInitialized = false;
+
+    //generate lookup tables once
+	if (!lookupTablesInitialized){
+		logging::print_master(LOG_INFO "Generating lookup tables \n");
+		initializeLookupTables(mu_table, gammeff_table, gamma1_table);
+		lookupTablesInitialized = true;
+		logging::print_master(LOG_INFO "Lookup tables generated \n");
+	}
+    */
+	for (unsigned int n_radial = 0;
+	 n_radial <= data[t_data::TEMPERATURE].get_max_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+	     n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal();
+	     ++n_azimuthal) {
+
+            const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+
+            const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+
+			const double densityCGS =
+		    sigma /
+		    (parameters::density_factor * H) * units::density;
+
+			const double energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) 
+            * units::energy_density / (sigma * units::surface_density);
+	
+			t_eosQuantities q = 
+            lookup(mu_table,  gammeff_table, gamma1_table, densityCGS, energyCGS);
+
+			data[t_data::GAMMAEFF](n_radial, n_azimuthal) = q.geff;
+			data[t_data::MU](n_radial, n_azimuthal) = q.mow;
+            data[t_data::GAMMA1](n_radial, n_azimuthal) = q.g1;
+		
+	}
+	}
+}
+
+double get_gammaeff(t_data &data, int n_radial, int n_azimuthal){
+    if (parameters::variableGamma){
+        return data[t_data::GAMMAEFF](n_radial, n_azimuthal);
+    } 
+    else {
+        return ADIABATICINDEX;
+    }
+}
+
+double get_mu(t_data &data, int n_radial, int n_azimuthal){
+    if (parameters::variableGamma){
+        return data[t_data::MU](n_radial, n_azimuthal);
+    }
+    else{
+        return parameters::MU;
+    }
+}
+
+double get_gamma1(t_data &data, int n_radial, int n_azimuthal){
+    if (parameters::variableGamma){
+        return data[t_data::GAMMA1](n_radial, n_azimuthal);
+    }
+    else{
+        return ADIABATICINDEX;
+    }
+}
+}

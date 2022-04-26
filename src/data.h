@@ -22,6 +22,9 @@ class t_data
 	TEMPERATURE,	      // temperature
 	PRESSURE,	      // pressure
 	SOUNDSPEED,	      // soundspeed c_s (introduced by Fargo-ADSG)
+	GAMMAEFF,		  //effective adiabatic indices
+	GAMMA1,			  //first adiabatic indices
+	MU,					//mean molecular weights
 	ACCEL_RADIAL,	      // gas accerleration in r direction
 	ACCEL_AZIMUTHAL,      // gas acceleration in phi direction
 	TOOMRE,		      // Toomre parameter Q

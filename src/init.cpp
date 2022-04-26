@@ -284,6 +284,10 @@ void init_physics(t_data &data)
 	    init_gas_energy(data);
 	}
 
+	if (parameters::variableGamma){
+		init_eos_arrays(data);
+	}
+
 	if(parameters::do_init_secondary_disk){
 		init_secondary_disk_densities(data);
 		if (parameters::Adiabatic) {
@@ -1163,6 +1167,22 @@ void renormalize_sigma_and_report(t_data &data){
 
 	// set SigmaMed/SigmaInf
 	RefillSigma(&data[t_data::DENSITY]);
+}
+
+void init_eos_arrays(t_data &data){
+
+	logging::print_master(LOG_INFO "Generating lookup tables \n");
+	pvte::initializeLookupTables(mu_table, gammeff_table, gamma1_table);
+	logging::print_master(LOG_INFO "Lookup tables generated \n");
+
+	
+	for (unsigned int n_rad = 0; n_rad <= data[t_data::GAMMAEFF].get_max_radial(); ++n_rad){
+		for (unsigned int n_az = 0; n_az <= data[t_data::GAMMAEFF].get_max_azimuthal(); ++n_az){
+			data[t_data::GAMMAEFF](n_rad, n_az) = ADIABATICINDEX;
+			data[t_data::GAMMA1](n_rad, n_az) = ADIABATICINDEX;
+			data[t_data::MU](n_rad, n_az) = parameters::MU;
+		}
+	}
 }
 
 void init_gas_energy(t_data &data)

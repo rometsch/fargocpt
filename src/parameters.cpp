@@ -33,6 +33,8 @@ bool Adiabatic = false;
 bool Polytropic = false;
 bool Locally_Isothermal = false;
 
+bool variableGamma = false;
+
 t_radial_grid radial_grid_type;
 const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",
 				   "custom"};
@@ -333,6 +335,12 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteTemperature", false), do_write_1D);
     data[t_data::SOUNDSPEED].set_write(
 	config::value_as_bool_default("WriteSoundSpeed", false), do_write_1D);
+	data[t_data::GAMMAEFF].set_write(
+	config::value_as_bool_default("WriteEffectiveGamma", false), do_write_1D);
+	data[t_data::GAMMA1].set_write(
+	config::value_as_bool_default("WriteFirstAdiabaticIndex", false), do_write_1D);
+	data[t_data::MU].set_write(
+	config::value_as_bool_default("WriteMeanMolecularWeight", false), do_write_1D);
     data[t_data::PRESSURE].set_write(
 	config::value_as_bool_default("WritePressure", false), do_write_1D);
     data[t_data::TOOMRE].set_write(
