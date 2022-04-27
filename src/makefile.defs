@@ -7,9 +7,9 @@ OPTIONS += -Wall -Wextra -Wpedantic -Wmissing-declarations -Werror=redundant-dec
 # architechture
 OPTIONS += -march=native
 # add symbols for backtrace
-OPTIONS += -rdynamic
+# OPTIONS += -rdynamic
 # optimizations, applied to options later
-OPTIMIZATION := -Ofast
+OPTIMIZATION := -Ofast -flto
 
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"

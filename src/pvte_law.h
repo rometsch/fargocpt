@@ -25,9 +25,9 @@ namespace pvte
 {
 
 //struct for storing mean molecular weight, gamma_eff and gamma1
-typedef struct t_eosQuantities {
+typedef struct {
     double mow, geff, g1;
-};
+} t_eosQuantities;
 
 void  makeZetaTables();
 

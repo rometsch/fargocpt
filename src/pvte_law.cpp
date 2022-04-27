@@ -359,7 +359,7 @@ double energy_to_temperature(double energyCGS, double densityCGS){
 	double fa = gamma_mu_root(a, densityCGS, energyCGS);
 	double fb = gamma_mu_root(b, densityCGS, energyCGS);
 	double fs;
-	volatile double fc;
+	volatile double fc; // otherwise fc is optimized away and the root finding crashes.
 
     if (std::abs(fa) < std::abs(fb)){
 		std::swap(a, b);
@@ -469,7 +469,7 @@ double get_mu(t_data &data, const int n_radial, const int n_azimuthal){
     }
     else{
         return parameters::MU;
-    }
+	}
 }
 
 double get_gamma1(t_data &data, const int n_radial, const int n_azimuthal){
