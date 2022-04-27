@@ -131,10 +131,10 @@ double get_funcDum(double temperatureCGS){
     }
 }
 
-void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &gammaeff_table,
+void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &gamma_eff_table,
 std::vector<double> &gamma1_table){
     mu_table.resize(Ni * Nj);
-    gammaeff_table.resize(Ni * Nj);
+	gamma_eff_table.resize(Ni * Nj);
     gamma1_table.resize(Ni * Nj);
     
     makeZetaTables();
@@ -145,12 +145,12 @@ std::vector<double> &gamma1_table){
             double ej = std::pow(10.0, (deltaLogE * j)) * emin;
             double T = energy_to_temperature( ej, rhoi);
             double mu = mean_molecular_weight(T, rhoi);
-            double geff = gammaeff(T, rhoi);
+			double geff = gamma_eff(T, rhoi);
             double g1 = gamma1(T, rhoi);
 
             int index = j + i * Nj;
             mu_table[index] = mu;
-            gammaeff_table[index] = geff;
+			gamma_eff_table[index] = geff;
             gamma1_table[index] = g1;
         }
     }
@@ -212,7 +212,7 @@ double Hfraction (const double densityCGS, const double temperatureCGS){
 }
 
 //hydrogen dissociation fraction
-double H2fraction (double densityCGS, double temperatureCGS){
+double H2fraction (const double densityCGS, const double temperatureCGS){
     double y = 1.0;
     double Ay =  7.5035099e-05 * std::pow(temperatureCGS,1.5) * std::exp(-51988.24 / temperatureCGS) / densityCGS;
     if (Ay < 1.0e8){
@@ -222,7 +222,7 @@ double H2fraction (double densityCGS, double temperatureCGS){
 }
 
 //mean molecular weight mu
-double mean_molecular_weight (double temperatureCGS, double densityCGS){
+double mean_molecular_weight (const double temperatureCGS, const double densityCGS){
     double xMF = 0.75;
 
     double x = Hfraction(densityCGS, temperatureCGS);
@@ -233,88 +233,84 @@ double mean_molecular_weight (double temperatureCGS, double densityCGS){
 }
 
 //energy contributions to the internal energy of the gas
-double gasEnergyContributions(double xMF, double x, 
-double y, double temperatureCGS){
-    double epsH2 = 0.5 * xMF * (1.0 - y) * get_funcDum(temperatureCGS);
-    double epsHII =  157821.45 * xMF * x * y / temperatureCGS;
-    double epsHH = 25994.12 * xMF * y / temperatureCGS;
-    double epsHe = 0.375 * (1.0 - xMF);
-    double epsHI = 1.5 * xMF * (1.0 + x) * y;
+double gasEnergyContributions(const double xMF, const double x,
+const double y, const double temperatureCGS){
+	const double epsH2 = 0.5 * xMF * (1.0 - y) * get_funcDum(temperatureCGS);
+	const double epsHII =  157821.45 * xMF * x * y / temperatureCGS;
+	const double epsHH = 25994.12 * xMF * y / temperatureCGS;
+	const double epsHe = 0.375 * (1.0 - xMF);
+	const double epsHI = 1.5 * xMF * (1.0 + x) * y;
     return epsH2 + epsHII + epsHH + epsHe + epsHI;
 }
 
 //effective adiabatic index to relate pressure and internal energy
-double gammaeff(double temperatureCGS, double densityCGS){
+double gamma_eff(const double temperatureCGS, const double densityCGS){
     //hydrogen mass fraction xMF
-	double xMF = 0.75;
+	const double xMF = 0.75;
 
 	//hydrogen ionization fraction x
-	double x = Hfraction(densityCGS, temperatureCGS);
+	const double x = Hfraction(densityCGS, temperatureCGS);
 
 	//hydrogen dissociation fraction y
-	double y = H2fraction(densityCGS, temperatureCGS);
+	const double y = H2fraction(densityCGS, temperatureCGS);
 
-	double mu = mean_molecular_weight(temperatureCGS, densityCGS);
+	const double mu = mean_molecular_weight(temperatureCGS, densityCGS);
 
-	double gammaeff = 1.0 + 1.0/(mu * 
+	const double gamma_eff = 1.0 + 1.0/(mu *
 		gasEnergyContributions(xMF, x, y, temperatureCGS));
 
-    return gammaeff;
+	return gamma_eff;
 }
 
 //first adiabatic index to calculate the speed of sound
-double gamma1(double temperatureCGS, double densityCGS){
-    double xMF = 0.75;
-    double epsilon = 1.0e-4;
-    double temperatureLeft = temperatureCGS * (1.0 - epsilon);
-    double temperatureRight = temperatureCGS * (1.0 + epsilon);
-    double deltaTemperature = temperatureLeft - temperatureRight;
+double gamma1(const double temperatureCGS, const double densityCGS){
+	const double xMF = 0.75;
+	const double epsilon = 1.0e-4;
+	const double temperatureLeft = temperatureCGS * (1.0 - epsilon);
+	const double temperatureRight = temperatureCGS * (1.0 + epsilon);
+	const double deltaTemperature = temperatureLeft - temperatureRight;
     //hydrogen ionization fraction x
-    double xL = Hfraction(densityCGS, temperatureLeft);
+	double xL = Hfraction(densityCGS, temperatureLeft);
+	double xR = Hfraction(densityCGS, temperatureRight);
 
-    double xR = Hfraction(densityCGS, temperatureRight);
-
-    double xc = Hfraction(densityCGS, temperatureCGS);
+	const double xc = Hfraction(densityCGS, temperatureCGS);
 	
     //hydrogen dissociation fraction y
-    double yL = H2fraction(densityCGS, temperatureLeft);
+	double yL = H2fraction(densityCGS, temperatureLeft);
+	double yR = H2fraction(densityCGS, temperatureRight);
 
-    double yR = H2fraction(densityCGS, temperatureRight);
-
-    double yc = H2fraction(densityCGS, temperatureCGS);
+	const double yc = H2fraction(densityCGS, temperatureCGS);
         
 	//contributions to the internal energy
-    double eps = gasEnergyContributions(xMF, xc, yc, temperatureCGS);
+	const double eps = gasEnergyContributions(xMF, xc, yc, temperatureCGS);
 
-    double eL = (gasEnergyContributions(xMF,xL, yL, temperatureLeft))*temperatureLeft;
-    double eR =  (gasEnergyContributions(xMF, xR, yR, temperatureRight))*temperatureRight;
-    double e =  eps * temperatureCGS;
+	const double eL = (gasEnergyContributions(xMF,xL, yL, temperatureLeft))*temperatureLeft;
+	const double eR =  (gasEnergyContributions(xMF, xR, yR, temperatureRight))*temperatureRight;
+	const double e =  eps * temperatureCGS;
 
-    double cv =  (eL - eR)/deltaTemperature;
+	const double cv =  (eL - eR)/deltaTemperature;
 
-    double muL = 4.0 / (2.0 * xMF * (1.0 + yL + 2.0 * yL * xL) + 1.0 - xMF);
-    double muR = 4.0 / (2.0 * xMF * (1.0 + yR + 2.0 * yR * xR) + 1.0 - xMF);
-    double muc = 4.0 / (2.0 * xMF * (1.0 + yc + 2.0 * yc * xc) + 1.0 - xMF);
+	double muL = 4.0 / (2.0 * xMF * (1.0 + yL + 2.0 * yL * xL) + 1.0 - xMF);
+	double muR = 4.0 / (2.0 * xMF * (1.0 + yR + 2.0 * yR * xR) + 1.0 - xMF);
+	double muc = 4.0 / (2.0 * xMF * (1.0 + yc + 2.0 * yc * xc) + 1.0 - xMF);
 
-    double gammaeff = 1.0 + 1.0/(muc * eps);
+	const double gamma_eff = 1.0 + 1.0/(muc * eps);
 
-    double p = (gammaeff - 1.0)*e;
+	const double p = (gamma_eff - 1.0)*e;
 
-    double chiT = 1.0 - temperatureCGS / muc * (muL - muR)/deltaTemperature;
+	const double chiT = 1.0 - temperatureCGS / muc * (muL - muR)/deltaTemperature;
     
     //Derivative with respect to the density
-    double rhoL = densityCGS * (1.0 - epsilon);
-    double rhoR = densityCGS * (1.0 + epsilon);
-    double deltaRho = rhoL - rhoR;
+	const double rhoL = densityCGS * (1.0 - epsilon);
+	const double rhoR = densityCGS * (1.0 + epsilon);
+	const double deltaRho = rhoL - rhoR;
 
     //hydrogen ionization fraction x
     xL = Hfraction(rhoL, temperatureCGS);
-
     xR = Hfraction(rhoR, temperatureCGS);
 
     //hydrogen dissociation fraction y
     yL = H2fraction(rhoL, temperatureCGS);
-
     yR = H2fraction(rhoR, temperatureCGS);
 
     muL = 4.0 / (2.0 * xMF * (1.0 + yL + 2.0 * yL * xL) + 1.0 - xMF);
@@ -327,23 +323,23 @@ double gamma1(double temperatureCGS, double densityCGS){
 }
 
 //root finding problem for the calculation of the temperature
-double gamma_mu_root(double temperatureCGS, double densityCGS, double energyCGS){
+double gamma_mu_root(const double temperatureCGS, const double densityCGS, const double energyCGS){
     //hydrogen mass fraction xMF
-	double xMF = 0.75;
+	const double xMF = 0.75;
 
 	//hydrogen ionization fraction x
-	double x = Hfraction(densityCGS, temperatureCGS);
+	const double x = Hfraction(densityCGS, temperatureCGS);
 
 	//hydrogen dissociation fraction y
-	double y = H2fraction(densityCGS, temperatureCGS);
+	const double y = H2fraction(densityCGS, temperatureCGS);
 
-	double mu = 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
+	const double mu = 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
     
-	double gamma = 1.0 + 1.0/(mu * 
+	const double gamma = 1.0 + 1.0/(mu *
 		gasEnergyContributions(xMF, x, y, temperatureCGS));
 
 
-	double temperature = mu * 
+	const double temperature = mu *
 			energyCGS*(gamma- 1.0) /
 			constants::_R.get_cgs_value();
 
@@ -354,14 +350,14 @@ double gamma_mu_root(double temperatureCGS, double densityCGS, double energyCGS)
 //solving the root finding problem
 double energy_to_temperature(double energyCGS, double densityCGS){
     //Brent's root finding method
-	double delta = 1.0e-3;
-    double a = 1.0e0;//parameters::minimum_temperature;
+	const double delta = 1.0e-3;
+	double a = 1.0e0;//parameters::minimum_temperature;
 	double b = 1.0e7;//parameters::maximum_temperature;
 	double c;
 	double d;
 	double s;
 	double fa = gamma_mu_root(a, densityCGS, energyCGS);
-    double fb = gamma_mu_root(b, densityCGS, energyCGS);
+	double fb = gamma_mu_root(b, densityCGS, energyCGS);
 	double fs, fc;
     if (std::abs(fa) < std::abs(fb)){
 		std::swap(a, b);
@@ -409,8 +405,8 @@ double energy_to_temperature(double energyCGS, double densityCGS){
     	return b;
 }
 
-double temperature_to_energy(double temperatureCGS, double densityCGS){
-    const double gamma = gammaeff(temperatureCGS, densityCGS);
+double temperature_to_energy(const double temperatureCGS, const double densityCGS){
+	const double gamma = gamma_eff(temperatureCGS, densityCGS);
     const double mu = mean_molecular_weight(temperatureCGS, densityCGS);
     return temperatureCGS * constants::_R.get_cgs_value()/(mu*(gamma-1.0));
 }
@@ -456,7 +452,7 @@ void compute_gamma_mu(t_data &data)
 	}
 }
 
-double get_gammaeff(t_data &data, int n_radial, int n_azimuthal){
+double get_gamma_eff(t_data &data, const int n_radial, const int n_azimuthal){
     if (parameters::variableGamma){
         return data[t_data::GAMMAEFF](n_radial, n_azimuthal);
     } 
@@ -465,7 +461,7 @@ double get_gammaeff(t_data &data, int n_radial, int n_azimuthal){
     }
 }
 
-double get_mu(t_data &data, int n_radial, int n_azimuthal){
+double get_mu(t_data &data, const int n_radial, const int n_azimuthal){
     if (parameters::variableGamma){
         return data[t_data::MU](n_radial, n_azimuthal);
     }
@@ -474,7 +470,7 @@ double get_mu(t_data &data, int n_radial, int n_azimuthal){
     }
 }
 
-double get_gamma1(t_data &data, int n_radial, int n_azimuthal){
+double get_gamma1(t_data &data, const int n_radial, const int n_azimuthal){
     if (parameters::variableGamma){
         return data[t_data::GAMMA1](n_radial, n_azimuthal);
     }

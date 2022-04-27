@@ -24,7 +24,7 @@
 namespace pvte
 {
 
-//struct for storing mean molecular weight, gammaeff and gamma1
+//struct for storing mean molecular weight, gamma_eff and gamma1
 typedef struct t_eosQuantities {
     double mow, geff, g1;
 };
@@ -33,7 +33,7 @@ void  makeZetaTables();
 
 double get_funcDum(double temperatureCGS);
 
-void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &gammaeff_table,
+void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &gamma_eff_table,
 std::vector<double> &gamma1_table);
 
 //interpolate values from lookup table
@@ -46,34 +46,34 @@ const std::vector<double>& gamm1_tab, double densityCGS, double energyCGS);
 double Hfraction (const double densityCGS, const double temperatureCGS);
 
 //hydrogen dissociation fraction
-double H2fraction (double densityCGS, double temperatureCGS);
+double H2fraction (const double densityCGS, const double temperatureCGS);
 
 //mean molecular weight mu
-double mean_molecular_weight (double temperatureCGS, double densityCGS);
+double mean_molecular_weight (const double temperatureCGS, const double densityCGS);
 
 //energy contributions to the internal energy of the gas
-double gasEnergyContributions(double xMF, double x, 
-double y, double temperatureCGS);
+double gasEnergyContributions(const double xMF, const double x,
+const double y, const double temperatureCGS);
 
 //effective adiabatic index to relate pressure and internal energy
-double gammaeff(double temperatureCGS, double densityCGS);
+double gamma_eff(const double temperatureCGS, const double densityCGS);
 
 //first adiabatic index to calculate the speed of sound
-double gamma1(double temperatureCGS, double densityCGS);
+double gamma1(const double temperatureCGS, const double densityCGS);
 
 //root finding problem for the calculation of the temperature
-double gamma_mu_root(double temperatureCGS, double densityCGS, double energyCGS);
+double gamma_mu_root(const double temperatureCGS, const double densityCGS, const double energyCGS);
 
 //solving the root finding problem
 double energy_to_temperature(double energyCGS, double densityCGS);
 
-double temperature_to_energy(double temperatureCGS, double densityCGS);
+double temperature_to_energy(const double temperatureCGS, const double densityCGS);
 
 void compute_gamma_mu(t_data &data);
 
-double get_gammaeff(t_data &data, int n_radial, int n_azimuthal);
+double get_gamma_eff(t_data &data, const int n_radial, const int n_azimuthal);
 
-double get_mu(t_data &data, int n_radial, int n_azimuthal);
+double get_mu(t_data &data, const int n_radial, const int n_azimuthal);
 
 double get_gamma1(t_data &data, int n_radial, int n_azimuthal);
 }

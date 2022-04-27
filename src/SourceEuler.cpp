@@ -267,7 +267,7 @@ bool assure_minimum_temperature(t_data &data)
 		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gamma_eff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 
 		const double minimum_energy = Tmin * density(n_radial, n_azimuthal) /
 				mu * constants::R / (gamma_eff - 1.0);
@@ -312,7 +312,7 @@ bool assure_maximum_temperature(t_data &data)
 		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gamma_eff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 
 		const double maximum_energy = Tmax * density(n_radial, n_azimuthal) /
 				mu * constants::R / (gamma_eff - 1.0);
@@ -709,7 +709,7 @@ void update_with_sourceterms(t_data &data, double dt)
 		     data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal)) *
 			invdphi * InvRb[n_radial];
 
-		const double gamma = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		const double sigma_sb = constants::sigma;
 		const double c = constants::c;
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
@@ -1460,7 +1460,7 @@ void SubStep3(t_data &data, double dt)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		double pdivv = (pvte::get_gammaeff(data, n_radial, n_azimuthal) - 1.0) * dt *
+		double pdivv = (pvte::get_gamma_eff(data, n_radial, n_azimuthal) - 1.0) * dt *
 			       data[t_data::DIV_V](n_radial, n_azimuthal) *
 			       data[t_data::ENERGY](n_radial, n_azimuthal);
 		data[t_data::P_DIVV](n_radial, n_azimuthal) = pdivv;
@@ -1480,7 +1480,7 @@ void SubStep3(t_data &data, double dt)
 	    const double sigma_sb = constants::sigma;
 	    const double c = constants::c;
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gamma = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 
 	    const double Rgas = constants::R;
 
@@ -2308,18 +2308,18 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
 	     n_azimuthal <= data[t_data::SOUNDSPEED].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic) {
-		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		const double gamma1 = pvte::get_gamma1(data, n_radial, n_azimuthal);
 
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-			std::sqrt(gamma1 * (gammaeff - 1.0) *
+			std::sqrt(gamma1 * (gamma_eff - 1.0) *
 			      data[t_data::ENERGY](n_radial, n_azimuthal) /
 			      data[t_data::DENSITY](n_radial, n_azimuthal));
 
 	    } else if (parameters::Polytropic) {
-		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-			std::sqrt(gammaeff * constants::R / parameters::MU *
+			std::sqrt(gamma_eff * constants::R / parameters::MU *
 			      data[t_data::TEMPERATURE](n_radial, n_azimuthal));
 	    } else { // isothermal
 		// This follows from: cs/v_Kepler = H/r
@@ -2718,9 +2718,9 @@ void compute_pressure(t_data &data, bool force_update)
 	     n_azimuthal <= data[t_data::PRESSURE].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic) {
-		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		data[t_data::PRESSURE](n_radial, n_azimuthal) =
-			(gammaeff - 1.0) *
+			(gamma_eff - 1.0) *
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
 	    } else if (parameters::Polytropic) {
 		data[t_data::PRESSURE](n_radial, n_azimuthal) =
@@ -2759,19 +2759,19 @@ void compute_temperature(t_data &data, bool force_update)
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic) {
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-			mu / constants::R * (gammaeff - 1.0) *
+			mu / constants::R * (gamma_eff - 1.0) *
 		    data[t_data::ENERGY](n_radial, n_azimuthal) /
 		    data[t_data::DENSITY](n_radial, n_azimuthal);
 	    } else if (parameters::Polytropic) {
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 			mu / constants::R * POLYTROPIC_CONSTANT *
 		    std::pow(data[t_data::DENSITY](n_radial, n_azimuthal),
-				 gammaeff - 1.0);
+				 gamma_eff - 1.0);
 	    } else { // Isothermal
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    parameters::MU / constants::R *
@@ -2874,7 +2874,7 @@ void compute_heating_cooling_for_CFL(t_data &data)
 		const double sigma_sb = constants::sigma;
 		const double c = constants::c;
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gamma = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		const double Rgas = constants::R;
 
 		const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
