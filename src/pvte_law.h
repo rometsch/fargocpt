@@ -39,11 +39,11 @@ std::vector<double> &gamma1_table);
 //interpolate values from lookup table
 double interpolate(std::vector<double> &table,int i ,int j,double x,double y);
 
-t_eosQuantities lookup(std::vector<double> &mu_tab, std::vector<double> &gammeff_tab,
-std::vector<double> &gamm1_tab, double densityCGS, double energyCGS);
+t_eosQuantities lookup(const std::vector<double>& mu_tab, const std::vector<double>& gammeff_tab,
+const std::vector<double>& gamm1_tab, double densityCGS, double energyCGS);
 
 //hydrogen ionization fraction
-double Hfraction (double densityCGS, double temperatureCGS);
+double Hfraction (const double densityCGS, const double temperatureCGS);
 
 //hydrogen dissociation fraction
 double H2fraction (double densityCGS, double temperatureCGS);

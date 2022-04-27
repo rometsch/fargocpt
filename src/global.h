@@ -4,6 +4,7 @@
 #include "radialarray.h"
 #include "types.h"
 #include "pvte_law.h"
+#include <vector>
 #include <mpi.h>
 
 extern int CPU_Rank;

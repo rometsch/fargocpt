@@ -48,12 +48,11 @@ const double Tmax = 1.0e12;
 void  makeZetaTables(){
     int    i,j;
     double dy = std::log(Tmax/Temp0)*(1./Nzeta);
-    double dT = Temp0*std::exp(dy); 
-    double T, a, b, b1, scrh, inv_T2;
-    double zetaP, dzetaP, zetaO, dzetaO, zetaR, dzetaR;
+	double a, b, b1, scrh, inv_T2;
+	double zetaP, dzetaP, zetaR, dzetaR;
     double dum1, dum2, dum3;
     double alpha, beta, gamma;
-    double dzO_zO_m, db, sum1, sum2;
+	double db, sum1, sum2;
 
     logging::print_master(LOG_INFO " generating Zeta tables...\n");
     lnT.resize(Nzeta);
@@ -70,10 +69,10 @@ void  makeZetaTables(){
 
     b1 = 2.0 * THETA_R;
     for (j = 0; j < Nzeta; j++){
-        T = Temp0*std::exp(j*dy);
+		const double T = Temp0*std::exp(j*dy);
         inv_T2 = 1.0/(T*T);
-        zetaO = zetaP = dzetaP = dzetaO = 0.0;
-        dzO_zO_m = sum1 = sum2 = 0.0;    
+		zetaP = dzetaP = 0.0;
+		sum1 = sum2 = 0.0;
         for (i = 0; i <= 10000; i++){
             a = 2*i + 1;
             b = i*(i + 1) * THETA_R;
@@ -91,9 +90,9 @@ void  makeZetaTables(){
         }
 
         dzetaP *= inv_T2;
-        zetaO  = std::exp(-b1/T)*sum1;
-        dzetaO = std::exp(-b1/T)*(b1*sum1 + sum2)*inv_T2;
-        dzO_zO_m = sum2/sum1*inv_T2;
+		const double zetaO  = std::exp(-b1/T)*sum1;
+		const double dzetaO = std::exp(-b1/T)*(b1*sum1 + sum2)*inv_T2;
+		const double dzO_zO_m = sum2/sum1*inv_T2;
         lnT[j]  = std::log(T);
         
         scrh   = zetaO*std::exp(2.0 * THETA_R/T);
@@ -110,28 +109,26 @@ void  makeZetaTables(){
 }
     
 double get_funcDum(double temperatureCGS){
-    double y = std::log(temperatureCGS);
-    double funcdum_val;
-    double dy;
-    int indx;
-    
+	const double y = std::log(temperatureCGS);
+
     if (y > lnT[Nzeta-2]){
-        funcdum_val = funcdum[Nzeta-2];
+		const double funcdum_val = funcdum[Nzeta-2];
+		return funcdum_val;
     }
     else if (y < lnT[0]){
-        funcdum_val = funcdum[0];
+		const double funcdum_val = funcdum[0];
+		return funcdum_val;
     }
     else{
-        dy   = lnT[1] - lnT[0];
-        indx = (int)(std::floor((y - lnT[0])/dy));
+		const double dy   = lnT[1] - lnT[0];
+		const int indx = (int)(std::floor((y - lnT[0])/dy));
 
         if (indx >= Nzeta || indx < 0){
             logging::print_master (LOG_ERROR "! GetFuncDum: indx out of range, indx = %d\n",indx);
         }
+		const double funcdum_val = (funcdum[indx]*(lnT[indx+1] - y) + funcdum[indx+1]*(y - lnT[indx]))/dy;
+		return funcdum_val;
     }
-    
-    funcdum_val = (funcdum[indx]*(lnT[indx+1] - y) + funcdum[indx+1]*(y - lnT[indx]))/dy;
-    return funcdum_val;
 }
 
 void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &gammaeff_table,
@@ -160,7 +157,7 @@ std::vector<double> &gamma1_table){
 }
 
 //interpolate values from lookup table
-double interpolate(std::vector<double> &table,int i ,int j,double x,double y){
+double interpolate(const std::vector<double> &table,int i ,int j,double x,double y){
     const int ind1 = j + (i + 1) * Nj;
     const int ind2 = j + i * Nj;
     const int ind3 = j + 1 + (i + 1) * Nj;
@@ -171,8 +168,8 @@ double interpolate(std::vector<double> &table,int i ,int j,double x,double y){
 }
 
 //get the interpolated quantities
-t_eosQuantities lookup(std::vector<double> &mu_tab, std::vector<double> &gammeff_tab,
-std::vector<double> &gamma1_tab, double densityCGS, double energyCGS){
+t_eosQuantities lookup(const std::vector<double> &mu_tab, const std::vector<double> &gammeff_tab,
+const std::vector<double> &gamma1_tab, double densityCGS, double energyCGS){
     int i = int(std::floor(std::log10(densityCGS/rhomin)/deltaLogRho));
     int j = int(std::floor(std::log10(energyCGS/emin)/deltaLogE));
     if (i >= Ni - 1){
@@ -205,7 +202,7 @@ std::vector<double> &gamma1_tab, double densityCGS, double energyCGS){
 }
    
 //hydrogen ionization fraction
-double Hfraction (double densityCGS, double temperatureCGS){
+double Hfraction (const double densityCGS, const double temperatureCGS){
     double x = 1.0;
     double Ax = 5.3890039e-09 * std::pow(temperatureCGS,1.5) * std::exp(-157821.45 / temperatureCGS) / densityCGS;
     if (Ax < 1.0e8){
@@ -285,10 +282,6 @@ double gamma1(double temperatureCGS, double densityCGS){
     double yR = H2fraction(densityCGS, temperatureRight);
 
     double yc = H2fraction(densityCGS, temperatureCGS);
-			
-    double frotL = get_funcDum(temperatureLeft);
-    double frotR = get_funcDum(temperatureRight);
-    double frotc = get_funcDum(temperatureCGS);
         
 	//contributions to the internal energy
     double eps = gasEnergyContributions(xMF, xc, yc, temperatureCGS);

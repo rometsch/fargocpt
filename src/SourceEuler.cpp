@@ -104,14 +104,14 @@ void ComputeViscousStressTensor(t_data &data)
 
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
 {
-    if (assure_minimum_temperature(data)) {
+	if (assure_minimum_temperature(data)) {
 	logging::print(LOG_DEBUG "Found temperature < %g %s in %s: %d.\n",
 		       parameters::minimum_temperature,
 		       units::temperature.get_cgs_symbol(), filename.c_str(),
 		       line);
     }
 
-    if (assure_maximum_temperature(data)) {
+	if (assure_maximum_temperature(data)) {
 	logging::print(LOG_DEBUG "Found temperature < %g %s in %s: %d.\n",
 		       parameters::maximum_temperature,
 		       units::temperature.get_cgs_symbol(), filename.c_str(),
@@ -179,44 +179,116 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
     return found;
 }
 
+/*
 bool assure_minimum_temperature(t_data &data)
 {
-    bool found = false;
+	bool found = false;
+
+	t_polargrid &energy = data[t_data::ENERGY];
+	t_polargrid &density = data[t_data::DENSITY];
 
 	const double Tmin = parameters::minimum_temperature *
 			units::temperature.get_inverse_cgs_factor();
 
-	for (unsigned int n_radial = 0; n_radial < data[t_data::ENERGY].get_size_radial();
+	const double Tmax = parameters::maximum_temperature *
+			units::temperature.get_inverse_cgs_factor();
+
+	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal(); ++n_azimuthal) {
-
-		const double density = data[t_data::DENSITY](n_radial, n_azimuthal);
-		double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
+		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gammeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
 
-		const double minimum_energy = Tmin * density /
-				mu * constants::R / (gammeff - 1.0);
+		const double minimum_energy = Tmin * density(n_radial, n_azimuthal) /
+				mu * constants::R / (gamma_eff - 1.0);
 
-		if (!(energy > minimum_energy)) {
+		const double maximum_energy = Tmax * density(n_radial, n_azimuthal) /
+				mu * constants::R / (gamma_eff - 1.0);
+
+		if (!(energy(n_radial, n_azimuthal) > minimum_energy)) {
+#ifndef NDEBUG
+		logging::print(
+			LOG_DEBUG "assure_minimum_temperature: (%u,%u)=%g<%g\n",
+			n_radial, n_azimuthal,
+			energy(n_radial, n_azimuthal) *
+			units::temperature.get_cgs_factor() /
+			density(n_radial, n_azimuthal) * mu /
+			constants::R * (gamma_eff - 1.0),
+			Tmin * units::temperature.get_cgs_factor(),
+			Tmin);
+#endif
+		energy(n_radial, n_azimuthal) =
+			Tmin * density(n_radial, n_azimuthal) /
+			mu * constants::R / (gamma_eff - 1.0);
+		found = true;
+		}
+
+		if (!(energy(n_radial, n_azimuthal) < maximum_energy)) {
+#ifndef NDEBUG
+		logging::print(
+			LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
+			n_radial, n_azimuthal,
+			energy(n_radial, n_azimuthal) *
+			units::temperature.get_cgs_factor() /
+			density(n_radial, n_azimuthal) * mu /
+			constants::R * (gamma_eff - 1.0),
+			Tmax * units::temperature.get_cgs_factor(),
+			Tmax);
+#endif
+		energy(n_radial, n_azimuthal) =
+			Tmax * density(n_radial, n_azimuthal) /
+			mu * constants::R / (gamma_eff - 1.0);
+		found = true;
+		}
+
+	}
+	}
+
+	return found;
+}
+*/
+
+
+bool assure_minimum_temperature(t_data &data)
+{
+    bool found = false;
+
+	t_polargrid &energy = data[t_data::ENERGY];
+	t_polargrid &density = data[t_data::DENSITY];
+
+	const double Tmin = parameters::minimum_temperature *
+			units::temperature.get_inverse_cgs_factor();
+
+	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
+	 ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
+
+		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+
+		const double minimum_energy = Tmin * density(n_radial, n_azimuthal) /
+				mu * constants::R / (gamma_eff - 1.0);
+
+		if (!(energy(n_radial, n_azimuthal) > minimum_energy)) {
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_minimum_temperature: (%u,%u)=%g<%g\n",
 		    n_radial, n_azimuthal,
-		    energy *
+		    energy(n_radial, n_azimuthal) *
 			units::temperature.get_cgs_factor() /
-			density * mu /
-			constants::R * (gammeff - 1.0),
+			density(n_radial, n_azimuthal) * mu /
+			constants::R * (gamma_eff - 1.0),
 			Tmin * units::temperature.get_cgs_factor(),
 			Tmin);
 #endif
-		energy =
-			Tmin * density /
-		    mu * constants::R / (gammeff - 1.0);
+		energy(n_radial, n_azimuthal) =
+			Tmin * density(n_radial, n_azimuthal) /
+			mu * constants::R / (gamma_eff - 1.0);
 		found = true;
-	    }
+		}
 	}
     }
 
@@ -228,38 +300,38 @@ bool assure_maximum_temperature(t_data &data)
 
 	bool found = false;
 
+	t_polargrid &energy = data[t_data::ENERGY];
+	t_polargrid &density = data[t_data::DENSITY];
+
 	const double Tmax = parameters::maximum_temperature *
 			units::temperature.get_inverse_cgs_factor();
 
-	for (unsigned int n_radial = 0; n_radial < data[t_data::ENERGY].get_size_radial();
+	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal(); ++n_azimuthal) {
-
-		const double density = data[t_data::DENSITY](n_radial, n_azimuthal);
-		double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
+		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gammeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
 
-		const double maximum_energy = Tmax * density /
-				mu * constants::R / (gammeff - 1.0);
+		const double maximum_energy = Tmax * density(n_radial, n_azimuthal) /
+				mu * constants::R / (gamma_eff - 1.0);
 
-		if (!(energy < maximum_energy)) {
+		if (!(energy(n_radial, n_azimuthal) < maximum_energy)) {
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
 		    n_radial, n_azimuthal,
-		    energy *
+		    energy(n_radial, n_azimuthal) *
 			units::temperature.get_cgs_factor() /
-			density * mu /
-			constants::R * (gammeff - 1.0),
+			density(n_radial, n_azimuthal) * mu /
+			constants::R * (gamma_eff - 1.0),
 			Tmax * units::temperature.get_cgs_factor(),
 			Tmax);
 #endif
-		energy =
-			Tmax * density /
-		    mu * constants::R / (gammeff - 1.0);
+		energy(n_radial, n_azimuthal) =
+			Tmax * density(n_radial, n_azimuthal) /
+			mu * constants::R / (gamma_eff - 1.0);
 		found = true;
 	    }
 	}
@@ -1407,8 +1479,9 @@ void SubStep3(t_data &data, double dt)
 
 	    const double sigma_sb = constants::sigma;
 	    const double c = constants::c;
-	    const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-	    const double gamma = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
+		const double gamma = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+
 	    const double Rgas = constants::R;
 
 		const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
@@ -2235,18 +2308,18 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
 	     n_azimuthal <= data[t_data::SOUNDSPEED].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic) {
-		
 		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
 		const double gamma1 = pvte::get_gamma1(data, n_radial, n_azimuthal);
 
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		    std::sqrt(gamma1 * (gammaeff - 1.0) *
+			std::sqrt(gamma1 * (gammaeff - 1.0) *
 			      data[t_data::ENERGY](n_radial, n_azimuthal) /
 			      data[t_data::DENSITY](n_radial, n_azimuthal));
 
 	    } else if (parameters::Polytropic) {
+		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		    std::sqrt(ADIABATICINDEX * constants::R / parameters::MU *
+			std::sqrt(gammaeff * constants::R / parameters::MU *
 			      data[t_data::TEMPERATURE](n_radial, n_azimuthal));
 	    } else { // isothermal
 		// This follows from: cs/v_Kepler = H/r
@@ -2448,9 +2521,9 @@ void compute_scale_height_old(t_data &data, const bool force_update)
 		 n_azimuthal <= data[t_data::SCALE_HEIGHT].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (parameters::Adiabatic || parameters::Polytropic) {
-		const double gamma1 = pvte::get_gamma1(data, n_radial, n_azimuthal);
 		// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
 		// H = h*r = c_s,iso / W_k = c_s/sqrt(gamma) / W_k
+		const double gamma1 = pvte::get_gamma1(data, n_radial, n_azimuthal);
 		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) /
 			(std::sqrt(gamma1)) * inv_omega_kepler;
@@ -2512,7 +2585,6 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 	    double inv_H2 = 0; // inverse aspectratio squared
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
-
 
 		/// since the mass is distributed homogeniously distributed
 		/// inside the cell, we assume that the planet is always at
@@ -2593,8 +2665,8 @@ void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
 
 		// H^2 = (GM / dist^3 / Cs_iso^2)^-1
 		if (parameters::Adiabatic || parameters::Polytropic) {
-			const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
 			/// Convert sound speed to isothermal sound speed cs,iso = cs / sqrt(gamma)
+			const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
 			const double H2_tmp = (dist3 * cs2) / (constants::G * m_cm * gamma1);
 			//const double H2 = std::max(H2_tmp, std::pow(min_dist, 2));
 			const double H2 = H2_tmp;
@@ -2648,7 +2720,7 @@ void compute_pressure(t_data &data, bool force_update)
 	    if (parameters::Adiabatic) {
 		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
 		data[t_data::PRESSURE](n_radial, n_azimuthal) =
-		    (gammaeff - 1.0) *
+			(gammaeff - 1.0) *
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
 	    } else if (parameters::Polytropic) {
 		data[t_data::PRESSURE](n_radial, n_azimuthal) =
@@ -2690,14 +2762,16 @@ void compute_temperature(t_data &data, bool force_update)
 		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
 
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-		    mu / constants::R * (gammaeff - 1.0) *
+			mu / constants::R * (gammaeff - 1.0) *
 		    data[t_data::ENERGY](n_radial, n_azimuthal) /
 		    data[t_data::DENSITY](n_radial, n_azimuthal);
 	    } else if (parameters::Polytropic) {
+		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
+		const double gammaeff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-		    parameters::MU / constants::R * POLYTROPIC_CONSTANT *
+			mu / constants::R * POLYTROPIC_CONSTANT *
 		    std::pow(data[t_data::DENSITY](n_radial, n_azimuthal),
-			     ADIABATICINDEX - 1.0);
+				 gammaeff - 1.0);
 	    } else { // Isothermal
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    parameters::MU / constants::R *

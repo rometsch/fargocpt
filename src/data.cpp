@@ -34,14 +34,14 @@ t_data::t_data()
     m_polargrids[PRESSURE].set_name("pressure");
     m_polargrids[PRESSURE].set_unit(units::pressure);
 
-    m_polargrids[GAMMAEFF].set_scalar(true);
-    m_polargrids[GAMMAEFF].set_name("gammaeff");
+	m_polargrids[GAMMAEFF].set_scalar(true);
+	m_polargrids[GAMMAEFF].set_name("gammaeff");
 
-    m_polargrids[GAMMA1].set_scalar(true);
-    m_polargrids[GAMMA1].set_name("gamma1");
+	m_polargrids[GAMMA1].set_scalar(true);
+	m_polargrids[GAMMA1].set_name("gamma1");
 
-    m_polargrids[MU].set_scalar(true);
-    m_polargrids[MU].set_name("mu");
+	m_polargrids[MU].set_scalar(true);
+	m_polargrids[MU].set_name("mu");
 
     m_polargrids[ACCEL_RADIAL].set_vector(true);
     m_polargrids[ACCEL_RADIAL].set_name("arad");

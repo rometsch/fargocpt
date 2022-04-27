@@ -385,9 +385,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    // Energy equation / Adiabatic
 	    parameters::Adiabatic = true;
 
-		parameters::variableGamma =
-		config::value_as_bool_default("variableGamma", false);
-
 	    char ADIABATICINDEX_string[512];
 	    strncpy(
 		ADIABATICINDEX_string,
@@ -418,9 +415,46 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		LOG_INFO
 		"Using ideal equation of state. AdiabaticIndex = %.3f.\n",
 		ADIABATICINDEX);
-		if (parameters::variableGamma){
-		logging::print_master(LOG_INFO "Using variable AdiabaticIndex. \n");
+	}
+
+	if (strcmp(eos_string, "pvtelaw") == 0 ||
+		strcmp(eos_string, "pvte") == 0) {
+		could_read_eos = true;
+
+		// Energy equation / Adiabatic
+		parameters::Adiabatic = true;
+		parameters::variableGamma = true;
+
+		char ADIABATICINDEX_string[512];
+		strncpy(
+		ADIABATICINDEX_string,
+		config::value_as_string_default("AdiabaticIndex", "7.0/5.0"),
+		256); // same as MAXNAME from config.cpp
+		for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
+		*t = tolower(*t);
 		}
+
+		if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
+		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
+		logging::print_master(
+			LOG_ERROR
+			"Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
+		PersonalExit(1);
+		} else {
+		ADIABATICINDEX = config::value_as_double_default(
+			"AdiabaticIndex", 7.0 / 5.0);
+		}
+
+		if (ADIABATICINDEX == 1) {
+		logging::print_master(
+			LOG_WARNING
+			"You cannot have PVTE EoS and AdiabatcIndex = 1.! Setting AdiabaticIndex to 7/5.\n");
+		ADIABATICINDEX = 7.0/5.0;
+		}
+		logging::print_master(
+		LOG_INFO
+		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex!\n",
+		ADIABATICINDEX);
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||

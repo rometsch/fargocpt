@@ -7,6 +7,7 @@
 #include "radialarray.h"
 #include "types.h"
 #include "pvte_law.h"
+#include <vector>
 #include <mpi.h>
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
