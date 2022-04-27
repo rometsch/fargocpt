@@ -358,7 +358,9 @@ double energy_to_temperature(double energyCGS, double densityCGS){
 	double s;
 	double fa = gamma_mu_root(a, densityCGS, energyCGS);
 	double fb = gamma_mu_root(b, densityCGS, energyCGS);
-	double fs, fc;
+	double fs;
+	volatile double fc;
+
     if (std::abs(fa) < std::abs(fb)){
 		std::swap(a, b);
 		std::swap(fa, fb);
