@@ -453,7 +453,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		}
 		logging::print_master(
 		LOG_INFO
-		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex!\n",
+		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g!\n",
 		ADIABATICINDEX);
 	}
 
