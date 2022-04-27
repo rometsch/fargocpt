@@ -157,7 +157,7 @@ std::vector<double> &gamma1_table){
 }
 
 //interpolate values from lookup table
-double interpolate(const std::vector<double> &table,int i ,int j,double x,double y){
+double interpolate(const std::vector<double> &table, const int i, const int j, const double x, const double y){
     const int ind1 = j + (i + 1) * Nj;
     const int ind2 = j + i * Nj;
     const int ind3 = j + 1 + (i + 1) * Nj;
@@ -169,7 +169,7 @@ double interpolate(const std::vector<double> &table,int i ,int j,double x,double
 
 //get the interpolated quantities
 t_eosQuantities lookup(const std::vector<double> &mu_tab, const std::vector<double> &gammeff_tab,
-const std::vector<double> &gamma1_tab, double densityCGS, double energyCGS){
+const std::vector<double> &gamma1_tab, const double densityCGS, const double energyCGS){
     int i = int(std::floor(std::log10(densityCGS/rhomin)/deltaLogRho));
     int j = int(std::floor(std::log10(energyCGS/emin)/deltaLogE));
     if (i >= Ni - 1){

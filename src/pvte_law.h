@@ -37,10 +37,10 @@ void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &
 std::vector<double> &gamma1_table);
 
 //interpolate values from lookup table
-double interpolate(std::vector<double> &table,int i ,int j,double x,double y);
+double interpolate(const std::vector<double> &table, const int i, const int j, const double x, const double y);
 
 t_eosQuantities lookup(const std::vector<double>& mu_tab, const std::vector<double>& gammeff_tab,
-const std::vector<double>& gamm1_tab, double densityCGS, double energyCGS);
+const std::vector<double>& gamm1_tab, const double densityCGS, const double energyCGS);
 
 //hydrogen ionization fraction
 double Hfraction (const double densityCGS, const double temperatureCGS);
@@ -75,7 +75,7 @@ double get_gamma_eff(t_data &data, const int n_radial, const int n_azimuthal);
 
 double get_mu(t_data &data, const int n_radial, const int n_azimuthal);
 
-double get_gamma1(t_data &data, int n_radial, int n_azimuthal);
+double get_gamma1(t_data &data, const int n_radial, const int n_azimuthal);
 }
 
 
