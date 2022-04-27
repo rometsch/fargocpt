@@ -5,8 +5,7 @@
 #include "types.h"
 
 bool assure_minimum_value(t_polargrid &dst, double minimum_value);
-bool assure_minimum_temperature(t_data &data);
-bool assure_maximum_temperature(t_data &data);
+bool assure_temperature_range(t_data &data);
 
 void move_polargrid(t_polargrid &dst, t_polargrid &src);
 void copy_polargrid(t_polargrid &dst, t_polargrid &src);

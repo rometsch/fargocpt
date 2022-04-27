@@ -104,16 +104,9 @@ void ComputeViscousStressTensor(t_data &data)
 
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
 {
-	if (assure_minimum_temperature(data)) {
-	logging::print(LOG_DEBUG "Found temperature < %g %s in %s: %d.\n",
-		       parameters::minimum_temperature,
-		       units::temperature.get_cgs_symbol(), filename.c_str(),
-		       line);
-    }
-
-	if (assure_maximum_temperature(data)) {
-	logging::print(LOG_DEBUG "Found temperature < %g %s in %s: %d.\n",
-		       parameters::maximum_temperature,
+	if (assure_temperature_range(data)) {
+	logging::print(LOG_DEBUG "Found temperature outside the valid range of %g to %g %s in %s: %d.\n",
+			   parameters::minimum_temperature, parameters::maximum_temperature,
 		       units::temperature.get_cgs_symbol(), filename.c_str(),
 		       line);
     }
@@ -179,8 +172,8 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
     return found;
 }
 
-/*
-bool assure_minimum_temperature(t_data &data)
+
+bool assure_temperature_range(t_data &data)
 {
 	bool found = false;
 
@@ -199,7 +192,7 @@ bool assure_minimum_temperature(t_data &data)
 		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gamma_eff = pvte::get_gammaeff(data, n_radial, n_azimuthal);
+		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 
 		const double minimum_energy = Tmin * density(n_radial, n_azimuthal) /
 				mu * constants::R / (gamma_eff - 1.0);
@@ -242,102 +235,10 @@ bool assure_minimum_temperature(t_data &data)
 			mu * constants::R / (gamma_eff - 1.0);
 		found = true;
 		}
-
 	}
 	}
 
 	return found;
-}
-*/
-
-
-bool assure_minimum_temperature(t_data &data)
-{
-    bool found = false;
-
-	t_polargrid &energy = data[t_data::ENERGY];
-	t_polargrid &density = data[t_data::DENSITY];
-
-	const double Tmin = parameters::minimum_temperature *
-			units::temperature.get_inverse_cgs_factor();
-
-	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
-
-		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
-
-		const double minimum_energy = Tmin * density(n_radial, n_azimuthal) /
-				mu * constants::R / (gamma_eff - 1.0);
-
-		if (!(energy(n_radial, n_azimuthal) > minimum_energy)) {
-#ifndef NDEBUG
-		logging::print(
-		    LOG_DEBUG "assure_minimum_temperature: (%u,%u)=%g<%g\n",
-		    n_radial, n_azimuthal,
-		    energy(n_radial, n_azimuthal) *
-			units::temperature.get_cgs_factor() /
-			density(n_radial, n_azimuthal) * mu /
-			constants::R * (gamma_eff - 1.0),
-			Tmin * units::temperature.get_cgs_factor(),
-			Tmin);
-#endif
-		energy(n_radial, n_azimuthal) =
-			Tmin * density(n_radial, n_azimuthal) /
-			mu * constants::R / (gamma_eff - 1.0);
-		found = true;
-		}
-	}
-    }
-
-    return found;
-}
-
-bool assure_maximum_temperature(t_data &data)
-{
-
-	bool found = false;
-
-	t_polargrid &energy = data[t_data::ENERGY];
-	t_polargrid &density = data[t_data::DENSITY];
-
-	const double Tmax = parameters::maximum_temperature *
-			units::temperature.get_inverse_cgs_factor();
-
-	for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
-
-		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double gamma_eff = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
-
-		const double maximum_energy = Tmax * density(n_radial, n_azimuthal) /
-				mu * constants::R / (gamma_eff - 1.0);
-
-		if (!(energy(n_radial, n_azimuthal) < maximum_energy)) {
-#ifndef NDEBUG
-		logging::print(
-		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
-		    n_radial, n_azimuthal,
-		    energy(n_radial, n_azimuthal) *
-			units::temperature.get_cgs_factor() /
-			density(n_radial, n_azimuthal) * mu /
-			constants::R * (gamma_eff - 1.0),
-			Tmax * units::temperature.get_cgs_factor(),
-			Tmax);
-#endif
-		energy(n_radial, n_azimuthal) =
-			Tmax * density(n_radial, n_azimuthal) /
-			mu * constants::R / (gamma_eff - 1.0);
-		found = true;
-	    }
-	}
-    }
-
-    return found;
 }
 
 void recalculate_derived_disk_quantities(t_data &data, bool force_update)
