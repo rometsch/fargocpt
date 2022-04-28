@@ -1175,8 +1175,8 @@ void init_eos_arrays(t_data &data){
 	pvte::initializeLookupTables();
 	logging::print_master(LOG_INFO "Lookup tables generated \n");
 
-	for (unsigned int n_rad = 0; n_rad <= data[t_data::GAMMAEFF].get_max_radial(); ++n_rad){
-		for (unsigned int n_az = 0; n_az <= data[t_data::GAMMAEFF].get_max_azimuthal(); ++n_az){
+	for (unsigned int n_rad = 0; n_rad < data[t_data::GAMMAEFF].get_size_radial(); ++n_rad){
+		for (unsigned int n_az = 0; n_az < data[t_data::GAMMAEFF].get_size_azimuthal(); ++n_az){
 			data[t_data::GAMMAEFF](n_rad, n_az) = ADIABATICINDEX;
 			data[t_data::GAMMA1](n_rad, n_az) = ADIABATICINDEX;
 			data[t_data::MU](n_rad, n_az) = parameters::MU;
