@@ -15,10 +15,10 @@
 namespace pvte
 {
 //Ni = number of density gridpoints
-const double Ni = 1000.0;
+const int Ni = 1000;
 
 //Nj = number of energy gridpoints
-const double Nj = 1000.0;
+const int Nj = 1000;
 
 //smallest and largest density for the lookup tables
 const double rhomin = 1.0e-23;
@@ -29,8 +29,8 @@ const double emin = 1.0e8;
 const double emax = 1.0e15;
 
 //logarithmic grid spacing
-const double deltaLogRho = std::log10(rhomax/rhomin)/Ni;
-const double deltaLogE = std::log10(emax/emin)/Nj;
+const double deltaLogRho = std::log10(rhomax/rhomin)/(double)Ni;
+const double deltaLogE = std::log10(emax/emin)/(double)Nj;
 
 //parameters for zeta tables
 const double ORTHO_PARA_MODE = 1;
@@ -38,23 +38,23 @@ const double ORTHO_PARA_MODE = 1;
 const double THETA_V =  6140.0;
 const double THETA_R = 85.5;
 
-const double Nzeta = 5000;
+const int Nzeta = 5000;
 const double Temp0 = 1.0;
 const double Tmax = 1.0e12;
 
 
 //lookup tables for the pve equation of state
-std::vector<double> rho_table;
-std::vector<double> e_table;
-std::vector<double> mu_table;
-std::vector<double> gamma_eff_table;
-std::vector<double> gamma1_table;
-std::vector<double> lnT;
-std::vector<double> funcdum;
+std::vector<double> rho_table(Ni);
+std::vector<double> e_table(Nj);
+std::vector<double> mu_table(Ni * Nj);
+std::vector<double> gamma_eff_table(Ni * Nj);
+std::vector<double> gamma1_table(Ni * Nj);
+std::vector<double> lnT(Nzeta);
+std::vector<double> funcdum(Nzeta);
 
 void  makeZetaTables(){
     int    i,j;
-    double dy = std::log(Tmax/Temp0)*(1./Nzeta);
+	double dy = std::log(Tmax/Temp0)*(1./(double)Nzeta);
 	double a, b, b1, scrh, inv_T2;
 	double zetaP, dzetaP, zetaR, dzetaR;
     double dum1, dum2, dum3;
@@ -62,8 +62,6 @@ void  makeZetaTables(){
 	double db, sum1, sum2;
 
     logging::print_master(LOG_INFO " generating Zeta tables...\n");
-    lnT.resize(Nzeta);
-    funcdum.resize(Nzeta);
     if (ORTHO_PARA_MODE == 0){ 
         alpha = 1.0; beta = 0.0; gamma = 0.0;
     }
@@ -139,12 +137,6 @@ double get_funcDum(double temperatureCGS){
 }
 
 void initializeLookupTables(){
-    rho_table.resize(Ni);
-    e_table.resize(Nj);
-    mu_table.resize(Ni * Nj);
-	gamma_eff_table.resize(Ni * Nj);
-    gamma1_table.resize(Ni * Nj);
-    
     makeZetaTables();
 
     for (int i = 0; i < Ni; ++i){
