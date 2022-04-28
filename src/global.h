@@ -133,6 +133,8 @@ extern double POLYTROPIC_CONSTANT;
 extern BoundaryFlow MassDelta;
 
 //lookup tables for the pve equation of state
+extern std::vector<double> rho_table;
+extern std::vector<double> e_table;
 extern std::vector<double> mu_table;
 extern std::vector<double> gammeff_table;
 extern std::vector<double> gamma1_table;

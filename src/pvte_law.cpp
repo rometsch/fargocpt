@@ -131,8 +131,10 @@ double get_funcDum(double temperatureCGS){
     }
 }
 
-void initializeLookupTables(std::vector<double> &mu_table, std::vector<double> &gamma_eff_table,
-std::vector<double> &gamma1_table){
+void initializeLookupTables(std::vector<double> &rho_table, std::vector<double> &e_table, 
+std::vector<double> &mu_table, std::vector<double> &gamma_eff_table, std::vector<double> &gamma1_table){
+    rho_table.resize(Ni);
+    e_table.resize(Nj);
     mu_table.resize(Ni * Nj);
 	gamma_eff_table.resize(Ni * Nj);
     gamma1_table.resize(Ni * Nj);
@@ -149,6 +151,8 @@ std::vector<double> &gamma1_table){
             double g1 = gamma1(T, rhoi);
 
             int index = j + i * Nj;
+            rho_table[i] = rhoi;
+            e_table[j] = ej;
             mu_table[index] = mu;
 			gamma_eff_table[index] = geff;
             gamma1_table[index] = g1;
@@ -168,7 +172,8 @@ double interpolate(const std::vector<double> &table, const int i, const int j, c
 }
 
 //get the interpolated quantities
-t_eosQuantities lookup(const std::vector<double> &mu_tab, const std::vector<double> &gammeff_tab,
+t_eosQuantities lookup(const std::vector<double> &rho_table, const std::vector<double> &e_table, 
+const std::vector<double> &mu_tab, const std::vector<double> &gammeff_tab,
 const std::vector<double> &gamma1_tab, const double densityCGS, const double energyCGS){
     int i = int(std::floor(std::log10(densityCGS/rhomin)/deltaLogRho));
     int j = int(std::floor(std::log10(energyCGS/emin)/deltaLogE));
@@ -185,10 +190,10 @@ const std::vector<double> &gamma1_tab, const double densityCGS, const double ene
         j = 0;
     }
 
-    const double rhoi = std::pow(10,(deltaLogRho * i)) * rhomin;
-    const double rhoip1 = std::pow(10, (deltaLogRho * (i+1))) * rhomin;
-    const double ej = std::pow(10, (deltaLogE * j)) * emin;
-    const double ejp1 = std::pow(10, (deltaLogE * (j+1))) * emin;
+    const double rhoi = rho_table[i];
+    const double rhoip1 = rho_table[i+1];
+    const double ej = e_table[j];
+    const double ejp1 = e_table[j+1];
     const double x = (densityCGS - rhoi)/(rhoip1 - rhoi);
     const double y = (energyCGS - ej)/(ejp1 - ej);
     const double geff = interpolate(gammeff_tab, i, j, x, y);
@@ -444,7 +449,8 @@ void compute_gamma_mu(t_data &data)
             * units::energy_density / (sigma * units::surface_density);
 	
 			t_eosQuantities q = 
-            lookup(mu_table,  gammeff_table, gamma1_table, densityCGS, energyCGS);
+            lookup(rho_table, e_table, mu_table,  gammeff_table, gamma1_table, 
+            densityCGS, energyCGS);
 
 			data[t_data::GAMMAEFF](n_radial, n_azimuthal) = q.geff;
 			data[t_data::MU](n_radial, n_azimuthal) = q.mow;
