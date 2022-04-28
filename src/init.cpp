@@ -1172,7 +1172,7 @@ void renormalize_sigma_and_report(t_data &data){
 void init_eos_arrays(t_data &data){
 
 	logging::print_master(LOG_INFO "Generating lookup tables \n");
-	pvte::initializeLookupTables(rho_table, e_table, mu_table, gammeff_table, gamma1_table);
+	pvte::initializeLookupTables();
 	logging::print_master(LOG_INFO "Lookup tables generated \n");
 
 	for (unsigned int n_rad = 0; n_rad <= data[t_data::GAMMAEFF].get_max_radial(); ++n_rad){

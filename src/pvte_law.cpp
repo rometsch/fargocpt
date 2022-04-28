@@ -43,7 +43,14 @@ const double Temp0 = 1.0;
 const double Tmax = 1.0e12;
 
 
-
+//lookup tables for the pve equation of state
+std::vector<double> rho_table;
+std::vector<double> e_table;
+std::vector<double> mu_table;
+std::vector<double> gamma_eff_table;
+std::vector<double> gamma1_table;
+std::vector<double> lnT;
+std::vector<double> funcdum;
 
 void  makeZetaTables(){
     int    i,j;
@@ -131,8 +138,7 @@ double get_funcDum(double temperatureCGS){
     }
 }
 
-void initializeLookupTables(std::vector<double> &rho_table, std::vector<double> &e_table, 
-std::vector<double> &mu_table, std::vector<double> &gamma_eff_table, std::vector<double> &gamma1_table){
+void initializeLookupTables(){
     rho_table.resize(Ni);
     e_table.resize(Nj);
     mu_table.resize(Ni * Nj);
@@ -172,9 +178,7 @@ double interpolate(const std::vector<double> &table, const int i, const int j, c
 }
 
 //get the interpolated quantities
-t_eosQuantities lookup(const std::vector<double> &rho_table, const std::vector<double> &e_table, 
-const std::vector<double> &mu_tab, const std::vector<double> &gammeff_tab,
-const std::vector<double> &gamma1_tab, const double densityCGS, const double energyCGS){
+t_eosQuantities lookup(const double densityCGS, const double energyCGS){
     int i = int(std::floor(std::log10(densityCGS/rhomin)/deltaLogRho));
     int j = int(std::floor(std::log10(energyCGS/emin)/deltaLogE));
     if (i >= Ni - 1){
@@ -196,9 +200,9 @@ const std::vector<double> &gamma1_tab, const double densityCGS, const double ene
     const double ejp1 = e_table[j+1];
     const double x = (densityCGS - rhoi)/(rhoip1 - rhoi);
     const double y = (energyCGS - ej)/(ejp1 - ej);
-    const double geff = interpolate(gammeff_tab, i, j, x, y);
-    const double mu = interpolate(mu_tab,i, j, x, y);
-    const double gamma1 = interpolate(gamma1_tab,i,j, x, y);
+	const double geff = interpolate(gamma_eff_table, i, j, x, y);
+	const double mu = interpolate(mu_table,i, j, x, y);
+	const double gamma1 = interpolate(gamma1_table,i,j, x, y);
     t_eosQuantities result;
     result.geff = geff;
     result.mow = mu;
@@ -449,8 +453,7 @@ void compute_gamma_mu(t_data &data)
             * units::energy_density / (sigma * units::surface_density);
 	
 			t_eosQuantities q = 
-            lookup(rho_table, e_table, mu_table,  gammeff_table, gamma1_table, 
-            densityCGS, energyCGS);
+			lookup(densityCGS, energyCGS);
 
 			data[t_data::GAMMAEFF](n_radial, n_azimuthal) = q.geff;
 			data[t_data::MU](n_radial, n_azimuthal) = q.mow;

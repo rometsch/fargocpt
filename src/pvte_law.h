@@ -33,15 +33,12 @@ void  makeZetaTables();
 
 double get_funcDum(double temperatureCGS);
 
-void initializeLookupTables(std::vector<double> &rho_table, std::vector<double> &e_table, 
-std::vector<double> &mu_table, std::vector<double> &gamma_eff_table, std::vector<double> &gamma1_table);
+void initializeLookupTables();
 
 //interpolate values from lookup table
 double interpolate(const std::vector<double> &table, const int i, const int j, const double x, const double y);
 
-t_eosQuantities lookup(const std::vector<double> &rho_table, const std::vector<double> &e_table, 
-const std::vector<double> &mu_tab, const std::vector<double> &gammeff_tab,
-const std::vector<double> &gamma1_tab, const double densityCGS, const double energyCGS);
+t_eosQuantities lookup(const double densityCGS, const double energyCGS);
 
 //hydrogen ionization fraction
 double Hfraction (const double densityCGS, const double temperatureCGS);
