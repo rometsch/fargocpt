@@ -1,6 +1,6 @@
 ## Disk parameters
 
-ShockTube		1
+ShockTube		Yes
 Sigma0			8887231.453904748	# surface density at r=1 in g/cm^2
 SigmaSlope		0.0		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
@@ -26,10 +26,12 @@ EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 AspectRatio     	1.0            # Thickness over Radius in the disk
 TemperatureCGS0     0.0     # Midplane Temperature at 1 au in K, overwrites AspectRaio
 ViscosityInCGS      No      # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
+ExplicitViscosity   No
+StabilizeViscosity  0
 Viscosity		0.e-1		# Uniform kinematic viscosity
 AlphaViscosity		0.0		#
-ArtificialViscosity	None		# Type of artificial viscosity (none, TW, SN) [default = SN]
-ArtificialViscosityDissipation No	# Use artificial viscosity in dissipation function [default = yes]
+ArtificialViscosity	SN		# Type of artificial viscosity (none, TW, SN) [default = SN]
+ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor	1.41 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex		0.5		# Slope of Temperature/radius profile
 SelfGravity		No		# choose: Yes, Z or No

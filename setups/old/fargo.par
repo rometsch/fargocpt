@@ -1,5 +1,6 @@
 ## Disk parameters
 
+ShockTube		0       #Initialize shocktube problem with 0:no shocktube 1:Ideal EOS (perfect gas) 2: PVTE EOS (variableGamma) [default = 0]
 Sigma0InCodeUnits	No
 Sigma0			1890.6732476597317		# surface density at r=1 in g/cm^2
 SigmaSlope		0.5		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)

@@ -108,7 +108,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // call causes an error.
     parameters::apply_units();
 
-    parameters::ShockTube = config::value_as_bool_default("ShockTube", 0);
+    parameters::ShockTube = config::value_as_int_default("ShockTube", 0);
     parameters::SpreadingRing =
 	config::value_as_bool_default("SpreadingRing", NO);
 

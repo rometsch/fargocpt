@@ -149,6 +149,7 @@ std::vector<double> &mu_table, std::vector<double> &gamma_eff_table, std::vector
             double mu = mean_molecular_weight(T, rhoi);
 			double geff = gamma_eff(T, rhoi);
             double g1 = gamma1(T, rhoi);
+        
 
             int index = j + i * Nj;
             rho_table[i] = rhoi;
@@ -441,12 +442,20 @@ void compute_gamma_mu(t_data &data)
 
             const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 
-			const double densityCGS =
-		    sigma /
-		    (parameters::density_factor * H) * units::density;
+            double densityCGS, energyCGS;
 
-			const double energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) 
-            * units::energy_density / (sigma * units::surface_density);
+            if (parameters::ShockTube > 0){
+                densityCGS = sigma * units::density.get_cgs_factor();
+                energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) 
+                * units::energy_density.get_cgs_factor() / densityCGS;
+            }else {
+                densityCGS = sigma / (parameters::density_factor * H) 
+                * units::density;
+
+                energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) 
+                * units::energy_density / (sigma * units::surface_density);
+            }
+
 	
 			t_eosQuantities q = 
             lookup(rho_table, e_table, mu_table,  gammeff_table, gamma1_table, 
@@ -455,7 +464,6 @@ void compute_gamma_mu(t_data &data)
 			data[t_data::GAMMAEFF](n_radial, n_azimuthal) = q.geff;
 			data[t_data::MU](n_radial, n_azimuthal) = q.mow;
             data[t_data::GAMMA1](n_radial, n_azimuthal) = q.g1;
-		
 	}
 	}
 }

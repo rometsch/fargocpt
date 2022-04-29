@@ -25,7 +25,7 @@ constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
 
 namespace parameters
 {
-bool ShockTube = false;
+int ShockTube = false;
 bool SpreadingRing = false;
 
 // energy euations

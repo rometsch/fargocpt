@@ -272,9 +272,13 @@ void init_physics(t_data &data)
 	die("Both Sigma and Energy have to be initialised by Shakura & Sunyaev Standard-Solution. Other initialisation not yet implemented!");
     }
 
-    if (parameters::ShockTube) {
+    if (parameters::ShockTube == 1) {
 	init_shock_tube_test(data);
-    } else {
+    } else if (parameters::ShockTube == 2){
+		init_PVTE_shock_tube_test(data);
+		init_eos_arrays(data);
+	} 
+	else {
 	// gas density initialization
 	init_gas_density(data);
 
@@ -663,6 +667,100 @@ void init_shock_tube_test(t_data &data)
 
     // after all units have calculated, calculate constants in code units
     constants::calculate_constants_in_code_units();
+
+    // set SigmaMed/SigmaInf
+    RefillSigma(&data[t_data::DENSITY]);
+    RefillEnergy(&data[t_data::ENERGY]);
+}
+
+void init_PVTE_shock_tube_test(t_data &data)
+{
+    logging::print_master(LOG_INFO "Initializing PVTE-ShockTube\n");
+
+    for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
+	 ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+	     n_azimuthal < data[t_data::DENSITY].Nsec; ++n_azimuthal) {
+	    double density = 1.0;
+	    double energy = 10.361627466581034;
+
+	    if (Rmed[n_radial] - GlobalRmed[0] > 0.5) {
+		density = 0.125;
+		energy = 0.9110851732216827;
+	    }
+
+	    data[t_data::DENSITY](n_radial, n_azimuthal) = density;
+	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
+	}
+    }
+
+    units::length.set_cgs_factor(1.0);
+    units::length.set_cgs_symbol("1");
+
+    units::mass.set_cgs_factor(1.0);
+    units::mass.set_cgs_symbol("1");
+
+    units::time.set_cgs_factor(1.0);
+    units::time.set_cgs_symbol("1");
+
+    units::energy.set_cgs_factor(1.0);
+    units::energy.set_cgs_symbol("1");
+
+    units::energy_density.set_cgs_factor(0.00000004576860232875);
+    units::energy_density.set_cgs_symbol("1");
+
+	units::temperature.set_cgs_factor(3341.5268389972975);
+    units::temperature.set_cgs_symbol("1");
+
+    units::density.set_cgs_factor(1.66053886e-19);
+    units::density.set_cgs_symbol("1");
+
+    units::surface_density.set_cgs_factor(1.0);
+    units::surface_density.set_cgs_symbol("1");
+
+    units::opacity.set_cgs_factor(1.0);
+    units::opacity.set_cgs_symbol("1");
+
+    units::energy_flux.set_cgs_factor(1.0);
+    units::energy_flux.set_cgs_symbol("1");
+
+    units::velocity.set_cgs_factor(5.25e5);
+    units::velocity.set_cgs_symbol("1");
+
+    units::acceleration.set_cgs_factor(1.0);
+    units::acceleration.set_cgs_symbol("1");
+
+    units::angular_momentum.set_cgs_factor(1.0);
+    units::angular_momentum.set_cgs_symbol("1");
+
+    units::kinematic_viscosity.set_cgs_factor(1.0);
+    units::kinematic_viscosity.set_cgs_symbol("1");
+
+    units::dynamic_viscosity.set_cgs_factor(1.0);
+    units::dynamic_viscosity.set_cgs_symbol("1");
+
+    units::stress.set_cgs_factor(1.0);
+    units::stress.set_cgs_symbol("1");
+
+    units::pressure.set_cgs_factor(1.0);
+    units::pressure.set_cgs_symbol("1");
+
+    units::power.set_cgs_factor(1.0);
+    units::power.set_cgs_symbol("1");
+
+    units::torque.set_cgs_factor(1.0);
+    units::torque.set_cgs_symbol("1");
+
+    units::force.set_cgs_factor(1.0);
+    units::force.set_cgs_symbol("1");
+
+    units::mass_accretion_rate.set_cgs_factor(1.0);
+    units::mass_accretion_rate.set_cgs_symbol("1");
+
+    // after all units have calculated, calculate constants in code units
+    constants::calculate_constants_in_code_units();
+
+	compute_pressure(data, false);
 
     // set SigmaMed/SigmaInf
     RefillSigma(&data[t_data::DENSITY]);

@@ -254,7 +254,6 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 	compute_pressure(data, force_update);
 	}
     }
-
     if (parameters::Adiabatic || parameters::Polytropic) {
 	if(parameters::variableGamma){
 		pvte::compute_gamma_mu(data);
@@ -431,7 +430,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
     // keep mass constant
 	// const double total_disk_mass_old = quantities::gas_total_mass(data, 2.0*RMAX);
-
+	
     while (dtemp < DT) {
 	logging::print_master(
 	    LOG_VERBOSE
@@ -441,6 +440,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    dtemp / DT * 100.0);
 
 	dtemp += dt;
+
 
 	init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 
@@ -492,6 +492,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
 		update_with_artificial_viscosity(data, dt);
+
 
 		if (parameters::Adiabatic) {
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);

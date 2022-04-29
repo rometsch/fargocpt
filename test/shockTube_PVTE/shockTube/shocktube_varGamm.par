@@ -1,6 +1,6 @@
 ## Disk parameters
 
-ShockTube		1
+ShockTube		Yes
 Sigma0			8887231.453904748	# surface density at r=1 in g/cm^2
 SigmaSlope		0.0		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
@@ -28,13 +28,14 @@ TemperatureCGS0     0.0     # Midplane Temperature at 1 au in K, overwrites Aspe
 ViscosityInCGS      No      # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
 Viscosity		0.e-1		# Uniform kinematic viscosity
 AlphaViscosity		0.0		#
-ArtificialViscosity	None		# Type of artificial viscosity (none, TW, SN) [default = SN]
-ArtificialViscosityDissipation No	# Use artificial viscosity in dissipation function [default = yes]
-ArtificialViscosityFactor	1.41 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
+ArtificialViscosity	SN		# Type of artificial viscosity (none, TW, SN) [default = SN]
+ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation function [default = yes]
+ArtificialViscosityFactor	3.41421 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex		0.5		# Slope of Temperature/radius profile
 SelfGravity		No		# choose: Yes, Z or No
 EquationOfState		Ideal		# Isothermal Ideal Polytropic [default = Isothermal]
-AdiabaticIndex		1.4		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+AdiabaticIndex		1.667		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+variableGamma       Yes
 PolytropicConstant		FIT_ISOTHERMAL		# numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 CoolingRadiativeLocal	No		# enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal	No		# enable beta cooling Q- = T * Omega/beta [default = no]
@@ -49,8 +50,8 @@ HeatingStar		No
 HeatingStarRampingTime	1		# Ramping time for star heating in timesteps
 HeatingStarFactor	1.0
 HeatingStarSimple	No			# Use simplified star heating [default = No]
-MinimumTemperature	1e-9		# minimum Temperature in K
-MaximumTemperature	NaN		# default [NaN = disabled]
+MinimumTemperature	1.0		# minimum Temperature in K
+MaximumTemperature	1.0e6		# default [NaN = disabled]
 TauFactor		1.0		# correction factor for tau [default = 1.0]
 Opacity			Lin		# opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst		2.0e-6	# used for const and simple opacity (kappa = kappa0 * T**2) 
@@ -122,7 +123,7 @@ DiskFeedback		NO		# Calculate incfluence of the disk on the star
 
 ### Mesh parameters
 
-Nrad			100 #512 128		# Radial number of zones
+Nrad			1000 #512 128		# Radial number of zones
 Nsec			4 #1536 384		# Azimuthal number of 
 # zones (sectors)
 Rmin			1000.0		# Inner boundary radius
@@ -157,13 +158,15 @@ WriteEccentricity	No		# Write eccentricity. [default = no]
 WriteTReynolds		No		# Write Reynolds stress tensor. [default = no]
 WriteTGravitational	No		# Write gravitational stress tensor. [default = no]
 WritepdV		No		# Write pdV. [default = no]
-WriteDiskQuantities	No		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteDiskQuantities	Yes		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
 WriteRadialLuminosity	No		# Write radial luminosity [default = no]
 WriteRadialDissipation	No		# Write radial dissipation [default = no]
 WriteLightCurves	No		# Write light curves [default = no]
 WriteLightcurvesRadii   0.4,5.2
 WriteMassFlow		No		# Write a 1d radial file with mass flow at each interface [default = no]
 WriteGasTorques     No      # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017  
+WriteAdiabaticIndices Yes
+WriteMeanMolecularWeights Yes
 
 WritePressure		Yes		# Write pressure [default = no]
 WriteAspectRatio	No		# Write aspect ratio [default = no]

@@ -1,6 +1,6 @@
 ## Disk parameters
 
-ShockTube		Yes
+ShockTube		1
 Sigma0			8887231.453904748	# surface density at r=1 in g/cm^2
 SigmaSlope		0.0		# slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]

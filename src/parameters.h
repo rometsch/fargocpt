@@ -5,7 +5,7 @@
 
 namespace parameters
 {
-extern bool ShockTube;
+extern int ShockTube;
 extern bool SpreadingRing;
 
 // energy euations
