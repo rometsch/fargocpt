@@ -572,6 +572,11 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 		CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
 
+		if(parameters::variableGamma && !VISCOUS_ACCRETION){ // If VISCOUS_ACCRETION is active, scale_height is already updated
+		// Recompute scale height after Transport to update the 3D density
+		compute_sound_speed(data, true);
+		compute_scale_height(data, true);
+		}
 		// this must be done after CommunicateBoundaries
 		recalculate_derived_disk_quantities(data, true);
 

@@ -190,14 +190,5 @@ double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
 
-//lookup tables for the pve equation of state
-std::vector<double> rho_table;
-std::vector<double> e_table;
-std::vector<double> mu_table;
-std::vector<double> gammeff_table;
-std::vector<double> gamma1_table;
-std::vector<double> lnT;
-std::vector<double> funcdum;
-
 double dtemp;
 int debug_outputs;
