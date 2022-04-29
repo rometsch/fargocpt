@@ -411,7 +411,7 @@ void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src)
 	\param data
 	\param sys
 */
-void AlgoGas(unsigned int nTimeStep, t_data &data)
+void AlgoGas(t_data &data)
 {
     // old coordinates of corotation body
     double planet_corot_ref_old_x = 0.0;
@@ -424,9 +424,9 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
     }
     // recalculate timestep, even for no_disk = true, so that particle drag has
     // reasonable timestep size
-    double dt = CalculateHydroTimeStep(data, 0.0, true);
+	hydro_dt = CalculateHydroTimeStep(data, 0.0, true);
 
-    boundary_conditions::apply_boundary_condition(data, dt, false);
+	boundary_conditions::apply_boundary_condition(data, hydro_dt, false);
 
     // keep mass constant
 	// const double total_disk_mass_old = quantities::gas_total_mass(data, 2.0*RMAX);
@@ -439,7 +439,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    (double)nTimeStep / (double)NTOT * 100.0, dtemp, DT,
 	    dtemp / DT * 100.0);
 
-	dtemp += dt;
+	dtemp += hydro_dt;
 
 
 	init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
@@ -464,34 +464,34 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	/* Planets' velocities are updated here from gravitationnal
 	 * interaction with disk */
 	if (parameters::disk_feedback) {
-	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
+		UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
 	}
 
 	if (parameters::integrate_particles) {
-		particles::integrate(data, dt);
+		particles::integrate(data, hydro_dt);
 	}
 
 	/* Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
-	    data.get_planetary_system().integrate(PhysicalTime, dt);
+		data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
 	 * work in a frame non-centered on the star. Same for dust particles. */
-	handle_corotation(data, dt, planet_corot_ref_old_x,
+	handle_corotation(data, hydro_dt, planet_corot_ref_old_x,
 			  planet_corot_ref_old_y);
 
 	/* Now we update gas */
 	if (parameters::calculate_disk) {
 	    HandleCrash(data);
 
-	    update_with_sourceterms(data, dt);
+		update_with_sourceterms(data, hydro_dt);
 
 	    if (EXPLICIT_VISCOSITY) {
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
-		update_with_artificial_viscosity(data, dt);
+		update_with_artificial_viscosity(data, hydro_dt);
 
 
 		if (parameters::Adiabatic) {
@@ -504,11 +504,11 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 
 		viscosity::update_velocities_with_viscosity(
 		    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-		    dt);
+			hydro_dt);
 	    }
 
 	    if (!EXPLICIT_VISCOSITY) {
-		Sts(data, dt);
+		Sts(data, hydro_dt);
 	    }
 
 	    // boundary_conditions::apply_boundary_condition(data, dt, false);
@@ -516,21 +516,21 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 	    if (parameters::Adiabatic) {
 
 		// ComputeViscousStressTensor(data);
-		SubStep3(data, dt);
+		SubStep3(data, hydro_dt);
 
 		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 
 		if (parameters::radiative_diffusion_enabled) {
-		    radiative_diffusion(data, dt);
+			radiative_diffusion(data, hydro_dt);
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 	    }
 
 	    /// TODO moved apply boundaries here
-	    boundary_conditions::apply_boundary_condition(data, dt, false);
+		boundary_conditions::apply_boundary_condition(data, hydro_dt, false);
 
 	    Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
-		      &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY], dt);
+			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY], hydro_dt);
 
 	    // assure minimum density after all substeps & transport
 	    assure_minimum_value(data[t_data::DENSITY],
@@ -543,9 +543,9 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		}
 	}
 
-	PhysicalTime += dt;
+	PhysicalTime += hydro_dt;
 	N_iter = N_iter + 1;
-	logging::print_runtime_info(data, nTimeStep / NINTERM, nTimeStep, dt);
+	logging::print_runtime_info(data, nTimeStep / NINTERM, nTimeStep, hydro_dt);
 
 	if (parameters::calculate_disk) {
 		CommunicateBoundaries(
@@ -560,9 +560,9 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 			viscosity::update_viscosity(data);
 		}
 
-		accretion::AccreteOntoPlanets(data, dt);
+		accretion::AccreteOntoPlanets(data, hydro_dt);
 
-		boundary_conditions::apply_boundary_condition(data, dt, true);
+		boundary_conditions::apply_boundary_condition(data, hydro_dt, true);
 
 		//const double total_disk_mass_new =
 		// quantities::gas_total_mass(data, 2.0*RMAX);
@@ -570,7 +570,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		 //data[t_data::DENSITY] *=
 		//(total_disk_mass_old / total_disk_mass_new);
 
-		CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, dt);
+		CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, hydro_dt);
 
 		if(parameters::variableGamma && !VISCOUS_ACCRETION){ // If VISCOUS_ACCRETION is active, scale_height is already updated
 		// Recompute scale height after Transport to update the 3D density
@@ -580,7 +580,7 @@ void AlgoGas(unsigned int nTimeStep, t_data &data)
 		// this must be done after CommunicateBoundaries
 		recalculate_derived_disk_quantities(data, true);
 
-	    dt = CalculateHydroTimeStep(data, dt, false);
+		hydro_dt = CalculateHydroTimeStep(data, hydro_dt, false);
 
 	}
     }

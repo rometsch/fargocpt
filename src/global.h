@@ -104,6 +104,8 @@ extern double invdphi;
 extern double DT;
 extern double last_dt;
 extern double dt_parabolic_local;
+extern double hydro_dt;
+
 
 extern unsigned int NINTERM;
 extern unsigned int NTOT;

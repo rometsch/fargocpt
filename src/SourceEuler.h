@@ -15,7 +15,7 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update);
 void init_euler(t_data &data);
 void FreeEuler();
 
-void AlgoGas(unsigned int nTimeStep, t_data &data);
+void AlgoGas(t_data &data);
 
 void update_with_sourceterms(t_data &data, double dt);
 void update_with_artificial_viscosity(t_data &data, double dt);

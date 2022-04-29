@@ -329,8 +329,7 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start) &&
 	    parameters::write_disk_quantities) {
-	    output::write_quantities(data, TimeStep, nTimeStep,
-				     force_update_for_output);
+		output::write_quantities(data, force_update_for_output);
 	}
 
 	if (write_complete_output && parameters::write_torques) {
@@ -349,7 +348,7 @@ int main(int argc, char *argv[])
 	}
 
 	// do hydro and nbody
-	AlgoGas(nTimeStep, data);
+	AlgoGas(data);
 	dtemp = 0.0;
     }
 

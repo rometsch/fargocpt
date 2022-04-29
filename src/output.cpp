@@ -272,8 +272,7 @@ void write_grids(t_data &data, int index, int iter, double phystime,
 /**
 
 */
-void write_quantities(t_data &data, unsigned int timestep,
-		      unsigned int nTimeStep, bool force_update)
+void write_quantities(t_data &data, bool force_update)
 {
     FILE *fd = 0;
     char *fd_filename;

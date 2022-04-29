@@ -161,6 +161,8 @@ double invdphi;
 double DT;
 double last_dt;
 double dt_parabolic_local;
+double hydro_dt;
+
 
 unsigned int NINTERM;
 unsigned int NTOT;
