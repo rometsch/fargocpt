@@ -227,8 +227,7 @@ int main(int argc, char *argv[])
 	    data[t_data::ENERGY].read2D(start_mode::restart_from,
 					start_mode::restart_debug);
 
-	    if (data[t_data::QPLUS].get_write_2D() &&
-		data[t_data::QPLUS].file_exists(start_mode::restart_from,
+		if (data[t_data::QPLUS].file_exists(start_mode::restart_from,
 						start_mode::restart_debug)) {
 		data[t_data::QPLUS].read2D(start_mode::restart_from,
 					   start_mode::restart_debug);
@@ -238,8 +237,7 @@ int main(int argc, char *argv[])
 		    "Cannot read Qplus, no bitwise identical restarting possible!\n");
 		compute_heating_cooling_for_CFL(data);
 	    }
-	    if (data[t_data::QMINUS].get_write_2D() &&
-		data[t_data::QMINUS].file_exists(start_mode::restart_from,
+		if (data[t_data::QMINUS].file_exists(start_mode::restart_from,
 						 start_mode::restart_debug)) {
 		data[t_data::QMINUS].read2D(start_mode::restart_from,
 					    start_mode::restart_debug);
@@ -262,11 +260,42 @@ int main(int argc, char *argv[])
 	data.get_planetary_system().restart(start_mode::restart_from,
 					    start_mode::restart_debug);
 
+	data.get_planetary_system().get_planet(1).print();
+
 	MPI_Barrier(MPI_COMM_WORLD);
 	logging::print_master(LOG_INFO
 			      "Finished restarting planetary system.\n");
 
 	recalculate_derived_disk_quantities(data, true);
+
+	if(parameters::variableGamma){
+
+		// For bitwise exact restarting with PVTE
+		if (data[t_data::GAMMAEFF].file_exists(start_mode::restart_from,
+						 start_mode::restart_debug)) {
+		data[t_data::GAMMAEFF].read2D(start_mode::restart_from,
+						start_mode::restart_debug);
+		}
+		if (data[t_data::MU].file_exists(start_mode::restart_from,
+						 start_mode::restart_debug)) {
+		data[t_data::MU].read2D(start_mode::restart_from,
+						start_mode::restart_debug);
+		}
+
+		if (data[t_data::GAMMA1].file_exists(start_mode::restart_from,
+						 start_mode::restart_debug)) {
+		data[t_data::GAMMA1].read2D(start_mode::restart_from,
+						start_mode::restart_debug);
+		}
+
+		compute_temperature(data, true);
+		compute_sound_speed(data, true);
+		compute_scale_height(data, true);
+		compute_pressure(data, true);
+		viscosity::update_viscosity(data);
+
+	}
+
     } else {
 	// create planet files
 	dtemp = 0.0;

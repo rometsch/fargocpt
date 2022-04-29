@@ -9,12 +9,12 @@
 #include "LowTasks.h"
 #include "global.h"
 #include "logging.h"
+#include "parameters.h"
 
 #include "output.h"
 void handle_sigterm_outputs(t_data &data){
 
 	// Enable output of Qplus / Qminus for bitwise exact restarting.
-	{
 	if(!data[t_data::QPLUS].get_write())
 	{
 	data[t_data::QPLUS].set_write(true, false);
@@ -22,6 +22,13 @@ void handle_sigterm_outputs(t_data &data){
 	if(!data[t_data::QMINUS].get_write())
 	{
 	data[t_data::QMINUS].set_write(true, false);
+	}
+
+	if(parameters::variableGamma){
+	if(!data[t_data::GAMMAEFF].get_write()){
+	data[t_data::GAMMAEFF].set_write(true, false);
+	data[t_data::MU].set_write(true, false);
+	data[t_data::GAMMA1].set_write(true, false);
 	}
 	}
 

@@ -282,6 +282,11 @@ void init_euler(t_data &data)
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
+	if (parameters::variableGamma) {
+		compute_sound_speed(data, true);
+		compute_scale_height(data, true);
+		pvte::compute_gamma_mu(data);
+	}
 	compute_temperature(data, true);
 	compute_sound_speed(data, true);
 	compute_scale_height(data, true);
