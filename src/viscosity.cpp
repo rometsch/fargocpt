@@ -48,8 +48,7 @@ void update_viscosity(t_data &data)
 		// Omega_K
 		const double alpha = ALPHAVISCOSITY;
 		const double c_s_adb = data[t_data::SOUNDSPEED](n_rad, n_az);
-		const double H =
-			data[t_data::SCALE_HEIGHT](n_rad, n_az);
+		const double H = data[t_data::SCALE_HEIGHT](n_rad, n_az);
 		const double nu = alpha * H * c_s_adb;
 
 		data[t_data::VISCOSITY](n_rad, n_az) = nu;
@@ -382,7 +381,7 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
     const t_polargrid &Trp = data[t_data::TAU_R_PHI];
     const t_polargrid &Trr = data[t_data::TAU_R_R];
     const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
-	for (unsigned int nr = 1; nr < v_radial.get_size_radial() - 1; ++nr) {
+    for (unsigned int nr = 1; nr < v_radial.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < v_radial.get_size_azimuthal(); ++naz) {
 	    const int naz_plus =
 		(naz == Sigma.get_max_azimuthal() ? 0 : naz + 1);
@@ -1506,16 +1505,16 @@ void debug_function_viscous_terms(t_data &data,
 
 	    /// test passed
 	    // if(n_radial == 50 && n_azimuthal == 0)
-	    //	printf("calc crr = %.12e	%.12e	%.12e		%.12e\n",
-	    //crr_r1, crpr_1, cpp_r1,
+	    //	printf("calc crr = %.12e	%.12e	%.12e %.12e\n", crr_r1,
+	    // crpr_1, cpp_r1,
 	    //(data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
 	    // n_azimuthal) - (crr_r1 + crpr_1 +
 	    // cpp_r1))/data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
 	    // n_azimuthal));
 
 	    // if(n_radial == 62 && n_azimuthal == 5)
-	    //	printf("calc crr = %.12e	%.12e	%.12e		%.12e\n",
-	    //crr_r1, crpr_1, cpp_r1,
+	    //	printf("calc crr = %.12e	%.12e	%.12e %.12e\n", crr_r1,
+	    // crpr_1, cpp_r1,
 	    //(data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,
 	    // n_azimuthal) - (crr_r1 + crpr_1 +
 	    // cpp_r1))/data[t_data::VISCOSITY_CORRECTION_FACTOR_R](n_radial,

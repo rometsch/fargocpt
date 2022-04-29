@@ -4,11 +4,11 @@
 	Declares all global variables.
 */
 
+#include "pvte_law.h"
 #include "radialarray.h"
 #include "types.h"
-#include "pvte_law.h"
-#include <vector>
 #include <mpi.h>
+#include <vector>
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */

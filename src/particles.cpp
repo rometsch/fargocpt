@@ -732,10 +732,11 @@ void calculate_accelerations_from_star_and_planets(
 	double cos_delta_phi;
 	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
 
-	const double distance_to_planet = std::sqrt(
-		r * r + r_planet * r_planet - 2 * r * r_planet * cos_delta_phi + epsilon_sq);
+	const double distance_to_planet =
+	    std::sqrt(r * r + r_planet * r_planet -
+		      2 * r * r_planet * cos_delta_phi + epsilon_sq);
 	const double distance_to_planet_pow2_smoothed =
-		distance_to_planet * distance_to_planet;
+	    distance_to_planet * distance_to_planet;
 
 	const double factor =
 	    constants::G * planet.get_mass() /
@@ -861,7 +862,7 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 		     unsigned int n_azimuthal_plus, double r, double phi)
 {
     const double dphi = 2.0 * M_PI / (double)quantity.get_size_azimuthal();
-	const unsigned int last_phi_index = quantity.get_max_azimuthal();
+    const unsigned int last_phi_index = quantity.get_max_azimuthal();
 
     // values at corners
     double Qmm = quantity(n_radial_minus, n_azimuthal_minus);

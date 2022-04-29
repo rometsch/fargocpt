@@ -5,8 +5,8 @@
 */
 
 #include "boundary_conditions.h"
-#include "find_cell_id.h"
 #include "Theo.h"
+#include "find_cell_id.h"
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
@@ -197,7 +197,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 						  constants::R /
 						  (ADIABATICINDEX - 1.0);
 
-				data[t_data::PRESCRIBED_DENSITY_OUTER](
+			    data[t_data::PRESCRIBED_DENSITY_OUTER](
 				file_id, n_azimuthal) = sigma;
 			    data[t_data::PRESCRIBED_ENERGY_OUTER](
 				file_id, n_azimuthal) = energy;
@@ -257,7 +257,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_reflecting:
 	reflecting_boundary_inner(data);
 	break;
-	case parameters::boundary_condition_zero_gradient:
+    case parameters::boundary_condition_zero_gradient:
 	zero_gradient_boundary_inner(data);
 	break;
     case parameters::boundary_condition_boundary_layer:
@@ -271,7 +271,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_viscous_outflow:
 	viscous_outflow_boundary_inner(data);
 	break;
-	case parameters::boundary_condition_jibin_spreading_ring:
+    case parameters::boundary_condition_jibin_spreading_ring:
 	jibin_boundary_inner(data);
 	break;
     case parameters::boundary_condition_evanescent: // evanescent works only for
@@ -293,7 +293,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
-	case parameters::boundary_condition_center_of_mass_initial:
+    case parameters::boundary_condition_center_of_mass_initial:
 	die("Inner initial center of mass boundary is not implemented yet!\n");
 	break;
     }
@@ -306,16 +306,14 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     case parameters::boundary_condition_reflecting:
 	reflecting_boundary_outer(data);
 	break;
-	case parameters::boundary_condition_center_of_mass_initial:
-	{
+    case parameters::boundary_condition_center_of_mass_initial: {
 	initial_center_of_mass_boundary(data);
-	if(final)
-	{
-		damping_initial_center_of_mass_outer(data, dt);
+	if (final) {
+	    damping_initial_center_of_mass_outer(data, dt);
 	}
 	break;
-	}
-	case parameters::boundary_condition_zero_gradient:
+    }
+    case parameters::boundary_condition_zero_gradient:
 	zero_gradient_boundary_outer(data);
 	break;
     case parameters::boundary_condition_boundary_layer:
@@ -326,15 +324,13 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 				    &data[t_data::DENSITY],
 				    &data[t_data::ENERGY]);
 	break;
-	case parameters::boundary_condition_jibin_spreading_ring:
+    case parameters::boundary_condition_jibin_spreading_ring:
 	jibin_boundary_outer(data);
 	break;
-    case parameters::boundary_condition_precribed_time_variable:
-		{
-			boundary_condition_precribed_time_variable_outer(data,
-										  &data[t_data::DENSITY]);
-		}
-	break;
+    case parameters::boundary_condition_precribed_time_variable: {
+	boundary_condition_precribed_time_variable_outer(
+	    data, &data[t_data::DENSITY]);
+    } break;
     case parameters::boundary_condition_viscous_outflow:
 	die("outer viscous outflow boundary not implemented");
 	break;
@@ -373,10 +369,9 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	ApplyOuterSourceMass(&data[t_data::DENSITY], &data[t_data::V_RADIAL]);
     }
 
-	if (parameters::massoverflow) {
-		boundary_conditions::mass_overflow_willy(data, nullptr, false);
-	}
-
+    if (parameters::massoverflow) {
+	boundary_conditions::mass_overflow_willy(data, nullptr, false);
+    }
 }
 
 /**
@@ -452,67 +447,64 @@ void open_boundary_outer(t_data &data)
 
 void zero_gradient_boundary_inner(t_data &data)
 {
-	if (CPU_Rank != 0)
+    if (CPU_Rank != 0)
 	return;
 
-	for (unsigned int n_azimuthal = 0;
+    for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// copy first ring into ghost ring
 	data[t_data::DENSITY](0, n_azimuthal) =
-		data[t_data::DENSITY](1, n_azimuthal);
+	    data[t_data::DENSITY](1, n_azimuthal);
 	data[t_data::ENERGY](0, n_azimuthal) =
-		data[t_data::ENERGY](1, n_azimuthal);
+	    data[t_data::ENERGY](1, n_azimuthal);
 
 	data[t_data::V_RADIAL](1, n_azimuthal) =
-	data[t_data::V_RADIAL](2, n_azimuthal);
+	    data[t_data::V_RADIAL](2, n_azimuthal);
 
 	data[t_data::V_RADIAL](0, n_azimuthal) =
-	data[t_data::V_RADIAL](2, n_azimuthal);
-	}
+	    data[t_data::V_RADIAL](2, n_azimuthal);
+    }
 }
 
 void zero_gradient_boundary_outer(t_data &data)
 {
-	if (CPU_Rank != CPU_Highest)
+    if (CPU_Rank != CPU_Highest)
 	return;
 
-	for (unsigned int n_azimuthal = 0;
+    for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// copy last ring into ghost ring
 	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
-				  n_azimuthal) =
-		data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
+			      n_azimuthal) =
+	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
 				  n_azimuthal);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
-				 n_azimuthal) =
-		data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
+			     n_azimuthal) =
+	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 				 n_azimuthal);
 
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 1,
-				  n_azimuthal) =
-	data[t_data::V_RADIAL](
-		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+			       n_azimuthal) =
+	    data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 2,
+				   n_azimuthal);
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
-				  n_azimuthal) =
-	data[t_data::V_RADIAL](
-		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+			       n_azimuthal) =
+	    data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 2,
+				   n_azimuthal);
 
-	const double R_outer =
-		Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
+	const double R_outer = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
 	const double R_inner =
-		Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
+	    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
 
-	data[t_data::V_AZIMUTHAL](
-		data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) =
-		std::sqrt(R_outer / R_inner) *
-		data[t_data::V_AZIMUTHAL](
-		data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
-		n_azimuthal);
-	}
+	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
+				  n_azimuthal) =
+	    std::sqrt(R_outer / R_inner) *
+	    data[t_data::V_AZIMUTHAL](
+		data[t_data::V_AZIMUTHAL].get_max_radial() - 1, n_azimuthal);
+    }
 }
-
 
 /**
 	inner reflecting boundary condition
@@ -545,7 +537,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
     if (CPU_Rank == CPU_Highest) {
 	const int n_radial = data[t_data::DENSITY].get_max_radial();
 	const double T_bin =
-		data.get_planetary_system().get_planet(1).get_orbital_period();
+	    data.get_planetary_system().get_planet(1).get_orbital_period();
 
 	const double step_size = T_bin / (double)PRESCRIBED_TIME_SEGMENT_NUMBER;
 	const double real_time = PhysicalTime / step_size;
@@ -559,80 +551,85 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
 
-		const double vr =
+	    const double vr =
 		data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id, n_azimuthal);
-		const double vr_next = data[t_data::PRESCRIBED_V_RADIAL_OUTER](
+	    const double vr_next = data[t_data::PRESCRIBED_V_RADIAL_OUTER](
 		time_id_next, n_azimuthal);
-		const double vr_cell =
+	    const double vr_cell =
 		vr + percent_to_next_timestep * (vr_next - vr);
 
-		if(vr < 0.0) // allow inflow
-		{
-	    const double sigma =
-		data[t_data::PRESCRIBED_DENSITY_OUTER](time_id, n_azimuthal);
-	    const double sigma_next = data[t_data::PRESCRIBED_DENSITY_OUTER](
-		time_id_next, n_azimuthal);
-	    const double sigma_cell =
-		sigma + percent_to_next_timestep * (sigma_next - sigma);
+	    if (vr < 0.0) // allow inflow
+	    {
+		const double sigma = data[t_data::PRESCRIBED_DENSITY_OUTER](
+		    time_id, n_azimuthal);
+		const double sigma_next =
+		    data[t_data::PRESCRIBED_DENSITY_OUTER](time_id_next,
+							   n_azimuthal);
+		const double sigma_cell =
+		    sigma + percent_to_next_timestep * (sigma_next - sigma);
 
-	    const double energy =
-		data[t_data::PRESCRIBED_ENERGY_OUTER](time_id, n_azimuthal);
-	    const double energy_next = data[t_data::PRESCRIBED_ENERGY_OUTER](
-		time_id_next, n_azimuthal);
-	    const double energy_cell =
-		energy + percent_to_next_timestep * (energy_next - energy);
+		const double energy =
+		    data[t_data::PRESCRIBED_ENERGY_OUTER](time_id, n_azimuthal);
+		const double energy_next =
+		    data[t_data::PRESCRIBED_ENERGY_OUTER](time_id_next,
+							  n_azimuthal);
+		const double energy_cell =
+		    energy + percent_to_next_timestep * (energy_next - energy);
 
-	    const double vphi = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](
-		time_id, n_azimuthal);
-	    const double vphi_next = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](
-		time_id_next, n_azimuthal);
-	    const double vphi_cell =
-		vphi + percent_to_next_timestep * (vphi_next - vphi);
+		const double vphi = data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](
+		    time_id, n_azimuthal);
+		const double vphi_next =
+		    data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id_next,
+							       n_azimuthal);
+		const double vphi_cell =
+		    vphi + percent_to_next_timestep * (vphi_next - vphi);
 
-	    // copy interpolated values into outer ghost ring
-	    (*densitystar)(n_radial, n_azimuthal) = sigma_cell;
-	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_cell;
-	    data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr_cell;
-	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi_cell;
+		// copy interpolated values into outer ghost ring
+		(*densitystar)(n_radial, n_azimuthal) = sigma_cell;
+		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_cell;
+		data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr_cell;
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi_cell;
 
-	    /*
-	    const double r = Rmed[n_radial];
-	    const double v_kep = sqrt(constants::G * hydro_center_mass / r);
+		/*
+		const double r = Rmed[n_radial];
+		const double v_kep = sqrt(constants::G * hydro_center_mass / r);
 
 
-	    printf("Nphi = %d	dens = (%.3e	%.3e)	vr = (%.3e	%.3e)
-	    vphi = (%.3e	%.3e	%.3e)\n", n_azimuthal,
-		       data[t_data::PRESCRIBED_DENSITY_OUTER](time_id,
-	    n_azimuthal)*units::surface_density.get_cgs_factor(),
-			    data[t_data::DENSITY](n_radial-5,
-	    n_azimuthal)*units::surface_density.get_cgs_factor(),
-			    data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id,
-	    n_azimuthal), data[t_data::V_RADIAL](n_radial-5, n_azimuthal),
-			    data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id,
-	    n_azimuthal), data[t_data::V_AZIMUTHAL](n_radial-5, n_azimuthal),
-			    v_kep);*/
-		} else { // normal outflow
-			// copy last ring into ghost ring
-			(*densitystar)(data[t_data::ENERGY].get_max_radial(),
-						  n_azimuthal) =
-				(*densitystar)(data[t_data::ENERGY].get_max_radial() - 1,
-						  n_azimuthal);
+		printf("Nphi = %d	dens = (%.3e	%.3e)	vr = (%.3e
+		%.3e) vphi = (%.3e	%.3e	%.3e)\n", n_azimuthal,
+			   data[t_data::PRESCRIBED_DENSITY_OUTER](time_id,
+		n_azimuthal)*units::surface_density.get_cgs_factor(),
+				data[t_data::DENSITY](n_radial-5,
+		n_azimuthal)*units::surface_density.get_cgs_factor(),
+				data[t_data::PRESCRIBED_V_RADIAL_OUTER](time_id,
+		n_azimuthal), data[t_data::V_RADIAL](n_radial-5, n_azimuthal),
+				data[t_data::PRESCRIBED_V_AZIMUTHAL_OUTER](time_id,
+		n_azimuthal), data[t_data::V_AZIMUTHAL](n_radial-5,
+		n_azimuthal), v_kep);*/
+	    } else { // normal outflow
+		// copy last ring into ghost ring
+		(*densitystar)(data[t_data::ENERGY].get_max_radial(),
+			       n_azimuthal) =
+		    (*densitystar)(data[t_data::ENERGY].get_max_radial() - 1,
+				   n_azimuthal);
 
-			data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
-						 n_azimuthal) =
-				data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
-						 n_azimuthal);
+		data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
+				     n_azimuthal) =
+		    data[t_data::ENERGY](
+			data[t_data::ENERGY].get_max_radial() - 1, n_azimuthal);
 
-			data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 1,
-					   n_azimuthal) =
-			data[t_data::V_RADIAL](
-				data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
+		data[t_data::V_RADIAL](
+		    data[t_data::V_RADIAL].get_max_radial() - 1, n_azimuthal) =
+		    data[t_data::V_RADIAL](
+			data[t_data::V_RADIAL].get_max_radial() - 2,
+			n_azimuthal);
 
-			data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
-					   n_azimuthal) =
-			data[t_data::V_RADIAL](
-				data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal);
-		}
+		data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
+				       n_azimuthal) =
+		    data[t_data::V_RADIAL](
+			data[t_data::V_RADIAL].get_max_radial() - 2,
+			n_azimuthal);
+	    }
 	}
     }
 }
@@ -684,15 +681,13 @@ void viscous_outflow_boundary_inner(t_data &data)
 	     n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 
-		const double Nu0 = data[t_data::VISCOSITY](0, n_azimuthal);
-		const double Nu1 = data[t_data::VISCOSITY](1, n_azimuthal);
-		const double Nu = 0.5*(Nu0 + Nu1);
+	    const double Nu0 = data[t_data::VISCOSITY](0, n_azimuthal);
+	    const double Nu1 = data[t_data::VISCOSITY](1, n_azimuthal);
+	    const double Nu = 0.5 * (Nu0 + Nu1);
 
 	    // V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
-	    data[t_data::V_RADIAL](1, n_azimuthal) =
-		-1.5 * s / Rinf[1] * Nu;
-	    data[t_data::V_RADIAL](0, n_azimuthal) =
-		-1.5 * s / Rinf[0] * Nu;
+	    data[t_data::V_RADIAL](1, n_azimuthal) = -1.5 * s / Rinf[1] * Nu;
+	    data[t_data::V_RADIAL](0, n_azimuthal) = -1.5 * s / Rinf[0] * Nu;
 	}
     }
 }
@@ -711,10 +706,12 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 	(radius[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
 	unsigned int limit;
-	if(quantity.is_scalar()){
-		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMIN * parameters::damping_inner_limit), false);
+	if (quantity.is_scalar()) {
+	    limit = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMIN * parameters::damping_inner_limit), false);
 	} else {
-		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMIN * parameters::damping_inner_limit), true);
+	    limit = clamp_r_id_to_radii_grid(
+		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
@@ -765,17 +762,19 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 	 RMAX * parameters::damping_outer_limit)) {
 	// find range
 	unsigned int limit;
-	if(quantity.is_scalar()){
-		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
+	if (quantity.is_scalar()) {
+	    limit = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
 	} else {
-		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
+	    limit = clamp_r_id_to_radii_grid(
+		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
-		 n_radial < quantity.get_size_radial(); ++n_radial) {
+	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -818,10 +817,12 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	(radius[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
 	unsigned int limit;
-	if(quantity.is_scalar()){
-		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMIN * parameters::damping_inner_limit), false);
+	if (quantity.is_scalar()) {
+	    limit = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMIN * parameters::damping_inner_limit), false);
 	} else {
-		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMIN * parameters::damping_inner_limit), true);
+	    limit = clamp_r_id_to_radii_grid(
+		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
@@ -838,10 +839,10 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
 		const double X = quantity(n_radial, n_azimuthal);
 		double X0;
-		if(is_density){
-			X0 = parameters::sigma_floor * parameters::sigma0;
+		if (is_density) {
+		    X0 = parameters::sigma_floor * parameters::sigma0;
 		} else {
-			X0 = 0.0;
+		    X0 = 0.0;
 		}
 		const double Xnew = (X - X0) * exp_factor + X0;
 		quantity(n_radial, n_azimuthal) = Xnew;
@@ -877,17 +878,19 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	 RMAX * parameters::damping_outer_limit)) {
 	// find range
 	unsigned int limit;
-	if(quantity.is_scalar()){
-		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
+	if (quantity.is_scalar()) {
+	    limit = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
 	} else {
-		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
+	    limit = clamp_r_id_to_radii_grid(
+		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
-		 n_radial < quantity.get_size_radial(); ++n_radial) {
+	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -931,10 +934,12 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	(radius[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
 	unsigned int limit;
-	if(quantity.is_scalar()){
-		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMIN * parameters::damping_inner_limit), false);
+	if (quantity.is_scalar()) {
+	    limit = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMIN * parameters::damping_inner_limit), false);
 	} else {
-		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMIN * parameters::damping_inner_limit), true);
+	    limit = clamp_r_id_to_radii_grid(
+		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
@@ -980,47 +985,48 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
     }
 }
 
-
-
 void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
-				   double dt)
+				double dt)
 {
-	bool is_vrad = strcmp(vrad.get_name(), "vrad") == 0;
-	assert(is_vrad);
-	(void) is_vrad; /// removes IDE 'unused' warning
+    bool is_vrad = strcmp(vrad.get_name(), "vrad") == 0;
+    assert(is_vrad);
+    (void)is_vrad; /// removes IDE 'unused' warning
 
-	t_radialarray &rinf =Ra;
+    t_radialarray &rinf = Ra;
 
-	// is this CPU in the inner damping domain?
-	if ((parameters::damping_inner_limit > 1.0) &&
+    // is this CPU in the inner damping domain?
+    if ((parameters::damping_inner_limit > 1.0) &&
 	(rinf[0] < RMIN * parameters::damping_inner_limit)) {
 	// find range
 
-	const static unsigned int limit = get_rinf_id(RMIN * parameters::damping_inner_limit);
+	const static unsigned int limit =
+	    get_rinf_id(RMIN * parameters::damping_inner_limit);
 
 	const double tau = parameters::damping_time_factor * 2.0 * M_PI /
-			 calculate_omega_kepler(RMIN);
+			   calculate_omega_kepler(RMIN);
 
 	const double s = parameters::viscous_outflow_speed;
 
-	for (unsigned int n_radial = Zero_no_ghost; n_radial <= limit; ++n_radial) {
-		double factor = std::pow(
+	for (unsigned int n_radial = Zero_no_ghost; n_radial <= limit;
+	     ++n_radial) {
+	    double factor = std::pow(
 		(rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
-			(RMIN - RMIN * parameters::damping_inner_limit),
+		    (RMIN - RMIN * parameters::damping_inner_limit),
 		2);
-		double exp_factor = std::exp(-dt * factor / tau);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
-		for (unsigned int n_azimuthal = 0;
+	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vrad.get_size_azimuthal(); ++n_azimuthal) {
 		const double viscosity_above = viscosity(n_radial, n_azimuthal);
 
 		double Nu;
 
-		if(n_radial == 0){
-		Nu = viscosity_above;
+		if (n_radial == 0) {
+		    Nu = viscosity_above;
 		} else {
-		const double viscosity_below = viscosity(n_radial-1, n_azimuthal);
-		Nu = 0.5*(viscosity_above + viscosity_below);
+		    const double viscosity_below =
+			viscosity(n_radial - 1, n_azimuthal);
+		    Nu = 0.5 * (viscosity_above + viscosity_below);
 		}
 
 		// V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
@@ -1030,9 +1036,9 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 		const double X0 = V_rad;
 		const double Xnew = (X - X0) * exp_factor + X0;
 		vrad(n_radial, n_azimuthal) = Xnew;
-		}
+	    }
 	}
-	}
+    }
 }
 
 void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
@@ -1050,17 +1056,19 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	 RMAX * parameters::damping_outer_limit)) {
 	// find range
 	unsigned int limit;
-	if(quantity.is_scalar()){
-		limit = clamp_r_id_to_rmed_grid(get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
+	if (quantity.is_scalar()) {
+	    limit = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMAX * parameters::damping_outer_limit) + 1, false);
 	} else {
-		limit = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
+	    limit = clamp_r_id_to_radii_grid(
+		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
-		 n_radial < quantity.get_size_radial(); ++n_radial) {
+	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    quantity0(n_radial, 0) = 0.0;
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
@@ -1070,7 +1078,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 
 	for (unsigned int n_radial = limit;
-		 n_radial < quantity.get_size_radial(); ++n_radial) {
+	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -1100,40 +1108,41 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
     }
 }
 
-void damping_initial_center_of_mass_outer(t_data &data,
-				   double dt)
+void damping_initial_center_of_mass_outer(t_data &data, double dt)
 {
 
-	// use the correct radius array corresponding to quantity
-	const t_radialarray &radius = Rinf;
-	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
-	t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
+    // use the correct radius array corresponding to quantity
+    const t_radialarray &radius = Rinf;
+    t_polargrid &vrad_arr = data[t_data::V_RADIAL];
+    t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
 
-	const unsigned int np = data.get_planetary_system().get_number_of_planets();
-	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
-	const Pair com_vel =
+    const unsigned int np = data.get_planetary_system().get_number_of_planets();
+    const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
+    const Pair com_vel =
 	data.get_planetary_system().get_center_of_mass_velocity(np);
-	const double com_mass = data.get_planetary_system().get_mass(np);
+    const double com_mass = data.get_planetary_system().get_mass(np);
 
-	// is this CPU in the outer damping domain?
-	if ((parameters::damping_outer_limit < 1.0) &&
+    // is this CPU in the outer damping domain?
+    if ((parameters::damping_outer_limit < 1.0) &&
 	(radius[vrad_arr.get_max_radial()] >
 	 RMAX * parameters::damping_outer_limit)) {
 
-	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, vrad_arr.is_vector());
+	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
+	    get_rinf_id(RMAX * parameters::damping_outer_limit) + 1,
+	    vrad_arr.is_vector());
 
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
-			 calculate_omega_kepler(RMAX);
+		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = clamped_vrad_id;
-		 n_radial < vrad_arr.get_size_radial(); ++n_radial) {
-		double factor = std::pow(
+	     n_radial < vrad_arr.get_size_radial(); ++n_radial) {
+	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
+		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-		double exp_factor = std::exp(-dt * factor / tau);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
-		for (unsigned int n_azimuthal = 0;
+	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = (double)n_azimuthal * dphi;
@@ -1149,23 +1158,24 @@ void damping_initial_center_of_mass_outer(t_data &data,
 
 		// pressure support correction
 		double corr;
-		if(parameters::initialize_pure_keplerian){
-			corr = 1.0;
+		if (parameters::initialize_pure_keplerian) {
+		    corr = 1.0;
 		} else {
-			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-							std::pow(r_com, 2.0 * FLARINGINDEX) *
-							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    corr = std::sqrt(
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr;
+		    std::sqrt(constants::G * com_mass / r_com) * corr;
 		const double cell_vr_com = 0.0;
 
 		const double cell_vx_com =
-		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		    (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
 		const double cell_vy_com =
-		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		    (cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
@@ -1176,67 +1186,68 @@ void damping_initial_center_of_mass_outer(t_data &data,
 		const double vr = vrad_arr(n_radial, n_azimuthal);
 		const double vr_new = (vr - vr0) * exp_factor + vr0;
 		vrad_arr(n_radial, n_azimuthal) = vr_new;
-		}
+	    }
 	}
 
-	const unsigned int clamped_vphi_id = clamp_r_id_to_radii_grid(get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, vphi_arr.is_vector());
+	const unsigned int clamped_vphi_id = clamp_r_id_to_radii_grid(
+	    get_rinf_id(RMAX * parameters::damping_outer_limit) + 1,
+	    vphi_arr.is_vector());
 
 	for (unsigned int n_radial = clamped_vphi_id;
-		 n_radial < vphi_arr.get_size_radial(); ++n_radial) {
-		double factor = std::pow(
+	     n_radial < vphi_arr.get_size_radial(); ++n_radial) {
+	    double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
+		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-		double exp_factor = std::exp(-dt * factor / tau);
+	    double exp_factor = std::exp(-dt * factor / tau);
 
-		for (unsigned int n_azimuthal = 0;
+	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
 
-			const double phi = ((double)n_azimuthal - 0.5) * dphi;
-			const double rmed = Rmed[n_radial];
+		const double phi = ((double)n_azimuthal - 0.5) * dphi;
+		const double rmed = Rmed[n_radial];
 
-			const double cell_x = rmed * std::cos(phi);
-			const double cell_y = rmed * std::sin(phi);
+		const double cell_x = rmed * std::cos(phi);
+		const double cell_y = rmed * std::sin(phi);
 
-			// Position in center of mass frame
-			const double x_com = cell_x - com_pos.x;
-			const double y_com = cell_y - com_pos.y;
-			const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-			// pressure support correction
-			double corr;
-			if(parameters::initialize_pure_keplerian){
-				corr = 1.0;
-			} else {
-				corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-								std::pow(r_com, 2.0 * FLARINGINDEX) *
-								(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-			}
+		// pressure support correction
+		double corr;
+		if (parameters::initialize_pure_keplerian) {
+		    corr = 1.0;
+		} else {
+		    corr = std::sqrt(
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		}
 
-			// Velocity in center of mass frame
-			const double cell_vphi_com =
-			std::sqrt(constants::G * com_mass / r_com) * corr;
-			const double cell_vr_com = 0.0;
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		    std::sqrt(constants::G * com_mass / r_com) * corr;
+		const double cell_vr_com = 0.0;
 
-			const double cell_vx_com =
-			(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
-			const double cell_vy_com =
-			(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		const double cell_vx_com =
+		    (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		    (cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
-			// shift velocity from center of mass frame to primary frame
-			const double cell_vx = cell_vx_com + com_vel.x;
-			const double cell_vy = cell_vy_com + com_vel.y;
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
 
-			const double vp0 =
-			(cell_x * cell_vy - cell_vx * cell_y) / rmed;
+		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed;
 
 		const double vp = vphi_arr(n_radial, n_azimuthal);
 		const double vp_new = (vp - vp0) * exp_factor + vp0;
 		vphi_arr(n_radial, n_azimuthal) = vp_new;
-		}
+	    }
 	}
-
-	}
+    }
 }
 
 /**
@@ -1287,15 +1298,15 @@ void mass_overflow(t_data &data)
 	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
 	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
     }
-	const t_planet &planet =
+    const t_planet &planet =
 	data.get_planetary_system().get_planet(parameters::mof_planet);
-	const double xplanet = planet.get_x();
-	const double yplanet = planet.get_y();
+    const double xplanet = planet.get_x();
+    const double yplanet = planet.get_y();
 
-	const double omega_planet = planet.get_omega();
+    const double omega_planet = planet.get_omega();
     // get grid cell where binary star is nearest
     // atan2(y,x) is from -PI to PI
-	double angle = std::atan2(yplanet, xplanet) * 0.5 * M_1_PI;
+    double angle = std::atan2(yplanet, xplanet) * 0.5 * M_1_PI;
     if (angle < 0) {
 	angle += 1.0;
     }
@@ -1345,14 +1356,15 @@ void mass_overflow(t_data &data)
     double check = 0.0;
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
 
-		const double t_ramp = parameters::mof_rampingtime * planet.get_orbital_period();
+	const double t_ramp =
+	    parameters::mof_rampingtime * planet.get_orbital_period();
 
-		double ramp_factor;
-		if (PhysicalTime < t_ramp) {
-		ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 4);
-		} else {
-		ramp_factor = 1.0;
-		}
+	double ramp_factor;
+	if (PhysicalTime < t_ramp) {
+	    ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 4);
+	} else {
+	    ramp_factor = 1.0;
+	}
 
 	// adapt gauss profile
 	double weight_factor;
@@ -1482,7 +1494,8 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	sigma; // walk through 3 sigma, so we get 99.7% accuracy
     double sigmabar = Nphi * sigma;
 
-	const double t_ramp = parameters::mof_rampingtime * planet.get_orbital_period();
+    const double t_ramp =
+	parameters::mof_rampingtime * planet.get_orbital_period();
 
     double ramp_factor;
     if (PhysicalTime < t_ramp) {
@@ -1835,218 +1848,220 @@ void keplerian2d_boundary_outer(t_data &data)
 void initial_center_of_mass_boundary(t_data &data)
 {
 
-	if (CPU_Rank != CPU_Highest)
+    if (CPU_Rank != CPU_Highest)
 	return;
 
-	const unsigned int np = data.get_planetary_system().get_number_of_planets();
-	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
-	const Pair com_vel =
+    const unsigned int np = data.get_planetary_system().get_number_of_planets();
+    const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
+    const Pair com_vel =
 	data.get_planetary_system().get_center_of_mass_velocity(np);
-	const double com_mass = data.get_planetary_system().get_mass(np);
+    const double com_mass = data.get_planetary_system().get_mass(np);
 
-	auto &sigma = data[t_data::DENSITY];
-	auto &energy = data[t_data::ENERGY];
-	auto &vrad = data[t_data::V_RADIAL];
-	auto &vaz = data[t_data::V_AZIMUTHAL];
+    auto &sigma = data[t_data::DENSITY];
+    auto &energy = data[t_data::ENERGY];
+    auto &vrad = data[t_data::V_RADIAL];
+    auto &vaz = data[t_data::V_AZIMUTHAL];
 
-	const unsigned int nr = data[t_data::DENSITY].get_max_radial();
-	for (unsigned int naz = 0; naz <= data[t_data::DENSITY].get_max_azimuthal();
+    const unsigned int nr = data[t_data::DENSITY].get_max_radial();
+    for (unsigned int naz = 0; naz <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++naz) {
 
 	{ /// V_PHI
-		const double phi = ((double)naz - 0.5) * dphi;
-		const double rmed = Rmed[nr];
+	    const double phi = ((double)naz - 0.5) * dphi;
+	    const double rmed = Rmed[nr];
 
-		const double cell_x = rmed * std::cos(phi);
-		const double cell_y = rmed * std::sin(phi);
+	    const double cell_x = rmed * std::cos(phi);
+	    const double cell_y = rmed * std::sin(phi);
 
-		// Position in center of mass frame
-		const double x_com = cell_x - com_pos.x;
-		const double y_com = cell_y - com_pos.y;
-		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+	    // Position in center of mass frame
+	    const double x_com = cell_x - com_pos.x;
+	    const double y_com = cell_y - com_pos.y;
+	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		// pressure support correction
-		double corr;
-		if(parameters::initialize_pure_keplerian){
-			corr = 1.0;
-		} else {
-			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-							std::pow(r_com, 2.0 * FLARINGINDEX) *
-							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-		}
+	    // pressure support correction
+	    double corr;
+	    if (parameters::initialize_pure_keplerian) {
+		corr = 1.0;
+	    } else {
+		corr =
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+	    }
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com =
+	    // Velocity in center of mass frame
+	    const double cell_vphi_com =
 		std::sqrt(constants::G * com_mass / r_com) * corr;
-		const double cell_vr_com = 0.0;
+	    const double cell_vr_com = 0.0;
 
-		const double cell_vx_com =
+	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
-		const double cell_vy_com =
+	    const double cell_vy_com =
 		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
-		// shift velocity from center of mass frame to primary frame
-		const double cell_vx = cell_vx_com + com_vel.x;
-		const double cell_vy = cell_vy_com + com_vel.y;
+	    // shift velocity from center of mass frame to primary frame
+	    const double cell_vx = cell_vx_com + com_vel.x;
+	    const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double cell_vphi =
+	    const double cell_vphi =
 		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
-		vaz(nr, naz) = cell_vphi;
+	    vaz(nr, naz) = cell_vphi;
 	} /// END V_PHI
 
 	{ /// V_R
-		const double phi = (double)naz * dphi;
-		const double rinf = Rinf[nr];
+	    const double phi = (double)naz * dphi;
+	    const double rinf = Rinf[nr];
 
-		const double cell_x = rinf * std::cos(phi);
-		const double cell_y = rinf * std::sin(phi);
+	    const double cell_x = rinf * std::cos(phi);
+	    const double cell_y = rinf * std::sin(phi);
 
-		// Position in center of mass frame
-		const double x_com = cell_x - com_pos.x;
-		const double y_com = cell_y - com_pos.y;
-		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+	    // Position in center of mass frame
+	    const double x_com = cell_x - com_pos.x;
+	    const double y_com = cell_y - com_pos.y;
+	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		// pressure support correction
-		double corr;
-		if(parameters::initialize_pure_keplerian){
-			corr = 1.0;
-		} else {
-			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-							std::pow(r_com, 2.0 * FLARINGINDEX) *
-							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-		}
+	    // pressure support correction
+	    double corr;
+	    if (parameters::initialize_pure_keplerian) {
+		corr = 1.0;
+	    } else {
+		corr =
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+	    }
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com =
+	    // Velocity in center of mass frame
+	    const double cell_vphi_com =
 		std::sqrt(constants::G * com_mass / r_com) * corr;
-		const double cell_vr_com = 0.0;
+	    const double cell_vr_com = 0.0;
 
-		const double cell_vx_com =
+	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
-		const double cell_vy_com =
+	    const double cell_vy_com =
 		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
-		// shift velocity from center of mass frame to primary frame
-		const double cell_vx = cell_vx_com + com_vel.x;
-		const double cell_vy = cell_vy_com + com_vel.y;
+	    // shift velocity from center of mass frame to primary frame
+	    const double cell_vx = cell_vx_com + com_vel.x;
+	    const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
-		vrad(nr, naz) = cell_vr;
+	    const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+	    vrad(nr, naz) = cell_vr;
 	} /// END V_R
 
 	{ /// V_R GHOST CELL
-		const double phi = (double)naz * dphi;
-		const double rinf = Rsup[nr];
+	    const double phi = (double)naz * dphi;
+	    const double rinf = Rsup[nr];
 
-		const double cell_x = rinf * std::cos(phi);
-		const double cell_y = rinf * std::sin(phi);
+	    const double cell_x = rinf * std::cos(phi);
+	    const double cell_y = rinf * std::sin(phi);
 
-		// Position in center of mass frame
-		const double x_com = cell_x - com_pos.x;
-		const double y_com = cell_y - com_pos.y;
-		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+	    // Position in center of mass frame
+	    const double x_com = cell_x - com_pos.x;
+	    const double y_com = cell_y - com_pos.y;
+	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		// pressure support correction
-		double corr;
-		if(parameters::initialize_pure_keplerian){
-			corr = 1.0;
-		} else {
-			corr = std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-							std::pow(r_com, 2.0 * FLARINGINDEX) *
-							(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-		}
+	    // pressure support correction
+	    double corr;
+	    if (parameters::initialize_pure_keplerian) {
+		corr = 1.0;
+	    } else {
+		corr =
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+	    }
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com =
+	    // Velocity in center of mass frame
+	    const double cell_vphi_com =
 		std::sqrt(constants::G * com_mass / r_com) * corr;
-		const double cell_vr_com = 0.0;
+	    const double cell_vr_com = 0.0;
 
-		const double cell_vx_com =
+	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
-		const double cell_vy_com =
+	    const double cell_vy_com =
 		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
 
-		// shift velocity from center of mass frame to primary frame
-		const double cell_vx = cell_vx_com + com_vel.x;
-		const double cell_vy = cell_vy_com + com_vel.y;
+	    // shift velocity from center of mass frame to primary frame
+	    const double cell_vx = cell_vx_com + com_vel.x;
+	    const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
-		vrad(nr+1, naz) = cell_vr;
+	    const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+	    vrad(nr + 1, naz) = cell_vr;
 	} /// END V_R GHOST CELL
 
 	{ /// DENSITY and ENERGY
-		const double cell_x = (*CellCenterX)(nr, naz);
-		const double cell_y = (*CellCenterY)(nr, naz);
+	    const double cell_x = (*CellCenterX)(nr, naz);
+	    const double cell_y = (*CellCenterY)(nr, naz);
 
-		// Position in center of mass frame
-		const double x_com = cell_x - com_pos.x;
-		const double y_com = cell_y - com_pos.y;
-		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+	    // Position in center of mass frame
+	    const double x_com = cell_x - com_pos.x;
+	    const double y_com = cell_y - com_pos.y;
+	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		const double cell_sigma =
+	    const double cell_sigma =
 		parameters::sigma0 *
 		std::pow(r_com,
 			 -SIGMASLOPE); // we assume the floor is not reached.
-		sigma(nr, naz) = cell_sigma;
+	    sigma(nr, naz) = cell_sigma;
 
-		const double cell_energy =
+	    const double cell_energy =
 		1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
 		std::pow(ASPECTRATIO_REF, 2) *
 		std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
 		constants::G * com_mass;
 
-		const double temperature_floor =
+	    const double temperature_floor =
 		parameters::minimum_temperature *
 		units::temperature.get_inverse_cgs_factor();
 
-		const double energy_floor = temperature_floor * cell_sigma /
+	    const double energy_floor = temperature_floor * cell_sigma /
 					parameters::MU * constants::R /
 					(ADIABATICINDEX - 1.0);
 
-		energy(nr, naz) = std::max(cell_energy, energy_floor);
+	    energy(nr, naz) = std::max(cell_energy, energy_floor);
 	} /// END DENSITY and ENERGY
-	}
+    }
 }
-
 
 /**
 	for viscous spreading ring comparison simulations for Jibin
 */
 void jibin_boundary_inner(t_data &data)
 {
-	if (CPU_Rank != 0)
+    if (CPU_Rank != 0)
 	return;
 
-	const double h = ASPECTRATIO_REF;
-	const double p = SIGMASLOPE;
-	const double q = 2.0*FLARINGINDEX - 1.0;
-	const double R = Rmed[0];
-	const double OmegaK = 1.0/(R*std::sqrt(R));
-	const double corr = std::sqrt(1.0 + (p+q)*h*h);
-	const double vaz = R*OmegaK * corr - R*OmegaFrame;
+    const double h = ASPECTRATIO_REF;
+    const double p = SIGMASLOPE;
+    const double q = 2.0 * FLARINGINDEX - 1.0;
+    const double R = Rmed[0];
+    const double OmegaK = 1.0 / (R * std::sqrt(R));
+    const double corr = std::sqrt(1.0 + (p + q) * h * h);
+    const double vaz = R * OmegaK * corr - R * OmegaFrame;
 
-	for (unsigned int n_azimuthal = 0;
+    for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
 
 	// copy first ring into ghost ring
 	data[t_data::DENSITY](0, n_azimuthal) =
-		data[t_data::DENSITY](1, n_azimuthal);
+	    data[t_data::DENSITY](1, n_azimuthal);
 
 	data[t_data::V_AZIMUTHAL](0, n_azimuthal) = vaz;
 
 	if (data[t_data::V_RADIAL](2, n_azimuthal) <= 0.0) { // outflow
-		data[t_data::V_RADIAL](1, n_azimuthal) =
+	    data[t_data::V_RADIAL](1, n_azimuthal) =
 		data[t_data::V_RADIAL](2, n_azimuthal);
-		data[t_data::V_RADIAL](0, n_azimuthal) =
+	    data[t_data::V_RADIAL](0, n_azimuthal) =
 		data[t_data::V_RADIAL](2, n_azimuthal);
 	} else { // reflective
-		data[t_data::V_RADIAL](1, n_azimuthal) =
+	    data[t_data::V_RADIAL](1, n_azimuthal) =
 		-data[t_data::V_RADIAL](2, n_azimuthal);
-		data[t_data::V_RADIAL](0, n_azimuthal) =
+	    data[t_data::V_RADIAL](0, n_azimuthal) =
 		-data[t_data::V_RADIAL](2, n_azimuthal);
 	}
-	}
+    }
 }
 
 /**
@@ -2054,24 +2069,23 @@ void jibin_boundary_inner(t_data &data)
 */
 void jibin_boundary_outer(t_data &data)
 {
-	if (CPU_Rank == CPU_Highest) {
+    if (CPU_Rank == CPU_Highest) {
 
 	const double h = ASPECTRATIO_REF;
 	const double p = SIGMASLOPE;
-	const double q = 2.0*FLARINGINDEX - 1.0;
+	const double q = 2.0 * FLARINGINDEX - 1.0;
 	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-	const double OmegaK = 1.0/(R*std::sqrt(R));
-	const double corr = std::sqrt(1.0 + (p+q)*h*h);
-	const double vaz = R*OmegaK * corr - R*OmegaFrame;
+	const double OmegaK = 1.0 / (R * std::sqrt(R));
+	const double corr = std::sqrt(1.0 + (p + q) * h * h);
+	const double vaz = R * OmegaK * corr - R * OmegaFrame;
 
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
-		 ++n_azimuthal) {
-		data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
-				  n_azimuthal) = vaz;
+	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	     ++n_azimuthal) {
+	    data[t_data::V_AZIMUTHAL](
+		data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) = vaz;
 	}
-	}
+    }
 }
-
 
 } // namespace boundary_conditions

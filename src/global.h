@@ -1,11 +1,11 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
+#include "pvte_law.h"
 #include "radialarray.h"
 #include "types.h"
-#include "pvte_law.h"
-#include <vector>
 #include <mpi.h>
+#include <vector>
 
 extern int CPU_Rank;
 extern int CPU_Number;

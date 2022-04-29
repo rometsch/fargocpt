@@ -66,8 +66,11 @@ void SplitDomain()
 	Zero_no_ghost = (CPU_Rank == 0) ? 1 : 0;
 	Zero_or_active = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
 	radial_first_active = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-	Max_or_active = NRadial - ((CPU_Rank == CPU_Number - 1) ? 0 : CPUOVERLAP);
-	radial_active_size = NRadial - ((CPU_Rank == CPU_Number - 1) ? GHOSTCELLS_B : CPUOVERLAP);
+	Max_or_active =
+	    NRadial - ((CPU_Rank == CPU_Number - 1) ? 0 : CPUOVERLAP);
+	radial_active_size =
+	    NRadial -
+	    ((CPU_Rank == CPU_Number - 1) ? GHOSTCELLS_B : CPUOVERLAP);
 
 	CPU_Highest = CPU_Number - 1;
 
@@ -345,11 +348,11 @@ void SplitDomain()
 	logging::print(LOG_DEBUG "SplitDomain: Zero_or_active: %d\n",
 		       Zero_or_active);
 	logging::print(LOG_DEBUG "SplitDomain: One_or_active: %d\n",
-			   radial_first_active);
+		       radial_first_active);
 	logging::print(LOG_DEBUG "SplitDomain: Max_or_active: %d\n",
 		       Max_or_active);
 	logging::print(LOG_DEBUG "SplitDomain: MaxMO_or_active: %d\n",
-			   radial_active_size);
+		       radial_active_size);
 	logging::print(LOG_DEBUG "SplitDomain: GLOB: %d\n", GlobalNRadial);
 	logging::print(LOG_DEBUG "SplitDomain: CPUOVERLAP: %d\n", CPUOVERLAP);
 	if (parameters::self_gravity) {

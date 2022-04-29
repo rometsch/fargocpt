@@ -22,9 +22,9 @@ class t_data
 	TEMPERATURE,	      // temperature
 	PRESSURE,	      // pressure
 	SOUNDSPEED,	      // soundspeed c_s (introduced by Fargo-ADSG)
-	GAMMAEFF,		  //effective adiabatic indices
-	GAMMA1,			  //first adiabatic indices
-	MU,					//mean molecular weights
+	GAMMAEFF,	      // effective adiabatic indices
+	GAMMA1,		      // first adiabatic indices
+	MU,		      // mean molecular weights
 	ACCEL_RADIAL,	      // gas accerleration in r direction
 	ACCEL_AZIMUTHAL,      // gas acceleration in phi direction
 	TOOMRE,		      // Toomre parameter Q
@@ -58,14 +58,14 @@ class t_data
 	POTENTIAL, // the gravitational potential felt by any fluid elements
 		   // (introduced by Fargo-ADSG)
 		   // 1)
-	DENSITY_INT, //
-	Q_R,	     //
-	Q_PHI,	     //
-	TAU,	     // optical depth
-	TAU_EFF,     // effective optical depth (in vertical direction)
+	DENSITY_INT,  //
+	Q_R,	      //
+	Q_PHI,	      //
+	TAU,	      // optical depth
+	TAU_EFF,      // effective optical depth (in vertical direction)
 	SCALE_HEIGHT, // scale height H
-	ASPECTRATIO, // aspectratio h = H / r
-	VISIBILITY,  //
+	ASPECTRATIO,  // aspectratio h = H / r
+	VISIBILITY,   //
 	TORQUE,
 	RHO,
 	MASSFLOW,

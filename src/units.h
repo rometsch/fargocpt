@@ -18,7 +18,6 @@ const double cgs_Year = 31556925.261; // 365.*24.*60.*60.;
 
 const double solar_radius_in_au = 0.00465047;
 
-
 class t_unit
 {
   private:

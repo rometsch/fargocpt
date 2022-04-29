@@ -34,14 +34,14 @@ t_data::t_data()
     m_polargrids[PRESSURE].set_name("pressure");
     m_polargrids[PRESSURE].set_unit(units::pressure);
 
-	m_polargrids[GAMMAEFF].set_scalar(true);
-	m_polargrids[GAMMAEFF].set_name("gammaeff");
+    m_polargrids[GAMMAEFF].set_scalar(true);
+    m_polargrids[GAMMAEFF].set_name("gammaeff");
 
-	m_polargrids[GAMMA1].set_scalar(true);
-	m_polargrids[GAMMA1].set_name("gamma1");
+    m_polargrids[GAMMA1].set_scalar(true);
+    m_polargrids[GAMMA1].set_name("gamma1");
 
-	m_polargrids[MU].set_scalar(true);
-	m_polargrids[MU].set_name("mu");
+    m_polargrids[MU].set_scalar(true);
+    m_polargrids[MU].set_name("mu");
 
     m_polargrids[ACCEL_RADIAL].set_vector(true);
     m_polargrids[ACCEL_RADIAL].set_name("arad");
@@ -199,7 +199,7 @@ t_data::t_data()
 
     m_polargrids[POTENTIAL].set_scalar(true);
     m_polargrids[POTENTIAL].set_name("potential");
-	m_polargrids[POTENTIAL].set_unit(units::potential);
+    m_polargrids[POTENTIAL].set_unit(units::potential);
 
     m_polargrids[Q_PHI].set_vector(false);
     m_polargrids[Q_PHI].set_name("q_phi");
@@ -217,13 +217,13 @@ t_data::t_data()
     m_polargrids[TAU_EFF].set_scalar(true);
     m_polargrids[TAU_EFF].set_name("tau_eff");
 
-	m_polargrids[SCALE_HEIGHT].set_scalar(true);
-	m_polargrids[SCALE_HEIGHT].set_name("scale_height");
+    m_polargrids[SCALE_HEIGHT].set_scalar(true);
+    m_polargrids[SCALE_HEIGHT].set_name("scale_height");
 
-	m_polargrids[ASPECTRATIO].set_scalar(true);
-	m_polargrids[ASPECTRATIO].set_name("aspectratio");
-	m_polargrids[ASPECTRATIO].set_do_before_write(&quantities::compute_aspectratio);
-
+    m_polargrids[ASPECTRATIO].set_scalar(true);
+    m_polargrids[ASPECTRATIO].set_name("aspectratio");
+    m_polargrids[ASPECTRATIO].set_do_before_write(
+	&quantities::compute_aspectratio);
 
     m_polargrids[VISIBILITY].set_scalar(true);
     m_polargrids[VISIBILITY].set_name("visiblity");

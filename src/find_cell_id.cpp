@@ -16,7 +16,7 @@ static double phi_cell_size;
 unsigned int clamp_r_id_to_rmed_grid(int cell_id, const bool is_vector)
 {
 
-	const int Nr_max = (int)NRadial - (is_vector? 0 : 1);
+    const int Nr_max = (int)NRadial - (is_vector ? 0 : 1);
     if (cell_id < 0) {
 	cell_id = 0;
     } else if (cell_id > Nr_max) {
@@ -29,7 +29,7 @@ unsigned int clamp_r_id_to_rmed_grid(int cell_id, const bool is_vector)
 unsigned int clamp_r_id_to_radii_grid(int cell_id, const bool is_vector)
 {
 
-	const int Nr_max = (int)NRadial - (is_vector? 0 : 1);
+    const int Nr_max = (int)NRadial - (is_vector ? 0 : 1);
     if (cell_id < 0) {
 	cell_id = 0;
     } else if (cell_id > Nr_max) {
@@ -254,7 +254,7 @@ static int get_rmed_id_custom(const double r)
 
 static int get_rinf_id_log(const double r)
 {
-	double did = std::log(r / RMIN) * inv_log_growth_factor;
+    double did = std::log(r / RMIN) * inv_log_growth_factor;
     int id = (int)std::floor(did) - IMIN + 1;
     return id;
 }

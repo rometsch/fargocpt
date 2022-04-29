@@ -24,7 +24,8 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 /**
 	Computes the acceleration due to the disk on an object at position (x,y)
 */
-Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y, const double l1)
+Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
+			      const double l1)
 {
     Pair acceleration;
     double localaccel[4] = {0., 0., 0., 0.};
@@ -37,12 +38,12 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y, cons
     axi = ayi = axo = ayo = 0.0;
     const double a = sqrt(x * x + y * y);
 
-	for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size; ++n_rad) {
+    for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size;
+	 ++n_rad) {
 	for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
-	    const double smooth =
-		compute_smoothing(data, n_rad, n_az);
+	    const double smooth = compute_smoothing(data, n_rad, n_az);
 	    const int cell_id = n_az + n_rad * ns;
 	    const double xc = cell_center_x[cell_id];
 	    const double yc = cell_center_y[cell_id];
@@ -53,32 +54,40 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y, cons
 	    const double dy = yc - y;
 	    const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 	    const double dist_sm_2 = dist_2 + std::pow(smooth, 2);
-		const double dist_sm_3 = dist_sm_2 * std::sqrt(dist_sm_2);
-		const double inv_dist_sm_3 = 1.0 / dist_sm_3;
+	    const double dist_sm_3 = dist_sm_2 * std::sqrt(dist_sm_2);
+	    const double inv_dist_sm_3 = 1.0 / dist_sm_3;
 
-		// just to be consistent with the force the gas feels from the planets
-		double smooth_factor_klahr = 1.0;
-		if(ASPECTRATIO_MODE == 1){
-			/// scale height is reduced by the planets and can cause the epsilon smoothing be not sufficient
-			/// for numerical stability.
-			/// Thus we add the gravitational potential smoothing proposed by Klahr & Kley 2005;
-			/// but the derivative of it, since we apply it directly on the force
-			if (l1 > 0.0) {
-				const double r_sm = l1 * parameters::klahr_smoothing_radius;
-				const double dist = std::sqrt(dist_2);
+	    // just to be consistent with the force the gas feels from the
+	    // planets
+	    double smooth_factor_klahr = 1.0;
+	    if (ASPECTRATIO_MODE == 1) {
+		/// scale height is reduced by the planets and can cause the
+		/// epsilon smoothing be not sufficient for numerical stability.
+		/// Thus we add the gravitational potential smoothing proposed
+		/// by Klahr & Kley 2005; but the derivative of it, since we
+		/// apply it directly on the force
+		if (l1 > 0.0) {
+		    const double r_sm = l1 * parameters::klahr_smoothing_radius;
+		    const double dist = std::sqrt(dist_2);
 
-				if(dist < r_sm && r_sm > 0.0){
-				smooth_factor_klahr = - (3.0 * std::pow(dist / r_sm, 4.0) - 4.0 * std::pow(dist / r_sm, 3.0));
-				}
-			}
+		    if (dist < r_sm && r_sm > 0.0) {
+			smooth_factor_klahr =
+			    -(3.0 * std::pow(dist / r_sm, 4.0) -
+			      4.0 * std::pow(dist / r_sm, 3.0));
+		    }
 		}
+	    }
 
 	    if (Rmed[n_rad] < a) {
-		axi += constants::G * cellmass * dx * inv_dist_sm_3 * smooth_factor_klahr;
-		ayi += constants::G * cellmass * dy * inv_dist_sm_3 * smooth_factor_klahr;
+		axi += constants::G * cellmass * dx * inv_dist_sm_3 *
+		       smooth_factor_klahr;
+		ayi += constants::G * cellmass * dy * inv_dist_sm_3 *
+		       smooth_factor_klahr;
 	    } else {
-		axo += constants::G * cellmass * dx * inv_dist_sm_3 * smooth_factor_klahr;
-		ayo += constants::G * cellmass * dy * inv_dist_sm_3 * smooth_factor_klahr;
+		axo += constants::G * cellmass * dx * inv_dist_sm_3 *
+		       smooth_factor_klahr;
+		ayo += constants::G * cellmass * dy * inv_dist_sm_3 *
+		       smooth_factor_klahr;
 	    }
 	}
     }
@@ -101,7 +110,7 @@ double compute_smoothing(t_data &data, const int n_radial,
 {
     const double scale_height =
 	data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
-	const double smooth = parameters::thickness_smoothing * scale_height;
+    const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
 
@@ -114,10 +123,9 @@ double compute_smoothing_r(t_data &data, const int n_radial,
 			   const int n_azimuthal)
 {
     const double scale_height =
-	0.5 *
-	(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
-	 data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal));
-	const double smooth = parameters::thickness_smoothing * scale_height;
+	0.5 * (data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
+	       data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal));
+    const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
 
@@ -133,9 +141,8 @@ double compute_smoothing_az(t_data &data, const int n_radial,
 			? data[t_data::SCALE_HEIGHT].get_max_azimuthal()
 			: n_azimuthal - 1;
     const double scale_height =
-	0.5 *
-	(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
-	 data[t_data::SCALE_HEIGHT](n_radial, prev_n_az));
-	const double smooth = parameters::thickness_smoothing * scale_height;
+	0.5 * (data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
+	       data[t_data::SCALE_HEIGHT](n_radial, prev_n_az));
+    const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }

@@ -31,7 +31,6 @@ const double cgs_h = 6.6260689633e-27;
 /// speed of light in cgs
 const double cgs_c = 299792458.e2;
 
-
 t_constant k_B;
 t_constant m_u;
 t_constant h;

@@ -17,8 +17,8 @@ struct misc_entry {
     double OmegaFrame;
     double FrameAngle;
     double dtemp;
-	double last_dt;
-	unsigned int N_iter;
+    double last_dt;
+    unsigned int N_iter;
 };
 
 void check_free_space(t_data &data);
@@ -36,7 +36,8 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 		       unsigned int fineOutputNumber);
 
 std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update, const double quantitiy_radius);
+					   bool force_update,
+					   const double quantitiy_radius);
 
 int get_misc(const int timestep, const bool debug);
 double get_from_ascii_file(std::string filename, unsigned int timestep,

@@ -234,11 +234,11 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	description_inner =
 	    "Damping " + description + " to zero at inner boundary.";
 	break;
-	case damping_visc:
+    case damping_visc:
 	damping_type.inner_damping_function =
-		&boundary_conditions::damping_vradial_inner_visc;
-	description_inner =
-		"Damping " + description + " to viscous radial speed at inner boundary.";
+	    &boundary_conditions::damping_vradial_inner_visc;
+	description_inner = "Damping " + description +
+			    " to viscous radial speed at inner boundary.";
 	break;
     }
 
@@ -268,8 +268,10 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	description_outer =
 	    "Damping " + description + " to zero at outer boundary.";
 	break;
-	case damping_visc:
-	die(("Damping " + description + " to viscous radial speed at outer boundary not implemented!\n").c_str());
+    case damping_visc:
+	die(("Damping " + description +
+	     " to viscous radial speed at outer boundary not implemented!\n")
+		.c_str());
 	break;
     }
 
@@ -335,17 +337,20 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteTemperature", false), do_write_1D);
     data[t_data::SOUNDSPEED].set_write(
 	config::value_as_bool_default("WriteSoundSpeed", false), do_write_1D);
-	data[t_data::GAMMAEFF].set_write(
-	config::value_as_bool_default("WriteEffectiveGamma", false), do_write_1D);
-	data[t_data::GAMMA1].set_write(
-	config::value_as_bool_default("WriteFirstAdiabaticIndex", false), do_write_1D);
-	data[t_data::MU].set_write(
-	config::value_as_bool_default("WriteMeanMolecularWeight", false), do_write_1D);
+    data[t_data::GAMMAEFF].set_write(
+	config::value_as_bool_default("WriteEffectiveGamma", false),
+	do_write_1D);
+    data[t_data::GAMMA1].set_write(
+	config::value_as_bool_default("WriteFirstAdiabaticIndex", false),
+	do_write_1D);
+    data[t_data::MU].set_write(
+	config::value_as_bool_default("WriteMeanMolecularWeight", false),
+	do_write_1D);
     data[t_data::PRESSURE].set_write(
 	config::value_as_bool_default("WritePressure", false), do_write_1D);
     data[t_data::TOOMRE].set_write(
 	config::value_as_bool_default("WriteToomre", false), do_write_1D);
-	data[t_data::POTENTIAL].set_write(
+    data[t_data::POTENTIAL].set_write(
 	config::value_as_bool_default("WritePotential", false), do_write_1D);
     data[t_data::QPLUS].set_write(
 	config::value_as_bool_default("WriteQPlus", false), do_write_1D);
@@ -387,9 +392,9 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WritepDV", false), do_write_1D);
     data[t_data::TAU].set_write(
 	config::value_as_bool_default("WriteTau", false), do_write_1D);
-	data[t_data::SCALE_HEIGHT].set_write(
+    data[t_data::SCALE_HEIGHT].set_write(
 	config::value_as_bool_default("WriteScaleHeight", false), do_write_1D);
-	data[t_data::ASPECTRATIO].set_write(
+    data[t_data::ASPECTRATIO].set_write(
 	config::value_as_bool_default("WriteAspectratio", false), do_write_1D);
     data[t_data::VISIBILITY].set_write(
 	config::value_as_bool_default("WriteVisibility", false), do_write_1D);
@@ -455,7 +460,7 @@ void read(char *filename, t_data &data)
     case 'n':
 	boundary_inner = boundary_condition_nonreflecting;
 	break;
-	case 'c':
+    case 'c':
 	boundary_inner = boundary_condition_center_of_mass_initial;
 	break;
     case 'e':
@@ -467,7 +472,7 @@ void read(char *filename, t_data &data)
     case 'v':
 	boundary_inner = boundary_condition_viscous_outflow;
 	break;
-	case 'j':
+    case 'j':
 	boundary_inner = boundary_condition_jibin_spreading_ring;
 	break;
     case 'b':
@@ -479,7 +484,7 @@ void read(char *filename, t_data &data)
     case 'p':
 	boundary_inner = boundary_condition_precribed_time_variable;
 	break;
-	case 'z':
+    case 'z':
 	boundary_inner = boundary_condition_zero_gradient;
 	break;
     default:
@@ -495,7 +500,7 @@ void read(char *filename, t_data &data)
     case 'n':
 	boundary_outer = boundary_condition_nonreflecting;
 	break;
-	case 'c':
+    case 'c':
 	boundary_outer = boundary_condition_center_of_mass_initial;
 	break;
     case 'e':
@@ -507,7 +512,7 @@ void read(char *filename, t_data &data)
     case 'v':
 	boundary_outer = boundary_condition_viscous_outflow;
 	break;
-	case 'j':
+    case 'j':
 	boundary_outer = boundary_condition_jibin_spreading_ring;
 	break;
     case 'b':
@@ -519,7 +524,7 @@ void read(char *filename, t_data &data)
     case 'p':
 	boundary_outer = boundary_condition_precribed_time_variable;
 	break;
-	case 'z':
+    case 'z':
 	boundary_outer = boundary_condition_zero_gradient;
 	break;
     default:
@@ -546,8 +551,8 @@ void read(char *filename, t_data &data)
     domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
 
     if (domegadr_zero)
-	logging::print_master(LOG_INFO
-				  "Using zero torque condition at outer boundary\n");
+	logging::print_master(
+	    LOG_INFO "Using zero torque condition at outer boundary\n");
 
     viscous_outflow_speed =
 	config::value_as_double_default("ViscousOutflowSpeed", 1.0);
@@ -578,15 +583,15 @@ void read(char *filename, t_data &data)
     tmp_damping_outer =
 	config::value_as_boudary_damping_default("DampingVRadialOuter", "None");
 
-	if(tmp_damping_inner == parameters::t_damping_type::damping_visc){
-    damping_vector.push_back(
-	write_damping_type(tmp_damping_inner, tmp_damping_outer,
-			   t_data::V_RADIAL, t_data::VISCOSITY, "VRadial"));
-	} else {
-		damping_vector.push_back(
-		write_damping_type(tmp_damping_inner, tmp_damping_outer,
-				   t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
-	}
+    if (tmp_damping_inner == parameters::t_damping_type::damping_visc) {
+	damping_vector.push_back(
+	    write_damping_type(tmp_damping_inner, tmp_damping_outer,
+			       t_data::V_RADIAL, t_data::VISCOSITY, "VRadial"));
+    } else {
+	damping_vector.push_back(
+	    write_damping_type(tmp_damping_inner, tmp_damping_outer,
+			       t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
+    }
 
     if (config::key_exists("DampingVAzimuthal"))
 	die("DampingVRadial flag is decrepated used DampingVAzimuthalInner and DampingVAzimuthalOuter instead!");
@@ -687,11 +692,13 @@ void read(char *filename, t_data &data)
     case 'p': // Profile
 	sigma_initialize_condition = initialize_condition_profile;
 	break;
-	case 'n': // Profile
-	sigma_initialize_condition = initialize_condition_profile_Nbody_centered;
-	energy_initialize_condition = initialize_condition_profile_Nbody_centered;
-	if(!initialize_pure_keplerian){
-		die("initialize_condition_profile_Nbody_centered option requires initialize_pure_keplerian to be true!\n(Due to missing global arrays for initialzation)\n");
+    case 'n': // Profile
+	sigma_initialize_condition =
+	    initialize_condition_profile_Nbody_centered;
+	energy_initialize_condition =
+	    initialize_condition_profile_Nbody_centered;
+	if (!initialize_pure_keplerian) {
+	    die("initialize_condition_profile_Nbody_centered option requires initialize_pure_keplerian to be true!\n(Due to missing global arrays for initialzation)\n");
 	}
 	break;
     case '1': // 1D
@@ -722,9 +729,11 @@ void read(char *filename, t_data &data)
     case 'p': // Profile
 	energy_initialize_condition = initialize_condition_profile;
 	break;
-	case 'n': // Profile
-	sigma_initialize_condition = initialize_condition_profile_Nbody_centered;
-	energy_initialize_condition = initialize_condition_profile_Nbody_centered;
+    case 'n': // Profile
+	sigma_initialize_condition =
+	    initialize_condition_profile_Nbody_centered;
+	energy_initialize_condition =
+	    initialize_condition_profile_Nbody_centered;
 	break;
     case '1': // 1D
 	energy_initialize_condition = initialize_condition_read1D;
@@ -756,8 +765,9 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("FeatureSize", (RMAX - RMIN) / 150);
     sigma_floor = config::value_as_double_default("SigmaFloor", 1e-9);
     sigma0 = config::value_as_double_default("SIGMA0", 173.);
-	sigma0_in_code_units = config::value_as_bool_default("Sigma0InCodeUnits", false);
-	sigma_adjust = config::value_as_bool_default("SetSigma0", false);
+    sigma0_in_code_units =
+	config::value_as_bool_default("Sigma0InCodeUnits", false);
+    sigma_adjust = config::value_as_bool_default("SetSigma0", false);
     sigma_discmass = config::value_as_double_default("discmass", 0.01);
     density_factor =
 	config::value_as_double_default("DensityFactor", std::sqrt(2.0 * M_PI));
@@ -805,14 +815,15 @@ void read(char *filename, t_data &data)
     thickness_smoothing_sg = config::value_as_double_default(
 	"ThicknessSmoothingSG", thickness_smoothing);
     integrate_planets = config::value_as_bool_default("IntegratePlanets", true);
-	do_init_secondary_disk = config::value_as_bool_default("SecondaryDisk", false);
+    do_init_secondary_disk =
+	config::value_as_bool_default("SecondaryDisk", false);
 
     // mass overflow
     massoverflow = config::value_as_bool_default("massoverflow", false);
     mof_planet = config::value_as_int_default("mofplanet", 1);
     mof_temperature = config::value_as_double_default("moftemperature", 1000.0);
     mof_value = config::value_as_double_default("mofvalue", 10E-9);
-	mof_rampingtime = config::value_as_double_default("moframpingtime", 30.0);
+    mof_rampingtime = config::value_as_double_default("moframpingtime", 30.0);
 
     // profile damping outer
     profile_cutoff_outer =
@@ -906,7 +917,7 @@ void read(char *filename, t_data &data)
 		star_radius);
 	}
     }
-	star_radius *= units::solar_radius_in_au / L0; // convert to code units
+    star_radius *= units::solar_radius_in_au / L0; // convert to code units
 
     // boundary layer parameters
     radial_viscosity_factor =
@@ -916,15 +927,16 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("StellarRotation", 0.1);
     mass_accretion_rate =
 	config::value_as_double_default("MassAccretionRate", 1.e-9);
-	accretion_radius_fraction =
+    accretion_radius_fraction =
 	config::value_as_double_default("MassAccretionRadius", 1.0);
-	klahr_smoothing_radius =
-	config::value_as_double_default("KlahrSmoothingRadius", accretion_radius_fraction);
+    klahr_smoothing_radius = config::value_as_double_default(
+	"KlahrSmoothingRadius", accretion_radius_fraction);
 
     CFL = config::value_as_double_default("CFL", 0.5);
-	HEATING_COOLING_CFL_LIMIT = config::value_as_double_default("HeatingCoolingCFLlimit", 5.0e-2);
+    HEATING_COOLING_CFL_LIMIT =
+	config::value_as_double_default("HeatingCoolingCFLlimit", 5.0e-2);
 
-	CFL_max_var = config::value_as_double_default("CFLmaxVar", 1.1);
+    CFL_max_var = config::value_as_double_default("CFLmaxVar", 1.1);
 
     // particles
     CartesianParticles =
@@ -1054,9 +1066,9 @@ void apply_units()
 			  (units::cgs_Msol / units::cgs_Year) * 1. /
 			  units::mass_accretion_rate.get_cgs_factor();
 
-	if(!sigma0_in_code_units) {
-		sigma0 /= units::surface_density.get_cgs_factor();
-	}
+    if (!sigma0_in_code_units) {
+	sigma0 /= units::surface_density.get_cgs_factor();
+    }
     particle_radius /= units::length.get_cgs_factor();
     particle_density /= units::density.get_cgs_factor();
 }
@@ -1099,9 +1111,10 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'reflecting boundary condition' at inner boundary.\n");
 	break;
-	case boundary_condition_zero_gradient:
+    case boundary_condition_zero_gradient:
 	logging::print_master(
-		LOG_INFO "Using 'zero gradient boundary condition' at inner boundary.\n");
+	    LOG_INFO
+	    "Using 'zero gradient boundary condition' at inner boundary.\n");
 	break;
     case boundary_condition_nonreflecting:
 	logging::print_master(
@@ -1118,10 +1131,10 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at inner boundary.\n");
 	break;
-	case boundary_condition_jibin_spreading_ring:
+    case boundary_condition_jibin_spreading_ring:
 	logging::print_master(
-		LOG_INFO
-		"Using 'boundary_condition_jibin_spreading_ring' at inner boundary.\n");
+	    LOG_INFO
+	    "Using 'boundary_condition_jibin_spreading_ring' at inner boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
 	logging::print_master(
@@ -1136,7 +1149,7 @@ void summarize_parameters()
     case boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
-	case boundary_condition_center_of_mass_initial:
+    case boundary_condition_center_of_mass_initial:
 	die("Inner boundary initial condition in center of mass is not implemented yet!\n");
 	break;
     }
@@ -1151,9 +1164,10 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'reflecting boundary condition' at outer boundary.\n");
 	break;
-	case boundary_condition_zero_gradient:
+    case boundary_condition_zero_gradient:
 	logging::print_master(
-		LOG_INFO "Using 'zero gradient boundary condition' at outer boundary.\n");
+	    LOG_INFO
+	    "Using 'zero gradient boundary condition' at outer boundary.\n");
 	break;
     case boundary_condition_nonreflecting:
 	logging::print_master(
@@ -1173,10 +1187,10 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
 	break;
-	case boundary_condition_jibin_spreading_ring:
+    case boundary_condition_jibin_spreading_ring:
 	logging::print_master(
-		LOG_INFO
-		"Using 'boundary_condition_jibin_spreading_ring' at outer boundary.\n");
+	    LOG_INFO
+	    "Using 'boundary_condition_jibin_spreading_ring' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
 	if (domegadr_zero) {
@@ -1199,10 +1213,10 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'time variable boundary conditions' at inner boundary.\n");
 	break;
-	case boundary_condition_center_of_mass_initial:
+    case boundary_condition_center_of_mass_initial:
 	logging::print_master(
-		LOG_INFO
-		"Using 'initial boundary in center of mass frame' at outer boundary.\n");
+	    LOG_INFO
+	    "Using 'initial boundary in center of mass frame' at outer boundary.\n");
 	break;
     }
 
@@ -1210,9 +1224,8 @@ void summarize_parameters()
     if (parameters::massoverflow) {
 	logging::print_master(
 	    LOG_INFO
-		"Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K and ramping time t_ramp = %g P_orb.\n",
-			mof_planet, mof_value, mof_temperature, mof_rampingtime);
-
+	    "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K and ramping time t_ramp = %g P_orb.\n",
+	    mof_planet, mof_value, mof_temperature, mof_rampingtime);
     }
 
     // Boundary layer
@@ -1285,11 +1298,14 @@ void summarize_parameters()
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
 
-	if(Adiabatic){
-	logging::print_master(LOG_INFO "CFL parameter: %g	heating/cooling (dT/T) limited to %g%% per hydro step\n", CFL, 100.0 * HEATING_COOLING_CFL_LIMIT);
-	} else {
-		logging::print_master(LOG_INFO "CFL parameter: %g\n", CFL);
-	}
+    if (Adiabatic) {
+	logging::print_master(
+	    LOG_INFO
+	    "CFL parameter: %g	heating/cooling (dT/T) limited to %g%% per hydro step\n",
+	    CFL, 100.0 * HEATING_COOLING_CFL_LIMIT);
+    } else {
+	logging::print_master(LOG_INFO "CFL parameter: %g\n", CFL);
+    }
 
     switch (opacity) {
     case opacity_lin:

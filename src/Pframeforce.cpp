@@ -68,7 +68,7 @@ void ComputeIndirectTerm(t_data &data)
 	IndirectTermPlanets.x -= mass * accel.x;
 	IndirectTermPlanets.y -= mass * accel.y;
 	mass_center += mass;
-	}
+    }
     IndirectTermPlanets.x /= mass_center;
     IndirectTermPlanets.y /= mass_center;
 
@@ -88,8 +88,8 @@ void CalculateNbodyPotential(t_data &data)
     static std::vector<double> xpl(N_planets);
     static std::vector<double> ypl(N_planets);
     static std::vector<double> mpl(N_planets);
-	static std::vector<double> dist_to_prim_pl(N_planets);
-	static std::vector<double> l1pl(N_planets);
+    static std::vector<double> dist_to_prim_pl(N_planets);
+    static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
@@ -98,9 +98,9 @@ void CalculateNbodyPotential(t_data &data)
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 
-	if(ASPECTRATIO_MODE == 1){
-	dist_to_prim_pl[k] = planet.get_distance_to_primary();
-	l1pl[k] = planet.get_dimensionless_roche_radius();
+	if (ASPECTRATIO_MODE == 1) {
+	    dist_to_prim_pl[k] = planet.get_distance_to_primary();
+	    l1pl[k] = planet.get_dimensionless_roche_radius();
 	}
     }
 
@@ -118,34 +118,41 @@ void CalculateNbodyPotential(t_data &data)
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double smooth =
-			compute_smoothing(data, n_rad, n_az);
+		const double smooth = compute_smoothing(data, n_rad, n_az);
 		const double dx = x - xpl[k];
 		const double dy = y - ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
-		const double d_smoothed = std::sqrt(dist_2 + std::pow(smooth, 2));
+		const double d_smoothed =
+		    std::sqrt(dist_2 + std::pow(smooth, 2));
 
 		double smooth_factor_klahr = 1.0;
 
-		if(ASPECTRATIO_MODE == 1){
-			/// scale height is reduced by the planets and can cause the epsilon smoothing be not sufficient
-			/// for numerical stability.
-			/// Thus we add the gravitational potential smoothing proposed by Klahr & Kley 2005.
-			if (k > 0) { // only for non central objects
-				// position of the l1 point between planet and central star.
-				const double l1 = l1pl[k] * dist_to_prim_pl[k];
-				const double r_sm = l1 * parameters::klahr_smoothing_radius;
+		if (ASPECTRATIO_MODE == 1) {
+		    /// scale height is reduced by the planets and can cause the
+		    /// epsilon smoothing be not sufficient for numerical
+		    /// stability. Thus we add the gravitational potential
+		    /// smoothing proposed by Klahr & Kley 2005.
+		    if (k > 0) { // only for non central objects
+			// position of the l1 point between planet and central
+			// star.
+			const double l1 = l1pl[k] * dist_to_prim_pl[k];
+			const double r_sm =
+			    l1 * parameters::klahr_smoothing_radius;
 
-				const double dist = std::sqrt(dist_2);
+			const double dist = std::sqrt(dist_2);
 
-				if(dist < r_sm){
-				smooth_factor_klahr = (std::pow(dist / r_sm, 4.0) - 2.0 * std::pow(dist / r_sm, 3.0) + 2.0 * dist/r_sm);
-				}
+			if (dist < r_sm) {
+			    smooth_factor_klahr =
+				(std::pow(dist / r_sm, 4.0) -
+				 2.0 * std::pow(dist / r_sm, 3.0) +
+				 2.0 * dist / r_sm);
 			}
+		    }
 		}
 
 		// direct term from planet
-		pot(n_rad, n_az) += -constants::G * mpl[k] / d_smoothed * smooth_factor_klahr;
+		pot(n_rad, n_az) +=
+		    -constants::G * mpl[k] / d_smoothed * smooth_factor_klahr;
 	    }
 	    // apply indirect term
 	    // correct frame with contributions from disk and planets
@@ -162,8 +169,8 @@ void CalculateAccelOnGas(t_data &data)
     static std::vector<double> xpl(N_planets);
     static std::vector<double> ypl(N_planets);
     static std::vector<double> mpl(N_planets);
-	static std::vector<double> dist_to_prim_pl(N_planets);
-	static std::vector<double> l1pl(N_planets);
+    static std::vector<double> dist_to_prim_pl(N_planets);
+    static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
@@ -172,9 +179,9 @@ void CalculateAccelOnGas(t_data &data)
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 
-	if(ASPECTRATIO_MODE == 1){
-	dist_to_prim_pl[k] = planet.get_distance_to_primary();
-	l1pl[k] = planet.get_dimensionless_roche_radius();
+	if (ASPECTRATIO_MODE == 1) {
+	    dist_to_prim_pl[k] = planet.get_distance_to_primary();
+	    l1pl[k] = planet.get_dimensionless_roche_radius();
 	}
     }
 
@@ -206,27 +213,35 @@ void CalculateAccelOnGas(t_data &data)
 
 		double smooth_factor_klahr = 1.0;
 
-		if(ASPECTRATIO_MODE == 1){
-			/// scale height is reduced by the planets and can cause the epsilon smoothing be not sufficient
-			/// for numerical stability.
-			/// Thus we add the gravitational potential smoothing proposed by Klahr & Kley 2005;
-			/// but the derivative of it, since we apply it directly on the force
-			if (k > 0) { // only for non central objects
-				// position of the l1 point between planet and central star.
-				const double l1 = l1pl[k] * dist_to_prim_pl[k];
-				const double r_sm = l1 * parameters::klahr_smoothing_radius;
+		if (ASPECTRATIO_MODE == 1) {
+		    /// scale height is reduced by the planets and can cause the
+		    /// epsilon smoothing be not sufficient for numerical
+		    /// stability. Thus we add the gravitational potential
+		    /// smoothing proposed by Klahr & Kley 2005; but the
+		    /// derivative of it, since we apply it directly on the
+		    /// force
+		    if (k > 0) { // only for non central objects
+			// position of the l1 point between planet and central
+			// star.
+			const double l1 = l1pl[k] * dist_to_prim_pl[k];
+			const double r_sm =
+			    l1 * parameters::klahr_smoothing_radius;
 
-				const double dist = std::sqrt(dist_2);
+			const double dist = std::sqrt(dist_2);
 
-				if(dist < r_sm){
-				smooth_factor_klahr = - (3.0 * std::pow(dist / r_sm, 4.0) - 4.0 * std::pow(dist / r_sm, 3.0));
-				}
+			if (dist < r_sm) {
+			    smooth_factor_klahr =
+				-(3.0 * std::pow(dist / r_sm, 4.0) -
+				  4.0 * std::pow(dist / r_sm, 3.0));
 			}
+		    }
 		}
 
 		// direct term from planet
-		ar.x -= dx * constants::G * mpl[k] * inv_dist_3_sm * smooth_factor_klahr;
-		ar.y -= dy * constants::G * mpl[k] * inv_dist_3_sm * smooth_factor_klahr;
+		ar.x -= dx * constants::G * mpl[k] * inv_dist_3_sm *
+			smooth_factor_klahr;
+		ar.y -= dy * constants::G * mpl[k] * inv_dist_3_sm *
+			smooth_factor_klahr;
 	    }
 
 	    const double accel = std::cos(phi) * ar.x + std::sin(phi) * ar.y;
@@ -285,26 +300,35 @@ void CalculateAccelOnGas(t_data &data)
 
 		double smooth_factor_klahr = 1.0;
 
-		if(ASPECTRATIO_MODE == 1){
-			/// scale height is reduced by the planets and can cause the epsilon smoothing be not sufficient
-			/// for numerical stability.
-			/// Thus we add the gravitational potential smoothing proposed by Klahr & Kley 2005;
-			/// but the derivative of it, since we apply it directly on the force
-			if (k > 0) { // only for non central objects
-				// position of the l1 point between planet and central star.
-				const double l1 = l1pl[k] * dist_to_prim_pl[k];
-				const double r_sm = l1 * parameters::klahr_smoothing_radius;
+		if (ASPECTRATIO_MODE == 1) {
+		    /// scale height is reduced by the planets and can cause the
+		    /// epsilon smoothing be not sufficient for numerical
+		    /// stability. Thus we add the gravitational potential
+		    /// smoothing proposed by Klahr & Kley 2005; but the
+		    /// derivative of it, since we apply it directly on the
+		    /// force
+		    if (k > 0) { // only for non central objects
+			// position of the l1 point between planet and central
+			// star.
+			const double l1 = l1pl[k] * dist_to_prim_pl[k];
+			const double r_sm =
+			    l1 * parameters::klahr_smoothing_radius;
 
-				const double dist = std::sqrt(dist_2);
+			const double dist = std::sqrt(dist_2);
 
-				if(dist < r_sm){
-				smooth_factor_klahr = - (3.0 * std::pow(dist / r_sm, 4.0) - 4.0 * std::pow(dist / r_sm, 3.0));
-				}			}
+			if (dist < r_sm) {
+			    smooth_factor_klahr =
+				-(3.0 * std::pow(dist / r_sm, 4.0) -
+				  4.0 * std::pow(dist / r_sm, 3.0));
+			}
+		    }
 		}
 
 		// direct term from planet
-		aphi.x -= dx * constants::G * mpl[k] * inv_dist_3_sm * smooth_factor_klahr;
-		aphi.y -= dy * constants::G * mpl[k] * inv_dist_3_sm * smooth_factor_klahr;
+		aphi.x -= dx * constants::G * mpl[k] * inv_dist_3_sm *
+			  smooth_factor_klahr;
+		aphi.y -= dy * constants::G * mpl[k] * inv_dist_3_sm *
+			  smooth_factor_klahr;
 	    }
 
 	    const double accel =
@@ -356,19 +380,22 @@ void ComputeDiskOnNbodyAccel(t_data &data)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	double l1 = -1.0; // l1 = 0.0 causes divide by 0 error. I believe its because of lazy if(...) evaluation.
-	if(k > 0){
-		l1 = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
+	double l1 = -1.0; // l1 = 0.0 causes divide by 0 error. I believe its
+			  // because of lazy if(...) evaluation.
+	if (k > 0) {
+	    l1 = planet.get_dimensionless_roche_radius() *
+		 planet.get_distance_to_primary();
 	}
 
-	accel = ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
+	accel =
+	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
 	planet.set_disk_on_planet_acceleration(accel);
 
 	const double torque =
 	    (planet.get_x() * accel.y - planet.get_y() * accel.x) *
 	    planet.get_mass();
 	planet.set_torque(torque);
-	}
+    }
 }
 
 /**

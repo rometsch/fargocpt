@@ -17,7 +17,7 @@ void calculate_advection_torque(t_data &data, const double dt)
     t_polargrid &vr = data[t_data::V_RADIAL];
     t_polargrid &dens = data[t_data::DENSITY];
 
-	for (unsigned int n_r = 0; n_r < t_adv.get_size_radial(); ++n_r) {
+    for (unsigned int n_r = 0; n_r < t_adv.get_size_radial(); ++n_r) {
 
 	const double r = Rmed[n_r];
 	const double inv_dr = InvDiffRsup[n_r];
@@ -60,7 +60,8 @@ void calculate_viscous_torque(t_data &data, const double dt)
 	const double inv_dr_med_top = InvDiffRmed[n_r + 1];
 	const double inv_dr_med_bot = InvDiffRmed[n_r];
 
-	for (unsigned int n_az = 0; n_az < t_visc.get_size_azimuthal(); ++n_az) {
+	for (unsigned int n_az = 0; n_az < t_visc.get_size_azimuthal();
+	     ++n_az) {
 	    const double sigma_cell = dens(n_r, n_az);
 	    const double viscosity_cell = visc(n_r, n_az);
 
@@ -128,7 +129,7 @@ void calculate_gravitational_torque(t_data &data, const double dt)
     t_polargrid &t_grav = data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED];
     t_polargrid &pot_grav = data[t_data::POTENTIAL];
 
-	for (unsigned int n_r = 0; n_r < t_grav.get_size_radial(); ++n_r) {
+    for (unsigned int n_r = 0; n_r < t_grav.get_size_radial(); ++n_r) {
 
 	const double r = Rmed[n_r];
 	const double dr = (Rsup[n_r] - Rinf[n_r]);

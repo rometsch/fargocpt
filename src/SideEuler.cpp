@@ -54,7 +54,7 @@ void CheckAngularMomentumConservation(t_data &data)
     double xplanet, yplanet, vxplanet, vyplanet;
     double rpl, thetapl, vazimpl, masspl;
 
-	gasAngularMomentum = quantities::gas_angular_momentum(data, RMAX);
+    gasAngularMomentum = quantities::gas_angular_momentum(data, RMAX);
 
     // computate angular momentum for each planet and sum up
     for (nPlanet = 0;
@@ -493,7 +493,7 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 
     if (CPU_Rank == 0) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
+	     n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
 	    v_azimuthal(0, n_azimuthal) = VKepIn - Rb[0] * OmegaFrame;
 	}
     }
@@ -537,7 +537,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 
     if (CPU_Rank == CPU_Highest) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
+	     n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
 	    v_azimuthal(v_azimuthal.get_max_radial(), n_azimuthal) =
 		VKepOut - Rb[v_azimuthal.get_max_radial()] * OmegaFrame;
 	}
@@ -548,10 +548,10 @@ void correct_v_azimuthal(t_polargrid &v_azimuthal, double dOmega)
 {
     // TODO: maybe think about max-1 here as this might be alread set in
     // boundary condition or change in ApplySubKeplerianBoundary
-	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
+    for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
+	     n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
 	    v_azimuthal(n_radial, n_azimuthal) -= dOmega * Rb[n_radial];
 	}
     }

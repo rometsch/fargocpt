@@ -3,6 +3,7 @@
 #include "LowTasks.h"
 #include "Pframeforce.h"
 #include "SideEuler.h"
+#include "Theo.h"
 #include "constants.h"
 #include "global.h"
 #include "logging.h"
@@ -14,7 +15,6 @@
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
-#include "Theo.h"
 
 #include <dirent.h>
 #include <math.h>
@@ -125,8 +125,8 @@ const std::map<const std::string, const int> quantities_file_column_v2_3 = {
     {"azimuthal kinetic energy", 11},
     {"eccentricity", 12},
     {"periastron", 13},
-	{"viscous dissipation", 14},
-	{"luminosity", 15},
+    {"viscous dissipation", 14},
+    {"luminosity", 15},
     {"pdivv", 16},
     {"delta mass inner positive", 17},
     {"delta mass inner negative", 18},
@@ -146,8 +146,8 @@ const std::map<const std::string, const std::string> quantities_file_variables =
      {"internal energy", "energy"},
      {"kinematic energy", "energy"},
      {"potential energy", "energy"},
-	 {"viscous dissipation", "power"},
-	 {"luminosity", "power"},
+     {"viscous dissipation", "power"},
+     {"luminosity", "power"},
      {"pdivv", "pressure per time"},
      {"radial kinetic energy", "energy"},
      {"azimuthal kinetic energy", "energy"},
@@ -318,47 +318,59 @@ void write_quantities(t_data &data, bool force_update)
 	}
     }
 
-	double quantities_limit_radius;
-	if(quantities_radius_limit < 0.0){
-		auto &primary = data.get_planetary_system().get_planet(0);
-		// distance to primary is distance to secondary for the primary
-		quantities_limit_radius = primary.get_distance_to_primary() * primary.get_dimensionless_roche_radius();
-	} else {
-		quantities_limit_radius = quantities_radius_limit;
-	}
+    double quantities_limit_radius;
+    if (quantities_radius_limit < 0.0) {
+	auto &primary = data.get_planetary_system().get_planet(0);
+	// distance to primary is distance to secondary for the primary
+	quantities_limit_radius = primary.get_distance_to_primary() *
+				  primary.get_dimensionless_roche_radius();
+    } else {
+	quantities_limit_radius = quantities_radius_limit;
+    }
 
-	const auto disk_quantities = reduce_disk_quantities(data, N_output, force_update, quantities_limit_radius);
-	const double disk_eccentricity = disk_quantities[0];
-	const double disk_periastron = disk_quantities[1];
+    const auto disk_quantities = reduce_disk_quantities(
+	data, N_output, force_update, quantities_limit_radius);
+    const double disk_eccentricity = disk_quantities[0];
+    const double disk_periastron = disk_quantities[1];
 
     // computate absolute deviation from start values (this has to be done on
     // all nodes!)
 
-	const double totalMass = quantities::gas_total_mass(data, quantities_limit_radius);
+    const double totalMass =
+	quantities::gas_total_mass(data, quantities_limit_radius);
 
-	if(totalMass <= 0.0){ // If roche lobe is smaller than RMIN
-		quantities::gas_total_mass(data, RMAX);
-	}
+    if (totalMass <= 0.0) { // If roche lobe is smaller than RMIN
+	quantities::gas_total_mass(data, RMAX);
+    }
 
-	const double diskRadius = quantities::gas_disk_radius(data, totalMass);
-	const double totalAngularMomentum = quantities::gas_angular_momentum(data, quantities_limit_radius);
-	const double internalEnergy = quantities::gas_internal_energy(data, quantities_limit_radius);
-	const double qplus = quantities::gas_viscous_dissipation(data, quantities_limit_radius);
-	const double qminus = quantities::gas_luminosity(data, quantities_limit_radius);
-	const double kinematicEnergy = quantities::gas_kinematic_energy(data, quantities_limit_radius);
-	const double radialKinematicEnergy =
+    const double diskRadius = quantities::gas_disk_radius(data, totalMass);
+    const double totalAngularMomentum =
+	quantities::gas_angular_momentum(data, quantities_limit_radius);
+    const double internalEnergy =
+	quantities::gas_internal_energy(data, quantities_limit_radius);
+    const double qplus =
+	quantities::gas_viscous_dissipation(data, quantities_limit_radius);
+    const double qminus =
+	quantities::gas_luminosity(data, quantities_limit_radius);
+    const double kinematicEnergy =
+	quantities::gas_kinematic_energy(data, quantities_limit_radius);
+    const double radialKinematicEnergy =
 	quantities::gas_radial_kinematic_energy(data, quantities_limit_radius);
-	const double azimuthalKinematicEnergy =
-	quantities::gas_azimuthal_kinematic_energy(data, quantities_limit_radius);
+    const double azimuthalKinematicEnergy =
+	quantities::gas_azimuthal_kinematic_energy(data,
+						   quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data);
     }
-	const double gravitationalEnergy = quantities::gas_gravitational_energy(data, quantities_limit_radius);
-	const double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
+    const double gravitationalEnergy =
+	quantities::gas_gravitational_energy(data, quantities_limit_radius);
+    const double totalEnergy =
+	internalEnergy + kinematicEnergy + gravitationalEnergy;
 
-	quantities::compute_aspectratio(data, N_output, force_update);
-	const double scale_height = quantities::gas_aspect_ratio(data, quantities_limit_radius);
+    quantities::compute_aspectratio(data, N_output, force_update);
+    const double scale_height =
+	quantities::gas_aspect_ratio(data, quantities_limit_radius);
 
     double pdivv_total = 0.0;
     double InnerPositive = 0.0;
@@ -391,7 +403,7 @@ void write_quantities(t_data &data, bool force_update)
 	fprintf(
 	    fd,
 	    "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
-		N_output, N_outer_loop, PhysicalTime, totalMass, diskRadius,
+	    N_output, N_outer_loop, PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
@@ -462,8 +474,8 @@ void write_misc(const bool debug_file)
 	PersonalExit(1);
     }
 
-	misc_entry misc{N_output,	N_outer_loop,  PhysicalTime,
-			OmegaFrame, FrameAngle, dtemp, last_dt, N_hydro_iter};
+    misc_entry misc{N_output,	N_outer_loop, PhysicalTime, OmegaFrame,
+		    FrameAngle, dtemp,	      last_dt,	    N_hydro_iter};
 
     wf.write((char *)&misc, sizeof(misc));
 
@@ -531,7 +543,8 @@ std::string text_file_variable_description(
     // could also do this somewhere in initialization...
     std::map<std::string, std::string> unit_descriptors = {
 	{"mass", units::mass.get_cgs_factor_symbol()},
-	{"mass accretion rate", units::mass_accretion_rate.get_cgs_factor_symbol()},
+	{"mass accretion rate",
+	 units::mass_accretion_rate.get_cgs_factor_symbol()},
 	{"angular_momentum", units::angular_momentum.get_cgs_factor_symbol()},
 	{"time", units::time.get_cgs_factor_symbol()},
 	{"energy", units::energy.get_cgs_factor_symbol()},
@@ -654,13 +667,13 @@ int get_misc(const int timestep, const bool debug)
 	die("End\n");
     }
 
-	N_outer_loop = misc.nTimeStep;
+    N_outer_loop = misc.nTimeStep;
     PhysicalTime = misc.PhysicalTime;
     OmegaFrame = misc.OmegaFrame;
     FrameAngle = misc.FrameAngle;
     dtemp = misc.dtemp;
-	last_dt = misc.last_dt;
-	N_hydro_iter = misc.N_iter;
+    last_dt = misc.last_dt;
+    N_hydro_iter = misc.N_iter;
 
     rf.close();
     return misc.timestep;
@@ -695,8 +708,8 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 		// i.e. for thickness smoothing with scale height at cell
 		// location
 
-		const double smooth = compute_smoothing(data,
-							n_radial, n_azimuthal);
+		const double smooth =
+		    compute_smoothing(data, n_radial, n_azimuthal);
 		const int cell_id = n_azimuthal + n_radial * ns;
 		const double xc = cell_center_x[cell_id];
 		const double yc = cell_center_y[cell_id];
@@ -782,10 +795,11 @@ void write_1D_info(t_data &data)
    the radial cells
 */
 std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update, const double quantitiy_radius)
+					   bool force_update,
+					   const double quantitiy_radius)
 {
     double local_eccentricity = 0.0;
-	double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
+    double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
     double disk_eccentricity = 0.0;
     // double semi_major_axis = 0.0;
     // double local_semi_major_axis = 0.0;
@@ -798,13 +812,12 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
 		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
 			     Surf[n_radial];
@@ -829,14 +842,14 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
     MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0,
 	       MPI_COMM_WORLD);
 
-	if(gas_total_mass > 0.0){
-    disk_eccentricity /= gas_total_mass;
-    // semi_major_axis /= gas_total_mass;
-    periastron /= gas_total_mass;
-	} else {
-		disk_eccentricity = 0.0;
-		periastron = 0.0;
-	}
+    if (gas_total_mass > 0.0) {
+	disk_eccentricity /= gas_total_mass;
+	// semi_major_axis /= gas_total_mass;
+	periastron /= gas_total_mass;
+    } else {
+	disk_eccentricity = 0.0;
+	periastron = 0.0;
+    }
 
     std::vector<double> rv = {disk_eccentricity, periastron};
 
@@ -870,9 +883,8 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
     }
 
     unsigned int current_lightcurves_bin = 0;
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	while ((current_lightcurves_bin <
 		parameters::lightcurves_radii.size() - 1) &&
 	       (parameters::lightcurves_radii[current_lightcurves_bin] <
@@ -939,8 +951,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
-	    fprintf(fd, "%.20e\t",
-			luminosity_values[i]);
+	    fprintf(fd, "%.20e\t", luminosity_values[i]);
 	}
 	fprintf(fd, "\n");
 
@@ -990,8 +1001,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
-	    fprintf(fd, "%.20e\t",
-			dissipation_values[i]);
+	    fprintf(fd, "%.20e\t", dissipation_values[i]);
 	}
 	fprintf(fd, "\n");
 

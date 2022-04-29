@@ -17,61 +17,59 @@ extern double M0;
 namespace quantities
 {
 
-
 /**
 	Calculates total gas mass.
 */
 double gas_total_mass(t_data &data, const double quantitiy_radius)
 {
-	double local_mass = 0.0;
-	double global_mass = 0.0;
+    double local_mass = 0.0;
+    double global_mass = 0.0;
 
-	// calculate mass of this process' cells
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    // calculate mass of this process' cells
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
-		 ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     ++n_azimuthal) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_mass += Surf[n_radial] *
-				  data[t_data::DENSITY](n_radial, n_azimuthal);
-		}
+			      data[t_data::DENSITY](n_radial, n_azimuthal);
+	    }
 	}
-	}
+    }
 
-	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
+    MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
 		  MPI_COMM_WORLD);
 
-	return global_mass;
+    return global_mass;
 }
 
 double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
 {
-	const double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
+    const double gas_total_mass =
+	quantities::gas_total_mass(data, quantitiy_radius);
 
-	if(gas_total_mass <= 0.0){
-		return ASPECTRATIO_REF;
-	}
+    if (gas_total_mass <= 0.0) {
+	return ASPECTRATIO_REF;
+    }
 
-	double local_mass = 0.0;
+    double local_mass = 0.0;
     double aspect_ratio = 0.0;
     double local_aspect_ratio = 0.0;
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // eccentricity and semi major axis weighted with cellmass
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
 			     Surf[n_radial];
 		local_aspect_ratio +=
-			data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
+		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
 		    local_mass;
 	    }
 	}
@@ -94,8 +92,8 @@ double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
 double gas_disk_radius(t_data &data, const double total_mass)
 {
 
-	const unsigned int local_array_start = Zero_or_active;
-	const unsigned int local_array_end = Max_or_active;
+    const unsigned int local_array_start = Zero_or_active;
+    const unsigned int local_array_end = Max_or_active;
     const unsigned int send_size = local_array_end - local_array_start;
 
     std::vector<double> local_mass(send_size);
@@ -104,7 +102,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	 ++n_radial) {
 	local_mass[n_radial - local_array_start] = 0.0;
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    local_mass[n_radial - local_array_start] +=
 		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
@@ -145,13 +143,12 @@ double gas_angular_momentum(t_data &data, const double quantitiy_radius)
     double local_angular_momentum = 0.0;
     double global_angular_momentum = 0.0;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_angular_momentum +=
 		    Surf[n_radial] * 0.5 *
 		    (data[t_data::DENSITY](n_radial, n_azimuthal) +
@@ -185,13 +182,12 @@ double gas_internal_energy(t_data &data, const double quantitiy_radius)
     double local_internal_energy = 0.0;
     double global_internal_energy = 0.0;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_internal_energy +=
 		    Surf[n_radial] *
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
@@ -210,13 +206,12 @@ double gas_viscous_dissipation(t_data &data, const double quantitiy_radius)
     double local_qplus = 0.0;
     double global_qplus = 0.0;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::QPLUS].get_size_azimuthal();
+	     n_azimuthal < data[t_data::QPLUS].get_size_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_qplus +=
 		    Surf[n_radial] * data[t_data::QPLUS](n_radial, n_azimuthal);
 	    }
@@ -234,13 +229,12 @@ double gas_luminosity(t_data &data, const double quantitiy_radius)
     double local_qminus = 0.0;
     double global_qminus = 0.0;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::QMINUS].get_size_azimuthal();
+	     n_azimuthal < data[t_data::QMINUS].get_size_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_qminus += Surf[n_radial] *
 				data[t_data::QMINUS](n_radial, n_azimuthal);
 	    }
@@ -263,14 +257,13 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
 
     double v_radial_center, v_azimuthal_center;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // centered-in-cell radial velocity
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		v_radial_center =
 		    (Rmed[n_radial] - Rinf[n_radial]) *
 			data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
@@ -314,13 +307,12 @@ double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius)
 
     double v_radial_center;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell radial velocity
 		v_radial_center =
 		    (Rmed[n_radial] - Rinf[n_radial]) *
@@ -346,20 +338,20 @@ double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius)
 /**
 	Calculates gas kinematic energy
 */
-double gas_azimuthal_kinematic_energy(t_data &data, const double quantitiy_radius)
+double gas_azimuthal_kinematic_energy(t_data &data,
+				      const double quantitiy_radius)
 {
     double local_kinematic_energy = 0.0;
     double global_kinematic_energy = 0.0;
 
     double v_azimuthal_center;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell azimuthal velocity
 		v_azimuthal_center =
 		    0.5 *
@@ -393,13 +385,12 @@ double gas_gravitational_energy(t_data &data, const double quantitiy_radius)
     double local_gravitational_energy = 0.0;
     double global_gravitational_energy = 0.0;
 
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size;
-	 ++n_radial) {
+    for (unsigned int n_radial = radial_first_active;
+	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-		if (Rmed[n_radial] <= quantitiy_radius) {
+	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_gravitational_energy +=
 		    -Surf[n_radial] *
 		    data[t_data::DENSITY](n_radial, n_azimuthal) *
@@ -439,7 +430,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    total_mass =
 		hydro_center_mass +
@@ -533,7 +524,7 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_GRAV].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::ALPHA_GRAV].get_size_azimuthal();
+	     n_azimuthal < data[t_data::ALPHA_GRAV].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    /*data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) = -2.0/3.0 *
 	     * (data[t_data::T_GRAVITATIONAL](n_radial,n_azimuthal)+data[t_data::T_REYNOLDS](n_radial,
@@ -557,7 +548,7 @@ void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 	 n_radial < data[t_data::ALPHA_GRAV_MEAN].get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::ALPHA_GRAV_MEAN].get_size_azimuthal();
+	     n_azimuthal < data[t_data::ALPHA_GRAV_MEAN].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::ALPHA_GRAV_MEAN](n_radial, n_azimuthal) +=
 		data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) * dt;
@@ -589,7 +580,7 @@ void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 	 n_radial < data[t_data::ALPHA_REYNOLDS].get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::ALPHA_REYNOLDS].get_size_azimuthal();
+	     n_azimuthal < data[t_data::ALPHA_REYNOLDS].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) =
 		2.0 / 3.0 * data[t_data::T_REYNOLDS](n_radial, n_azimuthal) /
@@ -608,8 +599,8 @@ void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 	 n_radial < data[t_data::ALPHA_REYNOLDS_MEAN].get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <
-		 data[t_data::ALPHA_REYNOLDS_MEAN].get_size_azimuthal();
+	     n_azimuthal <
+	     data[t_data::ALPHA_REYNOLDS_MEAN].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::ALPHA_REYNOLDS_MEAN](n_radial, n_azimuthal) +=
 		data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) * dt;
@@ -628,7 +619,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
     for (unsigned int n_radial = 1;
 	 n_radial < data[t_data::TOOMRE].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::TOOMRE].get_size_azimuthal();
+	     n_azimuthal < data[t_data::TOOMRE].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
 	    kappa = std::sqrt(std::fabs(
@@ -671,7 +662,7 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 	data[t_data::LUMINOSITY_1D](n_radial) = 0.0;
 
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::QMINUS].get_size_azimuthal();
+	     n_azimuthal < data[t_data::QMINUS].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
 	    data[t_data::LUMINOSITY_1D](n_radial) +=
@@ -698,7 +689,7 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 	data[t_data::DISSIPATION_1D](n_radial) = 0.0;
 
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::QPLUS].get_size_azimuthal();
+	     n_azimuthal < data[t_data::QPLUS].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
 
@@ -722,7 +713,7 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     for (unsigned int nRadial = 0;
 	 nRadial < data[t_data::MASSFLOW].get_size_radial(); ++nRadial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::MASSFLOW].get_size_azimuthal();
+	     n_azimuthal < data[t_data::MASSFLOW].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::MASSFLOW](nRadial, n_azimuthal) *= 1. / denom;
 	}
@@ -731,155 +722,159 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 
 void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 {
-	static int last_timestep_calculated = -1;
+    static int last_timestep_calculated = -1;
 
-	if ((!force_update) && (last_timestep_calculated == (int)timestep)) {
+    if ((!force_update) && (last_timestep_calculated == (int)timestep)) {
 	return;
+    }
+
+    switch (ASPECTRATIO_MODE) {
+    case 0: {
+	for (unsigned int nRad = 0;
+	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+	    for (unsigned int nAz = 0;
+		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
+		data[t_data::ASPECTRATIO](nRad, nAz) =
+		    data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
+	    }
 	}
 
-	switch(ASPECTRATIO_MODE){
-		case 0:
-		{
-			for (unsigned int nRad = 0;
-			 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-			for (unsigned int nAz = 0;
-				 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
-				 ++nAz) {
-			data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
-			}
-			}
+	break;
+    }
+    case 1: {
+	static const unsigned int N_planets =
+	    data.get_planetary_system().get_number_of_planets();
+	static std::vector<double> xpl(N_planets);
+	static std::vector<double> ypl(N_planets);
+	static std::vector<double> mpl(N_planets);
+	static std::vector<double> rpl(N_planets);
 
-			break;
-		}
-		case 1:
-		{
-			static const unsigned int N_planets =
-			data.get_planetary_system().get_number_of_planets();
-			static std::vector<double> xpl(N_planets);
-			static std::vector<double> ypl(N_planets);
-			static std::vector<double> mpl(N_planets);
-			static std::vector<double> rpl(N_planets);
-
-			// setup planet data
-			for (unsigned int k = 0; k < N_planets; k++) {
-			t_planet &planet = data.get_planetary_system().get_planet(k);
-			mpl[k] = planet.get_rampup_mass();
-			xpl[k] = planet.get_x();
-			ypl[k] = planet.get_y();
-			rpl[k] = planet.get_planet_radial_extend();
-			}
-
-			const Pair r_cm = data.get_planetary_system().get_center_of_mass();
-			const double m_cm = data.get_planetary_system().get_mass();
-
-			for (unsigned int nRad = 0;
-			 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-			for (unsigned int nAz = 0;
-				 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
-				 ++nAz) {
-
-				const int cell = get_cell_id(nRad, nAz);
-				const double x = CellCenterX->Field[cell];
-				const double y = CellCenterY->Field[cell];
-
-				// cell_r is the distance to the closest body used for computing the sound speed
-				// the cell belongs to a body, if it is inside its roche radius.
-				// if no close body is found, the center of mass is used instead
-				double cell_r = 0.0;
-				double roche_radius;
-
-				for (unsigned int k = 0; k < N_planets; k++) {
-
-					// primary object uses next object to compute the roche radius
-					// while all other objects use the primary object.
-					if(k == 0){
-						const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[1], 2) + std::pow(ypl[k] - ypl[1], 2));
-						const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
-						roche_radius = eggleton_1983(mass_q , partner_dist);
-					} else {
-						const double partner_dist = std::sqrt(std::pow(xpl[k] - xpl[0], 2) + std::pow(ypl[k] - ypl[0], 2));
-						const double mass_q = mpl[k]/m_cm / (1.0 - mpl[k]/m_cm);
-						roche_radius = eggleton_1983(mass_q , partner_dist);
-					}
-
-				/// since the mass is distributed homogeniously distributed
-				/// inside the cell, we assume that the planet is always at
-				/// least cell_size / 2 plus planet radius away from the gas
-				/// this is an rough estimate without explanation
-				/// alternatively you can think about it yourself
-				const double min_dist =
-					0.5 * std::max(Rsup[nRad] - Rinf[nRad],
-						   Rmed[nRad] * dphi) +
-					rpl[k];
-
-				const double dx = x - xpl[k];
-				const double dy = y - ypl[k];
-
-				const double dist = std::max(
-					std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
-
-				if(dist < roche_radius){
-					cell_r = dist;
-				}
-				}
-
-				if(cell_r == 0.0){
-					cell_r = std::sqrt(std::pow(x - r_cm.x, 2) + std::pow(y - r_cm.y, 2));
-				}
-
-				data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / cell_r;
-			}
-			}
-			break;
-		}
-		case 2:
-		{
-			const Pair r_cm = data.get_planetary_system().get_center_of_mass();
-
-			for (unsigned int nRad = 0;
-			 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-			for (unsigned int nAz = 0;
-				 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
-				 ++nAz) {
-
-				const int cell = get_cell_id(nRad, nAz);
-				const double x = CellCenterX->Field[cell];
-				const double y = CellCenterY->Field[cell];
-
-
-				/// since the mass is distributed homogeniously distributed
-				/// inside the cell, we assume that the planet is always at
-				/// least cell_size / 2 plus planet radius away from the gas
-				/// this is an rough estimate without explanation
-				/// alternatively you can think about it yourself
-				//const double min_dist =
-				//	0.5 * std::max(Rsup[nRad] - Rinf[nRad],
-				//		   Rmed[nRad] * dphi);
-
-				const double dx = x - r_cm.x;
-				const double dy = y - r_cm.y;
-
-				//const double dist = std::max(
-				//	std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
-
-				const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-				data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / dist;
-			}
-			}
-			break;
-		}
-		default:
-		{
-				for (unsigned int nRad = 0;
-				 nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-				for (unsigned int nAz = 0;
-					 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal();
-					 ++nAz) {
-				data[t_data::ASPECTRATIO](nRad, nAz) = data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
-			}
-			}
-		}
+	// setup planet data
+	for (unsigned int k = 0; k < N_planets; k++) {
+	    t_planet &planet = data.get_planetary_system().get_planet(k);
+	    mpl[k] = planet.get_rampup_mass();
+	    xpl[k] = planet.get_x();
+	    ypl[k] = planet.get_y();
+	    rpl[k] = planet.get_planet_radial_extend();
 	}
+
+	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+	const double m_cm = data.get_planetary_system().get_mass();
+
+	for (unsigned int nRad = 0;
+	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+	    for (unsigned int nAz = 0;
+		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
+
+		const int cell = get_cell_id(nRad, nAz);
+		const double x = CellCenterX->Field[cell];
+		const double y = CellCenterY->Field[cell];
+
+		// cell_r is the distance to the closest body used for computing
+		// the sound speed the cell belongs to a body, if it is inside
+		// its roche radius. if no close body is found, the center of
+		// mass is used instead
+		double cell_r = 0.0;
+		double roche_radius;
+
+		for (unsigned int k = 0; k < N_planets; k++) {
+
+		    // primary object uses next object to compute the roche
+		    // radius while all other objects use the primary object.
+		    if (k == 0) {
+			const double partner_dist =
+			    std::sqrt(std::pow(xpl[k] - xpl[1], 2) +
+				      std::pow(ypl[k] - ypl[1], 2));
+			const double mass_q =
+			    mpl[k] / m_cm / (1.0 - mpl[k] / m_cm);
+			roche_radius = eggleton_1983(mass_q, partner_dist);
+		    } else {
+			const double partner_dist =
+			    std::sqrt(std::pow(xpl[k] - xpl[0], 2) +
+				      std::pow(ypl[k] - ypl[0], 2));
+			const double mass_q =
+			    mpl[k] / m_cm / (1.0 - mpl[k] / m_cm);
+			roche_radius = eggleton_1983(mass_q, partner_dist);
+		    }
+
+		    /// since the mass is distributed homogeniously distributed
+		    /// inside the cell, we assume that the planet is always at
+		    /// least cell_size / 2 plus planet radius away from the gas
+		    /// this is an rough estimate without explanation
+		    /// alternatively you can think about it yourself
+		    const double min_dist =
+			0.5 * std::max(Rsup[nRad] - Rinf[nRad],
+				       Rmed[nRad] * dphi) +
+			rpl[k];
+
+		    const double dx = x - xpl[k];
+		    const double dy = y - ypl[k];
+
+		    const double dist = std::max(
+			std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+
+		    if (dist < roche_radius) {
+			cell_r = dist;
+		    }
+		}
+
+		if (cell_r == 0.0) {
+		    cell_r = std::sqrt(std::pow(x - r_cm.x, 2) +
+				       std::pow(y - r_cm.y, 2));
+		}
+
+		data[t_data::ASPECTRATIO](nRad, nAz) =
+		    data[t_data::SCALE_HEIGHT](nRad, nAz) / cell_r;
+	    }
+	}
+	break;
+    }
+    case 2: {
+	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+
+	for (unsigned int nRad = 0;
+	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+	    for (unsigned int nAz = 0;
+		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
+
+		const int cell = get_cell_id(nRad, nAz);
+		const double x = CellCenterX->Field[cell];
+		const double y = CellCenterY->Field[cell];
+
+		/// since the mass is distributed homogeniously distributed
+		/// inside the cell, we assume that the planet is always at
+		/// least cell_size / 2 plus planet radius away from the gas
+		/// this is an rough estimate without explanation
+		/// alternatively you can think about it yourself
+		// const double min_dist =
+		//	0.5 * std::max(Rsup[nRad] - Rinf[nRad],
+		//		   Rmed[nRad] * dphi);
+
+		const double dx = x - r_cm.x;
+		const double dy = y - r_cm.y;
+
+		// const double dist = std::max(
+		//	std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+
+		const double dist =
+		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+		data[t_data::ASPECTRATIO](nRad, nAz) =
+		    data[t_data::SCALE_HEIGHT](nRad, nAz) / dist;
+	    }
+	}
+	break;
+    }
+    default: {
+	for (unsigned int nRad = 0;
+	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
+	    for (unsigned int nAz = 0;
+		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
+		data[t_data::ASPECTRATIO](nRad, nAz) =
+		    data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
+	    }
+	}
+    }
+    }
 }
 
 void calculate_viscous_torque(t_data &data, unsigned int timestep,

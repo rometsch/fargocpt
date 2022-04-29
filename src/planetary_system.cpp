@@ -1,5 +1,6 @@
 #include "planetary_system.h"
 #include "LowTasks.h"
+#include "Theo.h"
 #include "constants.h"
 #include "fpe.h"
 #include "global.h"
@@ -11,7 +12,6 @@
 #include <fstream>
 #include <math.h>
 #include <stdio.h>
-#include "Theo.h"
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -68,7 +68,7 @@ void t_planetary_system::initialize_default_star()
     planet->set_name("Default Star");
     planet->set_acc(0.0);
 
-	planet->set_planet_radial_extend(parameters::star_radius);
+    planet->set_planet_radial_extend(parameters::star_radius);
     planet->set_temperature(parameters::star_temperature);
     planet->set_irradiate(false);
     planet->set_rampuptime(0.0);
@@ -113,9 +113,9 @@ void t_planetary_system::read_from_file(char *filename)
 	    int num_args;
 
 	    // check if this line is a comment
-		if ((strlen(buffer) > 0) && (buffer[0] == '#')){
+	    if ((strlen(buffer) > 0) && (buffer[0] == '#')) {
 		continue;
-		}
+	    }
 
 	    // try to cut line into pieces
 	    num_args = sscanf(
@@ -189,7 +189,8 @@ void t_planetary_system::read_from_file(char *filename)
 		LOG_WARNING,
 		"Warning: feelother flag is deprecated. Interaction is now set globally by the DiskFeedback flag. Value is ignored!\n");
 
-		planet->set_planet_radial_extend(radius * units::solar_radius_in_au / parameters::L0);
+	    planet->set_planet_radial_extend(
+		radius * units::solar_radius_in_au / parameters::L0);
 	    planet->set_temperature(temperature / units::temperature);
 	    planet->set_irradiate(tolower(irradiate[0]) == 'y');
 	    planet->set_rampuptime(rampuptime);
@@ -283,8 +284,9 @@ void t_planetary_system::list_planets()
 	    LOG_INFO
 	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
 	    i, get_planet(i).get_eccentricity(),
-		get_planet(i).get_semi_major_axis(), get_planet(i).get_orbital_period(),
-		get_planet(i).get_orbital_period() * units::time.get_cgs_factor() /
+	    get_planet(i).get_semi_major_axis(),
+	    get_planet(i).get_orbital_period(),
+	    get_planet(i).get_orbital_period() * units::time.get_cgs_factor() /
 		units::cgs_Year,
 	    get_planet(i).get_acc(), '-', '-');
     }
@@ -301,7 +303,7 @@ void t_planetary_system::list_planets()
 	logging::print(LOG_INFO
 		       " %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
 		       i, get_planet(i).get_temperature() * units::temperature,
-			   get_planet(i).get_planet_radial_extend(),
+		       get_planet(i).get_planet_radial_extend(),
 		       (get_planet(i).get_irradiate()) ? 'X' : '-',
 		       get_planet(i).get_rampuptime());
     }
@@ -337,13 +339,13 @@ void t_planetary_system::rotate(double angle)
 void t_planetary_system::restart(unsigned int timestep, bool debug)
 {
 
-	logging::print_master(LOG_INFO "Loading planets ...");
+    logging::print_master(LOG_INFO "Loading planets ...");
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).restart(timestep, debug);
     }
-	logging::print_master(LOG_INFO " done\n");
+    logging::print_master(LOG_INFO " done\n");
 
-	logging::print_master(LOG_INFO "Loading rebound ...");
+    logging::print_master(LOG_INFO "Loading rebound ...");
     if (debug_outputs) {
 	reb_free_simulation(m_rebound);
 	char *reb_name = nullptr;
@@ -358,7 +360,7 @@ void t_planetary_system::restart(unsigned int timestep, bool debug)
 	}
 	m_rebound = reb_create_simulation_from_binary(reb_name);
     }
-	logging::print_master(LOG_INFO " done\n");
+    logging::print_master(LOG_INFO " done\n");
 }
 
 void t_planetary_system::create_planet_files()
@@ -578,9 +580,8 @@ Pair t_planetary_system::get_center_of_mass_velocity(unsigned int n) const
 
 Pair t_planetary_system::get_center_of_mass_velocity() const
 {
-	return get_center_of_mass_velocity(get_number_of_planets());
+    return get_center_of_mass_velocity(get_number_of_planets());
 }
-
 
 /**
    Get the center of mass of all particles
@@ -779,84 +780,87 @@ void t_planetary_system::correct_velocity_for_disk_accel()
     }
 }
 
-void t_planetary_system::compute_dist_to_primary(){
+void t_planetary_system::compute_dist_to_primary()
+{
 
-	if(get_number_of_planets() < 2){
-		return;
+    if (get_number_of_planets() < 2) {
+	return;
+    }
+
+    auto &primary = get_planet(0);
+    const double x = primary.get_x();
+    const double y = primary.get_y();
+
+    for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
+	auto &planet = get_planet(i);
+	const double dx = planet.get_x() - x;
+	const double dy = planet.get_y() - y;
+
+	const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+	planet.set_distance_to_primary(dist);
+
+	if (i == 1) { // primary looks at secondary
+	    primary.set_distance_to_primary(dist);
 	}
-
-	auto &primary = get_planet(0);
-	const double x = primary.get_x();
-	const double y = primary.get_y();
-
-	for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
-		auto &planet = get_planet(i);
-		const double dx = planet.get_x() - x;
-		const double dy = planet.get_y() - y;
-
-		const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-		planet.set_distance_to_primary(dist);
-
-		if(i == 1){ // primary looks at secondary
-			primary.set_distance_to_primary(dist);
-		}
-	}
+    }
 }
 
-void t_planetary_system::init_roche_radii(){
+void t_planetary_system::init_roche_radii()
+{
 
-	auto &primary = get_planet(0);
-	if(get_number_of_planets() < 2){
-		primary.set_dimensionless_roche_radius(1.0);
-		primary.set_distance_to_primary(2.0*RMAX);
-		return;
+    auto &primary = get_planet(0);
+    if (get_number_of_planets() < 2) {
+	primary.set_dimensionless_roche_radius(1.0);
+	primary.set_distance_to_primary(2.0 * RMAX);
+	return;
+    }
+
+    const double M = primary.get_mass();
+    for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
+	auto &planet = get_planet(i);
+	const double m = planet.get_mass();
+
+	double x = 0.0;
+	if (M > m) {
+	    x = init_l1(M, m);
+	} else {
+	    x = 1.0 - init_l1(m, M);
 	}
+	planet.set_dimensionless_roche_radius(x);
 
-	const double M = primary.get_mass();
-	for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
-		auto &planet = get_planet(i);
-		const double m = planet.get_mass();
-
-		double x = 0.0;
-		if(M > m){
-			x = init_l1(M, m);
-		} else {
-			x = 1.0 - init_l1(m, M);
-		}
-		planet.set_dimensionless_roche_radius(x);
-
-		if(i == 1){
-			primary.set_dimensionless_roche_radius(1.0 - x);
-		}
+	if (i == 1) {
+	    primary.set_dimensionless_roche_radius(1.0 - x);
 	}
+    }
 }
 
-void t_planetary_system::update_roche_radii(){
+void t_planetary_system::update_roche_radii()
+{
 
-	if(get_number_of_planets() < 2){
-		return;
+    if (get_number_of_planets() < 2) {
+	return;
+    }
+
+    auto &primary = get_planet(0);
+    const double M = primary.get_mass();
+    for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
+	auto &planet = get_planet(i);
+	const double m = planet.get_mass();
+	double x = planet.get_dimensionless_roche_radius();
+
+	if (M > m) {
+	    update_l1(M, m, x);
+	    planet.set_dimensionless_roche_radius(x);
+	} else {
+	    x = 1.0 - x;
+	    update_l1(m, M, x);
+	    x = 1.0 - x;
 	}
 
-	auto &primary = get_planet(0);
-	const double M = primary.get_mass();
-	for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
-		auto &planet = get_planet(i);
-		const double m = planet.get_mass();
-		double x = planet.get_dimensionless_roche_radius();
-
-		if(M > m){
-		update_l1(M, m, x);
-		planet.set_dimensionless_roche_radius(x);
-		} else {
-			x = 1.0 - x;
-			update_l1(m, M, x);
-			x = 1.0 - x;
-		}
-
-		if(i == 1){
-			primary.set_dimensionless_roche_radius(1.0 - x);
-		}
+	if (i == 1) {
+	    primary.set_dimensionless_roche_radius(1.0 - x);
 	}
+    }
 }
 
 /**

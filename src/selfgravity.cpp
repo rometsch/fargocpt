@@ -584,7 +584,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 	omega = std::sqrt(temp);
 
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
+	     n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
 	    v_azimuthal(n_radial, n_azimuthal) = Rmed[n_radial] * omega;
 	}
     }

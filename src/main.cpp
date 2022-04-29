@@ -46,11 +46,11 @@ int main(int argc, char *argv[])
 {
     t_data data;
 
-	N_hydro_iter = 0;
+    N_hydro_iter = 0;
 
     resize_radialarrays(MAX1D);
 
-	N_outer_loop = 0;
+    N_outer_loop = 0;
 
     int CPU_NameLength;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
@@ -131,25 +131,28 @@ int main(int argc, char *argv[])
 
     // Here planets are initialized feeling star potential
     data.get_planetary_system().read_from_file(PLANETCONFIG);
-	data.get_planetary_system().compute_dist_to_primary();
-	data.get_planetary_system().init_roche_radii();
+    data.get_planetary_system().compute_dist_to_primary();
+    data.get_planetary_system().init_roche_radii();
 
-	VISCOUS_ACCRETION = false;
-	if(parameters::boundary_inner == parameters::boundary_condition_viscous_outflow){
-		VISCOUS_ACCRETION = true;
+    VISCOUS_ACCRETION = false;
+    if (parameters::boundary_inner ==
+	parameters::boundary_condition_viscous_outflow) {
+	VISCOUS_ACCRETION = true;
+    }
+    for (unsigned int k = 0;
+	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
+	if (data.get_planetary_system().get_planet(k).get_acc() < 0.0) {
+	    VISCOUS_ACCRETION = true;
 	}
-	for(unsigned int k = 0; k < data.get_planetary_system().get_number_of_planets(); ++k){
-		if(data.get_planetary_system().get_planet(k).get_acc() < 0.0){
-			VISCOUS_ACCRETION = true;
-		}
-	}
+    }
 
     logging::print_master(LOG_INFO "planets loaded.\n");
 
-
-	if(VISCOUS_ACCRETION){
-		logging::print_master(LOG_INFO "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
-	}
+    if (VISCOUS_ACCRETION) {
+	logging::print_master(
+	    LOG_INFO
+	    "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
+    }
 
     if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
 	(Corotating == YES)) {
@@ -215,26 +218,32 @@ int main(int argc, char *argv[])
 				      start_mode::restart_debug);
 	data[t_data::V_AZIMUTHAL].read2D(start_mode::restart_from,
 					 start_mode::restart_debug);
-	if (parameters::Adiabatic){
+	if (parameters::Adiabatic) {
 	    data[t_data::ENERGY].read2D(start_mode::restart_from,
 					start_mode::restart_debug);
 
-		if(data[t_data::QPLUS].get_write_2D() && data[t_data::QPLUS].file_exists(start_mode::restart_from,
-																				  start_mode::restart_debug)){
-			data[t_data::QPLUS].read2D(start_mode::restart_from,
-						start_mode::restart_debug);
-		} else {
-			logging::print_master(LOG_INFO "Cannot read Qplus, no bitwise identical restarting possible!\n");
-			compute_heating_cooling_for_CFL(data);
-		}
-		if(data[t_data::QMINUS].get_write_2D() && data[t_data::QMINUS].file_exists(start_mode::restart_from,
-																				   start_mode::restart_debug)){
-			data[t_data::QMINUS].read2D(start_mode::restart_from,
-						start_mode::restart_debug);
-		} else {
-			logging::print_master(LOG_INFO "Cannot read Qminus, no bitwise identical restarting possible!\n");
-			compute_heating_cooling_for_CFL(data);
-		}
+	    if (data[t_data::QPLUS].get_write_2D() &&
+		data[t_data::QPLUS].file_exists(start_mode::restart_from,
+						start_mode::restart_debug)) {
+		data[t_data::QPLUS].read2D(start_mode::restart_from,
+					   start_mode::restart_debug);
+	    } else {
+		logging::print_master(
+		    LOG_INFO
+		    "Cannot read Qplus, no bitwise identical restarting possible!\n");
+		compute_heating_cooling_for_CFL(data);
+	    }
+	    if (data[t_data::QMINUS].get_write_2D() &&
+		data[t_data::QMINUS].file_exists(start_mode::restart_from,
+						 start_mode::restart_debug)) {
+		data[t_data::QMINUS].read2D(start_mode::restart_from,
+					    start_mode::restart_debug);
+	    } else {
+		logging::print_master(
+		    LOG_INFO
+		    "Cannot read Qminus, no bitwise identical restarting possible!\n");
+		compute_heating_cooling_for_CFL(data);
+	    }
 	}
 	if (parameters::integrate_particles) {
 	    if (start_mode::restart_debug) {
@@ -249,7 +258,8 @@ int main(int argc, char *argv[])
 					    start_mode::restart_debug);
 
 	MPI_Barrier(MPI_COMM_WORLD);
-	logging::print_master(LOG_INFO "Finished restarting planetary system.\n");
+	logging::print_master(LOG_INFO
+			      "Finished restarting planetary system.\n");
 
 	recalculate_derived_disk_quantities(data, true);
     } else {
@@ -273,7 +283,7 @@ int main(int argc, char *argv[])
     CommunicateBoundaries(&data[t_data::DENSITY0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
-	for (; N_outer_loop <= NTOT; ++N_outer_loop) {
+    for (; N_outer_loop <= NTOT; ++N_outer_loop) {
 	data.get_planetary_system().compute_dist_to_primary();
 	data.get_planetary_system().calculate_orbital_elements();
 	ComputeCircumPlanetaryMasses(data);
@@ -297,13 +307,14 @@ int main(int argc, char *argv[])
 	    force_update_for_output = false;
 
 	    // write polar grids
-		output::write_grids(data, N_output, N_hydro_iter, PhysicalTime, false);
+	    output::write_grids(data, N_output, N_hydro_iter, PhysicalTime,
+				false);
 	    // write planet data
-		data.get_planetary_system().write_planets(N_output, 0);
+	    data.get_planetary_system().write_planets(N_output, 0);
 	    // write misc stuff (important for resuming)
 	    output::write_misc(false);
 	    // write time info for coarse output
-		output::write_coarse_time(N_output, N_outer_loop);
+	    output::write_coarse_time(N_output, N_outer_loop);
 	    // write particles
 	    if (parameters::integrate_particles)
 		particles::write(N_output);
@@ -321,7 +332,7 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
-		data.get_planetary_system().write_planets(N_output, 1);
+	    data.get_planetary_system().write_planets(N_output, 1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
 	}
 
@@ -329,16 +340,16 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start) &&
 	    parameters::write_disk_quantities) {
-		output::write_quantities(data, force_update_for_output);
+	    output::write_quantities(data, force_update_for_output);
 	}
 
 	if (write_complete_output && parameters::write_torques) {
-		output::write_torques(data, N_output, force_update_for_output);
+	    output::write_torques(data, N_output, force_update_for_output);
 	}
 	if (parameters::write_lightcurves &&
 	    (parameters::write_at_every_timestep || write_complete_output) &&
 	    !(dont_do_restart_output_at_start)) {
-		output::write_lightcurves(data, N_output, force_update_for_output);
+	    output::write_lightcurves(data, N_output, force_update_for_output);
 	}
 	dont_do_restart_output_at_start = false;
 

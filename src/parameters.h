@@ -30,11 +30,11 @@ extern double exponential_cell_size_factor;
 enum t_boundary_condition {
     boundary_condition_open,
     boundary_condition_reflecting,
-	boundary_condition_center_of_mass_initial,
-	boundary_condition_zero_gradient,
+    boundary_condition_center_of_mass_initial,
+    boundary_condition_zero_gradient,
     boundary_condition_nonreflecting,
     boundary_condition_viscous_outflow,
-	boundary_condition_jibin_spreading_ring,
+    boundary_condition_jibin_spreading_ring,
     boundary_condition_boundary_layer,
     boundary_condition_precribed_time_variable,
     boundary_condition_keplerian,
@@ -67,8 +67,8 @@ enum t_damping_type {
     damping_none,
     damping_initial,
     damping_mean,
-	damping_zero,
-	damping_visc
+    damping_zero,
+    damping_visc
 };
 extern bool damping;
 /// inner damping limit
@@ -123,7 +123,7 @@ extern unsigned int radiative_diffusion_max_iterations;
 // initialisation
 enum t_initialize_condition {
     initialize_condition_profile,
-	initialize_condition_profile_Nbody_centered,
+    initialize_condition_profile_Nbody_centered,
     initialize_condition_read1D,
     initialize_condition_read2D,
     initialize_condition_shakura_sunyaev
@@ -244,11 +244,11 @@ extern double log_after_real_seconds;
 
 // type of opacity
 enum t_opacity {
-    opacity_lin,     // opacity based on Lin & Papaloizou, 1985
-    opacity_bell,    // opacity based on Bell & Lin, 1994
-    opacity_zhu,     // opacity based on Zhu, Hartmann & Gammie, 2008
-    opacity_kramers, // opacity based on Kramers Law plus electron scattering
-		     // (Thomson)
+    opacity_lin,      // opacity based on Lin & Papaloizou, 1985
+    opacity_bell,     // opacity based on Bell & Lin, 1994
+    opacity_zhu,      // opacity based on Zhu, Hartmann & Gammie, 2008
+    opacity_kramers,  // opacity based on Kramers Law plus electron scattering
+		      // (Thomson)
     opacity_const_op, // constant opacity
     opacity_simple    // eq. 30 from 'Thermohydrodynamics of Circumstellar Disks
 		      // with High-Mass Planets

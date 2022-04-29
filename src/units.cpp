@@ -155,8 +155,8 @@ void calculate_unit_factors()
     power.set_cgs_factor(mass * length * length / (time * time * time));
     power.set_cgs_symbol("erg/s");
 
-	potential.set_cgs_factor(length * length / (time * time));
-	potential.set_cgs_symbol("erg/g");
+    potential.set_cgs_factor(length * length / (time * time));
+    potential.set_cgs_symbol("erg/g");
 
     torque.set_cgs_factor(length * length * mass / (time * time));
     torque.set_cgs_symbol("erg");
@@ -226,9 +226,9 @@ void print_code_units()
 			  "                      power:       P0 = %.16g %s\n",
 			  power.get_cgs_factor(), power.get_cgs_symbol());
 
-	logging::print_master(LOG_VERBOSE
-			  "                      potential:       V0 = %.16g %s\n",
-			  potential.get_cgs_factor(), potential.get_cgs_symbol());
+    logging::print_master(
+	LOG_VERBOSE "                      potential:       V0 = %.16g %s\n",
+	potential.get_cgs_factor(), potential.get_cgs_symbol());
 
     logging::print_master(LOG_VERBOSE
 			  "                     torque:     tau0 = %.16g %s\n",

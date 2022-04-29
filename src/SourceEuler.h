@@ -26,8 +26,8 @@ void calculate_qplus(t_data &data);
 void calculate_qminus(t_data &data);
 
 double condition_cfl(t_data &data, t_polargrid &v_radial,
-			 t_polargrid &v_azimuthal, t_polargrid &soundspeed,
-			 const double deltaT);
+		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
+		     const double deltaT);
 
 void compute_sound_speed(t_data &data, bool force_update);
 void compute_scale_height(t_data &data, const bool force_update);

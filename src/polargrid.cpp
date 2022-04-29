@@ -14,8 +14,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <gsl/gsl_spline.h>
 #include <experimental/filesystem>
+#include <gsl/gsl_spline.h>
 #include <mpi.h>
 
 t_polargrid::t_polargrid()
@@ -93,7 +93,8 @@ void t_polargrid::clear()
 void t_polargrid::write_polargrid(unsigned int number, t_data &data,
 				  bool debug = false)
 {
-	if ((get_write_1D() || get_write_2D() || m_calculate_on_write) && (!debug)) {
+    if ((get_write_1D() || get_write_2D() || m_calculate_on_write) &&
+	(!debug)) {
 	if (m_do_before_write != NULL) {
 	    (*m_do_before_write)(data, number, false);
 	}
@@ -297,25 +298,25 @@ void t_polargrid::read2D(unsigned int number, bool debug = false)
 
 bool t_polargrid::file_exists(unsigned int number, bool debug = false)
 {
-	char *filename;
+    char *filename;
 
-	if (debug) {
+    if (debug) {
 	if (asprintf(&filename, "%s/gas%s_DEBUG.dat", OUTPUTDIR, get_name()) <
-		0) {
-		die("Not enough memory!");
+	    0) {
+	    die("Not enough memory!");
 	}
-	} else {
+    } else {
 	if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(),
-			 number) < 0) {
-		die("Not enough memory!");
+		     number) < 0) {
+	    die("Not enough memory!");
 	}
-	}
+    }
 
-	bool exists = std::experimental::filesystem::exists(filename);
+    bool exists = std::experimental::filesystem::exists(filename);
 
-	free(filename);
+    free(filename);
 
-	return exists;
+    return exists;
 }
 
 void t_polargrid::read2D(const char *_filename)
@@ -357,7 +358,7 @@ void t_polargrid::read2D(const char *_filename)
     MPI_File_close(&fh);
 
     // copy data into polargrid
-	for (unsigned int n_radial = 0; n_radial < get_size_radial(); ++n_radial) {
+    for (unsigned int n_radial = 0; n_radial < get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal < Nsec; ++n_azimuthal) {
 	    operator()(n_radial, n_azimuthal) =
 		buffer_file[(IMIN + n_radial) * Nsec + n_azimuthal];
@@ -468,7 +469,7 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     delete[] buffer_value;
 
     // evaluate spline on all points needed and write into polargrid
-	for (unsigned int n_radial = 0; n_radial < get_size_radial(); ++n_radial) {
+    for (unsigned int n_radial = 0; n_radial < get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal < get_size_azimuthal();
 	     ++n_azimuthal) {
 	    operator()(n_radial, n_azimuthal) =

@@ -115,51 +115,50 @@ const std::map<const std::string, const int> planet_file_column_v2_3 = {
     {"torque", 18},
     {"accreted mass", 19}};
 
-
 // file version 2.4
 const std::map<const std::string, const int> planet_file_column_v2_4 = {
-	{"time step", 0},
-	{"x", 1},
-	{"y", 2},
-	{"vx", 3},
-	{"vy", 4},
-	{"mass", 5},
-	{"physical time", 6},
-	{"omega frame", 7},
-	{"mdcp", 8},
-	{"eccentricity", 9},
-	{"angular momentum", 10},
-	{"semi-major axis", 11},
-	{"omega kepler", 12},
-	{"mean anomaly", 13},
-	{"eccentric anomaly", 14},
-	{"true anomaly", 15},
-	{"pericenter angle", 16},
-	{"torque", 17},
-	{"accreted mass", 18}};
+    {"time step", 0},
+    {"x", 1},
+    {"y", 2},
+    {"vx", 3},
+    {"vy", 4},
+    {"mass", 5},
+    {"physical time", 6},
+    {"omega frame", 7},
+    {"mdcp", 8},
+    {"eccentricity", 9},
+    {"angular momentum", 10},
+    {"semi-major axis", 11},
+    {"omega kepler", 12},
+    {"mean anomaly", 13},
+    {"eccentric anomaly", 14},
+    {"true anomaly", 15},
+    {"pericenter angle", 16},
+    {"torque", 17},
+    {"accreted mass", 18}};
 
 // file version 2.4
 const std::map<const std::string, const int> planet_file_column_v2_5 = {
-	{"time step", 0},
-	{"x", 1},
-	{"y", 2},
-	{"vx", 3},
-	{"vy", 4},
-	{"mass", 5},
-	{"physical time", 6},
-	{"omega frame", 7},
-	{"mdcp", 8},
-	{"eccentricity", 9},
-	{"angular momentum", 10},
-	{"semi-major axis", 11},
-	{"omega kepler", 12},
-	{"mean anomaly", 13},
-	{"eccentric anomaly", 14},
-	{"true anomaly", 15},
-	{"pericenter angle", 16},
-	{"torque", 17},
-	{"accreted mass", 18},
-	{"accretion rate", 19}};
+    {"time step", 0},
+    {"x", 1},
+    {"y", 2},
+    {"vx", 3},
+    {"vy", 4},
+    {"mass", 5},
+    {"physical time", 6},
+    {"omega frame", 7},
+    {"mdcp", 8},
+    {"eccentricity", 9},
+    {"angular momentum", 10},
+    {"semi-major axis", 11},
+    {"omega kepler", 12},
+    {"mean anomaly", 13},
+    {"eccentric anomaly", 14},
+    {"true anomaly", 15},
+    {"pericenter angle", 16},
+    {"torque", 17},
+    {"accreted mass", 18},
+    {"accretion rate", 19}};
 
 auto planet_files_column = planet_file_column_v2_5;
 
@@ -185,71 +184,76 @@ const std::map<const std::string, const std::string> variable_units = {
     {"omega", "frequency"},
     {"omega kepler", "frequency"},
     {"torque", "torque"},
-	{"accreted mass", "mass"},
-	{"accretion rate", "mass accretion rate"}};
+    {"accreted mass", "mass"},
+    {"accretion rate", "mass accretion rate"}};
 
 t_planet::~t_planet() {}
 
 t_planet::t_planet()
 {
-	m_mass = 0.0;
-	m_x = 0.0;
-	m_y = 0.0;
-	m_vx = 0.0;
-	m_vy = 0.0;
+    m_mass = 0.0;
+    m_x = 0.0;
+    m_y = 0.0;
+    m_vx = 0.0;
+    m_vy = 0.0;
 
-	m_acc = 0.0;
-	m_accreted_mass = 0.0;
-	m_name = "";
+    m_acc = 0.0;
+    m_accreted_mass = 0.0;
+    m_name = "";
 
-	m_planet_number = 0;
-	m_temperature = 0.0;
-	m_radius = 0.0;
-	m_irradiate = false;
-	m_rampuptime = 0.0;
-	m_disk_on_planet_acceleration = {0.0, 0.0};
-	m_nbody_on_planet_acceleration = {0.0, 0.0};
-	m_semi_major_axis = 0.0;
-	m_distance_to_primary = 0.0;
-	m_dimensionless_roche_radius = 0.0;
-	m_circumplanetary_mass = 0.0;
-	m_eccentricity = 0.0;
-	m_mean_anomaly = 0.0;
-	m_true_anomaly = 0.0;
-	m_eccentric_anomaly = 0.0;
-	m_pericenter_angle = 0.0;
-	m_torque = 0.0;
+    m_planet_number = 0;
+    m_temperature = 0.0;
+    m_radius = 0.0;
+    m_irradiate = false;
+    m_rampuptime = 0.0;
+    m_disk_on_planet_acceleration = {0.0, 0.0};
+    m_nbody_on_planet_acceleration = {0.0, 0.0};
+    m_semi_major_axis = 0.0;
+    m_distance_to_primary = 0.0;
+    m_dimensionless_roche_radius = 0.0;
+    m_circumplanetary_mass = 0.0;
+    m_eccentricity = 0.0;
+    m_mean_anomaly = 0.0;
+    m_true_anomaly = 0.0;
+    m_eccentric_anomaly = 0.0;
+    m_pericenter_angle = 0.0;
+    m_torque = 0.0;
 }
 
 void t_planet::print()
 {
-	std::cout << "Planet #" << m_planet_number << "\n";
-	std::cout << "Name: " << m_name << "\n";
-	std::cout << "(x, y): (" << m_x << ", " << m_y << "\n";
-	std::cout << "(vx, vy): (" << m_vx << ", " << m_vy << "\n";
-	std::cout << "Accretion: " << m_acc << "\n";
-	std::cout << "Accreted mass: " << m_accreted_mass << "\n";
+    std::cout << "Planet #" << m_planet_number << "\n";
+    std::cout << "Name: " << m_name << "\n";
+    std::cout << "(x, y): (" << m_x << ", " << m_y << "\n";
+    std::cout << "(vx, vy): (" << m_vx << ", " << m_vy << "\n";
+    std::cout << "Accretion: " << m_acc << "\n";
+    std::cout << "Accreted mass: " << m_accreted_mass << "\n";
 
-	std::cout << "Temperature: " << m_temperature << "\n";
-	std::cout << "Radius: " << m_radius << "\n";
-	std::cout << "Does irradiate: " << m_irradiate << "\n";
-	std::cout << "m_rampuptime: " << m_rampuptime << "\n";
+    std::cout << "Temperature: " << m_temperature << "\n";
+    std::cout << "Radius: " << m_radius << "\n";
+    std::cout << "Does irradiate: " << m_irradiate << "\n";
+    std::cout << "m_rampuptime: " << m_rampuptime << "\n";
 
-	std::cout << "m_disk_on_planet_acceleration: " << m_disk_on_planet_acceleration.x << ", " << m_disk_on_planet_acceleration.y << "\n";
-	std::cout << "m_nbody_on_planet_acceleration: " << m_nbody_on_planet_acceleration.x << ", " << m_nbody_on_planet_acceleration.y << "\n";
+    std::cout << "m_disk_on_planet_acceleration: "
+	      << m_disk_on_planet_acceleration.x << ", "
+	      << m_disk_on_planet_acceleration.y << "\n";
+    std::cout << "m_nbody_on_planet_acceleration: "
+	      << m_nbody_on_planet_acceleration.x << ", "
+	      << m_nbody_on_planet_acceleration.y << "\n";
 
-	std::cout << "m_distance_primary: " << m_distance_to_primary << "\n";
-	std::cout << "m_dimensionless_roche_radius: " << m_dimensionless_roche_radius << "\n";
-	std::cout << "m_circumplanetary_mass: " << m_circumplanetary_mass << "\n";
+    std::cout << "m_distance_primary: " << m_distance_to_primary << "\n";
+    std::cout << "m_dimensionless_roche_radius: "
+	      << m_dimensionless_roche_radius << "\n";
+    std::cout << "m_circumplanetary_mass: " << m_circumplanetary_mass << "\n";
 
-	std::cout << "m_semi_major_axis: " << m_semi_major_axis << "\n";
-	std::cout << "m_eccentricity: " << m_eccentricity << "\n";
-	std::cout << "m_mean_anomaly: " << m_mean_anomaly << "\n";
-	std::cout << "m_true_anomaly: " << m_true_anomaly << "\n";
-	std::cout << "m_eccentric_anomaly: " << m_eccentric_anomaly << "\n";
-	std::cout << "m_pericenter_angle: " << m_pericenter_angle << "\n";
-	std::cout << "m_torque: " << m_torque << std::endl;
-	return;
+    std::cout << "m_semi_major_axis: " << m_semi_major_axis << "\n";
+    std::cout << "m_eccentricity: " << m_eccentricity << "\n";
+    std::cout << "m_mean_anomaly: " << m_mean_anomaly << "\n";
+    std::cout << "m_true_anomaly: " << m_true_anomaly << "\n";
+    std::cout << "m_eccentric_anomaly: " << m_eccentric_anomaly << "\n";
+    std::cout << "m_pericenter_angle: " << m_pericenter_angle << "\n";
+    std::cout << "m_torque: " << m_torque << std::endl;
+    return;
 }
 
 /**
@@ -280,9 +284,10 @@ double t_planet::get_rampup_mass() const
     if (get_rampuptime() > 0) {
 	if (PhysicalTime < get_rampuptime() * get_orbital_period()) {
 	    ramping =
-		1.0 - std::pow(std::cos(PhysicalTime * M_PI_2 /
-					(get_rampuptime() * get_orbital_period())),
-			       2);
+		1.0 -
+		std::pow(std::cos(PhysicalTime * M_PI_2 /
+				  (get_rampuptime() * get_orbital_period())),
+			 2);
 	}
     }
     return get_mass() * ramping;
@@ -316,13 +321,13 @@ double t_planet::get_omega() const
 
 double t_planet::get_omega() const
 {
-	double distance = get_semi_major_axis();
-	if (!is_distance_zero(distance)) {
+    double distance = get_semi_major_axis();
+    if (!is_distance_zero(distance)) {
 	return std::sqrt(((hydro_center_mass + get_mass()) * constants::G) /
 			 std::pow(distance, 3));
-	} else {
+    } else {
 	return 0.0;
-	}
+    }
 }
 
 /**
@@ -354,41 +359,40 @@ void t_planet::copy(const planet_member_variables &other)
     m_vx = other.m_vx;
     m_vy = other.m_vy;
 
-	// do not copy accretion rate so we can change it in the config file
-	// m_acc = other.m_acc;
+    // do not copy accretion rate so we can change it in the config file
+    // m_acc = other.m_acc;
     m_accreted_mass = other.m_accreted_mass;
 
     m_planet_number = other.m_planet_number;
-	//m_temperature = other.m_temperature;
-	//m_radius = other.m_radius;
-	//m_irradiate = other.m_irradiate;
-	//m_rampuptime = other.m_rampuptime;
-	m_disk_on_planet_acceleration = other.m_disk_on_planet_acceleration;
-	m_nbody_on_planet_acceleration = other.m_nbody_on_planet_acceleration;
+    // m_temperature = other.m_temperature;
+    // m_radius = other.m_radius;
+    // m_irradiate = other.m_irradiate;
+    // m_rampuptime = other.m_rampuptime;
+    m_disk_on_planet_acceleration = other.m_disk_on_planet_acceleration;
+    m_nbody_on_planet_acceleration = other.m_nbody_on_planet_acceleration;
 
-	m_distance_to_primary = other.m_distance_to_primary;
-	m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
-	//m_circumplanetary_mass = other.m_circumplanetary_mass;
-
+    m_distance_to_primary = other.m_distance_to_primary;
+    m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
+    // m_circumplanetary_mass = other.m_circumplanetary_mass;
 
     /// orbital elements
-	//m_semi_major_axis = other.m_semi_major_axis;
-	//m_eccentricity = other.m_eccentricity;
-	//m_mean_anomaly = other.m_mean_anomaly;
-	//m_true_anomaly = other.m_true_anomaly;
-	//m_eccentric_anomaly = other.m_eccentric_anomaly;
-	//m_pericenter_angle = other.m_pericenter_angle;
+    // m_semi_major_axis = other.m_semi_major_axis;
+    // m_eccentricity = other.m_eccentricity;
+    // m_mean_anomaly = other.m_mean_anomaly;
+    // m_true_anomaly = other.m_true_anomaly;
+    // m_eccentric_anomaly = other.m_eccentric_anomaly;
+    // m_pericenter_angle = other.m_pericenter_angle;
 
-	//m_torque = other.m_torque;
+    // m_torque = other.m_torque;
 }
 
 void t_planet::create_planet_file(bool debug_output)
 {
-	if (!CPU_Master){
+    if (!CPU_Master) {
 	return;
-	}
+    }
 
-	FILE *fd;
+    FILE *fd;
     char *filename = 0;
 
     std::string header_variable_description =
@@ -484,43 +488,45 @@ void t_planet::write_ascii(const char *filename,
 	PersonalExit(1);
     }
 
-	const double accreted_mass = get_accreted_mass();
-	double div;
+    const double accreted_mass = get_accreted_mass();
+    double div;
 
-	if(parameters::write_at_every_timestep){
-		div = DT;
-	} else {
-		div = DT * NINTERM;
-	}
+    if (parameters::write_at_every_timestep) {
+	div = DT;
+    } else {
+	div = DT * NINTERM;
+    }
 
-	const double accretion_rate = accreted_mass / div;
+    const double accretion_rate = accreted_mass / div;
 
     fprintf(
 	fd,
 	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 	timestep, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
-	PhysicalTime, OmegaFrame, get_circumplanetary_mass(), get_eccentricity(),
-	get_angular_momentum(), get_semi_major_axis(), get_omega(),
-	get_mean_anomaly(), get_eccentric_anomaly(), get_true_anomaly(),
-	get_pericenter_angle(), get_torque(), accreted_mass, accretion_rate);
+	PhysicalTime, OmegaFrame, get_circumplanetary_mass(),
+	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
+	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
+	get_true_anomaly(), get_pericenter_angle(), get_torque(), accreted_mass,
+	accretion_rate);
 
     // close file
     fclose(fd);
 }
 
-void t_planet::write_binary(const char *filename,
-				const unsigned int timestep, const bool debug) const
+void t_planet::write_binary(const char *filename, const unsigned int timestep,
+			    const bool debug) const
 {
 
-	std::ofstream wf;
+    std::ofstream wf;
 
-	if(debug){
+    if (debug) {
 	wf = std::ofstream(filename,
-					   std::ios::out | std::ios::binary); // overwrite for debug file
-	} else {
+			   std::ios::out |
+			       std::ios::binary); // overwrite for debug file
+    } else {
 	wf = std::ofstream(filename,
-					   std::ios::out | std::ios::binary | std::ios::app);
-	}
+			   std::ios::out | std::ios::binary | std::ios::app);
+    }
     if (!wf) {
 	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
 	die("End\n");
@@ -544,9 +550,9 @@ void t_planet::write_binary(const char *filename,
     pl.m_disk_on_planet_acceleration = m_disk_on_planet_acceleration;
     pl.m_nbody_on_planet_acceleration = m_nbody_on_planet_acceleration;
 
-	pl.m_distance_to_primary = m_distance_to_primary;
-	pl.m_dimensionless_roche_radius = m_dimensionless_roche_radius;
-	pl.m_circumplanetary_mass = m_circumplanetary_mass;
+    pl.m_distance_to_primary = m_distance_to_primary;
+    pl.m_dimensionless_roche_radius = m_dimensionless_roche_radius;
+    pl.m_circumplanetary_mass = m_circumplanetary_mass;
 
     /// orbital elements
     pl.m_semi_major_axis = m_semi_major_axis;
@@ -574,48 +580,50 @@ void t_planet::restart(unsigned int timestep, bool debug)
 		   std::to_string(get_planet_number()) + ".bin";
     }
 
-	try{
-    std::ifstream rf(filename, std::ofstream::binary | std::ios::in);
+    try {
+	std::ifstream rf(filename, std::ofstream::binary | std::ios::in);
 
-    if (!rf.is_open()) {
-	logging::print_master(LOG_ERROR "Can't read '%s' file.\n",
-			      filename.c_str());
-	throw 0;
-    }
-
-	if(!debug){
-	rf.ignore(timestep * sizeof(planet_member_variables));
+	if (!rf.is_open()) {
+	    logging::print_master(LOG_ERROR "Can't read '%s' file.\n",
+				  filename.c_str());
+	    throw 0;
 	}
 
-    planet_member_variables pl;
-    rf.read((char *)&pl, sizeof(planet_member_variables));
-
-    while (pl.timestep != timestep) {
-	if (rf.eof()) {
-	    logging::print_master(LOG_ERROR
-				  "Could not read timestep %d in %s\n",
-				  timestep, filename.c_str());
-		throw 0;
+	if (!debug) {
+	    rf.ignore(timestep * sizeof(planet_member_variables));
 	}
+
+	planet_member_variables pl;
 	rf.read((char *)&pl, sizeof(planet_member_variables));
+
+	while (pl.timestep != timestep) {
+	    if (rf.eof()) {
+		logging::print_master(LOG_ERROR
+				      "Could not read timestep %d in %s\n",
+				      timestep, filename.c_str());
+		throw 0;
+	    }
+	    rf.read((char *)&pl, sizeof(planet_member_variables));
 	}
 
-    copy(pl);
-    rf.close();
-	} catch(...) {
-		logging::print_master("Could not restart planet \"%s\". Planet is initialized from starting parameters\n", this->m_name.c_str());
-	}
+	copy(pl);
+	rf.close();
+    } catch (...) {
+	logging::print_master(
+	    "Could not restart planet \"%s\". Planet is initialized from starting parameters\n",
+	    this->m_name.c_str());
+    }
 }
 
 double t_planet::get_value_from_file(unsigned int timestep,
-					 std::string variable_name)
+				     std::string variable_name)
 {
     double value;
     int column = -1;
 
     std::string filename;
-	filename = std::string(OUTPUTDIR) + "bigplanet" +
-		   std::to_string(get_planet_number()) + ".dat";
+    filename = std::string(OUTPUTDIR) + "bigplanet" +
+	       std::to_string(get_planet_number()) + ".dat";
 
     std::string version = output::get_version(filename);
     auto variable_columns = planet_file_column_v2;

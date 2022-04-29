@@ -112,7 +112,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     parameters::SpreadingRing =
 	config::value_as_bool_default("SpreadingRing", NO);
 
-	last_dt = config::value_as_double_default("FirstDT", 1e-9);
+    last_dt = config::value_as_double_default("FirstDT", 1e-9);
 
     SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config::value_as_double_default("IMPOSEDDISKDRIFT", 0.0);
@@ -251,22 +251,28 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     // disc
     ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
-	ASPECTRATIO_MODE =
-	config::value_as_int_default("AspectRatioMode", 0);
+    ASPECTRATIO_MODE = config::value_as_int_default("AspectRatioMode", 0);
 
-	switch(ASPECTRATIO_MODE){
-		case 0:
-			logging::print_master(LOG_INFO "Computing scale height with respect to primary object.\n");
-			break;
-		case 1:
-			logging::print_master(LOG_INFO "Computing scale height with respect to nbody system.\n");
-			break;
-		case 2:
-			logging::print_master(LOG_INFO "Computing scale height with respect to center of mass.\n");
-			break;
-		default:
-			logging::print_master(LOG_INFO "Computing scale height with respect to primary object.\n");
-	}
+    switch (ASPECTRATIO_MODE) {
+    case 0:
+	logging::print_master(
+	    LOG_INFO
+	    "Computing scale height with respect to primary object.\n");
+	break;
+    case 1:
+	logging::print_master(
+	    LOG_INFO "Computing scale height with respect to nbody system.\n");
+	break;
+    case 2:
+	logging::print_master(
+	    LOG_INFO
+	    "Computing scale height with respect to center of mass.\n");
+	break;
+    default:
+	logging::print_master(
+	    LOG_INFO
+	    "Computing scale height with respect to primary object.\n");
+    }
 
     if (!config::key_exists("OuterBoundary")) {
 	logging::print_master(LOG_ERROR
@@ -316,9 +322,12 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    config::value_as_string_default("HydroFrameCenter", "primary"));
     }
 
-	if(parameters::n_bodies_for_hydroframe_center != 1 && ASPECTRATIO_MODE == 1){
-		logging::print_master(LOG_INFO "WARNING: MORE THAN 1 CENTRAL OBJECT AND NBODY ASPECTRATIO IS NOT TESTED OR DEBUGGED!\n");
-	}
+    if (parameters::n_bodies_for_hydroframe_center != 1 &&
+	ASPECTRATIO_MODE == 1) {
+	logging::print_master(
+	    LOG_INFO
+	    "WARNING: MORE THAN 1 CENTRAL OBJECT AND NBODY ASPECTRATIO IS NOT TESTED OR DEBUGGED!\n");
+    }
 
     parameters::exitOnDeprecatedSetting(
 	"IndirectTerm",
@@ -418,40 +427,40 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	}
 
 	if (strcmp(eos_string, "pvtelaw") == 0 ||
-		strcmp(eos_string, "pvte") == 0) {
-		could_read_eos = true;
+	    strcmp(eos_string, "pvte") == 0) {
+	    could_read_eos = true;
 
-		// Energy equation / Adiabatic
-		parameters::Adiabatic = true;
-		parameters::variableGamma = true;
+	    // Energy equation / Adiabatic
+	    parameters::Adiabatic = true;
+	    parameters::variableGamma = true;
 
-		char ADIABATICINDEX_string[512];
-		strncpy(
+	    char ADIABATICINDEX_string[512];
+	    strncpy(
 		ADIABATICINDEX_string,
 		config::value_as_string_default("AdiabaticIndex", "7.0/5.0"),
 		256); // same as MAXNAME from config.cpp
-		for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
+	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
-		}
+	    }
 
-		if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
+	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
 		logging::print_master(
-			LOG_ERROR
-			"Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
+		    LOG_ERROR
+		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
-		} else {
+	    } else {
 		ADIABATICINDEX = config::value_as_double_default(
-			"AdiabaticIndex", 7.0 / 5.0);
-		}
+		    "AdiabaticIndex", 7.0 / 5.0);
+	    }
 
-		if (ADIABATICINDEX == 1) {
+	    if (ADIABATICINDEX == 1) {
 		logging::print_master(
-			LOG_WARNING
-			"You cannot have PVTE EoS and AdiabatcIndex = 1.! Setting AdiabaticIndex to 7/5.\n");
-		ADIABATICINDEX = 7.0/5.0;
-		}
-		logging::print_master(
+		    LOG_WARNING
+		    "You cannot have PVTE EoS and AdiabatcIndex = 1.! Setting AdiabaticIndex to 7/5.\n");
+		ADIABATICINDEX = 7.0 / 5.0;
+	    }
+	    logging::print_master(
 		LOG_INFO
 		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g!\n",
 		ADIABATICINDEX);
@@ -575,7 +584,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     if (ALPHAVISCOSITY != 0.0) {
 	ViscosityAlpha = YES;
-	logging::print_master(LOG_INFO "Viscosity is of alpha type with alpha = %.3e\n", ALPHAVISCOSITY);
+	logging::print_master(LOG_INFO
+			      "Viscosity is of alpha type with alpha = %.3e\n",
+			      ALPHAVISCOSITY);
     }
 
     if (parameters::thickness_smoothing <= 0.0) {
@@ -611,13 +622,19 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    "Using pseudo implicit viscosity to limit the time step size\n");
     }
 
-	if(VISCOSITY != 0.0){
-		logging::print_master(LOG_INFO "Viscosity is kinematic viscosity with nu = %.3e\n", VISCOSITY);
-	}
+    if (VISCOSITY != 0.0) {
+	logging::print_master(
+	    LOG_INFO "Viscosity is kinematic viscosity with nu = %.3e\n",
+	    VISCOSITY);
+    }
     const bool VISCOSITY_in_CGS =
 	config::value_as_bool_default("VISCOSITYINCGS", false);
     if (VISCOSITY_in_CGS) {
-		logging::print_master(LOG_INFO "Viscosity changed to code units from %.3e cgs to %.3e code\n", VISCOSITY, VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor());
+	logging::print_master(
+	    LOG_INFO
+	    "Viscosity changed to code units from %.3e cgs to %.3e code\n",
+	    VISCOSITY,
+	    VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor());
 	VISCOSITY =
 	    VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
     }
