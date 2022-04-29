@@ -131,13 +131,13 @@ void print_runtime_final()
 			  .count();
 
     double time_per_step_ms = 0.0;
-    if (N_iter != 0) {
-	time_per_step_ms = realtime / (1000.0 * N_iter);
+	if (N_hydro_iter != 0) {
+	time_per_step_ms = realtime / (1000.0 * N_hydro_iter);
     }
     logging::print_master(
 	LOG_INFO
 	"-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
-	N_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
+	N_hydro_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
 void print_runtime_info(t_data &data, unsigned int output_number,
@@ -162,7 +162,7 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 
     // Do we have to log because enough steps passed?
     bool log_bc_steps = parameters::log_after_steps > 0 &&
-			(N_iter - n_last_log) >= parameters::log_after_steps;
+			(N_hydro_iter - n_last_log) >= parameters::log_after_steps;
     // Do we have to log because enough real time passed?
     bool log_bc_time =
 	parameters::log_after_real_seconds > 0 &&
@@ -180,9 +180,9 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 		       realtime_now - realtime_start)
 		       .count();
 	double time_per_step_ms = 0.0;
-	if ((N_iter - n_last_log) != 0) {
+	if ((N_hydro_iter - n_last_log) != 0) {
 	    time_per_step_ms =
-		realtime_since_last / (1000.0 * (N_iter - n_last_log));
+		realtime_since_last / (1000.0 * (N_hydro_iter - n_last_log));
 	}
 	if (debug_outputs) {
 		time_t t = time(NULL);
@@ -192,21 +192,21 @@ void print_runtime_info(t_data &data, unsigned int output_number,
 	    logging::print_master(
 		LOG_INFO
 		"%s	DEBUG output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
-		s, output_number, time_step_coarse, N_iter, PhysicalTime, dt,
+		s, output_number, time_step_coarse, N_hydro_iter, PhysicalTime, dt,
 		realtime / 1000000.0, time_per_step_ms);
 	} else {
 	    logging::print_master(
 		LOG_INFO
 		"Logging info: output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
-		output_number, time_step_coarse, N_iter, PhysicalTime, dt,
+		output_number, time_step_coarse, N_hydro_iter, PhysicalTime, dt,
 		realtime / 1000000.0, time_per_step_ms);
 	}
-	n_last_log = N_iter;
+	n_last_log = N_hydro_iter;
 	realtime_last_log = realtime_now;
 
 	if (debug_outputs) {
-	    output::write_grids(data, TimeStep, N_iter, PhysicalTime, true);
-	    data.get_planetary_system().write_planets(TimeStep, 2);
+		output::write_grids(data, N_output, N_hydro_iter, PhysicalTime, true);
+		data.get_planetary_system().write_planets(N_output, 2);
 	    output::write_misc(true);
 	}
     }

@@ -48,7 +48,7 @@ extern double OmegaFrame;
 static int Nshift[MAX1D];
 static boolean NoSplitAdvection[MAX1D];
 static boolean UniformTransport;
-extern int TimeStep;
+extern int N_output;
 extern boolean FastTransport;
 extern boolean OpenInner;
 

@@ -327,7 +327,7 @@ void write_quantities(t_data &data, bool force_update)
 		quantities_limit_radius = quantities_radius_limit;
 	}
 
-	const auto disk_quantities = reduce_disk_quantities(data, timestep, force_update, quantities_limit_radius);
+	const auto disk_quantities = reduce_disk_quantities(data, N_output, force_update, quantities_limit_radius);
 	const double disk_eccentricity = disk_quantities[0];
 	const double disk_periastron = disk_quantities[1];
 
@@ -357,7 +357,7 @@ void write_quantities(t_data &data, bool force_update)
 	const double gravitationalEnergy = quantities::gas_gravitational_energy(data, quantities_limit_radius);
 	const double totalEnergy = internalEnergy + kinematicEnergy + gravitationalEnergy;
 
-	quantities::compute_aspectratio(data, timestep, force_update);
+	quantities::compute_aspectratio(data, N_output, force_update);
 	const double scale_height = quantities::gas_aspect_ratio(data, quantities_limit_radius);
 
     double pdivv_total = 0.0;
@@ -391,7 +391,7 @@ void write_quantities(t_data &data, bool force_update)
 	fprintf(
 	    fd,
 	    "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
-	    timestep, nTimeStep, PhysicalTime, totalMass, diskRadius,
+		N_output, N_outer_loop, PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
@@ -462,8 +462,8 @@ void write_misc(const bool debug_file)
 	PersonalExit(1);
     }
 
-    misc_entry misc{TimeStep,	nTimeStep,  PhysicalTime,
-			OmegaFrame, FrameAngle, dtemp, last_dt, N_iter};
+	misc_entry misc{N_output,	N_outer_loop,  PhysicalTime,
+			OmegaFrame, FrameAngle, dtemp, last_dt, N_hydro_iter};
 
     wf.write((char *)&misc, sizeof(misc));
 
@@ -654,13 +654,13 @@ int get_misc(const int timestep, const bool debug)
 	die("End\n");
     }
 
-    nTimeStep = misc.nTimeStep;
+	N_outer_loop = misc.nTimeStep;
     PhysicalTime = misc.PhysicalTime;
     OmegaFrame = misc.OmegaFrame;
     FrameAngle = misc.FrameAngle;
     dtemp = misc.dtemp;
 	last_dt = misc.last_dt;
-	N_iter = misc.N_iter;
+	N_hydro_iter = misc.N_iter;
 
     rf.close();
     return misc.timestep;

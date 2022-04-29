@@ -46,11 +46,11 @@ int main(int argc, char *argv[])
 {
     t_data data;
 
-    N_iter = 0;
+	N_hydro_iter = 0;
 
     resize_radialarrays(MAX1D);
 
-    nTimeStep = 0;
+	N_outer_loop = 0;
 
     int CPU_NameLength;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
@@ -273,15 +273,15 @@ int main(int argc, char *argv[])
     CommunicateBoundaries(&data[t_data::DENSITY0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
-	for (; nTimeStep <= NTOT; ++nTimeStep) {
+	for (; N_outer_loop <= NTOT; ++N_outer_loop) {
 	data.get_planetary_system().compute_dist_to_primary();
 	data.get_planetary_system().calculate_orbital_elements();
 	ComputeCircumPlanetaryMasses(data);
 	// write outputs
 
 	bool force_update_for_output = true;
-	TimeStep = (nTimeStep / NINTERM); // note: integer division
-	bool write_complete_output = NINTERM * TimeStep == nTimeStep;
+	N_output = (N_outer_loop / NINTERM); // note: integer division
+	bool write_complete_output = NINTERM * N_output == N_outer_loop;
 	if (dont_do_restart_output_at_start) {
 	    write_complete_output = false;
 	}
@@ -297,16 +297,16 @@ int main(int argc, char *argv[])
 	    force_update_for_output = false;
 
 	    // write polar grids
-	    output::write_grids(data, TimeStep, N_iter, PhysicalTime, false);
+		output::write_grids(data, N_output, N_hydro_iter, PhysicalTime, false);
 	    // write planet data
-	    data.get_planetary_system().write_planets(TimeStep, 0);
+		data.get_planetary_system().write_planets(N_output, 0);
 	    // write misc stuff (important for resuming)
 	    output::write_misc(false);
 	    // write time info for coarse output
-	    output::write_coarse_time(TimeStep, nTimeStep);
+		output::write_coarse_time(N_output, N_outer_loop);
 	    // write particles
 	    if (parameters::integrate_particles)
-		particles::write(TimeStep);
+		particles::write(N_output);
 	    if (GotoNextOutput && (!StillWriteOneOutput)) {
 		PersonalExit(0);
 	    }
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
-	    data.get_planetary_system().write_planets(TimeStep, 1);
+		data.get_planetary_system().write_planets(N_output, 1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
 	}
 
@@ -333,17 +333,17 @@ int main(int argc, char *argv[])
 	}
 
 	if (write_complete_output && parameters::write_torques) {
-	    output::write_torques(data, TimeStep, force_update_for_output);
+		output::write_torques(data, N_output, force_update_for_output);
 	}
 	if (parameters::write_lightcurves &&
 	    (parameters::write_at_every_timestep || write_complete_output) &&
 	    !(dont_do_restart_output_at_start)) {
-	    output::write_lightcurves(data, TimeStep, force_update_for_output);
+		output::write_lightcurves(data, N_output, force_update_for_output);
 	}
 	dont_do_restart_output_at_start = false;
 
 	// Exit if last timestep reached and last output is written
-	if (nTimeStep == NTOT) {
+	if (N_outer_loop == NTOT) {
 	    break;
 	}
 

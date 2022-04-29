@@ -81,8 +81,6 @@ extern t_radialarray EnergyMed;
 extern t_radialarray SigmaMed;
 
 extern double OmegaFrame, PhysicalTime, PhysicalTimeInitial, FrameAngle;
-extern int TimeStep;
-extern unsigned int nTimeStep;
 
 extern double hydro_center_mass;
 
@@ -106,10 +104,12 @@ extern double last_dt;
 extern double dt_parabolic_local;
 extern double hydro_dt;
 
+extern int N_output;
+extern unsigned int N_outer_loop;
+extern unsigned int N_hydro_iter;
 
 extern unsigned int NINTERM;
 extern unsigned int NTOT;
-extern unsigned int N_iter;
 
 extern unsigned int NAzimuthal;
 extern unsigned int NRadial;

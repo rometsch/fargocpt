@@ -435,12 +435,11 @@ void AlgoGas(t_data &data)
 	logging::print_master(
 	    LOG_VERBOSE
 	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
-	    (int)ceil(log10(NTOT)), nTimeStep, NTOT,
-	    (double)nTimeStep / (double)NTOT * 100.0, dtemp, DT,
+		(int)ceil(log10(NTOT)), N_outer_loop, NTOT,
+		(double)N_outer_loop / (double)NTOT * 100.0, dtemp, DT,
 	    dtemp / DT * 100.0);
 
 	dtemp += hydro_dt;
-
 
 	init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 
@@ -544,8 +543,8 @@ void AlgoGas(t_data &data)
 	}
 
 	PhysicalTime += hydro_dt;
-	N_iter = N_iter + 1;
-	logging::print_runtime_info(data, nTimeStep / NINTERM, nTimeStep, hydro_dt);
+	N_hydro_iter = N_hydro_iter + 1;
+	logging::print_runtime_info(data, N_outer_loop / NINTERM, N_outer_loop, hydro_dt);
 
 	if (parameters::calculate_disk) {
 		CommunicateBoundaries(
@@ -570,7 +569,7 @@ void AlgoGas(t_data &data)
 		 //data[t_data::DENSITY] *=
 		//(total_disk_mass_old / total_disk_mass_new);
 
-		CalculateMonitorQuantitiesAfterHydroStep(data, nTimeStep, hydro_dt);
+		CalculateMonitorQuantitiesAfterHydroStep(data, N_outer_loop, hydro_dt);
 
 		if(parameters::variableGamma && !VISCOUS_ACCRETION){ // If VISCOUS_ACCRETION is active, scale_height is already updated
 		// Recompute scale height after Transport to update the 3D density

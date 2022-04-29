@@ -138,8 +138,6 @@ t_radialarray GLOBAL_bufarray;
 t_radialarray GLOBAL_AxiSGAccr;
 
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
-int TimeStep;
-unsigned int nTimeStep;
 double hydro_center_mass;
 int debug, OnlyInit;
 int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian,
@@ -163,10 +161,12 @@ double last_dt;
 double dt_parabolic_local;
 double hydro_dt;
 
+int N_output;
+unsigned int N_outer_loop;
+unsigned int N_hydro_iter;
 
 unsigned int NINTERM;
 unsigned int NTOT;
-unsigned int N_iter;
 
 double MASSTAPER;
 
