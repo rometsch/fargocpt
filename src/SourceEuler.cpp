@@ -617,17 +617,6 @@ void update_with_sourceterms(t_data &data, double dt)
 			invdphi * InvRb[n_radial];
 
 		const double gamma = pvte::get_gamma_eff(data, n_radial, n_azimuthal);
-		const double sigma_sb = constants::sigma;
-		const double c = constants::c;
-		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-		const double Rgas = constants::R;
-		const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
-		const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
-		const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
-		const double inv_pow4 =
-		std::pow(mu * (gamma - 1.0) / (Rgas * sigma), 4);
-		double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb / c * inv_pow4 *
-					 std::pow(energy, 3);
 
 		/*
 		// Like D'Angelo et al. 2003 eq. 25
@@ -639,12 +628,11 @@ void update_with_sourceterms(t_data &data, double dt)
 		n_azimuthal) = energy_new;
 		*/
 
-
 		// Like D'Angelo et al. 2003 eq. 24
 		const double energy_old =
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
 		const double energy_new =
-			energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V/alpha);
+			energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
 		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
 
 		/*
@@ -1408,7 +1396,7 @@ void SubStep3(t_data &data, double dt)
 
 		double energy_new = energy + dt * (Qplus - Qminus);
 
-		const double SigmaFloor = 10.0 * parameters::sigma0 * parameters::sigma_floor;
+		/*const double SigmaFloor = 10.0 * parameters::sigma0 * parameters::sigma_floor;
 		// If the cell is too close to the density floor
 		// we set energy to equilibrium energy
 		if((sigma < SigmaFloor)){
@@ -1420,7 +1408,7 @@ void SubStep3(t_data &data, double dt)
 
 			data[t_data::QMINUS](n_radial, n_azimuthal) = Qplus;
 			energy_new = eq_energy;
-		}
+		}*/
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
 	}
