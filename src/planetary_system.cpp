@@ -346,7 +346,8 @@ void t_planetary_system::restart(unsigned int timestep, bool debug)
     logging::print_master(LOG_INFO " done\n");
 
     logging::print_master(LOG_INFO "Loading rebound ...");
-    if (debug_outputs) {
+
+	{
 	reb_free_simulation(m_rebound);
 	char *reb_name = nullptr;
 	if (debug) {
@@ -359,7 +360,7 @@ void t_planetary_system::restart(unsigned int timestep, bool debug)
 		     timestep);
 	}
 	m_rebound = reb_create_simulation_from_binary(reb_name);
-    }
+	}
     logging::print_master(LOG_INFO " done\n");
 }
 
@@ -367,9 +368,7 @@ void t_planetary_system::create_planet_files()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	get_planet(i).create_planet_file(false);
-	if (debug_outputs) {
-	    get_planet(i).create_planet_file(true);
-	}
+	get_planet(i).create_planet_file(true);
     }
 }
 
@@ -379,7 +378,7 @@ void t_planetary_system::write_planets(unsigned int timestep, int file_type)
 	get_planet(i).write(timestep, file_type);
     }
 
-    if (debug_outputs && CPU_Master) {
+	if (CPU_Master) {
 	char *reb_name = nullptr;
 	if (file_type == 2) {
 	    asprintf(&reb_name, "%s%s", OUTPUTDIR,

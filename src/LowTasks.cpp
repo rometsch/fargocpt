@@ -10,6 +10,32 @@
 #include "global.h"
 #include "logging.h"
 
+#include "output.h"
+void handle_sigterm_outputs(t_data &data){
+
+	// Enable output of Qplus / Qminus for bitwise exact restarting.
+	{
+	if(!data[t_data::QPLUS].get_write())
+	{
+	data[t_data::QPLUS].set_write(true, false);
+	}
+	if(!data[t_data::QMINUS].get_write())
+	{
+	data[t_data::QMINUS].set_write(true, false);
+	}
+	}
+
+	output::write_grids(data, N_output, N_hydro_iter, PhysicalTime,
+			true);
+	data.get_planetary_system().write_planets(N_output, 2);
+	output::write_misc(true);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	logging::print_master(LOG_INFO "Wrote debug outputs\n");
+	die("Received SIGTERM\n");
+
+}
+
 /**
 	Finalize MPI and terminate program.
 

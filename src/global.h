@@ -1,7 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include "pvte_law.h"
 #include "radialarray.h"
 #include "types.h"
 #include <mpi.h>
@@ -136,5 +135,6 @@ extern BoundaryFlow MassDelta;
 
 extern double dtemp;
 extern int debug_outputs;
+extern bool SIGTERM_RECEIVED;
 
 #endif // GLOBAL_H

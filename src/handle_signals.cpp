@@ -1,10 +1,12 @@
 #include "backtrace.h"
+#include "handle_signals.h"
 #include "global.h"
 #include "logging.h"
 #include <csignal>
 #include <functional>
+#include "LowTasks.h"
 
-void heartbeat()
+static void heartbeat()
 {
 
     logging::print_master(LOG_INFO
@@ -16,12 +18,22 @@ void heartbeat()
     logging::print_master(LOG_INFO "PhysicalTime = %g\n", PhysicalTime);
 };
 
-void handleSIGUSR1(int signum) { heartbeat(); }
+static void handleSIGUSR1(__attribute__((unused)) int signum) { heartbeat(); }
 
-void handleSIGUSR2(int signum) { PrintTrace(); }
+static void handleSIGUSR2(__attribute__((unused)) int signum) { PrintTrace(); }
+
+static void handleSIGTERM(__attribute__((unused)) int signum) {
+
+	SIGTERM_RECEIVED = true;
+}
+
 
 void register_signal_handlers()
 {
+	SIGTERM_RECEIVED = false;
     signal(SIGUSR1, handleSIGUSR1);
     signal(SIGUSR2, handleSIGUSR2);
+
+	signal(SIGTERM, handleSIGTERM);
+
 }

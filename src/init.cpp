@@ -23,6 +23,7 @@
 #include "util.h"
 #include "viscosity.h"
 #include <gsl/gsl_sf_bessel.h>
+#include "pvte_law.h"
 
 #include "open-simplex-noise.h"
 #include "options.h"
@@ -1700,6 +1701,7 @@ void init_gas_velocities(t_data &data)
     /* --------- */
     if (CentrifugalBalance) {
 	double vt_int[MAX1D];
+	memset(vt_int, 0, MAX1D * sizeof(*vt_int));
 
 	/* vt_int \equiv rOmega� = grad(P)/sigma +  \partial(phi)/\partial(r)  -
 	 * acc_sg_radial */

@@ -6,6 +6,8 @@
 
 void PersonalExit(int returncode);
 
+void handle_sigterm_outputs(t_data &data);
+
 t_polargrid *CreatePolarGrid(unsigned int Nr, unsigned int Ns,
 			     const char *name);
 

@@ -40,6 +40,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "pvte_law.h"
 
 #include <cstring>
 extern boolean Corotating;
@@ -433,6 +434,9 @@ void AlgoGas(t_data &data)
     // quantities::gas_total_mass(data, 2.0*RMAX);
 
     while (dtemp < DT) {
+	if(SIGTERM_RECEIVED){
+		handle_sigterm_outputs(data);
+	}
 	logging::print_master(
 	    LOG_VERBOSE
 	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",

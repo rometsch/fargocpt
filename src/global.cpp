@@ -194,3 +194,4 @@ BoundaryFlow MassDelta;
 
 double dtemp;
 int debug_outputs;
+bool SIGTERM_RECEIVED;

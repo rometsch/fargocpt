@@ -30,6 +30,8 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "handle_signals.h"
+
 
 int TimeToWrite;
 int Restart = 0;
@@ -44,6 +46,9 @@ extern int SelfGravity, SGZeroMode;
 
 int main(int argc, char *argv[])
 {
+
+	register_signal_handlers();
+
     t_data data;
 
     N_hydro_iter = 0;
