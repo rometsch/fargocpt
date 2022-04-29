@@ -654,7 +654,7 @@ int get_misc(const int timestep, const bool debug)
 	}
 	rf.read((char *)&misc, sizeof(misc_entry));
 	}
-    if (timestep != misc.timestep && (!debug)) {
+	if (timestep != misc.timestep) {
 	logging::print(LOG_ERROR "Can't find timestep %d in %s. Aborting.\n",
 		       timestep, filename.c_str());
 	die("End\n");
