@@ -7,7 +7,7 @@ OPTIONS += -Wall -Wextra -Wpedantic -Wmissing-declarations -Werror=redundant-dec
 # architechture
 OPTIONS += -march=native
 # add symbols for backtrace
-# OPTIONS += -rdynamic
+OPTIONS += -rdynamic
 # optimizations, applied to options later
 OPTIMIZATION := -Ofast -flto
 
