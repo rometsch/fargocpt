@@ -30,10 +30,9 @@ static void handleSIGTERM(__attribute__((unused)) int signum) {
 
 void register_signal_handlers()
 {
-	SIGTERM_RECEIVED = false;
     signal(SIGUSR1, handleSIGUSR1);
     signal(SIGUSR2, handleSIGUSR2);
 
+	SIGTERM_RECEIVED = false;
 	signal(SIGTERM, handleSIGTERM);
-
 }
