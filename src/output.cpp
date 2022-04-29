@@ -438,28 +438,21 @@ void write_misc(const bool debug_file)
     }
 
     static bool fd_created = false;
-    static bool fd_debug_created = false;
 
     // check if file exists and we restarted
     if ((start_mode::mode == start_mode::mode_restart) &&
-	(debug_file ? !(fd_debug_created) : !(fd_created))) {
+	(!fd_created)) {
 	wf = std::ofstream(filename.c_str(), std::ios::in | std::ios::binary);
 	if (wf.good()) {
-	    if (debug_file) {
-		fd_debug_created = true;
-	    } else {
 		fd_created = true;
-	    }
 	}
 	wf.close();
     }
 
     // open logfile
-    if (debug_file ? !(fd_debug_created) : !(fd_created)) {
+	if (!fd_created || debug_file) {
 	wf = std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
-	if (debug_file) {
-	    fd_debug_created = true;
-	} else {
+	if (!fd_created){
 	    fd_created = true;
 	}
     } else {
@@ -651,22 +644,24 @@ int get_misc(const int timestep, const bool debug)
     misc_entry misc;
 
     rf.read((char *)&misc, sizeof(misc));
+	if (!debug){
     while (misc.timestep != timestep && !rf.eof()) {
-	if (rf.eof() && !debug) {
+	if (rf.eof()) {
 	    logging::print(LOG_ERROR
 			   "Can't read %s at timestep %d. Aborting.\n",
 			   filename.c_str(), timestep);
 	    die("End\n");
 	}
 	rf.read((char *)&misc, sizeof(misc_entry));
-    }
-
+	}
     if (timestep != misc.timestep && (!debug)) {
 	logging::print(LOG_ERROR "Can't find timestep %d in %s. Aborting.\n",
 		       timestep, filename.c_str());
 	die("End\n");
     }
+	}
 
+	N_output = misc.timestep;
     N_outer_loop = misc.nTimeStep;
     PhysicalTime = misc.PhysicalTime;
     OmegaFrame = misc.OmegaFrame;

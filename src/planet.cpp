@@ -596,6 +596,7 @@ void t_planet::restart(unsigned int timestep, bool debug)
 	planet_member_variables pl;
 	rf.read((char *)&pl, sizeof(planet_member_variables));
 
+	if (!debug) {
 	while (pl.timestep != timestep) {
 	    if (rf.eof()) {
 		logging::print_master(LOG_ERROR
@@ -604,6 +605,7 @@ void t_planet::restart(unsigned int timestep, bool debug)
 		throw 0;
 	    }
 	    rf.read((char *)&pl, sizeof(planet_member_variables));
+	}
 	}
 
 	copy(pl);
