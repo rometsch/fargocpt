@@ -132,7 +132,7 @@ ExponentialCellSizeFactor 1.41      # Scaling used on the size of the first cell
 
 ### Output control parameters
 
-Ntot			200		# Total number of time steps
+Ntot			230		# Total number of time steps
 Ninterm	 		1		# Time steps between outputs
 DT			0.001	# Time step length. 2PI = 1 orbit
 

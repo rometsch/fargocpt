@@ -61,17 +61,34 @@ def test(out, label, color, dt):
 
         ax.plot(r1, data, ls='-', color=color, label=label, lw=2.5)
 
+def analytic(axs):
+    analytic_data = np.loadtxt("analytic_shock.dat", skiprows=2)
+    x = analytic_data[:,1]
+
+    for i in range(len(quants)):
+        ax = axs[i]
+
+        if quants[i] == "gaspressure":
+            j = 5
+        if quants[i] == "gasdens":
+            j = 3
+        if quants[i] == "gasvrad":
+            j = 2
+
+        y = analytic_data[:,(j)]
+
+        ax.plot(x, y, '-m', label='Analytic', lw=2)
 
 
 compile_fargo('../../')
 run('../../', 'test/shockTube_PVTE/shocktube.par')
 run('../../', 'test/shockTube_PVTE/shocktube_varGamm.par')
 
-dt = 200
+dt = 228
 fig, axs = plt.subplots(1,3,figsize=(18,6))
 axs = np.ravel(axs)
 
-
+analytic(axs)
 test('../../shocktube/', 'Perfect Eos FARGO', 'black', dt)
 test('../../shocktube_varGamm/', 'Ideal Eos FARGO', 'darkblue', dt)
 
