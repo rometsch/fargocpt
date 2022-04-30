@@ -2,6 +2,7 @@
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
+#include <cstring>
 
 #include "LowTasks.h"
 #include "Pframeforce.h"
@@ -1701,7 +1702,7 @@ void init_gas_velocities(t_data &data)
     /* --------- */
     if (CentrifugalBalance) {
 	double vt_int[MAX1D];
-	memset(vt_int, 0, MAX1D * sizeof(*vt_int));
+	std::memset(vt_int, 0, MAX1D * sizeof(*vt_int));
 
 	/* vt_int \equiv rOmega� = grad(P)/sigma +  \partial(phi)/\partial(r)  -
 	 * acc_sg_radial */

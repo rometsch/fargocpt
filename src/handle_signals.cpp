@@ -16,7 +16,7 @@ static void heartbeat()
     logging::print_master(LOG_INFO "outer loop iteration = %d\n", N_outer_loop);
     logging::print_master(LOG_INFO "N hydro step = %d\n", N_hydro_iter);
     logging::print_master(LOG_INFO "PhysicalTime = %g\n", PhysicalTime);
-};
+}
 
 static void handleSIGUSR1(__attribute__((unused)) int signum) { heartbeat(); }
 
