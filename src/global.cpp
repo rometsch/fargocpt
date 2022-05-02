@@ -9,6 +9,7 @@
 #include "types.h"
 #include <mpi.h>
 #include <vector>
+#include <signal.h>
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */
@@ -194,4 +195,4 @@ BoundaryFlow MassDelta;
 
 double dtemp;
 int debug_outputs;
-bool SIGTERM_RECEIVED;
+volatile sig_atomic_t SIGTERM_RECEIVED;

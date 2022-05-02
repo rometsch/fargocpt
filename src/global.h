@@ -5,6 +5,8 @@
 #include "types.h"
 #include <mpi.h>
 #include <vector>
+#include <signal.h>
+
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -135,6 +137,6 @@ extern BoundaryFlow MassDelta;
 
 extern double dtemp;
 extern int debug_outputs;
-extern bool SIGTERM_RECEIVED;
+extern volatile sig_atomic_t SIGTERM_RECEIVED;
 
 #endif // GLOBAL_H
