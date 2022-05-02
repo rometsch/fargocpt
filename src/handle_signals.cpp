@@ -5,6 +5,7 @@
 #include <csignal>
 #include <functional>
 #include "LowTasks.h"
+#include <unistd.h> 
 
 static void heartbeat()
 {
