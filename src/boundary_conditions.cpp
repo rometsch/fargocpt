@@ -307,10 +307,10 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	reflecting_boundary_outer(data);
 	break;
     case parameters::boundary_condition_center_of_mass_initial: {
-	initial_center_of_mass_boundary(data);
 	if (final) {
 	    damping_initial_center_of_mass_outer(data, dt);
 	}
+	initial_center_of_mass_boundary(data);
 	break;
     }
     case parameters::boundary_condition_zero_gradient:
