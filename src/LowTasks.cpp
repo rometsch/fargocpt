@@ -13,7 +13,7 @@
 
 #include "output.h"
 void handle_sigterm_outputs(t_data &data){
-	logging::print_master(LOG_INFO "Start writing debug output\n");
+	logging::print_master(LOG_INFO "Received SIGTERM, starting to writi debug output\n");
 	// Enable output of Qplus / Qminus for bitwise exact restarting.
 	if(!data[t_data::QPLUS].get_write())
 	{

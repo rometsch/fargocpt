@@ -5,7 +5,6 @@
 #include <csignal>
 #include <functional>
 #include "LowTasks.h"
-#include <unistd.h> 
 
 static void heartbeat()
 {
@@ -24,7 +23,6 @@ static void handleSIGUSR1(__attribute__((unused)) int signum) { heartbeat(); }
 static void handleSIGUSR2(__attribute__((unused)) int signum) { PrintTrace(); }
 
 static void handleSIGTERM(__attribute__((unused)) int signum) {
-    write(0, "SIGTERM recieved\n", 16);
 	SIGTERM_RECEIVED = 1;
 }
 
