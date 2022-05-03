@@ -166,7 +166,7 @@ void t_planetary_system::read_from_file(char *filename)
 					 eccentricity, phi);
 	    } else {
 		// planets starts at Apastron
-		double nu = M_PI;
+		double nu = M_PI + phi;
 
 		double pericenter_angle = phi;
 		if (get_number_of_planets() < 2) {
