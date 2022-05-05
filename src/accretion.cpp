@@ -96,7 +96,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	const double frac2 = 0.5 * parameters::accretion_radius_fraction;
     // W. Kley's parameters initialization finished
 
-    const double RHill = planet.get_rhill();
+	const double RHill = planet.get_dimensionless_roche_radius() *
+			 planet.get_distance_to_primary();
     // search radius is bigger fraction + 2 dphi cell sizes to capture all cells
     const double search_radius = RHill * frac1 + 2.0 * Rplanet / ns;
 
