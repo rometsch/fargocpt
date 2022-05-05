@@ -92,8 +92,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 
     const double facc1 = 1.0 / 3.0 * facc;
     const double facc2 = 2.0 / 3.0 * facc;
-    const double frac1 = 0.5 * parameters::accretion_radius_fraction;
-    const double frac2 = 0.25 * parameters::accretion_radius_fraction;
+	const double frac1 = parameters::accretion_radius_fraction;
+	const double frac2 = 0.5 * parameters::accretion_radius_fraction;
     // W. Kley's parameters initialization finished
 
     const double RHill = planet.get_rhill();
@@ -221,7 +221,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     // to derive the fraction we need to remove
     const double facc = dt * 3.0 * M_PI * parameters::viscous_outflow_speed;
 
-    const double frac = 0.5 * parameters::accretion_radius_fraction;
+	const double frac = parameters::accretion_radius_fraction;
 
     const double RHill = planet.get_dimensionless_roche_radius() *
 			 planet.get_distance_to_primary();
