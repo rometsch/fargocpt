@@ -148,7 +148,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		if (parameters::Adiabatic) {
 		    energy[l] *= 1.0 - facc_ceil;
 		}
-		if (Zero_or_active < i &&
+		if (radial_first_active < i &&
 		    i < radial_active_size) { // Only add active cells to
 					      // planet
 		    dPxPlanet += deltaM * vxcell;
@@ -164,7 +164,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 		if (parameters::Adiabatic) {
 		    energy[l] *= 1.0 - facc2;
 		}
-		if (Zero_or_active < i &&
+		if (radial_first_active < i &&
 		    i < radial_active_size) { // Only add active cells to
 					      // planet
 		    dPxPlanet += deltaM * vxcell;
@@ -297,7 +297,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 		    // so temperature should not change and this is safe to do.
 		    energy[l] *= 1.0 - facc_ceil;
 		}
-		if (Zero_or_active < i &&
+		if (radial_first_active < i &&
 		    i < radial_active_size) { // Only add active cells to
 					      // planet
 		    dPxPlanet += deltaM * vxcell;
