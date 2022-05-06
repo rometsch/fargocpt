@@ -316,9 +316,6 @@ int main(int argc, char *argv[])
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
     for (; N_outer_loop <= NTOT; ++N_outer_loop) {
-	data.get_planetary_system().compute_dist_to_primary();
-	data.get_planetary_system().calculate_orbital_elements();
-	ComputeCircumPlanetaryMasses(data);
 	// write outputs
 
 	bool force_update_for_output = true;
@@ -364,6 +361,8 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
+		data.get_planetary_system().calculate_orbital_elements();
+		ComputeCircumPlanetaryMasses(data);
 	    data.get_planetary_system().write_planets(N_output, 1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
 	}

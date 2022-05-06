@@ -373,17 +373,17 @@ void t_planet::copy(const planet_member_variables &other)
 
     m_distance_to_primary = other.m_distance_to_primary;
     m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
-    // m_circumplanetary_mass = other.m_circumplanetary_mass;
+	m_circumplanetary_mass = other.m_circumplanetary_mass;
 
     /// orbital elements
-    // m_semi_major_axis = other.m_semi_major_axis;
-    // m_eccentricity = other.m_eccentricity;
-    // m_mean_anomaly = other.m_mean_anomaly;
-    // m_true_anomaly = other.m_true_anomaly;
-    // m_eccentric_anomaly = other.m_eccentric_anomaly;
-    // m_pericenter_angle = other.m_pericenter_angle;
+	m_semi_major_axis = other.m_semi_major_axis;
+	m_eccentricity = other.m_eccentricity;
+	m_mean_anomaly = other.m_mean_anomaly;
+	m_true_anomaly = other.m_true_anomaly;
+	m_eccentric_anomaly = other.m_eccentric_anomaly;
+	m_pericenter_angle = other.m_pericenter_angle;
 
-    // m_torque = other.m_torque;
+	m_torque = other.m_torque;
 }
 
 void t_planet::create_planet_file(bool debug_output)
