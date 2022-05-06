@@ -484,6 +484,7 @@ void AlgoGas(t_data &data)
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
 	    data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
+		data.get_planetary_system().compute_dist_to_primary();
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
