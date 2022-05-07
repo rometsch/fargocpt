@@ -301,6 +301,7 @@ static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 {
 
     if (!SloppyCFL || force_calc) {
+		last_dt = dt;
 	const double local_gas_time_step_cfl = condition_cfl(
 	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
 	    data[t_data::SOUNDSPEED], DT - dtemp);
@@ -430,7 +431,7 @@ void AlgoGas(t_data &data)
     }
     // recalculate timestep, even for no_disk = true, so that particle drag has
     // reasonable timestep size
-    hydro_dt = CalculateHydroTimeStep(data, 0.0, true);
+	hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
 
     boundary_conditions::apply_boundary_condition(data, hydro_dt, false);
 
@@ -2219,7 +2220,6 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
     global_global_dt =
 	std::min(parameters::CFL_max_var * last_dt, global_global_dt);
-    last_dt = global_global_dt;
 
     return std::max(deltaT / global_global_dt, 1.0);
 }
