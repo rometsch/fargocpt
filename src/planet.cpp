@@ -429,7 +429,7 @@ void t_planet::create_planet_file(bool debug_output)
 	PersonalExit(1);
     }
 
-    fprintf(fd, "#FargoCPT planet file\n");
+	fprintf(fd, "#FargoCPT planet file for planet: %s\n", m_name.c_str());
     fprintf(fd, "#version: 2\n");
     fprintf(fd, "%s", header_variable_description.c_str());
 
