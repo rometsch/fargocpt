@@ -88,7 +88,6 @@ void CalculateNbodyPotential(t_data &data)
     static std::vector<double> xpl(N_planets);
     static std::vector<double> ypl(N_planets);
     static std::vector<double> mpl(N_planets);
-    static std::vector<double> dist_to_prim_pl(N_planets);
     static std::vector<double> l1pl(N_planets);
 
     // setup planet data
@@ -99,8 +98,7 @@ void CalculateNbodyPotential(t_data &data)
 	ypl[k] = planet.get_y();
 
 	if (ASPECTRATIO_MODE == 1) {
-	    dist_to_prim_pl[k] = planet.get_distance_to_primary();
-	    l1pl[k] = planet.get_dimensionless_roche_radius();
+		l1pl[k] = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
 	}
     }
 
@@ -135,7 +133,7 @@ void CalculateNbodyPotential(t_data &data)
 		    if (k > 0) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
-			const double l1 = l1pl[k] * dist_to_prim_pl[k];
+			const double l1 = l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -169,7 +167,6 @@ void CalculateAccelOnGas(t_data &data)
     static std::vector<double> xpl(N_planets);
     static std::vector<double> ypl(N_planets);
     static std::vector<double> mpl(N_planets);
-    static std::vector<double> dist_to_prim_pl(N_planets);
     static std::vector<double> l1pl(N_planets);
 
     // setup planet data
@@ -180,8 +177,7 @@ void CalculateAccelOnGas(t_data &data)
 	ypl[k] = planet.get_y();
 
 	if (ASPECTRATIO_MODE == 1) {
-	    dist_to_prim_pl[k] = planet.get_distance_to_primary();
-	    l1pl[k] = planet.get_dimensionless_roche_radius();
+		l1pl[k] = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
 	}
     }
 
@@ -223,7 +219,7 @@ void CalculateAccelOnGas(t_data &data)
 		    if (k > 0) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
-			const double l1 = l1pl[k] * dist_to_prim_pl[k];
+			const double l1 = l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -310,7 +306,7 @@ void CalculateAccelOnGas(t_data &data)
 		    if (k > 0) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
-			const double l1 = l1pl[k] * dist_to_prim_pl[k];
+			const double l1 = l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 

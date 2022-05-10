@@ -485,7 +485,13 @@ void AlgoGas(t_data &data)
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
 	    data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
+
+		/// Needed for Aspectratio mode = 1
+		/// and to correctly compute circumplanetary disk mass
 		data.get_planetary_system().compute_dist_to_primary();
+
+		/// Needed if they can change and massoverflow or planet accretion is on
+		data.get_planetary_system().calculate_orbital_elements();
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we

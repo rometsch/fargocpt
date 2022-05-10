@@ -364,7 +364,6 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
-		data.get_planetary_system().calculate_orbital_elements();
 		ComputeCircumPlanetaryMasses(data);
 	    data.get_planetary_system().write_planets(N_output, 1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
