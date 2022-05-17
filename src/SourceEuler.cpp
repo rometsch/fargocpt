@@ -801,7 +801,9 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
     }
 
-    if ((parameters::boundary_outer !=
+	if ((parameters::boundary_outer !=
+	 parameters::boundary_condition_zero_gradient) &&
+	(parameters::boundary_outer !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_outer !=
 	 parameters::boundary_condition_boundary_layer) &&
