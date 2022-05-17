@@ -60,6 +60,7 @@ mu			2.35		# mean molecular weight [default=1.0]
 ImposedDiskDrift	0.0		# Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian	No		# Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero   No             # Initialize VRadial=0  [default = no]
+ViscousOutflowSpeed		1.0
 
 MassOverflow		No		# [default = No]
 MOFPLANET		0		# Number of Planet in Planetary System where the massoverflow comes from, starting with 0
@@ -80,20 +81,20 @@ ThicknessSmoothingSG	0.0		# Softening parameter for SG [default = ThicknessSmoot
 Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 InnerBoundary		OPEN
-OuterBoundary		OPEN
-DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
+OuterBoundary		ZERO
+DomegaDrZero		Yes		# Set dOmega/dr = 0 at outer boundary
 Damping			Yes		
-DampingInnerLimit	1.05    	# Rmin*Limit
-DampingOuterLimit	0.95    	# Rmax*Limit
-DampingTimeFactor	1.0e-3
-DampingEnergyInner		No		# Damping of energy [default = no]
-DampingVRadialInner		Yes		# Damping of radial velocity [default = no]
-DampingVAzimuthalInner	No		# Damping of azimuthal velocity [default = no]
-DampingSurfaceDensityInner	Yes		# Damping of surface density [default = no]
-DampingEnergyOuter		No		# Damping of energy [default = no]
-DampingVRadialOuter		Yes		# Damping of radial velocity [default = no]
-DampingVAzimuthalOuter	No		# Damping of azimuthal velocity [default = no]
-DampingSurfaceDensityOuter	Yes		# Damping of surface density [default = no]
+DampingInnerLimit	1.10    	# Rmin*Limit
+DampingOuterLimit	0.90    	# Rmax*Limit
+DampingTimeFactor	1.0e-1
+DampingEnergyInner		None		# Damping of energy [default = no]
+DampingVRadialInner		none		# Damping of radial velocity [default = no]
+DampingVAzimuthalInner	None		# Damping of azimuthal velocity [default = no]
+DampingSurfaceDensityInner	initial		# Damping of surface density [default = no]
+DampingEnergyOuter		None		# Damping of energy [default = no]
+DampingVRadialOuter		initial		# Damping of radial velocity [default = no]
+DampingVAzimuthalOuter	none		# Damping of azimuthal velocity [default = no]
+DampingSurfaceDensityOuter	initial		# Damping of surface density [default = no]
 
 Disk			YES
 OmegaFrame		1.0
@@ -103,7 +104,7 @@ DiskFeedback		NO		# star feels the disk
 ### Mesh parameters
 
 Nrad			192 #512 128		# Radial number of zones
-Nsec			4 #1536 384		# Azimuthal number of 
+Nsec			2 #1536 384		# Azimuthal number of 
 # zones (sectors)
 Rmin			1		# Inner boundary radius
 Rmax			100		# Outer boundary radius
@@ -111,9 +112,9 @@ RadialSpacing 		Logarithmic		# Logarithmic or ARITHMETIC or Exponential
 
 ### Output control parameters
 
-Ntot			20		# Total number of time steps
-Ninterm	 		1		# Time steps between outputs
-DT			62.8	# Time step length. 2PI = 1 orbit
+Ntot			900		# Total number of time steps
+Ninterm	 		30		# Time steps between outputs
+DT			31.41526e1	# Time step length. 2PI = 1 orbit
 OutputDir		out/
 
 WriteAtEveryTimestep	Yes		# Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
@@ -142,7 +143,7 @@ WriteEccentricity	No		# Write eccentricity. [default = no]
 WriteTReynolds		No		# Write Reynolds stress tensor. [default = no]
 WriteTGravitational	No		# Write gravitational stress tensor. [default = no]
 WritepdV		No		# Write pdV. [default = no]
-WriteDiskQuantities	No		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteDiskQuantities	Yes		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
 WriteRadialLuminosity	No		# Write radial luminosity [default = no]
 WriteRadialDissipation	No		# Write radial dissipation [default = no]
 WriteLightCurves	No		# Write light curves [default = no]

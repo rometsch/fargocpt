@@ -57,12 +57,13 @@ N_output = np.loadtxt(out_folder + "timeCoarse.dat", usecols=(0,1), dtype=np.int
 radii = np.loadtxt(out_folder + "used_rad.dat")
 N_DT = N_output[:,1]
 N_output = np.array([0, 30, 60, 90, 140])
-N_output = 10+np.array([0, 3, 6, 9])
+N_output = np.array([0, 1, 3, 10, 30])
 
-fig, ax = plt.subplots()
+fig, axs = plt.subplots(2,1, sharex=True)
 
-ax.set_yscale('log')
-ax.set_xscale('log')
+for ax in axs[:-0]:
+    ax.set_yscale('log')
+    ax.set_xscale('log')
 
 quantities = np.loadtxt("out/Quantities.dat", skiprows=24)
 
@@ -70,11 +71,13 @@ mass = quantities[:,3]
 
 
 
-colors = ['blue', 'red', 'gold', 'green', 'black']
 ind = 0
 for n in N_output:
 
     print(mass[N_DT[n]])
+    _, sigma0 = dens1D_reader.read(0)
+    _, vrad0 = vrad1D_reader.read(0)
+    vrad0[vrad0 == 0] = np.max(vrad0[vrad0 != 0])
     r_, sigma_ = dens1D_reader.read(n)
     r__, vrad_ = vrad1D_reader.read(n)
     r___, vis_ = vis1D_reader.read(n)
@@ -84,20 +87,26 @@ for n in N_output:
 
     rs, data = mass_flow_reader.read(n)
     data = data.to("solMass/yr")
-    ax.plot(rs[1:-1], np.abs(data[1:-1]), color=colors[ind], label="Simulation " + str(n))
-    ax.plot(x_, np.abs(y_), 's', color=colors[ind], label="Theorie " + str(n))
-    #ax.plot(r_, np.abs(sigma_), 's',color=colors[ind], label="density" + str(n))
-    #ax.plot(r__, np.abs(vrad_), '.',color=colors[ind], label="vr" + str(n))
-    ax.plot(x2_, np.abs(y2_), '.',color=colors[ind], label="Theorie2 " + str(n))
+    axs[0].plot(rs[1:-1], np.abs(data[1:-1]), label="Simulation " + str(n), color='C' + str(ind))
+    axs[0].plot(x_, np.abs(y_), 's', color='C' + str(ind))
+    #ax.plot(r_, np.abs(sigma_), 's',label="density" + str(n))
+    #ax.plot(r__, np.abs(vrad_), '.',label="vr" + str(n))
+    axs[0].plot(x2_, np.abs(y2_), '.', color='C' + str(ind))
+
+    axs[1].plot(r_, (sigma_/sigma0), '-', label="density" + str(n))
+    axs[1].plot(r__, (vrad_/vrad0), '.', label="vr" + str(n), color='C' + str(ind))
+
     ind += 1
 
+# axs[1].set_ylim(0.01, 100)
+
+# axs[0].set_ylim(10**-9, 10**-7)
+axs[0].set_ylabel("M_sol/yr")
+axs[0].set_xlabel("au")
+axs[0].legend()
+axs[1].legend()
 
 
-ax.set_ylabel("M_sol/yr")
-ax.set_xlabel("au")
-plt.legend()
-
-
-plt.savefig('mass_flow.png')
+# plt.savefig('mass_flow.png')
 plt.show()
 
