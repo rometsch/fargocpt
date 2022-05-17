@@ -15,6 +15,9 @@ class read1D:
             self.Nr = int(re.search("Nr = ([\d]*)", self.header).groups()[0])
             self.header = f.readline()
             self.unit = re.search("unit = ([^,]*)", self.header).groups()[0].strip()
+            self.header = f.readline()
+            self.code_to_cgs_factor = re.search("code_units_to_cgs_factor = (-?\d*\.?\d+e[+-]?\d+)", self.header).groups()[0].strip()
+            print(quantity, self.unit, self.code_to_cgs_factor)
 
     def read(self, dt, return_min_max=False):
         with open(self.output_folder_path + str(dt) +  ".dat", "rb") as f:
@@ -30,12 +33,12 @@ class read1D:
             if len(density) != Nr:
                 raise ValueError("read1D.py: Output data length ({}) is not a multiple of Nr = {}".format(len(density), Nr))
 
-            density = density*u.Unit(self.unit)
+            density = density*u.Unit(self.unit)*self.code_to_cgs_factor
             rs = rs*u.Unit('au')
 
             if return_min_max:
-                min_density *= u.Unit(self.unit)
-                max_density *= u.Unit(self.unit)
+                min_density *= u.Unit(self.unit)*self.code_to_cgs_factor
+                max_density *= u.Unit(self.unit)*self.code_to_cgs_factor
 
 
             if return_min_max:
