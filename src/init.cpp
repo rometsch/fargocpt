@@ -1580,19 +1580,29 @@ void init_gas_velocities(t_data &data)
 
 		// pressure support correction
 		double corr;
+		double vr0;
 		if (parameters::initialize_pure_keplerian) {
 		    corr = 1.0;
+			vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
 			1.0 - std::pow(ASPECTRATIO_REF, 2) *
 				  std::pow(r_com, 2.0 * FLARINGINDEX) *
 				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+
+			/// Viscous speed
+			const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+					std::pow(r_com, FLARINGINDEX);
+			const double H = ASPECTRATIO_REF * r_com;
+			const double nu = ALPHAVISCOSITY * cs_iso * H;
+			vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+
 		}
 
 		// Velocities in center of mass frame
 		Pair v_cms =
 		    data.get_planetary_system().get_center_of_mass_velocity();
-		const double vr_com = 0.0;
+		const double vr_com = vr0;
 		const double vaz_com =
 		    std::sqrt(constants::G * mass / r_com) * corr;
 
@@ -1639,19 +1649,32 @@ void init_gas_velocities(t_data &data)
 
 		// pressure support correction
 		double corr;
+		double vr0;
+
 		if (parameters::initialize_pure_keplerian) {
 		    corr = 1.0;
+			vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
 			1.0 - std::pow(ASPECTRATIO_REF, 2) *
 				  std::pow(r_com, 2.0 * FLARINGINDEX) *
 				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+
+			/// Viscous speed
+			const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+					std::pow(r_com, FLARINGINDEX);
+			const double H = ASPECTRATIO_REF * r_com;
+			const double nu = ALPHAVISCOSITY * cs_iso * H;
+			vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+
 		}
+
+
 
 		// Velocities in center of mass frame
 		Pair v_cms =
 		    data.get_planetary_system().get_center_of_mass_velocity();
-		const double vr_com = 0.0;
+		const double vr_com = vr0;
 		const double vaz_com =
 		    std::sqrt(constants::G * mass / r_com) * corr;
 
@@ -1838,11 +1861,11 @@ void init_gas_velocities(t_data &data)
 	}
     }
 
-    /* set VRadial for innermost and outermost ring to 0 */
-    for (unsigned int n_azimuthal = 0;
+	/// set VRadial for innermost and outermost ring to 0
+	for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	 ++n_azimuthal) {
 	data[t_data::V_RADIAL](0, n_azimuthal) = 0.0;
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].Nrad, n_azimuthal) = 0.0;
-    }
+	}
 }
