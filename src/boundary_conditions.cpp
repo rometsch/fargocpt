@@ -1175,24 +1175,27 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 		// pressure support correction
 		double corr;
+		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
+		corr = 1.0;
+		vr0 = 0.0;
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-		}
+		corr =
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com =
-			std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		//const double cell_vr_com = 0.0;
 		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		const double cell_vr_com = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
+		const double cell_vr_com = vr0;
 
 
 		const double cell_vx_com =
@@ -1240,24 +1243,27 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 		// pressure support correction
 		double corr;
+		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
+		corr = 1.0;
+		vr0 = 0.0;
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-		}
+		corr =
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com =
-			std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		//const double cell_vr_com = 0.0;
 		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		const double cell_vr_com = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
+		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
 		    (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -1906,26 +1912,29 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double y_com = cell_y - com_pos.y;
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-	    // pressure support correction
-	    double corr;
-	    if (parameters::initialize_pure_keplerian) {
+		// pressure support correction
+		double corr;
+		double vr0;
+		if (parameters::initialize_pure_keplerian) {
 		corr = 1.0;
-	    } else {
+		vr0 = 0.0;
+		} else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-	    }
 
-	    // Velocity in center of mass frame
-	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		//const double cell_vr_com = 0.0;
 		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		const double cell_vr_com = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
+		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -1953,26 +1962,29 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double y_com = cell_y - com_pos.y;
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-	    // pressure support correction
-	    double corr;
-	    if (parameters::initialize_pure_keplerian) {
+		// pressure support correction
+		double corr;
+		double vr0;
+		if (parameters::initialize_pure_keplerian) {
 		corr = 1.0;
-	    } else {
+		vr0 = 0.0;
+		} else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-	    }
 
-	    // Velocity in center of mass frame
-	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		//const double cell_vr_com = 0.0;
 		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		const double cell_vr_com = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
+		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -2001,24 +2013,27 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // pressure support correction
 	    double corr;
+		double vr0;
 	    if (parameters::initialize_pure_keplerian) {
 		corr = 1.0;
+		vr0 = 0.0;
 	    } else {
 		corr =
 		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+
+		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+				std::pow(r_com, FLARINGINDEX);
+		const double H = ASPECTRATIO_REF * r_com;
+		const double nu = ALPHAVISCOSITY * cs_iso * H;
+		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 	    }
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
 		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		//const double cell_vr_com = 0.0;
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
-				std::pow(r_com, FLARINGINDEX);
-		const double H = ASPECTRATIO_REF * r_com;
-		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		const double cell_vr_com = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
