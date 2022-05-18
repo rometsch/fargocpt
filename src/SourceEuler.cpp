@@ -789,13 +789,15 @@ void update_with_sourceterms(t_data &data, double dt)
 void update_with_artificial_viscosity(t_data &data, double dt)
 {
 
+	/// Do not Apply sub keplerian boundary for boundary conditions that set Vphi themselves
     const bool add_kep_inner =
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_boundary_layer) &&
 	(parameters::boundary_inner !=
-	 parameters::boundary_condition_precribed_time_variable);
+	 parameters::boundary_condition_precribed_time_variable)
+	&& (!parameters::domegadr_zero);
 
     if (add_kep_inner) {
 	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
@@ -812,7 +814,7 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 	 parameters::boundary_condition_boundary_layer) &&
 	(parameters::boundary_outer !=
 	 parameters::boundary_condition_precribed_time_variable) &&
-	(!parameters::massoverflow)) {
+	(!parameters::massoverflow) && (!parameters::domegadr_zero)) {
 	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
 				       add_kep_inner);
     }

@@ -343,25 +343,42 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     }
 
-    if (CPU_Rank == CPU_Highest) {
+	/// d Omega / dr = 0 has really bad effects on the massflow test
+	/// not recommended
 	if (parameters::domegadr_zero) {
+	/// Vphi_i / r_i - Vphi_(i-1) / r_(i-1) = 0
+    if (CPU_Rank == CPU_Highest) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// this is a work around as long as V_AZIMUTHAL is defined as a
 		// vector
-		const double R_outer =
+		const double R_N =
 		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-		const double R_inner =
+		const double R_Nm1 =
 		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
 
 		data[t_data::V_AZIMUTHAL](
 		    data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) =
-		    R_outer / R_inner *
+			R_N / R_Nm1  *
 		    data[t_data::V_AZIMUTHAL](
 			data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
 			n_azimuthal);
 	    }
+	}
+
+	if (CPU_Rank == 0) {
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
+		 ++n_azimuthal) {
+		// this is a work around as long as V_AZIMUTHAL is defined as a
+		// vector
+		const double R1 = Rmed[1];
+		const double R0 = Rmed[0];
+
+		data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
+			R0 / R1 * data[t_data::V_AZIMUTHAL](1, n_azimuthal);
+		}
 	}
     }
 
