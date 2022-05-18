@@ -1175,10 +1175,10 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 		// pressure support correction
 		double corr;
-		double vr0;
+		double vr_init;
 		if (parameters::initialize_pure_keplerian) {
 		corr = 1.0;
-		vr0 = 0.0;
+		vr_init = 0.0;
 		} else {
 		corr =
 			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
@@ -1189,13 +1189,13 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		vr_init = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
 		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		const double cell_vr_com = vr0;
+		const double cell_vr_com = vr_init;
 
 
 		const double cell_vx_com =
