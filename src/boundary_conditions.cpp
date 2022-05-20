@@ -1185,7 +1185,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
@@ -1253,7 +1253,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
@@ -1924,7 +1924,7 @@ void initial_center_of_mass_boundary(t_data &data)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
@@ -1974,7 +1974,7 @@ void initial_center_of_mass_boundary(t_data &data)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
@@ -2023,7 +2023,7 @@ void initial_center_of_mass_boundary(t_data &data)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
+		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
 				std::pow(r_com, FLARINGINDEX);
 		const double H = ASPECTRATIO_REF * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
