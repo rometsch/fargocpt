@@ -777,7 +777,11 @@ void write_1D_info(t_data &data)
 		unit = "1";
 	    }
 	    info_ofs << "unit = " << unit << std::endl;
+		if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
 		info_ofs << "code_units_to_cgs_factor = " << data[t_data::t_polargrid_type(i)].get_unit()->get_cgs_factor() << std::endl;
+		} else {
+			info_ofs << "code_units_to_cgs_factor = " << 1.0 << std::endl;
+		}
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
 
