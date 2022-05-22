@@ -1185,9 +1185,10 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
-				std::pow(r_com, FLARINGINDEX);
-		const double H = ASPECTRATIO_REF * r_com;
+		const double v_k = std::sqrt(constants::G * com_mass / r_com);
+		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double cs_iso = h * v_k;
+		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
 		vr_init = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
@@ -1253,9 +1254,10 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
-				std::pow(r_com, FLARINGINDEX);
-		const double H = ASPECTRATIO_REF * r_com;
+		const double v_k = std::sqrt(constants::G * com_mass / r_com);
+		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double cs_iso = h * v_k;
+		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
 		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
@@ -1924,9 +1926,10 @@ void initial_center_of_mass_boundary(t_data &data)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
-				std::pow(r_com, FLARINGINDEX);
-		const double H = ASPECTRATIO_REF * r_com;
+		const double v_k = std::sqrt(constants::G * com_mass / r_com);
+		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double cs_iso = h * v_k;
+		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
 		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
@@ -1974,9 +1977,10 @@ void initial_center_of_mass_boundary(t_data &data)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
-				std::pow(r_com, FLARINGINDEX);
-		const double H = ASPECTRATIO_REF * r_com;
+		const double v_k = std::sqrt(constants::G * com_mass / r_com);
+		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double cs_iso = h * v_k;
+		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
 		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
@@ -2023,9 +2027,10 @@ void initial_center_of_mass_boundary(t_data &data)
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * com_mass / r_com) *
-				std::pow(r_com, FLARINGINDEX);
-		const double H = ASPECTRATIO_REF * r_com;
+		const double v_k = std::sqrt(constants::G * com_mass / r_com);
+		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double cs_iso = h * v_k;
+		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
 		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 	    }
