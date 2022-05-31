@@ -316,6 +316,16 @@ void init_physics(t_data &data)
     data.get_planetary_system().list_planets();
     // data.get_planetary_system().correct_planet_accretion();
 
+	if(data.get_planetary_system().get_number_of_planets() < 2){
+		if(	parameters::boundary_outer == parameters::boundary_condition_center_of_mass_initial){
+			die("Do not use 'Nbody center of mass outer boundary' with only one body!\n");
+		}
+
+		if (ASPECTRATIO_MODE > 0) {
+			die("Do not use Nbody aspectratio mode with only 1 body!\n");
+		}
+	}
+
     OmegaFrame = OMEGAFRAME;
 
     if (Corotating) {
