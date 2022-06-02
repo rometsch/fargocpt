@@ -26,8 +26,12 @@ hill_radial_index(const double Rplanet, const double RHill)
     const bool is_vector = false;
     /* Calculate the indeces in radial direction where
        the Hill sphere starts and stops */
-    unsigned i_min =
-	clamp_r_id_to_radii_grid(get_rinf_id(Rplanet - RHill), is_vector);
+	unsigned i_min;
+	if(Rplanet - RHill < RMIN) {
+		i_min = 0;
+	} else {
+	i_min = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet - RHill), is_vector);
+	}
     unsigned i_max =
 	clamp_r_id_to_radii_grid(get_rinf_id(Rplanet + RHill) + 1, is_vector);
     std::tuple<unsigned int, unsigned int> ids(i_min, i_max);
