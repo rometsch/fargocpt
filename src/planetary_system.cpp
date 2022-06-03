@@ -212,6 +212,11 @@ void t_planetary_system::read_from_file(char *filename)
     if (get_number_of_planets() == 0) {
 	die("No stars or planets!");
     }
+
+	if(parameters::n_bodies_for_hydroframe_center == 1 && get_planet(0).get_acc() > 0){
+		die("Warning planet in coordinate center cannot have planet accretion!\nIt accretes through the inner boundary!");
+	}
+
     if (parameters::n_bodies_for_hydroframe_center == 0) {
 	// use all bodies to calculate hydro frame center
 	parameters::n_bodies_for_hydroframe_center = get_number_of_planets();
