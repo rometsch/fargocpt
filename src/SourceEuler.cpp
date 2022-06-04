@@ -1628,12 +1628,13 @@ void radiative_diffusion(t_data &data, double dt)
 		// Levermore & Pomraning 1981
 		// R = 4 |nabla T\/T * 1/(rho kappa)
 		const double dT_dr =
-		    (data[t_data::TEMPERATURE](n_radial_adjusted, n_azimuthal) -
-		     data[t_data::TEMPERATURE](n_radial_adjusted - 1,
+			(data[t_data::TEMPERATURE](n_radial_adjusted, n_azimuthal) -
+			 data[t_data::TEMPERATURE](n_radial_adjusted - 1,
 					       n_azimuthal)) *
-		    InvDiffRmed[n_radial];
+			InvDiffRmed[n_radial_adjusted];
+
 		const double dT_dphi =
-		    InvRinf[n_radial] *
+			InvRinf[n_radial_adjusted] *
 		    (0.5 * (data[t_data::TEMPERATURE](n_radial_adjusted - 1,
 						      n_azimuthal_plus) +
 			    data[t_data::TEMPERATURE](n_radial_adjusted,
