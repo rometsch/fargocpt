@@ -1715,10 +1715,10 @@ void radiative_diffusion(t_data &data, double dt)
 
     // calculate A,B,C,D,E
     for (unsigned int n_radial = 1;
-	 n_radial <= data[t_data::TEMPERATURE].get_max_radial() - 1;
+	 n_radial < data[t_data::TEMPERATURE].get_size_radial() - 1;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal();
+		 n_azimuthal < data[t_data::TEMPERATURE].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 	    // -dt H /(Sigma * c_v)
@@ -1813,10 +1813,10 @@ void radiative_diffusion(t_data &data, double dt)
 	absolute_norm = 0.0;
 
 	for (unsigned int n_radial = 1;
-	     n_radial <= data[t_data::TEMPERATURE].get_max_radial() - 1;
+		 n_radial < data[t_data::TEMPERATURE].get_size_radial() - 1;
 	     ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::TEMPERATURE].get_max_azimuthal();
+		 n_azimuthal < data[t_data::TEMPERATURE].get_size_azimuthal();
 		 ++n_azimuthal) {
 		const double old_value =
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal);
@@ -1959,9 +1959,9 @@ void radiative_diffusion(t_data &data, double dt)
 
     // compute energy from temperature
     for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
+	 n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
+		 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::ENERGY](n_radial, n_azimuthal) =
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
