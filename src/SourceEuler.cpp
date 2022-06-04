@@ -1958,8 +1958,8 @@ void radiative_diffusion(t_data &data, double dt)
 			  omega);
 
     // compute energy from temperature
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
+	for (unsigned int n_radial = 1;
+	 n_radial < data[t_data::ENERGY].get_size_radial()-1; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
 	     ++n_azimuthal) {
