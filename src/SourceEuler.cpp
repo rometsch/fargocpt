@@ -1565,32 +1565,52 @@ void radiative_diffusion(t_data &data, double dt)
 	    const double nabla_T =
 		std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    double R;
+		const double R = 4.0 * nabla_T / temperature * denom * H *
+				parameters::density_factor;
 
-	    if ((n_radial > 1) && (n_radial < Ka.get_max_radial() - 1)) {
-		R = 4.0 * nabla_T / temperature * denom * H *
-		    parameters::density_factor;
-	    } else {
+		const double lambda = flux_limiter(R);
+
+		Ka(n_radial, n_azimuthal) =
+		8.0 * 4.0 * constants::sigma.get_code_value() * lambda * H *
+		std::pow(temperature, 3) * denom;
+	}}
+
+		// calcuate Ka for K(i/2,j)
+		for (unsigned int n_radial = 1; n_radial < Ka.get_size_radial() - 1;
+		 ++n_radial) {
+		for (unsigned int n_azimuthal = 0;
+			 n_azimuthal < Ka.get_size_azimuthal(); ++n_azimuthal) {
+			const unsigned int n_azimuthal_plus =
+			(n_azimuthal == Ka.get_max_azimuthal() ? 0 : n_azimuthal + 1);
+			const unsigned int n_azimuthal_minus =
+			(n_azimuthal == 0 ? Ka.get_max_azimuthal() : n_azimuthal - 1);
+
+		if ((n_radial == 1) || (n_radial == Ka.get_max_radial() - 1)) {
+
+		// change 1 -> 2
+		// rax_radial -> max_radial - 1
 		unsigned int n_radial_adjusted;
-
 		if (n_radial == 1) {
-		    n_radial_adjusted = n_radial + 1;
+			n_radial_adjusted = n_radial + 1;
+		} else if (n_radial == Ka.get_max_radial()-1) {
+			n_radial_adjusted = n_radial - 1;
 		} else {
-		    n_radial_adjusted = n_radial - 1;
+			n_radial_adjusted = n_radial;
 		}
+
 		const double temperature =
 		    0.5 *
-		    (data[t_data::TEMPERATURE](n_radial_adjusted - 1,
+			(data[t_data::TEMPERATURE](n_radial_adjusted,
 					       n_azimuthal) +
-		     data[t_data::TEMPERATURE](n_radial_adjusted, n_azimuthal));
+			 data[t_data::TEMPERATURE](n_radial_adjusted-1, n_azimuthal));
 		const double density =
 		    0.5 *
-		    (data[t_data::DENSITY](n_radial_adjusted - 1, n_azimuthal) +
-		     data[t_data::DENSITY](n_radial_adjusted, n_azimuthal));
+			(data[t_data::DENSITY](n_radial_adjusted, n_azimuthal) +
+			 data[t_data::DENSITY](n_radial_adjusted-1, n_azimuthal));
 		const double scale_height =
-		    0.5 * (data[t_data::SCALE_HEIGHT](n_radial_adjusted - 1,
+			0.5 * (data[t_data::SCALE_HEIGHT](n_radial_adjusted,
 						      n_azimuthal) +
-			   data[t_data::SCALE_HEIGHT](n_radial_adjusted,
+			   data[t_data::SCALE_HEIGHT](n_radial_adjusted-1,
 						      n_azimuthal));
 
 		const double temperatureCGS = temperature * units::temperature;
