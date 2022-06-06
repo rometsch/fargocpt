@@ -44,8 +44,9 @@ static std::tuple<int, int> hill_azimuthal_index(const double angle,
 {
     /* Calculate the index in azimuthal direction
        where the Hill sphere starts and stops */
-    const int i_min = get_med_azimuthal_id(angle - 2.0 * RHill / Rplanet);
-    const int i_max = get_med_azimuthal_id(angle + 2.0 * RHill / Rplanet) + 1;
+	const double max_angle = std::min(M_PI_2 + M_PI_4, 2.0 * RHill / Rplanet);
+	const int i_min = get_med_azimuthal_id(angle - max_angle);
+	const int i_max = get_med_azimuthal_id(angle + max_angle) + 1;
     std::tuple<int, int> ids(i_min, i_max);
     return ids;
 }
