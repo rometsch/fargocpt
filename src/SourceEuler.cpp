@@ -1574,7 +1574,7 @@ void radiative_diffusion(t_data &data, double dt)
 	    const double lambda = flux_limiter(R);
 
 	    Ka(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
-			  lambda * H * std::pow(temperature, 3) * denom;
+			  lambda * H * H * std::pow(temperature, 3) * denom;
 	}
     }
 
