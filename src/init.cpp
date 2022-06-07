@@ -1,8 +1,8 @@
 #include <assert.h>
+#include <cstring>
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
-#include <cstring>
 
 #include "LowTasks.h"
 #include "Pframeforce.h"
@@ -19,12 +19,12 @@
 #include "nongnu.h"
 #include "output.h"
 #include "parameters.h"
+#include "pvte_law.h"
 #include "quantities.h"
 #include "selfgravity.h"
 #include "util.h"
 #include "viscosity.h"
 #include <gsl/gsl_sf_bessel.h>
-#include "pvte_law.h"
 
 #include "open-simplex-noise.h"
 #include "options.h"
@@ -316,15 +316,16 @@ void init_physics(t_data &data)
     data.get_planetary_system().list_planets();
     // data.get_planetary_system().correct_planet_accretion();
 
-	if(data.get_planetary_system().get_number_of_planets() < 2){
-		if(	parameters::boundary_outer == parameters::boundary_condition_center_of_mass_initial){
-			die("Do not use 'Nbody center of mass outer boundary' with only one body!\n");
-		}
-
-		if (ASPECTRATIO_MODE > 0) {
-			die("Do not use Nbody aspectratio mode with only 1 body!\n");
-		}
+    if (data.get_planetary_system().get_number_of_planets() < 2) {
+	if (parameters::boundary_outer ==
+	    parameters::boundary_condition_center_of_mass_initial) {
+	    die("Do not use 'Nbody center of mass outer boundary' with only one body!\n");
 	}
+
+	if (ASPECTRATIO_MODE > 0) {
+	    die("Do not use Nbody aspectratio mode with only 1 body!\n");
+	}
+    }
 
     OmegaFrame = OMEGAFRAME;
 
@@ -1593,20 +1594,22 @@ void init_gas_velocities(t_data &data)
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
 		    corr = 1.0;
-			vr0 = 0.0;
+		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
 			1.0 - std::pow(ASPECTRATIO_REF, 2) *
 				  std::pow(r_com, 2.0 * FLARINGINDEX) *
 				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-			/// Viscous speed
-			const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
-					std::pow(r_com, FLARINGINDEX);
-			const double H = ASPECTRATIO_REF * r_com;
-			const double nu = ALPHAVISCOSITY * cs_iso * H;
-			vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
-
+		    /// Viscous speed
+		    const double cs_iso =
+			ASPECTRATIO_REF *
+			std::sqrt(constants::G * hydro_center_mass / r_com) *
+			std::pow(r_com, FLARINGINDEX);
+		    const double H = ASPECTRATIO_REF * r_com;
+		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+		    vr0 = -3.0 * nu / r_com *
+			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
 
 		// Velocities in center of mass frame
@@ -1663,23 +1666,23 @@ void init_gas_velocities(t_data &data)
 
 		if (parameters::initialize_pure_keplerian) {
 		    corr = 1.0;
-			vr0 = 0.0;
+		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
 			1.0 - std::pow(ASPECTRATIO_REF, 2) *
 				  std::pow(r_com, 2.0 * FLARINGINDEX) *
 				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-			/// Viscous speed
-			const double cs_iso = ASPECTRATIO_REF *	std::sqrt(constants::G * hydro_center_mass / r_com) *
-					std::pow(r_com, FLARINGINDEX);
-			const double H = ASPECTRATIO_REF * r_com;
-			const double nu = ALPHAVISCOSITY * cs_iso * H;
-			vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
-
+		    /// Viscous speed
+		    const double cs_iso =
+			ASPECTRATIO_REF *
+			std::sqrt(constants::G * hydro_center_mass / r_com) *
+			std::pow(r_com, FLARINGINDEX);
+		    const double H = ASPECTRATIO_REF * r_com;
+		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+		    vr0 = -3.0 * nu / r_com *
+			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
-
-
 
 		// Velocities in center of mass frame
 		Pair v_cms =
@@ -1871,11 +1874,11 @@ void init_gas_velocities(t_data &data)
 	}
     }
 
-	/// set VRadial for innermost and outermost ring to 0
-	for (unsigned int n_azimuthal = 0;
+    /// set VRadial for innermost and outermost ring to 0
+    for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	 ++n_azimuthal) {
 	data[t_data::V_RADIAL](0, n_azimuthal) = 0.0;
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].Nrad, n_azimuthal) = 0.0;
-	}
+    }
 }

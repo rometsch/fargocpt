@@ -4,9 +4,8 @@
 #include "radialarray.h"
 #include "types.h"
 #include <mpi.h>
-#include <vector>
 #include <signal.h>
-
+#include <vector>
 
 extern int CPU_Rank;
 extern int CPU_Number;

@@ -373,17 +373,17 @@ void t_planet::copy(const planet_member_variables &other)
 
     m_distance_to_primary = other.m_distance_to_primary;
     m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
-	m_circumplanetary_mass = other.m_circumplanetary_mass;
+    m_circumplanetary_mass = other.m_circumplanetary_mass;
 
     /// orbital elements
-	m_semi_major_axis = other.m_semi_major_axis;
-	m_eccentricity = other.m_eccentricity;
-	m_mean_anomaly = other.m_mean_anomaly;
-	m_true_anomaly = other.m_true_anomaly;
-	m_eccentric_anomaly = other.m_eccentric_anomaly;
-	m_pericenter_angle = other.m_pericenter_angle;
+    m_semi_major_axis = other.m_semi_major_axis;
+    m_eccentricity = other.m_eccentricity;
+    m_mean_anomaly = other.m_mean_anomaly;
+    m_true_anomaly = other.m_true_anomaly;
+    m_eccentric_anomaly = other.m_eccentric_anomaly;
+    m_pericenter_angle = other.m_pericenter_angle;
 
-	m_torque = other.m_torque;
+    m_torque = other.m_torque;
 }
 
 void t_planet::create_planet_file(bool debug_output)
@@ -429,7 +429,7 @@ void t_planet::create_planet_file(bool debug_output)
 	PersonalExit(1);
     }
 
-	fprintf(fd, "#FargoCPT planet file for planet: %s\n", m_name.c_str());
+    fprintf(fd, "#FargoCPT planet file for planet: %s\n", m_name.c_str());
     fprintf(fd, "#version: 2\n");
     fprintf(fd, "%s", header_variable_description.c_str());
 
@@ -597,15 +597,15 @@ void t_planet::restart(unsigned int timestep, bool debug)
 	rf.read((char *)&pl, sizeof(planet_member_variables));
 
 	if (!debug) {
-	while (pl.timestep != timestep) {
-	    if (rf.eof()) {
-		logging::print_master(LOG_ERROR
-				      "Could not read timestep %d in %s\n",
-				      timestep, filename.c_str());
-		throw 0;
+	    while (pl.timestep != timestep) {
+		if (rf.eof()) {
+		    logging::print_master(LOG_ERROR
+					  "Could not read timestep %d in %s\n",
+					  timestep, filename.c_str());
+		    throw 0;
+		}
+		rf.read((char *)&pl, sizeof(planet_member_variables));
 	    }
-	    rf.read((char *)&pl, sizeof(planet_member_variables));
-	}
 	}
 
 	copy(pl);

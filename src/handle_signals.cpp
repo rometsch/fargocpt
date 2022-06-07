@@ -1,10 +1,10 @@
-#include "backtrace.h"
 #include "handle_signals.h"
+#include "LowTasks.h"
+#include "backtrace.h"
 #include "global.h"
 #include "logging.h"
 #include <csignal>
 #include <functional>
-#include "LowTasks.h"
 
 static void heartbeat()
 {
@@ -22,12 +22,13 @@ static void handleSIGUSR1(__attribute__((unused)) int signum) { heartbeat(); }
 
 static void handleSIGUSR2(__attribute__((unused)) int signum) { PrintTrace(); }
 
-static void handleSIGTERM(__attribute__((unused)) int signum) {
-	SIGTERM_RECEIVED = 1;
+static void handleSIGTERM(__attribute__((unused)) int signum)
+{
+    SIGTERM_RECEIVED = 1;
 }
 
-
-static void registerSIGUSR1() {
+static void registerSIGUSR1()
+{
     struct sigaction sa;
 
     sa.sa_handler = handleSIGUSR1;
@@ -35,12 +36,13 @@ static void registerSIGUSR1() {
     sigemptyset(&sa.sa_mask);
 
     if (sigaction(SIGUSR1, &sa, NULL) == -1) {
-        perror("sigaction SIGUSR1");
-        exit(1);
+	perror("sigaction SIGUSR1");
+	exit(1);
     }
 }
 
-static void registerSIGUSR2() {
+static void registerSIGUSR2()
+{
     struct sigaction sa;
 
     sa.sa_handler = handleSIGUSR2;
@@ -48,12 +50,13 @@ static void registerSIGUSR2() {
     sigemptyset(&sa.sa_mask);
 
     if (sigaction(SIGUSR2, &sa, NULL) == -1) {
-        perror("sigaction SIGUSR2");
-        exit(1);
+	perror("sigaction SIGUSR2");
+	exit(1);
     }
 }
 
-static void registerSIGTERM() {
+static void registerSIGTERM()
+{
     struct sigaction sa;
 
     sa.sa_handler = handleSIGTERM;
@@ -61,16 +64,15 @@ static void registerSIGTERM() {
     sigemptyset(&sa.sa_mask);
 
     if (sigaction(SIGTERM, &sa, NULL) == -1) {
-        perror("sigaction SIGTERM");
-        exit(1);
+	perror("sigaction SIGTERM");
+	exit(1);
     }
 }
-
 
 void register_signal_handlers()
 {
     registerSIGUSR1();
     registerSIGUSR2();
-	SIGTERM_RECEIVED = 0;
+    SIGTERM_RECEIVED = 0;
     registerSIGTERM();
 }

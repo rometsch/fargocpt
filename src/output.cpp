@@ -440,19 +440,18 @@ void write_misc(const bool debug_file)
     static bool fd_created = false;
 
     // check if file exists and we restarted
-    if ((start_mode::mode == start_mode::mode_restart) &&
-	(!fd_created)) {
+    if ((start_mode::mode == start_mode::mode_restart) && (!fd_created)) {
 	wf = std::ofstream(filename.c_str(), std::ios::in | std::ios::binary);
 	if (wf.good()) {
-		fd_created = true;
+	    fd_created = true;
 	}
 	wf.close();
     }
 
     // open logfile
-	if (!fd_created || debug_file) {
+    if (!fd_created || debug_file) {
 	wf = std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
-	if (!fd_created){
+	if (!fd_created) {
 	    fd_created = true;
 	}
     } else {
@@ -644,24 +643,25 @@ int get_misc(const int timestep, const bool debug)
     misc_entry misc;
 
     rf.read((char *)&misc, sizeof(misc));
-	if (!debug){
-    while (misc.timestep != timestep && !rf.eof()) {
-	if (rf.eof()) {
-	    logging::print(LOG_ERROR
-			   "Can't read %s at timestep %d. Aborting.\n",
-			   filename.c_str(), timestep);
-	    die("End\n");
-	}
-	rf.read((char *)&misc, sizeof(misc_entry));
+    if (!debug) {
+	while (misc.timestep != timestep && !rf.eof()) {
+	    if (rf.eof()) {
+		logging::print(LOG_ERROR
+			       "Can't read %s at timestep %d. Aborting.\n",
+			       filename.c_str(), timestep);
+		die("End\n");
+	    }
+	    rf.read((char *)&misc, sizeof(misc_entry));
 	}
 	if (timestep != misc.timestep) {
-	logging::print(LOG_ERROR "Can't find timestep %d in %s. Aborting.\n",
-		       timestep, filename.c_str());
-	die("End\n");
-    }
+	    logging::print(LOG_ERROR
+			   "Can't find timestep %d in %s. Aborting.\n",
+			   timestep, filename.c_str());
+	    die("End\n");
 	}
+    }
 
-	N_output = misc.timestep;
+    N_output = misc.timestep;
     N_outer_loop = misc.nTimeStep;
     PhysicalTime = misc.PhysicalTime;
     OmegaFrame = misc.OmegaFrame;
@@ -777,11 +777,15 @@ void write_1D_info(t_data &data)
 		unit = "1";
 	    }
 	    info_ofs << "unit = " << unit << std::endl;
-		if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
-		info_ofs << "code_units_to_cgs_factor = " << data[t_data::t_polargrid_type(i)].get_unit()->get_cgs_factor() << std::endl;
-		} else {
-			info_ofs << "code_units_to_cgs_factor = " << 1.0 << std::endl;
-		}
+	    if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
+		info_ofs << "code_units_to_cgs_factor = "
+			 << data[t_data::t_polargrid_type(i)]
+				.get_unit()
+				->get_cgs_factor()
+			 << std::endl;
+	    } else {
+		info_ofs << "code_units_to_cgs_factor = " << 1.0 << std::endl;
+	    }
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
 

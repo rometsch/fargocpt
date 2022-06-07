@@ -213,9 +213,10 @@ void t_planetary_system::read_from_file(char *filename)
 	die("No stars or planets!");
     }
 
-	if(parameters::n_bodies_for_hydroframe_center == 1 && get_planet(0).get_acc() > 0){
-		die("Warning planet in coordinate center cannot have planet accretion!\nIt accretes through the inner boundary!");
-	}
+    if (parameters::n_bodies_for_hydroframe_center == 1 &&
+	get_planet(0).get_acc() > 0) {
+	die("Warning planet in coordinate center cannot have planet accretion!\nIt accretes through the inner boundary!");
+    }
 
     if (parameters::n_bodies_for_hydroframe_center == 0) {
 	// use all bodies to calculate hydro frame center
@@ -352,7 +353,7 @@ void t_planetary_system::restart(unsigned int timestep, bool debug)
 
     logging::print_master(LOG_INFO "Loading rebound ...");
 
-	{
+    {
 	reb_free_simulation(m_rebound);
 	char *reb_name = nullptr;
 	if (debug) {
@@ -365,7 +366,7 @@ void t_planetary_system::restart(unsigned int timestep, bool debug)
 		     timestep);
 	}
 	m_rebound = reb_create_simulation_from_binary(reb_name);
-	}
+    }
     logging::print_master(LOG_INFO " done\n");
 }
 
@@ -383,7 +384,7 @@ void t_planetary_system::write_planets(unsigned int timestep, int file_type)
 	get_planet(i).write(timestep, file_type);
     }
 
-	if (CPU_Master) {
+    if (CPU_Master) {
 	char *reb_name = nullptr;
 	if (file_type == 2) {
 	    asprintf(&reb_name, "%s%s", OUTPUTDIR,

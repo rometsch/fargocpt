@@ -8,8 +8,8 @@
 #include "radialarray.h"
 #include "types.h"
 #include <mpi.h>
-#include <vector>
 #include <signal.h>
+#include <vector>
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */

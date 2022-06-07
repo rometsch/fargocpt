@@ -16,6 +16,7 @@
 #include "data.h"
 #include "fpe.h"
 #include "global.h"
+#include "handle_signals.h"
 #include "init.h"
 #include "logging.h"
 #include "options.h"
@@ -30,8 +31,6 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
-#include "handle_signals.h"
-
 
 int TimeToWrite;
 int Restart = 0;
@@ -47,7 +46,7 @@ extern int SelfGravity, SGZeroMode;
 int main(int argc, char *argv[])
 {
 
-	register_signal_handlers();
+    register_signal_handlers();
 
     t_data data;
 
@@ -227,7 +226,7 @@ int main(int argc, char *argv[])
 	    data[t_data::ENERGY].read2D(start_mode::restart_from,
 					start_mode::restart_debug);
 
-		if (data[t_data::QPLUS].file_exists(start_mode::restart_from,
+	    if (data[t_data::QPLUS].file_exists(start_mode::restart_from,
 						start_mode::restart_debug)) {
 		data[t_data::QPLUS].read2D(start_mode::restart_from,
 					   start_mode::restart_debug);
@@ -237,7 +236,7 @@ int main(int argc, char *argv[])
 		    "Cannot read Qplus, no bitwise identical restarting possible!\n");
 		compute_heating_cooling_for_CFL(data);
 	    }
-		if (data[t_data::QMINUS].file_exists(start_mode::restart_from,
+	    if (data[t_data::QMINUS].file_exists(start_mode::restart_from,
 						 start_mode::restart_debug)) {
 		data[t_data::QMINUS].read2D(start_mode::restart_from,
 					    start_mode::restart_debug);
@@ -269,32 +268,31 @@ int main(int argc, char *argv[])
 
 	recalculate_derived_disk_quantities(data, true);
 
-	if(parameters::variableGamma){
+	if (parameters::variableGamma) {
 
-		// For bitwise exact restarting with PVTE
-		if (data[t_data::GAMMAEFF].file_exists(start_mode::restart_from,
-						 start_mode::restart_debug)) {
+	    // For bitwise exact restarting with PVTE
+	    if (data[t_data::GAMMAEFF].file_exists(start_mode::restart_from,
+						   start_mode::restart_debug)) {
 		data[t_data::GAMMAEFF].read2D(start_mode::restart_from,
-						start_mode::restart_debug);
-		}
-		if (data[t_data::MU].file_exists(start_mode::restart_from,
-						 start_mode::restart_debug)) {
+					      start_mode::restart_debug);
+	    }
+	    if (data[t_data::MU].file_exists(start_mode::restart_from,
+					     start_mode::restart_debug)) {
 		data[t_data::MU].read2D(start_mode::restart_from,
-						start_mode::restart_debug);
-		}
+					start_mode::restart_debug);
+	    }
 
-		if (data[t_data::GAMMA1].file_exists(start_mode::restart_from,
+	    if (data[t_data::GAMMA1].file_exists(start_mode::restart_from,
 						 start_mode::restart_debug)) {
 		data[t_data::GAMMA1].read2D(start_mode::restart_from,
-						start_mode::restart_debug);
-		}
+					    start_mode::restart_debug);
+	    }
 
-		compute_temperature(data, true);
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
-		compute_pressure(data, true);
-		viscosity::update_viscosity(data);
-
+	    compute_temperature(data, true);
+	    compute_sound_speed(data, true);
+	    compute_scale_height(data, true);
+	    compute_pressure(data, true);
+	    viscosity::update_viscosity(data);
 	}
 
     } else {
@@ -364,7 +362,7 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
-		ComputeCircumPlanetaryMasses(data);
+	    ComputeCircumPlanetaryMasses(data);
 	    data.get_planetary_system().write_planets(N_output, 1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
 	}

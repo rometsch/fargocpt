@@ -98,7 +98,8 @@ void CalculateNbodyPotential(t_data &data)
 	ypl[k] = planet.get_y();
 
 	if (ASPECTRATIO_MODE == 1) {
-		l1pl[k] = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
+	    l1pl[k] = planet.get_dimensionless_roche_radius() *
+		      planet.get_distance_to_primary();
 	}
     }
 
@@ -177,7 +178,8 @@ void CalculateAccelOnGas(t_data &data)
 	ypl[k] = planet.get_y();
 
 	if (ASPECTRATIO_MODE == 1) {
-		l1pl[k] = planet.get_dimensionless_roche_radius() * planet.get_distance_to_primary();
+	    l1pl[k] = planet.get_dimensionless_roche_radius() *
+		      planet.get_distance_to_primary();
 	}
     }
 

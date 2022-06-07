@@ -454,7 +454,7 @@ void compute_gamma_mu(t_data &data)
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 
 	    const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);

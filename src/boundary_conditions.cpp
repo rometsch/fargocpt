@@ -343,11 +343,11 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     }
 
-	/// d Omega / dr = 0 has really bad effects on the massflow test
-	/// not recommended
-	if (parameters::domegadr_zero) {
+    /// d Omega / dr = 0 has really bad effects on the massflow test
+    /// not recommended
+    if (parameters::domegadr_zero) {
 	/// Vphi_i / r_i - Vphi_(i-1) / r_(i-1) = 0
-    if (CPU_Rank == CPU_Highest) {
+	if (CPU_Rank == CPU_Highest) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -360,7 +360,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 
 		data[t_data::V_AZIMUTHAL](
 		    data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) =
-			R_N / R_Nm1  *
+		    R_N / R_Nm1 *
 		    data[t_data::V_AZIMUTHAL](
 			data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
 			n_azimuthal);
@@ -368,7 +368,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	}
 
 	if (CPU_Rank == 0) {
-		for (unsigned int n_azimuthal = 0;
+	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// this is a work around as long as V_AZIMUTHAL is defined as a
@@ -377,8 +377,8 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 		const double R0 = Rmed[0];
 
 		data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
-			R0 / R1 * data[t_data::V_AZIMUTHAL](1, n_azimuthal);
-		}
+		    R0 / R1 * data[t_data::V_AZIMUTHAL](1, n_azimuthal);
+	    }
 	}
     }
 
@@ -1177,27 +1177,30 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		double corr;
 		double vr_init;
 		if (parameters::initialize_pure_keplerian) {
-		corr = 1.0;
-		vr_init = 0.0;
+		    corr = 1.0;
+		    vr_init = 0.0;
 		} else {
-		corr =
-			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    corr = std::sqrt(
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
-		const double cs_iso = h * v_k;
-		const double H = h * r_com;
-		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		vr_init = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		    const double v_k =
+			std::sqrt(constants::G * com_mass / r_com);
+		    const double h =
+			ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		    const double cs_iso = h * v_k;
+		    const double H = h * r_com;
+		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+		    vr_init = -3.0 * nu / r_com *
+			      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
+		    std::sqrt(constants::G * com_mass / r_com) * corr -
+		    OmegaFrame * r_com;
 		const double cell_vr_com = vr_init;
-
 
 		const double cell_vx_com =
 		    (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -1246,25 +1249,29 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		double corr;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-		corr = 1.0;
-		vr0 = 0.0;
+		    corr = 1.0;
+		    vr0 = 0.0;
 		} else {
-		corr =
-			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    corr = std::sqrt(
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
-		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
-		const double cs_iso = h * v_k;
-		const double H = h * r_com;
-		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		    const double v_k =
+			std::sqrt(constants::G * com_mass / r_com);
+		    const double h =
+			ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		    const double cs_iso = h * v_k;
+		    const double H = h * r_com;
+		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+		    vr0 = -3.0 * nu / r_com *
+			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
+		    std::sqrt(constants::G * com_mass / r_com) * corr -
+		    OmegaFrame * r_com;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
@@ -1914,30 +1921,33 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double y_com = cell_y - com_pos.y;
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		// pressure support correction
-		double corr;
-		double vr0;
-		if (parameters::initialize_pure_keplerian) {
+	    // pressure support correction
+	    double corr;
+	    double vr0;
+	    if (parameters::initialize_pure_keplerian) {
 		corr = 1.0;
 		vr0 = 0.0;
-		} else {
+	    } else {
 		corr =
-			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double h =
+		    ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
 		const double cs_iso = h * v_k;
 		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
-		}
+		vr0 = -3.0 * nu / r_com *
+		      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+	    }
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		const double cell_vr_com = vr0;
+	    // Velocity in center of mass frame
+	    const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com) * corr -
+		OmegaFrame * r_com;
+	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -1965,30 +1975,33 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double y_com = cell_y - com_pos.y;
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
-		// pressure support correction
-		double corr;
-		double vr0;
-		if (parameters::initialize_pure_keplerian) {
+	    // pressure support correction
+	    double corr;
+	    double vr0;
+	    if (parameters::initialize_pure_keplerian) {
 		corr = 1.0;
 		vr0 = 0.0;
-		} else {
+	    } else {
 		corr =
-			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
 					std::pow(r_com, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double h =
+		    ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
 		const double cs_iso = h * v_k;
 		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
-		}
+		vr0 = -3.0 * nu / r_com *
+		      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+	    }
 
-		// Velocity in center of mass frame
-		const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		const double cell_vr_com = vr0;
+	    // Velocity in center of mass frame
+	    const double cell_vphi_com =
+		std::sqrt(constants::G * com_mass / r_com) * corr -
+		OmegaFrame * r_com;
+	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -2017,7 +2030,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // pressure support correction
 	    double corr;
-		double vr0;
+	    double vr0;
 	    if (parameters::initialize_pure_keplerian) {
 		corr = 1.0;
 		vr0 = 0.0;
@@ -2028,17 +2041,20 @@ void initial_center_of_mass_boundary(t_data &data)
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		const double h =
+		    ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
 		const double cs_iso = h * v_k;
 		const double H = h * r_com;
 		const double nu = ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com * (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		vr0 = -3.0 * nu / r_com *
+		      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 	    }
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr - OmegaFrame*r_com;
-		const double cell_vr_com = vr0;
+		std::sqrt(constants::G * com_mass / r_com) * corr -
+		OmegaFrame * r_com;
+	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -2068,26 +2084,26 @@ void initial_center_of_mass_boundary(t_data &data)
 			 -SIGMASLOPE); // we assume the floor is not reached.
 	    sigma(nr, naz) = cell_sigma;
 
-		/*
-		/// Initial profile temperature
-	    const double cell_energy =
-		1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		std::pow(ASPECTRATIO_REF, 2) *
-		std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
-		constants::G * com_mass;
+	    /*
+	    /// Initial profile temperature
+	const double cell_energy =
+	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	    std::pow(ASPECTRATIO_REF, 2) *
+	    std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+	    constants::G * com_mass;
 
-	    const double temperature_floor =
-		parameters::minimum_temperature *
-		units::temperature.get_inverse_cgs_factor();
+	const double temperature_floor =
+	    parameters::minimum_temperature *
+	    units::temperature.get_inverse_cgs_factor();
 
-	    const double energy_floor = temperature_floor * cell_sigma /
-					parameters::MU * constants::R /
-					(ADIABATICINDEX - 1.0);
+	const double energy_floor = temperature_floor * cell_sigma /
+				    parameters::MU * constants::R /
+				    (ADIABATICINDEX - 1.0);
 
-	    energy(nr, naz) = std::max(cell_energy, energy_floor);
-		*/
-		/// dP / dr = 0
-		energy(nr, naz) = energy(nr-1, naz);
+	energy(nr, naz) = std::max(cell_energy, energy_floor);
+	    */
+	    /// dP / dr = 0
+	    energy(nr, naz) = energy(nr - 1, naz);
 	} /// END DENSITY and ENERGY
     }
 }

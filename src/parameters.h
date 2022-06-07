@@ -244,11 +244,11 @@ extern double log_after_real_seconds;
 
 // type of opacity
 enum t_opacity {
-    opacity_lin,     // opacity based on Lin & Papaloizou, 1985
-    opacity_bell,    // opacity based on Bell & Lin, 1994
-    opacity_zhu,     // opacity based on Zhu, Hartmann & Gammie, 2008
-    opacity_kramers, // opacity based on Kramers Law plus electron scattering
-		     // (Thomson)
+    opacity_lin,      // opacity based on Lin & Papaloizou, 1985
+    opacity_bell,     // opacity based on Bell & Lin, 1994
+    opacity_zhu,      // opacity based on Zhu, Hartmann & Gammie, 2008
+    opacity_kramers,  // opacity based on Kramers Law plus electron scattering
+		      // (Thomson)
     opacity_const_op, // constant opacity
     opacity_simple    // eq. 30 from 'Thermohydrodynamics of Circumstellar Disks
 		      // with High-Mass Planets

@@ -26,12 +26,13 @@ hill_radial_index(const double Rplanet, const double RHill)
     const bool is_vector = false;
     /* Calculate the indeces in radial direction where
        the Hill sphere starts and stops */
-	unsigned i_min;
-	if(Rplanet - RHill < RMIN) {
-		i_min = 0;
-	} else {
-	i_min = clamp_r_id_to_radii_grid(get_rinf_id(Rplanet - RHill), is_vector);
-	}
+    unsigned i_min;
+    if (Rplanet - RHill < RMIN) {
+	i_min = 0;
+    } else {
+	i_min =
+	    clamp_r_id_to_radii_grid(get_rinf_id(Rplanet - RHill), is_vector);
+    }
     unsigned i_max =
 	clamp_r_id_to_radii_grid(get_rinf_id(Rplanet + RHill) + 1, is_vector);
     std::tuple<unsigned int, unsigned int> ids(i_min, i_max);
@@ -44,9 +45,9 @@ static std::tuple<int, int> hill_azimuthal_index(const double angle,
 {
     /* Calculate the index in azimuthal direction
        where the Hill sphere starts and stops */
-	const double max_angle = std::min(M_PI_2 + M_PI_4, 2.0 * RHill / Rplanet);
-	const int i_min = get_med_azimuthal_id(angle - max_angle);
-	const int i_max = get_med_azimuthal_id(angle + max_angle) + 1;
+    const double max_angle = std::min(M_PI_2 + M_PI_4, 2.0 * RHill / Rplanet);
+    const int i_min = get_med_azimuthal_id(angle - max_angle);
+    const int i_max = get_med_azimuthal_id(angle + max_angle) + 1;
     std::tuple<int, int> ids(i_min, i_max);
     return ids;
 }
@@ -97,11 +98,11 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 
     const double facc1 = 1.0 / 3.0 * facc;
     const double facc2 = 2.0 / 3.0 * facc;
-	const double frac1 = parameters::accretion_radius_fraction;
-	const double frac2 = 0.5 * parameters::accretion_radius_fraction;
+    const double frac1 = parameters::accretion_radius_fraction;
+    const double frac2 = 0.5 * parameters::accretion_radius_fraction;
     // W. Kley's parameters initialization finished
 
-	const double RHill = planet.get_dimensionless_roche_radius() *
+    const double RHill = planet.get_dimensionless_roche_radius() *
 			 planet.get_distance_to_primary();
     // search radius is bigger fraction + 2 dphi cell sizes to capture all cells
     const double search_radius = RHill * frac1 + 2.0 * Rplanet / ns;
@@ -111,6 +112,9 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double angle = planet.get_phi();
     const auto [j_min, j_max] =
 	hill_azimuthal_index(angle, Rplanet, search_radius);
+
+    printf("i = %d	%d	j = %d	%d	%.5e\n", i_min, i_max, j_min, j_max,
+	   search_radius / Rplanet);
 
     double dMplanet = 0.0;
     double dPxPlanet = 0.0;
@@ -227,7 +231,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     // to derive the fraction we need to remove
     const double facc = dt * 3.0 * M_PI * parameters::viscous_outflow_speed;
 
-	const double frac = parameters::accretion_radius_fraction;
+    const double frac = parameters::accretion_radius_fraction;
 
     const double RHill = planet.get_dimensionless_roche_radius() *
 			 planet.get_distance_to_primary();
