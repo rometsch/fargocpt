@@ -1509,15 +1509,21 @@ void radiative_diffusion(t_data &data, double dt)
 	grids_allocated = true;
     }
 
+	auto &Temperature = data[t_data::TEMPERATURE];
+	auto &Sigma = data[t_data::DENSITY];
+	auto &Energy = data[t_data::ENERGY];
+	auto &Scale_height = data[t_data::SCALE_HEIGHT];
+
+	for (unsigned int naz = 0; naz < Energy.get_size_azimuthal(); ++naz) {
+		const unsigned int nr_max = Energy.get_max_radial();
+		Energy(0, naz) = Energy(1, naz);
+		Energy(nr_max, naz) = Energy(nr_max - 1, naz);
+	}
+
     // update temperature, soundspeed and aspect ratio
     compute_temperature(data, true);
     compute_sound_speed(data, true);
     compute_scale_height(data, true);
-
-    auto &Temperature = data[t_data::TEMPERATURE];
-    auto &Sigma = data[t_data::DENSITY];
-    auto &Energy = data[t_data::ENERGY];
-    auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
     // calcuate Ka for K(i/2,j)
     for (unsigned int nr = 1; nr < Ka.get_size_radial() - 1; ++nr) {
@@ -1572,25 +1578,20 @@ void radiative_diffusion(t_data &data, double dt)
 	}
     }
 
-    for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
-	Ka(1, naz) = Ka(2, naz);
-	Ka(Ka.get_max_radial() - 1, naz) = Ka(Ka.get_max_radial() - 2, naz);
-    }
-
     // calcuate Kb for K(i,j/2)
     for (unsigned int nr = 1; nr < Kb.get_size_radial() - 1; ++nr) {
-	for (unsigned int na = 0; na < Kb.get_size_azimuthal(); ++na) {
+	for (unsigned int naz = 0; naz < Kb.get_size_azimuthal(); ++naz) {
 	    // unsigned int n_azimuthal_plus = (n_azimuthal ==
 	    // Kb.get_max_azimuthal() ? 0 : n_azimuthal + 1);
 	    const unsigned int naz_m =
-		(na == 0 ? Kb.get_max_azimuthal() : na - 1);
+		(naz == 0 ? Kb.get_max_azimuthal() : naz - 1);
 
 	    // average temperature azimuthally
 	    const double temperature =
-		0.5 * (Temperature(nr, naz_m) + Temperature(nr, na));
-	    const double density = 0.5 * (Sigma(nr, naz_m) + Sigma(nr, na));
+		0.5 * (Temperature(nr, naz_m) + Temperature(nr, naz));
+		const double density = 0.5 * (Sigma(nr, naz_m) + Sigma(nr, naz));
 	    const double scale_height =
-		0.5 * (Scale_height(nr, naz_m) + Scale_height(nr, na));
+		0.5 * (Scale_height(nr, naz_m) + Scale_height(nr, naz));
 
 	    const double temperatureCGS = temperature * units::temperature;
 	    const double H = scale_height;
@@ -1607,11 +1608,11 @@ void radiative_diffusion(t_data &data, double dt)
 	    // Levermore & Pomraning 1981
 	    // R = 4 |nabla T\/T * 1/(rho kappa)
 	    const double dT_dr =
-		(0.5 * (Temperature(nr - 1, naz_m) + Temperature(nr - 1, na)) -
-		 0.5 * (Temperature(nr + 1, naz_m) + Temperature(nr + 1, na))) /
+		(0.5 * (Temperature(nr - 1, naz_m) + Temperature(nr - 1, naz)) -
+		 0.5 * (Temperature(nr + 1, naz_m) + Temperature(nr + 1, naz))) /
 		(Ra[nr - 1] - Ra[nr + 1]);
 	    const double dT_dphi =
-		InvRmed[nr] * (Temperature(nr, na) - Temperature(nr, naz_m)) /
+		InvRmed[nr] * (Temperature(nr, naz) - Temperature(nr, naz_m)) /
 		dphi;
 
 	    const double nabla_T =
@@ -1627,8 +1628,8 @@ void radiative_diffusion(t_data &data, double dt)
 	    dphi*n_azimuthal, R, lambda,dT_dphi,dT_dr,nabla_T,temperature,H);
 	    }*/
 
-	    Kb(nr, na) = 8 * 4 * constants::sigma.get_code_value() * lambda *
-			 H * std::pow(temperature, 3) * denom;
+		Kb(nr, naz) = 8 * 4 * constants::sigma.get_code_value() * lambda *
+			 H*H * std::pow(temperature, 3) * denom;
 	    // Kb(n_radial, n_azimuthal)
 	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
 	}
@@ -1640,15 +1641,15 @@ void radiative_diffusion(t_data &data, double dt)
     for (unsigned int nr = 1; nr < Temperature.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Temperature.get_size_azimuthal();
 	     ++naz) {
-	    const double H = Scale_height(nr, naz);
+		// const double H = Scale_height(nr, naz);
 	    // -dt H /(Sigma * c_v)
 	    const double common_factor =
-		-dt * parameters::density_factor * H / (Sigma(nr, naz) * c_v);
+		-dt * parameters::density_factor / (Sigma(nr, naz) * c_v); // * H ;
 
 	    // 2/(dR^2)
 	    const double common_AC =
 		common_factor * 2.0 /
-		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
+		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2)); // TODO check
 	    A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
 	    C(nr, naz) =
 		common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
