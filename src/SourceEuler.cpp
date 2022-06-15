@@ -1612,12 +1612,25 @@ void radiative_diffusion(t_data &data, double dt)
 	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
 		const unsigned int nr_max = Ka.get_max_radial();
 		if(CPU_Rank == CPU_Highest && parameters::boundary_outer == parameters::boundary_condition_reflecting){
-		Ka(nr_max-1, naz) = 0.0; //Ka(nr_max-2, naz);
+		Ka(nr_max-1, naz) = 0.0;
 		}
 
 
 		if(CPU_Rank == 0 && parameters::boundary_inner == parameters::boundary_condition_reflecting){
-		Ka(1, naz) = 0.0; //Ka(2, naz);
+		Ka(1, naz) = 0.0;
+		}
+	}
+
+	// Similar to Tobi's original implementation
+	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
+		const unsigned int nr_max = Ka.get_max_radial();
+		if(CPU_Rank == CPU_Highest && !(parameters::boundary_outer == parameters::boundary_condition_reflecting || parameters::boundary_outer == parameters::boundary_condition_open)){
+		Ka(nr_max-1, naz) = Ka(nr_max-2, naz);
+		}
+
+
+		if(CPU_Rank == 0 && !(parameters::boundary_inner == parameters::boundary_condition_reflecting || parameters::boundary_inner == parameters::boundary_condition_open)){
+		Ka(1, naz) = Ka(2, naz);
 		}
 	}
 
