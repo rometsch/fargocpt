@@ -113,9 +113,6 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     const auto [j_min, j_max] =
 	hill_azimuthal_index(angle, Rplanet, search_radius);
 
-    printf("i = %d	%d	j = %d	%d	%.5e\n", i_min, i_max, j_min, j_max,
-	   search_radius / Rplanet);
-
     double dMplanet = 0.0;
     double dPxPlanet = 0.0;
     double dPyPlanet = 0.0;
