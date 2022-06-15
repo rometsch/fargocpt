@@ -1514,11 +1514,41 @@ void radiative_diffusion(t_data &data, double dt)
 	auto &Energy = data[t_data::ENERGY];
 	auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
+	// We set minimum Temperature here such that H (thru Cs) is also computed with the minimum Temperature
 	for (unsigned int naz = 0; naz < Energy.get_size_azimuthal(); ++naz) {
 		const unsigned int nr_max = Energy.get_max_radial();
-		Energy(0, naz) = Energy(1, naz);
-		Energy(nr_max, naz) = Energy(nr_max - 1, naz);
+
+		if(CPU_Rank == 0 &&  parameters::boundary_inner == parameters::boundary_condition_open){
+		const double Tmin = parameters::minimum_temperature *
+				units::temperature.get_inverse_cgs_factor();
+
+		const double mu = pvte::get_mu(data, 1, naz);
+		const double gamma_eff = pvte::get_gamma_eff(data,1, naz);
+		Sigma(0, naz) = Sigma(1, naz);
+
+		const double minimum_energy = Tmin *
+					  Sigma(1, naz) / mu *
+					  constants::R / (gamma_eff - 1.0);
+
+		Energy(0, naz) = minimum_energy;
+		}
+
+		if(CPU_Rank == CPU_Highest &&  parameters::boundary_outer == parameters::boundary_condition_open){
+		const double Tmin = parameters::minimum_temperature *
+				units::temperature.get_inverse_cgs_factor();
+
+		const double mu = pvte::get_mu(data, nr_max - 1, naz);
+		const double gamma_eff = pvte::get_gamma_eff(data, nr_max - 1, naz);
+		Sigma(nr_max, naz) = Sigma(nr_max - 1, naz);
+
+		const double minimum_energy = Tmin *
+					  Sigma(nr_max - 1, naz) / mu *
+					  constants::R / (gamma_eff - 1.0);
+
+		Energy(nr_max, naz) = minimum_energy;
+		}
 	}
+
 
     // update temperature, soundspeed and aspect ratio
     compute_temperature(data, true);
@@ -1563,7 +1593,7 @@ void radiative_diffusion(t_data &data, double dt)
 			Temperature(nr, n_azimuthal_plus)) -
 		 0.5 * (Temperature(nr - 1, n_azimuthal_minus) +
 			Temperature(nr, n_azimuthal_minus))) /
-		(2 * dphi);
+		(2.0 * dphi);
 
 	    const double nabla_T =
 		std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
@@ -1573,10 +1603,23 @@ void radiative_diffusion(t_data &data, double dt)
 
 	    const double lambda = flux_limiter(R);
 
-	    Ka(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
+		Ka(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
 			  lambda * H * H * std::pow(temperature, 3) * denom;
 	}
     }
+
+
+	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
+		const unsigned int nr_max = Ka.get_max_radial();
+		if(CPU_Rank == CPU_Highest && parameters::boundary_outer == parameters::boundary_condition_reflecting){
+		Ka(nr_max-1, naz) = 0.0; //Ka(nr_max-2, naz);
+		}
+
+
+		if(CPU_Rank == 0 && parameters::boundary_inner == parameters::boundary_condition_reflecting){
+		Ka(1, naz) = 0.0; //Ka(2, naz);
+		}
+	}
 
     // calcuate Kb for K(i,j/2)
     for (unsigned int nr = 1; nr < Kb.get_size_radial() - 1; ++nr) {
@@ -1628,8 +1671,8 @@ void radiative_diffusion(t_data &data, double dt)
 	    dphi*n_azimuthal, R, lambda,dT_dphi,dT_dr,nabla_T,temperature,H);
 	    }*/
 
-		Kb(nr, naz) = 8 * 4 * constants::sigma.get_code_value() * lambda *
-			 H*H * std::pow(temperature, 3) * denom;
+		Kb(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() * lambda *
+			 H * H * std::pow(temperature, 3) * denom;
 	    // Kb(n_radial, n_azimuthal)
 	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
 	}
@@ -1641,16 +1684,15 @@ void radiative_diffusion(t_data &data, double dt)
     for (unsigned int nr = 1; nr < Temperature.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Temperature.get_size_azimuthal();
 	     ++naz) {
-		// const double H = Scale_height(nr, naz);
-	    // -dt H /(Sigma * c_v)
+		const double Sig = Sigma(nr, naz);
 	    const double common_factor =
-		-dt * parameters::density_factor / (Sigma(nr, naz) * c_v); // * H ;
+		-dt * parameters::density_factor / (Sig * c_v);
 
 	    // 2/(dR^2)
 	    const double common_AC =
 		common_factor * 2.0 /
 		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2)); // TODO check
-	    A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
+		A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
 	    C(nr, naz) =
 		common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
 
