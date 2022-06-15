@@ -1888,7 +1888,7 @@ void radiative_diffusion(t_data &data, double dt)
     }
 
     if (omega >= 2.0) {
-	omega = 2.0;
+	omega = 1.99;
 	direction = -1;
     }
 
