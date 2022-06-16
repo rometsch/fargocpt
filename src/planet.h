@@ -183,6 +183,7 @@ class t_planet
 
     void calculate_orbital_elements(double x, double y, double vx, double vy,
 				    double com_mass);
+	void copy_orbital_elements(const t_planet &other);
     void set_orbital_elements_zero();
 
     void copy(const planet_member_variables &other);

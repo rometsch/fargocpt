@@ -298,9 +298,17 @@ double t_planet::get_rampup_mass() const
 */
 double t_planet::get_orbital_period() const
 {
-    return 2.0 * M_PI *
-	   std::sqrt(std::pow(get_semi_major_axis(), 3) /
-		     ((hydro_center_mass + get_mass()) * constants::G));
+
+	double M;
+	if(m_planet_number <= parameters::n_bodies_for_hydroframe_center){
+		M = hydro_center_mass;
+	}else{
+		M = hydro_center_mass + get_mass();
+	}
+	const double P = 2.0 * M_PI *
+			std::sqrt(std::pow(get_semi_major_axis(), 3) /
+				  (M * constants::G));
+	return P;
 }
 
 /**
@@ -657,6 +665,16 @@ double t_planet::get_value_from_file(unsigned int timestep,
     }
     value = output::get_from_ascii_file(filename, timestep, column, debug);
     return value;
+}
+
+void t_planet::copy_orbital_elements(const t_planet &other)
+{
+	m_semi_major_axis = other.get_semi_major_axis();
+	m_eccentricity = other.get_eccentricity();
+	m_mean_anomaly = other.get_mean_anomaly();
+	m_true_anomaly = other.get_true_anomaly();
+	m_eccentric_anomaly = other.get_eccentric_anomaly();
+	m_pericenter_angle = other.get_pericenter_angle();
 }
 
 void t_planet::set_orbital_elements_zero()

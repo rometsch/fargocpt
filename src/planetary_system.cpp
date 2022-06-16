@@ -680,6 +680,13 @@ void t_planetary_system::calculate_orbital_elements()
 
 	planet.calculate_orbital_elements(x, y, vx, vy, M);
     }
+
+	// Binary, both stars have same orbital elements
+	if(get_number_of_planets() == 2){
+		auto &primary = get_planet(0);
+		const auto &secondary = get_planet(1);
+		primary.copy_orbital_elements(secondary);
+	}
 }
 
 /**
