@@ -205,6 +205,114 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     return mass_changed;
 }
 
+
+static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
+{
+	bool mass_changed = false;
+	const int ns = data[t_data::DENSITY].Nsec;
+	double *dens = data[t_data::DENSITY].Field;
+	double *energy = data[t_data::ENERGY].Field;
+	const double *cell_center_x = CellCenterX->Field;
+	const double *cell_center_y = CellCenterY->Field;
+	const double *vrad = data[t_data::V_RADIAL].Field;
+	const double *vtheta = data[t_data::V_AZIMUTHAL].Field;
+	const double density_floor = parameters::sigma_floor * parameters::sigma0;
+
+	const double Xplanet = planet.get_x();
+	const double Yplanet = planet.get_y();
+	const double Rplanet = planet.get_r();
+
+	const double facc =
+	dt * planet.get_acc() / planet.get_orbital_period() * std::log(2.0);
+	const double frac = parameters::accretion_radius_fraction;
+
+	const double RHill = planet.get_dimensionless_roche_radius() *
+			 planet.get_distance_to_primary();
+	// search radius is bigger fraction + 2 dphi cell sizes to capture all cells
+	const double search_radius = RHill * frac + 2.0 * Rplanet / ns;
+
+	// calculate range of indeces to iterate over
+	const auto [i_min, i_max] = hill_radial_index(Rplanet, search_radius);
+	const double angle = planet.get_phi();
+	const auto [j_min, j_max] =
+	hill_azimuthal_index(angle, Rplanet, search_radius);
+
+	double dMplanet = 0.0;
+	double dPxPlanet = 0.0;
+	double dPyPlanet = 0.0;
+
+	for (unsigned int i = i_min; i <= i_max; i++) {
+	for (int j = j_min; j <= j_max; j++) {
+		// map azimuthal index to [0, ns]
+		int jf = clamp_phi_id_to_grid(j);
+		;
+		// calculate cell 1d index
+		int l = jf + i * ns;
+		int lip = l + ns;
+		int ljp = l + 1;
+		if (jf == ns - 1) {
+		ljp = i * ns;
+		}
+
+		const double xc = cell_center_x[l];
+		const double yc = cell_center_y[l];
+		const double dx = Xplanet - xc;
+		const double dy = Yplanet - yc;
+		const double distance = sqrt(dx * dx + dy * dy);
+
+		// interpolate velocities to cell centers
+		const double vtcell =
+		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * OmegaFrame;
+		const double vrcell = 0.5 * (vrad[l] + vrad[lip]);
+		// calculate cartesian velocities
+		const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
+		const double vycell = (vrcell * yc + vtcell * xc) / Rmed[i];
+
+		// only allow removal of mass down to density floor
+		const double facc_max = 1 - density_floor / dens[l];
+		// handle accretion zone 1
+		if (distance < frac * RHill) {
+		const double facc_ceil = std::min(facc, facc_max);
+		const double deltaM = facc_ceil * dens[l] * Surf[i];
+		dens[l] *= 1.0 - facc_ceil;
+		if (parameters::Adiabatic) {
+			energy[l] *= 1.0 - facc_ceil;
+		}
+		if (radial_first_active < i &&
+			i < radial_active_size) { // Only add active cells to
+						  // planet
+			dPxPlanet += deltaM * vxcell;
+			dPyPlanet += deltaM * vycell;
+			dMplanet += deltaM;
+		}
+		}
+	}
+	}
+
+	// MPI reduce
+	double temp;
+	MPI_Allreduce(&dMplanet, &temp, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	dMplanet = temp;
+
+	// monitoring purpose only
+	planet.add_accreted_mass(dMplanet);
+
+	if (parameters::disk_feedback) { // only update planets if they feel the
+					 // disk
+	MPI_Allreduce(&dPxPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
+			  MPI_COMM_WORLD);
+	dPxPlanet = temp;
+	MPI_Allreduce(&dPyPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
+			  MPI_COMM_WORLD);
+	dPyPlanet = temp;
+
+	// update planet momentum
+	update_planet(planet, dMplanet, dPxPlanet, dPyPlanet);
+	mass_changed = dMplanet > 0;
+	}
+	return mass_changed;
+}
+
 static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 					   double dt)
 {
@@ -347,13 +455,19 @@ void AccreteOntoPlanets(t_data &data, const double dt)
 	 k++) {
 
 	auto &planet = planetary_system.get_planet(k);
-	if (planet.get_acc() > 1e-10) {
+
+	if (planet.get_acc() > 50.0) {
+		// Emptying time soo large, just make it a sink hole
+		const bool changed = SinkHoleSinglePlanet(data, planet, dt);
+		masses_changed = masses_changed || changed;
+
+	} else if (planet.get_acc() > 1e-10) {
+		// Standard accretion after Kley
 	    const bool changed = AccreteOntoSinglePlanet(data, planet, dt);
 	    masses_changed = masses_changed || changed;
-	}
 
-	// Negative accretion enables viscous accretion
-	if (planet.get_acc() < 0.0) {
+	} else if (planet.get_acc() < 0.0) {
+		// Negative accretion enables viscous accretion
 	    const bool changed =
 		AccreteOntoSinglePlanetViscous(data, planet, dt);
 	    masses_changed = masses_changed || changed;
