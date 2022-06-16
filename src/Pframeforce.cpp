@@ -131,9 +131,8 @@ void CalculateNbodyPotential(t_data &data)
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
-		    if (k > 0) { // only for non central objects
-			// position of the l1 point between planet and central
-			// star.
+			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
+			// position of the l1 point between planet and central star.
 			const double l1 = l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
@@ -218,7 +217,7 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-		    if (k > 0) { // only for non central objects
+			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
@@ -305,7 +304,7 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-		    if (k > 0) { // only for non central objects
+			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
