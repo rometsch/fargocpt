@@ -458,7 +458,9 @@ void AlgoGas(t_data &data)
 	    ComputeDiskOnNbodyAccel(data);
 	}
 	/* Indirect term star's potential computed here */
-	ComputeNbodyOnNbodyAccel(data.get_planetary_system());
+
+	//ComputeNbodyOnNbodyAccel(data.get_planetary_system());
+	ComputeNbodyOnNbodyAccelRK5(data, hydro_dt);
 	ComputeIndirectTerm(data);
 
 	if (parameters::calculate_disk) {
