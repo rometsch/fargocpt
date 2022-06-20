@@ -736,10 +736,6 @@ void t_planetary_system::integrate(double time, double dt)
     disable_trap_fpe_gnu();
     reb_integrate(m_rebound, time + dt);
     enable_trap_fpe_gnu();
-
-    copy_data_from_rebound();
-
-    move_to_hydro_frame_center();
 }
 
 /**

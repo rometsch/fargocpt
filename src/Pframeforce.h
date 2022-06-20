@@ -4,10 +4,12 @@
 #include "data.h"
 #include "types.h"
 
+void ComputeIndirectTermDisk(t_data &data);
 void ComputeIndirectTerm(t_data &data);
 void ComputeDiskOnNbodyAccel(t_data &data);
 void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system);
 void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt);
+void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system);
 void CalculateNbodyPotential(t_data &data);
 void CalculateAccelOnGas(t_data &data);
 void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt);

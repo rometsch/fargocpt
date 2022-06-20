@@ -29,14 +29,12 @@ extern Pair IndirectTermPlanets;
  * @param force
  * @param data
  */
-void ComputeIndirectTerm(t_data &data)
+void ComputeIndirectTermDisk(t_data &data)
 {
     IndirectTerm.x = 0.0;
     IndirectTerm.y = 0.0;
     IndirectTermDisk.x = 0.0;
     IndirectTermDisk.y = 0.0;
-    IndirectTermPlanets.x = 0.0;
-    IndirectTermPlanets.y = 0.0;
 
     // compute disk indirect term
     if (parameters::disk_feedback) {
@@ -56,11 +54,20 @@ void ComputeIndirectTerm(t_data &data)
 	IndirectTermDisk.y /= mass_center;
     }
 
-    // compute nbody indirect term
-    // add up contributions from mutual interactions from all bodies used to
-    // calculate the center
-    double mass_center = 0.0;
-    for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
+	IndirectTerm.x = IndirectTermDisk.x;
+	IndirectTerm.y = IndirectTermDisk.y;
+}
+
+void ComputeIndirectTerm(t_data &data)
+{
+	IndirectTermPlanets.x = 0.0;
+	IndirectTermPlanets.y = 0.0;
+
+	// compute nbody indirect term
+	// add up contributions from mutual interactions from all bodies used to
+	// calculate the center
+	double mass_center = 0.0;
+	for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
 	 n++) {
 	t_planet &planet = data.get_planetary_system().get_planet(n);
 	const double mass = planet.get_mass();
@@ -68,12 +75,12 @@ void ComputeIndirectTerm(t_data &data)
 	IndirectTermPlanets.x -= mass * accel.x;
 	IndirectTermPlanets.y -= mass * accel.y;
 	mass_center += mass;
-    }
-    IndirectTermPlanets.x /= mass_center;
-    IndirectTermPlanets.y /= mass_center;
+	}
+	IndirectTermPlanets.x /= mass_center;
+	IndirectTermPlanets.y /= mass_center;
 
-    IndirectTerm.x = IndirectTermDisk.x + IndirectTermPlanets.x;
-    IndirectTerm.y = IndirectTermDisk.y + IndirectTermPlanets.y;
+	IndirectTerm.x += IndirectTermPlanets.x;
+	IndirectTerm.y += IndirectTermPlanets.y;
 }
 
 /* Below : work in non-rotating frame */
@@ -426,6 +433,30 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
     }
 }
 
+void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system)
+{
+
+	for (unsigned int npl = 0; npl < planetary_system.get_number_of_planets();
+	 npl++) {
+	t_planet &planet = planetary_system.get_planet(npl);
+	const double vx_old = planet.get_vx();
+	const double vy_old = planet.get_vy();
+
+	const double vx_new = planetary_system.m_rebound->particles[npl].vx;
+	const double vy_new = planetary_system.m_rebound->particles[npl].vy;
+
+	if(hydro_dt > 0.0){
+	const double ax = (vx_new - vx_old)/hydro_dt;
+	const double ay = (vy_new - vy_old)/hydro_dt;
+
+	planet.set_nbody_on_planet_acceleration_x(ax);
+	planet.set_nbody_on_planet_acceleration_y(ay);
+	} else {
+	planet.set_nbody_on_planet_acceleration_x(0.0);
+	planet.set_nbody_on_planet_acceleration_y(0.0);
+	}
+	}
+}
 
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt)
