@@ -457,10 +457,13 @@ void AlgoGas(t_data &data)
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
-	/* Indirect term star's potential computed here */
 
-	//ComputeNbodyOnNbodyAccel(data.get_planetary_system());
+	if (parameters::disk_feedback) {
+		UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
+	}
+
 	ComputeNbodyOnNbodyAccelRK5(data, hydro_dt);
+
 	ComputeIndirectTerm(data);
 
 	if (parameters::calculate_disk) {
@@ -471,12 +474,6 @@ void AlgoGas(t_data &data)
 	    } else {
 		CalculateAccelOnGas(data);
 	    }
-	}
-
-	/* Planets' velocities are updated here from gravitationnal
-	 * interaction with disk */
-	if (parameters::disk_feedback) {
-	    UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
 	}
 
 	if (parameters::integrate_particles) {
