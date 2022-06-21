@@ -646,7 +646,7 @@ int load_misc()
 
 void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
-    const int ns = data[t_data::DENSITY].Nsec;
+    const int ns = data[t_data::SIGMA].Nsec;
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
 
@@ -667,7 +667,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 
 	    data[t_data::TORQUE_1D](n_radial) = 0.0;
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 		 ++n_azimuthal) {
 		// calculate smoothing length if dependend on radius
 		// i.e. for thickness smoothing with scale height at cell
@@ -680,7 +680,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 		const double yc = cell_center_y[cell_id];
 		const double cellmass =
 		    Surf[n_radial] *
-		    data[t_data::DENSITY](n_radial, n_azimuthal);
+		    data[t_data::SIGMA](n_radial, n_azimuthal);
 		const double dx = xc - x;
 		const double dy = yc - y;
 		const double dist_sm_2 =
@@ -789,11 +789,11 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	     n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
-		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
+		local_mass = data[t_data::SIGMA](n_radial, n_azimuthal) *
 			     Surf[n_radial];
 		local_eccentricity +=
 		    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) *

@@ -17,7 +17,7 @@ class t_radialgrid
     /// scalar or vector quantity (scalar uses grid from 0 to Nrad-1, vector
     /// from 0 to Nrad)
     bool m_scalar;
-    /// Name of the PolarGrid (can be "dens", "vrad", "vtheta" or "label").
+	/// Name of the PolarGrid (can be "Sigma", "vrad", "vtheta" or "label").
     char *m_name;
     /// write 1D?
     bool m_write_1D;

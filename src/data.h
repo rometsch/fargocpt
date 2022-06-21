@@ -15,7 +15,7 @@ class t_data
     ~t_data();
 
     enum t_polargrid_type {
-	DENSITY,	      // surface density
+	SIGMA,	      // surface density
 	V_RADIAL,	      // radial velocity
 	V_AZIMUTHAL,	      // azimuthal velocity
 	ENERGY,		      // energy
@@ -36,7 +36,7 @@ class t_data
 	ALPHA_REYNOLDS_MEAN,  // alpha reynolds time average
 	V_RADIAL0,	      // radial velocity at beginning
 	V_AZIMUTHAL0,	      // azimuthal velocity at beginning
-	DENSITY0,	      // radial velocity at beginning
+	SIGMA0,			 // surface density at beginning
 	ENERGY0,	      // azimuthal velocity at beginning
 	KAPPA,		      // opacity
 	TAU_COOL,	      // cooling time

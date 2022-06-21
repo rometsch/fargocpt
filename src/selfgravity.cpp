@@ -198,7 +198,7 @@ void compute(t_data &data, double dt, bool update)
 {
     update_kernel(data);
 
-    auto &density = data[t_data::DENSITY];
+    auto &density = data[t_data::SIGMA];
     compute_FFT_density(density);
     compute_acceleration(density);
 

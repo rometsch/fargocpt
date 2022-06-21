@@ -95,7 +95,7 @@ static void StsStep2(t_data &data, double dt)
 		if (dv_r < 0.0) {
 		    data[t_data::Q_R](n_radial, n_azimuthal) =
 			std::pow(parameters::artificial_viscosity_factor, 2) *
-			data[t_data::DENSITY](n_radial, n_azimuthal) *
+			data[t_data::SIGMA](n_radial, n_azimuthal) *
 			std::pow(dv_r, 2);
 		} else {
 		    data[t_data::Q_R](n_radial, n_azimuthal) = 0.0;
@@ -112,7 +112,7 @@ static void StsStep2(t_data &data, double dt)
 		if (dv_phi < 0.0) {
 		    data[t_data::Q_PHI](n_radial, n_azimuthal) =
 			std::pow(parameters::artificial_viscosity_factor, 2) *
-			data[t_data::DENSITY](n_radial, n_azimuthal) *
+			data[t_data::SIGMA](n_radial, n_azimuthal) *
 			std::pow(dv_phi, 2);
 		} else {
 		    data[t_data::Q_PHI](n_radial, n_azimuthal) = 0.0;
@@ -132,8 +132,8 @@ static void StsStep2(t_data &data, double dt)
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		    data[t_data::V_RADIAL](n_radial, n_azimuthal) -
 		    dt * 2.0 /
-			(data[t_data::DENSITY](n_radial, n_azimuthal) +
-			 data[t_data::DENSITY](n_radial - 1, n_azimuthal)) *
+			(data[t_data::SIGMA](n_radial, n_azimuthal) +
+			 data[t_data::SIGMA](n_radial - 1, n_azimuthal)) *
 			(data[t_data::Q_R](n_radial, n_azimuthal) -
 			 data[t_data::Q_R](n_radial - 1, n_azimuthal)) *
 			InvDiffRmed[n_radial];
@@ -154,11 +154,11 @@ static void StsStep2(t_data &data, double dt)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -
 		    dt * 2.0 /
-			(data[t_data::DENSITY](n_radial, n_azimuthal) +
-			 data[t_data::DENSITY](
+			(data[t_data::SIGMA](n_radial, n_azimuthal) +
+			 data[t_data::SIGMA](
 			     n_radial,
 			     n_azimuthal == 0
-				 ? data[t_data::DENSITY].get_max_azimuthal()
+				 ? data[t_data::SIGMA].get_max_azimuthal()
 				 : n_azimuthal - 1)) *
 			(data[t_data::Q_PHI](n_radial, n_azimuthal) -
 			 data[t_data::Q_PHI](
@@ -239,7 +239,7 @@ static void calculateQvis(t_data &data)
 		    double qplus =
 			1.0 /
 			(2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-			 data[t_data::DENSITY](n_radial, n_azimuthal)) *
+			 data[t_data::SIGMA](n_radial, n_azimuthal)) *
 			(std::pow(data[t_data::TAU_R_R](n_radial, n_azimuthal),
 				  2) +
 			 2 * std::pow(tau_r_phi, 2) +
@@ -249,7 +249,7 @@ static void calculateQvis(t_data &data)
 		    qplus +=
 			(2.0 / 9.0) *
 			data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-			data[t_data::DENSITY](n_radial, n_azimuthal) *
+			data[t_data::SIGMA](n_radial, n_azimuthal) *
 			std::pow(data[t_data::DIV_V](n_radial, n_azimuthal), 2);
 
 		    qplus *= parameters::heating_viscous_factor;

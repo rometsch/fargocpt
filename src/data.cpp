@@ -10,9 +10,9 @@
 t_data::t_data()
 {
     // -- polar grids --
-    m_polargrids[DENSITY].set_scalar(true);
-    m_polargrids[DENSITY].set_name("dens");
-    m_polargrids[DENSITY].set_unit(units::surface_density);
+    m_polargrids[SIGMA].set_scalar(true);
+	m_polargrids[SIGMA].set_name("Sigma");
+    m_polargrids[SIGMA].set_unit(units::surface_density);
 
     m_polargrids[V_RADIAL].set_vector(true);
     m_polargrids[V_RADIAL].set_name("vrad");
@@ -92,9 +92,9 @@ t_data::t_data()
     m_polargrids[V_AZIMUTHAL0].set_name("vtheta0");
     m_polargrids[V_AZIMUTHAL0].set_unit(units::velocity);
 
-    m_polargrids[DENSITY0].set_vector(false);
-    m_polargrids[DENSITY0].set_name("dens0");
-    m_polargrids[DENSITY0].set_unit(units::surface_density);
+    m_polargrids[SIGMA0].set_vector(false);
+    m_polargrids[SIGMA0].set_name("dens0");
+    m_polargrids[SIGMA0].set_unit(units::surface_density);
 
     m_polargrids[ENERGY0].set_vector(false);
     m_polargrids[ENERGY0].set_name("energy0");

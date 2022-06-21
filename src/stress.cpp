@@ -54,7 +54,7 @@ void calculate_Reynolds_stress(t_data &data)
 	     n_azimuthal <= data[t_data::T_REYNOLDS].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::T_REYNOLDS](n_radial, n_azimuthal) =
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
+		data[t_data::SIGMA](n_radial, n_azimuthal) *
 		(0.5 * (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 			data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) -
 		 v_radial_mean) *

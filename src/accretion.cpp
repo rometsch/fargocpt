@@ -75,8 +75,8 @@ static void update_planet(t_planet &planet, const double dMplanet,
 static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 {
     bool mass_changed = false;
-    const int ns = data[t_data::DENSITY].Nsec;
-    double *dens = data[t_data::DENSITY].Field;
+	const int ns = data[t_data::SIGMA].Nsec;
+	double *dens = data[t_data::SIGMA].Field;
     double *energy = data[t_data::ENERGY].Field;
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
@@ -209,8 +209,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
 {
 	bool mass_changed = false;
-	const int ns = data[t_data::DENSITY].Nsec;
-	double *dens = data[t_data::DENSITY].Field;
+	const int ns = data[t_data::SIGMA].Nsec;
+	double *dens = data[t_data::SIGMA].Field;
 	double *energy = data[t_data::ENERGY].Field;
 	const double *cell_center_x = CellCenterX->Field;
 	const double *cell_center_y = CellCenterY->Field;
@@ -317,8 +317,8 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 					   double dt)
 {
     bool mass_changed = false;
-    const int ns = data[t_data::DENSITY].Nsec;
-    double *dens = data[t_data::DENSITY].Field;
+	const int ns = data[t_data::SIGMA].Nsec;
+	double *dens = data[t_data::SIGMA].Field;
     double *energy = data[t_data::ENERGY].Field;
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;

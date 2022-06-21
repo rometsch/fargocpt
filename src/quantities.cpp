@@ -29,11 +29,11 @@ double gas_total_mass(t_data &data, const double quantitiy_radius)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_mass += Surf[n_radial] *
-			      data[t_data::DENSITY](n_radial, n_azimuthal);
+			      data[t_data::SIGMA](n_radial, n_azimuthal);
 	    }
 	}
     }
@@ -62,11 +62,11 @@ double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // eccentricity and semi major axis weighted with cellmass
 	    if (Rmed[n_radial] <= quantitiy_radius) {
-		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
+		local_mass = data[t_data::SIGMA](n_radial, n_azimuthal) *
 			     Surf[n_radial];
 		local_aspect_ratio +=
 		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
@@ -102,10 +102,10 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	 ++n_radial) {
 	local_mass[n_radial - local_array_start] = 0.0;
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    local_mass[n_radial - local_array_start] +=
-		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
+		Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
 	}
     }
     double radius = 0.0;
@@ -146,16 +146,16 @@ double gas_angular_momentum(t_data &data, const double quantitiy_radius)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_angular_momentum +=
 		    Surf[n_radial] * 0.5 *
-		    (data[t_data::DENSITY](n_radial, n_azimuthal) +
-		     data[t_data::DENSITY](
+		    (data[t_data::SIGMA](n_radial, n_azimuthal) +
+		     data[t_data::SIGMA](
 			 n_radial,
 			 n_azimuthal == 0
-			     ? data[t_data::DENSITY].get_max_azimuthal()
+			     ? data[t_data::SIGMA].get_max_azimuthal()
 			     : n_azimuthal - 1)) *
 		    Rmed[n_radial] *
 		    (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
@@ -260,7 +260,7 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    // centered-in-cell radial velocity
 	    if (Rmed[n_radial] <= quantitiy_radius) {
@@ -284,7 +284,7 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
 
 		local_kinematic_energy +=
 		    0.5 * Surf[n_radial] *
-		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    (std::pow(v_radial_center, 2) +
 		     std::pow(v_azimuthal_center, 2));
 	    }
@@ -310,7 +310,7 @@ double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell radial velocity
@@ -323,7 +323,7 @@ double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius)
 
 		local_kinematic_energy +=
 		    0.5 * Surf[n_radial] *
-		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    std::pow(v_radial_center, 2);
 	    }
 	}
@@ -349,7 +349,7 @@ double gas_azimuthal_kinematic_energy(t_data &data,
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell azimuthal velocity
@@ -365,7 +365,7 @@ double gas_azimuthal_kinematic_energy(t_data &data,
 
 		local_kinematic_energy +=
 		    0.5 * Surf[n_radial] *
-		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    std::pow(v_azimuthal_center, 2);
 	    }
 	}
@@ -388,12 +388,12 @@ double gas_gravitational_energy(t_data &data, const double quantitiy_radius)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		local_gravitational_energy +=
 		    -Surf[n_radial] *
-		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    data[t_data::POTENTIAL](n_radial, n_azimuthal);
 	    }
 	}
@@ -428,13 +428,13 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
     double sinFrameAngle = std::sin(FrameAngle);
     double cosFrameAngle = std::cos(FrameAngle);
     for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
+	 n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    total_mass =
 		hydro_center_mass +
-		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+		data[t_data::SIGMA](n_radial, n_azimuthal) * Surf[n_radial];
 
 	    // location of the cell
 	    angle = (double)n_azimuthal /
@@ -533,7 +533,7 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
 	    data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) =
 		2.0 / 3.0 *
 		data[t_data::T_GRAVITATIONAL](n_radial, n_azimuthal) /
-		(data[t_data::DENSITY](n_radial, n_azimuthal) *
+		(data[t_data::SIGMA](n_radial, n_azimuthal) *
 		 std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal), 2));
 	}
     }
@@ -584,7 +584,7 @@ void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 	     ++n_azimuthal) {
 	    data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) =
 		2.0 / 3.0 * data[t_data::T_REYNOLDS](n_radial, n_azimuthal) /
-		(data[t_data::DENSITY](n_radial, n_azimuthal) *
+		(data[t_data::SIGMA](n_radial, n_azimuthal) *
 		 std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal), 2));
 	}
     }
@@ -640,7 +640,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	    data[t_data::TOOMRE](n_radial, n_azimuthal) =
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) * kappa /
 		(M_PI * constants::G *
-		 data[t_data::DENSITY](n_radial, n_azimuthal));
+		 data[t_data::SIGMA](n_radial, n_azimuthal));
 	}
     }
 }

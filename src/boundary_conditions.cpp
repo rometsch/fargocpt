@@ -265,7 +265,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     case parameters::boundary_condition_nonreflecting:
 	NonReflectingBoundary_inner(data, &data[t_data::V_RADIAL],
-				    &data[t_data::DENSITY],
+					&data[t_data::SIGMA],
 				    &data[t_data::ENERGY]);
 	break;
     case parameters::boundary_condition_viscous_outflow:
@@ -321,7 +321,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     case parameters::boundary_condition_nonreflecting:
 	NonReflectingBoundary_outer(data, &data[t_data::V_RADIAL],
-				    &data[t_data::DENSITY],
+					&data[t_data::SIGMA],
 				    &data[t_data::ENERGY]);
 	break;
     case parameters::boundary_condition_jibin_spreading_ring:
@@ -329,7 +329,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	break;
     case parameters::boundary_condition_precribed_time_variable: {
 	boundary_condition_precribed_time_variable_outer(
-	    data, &data[t_data::DENSITY]);
+		data, &data[t_data::SIGMA]);
     } break;
     case parameters::boundary_condition_viscous_outflow:
 	die("outer viscous outflow boundary not implemented");
@@ -383,7 +383,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
     }
 
     if (OuterSourceMass) {
-	ApplyOuterSourceMass(&data[t_data::DENSITY], &data[t_data::V_RADIAL]);
+	ApplyOuterSourceMass(&data[t_data::SIGMA], &data[t_data::V_RADIAL]);
     }
 
     if (parameters::massoverflow) {
@@ -400,11 +400,11 @@ void open_boundary_inner(t_data &data)
 	return;
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// copy first ring into ghost ring
-	data[t_data::DENSITY](0, n_azimuthal) =
-	    data[t_data::DENSITY](1, n_azimuthal);
+	data[t_data::SIGMA](0, n_azimuthal) =
+		data[t_data::SIGMA](1, n_azimuthal);
 	data[t_data::ENERGY](0, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal);
 
@@ -430,12 +430,12 @@ void open_boundary_outer(t_data &data)
 	return;
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// copy last ring into ghost ring
-	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
+	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(),
 			      n_azimuthal) =
-	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
+		data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 				  n_azimuthal);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
@@ -468,11 +468,11 @@ void zero_gradient_boundary_inner(t_data &data)
 	return;
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// copy first ring into ghost ring
-	data[t_data::DENSITY](0, n_azimuthal) =
-	    data[t_data::DENSITY](1, n_azimuthal);
+	data[t_data::SIGMA](0, n_azimuthal) =
+		data[t_data::SIGMA](1, n_azimuthal);
 	data[t_data::ENERGY](0, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal);
 
@@ -490,12 +490,12 @@ void zero_gradient_boundary_outer(t_data &data)
 	return;
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// copy last ring into ghost ring
-	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
+	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(),
 			      n_azimuthal) =
-	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
+		data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 				  n_azimuthal);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
@@ -530,11 +530,11 @@ void reflecting_boundary_inner(t_data &data)
 {
     if (CPU_Rank == 0) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // copy first ring into ghost ring
-	    data[t_data::DENSITY](0, n_azimuthal) =
-		data[t_data::DENSITY](1, n_azimuthal);
+		data[t_data::SIGMA](0, n_azimuthal) =
+		data[t_data::SIGMA](1, n_azimuthal);
 	    data[t_data::ENERGY](0, n_azimuthal) =
 		data[t_data::ENERGY](1, n_azimuthal);
 
@@ -552,7 +552,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 						      t_polargrid *densitystar)
 {
     if (CPU_Rank == CPU_Highest) {
-	const int n_radial = data[t_data::DENSITY].get_max_radial();
+	const int n_radial = data[t_data::SIGMA].get_max_radial();
 	const double T_bin =
 	    data.get_planetary_system().get_planet(1).get_orbital_period();
 
@@ -565,7 +565,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	    real_time - double(integer_time);
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {
 
 	    const double vr =
@@ -658,13 +658,13 @@ void reflecting_boundary_outer(t_data &data)
 {
     if (CPU_Rank == CPU_Highest) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    // copy last ring into ghost ring
-	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
+		data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(),
 				  n_azimuthal) =
-		data[t_data::DENSITY](
-		    data[t_data::DENSITY].get_max_radial() - 1, n_azimuthal);
+		data[t_data::SIGMA](
+			data[t_data::SIGMA].get_max_radial() - 1, n_azimuthal);
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 				 n_azimuthal) =
 		data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
@@ -686,8 +686,8 @@ void viscous_outflow_boundary_inner(t_data &data)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::VISCOSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
-	    data[t_data::DENSITY](0, n_azimuthal) =
-		data[t_data::DENSITY](1, n_azimuthal);
+		data[t_data::SIGMA](0, n_azimuthal) =
+		data[t_data::SIGMA](1, n_azimuthal);
 	    data[t_data::ENERGY](0, n_azimuthal) =
 		data[t_data::ENERGY](1, n_azimuthal);
 	}
@@ -716,7 +716,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
     double delta;
     double X, X0, Xnew;
-    bool is_density = strcmp(quantity.get_name(), "dens") == 0;
+	bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the inner damping domain?
     if ((parameters::damping_inner_limit > 1.0) &&
@@ -771,7 +771,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
     double delta;
     double X, X0, Xnew;
-    bool is_density = strcmp(quantity.get_name(), "dens") == 0;
+	bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) &&
@@ -827,7 +827,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
     (void)quantity0;
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
-    bool is_density = strcmp(quantity.get_name(), "dens") == 0;
+	bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the inner damping domain?
     if ((parameters::damping_inner_limit > 1.0) &&
@@ -887,7 +887,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
 
-    bool is_density = strcmp(quantity.get_name(), "dens") == 0;
+	bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) &&
@@ -944,7 +944,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
     double delta;
     double X, X0, Xnew;
-    bool is_density = strcmp(quantity.get_name(), "dens") == 0;
+	bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the inner damping domain?
     if ((parameters::damping_inner_limit > 1.0) &&
@@ -1005,7 +1005,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 				double dt)
 {
-    bool is_vrad = strcmp(vrad.get_name(), "vrad") == 0;
+	bool is_vrad = strcmp(vrad.get_name(), "vrad") == 0;
     assert(is_vrad);
     (void)is_vrad; /// removes IDE 'unused' warning
 
@@ -1065,7 +1065,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
     double delta;
     double X, X0, Xnew;
-    bool is_density = strcmp(quantity.get_name(), "dens") == 0;
+	bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) &&
@@ -1354,8 +1354,8 @@ void mass_overflow(t_data &data)
 	angle += 1.0;
     }
 
-    const unsigned int Nrad = data[t_data::DENSITY].get_max_radial();
-    const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
+	const unsigned int Nrad = data[t_data::SIGMA].get_max_radial();
+	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
     const double r_cell = Rmed[Nrad];
 
     const double vr_fraction = 0.002;
@@ -1441,7 +1441,7 @@ void mass_overflow(t_data &data)
 	    data[t_data::ENERGY](Nrad - 2, gridcell) = e_stream;
 	}
 
-	data[t_data::DENSITY](Nrad - 2, gridcell) += dens;
+	data[t_data::SIGMA](Nrad - 2, gridcell) += dens;
 
 	data[t_data::V_RADIAL](Nrad - 2, gridcell) = vr_stream;
 	data[t_data::V_RADIAL](Nrad - 1, gridcell) = vr_stream;
@@ -1496,8 +1496,8 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	angle += 1.0;
     }
 
-    const unsigned int Nrad = data[t_data::DENSITY].get_max_radial();
-    const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
+	const unsigned int Nrad = data[t_data::SIGMA].get_max_radial();
+	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
     const double r_cell = Rmed[Nrad];
 
     const double vr_fraction = 0.002;
@@ -1585,7 +1585,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	if (transport && (densitystar != nullptr)) {
 	    (*densitystar)(Nrad, gridcell) = dens;
 	} else {
-	    data[t_data::DENSITY](Nrad, gridcell) = dens;
+		data[t_data::SIGMA](Nrad, gridcell) = dens;
 	}
 
 	data[t_data::V_RADIAL](Nrad, gridcell) = vr_stream;
@@ -1618,7 +1618,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		 ++n_azimuthal) {
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
-		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+			data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    (ADIABATICINDEX - 1.0) / parameters::MU * constants::R;
 	    }
 	}
@@ -1643,7 +1643,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		 ++n_azimuthal) {
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) /
-		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+			data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    (ADIABATICINDEX - 1.0) * parameters::MU / constants::R;
 	    }
 	}
@@ -1658,7 +1658,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		 ++n_azimuthal) {
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
-		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+			data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    (ADIABATICINDEX - 1.0) / parameters::MU * constants::R;
 	    }
 	}
@@ -1686,7 +1686,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		 ++n_azimuthal) {
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) /
-		    data[t_data::DENSITY](n_radial, n_azimuthal) *
+			data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    (ADIABATICINDEX - 1.0) * parameters::MU / constants::R;
 	    }
 	}
@@ -1710,11 +1710,11 @@ void boundary_layer_inner_boundary(t_data &data)
 	return;
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// zero gradient
-	data[t_data::DENSITY](0, n_azimuthal) =
-	    data[t_data::DENSITY](1, n_azimuthal);
+	data[t_data::SIGMA](0, n_azimuthal) =
+		data[t_data::SIGMA](1, n_azimuthal);
 	data[t_data::ENERGY](0, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal);
 
@@ -1742,15 +1742,15 @@ void boundary_layer_outer_boundary(t_data &data)
 	return;
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++n_azimuthal) {
 	// floating BCs
-	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
+	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(),
 			      n_azimuthal) =
-	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
+		data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 				  n_azimuthal) *
-	    std::sqrt(Ra[data[t_data::DENSITY].get_max_radial() - 1] /
-		      Ra[data[t_data::DENSITY].get_max_radial()]);
+		std::sqrt(Ra[data[t_data::SIGMA].get_max_radial() - 1] /
+			  Ra[data[t_data::SIGMA].get_max_radial()]);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
@@ -1778,7 +1778,7 @@ void boundary_layer_outer_boundary(t_data &data)
 	// order pressure correction)
 	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
 				  n_azimuthal) =
-	    1. / std::sqrt(Rb[data[t_data::DENSITY].get_max_radial()]);
+		1. / std::sqrt(Rb[data[t_data::SIGMA].get_max_radial()]);
 	// TODO: Include pressure correction, like in uphi[*jN]
 	// = 1./sqrt(Rb[*jN]) +
 	// 0.5/Sigma[*jN]*sqrt(pow3(Rb[*jN])*pow2(Rb[*jN]))*.5/Rb[*jN]*(P[*jN+1]-P[*jN-1])/DeltaRa[*jN+1];
@@ -1794,9 +1794,9 @@ void keplerian2d_boundary_inner(t_data &data)
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	 ++n_azimuthal) {
-	data[t_data::DENSITY](1, n_azimuthal) =
+	data[t_data::SIGMA](1, n_azimuthal) =
 	    parameters::sigma0 * std::pow(Rmed[1], -SIGMASLOPE);
-	data[t_data::DENSITY](0, n_azimuthal) =
+	data[t_data::SIGMA](0, n_azimuthal) =
 	    parameters::sigma0 * std::pow(Rmed[0], -SIGMASLOPE);
 	data[t_data::ENERGY](1, n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
@@ -1808,11 +1808,11 @@ void keplerian2d_boundary_inner(t_data &data)
 	    std::pow(Rmed[0], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::TEMPERATURE](1, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal) /
-	    data[t_data::DENSITY](1, n_azimuthal) * (ADIABATICINDEX - 1.0) *
+		data[t_data::SIGMA](1, n_azimuthal) * (ADIABATICINDEX - 1.0) *
 	    parameters::MU * constants::R;
 	data[t_data::TEMPERATURE](0, n_azimuthal) =
 	    data[t_data::ENERGY](0, n_azimuthal) /
-	    data[t_data::DENSITY](0, n_azimuthal) * (ADIABATICINDEX - 1.0) *
+		data[t_data::SIGMA](0, n_azimuthal) * (ADIABATICINDEX - 1.0) *
 	    parameters::MU * constants::R;
 	data[t_data::V_RADIAL](1, n_azimuthal) = 0.0;
 	data[t_data::V_RADIAL](0, n_azimuthal) =
@@ -1829,39 +1829,39 @@ void keplerian2d_boundary_outer(t_data &data)
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	 ++n_azimuthal) {
-	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
+	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(),
 			      n_azimuthal) =
 	    parameters::sigma0 *
-	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial()], -SIGMASLOPE);
-	data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
+		std::pow(Rmed[data[t_data::SIGMA].get_max_radial()], -SIGMASLOPE);
+	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 			      n_azimuthal) =
 	    parameters::sigma0 *
-	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1],
+		std::pow(Rmed[data[t_data::SIGMA].get_max_radial() - 1],
 		     -SIGMASLOPE);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
 	    std::pow(ASPECTRATIO_REF, 2) *
-	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial()],
+		std::pow(Rmed[data[t_data::SIGMA].get_max_radial()],
 		     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 			     n_azimuthal) =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
 	    std::pow(ASPECTRATIO_REF, 2) *
-	    std::pow(Rmed[data[t_data::DENSITY].get_max_radial() - 1],
+		std::pow(Rmed[data[t_data::SIGMA].get_max_radial() - 1],
 		     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
 	data[t_data::TEMPERATURE](data[t_data::TEMPERATURE].get_max_radial(),
 				  n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 				 n_azimuthal) /
-	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial(),
+		data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(),
 				  n_azimuthal) *
 	    (ADIABATICINDEX - 1.0) * parameters::MU * constants::R;
 	data[t_data::TEMPERATURE](
 	    data[t_data::TEMPERATURE].get_max_radial() - 1, n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 				 n_azimuthal) /
-	    data[t_data::DENSITY](data[t_data::DENSITY].get_max_radial() - 1,
+		data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 				  n_azimuthal) *
 	    (ADIABATICINDEX - 1.0) * parameters::MU * constants::R;
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
@@ -1873,11 +1873,11 @@ void keplerian2d_boundary_outer(t_data &data)
 	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
 				  n_azimuthal) =
 	    std::sqrt(constants::G * hydro_center_mass /
-		      Rmed[data[t_data::DENSITY].get_max_radial()]);
+			  Rmed[data[t_data::SIGMA].get_max_radial()]);
 	data[t_data::V_AZIMUTHAL](
 	    data[t_data::V_AZIMUTHAL].get_max_radial() - 1, n_azimuthal) =
 	    std::sqrt(constants::G * hydro_center_mass /
-		      Rmed[data[t_data::DENSITY].get_max_radial() - 1]);
+			  Rmed[data[t_data::SIGMA].get_max_radial() - 1]);
     }
 }
 
@@ -1900,13 +1900,13 @@ void initial_center_of_mass_boundary(t_data &data)
 	data.get_planetary_system().get_center_of_mass_velocity(np);
     const double com_mass = data.get_planetary_system().get_mass(np);
 
-    auto &sigma = data[t_data::DENSITY];
+	auto &sigma = data[t_data::SIGMA];
     auto &energy = data[t_data::ENERGY];
     auto &vrad = data[t_data::V_RADIAL];
     auto &vaz = data[t_data::V_AZIMUTHAL];
 
-    const unsigned int nr = data[t_data::DENSITY].get_max_radial();
-    for (unsigned int naz = 0; naz <= data[t_data::DENSITY].get_max_azimuthal();
+	const unsigned int nr = data[t_data::SIGMA].get_max_radial();
+	for (unsigned int naz = 0; naz <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++naz) {
 
 	{ /// V_PHI
@@ -2125,12 +2125,12 @@ void jibin_boundary_inner(t_data &data)
     const double vaz = R * OmegaK * corr - R * OmegaFrame;
 
     for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++n_azimuthal) {
 
 	// copy first ring into ghost ring
-	data[t_data::DENSITY](0, n_azimuthal) =
-	    data[t_data::DENSITY](1, n_azimuthal);
+	data[t_data::SIGMA](0, n_azimuthal) =
+		data[t_data::SIGMA](1, n_azimuthal);
 
 	data[t_data::V_AZIMUTHAL](0, n_azimuthal) = vaz;
 
@@ -2164,7 +2164,7 @@ void jibin_boundary_outer(t_data &data)
 	const double vaz = R * OmegaK * corr - R * OmegaFrame;
 
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    data[t_data::V_AZIMUTHAL](
 		data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) = vaz;

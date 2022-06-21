@@ -68,7 +68,7 @@ void configure_start_mode()
 	    } else {
 			// const std::string last_id = std::to_string(restart_from);
 			snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" + std::to_string(restart_from);
-			// restart_from = output::get_latest_output_num(last_id); /// TODO: no restart???
+			// restart_from = output::get_latest_output_num(last_id);
 		}
 
 	    if (restart_from < 0) {

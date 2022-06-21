@@ -1094,7 +1094,7 @@ void check_tstop(t_data &data)
 
     double local_gas_time_step_cfl = 1.0;
     double global_gas_time_step_cfl = 1.0;
-    CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
+	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
     local_gas_time_step_cfl =
 	condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
@@ -1539,17 +1539,17 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
     std::memset(force_y, 0, sizeof(*force_y) * global_number_of_particles);
 
     double dphi =
-	2.0 * M_PI / (double)data[t_data::DENSITY].get_size_azimuthal();
+	2.0 * M_PI / (double)data[t_data::SIGMA].get_size_azimuthal();
     for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
+		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double cell_angle = n_azimuthal * dphi;
 	    double cell_x = Rmed[n_radial] * std::cos(cell_angle);
 	    double cell_y = Rmed[n_radial] * std::sin(cell_angle);
 	    double cell_mass =
-		Surf[n_radial] * data[t_data::DENSITY](n_radial, n_azimuthal);
+		Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
 	    for (unsigned int i = 0; i < global_number_of_particles; ++i) {
 		const double &x = all_particles[i].r;
 		const double &y = all_particles[i].phi;

@@ -32,7 +32,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
     double globalaccel[4] = {0., 0., 0., 0.};
     double axi, ayi, axo, ayo;
 
-    const unsigned int ns = data[t_data::DENSITY].Nsec;
+    const unsigned int ns = data[t_data::SIGMA].Nsec;
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     axi = ayi = axo = ayo = 0.0;
@@ -48,7 +48,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 	    const double xc = cell_center_x[cell_id];
 	    const double yc = cell_center_y[cell_id];
 	    const double cellmass =
-		Surf[n_rad] * data[t_data::DENSITY](n_rad, n_az);
+		Surf[n_rad] * data[t_data::SIGMA](n_rad, n_az);
 
 	    const double dx = xc - x;
 	    const double dy = yc - y;

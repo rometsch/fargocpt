@@ -15,7 +15,7 @@ void calculate_advection_torque(t_data &data, const double dt)
     t_polargrid &t_adv = data[t_data::ADVECTION_TORQUE];
     t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
-    t_polargrid &dens = data[t_data::DENSITY];
+    t_polargrid &dens = data[t_data::SIGMA];
 
     for (unsigned int n_r = 0; n_r < t_adv.get_size_radial(); ++n_r) {
 
@@ -51,7 +51,7 @@ void calculate_viscous_torque(t_data &data, const double dt)
     t_polargrid &visc = data[t_data::VISCOSITY];
     t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
-    t_polargrid &dens = data[t_data::DENSITY];
+    t_polargrid &dens = data[t_data::SIGMA];
 
     for (unsigned int n_r = 1; n_r < t_visc.get_max_radial(); ++n_r) {
 
@@ -136,7 +136,7 @@ void calculate_gravitational_torque(t_data &data, const double dt)
 
 	for (unsigned int n_az = 0; n_az < t_grav.get_size_azimuthal();
 	     ++n_az) {
-	    const double sigma_cell = data[t_data::DENSITY](n_r, n_az);
+	    const double sigma_cell = data[t_data::SIGMA](n_r, n_az);
 
 	    // dPhi/dphi
 	    // const double gradphi_minus = (pot_grav(n_r, n_az) - pot_grav(n_r,

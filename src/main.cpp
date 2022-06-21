@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 		// save starting values (needed for damping)
 		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
 		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
-		copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
+		copy_polargrid(data[t_data::SIGMA0], data[t_data::SIGMA]);
 		copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
 	}
 
@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
 		}
 
 		logging::print_master(LOG_INFO "Loading polargrinds for damping...\n");
-		data[t_data::DENSITY].read2D();
+		data[t_data::SIGMA].read2D();
 		data[t_data::V_RADIAL].read2D();
 		data[t_data::V_AZIMUTHAL].read2D();
 		if (parameters::Adiabatic) {
@@ -218,19 +218,19 @@ int main(int argc, char *argv[])
 		// save starting values (needed for damping)
 		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
 		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
-		copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
+		copy_polargrid(data[t_data::SIGMA0], data[t_data::SIGMA]);
 		copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
 	}
 
 	// recalculate SigmaMed/EnergyMed
-	RefillSigma(&data[t_data::DENSITY]);
+	RefillSigma(&data[t_data::SIGMA]);
 	if (parameters::Adiabatic)
 	    RefillEnergy(&data[t_data::ENERGY]);
 
 	// load grids at t = restart_from
 	logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",
 			      start_mode::restart_from);
-	data[t_data::DENSITY].read2D();
+	data[t_data::SIGMA].read2D();
 	data[t_data::V_RADIAL].read2D();
 	data[t_data::V_AZIMUTHAL].read2D();
 	if (parameters::Adiabatic) {
@@ -306,10 +306,10 @@ int main(int argc, char *argv[])
 
     logging::start_timer();
 
-    CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
+	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
 
-    CommunicateBoundaries(&data[t_data::DENSITY0], &data[t_data::V_RADIAL0],
+	CommunicateBoundaries(&data[t_data::SIGMA0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
     for (; N_outer_loop <= NTOT; ++N_outer_loop) {

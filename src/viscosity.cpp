@@ -111,7 +111,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	    // tau_r_r = 2*nu*Sigma*( d(v_r)/dr - 1/3 div(v) + eta2 div(v))
 	    data[t_data::TAU_R_R](n_radial, n_azimuthal) =
 		2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
+		data[t_data::SIGMA](n_radial, n_azimuthal) *
 		(drr - 1.0 / 3.0 * data[t_data::DIV_V](n_radial, n_azimuthal));
 	}
     }
@@ -140,7 +140,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	    // tau_phi_phi = 2*nu*Sigma*( 1/r d(v_phi)/dphi + v_r/r - 1/3 div(v)
 	    // )
 	    const double nu = data[t_data::VISCOSITY](n_radial, n_azimuthal);
-	    const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+		const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
 	    data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) =
 		2.0 * nu * sigma *
 		(dpp - 1.0 / 3.0 * data[t_data::DIV_V](n_radial, n_azimuthal));
@@ -191,10 +191,10 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 
 	    // averaged sigma over 4 corresponding cells
 	    const double sigma =
-		0.25 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-			data[t_data::DENSITY](n_radial - 1, n_azimuthal) +
-			data[t_data::DENSITY](n_radial, n_azimuthal_minus) +
-			data[t_data::DENSITY](n_radial - 1, n_azimuthal_minus));
+		0.25 * (data[t_data::SIGMA](n_radial, n_azimuthal) +
+			data[t_data::SIGMA](n_radial - 1, n_azimuthal) +
+			data[t_data::SIGMA](n_radial, n_azimuthal_minus) +
+			data[t_data::SIGMA](n_radial - 1, n_azimuthal_minus));
 
 	    // tau_r_phi = nu*Sigma*( r*d(v_phi/r)/dr + 1/r d(v_r)/dphi )
 	    data[t_data::TAU_R_PHI](n_radial, n_azimuthal) = nu * sigma * drp;
@@ -219,7 +219,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 			     2);
 		if (data[t_data::DIV_V](n_radial, n_azimuthal) < 0) {
 		    nu_art = parameters::artificial_viscosity_factor *
-			     data[t_data::DENSITY](n_radial, n_azimuthal) *
+				 data[t_data::SIGMA](n_radial, n_azimuthal) *
 			     dx_2 *
 			     (-data[t_data::DIV_V](n_radial, n_azimuthal));
 		} else {
@@ -296,8 +296,8 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		}
 
 		const double sigma_avg_phi =
-		    0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-			   data[t_data::DENSITY](n_radial, n_azimuthal_minus));
+			0.5 * (data[t_data::SIGMA](n_radial, n_azimuthal) +
+			   data[t_data::SIGMA](n_radial, n_azimuthal_minus));
 
 		const double c1_phi =
 		    (cphi_rp + cphi_pp) / (sigma_avg_phi * Rmed[n_radial]);
@@ -310,8 +310,8 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		/// Calc V_r correction factor
 		/// //////////////////////////////////////
 		const double sigma_avg_r =
-		    0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-			   data[t_data::DENSITY](n_radial - 1, n_azimuthal));
+			0.5 * (data[t_data::SIGMA](n_radial, n_azimuthal) +
+			   data[t_data::SIGMA](n_radial - 1, n_azimuthal));
 
 		const double cr_rp =
 		    -(NuSig_rp_jp + NuSig_rp) / (dphi * dphi * Ra[n_radial]);
@@ -377,7 +377,7 @@ void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
 				      t_polargrid &v_azimuthal, double dt)
 {
 
-    const t_polargrid &Sigma = data[t_data::DENSITY];
+	const t_polargrid &Sigma = data[t_data::SIGMA];
     const t_polargrid &Trp = data[t_data::TAU_R_PHI];
     const t_polargrid &Trr = data[t_data::TAU_R_R];
     const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
@@ -456,7 +456,7 @@ static void get_tau_rp(t_data &data, double &tau_rp_1, double &tau_rp_2,
     }
 
     int n_azimuthal_minus =
-	(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
+	(n_azimuthal == 0 ? data[t_data::SIGMA].get_max_azimuthal()
 			  : n_azimuthal - 1);
 
     double dvphirdr =
@@ -508,10 +508,10 @@ static void get_tau_rp(t_data &data, double &tau_rp_1, double &tau_rp_2,
 
     // averaged sigma over 4 corresponding cells
     const double sigma =
-	0.25 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-		data[t_data::DENSITY](n_radial - 1, n_azimuthal) +
-		data[t_data::DENSITY](n_radial, n_azimuthal_minus) +
-		data[t_data::DENSITY](n_radial - 1, n_azimuthal_minus));
+	0.25 * (data[t_data::SIGMA](n_radial, n_azimuthal) +
+		data[t_data::SIGMA](n_radial - 1, n_azimuthal) +
+		data[t_data::SIGMA](n_radial, n_azimuthal_minus) +
+		data[t_data::SIGMA](n_radial - 1, n_azimuthal_minus));
 
     if (!r_id_p) {
 
@@ -619,7 +619,7 @@ static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2,
     // tau_phi_phi = 2*nu*Sigma*( 1/r d(v_phi)/dphi + v_r/r - 1/3 div(v)
     // )
     const double nu = data[t_data::VISCOSITY](n_radial, n_azimuthal);
-    const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+	const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
 
     double tpp = 2.0 * nu * sigma * (dpp_org - 1.0 / 3.0 * DIV_V_org);
 
@@ -664,7 +664,7 @@ static void get_phi_pp(t_data &data, double &tau_pp_1, double &tau_pp_2,
 	double nu_art;
 	if (DIV_V < 0) {
 	    nu_art = parameters::artificial_viscosity_factor *
-		     data[t_data::DENSITY](n_radial, n_azimuthal) *
+			 data[t_data::SIGMA](n_radial, n_azimuthal) *
 		     std::pow(std::min(Rsup[n_radial] - Rinf[n_radial],
 				       Rmed[n_radial] * dphi),
 			      2) *
@@ -793,7 +793,7 @@ static void get_r_pp(t_data &data, double &tau_pp_1, double &tau_pp_2,
 
     // tau_phi_phi = 2*nu*Sigma*( 1/r d(v_phi)/dphi + v_r/r - 1/3 div(v))
     const double nu = data[t_data::VISCOSITY](n_radial, n_azimuthal);
-    const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
+	const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
 
     if (!r_id_m) {
 
@@ -838,11 +838,11 @@ static void get_r_pp(t_data &data, double &tau_pp_1, double &tau_pp_2,
 	if (DIV_V < 0) {
 	    nu_art =
 		parameters::artificial_viscosity_factor *
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
+		data[t_data::SIGMA](n_radial, n_azimuthal) *
 		std::pow(
 		    std::min(Rsup[n_radial] - Rinf[n_radial],
 			     Rmed[n_radial] * 2 * M_PI /
-				 data[t_data::DENSITY].get_size_azimuthal()),
+				 data[t_data::SIGMA].get_size_azimuthal()),
 		    2) *
 		(-DIV_V);
 	} else {
@@ -876,7 +876,7 @@ static void get_tau_r_rp(t_data &data, double &tau_rp_1, double &tau_rp_2,
 {
 
     const int n_azimuthal_minus =
-	(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
+	(n_azimuthal == 0 ? data[t_data::SIGMA].get_max_azimuthal()
 			  : n_azimuthal - 1);
 
     double dvphirdr =
@@ -928,10 +928,10 @@ static void get_tau_r_rp(t_data &data, double &tau_rp_1, double &tau_rp_2,
 
     // averaged sigma over 4 corresponding cells
     const double sigma =
-	0.25 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-		data[t_data::DENSITY](n_radial - 1, n_azimuthal) +
-		data[t_data::DENSITY](n_radial, n_azimuthal_minus) +
-		data[t_data::DENSITY](n_radial - 1, n_azimuthal_minus));
+	0.25 * (data[t_data::SIGMA](n_radial, n_azimuthal) +
+		data[t_data::SIGMA](n_radial - 1, n_azimuthal) +
+		data[t_data::SIGMA](n_radial, n_azimuthal_minus) +
+		data[t_data::SIGMA](n_radial - 1, n_azimuthal_minus));
 
     const double vr = data[t_data::V_RADIAL](n_radial, n_azimuthal);
     const double vr_im = data[t_data::V_RADIAL](
@@ -1077,10 +1077,10 @@ static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2,
 	}*/
 
 	tau_rr_1 = 2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-		   data[t_data::DENSITY](n_radial, n_azimuthal) *
+		   data[t_data::SIGMA](n_radial, n_azimuthal) *
 		   (drr_1 - 1.0 / 3.0 * DIV_V_R_1);
 	tau_rr_2 = 2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-		   data[t_data::DENSITY](n_radial, n_azimuthal) *
+		   data[t_data::SIGMA](n_radial, n_azimuthal) *
 		   (drr_2 - 1.0 / 3.0 * (DIV_V_R_2 + DIV_V_P));
     } else {
 
@@ -1100,10 +1100,10 @@ static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2,
 	}*/
 
 	tau_rr_1 = 2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-		   data[t_data::DENSITY](n_radial, n_azimuthal) *
+		   data[t_data::SIGMA](n_radial, n_azimuthal) *
 		   (drr_2 - 1.0 / 3.0 * DIV_V_R_2);
 	tau_rr_2 = 2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-		   data[t_data::DENSITY](n_radial, n_azimuthal) *
+		   data[t_data::SIGMA](n_radial, n_azimuthal) *
 		   (drr_1 - 1.0 / 3.0 * (DIV_V_R_1 + DIV_V_P));
     }
 
@@ -1112,11 +1112,11 @@ static void get_tau_rr(t_data &data, double &tau_rr_1, double &tau_rr_2,
 	if (DIV_V < 0) {
 	    nu_art =
 		parameters::artificial_viscosity_factor *
-		data[t_data::DENSITY](n_radial, n_azimuthal) *
+		data[t_data::SIGMA](n_radial, n_azimuthal) *
 		std::pow(
 		    std::min(Rsup[n_radial] - Rinf[n_radial],
 			     Rmed[n_radial] * 2 * M_PI /
-				 data[t_data::DENSITY].get_size_azimuthal()),
+				 data[t_data::SIGMA].get_size_azimuthal()),
 		    2) *
 		(-DIV_V);
 	} else {
@@ -1164,17 +1164,17 @@ void debug_function_viscous_terms(t_data &data,
 	     n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    n_azimuthal_plus =
-		(n_azimuthal == data[t_data::DENSITY].get_max_azimuthal()
+		(n_azimuthal == data[t_data::SIGMA].get_max_azimuthal()
 		     ? 0
 		     : n_azimuthal + 1);
 	    n_azimuthal_minus =
-		(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
+		(n_azimuthal == 0 ? data[t_data::SIGMA].get_max_azimuthal()
 				  : n_azimuthal - 1);
 
 	    // a_phi = 1/(r*Sigma) ( d(r*tau_r_phi)/dr + d(tau_phi_phi)/dphi +
 	    const double sigma_avg_phi =
-		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-		       data[t_data::DENSITY](n_radial, n_azimuthal_minus));
+		0.5 * (data[t_data::SIGMA](n_radial, n_azimuthal) +
+			   data[t_data::SIGMA](n_radial, n_azimuthal_minus));
 	    const double v_phi_upd =
 		dt * InvRb[n_radial] / (sigma_avg_phi) *
 		(TwoDiffRaSq[n_radial] *
@@ -1337,8 +1337,8 @@ void debug_function_viscous_terms(t_data &data,
 	    // a_r = 1/(r*Sigma) ( d(r*tau_r_r)/dr + d(tau_r_phi)/dphi -
 	    // tau_phi_phi )
 	    const double sigma_avg_r =
-		0.5 * (data[t_data::DENSITY](n_radial, n_azimuthal) +
-		       data[t_data::DENSITY](n_radial - 1, n_azimuthal));
+		0.5 * (data[t_data::SIGMA](n_radial, n_azimuthal) +
+			   data[t_data::SIGMA](n_radial - 1, n_azimuthal));
 
 	    const double v_r_upd_org =
 		dt * 2.0 / (Rb[n_radial] + Rb[n_radial - 1]) /

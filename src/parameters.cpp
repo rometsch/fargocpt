@@ -328,7 +328,7 @@ void read(char *filename, t_data &data)
 
     // output settings
     bool do_write_1D = config::value_as_bool_default("DoWrite1DFiles", true);
-    data[t_data::DENSITY].set_write(
+    data[t_data::SIGMA].set_write(
 	config::value_as_bool_default("WriteDensity", true), do_write_1D);
     data[t_data::V_RADIAL].set_write(
 	config::value_as_bool_default("WriteVelocity", true), do_write_1D);
@@ -615,7 +615,7 @@ void read(char *filename, t_data &data)
 	"DampingSurfaceDensityOuter", "None");
 
     damping_vector.push_back(write_damping_type(
-	tmp_damping_inner, tmp_damping_outer, t_data::DENSITY, t_data::DENSITY0,
+	tmp_damping_inner, tmp_damping_outer, t_data::SIGMA, t_data::SIGMA0,
 	"SurfaceDensity"));
 
     tmp_damping_inner =
