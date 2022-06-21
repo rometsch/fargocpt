@@ -260,8 +260,7 @@ int main(int argc, char *argv[])
 	// restart planetary system
 	logging::print_master(LOG_INFO "Restarting planetary system...\n");
 	data.get_planetary_system().restart();
-	
-	data.get_planetary_system().calculate_orbital_elements();
+
 	ComputeCircumPlanetaryMasses(data);
 
 	MPI_Barrier(MPI_COMM_WORLD);

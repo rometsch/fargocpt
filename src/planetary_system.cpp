@@ -361,7 +361,8 @@ void t_planetary_system::restart()
 	m_rebound = reb_create_simulation_from_binary((char *) rebound_filename.str().c_str());
 	}
 
-	calculate_orbital_elements(); /// TODO: no effect since nbody has not yet been copied to planetary_system
+	copy_data_from_rebound();
+	calculate_orbital_elements();
 
     logging::print_master(LOG_INFO " done\n");
 }

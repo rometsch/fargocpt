@@ -553,7 +553,6 @@ void AlgoGas(t_data &data)
 		}
 	    }
 
-	    /// TODO moved apply boundaries here
 	    boundary_conditions::apply_boundary_condition(data, hydro_dt,
 							  false);
 
@@ -1714,7 +1713,7 @@ void radiative_diffusion(t_data &data, double dt)
 	    // 2/(dR^2)
 	    const double common_AC =
 		common_factor * 2.0 /
-		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2)); // TODO check
+		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
 		A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
 	    C(nr, naz) =
 		common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
@@ -2036,7 +2035,6 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	    }
 
 	    // kinematic viscosity limit
-	    // TODO: Factor 4 on errors!
 	    invdt5 = 4.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
 		     std::max(1 / std::pow(dxRadial, 2),
 			      1 / std::pow(dxAzimuthal, 2));
