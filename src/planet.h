@@ -187,14 +187,12 @@ class t_planet
     void set_orbital_elements_zero();
 
     void copy(const planet_member_variables &other);
-    void create_planet_file(bool debug_output);
-    void write(const unsigned int timestep, const unsigned int file_type);
-    void write_ascii(const char *filename, const unsigned int timestep) const;
-    void write_binary(const char *filename, const unsigned int timestep,
-		      const bool debug) const;
-    void restart(unsigned int timestep, bool debug);
-    double get_value_from_file(unsigned int timestep,
-			       std::string variable_name);
+    void create_planet_file();
+    void write(const unsigned int file_type);
+    void write_ascii(const char *filename) const;
+    void write_binary(const char *filename) const;
+    void restart();
+
     ~t_planet();
     t_planet();
 };

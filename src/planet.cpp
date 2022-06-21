@@ -13,6 +13,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 
 // define the variables in the planet data file
 const std::map<const std::string, const int> planet_file_column_v1 = {
@@ -381,113 +382,72 @@ void t_planet::copy(const planet_member_variables &other)
 
     m_distance_to_primary = other.m_distance_to_primary;
     m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
-    m_circumplanetary_mass = other.m_circumplanetary_mass;
+	m_circumplanetary_mass = other.m_circumplanetary_mass;
 
     /// orbital elements
-    m_semi_major_axis = other.m_semi_major_axis;
-    m_eccentricity = other.m_eccentricity;
-    m_mean_anomaly = other.m_mean_anomaly;
-    m_true_anomaly = other.m_true_anomaly;
-    m_eccentric_anomaly = other.m_eccentric_anomaly;
-    m_pericenter_angle = other.m_pericenter_angle;
+	m_semi_major_axis = other.m_semi_major_axis;
+	m_eccentricity = other.m_eccentricity;
+	m_mean_anomaly = other.m_mean_anomaly;
+	m_true_anomaly = other.m_true_anomaly;
+	m_eccentric_anomaly = other.m_eccentric_anomaly;
+	m_pericenter_angle = other.m_pericenter_angle;
 
-    m_torque = other.m_torque;
+	m_torque = other.m_torque;
 }
 
-void t_planet::create_planet_file(bool debug_output)
+void t_planet::create_planet_file()
 {
     if (!CPU_Master) {
 	return;
     }
 
     FILE *fd;
-    char *filename = 0;
 
     std::string header_variable_description =
 	output::text_file_variable_description(planet_files_column,
 					       variable_units);
 
-    if (debug_output) {
-	// create normal file
-	if (asprintf(&filename, "%sdebugplanet%u.bin", OUTPUTDIR,
-		     get_planet_number()) == -1) {
-	    logging::print(LOG_ERROR "Not enough memory!\n");
-	    PersonalExit(1);
-	}
-    } else {
-	// create normal file
-	if (asprintf(&filename, "%splanet%u.bin", OUTPUTDIR,
-		     get_planet_number()) == -1) {
-	    logging::print(LOG_ERROR "Not enough memory!\n");
-	    PersonalExit(1);
-	}
-    }
+    std::stringstream filename;
+	filename << std::string(OUTPUTDIR) << "/" << "bigplanet" << get_planet_number() << ".dat";
 
-    // create big file
-    if (asprintf(&filename, "%sbigplanet%u.dat", OUTPUTDIR,
-		 get_planet_number()) == -1) {
-	logging::print(LOG_ERROR "Not enough memory!\n");
-	PersonalExit(1);
-    }
-
-    fd = fopen(filename, "w");
+    fd = fopen(filename.str().c_str(), "w");
 
     if (fd == NULL) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.str().c_str());
 	PersonalExit(1);
     }
 
-    fprintf(fd, "#FargoCPT planet file for planet: %s\n", m_name.c_str());
+	fprintf(fd, "#FargoCPT planet file for planet: %s\n", m_name.c_str());
     fprintf(fd, "#version: 2\n");
     fprintf(fd, "%s", header_variable_description.c_str());
 
-    free(filename);
     fclose(fd);
 }
 
-void t_planet::write(const unsigned int timestep, const unsigned int file_type)
+void t_planet::write(const unsigned int file_type)
 {
     if (!CPU_Master)
 	return;
 
-    char *filename = 0;
+    std::stringstream filename;
 
     // create filename
     switch (file_type) {
     case 0:
-	if (asprintf(&filename, "%splanet%u.bin", OUTPUTDIR,
-		     get_planet_number()) == -1) {
-	    logging::print(LOG_ERROR "Not enough memory!\n");
-	    PersonalExit(1);
-	}
-	write_binary(filename, timestep, false);
+	filename << snapshot_dir << "/planet" << get_planet_number() << ".bin";
+	write_binary(filename.str().c_str());
 	break;
     case 1:
-	if (asprintf(&filename, "%sbigplanet%u.dat", OUTPUTDIR,
-		     get_planet_number()) == -1) {
-	    logging::print(LOG_ERROR "Not enough memory!\n");
-	    PersonalExit(1);
-	}
-	write_ascii(filename, timestep);
+    filename << std::string(OUTPUTDIR) << "/bigplanet" << get_planet_number() << ".dat";
+	write_ascii(filename.str().c_str());
 	reset_accreted_mass();
-	break;
-    case 2:
-	if (asprintf(&filename, "%sdebugplanet%u.bin", OUTPUTDIR,
-		     get_planet_number()) == -1) {
-	    logging::print(LOG_ERROR "Not enough memory!\n");
-	    PersonalExit(1);
-	}
-	write_binary(filename, timestep, true);
 	break;
     default:
 	die("Bad file_type value for writing planet files!\n");
     }
-
-    free(filename);
 }
 
-void t_planet::write_ascii(const char *filename,
-			   const unsigned int timestep) const
+void t_planet::write_ascii(const char *filename) const
 {
     // open file
     FILE *fd = fopen(filename, "a");
@@ -510,7 +470,7 @@ void t_planet::write_ascii(const char *filename,
     fprintf(
 	fd,
 	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
-	timestep, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
+	N_output, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
 	PhysicalTime, OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
@@ -521,27 +481,19 @@ void t_planet::write_ascii(const char *filename,
     fclose(fd);
 }
 
-void t_planet::write_binary(const char *filename, const unsigned int timestep,
-			    const bool debug) const
+void t_planet::write_binary(const char *filename) const
 {
 
     std::ofstream wf;
 
-    if (debug) {
-	wf = std::ofstream(filename,
-			   std::ios::out |
-			       std::ios::binary); // overwrite for debug file
-    } else {
-	wf = std::ofstream(filename,
-			   std::ios::out | std::ios::binary | std::ios::app);
-    }
+	wf = std::ofstream(filename, std::ios::out | std::ios::binary);
     if (!wf) {
 	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
 	die("End\n");
     }
 
     planet_member_variables pl;
-    pl.timestep = timestep;
+    pl.timestep = N_output;
     pl.m_mass = m_mass;
     pl.m_x = m_x;
     pl.m_y = m_y;
@@ -576,45 +528,23 @@ void t_planet::write_binary(const char *filename, const unsigned int timestep,
     wf.close();
 }
 
-void t_planet::restart(unsigned int timestep, bool debug)
+void t_planet::restart()
 {
 
-    std::string filename;
-    if (debug) {
-	filename = std::string(OUTPUTDIR) + "debugplanet" +
-		   std::to_string(get_planet_number()) + ".bin";
-    } else {
-	filename = std::string(OUTPUTDIR) + "planet" +
-		   std::to_string(get_planet_number()) + ".bin";
-    }
-
+    std::stringstream filename;
+    filename << snapshot_dir << "/planet" << get_planet_number() << ".bin";
+    
     try {
-	std::ifstream rf(filename, std::ofstream::binary | std::ios::in);
+	std::ifstream rf(filename.str().c_str(), std::ofstream::binary | std::ios::in);
 
 	if (!rf.is_open()) {
 	    logging::print_master(LOG_ERROR "Can't read '%s' file.\n",
-				  filename.c_str());
+				  filename.str().c_str());
 	    throw 0;
-	}
-
-	if (!debug) {
-	    rf.ignore(timestep * sizeof(planet_member_variables));
 	}
 
 	planet_member_variables pl;
 	rf.read((char *)&pl, sizeof(planet_member_variables));
-
-	if (!debug) {
-	    while (pl.timestep != timestep) {
-		if (rf.eof()) {
-		    logging::print_master(LOG_ERROR
-					  "Could not read timestep %d in %s\n",
-					  timestep, filename.c_str());
-		    throw 0;
-		}
-		rf.read((char *)&pl, sizeof(planet_member_variables));
-	    }
-	}
 
 	copy(pl);
 	rf.close();
@@ -623,48 +553,6 @@ void t_planet::restart(unsigned int timestep, bool debug)
 	    "Could not restart planet \"%s\". Planet is initialized from starting parameters\n",
 	    this->m_name.c_str());
     }
-}
-
-double t_planet::get_value_from_file(unsigned int timestep,
-				     std::string variable_name)
-{
-    double value;
-    int column = -1;
-
-    std::string filename;
-    filename = std::string(OUTPUTDIR) + "bigplanet" +
-	       std::to_string(get_planet_number()) + ".dat";
-
-    std::string version = output::get_version(filename);
-    auto variable_columns = planet_file_column_v2;
-
-    if (version == "1") {
-	variable_columns = planet_file_column_v1;
-    } else if (version == "2") {
-	variable_columns = planet_file_column_v2;
-    } else {
-	std::cerr << "Unknown version '" << version << "'for planet.dat file!"
-		  << std::endl;
-	PersonalExit(1);
-    }
-
-    // check whether the column map contains the variable
-    auto iter = variable_columns.find(variable_name);
-    if (iter != variable_columns.end()) {
-	column = iter->second;
-    } else {
-	std::cerr << "Unknown variable '" << variable_name
-		  << "' for bigplanet.dat file version '" << version << "'\n"
-		  << std::endl;
-    }
-
-    if (column == -1) {
-	std::cerr << "Something went wring in obtaining the column for "
-		  << variable_name << " for the planet data file." << std::endl;
-	PersonalExit(1);
-    }
-    value = output::get_from_ascii_file(filename, timestep, column, debug);
-    return value;
 }
 
 void t_planet::copy_orbital_elements(const t_planet &other)

@@ -5,41 +5,59 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
+#include <experimental/filesystem>
 
 #include "LowTasks.h"
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
-
 #include "output.h"
-void handle_sigterm_outputs(t_data &data)
+#include "backtrace.h"
+
+
+static void _mkdir(const char *dir, mode_t mode)
 {
-    logging::print_master(
-	LOG_INFO "Received SIGTERM, starting to writing debug output\n");
-    // Enable output of Qplus / Qminus for bitwise exact restarting.
-    if (!data[t_data::QPLUS].get_write()) {
-	data[t_data::QPLUS].set_write(true, false);
-    }
-    if (!data[t_data::QMINUS].get_write()) {
-	data[t_data::QMINUS].set_write(true, false);
-    }
+    // from
+    // https://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
+    char tmp[256];
+    char *p = NULL;
+    size_t len;
 
-    if (parameters::variableGamma) {
-	if (!data[t_data::GAMMAEFF].get_write()) {
-	    data[t_data::GAMMAEFF].set_write(true, false);
-	    data[t_data::MU].set_write(true, false);
-	    data[t_data::GAMMA1].set_write(true, false);
+    snprintf(tmp, sizeof(tmp), "%s", dir);
+    len = strlen(tmp);
+    if (tmp[len - 1] == '/')
+	tmp[len - 1] = 0;
+    for (p = tmp + 1; *p; p++)
+	if (*p == '/') {
+	    *p = 0;
+	    mkdir(tmp, mode);
+	    *p = '/';
 	}
+    const int res = mkdir(tmp, S_IRWXU);
+    if (res != 0) {
+        logging::print_master(LOG_ERROR "mkdir returned %d for path %s and mode %d\n", res, tmp, mode);
     }
-
-    output::write_grids(data, N_output, N_hydro_iter, PhysicalTime, true);
-    data.get_planetary_system().write_planets(N_output, 2);
-    output::write_misc(true);
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    logging::print_master(LOG_INFO "Wrote debug outputs\n");
-    die("Received SIGTERM\n");
 }
+
+void ensure_directory_exists(const std::string &dirname) {
+    if (CPU_Master) {
+		struct stat buffer;
+		if (stat(dirname.c_str(), &buffer)) {
+	    	_mkdir(dirname.c_str(), 0755);
+		}
+    }
+}
+
+void delete_directory_if_exists(const std::string &dirname) {
+	if (CPU_Master) {
+        if (std::experimental::filesystem::exists(dirname)) {
+                std::experimental::filesystem::remove_all(dirname);
+        }
+    }
+}
+
 
 /**
 	Finalize MPI and terminate program.
@@ -50,6 +68,7 @@ void PersonalExit(int returncode)
 {
     std::flush(std::cout);
     if (returncode != 0) {
+	PrintTrace();
 	MPI_Abort(MPI_COMM_WORLD, returncode);
     }
     MPI_Finalize();

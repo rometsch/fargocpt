@@ -33,7 +33,6 @@
 #include "output.h"
 #include "parameters.h"
 #include "particles.h"
-#include "pvte_law.h"
 #include "quantities.h"
 #include "selfgravity.h"
 #include "stress.h"
@@ -41,6 +40,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "pvte_law.h"
 
 #include <cstring>
 extern boolean Corotating;
@@ -283,9 +283,9 @@ void init_euler(t_data &data)
 
     if (parameters::Adiabatic || parameters::Polytropic) {
 	if (parameters::variableGamma) {
-	    compute_sound_speed(data, true);
-	    compute_scale_height(data, true);
-	    pvte::compute_gamma_mu(data);
+		compute_sound_speed(data, true);
+		compute_scale_height(data, true);
+		pvte::compute_gamma_mu(data);
 	}
 	compute_temperature(data, true);
 	compute_sound_speed(data, true);
@@ -301,7 +301,7 @@ static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 {
 
     if (!SloppyCFL || force_calc) {
-	last_dt = dt;
+		last_dt = dt;
 	const double local_gas_time_step_cfl = condition_cfl(
 	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
 	    data[t_data::SOUNDSPEED], DT - dtemp);
@@ -431,7 +431,7 @@ void AlgoGas(t_data &data)
     }
     // recalculate timestep, even for no_disk = true, so that particle drag has
     // reasonable timestep size
-    hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
+	hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
 
     boundary_conditions::apply_boundary_condition(data, hydro_dt, false);
 
@@ -440,8 +440,9 @@ void AlgoGas(t_data &data)
     // quantities::gas_total_mass(data, 2.0*RMAX);
 
     while (dtemp < DT) {
-	if (SIGTERM_RECEIVED) {
-	    handle_sigterm_outputs(data);
+	if(SIGTERM_RECEIVED){
+		output::write_full_output(data, "autosave");
+		PersonalExit(0);
 	}
 	logging::print_master(
 	    LOG_VERBOSE
@@ -496,13 +497,12 @@ void AlgoGas(t_data &data)
 		data.get_planetary_system().copy_data_from_rebound();
 		data.get_planetary_system().move_to_hydro_frame_center();
 
-	    /// Needed for Aspectratio mode = 1
-	    /// and to correctly compute circumplanetary disk mass
-	    data.get_planetary_system().compute_dist_to_primary();
+		/// Needed for Aspectratio mode = 1
+		/// and to correctly compute circumplanetary disk mass
+		data.get_planetary_system().compute_dist_to_primary();
 
-	    /// Needed if they can change and massoverflow or planet accretion
-	    /// is on
-	    data.get_planetary_system().calculate_orbital_elements();
+		/// Needed if they can change and massoverflow or planet accretion is on
+		data.get_planetary_system().calculate_orbital_elements();
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
@@ -1458,9 +1458,9 @@ void SubStep3(t_data &data, double dt)
 		// energy, where current heating cooling rate are in equilibirum
 		const double eq_energy = std::pow(e4, 1.0 / 4.0) * constant;
 
-		data[t_data::QMINUS](n_radial, n_azimuthal) = Qplus;
-		energy_new = eq_energy;
-	    }
+		    data[t_data::QMINUS](n_radial, n_azimuthal) = Qplus;
+		    energy_new = eq_energy;
+		}
 
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
 	}
@@ -1925,6 +1925,16 @@ void radiative_diffusion(t_data &data, double dt)
     }
 }
 
+static void print_info() {
+	logging::print_master(LOG_INFO
+			"\nInteractive status requested with SIGUSR1\n");
+	logging::print_master(LOG_INFO "hydro dt = %g\n", hydro_dt);
+	logging::print_master(LOG_INFO "output number = %d\n", N_output);
+	logging::print_master(LOG_INFO "outer loop iteration = %d\n", N_outer_loop);
+	logging::print_master(LOG_INFO "N hydro step = %d\n", N_hydro_iter);
+	logging::print_master(LOG_INFO "PhysicalTime = %g\n", PhysicalTime);
+}
+
 /**
 	\param VRadial radial velocity polar grid
 	\param VAzimuthal azimuthal velocity polar grid
@@ -1938,16 +1948,13 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
     dt_parabolic_local = 1e100;
     std::vector<double> v_mean(v_radial.get_size_radial());
     std::vector<double> v_residual(v_radial.get_size_azimuthal());
-    double dtGlobal, dtLocal;
+    double dt_core = DBL_MAX, dt_cell;
 
     // debugging variables
     double viscRadial = 0.0, viscAzimuthal = 0.0;
     unsigned int n_azimuthal_debug = 0, n_radial_debug = 0;
     double itdbg1 = DBL_MAX, itdbg2 = DBL_MAX, itdbg3 = DBL_MAX,
-	   itdbg4 = DBL_MAX, itdbg5 = DBL_MAX, itdbg6 = DBL_MAX,
-	   mdtdbg = DBL_MAX;
-
-    dtGlobal = DBL_MAX;
+	   itdbg4 = DBL_MAX, itdbg5 = DBL_MAX, itdbg6 = DBL_MAX;
 
     // Calculate and fill VMean array
     for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
@@ -2050,7 +2057,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	    if (EXPLICIT_VISCOSITY) {
 		// calculate new dt based on different limits
-		dtLocal = parameters::CFL /
+		dt_cell = parameters::CFL /
 			  std::sqrt(std::pow(invdt1, 2) + std::pow(invdt2, 2) +
 				    std::pow(invdt3, 2) + std::pow(invdt4, 2) +
 				    std::pow(invdt5, 2) + std::pow(invdt6, 2));
@@ -2064,11 +2071,11 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		}
 
 		// calculate new dt based on different limits
-		dtLocal = parameters::CFL /
+		dt_cell = parameters::CFL /
 			  std::sqrt(std::pow(invdt1, 2) + std::pow(invdt2, 2) +
 				    std::pow(invdt3, 2) + std::pow(invdt6, 2));
 
-		dtLocal = std::min(dtLocal, 3.0 * dt_parabolic_local);
+		dt_cell = std::min(dt_cell, 3.0 * dt_parabolic_local);
 	    }
 
 	    if (StabilizeViscosity == 2) {
@@ -2083,13 +2090,14 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 		if (c != 0.0) {
 		    const double dtStable = -parameters::CFL / c;
-		    dtLocal = std::min(dtLocal, dtStable);
+		    dt_cell = std::min(dt_cell, dtStable);
 		}
 	    }
 
-	    if (dtLocal < dtGlobal) {
-		dtGlobal = dtLocal;
-		if (debug) {
+	    if (dt_cell < dt_core) {
+		dt_core = dt_cell;
+		
+		if (PRINT_SIG_INFO) {
 		    n_radial_debug = n_radial;
 		    n_azimuthal_debug = n_azimuthal;
 		    if (invdt1 != 0) {
@@ -2110,7 +2118,6 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		    if (invdt6 != 0) {
 			itdbg6 = 1.0 / invdt6;
 		    }
-		    mdtdbg = dtGlobal;
 		    if ((parameters::artificial_viscosity ==
 			 parameters::artificial_viscosity_SN) &&
 			(parameters::artificial_viscosity_factor > 0)) {
@@ -2128,67 +2135,68 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
     }
 
+	// FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size - 1; ++n_radial) {
-	dtLocal = 2.0 * M_PI * parameters::CFL / (double)NAzimuthal /
-		  fabs(v_mean[n_radial] * InvRmed[n_radial] -
-		       v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
+		const double azimuthal_cell_size = 2.0 * M_PI / (double)NAzimuthal;
+		const double shear_dt =  parameters::CFL * azimuthal_cell_size /
+			fabs(v_mean[n_radial] * InvRmed[n_radial] -
+				v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
 
-	if (dtLocal < dtGlobal)
-	    dtGlobal = dtLocal;
+		if (shear_dt < dt_core)
+			dt_core = shear_dt;
     }
 
-    if (debug) {
-	double dtGlobalLocal;
-	MPI_Allreduce(&mdtdbg, &dtGlobalLocal, 1, MPI_DOUBLE, MPI_MIN,
-		      MPI_COMM_WORLD);
-
-	logging::print(LOG_DEBUG "Timestep control information for CPU %d: \n",
-		       CPU_Rank);
-	logging::print(
-	    LOG_DEBUG "Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
-	    n_radial_debug, n_azimuthal_debug);
-	logging::print(LOG_DEBUG "located at radius Rmed         : %g\n",
-		       Rmed[n_radial_debug]);
-	logging::print(LOG_DEBUG "Sound speed limit              : %g\n",
-		       itdbg1);
-	logging::print(LOG_DEBUG "Radial motion limit            : %g\n",
-		       itdbg2);
-	logging::print(LOG_DEBUG "Residual circular motion limit : %g\n",
-		       itdbg3);
-
-	if (parameters::artificial_viscosity_factor > 0) {
-	    logging::print(LOG_DEBUG "Articifial Viscosity limit     : %g\n",
-			   itdbg4);
-	    logging::print(LOG_DEBUG "   Arise from r with limit     : %g\n",
-			   viscRadial);
-	    logging::print(LOG_DEBUG "   and from theta with limit   : %g\n",
-			   viscAzimuthal);
-	} else {
-	    logging::print(LOG_DEBUG
-			   "Articifial Viscosity limit     : disabled\n");
-	}
-	logging::print(LOG_DEBUG "Kinematic viscosity limit      : %g\n",
-		       itdbg5);
-	logging::print(LOG_DEBUG "Heating cooling limit      : %g\n", itdbg6);
-	logging::print(LOG_DEBUG "Limit time step for this cell  : %g\n",
-		       mdtdbg);
-	logging::print(LOG_DEBUG "Limit time step adopted        : %g\n",
-		       dtGlobalLocal);
-	if (dtGlobal < mdtdbg) {
-	    logging::print(LOG_DEBUG "Discrepancy arise either from shear.\n");
-	    logging::print(LOG_DEBUG "or from the imposed DT interval.\n");
-	}
-    }
-
-    double global_global_dt;
-    MPI_Allreduce(&dtGlobal, &global_global_dt, 1, MPI_DOUBLE, MPI_MIN,
+	double dt_global;
+    MPI_Allreduce(&dt_core, &dt_global, 1, MPI_DOUBLE, MPI_MIN,
 		  MPI_COMM_WORLD);
 
-    global_global_dt =
-	std::min(parameters::CFL_max_var * last_dt, global_global_dt);
+    if (PRINT_SIG_INFO) {
+	print_info();
 
-    return std::max(deltaT / global_global_dt, 1.0);
+	if (dt_core == dt_global) {
+
+		logging::print(LOG_INFO "Timestep control information for CPU %d: \n",
+				CPU_Rank);
+		logging::print(
+			LOG_INFO "Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
+			n_radial_debug, n_azimuthal_debug);
+		logging::print(LOG_INFO "located at radius Rmed         : %g\n",
+				Rmed[n_radial_debug]);
+		logging::print(LOG_INFO "Sound speed limit              : %g\n",
+				itdbg1);
+		logging::print(LOG_INFO "Radial motion limit            : %g\n",
+				itdbg2);
+		logging::print(LOG_INFO "Residual circular motion limit : %g\n",
+				itdbg3);
+
+		if (parameters::artificial_viscosity_factor > 0) {
+			logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
+				itdbg4);
+			logging::print(LOG_INFO "   Arise from r with limit     : %g\n",
+				viscRadial);
+			logging::print(LOG_INFO "   and from theta with limit   : %g\n",
+				viscAzimuthal);
+		} else {
+			logging::print(LOG_INFO
+				"Articifial Viscosity limit     : disabled\n");
+		}
+		logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
+				itdbg5);
+		logging::print(LOG_INFO "Heating cooling limit      : %g\n", itdbg6);
+		logging::print(LOG_INFO "Limit time step for this cell  : %g\n",
+				dt_core);
+		logging::print(LOG_INFO "Limit time step adopted        : %g\n",
+				dt_global);
+
+		}
+
+		PRINT_SIG_INFO = 0;
+    }
+
+    dt_global = std::min(parameters::CFL_max_var * last_dt, dt_global);
+
+    return std::max(deltaT / dt_global, 1.0);
 }
 
 static void compute_sound_speed_normal(t_data &data, bool force_update)

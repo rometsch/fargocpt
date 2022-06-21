@@ -138,7 +138,7 @@ void t_radialgrid::write1D(unsigned int timestep) const
 	    \param number file number
     */
     std::stringstream filename;
-    filename << OUTPUTDIR << "/gas" << get_name() << timestep << ".dat";
+    filename << snapshot_dir << "/" << get_name() << ".dat";
     write1D(filename.str(), false);
 }
 
@@ -250,16 +250,9 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 */
 void t_radialgrid::read1D(unsigned int number)
 {
-    char *filename;
+    std::string filename = snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
-    if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(), number) <
-	0) {
-	die("Not enough memory!");
-    }
-
-    read1D(filename);
-
-    free(filename);
+    read1D(filename.c_str());
 }
 
 void t_radialgrid::read1D(const char *_filename)

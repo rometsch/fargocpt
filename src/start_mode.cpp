@@ -62,16 +62,24 @@ void configure_start_mode()
 	    }
 	case mode_restart:
 	    if (restart_from < 0) {
-		restart_from = get_latest_output_num(false);
-	    }
+			const std::string last_id = output::get_last_snapshot_id();
+			snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" + last_id;
+			restart_from = output::get_latest_output_num(last_id);
+	    } else {
+			// const std::string last_id = std::to_string(restart_from);
+			snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" + std::to_string(restart_from);
+			// restart_from = output::get_latest_output_num(last_id); /// TODO: no restart???
+		}
 
 	    if (restart_from < 0) {
 		mode = mode_start;
 	    }
+
 	    break;
 	case mode_debug:
 	    if (restart_from < 0) {
-		restart_from = get_latest_output_num(true);
+			const std::string last_id = output::get_last_snapshot_id();
+			restart_from = output::get_latest_output_num(last_id);
 	    }
 
 	    restart_debug = true;
@@ -89,37 +97,12 @@ void configure_start_mode()
     MPI_Bcast(&restart_debug, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&restart_from, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&mode, 1, MPI_UINT32_T, 0, MPI_COMM_WORLD);
-}
 
-std::int32_t get_latest_output_num(bool debug = false)
-{
-    std::experimental::filesystem::path path;
-    path = OUTPUTDIR;
-    if (debug) {
-	path /= "debugmisc.bin";
-    } else {
-	path /= "misc.bin";
-    }
-
-    std::ifstream misc_file(path, std::ios::in | std::ios::binary);
-
-    if (!misc_file.is_open()) {
-	logging::print_master(
-	    LOG_INFO
-	    "Can't read '%s' file in \"get_latest_output_num.\nAttempting to start fresh simulation.\n",
-	    path.c_str());
-	return -1;
-    }
-
-    output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0};
-
-    // find last line
-    while (!misc_file.eof()) {
-	misc_file.read((char *)&entry, sizeof(output::misc_entry));
-    }
-    misc_file.close();
-
-    return entry.timestep;
+	int line_size = snapshot_dir.size();
+	MPI_Bcast(&line_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	if (!CPU_Master)
+		snapshot_dir.resize(line_size);
+	MPI_Bcast(const_cast<char*>(snapshot_dir.data()), line_size, MPI_CHAR, 0, MPI_COMM_WORLD);
 }
 
 } // namespace start_mode

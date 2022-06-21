@@ -140,7 +140,7 @@ t_radialarray GLOBAL_AxiSGAccr;
 
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 double hydro_center_mass;
-int debug, OnlyInit;
+int OnlyInit;
 int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian,
     StabilizeViscosity;
 int CentrifugalBalance, SloppyCFL;
@@ -149,6 +149,8 @@ t_polargrid *CellCenterX, *CellCenterY;
 
 int OverridesOutputdir;
 
+std::string snapshot_dir = "";
+std::string last_snapshot_dir = "";
 char *OUTPUTDIR;
 char *PLANETCONFIG;
 
@@ -194,5 +196,4 @@ double POLYTROPIC_CONSTANT;
 BoundaryFlow MassDelta;
 
 double dtemp;
-int debug_outputs;
-volatile sig_atomic_t SIGTERM_RECEIVED;
+volatile sig_atomic_t SIGTERM_RECEIVED = 0, PRINT_SIG_INFO = 0;

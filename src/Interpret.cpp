@@ -70,27 +70,6 @@ static std::string getFileName(const std::string &s)
     return ("");
 }
 
-static void _mkdir(const char *dir, mode_t mode)
-{
-    // from
-    // https://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
-    char tmp[256];
-    char *p = NULL;
-    size_t len;
-
-    snprintf(tmp, sizeof(tmp), "%s", dir);
-    len = strlen(tmp);
-    if (tmp[len - 1] == '/')
-	tmp[len - 1] = 0;
-    for (p = tmp + 1; *p; p++)
-	if (*p == '/') {
-	    *p = 0;
-	    mkdir(tmp, mode);
-	    *p = '/';
-	}
-    mkdir(tmp, S_IRWXU);
-}
-
 void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 {
     // read config from
@@ -127,16 +106,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	logging::print_master(LOG_ERROR "Not enough memory!\n");
     }
 
-    // Create output directory if it doesn't exist
-    if (CPU_Master) {
-	struct stat buffer;
-	if (stat(OUTPUTDIR, &buffer)) {
-	    _mkdir(OUTPUTDIR, 0700);
-	}
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
     // check if planet config exists
     if ((config::key_exists("PLANETCONFIG")) &&
 	(strlen(config::value_as_string("PLANETCONFIG")) > 0)) {
@@ -145,14 +114,23 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    logging::print_master(LOG_ERROR "Not enough memory!\n");
 	}
     } else {
-	PLANETCONFIG = NULL;
+	PLANETCONFIG = nullptr;
     }
+
+	ensure_directory_exists(std::string(OUTPUTDIR));
+	MPI_Barrier(MPI_COMM_WORLD);
+
 
     start_mode::configure_start_mode();
 
+	ensure_directory_exists(std::string(OUTPUTDIR) + "snapshots/");
+	ensure_directory_exists(std::string(OUTPUTDIR) + "parameters/");
+	MPI_Barrier(MPI_COMM_WORLD);
+
     if (CPU_Master) {
+
 	// copy setup files into the output folder
-	std::string output_folder = std::string(OUTPUTDIR);
+	std::string output_folder = std::string(OUTPUTDIR) + "parameters";
 	std::string par_file = getFileName(filename);
 	if (output_folder.back() != '/') {
 	    output_folder += "/";

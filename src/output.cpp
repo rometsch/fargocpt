@@ -15,6 +15,7 @@
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
+#include "particles.h"
 
 #include <dirent.h>
 #include <math.h>
@@ -31,6 +32,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
+#include <experimental/filesystem>
 
 namespace output
 {
@@ -179,14 +181,6 @@ void check_free_space(t_data &data)
 	die("Not enough memory.");
     }
 
-    // Create output directory if it doesn't exist
-    if (CPU_Master) {
-	struct stat buffer;
-	if (stat(OUTPUTDIR, &buffer)) {
-	    mkdir(OUTPUTDIR, 0700);
-	}
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
 
     // check if output directory exists
     if ((directory_pointer = opendir(directory_name)) == NULL) {
@@ -246,27 +240,110 @@ void check_free_space(t_data &data)
     free(directory_name);
 }
 
-void write_grids(t_data &data, int index, int iter, double phystime,
-		 bool debug = false)
+static void register_output(const std::string &snapshot_id) {
+	if (CPU_Master) {
+		const std::string filename = std::string(OUTPUTDIR) + "/snapshots/list.txt";
+		std::ofstream output_list(filename, std::ios_base::app);
+		output_list << snapshot_id << std::endl;
+		output_list.close();
+	}
+}
+
+static void copy_parameters_to_snapshot_dir() {
+	if (CPU_Master) {
+		const std::string src_file = std::string(options::parameter_file);
+		const std::string dst_file = snapshot_dir + "/parameters.par";
+		std::experimental::filesystem::copy_file(src_file, dst_file);
+		if (PLANETCONFIG) {
+			const std::string src_file = std::string(PLANETCONFIG);
+			const std::string dst_file = snapshot_dir + "/planets.cfg";
+			std::experimental::filesystem::copy_file(src_file, dst_file);
+		}
+	}
+
+}
+
+void write_output_version() {
+	if (CPU_Master) {
+		const std::string filename = std::string(OUTPUTDIR) + "/fargocpt_output_v1_0";
+		std::ofstream versionfile(filename, std::ios_base::app);
+		versionfile.close();
+	}
+}
+
+void cleanup_autosave() {
+	const auto s = last_snapshot_dir;
+	const auto l = std::string("autosave").length();
+	if (s.length() > l) {
+		const auto ts = s.substr(s.length() - l);
+		if (ts.compare("autosave") == 0){
+			std::experimental::filesystem::remove_all(s);
+		}
+	}
+}
+
+void write_full_output(t_data &data, const std::string &snapshot_id, const bool register_snapshot) {
+
+	snapshot_dir = std::string(OUTPUTDIR) + "snapshots/" + snapshot_id;
+	delete_directory_if_exists(snapshot_dir);
+	ensure_directory_exists(snapshot_dir);
+	MPI_Barrier(MPI_COMM_WORLD);
+
+
+	// Enable output of Qplus / Qminus for bitwise exact restarting.
+	if(!data[t_data::QPLUS].get_write()) {
+		data[t_data::QPLUS].set_write(true, false);
+	}
+	if(!data[t_data::QMINUS].get_write()) {
+		data[t_data::QMINUS].set_write(true, false);
+	}
+
+	if(parameters::variableGamma){
+		if(!data[t_data::GAMMAEFF].get_write()){
+			data[t_data::GAMMAEFF].set_write(true, false);
+			data[t_data::MU].set_write(true, false);
+			data[t_data::GAMMA1].set_write(true, false);
+		}
+	}
+
+	// write polar grids
+	output::write_grids(data, N_output, N_hydro_iter, PhysicalTime);
+	// write planet data
+	data.get_planetary_system().write_planets(0);
+	// write misc stuff (important for resuming)
+	output::write_misc();
+	// write time info for coarse output
+	output::write_coarse_time(N_output, N_outer_loop);
+	// write particles
+	if (parameters::integrate_particles) {
+		particles::write();
+	}
+
+	if (register_snapshot) {
+		register_output(snapshot_id);
+	}
+
+	copy_parameters_to_snapshot_dir();
+
+	MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void write_grids(t_data &data, int index, int iter, double phystime)
 {
-    if (!debug) {
 	logging::print_master(
 	    LOG_INFO
-	    "Writing output %d, Timestep Number %d, Physical Time %f.\n",
-	    index, iter, phystime);
-    }
+	    "Writing output %s, Timestep Number %d, Physical Time %f.\n",
+	    snapshot_dir.c_str(), index, iter, phystime);
 
     // go thru all grids and write them
     for (unsigned int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
-	data[(t_data::t_polargrid_type)i].write_polargrid(index, data, debug);
+	data[(t_data::t_polargrid_type)i].write_polargrid(data);
     }
 
-    if (!debug) {
 	// go thru all grids and write them
 	for (unsigned int i = 0; i < t_data::N_RADIALGRID_TYPES; ++i) {
 	    data[(t_data::t_radialgrid_type)i].write_radialgrid(index, data);
 	}
-    }
 }
 
 /**
@@ -275,16 +352,12 @@ void write_grids(t_data &data, int index, int iter, double phystime,
 void write_quantities(t_data &data, bool force_update)
 {
     FILE *fd = 0;
-    char *fd_filename;
+	std::string filename = std::string(OUTPUTDIR) + "Quantities.dat";
+	auto fd_filename = filename.c_str();
     static bool fd_created = false;
 
     if (CPU_Master) {
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "Quantities.dat") == -1) {
-	    logging::print_master(LOG_ERROR
-				  "Not enough memory for string buffer.\n");
-	    PersonalExit(1);
-	}
 	// check if file exists and we restarted
 	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
 	    if (access(fd_filename, W_OK) != -1) {
@@ -303,8 +376,6 @@ void write_quantities(t_data &data, bool force_update)
 		LOG_ERROR "Can't write 'Quantities.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
-
-	free(fd_filename);
 
 	if (!fd_created) {
 	    // print header
@@ -422,42 +493,17 @@ void write_quantities(t_data &data, bool force_update)
 	log misc. data
 */
 
-void write_misc(const bool debug_file)
+void write_misc()
 {
     if (!CPU_Master) {
 	return;
     }
 
     std::ofstream wf;
-
     std::string filename;
-    if (debug_file) {
-	filename = std::string(OUTPUTDIR) + "debugmisc.bin";
-    } else {
-	filename = std::string(OUTPUTDIR) + "misc.bin";
-    }
-
-    static bool fd_created = false;
-
-    // check if file exists and we restarted
-    if ((start_mode::mode == start_mode::mode_restart) && (!fd_created)) {
-	wf = std::ofstream(filename.c_str(), std::ios::in | std::ios::binary);
-	if (wf.good()) {
-	    fd_created = true;
-	}
-	wf.close();
-    }
-
-    // open logfile
-    if (!fd_created || debug_file) {
+	filename = snapshot_dir + "/misc.bin";
+	
 	wf = std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
-	if (!fd_created) {
-	    fd_created = true;
-	}
-    } else {
-	wf = std::ofstream(filename.c_str(),
-			   std::ios::out | std::ios::binary | std::ios::app);
-    }
 
     if (!wf.is_open()) {
 	logging::print_master(
@@ -567,69 +613,10 @@ std::string text_file_variable_description(
     return var_descriptor;
 }
 
-double get_from_ascii_file(std::string filename, unsigned int timestep,
-			   unsigned int column, bool debug_restart)
-{
-    unsigned int line_timestep = 0;
-    std::ifstream infile(filename);
-    std::string line_start;
-
-    if (!infile.is_open()) {
-	die("Error: could not open %s\n", filename.c_str());
-    }
-
-    if (debug_restart) { // just jump to the last line of the file
-	infile.seekg(-1, std::ios_base::end);
-	if (infile.peek() == '\n') {
-	    infile.seekg(-1, std::ios_base::cur);
-	    for (int i = infile.tellg(); i > 0; i--) {
-		if (infile.peek() == '\n') {
-		    // Found
-		    infile.get();
-		    break;
-		}
-		infile.seekg(i, std::ios_base::beg);
-	    }
-	}
-	infile >> line_start; // read fist element, same as non debug version.
-			      // Otherwise column is not correct.
-    } else {
-	while (infile >> line_start) {
-	    // search the file until the correct timestep is found
-	    if (line_start.substr(0, 1) == "#") {
-		// jump to next line
-		infile.ignore(std::numeric_limits<std::streamsize>::max(),
-			      '\n');
-	    } else {
-		// check the timestep
-		line_timestep = std::stoul(line_start);
-		if (line_timestep == timestep) {
-		    break;
-		} else {
-		    // jump to next line
-		    infile.ignore(std::numeric_limits<std::streamsize>::max(),
-				  '\n');
-		}
-	    }
-	}
-    }
-    double rv = std::nan("1");
-    // read as many times as needed to reach the desired value
-    for (unsigned int i = 0; i < column; i++) {
-	infile >> rv;
-    }
-
-    return rv;
-}
-
-int get_misc(const int timestep, const bool debug)
+int load_misc()
 {
     std::string filename;
-    if (debug) {
-	filename = std::string(OUTPUTDIR) + "debugmisc.bin";
-    } else {
-	filename = std::string(OUTPUTDIR) + "misc.bin";
-    }
+	filename = snapshot_dir + "/misc.bin";
 
     std::ifstream rf(filename, std::ios::in | std::ios::binary);
 
@@ -642,26 +629,9 @@ int get_misc(const int timestep, const bool debug)
 
     misc_entry misc;
 
-    rf.read((char *)&misc, sizeof(misc));
-    if (!debug) {
-	while (misc.timestep != timestep && !rf.eof()) {
-	    if (rf.eof()) {
-		logging::print(LOG_ERROR
-			       "Can't read %s at timestep %d. Aborting.\n",
-			       filename.c_str(), timestep);
-		die("End\n");
-	    }
-	    rf.read((char *)&misc, sizeof(misc_entry));
-	}
-	if (timestep != misc.timestep) {
-	    logging::print(LOG_ERROR
-			   "Can't find timestep %d in %s. Aborting.\n",
-			   timestep, filename.c_str());
-	    die("End\n");
-	}
-    }
+	rf.read((char *)&misc, sizeof(misc_entry));
 
-    N_output = misc.timestep;
+	N_output = misc.timestep;
     N_outer_loop = misc.nTimeStep;
     PhysicalTime = misc.PhysicalTime;
     OmegaFrame = misc.OmegaFrame;
@@ -749,7 +719,7 @@ void write_1D_info(t_data &data)
 	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
 	    char *tmp;
 
-	    if (asprintf(&tmp, "%s/gas%s1D.info", OUTPUTDIR,
+	    if (asprintf(&tmp, "%s/%s1D.info", OUTPUTDIR,
 			 data[t_data::t_polargrid_type(i)].get_name()) < 0) {
 		die("Not enough memory!");
 	    }
@@ -1025,16 +995,13 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 		       unsigned int fineOutputNumber)
 {
     FILE *fd = 0;
-    char *fd_filename;
     static bool fd_created = false;
 
     if (CPU_Master) {
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "timeCoarse.dat") == -1) {
-	    logging::print_master(LOG_ERROR
-				  "Not enough memory for string buffer.\n");
-	    PersonalExit(1);
-	}
+	const std::string filename = std::string(OUTPUTDIR) + "timeCoarse.dat";
+	auto fd_filename = filename.c_str();
+
 	// check if file exists and we restarted
 	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
 	    fd = fopen(fd_filename, "r");
@@ -1056,14 +1023,19 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 	    PersonalExit(1);
 	}
 
-	free(fd_filename);
-
 	if (!fd_created) {
 	    // print header
 	    fprintf(
 		fd,
 		"# Time log for course output.\n"
-		"# One DT is %.18g (code) and %.18g (cgs).\n"
+		"#version: 0.1\n"
+		"#variable: 0 | time step | 1\n"
+		"#variable: 1 | analysis time step | 1\n"
+		"#variable: 2 | physical time | ");
+		fprintf(fd, units::time.get_cgs_factor_symbol().c_str());
+		fprintf(
+		fd,
+		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n",
 		DT, DT * units::time.get_cgs_factor());
 	    fd_created = true;
@@ -1072,9 +1044,70 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 	fprintf(fd, "%u\t%u\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
-		PhysicalTime * units::time);
+		PhysicalTime);
 	fclose(fd);
     }
+}
+
+
+static std::istream& ignoreline(std::ifstream& in, std::ifstream::pos_type& pos)
+{
+    pos = in.tellg();
+    return in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+static std::string getLastLine(std::ifstream& in)
+{
+    std::ifstream::pos_type pos = in.tellg();
+
+    std::ifstream::pos_type lastPos;
+    while (in >> std::ws && ignoreline(in, lastPos))
+        pos = lastPos;
+
+    in.clear();
+    in.seekg(pos);
+
+    std::string line;
+    std::getline(in, line);
+    return line;
+}
+
+
+std::string get_last_snapshot_id() {
+	const std::string filename = std::string(OUTPUTDIR) + "/snapshots/list.txt";
+    std::ifstream file(filename);
+	std::string last_id = getLastLine(file);
+	return last_id;
+}
+
+std::int32_t get_latest_output_num(const std::string &snapshot_id)
+{
+    std::experimental::filesystem::path path;
+    path = OUTPUTDIR;
+	path /= "snapshots";
+    path /= snapshot_id;
+
+	logging::print_master(LOG_INFO "Getting output number of snapshot %s\n", snapshot_id.c_str());
+
+    std::ifstream misc_file(path, std::ios::in | std::ios::binary);
+
+    if (!misc_file.is_open()) {
+	logging::print_master(
+	    LOG_INFO
+	    "Can't read '%s' file in \"get_latest_output_num.\nAttempting to start fresh simulation.\n",
+	    path.c_str());
+	return -1;
+    }
+
+    output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0};
+
+	misc_file.read((char *)&entry, sizeof(output::misc_entry));
+
+    misc_file.close();
+
+	std::cout << "found output num " << entry.timestep << " in " << path << std::endl;
+
+    return entry.timestep;
 }
 
 } // namespace output

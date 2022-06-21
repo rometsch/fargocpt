@@ -51,17 +51,6 @@ extern bool domegadr_zero;
 // speed of the viscous boundary inflow
 extern double viscous_outflow_speed;
 
-/// Struct for handling damping at boundaries
-struct t_DampingType {
-    void (*inner_damping_function)(t_polargrid &, t_polargrid &, double);
-    void (*outer_damping_function)(t_polargrid &, t_polargrid &, double);
-    t_data::t_polargrid_type array_to_damp;
-    t_data::t_polargrid_type array_with_damping_values;
-    std::string description_inner;
-    std::string description_outer;
-};
-extern int damping_energy_id;
-
 /// enable different damping types
 enum t_damping_type {
     damping_none,
@@ -70,7 +59,21 @@ enum t_damping_type {
     damping_zero,
     damping_visc
 };
+
+/// Struct for handling damping at boundaries
+struct t_DampingType {
+    void (*inner_damping_function)(t_polargrid &, t_polargrid &, double);
+    void (*outer_damping_function)(t_polargrid &, t_polargrid &, double);
+    t_data::t_polargrid_type array_to_damp;
+    t_data::t_polargrid_type array_with_damping_values;
+    t_damping_type type_inner;
+    t_damping_type type_outer;
+};
+extern int damping_energy_id;
+
 extern bool damping;
+/// is at least one variable damped to initial values
+extern bool is_damping_initial;
 /// inner damping limit
 extern double damping_inner_limit;
 /// outer damping limit
@@ -244,11 +247,11 @@ extern double log_after_real_seconds;
 
 // type of opacity
 enum t_opacity {
-    opacity_lin,      // opacity based on Lin & Papaloizou, 1985
-    opacity_bell,     // opacity based on Bell & Lin, 1994
-    opacity_zhu,      // opacity based on Zhu, Hartmann & Gammie, 2008
-    opacity_kramers,  // opacity based on Kramers Law plus electron scattering
-		      // (Thomson)
+    opacity_lin,     // opacity based on Lin & Papaloizou, 1985
+    opacity_bell,    // opacity based on Bell & Lin, 1994
+    opacity_zhu,     // opacity based on Zhu, Hartmann & Gammie, 2008
+    opacity_kramers, // opacity based on Kramers Law plus electron scattering
+		     // (Thomson)
     opacity_const_op, // constant opacity
     opacity_simple    // eq. 30 from 'Thermohydrodynamics of Circumstellar Disks
 		      // with High-Mass Planets

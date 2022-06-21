@@ -10,5 +10,4 @@ extern std::int32_t restart_from;
 extern std::int32_t restart_debug;
 
 void configure_start_mode();
-std::int32_t get_latest_output_num(bool debug);
 } // namespace start_mode

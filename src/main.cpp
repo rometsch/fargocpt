@@ -1,6 +1,7 @@
 #include <fstream>
 #include <mpi.h>
 #include <string.h>
+#include <experimental/filesystem>
 
 #include "Force.h"
 #include "Interpret.h"
@@ -46,7 +47,7 @@ extern int SelfGravity, SGZeroMode;
 int main(int argc, char *argv[])
 {
 
-    register_signal_handlers();
+	register_signal_handlers();
 
     t_data data;
 
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
     units::print_code_units();
     units::write_code_unit_file();
     constants::print_constants();
+	output::write_output_version();
 
     SplitDomain();
 
@@ -180,33 +182,45 @@ int main(int argc, char *argv[])
 	particles::init(data);
     }
 
-    // save starting values (needed for damping)
-    copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
-    copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
-    copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
-    copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
+	if (parameters::is_damping_initial) {
+		// save starting values (needed for damping)
+		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
+		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
+		copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
+		copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
+	}
 
     bool dont_do_restart_output_at_start = false;
     if (start_mode::mode == start_mode::mode_restart) {
 	dont_do_restart_output_at_start = true;
+	
+	N_outer_loop = 0;
+	start_mode::restart_from = output::load_misc();
 
-	start_mode::restart_from = output::get_misc(start_mode::restart_from,
-						    start_mode::restart_debug);
+	if (parameters::is_damping_initial) {
+		// load grids at t = 0
+		const std::string snapshot_dir_old = snapshot_dir;
+		snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/damping";
+		if (!std::experimental::filesystem::exists(snapshot_dir)) {
+			logging::print_master(LOG_ERROR "Damping zone activated but no snapshot with damping data found. Make sure to copy the 'damping' snapshot!\n");
+			PersonalExit(1);
+		}
 
-	// load grids at t = 0
-	logging::print_master(LOG_INFO "Loading polargrinds at t = 0...\n");
-	data[t_data::DENSITY].read2D((unsigned int)0, false);
-	data[t_data::V_RADIAL].read2D((unsigned int)0, false);
-	data[t_data::V_AZIMUTHAL].read2D((unsigned int)0, false);
-	if (parameters::Adiabatic) {
-	    data[t_data::ENERGY].read2D((unsigned int)0, false);
+		logging::print_master(LOG_INFO "Loading polargrinds for damping...\n");
+		data[t_data::DENSITY].read2D();
+		data[t_data::V_RADIAL].read2D();
+		data[t_data::V_AZIMUTHAL].read2D();
+		if (parameters::Adiabatic) {
+			data[t_data::ENERGY].read2D();
+		}
+		snapshot_dir = snapshot_dir_old;
+
+		// save starting values (needed for damping)
+		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
+		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
+		copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
+		copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
 	}
-
-	// save starting values (needed for damping)
-	copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
-	copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
-	copy_polargrid(data[t_data::DENSITY0], data[t_data::DENSITY]);
-	copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
 
 	// recalculate SigmaMed/EnergyMed
 	RefillSigma(&data[t_data::DENSITY]);
@@ -216,30 +230,22 @@ int main(int argc, char *argv[])
 	// load grids at t = restart_from
 	logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",
 			      start_mode::restart_from);
-	data[t_data::DENSITY].read2D(start_mode::restart_from,
-				     start_mode::restart_debug);
-	data[t_data::V_RADIAL].read2D(start_mode::restart_from,
-				      start_mode::restart_debug);
-	data[t_data::V_AZIMUTHAL].read2D(start_mode::restart_from,
-					 start_mode::restart_debug);
+	data[t_data::DENSITY].read2D();
+	data[t_data::V_RADIAL].read2D();
+	data[t_data::V_AZIMUTHAL].read2D();
 	if (parameters::Adiabatic) {
-	    data[t_data::ENERGY].read2D(start_mode::restart_from,
-					start_mode::restart_debug);
+	    data[t_data::ENERGY].read2D();
 
-	    if (data[t_data::QPLUS].file_exists(start_mode::restart_from,
-						start_mode::restart_debug)) {
-		data[t_data::QPLUS].read2D(start_mode::restart_from,
-					   start_mode::restart_debug);
+		if (data[t_data::QPLUS].file_exists()) {
+		data[t_data::QPLUS].read2D();
 	    } else {
 		logging::print_master(
 		    LOG_INFO
 		    "Cannot read Qplus, no bitwise identical restarting possible!\n");
 		compute_heating_cooling_for_CFL(data);
 	    }
-	    if (data[t_data::QMINUS].file_exists(start_mode::restart_from,
-						 start_mode::restart_debug)) {
-		data[t_data::QMINUS].read2D(start_mode::restart_from,
-					    start_mode::restart_debug);
+		if (data[t_data::QMINUS].file_exists()) {
+		data[t_data::QMINUS].read2D();
 	    } else {
 		logging::print_master(
 		    LOG_INFO
@@ -248,17 +254,13 @@ int main(int argc, char *argv[])
 	    }
 	}
 	if (parameters::integrate_particles) {
-	    if (start_mode::restart_debug) {
-		die("Debug restart not implemented for particles yet!\n");
-	    }
-	    particles::restart(start_mode::restart_from);
+	    particles::restart();
 	}
 
 	// restart planetary system
 	logging::print_master(LOG_INFO "Restarting planetary system...\n");
-	data.get_planetary_system().restart(start_mode::restart_from,
-					    start_mode::restart_debug);
-
+	data.get_planetary_system().restart();
+	
 	data.get_planetary_system().calculate_orbital_elements();
 	ComputeCircumPlanetaryMasses(data);
 
@@ -268,31 +270,26 @@ int main(int argc, char *argv[])
 
 	recalculate_derived_disk_quantities(data, true);
 
-	if (parameters::variableGamma) {
+	if(parameters::variableGamma){
 
-	    // For bitwise exact restarting with PVTE
-	    if (data[t_data::GAMMAEFF].file_exists(start_mode::restart_from,
-						   start_mode::restart_debug)) {
-		data[t_data::GAMMAEFF].read2D(start_mode::restart_from,
-					      start_mode::restart_debug);
-	    }
-	    if (data[t_data::MU].file_exists(start_mode::restart_from,
-					     start_mode::restart_debug)) {
-		data[t_data::MU].read2D(start_mode::restart_from,
-					start_mode::restart_debug);
-	    }
+		// For bitwise exact restarting with PVTE
+		if (data[t_data::GAMMAEFF].file_exists()) {
+		data[t_data::GAMMAEFF].read2D();
+		}
+		if (data[t_data::MU].file_exists()) {
+		data[t_data::MU].read2D();
+		}
 
-	    if (data[t_data::GAMMA1].file_exists(start_mode::restart_from,
-						 start_mode::restart_debug)) {
-		data[t_data::GAMMA1].read2D(start_mode::restart_from,
-					    start_mode::restart_debug);
-	    }
+		if (data[t_data::GAMMA1].file_exists()) {
+		data[t_data::GAMMA1].read2D();
+		}
 
-	    compute_temperature(data, true);
-	    compute_sound_speed(data, true);
-	    compute_scale_height(data, true);
-	    compute_pressure(data, true);
-	    viscosity::update_viscosity(data);
+		compute_temperature(data, true);
+		compute_sound_speed(data, true);
+		compute_scale_height(data, true);
+		compute_pressure(data, true);
+		viscosity::update_viscosity(data);
+
 	}
 
     } else {
@@ -317,11 +314,12 @@ int main(int argc, char *argv[])
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
     for (; N_outer_loop <= NTOT; ++N_outer_loop) {
+	logging::print_master(LOG_INFO "Start of iteration %u of %u\n", N_outer_loop, NTOT);
 	// write outputs
 
 	bool force_update_for_output = true;
 	N_output = (N_outer_loop / NINTERM); // note: integer division
-	bool write_complete_output = NINTERM * N_output == N_outer_loop;
+	bool write_complete_output = (NINTERM * N_output == N_outer_loop);
 	if (dont_do_restart_output_at_start) {
 	    write_complete_output = false;
 	}
@@ -335,19 +333,17 @@ int main(int argc, char *argv[])
 	    // Outputs are done here
 	    TimeToWrite = YES;
 	    force_update_for_output = false;
+		last_snapshot_dir = snapshot_dir;
+		output::write_full_output(data, std::to_string(N_output));
+		output::cleanup_autosave();
 
-	    // write polar grids
-	    output::write_grids(data, N_output, N_hydro_iter, PhysicalTime,
-				false);
-	    // write planet data
-	    data.get_planetary_system().write_planets(N_output, 0);
-	    // write misc stuff (important for resuming)
-	    output::write_misc(false);
-	    // write time info for coarse output
-	    output::write_coarse_time(N_output, N_outer_loop);
-	    // write particles
-	    if (parameters::integrate_particles)
-		particles::write(N_output);
+		if (N_output == 0 && parameters::damping) {
+			// Write damping data as a reference.
+			const std::string snapshot_dir_old = snapshot_dir;
+			output::write_full_output(data, "damping", false);
+			snapshot_dir = snapshot_dir_old;
+		}
+
 	    if (GotoNextOutput && (!StillWriteOneOutput)) {
 		PersonalExit(0);
 	    }
@@ -362,8 +358,8 @@ int main(int argc, char *argv[])
 	if ((write_complete_output || parameters::write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
-	    ComputeCircumPlanetaryMasses(data);
-	    data.get_planetary_system().write_planets(N_output, 1);
+		ComputeCircumPlanetaryMasses(data);
+	    data.get_planetary_system().write_planets(1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
 	}
 
@@ -386,6 +382,7 @@ int main(int argc, char *argv[])
 
 	// Exit if last timestep reached and last output is written
 	if (N_outer_loop == NTOT) {
+		logging::print_master(LOG_INFO "Reached end of simulation at iteration %u of %u\n", N_outer_loop, NTOT);
 	    break;
 	}
 

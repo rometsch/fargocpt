@@ -6,6 +6,8 @@
 
 void PersonalExit(int returncode);
 
+void ensure_directory_exists(const std::string &dirname);
+void delete_directory_if_exists(const std::string &dirname);
 void handle_sigterm_outputs(t_data &data);
 
 t_polargrid *CreatePolarGrid(unsigned int Nr, unsigned int Ns,

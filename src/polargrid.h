@@ -90,17 +90,17 @@ class t_polargrid
 
     void clear();
 
-    void write_polargrid(unsigned int number, t_data &data, bool debug);
+    void write_polargrid(t_data &data);
     // 2D read/write
-    void write2D(const unsigned int number, const bool debug) const;
+    void write2D() const;
     void read2D(const char *filename);
-    void read2D(unsigned int number, bool debug);
-    bool file_exists(unsigned int number, bool debug);
+    void read2D();
+    bool file_exists();
 
     // 1D read/write
-    void write1D(unsigned int number) const;
+    void write1D() const;
     void read1D(const char *filename, bool skip_min_max);
-    void read1D(unsigned int number, bool skip_min_max);
+    void read1D(bool skip_min_max);
 
     unsigned int bytes_needed_1D() const;
     unsigned int bytes_needed_2D() const;

@@ -31,9 +31,8 @@ void SplitDomain()
 
     /* Standard domain decomposition */
     if (!parameters::self_gravity) {
-	if (debug)
-	    logging::print_master(
-		LOG_INFO "SplitDomain: Doing standard domain decomposition.\n");
+	logging::print_master(
+		LOG_DEBUG "SplitDomain: Doing standard domain decomposition.\n");
 
 	size_low = NRadial / CPU_Number;
 	size_high = size_low + 1;
@@ -82,9 +81,8 @@ void SplitDomain()
 	    CPU_Next = CPU_Rank + 1;
     } else {
 	// Domain decomposition imposed by fftw_mpi
-	if (debug)
-	    logging::print_master(
-		LOG_INFO
+	logging::print_master(
+		LOG_DEBUG
 		"SplitDomain: Doing fftw-mesh implied domain decomposition.\n");
 
 	logging::print_master(
@@ -336,7 +334,6 @@ void SplitDomain()
     /// End Added by Lucas
 
     /* print debugging */
-    if (debug) {
 	logging::print(LOG_DEBUG "SplitDomain: DomainSplit Information:\n");
 	if (!parameters::self_gravity)
 	    logging::print_master(LOG_DEBUG "SplitDomain: %d = %d * %d + %d\n",
@@ -371,7 +368,7 @@ void SplitDomain()
 			   "SplitDomain: total_local_size_friend: %ld\n",
 			   total_local_size_friend);
 	}
-    }
+    
 }
 
 void FreeSplitDomain()

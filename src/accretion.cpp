@@ -336,7 +336,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     // to derive the fraction we need to remove
     const double facc = dt * 3.0 * M_PI * parameters::viscous_outflow_speed;
 
-    const double frac = parameters::accretion_radius_fraction;
+	const double frac = parameters::accretion_radius_fraction;
 
     const double RHill = planet.get_dimensionless_roche_radius() *
 			 planet.get_distance_to_primary();
@@ -455,7 +455,6 @@ void AccreteOntoPlanets(t_data &data, const double dt)
 	 k++) {
 
 	auto &planet = planetary_system.get_planet(k);
-
 	if (planet.get_acc() > 50.0) {
 		// Emptying time soo large, just make it a sink hole
 		const bool changed = SinkHoleSinglePlanet(data, planet, dt);

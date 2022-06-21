@@ -64,7 +64,7 @@ void usage(int argc, char **argv)
 	"-b |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
 	"-c |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
 	"-n |                   Disable simulation. The program just reads parameters file\n"
-	"-m |                   estimate memory usage and3df59ec2b9a5f5a5c00028320b2a31224a3686ecprint out\n"
+	"-m |                   estimate memory usage and print out\n"
 	"",
 	argv[0]);
 }
@@ -125,7 +125,6 @@ void parse(int argc, char **argv)
 	    die("Option -d for debugging is only valid if not compiled with NDEBUG");
 #else
 	    logging::print_level = 5;
-	    debug = YES;
 #endif
 	    break;
 	case 'v':

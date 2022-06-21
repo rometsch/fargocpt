@@ -35,6 +35,7 @@ bool Locally_Isothermal = false;
 
 bool variableGamma = false;
 
+
 t_radial_grid radial_grid_type;
 const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",
 				   "custom"};
@@ -47,6 +48,7 @@ bool domegadr_zero;
 double viscous_outflow_speed;
 
 bool damping;
+bool is_damping_initial = false;
 double damping_inner_limit;
 double damping_outer_limit;
 double damping_time_factor;
@@ -207,6 +209,8 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
     t_DampingType damping_type;
     damping_type.array_to_damp = quantity;
     damping_type.array_with_damping_values = quantity0;
+	damping_type.type_inner = type_inner;
+	damping_type.type_outer = type_outer;
     std::string description_inner;
     std::string description_outer;
 
@@ -242,8 +246,6 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	break;
     }
 
-    damping_type.description_inner = description_inner;
-
     switch (type_outer) {
     case damping_none:
 	damping_type.outer_damping_function = nullptr;
@@ -275,7 +277,8 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	break;
     }
 
-    damping_type.description_outer = description_outer;
+	logging::print_master(LOG_INFO "%s\n", description_inner.c_str());
+    logging::print_master(LOG_INFO "%s\n", description_outer.c_str());
 
     return damping_type;
 }
@@ -411,7 +414,7 @@ void read(char *filename, t_data &data)
     write_disk_quantities =
 	config::value_as_bool_default("WriteDiskQuantities", true);
     write_at_every_timestep =
-	config::value_as_bool_default("WriteAtEveryTimestep", false);
+	config::value_as_bool_default("WriteAtEveryTimestep", true);
     write_lightcurves =
 	config::value_as_bool_default("WriteLightCurves", false);
 
@@ -421,8 +424,6 @@ void read(char *filename, t_data &data)
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =
 	config::value_as_double_default("LogAfterRealSeconds", 600.0);
-    debug_outputs = config::value_as_bool_default("DebugOutputs", NO);
-
     // parse light curve radii
     if (config::key_exists("WriteLightCurvesRadii")) {
 	// get light curves radii string
@@ -1249,16 +1250,16 @@ void summarize_parameters()
 	"Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n",
 	radial_viscosity_factor);
 
-    if (damping) {
-	for (unsigned int i = 0; i < damping_vector.size(); ++i) {
-	    logging::print_master(LOG_INFO "%s\n",
-				  damping_vector[i].description_inner.c_str());
-	    logging::print_master(LOG_INFO "%s\n",
-				  damping_vector[i].description_outer.c_str());
+	if (!damping) {
+		logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
+		is_damping_initial = false;
+	} else {
+		is_damping_initial = false;
+		for (unsigned int i = 0; i < damping_vector.size(); ++i) {
+			is_damping_initial = is_damping_initial || (damping_vector[i].type_inner == damping_initial);
+			is_damping_initial = is_damping_initial || (damping_vector[i].type_outer == damping_initial);
+		}
 	}
-    } else {
-	logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
-    }
 
     logging::print_master(LOG_INFO "Surface density factor: %g\n",
 			  density_factor);

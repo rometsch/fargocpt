@@ -90,25 +90,23 @@ void t_polargrid::clear()
     memset(Field, 0, get_size_radial() * get_size_azimuthal() * sizeof(*Field));
 }
 
-void t_polargrid::write_polargrid(unsigned int number, t_data &data,
-				  bool debug = false)
+void t_polargrid::write_polargrid(t_data &data)
 {
-    if ((get_write_1D() || get_write_2D() || m_calculate_on_write) &&
-	(!debug)) {
+    if ((get_write_1D() || get_write_2D() || m_calculate_on_write)) {
 	if (m_do_before_write != NULL) {
-	    (*m_do_before_write)(data, number, false);
+	    (*m_do_before_write)(data, 0, false);
 	}
     }
 
-    if (get_write_1D() && (!debug)) {
-	write1D(number);
+    if (get_write_1D()) {
+	write1D();
     }
 
     if (get_write_2D()) {
-	write2D(number, debug);
+	write2D();
     }
 
-    if (get_clear_after_write() && (!debug)) {
+    if (get_clear_after_write()) {
 	clear();
     }
 }
@@ -118,7 +116,7 @@ void t_polargrid::write_polargrid(unsigned int number, t_data &data,
 
 	\param number file number
 */
-void t_polargrid::write2D(const unsigned int number, const bool debug) const
+void t_polargrid::write2D() const
 {
     MPI_File fh;
     MPI_Status status;
@@ -126,14 +124,8 @@ void t_polargrid::write2D(const unsigned int number, const bool debug) const
     unsigned int count;
     double *from;
 
-    std::string filename = std::string(OUTPUTDIR) + "/gas" +
-			   std::string(get_name()) + std::to_string(number) +
-			   ".dat";
-
-    if (debug) {
-	filename = std::string(OUTPUTDIR) + "/gas" + std::string(get_name()) +
-		   "_DEBUG.dat";
-    }
+    std::string filename = snapshot_dir + "/" +
+			   std::string(get_name()) + ".dat";
 
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
@@ -179,7 +171,7 @@ void t_polargrid::write2D(const unsigned int number, const bool debug) const
 
 	\param number file number
 */
-void t_polargrid::write1D(unsigned int number) const
+void t_polargrid::write1D() const
 {
     MPI_File fh;
     MPI_Status status;
@@ -188,9 +180,8 @@ void t_polargrid::write1D(unsigned int number) const
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rb : Ra;
 
-    const std::string filename = std::string(OUTPUTDIR) + "/gas" +
-				 std::string(get_name()) + +"1D" +
-				 std::to_string(number) + ".dat";
+    const std::string filename = snapshot_dir + "/" +
+				 std::string(get_name()) + +"1D" + ".dat";
 
     // try to open file
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
@@ -276,45 +267,20 @@ void t_polargrid::write1D(unsigned int number) const
     MPI_File_close(&fh);
 }
 
-void t_polargrid::read2D(unsigned int number, bool debug = false)
+void t_polargrid::read2D()
 {
-    char *filename;
+    std::string filename;
+    filename = snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
-    if (debug) {
-	if (asprintf(&filename, "%s/gas%s_DEBUG.dat", OUTPUTDIR, get_name()) <
-	    0) {
-	    die("Not enough memory!");
-	}
-    } else {
-	if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(),
-		     number) < 0) {
-	    die("Not enough memory!");
-	}
-    }
-    read2D(filename);
-
-    free(filename);
+    read2D(filename.c_str());
 }
 
-bool t_polargrid::file_exists(unsigned int number, bool debug = false)
+bool t_polargrid::file_exists()
 {
-    char *filename;
-
-    if (debug) {
-	if (asprintf(&filename, "%s/gas%s_DEBUG.dat", OUTPUTDIR, get_name()) <
-	    0) {
-	    die("Not enough memory!");
-	}
-    } else {
-	if (asprintf(&filename, "%s/gas%s%i.dat", OUTPUTDIR, get_name(),
-		     number) < 0) {
-	    die("Not enough memory!");
-	}
-    }
+    std::string filename;
+    filename = snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
     bool exists = std::experimental::filesystem::exists(filename);
-
-    free(filename);
 
     return exists;
 }
@@ -374,18 +340,12 @@ void t_polargrid::read2D(const char *_filename)
 
 	\param number file number
 */
-void t_polargrid::read1D(unsigned int number, bool skip_min_max)
+void t_polargrid::read1D(bool skip_min_max)
 {
-    char *filename;
+    std::string filename;
+    filename = snapshot_dir + "/" + std::string(get_name()) + "1D" + ".dat";
 
-    if (asprintf(&filename, "%s/gas%s1D%i.dat", OUTPUTDIR, get_name(), number) <
-	0) {
-	die("Not enough memory!");
-    }
-
-    read1D(filename, skip_min_max);
-
-    free(filename);
+    read1D(filename.c_str(), skip_min_max);
 }
 
 void t_polargrid::read1D(const char *_filename, bool skip_min_max)

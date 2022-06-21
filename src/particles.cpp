@@ -23,6 +23,7 @@
 #include <random>
 #include <stdlib.h>
 #include <vector>
+#include <sstream>
 
 extern Pair IndirectTerm;
 
@@ -605,7 +606,7 @@ void init(t_data &data)
 	init_particle_timestep(data);
 }
 
-void restart(unsigned int timestep)
+void restart()
 {
 
     logging::print_master(
@@ -613,19 +614,12 @@ void restart(unsigned int timestep)
 	"Beware: when restarting particles, the user is responsible that the loaded particle file is written with the same coordinate system as the simulation is running on!\n\n");
 
     FILE *fd;
-    char *filename = 0;
-    // create filename
-    if (asprintf(&filename, "%sparticles%u.dat", OUTPUTDIR, timestep) < 0) {
-	logging::print(LOG_ERROR "Not enough memory!\n");
-	PersonalExit(1);
-    }
+	std::stringstream filename;
+	filename << snapshot_dir << "/" << "particles" << ".dat";
 
-    fd = fopen(filename, "r");
+    fd = fopen(filename.str().c_str(), "r");
     if (fd == nullptr) {
-	logging::print_master(
-	    LOG_INFO
-	    "Can't find file particles%d.dat. Using generated particles.\n",
-	    timestep);
+	logging::print_master( LOG_INFO "Can't find file particles.dat (%s). Using generated particles.\n", filename.str().c_str());
 	return;
     }
     fseek(fd, 0L, SEEK_END);
@@ -670,14 +664,13 @@ void restart(unsigned int timestep)
 
     // try to open file
 
-    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename,
+    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(),
 					    MPI_MODE_RDONLY, MPI_INFO_NULL,
 					    &fh),
-			      filename);
+			      filename.str().c_str());
 
     logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",
-			  filename, size);
-    free(filename);
+			  filename.str().c_str(), size);
 
     // get number of local particles from all nodes to compute correct offsets
     std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
@@ -2581,19 +2574,19 @@ void move(void)
 		  MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 }
 
-void write(unsigned int timestep)
+void write()
 {
     MPI_File fh;
     MPI_Status status;
 
-    const std::string filename = std::string(OUTPUTDIR) + "/particles" +
-				 std::to_string(timestep) + ".dat";
+    std::stringstream filename;
+	filename << snapshot_dir << "/" << "particles.dat";
 
     // try to open file
-    mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
+    mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
 					     MPI_INFO_NULL, &fh),
-			       filename);
+			       filename.str().c_str());
 
     // get number of local particles from all nodes to compute correct offsets
     std::vector<unsigned int> nodes_number_of_particles(CPU_Number);

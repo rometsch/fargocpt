@@ -12,7 +12,7 @@ extern unsigned int particles_size;
 extern unsigned int local_number_of_particles;
 
 void init(t_data &data);
-void restart(unsigned int timestep);
+void restart();
 // void calculate_accelerations_from_star_and_planets(t_data& data);
 void calculate_accelerations_from_star_and_planets(
     double &ar, double &aphi, const double r, const double r_dot,
@@ -48,7 +48,7 @@ void integrate_explicit(t_data &data, const double dt);
 void integrate_explicit_adaptive(t_data &data, const double dt);
 void integrate_exponential_midpoint(t_data &data, const double dt);
 void integrate_semiimplicit(t_data &data, const double dt);
-void write(unsigned int timestep);
+void write();
 void move(void);
 void rotate(const double angle);
 

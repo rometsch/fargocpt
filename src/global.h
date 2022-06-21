@@ -84,12 +84,14 @@ extern double OmegaFrame, PhysicalTime, PhysicalTimeInitial, FrameAngle;
 
 extern double hydro_center_mass;
 
-extern int debug;
 extern int GotoNextOutput, ViscosityAlpha, CartesianParticles,
     ParticlesInCartesian, StabilizeViscosity;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
+
+extern std::string snapshot_dir;
+extern std::string last_snapshot_dir;
 
 extern char *OUTPUTDIR;
 extern char *PLANETCONFIG;
@@ -135,7 +137,6 @@ extern double POLYTROPIC_CONSTANT;
 extern BoundaryFlow MassDelta;
 
 extern double dtemp;
-extern int debug_outputs;
-extern volatile sig_atomic_t SIGTERM_RECEIVED;
+extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;
 
 #endif // GLOBAL_H
