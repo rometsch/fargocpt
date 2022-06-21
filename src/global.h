@@ -136,6 +136,7 @@ extern BoundaryFlow MassDelta;
 
 extern double dtemp;
 extern int debug_outputs;
-extern volatile sig_atomic_t SIGTERM_RECEIVED;
+extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;
+
 
 #endif // GLOBAL_H

@@ -195,4 +195,5 @@ BoundaryFlow MassDelta;
 
 double dtemp;
 int debug_outputs;
-volatile sig_atomic_t SIGTERM_RECEIVED;
+volatile sig_atomic_t SIGTERM_RECEIVED = 0, PRINT_SIG_INFO = 0;
+
