@@ -427,11 +427,10 @@ void read(char *filename, t_data &data)
     // parse light curve radii
     if (config::key_exists("WriteLightCurvesRadii")) {
 	// get light curves radii string
-	char *lightcurves_radii_string =
-	    new char[strlen(config::value_as_string("WriteLightCurvesRadii")) +
-		     1];
-	strcpy(lightcurves_radii_string,
-	       config::value_as_string("WriteLightCurvesRadii"));
+	const unsigned int length = strlen(config::value_as_string("WriteLightCurvesRadii")) + 1;
+	char *lightcurves_radii_string = new char[length];
+	strncpy(lightcurves_radii_string,
+		   config::value_as_string("WriteLightCurvesRadii"), length);
 
 	char *ptr = strtok(lightcurves_radii_string, " ,");
 	while (ptr != NULL) {
@@ -618,8 +617,6 @@ void read(char *filename, t_data &data)
 	tmp_damping_inner, tmp_damping_outer, t_data::SIGMA, t_data::SIGMA0,
 	"SurfaceDensity"));
 
-    tmp_damping_inner =
-	config::value_as_boudary_damping_default("DampingEnergy", "None");
     if (config::key_exists("DampingEnergy"))
 	die("DampingEnergy flag is decrepated used DampingEnergyInner and DampingEnergyOuter instead!");
 
@@ -715,10 +712,10 @@ void read(char *filename, t_data &data)
 
     if (config::key_exists("SigmaFilename")) {
 	if (strlen(config::value_as_string_default("SigmaFilename", "")) > 0) {
-	    sigma_filename = new char[strlen(
-		config::value_as_string_default("SigmaFilename", ""))];
-	    strcpy(sigma_filename,
-		   config::value_as_string_default("SigmaFilename", ""));
+		const unsigned int length = strlen(config::value_as_string_default("SigmaFilename", "")) + 1;
+		sigma_filename = new char[length];
+		strncpy(sigma_filename,
+		   config::value_as_string_default("SigmaFilename", ""), length);
 	}
     }
 
@@ -749,10 +746,11 @@ void read(char *filename, t_data &data)
 
     if (config::key_exists("EnergyFilename")) {
 	if (strlen(config::value_as_string_default("EnergyFilename", "")) > 0) {
-	    energy_filename = new char[strlen(
-		config::value_as_string_default("EnergyFilename", ""))];
-	    strcpy(energy_filename,
-		   config::value_as_string_default("EnergyFilename", ""));
+		const unsigned int length = strlen(
+					config::value_as_string_default("EnergyFilename", "")) + 1;
+		energy_filename = new char[length];
+		strncpy(energy_filename,
+		   config::value_as_string_default("EnergyFilename", ""), length);
 	}
     }
 
@@ -1343,7 +1341,7 @@ void summarize_parameters()
 	for (unsigned int i = 0; i < lightcurves_radii.size(); ++i) {
 	    int size = asprintf(&temp, "%lf, ", lightcurves_radii[i]);
 	    buffer = (char *)realloc(buffer, (pos + size + 1) * sizeof(char));
-	    strcpy(&buffer[pos], temp);
+		strncpy(&buffer[pos], temp, strlen(&buffer[pos]));
 	    free(temp);
 	    pos += size;
 	}

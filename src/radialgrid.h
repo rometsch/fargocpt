@@ -76,10 +76,10 @@ class t_radialgrid
     void write(std::string filename, unsigned int number, t_data &data,
 	       bool one_file, bool force_write);
     // 1D read/write
-    void write1D(unsigned int timestep) const;
+	void write1D() const;
     void write1D(std::string filename, bool one_file) const;
     void read1D(const char *filename);
-    void read1D(unsigned int number);
+	void read1D();
 
     unsigned int bytes_needed_1D();
 

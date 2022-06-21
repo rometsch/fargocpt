@@ -68,9 +68,10 @@ void t_polargrid::set_name(const char *name)
     delete[] m_name;
 
     // aquire space for new name
-    m_name = new char[strlen(name) + 1];
+	const unsigned int length = strlen(name) + 1;
+	m_name = new char[length];
 
-    strcpy(m_name, name);
+	strncpy(m_name, name, length);
 }
 
 /**

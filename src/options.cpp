@@ -114,9 +114,9 @@ void parse(int argc, char **argv)
 			break;
 		    }
 		}
-
-		parameter_file = new char[strlen(optarg) + 1];
-		strcpy(parameter_file, optarg);
+		const unsigned int length = strlen(optarg) + 1;
+		parameter_file = new char[length];
+		strncpy(parameter_file, optarg, length);
 	    }
 	    break;
 

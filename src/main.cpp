@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (write_complete_output && parameters::write_torques) {
-	    output::write_torques(data, N_output, force_update_for_output);
+		output::write_torques(data, force_update_for_output);
 	}
 	if (parameters::write_lightcurves &&
 	    (parameters::write_at_every_timestep || write_complete_output) &&

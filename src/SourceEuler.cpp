@@ -573,7 +573,7 @@ void AlgoGas(t_data &data)
 
 	PhysicalTime += hydro_dt;
 	N_hydro_iter = N_hydro_iter + 1;
-	logging::print_runtime_info(data, N_outer_loop / NINTERM, N_outer_loop,
+	logging::print_runtime_info(N_outer_loop / NINTERM, N_outer_loop,
 				    hydro_dt);
 
 	if (parameters::calculate_disk) {
@@ -1081,10 +1081,16 @@ void calculate_qplus(t_data &data)
 		}
 	    }
 	} else {
+
+		const unsigned int zbuffer_len = parameters::zbuffer_size *
+				data[t_data::QPLUS].get_size_azimuthal();
+		if(zbuffer_len <= 0){
+			die("z buffer size is zero!\n");
+			return;
+		}
+
 	    unsigned int *zbuffer = (unsigned int *)malloc(
-		parameters::zbuffer_size *
-		data[t_data::QPLUS].get_size_azimuthal() *
-		sizeof(unsigned int));
+		zbuffer_len * sizeof(unsigned int));
 
 	    double dtheta = parameters::zbuffer_maxangle /
 			    (double)(parameters::zbuffer_size - 1);
@@ -1124,14 +1130,15 @@ void calculate_qplus(t_data &data)
 		}
 	    }
 
+		if(zbuffer_len <= 0){
+			free(zbuffer);
+			die("z buffer size is zero!\n");
+			return;
+		}
 	    // sync
 	    unsigned int *zbuffer_global = (unsigned int *)malloc(
-		parameters::zbuffer_size *
-		data[t_data::QPLUS].get_size_azimuthal() *
-		sizeof(unsigned int));
-	    MPI_Allreduce(zbuffer, zbuffer_global,
-			  parameters::zbuffer_size *
-			      data[t_data::QPLUS].get_size_azimuthal(),
+		zbuffer_len * sizeof(unsigned int));
+		MPI_Allreduce(zbuffer, zbuffer_global, zbuffer_len,
 			  MPI_UNSIGNED, MPI_MIN, MPI_COMM_WORLD);
 	    free(zbuffer);
 	    zbuffer = zbuffer_global;

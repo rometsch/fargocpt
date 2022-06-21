@@ -37,8 +37,8 @@
 namespace output
 {
 
-const std::map<const std::string, const int> quantities_file_column_v2 = {
-    {"time step", 0},
+const static std::map<const std::string, const int> quantities_file_column_v2 = {
+	{"time step", 0},
     {"physical time", 1},
     {"mass", 2},
     {"angular momentum", 3},
@@ -61,7 +61,7 @@ const std::map<const std::string, const int> quantities_file_column_v2 = {
     {"delta mass wave damping negative", 20},
     {"delta mass floor density positive", 21}};
 
-const std::map<const std::string, const int> quantities_file_column_v2_1 = {
+const static std::map<const std::string, const int> quantities_file_column_v2_1 = {
     {"time step", 0},
     {"analysis time step", 1},
     {"physical time", 2},
@@ -86,7 +86,7 @@ const std::map<const std::string, const int> quantities_file_column_v2_1 = {
     {"delta mass wave damping negative", 21},
     {"delta mass floor density positive", 22}};
 
-const std::map<const std::string, const int> quantities_file_column_v2_2 = {
+const static std::map<const std::string, const int> quantities_file_column_v2_2 = {
     {"time step", 0},
     {"analysis time step", 1},
     {"physical time", 2},
@@ -112,7 +112,7 @@ const std::map<const std::string, const int> quantities_file_column_v2_2 = {
     {"delta mass wave damping negative", 22},
     {"delta mass floor density positive", 23}};
 
-const std::map<const std::string, const int> quantities_file_column_v2_3 = {
+const static std::map<const std::string, const int> quantities_file_column_v2_3 = {
     {"time step", 0},
     {"analysis time step", 1},
     {"physical time", 2},
@@ -139,7 +139,7 @@ const std::map<const std::string, const int> quantities_file_column_v2_3 = {
     {"delta mass floor density positive", 23},
     {"aspect ratio", 24}};
 
-const std::map<const std::string, const std::string> quantities_file_variables =
+const static std::map<const std::string, const std::string> quantities_file_variables =
     {{"physical time", "time"},
      {"mass", "mass"},
      {"radius", "length"},
@@ -169,7 +169,7 @@ const std::map<const std::string, const std::string> quantities_file_variables =
      {"periastron", "1"},
      {"aspect ratio", "1"}};
 
-const auto quantities_file_column = quantities_file_column_v2_3;
+static const auto quantities_file_column = quantities_file_column_v2_3;
 
 void check_free_space(t_data &data)
 {
@@ -183,10 +183,11 @@ void check_free_space(t_data &data)
 
 
     // check if output directory exists
-    if ((directory_pointer = opendir(directory_name)) == NULL) {
+	if ((directory_pointer = opendir(directory_name)) == nullptr) {
 	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
 			      OUTPUTDIR);
 	die("Not output directory!");
+	return; // needed so that compuler understands directory_pointer != nullptr
     }
 
     closedir(directory_pointer);
@@ -561,8 +562,8 @@ static std::string unit_descriptor(double value, std::string unit)
 }
 
 std::string text_file_variable_description(
-    const std::map<const std::string, const int> &variables,
-    const std::map<const std::string, const std::string> &units)
+	const std::map<const std::string, const int> &variables,
+	const std::map<const std::string, const std::string> &units)
 {
     // construct a header string describing each variable in
     // its own line including the column and its unit. e.g.
@@ -644,7 +645,7 @@ int load_misc()
     return misc.timestep;
 }
 
-void write_torques(t_data &data, unsigned int timestep, bool force_update)
+void write_torques(t_data &data, bool force_update)
 {
     const int ns = data[t_data::SIGMA].Nsec;
     const double *cell_center_x = CellCenterX->Field;
@@ -708,7 +709,7 @@ void write_torques(t_data &data, unsigned int timestep, bool force_update)
 	free(name);
 
 	if (force_update == false) {
-	    data[t_data::TORQUE_1D].write1D(timestep);
+		data[t_data::TORQUE_1D].write1D();
 	}
     }
 }

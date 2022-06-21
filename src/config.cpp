@@ -92,13 +92,22 @@ static void add_to_config_list(const char *key, const char *value)
 {
     list.data = (t_entry *)realloc(list.data, (++list.size) * sizeof(t_entry));
 
+	const unsigned int key_length = strlen(key) + 1;
+	const unsigned int val_length = strlen(value) + 1;
     list.data[list.size - 1].key =
-	(char *)malloc((strlen(key) + 1) * sizeof(char));
+	(char *)std::malloc((key_length) * sizeof(char));
     list.data[list.size - 1].value =
-	(char *)malloc((strlen(value) + 1) * sizeof(char));
+	(char *)std::malloc((val_length) * sizeof(char));
 
-    strcpy(list.data[list.size - 1].key, key);
-    strcpy(list.data[list.size - 1].value, value);
+	if(list.data[list.size - 1].key == nullptr){
+		die("add_to_config_list malloc failed %s\n", key);
+	}
+	if(list.data[list.size - 1].value == nullptr){
+		die("add_to_config_list malloc failed %s\n", value);
+	}
+
+	strncpy(list.data[list.size - 1].key, key, key_length);
+	strncpy(list.data[list.size - 1].value, value, val_length);
 }
 
 void free_config_list()

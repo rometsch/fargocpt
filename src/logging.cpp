@@ -140,7 +140,7 @@ void print_runtime_final()
 	N_hydro_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
-void print_runtime_info(t_data &data, unsigned int output_number,
+void print_runtime_info(unsigned int output_number,
 			unsigned int time_step_coarse, double dt)
 {
     // Print a line with information about the runtime: current hyrdro step,

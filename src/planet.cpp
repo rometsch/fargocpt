@@ -16,7 +16,7 @@
 #include <sstream>
 
 // define the variables in the planet data file
-const std::map<const std::string, const int> planet_file_column_v1 = {
+const static std::map<const std::string, const int> planet_file_column_v1 = {
     {"time step", 0},
     {"x", 1},
     {"y", 2},
@@ -34,7 +34,7 @@ const std::map<const std::string, const int> planet_file_column_v1 = {
     {"omega", 14}};
 
 // file version 2
-const std::map<const std::string, const int> planet_file_column_v2 = {
+const static std::map<const std::string, const int> planet_file_column_v2 = {
     {"time step", 0},
     {"x", 1},
     {"y", 2},
@@ -51,7 +51,7 @@ const std::map<const std::string, const int> planet_file_column_v2 = {
     {"omega", 13}};
 
 // file version 2.1
-const std::map<const std::string, const int> planet_file_column_v2_1 = {
+const static std::map<const std::string, const int> planet_file_column_v2_1 = {
     {"time step", 0},
     {"x", 1},
     {"y", 2},
@@ -72,7 +72,7 @@ const std::map<const std::string, const int> planet_file_column_v2_1 = {
     {"pericenter angle", 17}};
 
 // file version 2.2
-const std::map<const std::string, const int> planet_file_column_v2_2 = {
+const static std::map<const std::string, const int> planet_file_column_v2_2 = {
     {"time step", 0},
     {"x", 1},
     {"y", 2},
@@ -94,7 +94,7 @@ const std::map<const std::string, const int> planet_file_column_v2_2 = {
     {"torque", 18}};
 
 // file version 2.3
-const std::map<const std::string, const int> planet_file_column_v2_3 = {
+const static std::map<const std::string, const int> planet_file_column_v2_3 = {
     {"time step", 0},
     {"x", 1},
     {"y", 2},
@@ -117,7 +117,7 @@ const std::map<const std::string, const int> planet_file_column_v2_3 = {
     {"accreted mass", 19}};
 
 // file version 2.4
-const std::map<const std::string, const int> planet_file_column_v2_4 = {
+const static std::map<const std::string, const int> planet_file_column_v2_4 = {
     {"time step", 0},
     {"x", 1},
     {"y", 2},
@@ -139,7 +139,7 @@ const std::map<const std::string, const int> planet_file_column_v2_4 = {
     {"accreted mass", 18}};
 
 // file version 2.4
-const std::map<const std::string, const int> planet_file_column_v2_5 = {
+const static std::map<const std::string, const int> planet_file_column_v2_5 = {
     {"time step", 0},
     {"x", 1},
     {"y", 2},
@@ -161,9 +161,9 @@ const std::map<const std::string, const int> planet_file_column_v2_5 = {
     {"accreted mass", 18},
     {"accretion rate", 19}};
 
-auto planet_files_column = planet_file_column_v2_5;
+const static auto planet_files_column = planet_file_column_v2_5;
 
-const std::map<const std::string, const std::string> variable_units = {
+const static std::map<const std::string, const std::string> variable_units = {
     {"time step", "1"},
     {"x", "length"},
     {"y", "length"},
