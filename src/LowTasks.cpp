@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <experimental/filesystem>
 #include <iostream>
 #include <mpi.h>
 #include <stdarg.h>
@@ -7,15 +8,13 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
-#include <experimental/filesystem>
 
 #include "LowTasks.h"
+#include "backtrace.h"
 #include "global.h"
 #include "logging.h"
-#include "parameters.h"
 #include "output.h"
-#include "backtrace.h"
-
+#include "parameters.h"
 
 static void _mkdir(const char *dir, mode_t mode)
 {
@@ -37,27 +36,30 @@ static void _mkdir(const char *dir, mode_t mode)
 	}
     const int res = mkdir(tmp, S_IRWXU);
     if (res != 0) {
-        logging::print_master(LOG_ERROR "mkdir returned %d for path %s and mode %d\n", res, tmp, mode);
+	logging::print_master(LOG_ERROR
+			      "mkdir returned %d for path %s and mode %d\n",
+			      res, tmp, mode);
     }
 }
 
-void ensure_directory_exists(const std::string &dirname) {
+void ensure_directory_exists(const std::string &dirname)
+{
     if (CPU_Master) {
-		struct stat buffer;
-		if (stat(dirname.c_str(), &buffer)) {
-	    	_mkdir(dirname.c_str(), 0755);
-		}
+	struct stat buffer;
+	if (stat(dirname.c_str(), &buffer)) {
+	    _mkdir(dirname.c_str(), 0755);
+	}
     }
 }
 
-void delete_directory_if_exists(const std::string &dirname) {
-	if (CPU_Master) {
-        if (std::experimental::filesystem::exists(dirname)) {
-                std::experimental::filesystem::remove_all(dirname);
-        }
+void delete_directory_if_exists(const std::string &dirname)
+{
+    if (CPU_Master) {
+	if (std::experimental::filesystem::exists(dirname)) {
+	    std::experimental::filesystem::remove_all(dirname);
+	}
     }
 }
-
 
 /**
 	Finalize MPI and terminate program.

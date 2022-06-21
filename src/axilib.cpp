@@ -18,19 +18,19 @@ void mpi_make1Dprofile(double *grid, double *array)
     double *tempArray;
 
     /* allocate memory for temporary array */
-	tempArray = (double *)malloc(sizeof(double) * GlobalNRadial);
+    tempArray = (double *)malloc(sizeof(double) * GlobalNRadial);
 
     if (tempArray == NULL) {
 	logging::print(LOG_ERROR
 		       "Not enough memory in axisglib.c ; suspect...");
 	PersonalExit(1);
 	return; // needed to soothe compiler warnings
-	}
+    }
 
     /* clear temporary array */
-	for (nRadial = 0; nRadial < GlobalNRadial; nRadial++){
+    for (nRadial = 0; nRadial < GlobalNRadial; nRadial++) {
 	tempArray[nRadial] = 0.;
-	}
+    }
 
     /* computate mean values */
     for (nRadial = Zero_or_active; nRadial < Max_or_active; nRadial++) {
@@ -85,5 +85,5 @@ void mpi_make1Dprofile(double *grid, double *array)
     }
 
     /* free temporary array */
-	free(tempArray);
+    free(tempArray);
 }

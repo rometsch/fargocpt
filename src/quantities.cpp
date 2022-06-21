@@ -32,8 +32,8 @@ double gas_total_mass(t_data &data, const double quantitiy_radius)
 	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
-		local_mass += Surf[n_radial] *
-			      data[t_data::SIGMA](n_radial, n_azimuthal);
+		local_mass +=
+		    Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
 	    }
 	}
     }
@@ -66,8 +66,8 @@ double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
 	     ++n_azimuthal) {
 	    // eccentricity and semi major axis weighted with cellmass
 	    if (Rmed[n_radial] <= quantitiy_radius) {
-		local_mass = data[t_data::SIGMA](n_radial, n_azimuthal) *
-			     Surf[n_radial];
+		local_mass =
+		    data[t_data::SIGMA](n_radial, n_azimuthal) * Surf[n_radial];
 		local_aspect_ratio +=
 		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
 		    local_mass;
@@ -153,10 +153,9 @@ double gas_angular_momentum(t_data &data, const double quantitiy_radius)
 		    Surf[n_radial] * 0.5 *
 		    (data[t_data::SIGMA](n_radial, n_azimuthal) +
 		     data[t_data::SIGMA](
-			 n_radial,
-			 n_azimuthal == 0
-			     ? data[t_data::SIGMA].get_max_azimuthal()
-			     : n_azimuthal - 1)) *
+			 n_radial, n_azimuthal == 0
+				       ? data[t_data::SIGMA].get_max_azimuthal()
+				       : n_azimuthal - 1)) *
 		    Rmed[n_radial] *
 		    (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 		     OmegaFrame * Rmed[n_radial]);

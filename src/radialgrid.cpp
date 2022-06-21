@@ -58,10 +58,10 @@ void t_radialgrid::set_name(const char *name)
     delete[] m_name;
 
     // aquire space for new name
-	const unsigned int length = strlen(name) + 1;
-	m_name = new char[length];
-	std::strncpy(m_name, name, length);
-	printf("%s	%s\n", name, m_name);
+    const unsigned int length = strlen(name) + 1;
+    m_name = new char[length];
+    std::strncpy(m_name, name, length);
+    printf("%s	%s\n", name, m_name);
 }
 
 /**
@@ -91,7 +91,7 @@ void t_radialgrid::write_radialgrid(unsigned int number, t_data &data)
 	(*m_do_before_write)(data, number, false);
     }
 
-	write1D();
+    write1D();
 
     if (m_clear_after_write) {
 	clear();
@@ -251,7 +251,8 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 */
 void t_radialgrid::read1D()
 {
-    std::string filename = snapshot_dir + "/" + std::string(get_name()) + ".dat";
+    std::string filename =
+	snapshot_dir + "/" + std::string(get_name()) + ".dat";
     read1D(filename.c_str());
 }
 

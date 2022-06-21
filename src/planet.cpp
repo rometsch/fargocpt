@@ -11,9 +11,9 @@
 #include <iostream>
 #include <map>
 #include <math.h>
+#include <sstream>
 #include <stdio.h>
 #include <string.h>
-#include <sstream>
 
 // define the variables in the planet data file
 const static std::map<const std::string, const int> planet_file_column_v1 = {
@@ -300,16 +300,16 @@ double t_planet::get_rampup_mass() const
 double t_planet::get_orbital_period() const
 {
 
-	double M;
-	if(m_planet_number <= parameters::n_bodies_for_hydroframe_center){
-		M = hydro_center_mass;
-	}else{
-		M = hydro_center_mass + get_mass();
-	}
-	const double P = 2.0 * M_PI *
-			std::sqrt(std::pow(get_semi_major_axis(), 3) /
-				  (M * constants::G));
-	return P;
+    double M;
+    if (m_planet_number <= parameters::n_bodies_for_hydroframe_center) {
+	M = hydro_center_mass;
+    } else {
+	M = hydro_center_mass + get_mass();
+    }
+    const double P =
+	2.0 * M_PI *
+	std::sqrt(std::pow(get_semi_major_axis(), 3) / (M * constants::G));
+    return P;
 }
 
 /**
@@ -382,17 +382,17 @@ void t_planet::copy(const planet_member_variables &other)
 
     m_distance_to_primary = other.m_distance_to_primary;
     m_dimensionless_roche_radius = other.m_dimensionless_roche_radius;
-	m_circumplanetary_mass = other.m_circumplanetary_mass;
+    m_circumplanetary_mass = other.m_circumplanetary_mass;
 
     /// orbital elements
-	m_semi_major_axis = other.m_semi_major_axis;
-	m_eccentricity = other.m_eccentricity;
-	m_mean_anomaly = other.m_mean_anomaly;
-	m_true_anomaly = other.m_true_anomaly;
-	m_eccentric_anomaly = other.m_eccentric_anomaly;
-	m_pericenter_angle = other.m_pericenter_angle;
+    m_semi_major_axis = other.m_semi_major_axis;
+    m_eccentricity = other.m_eccentricity;
+    m_mean_anomaly = other.m_mean_anomaly;
+    m_true_anomaly = other.m_true_anomaly;
+    m_eccentric_anomaly = other.m_eccentric_anomaly;
+    m_pericenter_angle = other.m_pericenter_angle;
 
-	m_torque = other.m_torque;
+    m_torque = other.m_torque;
 }
 
 void t_planet::create_planet_file()
@@ -408,16 +408,18 @@ void t_planet::create_planet_file()
 					       variable_units);
 
     std::stringstream filename;
-	filename << std::string(OUTPUTDIR) << "/" << "bigplanet" << get_planet_number() << ".dat";
+    filename << std::string(OUTPUTDIR) << "/"
+	     << "bigplanet" << get_planet_number() << ".dat";
 
     fd = fopen(filename.str().c_str(), "w");
 
     if (fd == NULL) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.str().c_str());
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n",
+		       filename.str().c_str());
 	PersonalExit(1);
     }
 
-	fprintf(fd, "#FargoCPT planet file for planet: %s\n", m_name.c_str());
+    fprintf(fd, "#FargoCPT planet file for planet: %s\n", m_name.c_str());
     fprintf(fd, "#version: 2\n");
     fprintf(fd, "%s", header_variable_description.c_str());
 
@@ -438,7 +440,8 @@ void t_planet::write(const unsigned int file_type)
 	write_binary(filename.str().c_str());
 	break;
     case 1:
-    filename << std::string(OUTPUTDIR) << "/bigplanet" << get_planet_number() << ".dat";
+	filename << std::string(OUTPUTDIR) << "/bigplanet"
+		 << get_planet_number() << ".dat";
 	write_ascii(filename.str().c_str());
 	reset_accreted_mass();
 	break;
@@ -486,7 +489,7 @@ void t_planet::write_binary(const char *filename) const
 
     std::ofstream wf;
 
-	wf = std::ofstream(filename, std::ios::out | std::ios::binary);
+    wf = std::ofstream(filename, std::ios::out | std::ios::binary);
     if (!wf) {
 	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
 	die("End\n");
@@ -533,9 +536,10 @@ void t_planet::restart()
 
     std::stringstream filename;
     filename << snapshot_dir << "/planet" << get_planet_number() << ".bin";
-    
+
     try {
-	std::ifstream rf(filename.str().c_str(), std::ofstream::binary | std::ios::in);
+	std::ifstream rf(filename.str().c_str(),
+			 std::ofstream::binary | std::ios::in);
 
 	if (!rf.is_open()) {
 	    logging::print_master(LOG_ERROR "Can't read '%s' file.\n",
@@ -557,12 +561,12 @@ void t_planet::restart()
 
 void t_planet::copy_orbital_elements(const t_planet &other)
 {
-	m_semi_major_axis = other.get_semi_major_axis();
-	m_eccentricity = other.get_eccentricity();
-	m_mean_anomaly = other.get_mean_anomaly();
-	m_true_anomaly = other.get_true_anomaly();
-	m_eccentric_anomaly = other.get_eccentric_anomaly();
-	m_pericenter_angle = other.get_pericenter_angle();
+    m_semi_major_axis = other.get_semi_major_axis();
+    m_eccentricity = other.get_eccentricity();
+    m_mean_anomaly = other.get_mean_anomaly();
+    m_true_anomaly = other.get_true_anomaly();
+    m_eccentric_anomaly = other.get_eccentric_anomaly();
+    m_pericenter_angle = other.get_pericenter_angle();
 }
 
 void t_planet::set_orbital_elements_zero()

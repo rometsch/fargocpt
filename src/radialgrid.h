@@ -17,7 +17,7 @@ class t_radialgrid
     /// scalar or vector quantity (scalar uses grid from 0 to Nrad-1, vector
     /// from 0 to Nrad)
     bool m_scalar;
-	/// Name of the PolarGrid (can be "Sigma", "vrad", "vtheta" or "label").
+    /// Name of the PolarGrid (can be "Sigma", "vrad", "vtheta" or "label").
     char *m_name;
     /// write 1D?
     bool m_write_1D;
@@ -76,10 +76,10 @@ class t_radialgrid
     void write(std::string filename, unsigned int number, t_data &data,
 	       bool one_file, bool force_write);
     // 1D read/write
-	void write1D() const;
+    void write1D() const;
     void write1D(std::string filename, bool one_file) const;
     void read1D(const char *filename);
-	void read1D();
+    void read1D();
 
     unsigned int bytes_needed_1D();
 

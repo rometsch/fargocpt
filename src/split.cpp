@@ -32,7 +32,7 @@ void SplitDomain()
     /* Standard domain decomposition */
     if (!parameters::self_gravity) {
 	logging::print_master(
-		LOG_DEBUG "SplitDomain: Doing standard domain decomposition.\n");
+	    LOG_DEBUG "SplitDomain: Doing standard domain decomposition.\n");
 
 	size_low = NRadial / CPU_Number;
 	size_high = size_low + 1;
@@ -82,8 +82,8 @@ void SplitDomain()
     } else {
 	// Domain decomposition imposed by fftw_mpi
 	logging::print_master(
-		LOG_DEBUG
-		"SplitDomain: Doing fftw-mesh implied domain decomposition.\n");
+	    LOG_DEBUG
+	    "SplitDomain: Doing fftw-mesh implied domain decomposition.\n");
 
 	logging::print_master(
 	    LOG_INFO
@@ -334,41 +334,37 @@ void SplitDomain()
     /// End Added by Lucas
 
     /* print debugging */
-	logging::print(LOG_DEBUG "SplitDomain: DomainSplit Information:\n");
-	if (!parameters::self_gravity)
-	    logging::print_master(LOG_DEBUG "SplitDomain: %d = %d * %d + %d\n",
-				  GlobalNRadial, CPU_Number, size_low,
-				  remainder);
-	logging::print(LOG_DEBUG "SplitDomain: IMIN: %d\n", IMIN);
-	logging::print(LOG_DEBUG "SplitDomain: IMAX: %d\n", IMAX);
-	logging::print(LOG_DEBUG "SplitDomain: NRAD: %d\n", NRadial);
-	logging::print(LOG_DEBUG "SplitDomain: Zero_or_active: %d\n",
-		       Zero_or_active);
-	logging::print(LOG_DEBUG "SplitDomain: One_or_active: %d\n",
-		       radial_first_active);
-	logging::print(LOG_DEBUG "SplitDomain: Max_or_active: %d\n",
-		       Max_or_active);
-	logging::print(LOG_DEBUG "SplitDomain: MaxMO_or_active: %d\n",
-		       radial_active_size);
-	logging::print(LOG_DEBUG "SplitDomain: GLOB: %d\n", GlobalNRadial);
-	logging::print(LOG_DEBUG "SplitDomain: CPUOVERLAP: %d\n", CPUOVERLAP);
-	if (parameters::self_gravity) {
-	    logging::print(LOG_DEBUG "SplitDomain: LocalNx: %ld\n", local_Nx);
-	    logging::print(LOG_DEBUG "SplitDomain: LocalIStart: %ld\n",
-			   local_i_start);
-	    logging::print(LOG_DEBUG "SplitDomain: total_local_size: %ld\n",
-			   total_local_size);
+    logging::print(LOG_DEBUG "SplitDomain: DomainSplit Information:\n");
+    if (!parameters::self_gravity)
+	logging::print_master(LOG_DEBUG "SplitDomain: %d = %d * %d + %d\n",
+			      GlobalNRadial, CPU_Number, size_low, remainder);
+    logging::print(LOG_DEBUG "SplitDomain: IMIN: %d\n", IMIN);
+    logging::print(LOG_DEBUG "SplitDomain: IMAX: %d\n", IMAX);
+    logging::print(LOG_DEBUG "SplitDomain: NRAD: %d\n", NRadial);
+    logging::print(LOG_DEBUG "SplitDomain: Zero_or_active: %d\n",
+		   Zero_or_active);
+    logging::print(LOG_DEBUG "SplitDomain: One_or_active: %d\n",
+		   radial_first_active);
+    logging::print(LOG_DEBUG "SplitDomain: Max_or_active: %d\n", Max_or_active);
+    logging::print(LOG_DEBUG "SplitDomain: MaxMO_or_active: %d\n",
+		   radial_active_size);
+    logging::print(LOG_DEBUG "SplitDomain: GLOB: %d\n", GlobalNRadial);
+    logging::print(LOG_DEBUG "SplitDomain: CPUOVERLAP: %d\n", CPUOVERLAP);
+    if (parameters::self_gravity) {
+	logging::print(LOG_DEBUG "SplitDomain: LocalNx: %ld\n", local_Nx);
+	logging::print(LOG_DEBUG "SplitDomain: LocalIStart: %ld\n",
+		       local_i_start);
+	logging::print(LOG_DEBUG "SplitDomain: total_local_size: %ld\n",
+		       total_local_size);
 
-	    logging::print(LOG_DEBUG "Friend: %ld\n", CPU_Friend);
-	    logging::print(LOG_DEBUG "SplitDomain: LocalNx_friend: %ld\n",
-			   local_Nx_friend);
-	    logging::print(LOG_DEBUG "SplitDomain: LocalIStart_friend: %ld\n",
-			   local_i_start_friend);
-	    logging::print(LOG_DEBUG
-			   "SplitDomain: total_local_size_friend: %ld\n",
-			   total_local_size_friend);
-	}
-    
+	logging::print(LOG_DEBUG "Friend: %ld\n", CPU_Friend);
+	logging::print(LOG_DEBUG "SplitDomain: LocalNx_friend: %ld\n",
+		       local_Nx_friend);
+	logging::print(LOG_DEBUG "SplitDomain: LocalIStart_friend: %ld\n",
+		       local_i_start_friend);
+	logging::print(LOG_DEBUG "SplitDomain: total_local_size_friend: %ld\n",
+		       total_local_size_friend);
+    }
 }
 
 void FreeSplitDomain()

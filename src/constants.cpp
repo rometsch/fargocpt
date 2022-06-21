@@ -64,11 +64,11 @@ void t_constant::set_symbol(const char *symbol)
     delete[] m_symbol;
 
     // aquire memory for symbol
-	const unsigned int length = strlen(symbol) + 1;
-	m_symbol = new char[length];
+    const unsigned int length = strlen(symbol) + 1;
+    m_symbol = new char[length];
 
     // copy symbol
-	strncpy(m_symbol, symbol, length);
+    strncpy(m_symbol, symbol, length);
 }
 
 void t_constant::set_code_value(double value) { m_code_value = value; }
@@ -81,11 +81,11 @@ void t_constant::set_cgs_unit_symbol(const char *symbol)
     delete[] m_cgs_unit_symbol;
 
     // aquire memory for symbol
-	const unsigned int length = strlen(symbol) + 1;
-	m_cgs_unit_symbol = new char[length];
+    const unsigned int length = strlen(symbol) + 1;
+    m_cgs_unit_symbol = new char[length];
 
     // copy symbol
-	strncpy(m_cgs_unit_symbol, symbol, length);
+    strncpy(m_cgs_unit_symbol, symbol, length);
 }
 
 const char *t_constant::get_symbol(void) const { return m_symbol; }

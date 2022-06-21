@@ -346,7 +346,7 @@ void EvanescentBoundary(t_data &data, double step)
 
     vrad = data[t_data::V_RADIAL].Field;
     vtheta = data[t_data::V_AZIMUTHAL].Field;
-	dens = data[t_data::SIGMA].Field;
+    dens = data[t_data::SIGMA].Field;
     energ = data[t_data::ENERGY].Field;
 
     /* Orbital period at inner and outer boundary */
@@ -400,7 +400,7 @@ void EvanescentBoundary(t_data &data, double step)
 	    vtheta0 = 0.0;
 	    dens0 = 0.0;
 	    energ0 = 0.0;
-		for (nAzimuthal = 0; nAzimuthal < data[t_data::SIGMA].Nsec;
+	    for (nAzimuthal = 0; nAzimuthal < data[t_data::SIGMA].Nsec;
 		 ++nAzimuthal) {
 		cell = nRadial * data[t_data::SIGMA].Nsec + nAzimuthal;
 		vrad0 += vrad[cell];
@@ -408,12 +408,12 @@ void EvanescentBoundary(t_data &data, double step)
 		dens0 += dens[cell];
 		energ0 += energ[cell];
 	    }
-		vrad0 /= (double)(data[t_data::SIGMA].Nsec);
-		vtheta0 /= (double)(data[t_data::SIGMA].Nsec);
-		dens0 /= (double)(data[t_data::SIGMA].Nsec);
-		energ0 /= (double)(data[t_data::SIGMA].Nsec);
+	    vrad0 /= (double)(data[t_data::SIGMA].Nsec);
+	    vtheta0 /= (double)(data[t_data::SIGMA].Nsec);
+	    dens0 /= (double)(data[t_data::SIGMA].Nsec);
+	    energ0 /= (double)(data[t_data::SIGMA].Nsec);
 
-		for (nAzimuthal = 0; nAzimuthal < data[t_data::SIGMA].Nsec;
+	    for (nAzimuthal = 0; nAzimuthal < data[t_data::SIGMA].Nsec;
 		 ++nAzimuthal) {
 		cell = nRadial * data[t_data::SIGMA].Nsec + nAzimuthal;
 		vrad[cell] = (vrad[cell] + lambda * vrad0) / (1.0 + lambda);

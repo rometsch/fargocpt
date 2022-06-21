@@ -33,6 +33,7 @@
 #include "output.h"
 #include "parameters.h"
 #include "particles.h"
+#include "pvte_law.h"
 #include "quantities.h"
 #include "selfgravity.h"
 #include "stress.h"
@@ -40,7 +41,6 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
-#include "pvte_law.h"
 
 #include <cstring>
 extern boolean Corotating;
@@ -79,7 +79,7 @@ static int DetectCrash(t_polargrid *array)
 
 static void HandleCrash(t_data &data)
 {
-	if (DetectCrash(&data[t_data::SIGMA])) {
+    if (DetectCrash(&data[t_data::SIGMA])) {
 	logging::print(LOG_ERROR "DetectCrash: Density < 0\n");
 	PersonalExit(1);
     }
@@ -145,7 +145,7 @@ static void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 bool assure_minimum_value(t_polargrid &dst, double minimum_value)
 {
     bool found = false;
-	bool is_dens = strcmp(dst.get_name(), "Sigma") == 0;
+    bool is_dens = strcmp(dst.get_name(), "Sigma") == 0;
 
     for (unsigned int n_radial = 0; n_radial < dst.get_size_radial();
 	 ++n_radial) {
@@ -179,7 +179,7 @@ bool assure_temperature_range(t_data &data)
     bool found = false;
 
     t_polargrid &energy = data[t_data::ENERGY];
-	t_polargrid &density = data[t_data::SIGMA];
+    t_polargrid &density = data[t_data::SIGMA];
 
     const double Tmin = parameters::minimum_temperature *
 			units::temperature.get_inverse_cgs_factor();
@@ -283,9 +283,9 @@ void init_euler(t_data &data)
 
     if (parameters::Adiabatic || parameters::Polytropic) {
 	if (parameters::variableGamma) {
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
-		pvte::compute_gamma_mu(data);
+	    compute_sound_speed(data, true);
+	    compute_scale_height(data, true);
+	    pvte::compute_gamma_mu(data);
 	}
 	compute_temperature(data, true);
 	compute_sound_speed(data, true);
@@ -301,7 +301,7 @@ static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 {
 
     if (!SloppyCFL || force_calc) {
-		last_dt = dt;
+	last_dt = dt;
 	const double local_gas_time_step_cfl = condition_cfl(
 	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
 	    data[t_data::SOUNDSPEED], DT - dtemp);
@@ -431,7 +431,7 @@ void AlgoGas(t_data &data)
     }
     // recalculate timestep, even for no_disk = true, so that particle drag has
     // reasonable timestep size
-	hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
+    hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
 
     boundary_conditions::apply_boundary_condition(data, hydro_dt, false);
 
@@ -440,9 +440,9 @@ void AlgoGas(t_data &data)
     // quantities::gas_total_mass(data, 2.0*RMAX);
 
     while (dtemp < DT) {
-	if(SIGTERM_RECEIVED){
-		output::write_full_output(data, "autosave");
-		PersonalExit(0);
+	if (SIGTERM_RECEIVED) {
+	    output::write_full_output(data, "autosave");
+	    PersonalExit(0);
 	}
 	logging::print_master(
 	    LOG_VERBOSE
@@ -462,23 +462,23 @@ void AlgoGas(t_data &data)
 	ComputeIndirectTermDisk(data);
 
 	if (parameters::disk_feedback) {
-		UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
+	    UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
 	}
 
 	if (parameters::integrate_planets) {
-		data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
-		/// Nbody positions and velocities are not updated yet!
+	    data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
+	    /// Nbody positions and velocities are not updated yet!
 	}
 
-	//ComputeNbodyOnNbodyAccel(data.get_planetary_system()); /// Euler sucks!
-	//ComputeNbodyOnNbodyAccelRK5(data, hydro_dt);
+	// ComputeNbodyOnNbodyAccel(data.get_planetary_system()); /// Euler
+	// sucks! ComputeNbodyOnNbodyAccelRK5(data, hydro_dt);
 	ComputeNbodyOnNbodyAccelRebound(data.get_planetary_system());
 
 	/// IndirectTerm is fully completed here (Disk + Nbody)
 	ComputeIndirectTerm(data);
 
 	if (parameters::calculate_disk) {
-		/** Gravitational potential from star and planet(s) is computed and
+	    /** Gravitational potential from star and planet(s) is computed and
 	     * stored here*/
 	    if (parameters::body_force_from_potential) {
 		CalculateNbodyPotential(data);
@@ -494,15 +494,16 @@ void AlgoGas(t_data &data)
 	/** Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_frame_center();
+	    data.get_planetary_system().copy_data_from_rebound();
+	    data.get_planetary_system().move_to_hydro_frame_center();
 
-		/// Needed for Aspectratio mode = 1
-		/// and to correctly compute circumplanetary disk mass
-		data.get_planetary_system().compute_dist_to_primary();
+	    /// Needed for Aspectratio mode = 1
+	    /// and to correctly compute circumplanetary disk mass
+	    data.get_planetary_system().compute_dist_to_primary();
 
-		/// Needed if they can change and massoverflow or planet accretion is on
-		data.get_planetary_system().calculate_orbital_elements();
+	    /// Needed if they can change and massoverflow or planet accretion
+	    /// is on
+	    data.get_planetary_system().calculate_orbital_elements();
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
@@ -556,12 +557,12 @@ void AlgoGas(t_data &data)
 	    boundary_conditions::apply_boundary_condition(data, hydro_dt,
 							  false);
 
-		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
+	    Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 		      &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 		      hydro_dt);
 
 	    // assure minimum density after all substeps & transport
-		assure_minimum_value(data[t_data::SIGMA],
+	    assure_minimum_value(data[t_data::SIGMA],
 				 parameters::sigma_floor * parameters::sigma0);
 
 	    if (parameters::Adiabatic) {
@@ -577,9 +578,9 @@ void AlgoGas(t_data &data)
 				    hydro_dt);
 
 	if (parameters::calculate_disk) {
-	    CommunicateBoundaries(
-		&data[t_data::SIGMA], &data[t_data::V_RADIAL],
-		&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
+	    CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
+				  &data[t_data::V_AZIMUTHAL],
+				  &data[t_data::ENERGY]);
 
 	    // We only recompute once, assuming that cells hit by planet
 	    // accretion are not also hit by viscous accretion at inner
@@ -1082,15 +1083,16 @@ void calculate_qplus(t_data &data)
 	    }
 	} else {
 
-		const unsigned int zbuffer_len = parameters::zbuffer_size *
-				data[t_data::QPLUS].get_size_azimuthal();
-		if(zbuffer_len <= 0){
-			die("z buffer size is zero!\n");
-			return;
-		}
+	    const unsigned int zbuffer_len =
+		parameters::zbuffer_size *
+		data[t_data::QPLUS].get_size_azimuthal();
+	    if (zbuffer_len <= 0) {
+		die("z buffer size is zero!\n");
+		return;
+	    }
 
-	    unsigned int *zbuffer = (unsigned int *)malloc(
-		zbuffer_len * sizeof(unsigned int));
+	    unsigned int *zbuffer =
+		(unsigned int *)malloc(zbuffer_len * sizeof(unsigned int));
 
 	    double dtheta = parameters::zbuffer_maxangle /
 			    (double)(parameters::zbuffer_size - 1);
@@ -1130,16 +1132,16 @@ void calculate_qplus(t_data &data)
 		}
 	    }
 
-		if(zbuffer_len <= 0){
-			free(zbuffer);
-			die("z buffer size is zero!\n");
-			return;
-		}
+	    if (zbuffer_len <= 0) {
+		free(zbuffer);
+		die("z buffer size is zero!\n");
+		return;
+	    }
 	    // sync
-	    unsigned int *zbuffer_global = (unsigned int *)malloc(
-		zbuffer_len * sizeof(unsigned int));
-		MPI_Allreduce(zbuffer, zbuffer_global, zbuffer_len,
-			  MPI_UNSIGNED, MPI_MIN, MPI_COMM_WORLD);
+	    unsigned int *zbuffer_global =
+		(unsigned int *)malloc(zbuffer_len * sizeof(unsigned int));
+	    MPI_Allreduce(zbuffer, zbuffer_global, zbuffer_len, MPI_UNSIGNED,
+			  MPI_MIN, MPI_COMM_WORLD);
 	    free(zbuffer);
 	    zbuffer = zbuffer_global;
 
@@ -1323,7 +1325,7 @@ void calculate_qminus(t_data &data)
 		    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 
 		const double densityCGS =
-			data[t_data::SIGMA](n_radial, n_azimuthal) /
+		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    (parameters::density_factor * H) * units::density;
 
 		const double kappaCGS =
@@ -1338,7 +1340,7 @@ void calculate_qminus(t_data &data)
 		    parameters::tau_factor *
 		    (1.0 / parameters::density_factor) *
 		    data[t_data::KAPPA](n_radial, n_azimuthal) *
-			data[t_data::SIGMA](n_radial, n_azimuthal);
+		    data[t_data::SIGMA](n_radial, n_azimuthal);
 
 		//  tau_eff = 3/8 tau + sqrt(3)/4 + 1/(4*tau+tau_min)
 		data[t_data::TAU_EFF](n_radial, n_azimuthal) =
@@ -1437,7 +1439,7 @@ void SubStep3(t_data &data, double dt)
 
 	    const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 
-		const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
+	    const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
 	    const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
 
 	    const double inv_pow4 =
@@ -1464,9 +1466,9 @@ void SubStep3(t_data &data, double dt)
 		// energy, where current heating cooling rate are in equilibirum
 		const double eq_energy = std::pow(e4, 1.0 / 4.0) * constant;
 
-		    data[t_data::QMINUS](n_radial, n_azimuthal) = Qplus;
-		    energy_new = eq_energy;
-		}
+		data[t_data::QMINUS](n_radial, n_azimuthal) = Qplus;
+		energy_new = eq_energy;
+	    }
 
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
 	}
@@ -1525,46 +1527,46 @@ void radiative_diffusion(t_data &data, double dt)
 	grids_allocated = true;
     }
 
-	auto &Temperature = data[t_data::TEMPERATURE];
-	auto &Sigma = data[t_data::SIGMA];
-	auto &Energy = data[t_data::ENERGY];
-	auto &Scale_height = data[t_data::SCALE_HEIGHT];
+    auto &Temperature = data[t_data::TEMPERATURE];
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Energy = data[t_data::ENERGY];
+    auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
-	// We set minimum Temperature here such that H (thru Cs) is also computed with the minimum Temperature
-	for (unsigned int naz = 0; naz < Energy.get_size_azimuthal(); ++naz) {
-		const unsigned int nr_max = Energy.get_max_radial();
+    // We set minimum Temperature here such that H (thru Cs) is also computed
+    // with the minimum Temperature
+    for (unsigned int naz = 0; naz < Energy.get_size_azimuthal(); ++naz) {
+	const unsigned int nr_max = Energy.get_max_radial();
 
-		if(CPU_Rank == 0 &&  parameters::boundary_inner == parameters::boundary_condition_open){
-		const double Tmin = parameters::minimum_temperature *
+	if (CPU_Rank == 0 &&
+	    parameters::boundary_inner == parameters::boundary_condition_open) {
+	    const double Tmin = parameters::minimum_temperature *
 				units::temperature.get_inverse_cgs_factor();
 
-		const double mu = pvte::get_mu(data, 1, naz);
-		const double gamma_eff = pvte::get_gamma_eff(data,1, naz);
-		Sigma(0, naz) = Sigma(1, naz);
+	    const double mu = pvte::get_mu(data, 1, naz);
+	    const double gamma_eff = pvte::get_gamma_eff(data, 1, naz);
+	    Sigma(0, naz) = Sigma(1, naz);
 
-		const double minimum_energy = Tmin *
-					  Sigma(1, naz) / mu *
-					  constants::R / (gamma_eff - 1.0);
+	    const double minimum_energy =
+		Tmin * Sigma(1, naz) / mu * constants::R / (gamma_eff - 1.0);
 
-		Energy(0, naz) = minimum_energy;
-		}
-
-		if(CPU_Rank == CPU_Highest &&  parameters::boundary_outer == parameters::boundary_condition_open){
-		const double Tmin = parameters::minimum_temperature *
-				units::temperature.get_inverse_cgs_factor();
-
-		const double mu = pvte::get_mu(data, nr_max - 1, naz);
-		const double gamma_eff = pvte::get_gamma_eff(data, nr_max - 1, naz);
-		Sigma(nr_max, naz) = Sigma(nr_max - 1, naz);
-
-		const double minimum_energy = Tmin *
-					  Sigma(nr_max - 1, naz) / mu *
-					  constants::R / (gamma_eff - 1.0);
-
-		Energy(nr_max, naz) = minimum_energy;
-		}
+	    Energy(0, naz) = minimum_energy;
 	}
 
+	if (CPU_Rank == CPU_Highest &&
+	    parameters::boundary_outer == parameters::boundary_condition_open) {
+	    const double Tmin = parameters::minimum_temperature *
+				units::temperature.get_inverse_cgs_factor();
+
+	    const double mu = pvte::get_mu(data, nr_max - 1, naz);
+	    const double gamma_eff = pvte::get_gamma_eff(data, nr_max - 1, naz);
+	    Sigma(nr_max, naz) = Sigma(nr_max - 1, naz);
+
+	    const double minimum_energy = Tmin * Sigma(nr_max - 1, naz) / mu *
+					  constants::R / (gamma_eff - 1.0);
+
+	    Energy(nr_max, naz) = minimum_energy;
+	}
+    }
 
     // update temperature, soundspeed and aspect ratio
     compute_temperature(data, true);
@@ -1619,36 +1621,43 @@ void radiative_diffusion(t_data &data, double dt)
 
 	    const double lambda = flux_limiter(R);
 
-		Ka(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
+	    Ka(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
 			  lambda * H * H * std::pow(temperature, 3) * denom;
 	}
     }
 
-
-	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
-		const unsigned int nr_max = Ka.get_max_radial();
-		if(CPU_Rank == CPU_Highest && parameters::boundary_outer == parameters::boundary_condition_reflecting){
-		Ka(nr_max-1, naz) = 0.0;
-		}
-
-
-		if(CPU_Rank == 0 && parameters::boundary_inner == parameters::boundary_condition_reflecting){
-		Ka(1, naz) = 0.0;
-		}
+    for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
+	const unsigned int nr_max = Ka.get_max_radial();
+	if (CPU_Rank == CPU_Highest &&
+	    parameters::boundary_outer ==
+		parameters::boundary_condition_reflecting) {
+	    Ka(nr_max - 1, naz) = 0.0;
 	}
 
-	// Similar to Tobi's original implementation
-	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
-		const unsigned int nr_max = Ka.get_max_radial();
-		if(CPU_Rank == CPU_Highest && !(parameters::boundary_outer == parameters::boundary_condition_reflecting || parameters::boundary_outer == parameters::boundary_condition_open)){
-		Ka(nr_max-1, naz) = Ka(nr_max-2, naz);
-		}
-
-
-		if(CPU_Rank == 0 && !(parameters::boundary_inner == parameters::boundary_condition_reflecting || parameters::boundary_inner == parameters::boundary_condition_open)){
-		Ka(1, naz) = Ka(2, naz);
-		}
+	if (CPU_Rank == 0 && parameters::boundary_inner ==
+				 parameters::boundary_condition_reflecting) {
+	    Ka(1, naz) = 0.0;
 	}
+    }
+
+    // Similar to Tobi's original implementation
+    for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
+	const unsigned int nr_max = Ka.get_max_radial();
+	if (CPU_Rank == CPU_Highest &&
+	    !(parameters::boundary_outer ==
+		  parameters::boundary_condition_reflecting ||
+	      parameters::boundary_outer ==
+		  parameters::boundary_condition_open)) {
+	    Ka(nr_max - 1, naz) = Ka(nr_max - 2, naz);
+	}
+
+	if (CPU_Rank == 0 && !(parameters::boundary_inner ==
+				   parameters::boundary_condition_reflecting ||
+			       parameters::boundary_inner ==
+				   parameters::boundary_condition_open)) {
+	    Ka(1, naz) = Ka(2, naz);
+	}
+    }
 
     // calcuate Kb for K(i,j/2)
     for (unsigned int nr = 1; nr < Kb.get_size_radial() - 1; ++nr) {
@@ -1661,7 +1670,7 @@ void radiative_diffusion(t_data &data, double dt)
 	    // average temperature azimuthally
 	    const double temperature =
 		0.5 * (Temperature(nr, naz_m) + Temperature(nr, naz));
-		const double density = 0.5 * (Sigma(nr, naz_m) + Sigma(nr, naz));
+	    const double density = 0.5 * (Sigma(nr, naz_m) + Sigma(nr, naz));
 	    const double scale_height =
 		0.5 * (Scale_height(nr, naz_m) + Scale_height(nr, naz));
 
@@ -1681,7 +1690,8 @@ void radiative_diffusion(t_data &data, double dt)
 	    // R = 4 |nabla T\/T * 1/(rho kappa)
 	    const double dT_dr =
 		(0.5 * (Temperature(nr - 1, naz_m) + Temperature(nr - 1, naz)) -
-		 0.5 * (Temperature(nr + 1, naz_m) + Temperature(nr + 1, naz))) /
+		 0.5 *
+		     (Temperature(nr + 1, naz_m) + Temperature(nr + 1, naz))) /
 		(Ra[nr - 1] - Ra[nr + 1]);
 	    const double dT_dphi =
 		InvRmed[nr] * (Temperature(nr, naz) - Temperature(nr, naz_m)) /
@@ -1700,8 +1710,8 @@ void radiative_diffusion(t_data &data, double dt)
 	    dphi*n_azimuthal, R, lambda,dT_dphi,dT_dr,nabla_T,temperature,H);
 	    }*/
 
-		Kb(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() * lambda *
-			 H * H * std::pow(temperature, 3) * denom;
+	    Kb(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
+			  lambda * H * H * std::pow(temperature, 3) * denom;
 	    // Kb(n_radial, n_azimuthal)
 	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
 	}
@@ -1713,7 +1723,7 @@ void radiative_diffusion(t_data &data, double dt)
     for (unsigned int nr = 1; nr < Temperature.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Temperature.get_size_azimuthal();
 	     ++naz) {
-		const double Sig = Sigma(nr, naz);
+	    const double Sig = Sigma(nr, naz);
 	    const double common_factor =
 		-dt * parameters::density_factor / (Sig * c_v);
 
@@ -1721,7 +1731,7 @@ void radiative_diffusion(t_data &data, double dt)
 	    const double common_AC =
 		common_factor * 2.0 /
 		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
-		A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
+	    A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
 	    C(nr, naz) =
 		common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
 
@@ -1931,14 +1941,15 @@ void radiative_diffusion(t_data &data, double dt)
     }
 }
 
-static void print_info() {
-	logging::print_master(LOG_INFO
-			"\nInteractive status requested with SIGUSR1\n");
-	logging::print_master(LOG_INFO "hydro dt = %g\n", hydro_dt);
-	logging::print_master(LOG_INFO "output number = %d\n", N_output);
-	logging::print_master(LOG_INFO "outer loop iteration = %d\n", N_outer_loop);
-	logging::print_master(LOG_INFO "N hydro step = %d\n", N_hydro_iter);
-	logging::print_master(LOG_INFO "PhysicalTime = %g\n", PhysicalTime);
+static void print_info()
+{
+    logging::print_master(LOG_INFO
+			  "\nInteractive status requested with SIGUSR1\n");
+    logging::print_master(LOG_INFO "hydro dt = %g\n", hydro_dt);
+    logging::print_master(LOG_INFO "output number = %d\n", N_output);
+    logging::print_master(LOG_INFO "outer loop iteration = %d\n", N_outer_loop);
+    logging::print_master(LOG_INFO "N hydro step = %d\n", N_hydro_iter);
+    logging::print_master(LOG_INFO "PhysicalTime = %g\n", PhysicalTime);
 }
 
 /**
@@ -2101,7 +2112,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	    if (dt_cell < dt_core) {
 		dt_core = dt_cell;
-		
+
 		if (PRINT_SIG_INFO) {
 		    n_radial_debug = n_radial;
 		    n_azimuthal_debug = n_azimuthal;
@@ -2140,63 +2151,65 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
     }
 
-	// FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
+    // FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size - 1; ++n_radial) {
-		const double azimuthal_cell_size = 2.0 * M_PI / (double)NAzimuthal;
-		const double shear_dt =  parameters::CFL * azimuthal_cell_size /
-			fabs(v_mean[n_radial] * InvRmed[n_radial] -
-				v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
+	const double azimuthal_cell_size = 2.0 * M_PI / (double)NAzimuthal;
+	const double shear_dt =
+	    parameters::CFL * azimuthal_cell_size /
+	    fabs(v_mean[n_radial] * InvRmed[n_radial] -
+		 v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
 
-		if (shear_dt < dt_core)
-			dt_core = shear_dt;
+	if (shear_dt < dt_core)
+	    dt_core = shear_dt;
     }
 
-	double dt_global;
-    MPI_Allreduce(&dt_core, &dt_global, 1, MPI_DOUBLE, MPI_MIN,
-		  MPI_COMM_WORLD);
+    double dt_global;
+    MPI_Allreduce(&dt_core, &dt_global, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
     if (PRINT_SIG_INFO) {
 	print_info();
 
 	if (dt_core == dt_global) {
 
-		logging::print(LOG_INFO "Timestep control information for CPU %d: \n",
-				CPU_Rank);
-		logging::print(
-			LOG_INFO "Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
-			n_radial_debug, n_azimuthal_debug);
-		logging::print(LOG_INFO "located at radius Rmed         : %g\n",
-				Rmed[n_radial_debug]);
-		logging::print(LOG_INFO "Sound speed limit              : %g\n",
-				itdbg1);
-		logging::print(LOG_INFO "Radial motion limit            : %g\n",
-				itdbg2);
-		logging::print(LOG_INFO "Residual circular motion limit : %g\n",
-				itdbg3);
+	    logging::print(LOG_INFO
+			   "Timestep control information for CPU %d: \n",
+			   CPU_Rank);
+	    logging::print(
+		LOG_INFO
+		"Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
+		n_radial_debug, n_azimuthal_debug);
+	    logging::print(LOG_INFO "located at radius Rmed         : %g\n",
+			   Rmed[n_radial_debug]);
+	    logging::print(LOG_INFO "Sound speed limit              : %g\n",
+			   itdbg1);
+	    logging::print(LOG_INFO "Radial motion limit            : %g\n",
+			   itdbg2);
+	    logging::print(LOG_INFO "Residual circular motion limit : %g\n",
+			   itdbg3);
 
-		if (parameters::artificial_viscosity_factor > 0) {
-			logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
-				itdbg4);
-			logging::print(LOG_INFO "   Arise from r with limit     : %g\n",
-				viscRadial);
-			logging::print(LOG_INFO "   and from theta with limit   : %g\n",
-				viscAzimuthal);
-		} else {
-			logging::print(LOG_INFO
-				"Articifial Viscosity limit     : disabled\n");
-		}
-		logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
-				itdbg5);
-		logging::print(LOG_INFO "Heating cooling limit      : %g\n", itdbg6);
-		logging::print(LOG_INFO "Limit time step for this cell  : %g\n",
-				dt_core);
-		logging::print(LOG_INFO "Limit time step adopted        : %g\n",
-				dt_global);
+	    if (parameters::artificial_viscosity_factor > 0) {
+		logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
+			       itdbg4);
+		logging::print(LOG_INFO "   Arise from r with limit     : %g\n",
+			       viscRadial);
+		logging::print(LOG_INFO "   and from theta with limit   : %g\n",
+			       viscAzimuthal);
+	    } else {
+		logging::print(LOG_INFO
+			       "Articifial Viscosity limit     : disabled\n");
+	    }
+	    logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
+			   itdbg5);
+	    logging::print(LOG_INFO "Heating cooling limit      : %g\n",
+			   itdbg6);
+	    logging::print(LOG_INFO "Limit time step for this cell  : %g\n",
+			   dt_core);
+	    logging::print(LOG_INFO "Limit time step adopted        : %g\n",
+			   dt_global);
+	}
 
-		}
-
-		PRINT_SIG_INFO = 0;
+	PRINT_SIG_INFO = 0;
     }
 
     dt_global = std::min(parameters::CFL_max_var * last_dt, dt_global);
@@ -2227,7 +2240,7 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
 		    std::sqrt(gamma1 * (gamma_eff - 1.0) *
 			      data[t_data::ENERGY](n_radial, n_azimuthal) /
-				  data[t_data::SIGMA](n_radial, n_azimuthal));
+			      data[t_data::SIGMA](n_radial, n_azimuthal));
 
 	    } else if (parameters::Polytropic) {
 		const double gamma_eff =
@@ -2646,7 +2659,7 @@ void compute_pressure(t_data &data, bool force_update)
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
 	    } else if (parameters::Polytropic) {
 		data[t_data::PRESSURE](n_radial, n_azimuthal) =
-			data[t_data::SIGMA](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal),
 			     2) /
 		    ADIABATICINDEX;
@@ -2654,7 +2667,7 @@ void compute_pressure(t_data &data, bool force_update)
 		// since SoundSpeed is not update from initialization, cs
 		// remains axisymmetric
 		data[t_data::PRESSURE](n_radial, n_azimuthal) =
-			data[t_data::SIGMA](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal),
 			     2);
 	    }
@@ -2687,20 +2700,20 @@ void compute_temperature(t_data &data, bool force_update)
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    mu / constants::R * (gamma_eff - 1.0) *
 		    data[t_data::ENERGY](n_radial, n_azimuthal) /
-			data[t_data::SIGMA](n_radial, n_azimuthal);
+		    data[t_data::SIGMA](n_radial, n_azimuthal);
 	    } else if (parameters::Polytropic) {
 		const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
 		const double gamma_eff =
 		    pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    mu / constants::R * POLYTROPIC_CONSTANT *
-			std::pow(data[t_data::SIGMA](n_radial, n_azimuthal),
+		    std::pow(data[t_data::SIGMA](n_radial, n_azimuthal),
 			     gamma_eff - 1.0);
 	    } else { // Isothermal
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    parameters::MU / constants::R *
 		    data[t_data::PRESSURE](n_radial, n_azimuthal) /
-			data[t_data::SIGMA](n_radial, n_azimuthal);
+		    data[t_data::SIGMA](n_radial, n_azimuthal);
 	    }
 	}
     }
@@ -2804,8 +2817,7 @@ void compute_heating_cooling_for_CFL(t_data &data)
 		const double H =
 		    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
 
-		const double sigma =
-			data[t_data::SIGMA](n_radial, n_azimuthal);
+		const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
 		const double energy =
 		    data[t_data::ENERGY](n_radial, n_azimuthal);
 

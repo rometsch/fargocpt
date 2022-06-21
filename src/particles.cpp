@@ -21,9 +21,9 @@
 #include <math.h>
 #include <mpi.h>
 #include <random>
+#include <sstream>
 #include <stdlib.h>
 #include <vector>
-#include <sstream>
 
 extern Pair IndirectTerm;
 
@@ -614,12 +614,17 @@ void restart()
 	"Beware: when restarting particles, the user is responsible that the loaded particle file is written with the same coordinate system as the simulation is running on!\n\n");
 
     FILE *fd;
-	std::stringstream filename;
-	filename << snapshot_dir << "/" << "particles" << ".dat";
+    std::stringstream filename;
+    filename << snapshot_dir << "/"
+	     << "particles"
+	     << ".dat";
 
     fd = fopen(filename.str().c_str(), "r");
     if (fd == nullptr) {
-	logging::print_master( LOG_INFO "Can't find file particles.dat (%s). Using generated particles.\n", filename.str().c_str());
+	logging::print_master(
+	    LOG_INFO
+	    "Can't find file particles.dat (%s). Using generated particles.\n",
+	    filename.str().c_str());
 	return;
     }
     fseek(fd, 0L, SEEK_END);
@@ -664,10 +669,10 @@ void restart()
 
     // try to open file
 
-    mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(),
-					    MPI_MODE_RDONLY, MPI_INFO_NULL,
-					    &fh),
-			      filename.str().c_str());
+    mpi_error_check_file_read(
+	MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(), MPI_MODE_RDONLY,
+		      MPI_INFO_NULL, &fh),
+	filename.str().c_str());
 
     logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",
 			  filename.str().c_str(), size);
@@ -1094,7 +1099,7 @@ void check_tstop(t_data &data)
 
     double local_gas_time_step_cfl = 1.0;
     double global_gas_time_step_cfl = 1.0;
-	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
+    CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
     local_gas_time_step_cfl =
 	condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
@@ -1538,12 +1543,11 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
     std::memset(force_x, 0, sizeof(*force_x) * global_number_of_particles);
     std::memset(force_y, 0, sizeof(*force_y) * global_number_of_particles);
 
-    double dphi =
-	2.0 * M_PI / (double)data[t_data::SIGMA].get_size_azimuthal();
+    double dphi = 2.0 * M_PI / (double)data[t_data::SIGMA].get_size_azimuthal();
     for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
+	     n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    double cell_angle = n_azimuthal * dphi;
 	    double cell_x = Rmed[n_radial] * std::cos(cell_angle);
@@ -2580,13 +2584,14 @@ void write()
     MPI_Status status;
 
     std::stringstream filename;
-	filename << snapshot_dir << "/" << "particles.dat";
+    filename << snapshot_dir << "/"
+	     << "particles.dat";
 
     // try to open file
-    mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(),
-					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
-					     MPI_INFO_NULL, &fh),
-			       filename.str().c_str());
+    mpi_error_check_file_write(
+	MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(),
+		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh),
+	filename.str().c_str());
 
     // get number of local particles from all nodes to compute correct offsets
     std::vector<unsigned int> nodes_number_of_particles(CPU_Number);

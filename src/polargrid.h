@@ -15,7 +15,7 @@ class t_polargrid
     /// scalar or vector quantity (scalar uses grid from 0 to Nrad-1, vector
     /// from 0 to Nrad)
     bool m_scalar;
-	/// Name of the PolarGrid (can be "Sigma", "vrad", "vtheta" or "label").
+    /// Name of the PolarGrid (can be "Sigma", "vrad", "vtheta" or "label").
     char *m_name;
     /// write min/max values on 1D output
     bool m_write_max_max_1D;

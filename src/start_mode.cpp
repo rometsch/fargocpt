@@ -62,14 +62,15 @@ void configure_start_mode()
 	    }
 	case mode_restart:
 	    if (restart_from < 0) {
-			const std::string last_id = output::get_last_snapshot_id();
-			snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" + last_id;
-			restart_from = output::get_latest_output_num(last_id);
+		const std::string last_id = output::get_last_snapshot_id();
+		snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" + last_id;
+		restart_from = output::get_latest_output_num(last_id);
 	    } else {
-			// const std::string last_id = std::to_string(restart_from);
-			snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" + std::to_string(restart_from);
-			// restart_from = output::get_latest_output_num(last_id);
-		}
+		// const std::string last_id = std::to_string(restart_from);
+		snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" +
+			       std::to_string(restart_from);
+		// restart_from = output::get_latest_output_num(last_id);
+	    }
 
 	    if (restart_from < 0) {
 		mode = mode_start;
@@ -78,8 +79,8 @@ void configure_start_mode()
 	    break;
 	case mode_debug:
 	    if (restart_from < 0) {
-			const std::string last_id = output::get_last_snapshot_id();
-			restart_from = output::get_latest_output_num(last_id);
+		const std::string last_id = output::get_last_snapshot_id();
+		restart_from = output::get_latest_output_num(last_id);
 	    }
 
 	    restart_debug = true;
@@ -98,11 +99,12 @@ void configure_start_mode()
     MPI_Bcast(&restart_from, 1, MPI_INT32_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&mode, 1, MPI_UINT32_T, 0, MPI_COMM_WORLD);
 
-	int line_size = snapshot_dir.size();
-	MPI_Bcast(&line_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	if (!CPU_Master)
-		snapshot_dir.resize(line_size);
-	MPI_Bcast(const_cast<char*>(snapshot_dir.data()), line_size, MPI_CHAR, 0, MPI_COMM_WORLD);
+    int line_size = snapshot_dir.size();
+    MPI_Bcast(&line_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (!CPU_Master)
+	snapshot_dir.resize(line_size);
+    MPI_Bcast(const_cast<char *>(snapshot_dir.data()), line_size, MPI_CHAR, 0,
+	      MPI_COMM_WORLD);
 }
 
 } // namespace start_mode

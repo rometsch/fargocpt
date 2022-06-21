@@ -10,12 +10,12 @@
 #include "nongnu.h"
 #include "options.h"
 #include "parameters.h"
+#include "particles.h"
 #include "quantities.h"
 #include "start_mode.h"
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
-#include "particles.h"
 
 #include <dirent.h>
 #include <math.h>
@@ -26,148 +26,148 @@
 #include "unistd.h" // for access()
 #include <cfloat>
 #include <cstdio>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
-#include <experimental/filesystem>
 
 namespace output
 {
 
-const static std::map<const std::string, const int> quantities_file_column_v2 = {
-	{"time step", 0},
-    {"physical time", 1},
-    {"mass", 2},
-    {"angular momentum", 3},
-    {"total energy", 4},
-    {"internal energy", 5},
-    {"kinematic energy", 6},
-    {"potential energy", 7},
-    {"radial kinetic energy", 8},
-    {"azimuthal kinetic energy", 9},
-    {"eccentricity", 10},
-    {"periastron", 11},
-    {"qplus", 12},
-    {"qminus", 13},
-    {"pdivv", 14},
-    {"delta mass inner positive", 15},
-    {"delta mass inner negative", 16},
-    {"delta mass outer positive", 17},
-    {"delta mass outer negative", 18},
-    {"delta mass wave damping positive", 19},
-    {"delta mass wave damping negative", 20},
-    {"delta mass floor density positive", 21}};
+const static std::map<const std::string, const int> quantities_file_column_v2 =
+    {{"time step", 0},
+     {"physical time", 1},
+     {"mass", 2},
+     {"angular momentum", 3},
+     {"total energy", 4},
+     {"internal energy", 5},
+     {"kinematic energy", 6},
+     {"potential energy", 7},
+     {"radial kinetic energy", 8},
+     {"azimuthal kinetic energy", 9},
+     {"eccentricity", 10},
+     {"periastron", 11},
+     {"qplus", 12},
+     {"qminus", 13},
+     {"pdivv", 14},
+     {"delta mass inner positive", 15},
+     {"delta mass inner negative", 16},
+     {"delta mass outer positive", 17},
+     {"delta mass outer negative", 18},
+     {"delta mass wave damping positive", 19},
+     {"delta mass wave damping negative", 20},
+     {"delta mass floor density positive", 21}};
 
-const static std::map<const std::string, const int> quantities_file_column_v2_1 = {
-    {"time step", 0},
-    {"analysis time step", 1},
-    {"physical time", 2},
-    {"mass", 3},
-    {"angular momentum", 4},
-    {"total energy", 5},
-    {"internal energy", 6},
-    {"kinematic energy", 7},
-    {"potential energy", 8},
-    {"radial kinetic energy", 9},
-    {"azimuthal kinetic energy", 10},
-    {"eccentricity", 11},
-    {"periastron", 12},
-    {"qplus", 13},
-    {"qminus", 14},
-    {"pdivv", 15},
-    {"delta mass inner positive", 16},
-    {"delta mass inner negative", 17},
-    {"delta mass outer positive", 18},
-    {"delta mass outer negative", 19},
-    {"delta mass wave damping positive", 20},
-    {"delta mass wave damping negative", 21},
-    {"delta mass floor density positive", 22}};
+const static std::map<const std::string, const int>
+    quantities_file_column_v2_1 = {{"time step", 0},
+				   {"analysis time step", 1},
+				   {"physical time", 2},
+				   {"mass", 3},
+				   {"angular momentum", 4},
+				   {"total energy", 5},
+				   {"internal energy", 6},
+				   {"kinematic energy", 7},
+				   {"potential energy", 8},
+				   {"radial kinetic energy", 9},
+				   {"azimuthal kinetic energy", 10},
+				   {"eccentricity", 11},
+				   {"periastron", 12},
+				   {"qplus", 13},
+				   {"qminus", 14},
+				   {"pdivv", 15},
+				   {"delta mass inner positive", 16},
+				   {"delta mass inner negative", 17},
+				   {"delta mass outer positive", 18},
+				   {"delta mass outer negative", 19},
+				   {"delta mass wave damping positive", 20},
+				   {"delta mass wave damping negative", 21},
+				   {"delta mass floor density positive", 22}};
 
-const static std::map<const std::string, const int> quantities_file_column_v2_2 = {
-    {"time step", 0},
-    {"analysis time step", 1},
-    {"physical time", 2},
-    {"mass", 3},
-    {"radius", 4},
-    {"angular momentum", 5},
-    {"total energy", 6},
-    {"internal energy", 7},
-    {"kinematic energy", 8},
-    {"potential energy", 9},
-    {"radial kinetic energy", 10},
-    {"azimuthal kinetic energy", 11},
-    {"eccentricity", 12},
-    {"periastron", 13},
-    {"qplus", 14},
-    {"qminus", 15},
-    {"pdivv", 16},
-    {"delta mass inner positive", 17},
-    {"delta mass inner negative", 18},
-    {"delta mass outer positive", 19},
-    {"delta mass outer negative", 20},
-    {"delta mass wave damping positive", 21},
-    {"delta mass wave damping negative", 22},
-    {"delta mass floor density positive", 23}};
+const static std::map<const std::string, const int>
+    quantities_file_column_v2_2 = {{"time step", 0},
+				   {"analysis time step", 1},
+				   {"physical time", 2},
+				   {"mass", 3},
+				   {"radius", 4},
+				   {"angular momentum", 5},
+				   {"total energy", 6},
+				   {"internal energy", 7},
+				   {"kinematic energy", 8},
+				   {"potential energy", 9},
+				   {"radial kinetic energy", 10},
+				   {"azimuthal kinetic energy", 11},
+				   {"eccentricity", 12},
+				   {"periastron", 13},
+				   {"qplus", 14},
+				   {"qminus", 15},
+				   {"pdivv", 16},
+				   {"delta mass inner positive", 17},
+				   {"delta mass inner negative", 18},
+				   {"delta mass outer positive", 19},
+				   {"delta mass outer negative", 20},
+				   {"delta mass wave damping positive", 21},
+				   {"delta mass wave damping negative", 22},
+				   {"delta mass floor density positive", 23}};
 
-const static std::map<const std::string, const int> quantities_file_column_v2_3 = {
-    {"time step", 0},
-    {"analysis time step", 1},
-    {"physical time", 2},
-    {"mass", 3},
-    {"radius", 4},
-    {"angular momentum", 5},
-    {"total energy", 6},
-    {"internal energy", 7},
-    {"kinematic energy", 8},
-    {"potential energy", 9},
-    {"radial kinetic energy", 10},
-    {"azimuthal kinetic energy", 11},
-    {"eccentricity", 12},
-    {"periastron", 13},
-    {"viscous dissipation", 14},
-    {"luminosity", 15},
-    {"pdivv", 16},
-    {"delta mass inner positive", 17},
-    {"delta mass inner negative", 18},
-    {"delta mass outer positive", 19},
-    {"delta mass outer negative", 20},
-    {"delta mass wave damping positive", 21},
-    {"delta mass wave damping negative", 22},
-    {"delta mass floor density positive", 23},
-    {"aspect ratio", 24}};
+const static std::map<const std::string, const int>
+    quantities_file_column_v2_3 = {{"time step", 0},
+				   {"analysis time step", 1},
+				   {"physical time", 2},
+				   {"mass", 3},
+				   {"radius", 4},
+				   {"angular momentum", 5},
+				   {"total energy", 6},
+				   {"internal energy", 7},
+				   {"kinematic energy", 8},
+				   {"potential energy", 9},
+				   {"radial kinetic energy", 10},
+				   {"azimuthal kinetic energy", 11},
+				   {"eccentricity", 12},
+				   {"periastron", 13},
+				   {"viscous dissipation", 14},
+				   {"luminosity", 15},
+				   {"pdivv", 16},
+				   {"delta mass inner positive", 17},
+				   {"delta mass inner negative", 18},
+				   {"delta mass outer positive", 19},
+				   {"delta mass outer negative", 20},
+				   {"delta mass wave damping positive", 21},
+				   {"delta mass wave damping negative", 22},
+				   {"delta mass floor density positive", 23},
+				   {"aspect ratio", 24}};
 
-const static std::map<const std::string, const std::string> quantities_file_variables =
-    {{"physical time", "time"},
-     {"mass", "mass"},
-     {"radius", "length"},
-     {"angular momentum", "angular_momentum"},
-     {"total energy", "energy"},
-     {"internal energy", "energy"},
-     {"kinematic energy", "energy"},
-     {"potential energy", "energy"},
-     {"viscous dissipation", "power"},
-     {"luminosity", "power"},
-     {"pdivv", "pressure per time"},
-     {"radial kinetic energy", "energy"},
-     {"azimuthal kinetic energy", "energy"},
-     {"delta mass inner positive", "mass"},
-     {"delta mass inner negative", "mass"},
-     {"delta mass outer positive", "mass"},
-     {"delta mass outer negative", "mass"},
-     {"delta mass wave damping positive", "mass"},
-     {"delta mass wave damping negative", "mass"},
-     {"delta mass floor density positive", "mass"},
-     {"time step", "1"},
-     {"analysis time step", "1"},
-     {"omega frame", "frequency"},
-     {"lost mass", "mass"},
-     {"frame angle", "frequency"},
-     {"eccentricity", "1"},
-     {"periastron", "1"},
-     {"aspect ratio", "1"}};
+const static std::map<const std::string, const std::string>
+    quantities_file_variables = {{"physical time", "time"},
+				 {"mass", "mass"},
+				 {"radius", "length"},
+				 {"angular momentum", "angular_momentum"},
+				 {"total energy", "energy"},
+				 {"internal energy", "energy"},
+				 {"kinematic energy", "energy"},
+				 {"potential energy", "energy"},
+				 {"viscous dissipation", "power"},
+				 {"luminosity", "power"},
+				 {"pdivv", "pressure per time"},
+				 {"radial kinetic energy", "energy"},
+				 {"azimuthal kinetic energy", "energy"},
+				 {"delta mass inner positive", "mass"},
+				 {"delta mass inner negative", "mass"},
+				 {"delta mass outer positive", "mass"},
+				 {"delta mass outer negative", "mass"},
+				 {"delta mass wave damping positive", "mass"},
+				 {"delta mass wave damping negative", "mass"},
+				 {"delta mass floor density positive", "mass"},
+				 {"time step", "1"},
+				 {"analysis time step", "1"},
+				 {"omega frame", "frequency"},
+				 {"lost mass", "mass"},
+				 {"frame angle", "frequency"},
+				 {"eccentricity", "1"},
+				 {"periastron", "1"},
+				 {"aspect ratio", "1"}};
 
 static const auto quantities_file_column = quantities_file_column_v2_3;
 
@@ -181,13 +181,13 @@ void check_free_space(t_data &data)
 	die("Not enough memory.");
     }
 
-
     // check if output directory exists
-	if ((directory_pointer = opendir(directory_name)) == nullptr) {
+    if ((directory_pointer = opendir(directory_name)) == nullptr) {
 	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
 			      OUTPUTDIR);
 	die("Not output directory!");
-	return; // needed so that compuler understands directory_pointer != nullptr
+	return; // needed so that compuler understands directory_pointer !=
+		// nullptr
     }
 
     closedir(directory_pointer);
@@ -241,110 +241,115 @@ void check_free_space(t_data &data)
     free(directory_name);
 }
 
-static void register_output(const std::string &snapshot_id) {
-	if (CPU_Master) {
-		const std::string filename = std::string(OUTPUTDIR) + "/snapshots/list.txt";
-		std::ofstream output_list(filename, std::ios_base::app);
-		output_list << snapshot_id << std::endl;
-		output_list.close();
-	}
+static void register_output(const std::string &snapshot_id)
+{
+    if (CPU_Master) {
+	const std::string filename =
+	    std::string(OUTPUTDIR) + "/snapshots/list.txt";
+	std::ofstream output_list(filename, std::ios_base::app);
+	output_list << snapshot_id << std::endl;
+	output_list.close();
+    }
 }
 
-static void copy_parameters_to_snapshot_dir() {
-	if (CPU_Master) {
-		const std::string src_file = std::string(options::parameter_file);
-		const std::string dst_file = snapshot_dir + "/parameters.par";
-		std::experimental::filesystem::copy_file(src_file, dst_file);
-		if (PLANETCONFIG) {
-			const std::string src_file = std::string(PLANETCONFIG);
-			const std::string dst_file = snapshot_dir + "/planets.cfg";
-			std::experimental::filesystem::copy_file(src_file, dst_file);
-		}
+static void copy_parameters_to_snapshot_dir()
+{
+    if (CPU_Master) {
+	const std::string src_file = std::string(options::parameter_file);
+	const std::string dst_file = snapshot_dir + "/parameters.par";
+	std::experimental::filesystem::copy_file(src_file, dst_file);
+	if (PLANETCONFIG) {
+	    const std::string src_file = std::string(PLANETCONFIG);
+	    const std::string dst_file = snapshot_dir + "/planets.cfg";
+	    std::experimental::filesystem::copy_file(src_file, dst_file);
 	}
-
+    }
 }
 
-void write_output_version() {
-	if (CPU_Master) {
-		const std::string filename = std::string(OUTPUTDIR) + "/fargocpt_output_v1_0";
-		std::ofstream versionfile(filename, std::ios_base::app);
-		versionfile.close();
-	}
+void write_output_version()
+{
+    if (CPU_Master) {
+	const std::string filename =
+	    std::string(OUTPUTDIR) + "/fargocpt_output_v1_0";
+	std::ofstream versionfile(filename, std::ios_base::app);
+	versionfile.close();
+    }
 }
 
-void cleanup_autosave() {
-	const auto s = last_snapshot_dir;
-	const auto l = std::string("autosave").length();
-	if (s.length() > l) {
-		const auto ts = s.substr(s.length() - l);
-		if (ts.compare("autosave") == 0){
-			std::experimental::filesystem::remove_all(s);
-		}
+void cleanup_autosave()
+{
+    const auto s = last_snapshot_dir;
+    const auto l = std::string("autosave").length();
+    if (s.length() > l) {
+	const auto ts = s.substr(s.length() - l);
+	if (ts.compare("autosave") == 0) {
+	    std::experimental::filesystem::remove_all(s);
 	}
+    }
 }
 
-void write_full_output(t_data &data, const std::string &snapshot_id, const bool register_snapshot) {
+void write_full_output(t_data &data, const std::string &snapshot_id,
+		       const bool register_snapshot)
+{
 
-	snapshot_dir = std::string(OUTPUTDIR) + "snapshots/" + snapshot_id;
-	delete_directory_if_exists(snapshot_dir);
-	ensure_directory_exists(snapshot_dir);
-	MPI_Barrier(MPI_COMM_WORLD);
+    snapshot_dir = std::string(OUTPUTDIR) + "snapshots/" + snapshot_id;
+    delete_directory_if_exists(snapshot_dir);
+    ensure_directory_exists(snapshot_dir);
+    MPI_Barrier(MPI_COMM_WORLD);
 
+    // Enable output of Qplus / Qminus for bitwise exact restarting.
+    if (!data[t_data::QPLUS].get_write()) {
+	data[t_data::QPLUS].set_write(true, false);
+    }
+    if (!data[t_data::QMINUS].get_write()) {
+	data[t_data::QMINUS].set_write(true, false);
+    }
 
-	// Enable output of Qplus / Qminus for bitwise exact restarting.
-	if(!data[t_data::QPLUS].get_write()) {
-		data[t_data::QPLUS].set_write(true, false);
+    if (parameters::variableGamma) {
+	if (!data[t_data::GAMMAEFF].get_write()) {
+	    data[t_data::GAMMAEFF].set_write(true, false);
+	    data[t_data::MU].set_write(true, false);
+	    data[t_data::GAMMA1].set_write(true, false);
 	}
-	if(!data[t_data::QMINUS].get_write()) {
-		data[t_data::QMINUS].set_write(true, false);
-	}
+    }
 
-	if(parameters::variableGamma){
-		if(!data[t_data::GAMMAEFF].get_write()){
-			data[t_data::GAMMAEFF].set_write(true, false);
-			data[t_data::MU].set_write(true, false);
-			data[t_data::GAMMA1].set_write(true, false);
-		}
-	}
+    // write polar grids
+    output::write_grids(data, N_output, N_hydro_iter, PhysicalTime);
+    // write planet data
+    data.get_planetary_system().write_planets(0);
+    // write misc stuff (important for resuming)
+    output::write_misc();
+    // write time info for coarse output
+    output::write_coarse_time(N_output, N_outer_loop);
+    // write particles
+    if (parameters::integrate_particles) {
+	particles::write();
+    }
 
-	// write polar grids
-	output::write_grids(data, N_output, N_hydro_iter, PhysicalTime);
-	// write planet data
-	data.get_planetary_system().write_planets(0);
-	// write misc stuff (important for resuming)
-	output::write_misc();
-	// write time info for coarse output
-	output::write_coarse_time(N_output, N_outer_loop);
-	// write particles
-	if (parameters::integrate_particles) {
-		particles::write();
-	}
+    if (register_snapshot) {
+	register_output(snapshot_id);
+    }
 
-	if (register_snapshot) {
-		register_output(snapshot_id);
-	}
+    copy_parameters_to_snapshot_dir();
 
-	copy_parameters_to_snapshot_dir();
-
-	MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void write_grids(t_data &data, int index, int iter, double phystime)
 {
-	logging::print_master(
-	    LOG_INFO
-	    "Writing output %s, Timestep Number %d, Physical Time %f.\n",
-	    snapshot_dir.c_str(), index, iter, phystime);
+    logging::print_master(
+	LOG_INFO "Writing output %s, Timestep Number %d, Physical Time %f.\n",
+	snapshot_dir.c_str(), index, iter, phystime);
 
     // go thru all grids and write them
     for (unsigned int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
 	data[(t_data::t_polargrid_type)i].write_polargrid(data);
     }
 
-	// go thru all grids and write them
-	for (unsigned int i = 0; i < t_data::N_RADIALGRID_TYPES; ++i) {
-	    data[(t_data::t_radialgrid_type)i].write_radialgrid(index, data);
-	}
+    // go thru all grids and write them
+    for (unsigned int i = 0; i < t_data::N_RADIALGRID_TYPES; ++i) {
+	data[(t_data::t_radialgrid_type)i].write_radialgrid(index, data);
+    }
 }
 
 /**
@@ -353,8 +358,8 @@ void write_grids(t_data &data, int index, int iter, double phystime)
 void write_quantities(t_data &data, bool force_update)
 {
     FILE *fd = 0;
-	std::string filename = std::string(OUTPUTDIR) + "Quantities.dat";
-	auto fd_filename = filename.c_str();
+    std::string filename = std::string(OUTPUTDIR) + "Quantities.dat";
+    auto fd_filename = filename.c_str();
     static bool fd_created = false;
 
     if (CPU_Master) {
@@ -502,9 +507,9 @@ void write_misc()
 
     std::ofstream wf;
     std::string filename;
-	filename = snapshot_dir + "/misc.bin";
-	
-	wf = std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
+    filename = snapshot_dir + "/misc.bin";
+
+    wf = std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
 
     if (!wf.is_open()) {
 	logging::print_master(
@@ -562,8 +567,8 @@ static std::string unit_descriptor(double value, std::string unit)
 }
 
 std::string text_file_variable_description(
-	const std::map<const std::string, const int> &variables,
-	const std::map<const std::string, const std::string> &units)
+    const std::map<const std::string, const int> &variables,
+    const std::map<const std::string, const std::string> &units)
 {
     // construct a header string describing each variable in
     // its own line including the column and its unit. e.g.
@@ -617,7 +622,7 @@ std::string text_file_variable_description(
 int load_misc()
 {
     std::string filename;
-	filename = snapshot_dir + "/misc.bin";
+    filename = snapshot_dir + "/misc.bin";
 
     std::ifstream rf(filename, std::ios::in | std::ios::binary);
 
@@ -630,9 +635,9 @@ int load_misc()
 
     misc_entry misc;
 
-	rf.read((char *)&misc, sizeof(misc_entry));
+    rf.read((char *)&misc, sizeof(misc_entry));
 
-	N_output = misc.timestep;
+    N_output = misc.timestep;
     N_outer_loop = misc.nTimeStep;
     PhysicalTime = misc.PhysicalTime;
     OmegaFrame = misc.OmegaFrame;
@@ -680,8 +685,7 @@ void write_torques(t_data &data, bool force_update)
 		const double xc = cell_center_x[cell_id];
 		const double yc = cell_center_y[cell_id];
 		const double cellmass =
-		    Surf[n_radial] *
-		    data[t_data::SIGMA](n_radial, n_azimuthal);
+		    Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
 		const double dx = xc - x;
 		const double dy = yc - y;
 		const double dist_sm_2 =
@@ -709,7 +713,7 @@ void write_torques(t_data &data, bool force_update)
 	free(name);
 
 	if (force_update == false) {
-		data[t_data::TORQUE_1D].write1D();
+	    data[t_data::TORQUE_1D].write1D();
 	}
     }
 }
@@ -794,8 +798,8 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
-		local_mass = data[t_data::SIGMA](n_radial, n_azimuthal) *
-			     Surf[n_radial];
+		local_mass =
+		    data[t_data::SIGMA](n_radial, n_azimuthal) * Surf[n_radial];
 		local_eccentricity +=
 		    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) *
 		    local_mass;
@@ -1026,15 +1030,13 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
 	if (!fd_created) {
 	    // print header
+	    fprintf(fd, "# Time log for course output.\n"
+			"#version: 0.1\n"
+			"#variable: 0 | time step | 1\n"
+			"#variable: 1 | analysis time step | 1\n"
+			"#variable: 2 | physical time | ");
+	    fprintf(fd, units::time.get_cgs_factor_symbol().c_str());
 	    fprintf(
-		fd,
-		"# Time log for course output.\n"
-		"#version: 0.1\n"
-		"#variable: 0 | time step | 1\n"
-		"#variable: 1 | analysis time step | 1\n"
-		"#variable: 2 | physical time | ");
-		fprintf(fd, units::time.get_cgs_factor_symbol().c_str());
-		fprintf(
 		fd,
 		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n",
@@ -1050,20 +1052,19 @@ void write_coarse_time(unsigned int coarseOutputNumber,
     }
 }
 
-
-static std::istream& ignoreline(std::ifstream& in, std::ifstream::pos_type& pos)
+static std::istream &ignoreline(std::ifstream &in, std::ifstream::pos_type &pos)
 {
     pos = in.tellg();
     return in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
-static std::string getLastLine(std::ifstream& in)
+static std::string getLastLine(std::ifstream &in)
 {
     std::ifstream::pos_type pos = in.tellg();
 
     std::ifstream::pos_type lastPos;
     while (in >> std::ws && ignoreline(in, lastPos))
-        pos = lastPos;
+	pos = lastPos;
 
     in.clear();
     in.seekg(pos);
@@ -1073,22 +1074,23 @@ static std::string getLastLine(std::ifstream& in)
     return line;
 }
 
-
-std::string get_last_snapshot_id() {
-	const std::string filename = std::string(OUTPUTDIR) + "/snapshots/list.txt";
+std::string get_last_snapshot_id()
+{
+    const std::string filename = std::string(OUTPUTDIR) + "/snapshots/list.txt";
     std::ifstream file(filename);
-	std::string last_id = getLastLine(file);
-	return last_id;
+    std::string last_id = getLastLine(file);
+    return last_id;
 }
 
 std::int32_t get_latest_output_num(const std::string &snapshot_id)
 {
     std::experimental::filesystem::path path;
     path = OUTPUTDIR;
-	path /= "snapshots";
+    path /= "snapshots";
     path /= snapshot_id;
 
-	logging::print_master(LOG_INFO "Getting output number of snapshot %s\n", snapshot_id.c_str());
+    logging::print_master(LOG_INFO "Getting output number of snapshot %s\n",
+			  snapshot_id.c_str());
 
     std::ifstream misc_file(path, std::ios::in | std::ios::binary);
 
@@ -1102,11 +1104,12 @@ std::int32_t get_latest_output_num(const std::string &snapshot_id)
 
     output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0};
 
-	misc_file.read((char *)&entry, sizeof(output::misc_entry));
+    misc_file.read((char *)&entry, sizeof(output::misc_entry));
 
     misc_file.close();
 
-	std::cout << "found output num " << entry.timestep << " in " << path << std::endl;
+    std::cout << "found output num " << entry.timestep << " in " << path
+	      << std::endl;
 
     return entry.timestep;
 }

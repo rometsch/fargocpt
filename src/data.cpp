@@ -11,7 +11,7 @@ t_data::t_data()
 {
     // -- polar grids --
     m_polargrids[SIGMA].set_scalar(true);
-	m_polargrids[SIGMA].set_name("Sigma");
+    m_polargrids[SIGMA].set_name("Sigma");
     m_polargrids[SIGMA].set_unit(units::surface_density);
 
     m_polargrids[V_RADIAL].set_vector(true);

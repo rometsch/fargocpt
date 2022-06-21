@@ -375,7 +375,7 @@ void init_shakura_sunyaev(t_data &data)
 					 2. * (RMAX - RMIN) / GlobalNRadial)),
 			 0.25);
 
-		data[t_data::SIGMA](n_radial, n_azimuthal) =
+	    data[t_data::SIGMA](n_radial, n_azimuthal) =
 		(5.2 * std::pow(ALPHAVISCOSITY, -4. / 5.) *
 		 std::pow(parameters::mass_accretion_rate *
 			      units::mass_accretion_rate.get_cgs_factor() /
@@ -436,7 +436,7 @@ void init_shakura_sunyaev(t_data &data)
 	}
     }
 
-	RefillSigma(&data[t_data::SIGMA]);
+    RefillSigma(&data[t_data::SIGMA]);
     RefillEnergy(&data[t_data::ENERGY]);
 
     if (parameters::self_gravity) {
@@ -468,7 +468,7 @@ void init_spreading_ring_test(t_data &data)
     double R0_ = R0;
 
     unsigned int R0_id = 0;
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
+    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	if (Rsup[n_radial] > R0 && R0 > Rinf[n_radial]) {
 	    R0_ = Rmed[n_radial];
@@ -489,10 +489,10 @@ void init_spreading_ring_test(t_data &data)
 			  (tau0 * std::pow(x, 0.25)) * I *
 			  std::exp(-(1.0 + x * x) / tau0);
 
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
+    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
+	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 	    const double density_floor = Sigma0 * parameters::sigma_floor;
 	    const double energy = 0.0;
 
@@ -504,13 +504,13 @@ void init_spreading_ring_test(t_data &data)
 
 	    density = std::max(density, density_floor);
 
-		data[t_data::SIGMA](n_radial, n_azimuthal) = density;
+	    data[t_data::SIGMA](n_radial, n_azimuthal) = density;
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
 	}
     }
 
     // set SigmaMed/SigmaInf
-	RefillSigma(&data[t_data::SIGMA]);
+    RefillSigma(&data[t_data::SIGMA]);
     RefillEnergy(&data[t_data::ENERGY]);
 }
 
@@ -543,10 +543,10 @@ void init_spreading_ring_test_jibin(t_data &data)
 	LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", sig0,
 	sig0 * units::surface_density.get_cgs_factor());
 
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
+    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
+	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 
 	    const double R = Rmed[n_radial];
 	    const double OmegaK = 1.0 / (R * std::sqrt(R));
@@ -567,7 +567,7 @@ void init_spreading_ring_test_jibin(t_data &data)
 
 	    const double sig = sig_ring + sig_disk + sig_noise;
 
-		data[t_data::SIGMA](n_radial, n_azimuthal) = sig;
+	    data[t_data::SIGMA](n_radial, n_azimuthal) = sig;
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr;
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
@@ -581,7 +581,7 @@ void init_spreading_ring_test_jibin(t_data &data)
     }
 
     // set SigmaMed/SigmaInf
-	RefillSigma(&data[t_data::SIGMA]);
+    RefillSigma(&data[t_data::SIGMA]);
     RefillEnergy(&data[t_data::ENERGY]);
 }
 
@@ -593,10 +593,10 @@ void init_shock_tube_test(t_data &data)
 {
     logging::print_master(LOG_INFO "Initializing ShockTube\n");
 
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
+    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
+	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 	    double density = 1.0;
 	    double energy = 2.5;
 
@@ -605,7 +605,7 @@ void init_shock_tube_test(t_data &data)
 		energy = 2.0 * 0.125;
 	    }
 
-		data[t_data::SIGMA](n_radial, n_azimuthal) = density;
+	    data[t_data::SIGMA](n_radial, n_azimuthal) = density;
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
 	}
     }
@@ -680,7 +680,7 @@ void init_shock_tube_test(t_data &data)
     constants::calculate_constants_in_code_units();
 
     // set SigmaMed/SigmaInf
-	RefillSigma(&data[t_data::SIGMA]);
+    RefillSigma(&data[t_data::SIGMA]);
     RefillEnergy(&data[t_data::ENERGY]);
 }
 
@@ -688,10 +688,10 @@ void init_PVTE_shock_tube_test(t_data &data)
 {
     logging::print_master(LOG_INFO "Initializing PVTE-ShockTube\n");
 
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
+    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
+	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 	    double density = 1.0;
 	    double energy = 10.361627466581034;
 
@@ -700,7 +700,7 @@ void init_PVTE_shock_tube_test(t_data &data)
 		energy = 0.9110851732216827;
 	    }
 
-		data[t_data::SIGMA](n_radial, n_azimuthal) = density;
+	    data[t_data::SIGMA](n_radial, n_azimuthal) = density;
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
 	}
     }
@@ -774,7 +774,7 @@ void init_PVTE_shock_tube_test(t_data &data)
     compute_pressure(data, false);
 
     // set SigmaMed/SigmaInf
-	RefillSigma(&data[t_data::SIGMA]);
+    RefillSigma(&data[t_data::SIGMA]);
     RefillEnergy(&data[t_data::ENERGY]);
 }
 
@@ -803,10 +803,10 @@ void init_secondary_disk_densities(t_data &data)
 
     const double min_dist = RMIN / 3.0;
 
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
+    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
+	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 
 	    const double phi = (double)n_azimuthal * dphi;
 	    const double rmed = Rmed[n_radial];
@@ -820,7 +820,7 @@ void init_secondary_disk_densities(t_data &data)
 				       cutoff_outer(disk_size, cutoff_width, r);
 
 		const double density_old =
-			std::max(data[t_data::SIGMA](n_radial, n_azimuthal),
+		    std::max(data[t_data::SIGMA](n_radial, n_azimuthal),
 			     parameters::sigma_floor * parameters::sigma0);
 
 		data[t_data::SIGMA](n_radial, n_azimuthal) =
@@ -883,7 +883,7 @@ void init_secondary_disk_energies(t_data &data)
 		    units::temperature.get_inverse_cgs_factor();
 		const double energy_floor =
 		    temperature_floor *
-			data[t_data::SIGMA](n_radial, n_azimuthal) /
+		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		const double temperature_ceil =
@@ -891,7 +891,7 @@ void init_secondary_disk_energies(t_data &data)
 		    units::temperature.get_inverse_cgs_factor();
 		const double energy_ceil =
 		    temperature_ceil *
-			data[t_data::SIGMA](n_radial, n_azimuthal) /
+		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		const double energy_old = std::max(
@@ -1083,7 +1083,7 @@ void init_gas_density(t_data &data)
 	const double cms_y = cms.y;
 
 	for (unsigned int n_radial = 0;
-		 n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
+	     n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 		 ++n_azimuthal) {
@@ -1153,7 +1153,7 @@ void init_gas_density(t_data &data)
 	logging::print_master(LOG_INFO "Randomizing Sigma by %.2f %%.\n",
 			      parameters::sigma_random_factor * 100);
 	for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
+	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -1200,7 +1200,7 @@ void init_gas_density(t_data &data)
 		units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
+	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -1221,7 +1221,7 @@ void init_gas_density(t_data &data)
 		    r = Rmed[n_radial];
 		}
 		const double density_damped =
-			data[t_data::SIGMA](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    cutoff_outer(parameters::profile_cutoff_point_outer,
 				 parameters::profile_cutoff_width_outer, r);
 		const double density_floor =
@@ -1243,7 +1243,7 @@ void init_gas_density(t_data &data)
 		units::length.get_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
+	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -1264,7 +1264,7 @@ void init_gas_density(t_data &data)
 		    r = Rmed[n_radial];
 		}
 		const double density_damped =
-			data[t_data::SIGMA](n_radial, n_azimuthal) *
+		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    cutoff_inner(parameters::profile_cutoff_point_inner,
 				 parameters::profile_cutoff_width_inner, r);
 		const double density_floor =
@@ -1290,7 +1290,7 @@ void renormalize_sigma_and_report(t_data &data)
 
 	// update density grid
 	for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
+	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 		 ++n_azimuthal) {
@@ -1307,7 +1307,7 @@ void renormalize_sigma_and_report(t_data &data)
     }
 
     // set SigmaMed/SigmaInf
-	RefillSigma(&data[t_data::SIGMA]);
+    RefillSigma(&data[t_data::SIGMA]);
 }
 
 void init_eos_arrays(t_data &data)
@@ -1370,7 +1370,7 @@ void init_gas_energy(t_data &data)
 		    units::temperature.get_inverse_cgs_factor();
 		const double energy_floor =
 		    temperature_floor *
-			data[t_data::SIGMA](n_radial, n_azimuthal) /
+		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
@@ -1422,7 +1422,7 @@ void init_gas_energy(t_data &data)
 		    units::temperature.get_inverse_cgs_factor();
 		const double energy_floor =
 		    temperature_floor *
-			data[t_data::SIGMA](n_radial, n_azimuthal) /
+		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
@@ -1488,7 +1488,7 @@ void init_gas_energy(t_data &data)
 		    units::temperature.get_inverse_cgs_factor();
 		const double energy_floor =
 		    temperature_floor *
-			data[t_data::SIGMA](n_radial, n_azimuthal) /
+		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
@@ -1537,7 +1537,7 @@ void init_gas_energy(t_data &data)
 		    units::temperature.get_inverse_cgs_factor();
 		const double energy_floor =
 		    temperature_floor *
-			data[t_data::SIGMA](n_radial, n_azimuthal) /
+		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =

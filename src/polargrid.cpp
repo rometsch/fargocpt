@@ -68,10 +68,10 @@ void t_polargrid::set_name(const char *name)
     delete[] m_name;
 
     // aquire space for new name
-	const unsigned int length = strlen(name) + 1;
-	m_name = new char[length];
+    const unsigned int length = strlen(name) + 1;
+    m_name = new char[length];
 
-	strncpy(m_name, name, length);
+    strncpy(m_name, name, length);
 }
 
 /**
@@ -125,8 +125,8 @@ void t_polargrid::write2D() const
     unsigned int count;
     double *from;
 
-    std::string filename = snapshot_dir + "/" +
-			   std::string(get_name()) + ".dat";
+    std::string filename =
+	snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
@@ -181,8 +181,8 @@ void t_polargrid::write1D() const
     // use Rmed or Rinf depending if this quantity is scalar or vector
     t_radialarray &radius = is_scalar() ? Rb : Ra;
 
-    const std::string filename = snapshot_dir + "/" +
-				 std::string(get_name()) + +"1D" + ".dat";
+    const std::string filename =
+	snapshot_dir + "/" + std::string(get_name()) + +"1D" + ".dat";
 
     // try to open file
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),

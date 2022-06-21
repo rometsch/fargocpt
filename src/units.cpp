@@ -72,11 +72,11 @@ void t_unit::set_cgs_symbol(const char *symbol)
     delete[] m_cgs_symbol;
 
     // aquire memory for symbol
-	const unsigned int length = strlen(symbol) + 1;
-	m_cgs_symbol = new char[length];
+    const unsigned int length = strlen(symbol) + 1;
+    m_cgs_symbol = new char[length];
 
     // copy symbol
-	strncpy(m_cgs_symbol, symbol, length);
+    strncpy(m_cgs_symbol, symbol, length);
 }
 
 /**

@@ -35,7 +35,6 @@ bool Locally_Isothermal = false;
 
 bool variableGamma = false;
 
-
 t_radial_grid radial_grid_type;
 const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",
 				   "custom"};
@@ -209,8 +208,8 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
     t_DampingType damping_type;
     damping_type.array_to_damp = quantity;
     damping_type.array_with_damping_values = quantity0;
-	damping_type.type_inner = type_inner;
-	damping_type.type_outer = type_outer;
+    damping_type.type_inner = type_inner;
+    damping_type.type_outer = type_outer;
     std::string description_inner;
     std::string description_outer;
 
@@ -277,7 +276,7 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	break;
     }
 
-	logging::print_master(LOG_INFO "%s\n", description_inner.c_str());
+    logging::print_master(LOG_INFO "%s\n", description_inner.c_str());
     logging::print_master(LOG_INFO "%s\n", description_outer.c_str());
 
     return damping_type;
@@ -427,10 +426,11 @@ void read(char *filename, t_data &data)
     // parse light curve radii
     if (config::key_exists("WriteLightCurvesRadii")) {
 	// get light curves radii string
-	const unsigned int length = strlen(config::value_as_string("WriteLightCurvesRadii")) + 1;
+	const unsigned int length =
+	    strlen(config::value_as_string("WriteLightCurvesRadii")) + 1;
 	char *lightcurves_radii_string = new char[length];
 	strncpy(lightcurves_radii_string,
-		   config::value_as_string("WriteLightCurvesRadii"), length);
+		config::value_as_string("WriteLightCurvesRadii"), length);
 
 	char *ptr = strtok(lightcurves_radii_string, " ,");
 	while (ptr != NULL) {
@@ -613,9 +613,9 @@ void read(char *filename, t_data &data)
     tmp_damping_outer = config::value_as_boudary_damping_default(
 	"DampingSurfaceDensityOuter", "None");
 
-    damping_vector.push_back(write_damping_type(
-	tmp_damping_inner, tmp_damping_outer, t_data::SIGMA, t_data::SIGMA0,
-	"SurfaceDensity"));
+    damping_vector.push_back(
+	write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::SIGMA,
+			   t_data::SIGMA0, "SurfaceDensity"));
 
     if (config::key_exists("DampingEnergy"))
 	die("DampingEnergy flag is decrepated used DampingEnergyInner and DampingEnergyOuter instead!");
@@ -712,10 +712,13 @@ void read(char *filename, t_data &data)
 
     if (config::key_exists("SigmaFilename")) {
 	if (strlen(config::value_as_string_default("SigmaFilename", "")) > 0) {
-		const unsigned int length = strlen(config::value_as_string_default("SigmaFilename", "")) + 1;
-		sigma_filename = new char[length];
-		strncpy(sigma_filename,
-		   config::value_as_string_default("SigmaFilename", ""), length);
+	    const unsigned int length =
+		strlen(config::value_as_string_default("SigmaFilename", "")) +
+		1;
+	    sigma_filename = new char[length];
+	    strncpy(sigma_filename,
+		    config::value_as_string_default("SigmaFilename", ""),
+		    length);
 	}
     }
 
@@ -746,11 +749,13 @@ void read(char *filename, t_data &data)
 
     if (config::key_exists("EnergyFilename")) {
 	if (strlen(config::value_as_string_default("EnergyFilename", "")) > 0) {
-		const unsigned int length = strlen(
-					config::value_as_string_default("EnergyFilename", "")) + 1;
-		energy_filename = new char[length];
-		strncpy(energy_filename,
-		   config::value_as_string_default("EnergyFilename", ""), length);
+	    const unsigned int length =
+		strlen(config::value_as_string_default("EnergyFilename", "")) +
+		1;
+	    energy_filename = new char[length];
+	    strncpy(energy_filename,
+		    config::value_as_string_default("EnergyFilename", ""),
+		    length);
 	}
     }
 
@@ -1248,16 +1253,20 @@ void summarize_parameters()
 	"Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n",
 	radial_viscosity_factor);
 
-	if (!damping) {
-		logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
-		is_damping_initial = false;
-	} else {
-		is_damping_initial = false;
-		for (unsigned int i = 0; i < damping_vector.size(); ++i) {
-			is_damping_initial = is_damping_initial || (damping_vector[i].type_inner == damping_initial);
-			is_damping_initial = is_damping_initial || (damping_vector[i].type_outer == damping_initial);
-		}
+    if (!damping) {
+	logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
+	is_damping_initial = false;
+    } else {
+	is_damping_initial = false;
+	for (unsigned int i = 0; i < damping_vector.size(); ++i) {
+	    is_damping_initial =
+		is_damping_initial ||
+		(damping_vector[i].type_inner == damping_initial);
+	    is_damping_initial =
+		is_damping_initial ||
+		(damping_vector[i].type_outer == damping_initial);
 	}
+    }
 
     logging::print_master(LOG_INFO "Surface density factor: %g\n",
 			  density_factor);
@@ -1341,7 +1350,7 @@ void summarize_parameters()
 	for (unsigned int i = 0; i < lightcurves_radii.size(); ++i) {
 	    int size = asprintf(&temp, "%lf, ", lightcurves_radii[i]);
 	    buffer = (char *)realloc(buffer, (pos + size + 1) * sizeof(char));
-		strncpy(&buffer[pos], temp, strlen(&buffer[pos]));
+	    strncpy(&buffer[pos], temp, strlen(&buffer[pos]));
 	    free(temp);
 	    pos += size;
 	}

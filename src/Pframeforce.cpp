@@ -54,20 +54,20 @@ void ComputeIndirectTermDisk(t_data &data)
 	IndirectTermDisk.y /= mass_center;
     }
 
-	IndirectTerm.x = IndirectTermDisk.x;
-	IndirectTerm.y = IndirectTermDisk.y;
+    IndirectTerm.x = IndirectTermDisk.x;
+    IndirectTerm.y = IndirectTermDisk.y;
 }
 
 void ComputeIndirectTerm(t_data &data)
 {
-	IndirectTermPlanets.x = 0.0;
-	IndirectTermPlanets.y = 0.0;
+    IndirectTermPlanets.x = 0.0;
+    IndirectTermPlanets.y = 0.0;
 
-	// compute nbody indirect term
-	// add up contributions from mutual interactions from all bodies used to
-	// calculate the center
-	double mass_center = 0.0;
-	for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
+    // compute nbody indirect term
+    // add up contributions from mutual interactions from all bodies used to
+    // calculate the center
+    double mass_center = 0.0;
+    for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
 	 n++) {
 	t_planet &planet = data.get_planetary_system().get_planet(n);
 	const double mass = planet.get_mass();
@@ -75,12 +75,12 @@ void ComputeIndirectTerm(t_data &data)
 	IndirectTermPlanets.x -= mass * accel.x;
 	IndirectTermPlanets.y -= mass * accel.y;
 	mass_center += mass;
-	}
-	IndirectTermPlanets.x /= mass_center;
-	IndirectTermPlanets.y /= mass_center;
+    }
+    IndirectTermPlanets.x /= mass_center;
+    IndirectTermPlanets.y /= mass_center;
 
-	IndirectTerm.x += IndirectTermPlanets.x;
-	IndirectTerm.y += IndirectTermPlanets.y;
+    IndirectTerm.x += IndirectTermPlanets.x;
+    IndirectTerm.y += IndirectTermPlanets.y;
 }
 
 /* Below : work in non-rotating frame */
@@ -138,8 +138,10 @@ void CalculateNbodyPotential(t_data &data)
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
-			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
-			// position of the l1 point between planet and central star.
+		    if ((std::abs(xpl[k]) + std::abs(ypl[k])) >
+			1.0e-10) { // only for non central objects
+			// position of the l1 point between planet and central
+			// star.
 			const double l1 = l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
@@ -224,7 +226,8 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
+		    if ((std::abs(xpl[k]) + std::abs(ypl[k])) >
+			1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
@@ -311,7 +314,8 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
+		    if ((std::abs(xpl[k]) + std::abs(ypl[k])) >
+			1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
@@ -436,7 +440,7 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
 void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system)
 {
 
-	for (unsigned int npl = 0; npl < planetary_system.get_number_of_planets();
+    for (unsigned int npl = 0; npl < planetary_system.get_number_of_planets();
 	 npl++) {
 	t_planet &planet = planetary_system.get_planet(npl);
 	const double vx_old = planet.get_vx();
@@ -445,41 +449,47 @@ void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system)
 	const double vx_new = planetary_system.m_rebound->particles[npl].vx;
 	const double vy_new = planetary_system.m_rebound->particles[npl].vy;
 
-	if(hydro_dt > 0.0){
-	const double ax = (vx_new - vx_old)/hydro_dt;
-	const double ay = (vy_new - vy_old)/hydro_dt;
+	if (hydro_dt > 0.0) {
+	    const double ax = (vx_new - vx_old) / hydro_dt;
+	    const double ay = (vy_new - vy_old) / hydro_dt;
 
-	planet.set_nbody_on_planet_acceleration_x(ax);
-	planet.set_nbody_on_planet_acceleration_y(ay);
+	    planet.set_nbody_on_planet_acceleration_x(ax);
+	    planet.set_nbody_on_planet_acceleration_y(ay);
 	} else {
-	planet.set_nbody_on_planet_acceleration_x(0.0);
-	planet.set_nbody_on_planet_acceleration_y(0.0);
+	    planet.set_nbody_on_planet_acceleration_x(0.0);
+	    planet.set_nbody_on_planet_acceleration_y(0.0);
 	}
-	}
+    }
 }
 
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt)
 {
-	unsigned int n = data.get_planetary_system().get_number_of_planets();
+    unsigned int n = data.get_planetary_system().get_number_of_planets();
 
-	if (parameters::integrate_planets) {
-		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
-			q0[i+0*n] = data.get_planetary_system().get_planet(i).get_x();
-			q0[i+1*n] = data.get_planetary_system().get_planet(i).get_y();
-			q0[i+2*n] = data.get_planetary_system().get_planet(i).get_vx();
-			q0[i+3*n] = data.get_planetary_system().get_planet(i).get_vy();
-			PlanetMasses[i] = data.get_planetary_system().get_planet(i).get_mass();
-		}
-
-		RungeKutta(q0, dt, PlanetMasses, q1, n);
-
-		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
-			data.get_planetary_system().get_planet(i).set_nbody_on_planet_acceleration_x(q1[i+2*n]);
-			data.get_planetary_system().get_planet(i).set_nbody_on_planet_acceleration_y(q1[i+3*n]);
-		}
-
+    if (parameters::integrate_planets) {
+	for (unsigned int i = 0;
+	     i < data.get_planetary_system().get_number_of_planets(); i++) {
+	    q0[i + 0 * n] = data.get_planetary_system().get_planet(i).get_x();
+	    q0[i + 1 * n] = data.get_planetary_system().get_planet(i).get_y();
+	    q0[i + 2 * n] = data.get_planetary_system().get_planet(i).get_vx();
+	    q0[i + 3 * n] = data.get_planetary_system().get_planet(i).get_vy();
+	    PlanetMasses[i] =
+		data.get_planetary_system().get_planet(i).get_mass();
 	}
+
+	RungeKutta(q0, dt, PlanetMasses, q1, n);
+
+	for (unsigned int i = 0;
+	     i < data.get_planetary_system().get_number_of_planets(); i++) {
+	    data.get_planetary_system()
+		.get_planet(i)
+		.set_nbody_on_planet_acceleration_x(q1[i + 2 * n]);
+	    data.get_planetary_system()
+		.get_planet(i)
+		.set_nbody_on_planet_acceleration_y(q1[i + 3 * n]);
+	}
+    }
 }
 
 /**

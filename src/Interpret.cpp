@@ -117,15 +117,14 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	PLANETCONFIG = nullptr;
     }
 
-	ensure_directory_exists(std::string(OUTPUTDIR));
-	MPI_Barrier(MPI_COMM_WORLD);
-
+    ensure_directory_exists(std::string(OUTPUTDIR));
+    MPI_Barrier(MPI_COMM_WORLD);
 
     start_mode::configure_start_mode();
 
-	ensure_directory_exists(std::string(OUTPUTDIR) + "snapshots/");
-	ensure_directory_exists(std::string(OUTPUTDIR) + "parameters/");
-	MPI_Barrier(MPI_COMM_WORLD);
+    ensure_directory_exists(std::string(OUTPUTDIR) + "snapshots/");
+    ensure_directory_exists(std::string(OUTPUTDIR) + "parameters/");
+    MPI_Barrier(MPI_COMM_WORLD);
 
     if (CPU_Master) {
 
