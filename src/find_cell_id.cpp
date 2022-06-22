@@ -41,10 +41,10 @@ unsigned int clamp_r_id_to_radii_grid(int cell_id, const bool is_vector)
 
 unsigned int clamp_phi_id_to_grid(int cell_id)
 {
-    if (cell_id < 0) {
+	while (cell_id < 0) {
 	cell_id += NAzimuthal;
     }
-    if (cell_id >= (int)NAzimuthal) {
+	while (cell_id >= (int)NAzimuthal) {
 	cell_id -= NAzimuthal;
     }
 
