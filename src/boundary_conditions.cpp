@@ -186,9 +186,10 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    vphi = vphi * pluto_v0 *
 				   units::velocity.get_inverse_cgs_factor();
 
+				const double m_bin = data.get_planetary_system().get_mass(2);
 			    const double Cs =
 				pluto_aspect_ratio *
-				sqrt(constants::G * hydro_center_mass / RMAX) *
+				sqrt(constants::G * m_bin / RMAX) *
 				std::pow(RMAX, FLARINGINDEX);
 			    const double P = sigma * Cs * Cs;
 			    const double T =
