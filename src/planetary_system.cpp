@@ -166,9 +166,9 @@ void t_planetary_system::read_from_file(char *filename)
 					 eccentricity, phi);
 	    } else {
 		// planets starts at Apastron
-		double nu = M_PI + phi;
+		double nu = phi;
 
-		double pericenter_angle = phi;
+		double pericenter_angle = M_PI;
 		if (get_number_of_planets() < 2) {
 		    initialize_planet_jacobi_adjust_first_two(
 			planet, mass, semi_major_axis, eccentricity,
@@ -440,6 +440,13 @@ void t_planetary_system::initialize_planet_jacobi_adjust_first_two(
     } else {
 	// initialize the second planet around the origin, such that the two
 	// bodies have the correct separation
+
+	// Flip pericenter angle such that heavier component sits at the
+	// center in the beginning and shift from there.
+	if(mass > m_planets[0]->get_mass()){
+		omega += M_PI;
+	}
+
 	initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity,
 				 omega, true_anomaly);
 	t_planet *planet1 = m_planets[0];
