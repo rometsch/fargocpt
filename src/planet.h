@@ -65,6 +65,8 @@ class t_planet
     double m_dimensionless_roche_radius;
 
     /// orbital elements
+	double m_omega;
+	double m_orbital_period;
     double m_semi_major_axis;
     double m_eccentricity;
     double m_mean_anomaly;
