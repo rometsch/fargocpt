@@ -18,7 +18,7 @@ EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 
 AspectRatio     	0.03            # Thickness over Radius in the disk
 TemperatureCGS0     352.0     # Midplane Temperature at 1 au in K, overwrites AspectRaio
-ExplicitViscosity   No
+ExplicitViscosity   Yes
 ViscosityInCGS		Yes		# Uniform kinematic viscosity
 Viscosity		5.0e16		# Uniform kinematic viscosity
 AlphaViscosity		0.0		#
@@ -44,8 +44,8 @@ HeatingStar		No
 HeatingStarRampingTime	5		# Ramping time for star heating in timesteps
 HeatingStarFactor	1.0
 HeatingStarSimple	No			# Use simplified star heating [default = No]
-MinimumTemperature	3		# minimum Temperature in K
-MaximumTemperature	NaN		# default [NaN = disabled]
+MinimumTemperature	3.0		# minimum Temperature in K
+MaximumTemperature	1.0e7		# default [NaN = disabled]
 TauFactor		1.0		# correction factor for tau [default = 1.0]
 Opacity			Simple		# opacity table to use (Lin, Bell, Zhu, Kramers, Const, Simple) [default = Lin]
 KappaConst      2.0e-6
@@ -96,8 +96,8 @@ Transport		FARGO
 #InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 InnerBoundary		RIGID
 OuterBoundary		RIGID
-DomegaDrZero		Yes		# Set dOmega/dr = 0 at outer boundary
-Damping			Yes      # NO, YES [default = no]
+DomegaDrZero		No		# Set dOmega/dr = 0 at outer boundary
+Damping			No      # NO, YES [default = no]
 DampingInnerLimit	1.05    	# Rmin*Limit
 DampingOuterLimit	0.95    	# Rmax*Limit
 DampingTimeFactor	1.0e-1
@@ -157,7 +157,7 @@ WriteEccentricity	No		# Write eccentricity. [default = no]
 WriteTReynolds		No		# Write Reynolds stress tensor. [default = no]
 WriteTGravitational	No		# Write gravitational stress tensor. [default = no]
 WritepdV		No		# Write pdV. [default = no]
-WriteDiskQuantities	No		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteDiskQuantities	Yes		# Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
 WriteRadialLuminosity	No		# Write radial luminosity [default = no]
 WriteRadialDissipation	No		# Write radial dissipation [default = no]
 WriteLightCurves	No		# Write light curves [default = no]
