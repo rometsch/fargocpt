@@ -751,11 +751,11 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -808,11 +808,11 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -867,11 +867,11 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -924,11 +924,11 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -989,11 +989,11 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -1112,11 +1112,11 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }

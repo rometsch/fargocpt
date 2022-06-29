@@ -132,10 +132,12 @@ const std::map<const std::string, const int> quantities_file_column_v2_3 = {
     {"delta mass inner negative", 18},
     {"delta mass outer positive", 19},
     {"delta mass outer negative", 20},
-    {"delta mass wave damping positive", 21},
-    {"delta mass wave damping negative", 22},
-    {"delta mass floor density positive", 23},
-    {"aspect ratio", 24}};
+	{"delta mass inner wave damping positive", 21},
+	{"delta mass inner wave damping negative", 22},
+	{"delta mass outer wave damping positive", 23},
+	{"delta mass outer wave damping negative", 24},
+	{"delta mass floor density positive", 25},
+	{"aspect ratio", 26}};
 
 const std::map<const std::string, const std::string> quantities_file_variables =
     {{"physical time", "time"},
@@ -155,8 +157,10 @@ const std::map<const std::string, const std::string> quantities_file_variables =
      {"delta mass inner negative", "mass"},
      {"delta mass outer positive", "mass"},
      {"delta mass outer negative", "mass"},
-     {"delta mass wave damping positive", "mass"},
-     {"delta mass wave damping negative", "mass"},
+	 {"delta mass inner wave damping positive", "mass"},
+	 {"delta mass inner wave damping negative", "mass"},
+	 {"delta mass outer wave damping positive", "mass"},
+	 {"delta mass outer wave damping negative", "mass"},
      {"delta mass floor density positive", "mass"},
      {"time step", "1"},
      {"analysis time step", "1"},
@@ -377,8 +381,10 @@ void write_quantities(t_data &data, bool force_update)
     double InnerNegative = 0.0;
     double OuterPositive = 0.0;
     double OuterNegative = 0.0;
-    double WaveDampingPositive = 0.0;
-    double WaveDampingNegative = 0.0;
+	double InnerWaveDampingPositive = 0.0;
+	double OuterWaveDampingPositive = 0.0;
+	double InnerWaveDampingNegative = 0.0;
+	double OuterWaveDampingNegative = 0.0;
     double FloorPositive = 0.0;
 
     MPI_Reduce(&data.pdivv_total, &pdivv_total, 1, MPI_DOUBLE, MPI_SUM, 0,
@@ -391,10 +397,14 @@ void write_quantities(t_data &data, bool force_update)
 	       0, MPI_COMM_WORLD);
     MPI_Reduce(&MassDelta.OuterNegative, &OuterNegative, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.WaveDampingPositive, &WaveDampingPositive, 1,
+	MPI_Reduce(&MassDelta.InnerWaveDampingPositive, &InnerWaveDampingPositive, 1,
 	       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.WaveDampingNegative, &WaveDampingNegative, 1,
+	MPI_Reduce(&MassDelta.OuterWaveDampingPositive, &OuterWaveDampingPositive, 1,
+		   MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.InnerWaveDampingNegative, &InnerWaveDampingNegative, 1,
 	       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.OuterWaveDampingNegative, &OuterWaveDampingNegative, 1,
+		   MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&MassDelta.FloorPositive, &FloorPositive, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
 
@@ -402,13 +412,14 @@ void write_quantities(t_data &data, bool force_update)
 	// print to logfile
 	fprintf(
 	    fd,
-	    "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 	    N_output, N_outer_loop, PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
 	    qminus, pdivv_total, InnerPositive, InnerNegative, OuterPositive,
-	    OuterNegative, WaveDampingPositive, WaveDampingNegative,
+		OuterNegative, InnerWaveDampingPositive, InnerWaveDampingNegative,
+		OuterWaveDampingPositive, OuterWaveDampingNegative,
 	    FloorPositive, scale_height);
 
 	// close file
