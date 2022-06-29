@@ -726,11 +726,14 @@ void update_with_sourceterms(t_data &data, double dt)
 	    vt2 = 0.25 * vt2 + Rinf[n_radial] * OmegaFrame;
 	    vt2 = vt2 * vt2;
 
+		const double InvR = 2.0 / (Rmed[n_radial] + Rmed[n_radial-1]);
+
 	    // add all terms to new v_radial: v_radial_new = v_radial +
 	    // dt*(source terms)
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) +
-		dt * (-gradp - gradphi + vt2 * InvRinf[n_radial]);
+		dt * (-gradp - gradphi + vt2 * InvR);
+
 	}
     }
 
@@ -741,7 +744,8 @@ void update_with_sourceterms(t_data &data, double dt)
 	    supp_torque = IMPOSEDDISKDRIFT * 0.5 *
 			  std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
 	}
-	const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
+	//const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
+	const double invdxtheta = 2.0 / (dphi * (Rsup[n_radial]+Rinf[n_radial]));
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
