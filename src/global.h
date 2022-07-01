@@ -129,6 +129,10 @@ extern double SIGMASLOPE;
 extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;
 extern double FLARINGINDEX;
+
+extern double ASPECTRATIO_REF_SUPP;
+extern double FLARINGINDEX_SUPP;
+
 extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
