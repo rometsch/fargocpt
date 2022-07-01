@@ -15,19 +15,19 @@
 
 namespace constants
 {
-/// gravitational constant in cgs
-const double cgs_G = 6.6738480e-8;
+/// gravitational constant in cgs source: https://ssd.jpl.nasa.gov/astro_par.html
+const double cgs_G = 6.67430e-8;
 
+/// molecular mass (dalton) in cgs
+/// Source: https://physics.nist.gov/cgi-bin/cuu/Value?u
+const double cgs_m_u = 1.66053906660e-24;
+
+/// Source: CODATA recommended values of the fundamental physical constants: 2018
+/// https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.93.025010#fulltext
 /// Boltzmann constant in cgs
-const double cgs_k_B = 1.380650424e-16;
-
-/// molecular mass in cgs
-// const double cgs_m_u = 1.66053878283e-24;
-const double cgs_m_u = 1.6737236e-24;
-
+const double cgs_k_B = 1.380649e-16;
 /// Planck constant in cgs
-const double cgs_h = 6.6260689633e-27;
-
+const double cgs_h = 6.62607015e-27;
 /// speed of light in cgs
 const double cgs_c = 299792458.e2;
 

@@ -6,15 +6,13 @@
 namespace units
 {
 
-/// astronomical unit in cgs
-// const double cgs_AU = 149.60e11;
+/// astronomical unit in cgs, source: https://ssd.jpl.nasa.gov/astro_par.html
 const double cgs_AU = 1.495978707e13;
+const double cgs_Msol = 1.98841e33;
+/// sidereal year
+const double cgs_Year = 365.25636 * 24.0 * 60.0 * 60.0;
 
-/// solar mass in cgs
-const double cgs_Msol = 1.98892e33;
 
-/// seconds of a year
-const double cgs_Year = 31556925.261; // 365.*24.*60.*60.;
 
 const double solar_radius_in_au = 0.00465047;
 
