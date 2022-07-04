@@ -316,11 +316,11 @@ void init_physics(t_data &data)
     data.get_planetary_system().list_planets();
     // data.get_planetary_system().correct_planet_accretion();
 
-    if (data.get_planetary_system().get_number_of_planets() < 2) {
-	if (parameters::boundary_outer ==
+	if (data.get_planetary_system().get_number_of_planets() < 2) {
+	/*if (parameters::boundary_outer ==
 	    parameters::boundary_condition_center_of_mass_initial) {
 	    die("Do not use 'Nbody center of mass outer boundary' with only one body!\n");
-	}
+	}*/
 
 	if (ASPECTRATIO_MODE > 0) {
 	    die("Do not use Nbody aspectratio mode with only 1 body!\n");
@@ -1602,11 +1602,10 @@ void init_gas_velocities(t_data &data)
 				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
 
 		    /// Viscous speed
+			const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
 		    const double cs_iso =
-			ASPECTRATIO_REF *
-			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, FLARINGINDEX);
-		    const double H = ASPECTRATIO_REF * r_com;
+			h *std::sqrt(constants::G * hydro_center_mass / r_com);
+			const double H = h * r_com;
 		    const double nu = ALPHAVISCOSITY * cs_iso * H;
 		    vr0 = -3.0 * nu / r_com *
 			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
@@ -1674,13 +1673,12 @@ void init_gas_velocities(t_data &data)
 				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
 
 		    /// Viscous speed
-		    const double cs_iso =
-			ASPECTRATIO_REF *
-			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, FLARINGINDEX);
-		    const double H = ASPECTRATIO_REF * r_com;
-		    const double nu = ALPHAVISCOSITY * cs_iso * H;
-		    vr0 = -3.0 * nu / r_com *
+			const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+			const double cs_iso =
+			h *std::sqrt(constants::G * hydro_center_mass / r_com);
+			const double H = h * r_com;
+			const double nu = ALPHAVISCOSITY * cs_iso * H;
+			vr0 = -3.0 * nu / r_com *
 			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
 		}
 
@@ -1819,10 +1817,10 @@ void init_gas_velocities(t_data &data)
     }
 
     // Initialization with self-gravity, without exact centrifugal balance
-    if (parameters::self_gravity && !CentrifugalBalance)
+	if (parameters::self_gravity && !CentrifugalBalance)
 	selfgravity::init_azimuthal_velocity(data[t_data::V_AZIMUTHAL]);
 
-    for (unsigned int n_radial = 0;
+	for (unsigned int n_radial = 1;
 	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial(); ++n_radial) {
 	if (n_radial == data[t_data::V_AZIMUTHAL].Nrad) {
 	    r = Rmed[data[t_data::V_AZIMUTHAL].Nrad - 1];
@@ -1859,10 +1857,11 @@ void init_gas_velocities(t_data &data)
 
 		if (!parameters::initialize_vradial_zero) {
 		    if (ViscosityAlpha) {
+			const double nu = 0.5 * (data[t_data::VISCOSITY](n_radial, n_azimuthal) + data[t_data::VISCOSITY](n_radial-1, n_azimuthal));
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
-			    3.0 *
-			    data[t_data::VISCOSITY](n_radial, n_azimuthal) / r *
+				3.0 * nu / Rinf[n_radial] *
 			    (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+
 		    } else {
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
 			    3.0 *
