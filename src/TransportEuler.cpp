@@ -543,10 +543,10 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 			       nRadial == Qbase->get_max_radial() - 1) {
 			if (varq_sup > 0) {
 			    sum_without_ghost_cells(MassDelta.OuterNegative,
-						    varq_sup, nRadial);
+							-varq_sup, nRadial);
 			} else {
 			    sum_without_ghost_cells(MassDelta.OuterPositive,
-						    varq_sup, nRadial);
+							-varq_sup, nRadial);
 			}
 		    }
 		}
