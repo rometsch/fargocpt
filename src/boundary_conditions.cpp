@@ -1291,6 +1291,40 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		vphi_arr(n_radial, n_azimuthal) = vp_new;
 	    }
 	}
+
+	/*
+
+	t_polargrid &sigma = data[t_data::DENSITY];
+	for (unsigned int nr = clamped_vphi_id;
+		 nr < sigma.get_size_radial(); ++nr) {
+		double factor = std::pow(
+		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int naz = 0;
+		 naz < sigma.get_size_azimuthal(); ++naz) {
+	const double cell_x = (*CellCenterX)(nr, naz);
+	const double cell_y = (*CellCenterY)(nr, naz);
+
+	// Position in center of mass frame
+	const double x_com = cell_x - com_pos.x;
+	const double y_com = cell_y - com_pos.y;
+	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+	const double cell_sigma0 =
+	parameters::sigma0 *
+	std::pow(r_com,
+		 -SIGMASLOPE); // we assume the floor is not reached.
+
+	const double cell_sigma = sigma(nr, naz);
+	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;
+
+	sigma(nr, naz)  = sigma_new;
+		}
+	}*/
+
     }
 }
 
