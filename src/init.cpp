@@ -1597,9 +1597,9 @@ void init_gas_velocities(t_data &data)
 		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF_SUPP, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX_SUPP) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		    /// Viscous speed
 			const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
@@ -1668,9 +1668,9 @@ void init_gas_velocities(t_data &data)
 		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF_SUPP, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX_SUPP) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		    /// Viscous speed
 			const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);

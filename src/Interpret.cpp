@@ -253,9 +253,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
     ASPECTRATIO_MODE = config::value_as_int_default("AspectRatioMode", 0);
 
-	ASPECTRATIO_REF_SUPP = config::value_as_double_default("ASPECTRATIOSUPP", ASPECTRATIO_REF);
-	FLARINGINDEX_SUPP = config::value_as_double_default("FLARINGINDEXSUPP", FLARINGINDEX);
-
     switch (ASPECTRATIO_MODE) {
     case 0:
 	logging::print_master(

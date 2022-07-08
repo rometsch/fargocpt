@@ -1182,9 +1182,9 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		    vr_init = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF_SUPP, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX_SUPP) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		    const double v_k =
 			std::sqrt(constants::G * com_mass / r_com);
@@ -1254,9 +1254,9 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF_SUPP, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX_SUPP) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
+			1.0 - std::pow(ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * FLARINGINDEX) *
+				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		    const double v_k =
 			std::sqrt(constants::G * com_mass / r_com);
@@ -1964,9 +1964,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF_SUPP, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX_SUPP) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
@@ -2018,9 +2018,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF_SUPP, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX_SUPP) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
@@ -2071,9 +2071,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF_SUPP, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX_SUPP) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX_SUPP));
+			std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =

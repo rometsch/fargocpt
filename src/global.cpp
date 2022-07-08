@@ -189,9 +189,6 @@ double OMEGAFRAME;
 double IMPOSEDDISKDRIFT;
 double FLARINGINDEX;
 
-double ASPECTRATIO_REF_SUPP;
-double FLARINGINDEX_SUPP;
-
 double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
