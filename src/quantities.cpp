@@ -841,20 +841,8 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 		const double x = CellCenterX->Field[cell];
 		const double y = CellCenterY->Field[cell];
 
-		/// since the mass is distributed homogeniously distributed
-		/// inside the cell, we assume that the planet is always at
-		/// least cell_size / 2 plus planet radius away from the gas
-		/// this is an rough estimate without explanation
-		/// alternatively you can think about it yourself
-		// const double min_dist =
-		//	0.5 * std::max(Rsup[nRad] - Rinf[nRad],
-		//		   Rmed[nRad] * dphi);
-
 		const double dx = x - r_cm.x;
 		const double dy = y - r_cm.y;
-
-		// const double dist = std::max(
-		//	std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
 		const double dist =
 		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));

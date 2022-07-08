@@ -653,6 +653,11 @@ void read(char *filename, t_data &data)
     heating_star_enabled = config::value_as_bool_default("HeatingStar", false);
     heating_star_factor =
 	config::value_as_double_default("HeatingStarFactor", 1.0);
+
+	if(heating_star_enabled){
+		data[t_data::ASPECTRATIO].set_do_before_write(nullptr);
+	}
+
     heating_star_ramping_time =
 	config::value_as_double_default("HeatingStarRampingTime", 0.0);
     heating_star_simple =

@@ -1039,10 +1039,22 @@ void calculate_qplus(t_data &data)
 		die("Need to calulate Tau_eff first!\n"); // TODO: make it
 							  // properly!
 	    }
-	    const double x_star =
-		data.get_planetary_system().get_planet(0).get_x();
-	    const double y_star =
-		data.get_planetary_system().get_planet(0).get_y();
+
+		const auto &planetary_system = data.get_planetary_system();
+
+		for (unsigned int k = 0; k < planetary_system.get_number_of_planets();
+		 k++) {
+
+		const auto &planet = planetary_system.get_planet(k);
+
+		//const double T_star = parameters::star_temperature;
+		//const double R_star = parameters::star_radius;
+		const double T_star = planet.get_temperature();
+
+		if(T_star > 0.0) {
+		const double R_star = planet.get_planet_radial_extend();
+		const double x_star = planet.get_x();
+		const double y_star = planet.get_y();
 
 	    // Simple star heating (see Masterthesis Alexandros Ziampras)
 	    for (unsigned int n_radial = 1;
@@ -1058,12 +1070,14 @@ void calculate_qplus(t_data &data)
 		    const double yc = cell_center_y[ncell];
 		    const double distance = std::sqrt(std::pow(x_star - xc, 2) +
 						      std::pow(y_star - yc, 2));
-		    const double HoverR =
-			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
-			InvRmed[n_radial];
-		    const double sigma = constants::sigma.get_code_value();
-		    const double T_star = parameters::star_temperature;
-		    const double R_star = parameters::star_radius;
+
+			/*const double HoverR =
+			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) / distance;*/
+
+			const double HoverR =
+			data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
+
+			const double sigma_sb = constants::sigma.get_code_value();
 		    const double tau_eff =
 			data[t_data::TAU_EFF](n_radial, n_azimuthal);
 		    const double eps = 0.5; // TODO: add a parameter
@@ -1074,17 +1088,24 @@ void calculate_qplus(t_data &data)
 		    // 1/Tau_eff here we use (1-eps) =
 		    // parameters::heating_star_factor L_star = 4 pi R_star^2
 		    // sigma_sb T_star^4
-		    double qplus = 2 * (1 - eps); // 2*(1-eps)
-		    qplus *=
-			sigma * std::pow(T_star, 4) *
+
+			// irradiation contribution near and far from the star
+			// see D'Angelo & Marzari 2012
+			const double W_G = 0.4 * R_star / distance + HoverR * (dlogH_dlogr - 1.0);
+
+			double qplus = 2.0 * (1.0 - eps);
+			qplus *=
+			sigma_sb * std::pow(T_star, 4) *
 			std::pow(R_star / distance, 2); // *L_star/(4 pi r^2)
-		    qplus *= dlogH_dlogr - 1;		// *(dlogH/dlogr - 1)
-		    qplus *= HoverR;			// * H/r
+			qplus *= W_G;
 		    qplus /= tau_eff;			// * 1/Tau_eff
+
 		    data[t_data::QPLUS](n_radial, n_azimuthal) +=
 			ramping * qplus;
 		}
+		}
 	    }
+		}
 	} else {
 	    unsigned int *zbuffer = (unsigned int *)malloc(
 		parameters::zbuffer_size *
@@ -1338,12 +1359,23 @@ void calculate_qminus(t_data &data)
 		    data[t_data::KAPPA](n_radial, n_azimuthal) *
 		    data[t_data::DENSITY](n_radial, n_azimuthal);
 
-		//  tau_eff = 3/8 tau + sqrt(3)/4 + 1/(4*tau+tau_min)
+
+		if(parameters::heating_star_enabled){
+		//  irradiated disk tau_eff = 3/8 tau + 1/2 + 1/(4*tau+tau_min)
+		//  compare D'Angelo & Marzari 2012
 		data[t_data::TAU_EFF](n_radial, n_azimuthal) =
 		    3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal) +
-		    std::sqrt(3.0) / 4.0 +
+			0.5 +
 		    1.0 /
 			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
+		} else {
+			//  non irradiated disk tau_eff = 3/8 tau + sqrt(3)/4 + 1/(4*tau+tau_min)
+			data[t_data::TAU_EFF](n_radial, n_azimuthal) =
+				3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal) +
+				std::sqrt(3.0) / 4.0 +
+				1.0 /
+				(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
+		}
 
 		if (parameters::opacity ==
 		    parameters::opacity_simple) { // Compare D'Angelo et. al
@@ -2319,9 +2351,6 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 	rpl[k] = planet.get_planet_radial_extend();
     }
 
-    const Pair r_cm = data.get_planetary_system().get_center_of_mass();
-    const double m_cm = data.get_planetary_system().get_mass();
-
     assert(N_planets > 1);
 
     // Cs^2 = h^2 * vk * r ^ 2*Flaring
@@ -2334,63 +2363,31 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 	    const double x = CellCenterX->Field[cell];
 	    const double y = CellCenterY->Field[cell];
 
-	    double Cs2 = 0;
+		double Cs2 = 0.0;
 
-	    // cell_r is the distance to the closest body used for computing the
-	    // sound speed the cell belongs to a body, if it is inside its roche
-	    // radius. if no close body is found, the center of mass is used
-	    // instead
-	    double cell_r = 0.0;
-	    double roche_radius;
+		for (unsigned int k = 0; k < N_planets; k++) {
 
-	    for (unsigned int k = 0; k < N_planets; k++) {
+			/// since the mass is distributed homogeniously distributed
+			/// inside the cell, we assume that the planet is always at
+			/// least cell_size / 2 plus planet radius away from the gas
+			/// this is an rough estimate without explanation
+			/// alternatively you can think about it yourself
+			const double min_dist =
+				0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+					   Rmed[n_rad] * dphi) +
+				rpl[k];
 
-		// primary object uses next object to compute the roche radius
-		// while all other objects use the primary object.
-		if (k == 0) {
-		    const double partner_dist =
-			std::sqrt(std::pow(xpl[k] - xpl[1], 2) +
-				  std::pow(ypl[k] - ypl[1], 2));
-		    const double mass_q = mpl[k] / m_cm / (1.0 - mpl[k] / m_cm);
-		    roche_radius = eggleton_1983(mass_q, partner_dist);
-		} else {
-		    const double partner_dist =
-			std::sqrt(std::pow(xpl[k] - xpl[0], 2) +
-				  std::pow(ypl[k] - ypl[0], 2));
-		    const double mass_q = mpl[k] / m_cm / (1.0 - mpl[k] / m_cm);
-		    roche_radius = eggleton_1983(mass_q, partner_dist);
-		}
+			const double dx = x - xpl[k];
+			const double dy = y - ypl[k];
 
-		/// since the mass is distributed homogeniously distributed
-		/// inside the cell, we assume that the planet is always at
-		/// least cell_size / 2 plus planet radius away from the gas
-		/// this is an rough estimate without explanation
-		/// alternatively you can think about it yourself
-		const double min_dist =
-		    0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
-				   Rmed[n_rad] * dphi) +
-		    rpl[k];
+			const double dist = std::max(
+				std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
-
-		const double dist = std::max(
-		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
-
-		if (dist < roche_radius) {
-		    cell_r = dist;
-		}
-
-		Cs2 += constants::G * mpl[k] / std::pow(dist, 3);
+		Cs2 += (ASPECTRATIO_REF * ASPECTRATIO_REF * std::pow(dist, 2.0*FLARINGINDEX)
+				* constants::G * mpl[k]) / dist;
 	    }
 
-	    if (cell_r == 0.0) {
-		cell_r = std::sqrt(std::pow(x - r_cm.x, 2) +
-				   std::pow(y - r_cm.y, 2));
-	    }
-
-	    const double Cs = ASPECTRATIO_REF * cell_r *
-			      std::pow(cell_r, FLARINGINDEX) * std::sqrt(Cs2);
+		const double Cs = std::sqrt(Cs2);
 	    data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}
     }
@@ -2454,6 +2451,10 @@ void compute_scale_height_old(t_data &data, const bool force_update)
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) *
 		    inv_omega_kepler;
 	    }
+		if(parameters::heating_star_enabled){
+			const double h = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) / Rb[n_radial];
+		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = h;
+		}
 	}
     }
 }
@@ -2502,7 +2503,8 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 	    const double cs2 =
 		std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
 
-	    double inv_H2 = 0; // inverse aspectratio squared
+		double inv_H2 = 0.0; // inverse scale height squared
+		double inv_h2 = 0.0; // inverse aspectratio squared
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
@@ -2520,27 +2522,42 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 		const double dy = y - ypl[k];
 
 		const double dist = std::max(
-		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+			std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 		const double dist3 = std::pow(dist, 3);
 
 		// H^2 = (GM / dist^3 / Cs_iso^2)^-1
 		if (parameters::Adiabatic || parameters::Polytropic) {
 		    const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
-		    double tmp_inv_H2 =
+			const double tmp_inv_H2 =
 			constants::G * mpl[k] * gamma1 / (dist3 * cs2);
-
 		    inv_H2 += tmp_inv_H2;
+
+			if(parameters::heating_star_enabled){
+			const double tmp_inv_h2 =
+			constants::G * mpl[k] * gamma1 / (dist * cs2);
+			inv_h2 += tmp_inv_h2;
+			}
 
 		} else {
 		    const double tmp_inv_H2 =
 			constants::G * mpl[k] / (dist3 * cs2);
 		    inv_H2 += tmp_inv_H2;
+
+			if(parameters::heating_star_enabled){
+			const double tmp_inv_h2 =
+			constants::G * mpl[k] / (dist * cs2);
+			inv_h2 += tmp_inv_h2;
+			}
 		}
 	    }
 
 	    const double H = std::sqrt(1.0 / inv_H2);
-
 	    data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+
+		if(parameters::heating_star_enabled){
+			const double h = std::sqrt(1.0 / inv_h2);
+			data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+		}
 	}
     }
 }
@@ -2568,8 +2585,7 @@ void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
 	    const int cell = get_cell_id(n_rad, n_az);
 	    const double x = CellCenterX->Field[cell];
 	    const double y = CellCenterY->Field[cell];
-	    const double cs2 =
-		std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
+		const double cs = data[t_data::SOUNDSPEED](n_rad, n_az);
 
 	    // const double min_dist =
 	    //	0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
@@ -2581,24 +2597,28 @@ void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
 	    // const double dist = std::max(
 	    //	std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 	    const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-	    const double dist3 = std::pow(dist, 3);
 
-	    // H^2 = (GM / dist^3 / Cs_iso^2)^-1
+		// h^2 = Cs_iso / vk = (Cs_iso^2 / (GM / dist))
+		// H^2 = Cs_iso / Omegak = (Cs_iso^2 / (GM / dist^3))
+		// H = h * dist
 	    if (parameters::Adiabatic || parameters::Polytropic) {
 		/// Convert sound speed to isothermal sound speed cs,iso = cs /
 		/// sqrt(gamma)
 		const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
-		const double H2_tmp =
-		    (dist3 * cs2) / (constants::G * m_cm * gamma1);
-		// const double H2 = std::max(H2_tmp, std::pow(min_dist, 2));
-		const double H2 = H2_tmp;
-		const double H = std::sqrt(H2);
+		const double h = cs * std::sqrt(dist / (constants::G * m_cm * gamma1));
+
+		if(parameters::heating_star_enabled){
+		data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+		}
+		const double H = dist * h;
 		data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+
 	    } else { // locally isothermal
-		const double H2_tmp = (dist3 * cs2) / (constants::G * m_cm);
-		// const double H2 = std::max(H2_tmp, std::pow(min_dist, 2));
-		const double H2 = H2_tmp;
-		const double H = std::sqrt(H2);
+		const double h = cs * std::sqrt(dist / (constants::G * m_cm));
+		if(parameters::heating_star_enabled){
+		data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+		}
+		const double H = dist * h;
 		data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
 	    }
 	}
