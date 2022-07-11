@@ -1091,11 +1091,7 @@ void calculate_qplus(t_data &data)
 
 			// irradiation contribution near and far from the star
 			// see D'Angelo & Marzari 2012
-			//const double W_G = 0.4 * R_star / distance + HoverR * (dlogH_dlogr - 1.0);
-
-			/// Lucas: I had problems with heating/cooling CFL at inner boundary.
-			const double W_G = HoverR * (dlogH_dlogr - 1.0);
-
+			const double W_G = 0.4 * R_star / distance + HoverR * (dlogH_dlogr - 1.0);
 
 			double qplus = 2.0 * (1.0 - eps);
 			qplus *=
