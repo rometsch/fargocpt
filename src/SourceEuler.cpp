@@ -2201,6 +2201,11 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		n_radial_debug, n_azimuthal_debug);
 		logging::print(LOG_INFO "located at radius Rmed         : %g\n",
 			   Rmed[n_radial_debug]);
+		const double SigmaFloor =
+		parameters::sigma0 * parameters::sigma_floor;
+		logging::print(LOG_INFO "Cell has a denstity of         : %g\t%g g/cm^2\t%g 1/SigmaFloor\n",
+			   data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug), data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)*units::surface_density,
+				data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)/SigmaFloor);
 		logging::print(LOG_INFO "Sound speed limit              : %g\n",
 			   itdbg1);
 		logging::print(LOG_INFO "Radial motion limit            : %g\n",
