@@ -1371,14 +1371,14 @@ void calculate_qminus(t_data &data)
 		    3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal) +
 			0.5 +
 		    1.0 /
-			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
+			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + parameters::tau_min);
 		} else {
 			//  non irradiated disk tau_eff = 3/8 tau + sqrt(3)/4 + 1/(4*tau+tau_min)
 			data[t_data::TAU_EFF](n_radial, n_azimuthal) =
 				3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal) +
 				std::sqrt(3.0) / 4.0 +
 				1.0 /
-				(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + 0.01);
+				(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + parameters::tau_min);
 		}
 
 		if (parameters::opacity ==

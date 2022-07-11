@@ -56,6 +56,7 @@ HeatingStarSimple	No			# Use simplified star heating [default = No]
 MinimumTemperature	3		# minimum Temperature in K
 MaximumTemperature	1e6		# maximum Temperature in K
 TauFactor		1.0		# correction factor for tau [default = 1.0]
+TauMin			0.01		# correction factor for tau [default = 1.0]
 Opacity			Lin		# opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst		2.0e-6	# used for const and simple opacity (kappa = kappa0 * T**2) 
 CFL				0.5

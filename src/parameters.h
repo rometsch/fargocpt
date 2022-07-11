@@ -215,6 +215,7 @@ extern double density_factor;
 
 /// factor for tau calculation
 extern double tau_factor;
+extern double tau_min;
 
 /// factor for kappa calculation
 extern double kappa_factor;

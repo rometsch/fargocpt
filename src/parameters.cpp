@@ -121,6 +121,7 @@ bool do_init_secondary_disk;
 
 double density_factor;
 double tau_factor;
+double tau_min;
 double kappa_factor;
 
 bool self_gravity;
@@ -775,6 +776,7 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("DensityFactor", std::sqrt(2.0 * M_PI));
 
     tau_factor = config::value_as_double_default("TauFactor", 0.5);
+	tau_min = config::value_as_double_default("TauMin", 0.01);
     kappa_factor = config::value_as_double_default("KappaFactor", 1.0);
 
     EXPLICIT_VISCOSITY =
@@ -1268,6 +1270,7 @@ void summarize_parameters()
     logging::print_master(LOG_INFO "Surface density factor: %g\n",
 			  density_factor);
     logging::print_master(LOG_INFO "Tau factor: %g\n", tau_factor);
+	logging::print_master(LOG_INFO "Tau min: %g\n", tau_min);
     logging::print_master(LOG_INFO "Kappa factor: %g\n", kappa_factor);
 
     logging::print_master(LOG_INFO "Minimum temperature: %.5e\n",
