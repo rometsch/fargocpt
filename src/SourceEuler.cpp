@@ -2203,9 +2203,21 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 			   Rmed[n_radial_debug]);
 		const double SigmaFloor =
 		parameters::sigma0 * parameters::sigma_floor;
-		logging::print(LOG_INFO "Cell has a denstity of         : %g\t%g g/cm^2\t%g 1/SigmaFloor\n",
+		logging::print(LOG_INFO "Cell has a surface denstity of : %g\t%g g/cm^2\t%g 1/SigmaFloor\n",
 			   data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug), data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)*units::surface_density,
 				data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)/SigmaFloor);
+		if (parameters::Adiabatic) {
+		const double mu = pvte::get_mu(data, n_radial_debug, n_azimuthal_debug);
+		const double gamma_eff =
+			pvte::get_gamma_eff(data, n_radial_debug, n_azimuthal_debug);
+		const double cell_temperature =
+			mu / constants::R * (gamma_eff - 1.0) *
+			data[t_data::ENERGY](n_radial_debug, n_azimuthal_debug) /
+			data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug) *
+			units::temperature.get_cgs_factor();
+		logging::print(LOG_INFO "Cell has a Temperature of      : %g K\n",
+			   cell_temperature);
+		}
 		logging::print(LOG_INFO "Sound speed limit              : %g\n",
 			   itdbg1);
 		logging::print(LOG_INFO "Radial motion limit            : %g\n",
