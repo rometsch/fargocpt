@@ -3,6 +3,7 @@
 #include "global.h"
 #include <csignal>
 #include <functional>
+#include "logging.h"
 
 static void handleSIGUSR1(__attribute__((unused)) int signum)
 {
@@ -60,6 +61,9 @@ static void registerSIGTERM()
 
 void register_signal_handlers()
 {
+#ifdef MPICH
+	logging::print_master(LOG_INFO "Warning: signal handling is enabled. It works with GCC and openmpi. It might NOT work with mpich! Use at own risk\n");
+#endif
 	registerSIGUSR1();
 	registerSIGUSR2();
 	SIGTERM_RECEIVED = 0;
