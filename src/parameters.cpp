@@ -936,6 +936,10 @@ void read(char *filename, t_data &data)
     klahr_smoothing_radius = config::value_as_double_default(
 	"KlahrSmoothingRadius", accretion_radius_fraction);
 
+	if(klahr_smoothing_radius == 0.0){ // otherwise Ofast will optimize out zero checks and then divide by zero
+		klahr_smoothing_radius = 0.001 * (RMAX - RMIN)/(double)NRadial;
+	}
+
     CFL = config::value_as_double_default("CFL", 0.5);
     HEATING_COOLING_CFL_LIMIT =
 	config::value_as_double_default("HeatingCoolingCFLlimit", 5.0e-2);
