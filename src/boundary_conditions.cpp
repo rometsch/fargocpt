@@ -2119,7 +2119,6 @@ void initial_center_of_mass_boundary(t_data &data)
 			 -SIGMASLOPE); // we assume the floor is not reached.
 	    sigma(nr, naz) = cell_sigma;
 
-	    /*
 	    /// Initial profile temperature
 	const double cell_energy =
 	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
@@ -2136,9 +2135,9 @@ void initial_center_of_mass_boundary(t_data &data)
 				    (ADIABATICINDEX - 1.0);
 
 	energy(nr, naz) = std::max(cell_energy, energy_floor);
-	    */
+
 	    /// dP / dr = 0
-	    energy(nr, naz) = energy(nr - 1, naz);
+		/// energy(nr, naz) = energy(nr - 1, naz);
 	} /// END DENSITY and ENERGY
     }
 }
