@@ -138,7 +138,7 @@ void CalculateNbodyPotential(t_data &data)
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
-			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central star.
 			const double l1 = l1pl[k];
 			const double r_sm =
@@ -224,7 +224,7 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
@@ -311,7 +311,7 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if ((std::abs(xpl[k]) + std::abs(ypl[k])) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
@@ -384,12 +384,9 @@ void ComputeDiskOnNbodyAccel(t_data &data)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	double l1 = -1.0; // l1 = 0.0 causes divide by 0 error. I believe its
-			  // because of lazy if(...) evaluation.
-	if (k > 0) {
-	    l1 = planet.get_dimensionless_roche_radius() *
+	const double l1 = planet.get_dimensionless_roche_radius() *
 		 planet.get_distance_to_primary();
-	}
+
 
 	accel =
 	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
