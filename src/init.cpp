@@ -1604,7 +1604,7 @@ void init_gas_velocities(t_data &data)
 		    /// Viscous speed
 			const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
 		    const double cs_iso =
-			h *std::sqrt(constants::G * hydro_center_mass / r_com);
+			h *std::sqrt(constants::G * mass / r_com);
 			const double H = h * r_com;
 		    const double nu = ALPHAVISCOSITY * cs_iso * H;
 		    vr0 = -3.0 * nu / r_com *
@@ -1675,7 +1675,7 @@ void init_gas_velocities(t_data &data)
 		    /// Viscous speed
 			const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
 			const double cs_iso =
-			h *std::sqrt(constants::G * hydro_center_mass / r_com);
+			h *std::sqrt(constants::G * mass / r_com);
 			const double H = h * r_com;
 			const double nu = ALPHAVISCOSITY * cs_iso * H;
 			vr0 = -3.0 * nu / r_com *
