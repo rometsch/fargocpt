@@ -293,8 +293,40 @@ void QuantitiesAdvection(t_data &data, PolarGrid *Density,
     VanLeerTheta(data, VAzimuthal, Density, dt); /* MUST be the last line */
 }
 
-/**
+static double van_leer_lim(const double a, const double b){
+	if(a*b > 0.0){
+		return 2.0*a*b / (a+b);
+	} else {
+		return 0;
+	}
+}
 
+static double minmod(const double a, const double b){
+	if(a*b > 0.0)
+		return std::fabs(a) < std::fabs(b) ? a : b;
+	else
+		return 0.0;
+}
+
+static double MC_lim(const double a, const double b){
+	return minmod(0.5*(a+b), 2.0*minmod(a, b));
+}
+
+static double flux_limiter(const double a, const double b){
+	switch(flux_limiter_type){
+		case 0:
+			return van_leer_lim(a, b);
+			break;
+		case 1:
+			return MC_lim(a, b);
+			break;
+		default:
+			return van_leer_lim(a, b);
+			break;
+	}
+}
+
+/**
 */
 // void compute_star_radial(t_polargrid* base, t_polargrid* V_Radial,
 // t_polargrid* star, double dt)
@@ -316,11 +348,8 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 		      InvDiffRmed[nRadial];
 		dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
 		      InvDiffRmed[nRadial + 1];
-		if (dqp * dqm > 0.0)
-		    dq[cell] = 2.0 * dqp * dqm / (dqp + dqm);
-		else
-		    dq[cell] = 0.0;
-	    }
+		dq[cell] = flux_limiter(dqp, dqm);
+		}
 	}
     }
     // TODO: changed to nRadial =1 because of nRadial-1
@@ -387,12 +416,8 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 		ljp = nRadial * Qbase->Nsec;
 	    }
 	    dqm = (Qbase->Field[cell] - Qbase->Field[ljm]);
-	    dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
-	    if (dqp * dqm > 0.0) {
-		dq[cell] = dqp * dqm / (dqp + dqm) * invdxtheta;
-	    } else {
-		dq[cell] = 0.0;
-	    }
+		dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
+		dq[cell] = 0.5*flux_limiter(dqp, dqm) * invdxtheta;
 	}
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    // cell = nAzimuthal+nRadial*Qbase->Nsec;

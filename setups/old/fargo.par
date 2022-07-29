@@ -26,6 +26,7 @@ EnergyFilename		""		# File to read energy from (when Condition = 1D or 2D)
 AspectRatio     	0.05            # Thickness over Radius in the disk
 AspectRatioMode		0		# Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 TemperatureCGS0     0.0     # Midplane Temperature at 1 au in K, overwrites AspectRaio
+FluxLimiter         VanLeer # Flux Limiter VanLeer or MC
 ExplicitViscosity   YES
 StsNu				0.01
 ViscosityInCGS      NO      # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units

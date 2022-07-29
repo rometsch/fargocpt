@@ -604,11 +604,49 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     }
 
     const double T0 = config::value_as_double_default("TemperatureCGS0", 0.0);
-    if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
+	if (T0 != 0.0){ // rescale ASPECTRATIO_REF according to cgs Temperature
 	ASPECTRATIO_REF =
 	    sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
 		 constants::R / parameters::MU);
+	}
 
+	{
+	/// Read Flux Limiter
+	char flux_limiter_text[512];
+	strncpy(
+		flux_limiter_text,
+		config::value_as_string_default("FluxLimiter", "VanLeer"),
+		256); // same as MAXNAME from config.cpp
+	for (char *t = flux_limiter_text; *t != '\0'; ++t) {
+		*t = tolower(*t);
+	}
+
+	bool could_read_flux_limiter = false;
+	if (strcmp(flux_limiter_text, "vanleer") == 0 ||
+		strcmp(flux_limiter_text, "van") == 0 ||
+		strcmp(flux_limiter_text, "leer") == 0 ||
+		strcmp(flux_limiter_text, "vl") == 0  ||
+		strcmp(flux_limiter_text, "v") == 0) {
+		logging::print_master(LOG_INFO "Using VanLeer flux limiter\n");
+		flux_limiter_type = 0;
+		could_read_flux_limiter = true;
+	}
+
+	if (strcmp(flux_limiter_text, "mc") == 0 ||
+		strcmp(flux_limiter_text, "m") == 0) {
+		logging::print_master(LOG_INFO "Using MC flux limiter\n");
+		flux_limiter_type = 1;
+		could_read_flux_limiter = true;
+	}
+
+	if(!could_read_flux_limiter){
+		logging::print_master(LOG_INFO "Defaulting to VanLeer flux limiter\n");
+		flux_limiter_type = 0;
+	}
+	}
+
+	{
+	/// Read Viscosity Stuff
     StabilizeViscosity = config::value_as_int_default("STABILIZEVISCOSITY", 0);
 
     if (StabilizeViscosity == 1) {
@@ -638,6 +676,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	VISCOSITY =
 	    VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
     }
+	}
 }
 
 void PrintUsage(char *execname)

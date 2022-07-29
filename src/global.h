@@ -87,6 +87,7 @@ extern double hydro_center_mass;
 extern int debug;
 extern int GotoNextOutput, ViscosityAlpha, CartesianParticles,
     ParticlesInCartesian, StabilizeViscosity;
+extern int flux_limiter_type;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
