@@ -88,8 +88,9 @@ void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 
 	if(dt != 0.0){
 	pair cms = data.get_planetary_system().get_hydro_frame_center_position_from_rebound();
-	IndirectTermPlanets.x = cms.x / std::pow(dt, 2);
-	IndirectTermPlanets.y = cms.y / std::pow(dt, 2);
+	IndirectTermPlanets.x = -cms.x / std::pow(dt, 2);
+	IndirectTermPlanets.y = -cms.y / std::pow(dt, 2);
+
 	data.get_planetary_system().adjust_to_hydro_frame_center(cms, dt);
 	} else {
 	IndirectTermPlanets.x = 0.0;
