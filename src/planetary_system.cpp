@@ -12,6 +12,7 @@
 #include <fstream>
 #include <math.h>
 #include <stdio.h>
+#include <cassert>
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -26,6 +27,7 @@ t_planetary_system::~t_planetary_system()
 
     m_planets.clear();
     reb_free_simulation(m_rebound);
+	reb_free_simulation(m_rebound_predictor);
 }
 
 void t_planetary_system::init_rebound()
@@ -615,6 +617,37 @@ Pair t_planetary_system::get_hydro_frame_center_position() const
 }
 
 /**
+ * @brief t_planetary_system::get_hydro_frame_center_position_from_rebound
+ * @return pair with hydro frame center coordinates (x, y)
+ * Needed to compute center of mass without updating the planetary system.
+ * New Center of mass is needed to compute the indirect term while the old
+ * positions are still needed to compute the gravitational potential.
+ */
+Pair t_planetary_system::get_hydro_frame_center_position_from_rebound() const
+{
+	double x = 0.0;
+	double y = 0.0;
+	double mass = 0.0;
+	for (unsigned int i = 0; i < parameters::n_bodies_for_hydroframe_center; i++) {
+	const double planet_x =	m_rebound_predictor->particles[i].x;
+	const double planet_y = m_rebound_predictor->particles[i].y;
+	const double planet_m = m_rebound_predictor->particles[i].m;
+	mass += planet_m;
+	x += planet_x * planet_m;
+	y += planet_y * planet_m;
+	}
+	Pair com;
+	if (mass > 0) {
+	com.x = x / mass;
+	com.y = y / mass;
+	} else {
+	com.x = 0.0;
+	com.y = 0.0;
+	}
+	return com;
+}
+
+/**
    Analogous to get_hydro_frame_center but returns its velocity.
 */
 
@@ -642,9 +675,20 @@ void t_planetary_system::update_global_hydro_frame_center_mass()
     hydro_center_mass = get_hydro_frame_center_mass();
 }
 
-/**
-   Move the planetary system to the chosen frame center.
- */
+
+void t_planetary_system::adjust_to_hydro_frame_center(const pair cms, const double dt)
+{
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	t_planet &planet = get_planet(i);
+	const double vx = planet.get_vx();
+	const double vy = planet.get_vy();
+	assert(dt != 0.0);
+	// we already checked dt != 0.0 at this point
+	planet.set_vx(vx - cms.x/dt);
+	planet.set_vy(vy - cms.y/dt);
+	}
+}
+
 void t_planetary_system::move_to_hydro_frame_center()
 {
     Pair center = get_hydro_frame_center_position();
@@ -728,6 +772,25 @@ void t_planetary_system::copy_data_from_rebound()
 }
 
 /**
+   Integrate the predictor nbody system forward in time using rebound.
+*/
+void t_planetary_system::integrate_indirect_term_predictor(double time, double dt)
+{
+	if (get_number_of_planets() < 2) {
+	// don't integrate a single particle that doesn't move
+	return;
+	}
+
+	copy_data_to_rebound();
+	m_rebound->t = time;
+	m_rebound_predictor = reb_copy_simulation(m_rebound);
+
+	disable_trap_fpe_gnu();
+	reb_integrate(m_rebound_predictor, time + dt);
+	enable_trap_fpe_gnu();
+}
+
+/**
    Integrate the nbody system forward in time using rebound.
 */
 void t_planetary_system::integrate(double time, double dt)
@@ -737,8 +800,7 @@ void t_planetary_system::integrate(double time, double dt)
 	return;
     }
 
-    copy_data_to_rebound();
-    m_rebound->t = time;
+	// data has already been copied to rebound in integrate_indirect_term_predictor
 
     disable_trap_fpe_gnu();
     reb_integrate(m_rebound, time + dt);

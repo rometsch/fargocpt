@@ -58,7 +58,7 @@ void ComputeIndirectTermDisk(t_data &data)
 	IndirectTerm.y = IndirectTermDisk.y;
 }
 
-void ComputeIndirectTerm(t_data &data)
+void ComputeIndirectTermNbody(t_data &data)
 {
 	IndirectTermPlanets.x = 0.0;
 	IndirectTermPlanets.y = 0.0;
@@ -78,6 +78,23 @@ void ComputeIndirectTerm(t_data &data)
 	}
 	IndirectTermPlanets.x /= mass_center;
 	IndirectTermPlanets.y /= mass_center;
+
+	IndirectTerm.x += IndirectTermPlanets.x;
+	IndirectTerm.y += IndirectTermPlanets.y;
+}
+
+void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
+{
+
+	if(dt != 0.0){
+	pair cms = data.get_planetary_system().get_hydro_frame_center_position_from_rebound();
+	IndirectTermPlanets.x = cms.x / std::pow(dt, 2);
+	IndirectTermPlanets.y = cms.y / std::pow(dt, 2);
+	data.get_planetary_system().adjust_to_hydro_frame_center(cms, dt);
+	} else {
+	IndirectTermPlanets.x = 0.0;
+	IndirectTermPlanets.y = 0.0;
+	}
 
 	IndirectTerm.x += IndirectTermPlanets.x;
 	IndirectTerm.y += IndirectTermPlanets.y;

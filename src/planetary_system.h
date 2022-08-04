@@ -13,6 +13,7 @@ class t_planetary_system
 
   public:
     struct reb_simulation *m_rebound;
+	struct reb_simulation *m_rebound_predictor;
     t_planetary_system();
     ~t_planetary_system();
 
@@ -43,8 +44,10 @@ class t_planetary_system
 	double eccentricity, double omega, double true_anomaly);
 
     Pair get_hydro_frame_center_position() const;
+	Pair get_hydro_frame_center_position_from_rebound() const;
     Pair get_hydro_frame_center_velocity() const;
     double get_hydro_frame_center_mass() const;
+	void adjust_to_hydro_frame_center(const pair cms, const double dt);
     void move_to_hydro_frame_center();
 
     void update_global_hydro_frame_center_mass();
@@ -68,6 +71,7 @@ class t_planetary_system
     void write_planets(unsigned int timestep, int file_type);
 
     void integrate(double time, double dt);
+	void integrate_indirect_term_predictor(double time, double dt);
     void copy_data_to_rebound();
     void copy_data_from_rebound();
     void correct_velocity_for_disk_accel();

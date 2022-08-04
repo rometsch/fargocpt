@@ -464,17 +464,14 @@ void AlgoGas(t_data &data)
 		UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
 	}
 
+	/// IndirectTerm is fully completed here (Disk + Nbody)
+	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, hydro_dt);
+	ComputeIndirectTermNbodyAndFixVelocities(data, hydro_dt);
+
 	if (parameters::integrate_planets) {
 		data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
 		/// Nbody positions and velocities are not updated yet!
 	}
-
-	//ComputeNbodyOnNbodyAccel(data.get_planetary_system()); /// Euler sucks!
-	//ComputeNbodyOnNbodyAccelRK5(data, hydro_dt);
-	ComputeNbodyOnNbodyAccelRebound(data.get_planetary_system());
-
-	/// IndirectTerm is fully completed here (Disk + Nbody)
-	ComputeIndirectTerm(data);
 
 	if (parameters::calculate_disk) {
 		/** Gravitational potential from star and planet(s) is computed and
@@ -494,7 +491,6 @@ void AlgoGas(t_data &data)
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
 		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_frame_center();
 
 	    /// Needed for Aspectratio mode = 1
 	    /// and to correctly compute circumplanetary disk mass
