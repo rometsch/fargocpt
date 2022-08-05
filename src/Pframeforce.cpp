@@ -94,12 +94,15 @@ bool ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 	const double cms_r = std::sqrt(cms.x*cms.x + cms.y*cms.y);
 	const double minimum_dt = std::sqrt(cms_r)*1.0e-2;
 	if(minimum_dt < dt){
+	/// Construct Indirect term such that after the integration step, the central object will be at 0/0
 	IndirectTermPlanets.x = -cms.x / std::pow(dt, 2);
 	IndirectTermPlanets.y = -cms.y / std::pow(dt, 2);
 	shift_vel.x = cms.x / dt;
 	shift_vel.y = cms.y / dt;
 	shift_required = false;
 	} else {
+		/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
+		/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, which is why we need to shift the nbody system to 0/0
 		pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound();
 		IndirectTermPlanets.x = -delta_vel.x / dt;
 		IndirectTermPlanets.y = -delta_vel.y / dt;
