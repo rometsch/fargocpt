@@ -237,7 +237,7 @@ void t_planetary_system::read_from_file(char *filename)
 	"The first %d planets are used to calculate the hydro frame center.\n",
 	parameters::n_bodies_for_hydroframe_center);
 
-    move_to_hydro_frame_center();
+	shift_to_hydro_frame_center();
 
     if (Corotating == YES &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
@@ -651,6 +651,36 @@ Pair t_planetary_system::get_hydro_frame_center_position_from_rebound() const
 	return com;
 }
 
+Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound() const
+{
+	double vx_old = 0.0;
+	double vy_old = 0.0;
+	double vx_new = 0.0;
+	double vy_new = 0.0;
+	double mass = 0.0;
+	for (unsigned int i = 0; i < parameters::n_bodies_for_hydroframe_center; i++) {
+	const double new_vx = m_rebound_predictor->particles[i].vx;
+	const double new_vy = m_rebound_predictor->particles[i].vy;
+	const double planet_m = m_rebound->particles[i].m;
+	const double old_vx = m_rebound->particles[i].vx;
+	const double old_vy = m_rebound->particles[i].vy;
+	mass += planet_m;
+	vx_old += old_vx * planet_m;
+	vy_old += old_vy * planet_m;
+	vx_new += new_vx * planet_m;
+	vy_new += new_vy * planet_m;
+	}
+	Pair delta_vel;
+	if (mass > 0) {
+	delta_vel.x = (vx_new - vx_old) / mass;
+	delta_vel.y = (vy_new - vy_old) / mass;
+	} else {
+	delta_vel.x = 0.0;
+	delta_vel.y = 0.0;
+	}
+	return delta_vel;
+}
+
 /**
    Analogous to get_hydro_frame_center but returns its velocity.
 */
@@ -680,18 +710,36 @@ void t_planetary_system::update_global_hydro_frame_center_mass()
 }
 
 
-void t_planetary_system::adjust_to_hydro_frame_center(const pair cms, const double dt)
+void t_planetary_system::adjust_to_hydro_frame_center(const pair vel)
 {
 	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	// we already checked dt != 0.0 at this point
 	assert(dt != 0.0);
 
-	m_rebound->particles[i].vx -= cms.x/dt;
-	m_rebound->particles[i].vy -= cms.y/dt;
+	m_rebound->particles[i].vx -= vel.x;
+	m_rebound->particles[i].vy -= vel.y;
 	}
 }
 
-void t_planetary_system::move_to_hydro_frame_center()
+void t_planetary_system::move_to_hydro_frame_center_positions()
+{
+	Pair center = get_hydro_frame_center_position();
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	t_planet &planet = get_planet(i);
+	double x = planet.get_x();
+	double y = planet.get_y();
+
+	planet.set_x(x - center.x);
+	planet.set_y(y - center.y);
+
+	}
+}
+
+/**
+ * @brief t_planetary_system::shift_to_hydro_frame_center
+ * move positions and velocities to hydro_frame_center
+ */
+void t_planetary_system::shift_to_hydro_frame_center()
 {
     Pair center = get_hydro_frame_center_position();
     Pair vcenter = get_hydro_frame_center_velocity();

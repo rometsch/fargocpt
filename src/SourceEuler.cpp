@@ -466,7 +466,8 @@ void AlgoGas(t_data &data)
 
 	/// IndirectTerm is fully completed here (Disk + Nbody)
 	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, hydro_dt);
-	ComputeIndirectTermNbodyAndFixVelocities(data, hydro_dt);
+	bool shift_nbody_positions = ComputeIndirectTermNbodyAndFixVelocities(data, hydro_dt);
+
 
 	if (parameters::integrate_planets) {
 		data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
@@ -491,6 +492,9 @@ void AlgoGas(t_data &data)
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
 		data.get_planetary_system().copy_data_from_rebound();
+		if(shift_nbody_positions){
+		data.get_planetary_system().move_to_hydro_frame_center_positions();
+		}
 
 	    /// Needed for Aspectratio mode = 1
 	    /// and to correctly compute circumplanetary disk mass
@@ -2246,8 +2250,6 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
 
 	dt_global = std::min(parameters::CFL_max_var * last_dt, dt_global);
-	dt_global = std::max(dt_global, minimum_hydro_dt);
-
 
 	return std::max(deltaT / dt_global, 1.0);
 }

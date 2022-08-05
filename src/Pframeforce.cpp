@@ -84,45 +84,41 @@ void ComputeIndirectTermNbody(t_data &data)
 	IndirectTerm.y += IndirectTermPlanets.y;
 }
 
-void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
+bool ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 {
 
+	bool shift_required;
+	pair shift_vel;
 	if(dt != 0.0){
 	pair cms = data.get_planetary_system().get_hydro_frame_center_position_from_rebound();
+	const double cms_r = std::sqrt(cms.x*cms.x + cms.y*cms.y);
+	const double minimum_dt = std::sqrt(cms_r)*1.0e-2;
+	if(minimum_dt < dt){
 	IndirectTermPlanets.x = -cms.x / std::pow(dt, 2);
 	IndirectTermPlanets.y = -cms.y / std::pow(dt, 2);
+	shift_vel.x = cms.x / dt;
+	shift_vel.y = cms.y / dt;
+	shift_required = false;
+	} else {
+		pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound();
+		IndirectTermPlanets.x = -delta_vel.x / dt;
+		IndirectTermPlanets.y = -delta_vel.y / dt;
+		shift_vel.x = delta_vel.x;
+		shift_vel.y = delta_vel.y;
+		shift_required = true;
+	}
 
-	data.get_planetary_system().adjust_to_hydro_frame_center(cms, dt);
+	data.get_planetary_system().adjust_to_hydro_frame_center(shift_vel);
+
 	} else {
 	IndirectTermPlanets.x = 0.0;
 	IndirectTermPlanets.y = 0.0;
+	shift_required = false; // no shift required
 	}
 
 	IndirectTerm.x += IndirectTermPlanets.x;
 	IndirectTerm.y += IndirectTermPlanets.y;
-}
-
-/**
- * @brief compute_minimum_timestep_size
- * @param data
- * This function needs to be called after nbody system and disk mass is initialized.
- * The central object will be out of the coordinate center due to numerical precision.
- * The amound off the coordinate center depends on the mass ratios.
- * Since we compute the indirect force by central object pos / dt^2, we need to limit dt
- * such that numerical noise / dt^2 remains small.
- */
-void compute_minimum_timestep_size(t_data &data){
-	/// Minimum timestep from IndirectTerm criteria
-	double total_mass = data.get_planetary_system().get_mass();
-	double disk_mass = quantities::gas_total_mass(data, 2.0*RMAX);
-	data.get_planetary_system().update_global_hydro_frame_center_mass();
-
-
-	if(parameters::disk_feedback){
-		total_mass += disk_mass;
-	}
-
-	minimum_hydro_dt = std::sqrt((total_mass - hydro_center_mass)/hydro_center_mass * std::numeric_limits<double>::epsilon()) * 10.0;
+	return shift_required;
 }
 
 /* Below : work in non-rotating frame */

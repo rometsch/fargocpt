@@ -45,10 +45,12 @@ class t_planetary_system
 
     Pair get_hydro_frame_center_position() const;
 	Pair get_hydro_frame_center_position_from_rebound() const;
+	Pair get_hydro_frame_center_delta_vel_rebound() const;
     Pair get_hydro_frame_center_velocity() const;
     double get_hydro_frame_center_mass() const;
-	void adjust_to_hydro_frame_center(const pair cms, const double dt);
-    void move_to_hydro_frame_center();
+	void adjust_to_hydro_frame_center(const pair vel);
+	void move_to_hydro_frame_center_positions();
+	void shift_to_hydro_frame_center();
 
     void update_global_hydro_frame_center_mass();
     void calculate_orbital_elements();

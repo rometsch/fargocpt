@@ -5,8 +5,7 @@
 
 void ComputeIndirectTermDisk(t_data &data);
 void ComputeIndirectTermNbody(t_data &data);
-void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt);
-void compute_minimum_timestep_size(t_data &data);
+bool ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt);
 void ComputeDiskOnNbodyAccel(t_data &data);
 void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system);
 void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt);
