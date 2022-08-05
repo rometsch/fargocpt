@@ -13,6 +13,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <cassert>
+#include "quantities.h"
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -37,6 +38,7 @@ void t_planetary_system::init_rebound()
     m_rebound->dt = 1e-6;
     m_rebound->softening = 0.0; // 5e-4; // Jupiter radius in au
     m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+	m_rebound->exact_finish_time = 1;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_MERCURIUS;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
@@ -60,6 +62,8 @@ void t_planetary_system::init_rebound()
 	p.sim = nullptr;
 	reb_add(m_rebound, p);
     }
+
+	m_rebound_predictor = reb_copy_simulation(m_rebound);
 }
 
 void t_planetary_system::initialize_default_star()
@@ -769,6 +773,39 @@ void t_planetary_system::copy_data_from_rebound()
     }
 }
 
+void t_planetary_system::copy_rebound_to_predictor()
+{
+	m_rebound_predictor->t = m_rebound->t;
+	m_rebound_predictor->dt = m_rebound->dt;
+	m_rebound_predictor->dt_last_done = m_rebound->dt_last_done;
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	m_rebound_predictor->particles[i].x = m_rebound->particles[i].x;
+	m_rebound_predictor->particles[i].y = m_rebound->particles[i].y;
+	m_rebound_predictor->particles[i].vx = m_rebound->particles[i].vx;
+	m_rebound_predictor->particles[i].vy = m_rebound->particles[i].vy;
+	m_rebound_predictor->particles[i].r = m_rebound->particles[i].r;
+	m_rebound_predictor->particles[i].m = m_rebound->particles[i].m;
+	}
+}
+
+void t_planetary_system::compare_rebound_to_predictor()
+{
+	std::cout
+	<< (m_rebound_predictor->t == m_rebound->t)
+	<< (m_rebound_predictor->dt == m_rebound->dt)
+	<< (m_rebound_predictor->dt_last_done == m_rebound->dt_last_done);
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	std::cout
+	<< (m_rebound_predictor->particles[i].x == m_rebound->particles[i].x)
+	<< (m_rebound_predictor->particles[i].y == m_rebound->particles[i].y)
+	<< (m_rebound_predictor->particles[i].vx == m_rebound->particles[i].vx)
+	<< (m_rebound_predictor->particles[i].vy == m_rebound->particles[i].vy)
+	<< (m_rebound_predictor->particles[i].r == m_rebound->particles[i].r)
+	<< (m_rebound_predictor->particles[i].m == m_rebound->particles[i].m);
+	}
+	std::cout << std::endl;
+}
+
 /**
    Integrate the predictor nbody system forward in time using rebound.
 */
@@ -781,8 +818,7 @@ void t_planetary_system::integrate_indirect_term_predictor(double time, double d
 
 	copy_data_to_rebound();
 	m_rebound->t = time;
-	m_rebound_predictor = reb_copy_simulation(m_rebound);
-
+	copy_rebound_to_predictor();
 	disable_trap_fpe_gnu();
 	reb_integrate(m_rebound_predictor, time + dt);
 	enable_trap_fpe_gnu();

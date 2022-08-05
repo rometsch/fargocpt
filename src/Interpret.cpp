@@ -112,7 +112,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     parameters::SpreadingRing =
 	config::value_as_bool_default("SpreadingRing", NO);
 
-    last_dt = config::value_as_double_default("FirstDT", 1e-9);
+	last_dt = config::value_as_double_default("FirstDT", 1e-9);
 
     SIGMASLOPE = config::value_as_double_default("SIGMASLOPE", 0.0);
     IMPOSEDDISKDRIFT = config::value_as_double_default("IMPOSEDDISKDRIFT", 0.0);

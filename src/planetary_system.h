@@ -72,6 +72,8 @@ class t_planetary_system
 
     void integrate(double time, double dt);
 	void integrate_indirect_term_predictor(double time, double dt);
+	void copy_rebound_to_predictor();
+	void compare_rebound_to_predictor();
     void copy_data_to_rebound();
     void copy_data_from_rebound();
     void correct_velocity_for_disk_accel();
