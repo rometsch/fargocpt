@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
 
     boundary_conditions::init_prescribed_time_variable_boundaries(data);
     init_physics(data);
+	compute_minimum_timestep_size(data);
 
     // update planet velocity due to disk potential
     if (parameters::disk_feedback) {

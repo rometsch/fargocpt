@@ -162,6 +162,7 @@ double DT;
 double last_dt;
 double dt_parabolic_local;
 double hydro_dt;
+double minimum_hydro_dt;
 
 int N_output;
 unsigned int N_outer_loop;

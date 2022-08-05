@@ -2246,6 +2246,8 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
 
 	dt_global = std::min(parameters::CFL_max_var * last_dt, dt_global);
+	dt_global = std::max(dt_global, minimum_hydro_dt);
+
 
 	return std::max(deltaT / dt_global, 1.0);
 }

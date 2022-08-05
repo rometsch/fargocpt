@@ -18,6 +18,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "quantities.h"
 
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
@@ -99,6 +100,29 @@ void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 
 	IndirectTerm.x += IndirectTermPlanets.x;
 	IndirectTerm.y += IndirectTermPlanets.y;
+}
+
+/**
+ * @brief compute_minimum_timestep_size
+ * @param data
+ * This function needs to be called after nbody system and disk mass is initialized.
+ * The central object will be out of the coordinate center due to numerical precision.
+ * The amound off the coordinate center depends on the mass ratios.
+ * Since we compute the indirect force by central object pos / dt^2, we need to limit dt
+ * such that numerical noise / dt^2 remains small.
+ */
+void compute_minimum_timestep_size(t_data &data){
+	/// Minimum timestep from IndirectTerm criteria
+	double total_mass = data.get_planetary_system().get_mass();
+	double disk_mass = quantities::gas_total_mass(data, 2.0*RMAX);
+	data.get_planetary_system().update_global_hydro_frame_center_mass();
+
+
+	if(parameters::disk_feedback){
+		total_mass += disk_mass;
+	}
+
+	minimum_hydro_dt = std::sqrt((total_mass - hydro_center_mass)/hydro_center_mass * std::numeric_limits<double>::epsilon()) * 10.0;
 }
 
 /* Below : work in non-rotating frame */
