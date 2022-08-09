@@ -237,7 +237,7 @@ void t_planetary_system::read_from_file(char *filename)
 	"The first %d planets are used to calculate the hydro frame center.\n",
 	parameters::n_bodies_for_hydroframe_center);
 
-	shift_to_hydro_frame_center();
+	move_to_hydro_frame_center();
 
     if (Corotating == YES &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
@@ -627,7 +627,7 @@ Pair t_planetary_system::get_hydro_frame_center_position() const
  * New Center of mass is needed to compute the indirect term while the old
  * positions are still needed to compute the gravitational potential.
  */
-Pair t_planetary_system::get_hydro_frame_center_position_from_rebound() const
+Pair t_planetary_system::get_hydro_frame_center_position_from_rebound_predictor() const
 {
 	double x = 0.0;
 	double y = 0.0;
@@ -651,7 +651,7 @@ Pair t_planetary_system::get_hydro_frame_center_position_from_rebound() const
 	return com;
 }
 
-Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound() const
+Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor() const
 {
 	double vx_old = 0.0;
 	double vy_old = 0.0;
@@ -713,25 +713,8 @@ void t_planetary_system::update_global_hydro_frame_center_mass()
 void t_planetary_system::adjust_to_hydro_frame_center(const pair vel)
 {
 	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	// we already checked dt != 0.0 at this point
-	assert(dt != 0.0);
-
 	m_rebound->particles[i].vx -= vel.x;
 	m_rebound->particles[i].vy -= vel.y;
-	}
-}
-
-void t_planetary_system::move_to_hydro_frame_center_positions()
-{
-	Pair center = get_hydro_frame_center_position();
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	t_planet &planet = get_planet(i);
-	double x = planet.get_x();
-	double y = planet.get_y();
-
-	planet.set_x(x - center.x);
-	planet.set_y(y - center.y);
-
 	}
 }
 
@@ -739,7 +722,7 @@ void t_planetary_system::move_to_hydro_frame_center_positions()
  * @brief t_planetary_system::shift_to_hydro_frame_center
  * move positions and velocities to hydro_frame_center
  */
-void t_planetary_system::shift_to_hydro_frame_center()
+void t_planetary_system::move_to_hydro_frame_center()
 {
     Pair center = get_hydro_frame_center_position();
     Pair vcenter = get_hydro_frame_center_velocity();
@@ -755,6 +738,20 @@ void t_planetary_system::shift_to_hydro_frame_center()
 	planet.set_vx(vx - vcenter.x);
 	planet.set_vy(vy - vcenter.y);
     }
+}
+
+
+void t_planetary_system::move_to_hydro_frame_center_positions_only()
+{
+	Pair center = get_hydro_frame_center_position();
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	t_planet &planet = get_planet(i);
+	double x = planet.get_x();
+	double y = planet.get_y();
+
+	planet.set_x(x - center.x);
+	planet.set_y(y - center.y);
+	}
 }
 
 /**

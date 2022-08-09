@@ -44,13 +44,13 @@ class t_planetary_system
 	double eccentricity, double omega, double true_anomaly);
 
     Pair get_hydro_frame_center_position() const;
-	Pair get_hydro_frame_center_position_from_rebound() const;
-	Pair get_hydro_frame_center_delta_vel_rebound() const;
+	Pair get_hydro_frame_center_position_from_rebound_predictor() const;
+	Pair get_hydro_frame_center_delta_vel_rebound_predictor() const;
     Pair get_hydro_frame_center_velocity() const;
     double get_hydro_frame_center_mass() const;
 	void adjust_to_hydro_frame_center(const pair vel);
-	void move_to_hydro_frame_center_positions();
-	void shift_to_hydro_frame_center();
+	void move_to_hydro_frame_center();
+	void move_to_hydro_frame_center_positions_only();
 
     void update_global_hydro_frame_center_mass();
     void calculate_orbital_elements();

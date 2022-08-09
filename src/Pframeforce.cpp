@@ -84,31 +84,30 @@ void ComputeIndirectTermNbody(t_data &data)
 	IndirectTerm.y += IndirectTermPlanets.y;
 }
 
-bool ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
+void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 {
 
-	bool shift_required;
 	pair shift_vel;
 	if(dt != 0.0){
-	pair cms = data.get_planetary_system().get_hydro_frame_center_position_from_rebound();
-	const double cms_r = std::sqrt(cms.x*cms.x + cms.y*cms.y);
-	const double minimum_dt = std::sqrt(cms_r)*1.0e-2;
-	if(minimum_dt < dt){
+	pair cms_predictor = data.get_planetary_system().get_hydro_frame_center_position_from_rebound_predictor();
+	pair cms_old = data.get_planetary_system().get_hydro_frame_center_position();
+	const double cms_r = std::sqrt(cms_old.x*cms_old.x + cms_old.y*cms_old.y);
+	const double minimum_dt = std::sqrt(cms_r)*1.0e4;
+
+	shift_vel.x = cms_predictor.x / dt;
+	shift_vel.y = cms_predictor.y / dt;
+
+	if(minimum_dt < dt && last_dt*(2.0 - parameters::CFL_max_var) < dt){
 	/// Construct Indirect term such that after the integration step, the central object will be at 0/0
-	IndirectTermPlanets.x = -cms.x / std::pow(dt, 2);
-	IndirectTermPlanets.y = -cms.y / std::pow(dt, 2);
-	shift_vel.x = cms.x / dt;
-	shift_vel.y = cms.y / dt;
-	shift_required = false;
+	/// but is susceptible to numerical instabilities and depends on change of dt / dt_last
+	IndirectTermPlanets.x = -shift_vel.x / dt;
+	IndirectTermPlanets.y = -shift_vel.y / dt;
 	} else {
 		/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
-		/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, which is why we need to shift the nbody system to 0/0
-		pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound();
+		/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, which is why we shift the nbody system with pos/dt
+		pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
 		IndirectTermPlanets.x = -delta_vel.x / dt;
 		IndirectTermPlanets.y = -delta_vel.y / dt;
-		shift_vel.x = delta_vel.x;
-		shift_vel.y = delta_vel.y;
-		shift_required = true;
 	}
 
 	data.get_planetary_system().adjust_to_hydro_frame_center(shift_vel);
@@ -116,12 +115,10 @@ bool ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 	} else {
 	IndirectTermPlanets.x = 0.0;
 	IndirectTermPlanets.y = 0.0;
-	shift_required = false; // no shift required
 	}
 
 	IndirectTerm.x += IndirectTermPlanets.x;
 	IndirectTerm.y += IndirectTermPlanets.y;
-	return shift_required;
 }
 
 /* Below : work in non-rotating frame */
