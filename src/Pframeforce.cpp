@@ -87,30 +87,16 @@ void ComputeIndirectTermNbody(t_data &data)
 void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 {
 
-	pair shift_vel;
+	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
+
 	if(dt != 0.0){
-	pair cms_predictor = data.get_planetary_system().get_hydro_frame_center_position_from_rebound_predictor();
-	pair cms_old = data.get_planetary_system().get_hydro_frame_center_position();
-	const double cms_r = std::sqrt(cms_old.x*cms_old.x + cms_old.y*cms_old.y);
-	const double minimum_dt = std::sqrt(cms_r)*1.0e4;
-
-	shift_vel.x = cms_predictor.x / dt;
-	shift_vel.y = cms_predictor.y / dt;
-
-	if(minimum_dt < dt && last_dt*(2.0 - parameters::CFL_max_var) < dt){
-	/// Construct Indirect term such that after the integration step, the central object will be at 0/0
-	/// but is susceptible to numerical instabilities and depends on change of dt / dt_last
-	IndirectTermPlanets.x = -shift_vel.x / dt;
-	IndirectTermPlanets.y = -shift_vel.y / dt;
-	} else {
-		/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
-		/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, which is why we shift the nbody system with pos/dt
-		pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
-		IndirectTermPlanets.x = -delta_vel.x / dt;
-		IndirectTermPlanets.y = -delta_vel.y / dt;
-	}
-
-	data.get_planetary_system().adjust_to_hydro_frame_center(shift_vel);
+	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
+	/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, but shifting the center to 0.0 causes an error
+	/// because the gas does not feel the kick
+	pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
+	IndirectTermPlanets.x = -delta_vel.x / dt;
+	IndirectTermPlanets.y = -delta_vel.y / dt;
+	data.get_planetary_system().adjust_to_hydro_frame_center(delta_vel);
 
 	} else {
 	IndirectTermPlanets.x = 0.0;

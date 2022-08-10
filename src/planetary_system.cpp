@@ -620,37 +620,6 @@ Pair t_planetary_system::get_hydro_frame_center_position() const
     return get_center_of_mass(parameters::n_bodies_for_hydroframe_center);
 }
 
-/**
- * @brief t_planetary_system::get_hydro_frame_center_position_from_rebound
- * @return pair with hydro frame center coordinates (x, y)
- * Needed to compute center of mass without updating the planetary system.
- * New Center of mass is needed to compute the indirect term while the old
- * positions are still needed to compute the gravitational potential.
- */
-Pair t_planetary_system::get_hydro_frame_center_position_from_rebound_predictor() const
-{
-	double x = 0.0;
-	double y = 0.0;
-	double mass = 0.0;
-	for (unsigned int i = 0; i < parameters::n_bodies_for_hydroframe_center; i++) {
-	const double planet_x =	m_rebound_predictor->particles[i].x;
-	const double planet_y = m_rebound_predictor->particles[i].y;
-	const double planet_m = m_rebound_predictor->particles[i].m;
-	mass += planet_m;
-	x += planet_x * planet_m;
-	y += planet_y * planet_m;
-	}
-	Pair com;
-	if (mass > 0) {
-	com.x = x / mass;
-	com.y = y / mass;
-	} else {
-	com.x = 0.0;
-	com.y = 0.0;
-	}
-	return com;
-}
-
 Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor() const
 {
 	double vx_old = 0.0;

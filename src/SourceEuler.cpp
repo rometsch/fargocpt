@@ -465,7 +465,6 @@ void AlgoGas(t_data &data)
 	}
 
 	/// IndirectTerm is fully completed here (Disk + Nbody)
-	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, hydro_dt);
 	ComputeIndirectTermNbodyAndFixVelocities(data, hydro_dt);
 
 	if (parameters::integrate_planets) {

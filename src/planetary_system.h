@@ -44,7 +44,6 @@ class t_planetary_system
 	double eccentricity, double omega, double true_anomaly);
 
     Pair get_hydro_frame_center_position() const;
-	Pair get_hydro_frame_center_position_from_rebound_predictor() const;
 	Pair get_hydro_frame_center_delta_vel_rebound_predictor() const;
     Pair get_hydro_frame_center_velocity() const;
     double get_hydro_frame_center_mass() const;
