@@ -49,7 +49,6 @@ class t_planetary_system
     double get_hydro_frame_center_mass() const;
 	void adjust_to_hydro_frame_center(const pair vel);
 	void move_to_hydro_frame_center();
-	void move_to_hydro_frame_center_positions_only();
 
     void update_global_hydro_frame_center_mass();
     void calculate_orbital_elements();

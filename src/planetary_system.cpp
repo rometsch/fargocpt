@@ -709,20 +709,6 @@ void t_planetary_system::move_to_hydro_frame_center()
     }
 }
 
-
-void t_planetary_system::move_to_hydro_frame_center_positions_only()
-{
-	Pair center = get_hydro_frame_center_position();
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	t_planet &planet = get_planet(i);
-	double x = planet.get_x();
-	double y = planet.get_y();
-
-	planet.set_x(x - center.x);
-	planet.set_y(y - center.y);
-	}
-}
-
 /**
    Calculate orbital elements of all planets.
  */
