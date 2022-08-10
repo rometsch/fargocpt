@@ -417,6 +417,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
     double e_x, e_y;
     double total_mass = 0.0;
 
+	const Pair cms = data.get_planetary_system().get_hydro_frame_center_position();
+
     if (!force_update) {
 	if (last_timestep_calculated == (int)timestep) {
 	    return;
@@ -440,8 +442,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    angle = (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
 		    M_PI;
-	    r_x = Rmed[n_radial] * std::cos(angle);
-	    r_y = Rmed[n_radial] * std::sin(angle);
+		r_x = Rmed[n_radial] * std::cos(angle) - cms.x;
+		r_y = Rmed[n_radial] * std::sin(angle) - cms.y;
 
 	    // averaged velocities
 	    v_xmed =
