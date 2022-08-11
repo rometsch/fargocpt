@@ -1292,6 +1292,55 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	    }
 	}
 
+	if (parameters::Adiabatic){
+	t_polargrid &energy = data[t_data::ENERGY];
+	//t_polargrid &sigma = data[t_data::DENSITY];
+	for (unsigned int nr = clamped_vphi_id;
+		 nr < energy.get_size_radial(); ++nr) {
+		double factor = std::pow(
+		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int naz = 0;
+		 naz < energy.get_size_azimuthal(); ++naz) {
+	const double cell_x = (*CellCenterX)(nr, naz);
+	const double cell_y = (*CellCenterY)(nr, naz);
+
+	// Position in center of mass frame
+	const double x_com = cell_x - com_pos.x;
+	const double y_com = cell_y - com_pos.y;
+	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+	/// Initial profile temperature
+	const double cell_energy_profile =
+	1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	std::pow(ASPECTRATIO_REF, 2) *
+	std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+	constants::G * com_mass;
+	/*
+	const double cell_sigma = sigma(nr, naz);
+	const double temperature_floor =
+	parameters::minimum_temperature *
+	units::temperature.get_inverse_cgs_factor();
+
+	const double energy_floor = temperature_floor * cell_sigma /
+				parameters::MU * constants::R /
+				(ADIABATICINDEX - 1.0);
+	const double cell_energy0 = std::max(cell_energy_profile, energy_floor);
+				*/
+	const double cell_energy0 = cell_energy_profile;
+
+	const double cell_energy = energy(nr, naz);
+	const double energy_new = (cell_energy - cell_energy0) * exp_factor + cell_energy0;
+
+	energy(nr, naz)  = energy_new;
+		}
+	}
+	}
+
+
 	/*
 
 	t_polargrid &sigma = data[t_data::DENSITY];
