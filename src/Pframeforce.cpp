@@ -89,14 +89,27 @@ void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 
 	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
 
+	const pair com_pos = data.get_planetary_system().get_hydro_frame_center_position();
+	const pair com_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
+	const double omega = data.get_planetary_system().get_planet(0).get_orbital_period();
+	const double k_pos = std::pow(omega/25.0, 2);
+	const double k_vel = std::pow(omega/10.0, 2);
+
 	if(dt != 0.0){
 	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
 	/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, but shifting the center to 0.0 causes an error
 	/// because the gas does not feel the kick
-	pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
-	IndirectTermPlanets.x = -delta_vel.x / dt;
-	IndirectTermPlanets.y = -delta_vel.y / dt;
-	data.get_planetary_system().adjust_to_hydro_frame_center(delta_vel);
+	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
+	pair accel{delta_vel.x/dt, delta_vel.y/dt};
+	accel.x += com_pos.x * k_pos;
+	accel.y += com_pos.y * k_pos;
+
+	accel.x += com_vel.x * k_vel;
+	accel.y += com_vel.y * k_vel;
+
+	IndirectTermPlanets.x = -accel.x;
+	IndirectTermPlanets.y = -accel.y;
+	data.get_planetary_system().adjust_to_hydro_frame_center(accel, dt);
 
 	} else {
 	IndirectTermPlanets.x = 0.0;
