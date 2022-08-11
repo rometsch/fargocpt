@@ -490,7 +490,9 @@ void AlgoGas(t_data &data)
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
 		data.get_planetary_system().copy_data_from_rebound();
-		//data.get_planetary_system().move_to_hydro_frame_center_positions_only();
+		if(parameters::indirect_term_mode != 1){ // do not shift if spring forces keep center near 0,0
+		data.get_planetary_system().move_to_hydro_frame_center();
+		}
 
 	    /// Needed for Aspectratio mode = 1
 	    /// and to correctly compute circumplanetary disk mass

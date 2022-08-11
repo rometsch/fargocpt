@@ -834,7 +834,7 @@ void t_planetary_system::integrate(double time, double dt)
 	return;
     }
 
-	// data has already been copied to rebound in integrate_indirect_term_predictor
+	// data has already been copied to rebound in ComputeIndirectTermNbodyAndFixVelocities
 
     disable_trap_fpe_gnu();
     reb_integrate(m_rebound, time + dt);

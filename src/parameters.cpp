@@ -115,6 +115,7 @@ double profile_cutoff_point_inner;
 double profile_cutoff_width_inner;
 
 bool disk_feedback;
+int indirect_term_mode;
 
 bool integrate_planets;
 bool do_init_secondary_disk;
@@ -865,6 +866,8 @@ void read(char *filename, t_data &data)
 	"Replaced by parameter DiskFeedback for clarification since it affects more than just the star.",
 	"Please replace 'FeelsDisk' by 'DiskFeedback'.");
     disk_feedback = config::value_as_bool_default("DiskFeedback", true);
+
+	indirect_term_mode = config::value_as_int_default("IndirectTermMode", 0);
 
     // self gravity
     self_gravity = config::value_as_bool_default("SelfGravity", 0);
