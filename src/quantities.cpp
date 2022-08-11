@@ -417,7 +417,9 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
     double e_x, e_y;
     double total_mass = 0.0;
 
-	const Pair cms = data.get_planetary_system().get_hydro_frame_center_position();
+	const Pair cms_pos = data.get_planetary_system().get_hydro_frame_center_position();
+	const Pair cms_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
+
 
     if (!force_update) {
 	if (last_timestep_calculated == (int)timestep) {
@@ -442,8 +444,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    angle = (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
 		    M_PI;
-		r_x = Rmed[n_radial] * std::cos(angle) - cms.x;
-		r_y = Rmed[n_radial] * std::sin(angle) - cms.y;
+		r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
+		r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
 
 	    // averaged velocities
 	    v_xmed =
@@ -458,7 +460,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 							   .get_max_azimuthal()
 					    ? 0
 					    : n_azimuthal + 1)) +
-		     OmegaFrame * Rmed[n_radial]);
+			 OmegaFrame * Rmed[n_radial]) - cms_vel.x;
 	    v_ymed =
 		std::sin(angle) * 0.5 *
 		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
@@ -471,7 +473,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 							   .get_max_azimuthal()
 					    ? 0
 					    : n_azimuthal + 1)) +
-		     OmegaFrame * Rmed[n_radial]);
+			 OmegaFrame * Rmed[n_radial]) - cms_vel.y;
 
 	    // specific angular momentum for each cell j = j*e_z
 	    j = r_x * v_ymed - r_y * v_xmed;
