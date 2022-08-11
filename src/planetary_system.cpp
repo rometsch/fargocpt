@@ -679,11 +679,11 @@ void t_planetary_system::update_global_hydro_frame_center_mass()
 }
 
 
-void t_planetary_system::adjust_to_hydro_frame_center(const pair vel)
+void t_planetary_system::adjust_to_hydro_frame_center(const pair accel, const double dt)
 {
 	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	m_rebound->particles[i].vx -= vel.x;
-	m_rebound->particles[i].vy -= vel.y;
+	m_rebound->particles[i].vx -= dt*accel.x;
+	m_rebound->particles[i].vy -= dt*accel.y;
 	}
 }
 
