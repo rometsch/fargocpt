@@ -19,9 +19,6 @@ void timestep_ringbuffer::init(const int len, const double factor, const double 
 	}
 	m_counts[m_state] = 1;
 	m_total_times[m_state] = dt_start*10.0;
-
-	print_state();
-
 }
 
 void timestep_ringbuffer::reinit(const int len, const double factor, const double dt_start){
@@ -41,9 +38,6 @@ void timestep_ringbuffer::reinit(const int len, const double factor, const doubl
 	}
 	m_counts[m_state] = 1;
 	m_total_times[m_state] = dt_start*10.0;
-
-	print_state();
-
 }
 
 timestep_ringbuffer::~timestep_ringbuffer(){
@@ -62,9 +56,6 @@ void timestep_ringbuffer::print_state(){
 
 void timestep_ringbuffer::update(const double average_time, const double dt)
 {
-
-	print_state();
-
 	m_total_times[m_state] += dt;
 	m_counts[m_state]++;
 
@@ -95,7 +86,8 @@ double timestep_ringbuffer::get_mean_dt(){
 		return 1.0e100; // infinity
 	}
 
-	logging::print(LOG_INFO "Mean dt = %.3e\n", time / (double)count * m_dt_factor);
+	logging::print(LOG_INFO "Mean dt = %.3e	time = %.3e	count = %.3e	factor = %.3e\n", time / (double)count * m_dt_factor,
+				   time, count, m_dt_factor);
 
-	return time / (double)count * m_dt_factor;
+	return time / ((double)count) * m_dt_factor;
 }
