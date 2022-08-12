@@ -1699,7 +1699,7 @@ void init_gas_velocities(t_data &data)
 		const double vy = vy_com + v_cms.y;
 
 		const double vaz = vy * std::cos(phi) - vx * std::sin(phi);
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz - OmegaFrame * r;
 	    }
 	}
 

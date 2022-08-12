@@ -338,7 +338,7 @@ static void handle_corotation(t_data &data, const double dt,
 
 	// new = r_new x r_old = distance_new * distance_old * sin(alpha*dt)
 	const double OmegaNew =
-	    asin(cross / (distance_new * distance_old)) / dt;
+		std::asin(cross / (distance_new * distance_old)) / dt;
 
 	const double domega = (OmegaNew - OmegaFrame);
 	if (parameters::calculate_disk) {

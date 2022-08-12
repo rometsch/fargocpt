@@ -1199,8 +1199,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
-		    std::sqrt(constants::G * com_mass / r_com) * corr -
-		    OmegaFrame * r_com;
+			std::sqrt(constants::G * com_mass / r_com) * corr;
 		const double cell_vr_com = vr_init;
 
 		const double cell_vx_com =
@@ -1271,8 +1270,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
-		    std::sqrt(constants::G * com_mass / r_com) * corr -
-		    OmegaFrame * r_com;
+			std::sqrt(constants::G * com_mass / r_com) * corr;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
@@ -1284,7 +1282,8 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double cell_vx = cell_vx_com + com_vel.x;
 		const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed;
+		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed -
+				OmegaFrame * rmed;
 
 		const double vp = vphi_arr(n_radial, n_azimuthal);
 		const double vp_new = (vp - vp0) * exp_factor + vp0;
@@ -2029,8 +2028,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr -
-		OmegaFrame * r_com;
+		std::sqrt(constants::G * com_mass / r_com) * corr;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -2044,7 +2042,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    const double cell_vphi =
 		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
-	    vaz(nr, naz) = cell_vphi;
+		vaz(nr, naz) = cell_vphi - OmegaFrame * rmed;
 	} /// END V_PHI
 
 	{ /// V_R
@@ -2083,8 +2081,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr -
-		OmegaFrame * r_com;
+		std::sqrt(constants::G * com_mass / r_com) * corr;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -2136,8 +2133,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr -
-		OmegaFrame * r_com;
+		std::sqrt(constants::G * com_mass / r_com) * corr;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
