@@ -150,6 +150,9 @@ int main(int argc, char *argv[])
 	}
     }
 
+	// timestep can not become larger than the average of the last 4 averaging periods
+	data.get_dt_ringbuffer().init(4, 1.5, last_dt);
+
     logging::print_master(LOG_INFO "planets loaded.\n");
 
     if (VISCOUS_ACCRETION) {

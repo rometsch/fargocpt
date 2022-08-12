@@ -466,6 +466,8 @@ void AlgoGas(t_data &data)
 	/// IndirectTerm is fully completed here (Disk + Nbody)
 	ComputeIndirectTermNbodyAndFixVelocities(data, hydro_dt);
 
+	data.get_dt_ringbuffer().update(data.get_planetary_system().get_planet(1).get_orbital_period(), hydro_dt);
+
 	if (parameters::integrate_planets) {
 		data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
 		/// Nbody positions and velocities are not updated yet!
@@ -2247,6 +2249,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	}
 
 	dt_global = std::min(parameters::CFL_max_var * last_dt, dt_global);
+	dt_global = std::min(data.get_dt_ringbuffer().get_mean_dt(), dt_global);
 
 	return std::max(deltaT / dt_global, 1.0);
 }
