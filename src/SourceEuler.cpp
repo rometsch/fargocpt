@@ -490,7 +490,7 @@ void AlgoGas(t_data &data)
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
 		data.get_planetary_system().copy_data_from_rebound();
-		if(parameters::indirect_term_mode != 1){ // do not shift if spring forces keep center near 0,0
+		if(parameters::indirect_term_mode != INDIRECT_TERM_REB_WITH_SPRING){ // do not shift if spring forces keep center near 0,0
 		data.get_planetary_system().move_to_hydro_frame_center();
 		}
 

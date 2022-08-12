@@ -867,7 +867,7 @@ void read(char *filename, t_data &data)
 	"Please replace 'FeelsDisk' by 'DiskFeedback'.");
     disk_feedback = config::value_as_bool_default("DiskFeedback", true);
 
-	indirect_term_mode = config::value_as_int_default("IndirectTermMode", 0);
+	indirect_term_mode = config::value_as_int_default("IndirectTermMode", INDIRECT_TERM_REBOUND);
 
     // self gravity
     self_gravity = config::value_as_bool_default("SelfGravity", 0);

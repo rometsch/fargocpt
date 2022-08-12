@@ -63,6 +63,11 @@ class BoundaryFlow
 #define YES 1
 #define NO 0
 
+
+#define INDIRECT_TERM_REBOUND 0
+#define INDIRECT_TERM_REB_WITH_SPRING 1
+#define INDIRECT_TERM_EULER 2
+
 // TODO: This could be problematic on large NR
 #define MAX1D 16384
 

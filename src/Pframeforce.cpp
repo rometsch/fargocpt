@@ -87,7 +87,7 @@ void ComputeIndirectTermNbody(t_data &data)
 void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 {
 
-	if(parameters::indirect_term_mode == 2){ // Euler
+	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
 		ComputeNbodyOnNbodyAccel(data.get_planetary_system());
 		ComputeIndirectTermNbody(data);
 		data.get_planetary_system().copy_data_to_rebound();
@@ -103,7 +103,7 @@ void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
 	pair accel{delta_vel.x/dt, delta_vel.y/dt};
 
-	if(parameters::indirect_term_mode == 1) { // Spring forces to keep central object near 0,0
+	if(parameters::indirect_term_mode == INDIRECT_TERM_REB_WITH_SPRING) { // Spring forces to keep central object near 0,0
 	const pair com_pos = data.get_planetary_system().get_hydro_frame_center_position();
 	const pair com_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
 	const double omega = data.get_planetary_system().get_planet(0).get_orbital_period();
