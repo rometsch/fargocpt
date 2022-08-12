@@ -1,5 +1,5 @@
 #include "util.h"
-#include <math.h>
+#include <cmath>
 
 #include "RungeKutta.h"
 #include "constants.h"

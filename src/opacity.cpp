@@ -2,9 +2,8 @@
 #include "LowTasks.h"
 #include "parameters.h"
 #include "util.h"
-#include <assert.h>
-#include <math.h>
-#include <stdio.h>
+#include <cassert>
+#include <cmath>
 
 namespace opacity
 {

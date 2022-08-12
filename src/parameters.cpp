@@ -3,9 +3,8 @@
 	\author Tobias Mueller <Tobias_Mueller@twam.info>
 */
 #include <algorithm>
-#include <ctype.h>
-#include <math.h>
-#include <string.h>
+#include <cmath>
+
 #include <vector>
 
 #include "LowTasks.h"

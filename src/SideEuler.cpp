@@ -7,10 +7,7 @@
 
 */
 
-#include <float.h>
-#include <math.h>
 #include <mpi.h>
-#include <stdio.h>
 
 #include "Force.h"
 #include "Interpret.h"

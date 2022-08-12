@@ -18,10 +18,9 @@
 #include "selfgravity.h"
 #include "util.h"
 #include <cstring>
-#include <math.h>
+#include <cmath>
 #include <mpi.h>
 #include <random>
-#include <stdlib.h>
 #include <vector>
 
 extern Pair IndirectTerm;

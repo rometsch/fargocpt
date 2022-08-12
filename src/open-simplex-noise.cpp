@@ -13,11 +13,9 @@
  *   of any particular randomization library, so results
  *   will be the same when ported to other languages.
  */
-#include <errno.h>
-#include <math.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+
+#include <cmath>
+#include <cstring>
 
 #include <random>
 
@@ -151,9 +149,10 @@ int open_simplex_noise_init_perm(struct osn_context *ctx, int16_t p[],
     int i, rc;
 
     rc = allocate_perm(ctx, nelements, 256);
-    if (rc)
+	if (rc){
 	return rc;
-    memcpy(ctx->perm, p, sizeof(*ctx->perm) * nelements);
+	}
+	std::memcpy(ctx->perm, p, sizeof(*ctx->perm) * nelements);
 
     for (i = 0; i < 256; i++) {
 	/* Since 3D has 24 gradients, simple bitmask won't work, so precompute

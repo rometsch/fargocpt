@@ -10,8 +10,8 @@
 #include <cstring>
 #include <ctype.h>
 #include <fstream>
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 #include <cassert>
 #include "quantities.h"
 

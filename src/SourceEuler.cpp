@@ -7,12 +7,11 @@
    treated elsewhere.
 */
 
-#include <assert.h>
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cfloat>
+#include <climits>
+
+
 #include <vector>
 
 #include "LowTasks.h"

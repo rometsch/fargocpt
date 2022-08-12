@@ -13,7 +13,7 @@
 #include "util.h"
 #include <algorithm>
 #include <cstring>
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "constants.h"

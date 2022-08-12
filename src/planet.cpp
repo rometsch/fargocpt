@@ -10,9 +10,9 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
+#include <cmath>
+
+#include <cstring>
 
 // define the variables in the planet data file
 const std::map<const std::string, const int> planet_file_column_v1 = {

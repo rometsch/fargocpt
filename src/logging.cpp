@@ -9,10 +9,7 @@
 #include "output.h"
 #include "parameters.h"
 #include <chrono>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
 
 namespace logging
 {
@@ -76,10 +73,10 @@ int vprint(const char *fmt, va_list args)
 	int res = vasprintf(&buf, fmt, args);
 	if (!time_format) {
 	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
-		    (int)(log(CPU_Number) / log(10) + 1), CPU_Rank, buf);
+			(int)(std::log(CPU_Number) / std::log(10) + 1), CPU_Rank, buf);
 	} else {
 	    fprintf(current_level <= error_level ? stderr : stdout,
-		    "[%0*i %s] %s", (int)(log(CPU_Number) / log(10) + 1),
+			"[%0*i %s] %s", (int)(std::log(CPU_Number) / std::log(10) + 1),
 		    CPU_Rank, time_buf, buf);
 	}
 	free(buf);

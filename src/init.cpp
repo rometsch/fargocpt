@@ -1,8 +1,7 @@
-#include <assert.h>
+#include <cassert>
 #include <cstring>
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+
 
 #include "LowTasks.h"
 #include "Pframeforce.h"

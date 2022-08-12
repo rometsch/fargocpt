@@ -9,8 +9,7 @@ declare zone centered; we then transport then normally, and deduce the new
 velocity in each zone by a proper averaging).
 */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
 
 #include "polargrid.h"
 #include "radialgrid.h"
