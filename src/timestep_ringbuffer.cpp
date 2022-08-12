@@ -91,9 +91,9 @@ double timestep_ringbuffer::get_mean_dt(){
 		count += m_counts[i];
 		time += m_total_times[i];
 
-		logging::print(LOG_INFO "loop (%d %d) 	time = %.3e	count = %d	factor = %.3e\n",
+		logging::print(LOG_INFO "loop (%d %d) 	time = %.3e %.3e	count = %d %d	factor = %.3e\n",
 					   i, m_length,
-					   time, count, m_dt_factor);
+					   time,  m_total_times[i], count, m_counts[i], m_dt_factor);
 	}
 
 	if(count == 0){
