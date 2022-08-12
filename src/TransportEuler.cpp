@@ -10,6 +10,7 @@ velocity in each zone by a proper averaging).
 */
 
 #include <cmath>
+#include <cstring>
 
 #include "polargrid.h"
 #include "radialgrid.h"
