@@ -80,32 +80,16 @@ void timestep_ringbuffer::update(const double average_time, const double dt)
 
 double timestep_ringbuffer::get_mean_dt(){
 
-	print_state();
-
 	if(m_length == 0 || m_dt_factor == 0.0){
 		return 1.0e100; // infinity
 	}
 
 	int count = 0;
-	int time = 0.0;
+	double time = 0.0;
 	for(int i = 0; i < m_length; ++i){
 		count += m_counts[i];
 		time += m_total_times[i];
-
-		printf("loop (%d %d) 	time = %.3e %.3e	count = %d %d	factor = %.3e\n",
-					   i, m_length,
-					   time,  m_total_times[i], count, m_counts[i], m_dt_factor);
 	}
-
-	if(count == 0){
-		return 1.0e100; // infinity
-	}
-
-	print_state();
-
-	printf("Mean dt = %.3e	time = %.3e	count = %d	factor = %.3e\n",
-				   time / (double)count * m_dt_factor,
-				   time, count, m_dt_factor);
 
 	return time / ((double)count) * m_dt_factor;
 }
