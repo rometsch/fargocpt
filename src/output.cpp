@@ -18,6 +18,7 @@
 
 #include <dirent.h>
 
+#include "unistd.h" // for access()
 #include <cfloat>
 #include <cstdio>
 #include <fstream>
