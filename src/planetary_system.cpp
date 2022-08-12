@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cassert>
+#include <iostream>
 #include "quantities.h"
 
 extern boolean CICPlanet;
