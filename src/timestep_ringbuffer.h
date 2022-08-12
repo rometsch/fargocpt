@@ -9,6 +9,7 @@ public:
 	timestep_ringbuffer();
 	~timestep_ringbuffer();
 	void init(const int len, const double factor, const double dt_start);
+	void reinit(const int len, const double factor, const double dt_start);
 	void update(const double average_time, const double dt);
 	double get_mean_dt();
 

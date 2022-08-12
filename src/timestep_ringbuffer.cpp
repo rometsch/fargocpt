@@ -2,10 +2,29 @@
 
 timestep_ringbuffer::timestep_ringbuffer()
 {
-
 }
 
 void timestep_ringbuffer::init(const int len, const double factor, const double dt_start){
+
+	m_state = 0;
+	m_length = len;
+	m_counts = new int[len];
+	m_total_times = new double[len];
+	m_dt_factor = factor;
+
+	for(int i = 0; i < len; ++i){
+		m_counts[i] = 0;
+		m_total_times[i] = 0.0;
+	}
+	m_counts[m_state] = 1;
+	m_total_times[m_state] = dt_start*10.0;
+}
+
+void timestep_ringbuffer::reinit(const int len, const double factor, const double dt_start){
+
+	delete[] m_counts;
+	delete[] m_total_times;
+
 	m_state = 0;
 	m_length = len;
 	m_counts = new int[len];
@@ -40,6 +59,11 @@ void timestep_ringbuffer::update(const double average_time, const double dt)
 
 
 double timestep_ringbuffer::get_mean_dt(){
+
+	if(m_length == 0){
+		return 1.0e100; // infinity
+	}
+
 	int count = 0;
 	int time = 0.0;
 	for(int i = 0; i < m_length; ++i){

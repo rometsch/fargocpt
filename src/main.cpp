@@ -132,6 +132,7 @@ int main(int argc, char *argv[])
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
 
     init_radialarrays();
+	data.get_dt_ringbuffer().init(4, 1.5, last_dt);
 
     // Here planets are initialized feeling star potential
     data.get_planetary_system().read_from_file(PLANETCONFIG);
@@ -149,9 +150,6 @@ int main(int argc, char *argv[])
 	    VISCOUS_ACCRETION = true;
 	}
     }
-
-	// timestep can not become larger than the average of the last 4 averaging periods
-	data.get_dt_ringbuffer().init(4, 1.5, last_dt);
 
     logging::print_master(LOG_INFO "planets loaded.\n");
 
@@ -195,6 +193,9 @@ int main(int argc, char *argv[])
 
 	start_mode::restart_from = output::get_misc(start_mode::restart_from,
 						    start_mode::restart_debug);
+
+	// timestep can not become larger than the average of the last 4 averaging periods
+	data.get_dt_ringbuffer().reinit(4, 1.5, last_dt);
 
 	// load grids at t = 0
 	logging::print_master(LOG_INFO "Loading polargrinds at t = 0...\n");
