@@ -71,5 +71,9 @@ double timestep_ringbuffer::get_mean_dt(){
 		time += m_total_times[i];
 	}
 
+	if(count == 0){
+		return 1.0e100; // infinity
+	}
+
 	return time / (double)count * m_dt_factor;
 }
