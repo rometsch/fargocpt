@@ -100,6 +100,8 @@ double timestep_ringbuffer::get_mean_dt(){
 		return 1.0e100; // infinity
 	}
 
+	print_state();
+
 	logging::print(LOG_INFO "Mean dt = %.3e	time = %.3e	count = %.3e	factor = %.3e\n",
 				   time / (double)count * m_dt_factor,
 				   time, count, m_dt_factor);
