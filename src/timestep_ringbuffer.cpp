@@ -103,7 +103,7 @@ double timestep_ringbuffer::get_mean_dt(){
 
 	print_state();
 
-	printf("Mean dt = %.3e	time = %.3e	count = %.3e	factor = %.3e\n",
+	printf("Mean dt = %.3e	time = %.3e	count = %d	factor = %.3e\n",
 				   time / (double)count * m_dt_factor,
 				   time, count, m_dt_factor);
 
