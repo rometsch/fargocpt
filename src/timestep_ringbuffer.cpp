@@ -67,6 +67,8 @@ void timestep_ringbuffer::print_state() const{
 
 void timestep_ringbuffer::update(const double average_time, const double dt)
 {
+
+	if(m_length > 0){
 	m_total_times[m_state] += dt;
 	m_counts[m_state]++;
 
@@ -74,6 +76,7 @@ void timestep_ringbuffer::update(const double average_time, const double dt)
 		m_state = (m_state + 1) % m_length;
 		m_counts[m_state] = 0;
 		m_total_times[m_state] = 0.0;
+	}
 	}
 
 }
