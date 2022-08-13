@@ -28,8 +28,10 @@ void timestep_ringbuffer::init(const int len, const double factor, const double 
 
 void timestep_ringbuffer::reinit(const int len, const double factor, const double dt_start){
 
+	if(m_length > 0){
 	delete[] m_counts;
 	delete[] m_total_times;
+	}
 
 	m_state = 0;
 	m_length = len;
@@ -52,8 +54,10 @@ void timestep_ringbuffer::reinit(const int len, const double factor, const doubl
 }
 
 timestep_ringbuffer::~timestep_ringbuffer(){
-	delete m_counts;
-	delete m_total_times;
+	if(m_length > 0){
+	delete[] m_counts;
+	delete[] m_total_times;
+	}
 }
 
 void timestep_ringbuffer::print_state() const{
