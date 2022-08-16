@@ -415,7 +415,7 @@ void Sts(t_data &data, const double dt)
 	data[t_data::QPLUS].clear();
     }
 
-    boundary_conditions::apply_boundary_condition(data, dt, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
     double dt_par;
 
     MPI_Allreduce(&dt_parabolic_local, &dt_par, 1, MPI_DOUBLE, MPI_MIN,
@@ -457,7 +457,7 @@ void Sts(t_data &data, const double dt)
 	viscosity::update_velocities_with_viscosity(
 		data, tau);
 
-	boundary_conditions::apply_boundary_condition(data, tau, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
 
 	if (parameters::Adiabatic) {
 

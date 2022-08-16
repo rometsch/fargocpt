@@ -415,7 +415,7 @@ void AlgoGas(t_data &data)
     // reasonable timestep size
     hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
 
-    boundary_conditions::apply_boundary_condition(data, hydro_dt, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
 
     // keep mass constant
     // const double total_disk_mass_old =
@@ -518,8 +518,7 @@ void AlgoGas(t_data &data)
 	    }
 
 	    /// TODO moved apply boundaries here
-	    boundary_conditions::apply_boundary_condition(data, hydro_dt,
-							  false);
+		boundary_conditions::apply_boundary_condition(data, 0.0, false);
 
 		Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
@@ -1778,7 +1777,7 @@ void radiative_diffusion(t_data &data, const double dt)
 	// parameters::minimum_temperature*units::temperature.get_inverse_cgs_factor();
 	// 	}
 	// }
-	boundary_conditions::apply_boundary_condition(data, dt, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
 
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
