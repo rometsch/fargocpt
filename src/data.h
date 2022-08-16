@@ -7,7 +7,6 @@
 #include "planetary_system.h"
 #include "polargrid.h"
 #include "radialgrid.h"
-#include "timestep_ringbuffer.h"
 
 class t_data
 {
@@ -107,10 +106,6 @@ class t_data
     {
 	return m_planetary_system;
     }
-	inline timestep_ringbuffer &get_dt_ringbuffer()
-	{
-	return m_timestep_ringbuffer;
-	}
     void print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal);
 
     double pdivv_total;
@@ -130,7 +125,6 @@ class t_data
     t_polargrid m_polargrids[N_POLARGRID_TYPES];
     t_radialgrid m_radialgrids[N_RADIALGRID_TYPES];
     t_planetary_system m_planetary_system;
-	timestep_ringbuffer m_timestep_ringbuffer;
 };
 
 #endif // DATA_H

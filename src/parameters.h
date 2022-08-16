@@ -211,7 +211,6 @@ extern double mof_rampingtime;
 extern bool disk_feedback;
 
 extern int indirect_term_mode;
-extern int dt_ringbuffer_length;
 
 /// factor for conversation from surface density to density
 extern double density_factor;

@@ -115,7 +115,6 @@ double profile_cutoff_width_inner;
 
 bool disk_feedback;
 int indirect_term_mode;
-int dt_ringbuffer_length;
 
 bool integrate_planets;
 bool do_init_secondary_disk;
@@ -868,7 +867,6 @@ void read(char *filename, t_data &data)
     disk_feedback = config::value_as_bool_default("DiskFeedback", true);
 
 	indirect_term_mode = config::value_as_int_default("IndirectTermMode", INDIRECT_TERM_REBOUND);
-	dt_ringbuffer_length = config::value_as_int_default("TimestepRingBufferLength", 0);
 
     // self gravity
     self_gravity = config::value_as_bool_default("SelfGravity", 0);
