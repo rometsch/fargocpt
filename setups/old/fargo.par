@@ -133,7 +133,6 @@ OmegaFrame		1.0
 Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback		NO		# Calculate incfluence of the disk on the star
 IndirectTermMode	0		# 0: indirect term from rebound with shift; 1: rebound with spring; 2: euler with shift (original);  Default 0
-TimestepRingBufferLength 4  # limits dt to average dt from #Length last orbital periods of first planet or 2 PI
 
 ### Mesh parameters
 
