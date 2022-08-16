@@ -4,8 +4,8 @@
 #include "data.h"
 
 void ComputeIndirectTermDisk(t_data &data);
-void ComputeIndirectTermNbody(t_data &data);
-void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt);
+void ComputeIndirectTermNbodyEuler(t_data &data);
+void ComputeIndirectTermNbody(t_data &data, const double dt);
 void ComputeDiskOnNbodyAccel(t_data &data);
 void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system);
 void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt);

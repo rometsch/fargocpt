@@ -58,7 +58,7 @@ void ComputeIndirectTermDisk(t_data &data)
 	IndirectTerm.y = IndirectTermDisk.y;
 }
 
-void ComputeIndirectTermNbody(t_data &data)
+void ComputeIndirectTermNbodyEuler(t_data &data)
 {
 	IndirectTermPlanets.x = 0.0;
 	IndirectTermPlanets.y = 0.0;
@@ -83,38 +83,24 @@ void ComputeIndirectTermNbody(t_data &data)
 	IndirectTerm.y += IndirectTermPlanets.y;
 }
 
-void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
+void ComputeIndirectTermNbody(t_data &data, const double dt)
 {
 
 	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
 		ComputeNbodyOnNbodyAccel(data.get_planetary_system());
-		ComputeIndirectTermNbody(data);
+		ComputeIndirectTermNbodyEuler(data);
 		data.get_planetary_system().copy_data_to_rebound();
 		data.get_planetary_system().m_rebound->t = PhysicalTime;
 	} else {
 
 	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
 
-	if(dt != 0.0){ // Rebound with shift and Rebound with spring forces
+	if(dt != 0.0){ // Indirect term from Rebound
 	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
 	/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, but shifting the center to 0.0 causes an error
 	/// because the gas does not feel the kick
 	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
 	pair accel{delta_vel.x/dt, delta_vel.y/dt};
-
-	if(parameters::indirect_term_mode == INDIRECT_TERM_REB_WITH_SPRING) { // Spring forces to keep central object near 0,0
-	const pair com_pos = data.get_planetary_system().get_hydro_frame_center_position();
-	const pair com_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
-	const double omega = data.get_planetary_system().get_planet(0).get_orbital_period();
-	const double k_pos = std::pow(omega/15.0, 2);
-	const double k_vel = std::pow(omega/10.0, 2);
-
-	accel.x += com_pos.x * k_pos;
-	accel.y += com_pos.y * k_pos;
-
-	accel.x += com_vel.x * k_vel;
-	accel.y += com_vel.y * k_vel;
-	}
 
 	IndirectTermPlanets.x = -accel.x;
 	IndirectTermPlanets.y = -accel.y;
