@@ -680,7 +680,7 @@ void t_planetary_system::update_global_hydro_frame_center_mass()
 }
 
 
-void t_planetary_system::apply_full_indirect_term_on_Nbody(const pair accel, const double dt)
+void t_planetary_system::apply_indirect_term_on_Nbody(const pair accel, const double dt)
 {
 	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	m_rebound->particles[i].vx -= dt*accel.x;
