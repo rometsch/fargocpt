@@ -111,7 +111,7 @@ void FreeTransport()
 }
 
 void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
-	       PolarGrid *VAzimuthal, PolarGrid *Energy, double dt)
+		   PolarGrid *VAzimuthal, PolarGrid *Energy, const double dt)
 {
     compute_momenta_from_velocities(*Density, *VRadial, *VAzimuthal);
 
@@ -120,6 +120,16 @@ void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     OneWindTheta(data, Density, VAzimuthal, Energy, dt);
 
     compute_velocities_from_momenta(*Density, *VRadial, *VAzimuthal);
+
+	// assure minimum density after transport
+	assure_minimum_value(data[t_data::DENSITY],
+			 parameters::sigma_floor * parameters::sigma0);
+
+	if (parameters::Adiabatic) {
+	// assure minimum temperature after transport. it
+	// is crucial the check minimum density before!
+	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+	}
 }
 
 void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,

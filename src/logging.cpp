@@ -138,7 +138,7 @@ void print_runtime_final()
 }
 
 void print_runtime_info(t_data &data, unsigned int output_number,
-			unsigned int time_step_coarse, double dt)
+			unsigned int time_step_coarse, const double dt)
 {
     // Print a line with information about the runtime: current hyrdro step,
     // average runtime, ... depending on whether enough real time or number of

@@ -70,7 +70,7 @@ class t_planetary_system
     void create_planet_files();
     void write_planets(unsigned int timestep, int file_type);
 
-    void integrate(double time, double dt);
+	void integrate(const double time, const double dt);
 	void integrate_indirect_term_predictor(double time, double dt);
 	void copy_rebound_to_predictor();
 	void compare_rebound_to_predictor();

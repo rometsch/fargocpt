@@ -828,7 +828,7 @@ void t_planetary_system::integrate_indirect_term_predictor(double time, double d
 /**
    Integrate the nbody system forward in time using rebound.
 */
-void t_planetary_system::integrate(double time, double dt)
+void t_planetary_system::integrate(const double time, const double dt)
 {
     if (get_number_of_planets() < 2) {
 	// don't integrate a single particle that doesn't move

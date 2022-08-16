@@ -243,7 +243,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
     }
 }
 
-void apply_boundary_condition(t_data &data, double dt, bool final)
+void apply_boundary_condition(t_data &data, const double dt, const bool final)
 {
     // if this is the final boundary condition and damping is enable, do it
     if (final && parameters::damping) {

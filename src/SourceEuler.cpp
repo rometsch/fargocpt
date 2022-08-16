@@ -499,28 +499,19 @@ void AlgoGas(t_data &data)
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
 		update_with_artificial_viscosity(data, hydro_dt);
-
 		if (parameters::Adiabatic) {
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-
 		recalculate_derived_disk_quantities(data, true);
-
 		ComputeViscousStressTensor(data);
-
 		viscosity::update_velocities_with_viscosity(data, hydro_dt);
 	    }
-
 	    if (!EXPLICIT_VISCOSITY) {
 		Sts(data, hydro_dt);
 	    }
 
-	    // boundary_conditions::apply_boundary_condition(data, dt, false);
-
 	    if (parameters::Adiabatic) {
-		// ComputeViscousStressTensor(data);
 		SubStep3(data, hydro_dt);
-
 		if (parameters::radiative_diffusion_enabled) {
 		    radiative_diffusion(data, hydro_dt);
 		}
@@ -533,12 +524,6 @@ void AlgoGas(t_data &data)
 		Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 			  hydro_dt);
-
-	    if (parameters::Adiabatic) {
-		// assure minimum temperature after all substeps & transport. it
-		// is crucial the check minimum density before!
-		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-	    }
 	}
 
 	PhysicalTime += hydro_dt;
@@ -595,7 +580,7 @@ void AlgoGas(t_data &data)
    We evolve velocities with pressure gradients, gravitational forces and
    curvature terms
 */
-void update_with_sourceterms(t_data &data, double dt)
+void update_with_sourceterms(t_data &data, const double dt)
 {
     double supp_torque = 0.0; // for imposed disk drift
 
@@ -771,7 +756,7 @@ void update_with_sourceterms(t_data &data, double dt)
    constant; Beware of misprint in Stone and Norman's paper : use C2^2 instead
    of C2
 */
-void update_with_artificial_viscosity(t_data &data, double dt)
+void update_with_artificial_viscosity(t_data &data, const double dt)
 {
 
     /// Do not Apply sub keplerian boundary for boundary conditions that set
@@ -1379,7 +1364,7 @@ void calculate_qminus(t_data &data)
 	In this substep we take into account the source part of energy equation.
    We evolve internal energy with compression/dilatation and heating terms
 */
-void SubStep3(t_data &data, double dt)
+void SubStep3(t_data &data, const double dt)
 {
     calculate_qminus(data); // first to calculate teff
     calculate_qplus(data);
@@ -1475,7 +1460,7 @@ void SubStep3(t_data &data, double dt)
 	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 }
 
-static inline double flux_limiter(double R)
+static inline double flux_limiter(const double R)
 {
     // flux limiter
     if (R <= 2) {
@@ -1485,7 +1470,7 @@ static inline double flux_limiter(double R)
     }
 }
 
-void radiative_diffusion(t_data &data, double dt)
+void radiative_diffusion(t_data &data, const double dt)
 {
     static bool grids_allocated = false;
     static t_polargrid Ka, Kb;

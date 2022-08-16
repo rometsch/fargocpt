@@ -487,7 +487,7 @@ void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system)
 }
 
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
-void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt)
+void ComputeNbodyOnNbodyAccelRK5(t_data &data, const double dt)
 {
 	unsigned int n = data.get_planetary_system().get_number_of_planets();
 
@@ -514,7 +514,7 @@ void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt)
 	Updates planets velocities due to disk influence if "DiskFeedback" is
    set.
 */
-void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
+void UpdatePlanetVelocitiesWithDiskForce(t_data &data, const double dt)
 {
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {

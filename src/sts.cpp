@@ -407,7 +407,7 @@ static double STS_CorrectTimeStep(int n0, double dta)
     return (dtr);
 }
 
-void Sts(t_data &data, double dt)
+void Sts(t_data &data, const double dt)
 {
 
     if (parameters::heating_viscous_enabled) {
