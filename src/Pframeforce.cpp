@@ -118,8 +118,6 @@ void ComputeIndirectTermNbodyAndFixVelocities(t_data &data, const double dt)
 
 	IndirectTermPlanets.x = -accel.x;
 	IndirectTermPlanets.y = -accel.y;
-	data.get_planetary_system().adjust_to_hydro_frame_center(accel, dt);
-
 	} else {
 	IndirectTermPlanets.x = 0.0;
 	IndirectTermPlanets.y = 0.0;
@@ -539,9 +537,9 @@ void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
 
 	    const Pair gamma = planet.get_disk_on_planet_acceleration();
 	    const double new_vx =
-		planet.get_vx() + dt * gamma.x + dt * IndirectTermDisk.x;
+		planet.get_vx() + dt * gamma.x;
 	    const double new_vy =
-		planet.get_vy() + dt * gamma.y + dt * IndirectTermDisk.y;
+		planet.get_vy() + dt * gamma.y;
 	    planet.set_vx(new_vx);
 	    planet.set_vy(new_vy);
 	}
