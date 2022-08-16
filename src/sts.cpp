@@ -455,7 +455,7 @@ void Sts(t_data &data, double dt)
 
 	ComputeViscousStressTensor(data);
 	viscosity::update_velocities_with_viscosity(
-	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], tau);
+		data, tau);
 
 	boundary_conditions::apply_boundary_condition(data, tau, false);
 

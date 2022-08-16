@@ -8,8 +8,7 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value);
 bool assure_temperature_range(t_data &data);
 
 void move_polargrid(t_polargrid &dst, t_polargrid &src);
-void copy_polargrid(t_polargrid &dst, t_polargrid &src);
-void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src);
+void copy_polargrid(t_polargrid &dst, const t_polargrid& src);
 
 void recalculate_derived_disk_quantities(t_data &data, bool force_update);
 void init_euler(t_data &data);

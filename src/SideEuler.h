@@ -5,8 +5,8 @@
 #include "types.h"
 
 void CheckAngularMomentumConservation(t_data &data);
-void divise_polargrid(t_polargrid &num, t_polargrid &denom,
-		      t_polargrid &result);
+void divise_polargrid(const t_polargrid& num, const t_polargrid& denom,
+			  t_polargrid &result);
 void InitCellCenterCoordinates();
 void FreeCellCenterCoordinates();
 

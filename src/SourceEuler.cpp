@@ -371,7 +371,7 @@ void FreeEuler()
 	\param dst destination polar grid
 	\param src source polar grid
 */
-void copy_polargrid(t_polargrid &dst, t_polargrid &src)
+void copy_polargrid(t_polargrid &dst, const t_polargrid &src)
 {
     assert((dst.get_size_radial() == src.get_size_radial()) &&
 	   (dst.get_size_azimuthal() == src.get_size_azimuthal()));
@@ -386,6 +386,7 @@ void copy_polargrid(t_polargrid &dst, t_polargrid &src)
 
 	\param dst destination polar grid
 	\param src source polar grid
+	switches polar grids
 */
 void move_polargrid(t_polargrid &dst, t_polargrid &src)
 {
@@ -393,24 +394,6 @@ void move_polargrid(t_polargrid &dst, t_polargrid &src)
 	   (dst.get_size_azimuthal() == src.get_size_azimuthal()));
 
     std::swap(dst.Field, src.Field);
-}
-
-/**
-	switches polar grids
-
-	\param dst destination polar grid
-	\param src source polar grid
-*/
-void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src)
-{
-    double *tmp;
-
-    assert(dst->Nsec == src->Nsec);
-    assert(dst->Nrad == dst->Nrad);
-
-    tmp = dst->Field;
-    dst->Field = src->Field;
-    src->Field = tmp;
 }
 
 /**
@@ -458,7 +441,6 @@ void AlgoGas(t_data &data)
 	}
 
 	ComputeIndirectTermDisk(data);
-
 	if (parameters::disk_feedback) {
 		UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
 	}
@@ -511,7 +493,7 @@ void AlgoGas(t_data &data)
 
 	/* Now we update gas */
 	if (parameters::calculate_disk) {
-	    HandleCrash(data);
+		//HandleCrash(data);
 
 	    update_with_sourceterms(data, hydro_dt);
 
@@ -528,9 +510,7 @@ void AlgoGas(t_data &data)
 
 		ComputeViscousStressTensor(data);
 
-		viscosity::update_velocities_with_viscosity(
-		    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-		    hydro_dt);
+		viscosity::update_velocities_with_viscosity(data, hydro_dt);
 	    }
 
 	    if (!EXPLICIT_VISCOSITY) {
@@ -540,15 +520,11 @@ void AlgoGas(t_data &data)
 	    // boundary_conditions::apply_boundary_condition(data, dt, false);
 
 	    if (parameters::Adiabatic) {
-
 		// ComputeViscousStressTensor(data);
 		SubStep3(data, hydro_dt);
 
-		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-
 		if (parameters::radiative_diffusion_enabled) {
 		    radiative_diffusion(data, hydro_dt);
-		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 	    }
 
@@ -556,13 +532,9 @@ void AlgoGas(t_data &data)
 	    boundary_conditions::apply_boundary_condition(data, hydro_dt,
 							  false);
 
-	    Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
-		      &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-		      hydro_dt);
-
-	    // assure minimum density after all substeps & transport
-	    assure_minimum_value(data[t_data::DENSITY],
-				 parameters::sigma_floor * parameters::sigma0);
+		Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
+			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
+			  hydro_dt);
 
 	    if (parameters::Adiabatic) {
 		// assure minimum temperature after all substeps & transport. it
@@ -590,6 +562,7 @@ void AlgoGas(t_data &data)
 		viscosity::update_viscosity(data);
 	    }
 
+		// minimum density is assured inside AccreteOntoPlanets
 	    accretion::AccreteOntoPlanets(data, hydro_dt);
 
 	    boundary_conditions::apply_boundary_condition(data, hydro_dt, true);
@@ -1500,6 +1473,8 @@ void SubStep3(t_data &data, double dt)
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
 	}
     }
+
+	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 }
 
 static inline double flux_limiter(double R)
@@ -1958,6 +1933,8 @@ void radiative_diffusion(t_data &data, double dt)
 					    parameters::MU * constants::R;
 	}
     }
+
+	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 }
 
 static void print_info()

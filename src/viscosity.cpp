@@ -373,10 +373,11 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 /**
 	Update velocities with viscous source term of Navier-Stokes equations
 */
-void update_velocities_with_viscosity(t_data &data, t_polargrid &v_radial,
-				      t_polargrid &v_azimuthal, double dt)
+void update_velocities_with_viscosity(t_data &data, double dt)
 {
 
+	t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
+	t_polargrid &v_radial = data[t_data::V_RADIAL];
     const t_polargrid &Sigma = data[t_data::DENSITY];
     const t_polargrid &Trp = data[t_data::TAU_R_PHI];
     const t_polargrid &Trr = data[t_data::TAU_R_R];
