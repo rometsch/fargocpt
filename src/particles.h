@@ -11,6 +11,7 @@ extern t_particle *particles;
 extern unsigned int particles_size;
 extern unsigned int local_number_of_particles;
 
+void update_velocities_from_indirect_term(const double dt);
 void init(t_data &data);
 void restart(unsigned int timestep);
 // void calculate_accelerations_from_star_and_planets(t_data& data);

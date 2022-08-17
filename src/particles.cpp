@@ -1212,7 +1212,7 @@ void check_tstop(t_data &data)
 }
 
 // apply disk feedback on primary onto the particles
-static void update_velocities_from_indirect_term(const double dt)
+void update_velocities_from_indirect_term(const double dt)
 {
     // Naming of r and phi weird!!!!!!!
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
@@ -1597,10 +1597,6 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 
 void integrate_exponential_midpoint(t_data &data, const double dt)
 {
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
     if (parameters::particle_gas_drag_enabled) {
@@ -1696,11 +1692,6 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 void integrate_semiimplicit(t_data &data, const double dt)
 {
-
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
     if (parameters::particle_gas_drag_enabled) {
@@ -1785,10 +1776,6 @@ void integrate_semiimplicit(t_data &data, const double dt)
 
 void integrate_implicit(t_data &data, const double dt)
 {
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // Fully implicit integrator in cylindrical coordinates (see Zhu et al.
     // 2014, eqs. A15-A18)
     double r1, phi1, l1, r_dot1, tstop1, tstop0, dt0, dt1;
@@ -1881,7 +1868,6 @@ void integrate_implicit(t_data &data, const double dt)
 	check_angle(particles[i].phi);
 	particles[i].phi_dot = l1 / std::pow(particles[i].r, 2);
     }
-
     move();
 }
 
@@ -1896,10 +1882,6 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag(data, dt);
-    }
-
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
     }
 
     // as particles move independent of each other, we can integrate one after
@@ -2236,9 +2218,6 @@ void integrate_explicit(t_data &data, const double dt)
 	    update_velocities_from_gas_drag(data, dt);
     } // else {
     // disk gravity on particles is inside gas_drag function
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
 
     // as particles move independent of each other, we can integrate one after
     // one

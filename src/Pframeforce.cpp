@@ -31,8 +31,6 @@ extern Pair IndirectTermPlanets;
  */
 void ComputeIndirectTermDisk(t_data &data)
 {
-    IndirectTerm.x = 0.0;
-    IndirectTerm.y = 0.0;
     IndirectTermDisk.x = 0.0;
     IndirectTermDisk.y = 0.0;
 
@@ -52,10 +50,7 @@ void ComputeIndirectTermDisk(t_data &data)
 	}
 	IndirectTermDisk.x /= mass_center;
 	IndirectTermDisk.y /= mass_center;
-    }
-
-	IndirectTerm.x = IndirectTermDisk.x;
-	IndirectTerm.y = IndirectTermDisk.y;
+	}
 }
 
 void ComputeIndirectTermNbodyEuler(t_data &data)
@@ -78,9 +73,6 @@ void ComputeIndirectTermNbodyEuler(t_data &data)
 	}
 	IndirectTermPlanets.x /= mass_center;
 	IndirectTermPlanets.y /= mass_center;
-
-	IndirectTerm.x += IndirectTermPlanets.x;
-	IndirectTerm.y += IndirectTermPlanets.y;
 }
 
 void ComputeIndirectTermNbody(t_data &data, const double dt)
@@ -89,8 +81,6 @@ void ComputeIndirectTermNbody(t_data &data, const double dt)
 	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
 		ComputeNbodyOnNbodyAccel(data.get_planetary_system());
 		ComputeIndirectTermNbodyEuler(data);
-		data.get_planetary_system().copy_data_to_rebound();
-		data.get_planetary_system().m_rebound->t = PhysicalTime;
 	} else {
 
 	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
@@ -109,9 +99,11 @@ void ComputeIndirectTermNbody(t_data &data, const double dt)
 	IndirectTermPlanets.y = 0.0;
 	}
 	}
+}
 
-	IndirectTerm.x += IndirectTermPlanets.x;
-	IndirectTerm.y += IndirectTermPlanets.y;
+void ComputeIndirectTermFully(){
+	IndirectTerm.x = IndirectTermDisk.x + IndirectTermPlanets.x;
+	IndirectTerm.y = IndirectTermDisk.y + IndirectTermPlanets.y;
 }
 
 /* Below : work in non-rotating frame */
@@ -527,7 +519,7 @@ void UpdatePlanetVelocitiesWithDiskForce(t_data &data, const double dt)
 	    const double new_vy =
 		planet.get_vy() + dt * gamma.y;
 	    planet.set_vx(new_vx);
-	    planet.set_vy(new_vy);
+		planet.set_vy(new_vy);
 	}
     }
 }
