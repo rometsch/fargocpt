@@ -542,6 +542,8 @@ void init_spreading_ring_test_jibin(t_data &data)
 	LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", sig0,
 	sig0 * units::surface_density.get_cgs_factor());
 
+	srand(parameters::random_seed);
+
     for (unsigned int n_radial = 0; n_radial < data[t_data::DENSITY].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
