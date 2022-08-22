@@ -332,14 +332,12 @@ static void handle_corotation(t_data &data, const double dt,
 	const double y = planet.get_y();
 	const double distance_new = std::sqrt(std::pow(x, 2) + std::pow(y, 2));
 	const double distance_old =
-	    std::sqrt(std::pow(corot_old_x, 2) + std::pow(corot_old_y, 2));
+		std::sqrt(std::pow(corot_old_x, 2) + std::pow(corot_old_y, 2));
 	const double cross = corot_old_x * y - x * corot_old_y;
 
 	// new = r_new x r_old = distance_new * distance_old * sin(alpha*dt)
 	const double OmegaNew =
 		std::asin(cross / (distance_new * distance_old)) / dt;
-	corot_old_x = x;
-	corot_old_y = y;
 
 	const double domega = (OmegaNew - OmegaFrame);
 	if (parameters::calculate_disk) {
@@ -437,8 +435,6 @@ void AlgoGas(t_data &data)
 
 	dtemp += hydro_dt;
 
-	init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
-
 	//////////////// Leapfrog compute v_i+1/2 /////////////////////
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
@@ -459,8 +455,9 @@ void AlgoGas(t_data &data)
 		data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, frog_dt);
 		data.get_planetary_system().integrate(PhysicalTime, frog_dt);
 
+		init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_frame_center_from_last_dt();
+		data.get_planetary_system().move_to_hydro_frame_center();
 
 	    /// Needed for Aspectratio mode = 1
 	    /// and to correctly compute circumplanetary disk mass
@@ -524,10 +521,9 @@ void AlgoGas(t_data &data)
 	}
 
 	//////////////// Leapfrog compute v_i+1 /////////////////////
-
 	// Finish timestep of the planets but do not update Nbody system yet //
 	if (parameters::integrate_planets) {
-		data.get_planetary_system().integrate(PhysicalTime, frog_dt);
+		data.get_planetary_system().integrate(PhysicalTime+frog_dt, frog_dt);
 	}
 
 	/// planets positions still at x_i+1/2 for gas interaction
@@ -589,6 +585,7 @@ void AlgoGas(t_data &data)
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 		}
+		init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 		data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, frog_dt);
 		data.get_planetary_system().copy_data_from_rebound();
 		data.get_planetary_system().move_to_hydro_frame_center();
