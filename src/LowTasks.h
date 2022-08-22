@@ -18,4 +18,6 @@ void MultiplyPolarGridbyConstant(t_polargrid *arraysrc, double constant);
 void die(const char *err, ...);
 void die_errno(const char *fmt, ...);
 
+std::string lowercase(const std::string& s);
+
 #endif // LOWTASKS_H

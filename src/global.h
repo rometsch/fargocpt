@@ -6,6 +6,7 @@
 #include <mpi.h>
 #include <signal.h>
 #include <vector>
+#include "config.h"
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -94,9 +95,8 @@ extern std::string snapshot_dir;
 extern std::string last_snapshot_dir;
 
 extern char *OUTPUTDIR;
-extern char *PLANETCONFIG;
 
-extern char *PRESCRIBED_BOUNDARY_OUTER_FILE;
+extern std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
 extern int PRESCRIBED_TIME_SEGMENT_NUMBER;
 
 extern double dphi;
@@ -138,5 +138,7 @@ extern BoundaryFlow MassDelta;
 
 extern double dtemp;
 extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;
+
+extern Config config;
 
 #endif // GLOBAL_H

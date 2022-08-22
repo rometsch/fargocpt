@@ -258,11 +258,6 @@ static void copy_parameters_to_snapshot_dir()
 	const std::string src_file = std::string(options::parameter_file);
 	const std::string dst_file = snapshot_dir + "/parameters.par";
 	std::experimental::filesystem::copy_file(src_file, dst_file);
-	if (PLANETCONFIG) {
-	    const std::string src_file = std::string(PLANETCONFIG);
-	    const std::string dst_file = snapshot_dir + "/planets.cfg";
-	    std::experimental::filesystem::copy_file(src_file, dst_file);
-	}
     }
 }
 

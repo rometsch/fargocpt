@@ -28,7 +28,7 @@ namespace parameters
 int ShockTube = false;
 bool SpreadingRing = false;
 
-// energy euations
+// energy equations
 bool Adiabatic = false;
 bool Polytropic = false;
 bool Locally_Isothermal = false;
@@ -77,7 +77,7 @@ bool radiative_diffusion_omega_auto_enabled;
 unsigned int radiative_diffusion_max_iterations;
 
 t_initialize_condition sigma_initialize_condition;
-char *sigma_filename = NULL;
+std::string sigma_filename;
 int random_seed;
 bool sigma_randomize;
 double sigma_random_factor;
@@ -88,7 +88,7 @@ bool sigma0_in_code_units;
 double sigma_discmass;
 double sigma0;
 t_initialize_condition energy_initialize_condition;
-char *energy_filename = NULL;
+std::string energy_filename;
 
 t_artificial_viscosity artificial_viscosity;
 double artificial_viscosity_factor;
@@ -190,7 +190,7 @@ double kappa_const = 1.0;
 void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 			     std::string instruction)
 {
-    if (config::key_exists(setting_name.c_str())) {
+    if (config.contains(setting_name)) {
 	std::string warn = "Deprecated setting '" + setting_name +
 			   "' found in .par file. " + reason + " " +
 			   instruction + "\n";
@@ -282,32 +282,70 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
     return damping_type;
 }
 
+/**
+	Get a value as t_boundary_condition to a corresponding key  if
+   available, else set to default
+
+	\param key key
+	\param defvalue default value
+	\returns t_boundary_condition
+*/
+t_damping_type value_as_boudary_damping_default(const char *key,
+						const char *defvalue)
+{
+    const std::string ret = config.get<std::string>(key, defvalue);
+
+    t_damping_type boundary_condition;
+    switch (tolower(ret[0])) {
+    case 'n':
+	boundary_condition = parameters::t_damping_type::damping_none;
+	break;
+    case 'i':
+	boundary_condition = parameters::t_damping_type::damping_initial;
+	break;
+    case 'y': // for legacy compatibility
+	boundary_condition = parameters::t_damping_type::damping_initial;
+	break;
+    case 'm':
+	boundary_condition = parameters::t_damping_type::damping_mean;
+	break;
+    case 'z':
+	boundary_condition = parameters::t_damping_type::damping_zero;
+	break;
+    case 'v':
+	boundary_condition = parameters::t_damping_type::damping_visc;
+	break;
+    default:
+	boundary_condition = parameters::t_damping_type::damping_none;
+    }
+    return boundary_condition;
+
+}
+
 void read(char *filename, t_data &data)
 {
-    // read config from
-    if (config::read_config_from_file(filename) == -1) {
-	logging::print_master(LOG_ERROR "Cannot read config file '%s'!\n",
-			      filename);
-	PersonalExit(EXIT_FAILURE);
-    }
+	config.load_file(filename);
+
+    // units
+    L0 = config.get<double>("l0", 1.0);
+    M0 = config.get<double>("m0", 1.0);
 
     /* grid */
-    NRadial = config::value_as_unsigned_int_default("NRAD", 64);
-    NAzimuthal = config::value_as_unsigned_int_default("NSEC", 64);
-    RMIN = config::value_as_double_default("RMIN", 1.0);
-    RMAX = config::value_as_double_default("RMAX", 1.0);
+    NRadial = config.get<unsigned int>("NRAD", 64);
+    NAzimuthal = config.get<unsigned int>("NSEC", 64);
+    RMIN = config.get<double>("RMIN", 1.0);
+    RMAX = config.get<double>("RMAX", 1.0);
 
     quantities_radius_limit =
-	config::value_as_double_default("QUANTITIESRADIUSLIMIT", 2.0 * RMAX);
+	config.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX);
 
     if (quantities_radius_limit == 0.0) {
 	quantities_radius_limit = 2.0 * RMAX;
     }
 
     exponential_cell_size_factor =
-	config::value_as_double_default("ExponentialCellSizeFactor", 1.41);
-    switch (tolower(
-	*config::value_as_string_default("RadialSpacing", "ARITHMETIC"))) {
+	config.get<double>("ExponentialCellSizeFactor", 1.41);
+    switch (config.get_first_letter_lowercase("RadialSpacing", "ARITHMETIC")) {
     case 'a': // arithmetic
 	radial_grid_type = arithmetic_spacing;
 	break;
@@ -321,116 +359,117 @@ void read(char *filename, t_data &data)
 	die("Invalid setting for RadialSpacing");
     }
 
-    // units
-    L0 = config::value_as_double_default("l0", 1.0);
-    M0 = config::value_as_double_default("m0", 1.0);
 
     // output settings
-    bool do_write_1D = config::value_as_bool_default("DoWrite1DFiles", true);
+    bool do_write_1D = config.get_flag("DoWrite1DFiles", true);
     data[t_data::SIGMA].set_write(
-	config::value_as_bool_default("WriteDensity", true), do_write_1D);
+	config.get_flag("WriteDensity", true), do_write_1D);
     data[t_data::V_RADIAL].set_write(
-	config::value_as_bool_default("WriteVelocity", true), do_write_1D);
+	config.get_flag("WriteVelocity", true), do_write_1D);
     data[t_data::V_AZIMUTHAL].set_write(
-	config::value_as_bool_default("WriteVelocity", true), do_write_1D);
+	config.get_flag("WriteVelocity", true), do_write_1D);
     data[t_data::ENERGY].set_write(
-	config::value_as_bool_default("WriteEnergy", true), do_write_1D);
+	config.get_flag("WriteEnergy", true), do_write_1D);
     data[t_data::TEMPERATURE].set_write(
-	config::value_as_bool_default("WriteTemperature", false), do_write_1D);
+	config.get_flag("WriteTemperature", false), do_write_1D);
     data[t_data::SOUNDSPEED].set_write(
-	config::value_as_bool_default("WriteSoundSpeed", false), do_write_1D);
+	config.get_flag("WriteSoundSpeed", false), do_write_1D);
     data[t_data::GAMMAEFF].set_write(
-	config::value_as_bool_default("WriteEffectiveGamma", false),
+	config.get_flag("WriteEffectiveGamma", false),
 	do_write_1D);
     data[t_data::GAMMA1].set_write(
-	config::value_as_bool_default("WriteFirstAdiabaticIndex", false),
+	config.get_flag("WriteFirstAdiabaticIndex", false),
 	do_write_1D);
     data[t_data::MU].set_write(
-	config::value_as_bool_default("WriteMeanMolecularWeight", false),
+	config.get_flag("WriteMeanMolecularWeight", false),
 	do_write_1D);
     data[t_data::PRESSURE].set_write(
-	config::value_as_bool_default("WritePressure", false), do_write_1D);
+	config.get_flag("WritePressure", false), do_write_1D);
     data[t_data::TOOMRE].set_write(
-	config::value_as_bool_default("WriteToomre", false), do_write_1D);
+	config.get_flag("WriteToomre", false), do_write_1D);
     data[t_data::POTENTIAL].set_write(
-	config::value_as_bool_default("WritePotential", false), do_write_1D);
+	config.get_flag("WritePotential", false), do_write_1D);
     data[t_data::QPLUS].set_write(
-	config::value_as_bool_default("WriteQPlus", false), do_write_1D);
+	config.get_flag("WriteQPlus", false), do_write_1D);
     data[t_data::QMINUS].set_write(
-	config::value_as_bool_default("WriteQMinus", false), do_write_1D);
+	config.get_flag("WriteQMinus", false), do_write_1D);
     data[t_data::KAPPA].set_write(
-	config::value_as_bool_default("WriteKappa", false), do_write_1D);
+	config.get_flag("WriteKappa", false), do_write_1D);
     data[t_data::TAU_COOL].set_write(
-	config::value_as_bool_default("WriteTauCool", false), do_write_1D);
+	config.get_flag("WriteTauCool", false), do_write_1D);
     data[t_data::ALPHA_GRAV].set_write(
-	config::value_as_bool_default("WriteAlphaGrav", false), do_write_1D);
+	config.get_flag("WriteAlphaGrav", false), do_write_1D);
     data[t_data::ALPHA_GRAV_MEAN].set_write(
-	config::value_as_bool_default("WriteAlphaGravMean", false),
+	config.get_flag("WriteAlphaGravMean", false),
 	do_write_1D);
     data[t_data::ALPHA_REYNOLDS].set_write(
-	config::value_as_bool_default("WriteAlphaReynolds", false),
+	config.get_flag("WriteAlphaReynolds", false),
 	do_write_1D);
     data[t_data::ALPHA_REYNOLDS_MEAN].set_write(
-	config::value_as_bool_default("WriteAlphaReynoldsMean", false),
+	config.get_flag("WriteAlphaReynoldsMean", false),
 	do_write_1D);
     data[t_data::VISCOSITY].set_write(
-	config::value_as_bool_default("WriteViscosity", false), do_write_1D);
+	config.get_flag("WriteViscosity", false), do_write_1D);
     data[t_data::DIV_V].set_write(
-	config::value_as_bool_default("WriteDivV", false), do_write_1D);
+	config.get_flag("WriteDivV", false), do_write_1D);
     data[t_data::ECCENTRICITY].set_write(
-	config::value_as_bool_default("WriteEccentricity", false), do_write_1D);
+	config.get_flag("WriteEccentricity", false), do_write_1D);
     data[t_data::T_REYNOLDS].set_write(
-	config::value_as_bool_default("WriteTReynolds", false), do_write_1D);
+	config.get_flag("WriteTReynolds", false), do_write_1D);
     data[t_data::T_GRAVITATIONAL].set_write(
-	config::value_as_bool_default("WriteTGravitational", false),
+	config.get_flag("WriteTGravitational", false),
 	do_write_1D);
     data[t_data::ADVECTION_TORQUE].set_write(
-	config::value_as_bool_default("WriteGasTorques", false), do_write_1D);
+	config.get_flag("WriteGasTorques", false), do_write_1D);
     data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
-	config::value_as_bool_default("WriteGasTorques", false), do_write_1D);
+	config.get_flag("WriteGasTorques", false), do_write_1D);
     data[t_data::VISCOUS_TORQUE].set_write(
-	config::value_as_bool_default("WriteGasTorques", false), do_write_1D);
+	config.get_flag("WriteGasTorques", false), do_write_1D);
     data[t_data::P_DIVV].set_write(
-	config::value_as_bool_default("WritepDV", false), do_write_1D);
+	config.get_flag("WritepDV", false), do_write_1D);
     data[t_data::TAU].set_write(
-	config::value_as_bool_default("WriteTau", false), do_write_1D);
+	config.get_flag("WriteTau", false), do_write_1D);
     data[t_data::SCALE_HEIGHT].set_write(
-	config::value_as_bool_default("WriteScaleHeight", false), do_write_1D);
+	config.get_flag("WriteScaleHeight", false), do_write_1D);
     data[t_data::ASPECTRATIO].set_write(
-	config::value_as_bool_default("WriteAspectratio", false), do_write_1D);
+	config.get_flag("WriteAspectratio", false), do_write_1D);
     data[t_data::VISIBILITY].set_write(
-	config::value_as_bool_default("WriteVisibility", false), do_write_1D);
+	config.get_flag("WriteVisibility", false), do_write_1D);
     data[t_data::LUMINOSITY_1D].set_write(
-	config::value_as_bool_default("WriteRadialLuminosity", false));
+	config.get_flag("WriteRadialLuminosity", false));
     data[t_data::DISSIPATION_1D].set_write(
-	config::value_as_bool_default("WriteRadialDissipation", false));
+	config.get_flag("WriteRadialDissipation", false));
     data[t_data::TAU_EFF].set_write(
-	config::value_as_bool_default("WriteVerticalOpticalDepth", false),
+	config.get_flag("WriteVerticalOpticalDepth", false),
 	do_write_1D);
 
-    write_torques = config::value_as_bool_default("WriteTorques", false);
+    write_torques = config.get_flag("WriteTorques", false);
 
     write_disk_quantities =
-	config::value_as_bool_default("WriteDiskQuantities", true);
+	config.get_flag("WriteDiskQuantities", true);
     write_at_every_timestep =
-	config::value_as_bool_default("WriteAtEveryTimestep", true);
+	config.get_flag("WriteAtEveryTimestep", true);
     write_lightcurves =
-	config::value_as_bool_default("WriteLightCurves", false);
+	config.get_flag("WriteLightCurves", false);
 
-    write_massflow = config::value_as_bool_default("WriteMassFlow", false);
+    write_massflow = config.get_flag("WriteMassFlow", false);
     data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
 
-    log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
+    log_after_steps = config.get<unsigned int>("LogAfterSteps", 0);
     log_after_real_seconds =
-	config::value_as_double_default("LogAfterRealSeconds", 600.0);
+	config.get<double>("LogAfterRealSeconds", 600.0);
+
+
     // parse light curve radii
-    if (config::key_exists("WriteLightCurvesRadii")) {
+    if (config.contains("WriteLightCurvesRadii")) {
 	// get light curves radii string
-	const unsigned int length =
-	    strlen(config::value_as_string("WriteLightCurvesRadii")) + 1;
-	char *lightcurves_radii_string = new char[length];
-	strncpy(lightcurves_radii_string,
-		config::value_as_string("WriteLightCurvesRadii"), length);
+
+	std::string lightcurve_config =
+	    config.get<std::string>("WriteLightCurvesRadii");
+
+	char *lightcurves_radii_string =
+	    new char[lightcurve_config.length() + 1];
+	strcpy(lightcurves_radii_string, lightcurve_config.c_str());
 
 	char *ptr = strtok(lightcurves_radii_string, " ,");
 	while (ptr != NULL) {
@@ -453,7 +492,7 @@ void read(char *filename, t_data &data)
 
     // boundary conditions
     switch (
-	tolower(*config::value_as_string_default("InnerBoundary", "Open"))) {
+	config.get_first_letter_lowercase("InnerBoundary", "Open")) {
     case 'o':
 	boundary_inner = boundary_condition_open;
 	break;
@@ -489,11 +528,11 @@ void read(char *filename, t_data &data)
 	break;
     default:
 	die("Invalid setting for InnerBoundary: %s",
-	    config::value_as_string_default("InnerBoundary", "Open"));
+	    config.get<std::string>("InnerBoundary", "Open").c_str());
     }
 
     switch (
-	tolower(*config::value_as_string_default("OuterBoundary", "Open"))) {
+		config.get_first_letter_lowercase("OuterBoundary", "Open")) {
     case 'o':
 	boundary_outer = boundary_condition_open;
 	break;
@@ -529,59 +568,55 @@ void read(char *filename, t_data &data)
 	break;
     default:
 	die("Invalid setting for OuterBoundary: %s",
-	    config::value_as_string_default("OuterBoundary", "Open"));
+	    config.get<std::string>("OuterBoundary", "Open").c_str());
     }
 
     // check if file for prescribed time variable boundary exists
-    if (config::key_exists("PRESCRIBEDBOUNDARYFILEOUTER")) {
-	if (strlen(config::value_as_string("PRESCRIBEDBOUNDARYFILEOUTER")) >
+    if (config.contains("PRESCRIBEDBOUNDARYFILEOUTER")) {
+	if (config.get<std::string>("PRESCRIBEDBOUNDARYFILEOUTER").length() >
 	    0) {
-	    if (asprintf(&PRESCRIBED_BOUNDARY_OUTER_FILE, "%s",
-			 config::value_as_string(
-			     "PRESCRIBEDBOUNDARYFILEOUTER")) < 0) {
-		logging::print_master(LOG_ERROR "Not enough memory!\n");
-	    }
+			PRESCRIBED_BOUNDARY_OUTER_FILE = config.get<std::string>("PRESCRIBEDBOUNDARYFILEOUTER") ;
 	} else {
 	    die("Error looking for data for the prescribed time variable boundary condition. Path could not be read!\n");
 	}
     } else {
-	PRESCRIBED_BOUNDARY_OUTER_FILE = NULL;
+	PRESCRIBED_BOUNDARY_OUTER_FILE = "";
     }
 
-    domegadr_zero = config::value_as_bool_default("DomegaDrZero", false);
+    domegadr_zero = config.get_flag("DomegaDrZero", false);
 
     if (domegadr_zero)
 	logging::print_master(
 	    LOG_INFO "Using zero torque condition at outer boundary\n");
 
     viscous_outflow_speed =
-	config::value_as_double_default("ViscousOutflowSpeed", 1.0);
+	config.get<double>("ViscousOutflowSpeed", 1.0);
 
-    damping = config::value_as_bool_default("Damping", false);
+    damping = config.get_flag("Damping", false);
 
     damping_inner_limit =
-	config::value_as_double_default("DampingInnerLimit", 1.05);
+	config.get<double>("DampingInnerLimit", 1.05);
     if (damping_inner_limit < 1) {
 	die("DampingInnerLimit must not be <1\n");
     }
     damping_outer_limit =
-	config::value_as_double_default("DampingOuterLimit", 0.95);
+	config.get<double>("DampingOuterLimit", 0.95);
     if (damping_outer_limit > 1) {
 	die("DampingOuterLimit must not be >1\n");
     }
     damping_time_factor =
-	config::value_as_double_default("DampingTimeFactor", 1.0);
+	config.get<double>("DampingTimeFactor", 1.0);
 
     t_damping_type tmp_damping_inner;
     t_damping_type tmp_damping_outer;
 
-    if (config::key_exists("DampingVRadial"))
+    if (config.contains("DampingVRadial"))
 	die("DampingVRadial flag is decrepated used DampingVRadialInner and DampingVRadialOuter instead!");
 
     tmp_damping_inner =
-	config::value_as_boudary_damping_default("DampingVRadialInner", "None");
+	value_as_boudary_damping_default("DampingVRadialInner", "None");
     tmp_damping_outer =
-	config::value_as_boudary_damping_default("DampingVRadialOuter", "None");
+	value_as_boudary_damping_default("DampingVRadialOuter", "None");
 
     if (tmp_damping_inner == parameters::t_damping_type::damping_visc) {
 	damping_vector.push_back(
@@ -593,100 +628,99 @@ void read(char *filename, t_data &data)
 			       t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
     }
 
-    if (config::key_exists("DampingVAzimuthal"))
+    if (config.contains("DampingVAzimuthal"))
 	die("DampingVRadial flag is decrepated used DampingVAzimuthalInner and DampingVAzimuthalOuter instead!");
 
-    tmp_damping_inner = config::value_as_boudary_damping_default(
+    tmp_damping_inner = value_as_boudary_damping_default(
 	"DampingVAzimuthalInner", "None");
-    tmp_damping_outer = config::value_as_boudary_damping_default(
+    tmp_damping_outer = value_as_boudary_damping_default(
 	"DampingVAzimuthalOuter", "None");
 
     damping_vector.push_back(write_damping_type(
 	tmp_damping_inner, tmp_damping_outer, t_data::V_AZIMUTHAL,
 	t_data::V_AZIMUTHAL0, "VAzimuthal"));
 
-    if (config::key_exists("DampingSurfaceDensity"))
+    if (config.contains("DampingSurfaceDensity"))
 	die("DampingSurfaceDensity flag is decrepated used DampingSurfaceDensityInner and DampingSurfaceDensityOuter instead!");
 
-    tmp_damping_inner = config::value_as_boudary_damping_default(
+    tmp_damping_inner = value_as_boudary_damping_default(
 	"DampingSurfaceDensityInner", "None");
-    tmp_damping_outer = config::value_as_boudary_damping_default(
+    tmp_damping_outer = value_as_boudary_damping_default(
 	"DampingSurfaceDensityOuter", "None");
 
     damping_vector.push_back(
 	write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::SIGMA,
 			   t_data::SIGMA0, "SurfaceDensity"));
 
-    if (config::key_exists("DampingEnergy"))
+    if (config.contains("DampingEnergy"))
 	die("DampingEnergy flag is decrepated used DampingEnergyInner and DampingEnergyOuter instead!");
 
     tmp_damping_inner =
-	config::value_as_boudary_damping_default("DampingEnergyInner", "None");
+	value_as_boudary_damping_default("DampingEnergyInner", "None");
     tmp_damping_outer =
-	config::value_as_boudary_damping_default("DampingEnergyOuter", "None");
+	value_as_boudary_damping_default("DampingEnergyOuter", "None");
 
     damping_vector.push_back(
 	write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::ENERGY,
 			   t_data::ENERGY0, "Energy"));
     damping_energy_id = (int)damping_vector.size() - 1;
 
-    calculate_disk = config::value_as_bool_default("DISK", 1);
+    calculate_disk = config.get_flag("DISK", 1);
 
-    default_star = config::value_as_bool_default("DefaultStar", true);
+    default_star = config.get_flag("DefaultStar", true);
     corotation_reference_body =
-	config::value_as_unsigned_int_default("CorotationReferenceBody", 1);
+	config.get<unsigned int>("CorotationReferenceBody", 1);
 
     // set number of bodies used to calculate barycenter in Interpret.cpp
 
-    MU = config::value_as_double_default("mu", 1.0);
+    MU = config.get<double>("mu", 1.0);
     minimum_temperature =
-	config::value_as_double_default("MinimumTemperature", 3);
+	config.get<double>("MinimumTemperature", 3);
     maximum_temperature =
-	config::value_as_double_default("MaximumTemperature", 1.0e300);
+	config.get<double>("MaximumTemperature", 1.0e300);
 
     heating_viscous_enabled =
-	config::value_as_bool_default("HeatingViscous", false);
+	config.get_flag("HeatingViscous", false);
     heating_viscous_factor =
-	config::value_as_double_default("HeatingViscousFactor", 1.0);
-    heating_star_enabled = config::value_as_bool_default("HeatingStar", false);
+	config.get<double>("HeatingViscousFactor", 1.0);
+    heating_star_enabled = config.get_flag("HeatingStar", false);
     heating_star_factor =
-	config::value_as_double_default("HeatingStarFactor", 1.0);
+	config.get<double>("HeatingStarFactor", 1.0);
     heating_star_ramping_time =
-	config::value_as_double_default("HeatingStarRampingTime", 0.0);
+	config.get<double>("HeatingStarRampingTime", 0.0);
     heating_star_simple =
-	config::value_as_bool_default("HeatingStarSimple", false);
+	config.get_flag("HeatingStarSimple", false);
 
     radiative_diffusion_enabled =
-	config::value_as_bool_default("RadiativeDiffusion", false);
+	config.get_flag("RadiativeDiffusion", false);
     radiative_diffusion_omega =
-	config::value_as_double_default("RadiativeDiffusionOmega", 1.5);
+	config.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled =
-	config::value_as_bool_default("RadiativeDiffusionAutoOmega", false);
-    radiative_diffusion_max_iterations = config::value_as_unsigned_int_default(
+	config.get_flag("RadiativeDiffusionAutoOmega", false);
+    radiative_diffusion_max_iterations = config.get<unsigned int>(
 	"RadiativeDiffusionMaxIterations", 50000);
 
-    zbuffer_size = config::value_as_unsigned_int_default("zbufferSize", 100);
+    zbuffer_size = config.get<unsigned int>("zbufferSize", 100);
     zbuffer_maxangle =
-	config::value_as_double_default("zbufferMaxAngle", 10.0 / 180.0 * M_PI);
+	config.get<double>("zbufferMaxAngle", 10.0 / 180.0 * M_PI);
 
     cooling_radiative_factor =
-	config::value_as_double_default("CoolingRadiativeFactor", 1.0);
+	config.get<double>("CoolingRadiativeFactor", 1.0);
     cooling_radiative_enabled =
-	config::value_as_bool_default("CoolingRadiativeLocal", false);
+	config.get_flag("CoolingRadiativeLocal", false);
     cooling_beta_enabled =
-	config::value_as_bool_default("CoolingBetaLocal", false);
-    cooling_beta = config::value_as_double_default("CoolingBeta", 1.0);
+	config.get_flag("CoolingBetaLocal", false);
+    cooling_beta = config.get<double>("CoolingBeta", 1.0);
     cooling_beta_ramp_up =
-	config::value_as_double_default("CoolingBetaRampUp", 0.0);
+	config.get<double>("CoolingBetaRampUp", 0.0);
 
     // initialisation
     initialize_pure_keplerian =
-	config::value_as_bool_default("InitializePureKeplerian", false);
+	config.get_flag("InitializePureKeplerian", false);
     initialize_vradial_zero =
-	config::value_as_bool_default("InitializeVradialZero", false);
+	config.get_flag("InitializeVradialZero", false);
 
-    switch (tolower(
-	*config::value_as_string_default("SigmaCondition", "Profile"))) {
+    switch (config.get_first_letter_lowercase("SigmaCondition", "Profile")) {
     case 'p': // Profile
 	sigma_initialize_condition = initialize_condition_profile;
 	break;
@@ -707,23 +741,12 @@ void read(char *filename, t_data &data)
 	break;
     default:
 	die("Invalid setting for SigmaCondition: %s",
-	    config::value_as_string_default("SigmaCondition", "Profile"));
+	    config.get<std::string>("SigmaCondition", "Profile").c_str());
     }
 
-    if (config::key_exists("SigmaFilename")) {
-	if (strlen(config::value_as_string_default("SigmaFilename", "")) > 0) {
-	    const unsigned int length =
-		strlen(config::value_as_string_default("SigmaFilename", "")) +
-		1;
-	    sigma_filename = new char[length];
-	    strncpy(sigma_filename,
-		    config::value_as_string_default("SigmaFilename", ""),
-		    length);
-	}
-    }
-
-    switch (tolower(
-	*config::value_as_string_default("EnergyCondition", "Profile"))) {
+	sigma_filename = config.get<std::string>("SigmaFilename", "");
+    
+    switch (config.get_first_letter_lowercase("EnergyCondition", "Profile")) {
     case 'p': // Profile
 	energy_initialize_condition = initialize_condition_profile;
 	break;
@@ -744,40 +767,30 @@ void read(char *filename, t_data &data)
 	break;
     default:
 	die("Invalid setting for EnergyCondition: %s",
-	    config::value_as_string_default("EnergyCondition", "Profile"));
+	    config.get<std::string>("EnergyCondition", "Profile").c_str());
     }
 
-    if (config::key_exists("EnergyFilename")) {
-	if (strlen(config::value_as_string_default("EnergyFilename", "")) > 0) {
-	    const unsigned int length =
-		strlen(config::value_as_string_default("EnergyFilename", "")) +
-		1;
-	    energy_filename = new char[length];
-	    strncpy(energy_filename,
-		    config::value_as_string_default("EnergyFilename", ""),
-		    length);
-	}
-    }
+	energy_filename = config.get<std::string>("EnergyFilename", "");
 
-    random_seed = config::value_as_int_default("RandomSeed", 0);
-    sigma_randomize = config::value_as_bool_default("RandomSigma", 0);
-    sigma_random_factor = config::value_as_double_default("RandomFactor", 0.1);
+    random_seed = config.get<int>("RandomSeed", 0);
+    sigma_randomize = config.get_flag("RandomSigma", 0);
+    sigma_random_factor = config.get<double>("RandomFactor", 0.1);
     sigma_feature_size =
-	config::value_as_double_default("FeatureSize", (RMAX - RMIN) / 150);
-    sigma_floor = config::value_as_double_default("SigmaFloor", 1e-9);
-    sigma0 = config::value_as_double_default("SIGMA0", 173.);
+	config.get<double>("FeatureSize", (RMAX - RMIN) / 150);
+    sigma_floor = config.get<double>("SigmaFloor", 1e-9);
+    sigma0 = config.get<double>("SIGMA0", 173.);
     sigma0_in_code_units =
-	config::value_as_bool_default("Sigma0InCodeUnits", false);
-    sigma_adjust = config::value_as_bool_default("SetSigma0", false);
-    sigma_discmass = config::value_as_double_default("discmass", 0.01);
+	config.get_flag("Sigma0InCodeUnits", false);
+    sigma_adjust = config.get_flag("SetSigma0", false);
+    sigma_discmass = config.get<double>("discmass", 0.01);
     density_factor =
-	config::value_as_double_default("DensityFactor", std::sqrt(2.0 * M_PI));
+	config.get<double>("DensityFactor", std::sqrt(2.0 * M_PI));
 
-    tau_factor = config::value_as_double_default("TauFactor", 0.5);
-    kappa_factor = config::value_as_double_default("KappaFactor", 1.0);
+    tau_factor = config.get<double>("TauFactor", 0.5);
+    kappa_factor = config.get<double>("KappaFactor", 1.0);
 
     EXPLICIT_VISCOSITY =
-	config::value_as_bool_default("ExplicitViscosity", true);
+	config.get_flag("ExplicitViscosity", true);
 
     if (EXPLICIT_VISCOSITY) {
 	logging::print_master(LOG_INFO "Using EXPLICIT VISCOSITY\n");
@@ -786,8 +799,7 @@ void read(char *filename, t_data &data)
     }
 
     // artificial visocisty
-    switch (tolower(
-	*config::value_as_string_default("ArtificialViscosity", "SN"))) {
+    switch (config.get_first_letter_lowercase("ArtificialViscosity", "SN")) {
     case 'n': // none
 	artificial_viscosity = artificial_viscosity_none;
 	break;
@@ -799,79 +811,79 @@ void read(char *filename, t_data &data)
 	break;
     default:
 	die("Invalid setting for ArtificialViscosity: %s",
-	    config::value_as_string_default("ArtificialViscosity", "SN"));
+	    config.get<std::string>("ArtificialViscosity", "SN").c_str());
     }
     artificial_viscosity_dissipation =
-	config::value_as_bool_default("ArtificialViscosityDissipation", true);
+	config.get_flag("ArtificialViscosityDissipation", true);
     artificial_viscosity_factor =
-	config::value_as_double_default("ArtificialViscosityFactor", 1.41);
+	config.get<double>("ArtificialViscosityFactor", 1.41);
     // warning
-    if (config::key_exists("CVNR")) {
+    if (config.contains("CVNR")) {
 	die("Parameter CVNR has been renamed to ArtificialViscosityFactor");
     }
 
     //
     thickness_smoothing =
-	config::value_as_double_default("ThicknessSmoothing", 0.0);
-    thickness_smoothing_sg = config::value_as_double_default(
+	config.get<double>("ThicknessSmoothing", 0.0);
+    thickness_smoothing_sg = config.get<double>(
 	"ThicknessSmoothingSG", thickness_smoothing);
-    integrate_planets = config::value_as_bool_default("IntegratePlanets", true);
+    integrate_planets = config.get_flag("IntegratePlanets", true);
     do_init_secondary_disk =
-	config::value_as_bool_default("SecondaryDisk", false);
+	config.get_flag("SecondaryDisk", false);
 
     // mass overflow
-    massoverflow = config::value_as_bool_default("massoverflow", false);
-    mof_planet = config::value_as_int_default("mofplanet", 1);
-    mof_temperature = config::value_as_double_default("moftemperature", 1000.0);
-    mof_value = config::value_as_double_default("mofvalue", 10E-9);
-    mof_rampingtime = config::value_as_double_default("moframpingtime", 30.0);
+    massoverflow = config.get_flag("massoverflow", false);
+    mof_planet = config.get<int>("mofplanet", 1);
+    mof_temperature = config.get<double>("moftemperature", 1000.0);
+    mof_value = config.get<double>("mofvalue", 10E-9);
+    mof_rampingtime = config.get<double>("moframpingtime", 30.0);
 
     // profile damping outer
     profile_cutoff_outer =
-	config::value_as_bool_default("ProfileCutoffOuter", false);
+	config.get_flag("ProfileCutoffOuter", false);
     profile_cutoff_point_outer =
-	config::value_as_double_default("ProfileCutoffPointOuter", 1.0e300);
+	config.get<double>("ProfileCutoffPointOuter", 1.0e300);
     profile_cutoff_width_outer =
-	config::value_as_double_default("ProfileCutoffWidthOuter", 1.0);
+	config.get<double>("ProfileCutoffWidthOuter", 1.0);
 
     // profile cutoff outer, legacy names
     // only try to read legacy names if new names weren't used
-    if (!config::key_exists("ProfileCutoffOuter")) {
+    if (!config.contains("ProfileCutoffOuter")) {
 	profile_cutoff_outer =
-	    config::value_as_bool_default("ProfileDamping", false);
+	    config.get_flag("ProfileDamping", false);
     }
-    if (!config::key_exists("ProfileCutoffPointOuter")) {
+    if (!config.contains("ProfileCutoffPointOuter")) {
 	profile_cutoff_point_outer =
-	    config::value_as_double_default("ProfileDampingPoint", 1.0e300);
+	    config.get<double>("ProfileDampingPoint", 1.0e300);
     }
-    if (!config::key_exists("ProfileCutoffWidthOuter")) {
+    if (!config.contains("ProfileCutoffWidthOuter")) {
 	profile_cutoff_width_outer =
-	    config::value_as_double_default("ProfileDampingWidth", 1.0);
+	    config.get<double>("ProfileDampingWidth", 1.0);
     }
 
     // profile damping inner
     profile_cutoff_inner =
-	config::value_as_bool_default("ProfileCutoffInner", false);
+	config.get_flag("ProfileCutoffInner", false);
     profile_cutoff_point_inner =
-	config::value_as_double_default("ProfileCutoffPointInner", 0.0);
+	config.get<double>("ProfileCutoffPointInner", 0.0);
     profile_cutoff_width_inner =
-	config::value_as_double_default("ProfileCutoffWidthInner", 1.0);
+	config.get<double>("ProfileCutoffWidthInner", 1.0);
 
     exitOnDeprecatedSetting(
 	"FeelsDisk",
 	"Replaced by parameter DiskFeedback for clarification since it affects more than just the star.",
 	"Please replace 'FeelsDisk' by 'DiskFeedback'.");
-    disk_feedback = config::value_as_bool_default("DiskFeedback", true);
+    disk_feedback = config.get_flag("DiskFeedback", true);
 
     // self gravity
-    self_gravity = config::value_as_bool_default("SelfGravity", 0);
+    self_gravity = config.get_flag("SelfGravity", 0);
 
     if (self_gravity) {
 	logging::print_master(LOG_INFO "Self gravity enabled.\n");
     }
 
     body_force_from_potential =
-	config::value_as_bool_default("BodyForceFromPotential", YES);
+	config.get_flag("BodyForceFromPotential", YES);
     if (body_force_from_potential) {
 	logging::print_master(LOG_INFO
 			      "Body force on gas computed via potential.\n");
@@ -881,7 +893,7 @@ void read(char *filename, t_data &data)
     }
 
     // opacity
-    switch (tolower(*config::value_as_string_default("Opacity", "Lin"))) {
+    switch (config.get_first_letter_lowercase("Opacity", "Lin")) {
     case 'l': // Lin
 	opacity = opacity_lin;
 	break;
@@ -896,20 +908,20 @@ void read(char *filename, t_data &data)
 	break;
     case 'c': // Constant
 	opacity = opacity_const_op;
-	kappa_const = config::value_as_double_default("KappaConst", 1.0);
+	kappa_const = config.get<double>("KappaConst", 1.0);
 	break;
     case 's': // simple, see Gennaro D'Angelo et al. 2003
 	opacity = opacity_simple;
-	kappa_const = config::value_as_double_default("KappaConst", 1.0);
+	kappa_const = config.get<double>("KappaConst", 1.0);
 	break;
     default:
 	die("Invalid setting for Opacity: %s",
-	    config::value_as_string_default("Opacity", "Lin"));
+	    config.get<std::string>("Opacity", "Lin").c_str());
     }
 
     // star parameters
-    star_temperature = config::value_as_double_default("StarTemperature", 5778);
-    star_radius = config::value_as_double_default(
+    star_temperature = config.get<double>("StarTemperature", 5778);
+    star_radius = config.get<double>(
 	"StarRadius", 1.0); // solar radius in [R_sol]
 
     if (heating_star_enabled) {
@@ -922,39 +934,39 @@ void read(char *filename, t_data &data)
 
     // boundary layer parameters
     radial_viscosity_factor =
-	config::value_as_double_default("RadialViscosityFactor", 1.);
-    vrad_fraction_of_kepler = config::value_as_double_default("VRadIn", 1.6e-3);
+	config.get<double>("RadialViscosityFactor", 1.);
+    vrad_fraction_of_kepler = config.get<double>("VRadIn", 1.6e-3);
     stellar_rotation_rate =
-	config::value_as_double_default("StellarRotation", 0.1);
+	config.get<double>("StellarRotation", 0.1);
     mass_accretion_rate =
-	config::value_as_double_default("MassAccretionRate", 1.e-9);
+	config.get<double>("MassAccretionRate", 1.e-9);
     accretion_radius_fraction =
-	config::value_as_double_default("MassAccretionRadius", 1.0);
-    klahr_smoothing_radius = config::value_as_double_default(
+	config.get<double>("MassAccretionRadius", 1.0);
+    klahr_smoothing_radius = config.get<double>(
 	"KlahrSmoothingRadius", accretion_radius_fraction);
 
-    CFL = config::value_as_double_default("CFL", 0.5);
+    CFL = config.get<double>("CFL", 0.5);
     HEATING_COOLING_CFL_LIMIT =
-	config::value_as_double_default("HeatingCoolingCFLlimit", 5.0e-2);
+	config.get<double>("HeatingCoolingCFLlimit", 5.0e-2);
 
-    CFL_max_var = config::value_as_double_default("CFLmaxVar", 1.1);
+    CFL_max_var = config.get<double>("CFLmaxVar", 1.1);
 
     // particles
     CartesianParticles =
-	config::value_as_bool_default("CartesianParticles", false);
+	config.get_flag("CartesianParticles", false);
     integrate_particles =
-	config::value_as_bool_default("IntegrateParticles", false);
+	config.get_flag("IntegrateParticles", false);
     number_of_particles =
-	config::value_as_unsigned_int_default("NumberOfParticles", 0);
-    particle_radius = config::value_as_double_default("ParticleRadius", 100.0);
+	config.get<unsigned int>("NumberOfParticles", 0);
+    particle_radius = config.get<double>("ParticleRadius", 100.0);
     particle_species_number =
-	config::value_as_unsigned_int_default("ParticleSpeciesNumber", 5);
+	config.get<unsigned int>("ParticleSpeciesNumber", 5);
     particle_radius_increase_factor =
-	config::value_as_double_default("ParticleRadiusIncreaseFactor", 10.0);
+	config.get<double>("ParticleRadiusIncreaseFactor", 10.0);
     particle_eccentricity =
-	config::value_as_double_default("ParticleEccentricity", 0.0);
-    particle_density = config::value_as_double_default("ParticleDensity", 2.65);
-    particle_slope = config::value_as_double_default(
+	config.get<double>("ParticleEccentricity", 0.0);
+    particle_density = config.get<double>("ParticleDensity", 2.65);
+    particle_slope = config.get<double>(
 	"ParticleSurfaceDensitySlope", SIGMASLOPE);
     particle_slope =
 	-particle_slope; // particle distribution scales with  r^slope, so we
@@ -964,20 +976,20 @@ void read(char *filename, t_data &data)
 	1.0; // particles are distributed over a whole simulation ring which
 	     // introduces a factor 1/r for the particle surface density
     particle_minimum_radius =
-	config::value_as_double_default("ParticleMinimumRadius", RMIN);
+	config.get<double>("ParticleMinimumRadius", RMIN);
     particle_maximum_radius =
-	config::value_as_double_default("ParticleMaximumRadius", RMAX);
+	config.get<double>("ParticleMaximumRadius", RMAX);
     particle_minimum_escape_radius =
-	config::value_as_double_default("ParticleMinimumEscapeRadius", RMIN);
+	config.get<double>("ParticleMinimumEscapeRadius", RMIN);
     particle_maximum_escape_radius =
-	config::value_as_double_default("ParticleMaximumEscapeRadius", RMAX);
+	config.get<double>("ParticleMaximumEscapeRadius", RMAX);
     particle_gas_drag_enabled =
-	config::value_as_bool_default("ParticleGasDragEnabled", true);
+	config.get_flag("ParticleGasDragEnabled", true);
     particle_disk_gravity_enabled =
-	config::value_as_bool_default("ParticleDiskGravityEnabled", false);
+	config.get_flag("ParticleDiskGravityEnabled", false);
     // particle integrator
     switch (
-	tolower(*config::value_as_string_default("ParticleIntegrator", "s"))) {
+	config.get_first_letter_lowercase("ParticleIntegrator", "s")) {
     case 'e': // Explicit
 	integrator = integrator_explicit;
 	break;
@@ -1016,9 +1028,8 @@ void read(char *filename, t_data &data)
 	break;
     default:
 	die("Invalid setting for Particle Integrator: %s	with key %s",
-	    config::value_as_string_default("ParticleIntegrator", "s"),
-	    tolower(
-		*config::value_as_string_default("ParticleIntegrator", "s")));
+	    config.get<std::string>("ParticleIntegrator", "s").c_str(),
+	    config.get_first_letter_lowercase("ParticleIntegrator", "s"));
     }
 
     if (CartesianParticles && ((integrator == integrator_implicit) ||
@@ -1405,7 +1416,7 @@ void summarize_parameters()
 	    break;
 	default:
 	    die("Invalid setting for Particle Integrator: %s",
-		config::value_as_string_default("ParticleIntegrator", "s"));
+		config.get<std::string>("ParticleIntegrator", "s").c_str());
 	}
     }
 }

@@ -65,24 +65,20 @@ void init_prescribed_time_variable_boundaries(t_data &data)
     if (CPU_Rank == CPU_Highest) {
 	if (parameters::boundary_outer ==
 	    parameters::boundary_condition_precribed_time_variable) {
-	    if (PRESCRIBED_BOUNDARY_OUTER_FILE == NULL) {
+	    if (PRESCRIBED_BOUNDARY_OUTER_FILE == "") {
 		die("Outer prescribed time variable boundary condition is enabled but the supplied file folder is not found!\n");
 	    } else {
 
 		// TODO: naming convention might need adjustment
 		const int Nphi =
 		    data[t_data::PRESCRIBED_DENSITY_OUTER].get_size_azimuthal();
-		char *file_name_body_char;
-		asprintf(&file_name_body_char, "%s/%dshift",
-			 PRESCRIBED_BOUNDARY_OUTER_FILE, Nphi);
-		std::string file_name_body{file_name_body_char};
+		std::string file_name_body = PRESCRIBED_BOUNDARY_OUTER_FILE + "/" + std::to_string(Nphi) + "shift";
 
-		char *file_name_test_char;
-		asprintf(&file_name_test_char, "%s0.dat", file_name_body_char);
+		std::string file_name_test = file_name_body + "0.dat";
 		if (!std::experimental::filesystem::exists(
-			file_name_test_char)) {
+			file_name_test)) {
 		    die("Prescribed boundary file %s does not exist!\n",
-			file_name_test_char);
+			file_name_test.c_str());
 		}
 
 		// get number of files
@@ -1450,7 +1446,7 @@ void mass_overflow(t_data &data)
 	logging::print(
 	    LOG_VERBOSE
 	    "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, Nphi %i , noc %i , i %i \n",
-	    data[t_data::DENSITY](Nrad, gridcell), 1.0, angle, gridcell,
+	    data[t_data::SIGMA](Nrad, gridcell), 1.0, angle, gridcell,
 	    Sigma_stream, gridcell, Nrad, Nphi * 2 + 1, 0);
 #endif
     }
@@ -1595,7 +1591,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	logging::print(
 	    LOG_VERBOSE
 	    "dens %lE, WF %lE , angle %lf, nearest_grid_cell %i, mass_stream %lE, gridcell %i, Nphi %i , noc %i , i %i \n",
-	    data[t_data::DENSITY](Nrad, gridcell), 1.0, angle, gridcell,
+	    data[t_data::SIGMA](Nrad, gridcell), 1.0, angle, gridcell,
 	    Sigma_stream, gridcell, Nrad, Nphi * 2 + 1, 0);
 #endif
     }

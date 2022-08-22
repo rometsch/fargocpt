@@ -1106,14 +1106,14 @@ void init_gas_density(t_data &data)
 
     case parameters::initialize_condition_read1D:
 	logging::print_master(LOG_INFO "Loading Sigma from '%s' (1D).\n",
-			      parameters::sigma_filename);
-	data[t_data::SIGMA].read1D(parameters::sigma_filename, true);
+			      parameters::sigma_filename.c_str());
+	data[t_data::SIGMA].read1D(parameters::sigma_filename.c_str(), true);
 	break;
 
     case parameters::initialize_condition_read2D:
 	logging::print_master(LOG_INFO "Loading Sigma from '%s' (2D).\n",
-			      parameters::sigma_filename);
-	data[t_data::SIGMA].read2D(parameters::sigma_filename);
+			      parameters::sigma_filename.c_str());
+	data[t_data::SIGMA].read2D(parameters::sigma_filename.c_str());
 	break;
 
     case parameters::initialize_condition_shakura_sunyaev:
@@ -1433,14 +1433,14 @@ void init_gas_energy(t_data &data)
 
     case parameters::initialize_condition_read1D:
 	logging::print_master(LOG_INFO "Loading Energy from '%s' (1D).\n",
-			      parameters::energy_filename);
-	data[t_data::ENERGY].read1D(parameters::energy_filename, true);
+			      parameters::energy_filename.c_str());
+	data[t_data::ENERGY].read1D(parameters::energy_filename.c_str(), true);
 	break;
 
     case parameters::initialize_condition_read2D:
 	logging::print_master(LOG_INFO "Loading Energy from '%s' (2D).\n",
-			      parameters::energy_filename);
-	data[t_data::ENERGY].read2D(parameters::energy_filename);
+			      parameters::energy_filename.c_str());
+	data[t_data::ENERGY].read2D(parameters::energy_filename.c_str());
 	break;
 
     case parameters::initialize_condition_shakura_sunyaev:

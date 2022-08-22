@@ -139,3 +139,12 @@ void die_errno(const char *fmt, ...)
     die_builtin(fmt_with_err, params);
     va_end(params);
 }
+
+std::string lowercase(const std::string& s)
+{
+    std::string out;
+    out.resize(s.size());
+    std::transform(s.begin(), s.end(),
+		   out.begin(), ::tolower);
+	return out;
+}

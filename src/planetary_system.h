@@ -2,6 +2,7 @@
 #define PLANETARY_SYSTEM_H
 
 #include "planet.h"
+#include "config.h"
 #include "rebound/rebound.h"
 #include <vector>
 
@@ -59,7 +60,14 @@ class t_planetary_system
 
     void initialize_default_star();
     void init_rebound();
-    void read_from_file(char *filename);
+    void init_system(char *filename);
+    void config_consistency_checks();
+    void init_corotation_body();
+    void init_hydro_frame_center();
+
+
+
+    void init_planet(Config& config);
     void list_planets();
     void rotate(double angle);
     void restart();

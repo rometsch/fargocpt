@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     init_radialarrays();
 
     // Here planets are initialized feeling star potential
-    data.get_planetary_system().read_from_file(PLANETCONFIG);
+    data.get_planetary_system().init_system(options::parameter_file);
     data.get_planetary_system().compute_dist_to_primary();
     data.get_planetary_system().init_roche_radii();
 
@@ -399,11 +399,8 @@ int main(int argc, char *argv[])
     logging::print_runtime_final();
 
     // free up everything
-    config::free_config_list();
     DeallocateBoundaryCommunicationBuffers();
     free(OUTPUTDIR);
-    free(PLANETCONFIG);
-    free(PRESCRIBED_BOUNDARY_OUTER_FILE);
     delete[] options::parameter_file;
     FreeEuler();
 

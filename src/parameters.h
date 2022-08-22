@@ -135,7 +135,7 @@ enum t_initialize_condition {
 /// initialize condition for sigma
 extern t_initialize_condition sigma_initialize_condition;
 /// filename to read sigma profile from
-extern char *sigma_filename;
+extern std::string sigma_filename;
 /// random seed
 extern int random_seed;
 /// randomize sigma?
@@ -159,7 +159,7 @@ extern bool sigma0_in_code_units;
 /// initiliaze condition for energy
 extern t_initialize_condition energy_initialize_condition;
 /// filename to read energy profile from
-extern char *energy_filename;
+extern std::string energy_filename;
 
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
