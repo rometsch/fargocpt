@@ -45,9 +45,9 @@
 extern boolean Corotating;
 
 extern boolean FastTransport;
-Pair IndirectTerm;
-Pair IndirectTermDisk;
-Pair IndirectTermPlanets;
+Pair IndirectTerm{0.0, 0.0};
+Pair IndirectTermDisk{0.0, 0.0};
+Pair IndirectTermPlanets{0.0, 0.0};
 
 /**
 	Checks polargrid for negative entries.
