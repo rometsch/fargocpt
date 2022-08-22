@@ -523,6 +523,9 @@ void AlgoGas(t_data &data)
 	//////////////// Leapfrog compute v_i+1 /////////////////////
 	// Finish timestep of the planets but do not update Nbody system yet //
 	if (parameters::integrate_planets) {
+		if (parameters::disk_feedback) {
+			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
+		}
 		data.get_planetary_system().integrate(PhysicalTime+frog_dt, frog_dt);
 	}
 
@@ -582,12 +585,9 @@ void AlgoGas(t_data &data)
 
 	//////////// Update Nbody to x_i+1 //////////////////
 	if (parameters::integrate_planets) {
-		if (parameters::disk_feedback) {
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
 		init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
-		data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, frog_dt);
 		data.get_planetary_system().copy_data_from_rebound();
+		data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, frog_dt);
 		data.get_planetary_system().move_to_hydro_frame_center();
 
 		/// Needed for Aspectratio mode = 1
