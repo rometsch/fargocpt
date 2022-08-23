@@ -519,7 +519,7 @@ void AlgoGas(t_data &data)
 		// source term
 		update_with_artificial_viscosity(data, frog_dt);
 		if (parameters::Adiabatic) {
-		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 		recalculate_viscosity(data, start_time);
 		ComputeViscousStressTensor(data);
@@ -584,6 +584,9 @@ void AlgoGas(t_data &data)
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
 		update_with_artificial_viscosity(data, frog_dt);
+		if (parameters::Adiabatic) {
+			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+		}
 
 		recalculate_viscosity(data, midstep_time);
 		ComputeViscousStressTensor(data);
@@ -960,15 +963,7 @@ void update_with_artificial_viscosity(t_data &data, const double dt)
 				dt * Qr(nr, naz) * dv_r * InvDiffRsup[nr] -
 				dt * Qphi(nr, naz) * dv_phi * invdxtheta;
 
-			/// Assure Temperature Ceiling (Artificial viscosity can only heat up)
-			const double Tmax = parameters::maximum_temperature *
-					units::temperature.get_inverse_cgs_factor();
-			const double mu = pvte::get_mu(data, nr, naz);
-			const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
-			const double energy_max = Tmax * energy_new / mu *
-					constants::R / (gamma_eff - 1.0);
-
-			energy(nr, naz) = std::min(energy_new, energy_max);
+			energy(nr, naz) = energy_new;
 		    }
 		}
 	    }
