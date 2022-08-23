@@ -44,7 +44,7 @@ class BoundaryFlow
 	double OuterWaveDampingNegative;
     double FloorPositive;
 
-    BoundaryFlow() { reset(); };
+	BoundaryFlow() { reset(); }
 
     void reset()
     {
