@@ -243,7 +243,7 @@ void t_planetary_system::read_from_file(char *filename)
 
 	move_to_hydro_frame_center();
 
-    if (Corotating == YES &&
+	if (Corotating &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
 	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
 	    parameters::corotation_reference_body, get_number_of_planets() - 1);

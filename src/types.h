@@ -60,8 +60,8 @@ class BoundaryFlow
     }
 };
 
-#define YES 1
-#define NO 0
+#define YES true
+#define NO false
 
 
 #define INDIRECT_TERM_REBOUND 0

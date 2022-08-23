@@ -621,7 +621,7 @@ void VanLeerTheta(t_data &data, PolarGrid *VAzimuthal, PolarGrid *Qbase,
 	double dxrad = (Rsup[nRadial] - Rinf[nRadial]) * dt;
 	double invsurf = 1.0 / Surf[nRadial];
 
-	if ((UniformTransport == NO) || (NoSplitAdvection[nRadial] == NO)) {
+	if (!UniformTransport || !NoSplitAdvection[nRadial]) {
 	    for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 		double varq;
 

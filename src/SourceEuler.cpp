@@ -337,7 +337,7 @@ static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 static void init_corotation(t_data &data, double &planet_corot_ref_old_x,
 			    double &planet_corot_ref_old_y)
 {
-    if (Corotating == YES) {
+	if (Corotating) {
 	// save old planet positions
 	const unsigned int n = parameters::corotation_reference_body;
 	const auto &planet = data.get_planetary_system().get_planet(n);
@@ -350,7 +350,7 @@ static void handle_corotation(t_data &data, const double dt,
 				  double &corot_old_x,
 				  double &corot_old_y)
 {
-    if (Corotating == YES) {
+	if (Corotating) {
 	unsigned int n = parameters::corotation_reference_body;
 	auto &planet = data.get_planetary_system().get_planet(n);
 	const double x = planet.get_x();
@@ -371,6 +371,7 @@ static void handle_corotation(t_data &data, const double dt,
 	OmegaFrame = OmegaNew;
     }
 
+	if(OmegaFrame > 0.0){
     if (parameters::integrate_planets) {
 	data.get_planetary_system().rotate(OmegaFrame * dt);
     }
@@ -379,6 +380,7 @@ static void handle_corotation(t_data &data, const double dt,
     }
 
     FrameAngle += OmegaFrame * dt;
+	}
 }
 
 /**
