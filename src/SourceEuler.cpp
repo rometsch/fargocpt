@@ -242,15 +242,15 @@ bool assure_temperature_range(t_data &data)
     return found;
 }
 
-void recalculate_derived_disk_quantities(t_data &data)
+void recalculate_derived_disk_quantities(t_data &data, const double current_time)
 {
 
     if (parameters::Locally_Isothermal) {
 	if (ASPECTRATIO_MODE > 0) {
-		compute_sound_speed(data);
+		compute_sound_speed(data, current_time);
 		compute_pressure(data);
 		compute_temperature(data);
-		compute_scale_height(data);
+		compute_scale_height(data, current_time);
 	} else {
 		compute_pressure(data);
 	}
@@ -260,40 +260,40 @@ void recalculate_derived_disk_quantities(t_data &data)
 	    pvte::compute_gamma_mu(data);
 	}
 	compute_temperature(data);
-	compute_sound_speed(data);
-	compute_scale_height(data);
+	compute_sound_speed(data, current_time);
+	compute_scale_height(data, current_time);
 	compute_pressure(data);
     }
 
     viscosity::update_viscosity(data);
 }
 
-void init_euler(t_data &data)
+void init_euler(t_data &data, const double current_time)
 {
     InitCellCenterCoordinates();
     InitTransport();
 
     if (parameters::Locally_Isothermal) {
-	compute_sound_speed(data);
+	compute_sound_speed(data, current_time);
 	compute_pressure(data);
 	compute_temperature(data);
-	compute_scale_height(data);
+	compute_scale_height(data, current_time);
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
 	if (parameters::variableGamma) {
-		compute_sound_speed(data);
-		compute_scale_height(data);
+		compute_sound_speed(data, current_time);
+		compute_scale_height(data, current_time);
 	    pvte::compute_gamma_mu(data);
 	}
 	compute_temperature(data);
-	compute_sound_speed(data);
-	compute_scale_height(data);
+	compute_sound_speed(data, current_time);
+	compute_scale_height(data, current_time);
 	compute_pressure(data);
     }
 
     viscosity::update_viscosity(data);
-    compute_heating_cooling_for_CFL(data);
+	compute_heating_cooling_for_CFL(data, current_time);
 }
 
 static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
@@ -415,8 +415,11 @@ void AlgoGas(t_data &data)
     // reasonable timestep size
     hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
 	double frog_dt = hydro_dt * 0.5;
+	const double start_time = PhysicalTime;
+	const double midstep_time = PhysicalTime + frog_dt;
+	const double end_time = PhysicalTime + hydro_dt;
 
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
 
     // keep mass constant
     // const double total_disk_mass_old =
@@ -444,7 +447,7 @@ void AlgoGas(t_data &data)
 	/// Indirect term will not be updated for the second leapfrog step
 	/// so compute it for the full timestep
 	/// It should be recomputed when using euler though
-	ComputeIndirectTermNbody(data, hydro_dt);
+	ComputeIndirectTermNbody(data, start_time, hydro_dt);
 	ComputeIndirectTermFully();
 
 	/// Update Nbody to x_i+1/2
@@ -453,7 +456,7 @@ void AlgoGas(t_data &data)
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 		}
 		data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, frog_dt);
-		data.get_planetary_system().integrate(PhysicalTime, frog_dt);
+		data.get_planetary_system().integrate(start_time, frog_dt);
 
 		init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 		data.get_planetary_system().copy_data_from_rebound();
@@ -469,7 +472,7 @@ void AlgoGas(t_data &data)
 
 	if (parameters::integrate_particles) {
 		particles::update_velocities_from_indirect_term(frog_dt);
-		particles::integrate(data, frog_dt);
+		particles::integrate(data, start_time, frog_dt);
 	}
 
 	handle_corotation(data, frog_dt, planet_corot_ref_old_x,
@@ -479,9 +482,9 @@ void AlgoGas(t_data &data)
 	if (parameters::calculate_disk) {
 		/// Use Nbody at x_i+1/2 for gas interaction
 		if (parameters::body_force_from_potential) {
-		CalculateNbodyPotential(data);
+		CalculateNbodyPotential(data, start_time);
 		} else {
-		CalculateAccelOnGas(data);
+		CalculateAccelOnGas(data, start_time);
 		}
 
 		update_with_sourceterms(data, frog_dt);
@@ -493,25 +496,25 @@ void AlgoGas(t_data &data)
 		if (parameters::Adiabatic) {
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-		recalculate_derived_disk_quantities(data);
+		recalculate_derived_disk_quantities(data, start_time);
 		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 	    }
 	    if (!EXPLICIT_VISCOSITY) {
-		Sts(data, frog_dt);
+		Sts(data, start_time, frog_dt);
 	    }
 
 	    if (parameters::Adiabatic) {
-		SubStep3(data, frog_dt);
+		SubStep3(data, start_time, frog_dt);
 		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, frog_dt);
+			radiative_diffusion(data, start_time, frog_dt);
 		}
 	    }
 		//////////////// END Leapfrog compute v_i+1/2 /////////////////////
 
 
 		//////////////// Leapfrog compute x_i+1       /////////////////////
-		boundary_conditions::apply_boundary_condition(data, 0.0, false);
+		boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
 
 		Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
@@ -526,7 +529,7 @@ void AlgoGas(t_data &data)
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 		}
-		data.get_planetary_system().integrate(PhysicalTime+frog_dt, frog_dt);
+		data.get_planetary_system().integrate(midstep_time, frog_dt);
 	}
 
 	/// planets positions still at x_i+1/2 for gas interaction
@@ -536,7 +539,7 @@ void AlgoGas(t_data &data)
 	ComputeIndirectTermDisk(data);
 
 	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
-	ComputeIndirectTermNbody(data, hydro_dt);
+	ComputeIndirectTermNbody(data, midstep_time, hydro_dt);
 	}
 	ComputeIndirectTermFully();
 
@@ -544,9 +547,9 @@ void AlgoGas(t_data &data)
 	if (parameters::calculate_disk) {
 
 		if (parameters::body_force_from_potential) {
-		CalculateNbodyPotential(data);
+		CalculateNbodyPotential(data, midstep_time);
 		} else {
-		CalculateAccelOnGas(data);
+		CalculateAccelOnGas(data, midstep_time);
 		}
 
 		compute_pressure(data);
@@ -559,18 +562,18 @@ void AlgoGas(t_data &data)
 		if (parameters::Adiabatic) {
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-		recalculate_derived_disk_quantities(data);
+		recalculate_derived_disk_quantities(data, midstep_time);
 		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 		}
 		if (!EXPLICIT_VISCOSITY) {
-		Sts(data, frog_dt);
+		Sts(data, midstep_time, frog_dt);
 		}
 
 		if (parameters::Adiabatic) {
-		SubStep3(data, frog_dt);
+		SubStep3(data, midstep_time, frog_dt);
 		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, frog_dt);
+			radiative_diffusion(data, midstep_time, frog_dt);
 		}
 		}
 	}
@@ -579,7 +582,7 @@ void AlgoGas(t_data &data)
 	/// and gas at x_i/v_i, so we use gas at x_i+1/v_i+1 to finish the update step
 	/// TODO: needs thinking about
 	if (parameters::integrate_particles) {
-	particles::integrate(data, frog_dt);
+	particles::integrate(data, midstep_time, frog_dt);
 	particles::update_velocities_from_indirect_term(frog_dt);
 	}
 
@@ -607,7 +610,7 @@ void AlgoGas(t_data &data)
 
 	//////////////// END Leapfrog compute v_i+1   /////////////////////
 
-	PhysicalTime += hydro_dt;
+	PhysicalTime = end_time;
 	N_hydro_iter = N_hydro_iter + 1;
 	logging::print_runtime_info(data, N_outer_loop / NINTERM, N_outer_loop,
 				    hydro_dt);
@@ -621,15 +624,15 @@ void AlgoGas(t_data &data)
 	    // accretion are not also hit by viscous accretion at inner
 	    // boundary.
 	    if (VISCOUS_ACCRETION) {
-		compute_sound_speed(data);
-		compute_scale_height(data);
+		compute_sound_speed(data, end_time);
+		compute_scale_height(data, end_time);
 		viscosity::update_viscosity(data);
 	    }
 
 		// minimum density is assured inside AccreteOntoPlanets
 	    accretion::AccreteOntoPlanets(data, hydro_dt);
 
-	    boundary_conditions::apply_boundary_condition(data, hydro_dt, true);
+		boundary_conditions::apply_boundary_condition(data, end_time, hydro_dt, true);
 
 	    // const double total_disk_mass_new =
 	    //  quantities::gas_total_mass(data, 2.0*RMAX);
@@ -645,11 +648,11 @@ void AlgoGas(t_data &data)
 				      // scale_height is already updated
 		// Recompute scale height after Transport to update the 3D
 		// density
-		compute_sound_speed(data);
-		compute_scale_height(data);
+		compute_sound_speed(data, end_time);
+		compute_scale_height(data, end_time);
 	    }
 	    // this must be done after CommunicateBoundaries
-		recalculate_derived_disk_quantities(data);
+		recalculate_derived_disk_quantities(data, end_time);
 
 	    hydro_dt = CalculateHydroTimeStep(data, hydro_dt, false);
 		frog_dt = 0.5 * hydro_dt;
@@ -1001,7 +1004,7 @@ void update_with_artificial_viscosity(t_data &data, const double dt)
     }
 }
 
-void calculate_qplus(t_data &data)
+void calculate_qplus(t_data &data, const double current_time)
 {
 
     const double *cell_center_x = CellCenterX->Field;
@@ -1063,10 +1066,10 @@ void calculate_qplus(t_data &data)
 
     if (parameters::heating_star_enabled) {
 	double ramping = 1.0;
-	if (PhysicalTime < parameters::heating_star_ramping_time * DT) {
+	if (current_time < parameters::heating_star_ramping_time * DT) {
 	    ramping =
 		1.0 -
-		std::pow(std::cos(PhysicalTime * M_PI / 2.0 /
+		std::pow(std::cos(current_time * M_PI / 2.0 /
 				  (parameters::heating_star_ramping_time * DT)),
 			 2);
 	}
@@ -1328,7 +1331,7 @@ void calculate_qplus(t_data &data)
     }
 }
 
-void calculate_qminus(t_data &data)
+void calculate_qminus(t_data &data, const double current_time)
 {
     // clear up all Qminus terms
     data[t_data::QMINUS].clear();
@@ -1348,7 +1351,7 @@ void calculate_qminus(t_data &data)
 
 		double beta_inv = 1 / parameters::cooling_beta;
 		if (t_ramp_up > 0.0) {
-		    const double t = PhysicalTime;
+			const double t = current_time;
 		    double ramp_factor =
 			1 - std::exp(-std::pow(2 * t / t_ramp_up, 2));
 		    beta_inv = beta_inv * ramp_factor;
@@ -1446,10 +1449,10 @@ void calculate_qminus(t_data &data)
 	In this substep we take into account the source part of energy equation.
    We evolve internal energy with compression/dilatation and heating terms
 */
-void SubStep3(t_data &data, const double dt)
+void SubStep3(t_data &data, const double current_time, const double dt)
 {
-    calculate_qminus(data); // first to calculate teff
-    calculate_qplus(data);
+	calculate_qminus(data, current_time); // first to calculate teff
+	calculate_qplus(data, current_time);
 
     // calculate tau_cool if needed for output
     if (data[t_data::TAU_COOL].get_write_1D() ||
@@ -1552,7 +1555,7 @@ static inline double flux_limiter(const double R)
     }
 }
 
-void radiative_diffusion(t_data &data, const double dt)
+void radiative_diffusion(t_data &data, const double current_time, const double dt)
 {
     static bool grids_allocated = false;
     static t_polargrid Ka, Kb;
@@ -1637,8 +1640,8 @@ void radiative_diffusion(t_data &data, const double dt)
 
     // update temperature, soundspeed and aspect ratio
 	compute_temperature(data);
-	compute_sound_speed(data);
-	compute_scale_height(data);
+	compute_sound_speed(data, current_time);
+	compute_scale_height(data, current_time);
 
     // calcuate Ka for K(i/2,j)
     for (unsigned int nr = 1; nr < Ka.get_size_radial() - 1; ++nr) {
@@ -1860,7 +1863,7 @@ void radiative_diffusion(t_data &data, const double dt)
 	// parameters::minimum_temperature*units::temperature.get_inverse_cgs_factor();
 	// 	}
 	// }
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, current_time, 0.0, false);
 
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
@@ -2370,7 +2373,7 @@ static void compute_iso_sound_speed_center_of_mass(t_data &data)
     }
 }
 
-static void compute_iso_sound_speed_nbody(t_data &data)
+static void compute_iso_sound_speed_nbody(t_data &data, const double current_time)
 {
 
     static const unsigned int N_planets =
@@ -2383,7 +2386,7 @@ static void compute_iso_sound_speed_nbody(t_data &data)
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass();
+	mpl[k] = planet.get_rampup_mass(current_time);
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	rpl[k] = planet.get_planet_radial_extend();
@@ -2431,7 +2434,7 @@ static void compute_iso_sound_speed_nbody(t_data &data)
     }
 }
 
-void compute_sound_speed(t_data &data)
+void compute_sound_speed(t_data &data, const double current_time)
 {
     if (parameters::Adiabatic || parameters::Polytropic) {
 	compute_sound_speed_normal(data);
@@ -2443,7 +2446,7 @@ void compute_sound_speed(t_data &data)
 		compute_sound_speed_normal(data);
 	    break;
 	case 1:
-		compute_iso_sound_speed_nbody(data); // has discontinuities
+		compute_iso_sound_speed_nbody(data, current_time); // has discontinuities
 	    break;
 	case 2:
 		compute_iso_sound_speed_center_of_mass(data);
@@ -2493,7 +2496,7 @@ void compute_scale_height_old(t_data &data)
 /**
 	computes aspect ratio for an entire Nbody system
 */
-void compute_scale_height_nbody(t_data &data)
+void compute_scale_height_nbody(t_data &data, const double current_time)
 {
 
     static const unsigned int N_planets =
@@ -2506,7 +2509,7 @@ void compute_scale_height_nbody(t_data &data)
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	const t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass();
+	mpl[k] = planet.get_rampup_mass(current_time);
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 	rpl[k] = planet.get_planet_radial_extend();
@@ -2644,14 +2647,14 @@ void compute_scale_height_center_of_mass(t_data &data)
     }
 }
 
-void compute_scale_height(t_data &data)
+void compute_scale_height(t_data &data, const double current_time)
 {
     switch (ASPECTRATIO_MODE) {
     case 0:
 	compute_scale_height_old(data);
 	break;
     case 1:
-	compute_scale_height_nbody(data);
+	compute_scale_height_nbody(data, current_time);
 	break;
     case 2:
 	compute_scale_height_center_of_mass(data);
@@ -2737,9 +2740,9 @@ void compute_temperature(t_data &data)
 /**
 	computes density rho
 */
-void compute_rho(t_data &data)
+void compute_rho(t_data &data, const double current_time)
 {
-	compute_scale_height(data);
+	compute_scale_height(data, current_time);
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::RHO].get_max_radial(); ++n_radial) {
@@ -2799,15 +2802,15 @@ void ComputeCircumPlanetaryMasses(t_data &data)
     }
 }
 
-void compute_heating_cooling_for_CFL(t_data &data)
+void compute_heating_cooling_for_CFL(t_data &data, const double current_time)
 {
     if (parameters::Adiabatic) {
 
 	viscosity::update_viscosity(data);
 	ComputeViscousStressTensor(data);
 
-	calculate_qminus(data); // first to calculate teff
-	calculate_qplus(data);
+	calculate_qminus(data, current_time); // first to calculate teff
+	calculate_qplus(data, current_time);
 
 	for (unsigned int n_radial = 1;
 	     n_radial < data[t_data::ENERGY].get_max_radial(); ++n_radial) {

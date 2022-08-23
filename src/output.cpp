@@ -361,14 +361,14 @@ void write_quantities(t_data &data, bool force_update)
 						   quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
-	CalculateNbodyPotential(data);
+	CalculateNbodyPotential(data, PhysicalTime);
     }
     const double gravitationalEnergy =
 	quantities::gas_gravitational_energy(data, quantities_limit_radius);
     const double totalEnergy =
 	internalEnergy + kinematicEnergy + gravitationalEnergy;
 
-    quantities::compute_aspectratio(data, N_output, force_update);
+	quantities::compute_aspectratio(data, N_output, force_update);
     const double scale_height =
 	quantities::gas_aspect_ratio(data, quantities_limit_radius);
 

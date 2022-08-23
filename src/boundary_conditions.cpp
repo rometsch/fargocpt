@@ -243,7 +243,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
     }
 }
 
-void apply_boundary_condition(t_data &data, const double dt, const bool final)
+void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final)
 {
     // if this is the final boundary condition and damping is enable, do it
     if (final && parameters::damping) {
@@ -330,7 +330,7 @@ void apply_boundary_condition(t_data &data, const double dt, const bool final)
 	break;
     case parameters::boundary_condition_precribed_time_variable: {
 	boundary_condition_precribed_time_variable_outer(
-	    data, &data[t_data::DENSITY]);
+		data, &data[t_data::DENSITY], current_time);
     } break;
     case parameters::boundary_condition_viscous_outflow:
 	die("outer viscous outflow boundary not implemented");
@@ -550,7 +550,7 @@ void reflecting_boundary_inner(t_data &data)
 	outer boundary_condition_precribed_time_variable_outer
 */
 void boundary_condition_precribed_time_variable_outer(t_data &data,
-						      t_polargrid *densitystar)
+							  t_polargrid *densitystar, const double current_time)
 {
     if (CPU_Rank == CPU_Highest) {
 	const int n_radial = data[t_data::DENSITY].get_max_radial();
@@ -558,7 +558,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	    data.get_planetary_system().get_planet(1).get_orbital_period();
 
 	const double step_size = T_bin / (double)PRESCRIBED_TIME_SEGMENT_NUMBER;
-	const double real_time = PhysicalTime / step_size;
+	const double real_time = current_time / step_size;
 	const int integer_time = (int)std::floor(real_time);
 	const int time_id = integer_time % PRESCRIBED_TIME_SEGMENT_NUMBER;
 	const int time_id_next = (time_id + 1) % PRESCRIBED_TIME_SEGMENT_NUMBER;
@@ -1400,7 +1400,7 @@ void damping(t_data &data, double dt)
     }
 }
 
-void mass_overflow(t_data &data)
+void mass_overflow(t_data &data, const double current_time)
 {
     if (CPU_Rank != CPU_Highest) {
 	return;
@@ -1408,13 +1408,13 @@ void mass_overflow(t_data &data)
 
     static double last_PhysicalTime = 0.0;
 
-    double dt = PhysicalTime - last_PhysicalTime;
+	double dt = current_time - last_PhysicalTime;
 
     if (dt == 0.0) {
 	return;
     }
 
-    last_PhysicalTime = PhysicalTime;
+	last_PhysicalTime = current_time;
 
     // get location of binary star
     if (parameters::mof_planet + 1 >

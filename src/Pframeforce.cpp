@@ -75,7 +75,7 @@ void ComputeIndirectTermNbodyEuler(t_data &data)
 	IndirectTermPlanets.y /= mass_center;
 }
 
-void ComputeIndirectTermNbody(t_data &data, const double dt)
+void ComputeIndirectTermNbody(t_data &data, const double current_time, const double dt)
 {
 
 	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
@@ -83,7 +83,7 @@ void ComputeIndirectTermNbody(t_data &data, const double dt)
 		ComputeIndirectTermNbodyEuler(data);
 	} else {
 
-	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
+	data.get_planetary_system().integrate_indirect_term_predictor(current_time, dt);
 
 	if(dt != 0.0){ // Indirect term from Rebound
 	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
@@ -111,7 +111,7 @@ void ComputeIndirectTermFully(){
  * @brief CalculatePotential: Nbody Potential caused by stars and planets
  * @param data
  */
-void CalculateNbodyPotential(t_data &data)
+void CalculateNbodyPotential(t_data &data, const double current_time)
 {
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
@@ -123,7 +123,7 @@ void CalculateNbodyPotential(t_data &data)
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass();
+	mpl[k] = planet.get_rampup_mass(current_time);
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 
@@ -189,7 +189,7 @@ void CalculateNbodyPotential(t_data &data)
     }
 }
 
-void CalculateAccelOnGas(t_data &data)
+void CalculateAccelOnGas(t_data &data, const double current_time)
 {
 
     static const unsigned int N_planets =
@@ -202,7 +202,7 @@ void CalculateAccelOnGas(t_data &data)
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass();
+	mpl[k] = planet.get_rampup_mass(current_time);
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 

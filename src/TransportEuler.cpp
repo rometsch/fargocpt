@@ -150,7 +150,7 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 	    parameters::boundary_condition_precribed_time_variable) {
 	    boundary_conditions::
 		boundary_condition_precribed_time_variable_outer(data,
-								 DensityStar);
+								 DensityStar, PhysicalTime);
 	}
 
 	if (parameters::massoverflow) {

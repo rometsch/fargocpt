@@ -43,7 +43,7 @@ void update_velocity_from_disk_gravity_cart(
     const int n_azimuthal_b_minus, const int n_azimuthal_b_plus, const double r,
     const double phi, const int particle_id, const double dt);
 void check_tstop(t_data &data);
-void integrate(t_data &data, double dt);
+void integrate(t_data &data, const double current_time, double dt);
 void integrate_implicit(t_data &data, const double dt);
 void integrate_explicit(t_data &data, const double dt);
 void integrate_explicit_adaptive(t_data &data, const double dt);

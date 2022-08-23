@@ -756,7 +756,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 	// setup planet data
 	for (unsigned int k = 0; k < N_planets; k++) {
 	    t_planet &planet = data.get_planetary_system().get_planet(k);
-	    mpl[k] = planet.get_rampup_mass();
+		mpl[k] = planet.get_rampup_mass(PhysicalTime);
 	    xpl[k] = planet.get_x();
 	    ypl[k] = planet.get_y();
 	    rpl[k] = planet.get_planet_radial_extend();

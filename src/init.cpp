@@ -337,7 +337,7 @@ void init_physics(t_data &data)
     FrameAngle = 0;
 
     // only gas velocities remain to be initialized
-    init_euler(data);
+	init_euler(data, PhysicalTime);
     init_gas_velocities(data);
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);

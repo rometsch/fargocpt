@@ -407,7 +407,7 @@ static double STS_CorrectTimeStep(int n0, double dta)
     return (dtr);
 }
 
-void Sts(t_data &data, const double dt)
+void Sts(t_data &data, const double current_time, const double dt)
 {
 
     if (parameters::heating_viscous_enabled) {
@@ -415,7 +415,7 @@ void Sts(t_data &data, const double dt)
 	data[t_data::QPLUS].clear();
     }
 
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, current_time, 0.0, false);
     double dt_par;
 
     MPI_Allreduce(&dt_parabolic_local, &dt_par, 1, MPI_DOUBLE, MPI_MIN,
@@ -451,20 +451,20 @@ void Sts(t_data &data, const double dt)
 	tau = ts[n - m - 1];
 
 	StsStep2(data, tau);
-	recalculate_derived_disk_quantities(data);
+	recalculate_derived_disk_quantities(data, current_time);
 
 	ComputeViscousStressTensor(data);
 	viscosity::update_velocities_with_viscosity(
 		data, tau);
 
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, current_time, 0.0, false);
 
 	if (parameters::Adiabatic) {
 
 	    calculateQvis(data);
 	    StsStep(data, tau);
 	    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-		recalculate_derived_disk_quantities(data);
+		recalculate_derived_disk_quantities(data, current_time);
 	}
 
 	m++;

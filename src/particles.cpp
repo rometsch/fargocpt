@@ -598,6 +598,9 @@ void init(t_data &data)
 	    correct_for_self_gravity(i);
 	}
     }
+
+	compute_rho(data, PhysicalTime);
+	compute_temperature(data);
     check_tstop(data);
 
     if (parameters::integrator == parameters::integrator_adaptive)
@@ -1110,8 +1113,6 @@ void check_tstop(t_data &data)
 		  MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     dt = DT / global_gas_time_step_cfl;
 
-	compute_rho(data);
-	compute_temperature(data);
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	const double radius = particles[i].radius;
 	const double r = particles[i].get_distance_to_star();
@@ -1245,8 +1246,6 @@ void update_velocities_from_indirect_term(const double dt)
 void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 {
 
-	compute_rho(data);
-
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double r = particles[i].get_distance_to_star();
 	double phi = particles[i].get_angle();
@@ -1341,8 +1340,6 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 
 void update_velocities_from_gas_drag(t_data &data, double dt)
 {
-
-	compute_rho(data);
 
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double r = particles[i].get_distance_to_star();
@@ -1443,8 +1440,13 @@ void update_velocity_from_disk_gravity(const int n_radial_a_minus,
     particles[particle_id].phi_dot += dt * sg_azimuthal / r;
 }
 
-void integrate(t_data &data, const double dt)
+void integrate(t_data &data, const double current_time, const double dt)
 {
+
+	if (parameters::particle_gas_drag_enabled){
+		compute_rho(data, current_time);
+	}
+
     switch (parameters::integrator) {
     case parameters::integrator_explicit: {
 	integrate_explicit(data, dt);
@@ -1599,10 +1601,6 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 {
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
-    if (parameters::particle_gas_drag_enabled) {
-	compute_rho(data);
-    }
-
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	// initialize
@@ -1694,10 +1692,6 @@ void integrate_semiimplicit(t_data &data, const double dt)
 {
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
-    if (parameters::particle_gas_drag_enabled) {
-	compute_rho(data);
-    }
-
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	// initialize
@@ -1789,9 +1783,6 @@ void integrate_implicit(t_data &data, const double dt)
     minus_l_rel0 = 0.0;
     minus_r_dot_rel0 = 0.0;
     tstop0 = 1e+300;
-    if (parameters::particle_gas_drag_enabled) {
-	compute_rho(data);
-    }
 
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	const double r0 = particles[i].r;
