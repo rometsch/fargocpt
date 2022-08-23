@@ -503,7 +503,6 @@ void AlgoGas(t_data &data)
 	handle_corotation(data, frog_dt, planet_corot_ref_old_x,
 			  planet_corot_ref_old_y);
 
-	/* Now we update gas */
 	if (parameters::calculate_disk) {
 		/// Use Nbody at x_i+1/2 for gas interaction
 		if (parameters::body_force_from_potential) {
@@ -515,8 +514,6 @@ void AlgoGas(t_data &data)
 		update_with_sourceterms(data, frog_dt);
 
 	    if (EXPLICIT_VISCOSITY) {
-		// compute and add acceleartions due to disc viscosity as a
-		// source term
 		update_with_artificial_viscosity(data, frog_dt);
 		if (parameters::Adiabatic) {
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
@@ -581,8 +578,6 @@ void AlgoGas(t_data &data)
 		update_with_sourceterms(data, frog_dt);
 
 		if (EXPLICIT_VISCOSITY) {
-		// compute and add acceleartions due to disc viscosity as a
-		// source term
 		update_with_artificial_viscosity(data, frog_dt);
 		if (parameters::Adiabatic) {
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
