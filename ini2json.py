@@ -10,7 +10,7 @@ def main():
     params = parse_ini_file(args.infile)
     try:
         # planet_config_path = params["PlanetConfig"]["value"]
-        planet_config_path = params["PlanetConfig"]["value"]
+        planet_config_path = params["PlanetConfig"]
         if os.path.exists(planet_config_path):
             planet_params = parse_planet_config(planet_config_path)
             params["planets"] = planet_params
@@ -78,10 +78,12 @@ def parse_ini_file(file_path):
                 value = data["value"]
                 del data["type"]
                 del data["key"]
+
                 params[key] = data
-                # params[key] = value
-                # if "comment" in data:
-                #     params[key+"_comment"] = data["comment"]
+
+                params[key] = value
+                if "comment" in data:
+                    params[key+"_comment"] = data["comment"]
     return params
 
 
@@ -153,6 +155,7 @@ def parse_cli_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Path of INI file to be parsed.")
     parser.add_argument("outfile", help="Output json file.")
+    parser.add_argument("-c", "--comments", help="Include comments", action="store_true")
     args = parser.parse_args()
     return args
 
