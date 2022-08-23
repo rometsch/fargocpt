@@ -26,7 +26,7 @@ class t_polargrid
     /// calculate grid even if m_write1D/m_write2D is false when write is called
     bool m_calculate_on_write;
     /// callback function to be called before write operations
-	void (*m_do_before_write)(t_data &);
+    void (*m_do_before_write)(t_data &, unsigned int, bool);
     /// set all entries to zero after write operation
     bool m_clear_after_write;
     /// for mass flow we want to integrate azimuthally instead of averaging
@@ -49,7 +49,7 @@ class t_polargrid
 	set_write_1D(value && write1D);
 	set_write_2D(value);
     }
-	inline void set_do_before_write(void (*value)(t_data &))
+    inline void set_do_before_write(void (*value)(t_data &, unsigned int, bool))
     {
 	m_do_before_write = value;
     }

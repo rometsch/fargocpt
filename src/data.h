@@ -109,13 +109,13 @@ class t_data
     void print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal);
 
     double pdivv_total;
-	inline ptrdiff_t get_n_radial(void) { return m_n_radial; }
-	inline ptrdiff_t get_n_azimuthal(void) { return m_n_azimuthal; }
-	inline ptrdiff_t get_global_n_radial(void) { return m_global_n_radial; }
+    inline ptrdiff_t get_n_radial(void) { return m_n_radial; };
+    inline ptrdiff_t get_n_azimuthal(void) { return m_n_azimuthal; };
+    inline ptrdiff_t get_global_n_radial(void) { return m_global_n_radial; };
     inline ptrdiff_t get_global_n_azimuthal(void)
     {
 	return m_global_n_azimuthal;
-	}
+    };
 
   private:
     ptrdiff_t m_n_radial;

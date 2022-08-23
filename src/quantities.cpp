@@ -408,8 +408,10 @@ double gas_gravitational_energy(t_data &data, const double quantitiy_radius)
 /**
 	Calculates disk (grid) eccentricity
 */
-void calculate_disk_quantities(t_data &data)
+void calculate_disk_quantities(t_data &data, unsigned int timestep,
+			       bool force_update)
 {
+    static int last_timestep_calculated = -1;
     double angle, r_x, r_y, j;
     double v_xmed, v_ymed;
     double e_x, e_y;
@@ -418,6 +420,14 @@ void calculate_disk_quantities(t_data &data)
 	const Pair cms_pos = data.get_planetary_system().get_hydro_frame_center_position();
 	const Pair cms_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
 
+
+    if (!force_update) {
+	if (last_timestep_calculated == (int)timestep) {
+	    return;
+	} else {
+	    last_timestep_calculated = timestep;
+	}
+    }
     // calculations outside the loop for speedup
     double sinFrameAngle = std::sin(FrameAngle);
     double cosFrameAngle = std::cos(FrameAngle);
@@ -497,10 +507,21 @@ void calculate_disk_quantities(t_data &data)
 
 	alpha(R) = |d ln Omega/d ln R|^-1 (Tgrav)/(Sigma cs^2)
 */
-void calculate_alpha_grav(t_data &data)
+void calculate_alpha_grav(t_data &data, unsigned int timestep,
+			  bool force_update)
 {
+    static int last_timestep_calculated = -1;
+
     if (parameters::self_gravity != true)
 	return;
+
+    if (!force_update) {
+	if (last_timestep_calculated == (int)timestep) {
+	    return;
+	} else {
+	    last_timestep_calculated = timestep;
+	}
+    }
 
     stress::calculate_gravitational_stress(data);
 
@@ -522,9 +543,10 @@ void calculate_alpha_grav(t_data &data)
     }
 }
 
-void calculate_alpha_grav_mean_sumup(t_data &data, double dt)
+void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
+				     double dt)
 {
-	calculate_alpha_grav(data);
+    calculate_alpha_grav(data, timestep, true);
 
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_GRAV_MEAN].get_size_radial();
@@ -543,10 +565,20 @@ void calculate_alpha_grav_mean_sumup(t_data &data, double dt)
 
 	alpha(R) = |d ln Omega/d ln R|^-1 (Trey)/(Sigma cs^2)
 */
-void calculate_alpha_reynolds(t_data &data)
+void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
+			      bool force_update)
 {
+    static int last_timestep_calculated = -1;
 
     stress::calculate_Reynolds_stress(data);
+
+    if (!force_update) {
+	if (last_timestep_calculated == (int)timestep) {
+	    return;
+	} else {
+	    last_timestep_calculated = timestep;
+	}
+    }
 
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_REYNOLDS].get_size_radial();
@@ -562,10 +594,10 @@ void calculate_alpha_reynolds(t_data &data)
     }
 }
 
-void calculate_alpha_reynolds_mean_sumup(t_data &data,
+void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 					 double dt)
 {
-	calculate_alpha_reynolds(data);
+    calculate_alpha_reynolds(data, timestep, true);
 
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_REYNOLDS_MEAN].get_size_radial();
@@ -583,7 +615,8 @@ void calculate_alpha_reynolds_mean_sumup(t_data &data,
 /**
 	Calculates Toomre Q parameter
 */
-void calculate_toomre(t_data &data)
+void calculate_toomre(t_data &data, unsigned int /* timestep */,
+		      bool /* force_update */)
 {
     double kappa;
 
@@ -616,8 +649,16 @@ void calculate_toomre(t_data &data)
     }
 }
 
-void calculate_radial_luminosity(t_data &data)
+void calculate_radial_luminosity(t_data &data, unsigned int timestep,
+				 bool force_update)
 {
+    static int last_timestep_calculated = -1;
+
+    if ((!force_update) && (last_timestep_calculated == (int)timestep)) {
+	return;
+    }
+
+    last_timestep_calculated = timestep;
 
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::LUMINOSITY_1D].get_size_radial(); ++n_radial) {
@@ -635,8 +676,16 @@ void calculate_radial_luminosity(t_data &data)
     }
 }
 
-void calculate_radial_dissipation(t_data &data)
+void calculate_radial_dissipation(t_data &data, unsigned int timestep,
+				  bool force_update)
 {
+    static int last_timestep_calculated = -1;
+
+    if ((!force_update) && (last_timestep_calculated == (int)timestep)) {
+	return;
+    }
+
+    last_timestep_calculated = timestep;
 
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DISSIPATION_1D].get_size_radial();
@@ -655,8 +704,11 @@ void calculate_radial_dissipation(t_data &data)
     }
 }
 
-void calculate_massflow(t_data &data)
+void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 {
+    (void)timestep;
+    (void)force_update;
+
     double denom;
     denom = NINTERM * DT;
 
@@ -672,8 +724,13 @@ void calculate_massflow(t_data &data)
     }
 }
 
-void compute_aspectratio(t_data &data)
+void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 {
+    static int last_timestep_calculated = -1;
+
+    if ((!force_update) && (last_timestep_calculated == (int)timestep)) {
+	return;
+    }
 
     switch (ASPECTRATIO_MODE) {
     case 0: {
@@ -812,12 +869,15 @@ void compute_aspectratio(t_data &data)
     }
 }
 
-void calculate_viscous_torque(t_data &data)
+void calculate_viscous_torque(t_data &data, unsigned int timestep,
+			      bool force_update)
 {
+    (void)timestep;
+    (void)force_update;
 
     double denom;
 
-	if (!parameters::do_write_at_every_timestep) {
+    if (!parameters::write_at_every_timestep) {
 	denom = (double)NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
@@ -833,12 +893,15 @@ void calculate_viscous_torque(t_data &data)
     }
 }
 
-void calculate_gravitational_torque(t_data &data)
+void calculate_gravitational_torque(t_data &data, unsigned int timestep,
+				    bool force_update)
 {
+    (void)timestep;
+    (void)force_update;
 
     double denom;
 
-	if (!parameters::do_write_at_every_timestep) {
+    if (!parameters::write_at_every_timestep) {
 	denom = (double)NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
@@ -857,11 +920,15 @@ void calculate_gravitational_torque(t_data &data)
     }
 }
 
-void calculate_advection_torque(t_data &data)
+void calculate_advection_torque(t_data &data, unsigned int timestep,
+				bool force_update)
 {
+    (void)timestep;
+    (void)force_update;
+
     double denom;
 
-	if (!parameters::do_write_at_every_timestep) {
+    if (!parameters::write_at_every_timestep) {
 	denom = (double)NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference

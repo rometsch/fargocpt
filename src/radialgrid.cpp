@@ -87,7 +87,7 @@ void t_radialgrid::write_radialgrid(unsigned int number, t_data &data)
     }
 
     if (m_do_before_write != NULL) {
-	(*m_do_before_write)(data);
+	(*m_do_before_write)(data, number, false);
     }
 
     write1D(number);

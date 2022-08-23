@@ -127,10 +127,11 @@ static void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
     }
 
     if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	quantities::calculate_alpha_grav_mean_sumup(data, dt / DT);
+	quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep, dt / DT);
     }
     if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
-	quantities::calculate_alpha_reynolds_mean_sumup(data, dt / DT);
+	quantities::calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
+							dt / DT);
     }
 }
 
@@ -345,7 +346,7 @@ static void handle_corotation(t_data &data, const double dt,
 	OmegaFrame = OmegaNew;
     }
 
-    if (parameters::do_integrate_planets) {
+    if (parameters::integrate_planets) {
 	data.get_planetary_system().rotate(OmegaFrame * dt);
     }
     if (parameters::integrate_particles) {
@@ -450,7 +451,7 @@ void AlgoGas(t_data &data)
 	ComputeIndirectTermFully();
 
 	/// Update Nbody to x_i+1/2
-	if (parameters::do_integrate_planets) {
+	if (parameters::integrate_planets) {
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 		}
@@ -480,7 +481,7 @@ void AlgoGas(t_data &data)
 	/* Now we update gas */
 	if (parameters::calculate_disk) {
 		/// Use Nbody at x_i+1/2 for gas interaction
-		if (parameters::compute_body_force_from_potential) {
+		if (parameters::body_force_from_potential) {
 		CalculateNbodyPotential(data, start_time);
 		} else {
 		CalculateAccelOnGas(data, start_time);
@@ -524,7 +525,7 @@ void AlgoGas(t_data &data)
 
 	//////////////// Leapfrog compute v_i+1 /////////////////////
 	// Finish timestep of the planets but do not update Nbody system yet //
-	if (parameters::do_integrate_planets) {
+	if (parameters::integrate_planets) {
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 		}
@@ -545,7 +546,7 @@ void AlgoGas(t_data &data)
 	/// update gas while Nbody positions are still at x_i+1/2
 	if (parameters::calculate_disk) {
 
-		if (parameters::compute_body_force_from_potential) {
+		if (parameters::body_force_from_potential) {
 		CalculateNbodyPotential(data, midstep_time);
 		} else {
 		CalculateAccelOnGas(data, midstep_time);
@@ -586,7 +587,7 @@ void AlgoGas(t_data &data)
 	}
 
 	//////////// Update Nbody to x_i+1 //////////////////
-	if (parameters::do_integrate_planets) {
+	if (parameters::integrate_planets) {
 		init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 		data.get_planetary_system().copy_data_from_rebound();
 		data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, frog_dt);
@@ -740,7 +741,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 
 	    // dPhi/dr
 	    double gradphi;
-	    if (parameters::compute_body_force_from_potential) {
+	    if (parameters::body_force_from_potential) {
 		gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
 			   data[t_data::POTENTIAL](n_radial - 1, n_azimuthal)) *
 			  InvDiffRmed[n_radial];
@@ -807,7 +808,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 
 	    // 1/r dPhi/dphi
 	    double gradphi;
-	    if (parameters::compute_body_force_from_potential) {
+	    if (parameters::body_force_from_potential) {
 		gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
 			   data[t_data::POTENTIAL](n_radial, n_az_minus)) *
 			  invdxtheta;

@@ -96,7 +96,7 @@ void t_polargrid::write_polargrid(unsigned int number, t_data &data,
     if ((get_write_1D() || get_write_2D() || m_calculate_on_write) &&
 	(!debug)) {
 	if (m_do_before_write != NULL) {
-		(*m_do_before_write)(data);
+	    (*m_do_before_write)(data, number, false);
 	}
     }
 

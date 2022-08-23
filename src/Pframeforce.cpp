@@ -483,7 +483,7 @@ void ComputeNbodyOnNbodyAccelRK5(t_data &data, const double dt)
 {
 	unsigned int n = data.get_planetary_system().get_number_of_planets();
 
-	if (parameters::do_integrate_planets) {
+	if (parameters::integrate_planets) {
 		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
 			q0[i+0*n] = data.get_planetary_system().get_planet(i).get_x();
 			q0[i+1*n] = data.get_planetary_system().get_planet(i).get_y();

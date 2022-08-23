@@ -272,7 +272,7 @@ void write_grids(t_data &data, int index, int iter, double phystime,
 /**
 
 */
-void write_quantities(t_data &data)
+void write_quantities(t_data &data, bool force_update)
 {
     FILE *fd = 0;
     char *fd_filename;
@@ -329,7 +329,7 @@ void write_quantities(t_data &data)
     }
 
     const auto disk_quantities = reduce_disk_quantities(
-	data, quantities_limit_radius);
+	data, N_output, force_update, quantities_limit_radius);
     const double disk_eccentricity = disk_quantities[0];
     const double disk_periastron = disk_quantities[1];
 
@@ -360,7 +360,7 @@ void write_quantities(t_data &data)
 	quantities::gas_azimuthal_kinematic_energy(data,
 						   quantities_limit_radius);
 
-	if (!parameters::compute_body_force_from_potential) {
+    if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data, PhysicalTime);
     }
     const double gravitationalEnergy =
@@ -368,7 +368,7 @@ void write_quantities(t_data &data)
     const double totalEnergy =
 	internalEnergy + kinematicEnergy + gravitationalEnergy;
 
-	quantities::compute_aspectratio(data);
+	quantities::compute_aspectratio(data, N_output, force_update);
     const double scale_height =
 	quantities::gas_aspect_ratio(data, quantities_limit_radius);
 
@@ -681,7 +681,7 @@ int get_misc(const int timestep, const bool debug)
     return misc.timestep;
 }
 
-void write_torques(t_data &data, unsigned int timestep)
+void write_torques(t_data &data, unsigned int timestep, bool force_update)
 {
     const int ns = data[t_data::DENSITY].Nsec;
     const double *cell_center_x = CellCenterX->Field;
@@ -743,7 +743,10 @@ void write_torques(t_data &data, unsigned int timestep)
 	}
 	data[t_data::TORQUE_1D].set_name(name);
 	free(name);
-	data[t_data::TORQUE_1D].write1D(timestep);
+
+	if (force_update == false) {
+	    data[t_data::TORQUE_1D].write1D(timestep);
+	}
     }
 }
 
@@ -802,7 +805,8 @@ void write_1D_info(t_data &data)
 	Calculates eccentricity, semi major axis and periastron averaged with
    the radial cells
 */
-std::vector<double> reduce_disk_quantities(t_data &data,
+std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
+					   bool force_update,
 					   const double quantitiy_radius)
 {
     double local_eccentricity = 0.0;
@@ -815,7 +819,7 @@ std::vector<double> reduce_disk_quantities(t_data &data,
     double local_periastron = 0.0;
 
     // calculate eccentricity, semi_major_axis and periastron grid
-	quantities::calculate_disk_quantities(data);
+    quantities::calculate_disk_quantities(data, timestep, force_update);
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
@@ -863,13 +867,13 @@ std::vector<double> reduce_disk_quantities(t_data &data,
     return rv;
 }
 
-void write_lightcurves(t_data &data)
+void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 {
     // calculate luminosity
-	quantities::calculate_radial_luminosity(data);
+    quantities::calculate_radial_luminosity(data, timestep, force_update);
 
     // calculate dissipation
-	quantities::calculate_radial_dissipation(data);
+    quantities::calculate_radial_dissipation(data, timestep, force_update);
 
     double *luminosity_values =
 	new double[parameters::lightcurves_radii.size()];

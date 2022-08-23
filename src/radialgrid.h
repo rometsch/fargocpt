@@ -24,7 +24,7 @@ class t_radialgrid
     /// calculate grid even if m_write1D/m_write2D is false when write is called
     bool m_calculate_on_write;
     /// callback function to be called before write operations
-	void (*m_do_before_write)(t_data &);
+    void (*m_do_before_write)(t_data &, unsigned int, bool);
     /// set all entries to zero after write operations
     bool m_clear_after_write;
     /// Radial size of the grid, in number of zones
@@ -48,7 +48,7 @@ class t_radialgrid
     {
 	m_clear_after_write = value;
     }
-	inline void set_do_before_write(void (*value)(t_data &))
+    inline void set_do_before_write(void (*value)(t_data &, unsigned int, bool))
     {
 	m_do_before_write = value;
 	m_calculate_on_write = true;
