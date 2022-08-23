@@ -319,7 +319,6 @@ int main(int argc, char *argv[])
     for (; N_outer_loop <= NTOT; ++N_outer_loop) {
 	// write outputs
 
-	bool force_update_for_output = true;
 	N_output = (N_outer_loop / NINTERM); // note: integer division
 	bool write_complete_output = NINTERM * N_output == N_outer_loop;
 	if (dont_do_restart_output_at_start) {
@@ -327,14 +326,13 @@ int main(int argc, char *argv[])
 	}
 	/// asure planet torques are computed
 	if (!parameters::disk_feedback &&
-	    (write_complete_output || parameters::write_at_every_timestep)) {
+	    (write_complete_output || parameters::do_write_at_every_timestep)) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
 	if (write_complete_output) {
 	    // Outputs are done here
 	    TimeToWrite = YES;
-	    force_update_for_output = false;
 
 	    // write polar grids
 	    output::write_grids(data, N_output, N_hydro_iter, PhysicalTime,
@@ -359,7 +357,7 @@ int main(int argc, char *argv[])
 	//(void) InnerOutputCounter;
 	// InnerOutputCounter++;
 	// if (InnerOutputCounter == 1) {
-	if ((write_complete_output || parameters::write_at_every_timestep) &&
+	if ((write_complete_output || parameters::do_write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start)) {
 	    // InnerOutputCounter = 0;
 	    ComputeCircumPlanetaryMasses(data);
@@ -368,19 +366,19 @@ int main(int argc, char *argv[])
 	}
 
 	// write disk quantities like eccentricity, ...
-	if ((write_complete_output || parameters::write_at_every_timestep) &&
+	if ((write_complete_output || parameters::do_write_at_every_timestep) &&
 	    !(dont_do_restart_output_at_start) &&
-	    parameters::write_disk_quantities) {
-	    output::write_quantities(data, force_update_for_output);
+	    parameters::do_write_disk_quantities) {
+		output::write_quantities(data);
 	}
 
-	if (write_complete_output && parameters::write_torques) {
-	    output::write_torques(data, N_output, force_update_for_output);
+	if (write_complete_output && parameters::do_write_torques) {
+		output::write_torques(data, N_output);
 	}
-	if (parameters::write_lightcurves &&
-	    (parameters::write_at_every_timestep || write_complete_output) &&
+	if (parameters::do_write_lightcurves &&
+	    (parameters::do_write_at_every_timestep || write_complete_output) &&
 	    !(dont_do_restart_output_at_start)) {
-	    output::write_lightcurves(data, N_output, force_update_for_output);
+		output::write_lightcurves(data);
 	}
 	dont_do_restart_output_at_start = false;
 

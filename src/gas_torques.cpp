@@ -145,7 +145,7 @@ void calculate_gravitational_torque(t_data &data, const double dt)
 	    // pot_grav.get_max_azimuthal() ? 0 : n_az+1) - pot_grav(n_r,
 	    // n_az))*invdphi;
 	    double gradphi;
-	    if (parameters::body_force_from_potential) {
+	    if (parameters::compute_body_force_from_potential) {
 		gradphi = (pot_grav(n_r, get_next_azimuthal_id(n_az)) -
 			   pot_grav(n_r, get_prev_azimuthal_id(n_az))) *
 			  invdphi * 0.5;

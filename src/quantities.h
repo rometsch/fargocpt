@@ -19,30 +19,21 @@ double gas_azimuthal_kinematic_energy(t_data &data,
 				      const double quantitiy_radius);
 double gas_gravitational_energy(t_data &data, const double quantitiy_radius);
 
-void calculate_disk_quantities(t_data &data, unsigned int timestep,
-			       bool force_update);
-void calculate_alpha_grav(t_data &data, unsigned int timestep,
-			  bool force_update);
-void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
-				     double dt);
-void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
-			      bool force_update);
-void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
+void calculate_disk_quantities(t_data &data);
+void calculate_alpha_grav(t_data &data);
+void calculate_alpha_grav_mean_sumup(t_data &data,
 					 double dt);
-void calculate_toomre(t_data &data, unsigned int timestep, bool force_update);
-void calculate_radial_luminosity(t_data &data, unsigned int timestep,
-				 bool force_update);
-void calculate_radial_dissipation(t_data &data, unsigned int timestep,
-				  bool force_update);
-void calculate_massflow(t_data &data, unsigned int timestep, bool force_update);
-void compute_aspectratio(t_data &data, unsigned int timestep,
-			 bool force_update);
-void calculate_advection_torque(t_data &data, unsigned int timestep,
-				bool force_update);
-void calculate_gravitational_torque(t_data &data, unsigned int timestep,
-				    bool force_update);
-void calculate_viscous_torque(t_data &data, unsigned int timestep,
-			      bool force_update);
+void calculate_alpha_reynolds(t_data &data);
+void calculate_alpha_reynolds_mean_sumup(t_data &data,
+					 double dt);
+void calculate_toomre(t_data &data);
+void calculate_radial_luminosity(t_data &data);
+void calculate_radial_dissipation(t_data &data);
+void calculate_massflow(t_data &data);
+void compute_aspectratio(t_data &data);
+void calculate_advection_torque(t_data &data);
+void calculate_gravitational_torque(t_data &data);
+void calculate_viscous_torque(t_data &data);
 } // namespace quantities
 
 #endif // QUANTITIES_H

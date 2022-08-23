@@ -116,7 +116,7 @@ double profile_cutoff_width_inner;
 bool disk_feedback;
 int indirect_term_mode;
 
-bool integrate_planets;
+bool do_integrate_planets;
 bool do_init_secondary_disk;
 
 double density_factor;
@@ -125,15 +125,15 @@ double tau_min;
 double kappa_factor;
 
 bool self_gravity;
-bool body_force_from_potential;
+bool compute_body_force_from_potential;
 
-bool write_torques;
+bool do_write_torques;
 
-bool write_disk_quantities;
-bool write_lightcurves;
-bool write_at_every_timestep;
+bool do_write_disk_quantities;
+bool do_write_lightcurves;
+bool do_write_at_every_timestep;
 std::vector<double> lightcurves_radii;
-bool write_massflow;
+bool do_write_massflow;
 
 unsigned int log_after_steps;
 double log_after_real_seconds;
@@ -407,17 +407,17 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteVerticalOpticalDepth", false),
 	do_write_1D);
 
-    write_torques = config::value_as_bool_default("WriteTorques", false);
+	do_write_torques = config::value_as_bool_default("WriteTorques", false);
 
-    write_disk_quantities =
+	do_write_disk_quantities =
 	config::value_as_bool_default("WriteDiskQuantities", true);
-    write_at_every_timestep =
+	do_write_at_every_timestep =
 	config::value_as_bool_default("WriteAtEveryTimestep", false);
-    write_lightcurves =
+	do_write_lightcurves =
 	config::value_as_bool_default("WriteLightCurves", false);
 
-    write_massflow = config::value_as_bool_default("WriteMassFlow", false);
-    data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
+	do_write_massflow = config::value_as_bool_default("WriteMassFlow", false);
+	data[t_data::MASSFLOW].set_write(do_write_massflow, do_write_1D);
 
     log_after_steps = config::value_as_unsigned_int_default("LogAfterSteps", 0);
     log_after_real_seconds =
@@ -818,7 +818,7 @@ void read(char *filename, t_data &data)
 	config::value_as_double_default("ThicknessSmoothing", 0.0);
     thickness_smoothing_sg = config::value_as_double_default(
 	"ThicknessSmoothingSG", thickness_smoothing);
-    integrate_planets = config::value_as_bool_default("IntegratePlanets", true);
+	do_integrate_planets = config::value_as_bool_default("IntegratePlanets", true);
     do_init_secondary_disk =
 	config::value_as_bool_default("SecondaryDisk", false);
 
@@ -875,9 +875,9 @@ void read(char *filename, t_data &data)
 	logging::print_master(LOG_INFO "Self gravity enabled.\n");
     }
 
-    body_force_from_potential =
+	compute_body_force_from_potential =
 	config::value_as_bool_default("BodyForceFromPotential", YES);
-    if (body_force_from_potential) {
+	if (compute_body_force_from_potential) {
 	logging::print_master(LOG_INFO
 			      "Body force on gas computed via potential.\n");
     } else {
@@ -1348,7 +1348,7 @@ void summarize_parameters()
 	break;
     }
 
-    if (write_lightcurves) {
+	if (do_write_lightcurves) {
 	char *buffer, *temp;
 	unsigned int pos = 0;
 

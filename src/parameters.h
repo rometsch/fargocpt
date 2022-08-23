@@ -223,23 +223,23 @@ extern double tau_min;
 extern double kappa_factor;
 
 ///
-extern bool integrate_planets;
+extern bool do_integrate_planets;
 extern bool do_init_secondary_disk;
 
 // self gravity
 extern bool self_gravity;
 
-extern bool body_force_from_potential;
+extern bool compute_body_force_from_potential;
 
 // output
-extern bool write_torques;
+extern bool do_write_torques;
 
 /// write disk quantities
-extern bool write_disk_quantities;
-extern bool write_at_every_timestep;
-extern bool write_lightcurves;
+extern bool do_write_disk_quantities;
+extern bool do_write_at_every_timestep;
+extern bool do_write_lightcurves;
 extern std::vector<double> lightcurves_radii;
-extern bool write_massflow;
+extern bool do_write_massflow;
 
 // runtime output
 extern unsigned int log_after_steps;

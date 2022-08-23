@@ -561,7 +561,7 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 	    Qbase->Field[cell] += (varq_inf - varq_sup) * InvSurf[nRadial];
 
 	    if (is_density) {
-		if (parameters::write_disk_quantities) {
+		if (parameters::do_write_disk_quantities) {
 		    // TODO: boundary
 		    // if ((nRadial == 0) && (parameters::boundary_inner ==
 		    // parameters::boundary_condition_open)) if ((nRadial == 0)
@@ -585,7 +585,7 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 			}
 		    }
 		}
-		if (parameters::write_massflow) {
+		if (parameters::do_write_massflow) {
 		    data[t_data::MASSFLOW](nRadial, nAzimuthal) += varq_inf;
 		    if (CPU_Rank == CPU_Highest &&
 			nRadial == Qbase->get_max_radial()) {

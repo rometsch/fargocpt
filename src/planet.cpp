@@ -486,7 +486,7 @@ void t_planet::write_ascii(const char *filename,
     const double accreted_mass = get_accreted_mass();
     double div;
 
-    if (parameters::write_at_every_timestep) {
+    if (parameters::do_write_at_every_timestep) {
 	div = DT;
     } else {
 	div = DT * NINTERM;
