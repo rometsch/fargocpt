@@ -242,27 +242,27 @@ bool assure_temperature_range(t_data &data)
     return found;
 }
 
-void recalculate_derived_disk_quantities(t_data &data, bool force_update)
+void recalculate_derived_disk_quantities(t_data &data)
 {
 
     if (parameters::Locally_Isothermal) {
 	if (ASPECTRATIO_MODE > 0) {
-	    compute_sound_speed(data, force_update);
-	    compute_pressure(data, force_update);
-	    compute_temperature(data, force_update);
-	    compute_scale_height(data, force_update);
+		compute_sound_speed(data);
+		compute_pressure(data);
+		compute_temperature(data);
+		compute_scale_height(data);
 	} else {
-	    compute_pressure(data, force_update);
+		compute_pressure(data);
 	}
     }
     if (parameters::Adiabatic || parameters::Polytropic) {
 	if (parameters::variableGamma) {
 	    pvte::compute_gamma_mu(data);
 	}
-	compute_temperature(data, force_update);
-	compute_sound_speed(data, force_update);
-	compute_scale_height(data, force_update);
-	compute_pressure(data, force_update);
+	compute_temperature(data);
+	compute_sound_speed(data);
+	compute_scale_height(data);
+	compute_pressure(data);
     }
 
     viscosity::update_viscosity(data);
@@ -274,22 +274,22 @@ void init_euler(t_data &data)
     InitTransport();
 
     if (parameters::Locally_Isothermal) {
-	compute_sound_speed(data, true);
-	compute_pressure(data, true);
-	compute_temperature(data, true);
-	compute_scale_height(data, true);
+	compute_sound_speed(data);
+	compute_pressure(data);
+	compute_temperature(data);
+	compute_scale_height(data);
     }
 
     if (parameters::Adiabatic || parameters::Polytropic) {
 	if (parameters::variableGamma) {
-	    compute_sound_speed(data, true);
-	    compute_scale_height(data, true);
+		compute_sound_speed(data);
+		compute_scale_height(data);
 	    pvte::compute_gamma_mu(data);
 	}
-	compute_temperature(data, true);
-	compute_sound_speed(data, true);
-	compute_scale_height(data, true);
-	compute_pressure(data, true);
+	compute_temperature(data);
+	compute_sound_speed(data);
+	compute_scale_height(data);
+	compute_pressure(data);
     }
 
     viscosity::update_viscosity(data);
@@ -493,7 +493,7 @@ void AlgoGas(t_data &data)
 		if (parameters::Adiabatic) {
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-		recalculate_derived_disk_quantities(data, true);
+		recalculate_derived_disk_quantities(data);
 		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 	    }
@@ -549,7 +549,7 @@ void AlgoGas(t_data &data)
 		CalculateAccelOnGas(data);
 		}
 
-		compute_pressure(data, true);
+		compute_pressure(data);
 		update_with_sourceterms(data, frog_dt);
 
 		if (EXPLICIT_VISCOSITY) {
@@ -559,7 +559,7 @@ void AlgoGas(t_data &data)
 		if (parameters::Adiabatic) {
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-		recalculate_derived_disk_quantities(data, true);
+		recalculate_derived_disk_quantities(data);
 		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 		}
@@ -621,8 +621,8 @@ void AlgoGas(t_data &data)
 	    // accretion are not also hit by viscous accretion at inner
 	    // boundary.
 	    if (VISCOUS_ACCRETION) {
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
+		compute_sound_speed(data);
+		compute_scale_height(data);
 		viscosity::update_viscosity(data);
 	    }
 
@@ -645,11 +645,11 @@ void AlgoGas(t_data &data)
 				      // scale_height is already updated
 		// Recompute scale height after Transport to update the 3D
 		// density
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
+		compute_sound_speed(data);
+		compute_scale_height(data);
 	    }
 	    // this must be done after CommunicateBoundaries
-	    recalculate_derived_disk_quantities(data, true);
+		recalculate_derived_disk_quantities(data);
 
 	    hydro_dt = CalculateHydroTimeStep(data, hydro_dt, false);
 		frog_dt = 0.5 * hydro_dt;
@@ -1636,9 +1636,9 @@ void radiative_diffusion(t_data &data, const double dt)
 
 
     // update temperature, soundspeed and aspect ratio
-    compute_temperature(data, true);
-    compute_sound_speed(data, true);
-    compute_scale_height(data, true);
+	compute_temperature(data);
+	compute_sound_speed(data);
+	compute_scale_height(data);
 
     // calcuate Ka for K(i/2,j)
     for (unsigned int nr = 1; nr < Ka.get_size_radial() - 1; ++nr) {
@@ -2295,14 +2295,8 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	return std::max(deltaT / dt_global, 1.0);
 }
 
-static void compute_sound_speed_normal(t_data &data, bool force_update)
+static void compute_sound_speed_normal(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_radial) {
@@ -2337,15 +2331,8 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
     }
 }
 
-static void compute_iso_sound_speed_center_of_mass(t_data &data,
-						   const bool force_update)
+static void compute_iso_sound_speed_center_of_mass(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     const Pair r_cm = data.get_planetary_system().get_center_of_mass();
     const double m_cm = data.get_planetary_system().get_mass();
@@ -2383,15 +2370,8 @@ static void compute_iso_sound_speed_center_of_mass(t_data &data,
     }
 }
 
-static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
+static void compute_iso_sound_speed_nbody(t_data &data)
 {
-
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
@@ -2451,26 +2431,25 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
     }
 }
 
-void compute_sound_speed(t_data &data, bool force_update)
+void compute_sound_speed(t_data &data)
 {
     if (parameters::Adiabatic || parameters::Polytropic) {
-	compute_sound_speed_normal(data, force_update);
+	compute_sound_speed_normal(data);
     }
 
     if (parameters::Locally_Isothermal) {
 	switch (ASPECTRATIO_MODE) {
 	case 0:
-	    compute_sound_speed_normal(data, force_update);
+		compute_sound_speed_normal(data);
 	    break;
 	case 1:
-	    compute_iso_sound_speed_nbody(data,
-					  force_update); // has discontinuities
+		compute_iso_sound_speed_nbody(data); // has discontinuities
 	    break;
 	case 2:
-	    compute_iso_sound_speed_center_of_mass(data, force_update);
+		compute_iso_sound_speed_center_of_mass(data);
 	    break;
 	default:
-	    compute_sound_speed_normal(data, force_update);
+		compute_sound_speed_normal(data);
 	}
     }
 }
@@ -2478,14 +2457,8 @@ void compute_sound_speed(t_data &data, bool force_update)
 /**
 	computes aspect ratio
 */
-void compute_scale_height_old(t_data &data, const bool force_update)
+void compute_scale_height_old(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_radial) {
@@ -2520,14 +2493,8 @@ void compute_scale_height_old(t_data &data, const bool force_update)
 /**
 	computes aspect ratio for an entire Nbody system
 */
-void compute_scale_height_nbody(t_data &data, const bool force_update)
+void compute_scale_height_nbody(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
@@ -2623,14 +2590,8 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 /**
 	computes aspect ratio with respect to the center of mass
 */
-void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
+void compute_scale_height_center_of_mass(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     const Pair r_cm = data.get_planetary_system().get_center_of_mass();
     const double m_cm = data.get_planetary_system().get_mass();
@@ -2683,34 +2644,28 @@ void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
     }
 }
 
-void compute_scale_height(t_data &data, const bool force_update)
+void compute_scale_height(t_data &data)
 {
     switch (ASPECTRATIO_MODE) {
     case 0:
-	compute_scale_height_old(data, force_update);
+	compute_scale_height_old(data);
 	break;
     case 1:
-	compute_scale_height_nbody(data, force_update);
+	compute_scale_height_nbody(data);
 	break;
     case 2:
-	compute_scale_height_center_of_mass(data, force_update);
+	compute_scale_height_center_of_mass(data);
 	break;
     default:
-	compute_scale_height_old(data, force_update);
+	compute_scale_height_old(data);
     }
 }
 
 /**
 	computes pressure
 */
-void compute_pressure(t_data &data, bool force_update)
+void compute_pressure(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::PRESSURE].get_max_radial(); ++n_radial) {
@@ -2744,14 +2699,8 @@ void compute_pressure(t_data &data, bool force_update)
 /**
 	computes temperature
 */
-void compute_temperature(t_data &data, bool force_update)
+void compute_temperature(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::TEMPERATURE].get_max_radial(); ++n_radial) {
@@ -2788,16 +2737,9 @@ void compute_temperature(t_data &data, bool force_update)
 /**
 	computes density rho
 */
-void compute_rho(t_data &data, bool force_update)
+void compute_rho(t_data &data)
 {
-    static double last_physicaltime_calculated = -1;
-
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
-	return;
-    }
-    last_physicaltime_calculated = PhysicalTime;
-
-    compute_scale_height(data, force_update);
+	compute_scale_height(data);
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::RHO].get_max_radial(); ++n_radial) {

@@ -10,7 +10,7 @@ bool assure_temperature_range(t_data &data);
 void move_polargrid(t_polargrid &dst, t_polargrid &src);
 void copy_polargrid(t_polargrid &dst, const t_polargrid& src);
 
-void recalculate_derived_disk_quantities(t_data &data, bool force_update);
+void recalculate_derived_disk_quantities(t_data &data);
 void init_euler(t_data &data);
 void FreeEuler();
 
@@ -28,14 +28,14 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
 		     const double deltaT);
 
-void compute_sound_speed(t_data &data, bool force_update);
-void compute_scale_height(t_data &data, const bool force_update);
-void compute_scale_height_old(t_data &data, const bool force_update);
-void compute_scale_height_nbody(t_data &data, const bool force_update);
-void compute_scale_height_center_of_mass(t_data &data, const bool force_update);
-void compute_pressure(t_data &data, bool force_update);
-void compute_temperature(t_data &data, bool force_update);
-void compute_rho(t_data &data, bool force_update);
+void compute_sound_speed(t_data &data);
+void compute_scale_height(t_data &data);
+void compute_scale_height_old(t_data &data);
+void compute_scale_height_nbody(t_data &data);
+void compute_scale_height_center_of_mass(t_data &data);
+void compute_pressure(t_data &data);
+void compute_temperature(t_data &data);
+void compute_rho(t_data &data);
 
 void ComputeViscousStressTensor(t_data &data);
 void ComputeCircumPlanetaryMasses(t_data &data);

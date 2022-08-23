@@ -772,7 +772,7 @@ void init_PVTE_shock_tube_test(t_data &data)
     // after all units have calculated, calculate constants in code units
     constants::calculate_constants_in_code_units();
 
-    compute_pressure(data, false);
+	compute_pressure(data);
 
     // set SigmaMed/SigmaInf
     RefillSigma(&data[t_data::DENSITY]);

@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
 	logging::print_master(LOG_INFO
 			      "Finished restarting planetary system.\n");
 
-	recalculate_derived_disk_quantities(data, true);
+	recalculate_derived_disk_quantities(data);
 
 	if (parameters::variableGamma) {
 
@@ -288,10 +288,10 @@ int main(int argc, char *argv[])
 					    start_mode::restart_debug);
 	    }
 
-	    compute_temperature(data, true);
-	    compute_sound_speed(data, true);
-	    compute_scale_height(data, true);
-	    compute_pressure(data, true);
+		compute_temperature(data);
+		compute_sound_speed(data);
+		compute_scale_height(data);
+		compute_pressure(data);
 	    viscosity::update_viscosity(data);
 	}
 
