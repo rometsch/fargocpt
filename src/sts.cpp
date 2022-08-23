@@ -451,8 +451,7 @@ void Sts(t_data &data, const double current_time, const double dt)
 	tau = ts[n - m - 1];
 
 	StsStep2(data, tau);
-	recalculate_derived_disk_quantities(data, current_time);
-
+	recalculate_viscosity(data, current_time);
 	ComputeViscousStressTensor(data);
 	viscosity::update_velocities_with_viscosity(
 		data, tau);
@@ -464,7 +463,6 @@ void Sts(t_data &data, const double current_time, const double dt)
 	    calculateQvis(data);
 	    StsStep(data, tau);
 	    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-		recalculate_derived_disk_quantities(data, current_time);
 	}
 
 	m++;

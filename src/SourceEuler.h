@@ -11,6 +11,7 @@ void move_polargrid(t_polargrid &dst, t_polargrid &src);
 void copy_polargrid(t_polargrid &dst, const t_polargrid& src);
 
 void recalculate_derived_disk_quantities(t_data &data, const double current_time);
+void recalculate_viscosity(t_data &data, const double current_time);
 void init_euler(t_data &data, const double current_time);
 void FreeEuler();
 

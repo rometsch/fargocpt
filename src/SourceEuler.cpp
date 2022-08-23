@@ -242,6 +242,31 @@ bool assure_temperature_range(t_data &data)
     return found;
 }
 
+
+void recalculate_viscosity(t_data &data, const double current_time)
+{
+
+	if (parameters::Locally_Isothermal) {
+	if (ASPECTRATIO_MODE > 0) {
+		compute_sound_speed(data, current_time);
+		compute_temperature(data);
+		compute_scale_height(data, current_time);
+	} else {
+		compute_pressure(data);
+	}
+	}
+	if (parameters::Adiabatic || parameters::Polytropic) {
+	if (parameters::variableGamma) {
+		pvte::compute_gamma_mu(data);
+	}
+	compute_temperature(data);
+	compute_sound_speed(data, current_time);
+	compute_scale_height(data, current_time);
+	}
+
+	viscosity::update_viscosity(data);
+}
+
 void recalculate_derived_disk_quantities(t_data &data, const double current_time)
 {
 
@@ -496,7 +521,7 @@ void AlgoGas(t_data &data)
 		if (parameters::Adiabatic) {
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-		recalculate_derived_disk_quantities(data, start_time);
+		recalculate_viscosity(data, start_time);
 		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 	    }
@@ -562,7 +587,7 @@ void AlgoGas(t_data &data)
 		if (parameters::Adiabatic) {
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
-		recalculate_derived_disk_quantities(data, midstep_time);
+		recalculate_viscosity(data, midstep_time);
 		ComputeViscousStressTensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 		}
