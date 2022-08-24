@@ -690,9 +690,9 @@ void t_planetary_system::apply_indirect_term_on_Nbody(const pair accel, const do
 	 k < get_number_of_planets(); k++) {
 		t_planet &planet = get_planet(k);
 		const double new_vx =
-		planet.get_vx() - dt * accel.x;
+		planet.get_vx() + dt * accel.x;
 		const double new_vy =
-		planet.get_vy() - dt * accel.y;
+		planet.get_vy() + dt * accel.y;
 
 		planet.set_vx(new_vx);
 		planet.set_vy(new_vy);
