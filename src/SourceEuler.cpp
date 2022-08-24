@@ -442,9 +442,6 @@ void AlgoGas(t_data &data)
     // reasonable timestep size
     hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
 	double frog_dt = hydro_dt * 0.5;
-	const double start_time = PhysicalTime;
-	const double midstep_time = PhysicalTime + frog_dt;
-	const double end_time = PhysicalTime + hydro_dt;
 
 	boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
 
@@ -464,6 +461,10 @@ void AlgoGas(t_data &data)
 	    dtemp / DT * 100.0);
 
 	dtemp += hydro_dt;
+
+	const double start_time = PhysicalTime;
+	const double midstep_time = PhysicalTime + frog_dt;
+	const double end_time = PhysicalTime + hydro_dt;
 
 	//////////////// Leapfrog compute v_i+1/2 /////////////////////
 	if (parameters::disk_feedback) {
