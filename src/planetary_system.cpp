@@ -91,8 +91,8 @@ void t_planetary_system::init_system(char *filename)
     Config config(filename);
 
     std::vector<Config> planet_configs = config.get_planet_config();
-    for (auto &planet : planet_configs) {
-	init_planet(planet);
+    for (auto &planet_cfg : planet_configs) {
+		init_planet(planet_cfg);
     }
 
     config_consistency_checks();
