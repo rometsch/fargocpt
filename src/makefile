@@ -11,11 +11,14 @@ TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
-$(EXENAME): rebound/librebound.a $(OBJS)
+$(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a $(OBJS)
 	$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS)
 
 rebound/librebound.a:
 	$(MAKE) -C rebound
+
+yaml-cpp/libyamlcpp.a:
+	$(MAKE) -C yaml-cpp
 
 $(OBJS): $(HDRS) makefile
 
@@ -26,6 +29,7 @@ main.o: $(HDRS) makefile $(SRCS_C) $(SRCS_CXX)
 clean:
 	rm -f $(OBJS) $(TEMP)
 	cd rebound && $(MAKE) clean
+	cd yaml-cpp && $(MAKE) clean
 
 %.o : %.c
 	$(CC) $(_CFLAGS) -c -o $@ $<

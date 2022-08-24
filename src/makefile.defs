@@ -43,12 +43,12 @@ MPI_PREFIX = $(MPI_PREFIX_$(FARGO_ARCH))
 FFTW_PREFIX= $(FFTW_PREFIX_$(FARGO_ARCH))
 GSL_PREFIX= $(GSL_$(FARGO_ARCH))
 
-_CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include
-_CXXFLAGS = -std=c++17 $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include
+_CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include -I.
+_CXXFLAGS = -std=c++17 $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include -I.
 
 LIBS = -lm -lstdc++fs -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
 
 #statically link rebound
-LIBS += -Lrebound -lrebound
+LIBS += -Lrebound -lrebound -Lyaml-cpp -lyamlcpp
 
 
