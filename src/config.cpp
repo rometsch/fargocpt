@@ -8,107 +8,70 @@
 #include "LowTasks.h"
 #include "config.h"
 
-#include "json/json.hpp"
+#include "yaml-cpp/yaml.h"
 
-using json = nlohmann::json;
-
-template <typename T> T json_caster(const json &j)
-{
-    T ret;
-    if (j.is_string()) {
-	const std::string val = j;
-	std::stringstream ss(val);
-	ss >> ret;
-	std::string rest;
-	ss >> rest;
-	if (rest.length() > 0) {
-	    die("Could not fully parse value '%s' to %s", val.c_str(),
-		typeid(ret).name());
-	}
-    } else {
-	ret = j.get<T>();
+static YAML::Node lowercased_node(const YAML::Node &node) {
+    YAML::Node lnode;
+    for (auto it=node.begin(); it!=node.end(); ++it) {
+        std::string key = it->first.as<std::string>();
+        std::string lkey = lowercase(key);
+        auto &subnode = it->second;
+        if (subnode.IsMap()) {
+            lnode[lkey] = lowercased_node(subnode);
+        } else {
+            lnode[lkey] = YAML::Node(subnode);
+        }
     }
-    return ret;
+    return lnode;
 }
 
-Config::Config(const char *filename) { load_file(filename); }
+Config::Config(const char *filename) { 
+    load_file(filename); }
 
-Config::Config(const json &j)
+Config::Config(const YAML::Node &n)
 {
-    m_j = std::make_shared<json>(j);
-    insert_lowercase_keys();
+    m_root = std::make_shared<YAML::Node>(lowercased_node(n));
 };
 
 Config Config::get_subconfig(const char *key)
 {
-    const auto &j = *m_j;
-    return Config(json(j[lowercase(key)]));
+    const auto &n = *m_root;
+    return Config((n[lowercase(key)]));
 }
+
 
 std::vector<Config> Config::get_planet_config()
 {
-    const auto &j = *m_j;
+    const auto &n = *m_root;
     std::vector<Config> planets;
+    std::cout << "creating planet configs" << std::endl;
     if (contains("planets")) {
-	for (auto &j_planet : j["planets"]) {
-	    planets.push_back(Config(j_planet));
-	}
+        auto & node = n["planets"];
+        for (auto &planet_node : n["planets"]) {
+            planets.emplace_back(planet_node);
+        }
+        std::cout << "finished planet configs" << std::endl;
     }
+    std::cout << "returning planet configs" << std::endl;
     return planets;
+}
+
+void Config::print() {
+    std::cout << *m_root << std::endl;
 }
 
 void Config::load_file(const char *filename)
 {
-    try {
-	m_j.reset(new json());
 	std::ifstream infile(filename);
-	infile >> *m_j;
-	insert_lowercase_keys();
-    } catch (const nlohmann::detail::parse_error &ex) {
-	std::cerr << "Could not parse json file." << std::endl;
-    }
-}
-
-void Config::insert_lowercase_keys()
-{
-    auto &j = *m_j;
-    for (auto &el : m_j->items()) {
-	j[lowercase(el.key())] = el.value();
-    }
-}
-
-static bool string_decide(const std::string &des)
-{
-    bool ret = false;
-    std::string s = std::string(des);
-    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    if (s == "yes" || s == "y" || s == "true" || s == "1" || s == "on") {
-	ret = true;
-    } else if (s == "no" || s == "n" || s == "false" || s == "0 " ||
-	       s == "off") {
-	ret = false;
-    } else {
-	die("Can not parse '%s' to a boolean value!", des.c_str());
-    }
-    return ret;
+    YAML::Node node = YAML::Load(infile);
+    m_root = std::make_shared<YAML::Node>(lowercased_node(node));
 }
 
 bool Config::get_flag(const char *key)
 {
-    bool ret = false;
-    const auto &j = *m_j;
-    json val;
-    auto &el = j[lowercase(key)];
-    if (el.contains("value")) {
-	val = el["value"];
-    } else {
-	val = el;
-    }
-    if (val.is_string()) {
-	ret = string_decide(val);
-    } else if (val.is_boolean()) {
-	ret = val;
-    }
+    const YAML::Node & root = *m_root;
+    const std::string lkey = lowercase(key);
+    bool ret = root[lkey].as<bool>();
     return ret;
 }
 
@@ -138,48 +101,42 @@ char Config::get_first_letter_lowercase(const char *key)
 
 bool Config::contains(const char *key)
 {
-    const bool ret = m_j->contains(lowercase(key));
-    return ret;
+    const YAML::Node & root = *m_root;
+    if (root[lowercase(key)]) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool Config::contains(const std::string &key)
 {
-    const bool ret = m_j->contains(lowercase(key));
-    return ret;
+    const YAML::Node & root = *m_root;
+    if (root[lowercase(key)]) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 template <typename T> T Config::get(const char *key)
 {
-    const auto &j = *m_j;
-    json val;
-    auto &el = j[lowercase(key)];
-    if (el.contains("value")) {
-	val = el["value"];
-    } else {
-	val = el;
-    }
-    const T ret = json_caster<T>(val);
+    const auto &root = *m_root;
+    const std::string lkey = lowercase(key);
+    const T ret = root[lkey].as<T>(); 
     return ret;
 }
 
-// template <typename T> bool Config::contains(const T &key)
-// {
-//     const bool ret = m_j.contains(lowercase(key));
-//     return ret;
-// }
 template <typename T> T Config::get(const char *key, const T &default_value)
 {
     const std::string lkey = lowercase(key);
     if (contains(lkey)) {
-	T ret = get<T>(key);
-	return ret;
+	    T ret = get<T>(key);
+	    return ret;
     } else {
-	return default_value;
+	    return default_value;
     }
 }
-
-// template bool Config::contains(const char* key);
-// template bool Config::contains(const std::string& key);
 
 template double Config::get(const char *key);
 template int Config::get(const char *key);

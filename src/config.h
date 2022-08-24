@@ -10,23 +10,21 @@
 
 #include "LowTasks.h"
 
-#include "json/json_fwd.hpp"
+#include "yaml-cpp/yaml.h"
 
-using json = nlohmann::json;
 
 class Config
 {
   private:
-    std::shared_ptr<json> m_j;
+    std::shared_ptr<YAML::Node> m_root;
 
   public:
     Config(){};
     Config(const char *filename);
-    Config(const json &j);
+    Config(const YAML::Node &n);
     ~Config(){};
 
     void load_file(const char *filename);
-    void insert_lowercase_keys();
 
     template <typename T> T get(const char *key);
 
@@ -45,6 +43,8 @@ class Config
 
     Config get_subconfig(const char *key);
     std::vector<Config> get_planet_config();
+
+    void print();
 };
 
 #endif // CONFIG_H
