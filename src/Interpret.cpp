@@ -101,7 +101,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
 	// TODO: put a / at the end of output dir if needed.
     std::string setup_name = getFileName(filename);
-    setup_name = setup_name.substr(0, setup_name.size() - 5) + "/";
+    setup_name = setup_name.substr(0, setup_name.size() - 4) + "/";
     if (asprintf(&OUTPUTDIR, "%s",
 		 config.get<std::string>("OUTPUTDIR", setup_name).c_str()) < 0) {
 	logging::print_master(LOG_ERROR "Not enough memory!\n");
