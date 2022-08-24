@@ -12,6 +12,7 @@ def main():
         planet_config_path = params["PlanetConfig"]
         if os.path.exists(planet_config_path):
             planet_params = parse_planet_config(planet_config_path)
+            comments.append({"comment" : "Planets", "next_key" : "planets"})
             params["planets"] = planet_params
         else:
             print("Planet config file '{}' not found.".format(planet_config_path))
@@ -28,7 +29,9 @@ def insert_comments(comments, filename):
         lines = in_file.readlines()
 
     inline_comments = {}
-    standalone_comments = {}
+    standalone_comments_after = {}
+    standalone_comments_before = {}
+
     first_comment = ""
 
     new_lines = []
@@ -37,7 +40,9 @@ def insert_comments(comments, filename):
         if "this_key" in com:
             inline_comments[com["this_key"]] = com["comment"]
         elif "last_key" in com:
-            standalone_comments[com["last_key"]] = com["comment"]
+            standalone_comments_after[com["last_key"]] = com["comment"]
+        elif "next_key" in com:
+            standalone_comments_before[com["next_key"]] = com["comment"]
         else:
             first_comment = com["comment"]
 
@@ -58,12 +63,20 @@ def insert_comments(comments, filename):
             key = list(res.keys())[0]
             if key in inline_comments:
                 new_line += "   # " + inline_comments[key]
-            if key in standalone_comments:
+            if key in standalone_comments_before:
                 new_lines.append("")
-                new_lines.append("# " + standalone_comments[key])
+                new_lines.append("# " + standalone_comments_before[key])
                 new_lines.append("")
 
         new_lines.append(new_line)
+
+        if isinstance(res, dict):
+            key = list(res.keys())[0]
+            if key in standalone_comments_after:
+                new_lines.append("")
+                new_lines.append("# " + standalone_comments_after[key])
+                new_lines.append("")
+
 
     with open(filename, "w") as out_file:
         for line in new_lines:
@@ -205,7 +218,6 @@ def parse_cli_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Path of INI file to be parsed.")
     parser.add_argument("outfile", help="Output yaml file.")
-    parser.add_argument("-c", "--comments", help="Include comments", action="store_true")
     args = parser.parse_args()
     return args
 
