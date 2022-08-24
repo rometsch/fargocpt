@@ -19,6 +19,7 @@
 #include "string.h"
 #include "util.h"
 #include "viscosity.h"
+#include "config.h"
 
 #include <limits>
 constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
@@ -359,7 +360,6 @@ void read(char *filename, t_data &data)
 	die("Invalid setting for RadialSpacing");
     }
 
-
     // output settings
     bool do_write_1D = config.get_flag("DoWrite1DFiles", true);
     data[t_data::SIGMA].set_write(
@@ -668,6 +668,7 @@ void read(char *filename, t_data &data)
     calculate_disk = config.get_flag("DISK", 1);
 
     default_star = config.get_flag("DefaultStar", true);
+	
     corotation_reference_body =
 	config.get<unsigned int>("CorotationReferenceBody", 1);
 
