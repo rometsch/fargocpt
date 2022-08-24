@@ -443,7 +443,7 @@ void AlgoGas(t_data &data)
     hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
 	double frog_dt = hydro_dt * 0.5;
 
-	boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false);
 
     // keep mass constant
     // const double total_disk_mass_old =
@@ -488,7 +488,9 @@ void AlgoGas(t_data &data)
 
 		init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 		data.get_planetary_system().copy_data_from_rebound();
+		if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
 		data.get_planetary_system().move_to_hydro_frame_center();
+		}
 
 	    /// Needed for Aspectratio mode = 1
 	    /// and to correctly compute circumplanetary disk mass
@@ -615,7 +617,9 @@ void AlgoGas(t_data &data)
 		init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
 		data.get_planetary_system().copy_data_from_rebound();
 		data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, frog_dt);
+		if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
 		data.get_planetary_system().move_to_hydro_frame_center();
+		}
 
 		/// Needed for Aspectratio mode = 1
 		/// and to correctly compute circumplanetary disk mass
