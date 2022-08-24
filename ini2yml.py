@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # Convert an ini config to a json file.
 import os
+from typing import OrderedDict
 import yaml
 import argparse
 
-
 def main():
     args = parse_cli_args()
-    params = parse_ini_file(args.infile)
+    params, comments = parse_ini_file(args.infile)
     try:
-        # planet_config_path = params["PlanetConfig"]["value"]
         planet_config_path = params["PlanetConfig"]
         if os.path.exists(planet_config_path):
             planet_params = parse_planet_config(planet_config_path)
@@ -21,13 +20,60 @@ def main():
         pass
     write_yaml_file(params, args.outfile)
 
+    insert_comments(comments, args.outfile)
+
+def insert_comments(comments, filename):
+
+    with open(filename, "r") as in_file:
+        lines = in_file.readlines()
+
+    inline_comments = {}
+    standalone_comments = {}
+    first_comment = ""
+
+    new_lines = []
+
+    for com in comments:
+        if "this_key" in com:
+            inline_comments[com["this_key"]] = com["comment"]
+        elif "last_key" in com:
+            standalone_comments[com["last_key"]] = com["comment"]
+        else:
+            first_comment = com["comment"]
+
+    if first_comment != "":
+        new_lines.append("# " + first_comment)
+        new_lines.append("")
+
+    for line in lines:
+        try:
+            res = yaml.load(line, Loader=yaml.Loader)
+        except Exception:
+            print(line)
+            continue
+
+        new_line = line.rstrip()
+        
+        if isinstance(res, dict):
+            key = list(res.keys())[0]
+            if key in inline_comments:
+                new_line += "   # " + inline_comments[key]
+            if key in standalone_comments:
+                new_lines.append("")
+                new_lines.append("# " + standalone_comments[key])
+                new_lines.append("")
+
+        new_lines.append(new_line)
+
+    with open(filename, "w") as out_file:
+        for line in new_lines:
+            print(line, file=out_file)
 
 def parse_planet_config(planet_config_file):
     """ Parse a FargoCPT planet config file.
 
     Parameters
-    ----------
-    planet_config_file: str
+    ----------first_comment
         Path to the planet config file.
     """
     keys = [
@@ -63,28 +109,32 @@ def parse_planet_config(planet_config_file):
 
 
 def parse_ini_file(file_path):
-    params = {}
-    comment_counter = 0
+    params = dict()
+    comments = []
+    last_key = ""
     with open(file_path, "r") as in_file:
-        for n, line in enumerate(in_file):
+        lines = in_file.readlines()
+        for n, line in enumerate(lines):
             data = parse_line(line, n)
             if len(data) == 0:
                 continue
             if data["type"] == "comment":
-                params["comment{}".format(comment_counter)] = data["comment"]
-                comment_counter += 1
+                comment = {"comment" : data["comment"]}
+                if last_key != "":
+                    comment["last_key"] = last_key
+                comments.append(comment)
+                
             elif data["type"] == "value":
                 key = data["key"]
                 value = data["value"]
-                del data["type"]
-                del data["key"]
-
-                params[key] = data
 
                 params[key] = value
                 if "comment" in data:
-                    params[key+"_comment"] = data["comment"]
-    return params
+                    comment = { "comment" : data["comment"],
+                                "this_key" : key}
+                    comments.append(comment)
+                last_key = key
+    return params, comments
 
 
 def write_yaml_file(params, out_file_path):
@@ -98,7 +148,7 @@ def write_yaml_file(params, out_file_path):
         Path to the output file.
     """
     with open(out_file_path, "w") as out_file:
-        yaml.dump(params, out_file, width=200)
+        yaml.dump(params, out_file, width=200, sort_keys=None)
 
 
 def parse_line(line, n):
