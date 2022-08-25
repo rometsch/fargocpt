@@ -151,8 +151,7 @@ $c_{1,\varphi\varphi} = -\frac{2}{3}\frac{1}{R_b \Delta \varphi}\left[\frac{(2\n
 
 * Vr case
 
-    $\frac{d v}{dt} = \frac{2}{R_b^i + R_b^{i-1}} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}[(R_b^{i} \tau_{rr}^{i} - R_b^{i-1} \tau_{rr}^{i-1}) \cdot \frac{1}{\Delta R_b} + (\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi} + \frac{1}{2}(\tau_{\varphi\varphi}^{i} + \tau_{\varphi\varphi}^{i-1})]$
-  
+    $\frac{d v}{dt} = \frac{2}{R_b^i + R_b^{i-1}} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}[(R_b^{i} \tau_{rr}^{i} - R_b^{i-1} \tau_{rr}^{i-1}) \cdot \frac{1}{\Delta R_b} + (\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi} - \frac{1}{2}(\tau_{\varphi\varphi}^{i} + \tau_{\varphi\varphi}^{i-1})]$
 
   For simplicity, we compute the terms separately and combine them again later:
 
@@ -184,7 +183,7 @@ $c_{1,\varphi\varphi} = -\frac{2}{3}\frac{1}{R_b \Delta \varphi}\left[\frac{(2\n
   $- \frac{(\bar{\nu} \bar{\Sigma})^{ij}}{\Delta \varphi} \cdot [\frac{v_r^{i,j}}{R_a^i\Delta \varphi}]$ 
 
     
-  $- v_r^{i,j} \frac{1}{R_a^i\Delta \varphi^2}((\bar{\nu} \bar{\Sigma})^{i,j+1} - (\bar{\nu} \bar{\Sigma})^{ij})$ 
+  $- v_r^{i,j} \frac{1}{R_a^i\Delta \varphi^2}((\bar{\nu} \bar{\Sigma})^{i,j+1} + (\bar{\nu} \bar{\Sigma})^{ij})$ 
 
   We can now define the constant
 
@@ -192,8 +191,8 @@ $c_{1,\varphi\varphi} = -\frac{2}{3}\frac{1}{R_b \Delta \varphi}\left[\frac{(2\n
 
 
 ** $\tau_{\varphi\varphi}$
-   
-$\frac{1}{2}(\tau_{\varphi\varphi}^{i,j} + \tau_{\varphi\varphi}^{i-1,j})$
+We apply the minus at the end 
+$-\frac{1}{2}(\tau_{\varphi\varphi}^{i,j} + \tau_{\varphi\varphi}^{i-1,j})$
 
 With
 $\tau_{\varphi\varphi} = 2\nu\Sigma(d_{\varphi\varphi} - \frac{1}{3}\nabla v)$
@@ -214,7 +213,7 @@ and drop all terms not containing $v_r$
 $\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{1}{2}\frac{v_r^i}{R_b^i} + \frac{1}{3}\frac{v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{- v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})$
 $+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{v_r^{i}}{R_b^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
 
-$c_{1,\varphi\varphi} = \frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^i} + \frac{1}{3}\frac{R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})$
+$-c_{1,\varphi\varphi} = \frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^i} + \frac{1}{3}\frac{R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})$
 $+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
 
 ** $\tau_{rr}$
@@ -222,7 +221,7 @@ $+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^{i-1}
 $\Delta v_r = \frac{R_b^i\tau_{rr}^{i,j} - R_b^{i-1}\tau_{rr}^{i-1,j}}{\Delta R_b^i}$
 
 With
-$\tau_{\varphi\varphi} = 2\nu\Sigma(d_{rr} - \frac{1}{3}\nabla v)$
+$\tau_{rr} = 2\nu\Sigma(d_{rr} - \frac{1}{3}\nabla v)$
 
 $d_{rr} = \frac{\frac{v_r^{i+1} - v_r^{i}}{\Delta R_a^i}$
 
@@ -232,16 +231,16 @@ $\tau_{rr} = 2\nu\Sigma\left[\frac{\frac{v_r^{i+1} - v_r^{i}}{\Delta R_a^i} - \f
 
 We can expand the term:
 $(\frac{2\nu\Sigma R_b}{\Delta R_b})^{i}\left[\frac{\frac{v_r^{i+1} - v_r^{i}}{\Delta R_a^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{1}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi}\right] + \nu_a (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})$
-$- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{v_r^{i} - v_r^{i-1}}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}} + \frac{1}{3}\frac{v_\varphi^{i-1,j+1} - v_\varphi^{i-1,j}}{R_b^{i-1} \Delta \varphi}\right] + \nu_a (\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}} + \frac{v_\varphi^{i-1,j+1} - v_\varphi^{i-1,j}}{R_b^{i-1} \Delta \varphi})$
+$- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{v_r^{i} - v_r^{i-1}}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}} + \frac{1}{3}\frac{v_\varphi^{i-1,j+1} - v_\varphi^{i-1,j}}{R_b^{i-1} \Delta \varphi}\right] - \nu_a (\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}} + \frac{v_\varphi^{i-1,j+1} - v_\varphi^{i-1,j}}{R_b^{i-1} \Delta \varphi})$
 
 
 and drop all terms not containing $v_r$
 
 $(\frac{2\nu\Sigma R_b}{\Delta R_b})^{i}\left[\frac{-v_r^{i}}{\Delta R_a^i} - \frac{1}{3}\frac{- v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a (\frac{- v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})$
-$- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{v_r^{i}}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a (\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
+$- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{v_r^{i}}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] - \nu_a (\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
 
 $c_{1,rr} = (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i}\left[\frac{-1}{\Delta R_a^i} - \frac{1}{3}\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a (\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})$
-$- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{1}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
+$- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{1}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] - \nu_a (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
 
 
 
