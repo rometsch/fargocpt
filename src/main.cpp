@@ -345,7 +345,6 @@ int main(int argc, char *argv[])
 	    output::write_misc(false);
 	    // write time info for coarse output
 	    output::write_coarse_time(N_output, N_outer_loop);
-		dt_logger.write(N_output, N_outer_loop);
 	    // write particles
 	    if (parameters::integrate_particles)
 		particles::write(N_output);
@@ -366,6 +365,7 @@ int main(int argc, char *argv[])
 	    ComputeCircumPlanetaryMasses(data);
 	    data.get_planetary_system().write_planets(N_output, 1);
 	    // WriteBigPlanetSystemFile(sys, TimeStep);
+		dt_logger.write(N_output, N_outer_loop);
 	}
 
 	// write disk quantities like eccentricity, ...
