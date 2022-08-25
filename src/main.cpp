@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 
     // control behavoir for floating point exceptions trapping (default is not
     // to do anything)
-    setfpe();
+    // setfpe();
 
     // handle command line parameters
     options::parse(argc, argv);
