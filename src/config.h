@@ -12,6 +12,7 @@
 
 #include "yaml-cpp/yaml.h"
 
+namespace config {
 
 class Config
 {
@@ -26,9 +27,9 @@ class Config
 
     void load_file(const char *filename);
 
-    template <typename T> T get(const char *key);
+    template <typename F> F get(const char *key);
 
-    template <typename T> T get(const char *key, const T &default_value);
+    template <typename F> F get(const char *key, const F &default_value);
 
     std::string get(const char *key, const char *default_value);
 
@@ -47,4 +48,7 @@ class Config
     void print();
 };
 
+extern Config cfg;
+
+}
 #endif // CONFIG_H

@@ -10,7 +10,6 @@
 #include <mpi.h>
 #include <signal.h>
 #include <vector>
-#include "config.h"
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */
@@ -198,5 +197,3 @@ BoundaryFlow MassDelta;
 
 double dtemp;
 volatile sig_atomic_t SIGTERM_RECEIVED = 0, PRINT_SIG_INFO = 0;
-
-Config config;

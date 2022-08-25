@@ -9,7 +9,7 @@ OPTIONS += -march=native
 # add symbols for backtrace
 OPTIONS += -rdynamic
 # optimizations, applied to options later
-OPTIMIZATION := -Ofast -flto=auto
+OPTIMIZATION := -O2 -flto=auto
 
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"
@@ -49,6 +49,6 @@ _CXXFLAGS = -std=c++17 $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_P
 LIBS = -lm -lstdc++fs -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
 
 #statically link rebound
-LIBS += -Lrebound -lrebound -Lyaml-cpp -lyamlcpp
+LIBS += -Lrebound -lrebound -Lyaml-cpp -lyamlcpp -Lunits -lunits
 
 

@@ -76,6 +76,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // read config from
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
+	config::Config cfg(filename);
 
     constants::initialize_constants();
 
@@ -88,22 +89,22 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // call causes an error.
     parameters::apply_units();
 
-    parameters::ShockTube = config.get<int>("ShockTube", 0);
+    parameters::ShockTube = cfg.get<int>("ShockTube", 0);
     parameters::SpreadingRing =
-	config.get_flag("SpreadingRing", NO);
+	cfg.get_flag("SpreadingRing", NO);
 
-    last_dt = config.get<double>("FirstDT", 1e-9);
+    last_dt = cfg.get<double>("FirstDT", 1e-9);
 
-    SIGMASLOPE = config.get<double>("SIGMASLOPE", 0.0);
-    IMPOSEDDISKDRIFT = config.get<double>("IMPOSEDDISKDRIFT", 0.0);
+    SIGMASLOPE = cfg.get<double>("SIGMASLOPE", 0.0);
+    IMPOSEDDISKDRIFT = cfg.get<double>("IMPOSEDDISKDRIFT", 0.0);
 
-    FLARINGINDEX = config.get<double>("FLARINGINDEX", 0.0);
+    FLARINGINDEX = cfg.get<double>("FLARINGINDEX", 0.0);
 
 	// TODO: put a / at the end of output dir if needed.
     std::string setup_name = getFileName(filename);
     setup_name = setup_name.substr(0, setup_name.size() - 4) + "/";
     if (asprintf(&OUTPUTDIR, "%s",
-		 config.get<std::string>("OUTPUTDIR", setup_name).c_str()) < 0) {
+		 cfg.get<std::string>("OUTPUTDIR", setup_name).c_str()) < 0) {
 	logging::print_master(LOG_ERROR "Not enough memory!\n");
     }
 
@@ -158,9 +159,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    OuterSourceMass = config.get_flag("OUTERSOURCEMASS", 0);
+    OuterSourceMass = cfg.get_flag("OUTERSOURCEMASS", 0);
 
-    switch (config.get_first_letter_lowercase("TRANSPORT", "Fast")) {
+    switch (cfg.get_first_letter_lowercase("TRANSPORT", "Fast")) {
     case 'f':
 	FastTransport = 1;
 	break;
@@ -172,9 +173,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     }
 
     // time settings
-    NTOT = config.get<unsigned int>("NTOT", 1000);
-    NINTERM = config.get<unsigned int>("NINTERM", 10);
-    DT = config.get<double>("DT", 1.0);
+    NTOT = cfg.get<unsigned int>("NTOT", 1000);
+    NINTERM = cfg.get<unsigned int>("NINTERM", 10);
+    DT = cfg.get<double>("DT", 1.0);
 
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
@@ -197,8 +198,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     invdphi = (double)NAzimuthal / (2.0 * M_PI);
 
     // disc
-    ASPECTRATIO_REF = config.get<double>("ASPECTRATIO", 0.05);
-    ASPECTRATIO_MODE = config.get<int>("AspectRatioMode", 0);
+    ASPECTRATIO_REF = cfg.get<double>("ASPECTRATIO", 0.05);
+    ASPECTRATIO_MODE = cfg.get<int>("AspectRatioMode", 0);
 
     switch (ASPECTRATIO_MODE) {
     case 0:
@@ -221,7 +222,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    "Computing scale height with respect to primary object.\n");
     }
 
-    if (!config.contains("OuterBoundary")) {
+    if (!cfg.contains("OuterBoundary")) {
 	logging::print_master(LOG_ERROR
 			      "OuterBoundary doesn't exist. Old .par file?\n");
 	die("died for convenience ;)");
@@ -230,7 +231,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // Frame settings
     Corotating = 0;
     GuidingCenter = 0;
-    switch (config.get_first_letter_lowercase("Frame", "Fixed")) {
+    switch (cfg.get_first_letter_lowercase("Frame", "Fixed")) {
     case 'f': // Fixed
 	break;
     case 'c': // Corotating
@@ -243,10 +244,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     default:
 	die("Invalid setting for Frame");
     }
-    OMEGAFRAME = config.get<double>("OMEGAFRAME", 0);
+    OMEGAFRAME = cfg.get<double>("OMEGAFRAME", 0);
 
     // Barycenter mode
-    switch (config.get_first_letter_lowercase("HydroFrameCenter", "primary")) {
+    switch (cfg.get_first_letter_lowercase("HydroFrameCenter", "primary")) {
     case 'p': // primary
 	parameters::n_bodies_for_hydroframe_center = 1;
 	break;
@@ -265,7 +266,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	break;
     default:
 	die("Invalid setting for HydroFrameCenter: %s",
-	    config.get<std::string>("HydroFrameCenter", "primary"));
+	    cfg.get<std::string>("HydroFrameCenter", "primary"));
     }
 
     if (parameters::n_bodies_for_hydroframe_center != 1 &&
@@ -288,7 +289,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     /// polytropic constants requires parameters::sigma0 to be in code units.
     // Energy equation / Adiabatic
     char Adiabatic_deprecated =
-	config.get_first_letter_lowercase("Adiabatic", "false");
+	cfg.get_first_letter_lowercase("Adiabatic", "false");
 
     if (Adiabatic_deprecated == 'n') {
 	logging::print_master(
@@ -302,7 +303,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
 	ADIABATICINDEX =
-	    config.get<double>("AdiabaticIndex", 7.0 / 5.0);
+	    cfg.get<double>("AdiabaticIndex", 7.0 / 5.0);
 	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
 	    logging::print_master(
 		LOG_WARNING
@@ -313,7 +314,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	char eos_string[512];
 	strncpy(
 	    eos_string,
-	    config.get<std::string>("EquationOfState", "Isothermal").c_str(),
+	    cfg.get<std::string>("EquationOfState", "Isothermal").c_str(),
 	    256); // same as MAXNAME from config.cpp
 	for (char *t = eos_string; *t != '\0'; ++t) {
 	    *t = tolower(*t);
@@ -327,7 +328,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    parameters::Polytropic = false;
 	    parameters::Locally_Isothermal = true;
 	    ADIABATICINDEX =
-		config.get<double>("AdiabaticIndex", 7.0 / 5.0);
+		cfg.get<double>("AdiabaticIndex", 7.0 / 5.0);
 	    logging::print_master(
 		LOG_INFO
 		"Using isothermal equation of state. AdiabaticIndex = %.3f.\n",
@@ -343,7 +344,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    char ADIABATICINDEX_string[512];
 	    strncpy(
 		ADIABATICINDEX_string,
-		config.get<std::string>("AdiabaticIndex", "7.0/5.0").c_str(),
+		cfg.get<std::string>("AdiabaticIndex", "7.0/5.0").c_str(),
 		256); // same as MAXNAME from config.cpp
 	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
@@ -356,7 +357,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
-		ADIABATICINDEX = config.get<double>(
+		ADIABATICINDEX = cfg.get<double>(
 		    "AdiabaticIndex", 7.0 / 5.0);
 	    }
 
@@ -383,7 +384,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    char ADIABATICINDEX_string[512];
 	    strncpy(
 		ADIABATICINDEX_string,
-		config.get<std::string>("AdiabaticIndex", "7.0/5.0").c_str(),
+		cfg.get<std::string>("AdiabaticIndex", "7.0/5.0").c_str(),
 		256); // same as MAXNAME from config.cpp
 	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
@@ -396,7 +397,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
-		ADIABATICINDEX = config.get<double>(
+		ADIABATICINDEX = cfg.get<double>(
 		    "AdiabaticIndex", 7.0 / 5.0);
 	    }
 
@@ -424,7 +425,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
 	    char ADIABATICINDEX_string[512];
 	    strncpy(ADIABATICINDEX_string,
-		    config.get<std::string>("AdiabaticIndex", "2.0").c_str(),
+		    cfg.get<std::string>("AdiabaticIndex", "2.0").c_str(),
 		    256); // same as MAXNAME from config.cpp
 	    for (char *t = ADIABATICINDEX_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
@@ -436,13 +437,13 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		ADIABATICINDEX = gamma;
 	    } else {
 		ADIABATICINDEX =
-		    config.get<double>("AdiabaticIndex", 2.0);
+		    cfg.get<double>("AdiabaticIndex", 2.0);
 	    }
 
 	    char POLYTROPIC_CONSTANT_string[512];
 	    strncpy(
 		POLYTROPIC_CONSTANT_string,
-		config.get<std::string>("PolytropicConstant", "12.753").c_str(),
+		cfg.get<std::string>("PolytropicConstant", "12.753").c_str(),
 		256); // same as MAXNAME from config.cpp
 	    for (char *t = POLYTROPIC_CONSTANT_string; *t != '\0'; ++t) {
 		*t = tolower(*t);
@@ -456,7 +457,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		}
 		POLYTROPIC_CONSTANT = K;
 	    } else {
-		POLYTROPIC_CONSTANT = config.get<double>(
+		POLYTROPIC_CONSTANT = cfg.get<double>(
 		    "PolytropicConstant", 12.753);
 	    }
 
@@ -474,7 +475,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
 	if (!could_read_eos)
 	    die("Invalid setting for Energy Equation:   %s\n",
-		config.get<std::string>("EquationOfState").c_str());
+		cfg.get<std::string>("EquationOfState").c_str());
     }
 
     if (!parameters::Adiabatic) // if energy is not needed, delete the energy
@@ -500,10 +501,10 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 		       delete_damping_condition),
 	parameters::damping_vector.end());
 
-    CICPlanet = config.get_flag("CICPLANET", 0);
+    CICPlanet = cfg.get_flag("CICPLANET", 0);
 
-    ALPHAVISCOSITY = config.get<double>("ALPHAVISCOSITY", 0.0);
-    VISCOSITY = config.get<double>("VISCOSITY", 0.0);
+    ALPHAVISCOSITY = cfg.get<double>("ALPHAVISCOSITY", 0.0);
+    VISCOSITY = cfg.get<double>("VISCOSITY", 0.0);
 
     if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
 	(parameters::artificial_viscosity_factor == 0.0 ||
@@ -516,7 +517,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	PersonalExit(1);
     }
 
-    STS_NU = config.get<double>("STSNU", 0.01);
+    STS_NU = cfg.get<double>("STSNU", 0.01);
 
     if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
@@ -549,13 +550,13 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	OUTPUTDIR[size + 1] = 0;
     }
 
-    const double T0 = config.get<double>("TemperatureCGS0", 0.0);
+    const double T0 = cfg.get<double>("TemperatureCGS0", 0.0);
     if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
 	ASPECTRATIO_REF =
 	    sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
 		 constants::R / parameters::MU);
 
-    StabilizeViscosity = config.get<int>("STABILIZEVISCOSITY", 0);
+    StabilizeViscosity = cfg.get<int>("STABILIZEVISCOSITY", 0);
 
     if (StabilizeViscosity == 1) {
 	logging::print_master(
@@ -574,7 +575,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	    VISCOSITY);
     }
     const bool VISCOSITY_in_CGS =
-	config.get_flag("VISCOSITYINCGS", false);
+	cfg.get_flag("VISCOSITYINCGS", false);
     if (VISCOSITY_in_CGS) {
 	logging::print_master(
 	    LOG_INFO

@@ -4,11 +4,20 @@
 
 #include <algorithm>
 #include <string>
+#include <type_traits>
+#include <typeinfo>
 
 #include "LowTasks.h"
 #include "config.h"
 
+#define UNITS_DEFAULT_DOMAIN units::domains::astronomy
+#include "units/units.hpp"
+
 #include "yaml-cpp/yaml.h"
+
+namespace config {
+
+Config cfg;
 
 static YAML::Node lowercased_node(const YAML::Node &node) {
     YAML::Node lnode;
@@ -23,6 +32,12 @@ static YAML::Node lowercased_node(const YAML::Node &node) {
         }
     }
     return lnode;
+}
+
+static bool has_unit(const std::string val){
+    auto q = units::measurement_from_string(val);
+    const bool ret =  (q.units().unit_type_count() > 0);
+    return ret;
 }
 
 Config::Config(const char *filename) { 
@@ -119,23 +134,47 @@ bool Config::contains(const std::string &key)
     }
 }
 
-template <typename T> T Config::get(const char *key)
-{
-    const auto &root = *m_root;
-    const std::string lkey = lowercase(key);
-    const T ret = root[lkey].as<T>(); 
-    return ret;
+template <typename F> 
+typename std::enable_if<!std::is_arithmetic<F>::value,F>::type 
+parse_units(const std::string &val) {
+    const F rv = val;
+    return rv;
 }
 
-template <typename T> T Config::get(const char *key, const T &default_value)
+template <typename F> 
+typename std::enable_if<std::is_arithmetic<F>::value,F>::type 
+parse_units(const std::string &val) {
+    auto q = units::measurement_from_string(val);
+    const F rv = (F) q.convert_to_base().value();
+    if (has_unit(val)) {
+    std::cout << "have value string '" << val <<"'" << std::endl;
+    std::cout << "measurement is " << units::to_string(q) << std::endl;
+    std::cout << "Parsing " << typeid(F).name() << " " << val << " as number" << std::endl;
+    std::cout << "Result " << rv << " from " << units::to_string(q) << std::endl;
+    }
+    return rv;
+}
+
+
+template <typename F> F Config::get(const char *key)
+{
+    const auto &root = *m_root;
+    std::string lkey = lowercase(key);
+    const std::string val = root[lkey].as<std::string>();
+    const F rv = parse_units<F>(val);
+    return rv;
+}
+
+template <typename F> F Config::get(const char *key, const F &default_value)
 {
     const std::string lkey = lowercase(key);
+    F ret;
     if (contains(lkey)) {
-	    T ret = get<T>(key);
-	    return ret;
+	    ret = get<F>(key);
     } else {
-	    return default_value;
+	    ret = default_value;
     }
+    return ret;
 }
 
 template double Config::get(const char *key);
@@ -147,3 +186,5 @@ template double Config::get(const char *key, const double &d);
 template int Config::get(const char *key, const int &d);
 template unsigned int Config::get(const char *key, const unsigned int &d);
 template std::string Config::get(const char *key, const std::string &d);
+
+}

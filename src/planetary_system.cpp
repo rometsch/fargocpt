@@ -88,9 +88,9 @@ void t_planetary_system::init_system(char *filename)
 	initialize_default_star();
     }
 
-    Config config(filename);
+    config::Config cfg(filename);
 
-    std::vector<Config> planet_configs = config.get_planet_config();
+    std::vector<config::Config> planet_configs = cfg.get_planet_config();
     for (auto &planet_cfg : planet_configs) {
 		init_planet(planet_cfg);
     }
@@ -121,38 +121,38 @@ static double find_cell_centere_radius(const double r)
 }
 
 
-void t_planetary_system::init_planet(Config &config)
+void t_planetary_system::init_planet(config::Config &cfg)
 {
     // check if all needed quantities are present
-    if (!(config.contains("semi-major axis") && config.contains("mass"))) {
+    if (!(cfg.contains("semi-major axis") && cfg.contains("mass"))) {
 	die("One of the planets does not have all of: semi-major axis and mass!");
     }
 
-    double semi_major_axis = config.get<double>("semi-major axis");
-    const double mass = config.get<double>("mass");
+    double semi_major_axis = cfg.get<double>("semi-major axis");
+    const double mass = cfg.get<double>("mass");
 
-    const double eccentricity = config.get<double>("eccentricity", 0.0);
+    const double eccentricity = cfg.get<double>("eccentricity", 0.0);
 
     const double accretion_efficiency =
-	config.get<double>("accretion efficiency", 0.0);
+	cfg.get<double>("accretion efficiency", 0.0);
 
-    const double radius = config.get<double>("radius", 0.009304813);
+    const double radius = cfg.get<double>("radius", 0.009304813);
 
-    const double temperature = config.get<double>("temperature", 5778.0);
+    const double temperature = cfg.get<double>("temperature", 5778.0);
 
-    const bool irradiate = config.get_flag("irradiate", "no");
+    const bool irradiate = cfg.get_flag("irradiate", "no");
 
     const double argument_of_pericenter =
-	config.get<double>("argument of pericenter", 0.0);
+	cfg.get<double>("argument of pericenter", 0.0);
 
-    double ramp_up_time = config.get<double>("ramp-up time", 0.0);
+    double ramp_up_time = cfg.get<double>("ramp-up time", 0.0);
 
     std::string name = "planet" + std::to_string(get_number_of_planets());
-    if (config.contains("name")) {
-	name = config.get<std::string>("name");
+    if (cfg.contains("name")) {
+	name = cfg.get<std::string>("name");
     }
 
-    const bool cell_centered = config.get_flag("cell centered", "no");
+    const bool cell_centered = cfg.get_flag("cell centered", "no");
     if (cell_centered) {
 	// initialization puts centered-in-cell planets (with
 	// excentricity = 0 only)

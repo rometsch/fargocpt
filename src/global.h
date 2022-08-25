@@ -6,7 +6,6 @@
 #include <mpi.h>
 #include <signal.h>
 #include <vector>
-#include "config.h"
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -138,7 +137,5 @@ extern BoundaryFlow MassDelta;
 
 extern double dtemp;
 extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;
-
-extern Config config;
 
 #endif // GLOBAL_H

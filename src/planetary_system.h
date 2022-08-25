@@ -67,7 +67,7 @@ class t_planetary_system
 
 
 
-    void init_planet(Config& config);
+    void init_planet(config::Config& cfg);
     void list_planets();
     void rotate(double angle);
     void restart();

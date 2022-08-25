@@ -21,7 +21,7 @@ yaml-cpp/libyamlcpp.a:
 	$(MAKE) -C yaml-cpp
 
 units/libunits.a:
-	$(MAKE) -C yaml-cpp
+	$(MAKE) -C units
 
 $(OBJS): $(HDRS) makefile
 
