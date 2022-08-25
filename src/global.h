@@ -6,6 +6,7 @@
 #include <mpi.h>
 #include <csignal>
 #include <vector>
+#include "hydro_dt_logger.h"
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -108,6 +109,8 @@ extern double hydro_dt;
 extern int N_output;
 extern unsigned int N_outer_loop;
 extern unsigned int N_hydro_iter;
+
+extern hydro_dt_logger dt_logger;
 
 extern unsigned int NINTERM;
 extern unsigned int NTOT;

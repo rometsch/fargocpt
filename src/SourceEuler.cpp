@@ -461,6 +461,7 @@ void AlgoGas(t_data &data)
 	    dtemp / DT * 100.0);
 
 	dtemp += hydro_dt;
+	dt_logger.update(hydro_dt);
 
 	const double start_time = PhysicalTime;
 	const double midstep_time = PhysicalTime + frog_dt;
@@ -639,7 +640,7 @@ void AlgoGas(t_data &data)
 	//////////////// END Leapfrog compute v_i+1   /////////////////////
 
 	PhysicalTime = end_time;
-	N_hydro_iter = N_hydro_iter + 1;
+	N_hydro_iter += 1;
 	logging::print_runtime_info(data, N_outer_loop / NINTERM, N_outer_loop,
 				    hydro_dt);
 

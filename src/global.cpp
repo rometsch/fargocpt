@@ -167,6 +167,9 @@ int N_output;
 unsigned int N_outer_loop;
 unsigned int N_hydro_iter;
 
+hydro_dt_logger dt_logger;
+
+
 unsigned int NINTERM;
 unsigned int NTOT;
 
