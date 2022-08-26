@@ -18,7 +18,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <functional>  // for std::hash
 
 #ifndef UNITS_NAMESPACE
-#define UNITS_NAMESPACE units
+#define UNITS_NAMESPACE llnlunits
 #endif
 
 #ifndef UNITS_BASE_TYPE

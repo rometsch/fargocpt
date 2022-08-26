@@ -11,7 +11,7 @@ SPDX-License-Identifier: BSD-3-Clause
 #include <limits>
 #include <utility>
 
-namespace units {
+namespace UNITS_NAMESPACE {
 
 UNITS_CPP14_CONSTEXPR_OBJECT std::array<std::pair<unit, const char*>, 180>
     defined_unit_names{
