@@ -1022,11 +1022,11 @@ void calculate_qplus(t_data &data)
 
     if (parameters::heating_star_enabled) {
 	double ramping = 1.0;
-	if (PhysicalTime < parameters::heating_star_ramping_time * DT) {
+	if (PhysicalTime < parameters::heating_star_ramping_time) {
 	    ramping =
 		1.0 -
 		std::pow(std::cos(PhysicalTime * M_PI / 2.0 /
-				  (parameters::heating_star_ramping_time * DT)),
+				  (parameters::heating_star_ramping_time)),
 			 2);
 	}
 
