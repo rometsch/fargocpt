@@ -339,6 +339,7 @@ void read(char *filename, t_data &data)
 	units::precise_unit L0 = units::L0;
 	units::precise_unit M0 = units::M0;
 	units::precise_unit T0 = units::T0;
+	units::precise_unit Temp0 = units::Temp0;
 
 	L0_in_au = (1*units::L0).value_as(llnlunits::measurement_from_string("au").as_unit());
 	M0_in_solMass = (1*units::M0).value_as(llnlunits::measurement_from_string("solMass").as_unit());
@@ -349,13 +350,11 @@ void read(char *filename, t_data &data)
     /* grid */
     NRadial = config::cfg.get<unsigned int>("NRAD", 64);
     NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
-    RMIN = config::cfg.get<double>("RMIN", 1.0, units::L0);
-    RMAX = config::cfg.get<double>("RMAX", 1.0, units::L0);
-
-	std::cout << "!!!!!!!!!!!!!!!!! RMIN " << RMIN << std::endl;
+    RMIN = config::cfg.get<double>("RMIN", L0);
+    RMAX = config::cfg.get<double>("RMAX", L0);
 
     quantities_radius_limit =
-	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX);
+	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
 
     if (quantities_radius_limit == 0.0) {
 	quantities_radius_limit = 2.0 * RMAX;
@@ -693,28 +692,28 @@ void read(char *filename, t_data &data)
 
     MU = config::cfg.get<double>("mu", 1.0);
     minimum_temperature =
-	config::cfg.get<double>("MinimumTemperature", 3);
+	config::cfg.get<double>("MinimumTemperature", 3, Temp0);
     maximum_temperature =
-	config::cfg.get<double>("MaximumTemperature", 1.0e300);
+	config::cfg.get<double>("MaximumTemperature", 1.0e300, Temp0);
 
     heating_viscous_enabled =
-	config::cfg.get_flag("HeatingViscous", false);
+	config::cfg.get_flag("HeatingViscous", "no");
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
-    heating_star_enabled = config::cfg.get_flag("HeatingStar", false);
+    heating_star_enabled = config::cfg.get_flag("HeatingStar", "no");
     heating_star_factor =
 	config::cfg.get<double>("HeatingStarFactor", 1.0);
     heating_star_ramping_time =
-	config::cfg.get<double>("HeatingStarRampingTime", 0.0);
+	config::cfg.get<double>("HeatingStarRampingTime", 0.0, T0);
     heating_star_simple =
-	config::cfg.get_flag("HeatingStarSimple", false);
+	config::cfg.get_flag("HeatingStarSimple", "no");
 
     radiative_diffusion_enabled =
-	config::cfg.get_flag("RadiativeDiffusion", false);
+	config::cfg.get_flag("RadiativeDiffusion", "no");
     radiative_diffusion_omega =
 	config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled =
-	config::cfg.get_flag("RadiativeDiffusionAutoOmega", false);
+	config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
     radiative_diffusion_max_iterations = config::cfg.get<unsigned int>(
 	"RadiativeDiffusionMaxIterations", 50000);
 
@@ -725,18 +724,18 @@ void read(char *filename, t_data &data)
     cooling_radiative_factor =
 	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
     cooling_radiative_enabled =
-	config::cfg.get_flag("CoolingRadiativeLocal", false);
+	config::cfg.get_flag("CoolingRadiativeLocal", "no");
     cooling_beta_enabled =
-	config::cfg.get_flag("CoolingBetaLocal", false);
+	config::cfg.get_flag("CoolingBetaLocal", "no");
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
     cooling_beta_ramp_up =
-	config::cfg.get<double>("CoolingBetaRampUp", 0.0);
+	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
 
     // initialisation
     initialize_pure_keplerian =
-	config::cfg.get_flag("InitializePureKeplerian", false);
+	config::cfg.get_flag("InitializePureKeplerian", "no");
     initialize_vradial_zero =
-	config::cfg.get_flag("InitializeVradialZero", false);
+	config::cfg.get_flag("InitializeVradialZero", "no");
 
     switch (config::cfg.get_first_letter_lowercase("SigmaCondition", "Profile")) {
     case 'p': // Profile
@@ -791,24 +790,21 @@ void read(char *filename, t_data &data)
 	energy_filename = config::cfg.get<std::string>("EnergyFilename", "");
 
     random_seed = config::cfg.get<int>("RandomSeed", 0);
-    sigma_randomize = config::cfg.get_flag("RandomSigma", 0);
+    sigma_randomize = config::cfg.get_flag("RandomSigma", "no");
     sigma_random_factor = config::cfg.get<double>("RandomFactor", 0.1);
     sigma_feature_size =
-	config::cfg.get<double>("FeatureSize", (RMAX - RMIN) / 150);
+	config::cfg.get<double>("FeatureSize", (RMAX - RMIN) / 150, L0);
     sigma_floor = config::cfg.get<double>("SigmaFloor", 1e-9);
-    sigma0 = config::cfg.get<double>("SIGMA0", 173.);
-    sigma0_in_code_units =
-	config::cfg.get_flag("Sigma0InCodeUnits", false);
-    sigma_adjust = config::cfg.get_flag("SetSigma0", false);
-    sigma_discmass = config::cfg.get<double>("discmass", 0.01);
-    density_factor =
-	config::cfg.get<double>("DensityFactor", std::sqrt(2.0 * M_PI));
+    sigma0 = config::cfg.get<double>("SIGMA0", 173., M0/(L0*L0));
+    sigma_adjust = config::cfg.get_flag("SetSigma0", "no");
+    sigma_discmass = config::cfg.get<double>("discmass", 0.01, M0);
+    density_factor = config::cfg.get<double>("DensityFactor", std::sqrt(2.0 * M_PI));
 
     tau_factor = config::cfg.get<double>("TauFactor", 0.5);
     kappa_factor = config::cfg.get<double>("KappaFactor", 1.0);
 
     EXPLICIT_VISCOSITY =
-	config::cfg.get_flag("ExplicitViscosity", true);
+	config::cfg.get_flag("ExplicitViscosity", "yes");
 
     if (EXPLICIT_VISCOSITY) {
 	logging::print_master(LOG_INFO "Using EXPLICIT VISCOSITY\n");
@@ -842,66 +838,51 @@ void read(char *filename, t_data &data)
 
     //
     thickness_smoothing =
-	config::cfg.get<double>("ThicknessSmoothing", 0.0);
+	config::cfg.get<double>("ThicknessSmoothing", 0.6);
     thickness_smoothing_sg = config::cfg.get<double>(
 	"ThicknessSmoothingSG", thickness_smoothing);
-    integrate_planets = config::cfg.get_flag("IntegratePlanets", true);
+    integrate_planets = config::cfg.get_flag("IntegratePlanets", "yes");
     do_init_secondary_disk =
-	config::cfg.get_flag("SecondaryDisk", false);
+	config::cfg.get_flag("SecondaryDisk", "no");
 
     // mass overflow
-    massoverflow = config::cfg.get_flag("massoverflow", false);
+    massoverflow = config::cfg.get_flag("massoverflow", "no");
     mof_planet = config::cfg.get<int>("mofplanet", 1);
-    mof_temperature = config::cfg.get<double>("moftemperature", 1000.0);
-    mof_value = config::cfg.get<double>("mofvalue", 10E-9);
+    mof_temperature = config::cfg.get<double>("moftemperature", 1000.0, Temp0);
+    mof_value = config::cfg.get<double>("mofvalue", 10E-9, M0/T0);
     mof_rampingtime = config::cfg.get<double>("moframpingtime", 30.0);
 
     // profile damping outer
     profile_cutoff_outer =
-	config::cfg.get_flag("ProfileCutoffOuter", false);
+	config::cfg.get_flag("ProfileCutoffOuter", "no");
     profile_cutoff_point_outer =
-	config::cfg.get<double>("ProfileCutoffPointOuter", 1.0e300);
+	config::cfg.get<double>("ProfileCutoffPointOuter", 1.0e300, L0);
     profile_cutoff_width_outer =
-	config::cfg.get<double>("ProfileCutoffWidthOuter", 1.0);
-
-    // profile cutoff outer, legacy names
-    // only try to read legacy names if new names weren't used
-    if (!config::cfg.contains("ProfileCutoffOuter")) {
-	profile_cutoff_outer =
-	    config::cfg.get_flag("ProfileDamping", false);
-    }
-    if (!config::cfg.contains("ProfileCutoffPointOuter")) {
-	profile_cutoff_point_outer =
-	    config::cfg.get<double>("ProfileDampingPoint", 1.0e300);
-    }
-    if (!config::cfg.contains("ProfileCutoffWidthOuter")) {
-	profile_cutoff_width_outer =
-	    config::cfg.get<double>("ProfileDampingWidth", 1.0);
-    }
+	config::cfg.get<double>("ProfileCutoffWidthOuter", 1.0, L0);
 
     // profile damping inner
     profile_cutoff_inner =
-	config::cfg.get_flag("ProfileCutoffInner", false);
+	config::cfg.get_flag("ProfileCutoffInner", "no");
     profile_cutoff_point_inner =
-	config::cfg.get<double>("ProfileCutoffPointInner", 0.0);
+	config::cfg.get<double>("ProfileCutoffPointInner", 0.0, L0);
     profile_cutoff_width_inner =
-	config::cfg.get<double>("ProfileCutoffWidthInner", 1.0);
+	config::cfg.get<double>("ProfileCutoffWidthInner", 1.0, L0);
 
     exitOnDeprecatedSetting(
 	"FeelsDisk",
 	"Replaced by parameter DiskFeedback for clarification since it affects more than just the star.",
 	"Please replace 'FeelsDisk' by 'DiskFeedback'.");
-    disk_feedback = config::cfg.get_flag("DiskFeedback", true);
+    disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
 
     // self gravity
-    self_gravity = config::cfg.get_flag("SelfGravity", 0);
+    self_gravity = config::cfg.get_flag("SelfGravity", "no");
 
     if (self_gravity) {
 	logging::print_master(LOG_INFO "Self gravity enabled.\n");
     }
 
     body_force_from_potential =
-	config::cfg.get_flag("BodyForceFromPotential", YES);
+	config::cfg.get_flag("BodyForceFromPotential", "yes");
     if (body_force_from_potential) {
 	logging::print_master(LOG_INFO
 			      "Body force on gas computed via potential.\n");
@@ -940,7 +921,7 @@ void read(char *filename, t_data &data)
     // star parameters
     star_temperature = config::cfg.get<double>("StarTemperature", 5778);
     star_radius = config::cfg.get<double>(
-	"StarRadius", 1.0); // solar radius in [R_sol]
+	"StarRadius", "1 solRadius", L0); // solar radius in [R_sol]
 
     if (heating_star_enabled) {
 	if (star_radius < 0.1) {
@@ -949,6 +930,8 @@ void read(char *filename, t_data &data)
 	}
     }
     star_radius *= units::solar_radius_in_au / L0_in_au; // convert to code units
+
+	// TODO: continue setting units here
 
     // boundary layer parameters
     radial_viscosity_factor =
@@ -1095,10 +1078,6 @@ void apply_units()
     mass_accretion_rate = mass_accretion_rate *
 			  (units::cgs_Msol / units::cgs_Year) * 1. /
 			  units::mass_accretion_rate.get_cgs_factor();
-
-    if (!sigma0_in_code_units) {
-	sigma0 /= units::surface_density.get_cgs_factor();
-    }
     particle_radius /= units::length.get_cgs_factor();
     particle_density /= units::density.get_cgs_factor();
 }
