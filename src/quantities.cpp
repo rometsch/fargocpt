@@ -12,7 +12,6 @@
 #include <vector>
 
 extern boolean Corotating;
-extern double M0;
 
 namespace quantities
 {

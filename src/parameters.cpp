@@ -165,8 +165,8 @@ double CFL;
 double CFL_max_var;
 double HEATING_COOLING_CFL_LIMIT;
 
-double L0;
-double M0;
+double L0_in_au;
+double M0_in_solMass;
 
 unsigned int number_of_particles;
 bool integrate_particles;
@@ -945,7 +945,7 @@ void read(char *filename, t_data &data)
 		star_radius);
 	}
     }
-    star_radius *= units::solar_radius_in_au / L0; // convert to code units
+    star_radius *= units::solar_radius_in_au / L0_in_au; // convert to code units
 
     // boundary layer parameters
     radial_viscosity_factor =

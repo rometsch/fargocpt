@@ -381,7 +381,7 @@ void init_shakura_sunyaev(t_data &data)
 			      units::mass_accretion_rate.get_cgs_factor() /
 			      1.e16,
 			  7. / 10.) *
-		 std::pow(parameters::M0, 0.25) *
+		 std::pow(parameters::M0_in_solMass, 0.25) *
 		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 			  -0.75) *
 		 std::pow(factor, 14. / 5.)) /
@@ -392,7 +392,7 @@ void init_shakura_sunyaev(t_data &data)
 			      units::mass_accretion_rate.get_cgs_factor() /
 			      1.e16,
 			  3. / 20.) *
-		 std::pow(parameters::M0, -3. / 8.) *
+		 std::pow(parameters::M0_in_solMass, -3. / 8.) *
 		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 			  9. / 8.) *
 		 std::pow(factor, 3. / 5.)) /
@@ -403,7 +403,7 @@ void init_shakura_sunyaev(t_data &data)
 			      units::mass_accretion_rate.get_cgs_factor() /
 			      1.e16,
 			  3. / 10.) *
-		 std::pow(parameters::M0, 0.25) *
+		 std::pow(parameters::M0_in_solMass, 0.25) *
 		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
 			  -0.75) *
 		 std::pow(factor, 6. / 5.)) /
@@ -414,7 +414,7 @@ void init_shakura_sunyaev(t_data &data)
 			       units::mass_accretion_rate.get_cgs_factor() /
 			       1.e16,
 			   3. / 10.) *
-		  std::pow(parameters::M0, -0.25) *
+		  std::pow(parameters::M0_in_solMass, -0.25) *
 		  std::pow(Rb[n_radial] * units::length.get_cgs_factor() /
 			       1.e10,
 			   -0.25) *
