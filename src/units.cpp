@@ -28,7 +28,7 @@ namespace units
 llnlunits::precise_unit L0 = llnlunits::precise::cm;
 llnlunits::precise_unit M0 = llnlunits::precise::g;
 llnlunits::precise_unit T0 = llnlunits::precise::second;
-llnlunits::precise_unit temp0 = llnlunits::precise::Kelvin;
+llnlunits::precise_unit Temp0 = llnlunits::precise::Kelvin;
 
 bool has_unit(const std::string &val){
     auto q = llnlunits::measurement_from_string(val);
@@ -82,39 +82,56 @@ template std::string parse_units<std::string>(const std::string &val, const prec
 
 
 
-void add_astro_units() {
+static void add_astro_units() {
 	llnlunits::precise_unit solMass(1.98847e30, llnlunits::precise::kilogram);
 	llnlunits::addUserDefinedUnit("solMass", solMass);
-	llnlunits::precise_unit au(1.495978707e10, llnlunits::precise::meter);
+	llnlunits::precise_unit au(1.495978707e11, llnlunits::precise::meter);
 	llnlunits::addUserDefinedUnit("au", au);
 }
 
 
 void set_baseunits(	const std::string &l0s, 
-					const std::string &m0s, 
-					const std::string &t0s) {
+					const std::string &m0s,
+					const std::string &temp0s) {
 
 	add_astro_units();
 
-	L0 = llnlunits::measurement_from_string(l0s).as_unit();
-	M0 = llnlunits::measurement_from_string(m0s).as_unit();
-	T0 = llnlunits::measurement_from_string(t0s).as_unit();
-	if (!L0.is_convertible(llnlunits::meter)) {
-		die("Baseunit of length '%s' not convertible to meter!", l0s.c_str());
-	}
-	if (!M0.is_convertible(llnlunits::kilogram)) {
-		die("Baseunit of mass '%s' not convertible to kilogram!", m0s.c_str());
+	const bool l0hu = has_unit(l0s);
+	const bool m0hu = has_unit(m0s);
+	const bool temp0hu = has_unit(temp0s);
+
+	if (m0hu && l0hu &&temp0hu) {
+		L0 = llnlunits::measurement_from_string(l0s).as_unit();
+		M0 = llnlunits::measurement_from_string(m0s).as_unit();
+		Temp0 = llnlunits::measurement_from_string(temp0s).as_unit();
+
+		if (!L0.is_convertible(llnlunits::meter)) {
+			die("Baseunit of length '%s' not convertible to meter!", l0s.c_str());
+		}
+		if (!M0.is_convertible(llnlunits::kilogram)) {
+			die("Baseunit of mass '%s' not convertible to kilogram!", m0s.c_str());
+		}
+		if (!Temp0.is_convertible(llnlunits::Kelvin)) {
+			die("Baseunit of mass '%s' not convertible to kilogram!", temp0s.c_str());
+		}
+
+	} else if ((!m0hu) && (!l0hu)) {
+		auto au = llnlunits::unit_from_string("au");
+		auto solMass = llnlunits::unit_from_string("solMass");
+		L0 = (llnlunits::measurement_from_string(l0s)*au).as_unit();
+		M0 = (llnlunits::measurement_from_string(m0s)*solMass).as_unit();
+		Temp0 = (llnlunits::measurement_from_string(temp0s)*llnlunits::precise::Kelvin).as_unit();
+		logging::print_master(LOG_INFO "Physical units implicitly applied!\n");
+		logging::print_master(LOG_INFO "L0 = %f au, M0 = %f solMass, Temp0 = %f K\n",
+			(1*L0).value_as(au),
+			(1*M0).value_as(solMass),
+			(1*Temp0).value_as(llnlunits::precise::Kelvin));
+	} else {
+		die("l0, m0 and temp0 need to either all have a unit or all have no unit!\n However, they are l0 = %s, m0 = %s, temp0 = %s!", l0s.c_str(), m0s.c_str(), temp0s.c_str());
 	}
 
-	const auto au = llnlunits::measurement_from_string("au").as_unit();
-	std::cout << "Baseunit L0 = " << (1*L0).value_as(au) << " au = ";
-	std::cout << llnlunits::to_string((1*L0).convert_to_base()) << std::endl;
-	const auto solMass = llnlunits::measurement_from_string("solMass").as_unit();
-	std::cout << "Baseunit M0 = " << (1*M0).value_as(solMass) << " solMass" << " = ";
-	std::cout << llnlunits::to_string((1*M0).convert_to_base()) << std::endl;
-	// if (!T0.is_convertible(llnlunits::second)) {
-	// 	die("Baseunit of time '%s' not convertible to seconds!", t0s.c_str());
-	// }
+	T0 = llnlunits::sqrt((1 * L0 * L0 * L0) / (1* M0 * llnlunits::constants::G)).as_unit();
+
 }
 
 
@@ -196,10 +213,10 @@ std::string t_unit::get_cgs_factor_symbol()
 void calculate_unit_factors()
 {
 
-    length.set_cgs_factor(parameters::L0 * cgs_AU);
+    length.set_cgs_factor(parameters::L0_in_au * cgs_AU);
     length.set_cgs_symbol("cm");
 
-    mass.set_cgs_factor(parameters::M0 * cgs_Msol);
+    mass.set_cgs_factor(parameters::M0_in_solMass * cgs_Msol);
     mass.set_cgs_symbol("g");
 
     time.set_cgs_factor(sqrt((length * length * length) /

@@ -332,16 +332,19 @@ void read(char *filename, t_data &data)
     // units
 	const std::string l0s = config::cfg.get<std::string>("l0", "");
 	const std::string m0s = config::cfg.get<std::string>("m0", "");
-	const std::string t0s = config::cfg.get<std::string>("t0", "");
+	const std::string temp0s = config::cfg.get<std::string>("temp0", "1");
 
-	units::set_baseunits(l0s, m0s, t0s);
+	units::set_baseunits(l0s, m0s, temp0s);
 
+	units::precise_unit L0 = units::L0;
+	units::precise_unit M0 = units::M0;
+	units::precise_unit T0 = units::T0;
 
-    L0 = (1*units::L0).value_as(llnlunits::measurement_from_string("au").as_unit());
-    M0 = (1*units::M0).value_as(llnlunits::measurement_from_string("solMass").as_unit());
+	L0_in_au = (1*units::L0).value_as(llnlunits::measurement_from_string("au").as_unit());
+	M0_in_solMass = (1*units::M0).value_as(llnlunits::measurement_from_string("solMass").as_unit());
 
-	std::cout << "Legacy L0 = " << L0 << std::endl;
-	std::cout << "Legacy M0 = " << M0 << std::endl;
+	std::cout << "Legacy L0 = " << L0_in_au << std::endl;
+	std::cout << "Legacy M0 = " << M0_in_solMass << std::endl;
 
     /* grid */
     NRadial = config::cfg.get<unsigned int>("NRAD", 64);
@@ -679,9 +682,9 @@ void read(char *filename, t_data &data)
 			   t_data::ENERGY0, "Energy"));
     damping_energy_id = (int)damping_vector.size() - 1;
 
-    calculate_disk = config::cfg.get_flag("DISK", 1);
+    calculate_disk = config::cfg.get_flag("DISK", "yes");
 
-    default_star = config::cfg.get_flag("DefaultStar", true);
+    default_star = config::cfg.get_flag("DefaultStar", "yes");
 	
     corotation_reference_body =
 	config::cfg.get<unsigned int>("CorotationReferenceBody", 1);

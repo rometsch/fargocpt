@@ -64,7 +64,7 @@ class t_unit
 extern llnlunits::precise_unit L0;
 extern llnlunits::precise_unit M0;
 extern llnlunits::precise_unit T0;
-extern llnlunits::precise_unit temp0;
+extern llnlunits::precise_unit Temp0;
 
 bool has_unit(const std::string &val);
 
@@ -95,8 +95,8 @@ extern t_unit force;
 extern t_unit mass_accretion_rate;
 
 void set_baseunits( const std::string &l0, 
-                    const std::string &m0, 
-                    const std::string &t0);
+                    const std::string &m0,
+                    const std::string &temp0);
 
 void calculate_unit_factors();
 void print_code_units();
