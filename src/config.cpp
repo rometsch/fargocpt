@@ -5,14 +5,11 @@
 #include <algorithm>
 #include <string>
 #include <type_traits>
-#include <typeinfo>
 
 #include "LowTasks.h"
 #include "config.h"
 
-#define UNITS_DEFAULT_DOMAIN units::domains::astronomy
-#include "units/units.hpp"
-
+#include "units.h"
 #include "yaml-cpp/yaml.h"
 
 namespace config {
@@ -24,20 +21,13 @@ static YAML::Node lowercased_node(const YAML::Node &node) {
     for (auto it=node.begin(); it!=node.end(); ++it) {
         std::string key = it->first.as<std::string>();
         std::string lkey = lowercase(key);
-        auto &subnode = it->second;
-        if (subnode.IsMap()) {
-            lnode[lkey] = lowercased_node(subnode);
+        if (it->second.IsMap()) {
+            lnode[lkey] = lowercased_node(it->second);
         } else {
-            lnode[lkey] = YAML::Node(subnode);
+            lnode[lkey] = it->second;
         }
     }
     return lnode;
-}
-
-static bool has_unit(const std::string val){
-    auto q = units::measurement_from_string(val);
-    const bool ret =  (q.units().unit_type_count() > 0);
-    return ret;
 }
 
 Config::Config(const char *filename) { 
@@ -45,7 +35,7 @@ Config::Config(const char *filename) {
 
 Config::Config(const YAML::Node &n)
 {
-    m_root = std::make_shared<YAML::Node>(lowercased_node(n));
+    m_root = std::make_shared<YAML::Node>(YAML::Clone(lowercased_node(n)));
 };
 
 Config Config::get_subconfig(const char *key)
@@ -59,15 +49,12 @@ std::vector<Config> Config::get_planet_config()
 {
     const auto &n = *m_root;
     std::vector<Config> planets;
-    std::cout << "creating planet configs" << std::endl;
     if (contains("planets")) {
         auto & node = n["planets"];
         for (auto &planet_node : n["planets"]) {
-            planets.emplace_back(planet_node);
+            planets.emplace_back(YAML::Clone(planet_node));
         }
-        std::cout << "finished planet configs" << std::endl;
     }
-    std::cout << "returning planet configs" << std::endl;
     return planets;
 }
 
@@ -134,48 +121,82 @@ bool Config::contains(const std::string &key)
     }
 }
 
-template <typename F> 
-typename std::enable_if<!std::is_arithmetic<F>::value,F>::type 
-parse_units(const std::string &val) {
-    const F rv = val;
-    return rv;
-}
-
-template <typename F> 
-typename std::enable_if<std::is_arithmetic<F>::value,F>::type 
-parse_units(const std::string &val) {
-    auto q = units::measurement_from_string(val);
-    const F rv = (F) q.convert_to_base().value();
-    if (has_unit(val)) {
-    std::cout << "have value string '" << val <<"'" << std::endl;
-    std::cout << "measurement is " << units::to_string(q) << std::endl;
-    std::cout << "Parsing " << typeid(F).name() << " " << val << " as number" << std::endl;
-    std::cout << "Result " << rv << " from " << units::to_string(q) << std::endl;
-    }
-    return rv;
-}
-
-
-template <typename F> F Config::get(const char *key)
+template <typename T> T Config::get(const char *key)
 {
     const auto &root = *m_root;
     std::string lkey = lowercase(key);
     const std::string val = root[lkey].as<std::string>();
-    const F rv = parse_units<F>(val);
+    const T rv = units::parse_units<T>(val);
     return rv;
 }
 
-template <typename F> F Config::get(const char *key, const F &default_value)
+template <typename T> T Config::get(const char *key, const T &default_value)
 {
+    T ret;
     const std::string lkey = lowercase(key);
-    F ret;
     if (contains(lkey)) {
-	    ret = get<F>(key);
+	    ret = get<T>(key);
     } else {
 	    ret = default_value;
     }
     return ret;
 }
+
+template <typename T> T stoT(const std::string &val);
+
+template <> int stoT(const std::string &val) {
+    return std::stoi(val);
+}
+
+template <> unsigned int stoT(const std::string &val) {
+    return std::stoul(val);
+}
+
+template <> double stoT(const std::string &val) {
+    return std::stod(val);
+}
+
+template <typename T> T Config::get(const char *key, 
+                            const T &default_value, 
+                            const units::precise_unit& unit) 
+{    
+    T ret;
+    const std::string lkey = lowercase(key);
+    std::string val;
+    const auto &root = *m_root;
+    if (contains(lkey)) {
+        val = root[lkey].as<std::string>();
+        if (units::has_unit(val)) {
+            ret = units::parse_units<T>(val, unit);
+        } else {
+            ret = stoT<T>(val);
+        }
+    } else {
+	    ret = default_value;
+    }
+    return ret;
+};
+
+template <typename T> T Config::get(const char *key, 
+                            const std::string &default_value, 
+                            const units::precise_unit& unit) 
+{
+    T rv;
+    const std::string lkey = lowercase(key);
+    std::string val;
+    if (contains(lkey)) {
+        const auto &root = *m_root;
+        val = root[lkey].as<std::string>();        
+    } else {
+	    val = default_value;
+    }
+    if (units::has_unit(val)) {
+        rv = units::parse_units<T>(val, unit);
+    } else {
+        rv = stoT<T>(val);
+    }
+    return rv;
+};
 
 template double Config::get(const char *key);
 template int Config::get(const char *key);
@@ -186,5 +207,14 @@ template double Config::get(const char *key, const double &d);
 template int Config::get(const char *key, const int &d);
 template unsigned int Config::get(const char *key, const unsigned int &d);
 template std::string Config::get(const char *key, const std::string &d);
+
+template double Config::get(const char *key, const double &d, const units::precise_unit& unit);
+template int Config::get(const char *key, const int &d, const units::precise_unit& unit);
+template unsigned int Config::get(const char *key, const unsigned int &d, const units::precise_unit& unit);
+
+template double Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
+template int Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
+template unsigned int Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
+
 
 }

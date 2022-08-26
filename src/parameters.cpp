@@ -20,6 +20,7 @@
 #include "util.h"
 #include "viscosity.h"
 #include "config.h"
+#include "units.h"
 
 #include <limits>
 constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
@@ -325,17 +326,30 @@ t_damping_type value_as_boudary_damping_default(char *key,
 
 void read(char *filename, t_data &data)
 {
+	// auto & cfg = config::cfg;
 	config::cfg.load_file(filename);
 
     // units
-    L0 = config::cfg.get<double>("l0", 1.0);
-    M0 = config::cfg.get<double>("m0", 1.0);
+	const std::string l0s = config::cfg.get<std::string>("l0", "");
+	const std::string m0s = config::cfg.get<std::string>("m0", "");
+	const std::string t0s = config::cfg.get<std::string>("t0", "");
+
+	units::set_baseunits(l0s, m0s, t0s);
+
+
+    L0 = (1*units::L0).value_as(llnlunits::measurement_from_string("au").as_unit());
+    M0 = (1*units::M0).value_as(llnlunits::measurement_from_string("solMass").as_unit());
+
+	std::cout << "Legacy L0 = " << L0 << std::endl;
+	std::cout << "Legacy M0 = " << M0 << std::endl;
 
     /* grid */
     NRadial = config::cfg.get<unsigned int>("NRAD", 64);
     NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
-    RMIN = config::cfg.get<double>("RMIN", 1.0);
-    RMAX = config::cfg.get<double>("RMAX", 1.0);
+    RMIN = config::cfg.get<double>("RMIN", 1.0, units::L0);
+    RMAX = config::cfg.get<double>("RMAX", 1.0, units::L0);
+
+	std::cout << "!!!!!!!!!!!!!!!!! RMIN " << RMIN << std::endl;
 
     quantities_radius_limit =
 	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX);

@@ -2,9 +2,16 @@
 #define UNITS_H
 
 #include <string>
+#include <type_traits>
+
+#define UNITS_DEFAULT_DOMAIN llnlunits::domains::astronomy
+#include "units/units.hpp"
+
 
 namespace units
 {
+
+typedef llnlunits::precise_unit precise_unit;
 
 /// astronomical unit in cgs
 // const double cgs_AU = 149.60e11;
@@ -53,6 +60,17 @@ class t_unit
     std::string get_cgs_factor_symbol();
 };
 
+
+extern llnlunits::precise_unit L0;
+extern llnlunits::precise_unit M0;
+extern llnlunits::precise_unit T0;
+extern llnlunits::precise_unit temp0;
+
+bool has_unit(const std::string &val);
+
+template <typename T> T parse_units(const std::string &val);
+template <typename T> T parse_units(const std::string &val, const precise_unit &baseunit);
+
 extern t_unit length;
 extern t_unit mass;
 extern t_unit time;
@@ -75,6 +93,10 @@ extern t_unit power;
 extern t_unit torque;
 extern t_unit force;
 extern t_unit mass_accretion_rate;
+
+void set_baseunits( const std::string &l0, 
+                    const std::string &m0, 
+                    const std::string &t0);
 
 void calculate_unit_factors();
 void print_code_units();

@@ -11,8 +11,8 @@
 #include "LowTasks.h"
 
 #include "yaml-cpp/yaml.h"
-
 namespace config {
+
 
 class Config
 {
@@ -27,9 +27,17 @@ class Config
 
     void load_file(const char *filename);
 
-    template <typename F> F get(const char *key);
+    template <typename T> T get(const char *key);
 
-    template <typename F> F get(const char *key, const F &default_value);
+    template <typename T> T get(const char *key, const T &default_value);
+
+    template <typename T> T get(const char *key, 
+                                const T &default_value, 
+                                const units::precise_unit& unit);
+
+    template <typename T> T get(const char *key, 
+                                const std::string &default_value, 
+                                const units::precise_unit& unit);
 
     std::string get(const char *key, const char *default_value);
 
