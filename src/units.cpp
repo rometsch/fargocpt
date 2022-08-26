@@ -79,13 +79,13 @@ template <> int parse_units(const std::string &val, const precise_unit& unit) {
 template std::string parse_units<std::string>(const std::string &val);
 template std::string parse_units<std::string>(const std::string &val, const precise_unit &baseunit);
 
-
-
+llnlunits::precise_unit solMass(1.98847e30, llnlunits::precise::kilogram);
+llnlunits::precise_unit au(1.495978707e11, llnlunits::precise::meter);
 
 static void add_astro_units() {
-	llnlunits::precise_unit solMass(1.98847e30, llnlunits::precise::kilogram);
 	llnlunits::addUserDefinedUnit("solMass", solMass);
-	llnlunits::precise_unit au(1.495978707e11, llnlunits::precise::meter);
+	llnlunits::precise_unit solRadius(6.95700e8, llnlunits::precise::meter);
+	llnlunits::addUserDefinedUnit("solRadius", solRadius);
 	llnlunits::addUserDefinedUnit("au", au);
 }
 
@@ -116,8 +116,6 @@ void set_baseunits(	const std::string &l0s,
 		}
 
 	} else if ((!m0hu) && (!l0hu)) {
-		auto au = llnlunits::unit_from_string("au");
-		auto solMass = llnlunits::unit_from_string("solMass");
 		L0 = (llnlunits::measurement_from_string(l0s)*au).as_unit();
 		M0 = (llnlunits::measurement_from_string(m0s)*solMass).as_unit();
 		Temp0 = (llnlunits::measurement_from_string(temp0s)*llnlunits::precise::Kelvin).as_unit();

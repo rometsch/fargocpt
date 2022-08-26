@@ -12,6 +12,7 @@ namespace units
 {
 
 typedef llnlunits::precise_unit precise_unit;
+namespace precise = llnlunits::precise;
 
 /// astronomical unit in cgs
 // const double cgs_AU = 149.60e11;
@@ -65,6 +66,9 @@ extern llnlunits::precise_unit L0;
 extern llnlunits::precise_unit M0;
 extern llnlunits::precise_unit T0;
 extern llnlunits::precise_unit Temp0;
+
+extern llnlunits::precise_unit solMass;
+extern llnlunits::precise_unit au;
 
 bool has_unit(const std::string &val);
 
