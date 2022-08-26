@@ -1,1 +1,6 @@
+
+- thinknesssmoothing factor 0.6 by default (was 0.0)
+- beta cooling rampup time in units of T0
+- stellar heating rampup time in units of T0 rather than DT
+
 - Changed tau_factor default value from 1 to 0.5.
