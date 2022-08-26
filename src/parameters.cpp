@@ -931,8 +931,6 @@ void read(char *filename, t_data &data)
     }
     star_radius *= units::solar_radius_in_au / L0_in_au; // convert to code units
 
-	// TODO: continue setting units here
-
     // boundary layer parameters
     radial_viscosity_factor =
 	config::cfg.get<double>("RadialViscosityFactor", 1.);
@@ -940,7 +938,7 @@ void read(char *filename, t_data &data)
     stellar_rotation_rate =
 	config::cfg.get<double>("StellarRotation", 0.1);
     mass_accretion_rate =
-	config::cfg.get<double>("MassAccretionRate", 1.e-9);
+	config::cfg.get<double>("MassAccretionRate", 1.e-9, M0/T0);
     accretion_radius_fraction =
 	config::cfg.get<double>("MassAccretionRadius", 1.0);
     klahr_smoothing_radius = config::cfg.get<double>(
@@ -954,11 +952,14 @@ void read(char *filename, t_data &data)
 
     // particles
     CartesianParticles =
-	config::cfg.get_flag("CartesianParticles", false);
+	config::cfg.get_flag("CartesianParticles", "no");
     integrate_particles =
-	config::cfg.get_flag("IntegrateParticles", false);
+	config::cfg.get_flag("IntegrateParticles", "no");
     number_of_particles =
 	config::cfg.get<unsigned int>("NumberOfParticles", 0);
+
+	// TODO: continue applying units here
+
     particle_radius = config::cfg.get<double>("ParticleRadius", 100.0);
     particle_species_number =
 	config::cfg.get<unsigned int>("ParticleSpeciesNumber", 5);

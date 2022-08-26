@@ -1715,7 +1715,8 @@ void boundary_layer_inner_boundary(t_data &data)
 	data[t_data::V_RADIAL](0, n_azimuthal) =
 	    data[t_data::V_RADIAL](1, n_azimuthal);
 
-	// set vphi to stellar rotation rate
+	// set vphi to stellar rotation rate 
+	// TODO: fix discrepancy with description in param file. There, its described as a fraction of OmegaK
 	data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
 	    parameters::stellar_rotation_rate * std::sqrt(1. / Rb[0]);
     }
