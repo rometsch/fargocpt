@@ -73,8 +73,12 @@ bool Config::get_flag(const char *key)
 {
     const YAML::Node & root = *m_root;
     const std::string lkey = lowercase(key);
-    bool ret = root[lkey].as<bool>();
-    return ret;
+    try {
+        bool ret = root[lkey].as<bool>();
+        return ret;
+    } catch (YAML::TypedBadConversion<bool>) {
+        die("Conversion from yaml failed for key '%s'\n", key);
+    }
 }
 
 bool Config::get_flag(const char *key, const bool default_value)
@@ -128,7 +132,11 @@ template <typename T> T Config::get(const char *key)
     }
     const auto &root = *m_root;
     std::string lkey = lowercase(key);
-    return root[lkey].as<T>();
+    try {
+        return root[lkey].as<T>();
+    } catch (YAML::TypedBadConversion<T>) {
+        die("Conversion from yaml failed for key '%s'\n", key);
+    }
 }
 
 template <typename T> T Config::get(const char *key, const units::precise_unit& unit)
@@ -143,7 +151,11 @@ template <typename T> T Config::get(const char *key, const units::precise_unit& 
     if (units::has_unit(val)) {
         rv = units::parse_units<T>(val, unit);
     } else {
-        rv = root[lkey].as<T>();
+        try {
+            rv = root[lkey].as<T>();
+        } catch (YAML::TypedBadConversion<T>) {
+            die("Conversion from yaml failed for key '%s'\n", key);
+        }
     }
     return rv;
 }
