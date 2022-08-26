@@ -123,19 +123,38 @@ bool Config::contains(const std::string &key)
 
 template <typename T> T Config::get(const char *key)
 {
+    if (!contains(key)) {
+        die("Required parameter '%s' missing!\n", key);
+    }
+    const auto &root = *m_root;
+    std::string lkey = lowercase(key);
+    return root[lkey].as<T>();
+}
+
+template <typename T> T Config::get(const char *key, const units::precise_unit& unit)
+{
+    if (!contains(key)) {
+        die("Required parameter '%s' missing!\n", key);
+    }
+    T rv;
     const auto &root = *m_root;
     std::string lkey = lowercase(key);
     const std::string val = root[lkey].as<std::string>();
-    const T rv = units::parse_units<T>(val);
+    if (units::has_unit(val)) {
+        rv = units::parse_units<T>(val, unit);
+    } else {
+        rv = root[lkey].as<T>();
+    }
     return rv;
 }
+
 
 template <typename T> T Config::get(const char *key, const T &default_value)
 {
     T ret;
     const std::string lkey = lowercase(key);
-    if (contains(lkey)) {
-	    ret = get<T>(key);
+    if (contains(key)) {
+        ret = get<T>(key);
     } else {
 	    ret = default_value;
     }
@@ -164,7 +183,7 @@ template <typename T> T Config::get(const char *key,
     const std::string lkey = lowercase(key);
     std::string val;
     const auto &root = *m_root;
-    if (contains(lkey)) {
+    if (contains(key)) {
         val = root[lkey].as<std::string>();
         if (units::has_unit(val)) {
             ret = units::parse_units<T>(val, unit);
@@ -215,6 +234,11 @@ template unsigned int Config::get(const char *key, const unsigned int &d, const 
 template double Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
 template int Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
 template unsigned int Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
+
+template double Config::get(const char *key, const units::precise_unit& unit);
+template int Config::get(const char *key, const units::precise_unit& unit);
+template unsigned int Config::get(const char *key, const units::precise_unit& unit);
+
 
 
 }

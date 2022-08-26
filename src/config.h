@@ -31,6 +31,8 @@ class Config
 
     template <typename T> T get(const char *key, const T &default_value);
 
+    template <typename T> T get(const char *key, const units::precise_unit& unit);
+
     template <typename T> T get(const char *key, 
                                 const T &default_value, 
                                 const units::precise_unit& unit);
