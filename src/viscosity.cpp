@@ -230,7 +230,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		    nu_art * data[t_data::DIV_V](n_radial, n_azimuthal);
 		data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal) +=
 		    nu_art * data[t_data::DIV_V](n_radial, n_azimuthal);
-		data[t_data::ARTIFICIAL_VISCOSITY](n_radial, n_azimuthal) =
+		data[t_data::SIGMA_ART_VISC](n_radial, n_azimuthal) =
 		    nu_art;
 	    }
 	}
@@ -287,12 +287,12 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		    -FourThirdInvRbInvdphiSq[n_radial] * (NuSigma + NuSigma_jm);
 
 		if (include_artifical_viscosity) {
-		    const double NuArt = data[t_data::ARTIFICIAL_VISCOSITY](
+			const double NuArt = data[t_data::SIGMA_ART_VISC](
 			n_radial, n_azimuthal);
-		    const double NuArt_jm = data[t_data::ARTIFICIAL_VISCOSITY](
+			const double NuArt_jm = data[t_data::SIGMA_ART_VISC](
 			n_radial, n_azimuthal_minus);
-		    cphi_pp += (NuArt + NuArt_jm) *
-			       (-invdphi * invdphi * InvRmed[n_radial]);
+			cphi_pp += (NuArt_jm - NuArt) *
+				   (invdphi * invdphi * InvRmed[n_radial]);
 		}
 
 		const double sigma_avg_phi =
@@ -335,18 +335,16 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		     1.0 / 3.0 * Ra[n_radial] * InvDiffRsupRb[n_radial - 1]);
 
 		if (include_artifical_viscosity) {
-		    const double NuArt = data[t_data::ARTIFICIAL_VISCOSITY](
+			const double NuArt = data[t_data::SIGMA_ART_VISC](
 			n_radial, n_azimuthal);
-		    const double NuArt_im = data[t_data::ARTIFICIAL_VISCOSITY](
+			const double NuArt_im = data[t_data::SIGMA_ART_VISC](
 			n_radial - 1, n_azimuthal);
 
 		    cr_pp_1 -= NuArt * Ra[n_radial] * InvDiffRsupRb[n_radial];
-		    cr_pp_2 +=
-			NuArt_im * Ra[n_radial] * InvDiffRsupRb[n_radial - 1];
+			cr_pp_2 += NuArt_im * Ra[n_radial] * InvDiffRsupRb[n_radial - 1];
 
 		    cr_rr_1 -= NuArt * Ra[n_radial] * InvDiffRsup[n_radial];
-		    cr_rr_2 -=
-			NuArt_im * Ra[n_radial] * InvDiffRsup[n_radial - 1];
+			cr_rr_2 -= NuArt_im * Ra[n_radial] * InvDiffRsup[n_radial - 1];
 		}
 
 		const double cr_pp = -0.5 * (cr_pp_1 + cr_pp_2);

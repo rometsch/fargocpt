@@ -128,8 +128,8 @@ t_data::t_data()
     m_polargrids[VISCOSITY].set_name("viscosity");
     m_polargrids[VISCOSITY].set_unit(units::kinematic_viscosity);
 
-    m_polargrids[ARTIFICIAL_VISCOSITY].set_scalar(true);
-    m_polargrids[ARTIFICIAL_VISCOSITY].set_name("artificial_viscosity");
+	m_polargrids[SIGMA_ART_VISC].set_scalar(true);
+	m_polargrids[SIGMA_ART_VISC].set_name("artificial_viscosity");
 
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_scalar(true);
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_name(
@@ -138,6 +138,15 @@ t_data::t_data()
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_scalar(true);
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_name(
 	"viscosity_correction_factor_phi");
+
+
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_R].set_scalar(true);
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_R].set_name(
+	"artificial_viscosity_correction_factor_r");
+
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_PHI].set_scalar(true);
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_PHI].set_name(
+	"artificial_viscosity_correction_factor_phi");
 
     m_polargrids[VISCOSITY_SIGMA_RP].set_vector(true);
     m_polargrids[VISCOSITY_SIGMA_RP].set_name(

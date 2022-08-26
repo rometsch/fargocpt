@@ -797,6 +797,9 @@ void read(char *filename, t_data &data)
     case 't': // TW
 	artificial_viscosity = artificial_viscosity_TW;
 	break;
+	case 'w': // WT
+	artificial_viscosity = artificial_viscosity_WT;
+	break;
     case 's': // SN
 	artificial_viscosity = artificial_viscosity_SN;
 	break;
@@ -1095,6 +1098,15 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\n",
 	    parameters::artificial_viscosity_factor);
+	logging::print_master(
+		LOG_INFO "Artificial viscosity is %s for dissipation.\n",
+		parameters::artificial_viscosity_dissipation ? "used" : "not used");
+		break;
+	case artificial_viscosity_WT:
+		logging::print_master(
+		LOG_INFO
+		"Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\nArtificial viscosity is applied indipendently from kinematic viscosity!\n",
+		parameters::artificial_viscosity_factor);
 	logging::print_master(
 	    LOG_INFO "Artificial viscosity is %s for dissipation.\n",
 	    parameters::artificial_viscosity_dissipation ? "used" : "not used");

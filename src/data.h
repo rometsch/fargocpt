@@ -44,9 +44,11 @@ class t_data
 	QMINUS,		      // cooling terms
 	P_DIVV,		      // pdV work
 	VISCOSITY,	      // (kinematic) viscosity
-	ARTIFICIAL_VISCOSITY, // (artificial) viscosity
+	SIGMA_ART_VISC, // (artificial) viscosity
 	VISCOSITY_CORRECTION_FACTOR_R,
 	VISCOSITY_CORRECTION_FACTOR_PHI,
+	ART_VISCOSITY_CORRECTION_FACTOR_R,
+	ART_VISCOSITY_CORRECTION_FACTOR_PHI,
 	VISCOSITY_SIGMA_RP,
 	VISCOSITY_SIGMA,
 	TAU_R_R,	 // viscous stress tensor r,r component

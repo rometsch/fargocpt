@@ -142,7 +142,7 @@ double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 double hydro_center_mass;
 int debug, OnlyInit;
 int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian,
-    StabilizeViscosity;
+	StabilizeViscosity, StabilizeArtViscosity;
 int flux_limiter_type;
 int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
