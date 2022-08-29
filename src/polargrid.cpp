@@ -521,33 +521,6 @@ double t_polargrid::get_max() const
     return global_max;
 }
 
-double t_polargrid::reduce_mass_weighted_avg(const t_polargrid &sigma) const
-{
-
-	double local_mass = 0.0;
-	double global_mass = 0.0;
-
-	double global_reduced_quantity = 0.0;
-	double local_reduced_quantity = 0.0;
-
-	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
-	for (unsigned int naz = 0; naz < Nsec; ++naz) {
-		const double cell_mass = sigma.Field[nr*Nsec + naz] * Surf[nr];
-		local_mass += cell_mass;
-		local_reduced_quantity += Field[nr*Nsec + naz] * cell_mass;
-	}
-	}
-
-	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
-		  MPI_COMM_WORLD);
-
-	MPI_Allreduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
-		  MPI_COMM_WORLD);
-
-	global_reduced_quantity /= global_mass;
-	return global_reduced_quantity;
-}
-
 /**
 	multiply each polargrid entry with a constant
 */

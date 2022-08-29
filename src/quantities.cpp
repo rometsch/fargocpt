@@ -75,7 +75,46 @@ double gas_quantity_reduce(const t_polargrid& arr, const double quantitiy_radius
 	return global_reduced_quantity;
 }
 
-double gas_quantity_mass_average(t_data &data, const t_polargrid& arr, const double quantitiy_radius)
+
+
+double gas_allreduce_mass_average(t_data &data, const t_polargrid& arr, const double quantitiy_radius)
+{
+
+	const t_polargrid& sigma = data[t_data::DENSITY];
+
+	double local_mass = 0.0;
+	double global_mass = 0.0;
+
+	double global_reduced_quantity = 0.0;
+	double local_reduced_quantity = 0.0;
+
+	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
+	// they would be included twice!)
+	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
+	for (unsigned int naz = 0; naz < arr.get_size_azimuthal(); ++naz) {
+		// eccentricity and semi major axis weighted with cellmass
+		if (Rmed[nr] <= quantitiy_radius) {
+		const double cell_mass = sigma(nr, naz) * Surf[nr];
+		local_mass += cell_mass;
+		local_reduced_quantity += arr(nr, naz) * cell_mass;
+		}
+	}
+	}
+
+	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
+		  MPI_COMM_WORLD);
+
+	// synchronize threads
+	MPI_Allreduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
+		  MPI_COMM_WORLD);
+
+	global_reduced_quantity /= global_mass;
+	return global_reduced_quantity;
+
+}
+
+
+double gas_reduce_mass_average(t_data &data, const t_polargrid& arr, const double quantitiy_radius)
 {
 
 	const t_polargrid& sigma = data[t_data::DENSITY];

@@ -365,7 +365,7 @@ void write_quantities(t_data &data, bool force_update)
     }
 
 	const double gravitationalEnergy =
-	-quantities::gas_quantity_mass_average(data, data[t_data::POTENTIAL], quantities_limit_radius);
+	-quantities::gas_reduce_mass_average(data, data[t_data::POTENTIAL], quantities_limit_radius);
 
     const double totalEnergy =
 	internalEnergy + kinematicEnergy + gravitationalEnergy;
@@ -374,7 +374,7 @@ void write_quantities(t_data &data, bool force_update)
 	quantities::compute_aspectratio(data, N_output, force_update);
 	}
 	const double scale_height =
-	quantities::gas_quantity_mass_average(data, data[t_data::ASPECTRATIO], quantities_limit_radius);
+	quantities::gas_reduce_mass_average(data, data[t_data::ASPECTRATIO], quantities_limit_radius);
 
     double pdivv_total = 0.0;
     double InnerPositive = 0.0;
