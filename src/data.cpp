@@ -58,12 +58,12 @@ t_data::t_data()
     m_polargrids[ECCENTRICITY].set_scalar(true);
     m_polargrids[ECCENTRICITY].set_name("Eccentricity");
     m_polargrids[ECCENTRICITY].set_do_before_write(
-	&quantities::calculate_disk_quantities);
+	&quantities::calculate_disk_ecc_peri);
 
     m_polargrids[PERIASTRON].set_scalar(true);
     m_polargrids[PERIASTRON].set_name("Periastron");
     m_polargrids[PERIASTRON].set_do_before_write(
-	&quantities::calculate_disk_quantities);
+	&quantities::calculate_disk_ecc_peri);
 
     m_polargrids[ALPHA_GRAV].set_scalar(true);
     m_polargrids[ALPHA_GRAV].set_name("alpha_grav");
@@ -285,6 +285,40 @@ t_data::t_data()
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_scalar(true);
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
+
+	m_polargrids[ECCENTRICITY_PING_PONG].set_scalar(true);
+	m_polargrids[ECCENTRICITY_PING_PONG].set_name("Eccentricity");
+	m_polargrids[PERIASTRON_PING_PONG].set_scalar(true);
+	m_polargrids[PERIASTRON_PING_PONG].set_name("Periastron");
+
+	m_polargrids[DELTA_ECCENTRICITY_SOURCE_TERMS].set_scalar(true);
+	m_polargrids[DELTA_ECCENTRICITY_SOURCE_TERMS].set_name("dEccentricity");
+	m_polargrids[DELTA_ECCENTRICITY_SOURCE_TERMS].set_clear_after_write(true);
+	m_polargrids[DELTA_PERIASTRON_SOURCE_TERMS].set_scalar(true);
+	m_polargrids[DELTA_PERIASTRON_SOURCE_TERMS].set_name("dPeriastron");
+	m_polargrids[DELTA_PERIASTRON_SOURCE_TERMS].set_clear_after_write(true);
+
+
+	m_polargrids[DELTA_ECCENTRICITY_ART_VISC].set_scalar(true);
+	m_polargrids[DELTA_ECCENTRICITY_ART_VISC].set_name("dEccentricity");
+	m_polargrids[DELTA_ECCENTRICITY_ART_VISC].set_clear_after_write(true);
+	m_polargrids[DELTA_PERIASTRON_ART_VISC].set_scalar(true);
+	m_polargrids[DELTA_PERIASTRON_ART_VISC].set_name("dPeriastron");
+	m_polargrids[DELTA_PERIASTRON_ART_VISC].set_clear_after_write(true);
+
+	m_polargrids[DELTA_ECCENTRICITY_VISC].set_scalar(true);
+	m_polargrids[DELTA_ECCENTRICITY_VISC].set_name("dEccentricity");
+	m_polargrids[DELTA_ECCENTRICITY_VISC].set_clear_after_write(true);
+	m_polargrids[DELTA_PERIASTRON_VISC].set_scalar(true);
+	m_polargrids[DELTA_PERIASTRON_VISC].set_name("dPeriastron");
+	m_polargrids[DELTA_PERIASTRON_VISC].set_clear_after_write(true);
+
+	m_polargrids[DELTA_ECCENTRICITY_VISC].set_scalar(true);
+	m_polargrids[DELTA_ECCENTRICITY_VISC].set_name("dEccentricity");
+	m_polargrids[DELTA_ECCENTRICITY_VISC].set_clear_after_write(true);
+	m_polargrids[DELTA_PERIASTRON_VISC].set_scalar(true);
+	m_polargrids[DELTA_PERIASTRON_VISC].set_name("dPeriastron");
+	m_polargrids[DELTA_PERIASTRON_VISC].set_clear_after_write(true);
 
     pdivv_total = 0.0;
 }

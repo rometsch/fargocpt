@@ -78,6 +78,16 @@ class t_data
 	PRESCRIBED_DENSITY_OUTER,
 	PRESCRIBED_V_AZIMUTHAL_OUTER,
 	PRESCRIBED_V_RADIAL_OUTER,
+	ECCENTRICITY_PING_PONG,	      // disk eccentricity
+	PERIASTRON_PING_PONG,	      // disk periastron
+	DELTA_ECCENTRICITY_SOURCE_TERMS,	      // disk eccentricity
+	DELTA_PERIASTRON_SOURCE_TERMS,	      // disk periastron
+	DELTA_ECCENTRICITY_ART_VISC,	      // disk eccentricity
+	DELTA_PERIASTRON_ART_VISC,	      // disk periastron
+	DELTA_ECCENTRICITY_VISC,	      // disk eccentricity
+	DELTA_PERIASTRON_VISC,	      // disk periastron
+	DELTA_ECCENTRICITY_TRANSPORT,	      // disk eccentricity
+	DELTA_PERIASTRON_TRANSPORT,	      // disk periastron
 
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES

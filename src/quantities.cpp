@@ -10,6 +10,7 @@
 #include <math.h>
 #include <mpi.h>
 #include <vector>
+#include "SourceEuler.h"
 
 extern boolean Corotating;
 extern double M0;
@@ -405,10 +406,134 @@ double gas_gravitational_energy(t_data &data, const double quantitiy_radius)
     return global_gravitational_energy;
 }
 
-/**
-	Calculates disk (grid) eccentricity
-*/
-void calculate_disk_quantities(t_data &data, unsigned int timestep,
+static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int timestep,
+				   bool force_update)
+{
+	static int last_timestep_calculated = -1;
+	double angle, r_x, r_y, j;
+	double v_xmed, v_ymed;
+	double e_x, e_y;
+	double total_mass = 0.0;
+
+	const double num_nbody = data.get_planetary_system().get_number_of_planets();
+	const Pair cms_pos = data.get_planetary_system().get_center_of_mass(num_nbody);
+	const Pair cms_vel = data.get_planetary_system().get_center_of_mass_velocity(num_nbody);
+
+	if (!force_update) {
+	if (last_timestep_calculated == (int)timestep) {
+		return;
+	} else {
+		last_timestep_calculated = timestep;
+	}
+	}
+	// calculations outside the loop for speedup
+	double sinFrameAngle = std::sin(FrameAngle);
+	double cosFrameAngle = std::cos(FrameAngle);
+	for (unsigned int n_radial = 0;
+	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
+		 ++n_azimuthal) {
+		total_mass =
+		hydro_center_mass +
+		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+
+		// location of the cell
+		angle = (double)n_azimuthal /
+			(double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
+			M_PI;
+		r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
+		r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
+
+		// averaged velocities
+		v_xmed =
+		std::cos(angle) * 0.5 *
+			(data[t_data::V_RADIAL](n_radial, n_azimuthal) +
+			 data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) -
+		std::sin(angle) *
+			(0.5 *
+			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			  data[t_data::V_AZIMUTHAL](
+				  n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+							   .get_max_azimuthal()
+						? 0
+						: n_azimuthal + 1)) +
+			 OmegaFrame * Rmed[n_radial]) - cms_vel.x;
+		v_ymed =
+		std::sin(angle) * 0.5 *
+			(data[t_data::V_RADIAL](n_radial, n_azimuthal) +
+			 data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) +
+		std::cos(angle) *
+			(0.5 *
+			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			  data[t_data::V_AZIMUTHAL](
+				  n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+							   .get_max_azimuthal()
+						? 0
+						: n_azimuthal + 1)) +
+			 OmegaFrame * Rmed[n_radial]) - cms_vel.y;
+
+		// specific angular momentum for each cell j = j*e_z
+		j = r_x * v_ymed - r_y * v_xmed;
+		// Runge-Lenz vector Ax = x*vy*vy-y*vx*vy-G*m*x/d;
+		e_x =
+		j * v_ymed / (constants::G * total_mass) - r_x / Rmed[n_radial];
+		e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
+		  r_y / Rmed[n_radial];
+
+		data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
+		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
+
+		if (FrameAngle != 0.0) {
+		// periastron grid is rotated to non-rotating coordinate system
+		// to prevent phase jumps of atan2 in later transformations like
+		// you would have had if you back-transform the output
+		// periastron values
+		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
+			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
+				   e_x * cosFrameAngle - e_y * sinFrameAngle);
+		} else {
+		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
+			std::atan2(e_y, e_x);
+		}
+	}
+	}
+}
+
+void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid &dPer)
+{
+
+	t_polargrid &sigma = data[t_data::DENSITY];
+
+	// ecc holds the current eccentricity
+	t_polargrid &ecc = data[t_data::ECCENTRICITY];
+	t_polargrid &peri = data[t_data::PERIASTRON];
+
+	t_polargrid &ecc_tmp = data[t_data::ECCENTRICITY_PING_PONG];
+	t_polargrid &peri_tmp = data[t_data::PERIASTRON_PING_PONG];
+
+	// store data ecc in ecc_tmp
+	move_polargrid(ecc_tmp, ecc);
+	move_polargrid(peri_tmp, peri);
+
+	// compute new eccentricity into ecc
+	calculate_disk_ecc_peri(data, 0, true);
+
+	// normalize by mass
+	const double mass = quantities::gas_total_mass(data, 2.0*RMAX);
+
+	for (unsigned int nr = 0;	 nr < ecc.get_size_radial(); ++nr) {
+	for (unsigned int naz = 0; naz < ecc.get_size_azimuthal(); ++naz) {
+
+		dEcc(nr, naz) += (ecc(nr, naz) - ecc_tmp(nr, naz)) * sigma(nr, naz) * Surf[nr] / mass;
+		dPer(nr, naz) += (peri(nr, naz) - peri_tmp(nr, naz)) * sigma(nr, naz) * Surf[nr] / mass;
+
+	}
+	}
+
+}
+
+static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int timestep,
 			       bool force_update)
 {
     static int last_timestep_calculated = -1;
@@ -500,6 +625,47 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    }
 	}
     }
+}
+
+void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
+				   bool force_update){
+	if(parameters::n_bodies_for_hydroframe_center == 1){
+		if(data.get_planetary_system().get_number_of_planets() > 1){
+			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
+			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
+				calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
+			} else {
+				calculate_disk_ecc_peri_nbody_center(data, timestep, force_update);
+			}
+		} else {
+			// We only have a star, compute ecc around primary
+			calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
+		}
+	} else {
+		// If we have multiple objects as hydro center, always compute eccentricity around hydro center
+		calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
+	}
+}
+
+void state_disk_ecc_peri_calculation_center(t_data &data){
+	if(parameters::n_bodies_for_hydroframe_center == 1){
+		if(data.get_planetary_system().get_number_of_planets() > 1){
+			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
+			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
+				printf("%.5e < %.5e\n", data.get_planetary_system().get_planet(1).get_semi_major_axis(), RMAX*0.1);
+				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (primary) center!\n");
+			} else {
+				printf("%.5e > %.5e\n", data.get_planetary_system().get_planet(1).get_semi_major_axis(), RMAX*0.1);
+				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the center of mass of the Nbody system!\n");
+			}
+		} else {
+			// We only have a star, compute ecc around primary
+			logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (primary) center!\n");
+		}
+	} else {
+		// If we have multiple objects as hydro center, always compute eccentricity around hydro center
+		logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (Nbody) center!\n");
+	}
 }
 
 /**

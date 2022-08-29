@@ -139,6 +139,8 @@ extern double POLYTROPIC_CONSTANT;
 
 extern BoundaryFlow MassDelta;
 
+extern int ECC_GROWTH_MONITOR;
+
 extern double dtemp;
 extern int debug_outputs;
 extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;

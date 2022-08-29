@@ -863,6 +863,11 @@ void update_with_sourceterms(t_data &data, const double dt)
     if (parameters::self_gravity) {
 	selfgravity::compute(data, dt, true);
     }
+
+	if(ECC_GROWTH_MONITOR){
+		quantities::calculate_disk_delta_ecc_peri(data, data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS], data[t_data::DELTA_PERIASTRON_SOURCE_TERMS]);
+	}
+
 }
 
 
@@ -1261,6 +1266,10 @@ void update_with_artificial_viscosity(t_data &data, const double time, const dou
 	} else { // SN or TW (just for Vazimuthal ghost cells)
 	update_with_artificial_viscosity_SN(data, dt);
 	recalculate_viscosity(data, time);
+	}
+
+	if(ECC_GROWTH_MONITOR){
+		quantities::calculate_disk_delta_ecc_peri(data, data[t_data::DELTA_ECCENTRICITY_ART_VISC], data[t_data::DELTA_PERIASTRON_ART_VISC]);
 	}
 }
 

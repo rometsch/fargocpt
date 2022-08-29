@@ -166,6 +166,7 @@ WriteEnergy		Yes		# Write energy. This is needed for restart of (adiabatic) simu
 WriteTemperature	No		# Write temperature. [default = no]
 WriteVelocity		Yes		# Write velocites. This is needed for restart of simulations. [default = yes]
 WriteSoundspeed		No		# Write sound speed [default = no]
+WriteEccentricityChange Yes
 WriteEffectiveGamma No		#
 WriteFirstAdiabaticIndex No # Usefull for PVTE EoS
 WriteMeanMolecularWeight No # 

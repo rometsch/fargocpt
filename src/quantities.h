@@ -19,8 +19,12 @@ double gas_azimuthal_kinematic_energy(t_data &data,
 				      const double quantitiy_radius);
 double gas_gravitational_energy(t_data &data, const double quantitiy_radius);
 
-void calculate_disk_quantities(t_data &data, unsigned int timestep,
-			       bool force_update);
+void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
+				   bool force_update);
+void state_disk_ecc_peri_calculation_center(t_data &data);
+
+void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid &dPer);
+
 void calculate_alpha_grav(t_data &data, unsigned int timestep,
 			  bool force_update);
 void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,

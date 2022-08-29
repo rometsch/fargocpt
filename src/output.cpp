@@ -819,7 +819,7 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
     double local_periastron = 0.0;
 
     // calculate eccentricity, semi_major_axis and periastron grid
-    quantities::calculate_disk_quantities(data, timestep, force_update);
+	quantities::calculate_disk_ecc_peri(data, timestep, force_update);
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)

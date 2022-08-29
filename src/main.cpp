@@ -137,6 +137,8 @@ int main(int argc, char *argv[])
     data.get_planetary_system().read_from_file(PLANETCONFIG);
     data.get_planetary_system().compute_dist_to_primary();
     data.get_planetary_system().init_roche_radii();
+	data.get_planetary_system().calculate_orbital_elements();
+	quantities::state_disk_ecc_peri_calculation_center(data);
 
     VISCOUS_ACCRETION = false;
     if (parameters::boundary_inner ==
@@ -267,6 +269,7 @@ int main(int argc, char *argv[])
 			      "Finished restarting planetary system.\n");
 
 	recalculate_derived_disk_quantities(data, PhysicalTime);
+	calculate_disk_ecc_peri(data, 0, true);
 
 	if (parameters::variableGamma) {
 

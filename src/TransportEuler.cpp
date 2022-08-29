@@ -25,6 +25,7 @@ velocity in each zone by a proper averaging).
 #include "macros.h"
 #include "parameters.h"
 #include "util.h"
+#include "quantities.h"
 
 // radial momentum is split to be cell centered
 static t_polargrid radial_momentum_plus;
@@ -129,6 +130,10 @@ void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 	// assure minimum temperature after transport. it
 	// is crucial the check minimum density before!
 	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+	}
+
+	if(ECC_GROWTH_MONITOR){
+		quantities::calculate_disk_delta_ecc_peri(data, data[t_data::DELTA_ECCENTRICITY_VISC], data[t_data::DELTA_PERIASTRON_VISC]);
 	}
 }
 
