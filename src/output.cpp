@@ -1165,8 +1165,6 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 	double transport_de = 0.0;
 	if (data[t_data::DELTA_ECCENTRICITY_TRANSPORT].get_write()) {
 		transport_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_TRANSPORT], quantities_radius);
-		printf("transport_de = %.5e %d %d %d\n", transport_de, true, data[t_data::DELTA_ECCENTRICITY_TRANSPORT].get_write(), ECC_GROWTH_MONITOR);
-
 	}
 
 	double source_dp = 0.0;
