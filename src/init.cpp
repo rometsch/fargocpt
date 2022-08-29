@@ -1317,11 +1317,11 @@ void init_gas_energy(t_data &data)
     case parameters::initialize_condition_profile:
 	logging::print_master(
 	    LOG_INFO
-	    "Initializing Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
+	    "Initializing Energy = %g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((ADIABATICINDEX - 1.0)) * parameters::sigma0 *
 		std::pow(ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU,
+	    (1*units::L0).value_as(units::au),
 	    -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
 	    parameters::MU / constants::R * std::pow(ASPECTRATIO_REF, 2) *
 		constants::G * hydro_center_mass *
@@ -1342,8 +1342,7 @@ void init_gas_energy(t_data &data)
 			     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
 		    constants::G * hydro_center_mass;
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+		    parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
