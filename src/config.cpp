@@ -91,7 +91,7 @@ bool Config::get_flag(const std::string &key, const bool default_value)
     }
 }
 
-char Config::get_first_letter_lowercase(const std::string &key, const char *default_value)
+char Config::get_first_letter_lowercase(const std::string &key, const std::string &default_value)
 {
     std::string value = get<std::string>(key, default_value);
     if (value.length() == 0) {
