@@ -21,11 +21,11 @@ class Config
 
   public:
     Config(){};
-    Config(const char *filename);
+    Config(const std::string& filename);
     Config(const YAML::Node &n);
     ~Config(){};
 
-    void load_file(const char *filename);
+    void load_file(const std::string& filename);
 
     template <typename T> T get(const char *key);
 

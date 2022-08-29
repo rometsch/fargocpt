@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 	if (parameters::is_damping_initial) {
 	    // load grids at t = 0
 	    const std::string snapshot_dir_old = snapshot_dir;
-	    snapshot_dir =OUTPUTDIR + "/snapshots/damping";
+	    snapshot_dir =OUTPUTDIR + "snapshots/damping";
 	    if (!std::experimental::filesystem::exists(snapshot_dir)) {
 		logging::print_master(
 		    LOG_ERROR
@@ -400,7 +400,6 @@ int main(int argc, char *argv[])
 
     // free up everything
     DeallocateBoundaryCommunicationBuffers();
-    delete[] options::parameter_file;
     FreeEuler();
 
     selfgravity::mpi_finalize();

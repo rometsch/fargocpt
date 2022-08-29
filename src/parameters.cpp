@@ -321,7 +321,7 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 
 }
 
-void read(char *filename, t_data &data)
+void read(const std::string &filename, t_data &data)
 {
 	// auto & cfg = config::cfg;
 	config::cfg.load_file(filename);

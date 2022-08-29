@@ -82,7 +82,7 @@ void t_planetary_system::initialize_default_star()
 
 
 
-void t_planetary_system::init_system(char *filename)
+void t_planetary_system::init_system(const std::string &filename)
 {
     if (parameters::default_star) {
 	initialize_default_star();

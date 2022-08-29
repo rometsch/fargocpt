@@ -327,7 +327,7 @@ enum t_particle_integrator {
 };
 extern t_particle_integrator integrator;
 
-void read(char *filename, t_data &data);
+void read(const std::string &filename, t_data &data);
 void summarize_parameters();
 void write_grid_data_to_file();
 void exitOnDeprecatedSetting(std::string setting_name, std::string reason,

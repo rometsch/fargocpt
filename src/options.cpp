@@ -33,7 +33,7 @@ static int strcicmp(char const *a, char const *b)
 
 namespace options
 {
-char *parameter_file;
+std::string parameter_file = "";
 bool memory_usage = false;
 bool disable = false;
 
@@ -84,7 +84,7 @@ void parse(int argc, char **argv)
 	    break;
 
 	case 1: // no option
-	    if (parameter_file) {
+	    if (parameter_file != "") {
 		usage(argc, argv);
 		die("Input Error: Parameter file must be the last argument");
 	    }
@@ -114,9 +114,7 @@ void parse(int argc, char **argv)
 			break;
 		    }
 		}
-		const unsigned int length = strlen(optarg) + 1;
-		parameter_file = new char[length];
-		strncpy(parameter_file, optarg, length);
+		parameter_file = std::string(optarg);
 	    }
 	    break;
 
@@ -162,7 +160,7 @@ void parse(int argc, char **argv)
     }
 
     // parameter file MUST be specified
-    if (parameter_file == NULL) {
+    if (parameter_file == "") {
 	usage(argc, argv);
 	die("Input error: no parameter file specified");
     }

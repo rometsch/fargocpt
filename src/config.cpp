@@ -30,7 +30,7 @@ static YAML::Node lowercased_node(const YAML::Node &node) {
     return lnode;
 }
 
-Config::Config(const char *filename) { 
+Config::Config(const std::string &filename) { 
     load_file(filename); }
 
 Config::Config(const YAML::Node &n)
@@ -62,7 +62,7 @@ void Config::print() {
     std::cout << *m_root << std::endl;
 }
 
-void Config::load_file(const char *filename)
+void Config::load_file(const std::string &filename)
 {
 	std::ifstream infile(filename);
     YAML::Node node = YAML::Load(infile);

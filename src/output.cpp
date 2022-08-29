@@ -237,7 +237,7 @@ void check_free_space(t_data &data)
 static void register_output(const std::string &snapshot_id)
 {
     if (CPU_Master) {
-	const std::string filename = OUTPUTDIR + "/snapshots/list.txt";
+	const std::string filename = OUTPUTDIR + "snapshots/list.txt";
 	std::ofstream output_list(filename, std::ios_base::app);
 	output_list << snapshot_id << std::endl;
 	output_list.close();
@@ -247,7 +247,7 @@ static void register_output(const std::string &snapshot_id)
 static void copy_parameters_to_snapshot_dir()
 {
     if (CPU_Master) {
-	const std::string src_file = std::string(options::parameter_file);
+	const std::string src_file = options::parameter_file;
 	const std::string dst_file = snapshot_dir + "/parameters.par";
 	std::experimental::filesystem::copy_file(src_file, dst_file);
     }
@@ -1071,7 +1071,7 @@ static std::string getLastLine(std::ifstream &in)
 
 std::string get_last_snapshot_id()
 {
-    const std::string filename = OUTPUTDIR + "/snapshots/list.txt";
+    const std::string filename = OUTPUTDIR + "snapshots/list.txt";
     std::ifstream file(filename);
     std::string last_id = getLastLine(file);
     return last_id;

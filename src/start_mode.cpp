@@ -63,11 +63,11 @@ void configure_start_mode()
 	case mode_restart:
 	    if (restart_from < 0) {
 		const std::string last_id = output::get_last_snapshot_id();
-		snapshot_dir = OUTPUTDIR + "/snapshots/" + last_id;
+		snapshot_dir = OUTPUTDIR + "snapshots/" + last_id;
 		restart_from = output::get_latest_output_num(last_id);
 	    } else {
 		// const std::string last_id = std::to_string(restart_from);
-		snapshot_dir = OUTPUTDIR + "/snapshots/" +
+		snapshot_dir = OUTPUTDIR + "snapshots/" +
 			       std::to_string(restart_from);
 		// restart_from = output::get_latest_output_num(last_id);
 	    }

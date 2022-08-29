@@ -71,7 +71,7 @@ static std::string getFileName(const std::string &s)
     return ("");
 }
 
-void ReadVariables(char *filename, t_data &data, int argc, char **argv)
+void ReadVariables(const std::string &filename, t_data &data, int argc, char **argv)
 {
     // read config from
     // config::read_config_from_file(filename);

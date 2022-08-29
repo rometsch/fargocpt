@@ -60,7 +60,7 @@ class t_planetary_system
 
     void initialize_default_star();
     void init_rebound();
-    void init_system(char *filename);
+    void init_system(const std::string &filename);
     void config_consistency_checks();
     void init_corotation_body();
     void init_hydro_frame_center();
