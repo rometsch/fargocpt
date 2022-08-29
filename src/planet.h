@@ -189,8 +189,8 @@ class t_planet
     void copy(const planet_member_variables &other);
     void create_planet_file();
     void write(const unsigned int file_type);
-    void write_ascii(const char *filename) const;
-    void write_binary(const char *filename) const;
+    void write_ascii(const std::string &filename) const;
+    void write_binary(const std::string &filename) const;
     void restart();
 
     ~t_planet();

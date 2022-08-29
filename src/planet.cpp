@@ -431,18 +431,17 @@ void t_planet::write(const unsigned int file_type)
     if (!CPU_Master)
 	return;
 
-    std::stringstream filename;
+    std::string filename;
 
     // create filename
     switch (file_type) {
     case 0:
-	filename << snapshot_dir << "/planet" << get_planet_number() << ".bin";
-	write_binary(filename.str().c_str());
+    filename = snapshot_dir + "/planet" + std::to_string(get_planet_number()) + ".bin";
+	write_binary(filename);
 	break;
     case 1:
-	filename << std::string(OUTPUTDIR) << "/bigplanet"
-		 << get_planet_number() << ".dat";
-	write_ascii(filename.str().c_str());
+    filename = snapshot_dir + "/bigplanet" + std::to_string(get_planet_number()) + ".dat";
+	write_ascii(filename);
 	reset_accreted_mass();
 	break;
     default:
@@ -450,10 +449,10 @@ void t_planet::write(const unsigned int file_type)
     }
 }
 
-void t_planet::write_ascii(const char *filename) const
+void t_planet::write_ascii(const std::string &filename) const
 {
     // open file
-    FILE *fd = fopen(filename, "a");
+    FILE *fd = fopen(filename.c_str(), "a");
     if (fd == NULL) {
 	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
 	PersonalExit(1);
@@ -484,7 +483,7 @@ void t_planet::write_ascii(const char *filename) const
     fclose(fd);
 }
 
-void t_planet::write_binary(const char *filename) const
+void t_planet::write_binary(const std::string &filename) const
 {
 
     std::ofstream wf;
@@ -496,6 +495,8 @@ void t_planet::write_binary(const char *filename) const
     }
 
     planet_member_variables pl;
+    memset(&pl, 0, sizeof(planet_member_variables));
+
     pl.timestep = N_output;
     pl.m_mass = m_mass;
     pl.m_x = m_x;
