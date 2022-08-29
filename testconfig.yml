@@ -222,7 +222,7 @@ planets:
   accretion efficiency: '0.0'
   eccentricity: '0'
   radius: 0.01 solRadius
-  temperature: '5800'
+  temperature: 5800 K
   irradiate: 'NO'
   phi: '0.0'
   ramp-up time: '0.0'
