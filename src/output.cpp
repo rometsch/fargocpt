@@ -501,10 +501,9 @@ void write_misc()
     }
 
     std::ofstream wf;
-    std::string filename;
-    filename = snapshot_dir + "/misc.bin";
+    const std::string filename = snapshot_dir + "/misc.bin";
 
-    wf = std::ofstream(filename.c_str(), std::ios::out | std::ios::binary);
+    wf = std::ofstream(filename, std::ios::out | std::ios::binary);
 
     if (!wf.is_open()) {
 	logging::print_master(
@@ -513,8 +512,18 @@ void write_misc()
 	PersonalExit(1);
     }
 
-    misc_entry misc{N_output,	N_outer_loop, PhysicalTime, OmegaFrame,
-		    FrameAngle, dtemp,	      last_dt,	    N_hydro_iter};
+	misc_entry misc;
+	memset(&misc, 0, sizeof(misc_entry));
+
+	
+    misc.timestep = N_output;
+    misc.nTimeStep = N_outer_loop;
+    misc.PhysicalTime = PhysicalTime;
+    misc.OmegaFrame = OmegaFrame;
+    misc.FrameAngle = FrameAngle;
+    misc.dtemp = dtemp;
+    misc.last_dt = last_dt;
+    misc.N_iter = N_hydro_iter;
 
     wf.write((char *)&misc, sizeof(misc));
 
