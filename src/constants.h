@@ -15,7 +15,7 @@ const double M = 1.0;
 //const unsigned int CPUOVERLAP = 5;
 // overlap cells (Zeus-like overlap kernel. With leapfrog: 2:transport; 2x2: source, 1x2:viscous
 // stress)
-const unsigned int CPUOVERLAP = 5; // I don't need 8 cells to get bitwise identical result with fargo.par
+const unsigned int CPUOVERLAP = 7; // I don't need 8 cells to get bitwise identical result with fargo.par
 const unsigned int GHOSTCELLS_A = 2;
 const unsigned int GHOSTCELLS_B = 1;
 
