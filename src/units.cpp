@@ -64,11 +64,6 @@ template <typename T> T parse_units(const std::string &val) {
     return rv;
 }
 
-template <typename T> T parse_units(const std::string &val, const precise_unit& unit) {
-    const T rv = val;
-    return rv;
-}
-
 template <> double parse_units(const std::string &val) {
     auto q = llnlunits::measurement_from_string(val);
     return (double) q.convert_to_base().value();
@@ -100,7 +95,6 @@ template <> int parse_units(const std::string &val, const precise_unit& unit) {
 }
 
 template std::string parse_units<std::string>(const std::string &val);
-template std::string parse_units<std::string>(const std::string &val, const precise_unit &baseunit);
 
 llnlunits::precise_unit solMass(1.98847e30, llnlunits::precise::kilogram);
 llnlunits::precise_unit au(1.495978707e11, llnlunits::precise::meter);
