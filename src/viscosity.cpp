@@ -292,7 +292,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 			n_radial, n_azimuthal);
 			const double NuArt_jm = data[t_data::SIGMA_ART_VISC](
 			n_radial, n_azimuthal_minus);
-			cphi_pp += (NuArt_jm - NuArt) *
+			cphi_pp -= (NuArt_jm + NuArt) *
 				   (invdphi * invdphi * InvRmed[n_radial]);
 		}
 

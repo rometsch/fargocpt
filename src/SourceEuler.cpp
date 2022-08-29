@@ -1011,7 +1011,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 		const double SigNuArt = SIGMA_ART_NU(nr, naz);
 		const double SigNuArt_jm = SIGMA_ART_NU(nr, naz_minus);
 
-		const double cphi_pp = (SigNuArt_jm - SigNuArt) *
+		const double cphi_pp = -(SigNuArt_jm + SigNuArt) *
 				(invdphi * invdphi * InvRmed[nr]);
 
 		const double sigma_phi_avg =
