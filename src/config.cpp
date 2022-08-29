@@ -71,14 +71,15 @@ void Config::load_file(const char *filename)
 
 bool Config::get_flag(const char *key)
 {
+    bool rv;
     const YAML::Node & root = *m_root;
     const std::string lkey = lowercase(key);
     try {
-        bool ret = root[lkey].as<bool>();
-        return ret;
-    } catch (YAML::TypedBadConversion<bool>) {
+        rv = root[lkey].as<bool>();
+    } catch (YAML::TypedBadConversion<bool> const &) {
         die("Conversion from yaml failed for key '%s'\n", key);
     }
+    return rv;
 }
 
 bool Config::get_flag(const char *key, const bool default_value)
@@ -130,13 +131,15 @@ template <typename T> T Config::get(const char *key)
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key);
     }
+    T rv;
     const auto &root = *m_root;
     std::string lkey = lowercase(key);
     try {
-        return root[lkey].as<T>();
-    } catch (YAML::TypedBadConversion<T>) {
+        rv = root[lkey].as<T>();
+    } catch (YAML::TypedBadConversion<T> const &) {
         die("Conversion from yaml failed for key '%s'\n", key);
     }
+    return rv;
 }
 
 template <typename T> T Config::get(const char *key, const units::precise_unit& unit)
@@ -153,7 +156,7 @@ template <typename T> T Config::get(const char *key, const units::precise_unit& 
     } else {
         try {
             rv = root[lkey].as<T>();
-        } catch (YAML::TypedBadConversion<T>) {
+        } catch (YAML::TypedBadConversion<T> const &) {
             die("Conversion from yaml failed for key '%s'\n", key);
         }
     }
