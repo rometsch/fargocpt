@@ -38,7 +38,7 @@ Config::Config(const YAML::Node &n)
     m_root = std::make_shared<YAML::Node>(YAML::Clone(lowercased_node(n)));
 };
 
-Config Config::get_subconfig(const char *key)
+Config Config::get_subconfig(const std::string &key)
 {
     const auto &n = *m_root;
     return Config((n[lowercase(key)]));
@@ -69,7 +69,7 @@ void Config::load_file(const std::string &filename)
     m_root = std::make_shared<YAML::Node>(lowercased_node(node));
 }
 
-bool Config::get_flag(const char *key)
+bool Config::get_flag(const std::string &key)
 {
     bool rv;
     const YAML::Node & root = *m_root;
@@ -82,7 +82,7 @@ bool Config::get_flag(const char *key)
     return rv;
 }
 
-bool Config::get_flag(const char *key, const bool default_value)
+bool Config::get_flag(const std::string &key, const bool default_value)
 {
     if (contains(key)) {
 	return get_flag(key);
@@ -91,7 +91,7 @@ bool Config::get_flag(const char *key, const bool default_value)
     }
 }
 
-char Config::get_first_letter_lowercase(const char *key, const char *default_value)
+char Config::get_first_letter_lowercase(const std::string &key, const char *default_value)
 {
     std::string value = get<std::string>(key, default_value);
     if (value.length() == 0) {
@@ -100,20 +100,10 @@ char Config::get_first_letter_lowercase(const char *key, const char *default_val
     return tolower(value[0]);
 }
 
-char Config::get_first_letter_lowercase(const char *key)
+char Config::get_first_letter_lowercase(const std::string &key)
 {
     std::string value = get<std::string>(key);
     return tolower(value[0]);
-}
-
-bool Config::contains(const char *key)
-{
-    const YAML::Node & root = *m_root;
-    if (root[lowercase(key)]) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 bool Config::contains(const std::string &key)
@@ -124,22 +114,6 @@ bool Config::contains(const std::string &key)
     } else {
         return false;
     }
-}
-
-template <typename T> T Config::get(const char *key)
-{
-    if (!contains(key)) {
-        die("Required parameter '%s' missing!\n", key);
-    }
-    T rv;
-    const auto &root = *m_root;
-    std::string lkey = lowercase(key);
-    try {
-        rv = root[lkey].as<T>();
-    } catch (YAML::TypedBadConversion<T> const &) {
-        die("Conversion from yaml failed for key '%s'\n", key);
-    }
-    return rv;
 }
 
 template <typename T> T Config::get(const std::string &key)
@@ -159,7 +133,7 @@ template <typename T> T Config::get(const std::string &key)
 }
 
 
-template <typename T> T Config::get(const char *key, const units::precise_unit& unit)
+template <typename T> T Config::get(const std::string &key, const units::precise_unit& unit)
 {
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key);
@@ -178,19 +152,6 @@ template <typename T> T Config::get(const char *key, const units::precise_unit& 
         }
     }
     return rv;
-}
-
-
-template <typename T> T Config::get(const char *key, const T &default_value)
-{
-    T ret;
-    const std::string lkey = lowercase(key);
-    if (contains(key)) {
-        ret = get<T>(key);
-    } else {
-	    ret = default_value;
-    }
-    return ret;
 }
 
 
@@ -220,7 +181,7 @@ template <> double stoT(const std::string &val) {
     return std::stod(val);
 }
 
-template <typename T> T Config::get(const char *key, 
+template <typename T> T Config::get(const std::string &key, 
                             const T &default_value, 
                             const units::precise_unit& unit) 
 {    
@@ -241,7 +202,7 @@ template <typename T> T Config::get(const char *key,
     return ret;
 };
 
-template <typename T> T Config::get(const char *key, 
+template <typename T> T Config::get(const std::string &key, 
                             const std::string &default_value, 
                             const units::precise_unit& unit) 
 {
@@ -262,33 +223,27 @@ template <typename T> T Config::get(const char *key,
     return rv;
 };
 
-template double Config::get(const char *key);
-template int Config::get(const char *key);
-template unsigned int Config::get(const char *key);
-template std::string Config::get(const char *key);
-
 template double Config::get(const std::string &key);
 template int Config::get(const std::string &key);
 template unsigned int Config::get(const std::string &key);
 template std::string Config::get(const std::string &key);
 
-template double Config::get(const char *key, const double &d);
-template int Config::get(const char *key, const int &d);
-template unsigned int Config::get(const char *key, const unsigned int &d);
-template std::string Config::get(const char *key, const std::string &d);
+template double Config::get(const std::string &key, const double &d);
+template int Config::get(const std::string &key, const int &d);
+template unsigned int Config::get(const std::string &key, const unsigned int &d);
 template std::string Config::get(const std::string &key, const std::string &d);
 
-template double Config::get(const char *key, const double &d, const units::precise_unit& unit);
-template int Config::get(const char *key, const int &d, const units::precise_unit& unit);
-template unsigned int Config::get(const char *key, const unsigned int &d, const units::precise_unit& unit);
+template double Config::get(const std::string &key, const double &d, const units::precise_unit& unit);
+template int Config::get(const std::string &key, const int &d, const units::precise_unit& unit);
+template unsigned int Config::get(const std::string &key, const unsigned int &d, const units::precise_unit& unit);
 
-template double Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
-template int Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
-template unsigned int Config::get(const char *key, const std::string &d, const units::precise_unit& unit);
+template double Config::get(const std::string &key, const std::string &d, const units::precise_unit& unit);
+template int Config::get(const std::string &key, const std::string &d, const units::precise_unit& unit);
+template unsigned int Config::get(const std::string &key, const std::string &d, const units::precise_unit& unit);
 
-template double Config::get(const char *key, const units::precise_unit& unit);
-template int Config::get(const char *key, const units::precise_unit& unit);
-template unsigned int Config::get(const char *key, const units::precise_unit& unit);
+template double Config::get(const std::string &key, const units::precise_unit& unit);
+template int Config::get(const std::string &key, const units::precise_unit& unit);
+template unsigned int Config::get(const std::string &key, const units::precise_unit& unit);
 
 
 

@@ -27,36 +27,29 @@ class Config
 
     void load_file(const std::string& filename);
 
-    template <typename T> T get(const char *key);
-
     template <typename T> T get(const std::string &key);
 
     template <typename T> T get(const std::string &key, const T &default_value);
 
-    template <typename T> T get(const char *key, const T &default_value);
+    template <typename T> T get(const std::string &key, const units::precise_unit& unit);
 
-    template <typename T> T get(const char *key, const units::precise_unit& unit);
-
-    template <typename T> T get(const char *key, 
+    template <typename T> T get(const std::string &key, 
                                 const T &default_value, 
                                 const units::precise_unit& unit);
 
-    template <typename T> T get(const char *key, 
+    template <typename T> T get(const std::string &key, 
                                 const std::string &default_value, 
                                 const units::precise_unit& unit);
 
-    std::string get(const char *key, const char *default_value);
+    bool get_flag(const std::string &key);
+    bool get_flag(const std::string &key, const bool default_value);
 
-    bool get_flag(const char *key);
-    bool get_flag(const char *key, const bool default_value);
+    char get_first_letter_lowercase(const std::string &key);
+    char get_first_letter_lowercase(const std::string &key, const char *default_value);
 
-    char get_first_letter_lowercase(const char *key);
-    char get_first_letter_lowercase(const char *key, const char *default_value);
-
-    bool contains(const char *key);
     bool contains(const std::string &key);
 
-    Config get_subconfig(const char *key);
+    Config get_subconfig(const std::string &key);
     std::vector<Config> get_planet_config();
 
     void print();
