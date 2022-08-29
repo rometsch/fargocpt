@@ -640,10 +640,8 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 		if(data.get_planetary_system().get_number_of_planets() > 1){
 			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
 			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
-				printf("%.5e < %.5e\n", data.get_planetary_system().get_planet(1).get_semi_major_axis(), RMAX*0.1);
 				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (primary) center!\n");
 			} else {
-				printf("%.5e > %.5e\n", data.get_planetary_system().get_planet(1).get_semi_major_axis(), RMAX*0.1);
 				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the center of mass of the Nbody system!\n");
 			}
 		} else {
