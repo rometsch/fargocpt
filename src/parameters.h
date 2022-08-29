@@ -287,11 +287,6 @@ extern double CFL;
 extern double CFL_max_var;
 extern double HEATING_COOLING_CFL_LIMIT;
 
-/// length base unit
-extern double L0_in_au;
-/// mass base unit
-extern double M0_in_solMass;
-
 /// (total) number of particles
 extern unsigned int number_of_particles;
 /// enable particle integration

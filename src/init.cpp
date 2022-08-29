@@ -354,6 +354,10 @@ void init_physics(t_data &data)
 
 void init_shakura_sunyaev(t_data &data)
 {
+	const double M0_in_solMass = (1*units::M0).value_as(units::solMass);
+	const double Mdot_cgs = parameters::mass_accretion_rate * units::mass_accretion_rate.get_cgs_factor();
+	const double L0_cgs = units::length.get_cgs_factor();
+
     double factor;
 
     if (!parameters::Adiabatic) {
@@ -363,6 +367,7 @@ void init_shakura_sunyaev(t_data &data)
     if (ASPECTRATIO_MODE > 0) {
 	die("ASPECTRATIO_NBODY and Shakura & Sunyaev starting conditions has not yet been implemented!");
     }
+
 
     for (unsigned int n_radial = 0; n_radial < data[t_data::TEMPERATURE].Nrad;
 	 ++n_radial) {
@@ -377,49 +382,33 @@ void init_shakura_sunyaev(t_data &data)
 
 	    data[t_data::SIGMA](n_radial, n_azimuthal) =
 		(5.2 * std::pow(ALPHAVISCOSITY, -4. / 5.) *
-		 std::pow(parameters::mass_accretion_rate *
-			      units::mass_accretion_rate.get_cgs_factor() /
-			      1.e16,
-			  7. / 10.) *
-		 std::pow(parameters::M0_in_solMass, 0.25) *
-		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
-			  -0.75) *
+		 std::pow(Mdot_cgs / 1.e16, 7. / 10.) *
+		 std::pow(M0_in_solMass, 0.25) *
+		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
 		 std::pow(factor, 14. / 5.)) /
 		units::surface_density.get_cgs_factor();
 
 	    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		(1.7e8 * std::pow(ALPHAVISCOSITY, -1. / 10.) *
-		 std::pow(parameters::mass_accretion_rate *
-			      units::mass_accretion_rate.get_cgs_factor() /
-			      1.e16,
-			  3. / 20.) *
-		 std::pow(parameters::M0_in_solMass, -3. / 8.) *
-		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
-			  9. / 8.) *
+		 std::pow(Mdot_cgs / 1.e16, 3. / 20.) *
+		 std::pow(M0_in_solMass, -3. / 8.) *
+		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, 9. / 8.) *
 		 std::pow(factor, 3. / 5.)) /
-		(Rb[n_radial] * units::length.get_cgs_factor()) * Rb[n_radial];
+		(Rb[n_radial] * L0_cgs) * Rb[n_radial];
 
 	    data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		(1.4e4 * std::pow(ALPHAVISCOSITY, -1. / 5.) *
-		 std::pow(parameters::mass_accretion_rate *
-			      units::mass_accretion_rate.get_cgs_factor() /
-			      1.e16,
-			  3. / 10.) *
-		 std::pow(parameters::M0_in_solMass, 0.25) *
-		 std::pow(Rb[n_radial] * units::length.get_cgs_factor() / 1.e10,
-			  -0.75) *
+		 std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
+		 std::pow(M0_in_solMass, 0.25) *
+		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
 		 std::pow(factor, 6. / 5.)) /
 		units::temperature.get_cgs_factor();
+
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		-(2.7e4 * std::pow(ALPHAVISCOSITY, 4. / 5.) *
-		  std::pow(parameters::mass_accretion_rate *
-			       units::mass_accretion_rate.get_cgs_factor() /
-			       1.e16,
-			   3. / 10.) *
-		  std::pow(parameters::M0_in_solMass, -0.25) *
-		  std::pow(Rb[n_radial] * units::length.get_cgs_factor() /
-			       1.e10,
-			   -0.25) *
+		  std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
+		  std::pow(M0_in_solMass, -0.25) *
+		  std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.25) *
 		  std::pow(factor, -14. / 5.)) /
 		units::velocity.get_cgs_factor();
 

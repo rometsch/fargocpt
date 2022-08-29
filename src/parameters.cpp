@@ -165,9 +165,6 @@ double CFL;
 double CFL_max_var;
 double HEATING_COOLING_CFL_LIMIT;
 
-double L0_in_au;
-double M0_in_solMass;
-
 unsigned int number_of_particles;
 bool integrate_particles;
 double particle_radius;
@@ -340,16 +337,10 @@ void read(char *filename, t_data &data)
 	units::precise_unit T0 = units::T0;
 	units::precise_unit Temp0 = units::Temp0;
 
-	L0_in_au = (1*units::L0).value_as(llnlunits::measurement_from_string("au").as_unit());
-	M0_in_solMass = (1*units::M0).value_as(llnlunits::measurement_from_string("solMass").as_unit());
-
 	constants::initialize_constants();
 
     // now we now everything to compute unit factors
     units::calculate_unit_factors();
-
-	std::cout << "Legacy L0 = " << L0_in_au << std::endl;
-	std::cout << "Legacy M0 = " << M0_in_solMass << std::endl;
 
     /* grid */
     NRadial = config::cfg.get<unsigned int>("NRAD", 64);
@@ -923,17 +914,15 @@ void read(char *filename, t_data &data)
     }
 
     // star parameters
-    star_temperature = config::cfg.get<double>("StarTemperature", 5778);
-    star_radius = config::cfg.get<double>(
-	"StarRadius", "1 solRadius", L0); // solar radius in [R_sol]
+    star_temperature = config::cfg.get<double>("StarTemperature", "5778 K", Temp0);
+    star_radius = config::cfg.get<double>("StarRadius", "1 solRadius", L0);
 
     if (heating_star_enabled) {
-	if (star_radius < 0.1) {
+	if (star_radius*L0 < 0.1*units::solar_radius_in_au*units::au) {
 	    die("Star radius is smaller than Jupiter with %.3e [R_sol]. This cannot be an active star\n",
 		star_radius);
 	}
     }
-    star_radius *= units::solar_radius_in_au / L0_in_au; // convert to code units
 
     // boundary layer parameters
     radial_viscosity_factor =
