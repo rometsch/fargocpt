@@ -401,34 +401,6 @@ double gas_azimuthal_kinematic_energy(t_data &data,
     return global_kinematic_energy;
 }
 
-/**
-	Calculates gas gravitational energy
-*/
-double gas_gravitational_energy(t_data &data, const double quantitiy_radius)
-{
-    double local_gravitational_energy = 0.0;
-    double global_gravitational_energy = 0.0;
-
-    for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size; ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantitiy_radius) {
-		local_gravitational_energy +=
-		    -Surf[n_radial] *
-		    data[t_data::DENSITY](n_radial, n_azimuthal) *
-		    data[t_data::POTENTIAL](n_radial, n_azimuthal);
-	    }
-	}
-    }
-
-    MPI_Reduce(&local_gravitational_energy, &global_gravitational_energy, 1,
-	       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-    return global_gravitational_energy;
-}
-
 static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int timestep,
 				   bool force_update)
 {
@@ -547,10 +519,8 @@ void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid 
 
 	for (unsigned int nr = 0;	 nr < ecc.get_size_radial(); ++nr) {
 	for (unsigned int naz = 0; naz < ecc.get_size_azimuthal(); ++naz) {
-
 		dEcc(nr, naz) += (ecc(nr, naz) - ecc_tmp(nr, naz)) * sigma(nr, naz) * Surf[nr] / mass;
 		dPer(nr, naz) += (peri(nr, naz) - peri_tmp(nr, naz)) * sigma(nr, naz) * Surf[nr] / mass;
-
 	}
 	}
 
@@ -560,14 +530,8 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 			       bool force_update)
 {
     static int last_timestep_calculated = -1;
-    double angle, r_x, r_y, j;
-    double v_xmed, v_ymed;
-    double e_x, e_y;
-    double total_mass = 0.0;
-
 	const Pair cms_pos = data.get_planetary_system().get_hydro_frame_center_position();
 	const Pair cms_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
-
 
     if (!force_update) {
 	if (last_timestep_calculated == (int)timestep) {
@@ -576,27 +540,28 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 	    last_timestep_calculated = timestep;
 	}
     }
+
     // calculations outside the loop for speedup
-    double sinFrameAngle = std::sin(FrameAngle);
-    double cosFrameAngle = std::cos(FrameAngle);
+	const double sinFrameAngle = std::sin(FrameAngle);
+	const double cosFrameAngle = std::cos(FrameAngle);
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
-	    total_mass =
+		const double total_mass =
 		hydro_center_mass +
 		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
 
 	    // location of the cell
-	    angle = (double)n_azimuthal /
+		const double angle = (double)n_azimuthal /
 		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
 		    M_PI;
-		r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
-		r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
+		const double r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
+		const double r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
 
 	    // averaged velocities
-	    v_xmed =
+		const double v_xmed =
 		std::cos(angle) * 0.5 *
 		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 		     data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) -
@@ -609,7 +574,7 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 					    ? 0
 					    : n_azimuthal + 1)) +
 			 OmegaFrame * Rmed[n_radial]) - cms_vel.x;
-	    v_ymed =
+		const double v_ymed =
 		std::sin(angle) * 0.5 *
 		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 		     data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) +
@@ -624,11 +589,11 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 			 OmegaFrame * Rmed[n_radial]) - cms_vel.y;
 
 	    // specific angular momentum for each cell j = j*e_z
-	    j = r_x * v_ymed - r_y * v_xmed;
+		const double j = r_x * v_ymed - r_y * v_xmed;
 	    // Runge-Lenz vector Ax = x*vy*vy-y*vx*vy-G*m*x/d;
-	    e_x =
+		const double e_x =
 		j * v_ymed / (constants::G * total_mass) - r_x / Rmed[n_radial];
-	    e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
+		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / Rmed[n_radial];
 
 	    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =

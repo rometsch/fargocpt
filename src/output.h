@@ -46,6 +46,8 @@ std::string get_version(std::string filename);
 std::string text_file_variable_description(
     const std::map<const std::string, const int> &variables,
     const std::map<const std::string, const std::string> &units);
+void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber, const double quantities_radius);
+
 } // namespace output
 
 #endif // OUTPUT_H

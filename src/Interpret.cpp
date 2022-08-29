@@ -252,7 +252,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // disc
     ASPECTRATIO_REF = config::value_as_double_default("ASPECTRATIO", 0.05);
     ASPECTRATIO_MODE = config::value_as_int_default("AspectRatioMode", 0);
-	ECC_GROWTH_MONITOR = config::value_as_bool_default("WriteEccentricityChange", NO);
 
     switch (ASPECTRATIO_MODE) {
     case 0:
@@ -280,6 +279,22 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 			      "OuterBoundary doesn't exist. Old .par file?\n");
 	die("died for convenience ;)");
     }
+
+	ECC_GROWTH_MONITOR = config::value_as_bool_default("WriteEccentricityChange", NO);
+
+	if(ECC_GROWTH_MONITOR){
+		data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].set_write(true, false);
+		data[t_data::DELTA_PERIASTRON_SOURCE_TERMS].set_write(true, false);
+
+		data[t_data::DELTA_ECCENTRICITY_ART_VISC].set_write(true, false);
+		data[t_data::DELTA_PERIASTRON_ART_VISC].set_write(true, false);
+
+		data[t_data::DELTA_ECCENTRICITY_VISC].set_write(true, false);
+		data[t_data::DELTA_PERIASTRON_VISC].set_write(true, false);
+
+		data[t_data::DELTA_ECCENTRICITY_TRANSPORT].set_write(true, false);
+		data[t_data::DELTA_PERIASTRON_TRANSPORT].set_write(true, false);
+	}
 
     // Frame settings
     Corotating = 0;

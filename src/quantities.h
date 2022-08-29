@@ -18,7 +18,6 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius);
 double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius);
 double gas_azimuthal_kinematic_energy(t_data &data,
 				      const double quantitiy_radius);
-double gas_gravitational_energy(t_data &data, const double quantitiy_radius);
 
 void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
 				   bool force_update);

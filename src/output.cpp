@@ -363,8 +363,10 @@ void write_quantities(t_data &data, bool force_update)
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data, PhysicalTime);
     }
-    const double gravitationalEnergy =
-	quantities::gas_gravitational_energy(data, quantities_limit_radius);
+
+	const double gravitationalEnergy =
+	-quantities::gas_quantity_mass_average(data, data[t_data::POTENTIAL], quantities_limit_radius);
+
     const double totalEnergy =
 	internalEnergy + kinematicEnergy + gravitationalEnergy;
 
@@ -1084,6 +1086,125 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 		PhysicalTime * units::time);
 	fclose(fd);
     }
+}
+
+void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber, const double quantities_radius)
+{
+	FILE *fd = 0;
+	char *fd_filename;
+	static bool fd_created = false;
+
+	if (CPU_Master) {
+
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "torques_dE.dat") == -1) {
+		logging::print_master(LOG_ERROR
+				  "Not enough memory for string buffer.\n");
+		PersonalExit(1);
+	}
+	// check if file exists and we restarted
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
+		fd = fopen(fd_filename, "r");
+		if (fd) {
+		fd_created = true;
+		fclose(fd);
+		}
+	}
+
+	// open logfile
+	if (!fd_created) {
+		fd = fopen(fd_filename, "w");
+	} else {
+		fd = fopen(fd_filename, "a");
+	}
+	if (fd == NULL) {
+		logging::print_master(
+		LOG_ERROR "Can't write 'torques_dE.dat' file. Aborting.\n");
+		PersonalExit(1);
+	}
+
+	free(fd_filename);
+
+	if (!fd_created) {
+		// print header
+		fprintf(
+		fd,
+		"# Different torques and eccentricity changes by update steps.\n"
+		"# Torque unit is %.18g (cgs).\n"
+		"# Eccentricity unit is 1.\n"
+		"# Syntax: coarse output step <tab> advection_torque <tab> viscous_torque <tab> gravitational_torque <tab> ecc change from source terms <tab> de from art visc <tab> de from visc <tab> de from transport <tab> Periastron change from source terms <tab> dP from art visc <tab> dP from visc <tab> dP from transport\n",
+		units::torque.get_cgs_factor());
+		fd_created = true;
+	}
+	}
+
+	if (CPU_Master) {
+	double adv_torque = 0.0;
+	if (data[t_data::ADVECTION_TORQUE].get_write()) {
+		adv_torque = quantities::gas_quantity_reduce(data[t_data::ADVECTION_TORQUE], quantities_radius);
+	}
+	double visc_torque = 0.0;
+	if (data[t_data::VISCOUS_TORQUE].get_write()) {
+		visc_torque = quantities::gas_quantity_reduce(data[t_data::VISCOUS_TORQUE], quantities_radius);
+	}
+	double grav_torque = 0.0;
+	if (data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()) {
+		grav_torque = quantities::gas_quantity_reduce(data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED], quantities_radius);
+	}
+	double source_de = 0.0;
+	if (data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].get_write()) {
+		source_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS], quantities_radius);
+	}
+	double art_visc_de = 0.0;
+	if (data[t_data::DELTA_ECCENTRICITY_ART_VISC].get_write()) {
+		art_visc_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_ART_VISC], quantities_radius);
+	}
+	double visc_de = 0.0;
+	if (data[t_data::DELTA_ECCENTRICITY_VISC].get_write()) {
+		visc_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_VISC], quantities_radius);
+	}
+	double transport_de = 0.0;
+	if (data[t_data::DELTA_ECCENTRICITY_TRANSPORT].get_write()) {
+		transport_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_TRANSPORT], quantities_radius);
+		printf("transport_de = %.5e %d %d %d\n", transport_de, true, data[t_data::DELTA_ECCENTRICITY_TRANSPORT].get_write(), ECC_GROWTH_MONITOR);
+
+	}
+
+	double source_dp = 0.0;
+	if (data[t_data::DELTA_PERIASTRON_SOURCE_TERMS].get_write()) {
+		source_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_SOURCE_TERMS], quantities_radius);
+	}
+	double art_visc_dp = 0.0;
+	if (data[t_data::DELTA_PERIASTRON_ART_VISC].get_write()) {
+		art_visc_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_ART_VISC], quantities_radius);
+	}
+	double visc_dp = 0.0;
+	if (data[t_data::DELTA_PERIASTRON_VISC].get_write()) {
+		visc_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_VISC], quantities_radius);
+	}
+	double transport_dp = 0.0;
+	if (data[t_data::DELTA_PERIASTRON_TRANSPORT].get_write()) {
+		transport_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_TRANSPORT], quantities_radius);
+	}
+	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber,
+		adv_torque, visc_torque, grav_torque,
+			source_de, art_visc_de, visc_de, transport_de,
+			source_dp, art_visc_dp, visc_dp, transport_dp);
+	fclose(fd);
+
+	data[t_data::ADVECTION_TORQUE].clear();
+	data[t_data::VISCOUS_TORQUE].clear();
+	data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].clear();
+
+	data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].clear();
+	data[t_data::DELTA_ECCENTRICITY_ART_VISC].clear();
+	data[t_data::DELTA_ECCENTRICITY_VISC].clear();
+	data[t_data::DELTA_ECCENTRICITY_TRANSPORT].clear();
+
+	data[t_data::DELTA_PERIASTRON_SOURCE_TERMS].clear();
+	data[t_data::DELTA_PERIASTRON_ART_VISC].clear();
+	data[t_data::DELTA_PERIASTRON_VISC].clear();
+	data[t_data::DELTA_PERIASTRON_TRANSPORT].clear();
+	}
 }
 
 } // namespace output

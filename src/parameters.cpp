@@ -407,20 +407,6 @@ void read(char *filename, t_data &data)
 	config::value_as_bool_default("WriteVerticalOpticalDepth", false),
 	do_write_1D);
 
-	if(ECC_GROWTH_MONITOR){
-		data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_SOURCE_TERMS].set_write(true, false);
-
-		data[t_data::DELTA_ECCENTRICITY_ART_VISC].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_ART_VISC].set_write(true, false);
-
-		data[t_data::DELTA_ECCENTRICITY_VISC].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_VISC].set_write(true, false);
-
-		data[t_data::DELTA_ECCENTRICITY_VISC].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_VISC].set_write(true, false);
-	}
-
     write_torques = config::value_as_bool_default("WriteTorques", false);
 
     write_disk_quantities =
