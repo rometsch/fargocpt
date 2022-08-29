@@ -129,17 +129,17 @@ void t_planetary_system::init_planet(config::Config &cfg)
 	die("One of the planets does not have all of: semi-major axis and mass!");
     }
 
-    double semi_major_axis = cfg.get<double>("semi-major axis");
-    const double mass = cfg.get<double>("mass");
+    double semi_major_axis = cfg.get<double>("semi-major axis", units::L0);
+    const double mass = cfg.get<double>("mass", units::M0);
 
     const double eccentricity = cfg.get<double>("eccentricity", 0.0);
 
     const double accretion_efficiency =
 	cfg.get<double>("accretion efficiency", 0.0);
 
-    const double radius = cfg.get<double>("radius", 0.009304813);
+    const double radius = cfg.get<double>("radius", "0.009304813 au", units::L0);
 
-    const double temperature = cfg.get<double>("temperature", 5778.0);
+    const double temperature = cfg.get<double>("temperature", "5778.0 K", units::Temp0);
 
     const bool irradiate = cfg.get_flag("irradiate", "no");
 
