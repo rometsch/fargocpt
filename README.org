@@ -24,3 +24,7 @@ The old readme file by Tobias Müller can be found at [[file:README_OLD.md][here
     + Dust diffusion
 + Nbody
     + migrating low mass planet
++ program
+    + valgrind run
+        + ignore openmpi errors
+        + ignore rebound padding (Syscall param write(buf) points to uninitialised byte(s))
