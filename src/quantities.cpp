@@ -41,13 +41,16 @@ double gas_total_mass(t_data &data, const double quantitiy_radius)
 	}
     }
 
-    MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
+	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
 		  MPI_COMM_WORLD);
 
     return global_mass;
 }
 
-
+/**
+ * @brief gas_quantity_reduce
+ Warning: Reduce, only CPU 0 has the correct value
+ */
 double gas_quantity_reduce(const t_polargrid& arr, const double quantitiy_radius)
 {
 
@@ -66,7 +69,7 @@ double gas_quantity_reduce(const t_polargrid& arr, const double quantitiy_radius
 	}
 
 	// synchronize threads
-	MPI_Allreduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
+	MPI_Reduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM, 0,
 		  MPI_COMM_WORLD);
 
 	return global_reduced_quantity;
@@ -96,12 +99,12 @@ double gas_quantity_mass_average(t_data &data, const t_polargrid& arr, const dou
 	}
 	}
 
-	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
+	MPI_Reduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM, 0,
 		  MPI_COMM_WORLD);
 
 	// synchronize threads
-	MPI_Allreduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
-		  MPI_COMM_WORLD);
+	MPI_Reduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
+		  0, MPI_COMM_WORLD);
 
 	global_reduced_quantity /= global_mass;
 	return global_reduced_quantity;

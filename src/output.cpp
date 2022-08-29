@@ -1137,7 +1137,7 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 	}
 	}
 
-	if (CPU_Master) {
+
 	double adv_torque = 0.0;
 	if (data[t_data::ADVECTION_TORQUE].get_write()) {
 		adv_torque = quantities::gas_quantity_reduce(data[t_data::ADVECTION_TORQUE], quantities_radius);
@@ -1183,11 +1183,6 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 	if (data[t_data::DELTA_PERIASTRON_TRANSPORT].get_write()) {
 		transport_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_TRANSPORT], quantities_radius);
 	}
-	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber,
-		adv_torque, visc_torque, grav_torque,
-			source_de, art_visc_de, visc_de, transport_de,
-			source_dp, art_visc_dp, visc_dp, transport_dp);
-	fclose(fd);
 
 	data[t_data::ADVECTION_TORQUE].clear();
 	data[t_data::VISCOUS_TORQUE].clear();
@@ -1202,6 +1197,13 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 	data[t_data::DELTA_PERIASTRON_ART_VISC].clear();
 	data[t_data::DELTA_PERIASTRON_VISC].clear();
 	data[t_data::DELTA_PERIASTRON_TRANSPORT].clear();
+
+	if (CPU_Master) {
+	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber,
+		adv_torque, visc_torque, grav_torque,
+			source_de, art_visc_de, visc_de, transport_de,
+			source_dp, art_visc_dp, visc_dp, transport_dp);
+	fclose(fd);
 	}
 }
 

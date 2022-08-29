@@ -123,6 +123,7 @@ class t_polargrid
     }
 
     double get_max() const;
+	double reduce_mass_weighted_avg(const t_polargrid &sigma) const;
     t_polargrid &operator*=(double);
     t_polargrid &operator/=(double);
 
