@@ -1030,7 +1030,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 			"#variable: 0 | time step | 1\n"
 			"#variable: 1 | analysis time step | 1\n"
 			"#variable: 2 | physical time | ");
-	    fprintf(fd, units::time.get_cgs_factor_symbol().c_str());
+	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
 	    fprintf(
 		fd,
 		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
