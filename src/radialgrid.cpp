@@ -61,7 +61,6 @@ void t_radialgrid::set_name(const char *name)
     const unsigned int length = strlen(name) + 1;
     m_name = new char[length];
     std::strncpy(m_name, name, length);
-    printf("%s	%s\n", name, m_name);
 }
 
 /**

@@ -1103,9 +1103,6 @@ std::int32_t get_latest_output_num(const std::string &snapshot_id)
 
     misc_file.close();
 
-    std::cout << "found output num " << entry.timestep << " in " << path
-	      << std::endl;
-
     return entry.timestep;
 }
 
