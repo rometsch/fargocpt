@@ -289,7 +289,7 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	\param defvalue default value
 	\returns t_boundary_condition
 */
-t_damping_type value_as_boudary_damping_default(char *key,
+static t_damping_type value_as_boudary_damping_default(const char *key,
 						const char *defvalue)
 {
     const std::string ret = config::cfg.get<std::string>(key, defvalue);
