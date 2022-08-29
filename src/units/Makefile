@@ -7,7 +7,7 @@ HEADERS=$(wildcard *.h)
 CXX = g++ -I..
 
 CXX_DEFINES = -DYAML_CPP_STATIC_DEFINE
-CXX_FLAGS = -fPIC -Wall -Wextra -Wshadow -Weffc++ -Wno-long-long -pedantic -pedantic-errors -std=gnu++17
+CXX_FLAGS = -fPIC -Wall -Wextra -Wshadow  -Wno-long-long -pedantic -pedantic-errors -std=gnu++17
 
 default_target: all
 
