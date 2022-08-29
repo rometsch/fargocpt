@@ -117,7 +117,7 @@ static void update_kernel(t_data &data)
     static int since_last_calculated = update_every_nth_step;
 
     if (since_last_calculated >= (update_every_nth_step - 1)) {
-	double aspect_ratio = quantities::gas_aspect_ratio(data, RMAX);
+	double aspect_ratio = quantities::gas_quantity_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
 
 	if (aspect_ratio == 0.0) {
 	    aspect_ratio = ASPECTRATIO_REF;

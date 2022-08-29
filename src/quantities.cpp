@@ -11,6 +11,8 @@
 #include <mpi.h>
 #include <vector>
 #include "SourceEuler.h"
+#include "pvte_law.h"
+
 
 extern boolean Corotating;
 extern double M0;
@@ -45,45 +47,66 @@ double gas_total_mass(t_data &data, const double quantitiy_radius)
     return global_mass;
 }
 
-double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
+
+double gas_quantity_reduce(const t_polargrid& arr, const double quantitiy_radius)
 {
-    const double gas_total_mass =
-	quantities::gas_total_mass(data, quantitiy_radius);
 
-    if (gas_total_mass <= 0.0) {
-	return ASPECTRATIO_REF;
-    }
+	double global_reduced_quantity = 0.0;
+	double local_reduced_quantity = 0.0;
 
-    double local_mass = 0.0;
-    double aspect_ratio = 0.0;
-    double local_aspect_ratio = 0.0;
-
-    // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
-    // they would be included twice!)
-    for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size; ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    // eccentricity and semi major axis weighted with cellmass
-	    if (Rmed[n_radial] <= quantitiy_radius) {
-		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
-			     Surf[n_radial];
-		local_aspect_ratio +=
-		    data[t_data::ASPECTRATIO](n_radial, n_azimuthal) *
-		    local_mass;
-	    }
+	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
+	// they would be included twice!)
+	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
+	for (unsigned int naz = 0; naz < arr.get_size_azimuthal(); ++naz) {
+		// eccentricity and semi major axis weighted with cellmass
+		if (Rmed[nr] <= quantitiy_radius) {
+		local_reduced_quantity += arr(nr, naz) ;
+		}
 	}
-    }
+	}
 
-    // synchronize threads
-    MPI_Allreduce(&local_aspect_ratio, &aspect_ratio, 1, MPI_DOUBLE, MPI_SUM,
+	// synchronize threads
+	MPI_Allreduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
 		  MPI_COMM_WORLD);
 
-    aspect_ratio /= gas_total_mass;
-
-    return aspect_ratio;
+	return global_reduced_quantity;
 }
+
+double gas_quantity_mass_average(t_data &data, const t_polargrid& arr, const double quantitiy_radius)
+{
+
+	const t_polargrid& sigma = data[t_data::DENSITY];
+
+	double local_mass = 0.0;
+	double global_mass = 0.0;
+
+	double global_reduced_quantity = 0.0;
+	double local_reduced_quantity = 0.0;
+
+	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
+	// they would be included twice!)
+	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
+	for (unsigned int naz = 0; naz < arr.get_size_azimuthal(); ++naz) {
+		// eccentricity and semi major axis weighted with cellmass
+		if (Rmed[nr] <= quantitiy_radius) {
+		const double cell_mass = sigma(nr, naz) * Surf[nr];
+		local_mass += cell_mass;
+		local_reduced_quantity += arr(nr, naz) * cell_mass;
+		}
+	}
+	}
+
+	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
+		  MPI_COMM_WORLD);
+
+	// synchronize threads
+	MPI_Allreduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
+		  MPI_COMM_WORLD);
+
+	global_reduced_quantity /= global_mass;
+	return global_reduced_quantity;
+}
+
 
 /**
  * @brief gas_disk_radius
@@ -890,6 +913,7 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     }
 }
 
+
 void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 {
     static int last_timestep_calculated = -1;
@@ -900,125 +924,146 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 
     switch (ASPECTRATIO_MODE) {
     case 0: {
-	for (unsigned int nRad = 0;
-	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-	    for (unsigned int nAz = 0;
-		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
-		data[t_data::ASPECTRATIO](nRad, nAz) =
-		    data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
-	    }
-	}
+
+			for (unsigned int n_radial = 0;
+				 n_radial <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_radial) {
+				for (unsigned int n_azimuthal = 0;
+					 n_azimuthal <= data[t_data::SCALE_HEIGHT].get_max_azimuthal();
+					 ++n_azimuthal) {
+					const double h = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) / Rb[n_radial];
+					data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = h;
+				}
+			}
 
 	break;
     }
     case 1: {
-	static const unsigned int N_planets =
-	    data.get_planetary_system().get_number_of_planets();
-	static std::vector<double> xpl(N_planets);
-	static std::vector<double> ypl(N_planets);
-	static std::vector<double> mpl(N_planets);
-	static std::vector<double> rpl(N_planets);
 
-	// setup planet data
-	for (unsigned int k = 0; k < N_planets; k++) {
-	    t_planet &planet = data.get_planetary_system().get_planet(k);
-		mpl[k] = planet.get_rampup_mass(PhysicalTime);
-	    xpl[k] = planet.get_x();
-	    ypl[k] = planet.get_y();
-	    rpl[k] = planet.get_planet_radial_extend();
-	}
+			static const unsigned int N_planets =
+					data.get_planetary_system().get_number_of_planets();
+			static std::vector<double> xpl(N_planets);
+			static std::vector<double> ypl(N_planets);
+			static std::vector<double> mpl(N_planets);
+			static std::vector<double> rpl(N_planets);
 
-	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
-	const double m_cm = data.get_planetary_system().get_mass();
+			// setup planet data
+			for (unsigned int k = 0; k < N_planets; k++) {
+				const t_planet &planet = data.get_planetary_system().get_planet(k);
+				mpl[k] = planet.get_rampup_mass(PhysicalTime);
+				xpl[k] = planet.get_x();
+				ypl[k] = planet.get_y();
+				rpl[k] = planet.get_planet_radial_extend();
+			}
 
-	for (unsigned int nRad = 0;
-	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-	    for (unsigned int nAz = 0;
-		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
+			// h = H/r
+			// H = = c_s,iso / (GM/r^3) = c_s/sqrt(gamma) / / (GM/r^3)
+			// for an Nbody system, H^-2 = sum_n (H_n)^-2
+			// See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
+			// Better see Thun et al. 2017 Eq. 8 instead.
+			for (unsigned int n_rad = 0;
+				 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
+				for (unsigned int n_az = 0;
+					 n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
 
-		const int cell = get_cell_id(nRad, nAz);
-		const double x = CellCenterX->Field[cell];
-		const double y = CellCenterY->Field[cell];
+					const int cell = get_cell_id(n_rad, n_az);
+					const double x = CellCenterX->Field[cell];
+					const double y = CellCenterY->Field[cell];
+					const double cs2 =
+							std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
 
-		// cell_r is the distance to the closest body used for computing
-		// the sound speed the cell belongs to a body, if it is inside
-		// its roche radius. if no close body is found, the center of
-		// mass is used instead
-		double cell_r = 0.0;
-		double roche_radius;
+					double inv_h2 = 0.0; // inverse aspectratio squared
 
-		for (unsigned int k = 0; k < N_planets; k++) {
+					for (unsigned int k = 0; k < N_planets; k++) {
 
-		    // primary object uses next object to compute the roche
-		    // radius while all other objects use the primary object.
-		    if (k == 0) {
-			const double partner_dist =
-			    std::sqrt(std::pow(xpl[k] - xpl[1], 2) +
-				      std::pow(ypl[k] - ypl[1], 2));
-			const double mass_q =
-			    mpl[k] / m_cm / (1.0 - mpl[k] / m_cm);
-			roche_radius = eggleton_1983(mass_q, partner_dist);
-		    } else {
-			const double partner_dist =
-			    std::sqrt(std::pow(xpl[k] - xpl[0], 2) +
-				      std::pow(ypl[k] - ypl[0], 2));
-			const double mass_q =
-			    mpl[k] / m_cm / (1.0 - mpl[k] / m_cm);
-			roche_radius = eggleton_1983(mass_q, partner_dist);
-		    }
+						/// since the mass is distributed homogeniously distributed
+						/// inside the cell, we assume that the planet is always at
+						/// least cell_size / 2 plus planet radius away from the gas
+						/// this is an rough estimate without explanation
+						/// alternatively you can think about it yourself
+						const double min_dist =
+								0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+											   Rmed[n_rad] * dphi) +
+								rpl[k];
 
-		    /// since the mass is distributed homogeniously distributed
-		    /// inside the cell, we assume that the planet is always at
-		    /// least cell_size / 2 plus planet radius away from the gas
-		    /// this is an rough estimate without explanation
-		    /// alternatively you can think about it yourself
-		    const double min_dist =
-			0.5 * std::max(Rsup[nRad] - Rinf[nRad],
-				       Rmed[nRad] * dphi) +
-			rpl[k];
+						const double dx = x - xpl[k];
+						const double dy = y - ypl[k];
 
-		    const double dx = x - xpl[k];
-		    const double dy = y - ypl[k];
+						const double dist = std::max(
+									std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
-		    const double dist = std::max(
-			std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+						// H^2 = (GM / dist^3 / Cs_iso^2)^-1
+						if (parameters::Adiabatic || parameters::Polytropic) {
+							const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
 
-		    if (dist < roche_radius) {
-			cell_r = dist;
-		    }
-		}
+								const double tmp_inv_h2 =
+										constants::G * mpl[k] * gamma1 / (dist * cs2);
+								inv_h2 += tmp_inv_h2;
 
-		if (cell_r == 0.0) {
-		    cell_r = std::sqrt(std::pow(x - r_cm.x, 2) +
-				       std::pow(y - r_cm.y, 2));
-		}
+						} else {
 
-		data[t_data::ASPECTRATIO](nRad, nAz) =
-		    data[t_data::SCALE_HEIGHT](nRad, nAz) / cell_r;
-	    }
-	}
+								const double tmp_inv_h2 =
+										constants::G * mpl[k] / (dist * cs2);
+								inv_h2 += tmp_inv_h2;
+						}
+					}
+
+						const double h = std::sqrt(1.0 / inv_h2);
+						data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+				}
+			}
+
 	break;
     }
     case 2: {
-	const Pair r_cm = data.get_planetary_system().get_center_of_mass();
 
-	for (unsigned int nRad = 0;
-	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-	    for (unsigned int nAz = 0;
-		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
+		const Pair r_cm = data.get_planetary_system().get_center_of_mass();
+		const double m_cm = data.get_planetary_system().get_mass();
 
-		const int cell = get_cell_id(nRad, nAz);
-		const double x = CellCenterX->Field[cell];
-		const double y = CellCenterY->Field[cell];
+		for (unsigned int n_rad = 0;
+		 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
+		for (unsigned int n_az = 0;
+			 n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
 
-		const double dx = x - r_cm.x;
-		const double dy = y - r_cm.y;
+			const int cell = get_cell_id(n_rad, n_az);
+			const double x = CellCenterX->Field[cell];
+			const double y = CellCenterY->Field[cell];
+			const double cs = data[t_data::SOUNDSPEED](n_rad, n_az);
 
-		const double dist =
-		    std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-		data[t_data::ASPECTRATIO](nRad, nAz) =
-		    data[t_data::SCALE_HEIGHT](nRad, nAz) / dist;
-	    }
+			// const double min_dist =
+			//	0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
+			//		   Rmed[n_rad] * dphi);
+
+			const double dx = x - r_cm.x;
+			const double dy = y - r_cm.y;
+
+			// const double dist = std::max(
+			//	std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
+			const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
+
+			// h^2 = Cs_iso / vk = (Cs_iso^2 / (GM / dist))
+			// H^2 = Cs_iso / Omegak = (Cs_iso^2 / (GM / dist^3))
+			// H = h * dist
+			if (parameters::Adiabatic || parameters::Polytropic) {
+			/// Convert sound speed to isothermal sound speed cs,iso = cs /
+			/// sqrt(gamma)
+			const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
+			const double h = cs * std::sqrt(dist / (constants::G * m_cm * gamma1));
+
+			if(parameters::heating_star_enabled || parameters::self_gravity){
+			data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+			}
+			const double H = dist * h;
+			data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+
+			} else { // locally isothermal
+			const double h = cs * std::sqrt(dist / (constants::G * m_cm));
+			if(parameters::heating_star_enabled || parameters::self_gravity){
+			data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+			}
+			const double H = dist * h;
+			data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+			}
+		}
 	}
 	break;
     }
@@ -1032,7 +1077,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 	    }
 	}
     }
-    }
+	}
 }
 
 void calculate_viscous_torque(t_data &data, unsigned int timestep,

@@ -7,7 +7,8 @@ namespace quantities
 {
 
 double gas_total_mass(t_data &data, const double quantitiy_radius);
-double gas_aspect_ratio(t_data &data, const double quantitiy_radius);
+double gas_quantity_reduce(const t_polargrid& arr, const double quantitiy_radius);
+double gas_quantity_mass_average(t_data &data, const t_polargrid& arr, const double quantitiy_radius);
 double gas_disk_radius(t_data &data, const double total_mass);
 double gas_angular_momentum(t_data &data, const double quantitiy_radius);
 double gas_internal_energy(t_data &data, const double quantitiy_radius);

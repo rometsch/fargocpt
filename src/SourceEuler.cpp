@@ -582,6 +582,9 @@ void AlgoGas(t_data &data)
 		}
 
 		compute_pressure(data);
+		if(parameters::self_gravity){
+			compute_scale_height(data, midstep_time);
+		}
 		update_with_sourceterms(data, frog_dt);
 
 		if (EXPLICIT_VISCOSITY) {
@@ -697,6 +700,12 @@ void AlgoGas(t_data &data)
 */
 void update_with_sourceterms(t_data &data, const double dt)
 {
+
+	// We do Self gravity first, so we don't have to recompute aspect ratio
+	if (parameters::self_gravity) {
+	selfgravity::compute(data, dt, true);
+	}
+
     double supp_torque = 0.0; // for imposed disk drift
 
     if (parameters::Adiabatic) {
@@ -858,10 +867,6 @@ void update_with_sourceterms(t_data &data, const double dt)
 		    dt * supp_torque;
 	    }
 	}
-    }
-
-    if (parameters::self_gravity) {
-	selfgravity::compute(data, dt, true);
     }
 
 	if(ECC_GROWTH_MONITOR){
@@ -2783,7 +2788,7 @@ void compute_scale_height_old(t_data &data)
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) *
 		    inv_omega_kepler;
 	    }
-		if(parameters::heating_star_enabled){
+		if(parameters::heating_star_enabled || parameters::self_gravity){
 			const double h = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) / Rb[n_radial];
 		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = h;
 		}
@@ -2858,7 +2863,7 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
 			constants::G * mpl[k] * gamma1 / (dist3 * cs2);
 		    inv_H2 += tmp_inv_H2;
 
-			if(parameters::heating_star_enabled){
+			if(parameters::heating_star_enabled || parameters::self_gravity){
 			const double tmp_inv_h2 =
 			constants::G * mpl[k] * gamma1 / (dist * cs2);
 			inv_h2 += tmp_inv_h2;
@@ -2869,7 +2874,7 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
 			constants::G * mpl[k] / (dist3 * cs2);
 		    inv_H2 += tmp_inv_H2;
 
-			if(parameters::heating_star_enabled){
+			if(parameters::heating_star_enabled || parameters::self_gravity){
 			const double tmp_inv_h2 =
 			constants::G * mpl[k] / (dist * cs2);
 			inv_h2 += tmp_inv_h2;
@@ -2880,7 +2885,7 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
 	    const double H = std::sqrt(1.0 / inv_H2);
 	    data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
 
-		if(parameters::heating_star_enabled){
+		if(parameters::heating_star_enabled || parameters::self_gravity){
 			const double h = std::sqrt(1.0 / inv_h2);
 			data[t_data::ASPECTRATIO](n_rad, n_az) = h;
 		}
@@ -2927,7 +2932,7 @@ void compute_scale_height_center_of_mass(t_data &data)
 		const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
 		const double h = cs * std::sqrt(dist / (constants::G * m_cm * gamma1));
 
-		if(parameters::heating_star_enabled){
+		if(parameters::heating_star_enabled || parameters::self_gravity){
 		data[t_data::ASPECTRATIO](n_rad, n_az) = h;
 		}
 		const double H = dist * h;
@@ -2935,7 +2940,7 @@ void compute_scale_height_center_of_mass(t_data &data)
 
 	    } else { // locally isothermal
 		const double h = cs * std::sqrt(dist / (constants::G * m_cm));
-		if(parameters::heating_star_enabled){
+		if(parameters::heating_star_enabled || parameters::self_gravity){
 		data[t_data::ASPECTRATIO](n_rad, n_az) = h;
 		}
 		const double H = dist * h;
