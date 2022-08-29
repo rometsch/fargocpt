@@ -9,3 +9,18 @@ It was modified quite substatially by Tobias Müller and is now used and maintai
 * Old Readme
 
 The old readme file by Tobias Müller can be found at [[file:README_OLD.md][here]].
+
+
+* Tests
+
++ Hydro
+    + Shocktube
++ Viscosity
+    + Viscous spreading ring
++ Heating
+    + passive disk -> power law profile
++ Dust
+    + Dust drift
+    + Dust diffusion
++ Nbody
+    + migrating low mass planet
