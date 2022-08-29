@@ -43,6 +43,9 @@ class Config
 
     bool get_flag(const std::string &key);
     bool get_flag(const std::string &key, const bool default_value);
+    bool get_flag(const std::string &key, const char *default_value);
+    bool get_flag(const std::string &key, const std::string &default_value);
+
 
     char get_first_letter_lowercase(const std::string &key);
     char get_first_letter_lowercase(const std::string &key, const std::string &default_value);

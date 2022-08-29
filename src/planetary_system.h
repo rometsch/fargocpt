@@ -30,12 +30,7 @@ class t_planetary_system
     {
 	return *(m_planets.at(number));
     }
-    // inline void delete_planet(unsigned int number) { delete
-    // m_planets.at(number); m_planets.erase(m_planets.begin()+number); }
-
-    void initialize_planet_legacy(t_planet *planet, double mass,
-				  double semi_major_axis, double eccentricity,
-				  double phi);
+  
     void initialize_planet_jacobi(t_planet *planet, double mass,
 				  double semi_major_axis, double eccentricity,
 				  double omega, double true_anomaly);
@@ -58,7 +53,6 @@ class t_planetary_system
     Pair get_center_of_mass_velocity(unsigned int n) const;
     Pair get_center_of_mass_velocity() const;
 
-    void initialize_default_star();
     void init_rebound();
     void init_system(const std::string &filename);
     void config_consistency_checks();

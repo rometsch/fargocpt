@@ -7,8 +7,8 @@
 /// Universal Gas Constant in code units
 // const double R = 1.0;
 
-/// central mass in code units
-const double M = 1.0;
+// /// central mass in code units
+// const double M = 1.0;
 
 // overlap cells (Zeus-like overlap kernel. 2:transport; 2: source, 1:viscous
 // stress)

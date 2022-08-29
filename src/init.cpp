@@ -340,6 +340,9 @@ void init_shakura_sunyaev(t_data &data)
 	const double Mdot_cgs = parameters::mass_accretion_rate * units::mass_accretion_rate.get_cgs_factor();
 	const double L0_cgs = units::length.get_cgs_factor();
 
+	const auto& star = data.get_planetary_system().get_planet(0);
+	const double star_radius = star.get_planet_radial_extend();
+
     double factor;
 
     if (!parameters::Adiabatic) {
@@ -357,7 +360,7 @@ void init_shakura_sunyaev(t_data &data)
 	     n_azimuthal < data[t_data::TEMPERATURE].Nsec; ++n_azimuthal) {
 
 	    factor =
-		std::pow(1. - std::sqrt(parameters::star_radius /
+		std::pow(1. - std::sqrt(star_radius /
 					(Rb[n_radial] +
 					 2. * (RMAX - RMIN) / GlobalNRadial)),
 			 0.25);

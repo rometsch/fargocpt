@@ -99,7 +99,6 @@ bool artificial_viscosity_dissipation;
 bool calculate_disk;
 
 // control centering of frame
-bool default_star;
 unsigned int n_bodies_for_hydroframe_center;
 unsigned int corotation_reference_body;
 
@@ -677,8 +676,6 @@ void read(const std::string &filename, t_data &data)
     damping_energy_id = (int)damping_vector.size() - 1;
 
     calculate_disk = config::cfg.get_flag("DISK", "yes");
-
-    default_star = config::cfg.get_flag("DefaultStar", "yes");
 	
     corotation_reference_body =
 	config::cfg.get<unsigned int>("CorotationReferenceBody", 1);
@@ -867,6 +864,12 @@ void read(const std::string &filename, t_data &data)
 	"FeelsDisk",
 	"Replaced by parameter DiskFeedback for clarification since it affects more than just the star.",
 	"Please replace 'FeelsDisk' by 'DiskFeedback'.");
+
+	exitOnDeprecatedSetting(
+	"DefaultStar",
+	"The star parameters are now part of the planet system configuration.",
+	"Please add the central object to the planet configuration.");
+
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
 
     // self gravity
@@ -912,10 +915,6 @@ void read(const std::string &filename, t_data &data)
 	die("Invalid setting for Opacity: %s",
 	    config::cfg.get<std::string>("Opacity", "Lin").c_str());
     }
-
-    // star parameters
-    star_temperature = config::cfg.get<double>("StarTemperature", "5778 K", Temp0);
-    star_radius = config::cfg.get<double>("StarRadius", "1 solRadius", L0);
 
     if (heating_star_enabled) {
 	if (star_radius*L0 < 0.1*units::solar_radius_in_au*units::au) {

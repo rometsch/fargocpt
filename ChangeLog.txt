@@ -6,5 +6,6 @@
 - stellar heating rampup time in units of T0 rather than DT
 - physical constants (gravitational constant, kB, atomic mass unit, Planck constant) from LLNL units library which follows the NIST constants and the 2019 redefinition of SI
 - OUTPUTDIR is now in output namespace and called outdir
+- removed default star, central object needs to be declared as a planet now
 
 

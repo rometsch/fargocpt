@@ -69,6 +69,19 @@ void Config::load_file(const std::string &filename)
     m_root = std::make_shared<YAML::Node>(lowercased_node(node));
 }
 
+static bool string_decide(const std::string &val) {
+    bool rv;
+    const std::string l = lowercase(val);
+    if (l == "yes" || l == "true") {
+        rv = true;
+    } else if (l == "no" || l == "false") {
+        rv = false;
+    } else {
+        die("Invalid argument for a flag : '%s'!\nValid choices are: yes/no, true/false", val.c_str());
+    }
+    return rv;
+}
+
 bool Config::get_flag(const std::string &key)
 {
     bool rv;
@@ -89,6 +102,20 @@ bool Config::get_flag(const std::string &key, const bool default_value)
     } else {
 	return default_value;
     }
+}
+
+bool Config::get_flag(const std::string &key, const std::string &default_value)
+{
+    if (contains(key)) {
+	return get_flag(key);
+    } else {
+	return string_decide(default_value);
+    }
+}
+
+bool Config::get_flag(const std::string &key, const char *default_value)
+{
+    return get_flag(key, std::string(default_value));
 }
 
 char Config::get_first_letter_lowercase(const std::string &key, const std::string &default_value)

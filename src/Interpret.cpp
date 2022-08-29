@@ -81,7 +81,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     parameters::ShockTube = cfg.get<int>("ShockTube", 0);
     parameters::SpreadingRing =
-	cfg.get_flag("SpreadingRing", NO);
+	cfg.get_flag("SpreadingRing", false);
 
     last_dt = cfg.get<double>("FirstDT", 1e-9);
 
@@ -149,7 +149,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    OuterSourceMass = cfg.get_flag("OUTERSOURCEMASS", 0);
+    OuterSourceMass = cfg.get_flag("OUTERSOURCEMASS", "no");
 
     switch (cfg.get_first_letter_lowercase("TRANSPORT", "Fast")) {
     case 'f':
@@ -491,7 +491,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		       delete_damping_condition),
 	parameters::damping_vector.end());
 
-    CICPlanet = cfg.get_flag("CICPLANET", 0);
+    CICPlanet = cfg.get_flag("CICPLANET", "no");
 
     ALPHAVISCOSITY = cfg.get<double>("ALPHAVISCOSITY", 0.0);
     VISCOSITY = cfg.get<double>("VISCOSITY", 0.0);

@@ -198,7 +198,6 @@ extern double thickness_smoothing_sg;
 extern bool calculate_disk;
 
 // control centering of frame
-extern bool default_star;
 extern unsigned int n_bodies_for_hydroframe_center;
 extern unsigned int corotation_reference_body;
 
@@ -266,10 +265,6 @@ extern double kappa_const;
 /// initialize pure keplerian
 extern bool initialize_pure_keplerian;
 extern bool initialize_vradial_zero;
-
-/// star parameters
-extern double star_radius;
-extern double star_temperature;
 
 extern unsigned int zbuffer_size;
 extern double zbuffer_maxangle;

@@ -63,31 +63,8 @@ void t_planetary_system::init_rebound()
     }
 }
 
-void t_planetary_system::initialize_default_star()
-{
-    t_planet *planet = new t_planet();
-    initialize_planet_legacy(planet, M, 0.0, 0.0, 0.0);
-
-    planet->set_name("Default Star");
-    planet->set_acc(0.0);
-
-    planet->set_planet_radial_extend(parameters::star_radius);
-    planet->set_temperature(parameters::star_temperature);
-    planet->set_irradiate(false);
-    planet->set_rampuptime(0.0);
-
-    planet->set_disk_on_planet_acceleration(Pair()); // initialize to zero
-    planet->set_nbody_on_planet_acceleration(Pair());
-    add_planet(planet);
-}
-
-
-
 void t_planetary_system::init_system(const std::string &filename)
 {
-    if (parameters::default_star) {
-	initialize_default_star();
-    }
 
     config::Config cfg(filename);
 
@@ -165,10 +142,6 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     t_planet *planet = new t_planet();
 
-    if (parameters::default_star) {
-	initialize_planet_legacy(planet, mass, semi_major_axis, eccentricity,
-				 argument_of_pericenter);
-    } else {
 	// planets starts at Periastron
 	const double nu = 0.0;
 	if (get_number_of_planets() < 2) {
@@ -179,13 +152,12 @@ void t_planetary_system::init_planet(config::Config &cfg)
 	    initialize_planet_jacobi(planet, mass, semi_major_axis,
 				     eccentricity, argument_of_pericenter, nu);
 	}
-    }
 
     planet->set_name(name.c_str());
     planet->set_acc(accretion_efficiency);
 
     planet->set_planet_radial_extend(radius);
-    planet->set_temperature(temperature / units::temperature);
+    planet->set_temperature(temperature);
     planet->set_irradiate(irradiate);
     planet->set_rampuptime(ramp_up_time);
 
@@ -378,28 +350,6 @@ void t_planetary_system::write_planets(int file_type)
 	const std::string rebound_filename = output::snapshot_dir + "/rebound.bin";
 	reb_output_binary(m_rebound, rebound_filename.c_str());
     }
-}
-
-/**
-   Initialize the planets position and velocity in the legacy way
-*/
-void t_planetary_system::initialize_planet_legacy(t_planet *planet, double mass,
-						  double semi_major_axis,
-						  double eccentricity,
-						  double phi)
-{
-    planet->set_mass(mass);
-    // planets starts at Apastron
-    double r = semi_major_axis * (1.0 + eccentricity);
-    planet->set_x(r * std::cos(phi));
-    planet->set_y(r * std::sin(phi));
-    double v = 0.0;
-    if (semi_major_axis != 0.0) {
-	v = std::sqrt(constants::G * (1.0 + mass) / semi_major_axis) *
-	    std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
-    }
-    planet->set_vx(-v * std::sin(phi));
-    planet->set_vy(v * std::cos(phi));
 }
 
 /**

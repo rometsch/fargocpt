@@ -55,10 +55,6 @@ KappaConst: '2.0e-6'   # used for const and simple opacity (kappa = kappa0 * T**
 CFL: '0.5'
 HeatingCoolingCFLlimit: '1.0'   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
-# Star Parameters
-
-StarRadius: '1.0'   # star radius in Solar Radii
-StarTemperature: '5778'   # star temperature in K
 zbufferSize: '100'
 zbufferMaxAngle: '0.174'
 
@@ -205,17 +201,27 @@ ParticleDiskGravityEnabled: 'no'   # [default = no]
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: 'Yes'
-DefaultStar: 'Yes'   # add a default central object to nbody system if true, else load central object from planet file
 IntegratePlanets: 'Yes'   # [default = yes]
 
+# Star Parameters
+
+StarRadius: '1.0'   # star radius in Solar Radii
+StarTemperature: '5778'   # star temperature in K
+
 planets:
+- name: Star
+  semi-major axis: 0.0 au
+  mass: 1.0 solMass
+  eccentricity: 0.0
+  temperature:
+  radius: 1.0 solRadius
+  temperature: 5778 K
 - name: Jupiter
   semi-major axis: '1.0'
   mass: 3e-4
   accretion efficiency: '0.0'
-  feels disk: 'NO'
   eccentricity: '0'
-  radius: '0.01'
+  radius: 0.01 solRadius
   temperature: '5800'
   irradiate: 'NO'
   phi: '0.0'

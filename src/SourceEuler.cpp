@@ -1030,15 +1030,19 @@ void calculate_qplus(t_data &data)
 			 2);
 	}
 
+	const auto& star = data.get_planetary_system().get_planet(0);
+	const double x_star = star.get_x();
+	const double y_star = star.get_y();
+	const double star_radius = star.get_planet_radial_extend();
+	const double star_temperature = star.get_temperature();
+
 	if (parameters::heating_star_simple) {
 	    if (!parameters::cooling_radiative_enabled) {
 		die("Need to calulate Tau_eff first!\n"); // TODO: make it
 							  // properly!
 	    }
-	    const double x_star =
-		data.get_planetary_system().get_planet(0).get_x();
-	    const double y_star =
-		data.get_planetary_system().get_planet(0).get_y();
+
+
 
 	    // Simple star heating (see Masterthesis Alexandros Ziampras)
 	    for (unsigned int n_radial = 1;
@@ -1058,8 +1062,6 @@ void calculate_qplus(t_data &data)
 			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
 			InvRmed[n_radial];
 		    const double sigma = constants::sigma.get_code_value();
-		    const double T_star = parameters::star_temperature;
-		    const double R_star = parameters::star_radius;
 		    const double tau_eff =
 			data[t_data::TAU_EFF](n_radial, n_azimuthal);
 		    const double eps = 0.5; // TODO: add a parameter
@@ -1072,8 +1074,8 @@ void calculate_qplus(t_data &data)
 		    // sigma_sb T_star^4
 		    double qplus = 2 * (1 - eps); // 2*(1-eps)
 		    qplus *=
-			sigma * std::pow(T_star, 4) *
-			std::pow(R_star / distance, 2); // *L_star/(4 pi r^2)
+			sigma * std::pow(star_temperature, 4) *
+			std::pow(star_radius / distance, 2); // *L_star/(4 pi r^2)
 		    qplus *= dlogH_dlogr - 1;		// *(dlogH/dlogr - 1)
 		    qplus *= HoverR;			// * H/r
 		    qplus /= tau_eff;			// * 1/Tau_eff
@@ -1241,8 +1243,8 @@ void calculate_qplus(t_data &data)
 		    double qplus =
 			ramping * visibility * parameters::heating_star_factor *
 			2.0 * alpha * constants::sigma.get_code_value() *
-			std::pow(parameters::star_temperature, 4) *
-			std::pow(parameters::star_radius / Rmed[n_radial], 2);
+			std::pow(star_temperature, 4) *
+			std::pow(star_radius / Rmed[n_radial], 2);
 
 		    data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
 
