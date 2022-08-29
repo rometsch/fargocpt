@@ -25,6 +25,29 @@
 namespace units
 {
 
+t_unit length;
+t_unit mass;
+t_unit time;
+t_unit temperature;
+t_unit energy;
+t_unit energy_density;
+t_unit density;
+t_unit surface_density;
+t_unit opacity;
+t_unit energy_flux;
+t_unit velocity;
+t_unit angular_momentum;
+t_unit kinematic_viscosity;
+t_unit dynamic_viscosity;
+t_unit acceleration;
+t_unit stress;
+t_unit pressure;
+t_unit power;
+t_unit potential;
+t_unit torque;
+t_unit force;
+t_unit mass_accretion_rate;
+
 llnlunits::precise_unit L0 = llnlunits::precise::cm;
 llnlunits::precise_unit M0 = llnlunits::precise::g;
 llnlunits::precise_unit T0 = llnlunits::precise::second;
@@ -91,19 +114,16 @@ static void add_astro_units() {
 
 
 void set_baseunits(	const std::string &l0s, 
-					const std::string &m0s,
-					const std::string &temp0s) {
+					const std::string &m0s) {
 
 	add_astro_units();
 
 	const bool l0hu = has_unit(l0s);
 	const bool m0hu = has_unit(m0s);
-	const bool temp0hu = has_unit(temp0s);
 
-	if (m0hu && l0hu &&temp0hu) {
+	if (m0hu && l0hu) {
 		L0 = llnlunits::measurement_from_string(l0s).as_unit();
 		M0 = llnlunits::measurement_from_string(m0s).as_unit();
-		Temp0 = llnlunits::measurement_from_string(temp0s).as_unit();
 
 		if (!L0.is_convertible(llnlunits::meter)) {
 			die("Baseunit of length '%s' not convertible to meter!", l0s.c_str());
@@ -111,50 +131,28 @@ void set_baseunits(	const std::string &l0s,
 		if (!M0.is_convertible(llnlunits::kilogram)) {
 			die("Baseunit of mass '%s' not convertible to kilogram!", m0s.c_str());
 		}
-		if (!Temp0.is_convertible(llnlunits::Kelvin)) {
-			die("Baseunit of mass '%s' not convertible to kilogram!", temp0s.c_str());
-		}
 
 	} else if ((!m0hu) && (!l0hu)) {
 		L0 = (llnlunits::measurement_from_string(l0s)*au).as_unit();
 		M0 = (llnlunits::measurement_from_string(m0s)*solMass).as_unit();
-		Temp0 = (llnlunits::measurement_from_string(temp0s)*llnlunits::precise::Kelvin).as_unit();
 		logging::print_master(LOG_INFO "Physical units implicitly applied!\n");
-		logging::print_master(LOG_INFO "L0 = %f au, M0 = %f solMass, Temp0 = %f K\n",
+		logging::print_master(LOG_INFO "L0 = %f au, M0 = %f solMass\n",
 			(1*L0).value_as(au),
-			(1*M0).value_as(solMass),
-			(1*Temp0).value_as(llnlunits::precise::Kelvin));
+			(1*M0).value_as(solMass));
 	} else {
-		die("l0, m0 and temp0 need to either all have a unit or all have no unit!\n However, they are l0 = %s, m0 = %s, temp0 = %s!", l0s.c_str(), m0s.c_str(), temp0s.c_str());
+		die("l0 and m0 need to either all have a unit or all have no unit!\n However, they are l0 = %s, m0 = %s!", l0s.c_str(), m0s.c_str());
 	}
 
 	T0 = llnlunits::sqrt((1 * L0 * L0 * L0) / (1* M0 * llnlunits::constants::G)).as_unit();
 
+	const auto G = llnlunits::constants::G;
+	const auto mu = llnlunits::constants::mu;
+	const auto kB = llnlunits::constants::k;
+	Temp0 = (1*G*mu/kB*M0/L0).as_unit();
+
 }
 
 
-t_unit length;
-t_unit mass;
-t_unit time;
-t_unit temperature;
-t_unit energy;
-t_unit energy_density;
-t_unit density;
-t_unit surface_density;
-t_unit opacity;
-t_unit energy_flux;
-t_unit velocity;
-t_unit angular_momentum;
-t_unit kinematic_viscosity;
-t_unit dynamic_viscosity;
-t_unit acceleration;
-t_unit stress;
-t_unit pressure;
-t_unit power;
-t_unit potential;
-t_unit torque;
-t_unit force;
-t_unit mass_accretion_rate;
 
 t_unit::t_unit()
 {
@@ -211,14 +209,13 @@ std::string t_unit::get_cgs_factor_symbol()
 void calculate_unit_factors()
 {
 
-    length.set_cgs_factor(parameters::L0_in_au * cgs_AU);
+    length.set_cgs_factor((1*L0).value_as(llnlunits::precise::cm));
     length.set_cgs_symbol("cm");
 
-    mass.set_cgs_factor(parameters::M0_in_solMass * cgs_Msol);
+    mass.set_cgs_factor((1*M0).value_as(llnlunits::precise::g));
     mass.set_cgs_symbol("g");
 
-    time.set_cgs_factor(sqrt((length * length * length) /
-			     (mass * constants::_G.get_cgs_value())));
+    time.set_cgs_factor((1*T0).value_as(llnlunits::precise::second));
     time.set_cgs_symbol("s");
 
     energy.set_cgs_factor(length * length * mass / (time * time));
@@ -227,8 +224,8 @@ void calculate_unit_factors()
     energy_density.set_cgs_factor(mass / (time * time));
     energy_density.set_cgs_symbol("erg cm^-2");
 
-    temperature.set_cgs_factor((constants::_G.get_cgs_value() * mass) /
-			       (constants::_R.get_cgs_value() * length));
+
+	temperature.set_cgs_factor((1*Temp0).value_as(llnlunits::precise::Kelvin));
     temperature.set_cgs_symbol("K");
 
     density.set_cgs_factor(mass / (length * length * length));

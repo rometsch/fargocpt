@@ -15,21 +15,32 @@
 
 namespace constants
 {
+
+const auto g = llnlunits::precise::g;
+const auto s = llnlunits::precise::second;
+const auto cm = llnlunits::precise::cm;
+const auto K = llnlunits::precise::K;
+
 /// gravitational constant in cgs
-const double cgs_G = 6.6738480e-8;
+// const double cgs_G = 6.6738480e-8;
+const double cgs_G = llnlunits::constants::G.value_as(cm*cm*cm/(g*s*s));
 
 /// Boltzmann constant in cgs
-const double cgs_k_B = 1.380650424e-16;
+// const double cgs_k_B = 1.380650424e-16;
+const double cgs_k_B = llnlunits::constants::k.value_as(g*cm*cm/(K*s*s));
 
 /// molecular mass in cgs
 // const double cgs_m_u = 1.66053878283e-24;
-const double cgs_m_u = 1.6737236e-24;
+// const double cgs_m_u = 1.6737236e-24;
+const double cgs_m_u = llnlunits::constants::mu.value_as(g);
 
 /// Planck constant in cgs
-const double cgs_h = 6.6260689633e-27;
+// const double cgs_h = 6.6260689633e-27;
+const double cgs_h = llnlunits::constants::h.value_as(g*cm*cm/s);
 
 /// speed of light in cgs
-const double cgs_c = 299792458.e2;
+// const double cgs_c = 299792458.e2;
+const double cgs_c = llnlunits::constants::c.value_as(cm/s);
 
 t_constant k_B;
 t_constant m_u;

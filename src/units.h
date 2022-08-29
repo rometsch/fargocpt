@@ -70,11 +70,6 @@ extern llnlunits::precise_unit Temp0;
 extern llnlunits::precise_unit solMass;
 extern llnlunits::precise_unit au;
 
-bool has_unit(const std::string &val);
-
-template <typename T> T parse_units(const std::string &val);
-template <typename T> T parse_units(const std::string &val, const precise_unit &baseunit);
-
 extern t_unit length;
 extern t_unit mass;
 extern t_unit time;
@@ -98,9 +93,13 @@ extern t_unit torque;
 extern t_unit force;
 extern t_unit mass_accretion_rate;
 
+bool has_unit(const std::string &val);
+
 void set_baseunits( const std::string &l0, 
-                    const std::string &m0,
-                    const std::string &temp0);
+                    const std::string &m0);
+
+template <typename T> T parse_units(const std::string &val);
+template <typename T> T parse_units(const std::string &val, const precise_unit &baseunit);
 
 void calculate_unit_factors();
 void print_code_units();
