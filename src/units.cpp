@@ -60,6 +60,12 @@ bool has_unit(const std::string &val){
     return ret;
 }
 
+static void check_unit(llnlunits::precise_measurement q, const std::string& val, const precise_unit &unit = llnlunits::precise::one) {
+	if (!q.as_unit().is_convertible(unit)) {
+		die("Invalid unit transformation from '%s' to unit '%s'!\n", val.c_str(), llnlunits::to_string(unit).c_str());
+	}
+}
+
 template <typename T> T parse_units(const std::string &val) {
     const T rv = val;
     return rv;
@@ -67,31 +73,37 @@ template <typename T> T parse_units(const std::string &val) {
 
 template <> double parse_units(const std::string &val) {
     auto q = llnlunits::measurement_from_string(val);
+	check_unit(q, val);
     return (double) q.convert_to_base().value();
 }
 
 template <> unsigned int parse_units(const std::string &val) {
     auto q = llnlunits::measurement_from_string(val);
+	check_unit(q, val);
     return (unsigned int) q.convert_to_base().value();
 }
 
 template <> int parse_units(const std::string &val) {
     auto q = llnlunits::measurement_from_string(val);
+	check_unit(q, val);
     return (int) q.convert_to_base().value();
 }
 
 template <> double parse_units(const std::string &val, const precise_unit& unit) {
     auto q = llnlunits::measurement_from_string(val);
+	check_unit(q, val, unit);
     return (double) q.value_as(unit);
 }
 
 template <> unsigned int parse_units(const std::string &val, const precise_unit& unit) {
     auto q = llnlunits::measurement_from_string(val);
+	check_unit(q, val, unit);
     return (unsigned int) q.value_as(unit);
 }
 
 template <> int parse_units(const std::string &val, const precise_unit& unit) {
     auto q = llnlunits::measurement_from_string(val);
+	check_unit(q, val, unit);
     return (int) q.value_as(unit);
 }
 
