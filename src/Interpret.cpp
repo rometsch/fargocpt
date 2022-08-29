@@ -92,7 +92,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     std::string setup_name = getFileName(filename);
     setup_name = setup_name.substr(0, setup_name.size() - 4) + "/";
-	output::outdir = cfg.get<std::string>(output::outdir, setup_name);
+
+	output::outdir = cfg.get<std::string>("OUTPUTDIR", setup_name);
 	if (output::outdir[output::outdir.length()-1] != '/') {
 		output::outdir += "/";
 	}
