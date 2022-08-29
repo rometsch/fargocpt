@@ -1,7 +1,7 @@
 # Disk parameters
 
 ShockTube: '0'   # Initialize shocktube problem with 0:no shocktube 1:Ideal EOS (perfect gas) 2: PVTE EOS (variableGamma) [default = 0]
-Sigma0: "1890.673"   # surface density at r=1 in g/cm^2
+Sigma0: 1890.673 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.5'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
 DiscMass: '0.5'   # only used when SetSigma0 = true [default = 0.01]
@@ -64,7 +64,7 @@ zbufferMaxAngle: '0.174'
 
 # Units
 
-l0: '1 au'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
+l0: 1 au   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
 m0: '1 solMass'   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
 temp0: "1 K"
 mu: '2.35'   # mean molecular weight [default=1.0]
@@ -85,8 +85,8 @@ ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessS
 
 # Boundary layer parameters
 
-VRadIn: 1e-3   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
-StellarRotation: '0.1'   # Stellar rotation rate in terms of Keplerian angular velocity Om_kepler [default = 0.1]
+VRadIn: 1e-3   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler at the inner boundary [default = 1.6e-3]
+StellarRotation: '0.1'   # Stellar rotation rate (azimuthal velocity of the surface) in terms of Keplerian angular velocity at the inner boundary [default = 0.1]
 MassAccretionRate: '1'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
 MassAccretionRadius: '0.2'   # Mass accretion radius in unints of R_hill / 2
 KlahrSmoothingRadius: '0.2'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
@@ -190,9 +190,9 @@ IntegrateParticles: 'No'   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
 ParticleIntegrator: Adaptive   # Explicit, Adaptive, Semiimplicit and Implicit
 NumberOfParticles: '400002'   # number of particles [default = 0]
-ParticleRadius: 1e5   # particle radius in cm [default = 100]
+ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.03'   # particle maximum Eccentricity
-ParticleDensity: '2.65'   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
+ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSurfaceDensitySlope: '0.5'   # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
 ParticleMinimumRadius: '0.4'   # [default = RMIN]
 ParticleMaximumRadius: '2.5'   # [default = RMAX]
