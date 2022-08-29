@@ -147,12 +147,6 @@ int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;
 
-int OverridesOutputdir;
-
-std::string snapshot_dir = "";
-std::string last_snapshot_dir = "";
-std::string OUTPUTDIR;
-
 std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
 int PRESCRIBED_TIME_SEGMENT_NUMBER;
 

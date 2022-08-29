@@ -199,9 +199,9 @@ int main(int argc, char *argv[])
 
 	if (parameters::is_damping_initial) {
 	    // load grids at t = 0
-	    const std::string snapshot_dir_old = snapshot_dir;
-	    snapshot_dir =OUTPUTDIR + "snapshots/damping";
-	    if (!std::experimental::filesystem::exists(snapshot_dir)) {
+	    const std::string snapshot_dir_old = output::snapshot_dir;
+	    output::snapshot_dir = output::outdir + "snapshots/damping";
+	    if (!std::experimental::filesystem::exists(output::snapshot_dir)) {
 		logging::print_master(
 		    LOG_ERROR
 		    "Damping zone activated but no snapshot with damping data found. Make sure to copy the 'damping' snapshot!\n");
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 	    if (parameters::Adiabatic) {
 		data[t_data::ENERGY].read2D();
 	    }
-	    snapshot_dir = snapshot_dir_old;
+	    output::snapshot_dir = snapshot_dir_old;
 
 	    // save starting values (needed for damping)
 	    copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
@@ -336,15 +336,15 @@ int main(int argc, char *argv[])
 	    // Outputs are done here
 	    TimeToWrite = YES;
 	    force_update_for_output = false;
-	    last_snapshot_dir = snapshot_dir;
+	    output::last_snapshot_dir = output::snapshot_dir;
 	    output::write_full_output(data, std::to_string(N_output));
 	    output::cleanup_autosave();
 
 	    if (N_output == 0 && parameters::damping) {
 		// Write damping data as a reference.
-		const std::string snapshot_dir_old = snapshot_dir;
+		const std::string snapshot_dir_old = output::snapshot_dir;
 		output::write_full_output(data, "damping", false);
-		snapshot_dir = snapshot_dir_old;
+		output::snapshot_dir = snapshot_dir_old;
 	    }
 
 	    if (GotoNextOutput && (!StillWriteOneOutput)) {

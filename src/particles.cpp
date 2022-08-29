@@ -17,6 +17,7 @@
 #include "parameters.h"
 #include "selfgravity.h"
 #include "util.h"
+#include "output.h"
 #include <cstring>
 #include <math.h>
 #include <mpi.h>
@@ -615,7 +616,7 @@ void restart()
 
     FILE *fd;
     std::stringstream filename;
-    filename << snapshot_dir << "/"
+    filename << output::snapshot_dir << "/"
 	     << "particles"
 	     << ".dat";
 
@@ -2584,7 +2585,7 @@ void write()
     MPI_Status status;
 
     std::stringstream filename;
-    filename << snapshot_dir << "/"
+    filename << output::snapshot_dir << "/"
 	     << "particles.dat";
 
     // try to open file

@@ -142,6 +142,23 @@ template <typename T> T Config::get(const char *key)
     return rv;
 }
 
+template <typename T> T Config::get(const std::string &key)
+{
+    if (!contains(key)) {
+        die("Required parameter '%s' missing!\n", key.c_str());
+    }
+    T rv;
+    const auto &root = *m_root;
+    std::string lkey = lowercase(key);
+    try {
+        rv = root[lkey].as<T>();
+    } catch (YAML::TypedBadConversion<T> const &) {
+        die("Conversion from yaml failed for key '%s'\n", key);
+    }
+    return rv;
+}
+
+
 template <typename T> T Config::get(const char *key, const units::precise_unit& unit)
 {
     if (!contains(key)) {
@@ -165,6 +182,19 @@ template <typename T> T Config::get(const char *key, const units::precise_unit& 
 
 
 template <typename T> T Config::get(const char *key, const T &default_value)
+{
+    T ret;
+    const std::string lkey = lowercase(key);
+    if (contains(key)) {
+        ret = get<T>(key);
+    } else {
+	    ret = default_value;
+    }
+    return ret;
+}
+
+
+template <typename T> T Config::get(const std::string &key, const T &default_value)
 {
     T ret;
     const std::string lkey = lowercase(key);
@@ -237,10 +267,16 @@ template int Config::get(const char *key);
 template unsigned int Config::get(const char *key);
 template std::string Config::get(const char *key);
 
+template double Config::get(const std::string &key);
+template int Config::get(const std::string &key);
+template unsigned int Config::get(const std::string &key);
+template std::string Config::get(const std::string &key);
+
 template double Config::get(const char *key, const double &d);
 template int Config::get(const char *key, const int &d);
 template unsigned int Config::get(const char *key, const unsigned int &d);
 template std::string Config::get(const char *key, const std::string &d);
+template std::string Config::get(const std::string &key, const std::string &d);
 
 template double Config::get(const char *key, const double &d, const units::precise_unit& unit);
 template int Config::get(const char *key, const int &d, const units::precise_unit& unit);

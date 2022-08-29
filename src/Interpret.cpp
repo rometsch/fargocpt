@@ -14,6 +14,7 @@
 #include "start_mode.h"
 #include "units.h"
 #include "config.h"
+#include "output.h"
 
 extern int damping_energy_id;
 extern std::vector<parameters::t_DampingType> damping_vector;
@@ -91,24 +92,24 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     std::string setup_name = getFileName(filename);
     setup_name = setup_name.substr(0, setup_name.size() - 4) + "/";
-	OUTPUTDIR = cfg.get<std::string>("OUTPUTDIR", setup_name);
-	if (OUTPUTDIR[OUTPUTDIR.length()-1] != '/') {
-		OUTPUTDIR += "/";
+	output::outdir = cfg.get<std::string>(output::outdir, setup_name);
+	if (output::outdir[output::outdir.length()-1] != '/') {
+		output::outdir += "/";
 	}
     
-    ensure_directory_exists(std::string(OUTPUTDIR));
+    ensure_directory_exists(std::string(output::outdir));
     MPI_Barrier(MPI_COMM_WORLD);
 
     start_mode::configure_start_mode();
 
-    ensure_directory_exists(OUTPUTDIR + "snapshots/");
-    ensure_directory_exists(OUTPUTDIR + "parameters/");
+    ensure_directory_exists(output::outdir + "snapshots/");
+    ensure_directory_exists(output::outdir + "parameters/");
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (CPU_Master) {
 
 	// copy setup files into the output folder
-	std::string output_folder = OUTPUTDIR + "parameters";
+	std::string output_folder = output::outdir + "parameters";
 	std::string par_file = getFileName(filename);
 	if (output_folder.back() != '/') {
 	    output_folder += "/";

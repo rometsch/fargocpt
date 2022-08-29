@@ -10,6 +10,11 @@
 namespace output
 {
 
+
+extern std::string snapshot_dir;
+extern std::string last_snapshot_dir;
+extern std::string outdir;
+
 struct misc_entry {
     int timestep;
     unsigned int nTimeStep;
@@ -51,6 +56,8 @@ std::string text_file_variable_description(
 
 std::string get_last_snapshot_id();
 std::int32_t get_latest_output_num(const std::string &snapshot_id);
+
+void CheckAngularMomentumConservation(t_data &data);
 
 } // namespace output
 

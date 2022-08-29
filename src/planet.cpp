@@ -407,7 +407,7 @@ void t_planet::create_planet_file()
 	output::text_file_variable_description(planet_files_column,
 					       variable_units);
 
-    const std::string filename = OUTPUTDIR + "bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    const std::string filename = output::outdir + "bigplanet" + std::to_string(get_planet_number()) + ".dat";
     fd = fopen(filename.c_str(), "w");
 
     if (fd == NULL) {
@@ -433,11 +433,11 @@ void t_planet::write(const unsigned int file_type)
     // create filename
     switch (file_type) {
     case 0:
-    filename = snapshot_dir + "/planet" + std::to_string(get_planet_number()) + ".bin";
+    filename = output::snapshot_dir + "/planet" + std::to_string(get_planet_number()) + ".bin";
 	write_binary(filename);
 	break;
     case 1:
-    filename = snapshot_dir + "/bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    filename = output::snapshot_dir + "/bigplanet" + std::to_string(get_planet_number()) + ".dat";
 	write_ascii(filename);
 	reset_accreted_mass();
 	break;
@@ -533,7 +533,7 @@ void t_planet::restart()
 {
 
     std::stringstream filename;
-    filename << snapshot_dir << "/planet" << get_planet_number() << ".bin";
+    filename << output::snapshot_dir << "/planet" << get_planet_number() << ".bin";
 
     try {
 	std::ifstream rf(filename.str().c_str(),

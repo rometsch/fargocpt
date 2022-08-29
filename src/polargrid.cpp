@@ -9,6 +9,7 @@
 #include "global.h"
 #include "logging.h"
 #include "mpi_utils.h"
+#include "output.h"
 #include "util.h"
 #include <cfloat>
 #include <cstdio>
@@ -126,7 +127,7 @@ void t_polargrid::write2D() const
     double *from;
 
     std::string filename =
-	snapshot_dir + "/" + std::string(get_name()) + ".dat";
+	output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
@@ -182,7 +183,7 @@ void t_polargrid::write1D() const
     t_radialarray &radius = is_scalar() ? Rb : Ra;
 
     const std::string filename =
-	snapshot_dir + "/" + std::string(get_name()) + +"1D" + ".dat";
+	output::snapshot_dir + "/" + std::string(get_name()) + +"1D" + ".dat";
 
     // try to open file
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
@@ -271,7 +272,7 @@ void t_polargrid::write1D() const
 void t_polargrid::read2D()
 {
     std::string filename;
-    filename = snapshot_dir + "/" + std::string(get_name()) + ".dat";
+    filename = output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
     read2D(filename.c_str());
 }
@@ -279,7 +280,7 @@ void t_polargrid::read2D()
 bool t_polargrid::file_exists()
 {
     std::string filename;
-    filename = snapshot_dir + "/" + std::string(get_name()) + ".dat";
+    filename = output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
     bool exists = std::experimental::filesystem::exists(filename);
 
@@ -344,7 +345,7 @@ void t_polargrid::read2D(const char *_filename)
 void t_polargrid::read1D(bool skip_min_max)
 {
     std::string filename;
-    filename = snapshot_dir + "/" + std::string(get_name()) + "1D" + ".dat";
+    filename = output::snapshot_dir + "/" + std::string(get_name()) + "1D" + ".dat";
 
     read1D(filename.c_str(), skip_min_max);
 }

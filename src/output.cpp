@@ -37,6 +37,10 @@
 namespace output
 {
 
+std::string snapshot_dir = "";
+std::string last_snapshot_dir = "";
+std::string outdir = "";
+
 const static std::map<const std::string, const int> quantities_file_column_v2 =
     {{"time step", 0},
      {"physical time", 1},
@@ -177,9 +181,9 @@ void check_free_space(t_data &data)
     struct statvfs fiData;
 
     // check if output directory exists
-    if ((directory_pointer = opendir(OUTPUTDIR.c_str())) == nullptr) {
+    if ((directory_pointer = opendir(outdir.c_str())) == nullptr) {
 	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
-			      OUTPUTDIR.c_str());
+			      outdir.c_str());
 	die("Not output directory!");
 	return; // needed so that compuler understands directory_pointer !=
 		// nullptr
@@ -208,13 +212,13 @@ void check_free_space(t_data &data)
     number_of_files *= NTOT / NINTERM;
 
     logging::print_master(LOG_INFO "Output information:\n");
-    logging::print_master(LOG_INFO "   Output directory: %s\n", OUTPUTDIR.c_str());
+    logging::print_master(LOG_INFO "   Output directory: %s\n", outdir.c_str());
     logging::print_master(LOG_INFO "    Number of files: %u\n",
 			  number_of_files);
     logging::print_master(LOG_INFO "  Total output size: %.2f GB\n",
 			  (double)space_needed / 1024.0 / 1024.0 / 1024.0);
 
-    if ((statvfs(OUTPUTDIR.c_str(), &fiData)) < 0) {
+    if ((statvfs(outdir.c_str(), &fiData)) < 0) {
 	logging::print_master(
 	    LOG_WARNING
 	    "Couldn't stat filesystem. You have to check for enough free space manually!\n");
@@ -237,7 +241,7 @@ void check_free_space(t_data &data)
 static void register_output(const std::string &snapshot_id)
 {
     if (CPU_Master) {
-	const std::string filename = OUTPUTDIR + "snapshots/list.txt";
+	const std::string filename = outdir + "snapshots/list.txt";
 	std::ofstream output_list(filename, std::ios_base::app);
 	output_list << snapshot_id << std::endl;
 	output_list.close();
@@ -256,7 +260,7 @@ static void copy_parameters_to_snapshot_dir()
 void write_output_version()
 {
     if (CPU_Master) {
-	const std::string filename = OUTPUTDIR + "/fargocpt_output_v1_0";
+	const std::string filename = outdir + "/fargocpt_output_v1_0";
 	std::ofstream versionfile(filename, std::ios_base::app);
 	versionfile.close();
     }
@@ -278,7 +282,7 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 		       const bool register_snapshot)
 {
 
-    snapshot_dir = OUTPUTDIR + "snapshots/" + snapshot_id;
+    snapshot_dir = outdir + "snapshots/" + snapshot_id;
     delete_directory_if_exists(snapshot_dir);
     ensure_directory_exists(snapshot_dir);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -344,7 +348,7 @@ void write_grids(t_data &data, int index, int iter, double phystime)
 void write_quantities(t_data &data, bool force_update)
 {
     FILE *fd = 0;
-    std::string filename = OUTPUTDIR + "Quantities.dat";
+    std::string filename = outdir + "Quantities.dat";
     auto fd_filename = filename.c_str();
     static bool fd_created = false;
 
@@ -719,7 +723,7 @@ void write_1D_info(t_data &data)
 	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
 	    char *tmp;
 
-	    if (asprintf(&tmp, "%s/%s1D.info", OUTPUTDIR.c_str(),
+	    if (asprintf(&tmp, "%s/%s1D.info", outdir.c_str(),
 			 data[t_data::t_polargrid_type(i)].get_name()) < 0) {
 		die("Not enough memory!");
 	    }
@@ -886,7 +890,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	char *fd_filename;
 	static bool fd_created_luminosity = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "luminosity.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", outdir.c_str(), "luminosity.dat") == -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
@@ -935,7 +939,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	// write dissipation
 	static bool fd_created_dissipation = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "dissipation.dat") ==
+	if (asprintf(&fd_filename, "%s%s", outdir.c_str(), "dissipation.dat") ==
 	    -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
@@ -999,7 +1003,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 
-	const std::string filename = OUTPUTDIR + "timeCoarse.dat";
+	const std::string filename = outdir + "timeCoarse.dat";
 	auto fd_filename = filename.c_str();
 
 	// check if file exists and we restarted
@@ -1071,7 +1075,7 @@ static std::string getLastLine(std::ifstream &in)
 
 std::string get_last_snapshot_id()
 {
-    const std::string filename = OUTPUTDIR + "snapshots/list.txt";
+    const std::string filename = outdir + "snapshots/list.txt";
     std::ifstream file(filename);
     std::string last_id = getLastLine(file);
     return last_id;
@@ -1079,7 +1083,7 @@ std::string get_last_snapshot_id()
 
 std::int32_t get_latest_output_num(const std::string &snapshot_id)
 {
-    const std::string path = OUTPUTDIR + "snapshots/" + snapshot_id;
+    const std::string path = outdir + "snapshots/" + snapshot_id;
 
     logging::print_master(LOG_INFO "Getting output number of snapshot %s\n",
 			  snapshot_id.c_str());
@@ -1101,6 +1105,95 @@ std::int32_t get_latest_output_num(const std::string &snapshot_id)
     misc_file.close();
 
     return entry.timestep;
+}
+
+/**
+	Checks the conservation of angular momentum over time.
+*/
+void CheckAngularMomentumConservation(t_data &data)
+{
+    static double totalStartAngularMomentum, gasStartAngularMomentum,
+	planetsStartAngularMomentum;
+    static int firstStart = 1;
+
+    unsigned int nPlanet;
+
+    double totalAngularMomentum, gasAngularMomentum,
+	planetsAngularMomentum = 0.0, planetAngularMomentum = 0.0;
+
+    FILE *fd;
+
+    double xplanet, yplanet, vxplanet, vyplanet;
+    double rpl, thetapl, vazimpl, masspl;
+
+    gasAngularMomentum = quantities::gas_angular_momentum(data, RMAX);
+
+    // computate angular momentum for each planet and sum up
+    for (nPlanet = 0;
+	 nPlanet < data.get_planetary_system().get_number_of_planets();
+	 ++nPlanet) {
+	xplanet = data.get_planetary_system().get_planet(nPlanet).get_x();
+	yplanet = data.get_planetary_system().get_planet(nPlanet).get_y();
+	rpl = sqrt(xplanet * xplanet + yplanet * yplanet);
+	thetapl = atan2(yplanet, xplanet);
+	vxplanet = data.get_planetary_system().get_planet(nPlanet).get_vx();
+	vyplanet = data.get_planetary_system().get_planet(nPlanet).get_vy();
+	vazimpl = -vxplanet * std::sin(thetapl) + vyplanet * std::cos(thetapl);
+	masspl = data.get_planetary_system().get_planet(nPlanet).get_mass();
+	planetAngularMomentum = masspl * rpl * vazimpl;
+	planetsAngularMomentum += planetAngularMomentum;
+    }
+
+    totalAngularMomentum = gasAngularMomentum + planetsAngularMomentum;
+    if (firstStart) {
+	firstStart = 0;
+
+	// PhysicalTime < 1e-10 was the "old" condition for saving start values
+	if (PhysicalTime > 1e-10) {
+	    logging::print_master(
+		LOG_INFO
+		"CheckAngularMomentumConservation is called for the first time very late: t=%f\n",
+		PhysicalTime);
+	}
+
+	planetsStartAngularMomentum = planetsAngularMomentum;
+	gasStartAngularMomentum = gasAngularMomentum;
+	totalStartAngularMomentum = totalAngularMomentum;
+	logging::print_master(
+	    LOG_INFO "time = %lg, Hp0 = %lg, Hg0 = %lg et Ht0 = %lg\n",
+	    PhysicalTime, planetsStartAngularMomentum, gasStartAngularMomentum,
+	    totalStartAngularMomentum);
+    }
+
+    if (!CPU_Master) {
+		return;
+	}
+
+	const std::string filename = outdir + "Momentum.dat";
+
+    // open logfile
+    fd = fopen(filename.c_str(), "a");
+    if (fd == NULL) {
+	logging::print_master(LOG_ERROR
+			      "Can't write 'Momentum.dat' file. Aborting.\n");
+	PersonalExit(1);
+    }
+
+
+    // computate absolute deviation from start values
+    planetsAngularMomentum =
+	fabs(planetsAngularMomentum - planetsStartAngularMomentum);
+    gasAngularMomentum = fabs(gasAngularMomentum - gasStartAngularMomentum);
+    totalAngularMomentum =
+	fabs(totalAngularMomentum - totalStartAngularMomentum);
+
+    // print to logfile
+    fprintf(fd, "%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n", PhysicalTime,
+	    planetsAngularMomentum, gasAngularMomentum, totalAngularMomentum,
+	    totalAngularMomentum / totalStartAngularMomentum);
+
+    // close file
+    fclose(fd);
 }
 
 } // namespace output

@@ -8,6 +8,7 @@
 #include "LowTasks.h"
 #include "constants.h"
 #include "global.h"
+#include "output.h"
 #include "logging.h"
 #include "mpi_utils.h"
 #include "polargrid.h"
@@ -138,7 +139,7 @@ void t_radialgrid::write1D() const
 	    \param number file number
     */
     std::stringstream filename;
-    filename << snapshot_dir << "/" << get_name() << ".dat";
+    filename << output::snapshot_dir << "/" << get_name() << ".dat";
     write1D(filename.str(), false);
 }
 
@@ -251,7 +252,7 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 void t_radialgrid::read1D()
 {
     std::string filename =
-	snapshot_dir + "/" + std::string(get_name()) + ".dat";
+	output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
     read1D(filename.c_str());
 }
 

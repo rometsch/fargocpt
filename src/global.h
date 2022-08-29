@@ -90,10 +90,6 @@ extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
 
-extern std::string snapshot_dir;
-extern std::string last_snapshot_dir;
-
-extern std::string OUTPUTDIR;
 
 extern std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
 extern int PRESCRIBED_TIME_SEGMENT_NUMBER;

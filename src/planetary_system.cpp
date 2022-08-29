@@ -7,6 +7,7 @@
 #include "logging.h"
 #include "parameters.h"
 #include "types.h"
+#include "output.h"
 #include <cstring>
 #include <ctype.h>
 #include <fstream>
@@ -349,7 +350,7 @@ void t_planetary_system::restart()
     {
 	reb_free_simulation(m_rebound);
 	std::stringstream rebound_filename;
-	rebound_filename << snapshot_dir << "/rebound.bin";
+	rebound_filename << output::snapshot_dir << "/rebound.bin";
 	m_rebound = reb_create_simulation_from_binary(
 	    (char *)rebound_filename.str().c_str());
     }
@@ -374,7 +375,7 @@ void t_planetary_system::write_planets(int file_type)
     }
 
     if (CPU_Master) {
-	const std::string rebound_filename = snapshot_dir + "/rebound.bin";
+	const std::string rebound_filename = output::snapshot_dir + "/rebound.bin";
 	reb_output_binary(m_rebound, rebound_filename.c_str());
     }
 }

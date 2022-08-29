@@ -15,6 +15,7 @@
 #include "parameters.h"
 #include "units/units.hpp"
 #include "config.h"
+#include "output.h"
 #include <math.h>
 #include <sstream>
 #include <stdlib.h>
@@ -356,7 +357,7 @@ void write_code_unit_file()
 
     if (CPU_Master) {
 
-	const std::string filename = OUTPUTDIR + "units.dat";
+	const std::string filename = output::outdir + "units.dat";
 	fd = fopen(filename.c_str(), "w");
 	if (fd == NULL) {
 	    logging::print_master(LOG_ERROR

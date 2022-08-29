@@ -1409,7 +1409,7 @@ void write_grid_data_to_file()
     
 	if (CPU_Master) {
 
-	const std::string filename = OUTPUTDIR + "dimensions.dat";
+	const std::string filename = output::outdir + "dimensions.dat";
 
 	fd = fopen(filename.c_str(), "w");
 	if (fd == NULL) {

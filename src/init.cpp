@@ -71,7 +71,7 @@ void init_radialarrays()
 
     unsigned int nRadial;
 
-	const std::string filename = OUTPUTDIR + "radii.dat";
+	const std::string filename = output::outdir + "radii.dat";
     fd_input = fopen(filename.c_str(), "r");
 
     double first_cell_size = 0.0;
@@ -217,7 +217,7 @@ void init_radialarrays()
     if (CPU_Master) {
 	FILE *fd_output;
 
-	const std::string filename = OUTPUTDIR + "used_rad.dat";
+	const std::string filename = output::outdir + "used_rad.dat";
 	fd_output = fopen(filename.c_str(), "w");
 
 	if (fd_output == NULL) {
