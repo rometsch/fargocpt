@@ -344,6 +344,11 @@ void read(char *filename, t_data &data)
 	L0_in_au = (1*units::L0).value_as(llnlunits::measurement_from_string("au").as_unit());
 	M0_in_solMass = (1*units::M0).value_as(llnlunits::measurement_from_string("solMass").as_unit());
 
+	constants::initialize_constants();
+
+    // now we now everything to compute unit factors
+    units::calculate_unit_factors();
+
 	std::cout << "Legacy L0 = " << L0_in_au << std::endl;
 	std::cout << "Legacy M0 = " << M0_in_solMass << std::endl;
 
@@ -960,14 +965,14 @@ void read(char *filename, t_data &data)
 
 	// TODO: continue applying units here
 
-    particle_radius = config::cfg.get<double>("ParticleRadius", 100.0);
+    particle_radius = config::cfg.get<double>("ParticleRadius", "100.0 cm", L0);
     particle_species_number =
 	config::cfg.get<unsigned int>("ParticleSpeciesNumber", 5);
     particle_radius_increase_factor =
 	config::cfg.get<double>("ParticleRadiusIncreaseFactor", 10.0);
     particle_eccentricity =
 	config::cfg.get<double>("ParticleEccentricity", 0.0);
-    particle_density = config::cfg.get<double>("ParticleDensity", 2.65);
+    particle_density = config::cfg.get<double>("ParticleDensity", "2.65 g/cm3", M0/(L0*L0*L0));
     particle_slope = config::cfg.get<double>(
 	"ParticleSurfaceDensitySlope", SIGMASLOPE);
     particle_slope =
@@ -1073,15 +1078,6 @@ void read(char *filename, t_data &data)
 	std::pow(particle_minimum_escape_radius, 2) + DBL_EPSILON;
 }
 
-void apply_units()
-{
-    star_temperature /= units::temperature.get_cgs_factor();
-    mass_accretion_rate = mass_accretion_rate *
-			  (units::cgs_Msol / units::cgs_Year) * 1. /
-			  units::mass_accretion_rate.get_cgs_factor();
-    particle_radius /= units::length.get_cgs_factor();
-    particle_density /= units::density.get_cgs_factor();
-}
 
 void summarize_parameters()
 {

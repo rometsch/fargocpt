@@ -76,18 +76,7 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     // read config from
     // config::read_config_from_file(filename);
     parameters::read(filename, data);
-	config::Config cfg(filename);
-
-    constants::initialize_constants();
-
-    // now we now everything to compute unit factors
-    units::calculate_unit_factors();
-
-    // TODO: This should definitely done in parameters.cpp, where values are
-    // read, but parameters::read() is called before
-    // units::calculate_unit_factors() so it is not possible. Moving the read()
-    // call causes an error.
-    parameters::apply_units();
+	auto &cfg = config::cfg;
 
     parameters::ShockTube = cfg.get<int>("ShockTube", 0);
     parameters::SpreadingRing =

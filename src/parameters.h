@@ -334,7 +334,6 @@ extern t_particle_integrator integrator;
 
 void read(char *filename, t_data &data);
 void summarize_parameters();
-void apply_units();
 void write_grid_data_to_file();
 void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 			     std::string instruction);
