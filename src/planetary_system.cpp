@@ -374,9 +374,8 @@ void t_planetary_system::write_planets(int file_type)
     }
 
     if (CPU_Master) {
-	std::stringstream rebound_filename;
-	rebound_filename << snapshot_dir << "/rebound.bin";
-	reb_output_binary(m_rebound, rebound_filename.str().c_str());
+	const std::string rebound_filename = snapshot_dir + "/rebound.bin";
+	reb_output_binary(m_rebound, rebound_filename.c_str());
     }
 }
 
