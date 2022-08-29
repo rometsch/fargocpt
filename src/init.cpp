@@ -375,7 +375,6 @@ void init_shakura_sunyaev(t_data &data)
 					 2. * (RMAX - RMIN) / GlobalNRadial)),
 			 0.25);
 
-		// TODO: translate to new units
 	    data[t_data::SIGMA](n_radial, n_azimuthal) =
 		(5.2 * std::pow(ALPHAVISCOSITY, -4. / 5.) *
 		 std::pow(parameters::mass_accretion_rate *
@@ -388,7 +387,6 @@ void init_shakura_sunyaev(t_data &data)
 		 std::pow(factor, 14. / 5.)) /
 		units::surface_density.get_cgs_factor();
 
-		// TODO: translate to new units
 	    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		(1.7e8 * std::pow(ALPHAVISCOSITY, -1. / 10.) *
 		 std::pow(parameters::mass_accretion_rate *
@@ -401,7 +399,6 @@ void init_shakura_sunyaev(t_data &data)
 		 std::pow(factor, 3. / 5.)) /
 		(Rb[n_radial] * units::length.get_cgs_factor()) * Rb[n_radial];
 
-		// TODO: translate to new units
 	    data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		(1.4e4 * std::pow(ALPHAVISCOSITY, -1. / 5.) *
 		 std::pow(parameters::mass_accretion_rate *
@@ -413,7 +410,6 @@ void init_shakura_sunyaev(t_data &data)
 			  -0.75) *
 		 std::pow(factor, 6. / 5.)) /
 		units::temperature.get_cgs_factor();
-		// TODO: translate to new units
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		-(2.7e4 * std::pow(ALPHAVISCOSITY, 4. / 5.) *
 		  std::pow(parameters::mass_accretion_rate *

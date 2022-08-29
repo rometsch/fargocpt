@@ -962,8 +962,6 @@ void read(char *filename, t_data &data)
     number_of_particles =
 	config::cfg.get<unsigned int>("NumberOfParticles", 0);
 
-	// TODO: continue applying units here
-
     particle_radius = config::cfg.get<double>("ParticleRadius", "100.0 cm", L0);
     particle_species_number =
 	config::cfg.get<unsigned int>("ParticleSpeciesNumber", 5);
