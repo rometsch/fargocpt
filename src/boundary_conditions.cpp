@@ -1362,8 +1362,6 @@ void mass_overflow(t_data &data)
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
 	const double mdot_code = parameters::mof_value;
-    const double mdot_cgs =
-	mdot_code * (1*units::M0/units::T0).value_as(units::precise::g/units::precise::second);
 
     const double Sigma_stream = mdot_code * dt / Surf[Nrad - 2];
 
@@ -1502,8 +1500,6 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
 	const double stream_mdot_code = parameters::mof_value;
-    const double stream_mdot_cgs =
-	stream_mdot_code * (1*units::M0/units::T0).value_as(units::precise::g/units::precise::second);
     
     const double Sigma_stream =
 	fabs(stream_mdot_code / (dphi * Rinf[Nrad] * vr_stream));
