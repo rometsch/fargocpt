@@ -1140,15 +1140,15 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 
 	double adv_torque = 0.0;
 	if (data[t_data::ADVECTION_TORQUE].get_write()) {
-		adv_torque = quantities::gas_quantity_reduce(data[t_data::ADVECTION_TORQUE], quantities_radius);
+		adv_torque = quantities::gas_quantity_reduce(data[t_data::ADVECTION_TORQUE], RMAX);
 	}
 	double visc_torque = 0.0;
 	if (data[t_data::VISCOUS_TORQUE].get_write()) {
-		visc_torque = quantities::gas_quantity_reduce(data[t_data::VISCOUS_TORQUE], quantities_radius);
+		visc_torque = quantities::gas_quantity_reduce(data[t_data::VISCOUS_TORQUE], RMAX);
 	}
 	double grav_torque = 0.0;
 	if (data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()) {
-		grav_torque = quantities::gas_quantity_reduce(data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED], quantities_radius);
+		grav_torque = quantities::gas_quantity_reduce(data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED], RMAX);
 	}
 	double source_de = 0.0;
 	if (data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].get_write()) {
