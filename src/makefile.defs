@@ -31,6 +31,8 @@ CFLAGS := $(CFLAGS_$(FARGO_ARCH))
 ifeq "$(FARGO_DEBUG)" "1"
 	CFLAGS += -g -O0 -fsanitize=address
 	LIBS += -lasan
+else ifeq "$(FARGO_DEBUG)" "valgrind"
+	CFLAGS += -g -O0
 else
 	CFLAGS += $(OPTIMIZATION) -DNDEBUG
 endif
