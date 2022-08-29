@@ -106,8 +106,12 @@ double gas_quantity_mass_average(t_data &data, const t_polargrid& arr, const dou
 	MPI_Reduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
 		  0, MPI_COMM_WORLD);
 
+	if(CPU_Master){
 	global_reduced_quantity /= global_mass;
 	return global_reduced_quantity;
+	} else {
+		return 0.0;
+	}
 }
 
 
