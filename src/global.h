@@ -93,7 +93,7 @@ extern t_polargrid *CellCenterX, *CellCenterY;
 extern std::string snapshot_dir;
 extern std::string last_snapshot_dir;
 
-extern char *OUTPUTDIR;
+extern std::string OUTPUTDIR;
 
 extern std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
 extern int PRESCRIBED_TIME_SEGMENT_NUMBER;

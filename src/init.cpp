@@ -68,19 +68,11 @@ void resize_radialarrays(unsigned int size)
 void init_radialarrays()
 {
     FILE *fd_input;
-    char *fd_input_filename;
+
     unsigned int nRadial;
 
-    if (asprintf(&fd_input_filename, "%s%s", OUTPUTDIR, "radii.dat") == -1) {
-	logging::print_master(LOG_ERROR
-			      "Not enough memory for string buffer.\n");
-	PersonalExit(1);
-    }
-
-    fd_input = fopen(fd_input_filename, "r");
-
-    // free up fdInputFilename
-    free(fd_input_filename);
+	const std::string filename = OUTPUTDIR + "radii.dat";
+    fd_input = fopen(filename.c_str(), "r");
 
     double first_cell_size = 0.0;
     double cell_growth_factor = 0.0;
@@ -224,26 +216,16 @@ void init_radialarrays()
     /* output radii to used_rad.dat (on master only) */
     if (CPU_Master) {
 	FILE *fd_output;
-	char *fd_output_filename;
 
-	if (asprintf(&fd_output_filename, "%s%s", OUTPUTDIR, "used_rad.dat") ==
-	    -1) {
-	    logging::print_master(LOG_ERROR
-				  "Not enough memory for string buffer.\n");
-	    PersonalExit(1);
-	}
-
-	fd_output = fopen(fd_output_filename, "w");
+	const std::string filename = OUTPUTDIR + "used_rad.dat";
+	fd_output = fopen(filename.c_str(), "w");
 
 	if (fd_output == NULL) {
 	    logging::print_master(LOG_ERROR
 				  "Can't write %s.\nProgram stopped.\n",
-				  fd_output_filename);
+				  filename.c_str());
 	    PersonalExit(1);
 	}
-	// free up fdOutputFilename
-	free(fd_output_filename);
-
 	for (nRadial = 0; nRadial <= GlobalNRadial; ++nRadial) {
 	    fprintf(fd_output, "%.18g\n", Radii[nRadial]);
 	}

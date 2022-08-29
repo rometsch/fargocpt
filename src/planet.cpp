@@ -407,15 +407,12 @@ void t_planet::create_planet_file()
 	output::text_file_variable_description(planet_files_column,
 					       variable_units);
 
-    std::stringstream filename;
-    filename << std::string(OUTPUTDIR) << "/"
-	     << "bigplanet" << get_planet_number() << ".dat";
-
-    fd = fopen(filename.str().c_str(), "w");
+    const std::string filename = OUTPUTDIR + "bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    fd = fopen(filename.c_str(), "w");
 
     if (fd == NULL) {
 	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n",
-		       filename.str().c_str());
+		       filename.c_str());
 	PersonalExit(1);
     }
 

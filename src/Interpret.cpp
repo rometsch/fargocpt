@@ -89,27 +89,26 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 
     FLARINGINDEX = cfg.get<double>("FLARINGINDEX", 0.0);
 
-	// TODO: put a / at the end of output dir if needed.
     std::string setup_name = getFileName(filename);
     setup_name = setup_name.substr(0, setup_name.size() - 4) + "/";
-    if (asprintf(&OUTPUTDIR, "%s",
-		 cfg.get<std::string>("OUTPUTDIR", setup_name).c_str()) < 0) {
-	logging::print_master(LOG_ERROR "Not enough memory!\n");
-    }
-
+	OUTPUTDIR = cfg.get<std::string>("OUTPUTDIR", setup_name);
+	if (OUTPUTDIR[OUTPUTDIR.length()-1] != '/') {
+		OUTPUTDIR += "/";
+	}
+    
     ensure_directory_exists(std::string(OUTPUTDIR));
     MPI_Barrier(MPI_COMM_WORLD);
 
     start_mode::configure_start_mode();
 
-    ensure_directory_exists(std::string(OUTPUTDIR) + "snapshots/");
-    ensure_directory_exists(std::string(OUTPUTDIR) + "parameters/");
+    ensure_directory_exists(OUTPUTDIR + "snapshots/");
+    ensure_directory_exists(OUTPUTDIR + "parameters/");
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (CPU_Master) {
 
 	// copy setup files into the output folder
-	std::string output_folder = std::string(OUTPUTDIR) + "parameters";
+	std::string output_folder = OUTPUTDIR + "parameters";
 	std::string par_file = getFileName(filename);
 	if (output_folder.back() != '/') {
 	    output_folder += "/";
@@ -529,14 +528,6 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	logging::print_master(
 	    LOG_ERROR
 	    "A non-vanishing potential smoothing length is required.\n");
-    }
-
-    // Add a trailing slash to OUTPUTDIR if needed
-    if (OUTPUTDIR[strlen(OUTPUTDIR) - 1] != '/') {
-	unsigned int size = strlen(OUTPUTDIR);
-	OUTPUTDIR = (char *)realloc(OUTPUTDIR, size + 2);
-	OUTPUTDIR[size] = '/';
-	OUTPUTDIR[size + 1] = 0;
     }
 
     const double T0 = cfg.get<double>("TemperatureCGS0", 0.0);

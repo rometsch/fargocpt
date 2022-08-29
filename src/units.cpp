@@ -353,22 +353,16 @@ void write_code_unit_file()
     /* Write a file containing the base units to the output folder. */
 
     FILE *fd = 0;
-    char *fd_filename;
 
     if (CPU_Master) {
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "units.dat") == -1) {
-	    logging::print_master(LOG_ERROR
-				  "Not enough memory for string buffer.\n");
-	    PersonalExit(1);
-	}
-	fd = fopen(fd_filename, "w");
+
+	const std::string filename = OUTPUTDIR + "units.dat";
+	fd = fopen(filename.c_str(), "w");
 	if (fd == NULL) {
 	    logging::print_master(LOG_ERROR
 				  "Can't write 'units.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
-
-	free(fd_filename);
 
 	fprintf(fd, "# units-file : 1.0\n");
 	fprintf(fd, "# log output of units:\n");

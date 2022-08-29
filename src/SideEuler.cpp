@@ -49,7 +49,6 @@ void CheckAngularMomentumConservation(t_data &data)
 	planetsAngularMomentum = 0.0, planetAngularMomentum = 0.0;
 
     FILE *fd;
-    char *fdFilename;
 
     double xplanet, yplanet, vxplanet, vyplanet;
     double rpl, thetapl, vazimpl, masspl;
@@ -93,24 +92,20 @@ void CheckAngularMomentumConservation(t_data &data)
 	    totalStartAngularMomentum);
     }
 
-    if (!CPU_Master)
-	return;
+    if (!CPU_Master) {
+		return;
+	}
 
-    if (asprintf(&fdFilename, "%s%s", OUTPUTDIR, "Momentum.dat") == -1) {
-	logging::print_master(LOG_ERROR
-			      "Not enough memory for string buffer.\n");
-	PersonalExit(1);
-    }
+	const std::string filename = OUTPUTDIR + "Momentum.dat";
 
     // open logfile
-    fd = fopen(fdFilename, "a");
+    fd = fopen(filename.c_str(), "a");
     if (fd == NULL) {
 	logging::print_master(LOG_ERROR
 			      "Can't write 'Momentum.dat' file. Aborting.\n");
 	PersonalExit(1);
     }
 
-    free(fdFilename);
 
     // computate absolute deviation from start values
     planetsAngularMomentum =

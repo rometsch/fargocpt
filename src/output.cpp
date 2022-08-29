@@ -173,18 +173,13 @@ static const auto quantities_file_column = quantities_file_column_v2_3;
 
 void check_free_space(t_data &data)
 {
-    char *directory_name;
     DIR *directory_pointer;
     struct statvfs fiData;
 
-    if (asprintf(&directory_name, "%s/", OUTPUTDIR) < 0) {
-	die("Not enough memory.");
-    }
-
     // check if output directory exists
-    if ((directory_pointer = opendir(directory_name)) == nullptr) {
+    if ((directory_pointer = opendir(OUTPUTDIR.c_str())) == nullptr) {
 	logging::print_master(LOG_ERROR "Output directory %s doesn't exist!\n",
-			      OUTPUTDIR);
+			      OUTPUTDIR.c_str());
 	die("Not output directory!");
 	return; // needed so that compuler understands directory_pointer !=
 		// nullptr
@@ -213,13 +208,13 @@ void check_free_space(t_data &data)
     number_of_files *= NTOT / NINTERM;
 
     logging::print_master(LOG_INFO "Output information:\n");
-    logging::print_master(LOG_INFO "   Output directory: %s\n", OUTPUTDIR);
+    logging::print_master(LOG_INFO "   Output directory: %s\n", OUTPUTDIR.c_str());
     logging::print_master(LOG_INFO "    Number of files: %u\n",
 			  number_of_files);
     logging::print_master(LOG_INFO "  Total output size: %.2f GB\n",
 			  (double)space_needed / 1024.0 / 1024.0 / 1024.0);
 
-    if ((statvfs(directory_name, &fiData)) < 0) {
+    if ((statvfs(OUTPUTDIR.c_str(), &fiData)) < 0) {
 	logging::print_master(
 	    LOG_WARNING
 	    "Couldn't stat filesystem. You have to check for enough free space manually!\n");
@@ -237,15 +232,12 @@ void check_free_space(t_data &data)
 		"There is not enough space for all outputs! The program will fail at same point!\n");
 	}
     }
-
-    free(directory_name);
 }
 
 static void register_output(const std::string &snapshot_id)
 {
     if (CPU_Master) {
-	const std::string filename =
-	    std::string(OUTPUTDIR) + "/snapshots/list.txt";
+	const std::string filename = OUTPUTDIR + "/snapshots/list.txt";
 	std::ofstream output_list(filename, std::ios_base::app);
 	output_list << snapshot_id << std::endl;
 	output_list.close();
@@ -264,8 +256,7 @@ static void copy_parameters_to_snapshot_dir()
 void write_output_version()
 {
     if (CPU_Master) {
-	const std::string filename =
-	    std::string(OUTPUTDIR) + "/fargocpt_output_v1_0";
+	const std::string filename = OUTPUTDIR + "/fargocpt_output_v1_0";
 	std::ofstream versionfile(filename, std::ios_base::app);
 	versionfile.close();
     }
@@ -287,7 +278,7 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 		       const bool register_snapshot)
 {
 
-    snapshot_dir = std::string(OUTPUTDIR) + "snapshots/" + snapshot_id;
+    snapshot_dir = OUTPUTDIR + "snapshots/" + snapshot_id;
     delete_directory_if_exists(snapshot_dir);
     ensure_directory_exists(snapshot_dir);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -353,7 +344,7 @@ void write_grids(t_data &data, int index, int iter, double phystime)
 void write_quantities(t_data &data, bool force_update)
 {
     FILE *fd = 0;
-    std::string filename = std::string(OUTPUTDIR) + "Quantities.dat";
+    std::string filename = OUTPUTDIR + "Quantities.dat";
     auto fd_filename = filename.c_str();
     static bool fd_created = false;
 
@@ -728,7 +719,7 @@ void write_1D_info(t_data &data)
 	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
 	    char *tmp;
 
-	    if (asprintf(&tmp, "%s/%s1D.info", OUTPUTDIR,
+	    if (asprintf(&tmp, "%s/%s1D.info", OUTPUTDIR.c_str(),
 			 data[t_data::t_polargrid_type(i)].get_name()) < 0) {
 		die("Not enough memory!");
 	    }
@@ -895,7 +886,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	char *fd_filename;
 	static bool fd_created_luminosity = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "luminosity.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "luminosity.dat") == -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
@@ -944,7 +935,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	// write dissipation
 	static bool fd_created_dissipation = false;
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "dissipation.dat") ==
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR.c_str(), "dissipation.dat") ==
 	    -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
@@ -1008,7 +999,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 
-	const std::string filename = std::string(OUTPUTDIR) + "timeCoarse.dat";
+	const std::string filename = OUTPUTDIR + "timeCoarse.dat";
 	auto fd_filename = filename.c_str();
 
 	// check if file exists and we restarted
@@ -1080,7 +1071,7 @@ static std::string getLastLine(std::ifstream &in)
 
 std::string get_last_snapshot_id()
 {
-    const std::string filename = std::string(OUTPUTDIR) + "/snapshots/list.txt";
+    const std::string filename = OUTPUTDIR + "/snapshots/list.txt";
     std::ifstream file(filename);
     std::string last_id = getLastLine(file);
     return last_id;
@@ -1088,10 +1079,7 @@ std::string get_last_snapshot_id()
 
 std::int32_t get_latest_output_num(const std::string &snapshot_id)
 {
-    std::experimental::filesystem::path path;
-    path = OUTPUTDIR;
-    path /= "snapshots";
-    path /= snapshot_id;
+    const std::string path = OUTPUTDIR + "snapshots/" + snapshot_id;
 
     logging::print_master(LOG_INFO "Getting output number of snapshot %s\n",
 			  snapshot_id.c_str());

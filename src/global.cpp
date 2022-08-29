@@ -151,7 +151,7 @@ int OverridesOutputdir;
 
 std::string snapshot_dir = "";
 std::string last_snapshot_dir = "";
-char *OUTPUTDIR;
+std::string OUTPUTDIR;
 char *PLANETCONFIG;
 
 std::string PRESCRIBED_BOUNDARY_OUTER_FILE;

@@ -44,7 +44,7 @@ void configure_start_mode()
 		}
 		logging::print_master(LOG_INFO
 				      "%s is not empty, backing up as %s\n",
-				      OUTPUTDIR, backup_path.c_str());
+				      OUTPUTDIR.c_str(), backup_path.c_str());
 		std::experimental::filesystem::rename(OUTPUTDIR, backup_path);
 		std::experimental::filesystem::create_directory(OUTPUTDIR);
 	    }
@@ -63,11 +63,11 @@ void configure_start_mode()
 	case mode_restart:
 	    if (restart_from < 0) {
 		const std::string last_id = output::get_last_snapshot_id();
-		snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" + last_id;
+		snapshot_dir = OUTPUTDIR + "/snapshots/" + last_id;
 		restart_from = output::get_latest_output_num(last_id);
 	    } else {
 		// const std::string last_id = std::to_string(restart_from);
-		snapshot_dir = std::string(OUTPUTDIR) + "/snapshots/" +
+		snapshot_dir = OUTPUTDIR + "/snapshots/" +
 			       std::to_string(restart_from);
 		// restart_from = output::get_latest_output_num(last_id);
 	    }
