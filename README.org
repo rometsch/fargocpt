@@ -17,8 +17,10 @@ The old readme file by Tobias Müller can be found at [[file:README_OLD.md][here
     + Shocktube
 + Viscosity
     + Viscous spreading ring
-+ Heating
++ Heating/Cooling
     + passive disk -> power law profile
+    + betacooling background
+    + betacooling aspect ratio
 + Dust
     + Dust drift
     + Dust diffusion
