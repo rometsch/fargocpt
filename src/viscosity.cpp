@@ -36,7 +36,7 @@ void update_viscosity(t_data &data)
 {
     static bool calculated = false;
     // if alpha-viscosity
-    if (ViscosityAlpha) {
+    if (parameters::ALPHAVISCOSITY > 0) {
 	for (unsigned int n_rad = 0;
 	     n_rad <= data[t_data::VISCOSITY].get_max_radial(); ++n_rad) {
 	    for (unsigned int n_az = 0;
@@ -46,7 +46,7 @@ void update_viscosity(t_data &data)
 
 		// nu = alpha * c_s_adb * H = alpha * c_s_adb^2 / sqrt(gamma) /
 		// Omega_K
-		const double alpha = ALPHAVISCOSITY;
+		const double alpha = parameters::ALPHAVISCOSITY;
 		const double c_s_adb = data[t_data::SOUNDSPEED](n_rad, n_az);
 		const double H = data[t_data::SCALE_HEIGHT](n_rad, n_az);
 		const double nu = alpha * H * c_s_adb;
@@ -62,7 +62,7 @@ void update_viscosity(t_data &data)
 		for (unsigned int n_azimuthal = 0;
 		     n_azimuthal <= data[t_data::VISCOSITY].get_max_azimuthal();
 		     ++n_azimuthal) {
-		    data[t_data::VISCOSITY](n_radial, n_azimuthal) = VISCOSITY;
+		    data[t_data::VISCOSITY](n_radial, n_azimuthal) = parameters::VISCOSITY;
 		}
 	    }
 	}

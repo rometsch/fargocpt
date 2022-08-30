@@ -31,8 +31,11 @@ extern std::vector<parameters::t_DampingType> parameters::damping_vector;
 namespace boundary_conditions
 {
 
+int PRESCRIBED_TIME_SEGMENT_NUMBER;
+
 void init_prescribed_time_variable_boundaries(t_data &data)
 {
+	
 
     // delete old data
     if (data[t_data::PRESCRIBED_DENSITY_OUTER].Field != nullptr) {
@@ -65,14 +68,14 @@ void init_prescribed_time_variable_boundaries(t_data &data)
     if (CPU_Rank == CPU_Highest) {
 	if (parameters::boundary_outer ==
 	    parameters::boundary_condition_precribed_time_variable) {
-	    if (PRESCRIBED_BOUNDARY_OUTER_FILE == "") {
+	    if (parameters::PRESCRIBED_BOUNDARY_OUTER_FILE == "") {
 		die("Outer prescribed time variable boundary condition is enabled but the supplied file folder is not found!\n");
 	    } else {
 
 		// TODO: naming convention might need adjustment
 		const int Nphi =
 		    data[t_data::PRESCRIBED_DENSITY_OUTER].get_size_azimuthal();
-		std::string file_name_body = PRESCRIBED_BOUNDARY_OUTER_FILE + "/" + std::to_string(Nphi) + "shift";
+		std::string file_name_body = parameters::PRESCRIBED_BOUNDARY_OUTER_FILE + "/" + std::to_string(Nphi) + "shift";
 
 		std::string file_name_test = file_name_body + "0.dat";
 		if (!std::experimental::filesystem::exists(
@@ -84,7 +87,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 		// get number of files
 		int num_files = 0;
 		const std::experimental::filesystem::path File_Folder{
-		    PRESCRIBED_BOUNDARY_OUTER_FILE};
+		    parameters::PRESCRIBED_BOUNDARY_OUTER_FILE};
 		for (auto const &dir_entry :
 		     std::experimental::filesystem::directory_iterator{
 			 File_Folder}) {
@@ -185,13 +188,13 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    const double Cs =
 				pluto_aspect_ratio *
 				sqrt(constants::G * hydro_center_mass / RMAX) *
-				std::pow(RMAX, FLARINGINDEX);
+				std::pow(RMAX, parameters::FLARINGINDEX);
 			    const double P = sigma * Cs * Cs;
 			    const double T =
 				parameters::MU / constants::R * P / sigma;
 			    const double energy = T * sigma / parameters::MU *
 						  constants::R /
-						  (ADIABATICINDEX - 1.0);
+						  (parameters::ADIABATICINDEX - 1.0);
 
 			    data[t_data::PRESCRIBED_DENSITY_OUTER](
 				file_id, n_azimuthal) = sigma;
@@ -1175,19 +1178,19 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		    vr_init = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		    const double v_k =
 			std::sqrt(constants::G * com_mass / r_com);
 		    const double h =
-			ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+			parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
 		    const double cs_iso = h * v_k;
 		    const double H = h * r_com;
-		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		    vr_init = -3.0 * nu / r_com *
-			      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+			      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 		}
 
 		// Velocity in center of mass frame
@@ -1247,19 +1250,19 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		    const double v_k =
 			std::sqrt(constants::G * com_mass / r_com);
 		    const double h =
-			ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+			parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
 		    const double cs_iso = h * v_k;
 		    const double H = h * r_com;
-		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		    vr0 = -3.0 * nu / r_com *
-			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 		}
 
 		// Velocity in center of mass frame
@@ -1426,7 +1429,7 @@ void mass_overflow(t_data &data)
 	    const double e_stream =
 		T_stream * units::temperature.get_inverse_cgs_factor() * dens /
 		parameters::MU * constants::R /
-		(ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
+		(parameters::ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
 
 	    data[t_data::ENERGY](Nrad - 2, gridcell) = e_stream;
 	}
@@ -1564,7 +1567,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	    const double e_stream =
 		T_stream * units::temperature.get_inverse_cgs_factor() * dens /
 		parameters::MU * constants::R /
-		(ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
+		(parameters::ADIABATICINDEX - 1.0); // energy density equivalent to T_stream
 
 	    data[t_data::ENERGY](Nrad, gridcell) = e_stream;
 	}
@@ -1606,7 +1609,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    (ADIABATICINDEX - 1.0) / parameters::MU * constants::R;
+		    (parameters::ADIABATICINDEX - 1.0) / parameters::MU * constants::R;
 	    }
 	}
 
@@ -1631,7 +1634,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) /
 		    data[t_data::SIGMA](n_radial, n_azimuthal) *
-		    (ADIABATICINDEX - 1.0) * parameters::MU / constants::R;
+		    (parameters::ADIABATICINDEX - 1.0) * parameters::MU / constants::R;
 	    }
 	}
     }
@@ -1646,7 +1649,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    (ADIABATICINDEX - 1.0) / parameters::MU * constants::R;
+		    (parameters::ADIABATICINDEX - 1.0) / parameters::MU * constants::R;
 	    }
 	}
 
@@ -1674,7 +1677,7 @@ void apply_boundary_condition_temperature(t_data &data)
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
 		    data[t_data::ENERGY](n_radial, n_azimuthal) /
 		    data[t_data::SIGMA](n_radial, n_azimuthal) *
-		    (ADIABATICINDEX - 1.0) * parameters::MU / constants::R;
+		    (parameters::ADIABATICINDEX - 1.0) * parameters::MU / constants::R;
 	    }
 	}
     }
@@ -1781,24 +1784,24 @@ void keplerian2d_boundary_inner(t_data &data)
 	 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 	 ++n_azimuthal) {
 	data[t_data::SIGMA](1, n_azimuthal) =
-	    parameters::sigma0 * std::pow(Rmed[1], -SIGMASLOPE);
+	    parameters::sigma0 * std::pow(Rmed[1], -parameters::SIGMASLOPE);
 	data[t_data::SIGMA](0, n_azimuthal) =
-	    parameters::sigma0 * std::pow(Rmed[0], -SIGMASLOPE);
+	    parameters::sigma0 * std::pow(Rmed[0], -parameters::SIGMASLOPE);
 	data[t_data::ENERGY](1, n_azimuthal) =
-	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    std::pow(ASPECTRATIO_REF, 2) *
-	    std::pow(Rmed[1], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+	    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	    std::pow(parameters::ASPECTRATIO_REF, 2) *
+	    std::pow(Rmed[1], -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX);
 	data[t_data::ENERGY](0, n_azimuthal) =
-	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    std::pow(ASPECTRATIO_REF, 2) *
-	    std::pow(Rmed[0], -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+	    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	    std::pow(parameters::ASPECTRATIO_REF, 2) *
+	    std::pow(Rmed[0], -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX);
 	data[t_data::TEMPERATURE](1, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal) /
-	    data[t_data::SIGMA](1, n_azimuthal) * (ADIABATICINDEX - 1.0) *
+	    data[t_data::SIGMA](1, n_azimuthal) * (parameters::ADIABATICINDEX - 1.0) *
 	    parameters::MU * constants::R;
 	data[t_data::TEMPERATURE](0, n_azimuthal) =
 	    data[t_data::ENERGY](0, n_azimuthal) /
-	    data[t_data::SIGMA](0, n_azimuthal) * (ADIABATICINDEX - 1.0) *
+	    data[t_data::SIGMA](0, n_azimuthal) * (parameters::ADIABATICINDEX - 1.0) *
 	    parameters::MU * constants::R;
 	data[t_data::V_RADIAL](1, n_azimuthal) = 0.0;
 	data[t_data::V_RADIAL](0, n_azimuthal) =
@@ -1817,38 +1820,38 @@ void keplerian2d_boundary_outer(t_data &data)
 	 ++n_azimuthal) {
 	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(), n_azimuthal) =
 	    parameters::sigma0 *
-	    std::pow(Rmed[data[t_data::SIGMA].get_max_radial()], -SIGMASLOPE);
+	    std::pow(Rmed[data[t_data::SIGMA].get_max_radial()], -parameters::SIGMASLOPE);
 	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 			    n_azimuthal) =
 	    parameters::sigma0 *
 	    std::pow(Rmed[data[t_data::SIGMA].get_max_radial() - 1],
-		     -SIGMASLOPE);
+		     -parameters::SIGMASLOPE);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
-	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    std::pow(ASPECTRATIO_REF, 2) *
+	    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	    std::pow(parameters::ASPECTRATIO_REF, 2) *
 	    std::pow(Rmed[data[t_data::SIGMA].get_max_radial()],
-		     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+		     -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX);
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 			     n_azimuthal) =
-	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    std::pow(ASPECTRATIO_REF, 2) *
+	    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	    std::pow(parameters::ASPECTRATIO_REF, 2) *
 	    std::pow(Rmed[data[t_data::SIGMA].get_max_radial() - 1],
-		     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX);
+		     -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX);
 	data[t_data::TEMPERATURE](data[t_data::TEMPERATURE].get_max_radial(),
 				  n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 				 n_azimuthal) /
 	    data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(),
 				n_azimuthal) *
-	    (ADIABATICINDEX - 1.0) * parameters::MU * constants::R;
+	    (parameters::ADIABATICINDEX - 1.0) * parameters::MU * constants::R;
 	data[t_data::TEMPERATURE](
 	    data[t_data::TEMPERATURE].get_max_radial() - 1, n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 				 n_azimuthal) /
 	    data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 				n_azimuthal) *
-	    (ADIABATICINDEX - 1.0) * parameters::MU * constants::R;
+	    (parameters::ADIABATICINDEX - 1.0) * parameters::MU * constants::R;
 	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
 			       n_azimuthal) =
 	    -data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 2,
@@ -1914,18 +1917,18 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
-		    ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		    parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
 		const double cs_iso = h * v_k;
 		const double H = h * r_com;
-		const double nu = ALPHAVISCOSITY * cs_iso * H;
+		const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		vr0 = -3.0 * nu / r_com *
-		      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 	    }
 
 	    // Velocity in center of mass frame
@@ -1968,18 +1971,18 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
-		    ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		    parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
 		const double cs_iso = h * v_k;
 		const double H = h * r_com;
-		const double nu = ALPHAVISCOSITY * cs_iso * H;
+		const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		vr0 = -3.0 * nu / r_com *
-		      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 	    }
 
 	    // Velocity in center of mass frame
@@ -2021,18 +2024,18 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
-		    ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+		    parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
 		const double cs_iso = h * v_k;
 		const double H = h * r_com;
-		const double nu = ALPHAVISCOSITY * cs_iso * H;
+		const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		vr0 = -3.0 * nu / r_com *
-		      (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+		      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 	    }
 
 	    // Velocity in center of mass frame
@@ -2066,15 +2069,15 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double cell_sigma =
 		parameters::sigma0 *
 		std::pow(r_com,
-			 -SIGMASLOPE); // we assume the floor is not reached.
+			 -parameters::SIGMASLOPE); // we assume the floor is not reached.
 	    sigma(nr, naz) = cell_sigma;
 
 	    /*
 	    /// Initial profile temperature
 	const double cell_energy =
-	    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    std::pow(ASPECTRATIO_REF, 2) *
-	    std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+	    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	    std::pow(parameters::ASPECTRATIO_REF, 2) *
+	    std::pow(r_com, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
 	    constants::G * com_mass;
 
 	const double temperature_floor =
@@ -2083,7 +2086,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	const double energy_floor = temperature_floor * cell_sigma /
 				    parameters::MU * constants::R /
-				    (ADIABATICINDEX - 1.0);
+				    (parameters::ADIABATICINDEX - 1.0);
 
 	energy(nr, naz) = std::max(cell_energy, energy_floor);
 	    */
@@ -2101,9 +2104,9 @@ void jibin_boundary_inner(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
-    const double h = ASPECTRATIO_REF;
-    const double p = SIGMASLOPE;
-    const double q = 2.0 * FLARINGINDEX - 1.0;
+    const double h = parameters::ASPECTRATIO_REF;
+    const double p = parameters::SIGMASLOPE;
+    const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
     const double R = Rmed[0];
     const double OmegaK = 1.0 / (R * std::sqrt(R));
     const double corr = std::sqrt(1.0 + (p + q) * h * h);
@@ -2140,9 +2143,9 @@ void jibin_boundary_outer(t_data &data)
 {
     if (CPU_Rank == CPU_Highest) {
 
-	const double h = ASPECTRATIO_REF;
-	const double p = SIGMASLOPE;
-	const double q = 2.0 * FLARINGINDEX - 1.0;
+	const double h = parameters::ASPECTRATIO_REF;
+	const double p = parameters::SIGMASLOPE;
+	const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
 	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
 	const double OmegaK = 1.0 / (R * std::sqrt(R));
 	const double corr = std::sqrt(1.0 + (p + q) * h * h);

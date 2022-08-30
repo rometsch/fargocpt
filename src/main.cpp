@@ -140,21 +140,21 @@ int main(int argc, char *argv[])
     data.get_planetary_system().compute_dist_to_primary();
     data.get_planetary_system().init_roche_radii();
 
-    VISCOUS_ACCRETION = false;
+    parameters::VISCOUS_ACCRETION = false;
     if (parameters::boundary_inner ==
 	parameters::boundary_condition_viscous_outflow) {
-	VISCOUS_ACCRETION = true;
+	parameters::VISCOUS_ACCRETION = true;
     }
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
 	if (data.get_planetary_system().get_planet(k).get_acc() < 0.0) {
-	    VISCOUS_ACCRETION = true;
+	    parameters::VISCOUS_ACCRETION = true;
 	}
     }
 
     logging::print_master(LOG_INFO "planets loaded.\n");
 
-    if (VISCOUS_ACCRETION) {
+    if (parameters::VISCOUS_ACCRETION) {
 	logging::print_master(
 	    LOG_INFO
 	    "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
@@ -315,14 +315,14 @@ int main(int argc, char *argv[])
     CommunicateBoundaries(&data[t_data::SIGMA0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
-    for (; N_outer_loop <= NTOT; ++N_outer_loop) {
+    for (; N_outer_loop <= parameters::NTOT; ++N_outer_loop) {
 	logging::print_master(LOG_INFO "Start of iteration %u of %u\n",
-			      N_outer_loop, NTOT);
+			      N_outer_loop, parameters::NTOT);
 	// write outputs
 
 	bool force_update_for_output = true;
-	N_output = (N_outer_loop / NINTERM); // note: integer division
-	bool write_complete_output = (NINTERM * N_output == N_outer_loop);
+	N_output = (N_outer_loop / parameters::NINTERM); // note: integer division
+	bool write_complete_output = (parameters::NINTERM * N_output == N_outer_loop);
 	if (dont_do_restart_output_at_start) {
 	    write_complete_output = false;
 	}
@@ -384,10 +384,10 @@ int main(int argc, char *argv[])
 	dont_do_restart_output_at_start = false;
 
 	// Exit if last timestep reached and last output is written
-	if (N_outer_loop == NTOT) {
+	if (N_outer_loop == parameters::NTOT) {
 	    logging::print_master(
 		LOG_INFO "Reached end of simulation at iteration %u of %u\n",
-		N_outer_loop, NTOT);
+		N_outer_loop, parameters::NTOT);
 	    break;
 	}
 

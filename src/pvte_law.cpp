@@ -490,7 +490,7 @@ double get_gamma_eff(t_data &data, const int n_radial, const int n_azimuthal)
     if (parameters::variableGamma) {
 	return data[t_data::GAMMAEFF](n_radial, n_azimuthal);
     } else {
-	return ADIABATICINDEX;
+	return parameters::ADIABATICINDEX;
     }
 }
 
@@ -508,7 +508,7 @@ double get_gamma1(t_data &data, const int n_radial, const int n_azimuthal)
     if (parameters::variableGamma) {
 	return data[t_data::GAMMA1](n_radial, n_azimuthal);
     } else {
-	return ADIABATICINDEX;
+	return parameters::ADIABATICINDEX;
     }
 }
 } // namespace pvte

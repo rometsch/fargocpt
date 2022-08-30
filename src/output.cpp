@@ -208,8 +208,8 @@ void check_free_space(t_data &data)
 	}
     }
 
-    space_needed *= NTOT / NINTERM;
-    number_of_files *= NTOT / NINTERM;
+    space_needed *= parameters::NTOT / parameters::NINTERM;
+    number_of_files *= parameters::NTOT / parameters::NINTERM;
 
     logging::print_master(LOG_INFO "Output information:\n");
     logging::print_master(LOG_INFO "   Output directory: %s\n", outdir.c_str());
@@ -386,13 +386,13 @@ void write_quantities(t_data &data, bool force_update)
     }
 
     double quantities_limit_radius;
-    if (quantities_radius_limit < 0.0) {
+    if (parameters::quantities_radius_limit < 0.0) {
 	auto &primary = data.get_planetary_system().get_planet(0);
 	// distance to primary is distance to secondary for the primary
 	quantities_limit_radius = primary.get_distance_to_primary() *
 				  primary.get_dimensionless_roche_radius();
     } else {
-	quantities_limit_radius = quantities_radius_limit;
+	quantities_limit_radius = parameters::quantities_radius_limit;
     }
 
     const auto disk_quantities = reduce_disk_quantities(
@@ -1039,7 +1039,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 		fd,
 		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (cgs)\n",
-		DT, DT * units::time.get_cgs_factor());
+		parameters::DT, parameters::DT * units::time.get_cgs_factor());
 	    fd_created = true;
 	}
     }

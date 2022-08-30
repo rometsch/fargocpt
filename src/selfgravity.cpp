@@ -120,7 +120,7 @@ static void update_kernel(t_data &data)
 	double aspect_ratio = quantities::gas_aspect_ratio(data, RMAX);
 
 	if (aspect_ratio == 0.0) {
-	    aspect_ratio = ASPECTRATIO_REF;
+	    aspect_ratio = parameters::ASPECTRATIO_REF;
 	}
 
 	lambda_sq = std::pow(
@@ -572,9 +572,9 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 	// this corresponds to equation (3.42) in Baruteau, 2008
 	double temp =
 	    std::pow(calculate_omega_kepler(Rmed[n_radial]), 2) *
-		(1.0 - (1. + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-			   std::pow(ASPECTRATIO_REF, 2) *
-			   std::pow(Rmed[n_radial], 2.0 * FLARINGINDEX)) -
+		(1.0 - (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
+			   std::pow(parameters::ASPECTRATIO_REF, 2) *
+			   std::pow(Rmed[n_radial], 2.0 * parameters::FLARINGINDEX)) -
 	    GLOBAL_AxiSGAccr[n_radial + IMIN] / Rmed[n_radial];
 	if (temp < 0) {
 	    logging::print(

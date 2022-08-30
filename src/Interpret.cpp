@@ -46,9 +46,9 @@ static void get_polytropic_constants(double &K, double &gamma)
     // P_iso = Sigma0 * h**2 * G*M * r**(-1) * r**(2*F)
     // P_iso = Sigma0 * h**2 * G*M * r**(-1 - p + 2*F)
     // through comparisson of coefficients, we find the following relations:
-    const double p = SIGMASLOPE;
-    const double F = FLARINGINDEX;
-    const double h = ASPECTRATIO_REF;
+    const double p = parameters::SIGMASLOPE;
+    const double F = parameters::FLARINGINDEX;
+    const double h = parameters::ASPECTRATIO_REF;
     gamma = (-1.0 - p + 2.0 * F) / (-p);
     K = std::pow(h, 2) * std::pow(parameters::sigma0, 1.0 - gamma);
 }
@@ -85,10 +85,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     last_dt = cfg.get<double>("FirstDT", 1e-9);
 
-    SIGMASLOPE = cfg.get<double>("SIGMASLOPE", 0.0);
-    IMPOSEDDISKDRIFT = cfg.get<double>("IMPOSEDDISKDRIFT", 0.0);
+    parameters::SIGMASLOPE = cfg.get<double>("SIGMASLOPE", 0.0);
+    parameters::IMPOSEDDISKDRIFT = cfg.get<double>("IMPOSEDDISKDRIFT", 0.0);
 
-    FLARINGINDEX = cfg.get<double>("FLARINGINDEX", 0.0);
+    parameters::FLARINGINDEX = cfg.get<double>("FLARINGINDEX", 0.0);
 
     std::string setup_name = getFileName(filename);
     setup_name = setup_name.substr(0, setup_name.size() - 4) + "/";
@@ -163,9 +163,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     }
 
     // time settings
-    NTOT = cfg.get<unsigned int>("NTOT", 1000);
-    NINTERM = cfg.get<unsigned int>("NINTERM", 10);
-    DT = cfg.get<double>("DT", 1.0);
+    parameters::NTOT = cfg.get<unsigned int>("NTOT", 1000);
+    parameters::NINTERM = cfg.get<unsigned int>("NINTERM", 10);
+    parameters::DT = cfg.get<double>("DT", 1.0);
 
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
@@ -188,10 +188,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     invdphi = (double)NAzimuthal / (2.0 * M_PI);
 
     // disc
-    ASPECTRATIO_REF = cfg.get<double>("ASPECTRATIO", 0.05);
-    ASPECTRATIO_MODE = cfg.get<int>("AspectRatioMode", 0);
+    parameters::ASPECTRATIO_REF = cfg.get<double>("ASPECTRATIO", 0.05);
+    parameters::ASPECTRATIO_MODE = cfg.get<int>("AspectRatioMode", 0);
 
-    switch (ASPECTRATIO_MODE) {
+    switch (parameters::ASPECTRATIO_MODE) {
     case 0:
 	logging::print_master(
 	    LOG_INFO
@@ -234,7 +234,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     default:
 	die("Invalid setting for Frame");
     }
-    OMEGAFRAME = cfg.get<double>("OMEGAFRAME", 0);
+    parameters::OMEGAFRAME = cfg.get<double>("OMEGAFRAME", 0);
 
     // Barycenter mode
     switch (cfg.get_first_letter_lowercase("HydroFrameCenter", "primary")) {
@@ -260,7 +260,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     }
 
     if (parameters::n_bodies_for_hydroframe_center != 1 &&
-	ASPECTRATIO_MODE == 1) {
+	parameters::ASPECTRATIO_MODE == 1) {
 	logging::print_master(
 	    LOG_INFO
 	    "WARNING: MORE THAN 1 CENTRAL OBJECT AND NBODY ASPECTRATIO IS NOT TESTED OR DEBUGGED!\n");
@@ -292,9 +292,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    LOG_INFO
 	    "Warning : Setting the ideal equation of state with the flag 'Adiabatic    YES' is deprecated. Use 'EquationOfState   Adiabatic' instead.\n");
 
-	ADIABATICINDEX =
+	parameters::ADIABATICINDEX =
 	    cfg.get<double>("AdiabaticIndex", 7.0 / 5.0);
-	if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
+	if ((parameters::Adiabatic) && (parameters::ADIABATICINDEX == 1)) {
 	    logging::print_master(
 		LOG_WARNING
 		"You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to  simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
@@ -317,12 +317,12 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    parameters::Adiabatic = false;
 	    parameters::Polytropic = false;
 	    parameters::Locally_Isothermal = true;
-	    ADIABATICINDEX =
+	    parameters::ADIABATICINDEX =
 		cfg.get<double>("AdiabaticIndex", 7.0 / 5.0);
 	    logging::print_master(
 		LOG_INFO
 		"Using isothermal equation of state. AdiabaticIndex = %.3f.\n",
-		ADIABATICINDEX);
+		parameters::ADIABATICINDEX);
 	}
 	if (strcmp(eos_string, "adiabatic") == 0 ||
 	    strcmp(eos_string, "ideal") == 0) {
@@ -347,11 +347,11 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
-		ADIABATICINDEX = cfg.get<double>(
+		parameters::ADIABATICINDEX = cfg.get<double>(
 		    "AdiabaticIndex", 7.0 / 5.0);
 	    }
 
-	    if ((parameters::Adiabatic) && (ADIABATICINDEX == 1)) {
+	    if ((parameters::Adiabatic) && (parameters::ADIABATICINDEX == 1)) {
 		logging::print_master(
 		    LOG_WARNING
 		    "You cannot have Adiabatic=true and AdiabatcIndex = 1. I decided to put Adiabatic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
@@ -360,7 +360,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    logging::print_master(
 		LOG_INFO
 		"Using ideal equation of state. AdiabaticIndex = %.3f.\n",
-		ADIABATICINDEX);
+		parameters::ADIABATICINDEX);
 	}
 
 	if (strcmp(eos_string, "pvtelaw") == 0 ||
@@ -387,20 +387,20 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		    "Automatic AdiabatcIndex determination only available for polytropic equation of state\n");
 		PersonalExit(1);
 	    } else {
-		ADIABATICINDEX = cfg.get<double>(
+		parameters::ADIABATICINDEX = cfg.get<double>(
 		    "AdiabaticIndex", 7.0 / 5.0);
 	    }
 
-	    if (ADIABATICINDEX == 1) {
+	    if (parameters::ADIABATICINDEX == 1) {
 		logging::print_master(
 		    LOG_WARNING
 		    "You cannot have PVTE EoS and AdiabatcIndex = 1.! Setting AdiabaticIndex to 7/5.\n");
-		ADIABATICINDEX = 7.0 / 5.0;
+		parameters::ADIABATICINDEX = 7.0 / 5.0;
 	    }
 	    logging::print_master(
 		LOG_INFO
 		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g!\n",
-		ADIABATICINDEX);
+		parameters::ADIABATICINDEX);
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||
@@ -424,9 +424,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    if (strcmp(ADIABATICINDEX_string, "fit_isothermal") == 0 ||
 		strcmp(ADIABATICINDEX_string, "fit isothermal") == 0) {
 		get_polytropic_constants(K, gamma);
-		ADIABATICINDEX = gamma;
+		parameters::ADIABATICINDEX = gamma;
 	    } else {
-		ADIABATICINDEX =
+		parameters::ADIABATICINDEX =
 		    cfg.get<double>("AdiabaticIndex", 2.0);
 	    }
 
@@ -445,13 +445,13 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		{
 		    get_polytropic_constants(K, gamma);
 		}
-		POLYTROPIC_CONSTANT = K;
+		parameters::POLYTROPIC_CONSTANT = K;
 	    } else {
-		POLYTROPIC_CONSTANT = cfg.get<double>(
+		parameters::POLYTROPIC_CONSTANT = cfg.get<double>(
 		    "PolytropicConstant", 12.753);
 	    }
 
-	    if ((parameters::Polytropic) && (ADIABATICINDEX == 1)) {
+	    if ((parameters::Polytropic) && (parameters::ADIABATICINDEX == 1)) {
 		logging::print_master(
 		    LOG_WARNING
 		    "You cannot have Polytropic=true and AdiabatcIndex = 1. I decided to put Polytropic=false, to simulate a locally isothermal equation of state. Please check that it what you really wanted to do!\n");
@@ -460,7 +460,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    logging::print_master(
 		LOG_INFO
 		"Using polytropic equation of state. AdiabaticIndex = %.3f.\n",
-		ADIABATICINDEX);
+		parameters::ADIABATICINDEX);
 	}
 
 	if (!could_read_eos)
@@ -493,23 +493,23 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     CICPlanet = cfg.get_flag("CICPLANET", "no");
 
-    ALPHAVISCOSITY = cfg.get<double>("ALPHAVISCOSITY", 0.0);
-    VISCOSITY = cfg.get<double>("VISCOSITY", 0.0);
+    parameters::ALPHAVISCOSITY = cfg.get<double>("ALPHAVISCOSITY", 0.0);
+    parameters::VISCOSITY = cfg.get<double>("VISCOSITY", 0.0);
 
-    if (!EXPLICIT_VISCOSITY && ALPHAVISCOSITY == 0.0 &&
+    if (!parameters::EXPLICIT_VISCOSITY && parameters::ALPHAVISCOSITY == 0.0 &&
 	(parameters::artificial_viscosity_factor == 0.0 ||
 	 parameters::artificial_viscosity ==
 	     parameters::artificial_viscosity_none) &&
-	VISCOSITY == 0.0) {
+	parameters::VISCOSITY == 0.0) {
 	logging::print_master(
 	    LOG_ERROR
 	    "You cannot use super time-stepping without any viscosity!\n");
 	PersonalExit(1);
     }
 
-    STS_NU = cfg.get<double>("STSNU", 0.01);
+    parameters::STS_NU = cfg.get<double>("STSNU", 0.01);
 
-    if ((ALPHAVISCOSITY != 0.0) && (VISCOSITY != 0.0)) {
+    if ((parameters::ALPHAVISCOSITY != 0.0) && (parameters::VISCOSITY != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
 	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
 	logging::print_master(LOG_ERROR
@@ -519,11 +519,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	PersonalExit(1);
     }
 
-    if (ALPHAVISCOSITY != 0.0) {
-	ViscosityAlpha = YES;
+    if (parameters::ALPHAVISCOSITY > 0.0) {
 	logging::print_master(LOG_INFO
 			      "Viscosity is of alpha type with alpha = %.3e\n",
-			      ALPHAVISCOSITY);
+			      parameters::ALPHAVISCOSITY);
     }
 
     if (parameters::thickness_smoothing <= 0.0) {
@@ -533,8 +532,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     }
 
     const double T0 = cfg.get<double>("TemperatureCGS0", 0.0);
-    if (T0 != 0.0) // rescale ASPECTRATIO_REF according to cgs Temperature
-	ASPECTRATIO_REF =
+    if (T0 != 0.0) // rescale parameters::ASPECTRATIO_REF according to cgs Temperature
+	parameters::ASPECTRATIO_REF =
 	    sqrt(T0 * units::temperature.get_inverse_cgs_factor() *
 		 constants::R / parameters::MU);
 
@@ -551,10 +550,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    "Using pseudo implicit viscosity to limit the time step size\n");
     }
 
-    if (VISCOSITY != 0.0) {
+    if (parameters::VISCOSITY != 0.0) {
 	logging::print_master(
 	    LOG_INFO "Viscosity is kinematic viscosity with nu = %.3e\n",
-	    VISCOSITY);
+	    parameters::VISCOSITY);
     }
     const bool VISCOSITY_in_CGS =
 	cfg.get_flag("VISCOSITYINCGS", false);
@@ -562,10 +561,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	logging::print_master(
 	    LOG_INFO
 	    "Viscosity changed to code units from %.3e cgs to %.3e code\n",
-	    VISCOSITY,
-	    VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor());
-	VISCOSITY =
-	    VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
+	    parameters::VISCOSITY,
+	    parameters::VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor());
+	parameters::VISCOSITY =
+	    parameters::VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
     }
 }
 
@@ -628,7 +627,7 @@ double TellNbOrbits(double time)
     return time / 2.0 / M_PI * sqrt(constants::G * 1.0 / 1.0 / 1.0 / 1.0);
 }
 
-double TellNbOutputs(double time) { return (time / DT / NINTERM); }
+double TellNbOutputs(double time) { return (time / parameters::DT / parameters::NINTERM); }
 
 void TellEverything()
 {
@@ -642,7 +641,7 @@ void TellEverything()
     logging::print_master(LOG_VERBOSE "Inner Radius          : %g\n", RMIN);
     logging::print_master(LOG_VERBOSE "Outer Radius          : %g\n", RMAX);
     logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n",
-			  ASPECTRATIO_REF);
+			  parameters::ASPECTRATIO_REF);
     logging::print_master(LOG_VERBOSE "VKep at inner edge    : %.3g\n",
 			  std::sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
     logging::print_master(LOG_VERBOSE "VKep at outer edge    : %.3g\n",
@@ -652,28 +651,28 @@ void TellEverything()
     parameters::boundary_inner); logging::print_master(LOG_VERBOSE
     "boundary_outer        : %i\n", parameters::boundary_outer);
     */
-    // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
-    // - pow(RMIN,2.0-SIGMASLOPE));	/* correct this and what follows... */
+    // temp=2.0*PI*parameters::sigma0/(2.0-parameters::SIGMASLOPE)*(pow(RMAX,2.0-parameters::SIGMASLOPE)
+    // - pow(RMIN,2.0-parameters::SIGMASLOPE));	/* correct this and what follows... */
     // logging::print_master(LOG_VERBOSE "Initial Disk Mass             : %g\n",
-    // temp); temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(1.0 -
-    // pow(RMIN,2.0-SIGMASLOPE)); logging::print_master(LOG_VERBOSE "Initial
+    // temp); temp=2.0*PI*parameters::sigma0/(2.0-parameters::SIGMASLOPE)*(1.0 -
+    // pow(RMIN,2.0-parameters::SIGMASLOPE)); logging::print_master(LOG_VERBOSE "Initial
     // Mass inner to r=1.0  : %g \n", temp);
-    // temp=2.0*PI*parameters::sigma0/(2.0-SIGMASLOPE)*(pow(RMAX,2.0-SIGMASLOPE)
+    // temp=2.0*PI*parameters::sigma0/(2.0-parameters::SIGMASLOPE)*(pow(RMAX,2.0-parameters::SIGMASLOPE)
     // - 1.0); logging::print_master(LOG_VERBOSE "Initial Mass outer to r=1.0  :
     // %g \n", temp);
     logging::print_master(LOG_VERBOSE
 			  "Travelling time for acoustic density waves :\n");
-    temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
+    temp = 2.0 / 3.0 / parameters::ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
 	LOG_VERBOSE
 	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
-    temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
+    temp = 2.0 / 3.0 / parameters::ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
     logging::print_master(
 	LOG_VERBOSE
 	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
-    temp = 2.0 / 3.0 / ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
+    temp = 2.0 / 3.0 / parameters::ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
 	LOG_VERBOSE
 	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n",
@@ -688,11 +687,11 @@ void TellEverything()
 			  temp, TellNbOutputs(temp));
     logging::print_master(LOG_VERBOSE "Sound speed :\n");
     logging::print_master(LOG_VERBOSE " * At unit radius     : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0));
+			  parameters::ASPECTRATIO_REF * sqrt(constants::G * 1.0));
     logging::print_master(LOG_VERBOSE " * At outer edge      : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
+			  parameters::ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
     logging::print_master(LOG_VERBOSE " * At inner edge      : %.3g\n",
-			  ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
+			  parameters::ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
     logging::print_master(LOG_VERBOSE "Grid properties:\n");
     logging::print_master(LOG_VERBOSE "----------------\n");
     logging::print_master(LOG_VERBOSE "Number of (local) rings  : %d\n",
@@ -709,5 +708,5 @@ void TellEverything()
     logging::print_master(LOG_VERBOSE "-------------------\n");
     logging::print_master(
 	LOG_VERBOSE "Time increment between outputs : %.3f = %.3f orbits\n",
-	NINTERM * DT, TellNbOrbits(NINTERM * DT));
+	parameters::NINTERM * parameters::DT, TellNbOrbits(parameters::NINTERM * parameters::DT));
 }

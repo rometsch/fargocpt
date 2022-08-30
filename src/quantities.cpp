@@ -49,7 +49,7 @@ double gas_aspect_ratio(t_data &data, const double quantitiy_radius)
 	quantities::gas_total_mass(data, quantitiy_radius);
 
     if (gas_total_mass <= 0.0) {
-	return ASPECTRATIO_REF;
+	return parameters::ASPECTRATIO_REF;
     }
 
     double local_mass = 0.0;
@@ -704,7 +704,7 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     (void)force_update;
 
     double denom;
-    denom = NINTERM * DT;
+    denom = parameters::NINTERM * parameters::DT;
 
     // divide the data in massflow by the large timestep DT before writing out
     // to obtain the massflow from the mass difference
@@ -726,7 +726,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 	return;
     }
 
-    switch (ASPECTRATIO_MODE) {
+    switch (parameters::ASPECTRATIO_MODE) {
     case 0: {
 	for (unsigned int nRad = 0;
 	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
@@ -884,7 +884,7 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
     double denom;
 
     if (!parameters::write_at_every_timestep) {
-	denom = (double)NINTERM;
+	denom = (double)parameters::NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
 	for (unsigned int nRadial = 0;
@@ -908,7 +908,7 @@ void calculate_gravitational_torque(t_data &data, unsigned int timestep,
     double denom;
 
     if (!parameters::write_at_every_timestep) {
-	denom = (double)NINTERM;
+	denom = (double)parameters::NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
 	for (unsigned int nRadial = 0;
@@ -935,7 +935,7 @@ void calculate_advection_torque(t_data &data, unsigned int timestep,
     double denom;
 
     if (!parameters::write_at_every_timestep) {
-	denom = (double)NINTERM;
+	denom = (double)parameters::NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
 	for (unsigned int nRadial = 0;

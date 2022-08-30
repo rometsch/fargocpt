@@ -5,6 +5,32 @@
 
 namespace parameters
 {
+
+extern double ASPECTRATIO_REF;
+extern int ASPECTRATIO_MODE;
+extern int EXPLICIT_VISCOSITY;
+extern double STS_NU;
+extern double VISCOSITY;
+extern double ALPHAVISCOSITY;
+extern int VISCOUS_ACCRETION;
+extern double SIGMASLOPE;
+extern double OMEGAFRAME;
+extern double IMPOSEDDISKDRIFT;
+extern double FLARINGINDEX;
+extern double ADIABATICINDEX;
+extern double POLYTROPIC_CONSTANT;
+
+extern std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
+
+extern bool CartesianParticles;
+extern bool ParticlesInCartesian;
+
+extern double DT;
+extern unsigned int NINTERM;
+extern unsigned int NTOT;
+extern double quantities_radius_limit;
+
+
 extern int ShockTube;
 extern bool SpreadingRing;
 

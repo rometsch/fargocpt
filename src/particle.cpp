@@ -1,10 +1,11 @@
 #include "particle.h"
 #include "global.h"
 #include <math.h>
+#include "parameters.h"
 
 double t_particle::get_squared_distance_to_star()
 {
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	const double &x = r;
 	const double &y = phi;
 	return std::pow(x, 2) + std::pow(y, 2);
@@ -15,7 +16,7 @@ double t_particle::get_squared_distance_to_star()
 
 double t_particle::get_distance_to_star()
 {
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	return std::sqrt(get_squared_distance_to_star());
     } else {
 	return r;
@@ -25,7 +26,7 @@ double t_particle::get_distance_to_star()
 double t_particle::get_angle() const
 {
 
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	const double &x = r;
 	const double &y = phi;
 
@@ -44,7 +45,7 @@ double t_particle::get_angle() const
 double t_particle::get_r_dot() const
 {
 
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	const double &x = r;
 	const double &y = phi;
 	const double &vx = r_dot;
@@ -62,7 +63,7 @@ double t_particle::get_r_dot() const
 double t_particle::get_phi_dot() const
 {
 
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	const double &x = r;
 	const double &y = phi;
 	const double &vx = r_dot;

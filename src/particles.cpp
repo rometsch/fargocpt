@@ -43,6 +43,8 @@ unsigned int local_number_of_particles;
 /// global number of particles;
 unsigned int global_number_of_particles;
 
+
+
 double local_r_min;
 double local_r_max;
 
@@ -229,7 +231,7 @@ static double get_particle_eccentricity_cart(int particle_index)
 
 [[maybe_unused]] static double get_particle_eccentricity(int particle_index)
 {
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	return get_particle_eccentricity_cart(particle_index);
     } else {
 	return get_particle_eccentricity_polar(particle_index);
@@ -264,7 +266,7 @@ static void init_particle_timestep(t_data &data)
 	// Cash–Karp method
 	// (http://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) cartesian
 	// coordinates are written inside the polar coordinates
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -319,7 +321,7 @@ static void init_particle_timestep(t_data &data)
 	temp_phi_dot =
 	    particles[i].phi_dot + particles[i].timestep * k1_phi_dot;
 
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -400,7 +402,7 @@ static void correct_for_self_gravity(const unsigned int i)
 	       std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
 
     // only need to update velocities, set accelerations to 0 anyway
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	// Beware: cartesian particles still use the names of polar coordinates
 	// vx = r_dot
 	// vy = phi_dot
@@ -473,7 +475,7 @@ double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
 		  semi_major_axis) *
 	std::sqrt((1.0 - eccentricity) / (1.0 + eccentricity));
 
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	// Beware: cartesian particles still use the names of polar coordinates
 	// x = r
 	// y = phi
@@ -1104,11 +1106,11 @@ void check_tstop(t_data &data)
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
     local_gas_time_step_cfl =
 	condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-		      data[t_data::SOUNDSPEED], DT);
+		      data[t_data::SOUNDSPEED], parameters::DT);
 
     MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1,
 		  MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
-    dt = DT / global_gas_time_step_cfl;
+    dt = parameters::DT / global_gas_time_step_cfl;
 
     compute_rho(data, true);
     compute_temperature(data, true);
@@ -1219,7 +1221,7 @@ static void update_velocities_from_indirect_term(const double dt)
 
 	double indirect_q1_dot;
 	double indirect_q2_dot;
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    indirect_q1_dot = IndirectTerm.x * dt + particles[i].r_dot;
 	    indirect_q2_dot = IndirectTerm.y * dt + particles[i].phi_dot;
 	} else {
@@ -1502,7 +1504,7 @@ static double compute_smoothing_isothermal(double r)
 {
     double smooth;
     const double scale_height =
-	ASPECTRATIO_REF * std::pow(r, 1.0 + FLARINGINDEX); // = H
+	parameters::ASPECTRATIO_REF * std::pow(r, 1.0 + parameters::FLARINGINDEX); // = H
     smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
@@ -1647,7 +1649,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	}
 	double grav_r_ddot;
 	double minus_grav_l_dot;
-	if (ParticlesInCartesian) {
+	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
 		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
 	} else {
@@ -1745,7 +1747,7 @@ void integrate_semiimplicit(t_data &data, const double dt)
 	}
 	double grav_r_ddot;
 	double minus_grav_l_dot;
-	if (ParticlesInCartesian) {
+	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
 		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
 	} else {
@@ -1829,7 +1831,7 @@ void integrate_implicit(t_data &data, const double dt)
 	    dt0 = 1.0 + dt / tstop0;
 	}
 
-	if (ParticlesInCartesian) {
+	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
 		r_ddot0, minus_l_dot0, r0, phi0, data);
 	} else {
@@ -1845,7 +1847,7 @@ void integrate_implicit(t_data &data, const double dt)
 			  hfdt * dt / (tstop0 * tstop1));
 	}
 
-	if (ParticlesInCartesian) {
+	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
 		r_ddot1, minus_l_dot1, r1, phi1, data);
 	} else {
@@ -1887,7 +1889,7 @@ void integrate_implicit(t_data &data, const double dt)
 void integrate_explicit_adaptive(t_data &data, const double dt)
 {
 
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
@@ -1963,7 +1965,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	    // Cash–Karp method
 	    // (http://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) cartesian
 	    // coordinates are written inside the polar coordinates
-	    if (CartesianParticles) {
+	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
 		    temp_ar, temp_aphi, temp_r, temp_phi, data);
 	    } else {
@@ -1984,7 +1986,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	    temp_r_dot = particles[i].r_dot + timestep * 0.2 * k1_r_dot;
 	    temp_phi_dot = particles[i].phi_dot + timestep * 0.2 * k1_phi_dot;
 
-	    if (CartesianParticles) {
+	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
 		    temp_ar, temp_aphi, temp_r, temp_phi, data);
 	    } else {
@@ -2007,7 +2009,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	    temp_phi_dot = particles[i].phi_dot +
 			   timestep * (0.075 * k1_phi_dot + 0.225 * k2_phi_dot);
 
-	    if (CartesianParticles) {
+	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
 		    temp_ar, temp_aphi, temp_r, temp_phi, data);
 	    } else {
@@ -2033,7 +2035,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 			   timestep * (0.3 * k1_phi_dot - 0.9 * k2_phi_dot +
 				       1.2 * k3_phi_dot);
 
-	    if (CartesianParticles) {
+	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
 		    temp_ar, temp_aphi, temp_r, temp_phi, data);
 	    } else {
@@ -2064,7 +2066,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 		    (-11.0 / 54.0 * k1_phi_dot + 2.5 * k2_phi_dot -
 		     70.0 / 27.0 * k3_phi_dot + 35.0 / 27.0 * k4_phi_dot);
 
-	    if (CartesianParticles) {
+	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
 		    temp_ar, temp_aphi, temp_r, temp_phi, data);
 	    } else {
@@ -2103,7 +2105,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 				       44275.0 / 110592.0 * k4_phi_dot +
 				       253.0 / 4096.0 * k5_phi_dot);
 
-	    if (CartesianParticles) {
+	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
 		    temp_ar, temp_aphi, temp_r, temp_phi, data);
 	    } else {
@@ -2127,7 +2129,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 		timestep * (37.0 / 378.0 * k1_phi + 250.0 / 621.0 * k3_phi +
 			    125.0 / 594.0 * k4_phi + 512.0 / 1771.0 * k6_phi);
 
-	    if (!CartesianParticles) {
+	    if (!parameters::CartesianParticles) {
 		check_angle(phi_new);
 	    }
 
@@ -2225,7 +2227,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 void integrate_explicit(t_data &data, const double dt)
 {
 
-    if (CartesianParticles) {
+    if (parameters::CartesianParticles) {
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
@@ -2260,7 +2262,7 @@ void integrate_explicit(t_data &data, const double dt)
 	// Cash–Karp method
 	// (http://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) cartesian
 	// coordinates are written inside the polar coordinates
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -2281,7 +2283,7 @@ void integrate_explicit(t_data &data, const double dt)
 	temp_r_dot = particles[i].r_dot + dt * 0.2 * k1_r_dot;
 	temp_phi_dot = particles[i].phi_dot + dt * 0.2 * k1_phi_dot;
 
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -2303,7 +2305,7 @@ void integrate_explicit(t_data &data, const double dt)
 	temp_phi_dot = particles[i].phi_dot +
 		       dt * (0.075 * k1_phi_dot + 0.225 * k2_phi_dot);
 
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -2327,7 +2329,7 @@ void integrate_explicit(t_data &data, const double dt)
 	    particles[i].phi_dot +
 	    dt * (0.3 * k1_phi_dot - 0.9 * k2_phi_dot + 1.2 * k3_phi_dot);
 
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -2356,7 +2358,7 @@ void integrate_explicit(t_data &data, const double dt)
 	    dt * (-11.0 / 54.0 * k1_phi_dot + 2.5 * k2_phi_dot -
 		  70.0 / 27.0 * k3_phi_dot + 35.0 / 27.0 * k4_phi_dot);
 
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -2391,7 +2393,7 @@ void integrate_explicit(t_data &data, const double dt)
 		 575.0 / 13824.0 * k3_phi_dot +
 		 44275.0 / 110592.0 * k4_phi_dot + 253.0 / 4096.0 * k5_phi_dot);
 
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
 		temp_ar, temp_aphi, temp_r, temp_phi, data);
 	} else {
@@ -2412,7 +2414,7 @@ void integrate_explicit(t_data &data, const double dt)
 	    dt * (37.0 / 378.0 * k1_phi + 250.0 / 621.0 * k3_phi +
 		  125.0 / 594.0 * k4_phi + 512.0 / 1771.0 * k6_phi);
 
-	if (!CartesianParticles) {
+	if (!parameters::CartesianParticles) {
 	    check_angle(particles[i].phi);
 	}
 
@@ -2620,7 +2622,7 @@ void rotate(const double angle)
 {
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	// rotate positions
-	if (CartesianParticles) {
+	if (parameters::CartesianParticles) {
 	    const double x_old = particles[i].r;
 	    const double y_old = particles[i].phi;
 

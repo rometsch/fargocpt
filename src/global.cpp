@@ -141,18 +141,15 @@ t_radialarray GLOBAL_AxiSGAccr;
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 double hydro_center_mass;
 int OnlyInit;
-int GotoNextOutput, ViscosityAlpha, CartesianParticles, ParticlesInCartesian,
+int GotoNextOutput, 
     StabilizeViscosity;
 int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;
 
-std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
-int PRESCRIBED_TIME_SEGMENT_NUMBER;
 
 double dphi;
 double invdphi;
-double DT;
 double last_dt;
 double dt_parabolic_local;
 double hydro_dt;
@@ -161,30 +158,11 @@ int N_output;
 unsigned int N_outer_loop;
 unsigned int N_hydro_iter;
 
-unsigned int NINTERM;
-unsigned int NTOT;
-
-double MASSTAPER;
-
 unsigned int NRadial;
 unsigned int NAzimuthal;
 double RMIN;
 double RMAX;
-double quantities_radius_limit;
 
-double ASPECTRATIO_REF;
-int ASPECTRATIO_MODE;
-int EXPLICIT_VISCOSITY;
-double STS_NU;
-double VISCOSITY;
-double ALPHAVISCOSITY;
-int VISCOUS_ACCRETION;
-double SIGMASLOPE;
-double OMEGAFRAME;
-double IMPOSEDDISKDRIFT;
-double FLARINGINDEX;
-double ADIABATICINDEX; // Also used for polytropic energy equation
-double POLYTROPIC_CONSTANT;
 
 BoundaryFlow MassDelta;
 

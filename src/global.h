@@ -84,19 +84,13 @@ extern double OmegaFrame, PhysicalTime, PhysicalTimeInitial, FrameAngle;
 
 extern double hydro_center_mass;
 
-extern int GotoNextOutput, ViscosityAlpha, CartesianParticles,
-    ParticlesInCartesian, StabilizeViscosity;
+extern int GotoNextOutput, StabilizeViscosity;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
 extern t_polargrid *CellCenterX, *CellCenterY;
 
-
-extern std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
-extern int PRESCRIBED_TIME_SEGMENT_NUMBER;
-
 extern double dphi;
 extern double invdphi;
-extern double DT;
 extern double last_dt;
 extern double dt_parabolic_local;
 extern double hydro_dt;
@@ -105,29 +99,10 @@ extern int N_output;
 extern unsigned int N_outer_loop;
 extern unsigned int N_hydro_iter;
 
-extern unsigned int NINTERM;
-extern unsigned int NTOT;
-
 extern unsigned int NAzimuthal;
 extern unsigned int NRadial;
 extern double RMIN;
 extern double RMAX;
-
-extern double quantities_radius_limit;
-
-extern double ASPECTRATIO_REF;
-extern int ASPECTRATIO_MODE;
-extern int EXPLICIT_VISCOSITY;
-extern double STS_NU;
-extern double VISCOSITY;
-extern double ALPHAVISCOSITY;
-extern int VISCOUS_ACCRETION;
-extern double SIGMASLOPE;
-extern double OMEGAFRAME;
-extern double IMPOSEDDISKDRIFT;
-extern double FLARINGINDEX;
-extern double ADIABATICINDEX;
-extern double POLYTROPIC_CONSTANT;
 
 extern BoundaryFlow MassDelta;
 

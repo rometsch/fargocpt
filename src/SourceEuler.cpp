@@ -118,21 +118,21 @@ static void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 						     int nTimeStep, double dt)
 {
     if (data[t_data::ADVECTION_TORQUE].get_write()) {
-	gas_torques::calculate_advection_torque(data, dt / DT);
+	gas_torques::calculate_advection_torque(data, dt / parameters::DT);
     }
     if (data[t_data::VISCOUS_TORQUE].get_write()) {
-	gas_torques::calculate_viscous_torque(data, dt / DT);
+	gas_torques::calculate_viscous_torque(data, dt / parameters::DT);
     }
     if (data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()) {
-	gas_torques::calculate_gravitational_torque(data, dt / DT);
+	gas_torques::calculate_gravitational_torque(data, dt / parameters::DT);
     }
 
     if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep, dt / DT);
+	quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep, dt / parameters::DT);
     }
     if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
 	quantities::calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
-							dt / DT);
+							dt / parameters::DT);
     }
 }
 
@@ -247,7 +247,7 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update)
 {
 
     if (parameters::Locally_Isothermal) {
-	if (ASPECTRATIO_MODE > 0) {
+	if (parameters::ASPECTRATIO_MODE > 0) {
 	    compute_sound_speed(data, force_update);
 	    compute_pressure(data, force_update);
 	    compute_temperature(data, force_update);
@@ -304,8 +304,8 @@ static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 	last_dt = dt;
 	const double local_gas_time_step_cfl = condition_cfl(
 	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-	    data[t_data::SOUNDSPEED], DT - dtemp);
-	dt = (DT - dtemp) / local_gas_time_step_cfl;
+	    data[t_data::SOUNDSPEED], parameters::DT - dtemp);
+	dt = (parameters::DT - dtemp) / local_gas_time_step_cfl;
     }
     return dt;
 }
@@ -439,7 +439,7 @@ void AlgoGas(t_data &data)
     // const double total_disk_mass_old =
     // quantities::gas_total_mass(data, 2.0*RMAX);
 
-    while (dtemp < DT) {
+    while (dtemp < parameters::DT) {
 	if (SIGTERM_RECEIVED) {
 	    output::write_full_output(data, "autosave");
 	    PersonalExit(0);
@@ -447,9 +447,9 @@ void AlgoGas(t_data &data)
 	logging::print_master(
 	    LOG_VERBOSE
 	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
-	    (int)ceil(log10(NTOT)), N_outer_loop, NTOT,
-	    (double)N_outer_loop / (double)NTOT * 100.0, dtemp, DT,
-	    dtemp / DT * 100.0);
+	    (int)ceil(log10(parameters::NTOT)), N_outer_loop, parameters::NTOT,
+	    (double)N_outer_loop / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
+	    dtemp / parameters::DT * 100.0);
 
 	dtemp += hydro_dt;
 
@@ -517,7 +517,7 @@ void AlgoGas(t_data &data)
 
 	    update_with_sourceterms(data, hydro_dt);
 
-	    if (EXPLICIT_VISCOSITY) {
+	    if (parameters::EXPLICIT_VISCOSITY) {
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
 		update_with_artificial_viscosity(data, hydro_dt);
@@ -535,7 +535,7 @@ void AlgoGas(t_data &data)
 		    hydro_dt);
 	    }
 
-	    if (!EXPLICIT_VISCOSITY) {
+	    if (!parameters::EXPLICIT_VISCOSITY) {
 		Sts(data, hydro_dt);
 	    }
 
@@ -574,7 +574,7 @@ void AlgoGas(t_data &data)
 
 	PhysicalTime += hydro_dt;
 	N_hydro_iter = N_hydro_iter + 1;
-	logging::print_runtime_info(N_outer_loop / NINTERM, N_outer_loop,
+	logging::print_runtime_info(N_outer_loop / parameters::NINTERM, N_outer_loop,
 				    hydro_dt);
 
 	if (parameters::calculate_disk) {
@@ -585,7 +585,7 @@ void AlgoGas(t_data &data)
 	    // We only recompute once, assuming that cells hit by planet
 	    // accretion are not also hit by viscous accretion at inner
 	    // boundary.
-	    if (VISCOUS_ACCRETION) {
+	    if (parameters::VISCOUS_ACCRETION) {
 		compute_sound_speed(data, true);
 		compute_scale_height(data, true);
 		viscosity::update_viscosity(data);
@@ -605,7 +605,7 @@ void AlgoGas(t_data &data)
 						     hydro_dt);
 
 	    if (parameters::variableGamma &&
-		!VISCOUS_ACCRETION) { // If VISCOUS_ACCRETION is active,
+		!parameters::VISCOUS_ACCRETION) { // If VISCOUS_ACCRETION is active,
 				      // scale_height is already updated
 		// Recompute scale height after Transport to update the 3D
 		// density
@@ -737,9 +737,9 @@ void update_with_sourceterms(t_data &data, double dt)
     // update v_azimuthal with source terms
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial(); ++n_radial) {
-	if (IMPOSEDDISKDRIFT != 0.0) {
-	    supp_torque = IMPOSEDDISKDRIFT * 0.5 *
-			  std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
+	if (parameters::IMPOSEDDISKDRIFT != 0.0) {
+	    supp_torque = parameters::IMPOSEDDISKDRIFT * 0.5 *
+			  std::pow(Rmed[n_radial], -2.5 + parameters::SIGMASLOPE);
 	}
 	const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
 
@@ -778,7 +778,7 @@ void update_with_sourceterms(t_data &data, double dt)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 		dt * (-gradp - gradphi);
 
-	    if (IMPOSEDDISKDRIFT != 0.0) {
+	    if (parameters::IMPOSEDDISKDRIFT != 0.0) {
 		// add term for imposed disk drift
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +=
 		    dt * supp_torque;
@@ -832,7 +832,7 @@ void update_with_artificial_viscosity(t_data &data, double dt)
 
     if (parameters::artificial_viscosity ==
 	    parameters::artificial_viscosity_SN &&
-	EXPLICIT_VISCOSITY) {
+	parameters::EXPLICIT_VISCOSITY) {
 
 	// calculate q_r and q_phi
 	for (unsigned int n_radial = 0;
@@ -966,12 +966,12 @@ void calculate_qplus(t_data &data)
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
 
-    if (EXPLICIT_VISCOSITY) {
+    if (parameters::EXPLICIT_VISCOSITY) {
 	// clear up all Qplus terms
 	data[t_data::QPLUS].clear();
     }
 
-    if (parameters::heating_viscous_enabled && EXPLICIT_VISCOSITY) {
+    if (parameters::heating_viscous_enabled && parameters::EXPLICIT_VISCOSITY) {
 	/* We calculate the heating source term Qplus from i=1 to max-1 */
 	for (unsigned int n_radial = 1;
 	     n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
@@ -1719,7 +1719,7 @@ void radiative_diffusion(t_data &data, double dt)
 	}
     }
 
-    const double c_v = constants::R / (parameters::MU * (ADIABATICINDEX - 1.0));
+    const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
 
     // calculate A,B,C,D,E
     for (unsigned int nr = 1; nr < Temperature.get_size_radial() - 1; ++nr) {
@@ -1755,7 +1755,7 @@ void radiative_diffusion(t_data &data, double dt)
 		- dt*data[t_data::P_DIVV](n_radial, n_azimuthal);
 
 	    double temperature_change =
-		MU/R*(ADIABATICINDEX-1.0)*energy_change/Sigma(n_radial,n_azimuthal);
+		MU/R*(parameters::ADIABATICINDEX-1.0)*energy_change/Sigma(n_radial,n_azimuthal);
 	    Told(n_radial, n_azimuthal) += temperature_change;
 
 	    if (Told(n_radial, n_azimuthal) <
@@ -1937,7 +1937,7 @@ void radiative_diffusion(t_data &data, double dt)
 	     n_azimuthal < Energy.get_size_azimuthal(); ++n_azimuthal) {
 	    Energy(n_radial, n_azimuthal) = Temperature(n_radial, n_azimuthal) *
 					    Sigma(n_radial, n_azimuthal) /
-					    (ADIABATICINDEX - 1.0) /
+					    (parameters::ADIABATICINDEX - 1.0) /
 					    parameters::MU * constants::R;
 	}
     }
@@ -2073,7 +2073,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		invdt6 = 0.0;
 	    }
 
-	    if (EXPLICIT_VISCOSITY) {
+	    if (parameters::EXPLICIT_VISCOSITY) {
 		// calculate new dt based on different limits
 		dt_cell = parameters::CFL /
 			  std::sqrt(std::pow(invdt1, 2) + std::pow(invdt2, 2) +
@@ -2253,9 +2253,9 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
 	    } else { // isothermal
 		// This follows from: cs/v_Kepler = H/r
 		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		    ASPECTRATIO_REF *
+		    parameters::ASPECTRATIO_REF *
 		    std::sqrt(constants::G * hydro_center_mass / Rb[n_radial]) *
-		    std::pow(Rb[n_radial], FLARINGINDEX);
+		    std::pow(Rb[n_radial], parameters::FLARINGINDEX);
 	    }
 	}
     }
@@ -2301,7 +2301,7 @@ static void compute_iso_sound_speed_center_of_mass(t_data &data,
 	    const double Cs2 = constants::G * m_cm / dist;
 
 	    const double Cs =
-		ASPECTRATIO_REF * std::pow(dist, FLARINGINDEX) * std::sqrt(Cs2);
+		parameters::ASPECTRATIO_REF * std::pow(dist, parameters::FLARINGINDEX) * std::sqrt(Cs2);
 	    data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}
     }
@@ -2403,8 +2403,8 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 				   std::pow(y - r_cm.y, 2));
 	    }
 
-	    const double Cs = ASPECTRATIO_REF * cell_r *
-			      std::pow(cell_r, FLARINGINDEX) * std::sqrt(Cs2);
+	    const double Cs = parameters::ASPECTRATIO_REF * cell_r *
+			      std::pow(cell_r, parameters::FLARINGINDEX) * std::sqrt(Cs2);
 	    data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}
     }
@@ -2417,7 +2417,7 @@ void compute_sound_speed(t_data &data, bool force_update)
     }
 
     if (parameters::Locally_Isothermal) {
-	switch (ASPECTRATIO_MODE) {
+	switch (parameters::ASPECTRATIO_MODE) {
 	case 0:
 	    compute_sound_speed_normal(data, force_update);
 	    break;
@@ -2621,7 +2621,7 @@ void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
 
 void compute_scale_height(t_data &data, const bool force_update)
 {
-    switch (ASPECTRATIO_MODE) {
+    switch (parameters::ASPECTRATIO_MODE) {
     case 0:
 	compute_scale_height_old(data, force_update);
 	break;
@@ -2664,7 +2664,7 @@ void compute_pressure(t_data &data, bool force_update)
 		    data[t_data::SIGMA](n_radial, n_azimuthal) *
 		    std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal),
 			     2) /
-		    ADIABATICINDEX;
+		    parameters::ADIABATICINDEX;
 	    } else { // Isothermal
 		// since SoundSpeed is not update from initialization, cs
 		// remains axisymmetric
@@ -2708,7 +2708,7 @@ void compute_temperature(t_data &data, bool force_update)
 		const double gamma_eff =
 		    pvte::get_gamma_eff(data, n_radial, n_azimuthal);
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-		    mu / constants::R * POLYTROPIC_CONSTANT *
+		    mu / constants::R * parameters::POLYTROPIC_CONSTANT *
 		    std::pow(data[t_data::SIGMA](n_radial, n_azimuthal),
 			     gamma_eff - 1.0);
 	    } else { // Isothermal

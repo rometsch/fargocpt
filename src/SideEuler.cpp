@@ -282,24 +282,24 @@ void EvanescentBoundary(t_data &data, double step)
 		lambda = damping * damping * 10.0 * step / Tout;
 	    }
 	    /*
-	    if (ViscosityAlpha || (VISCOSITY != 0.0) )
+	    if (ViscosityAlpha || (parameters::VISCOSITY != 0.0) )
 		    viscosity = FViscosity (Rmed[i]);
-	    if (!ViscosityAlpha && (VISCOSITY == 0.0) )
+	    if (!ViscosityAlpha && (parameters::VISCOSITY == 0.0) )
 		    viscosity = 0.0;
 	    if (!SelfGravity) {
 		    vtheta0 = sqrt ( G*1.0/Rmed[i] * ( 1.0 -
-	    (1.0+SIGMASLOPE-2.0*FLARINGINDEX)*
-	    pow(AspectRatio(Rmed[i]),2.0)*pow(Rmed[i],2.0*FLARINGINDEX) ) );
+	    (1.0+parameters::SIGMASLOPE-2.0*parameters::FLARINGINDEX)*
+	    pow(AspectRatio(Rmed[i]),2.0)*pow(Rmed[i],2.0*parameters::FLARINGINDEX) ) );
 	    }
 	    if (SelfGravity) {
 		    vtheta0 = sqrt ( G*1.0/Rmed[i] * ( 1.0 -
-	    (1.0+SIGMASLOPE-2.0*FLARINGINDEX)*
-	    pow(AspectRatio(Rmed[i]),2.0)*pow(Rmed[i],2.0*FLARINGINDEX) ) -
+	    (1.0+parameters::SIGMASLOPE-2.0*parameters::FLARINGINDEX)*
+	    pow(AspectRatio(Rmed[i]),2.0)*pow(Rmed[i],2.0*parameters::FLARINGINDEX) ) -
 	    Rmed[i]*GLOBAL_AxiSGAccr[i+IMIN] );
 	    }
 	    // this could be refined if CentrifugalBalance is used...
 	    vtheta0 -= Rmed[i]*OmegaFrame;
-	    vrad0 = -3.0*viscosity/Rmed[i]*(-SIGMASLOPE+.5);
+	    vrad0 = -3.0*viscosity/Rmed[i]*(-parameters::SIGMASLOPE+.5);
 	    dens0 = SigmaMed[i];
 	    energ0 = EnergyMed[i];
 	    */
@@ -364,7 +364,7 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
     }
 
     penul_vr =
-	IMPOSEDDISKDRIFT * pow((Rinf[Density->Nrad - 1] / 1.0), -SIGMASLOPE);
+	parameters::IMPOSEDDISKDRIFT * pow((Rinf[Density->Nrad - 1] / 1.0), -parameters::SIGMASLOPE);
     for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	cell = nAzimuthal + nRadial * Density->Nsec;
 	VRadial->Field[cell] = penul_vr;
@@ -380,9 +380,9 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
     if (!parameters::self_gravity) {
 	/* (3.4) on page 44 */
 	VKepIn = sqrt(constants::G * hydro_center_mass / Rb[0] *
-		      (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-				 pow(ASPECTRATIO_REF, 2.0) *
-				 pow(Rb[0], 2.0 * FLARINGINDEX)));
+		      (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
+				 pow(parameters::ASPECTRATIO_REF, 2.0) *
+				 pow(Rb[0], 2.0 * parameters::FLARINGINDEX)));
     } else {
 	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
 
@@ -391,9 +391,9 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 	if (CPU_Rank == 0) {
 	    // viscosity::aspect_ratio(Rmed[0])
 	    VKepIn = sqrt(constants::G * hydro_center_mass / Rb[0] *
-			      (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-					 pow(ASPECTRATIO_REF, 2.0) *
-					 pow(Rb[0], 2.0 * FLARINGINDEX)) -
+			      (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
+					 pow(parameters::ASPECTRATIO_REF, 2.0) *
+					 pow(Rb[0], 2.0 * parameters::FLARINGINDEX)) -
 			  Rb[0] * GLOBAL_AxiSGAccr[0]);
 	}
     }
@@ -416,10 +416,10 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	/* (3.4) on page 44 */
 	VKepOut = sqrt(constants::G * hydro_center_mass /
 		       Rb[v_azimuthal.get_max_radial()] *
-		       (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-				  pow(ASPECTRATIO_REF, 2.0) *
+		       (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
+				  pow(parameters::ASPECTRATIO_REF, 2.0) *
 				  pow(Rb[v_azimuthal.get_max_radial()],
-				      2.0 * FLARINGINDEX)));
+				      2.0 * parameters::FLARINGINDEX)));
     } else {
 
 	if (!did_sg) {
@@ -433,10 +433,10 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	    VKepOut =
 		sqrt(constants::G * hydro_center_mass /
 			 Rb[v_azimuthal.get_max_radial()] *
-			 (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-				    pow(ASPECTRATIO_REF, 2.0) *
+			 (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
+				    pow(parameters::ASPECTRATIO_REF, 2.0) *
 				    pow(Rb[v_azimuthal.get_max_radial()],
-					2.0 * FLARINGINDEX)) -
+					2.0 * parameters::FLARINGINDEX)) -
 		     Rb[v_azimuthal.get_max_radial()] *
 			 GLOBAL_AxiSGAccr[v_azimuthal.get_max_radial() + IMIN]);
 	}

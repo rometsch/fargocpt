@@ -304,12 +304,12 @@ void init_physics(t_data &data)
 	    die("Do not use 'Nbody center of mass outer boundary' with only one body!\n");
 	}
 
-	if (ASPECTRATIO_MODE > 0) {
+	if (parameters::ASPECTRATIO_MODE > 0) {
 	    die("Do not use Nbody aspectratio mode with only 1 body!\n");
 	}
     }
 
-    OmegaFrame = OMEGAFRAME;
+    OmegaFrame = parameters::OMEGAFRAME;
 
     if (Corotating) {
 	OmegaFrame = data.get_planetary_system()
@@ -349,7 +349,7 @@ void init_shakura_sunyaev(t_data &data)
 	die("Isothermal equation of state and Shakura & Sunyaev starting conditions has not yet been implemented!");
     }
 
-    if (ASPECTRATIO_MODE > 0) {
+    if (parameters::ASPECTRATIO_MODE > 0) {
 	die("ASPECTRATIO_NBODY and Shakura & Sunyaev starting conditions has not yet been implemented!");
     }
 
@@ -366,7 +366,7 @@ void init_shakura_sunyaev(t_data &data)
 			 0.25);
 
 	    data[t_data::SIGMA](n_radial, n_azimuthal) =
-		(5.2 * std::pow(ALPHAVISCOSITY, -4. / 5.) *
+		(5.2 * std::pow(parameters::ALPHAVISCOSITY, -4. / 5.) *
 		 std::pow(Mdot_cgs / 1.e16, 7. / 10.) *
 		 std::pow(M0_in_solMass, 0.25) *
 		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
@@ -374,7 +374,7 @@ void init_shakura_sunyaev(t_data &data)
 		units::surface_density.get_cgs_factor();
 
 	    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
-		(1.7e8 * std::pow(ALPHAVISCOSITY, -1. / 10.) *
+		(1.7e8 * std::pow(parameters::ALPHAVISCOSITY, -1. / 10.) *
 		 std::pow(Mdot_cgs / 1.e16, 3. / 20.) *
 		 std::pow(M0_in_solMass, -3. / 8.) *
 		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, 9. / 8.) *
@@ -382,7 +382,7 @@ void init_shakura_sunyaev(t_data &data)
 		(Rb[n_radial] * L0_cgs) * Rb[n_radial];
 
 	    data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-		(1.4e4 * std::pow(ALPHAVISCOSITY, -1. / 5.) *
+		(1.4e4 * std::pow(parameters::ALPHAVISCOSITY, -1. / 5.) *
 		 std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
 		 std::pow(M0_in_solMass, 0.25) *
 		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
@@ -390,7 +390,7 @@ void init_shakura_sunyaev(t_data &data)
 		units::temperature.get_cgs_factor();
 
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		-(2.7e4 * std::pow(ALPHAVISCOSITY, 4. / 5.) *
+		-(2.7e4 * std::pow(parameters::ALPHAVISCOSITY, 4. / 5.) *
 		  std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
 		  std::pow(M0_in_solMass, -0.25) *
 		  std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.25) *
@@ -398,14 +398,14 @@ void init_shakura_sunyaev(t_data &data)
 		units::velocity.get_cgs_factor();
 
 	    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		std::sqrt(constants::R / parameters::MU * ADIABATICINDEX *
+		std::sqrt(constants::R / parameters::MU * parameters::ADIABATICINDEX *
 			  data[t_data::TEMPERATURE](n_radial, n_azimuthal));
 	    data[t_data::ENERGY](n_radial, n_azimuthal) =
-		constants::R / parameters::MU * 1. / (ADIABATICINDEX - 1.) *
+		constants::R / parameters::MU * 1. / (parameters::ADIABATICINDEX - 1.) *
 		data[t_data::SIGMA](n_radial, n_azimuthal) *
 		data[t_data::TEMPERATURE](n_radial, n_azimuthal);
 	    data[t_data::PRESSURE](n_radial, n_azimuthal) =
-		(ADIABATICINDEX - 1.) *
+		(parameters::ADIABATICINDEX - 1.) *
 		data[t_data::ENERGY](n_radial, n_azimuthal);
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial];
@@ -502,9 +502,9 @@ void init_spreading_ring_test_jibin(t_data &data)
 
     const double Disk_Mass = parameters::sigma_discmass;
     const double Ring_Mass = 1.0e-4;
-    const double h = ASPECTRATIO_REF;
-    const double p = SIGMASLOPE;
-    const double q = 2.0 * FLARINGINDEX - 1.0;
+    const double h = parameters::ASPECTRATIO_REF;
+    const double p = parameters::SIGMASLOPE;
+    const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
     const double tau0 = 0.018;
     const double Rmin = RMIN;
     const double Rmax = RMAX;
@@ -792,7 +792,7 @@ void init_secondary_disk_densities(t_data &data)
 
 	    if (r < compute_radius) {
 		const double density = parameters::sigma0 * scaling_factor *
-				       std::pow(r, -SIGMASLOPE) *
+				       std::pow(r, -parameters::SIGMASLOPE) *
 				       cutoff_outer(disk_size, cutoff_width, r);
 
 		const double density_old =
@@ -848,9 +848,9 @@ void init_secondary_disk_energies(t_data &data)
 
 	    if (r < compute_radius) {
 		const double energy =
-		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    scaling_factor * std::pow(ASPECTRATIO_REF, 2) *
-		    std::pow(r, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+		    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+		    scaling_factor * std::pow(parameters::ASPECTRATIO_REF, 2) *
+		    std::pow(r, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
 		    constants::G * planet.get_mass() *
 		    cutoff_outer(disk_size, cutoff_width, r);
 
@@ -860,7 +860,7 @@ void init_secondary_disk_energies(t_data &data)
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		const double temperature_ceil =
 		    parameters::maximum_temperature *
@@ -868,7 +868,7 @@ void init_secondary_disk_energies(t_data &data)
 		const double energy_ceil =
 		    temperature_ceil *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		const double energy_old = std::max(
 		    data[t_data::ENERGY](n_radial, n_azimuthal), energy_floor);
@@ -938,9 +938,9 @@ void init_secondary_disk_velocities(t_data &data)
 		    corr = 1.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_sec, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+				  std::pow(r_sec, 2.0 * parameters::FLARINGINDEX) *
+				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 		}
 
 		// Velocities in center of mass frame
@@ -994,9 +994,9 @@ void init_secondary_disk_velocities(t_data &data)
 		    corr = 1.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_sec, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+				  std::pow(r_sec, 2.0 * parameters::FLARINGINDEX) *
+				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 		}
 
 		// Velocities in center of mass frame
@@ -1029,14 +1029,14 @@ void init_gas_density(t_data &data)
 	    parameters::sigma0,
 	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU, -SIGMASLOPE);
+	    units::length.get_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
 
 	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	     ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 		const double density =
-		    parameters::sigma0 * std::pow(Rmed[n_radial], -SIGMASLOPE);
+		    parameters::sigma0 * std::pow(Rmed[n_radial], -parameters::SIGMASLOPE);
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::SIGMA](n_radial, n_azimuthal) =
@@ -1052,7 +1052,7 @@ void init_gas_density(t_data &data)
 	    parameters::sigma0,
 	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU, -SIGMASLOPE);
+	    units::length.get_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
 
 	Pair cms = data.get_planetary_system().get_center_of_mass();
 	const double cms_x = cms.x;
@@ -1071,7 +1071,7 @@ void init_gas_density(t_data &data)
 		const double r = std::sqrt(x * x + y * y);
 
 		const double density =
-		    parameters::sigma0 * std::pow(r, -SIGMASLOPE);
+		    parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::SIGMA](n_radial, n_azimuthal) =
@@ -1106,7 +1106,7 @@ void init_gas_density(t_data &data)
 	// ++n_azimuthal) {
 	// data[t_data::DENSITY](n_radial, n_azimuthal) =
 	// 					data[t_data::DENSITY](n_radial,
-	// n_azimuthal) = parameters::sigma0*pow(Rmed[n_radial],-SIGMASLOPE);
+	// n_azimuthal) = parameters::sigma0*pow(Rmed[n_radial],-parameters::SIGMASLOPE);
 	// 				}
 	// 			}
 	// 			break;
@@ -1297,8 +1297,8 @@ void init_eos_arrays(t_data &data)
 	 n_rad < data[t_data::GAMMAEFF].get_size_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
 	     n_az < data[t_data::GAMMAEFF].get_size_azimuthal(); ++n_az) {
-	    data[t_data::GAMMAEFF](n_rad, n_az) = ADIABATICINDEX;
-	    data[t_data::GAMMA1](n_rad, n_az) = ADIABATICINDEX;
+	    data[t_data::GAMMAEFF](n_rad, n_az) = parameters::ADIABATICINDEX;
+	    data[t_data::GAMMA1](n_rad, n_az) = parameters::ADIABATICINDEX;
 	    data[t_data::MU](n_rad, n_az) = parameters::MU;
 	}
     }
@@ -1306,7 +1306,7 @@ void init_eos_arrays(t_data &data)
 
 void init_gas_energy(t_data &data)
 {
-    if (ADIABATICINDEX == 1.0) {
+    if (parameters::ADIABATICINDEX == 1.0) {
 	logging::print_master(
 	    LOG_ERROR
 	    "The adiabatic index must differ from unity to initialize the gas internal energy. I must exit.\n");
@@ -1318,17 +1318,17 @@ void init_gas_energy(t_data &data)
 	logging::print_master(
 	    LOG_INFO
 	    "Initializing Energy = %g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
-	    1.0 / ((ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
+	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
+		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    (1*units::L0).value_as(units::au),
-	    -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
-	    parameters::MU / constants::R * std::pow(ASPECTRATIO_REF, 2) *
+	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
+	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
 		constants::G * hydro_center_mass *
 		units::temperature.get_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
-	    -1.0 + 2.0 * FLARINGINDEX);
+	    -1.0 + 2.0 * parameters::FLARINGINDEX);
 
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
@@ -1336,17 +1336,17 @@ void init_gas_energy(t_data &data)
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
 		const double energy =
-		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    std::pow(ASPECTRATIO_REF, 2) *
+		    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+		    std::pow(parameters::ASPECTRATIO_REF, 2) *
 		    std::pow(Rmed[n_radial],
-			     -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+			     -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
 		    constants::G * hydro_center_mass;
 		const double temperature_floor =
 		    parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    std::max(energy, energy_floor);
@@ -1359,16 +1359,16 @@ void init_gas_energy(t_data &data)
 	logging::print_master(
 	    LOG_INFO
 	    "Initializing CMS Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
-	    1.0 / ((ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
+	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
+		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
-	    -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX, FLARINGINDEX,
-	    parameters::MU / constants::R * std::pow(ASPECTRATIO_REF, 2) *
+	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
+	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
 		constants::G * mass * units::temperature.get_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
 	    units::length.get_cgs_factor() / units::cgs_AU,
-	    -1.0 + 2.0 * FLARINGINDEX);
+	    -1.0 + 2.0 * parameters::FLARINGINDEX);
 
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
@@ -1388,9 +1388,9 @@ void init_gas_energy(t_data &data)
 		const double r = std::sqrt(x * x + y * y);
 
 		const double energy =
-		    1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    std::pow(ASPECTRATIO_REF, 2) *
-		    std::pow(r, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+		    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+		    std::pow(parameters::ASPECTRATIO_REF, 2) *
+		    std::pow(r, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
 		    constants::G * mass;
 		const double temperature_floor =
 		    parameters::minimum_temperature *
@@ -1398,7 +1398,7 @@ void init_gas_energy(t_data &data)
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    std::max(energy, energy_floor);
@@ -1464,7 +1464,7 @@ void init_gas_energy(t_data &data)
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    std::max(energy_damped, energy_floor);
@@ -1513,7 +1513,7 @@ void init_gas_energy(t_data &data)
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
-		    parameters::MU * constants::R / (ADIABATICINDEX - 1.0);
+		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		data[t_data::ENERGY](n_radial, n_azimuthal) =
 		    std::max(energy_damped, energy_floor);
@@ -1572,19 +1572,19 @@ void init_gas_velocities(t_data &data)
 		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		    /// Viscous speed
 		    const double cs_iso =
-			ASPECTRATIO_REF *
+			parameters::ASPECTRATIO_REF *
 			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, FLARINGINDEX);
-		    const double H = ASPECTRATIO_REF * r_com;
-		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+			std::pow(r_com, parameters::FLARINGINDEX);
+		    const double H = parameters::ASPECTRATIO_REF * r_com;
+		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		    vr0 = -3.0 * nu / r_com *
-			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 		}
 
 		// Velocities in center of mass frame
@@ -1644,19 +1644,19 @@ void init_gas_velocities(t_data &data)
 		    vr0 = 0.0;
 		} else {
 		    corr = std::sqrt(
-			1.0 - std::pow(ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * FLARINGINDEX) *
-				  (1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		    /// Viscous speed
 		    const double cs_iso =
-			ASPECTRATIO_REF *
+			parameters::ASPECTRATIO_REF *
 			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, FLARINGINDEX);
-		    const double H = ASPECTRATIO_REF * r_com;
-		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+			std::pow(r_com, parameters::FLARINGINDEX);
+		    const double H = parameters::ASPECTRATIO_REF * r_com;
+		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		    vr0 = -3.0 * nu / r_com *
-			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 		}
 
 		// Velocities in center of mass frame
@@ -1814,9 +1814,9 @@ void init_gas_velocities(t_data &data)
 		// v_azimuthal = Omega_K * r * (...)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    r * calculate_omega_kepler(r) *
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+					std::pow(r, 2.0 * parameters::FLARINGINDEX) *
+					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 	    }
 
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= OmegaFrame * r;
@@ -1829,20 +1829,20 @@ void init_gas_velocities(t_data &data)
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
 	    } else {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		    IMPOSEDDISKDRIFT * parameters::sigma0 / SigmaInf[n_radial] /
+		    parameters::IMPOSEDDISKDRIFT * parameters::sigma0 / SigmaInf[n_radial] /
 		    ri;
 
 		if (!parameters::initialize_vradial_zero) {
-		    if (ViscosityAlpha) {
+		    if (parameters::ALPHAVISCOSITY > 0) {
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
 			    3.0 *
 			    data[t_data::VISCOSITY](n_radial, n_azimuthal) / r *
-			    (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+			    (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 		    } else {
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
 			    3.0 *
 			    data[t_data::VISCOSITY](n_radial, n_azimuthal) / r *
-			    (-SIGMASLOPE + .5);
+			    (-parameters::SIGMASLOPE + .5);
 		    }
 		}
 	    }

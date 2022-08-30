@@ -21,12 +21,38 @@
 #include "viscosity.h"
 #include "config.h"
 #include "units.h"
+#include "particles.h"
 
 #include <limits>
 constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
 
 namespace parameters
 {
+
+double ASPECTRATIO_REF;
+int ASPECTRATIO_MODE;
+int EXPLICIT_VISCOSITY;
+double STS_NU;
+double VISCOSITY;
+double ALPHAVISCOSITY;
+int VISCOUS_ACCRETION;
+double SIGMASLOPE;
+double OMEGAFRAME;
+double IMPOSEDDISKDRIFT;
+double FLARINGINDEX;
+double ADIABATICINDEX; // Also used for polytropic energy equation
+double POLYTROPIC_CONSTANT;
+
+bool CartesianParticles;
+bool ParticlesInCartesian;
+
+
+double DT;
+unsigned int NINTERM;
+unsigned int NTOT;
+double quantities_radius_limit;
+
+
 int ShockTube = false;
 bool SpreadingRing = false;
 
@@ -41,6 +67,8 @@ t_radial_grid radial_grid_type;
 const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",
 				   "custom"};
 double exponential_cell_size_factor;
+
+std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
 
 t_boundary_condition boundary_inner;
 t_boundary_condition boundary_outer;

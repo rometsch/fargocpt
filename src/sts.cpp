@@ -340,9 +340,9 @@ static void STS_ComputeSubSteps(double dtex, double *tau, int ssorder)
 {
     int i;
     for (i = 0; i < ssorder; i++) {
-	tau[i] = dtex / ((-1.0 + STS_NU) * std::cos(((2.0 * i + 1.0) * M_PI) /
+	tau[i] = dtex / ((-1.0 + parameters::STS_NU) * std::cos(((2.0 * i + 1.0) * M_PI) /
 						    (2.0 * ssorder)) +
-			 1.0 + STS_NU);
+			 1.0 + parameters::STS_NU);
     }
 }
 
@@ -364,8 +364,8 @@ static double STS_FindRoot(double x0, double dtr, double dta)
     while (fabs(Ns - Ns1) >= 1.0e-5) {
 	Ns = Ns1;
 	const static double a =
-	    (1.0 - std::sqrt(STS_NU)) / (1.0 + std::sqrt(STS_NU));
-	const static double sqrt_sts_nu = std::sqrt(STS_NU);
+	    (1.0 - std::sqrt(parameters::STS_NU)) / (1.0 + std::sqrt(parameters::STS_NU));
+	const static double sqrt_sts_nu = std::sqrt(parameters::STS_NU);
 
 	b = std::pow(a, 2.0 * Ns);
 	c = (1.0 - b) / (1.0 + b);
@@ -391,8 +391,8 @@ static double STS_CorrectTimeStep(int n0, double dta)
     double dtr;
 
     const static double a =
-	(1.0 - std::sqrt(STS_NU)) / (1.0 + std::sqrt(STS_NU));
-    const static double sqrt_sts_nu = std::sqrt(STS_NU);
+	(1.0 - std::sqrt(parameters::STS_NU)) / (1.0 + std::sqrt(parameters::STS_NU));
+    const static double sqrt_sts_nu = std::sqrt(parameters::STS_NU);
     const double b = std::pow(a, 2.0 * n0);
     const double c = (1.0 - b) / (1.0 + b);
 

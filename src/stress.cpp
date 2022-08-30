@@ -4,6 +4,7 @@
 #include "output.h"
 #include "selfgravity.h"
 #include "units.h"
+#include "parameters.h"
 
 namespace stress
 {
@@ -21,7 +22,7 @@ void calculate_gravitational_stress(t_data &data)
 		1.0 / (4.0 * M_PI * constants::G) *
 		selfgravity::g_radial[n_radial * NAzimuthal + n_azimuthal] *
 		selfgravity::g_azimuthal[n_radial * NAzimuthal + n_azimuthal] *
-		(2 * ASPECTRATIO_REF * Rmed[n_radial]);
+		(2 * parameters::ASPECTRATIO_REF * Rmed[n_radial]);
 	}
     }
 }

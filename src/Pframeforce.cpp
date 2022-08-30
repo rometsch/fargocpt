@@ -104,7 +104,7 @@ void CalculateNbodyPotential(t_data &data)
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 
-	if (ASPECTRATIO_MODE == 1) {
+	if (parameters::ASPECTRATIO_MODE == 1) {
 	    l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
@@ -133,7 +133,7 @@ void CalculateNbodyPotential(t_data &data)
 
 		double smooth_factor_klahr = 1.0;
 
-		if (ASPECTRATIO_MODE == 1) {
+		if (parameters::ASPECTRATIO_MODE == 1) {
 		    /// scale height is reduced by the planets and can cause the
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
@@ -185,7 +185,7 @@ void CalculateAccelOnGas(t_data &data)
 	xpl[k] = planet.get_x();
 	ypl[k] = planet.get_y();
 
-	if (ASPECTRATIO_MODE == 1) {
+	if (parameters::ASPECTRATIO_MODE == 1) {
 	    l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
@@ -219,7 +219,7 @@ void CalculateAccelOnGas(t_data &data)
 
 		double smooth_factor_klahr = 1.0;
 
-		if (ASPECTRATIO_MODE == 1) {
+		if (parameters::ASPECTRATIO_MODE == 1) {
 		    /// scale height is reduced by the planets and can cause the
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
@@ -307,7 +307,7 @@ void CalculateAccelOnGas(t_data &data)
 
 		double smooth_factor_klahr = 1.0;
 
-		if (ASPECTRATIO_MODE == 1) {
+		if (parameters::ASPECTRATIO_MODE == 1) {
 		    /// scale height is reduced by the planets and can cause the
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
