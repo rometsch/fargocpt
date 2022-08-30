@@ -23,6 +23,8 @@ def main():
 
     handle_default_star(params)
     handle_implicit_units(params)
+    for planet in params["planets"]:
+        add_unit(planet, "temperature", "K")
 
     write_yaml_file(params, args.outfile)
 
@@ -132,7 +134,7 @@ def handle_default_star(params):
     default_star = {
         "name" : "DefaultStar",
         "semi-major axis" : "0.0 au",
-        "mass" : "1.0 solMass",
+        "mass" : "1.0",
         "eccentricity" : "0.0",
         "radius" : radius,
         "temperature" : temperature
