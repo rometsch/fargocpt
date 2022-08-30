@@ -870,7 +870,7 @@ void update_with_sourceterms(t_data &data, const double dt)
     }
 
 	if(ECC_GROWTH_MONITOR){
-		quantities::calculate_disk_delta_ecc_peri(data, data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS], data[t_data::DELTA_PERIASTRON_SOURCE_TERMS]);
+		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_source, delta_peri_source);
 	}
 
 }
@@ -1274,7 +1274,7 @@ void update_with_artificial_viscosity(t_data &data, const double time, const dou
 	}
 
 	if(ECC_GROWTH_MONITOR){
-		quantities::calculate_disk_delta_ecc_peri(data, data[t_data::DELTA_ECCENTRICITY_ART_VISC], data[t_data::DELTA_PERIASTRON_ART_VISC]);
+		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_art_visc, delta_peri_art_visc);
 	}
 }
 

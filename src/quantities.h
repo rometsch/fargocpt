@@ -25,7 +25,7 @@ void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
 void state_disk_ecc_peri_calculation_center(t_data &data);
 
 void calculate_disk_ecc_vector(t_data &data);
-void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid &dPer);
+void calculate_disk_delta_ecc_peri(t_data &data, double& dEcc, double& dPer);
 
 void calculate_alpha_grav(t_data &data, unsigned int timestep,
 			  bool force_update);

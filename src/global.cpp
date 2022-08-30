@@ -199,6 +199,10 @@ double POLYTROPIC_CONSTANT;
 BoundaryFlow MassDelta;
 
 int ECC_GROWTH_MONITOR;
+double delta_ecc_source, delta_peri_source;
+double delta_ecc_art_visc, delta_peri_art_visc;
+double delta_ecc_visc, delta_peri_visc;
+double delta_ecc_transport, delta_peri_transport;
 
 double dtemp;
 int debug_outputs;

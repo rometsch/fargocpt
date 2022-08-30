@@ -744,11 +744,8 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 	}
 }
 
-void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid &dPer)
+void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 {
-
-	t_polargrid &sigma = data[t_data::DENSITY];
-
 	// ecc holds the current eccentricity
 	t_polargrid &ecc_x = data[t_data::ECCENTRICITY_X];
 	t_polargrid &ecc_y = data[t_data::ECCENTRICITY_Y];
@@ -763,29 +760,23 @@ void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid 
 	// compute new eccentricity into ecc
 	calculate_disk_ecc_vector(data);
 
-	// normalize by mass
-	const double mass = quantities::gas_total_mass(data, 2.0*RMAX);
+	const double ex = quantities::gas_reduce_mass_average(data, ecc_x, quantities_radius_limit);
+	const double ey = quantities::gas_reduce_mass_average(data, ecc_y, quantities_radius_limit);
 
-	for (unsigned int nr = 0;	 nr < sigma.get_size_radial(); ++nr) {
-	for (unsigned int naz = 0; naz < sigma.get_size_azimuthal(); ++naz) {
+	const double ex_old = quantities::gas_reduce_mass_average(data, ecc_x_tmp, quantities_radius_limit);
+	const double ey_old = quantities::gas_reduce_mass_average(data, ecc_y_tmp, quantities_radius_limit);
 
-		const double ex = ecc_x(nr, naz);
-		const double ey = ecc_y(nr, naz);
+	const double dex = ex - ex_old;
+	const double dey = ey - ey_old;
 
-		const double e2 = std::pow(ex, 2) + std::pow(ey, 2);
-		const double e = std::sqrt(e2);
+	const double e2 = std::pow(ex, 2) + std::pow(ey, 2);
+	const double e = std::sqrt(e2);
 
-		const double dex = ecc_x(nr, naz) - ecc_x_tmp(nr, naz);
-		const double dey = ecc_y(nr, naz) - ecc_y_tmp(nr, naz);
+	const double de = (ex * dex + ex * dey) / e;
+	const double dp = (ex * dey - ey * dex) / e2;
 
-		const double de = (ex * dex + ex * dey) / e;
-		const double dp = (ex * dey - ey * dex) / e2;
-
-		dEcc(nr, naz) += de * sigma(nr, naz) * Surf[nr] / mass;
-		dPer(nr, naz) += dp * sigma(nr, naz) * Surf[nr] / mass;
-	}
-	}
-
+	dEcc += de;
+	dPer += dp;
 }
 
 

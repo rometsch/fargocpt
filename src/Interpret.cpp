@@ -281,20 +281,14 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     }
 
 	ECC_GROWTH_MONITOR = config::value_as_bool_default("WriteEccentricityChange", NO);
-
-	if(ECC_GROWTH_MONITOR){
-		data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_SOURCE_TERMS].set_write(true, false);
-
-		data[t_data::DELTA_ECCENTRICITY_ART_VISC].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_ART_VISC].set_write(true, false);
-
-		data[t_data::DELTA_ECCENTRICITY_VISC].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_VISC].set_write(true, false);
-
-		data[t_data::DELTA_ECCENTRICITY_TRANSPORT].set_write(true, false);
-		data[t_data::DELTA_PERIASTRON_TRANSPORT].set_write(true, false);
-	}
+	delta_ecc_source = 0.0;
+	delta_peri_source = 0.0;
+	delta_ecc_art_visc = 0.0;
+	delta_peri_art_visc = 0.0;
+	delta_ecc_visc = 0.0;
+	delta_peri_visc = 0.0;
+	delta_ecc_transport = 0.0;
+	delta_peri_transport = 0.0;
 
     // Frame settings
     Corotating = 0;

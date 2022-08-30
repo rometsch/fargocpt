@@ -1118,7 +1118,7 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 	}
 	if (fd == NULL) {
 		logging::print_master(
-		LOG_ERROR "Can't write 'torques_dE.dat' file. Aborting.\n");
+		LOG_ERROR "Can't write 'eccentricity_change.dat' file. Aborting.\n");
 		PersonalExit(1);
 	}
 
@@ -1136,106 +1136,47 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 		"# 0 : coarse output step\n"
 		"# 1 : PhysicalTime\n"
 
-		"# 2 : advection_torque\n"
-		"# 3 : viscous_torque\n"
-		"# 4 : gravitational_torque\n"
+		"# 2 : ecc change from source terms\n"
+		"# 3 : ecc change from artificial viscosity\n"
+		"# 4 : ecc change from viscosity\n"
+		"# 5 : ecc change from transport\n"
 
-		"# 5 : ecc change from source terms\n"
-		"# 6 : ecc change from artificial viscosity\n"
-		"# 7 : ecc change from viscosity\n"
-		"# 8 : ecc change from transport\n"
-
-		"# 9 : Periastron change from source terms\n"
-		"# 10: Periastron change from artificial viscosity\n"
-		"# 11: Periastron change from from viscosity\n"
-		"# 12: Periastron change from transport\n",
+		"# 6 : Periastron change from source terms\n"
+		"# 7: Periastron change from artificial viscosity\n"
+		"# 8: Periastron change from from viscosity\n"
+		"# 9: Periastron change from transport\n",
 		units::time.get_cgs_factor(),
 		units::torque.get_cgs_factor());
 		fd_created = true;
 	}
 	}
 
-
-	double adv_torque = 0.0;
-	if (data[t_data::ADVECTION_TORQUE].get_write()) {
-		adv_torque = quantities::gas_quantity_reduce(data[t_data::ADVECTION_TORQUE], RMAX);
-	}
-	double visc_torque = 0.0;
-	if (data[t_data::VISCOUS_TORQUE].get_write()) {
-		visc_torque = quantities::gas_quantity_reduce(data[t_data::VISCOUS_TORQUE], RMAX);
-	}
-	double grav_torque = 0.0;
-	if (data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()) {
-		grav_torque = quantities::gas_quantity_reduce(data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED], RMAX);
-	}
-	double source_de = 0.0;
-	if (data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].get_write()) {
-		source_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS], quantities_radius);
-	}
-	double art_visc_de = 0.0;
-	if (data[t_data::DELTA_ECCENTRICITY_ART_VISC].get_write()) {
-		art_visc_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_ART_VISC], quantities_radius);
-	}
-	double visc_de = 0.0;
-	if (data[t_data::DELTA_ECCENTRICITY_VISC].get_write()) {
-		visc_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_VISC], quantities_radius);
-	}
-	double transport_de = 0.0;
-	if (data[t_data::DELTA_ECCENTRICITY_TRANSPORT].get_write()) {
-		transport_de = quantities::gas_quantity_reduce(data[t_data::DELTA_ECCENTRICITY_TRANSPORT], quantities_radius);
-	}
-
-	double source_dp = 0.0;
-	if (data[t_data::DELTA_PERIASTRON_SOURCE_TERMS].get_write()) {
-		source_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_SOURCE_TERMS], quantities_radius);
-	}
-	double art_visc_dp = 0.0;
-	if (data[t_data::DELTA_PERIASTRON_ART_VISC].get_write()) {
-		art_visc_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_ART_VISC], quantities_radius);
-	}
-	double visc_dp = 0.0;
-	if (data[t_data::DELTA_PERIASTRON_VISC].get_write()) {
-		visc_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_VISC], quantities_radius);
-	}
-	double transport_dp = 0.0;
-	if (data[t_data::DELTA_PERIASTRON_TRANSPORT].get_write()) {
-		transport_dp = quantities::gas_quantity_reduce(data[t_data::DELTA_PERIASTRON_TRANSPORT], quantities_radius);
-	}
-
-	data[t_data::ADVECTION_TORQUE].clear();
-	data[t_data::VISCOUS_TORQUE].clear();
-	data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].clear();
-
-	data[t_data::DELTA_ECCENTRICITY_SOURCE_TERMS].clear();
-	data[t_data::DELTA_ECCENTRICITY_ART_VISC].clear();
-	data[t_data::DELTA_ECCENTRICITY_VISC].clear();
-	data[t_data::DELTA_ECCENTRICITY_TRANSPORT].clear();
-
-	data[t_data::DELTA_PERIASTRON_SOURCE_TERMS].clear();
-	data[t_data::DELTA_PERIASTRON_ART_VISC].clear();
-	data[t_data::DELTA_PERIASTRON_VISC].clear();
-	data[t_data::DELTA_PERIASTRON_TRANSPORT].clear();
-
 	if (CPU_Master) {
-	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 		coarseOutputNumber,
 		PhysicalTime,
 
-		adv_torque,
-		visc_torque,
-		grav_torque,
+		delta_ecc_source,
+		delta_ecc_art_visc,
+		delta_ecc_visc,
+		delta_ecc_transport,
 
-		source_de,
-		art_visc_de,
-		visc_de,
-		transport_de,
-
-		source_dp,
-		art_visc_dp,
-		visc_dp,
-		transport_dp);
+		delta_peri_source,
+		delta_peri_art_visc,
+		delta_peri_visc,
+		delta_peri_transport);
 	fclose(fd);
 	}
+
+	delta_ecc_source = 0.0;
+	delta_ecc_art_visc = 0.0;
+	delta_ecc_visc = 0.0;
+	delta_ecc_transport = 0.0;
+
+	delta_peri_source = 0.0;
+	delta_peri_art_visc = 0.0;
+	delta_peri_visc = 0.0;
+	delta_peri_transport = 0.0;
 }
 
 } // namespace output

@@ -82,14 +82,6 @@ class t_data
 	ECCENTRICITY_Y,	      // disk y eccentricity
 	ECCENTRICITY_X_PING_PONG,	      // disk x eccentricity
 	ECCENTRICITY_Y_PING_PONG,	      // disk y eccentricity
-	DELTA_ECCENTRICITY_SOURCE_TERMS,	      // disk eccentricity
-	DELTA_PERIASTRON_SOURCE_TERMS,	      // disk periastron
-	DELTA_ECCENTRICITY_ART_VISC,	      // disk eccentricity
-	DELTA_PERIASTRON_ART_VISC,	      // disk periastron
-	DELTA_ECCENTRICITY_VISC,	      // disk eccentricity
-	DELTA_PERIASTRON_VISC,	      // disk periastron
-	DELTA_ECCENTRICITY_TRANSPORT,	      // disk eccentricity
-	DELTA_PERIASTRON_TRANSPORT,	      // disk periastron
 
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES
