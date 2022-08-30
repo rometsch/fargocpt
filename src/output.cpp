@@ -1088,7 +1088,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
     }
 }
 
-void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber, const double quantities_radius)
+void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigned fineOutputNumber)
 {
 	FILE *fd = 0;
 	char *fd_filename;
@@ -1134,17 +1134,18 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 		"# Eccentricity unit is 1.\n"
 		"# Syntax:\n"
 		"# 0 : coarse output step\n"
-		"# 1 : PhysicalTime\n"
+		"# 1 : fine output step\n"
+		"# 2 : PhysicalTime\n"
 
-		"# 2 : ecc change from source terms\n"
-		"# 3 : ecc change from artificial viscosity\n"
-		"# 4 : ecc change from viscosity\n"
-		"# 5 : ecc change from transport\n"
+		"# 3 : ecc change from source terms\n"
+		"# 4 : ecc change from artificial viscosity\n"
+		"# 5 : ecc change from viscosity\n"
+		"# 6 : ecc change from transport\n"
 
-		"# 6 : Periastron change from source terms\n"
-		"# 7: Periastron change from artificial viscosity\n"
-		"# 8: Periastron change from from viscosity\n"
-		"# 9: Periastron change from transport\n",
+		"# 7 : Periastron change from source terms\n"
+		"# 8 : Periastron change from artificial viscosity\n"
+		"# 9 : Periastron change from from viscosity\n"
+		"# 10: Periastron change from transport\n",
 		units::time.get_cgs_factor(),
 		units::torque.get_cgs_factor());
 		fd_created = true;
@@ -1152,8 +1153,9 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 	}
 
 	if (CPU_Master) {
-	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+	fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 		coarseOutputNumber,
+		fineOutputNumber,
 		PhysicalTime,
 
 		delta_ecc_source,

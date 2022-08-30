@@ -342,7 +342,6 @@ int main(int argc, char *argv[])
 	    // write polar grids
 	    output::write_grids(data, N_output, N_hydro_iter, PhysicalTime,
 				false);
-		output::write_torques_and_ecc_changes(data, N_output, quantities_radius_limit);
 	    // write planet data
 	    data.get_planetary_system().write_planets(N_output, 0);
 	    // write misc stuff (important for resuming)
@@ -378,6 +377,9 @@ int main(int argc, char *argv[])
 	    parameters::write_disk_quantities) {
 	    output::write_quantities(data, force_update_for_output);
 	}
+
+	output::write_ecc_peri_changes(N_output, N_outer_loop);
+
 
 	if (write_complete_output && parameters::write_torques) {
 	    output::write_torques(data, N_output, force_update_for_output);
