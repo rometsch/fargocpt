@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <string>
 #include <type_traits>
+#include <cmath>
 
 #include "LowTasks.h"
 #include "config.h"
@@ -68,6 +69,19 @@ void Config::load_file(const std::string &filename)
     YAML::Node node = YAML::Load(infile);
     m_root = std::make_shared<YAML::Node>(lowercased_node(node));
 }
+
+template <typename T> bool isnan(const T &x) {
+    return std::isnan(x);
+}
+
+template <> bool isnan(const std::string &x) {
+    if (lowercase(x) == "nan") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 static bool string_decide(const std::string &val) {
     bool rv;
@@ -154,7 +168,10 @@ template <typename T> T Config::get(const std::string &key)
     try {
         rv = root[lkey].as<T>();
     } catch (YAML::TypedBadConversion<T> const &) {
-        die("Conversion from yaml failed for key '%s'\n", key);
+        die("Conversion from yaml failed for key '%s'\n", key.c_str());
+    }
+    if (isnan(rv)) {
+        die("Value for key '%s' was converted to nan!\n", key.c_str());
     }
     return rv;
 }
@@ -163,7 +180,7 @@ template <typename T> T Config::get(const std::string &key)
 template <typename T> T Config::get(const std::string &key, const units::precise_unit& unit)
 {
     if (!contains(key)) {
-        die("Required parameter '%s' missing!\n", key);
+        die("Required parameter '%s' missing!\n", key.c_str());
     }
     T rv;
     const auto &root = *m_root;
@@ -175,8 +192,11 @@ template <typename T> T Config::get(const std::string &key, const units::precise
         try {
             rv = root[lkey].as<T>();
         } catch (YAML::TypedBadConversion<T> const &) {
-            die("Conversion from yaml failed for key '%s'\n", key);
+            die("Conversion from yaml failed for key '%s'\n", key.c_str());
         }
+    }
+    if (isnan(rv)) {
+        die("Value for key '%s' was converted to nan!\n", key.c_str());
     }
     return rv;
 }
@@ -184,14 +204,17 @@ template <typename T> T Config::get(const std::string &key, const units::precise
 
 template <typename T> T Config::get(const std::string &key, const T &default_value)
 {
-    T ret;
+    T rv;
     const std::string lkey = lowercase(key);
     if (contains(key)) {
-        ret = get<T>(key);
+        rv = get<T>(key);
     } else {
-	    ret = default_value;
+	    rv = default_value;
     }
-    return ret;
+    if (isnan(rv)) {
+        die("Value for key '%s' was converted to nan!\n", key.c_str());
+    }
+    return rv;
 }
 
 template <typename T> T stoT(const std::string &val);
@@ -212,21 +235,24 @@ template <typename T> T Config::get(const std::string &key,
                             const T &default_value, 
                             const units::precise_unit& unit) 
 {    
-    T ret;
+    T rv;
     const std::string lkey = lowercase(key);
     std::string val;
     const auto &root = *m_root;
     if (contains(key)) {
         val = root[lkey].as<std::string>();
         if (units::has_unit(val)) {
-            ret = units::parse_units<T>(val, unit);
+            rv = units::parse_units<T>(val, unit);
         } else {
-            ret = stoT<T>(val);
+            rv = stoT<T>(val);
         }
     } else {
-	    ret = default_value;
+	    rv = default_value;
     }
-    return ret;
+    if (isnan(rv)) {
+        die("Value for key '%s' was converted to nan!\n", key.c_str());
+    }
+    return rv;
 };
 
 template <typename T> T Config::get(const std::string &key, 
@@ -246,6 +272,9 @@ template <typename T> T Config::get(const std::string &key,
         rv = units::parse_units<T>(val, unit);
     } else {
         rv = stoT<T>(val);
+    }
+    if (isnan(rv)) {
+        die("Value for key '%s' was converted to nan!\n", key.c_str());
     }
     return rv;
 };
