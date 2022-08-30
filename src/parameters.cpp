@@ -100,6 +100,9 @@ bool cooling_radiative_enabled;
 bool cooling_beta_enabled;
 double cooling_beta_ramp_up;
 double cooling_beta;
+bool cooling_beta_initial;
+bool cooling_beta_aspect_ratio;
+
 
 bool radiative_diffusion_enabled;
 double radiative_diffusion_omega;
@@ -208,6 +211,7 @@ double particle_minimum_escape_radius_sq;
 double particle_maximum_escape_radius_sq;
 bool particle_gas_drag_enabled;
 bool particle_disk_gravity_enabled;
+bool particle_dust_diffusion;
 t_particle_integrator integrator;
 
 // for constant opacity
@@ -750,6 +754,22 @@ void read(const std::string &filename, t_data &data)
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
     cooling_beta_ramp_up =
 	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+	cooling_beta_aspect_ratio = false;
+	cooling_beta_initial = false;
+	switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Zero")) {
+    case 'z': // Zero
+	break;
+    case 'i': // Initial
+	cooling_beta_initial = true;
+	break;
+    case 'a': // AspectRatio
+	cooling_beta_aspect_ratio = true;
+	die("Not implemented yet: CoolingBetaReference: AspectRatio");
+	break;
+    default:
+	die("Invalid setting for CoolingBetaReference: %s",
+	    config::cfg.get<std::string>("CoolingBetaReference", "Zero").c_str());
+    }
 
     // initialisation
     initialize_pure_keplerian =
@@ -1007,6 +1027,11 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("ParticleGasDragEnabled", true);
     particle_disk_gravity_enabled =
 	config::cfg.get_flag("ParticleDiskGravityEnabled", false);
+	particle_dust_diffusion =
+	config::cfg.get_flag("ParticleDustDiffusion", false);
+
+
+
     // particle integrator
     switch (
 	config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s")) {
@@ -1307,9 +1332,11 @@ void summarize_parameters()
 	"Heating from viscous dissipation is %s. Using a total factor of %g.\n",
 	heating_viscous_enabled ? "enabled" : "disabled",
 	heating_viscous_factor);
-    logging::print_master(LOG_INFO "Cooling (beta) is %s. Using beta = %g.\n",
+	logging::print_master(LOG_INFO "Cooling (beta) is %s and reference temperature is %s. Using beta = %g.\n",
 			  cooling_beta_enabled ? "enabled" : "disabled",
+			  cooling_beta_initial ? "the initial value" : "zero",
 			  cooling_beta);
+
     logging::print_master(
 	LOG_INFO "Cooling (radiative) is %s. Using a total factor of %g.\n",
 	cooling_radiative_enabled ? "enabled" : "disabled",

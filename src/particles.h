@@ -7,7 +7,7 @@
 namespace particles
 {
 
-extern t_particle *particles;
+extern std::vector<t_particle> particles;
 extern unsigned int particles_size;
 extern unsigned int local_number_of_particles;
 
@@ -16,16 +16,20 @@ void restart();
 // void calculate_accelerations_from_star_and_planets(t_data& data);
 void calculate_accelerations_from_star_and_planets(
     double &ar, double &aphi, const double r, const double r_dot,
-    const double phi, const double phi_dot, t_data &data);
+    const double phi, const double phi_dot, const double rsmooth, t_data &data);
 void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 							const double x,
 							const double y,
+							const double rsmooth,
 							t_data &data);
 void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 						 double &grav_l_dot,
 						 const double r,
 						 const double phi,
+						 const double rsmooth,
 						 t_data &data);
+double calculate_dust_smoothing(const double r, const double phi,
+				     const double stokes, t_data &data);
 
 void update_velocities_from_gas_drag(t_data &data, double dt);
 void update_velocities_from_gas_drag_cart(t_data &data, double dt);

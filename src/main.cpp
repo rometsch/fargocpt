@@ -32,6 +32,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "random/random.h"
 
 int TimeToWrite;
 int Restart = 0;
@@ -132,6 +133,8 @@ int main(int argc, char *argv[])
 	PersonalExit(0);
 
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
+
+	fargo_random::init();
 
     init_radialarrays();
 

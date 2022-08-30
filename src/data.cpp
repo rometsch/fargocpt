@@ -174,6 +174,12 @@ t_data::t_data()
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
 	.set_integrate_azimuthally_for_1D_write(true);
 
+    m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_scalar(true);
+    m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_name("GAS_DIFFUSION_COEFFICIENT");
+
+    m_polargrids[DRHO_DR].set_scalar(true);
+    m_polargrids[DRHO_DR].set_name("DRHO_DR");
+
     // tau_r_r is cell centered
     m_polargrids[TAU_R_R].set_scalar(true);
     m_polargrids[TAU_R_R].set_name("tau_r_r");

@@ -1302,7 +1302,28 @@ void calculate_qminus(t_data &data)
 		    beta_inv = beta_inv * ramp_factor;
 		}
 
-		const double qminus = E * omega_k * beta_inv;
+		double delta_E = E;
+		if (parameters::cooling_beta_initial) {
+		    const double sigma =
+			data[t_data::SIGMA](n_radial, n_azimuthal);
+		    const double sigma0 =
+			data[t_data::SIGMA0](n_radial, n_azimuthal);
+		    const double E0 =
+			data[t_data::ENERGY0](n_radial, n_azimuthal);
+		    delta_E -= E0 / sigma0 * sigma;
+		}
+		if (parameters::cooling_beta_aspect_ratio) {
+		    const double sigma =
+			data[t_data::SIGMA](n_radial, n_azimuthal);
+		    const double E0 =
+			1.0 / (parameters::ADIABATICINDEX - 1.0) *
+			std::pow(parameters::ASPECTRATIO_REF, 2) *
+			std::pow(Rmed[n_radial], 2.0 * parameters::FLARINGINDEX - 1.0) *
+			constants::G * hydro_center_mass * sigma;
+		    delta_E -= E0;
+		}
+		const double qminus = delta_E * omega_k * beta_inv;
+
 
 		data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
 	    }

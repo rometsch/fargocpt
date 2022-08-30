@@ -30,6 +30,9 @@ class t_particle
     double timestep;
     /// last error for timestep estimation
     double facold;
+    /// stokes number
+    double stokes;
+
 
     double get_squared_distance_to_star();
     double get_distance_to_star();

@@ -18,6 +18,8 @@
 #include "selfgravity.h"
 #include "util.h"
 #include "output.h"
+#include "Theo.h"
+#include "particles/dust_diffusion.h"
 #include <cstring>
 #include <math.h>
 #include <mpi.h>
@@ -32,7 +34,7 @@ namespace particles
 {
 
 /// local particle storage
-t_particle *particles;
+std::vector<t_particle> particles;
 
 /// current size of local particle storage
 unsigned int particles_size;
@@ -263,16 +265,18 @@ static void init_particle_timestep(t_data &data)
 	temp_r_dot = particles[i].r_dot;
 	temp_phi_dot = particles[i].phi_dot;
 
+	const double rsmooth = 0.05;
+
 	// Cash–Karp method
 	// (http://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) cartesian
 	// coordinates are written inside the polar coordinates
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 
 	// calculate k1
@@ -323,11 +327,11 @@ static void init_particle_timestep(t_data &data)
 
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 
 	// calculate k2
@@ -521,7 +525,7 @@ void init(t_data &data)
 
     // create storage
     particles_size = local_number_of_particles;
-    particles = (t_particle *)malloc(sizeof(t_particle) * particles_size);
+    particles.resize(particles_size);
 
     const unsigned int seed = parameters::random_seed;
     logging::print(LOG_DEBUG "random generator seed: %u\n", seed);
@@ -560,17 +564,17 @@ void init(t_data &data)
     }
 
     // create MPI datatype
-    int mpi_particle_count = 11;
-    int mpi_particle_lengths[11] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    MPI_Aint mpi_particle_offsets[11];
-    MPI_Datatype mpi_particle_types[11] = {MPI_UNSIGNED, MPI_DOUBLE, MPI_DOUBLE,
+	const int mpi_particle_count = 12;
+    int mpi_particle_lengths[mpi_particle_count] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    MPI_Aint mpi_particle_offsets[mpi_particle_count];
+    MPI_Datatype mpi_particle_types[mpi_particle_count] = {MPI_UNSIGNED, MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
-					   MPI_DOUBLE,	 MPI_DOUBLE};
+					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE};
 
     // calculate offsets
     MPI_Aint base;
-    MPI_Get_address(particles, &base);
+    MPI_Get_address(&particles[0], &base);
     MPI_Get_address(&particles[0].id, mpi_particle_offsets);
     MPI_Get_address(&particles[0].r, mpi_particle_offsets + 1);
     MPI_Get_address(&particles[0].phi, mpi_particle_offsets + 2);
@@ -582,8 +586,10 @@ void init(t_data &data)
     MPI_Get_address(&particles[0].radius, mpi_particle_offsets + 8);
     MPI_Get_address(&particles[0].timestep, mpi_particle_offsets + 9);
     MPI_Get_address(&particles[0].facold, mpi_particle_offsets + 10);
+	MPI_Get_address(&particles[0].stokes, mpi_particle_offsets + 11);
 
-    for (int i = 0; i < 11; ++i) {
+
+    for (int i = 0; i < mpi_particle_count; ++i) {
 	mpi_particle_offsets[i] -= base;
     }
 
@@ -605,8 +611,14 @@ void init(t_data &data)
     }
     check_tstop(data);
 
-    if (parameters::integrator == parameters::integrator_adaptive)
-	init_particle_timestep(data);
+    if (parameters::integrator == parameters::integrator_adaptive) {
+		init_particle_timestep(data);
+	}
+
+	if (parameters::particle_dust_diffusion) {
+		dust_diffusion::init();
+	}
+
 }
 
 void restart()
@@ -644,7 +656,6 @@ void restart()
 	global_number_of_particles = num_particles_in_file;
 	parameters::number_of_particles = num_particles_in_file;
 	local_number_of_particles = global_number_of_particles / CPU_Number;
-	free(particles);
 
 	if ((unsigned int)CPU_Rank <
 	    global_number_of_particles -
@@ -658,7 +669,7 @@ void restart()
 
 	// create storage
 	particles_size = local_number_of_particles;
-	particles = (t_particle *)malloc(sizeof(t_particle) * particles_size);
+	particles.resize(particles_size);
     }
     if (num_particles_in_file > parameters::number_of_particles) {
 	logging::print_master(
@@ -695,7 +706,7 @@ void restart()
     MPI_File_set_view(fh, 0, mpi_particle, mpi_particle,
 		      const_cast<char *>("native"), MPI_INFO_NULL);
     MPI_File_seek(fh, local_offset, MPI_SEEK_SET);
-    MPI_File_read_all(fh, particles, local_number_of_particles, mpi_particle,
+    MPI_File_read_all(fh, &particles[0], local_number_of_particles, mpi_particle,
 		      &status);
 
     // close file
@@ -707,15 +718,37 @@ void restart()
 	move();
 }
 
+/*
+	Calculate the smoothing length from the dust scale height using
+	Dubrulle et al. (1995) Eq. 39 H_d = H_g * sqrt(alpha/(alpha + St))
+*/
+double calculate_dust_smoothing(const double r, const double phi,
+				const double stokes, t_data &data)
+{
+
+    // find indices of current cell
+    const unsigned int n_rad = get_rmed_id(r);
+    const unsigned int n_azi = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));
+    // get gas scale height
+    const double h_gas = data[t_data::ASPECTRATIO](n_rad, n_azi);
+    const double alpha = parameters::ALPHAVISCOSITY;
+    // compute dust scale height
+    const double h_dust = h_gas * std::sqrt(alpha / (alpha + stokes));
+
+    const double rsmooth = h_dust * r * parameters::thickness_smoothing;
+
+    return rsmooth;
+}
+
 void calculate_accelerations_from_star_and_planets(
     double &ar, double &aphi, const double r, const double r_dot,
-    const double phi, const double phi_dot, t_data &data)
+    const double phi, const double phi_dot, const double rsmooth, t_data &data)
 {
     (void)r_dot;
     (void)phi_dot;
 
-    constexpr double epsilon = 0.005;
-    constexpr double epsilon_sq = epsilon * epsilon;
+    const double epsilon = rsmooth;
+    const double epsilon_sq = epsilon * epsilon;
 
     ar = r * phi_dot * phi_dot; // Centrifugal force
     aphi = -2.0 * r_dot / r * phi_dot;
@@ -751,13 +784,14 @@ void calculate_accelerations_from_star_and_planets(
 void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 							const double x,
 							const double y,
+							const double rsmooth,
 							t_data &data)
 {
     ax = 0;
     ay = 0;
 
-    constexpr double epsilon = 0.005;
-    constexpr double epsilon_sq = epsilon * epsilon;
+    const double epsilon = rsmooth;
+    const double epsilon_sq = epsilon * epsilon;
 
     // planets
     for (unsigned int k = 0;
@@ -777,10 +811,10 @@ void calculate_accelerations_from_star_and_planets_cart(double &ax, double &ay,
 void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 						 double &minus_grav_l_dot,
 						 const double r,
-						 const double phi, t_data &data)
+						 const double phi, const double rsmooth, t_data &data)
 {
-    constexpr double epsilon = 0.005;
-    constexpr double epsilon_sq = epsilon * epsilon;
+    const double epsilon = rsmooth;
+    const double epsilon_sq = epsilon * epsilon;
 
     grav_r_ddot = 0.0;
     minus_grav_l_dot = 0.0;
@@ -816,10 +850,10 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 
 static void calculate_derivitives_from_star_and_planets_in_cart(
     double &grav_r_ddot, double &minus_grav_l_dot, const double r,
-    const double phi, t_data &data)
+    const double phi, const double rsmooth, t_data &data)
 {
-    constexpr double epsilon = 0.005;
-    constexpr double epsilon_sq = epsilon * epsilon;
+    const double epsilon = rsmooth;
+    const double epsilon_sq = epsilon * epsilon;
 
     double acart[2];
     double acyl[2];
@@ -1193,6 +1227,8 @@ void check_tstop(t_data &data)
 
 	// Stopping time
 	double tstop = radius * parameters::particle_density / term;
+	const double stokes = tstop * calculate_omega_kepler(r);
+	particles[i].stokes = stokes;
 
 	if (tstop < 10.0 * dt && parameters::particle_gas_drag_enabled &&
 	    (parameters::integrator == parameters::integrator_explicit ||
@@ -1250,8 +1286,8 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
     compute_rho(data, true);
 
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-	double r = particles[i].get_distance_to_star();
-	double phi = particles[i].get_angle();
+	const double r = particles[i].get_distance_to_star();
+	const double phi = particles[i].get_angle();
 
 	// check if particle has left disc
 	if ((r < RMIN) || (r > RMAX)) {
@@ -1268,10 +1304,10 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 		     n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate quantities needed
-	double rho = interpolate_bilinear(
+	const double rho = interpolate_bilinear(
 	    data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus,
 	    n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	double vg_radial = interpolate_bilinear(
+	const double vg_radial = interpolate_bilinear(
 	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
 	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 	const double vg_azimuthal_temp = interpolate_bilinear(
@@ -1279,33 +1315,33 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
 	const double vg_azimuthal =
 	    corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
-	double temperature = interpolate_bilinear(
+	const double temperature = interpolate_bilinear(
 	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
 	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
 	// calculate gas velocities in cartesian coordinates
-	double vg_x = std::cos(phi) * vg_radial - std::sin(phi) * vg_azimuthal;
-	double vg_y = std::sin(phi) * vg_radial + std::cos(phi) * vg_azimuthal;
+	const double vg_x = std::cos(phi) * vg_radial - std::sin(phi) * vg_azimuthal;
+	const double vg_y = std::sin(phi) * vg_radial + std::cos(phi) * vg_azimuthal;
 
 	// particles store cartesian data
 	double &vx = particles[i].r_dot;
 	double &vy = particles[i].phi_dot;
 
 	// calculate relative velocities
-	double vrel_x = vx - vg_x;
-	double vrel_y = vy - vg_y;
-	double vrel = std::sqrt(std::pow(vrel_x, 2) + std::pow(vrel_y, 2));
+	const double vrel_x = vx - vg_x;
+	const double vrel_y = vy - vg_y;
+	const double vrel = std::sqrt(std::pow(vrel_x, 2) + std::pow(vrel_y, 2));
 
-	double m0 = parameters::MU * constants::m_u.get_code_value();
-	double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
+	const double m0 = parameters::MU * constants::m_u.get_code_value();
+	const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				    temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma =
+	const double sigma =
 	    M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
-	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
+	const double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
-	double reynolds = 2.0 * rho * particles[i].radius * vrel / nu;
+	const double reynolds = 2.0 * rho * particles[i].radius * vrel / nu;
 
 	// calculate coefficient
 	double Cd;
@@ -1317,14 +1353,21 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	    Cd = 0.44;
 	}
 
-	double fdrag_temp =
+	const double fdrag_temp =
 	    -0.5 * Cd * M_PI * std::pow(particles[i].radius, 2) * rho * vrel;
-	double fdrag_x = fdrag_temp * vrel_x;
-	double fdrag_y = fdrag_temp * vrel_y;
+	const double fdrag_x = fdrag_temp * vrel_x;
+	const double fdrag_y = fdrag_temp * vrel_y;
 
 	// update velocities
 	vx += dt * fdrag_x / particles[i].mass;
 	vy += dt * fdrag_y / particles[i].mass;
+
+	// update stokes number
+	const double mass = particles[i].mass;
+	const double fdrag = fdrag_temp * vrel;
+	const double tstop = - mass*vrel/fdrag;
+	const double omega_kepler = calculate_omega_kepler(r);
+	particles[i].stokes = tstop*omega_kepler;
 
 	if (parameters::particle_disk_gravity_enabled) {
 	    update_velocity_from_disk_gravity_cart(
@@ -1414,6 +1457,13 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	const double fdrag_r = dt * fdrag_temp * vrel_r;
 	const double fdrag_phi = dt * fdrag_temp * vrel_phi / r;
 
+	// update stokes number
+	const double mass = particles[i].mass;
+	const double fdrag = fdrag_temp * vrel;
+	const double tstop = - mass*vrel/fdrag;
+	const double omega_kepler = calculate_omega_kepler(r);
+	particles[i].stokes = tstop*omega_kepler;
+
 	// update velocities
 	particles[i].r_dot += fdrag_r;
 	particles[i].phi_dot += fdrag_phi;
@@ -1472,6 +1522,14 @@ void integrate(t_data &data, const double dt)
 	die("No particle integrator");
     }
     }
+	if (parameters::particle_dust_diffusion) {
+		if (!parameters::particle_gas_drag_enabled) {
+			check_tstop(data);
+		}
+		dust_diffusion::diffuse_dust(data, particles, dt, local_number_of_particles);
+    }
+	move();
+
 }
 
 void update_velocity_from_disk_gravity_cart(
@@ -1539,7 +1597,7 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
     }
 
     // get all particles
-    MPI_Allgatherv(particles, local_number_of_particles, mpi_particle,
+    MPI_Allgatherv(&particles[0], local_number_of_particles, mpi_particle,
 		   all_particles, number_of_particles, particle_offsets,
 		   mpi_particle, MPI_COMM_WORLD);
 
@@ -1647,15 +1705,18 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	} else {
 	    tstop = 1e100;
 	}
+
+	const double rsmooth = calculate_dust_smoothing(r1, phi1, particles[i].stokes, data);
+
 	double grav_r_ddot;
 	double minus_grav_l_dot;
 	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
-		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
 	} else {
 
 	    calculate_derivitives_from_star_and_planets(
-		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
 	}
 
 	// exponential propagator  eq.33 (Mignone et al. 2019)
@@ -1691,8 +1752,8 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	particles[i].phi = phi3;
 	check_angle(particles[i].phi);
 	particles[i].phi_dot = l2 / std::pow(particles[i].r, 2);
+	particles[i].stokes = tstop*calculate_omega_kepler(r3);
     }
-    move();
 }
 
 void integrate_semiimplicit(t_data &data, const double dt)
@@ -1745,15 +1806,18 @@ void integrate_semiimplicit(t_data &data, const double dt)
 			     r0, l0);
 	    dt1 = dt / (1.0 + hfdt / tstop);
 	}
+
+	const double rsmooth = calculate_dust_smoothing(r1, phi1, particles[i].stokes, data);
+
 	double grav_r_ddot;
 	double minus_grav_l_dot;
 	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
-		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
 	} else {
 
 	    calculate_derivitives_from_star_and_planets(
-		grav_r_ddot, minus_grav_l_dot, r1, phi1, data);
+		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
 	}
 
 	double l2 = l1 + minus_grav_l_dot * dt1;
@@ -1780,8 +1844,8 @@ void integrate_semiimplicit(t_data &data, const double dt)
 	particles[i].phi = phi3;
 	check_angle(particles[i].phi);
 	particles[i].phi_dot = l2 / std::pow(particles[i].r, 2);
+	particles[i].stokes = tstop*calculate_omega_kepler(r3);
     }
-    move();
 }
 
 void integrate_implicit(t_data &data, const double dt)
@@ -1831,12 +1895,14 @@ void integrate_implicit(t_data &data, const double dt)
 	    dt0 = 1.0 + dt / tstop0;
 	}
 
+	const double rsmooth = calculate_dust_smoothing(r1, phi1, particles[i].stokes, data);
+
 	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
-		r_ddot0, minus_l_dot0, r0, phi0, data);
+		r_ddot0, minus_l_dot0, r0, phi0, rsmooth, data);
 	} else {
 	    calculate_derivitives_from_star_and_planets(r_ddot0, minus_l_dot0,
-							r0, phi0, data);
+							r0, phi0, rsmooth, data);
 	}
 	// Predicted position
 	if (parameters::particle_gas_drag_enabled) {
@@ -1849,10 +1915,10 @@ void integrate_implicit(t_data &data, const double dt)
 
 	if (parameters::ParticlesInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
-		r_ddot1, minus_l_dot1, r1, phi1, data);
+		r_ddot1, minus_l_dot1, r1, phi1, rsmooth, data);
 	} else {
 	    calculate_derivitives_from_star_and_planets(r_ddot1, minus_l_dot1,
-							r1, phi1, data);
+							r1, phi1, rsmooth, data);
 	}
 
 	l1 = l0;
@@ -1881,9 +1947,8 @@ void integrate_implicit(t_data &data, const double dt)
 	particles[i].phi = phi2;
 	check_angle(particles[i].phi);
 	particles[i].phi_dot = l1 / std::pow(particles[i].r, 2);
+	particles[i].stokes = tstop1*calculate_omega_kepler(r2);
     }
-
-    move();
 }
 
 void integrate_explicit_adaptive(t_data &data, const double dt)
@@ -1962,16 +2027,20 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	    temp_r_dot = particles[i].r_dot;
 	    temp_phi_dot = particles[i].phi_dot;
 
+	    const double rsmooth = calculate_dust_smoothing(
+		particles[i].get_distance_to_star(), particles[i].get_angle(),
+		particles[i].stokes, data);
+
 	    // Cash–Karp method
 	    // (http://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) cartesian
 	    // coordinates are written inside the polar coordinates
 	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
-		    temp_ar, temp_aphi, temp_r, temp_phi, data);
+		    temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	    } else {
 		calculate_accelerations_from_star_and_planets(
 		    temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi,
-		    temp_phi_dot, data);
+		    temp_phi_dot, rsmooth, data);
 	    }
 
 	    // calculate k1
@@ -1988,11 +2057,11 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 
 	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
-		    temp_ar, temp_aphi, temp_r, temp_phi, data);
+		    temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	    } else {
 		calculate_accelerations_from_star_and_planets(
 		    temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi,
-		    temp_phi_dot, data);
+		    temp_phi_dot, rsmooth, data);
 	    }
 	    // calculate k2
 	    k2_r_dot = temp_ar;
@@ -2011,11 +2080,11 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 
 	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
-		    temp_ar, temp_aphi, temp_r, temp_phi, data);
+		    temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	    } else {
 		calculate_accelerations_from_star_and_planets(
 		    temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi,
-		    temp_phi_dot, data);
+		    temp_phi_dot, rsmooth, data);
 	    }
 	    // calculate k3
 	    k3_r_dot = temp_ar;
@@ -2037,11 +2106,11 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 
 	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
-		    temp_ar, temp_aphi, temp_r, temp_phi, data);
+		    temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	    } else {
 		calculate_accelerations_from_star_and_planets(
 		    temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi,
-		    temp_phi_dot, data);
+		    temp_phi_dot, rsmooth, data);
 	    }
 	    // calculate k4
 	    k4_r_dot = temp_ar;
@@ -2068,11 +2137,11 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 
 	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
-		    temp_ar, temp_aphi, temp_r, temp_phi, data);
+		    temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	    } else {
 		calculate_accelerations_from_star_and_planets(
 		    temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi,
-		    temp_phi_dot, data);
+		    temp_phi_dot, rsmooth, data);
 	    }
 	    // calculate k5
 	    k5_r_dot = temp_ar;
@@ -2107,11 +2176,11 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 
 	    if (parameters::CartesianParticles) {
 		calculate_accelerations_from_star_and_planets_cart(
-		    temp_ar, temp_aphi, temp_r, temp_phi, data);
+		    temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	    } else {
 		calculate_accelerations_from_star_and_planets(
 		    temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi,
-		    temp_phi_dot, data);
+		    temp_phi_dot, rsmooth, data);
 	    }
 	    // calculate k6
 	    k6_r_dot = temp_ar;
@@ -2259,16 +2328,20 @@ void integrate_explicit(t_data &data, const double dt)
 	temp_r_dot = particles[i].r_dot;
 	temp_phi_dot = particles[i].phi_dot;
 
+	const double rsmooth = calculate_dust_smoothing(
+	particles[i].get_distance_to_star(), particles[i].get_angle(),
+	particles[i].stokes, data);
+
 	// Cash–Karp method
 	// (http://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) cartesian
 	// coordinates are written inside the polar coordinates
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 
 	// calculate k1
@@ -2285,11 +2358,11 @@ void integrate_explicit(t_data &data, const double dt)
 
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 	// calculate k2
 	k2_r_dot = temp_ar;
@@ -2307,11 +2380,11 @@ void integrate_explicit(t_data &data, const double dt)
 
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 	// calculate k3
 	k3_r_dot = temp_ar;
@@ -2331,11 +2404,11 @@ void integrate_explicit(t_data &data, const double dt)
 
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 	// calculate k4
 	k4_r_dot = temp_ar;
@@ -2360,11 +2433,11 @@ void integrate_explicit(t_data &data, const double dt)
 
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 	// calculate k5
 	k5_r_dot = temp_ar;
@@ -2395,11 +2468,11 @@ void integrate_explicit(t_data &data, const double dt)
 
 	if (parameters::CartesianParticles) {
 	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, data);
+		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
 	} else {
 	    calculate_accelerations_from_star_and_planets(
 		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		data);
+		rsmooth, data);
 	}
 	// calculate k6
 	k6_r_dot = temp_ar;
@@ -2428,8 +2501,6 @@ void integrate_explicit(t_data &data, const double dt)
 	particles[i].r_dot += dt * particles[i].r_ddot;
 	particles[i].phi_dot += dt * particles[i].phi_ddot;
     }
-
-    move();
 }
 
 void move(void)
@@ -2469,11 +2540,10 @@ void move(void)
 	// check if array is large enough for new particles
 	if (particles_size < local_number_of_particles + number) {
 	    particles_size = local_number_of_particles + number;
-	    particles = (t_particle *)realloc(particles, sizeof(t_particle) *
-							     particles_size);
+	    particles.resize(particles_size);
 	}
 
-	MPI_Recv(particles + local_number_of_particles, number, mpi_particle,
+	MPI_Recv(&particles[0] + local_number_of_particles, number, mpi_particle,
 		 CPU_Next, 0, MPI_COMM_WORLD, &status);
 
 	local_number_of_particles += number;
@@ -2498,7 +2568,7 @@ void move(void)
 	MPI_Type_indexed(inward_count, &inward_size[0], &inward_offset[0],
 			 mpi_particle, &inward_type);
 	MPI_Type_commit(&inward_type);
-	MPI_Send(particles, 1, inward_type, CPU_Prev, 0, MPI_COMM_WORLD);
+	MPI_Send(&particles[0], 1, inward_type, CPU_Prev, 0, MPI_COMM_WORLD);
 	MPI_Type_free(&inward_type);
     }
 
@@ -2526,11 +2596,10 @@ void move(void)
 	// check if array is large enough for new particles
 	if (particles_size < local_number_of_particles + number) {
 	    particles_size = local_number_of_particles + number;
-	    particles = (t_particle *)realloc(particles, sizeof(t_particle) *
-							     particles_size);
+	    particles.resize(particles_size);
 	}
 
-	MPI_Recv(particles + local_number_of_particles, number, mpi_particle,
+	MPI_Recv(&particles[0] + local_number_of_particles, number, mpi_particle,
 		 CPU_Prev, 0, MPI_COMM_WORLD, &status);
 
 	local_number_of_particles += number;
@@ -2558,7 +2627,7 @@ void move(void)
 	MPI_Type_indexed(outward_count, &outward_size[0], &outward_offset[0],
 			 mpi_particle, &outward_type);
 	MPI_Type_commit(&outward_type);
-	MPI_Send(particles, 1, outward_type, CPU_Next, 0, MPI_COMM_WORLD);
+	MPI_Send(&particles[0], 1, outward_type, CPU_Next, 0, MPI_COMM_WORLD);
 	MPI_Type_free(&outward_type);
     }
 
@@ -2611,7 +2680,7 @@ void write()
     MPI_File_set_view(fh, 0, mpi_particle, mpi_particle,
 		      const_cast<char *>("native"), MPI_INFO_NULL);
     MPI_File_seek(fh, local_offset, MPI_SEEK_SET);
-    MPI_File_write(fh, particles, local_number_of_particles, mpi_particle,
+    MPI_File_write(fh, &particles[0], local_number_of_particles, mpi_particle,
 		   &status);
 
     // close file

@@ -139,6 +139,11 @@ extern bool cooling_beta_enabled;
 extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
+/// beta cooling to aspect ratio profile
+extern bool cooling_beta_initial;
+/// beta cooling to initial profile
+extern bool cooling_beta_aspect_ratio;
+
 
 /// enable radiative diffusion
 extern bool radiative_diffusion_enabled;
@@ -335,6 +340,8 @@ extern double particle_maximum_escape_radius_sq;
 extern bool particle_gas_drag_enabled;
 /// particle disk gravity
 extern bool particle_disk_gravity_enabled;
+/// particle dust diffusion
+extern bool particle_dust_diffusion;
 /// particle integrator
 enum t_particle_integrator {
     integrator_explicit,     // explicit integrator (Cash-Karp, high-order)
