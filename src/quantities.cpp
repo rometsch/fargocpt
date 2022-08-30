@@ -663,6 +663,9 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 	const t_polargrid &vr = data[t_data::V_RADIAL];
 	const t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
 
+	const double sinFrameAngle = std::sin(FrameAngle);
+	const double cosFrameAngle = std::cos(FrameAngle);
+
 	const unsigned int N_radial_size = density.get_size_radial();
 	const unsigned int N_azimuthal_size = density.get_size_azimuthal();
 
@@ -696,9 +699,22 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / dist;
 
-		data[t_data::ECCENTRICITY_X](nr, naz) = e_x;
-		data[t_data::ECCENTRICITY_Y](nr, naz) = e_y;
+		data[t_data::ECCENTRICITY_NEW](nr, naz) = std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
+
+		if (FrameAngle != 0.0) {
+		// periastron grid is rotated to non-rotating coordinate system
+		// to prevent phase jumps of atan2 in later transformations like
+		// you would have had if you back-transform the output
+		// periastron values
+		data[t_data::PERIASTRON_NEW](nr, naz) =
+			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
+				   e_x * cosFrameAngle - e_y * sinFrameAngle);
+		} else {
+		data[t_data::PERIASTRON_NEW](nr, naz) =
+			std::atan2(e_y, e_x);
+		}
 	}
+
 	}
 }
 
@@ -747,38 +763,37 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 {
 	// ecc holds the current eccentricity
-	t_polargrid &ecc_x = data[t_data::ECCENTRICITY_X];
-	t_polargrid &ecc_y = data[t_data::ECCENTRICITY_Y];
+	t_polargrid &ecc_new = data[t_data::ECCENTRICITY_NEW];
+	t_polargrid &ecc_old = data[t_data::ECCENTRICITY_OLD];
 
-	t_polargrid &ecc_x_tmp = data[t_data::ECCENTRICITY_X_PING_PONG];
-	t_polargrid &ecc_y_tmp = data[t_data::ECCENTRICITY_Y_PING_PONG];
+	t_polargrid &P_new = data[t_data::PERIASTRON_NEW];
+	t_polargrid &P_old = data[t_data::PERIASTRON_OLD];
 
 	// store data ecc in ecc_tmp
-	move_polargrid(ecc_x_tmp, ecc_x);
-	move_polargrid(ecc_y_tmp, ecc_y);
+	move_polargrid(ecc_old, ecc_new);
+	move_polargrid(P_old, P_new);
 
 	// compute new eccentricity into ecc
 	calculate_disk_ecc_vector(data);
 
-	const double ex = quantities::gas_reduce_mass_average(data, ecc_x, quantities_radius_limit);
-	const double ey = quantities::gas_reduce_mass_average(data, ecc_y, quantities_radius_limit);
+	const double e = quantities::gas_reduce_mass_average(data, ecc_new, quantities_radius_limit);
+	const double P = quantities::gas_reduce_mass_average(data, P_new, quantities_radius_limit);
 
-	const double ex_old = quantities::gas_reduce_mass_average(data, ecc_x_tmp, quantities_radius_limit);
-	const double ey_old = quantities::gas_reduce_mass_average(data, ecc_y_tmp, quantities_radius_limit);
+	const double e_tmp = quantities::gas_reduce_mass_average(data, ecc_old, quantities_radius_limit);
+	const double P_tmp = quantities::gas_reduce_mass_average(data, P_old, quantities_radius_limit);
 
-	if(CPU_Master){
-	const double dex = ex - ex_old;
-	const double dey = ey - ey_old;
+	const double de = e - e_tmp;
+	double dp = P - P_tmp;
 
-	const double e2 = std::pow(ex, 2) + std::pow(ey, 2);
-	const double e = std::sqrt(e2);
-
-	const double de = (ex * dex + ex * dey) / e;
-	const double dp = (ex * dey - ey * dex) / e2;
-
+	if(dp < 0.0){
+		dp += 2 * M_PI;
+	}
+	if(dp > 2*M_PI){
+		dp -= 2*M_PI;
+	}
 	dEcc += de;
 	dPer += dp;
-	}
+
 }
 
 

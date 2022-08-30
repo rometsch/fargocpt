@@ -78,10 +78,10 @@ class t_data
 	PRESCRIBED_DENSITY_OUTER,
 	PRESCRIBED_V_AZIMUTHAL_OUTER,
 	PRESCRIBED_V_RADIAL_OUTER,
-	ECCENTRICITY_X,	      // disk x eccentricity
-	ECCENTRICITY_Y,	      // disk y eccentricity
-	ECCENTRICITY_X_PING_PONG,	      // disk x eccentricity
-	ECCENTRICITY_Y_PING_PONG,	      // disk y eccentricity
+	ECCENTRICITY_NEW,
+	ECCENTRICITY_OLD,
+	PERIASTRON_NEW,
+	PERIASTRON_OLD,
 
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES
