@@ -766,6 +766,7 @@ void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 	const double ex_old = quantities::gas_reduce_mass_average(data, ecc_x_tmp, quantities_radius_limit);
 	const double ey_old = quantities::gas_reduce_mass_average(data, ecc_y_tmp, quantities_radius_limit);
 
+	if(CPU_Master){
 	const double dex = ex - ex_old;
 	const double dey = ey - ey_old;
 
@@ -777,6 +778,7 @@ void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 
 	dEcc += de;
 	dPer += dp;
+	}
 }
 
 
