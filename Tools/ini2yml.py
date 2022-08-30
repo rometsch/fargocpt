@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Convert an ini config to a json file.
+from email.policy import default
 import os
 from typing import OrderedDict
 import yaml
@@ -19,9 +20,54 @@ def main():
             print("Hint: are you in the same dir as the fargo binary?")
     except KeyError:
         pass
+
+    handle_default_star(params)
+
     write_yaml_file(params, args.outfile)
 
     insert_comments(comments, args.outfile)
+
+
+def handle_default_star(params):
+    """ Add default star to planet if needed. 
+    
+    The default star setting is deprecated in the new yml config format.
+    Thus, add the default star explicitly on conversion.
+
+    Parameter
+    ---------
+    params: dict
+        Dictionary containing the config.
+    """
+    found_key = False
+    for key in [k for k in params.keys()]:
+        if key.lower() == "defaultstar":
+            found_key = True
+            params.pop(key)
+
+    if not found_key:
+        return
+    
+    if "StarTemperature" in params:
+        temperature = params.pop("StarTemperature") + " K" 
+    else:
+        temperature = "5778 K"
+
+    if "StarRadius" in params:
+        radius = params.pop("StarRadius")
+    else:
+        radius = "1 solRadius"
+
+    default_star = {
+        "name" : "DefaultStar",
+        "semi-major axis" : "0.0 au",
+        "mass" : "1.0 solMass",
+        "eccentricity" : "0.0",
+        "radius" : radius,
+        "temperature" : temperature
+    }
+    params["planets"] = [default_star] + params["planets"]
+
 
 def insert_comments(comments, filename):
 
