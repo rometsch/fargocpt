@@ -99,7 +99,7 @@ static void die_builtin(const char *err, va_list params)
 {
     char msg[1024];
     vsnprintf(msg, sizeof(msg), err, params);
-    fprintf(stderr, "fatal: %s\n", msg);
+    fprintf(stderr, "\n\nfatal: %s\n", msg);
     PersonalExit(128);
 }
 
