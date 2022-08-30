@@ -717,9 +717,9 @@ void read(const std::string &filename, t_data &data)
 
     MU = config::cfg.get<double>("mu", 1.0);
     minimum_temperature =
-	config::cfg.get<double>("MinimumTemperature", 3, Temp0);
+	config::cfg.get<double>("MinimumTemperature", "3 K", Temp0);
     maximum_temperature =
-	config::cfg.get<double>("MaximumTemperature", 1.0e300, Temp0);
+	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
 
     heating_viscous_enabled =
 	config::cfg.get_flag("HeatingViscous", "no");
