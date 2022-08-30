@@ -354,7 +354,7 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 void read(const std::string &filename, t_data &data)
 {
 	if (filename.compare(filename.size()-4,4,".par") == 0) {
-		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!");
+		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!", filename.c_str());
 	}
 	config::cfg.load_file(filename);
 

@@ -20,6 +20,13 @@
 */
 void PrintTrace()
 {
+
+	
+	std::cerr << std::endl;
+	std::cerr << std::endl;
+	std::cerr <<"Backtrace for your convenience:" << std::endl;
+	std::cerr << "----------------------------------------------------------------------" << std::endl;
+
     void *array[BACKTRACE_MAXDEPTH];
     int size = backtrace(array, BACKTRACE_MAXDEPTH);
     char **messages = backtrace_symbols(array, size);
