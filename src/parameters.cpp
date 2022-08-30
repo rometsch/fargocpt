@@ -889,7 +889,7 @@ void read(const std::string &filename, t_data &data)
     // mass overflow
     massoverflow = config::cfg.get_flag("massoverflow", "no");
     mof_planet = config::cfg.get<int>("mofplanet", 1);
-    mof_temperature = config::cfg.get<double>("moftemperature", 1000.0, Temp0);
+    mof_temperature = config::cfg.get<double>("moftemperature", "1000.0 K", Temp0);
     mof_value = config::cfg.get<double>("mofvalue", 10E-9, M0/T0);
     mof_rampingtime = config::cfg.get<double>("moframpingtime", 30.0);
 
