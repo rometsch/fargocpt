@@ -14,7 +14,7 @@
 #include "find_cell_id.h"
 #include "global.h"
 #include "parameters.h"
-#include "planet.h"
+#include "nbody/planet.h"
 #include "viscosity.h"
 
 namespace accretion

@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "planetary_system.h"
+#include "nbody/planetary_system.h"
 #include "polargrid.h"
 #include "radialgrid.h"
 

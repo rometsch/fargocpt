@@ -214,7 +214,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     if (!cfg.contains("OuterBoundary")) {
 	logging::print_master(LOG_ERROR
-			      "OuterBoundary doesn't exist. Old .par file?\n");
+			      "OuterBoundary doesn't exist. Old parameter file?\n");
 	die("died for convenience ;)");
     }
 

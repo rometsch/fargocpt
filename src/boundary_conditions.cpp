@@ -282,7 +282,7 @@ void apply_boundary_condition(t_data &data, double dt, bool final)
 	} else {
 	    logging::print_master(
 		LOG_ERROR
-		"Different EvanescentBoundary Parameters. Old .par File?\n");
+		"Different EvanescentBoundary Parameters. Old parameter file?\n");
 	    die("inner/outer evanescent boundary not implemented yet");
 	}
 	break;
@@ -1335,8 +1335,8 @@ void mass_overflow(t_data &data)
 	data.get_planetary_system().get_number_of_planets()) {
 	logging::print_master(
 	    LOG_ERROR
-	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
-	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
+	    "Wrong Planet/Star for Mass Overflow specified! Old parameter file?\n");
+	die("Wrong Planet/Star for Mass Overflow specified! Old parameter file?");
     }
     const t_planet &planet =
 	data.get_planetary_system().get_planet(parameters::mof_planet);
@@ -1472,8 +1472,8 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	data.get_planetary_system().get_number_of_planets()) {
 	logging::print_master(
 	    LOG_ERROR
-	    "Wrong Planet/Star for Mass Overflow specified! Old .par File?\n");
-	die("Wrong Planet/Star for Mass Overflow specified! Old .par File?");
+	    "Wrong Planet/Star for Mass Overflow specified! Old parameter file?\n");
+	die("Wrong Planet/Star for Mass Overflow specified! Old parameter file?");
     }
 
     const t_planet &planet =

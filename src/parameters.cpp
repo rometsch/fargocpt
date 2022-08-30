@@ -221,7 +221,7 @@ void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 {
     if (config::cfg.contains(setting_name)) {
 	std::string warn = "Deprecated setting '" + setting_name +
-			   "' found in .par file. " + reason + " " +
+			   "' found in config file. " + reason + " " +
 			   instruction + "\n";
 	logging::print_master((LOG_ERROR + warn).c_str());
 	die("Config Error");
@@ -353,7 +353,9 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 
 void read(const std::string &filename, t_data &data)
 {
-	// auto & cfg = config::cfg;
+	if (filename.compare(filename.size()-4,4,".par") == 0) {
+		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!");
+	}
 	config::cfg.load_file(filename);
 
     // units

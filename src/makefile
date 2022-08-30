@@ -1,12 +1,12 @@
 include makefile.defs
 
 SRCS_C = $(wildcard *.c)
-SRCS_CXX = $(wildcard *.cpp particles/*.cpp random/*.cpp)
+SRCS_CXX = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp)
 SRCS = $(SRCS_C) $(SRCS_CXX)
 OBJS_C = $(SRCS_C:%.c=%.o)
 OBJS_CXX = $(patsubst %.cpp,%.o,$(SRCS_CXX))
 OBJS = $(OBJS_C) $(OBJS_CXX)
-HDRS = $(wildcard *.h) $(wildcard rebound/*.h) $(wildcard particles/*.h) $(wildcard random/*.h)
+HDRS = $(wildcard *.h rebound/*.h particles/*.h random/*.h nbody/*.cpp)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))

@@ -252,7 +252,7 @@ static void copy_parameters_to_snapshot_dir()
 {
     if (CPU_Master) {
 	const std::string src_file = options::parameter_file;
-	const std::string dst_file = snapshot_dir + "/parameters.par";
+	const std::string dst_file = snapshot_dir + "/config.yml";
 	std::experimental::filesystem::copy_file(src_file, dst_file);
     }
 }
