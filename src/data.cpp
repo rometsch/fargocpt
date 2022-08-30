@@ -285,10 +285,15 @@ t_data::t_data()
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
 
-	m_polargrids[ECCENTRICITY_PING_PONG].set_scalar(true);
-	m_polargrids[ECCENTRICITY_PING_PONG].set_name("Eccentricity");
-	m_polargrids[PERIASTRON_PING_PONG].set_scalar(true);
-	m_polargrids[PERIASTRON_PING_PONG].set_name("Periastron");
+	m_polargrids[ECCENTRICITY_X].set_scalar(true);
+	m_polargrids[ECCENTRICITY_X].set_name("Eccentricity X");
+	m_polargrids[ECCENTRICITY_Y].set_scalar(true);
+	m_polargrids[ECCENTRICITY_Y].set_name("Eccentricity Y");
+
+	m_polargrids[ECCENTRICITY_X_PING_PONG].set_scalar(true);
+	m_polargrids[ECCENTRICITY_X_PING_PONG].set_name("Tmp Eccentricity X");
+	m_polargrids[ECCENTRICITY_Y_PING_PONG].set_scalar(true);
+	m_polargrids[ECCENTRICITY_Y_PING_PONG].set_name("Tmp Eccentricity Y");
 
 	m_polargrids[DELTA_ECCENTRICITY_SOURCE_TERMS].set_scalar(true);
 	m_polargrids[DELTA_ECCENTRICITY_SOURCE_TERMS].set_name("dEccentricitySource");

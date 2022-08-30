@@ -457,6 +457,7 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 	double total_mass = 0.0;
 
 	const double num_nbody = data.get_planetary_system().get_number_of_planets();
+	const double cms_mass = data.get_planetary_system().get_mass(num_nbody);
 	const Pair cms_pos = data.get_planetary_system().get_center_of_mass(num_nbody);
 	const Pair cms_vel = data.get_planetary_system().get_center_of_mass_velocity(num_nbody);
 
@@ -476,8 +477,7 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 		 ++n_azimuthal) {
 		total_mass =
-		hydro_center_mass +
-		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+		cms_mass + data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
 
 		// location of the cell
 		angle = (double)n_azimuthal /
@@ -541,41 +541,11 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 	}
 }
 
-void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid &dPer)
-{
-
-	t_polargrid &sigma = data[t_data::DENSITY];
-
-	// ecc holds the current eccentricity
-	t_polargrid &ecc = data[t_data::ECCENTRICITY];
-	t_polargrid &peri = data[t_data::PERIASTRON];
-
-	t_polargrid &ecc_tmp = data[t_data::ECCENTRICITY_PING_PONG];
-	t_polargrid &peri_tmp = data[t_data::PERIASTRON_PING_PONG];
-
-	// store data ecc in ecc_tmp
-	move_polargrid(ecc_tmp, ecc);
-	move_polargrid(peri_tmp, peri);
-
-	// compute new eccentricity into ecc
-	calculate_disk_ecc_peri(data, 0, true);
-
-	// normalize by mass
-	const double mass = quantities::gas_total_mass(data, 2.0*RMAX);
-
-	for (unsigned int nr = 0;	 nr < ecc.get_size_radial(); ++nr) {
-	for (unsigned int naz = 0; naz < ecc.get_size_azimuthal(); ++naz) {
-		dEcc(nr, naz) += (ecc(nr, naz) - ecc_tmp(nr, naz)) * sigma(nr, naz) * Surf[nr] / mass;
-		dPer(nr, naz) += (peri(nr, naz) - peri_tmp(nr, naz)) * sigma(nr, naz) * Surf[nr] / mass;
-	}
-	}
-
-}
-
 static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int timestep,
 			       bool force_update)
 {
     static int last_timestep_calculated = -1;
+	const double cms_mass = data.get_planetary_system().get_hydro_frame_center_mass();
 	const Pair cms_pos = data.get_planetary_system().get_hydro_frame_center_position();
 	const Pair cms_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
 
@@ -596,8 +566,7 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 	     ++n_azimuthal) {
 		const double total_mass =
-		hydro_center_mass +
-		data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+		cms_mass +	data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
 
 	    // location of the cell
 		const double angle = (double)n_azimuthal /
@@ -669,6 +638,7 @@ void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
 			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
 				calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
 			} else {
+				// We are looking at a circumbinary (or more Nbodies) disk
 				calculate_disk_ecc_peri_nbody_center(data, timestep, force_update);
 			}
 		} else {
@@ -679,6 +649,80 @@ void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
 		// If we have multiple objects as hydro center, always compute eccentricity around hydro center
 		calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
 	}
+}
+
+
+static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int num_planets_for_center)
+{
+
+	const double cms_mass = data.get_planetary_system().get_mass(num_planets_for_center);
+	const Pair cms_pos = data.get_planetary_system().get_center_of_mass(num_planets_for_center);
+	const Pair cms_vel = data.get_planetary_system().get_center_of_mass_velocity(num_planets_for_center);
+
+	const t_polargrid &density = data[t_data::DENSITY];
+	const t_polargrid &vr = data[t_data::V_RADIAL];
+	const t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
+
+	const unsigned int N_radial_size = density.get_size_radial();
+	const unsigned int N_azimuthal_size = density.get_size_azimuthal();
+
+	for (unsigned int nr = 0; nr < N_radial_size; ++nr) {
+	for (unsigned int naz = 0; naz < N_azimuthal_size; ++naz) {
+
+		const unsigned int naz_next = naz == N_azimuthal_size ? 0 : naz + 1;
+		const double total_mass = cms_mass + density(nr, naz) * Surf[nr];
+
+		// location of the cell
+		const double angle = (double)naz / (double)density.get_size_azimuthal() * 2.0 *	M_PI;
+		const double r_x = Rmed[nr] * std::cos(angle) - cms_pos.x;
+		const double r_y = Rmed[nr] * std::sin(angle) - cms_pos.y;
+		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
+
+		// averaged velocities
+		const double v_xmed =
+		std::cos(angle) * 0.5 *	(vr(nr, naz) + vr(nr + 1, naz))
+		- std::sin(angle) *	(0.5 * (vphi(nr, naz) + vphi(nr, naz_next))
+							 + OmegaFrame * Rmed[nr]) - cms_vel.x;
+		const double v_ymed =
+		std::sin(angle) * 0.5 *	(vr(nr, naz) + vr(nr + 1, naz)) +
+		std::cos(angle) * (0.5 * (vphi(nr, naz) + vphi(nr, naz_next)) +
+			 OmegaFrame * Rmed[nr]) - cms_vel.y;
+
+		// specific angular momentum for each cell j = j*e_z
+		const double j = r_x * v_ymed - r_y * v_xmed;
+		// Runge-Lenz vector Ax = x*vy*vy-y*vx*vy-G*m*x/d;
+		const double e_x =
+		j * v_ymed / (constants::G * total_mass) - r_x / dist;
+		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
+		  r_y / dist;
+
+		data[t_data::ECCENTRICITY_X](nr, naz) = e_x;
+		data[t_data::ECCENTRICITY_Y](nr, naz) = e_y;
+	}
+	}
+}
+
+void calculate_disk_ecc_vector(t_data &data){
+	int n_bodies_for_cms;
+	if(parameters::n_bodies_for_hydroframe_center == 1){
+		if(data.get_planetary_system().get_number_of_planets() > 1){
+			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
+			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
+				n_bodies_for_cms = 1;
+			} else {
+				// We are looking at a circumbinary (or more Nbodies) disk
+				n_bodies_for_cms = data.get_planetary_system().get_number_of_planets();
+			}
+		} else {
+			// We only have a star, compute ecc around primary
+			n_bodies_for_cms = 1;
+		}
+	} else {
+		// If we have multiple objects as hydro center, always compute eccentricity around hydro center
+		n_bodies_for_cms = parameters::n_bodies_for_hydroframe_center;
+	}
+	calculate_disk_ecc_vector_worker(data, n_bodies_for_cms);
+
 }
 
 void state_disk_ecc_peri_calculation_center(t_data &data){
@@ -699,6 +743,51 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 		logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (Nbody) center!\n");
 	}
 }
+
+void calculate_disk_delta_ecc_peri(t_data &data, t_polargrid &dEcc, t_polargrid &dPer)
+{
+
+	t_polargrid &sigma = data[t_data::DENSITY];
+
+	// ecc holds the current eccentricity
+	t_polargrid &ecc_x = data[t_data::ECCENTRICITY_X];
+	t_polargrid &ecc_y = data[t_data::ECCENTRICITY_Y];
+
+	t_polargrid &ecc_x_tmp = data[t_data::ECCENTRICITY_X_PING_PONG];
+	t_polargrid &ecc_y_tmp = data[t_data::ECCENTRICITY_Y_PING_PONG];
+
+	// store data ecc in ecc_tmp
+	move_polargrid(ecc_x_tmp, ecc_x);
+	move_polargrid(ecc_y_tmp, ecc_y);
+
+	// compute new eccentricity into ecc
+	calculate_disk_ecc_vector(data);
+
+	// normalize by mass
+	const double mass = quantities::gas_total_mass(data, 2.0*RMAX);
+
+	for (unsigned int nr = 0;	 nr < sigma.get_size_radial(); ++nr) {
+	for (unsigned int naz = 0; naz < sigma.get_size_azimuthal(); ++naz) {
+
+		const double ex = ecc_x(nr, naz);
+		const double ey = ecc_y(nr, naz);
+
+		const double e2 = std::pow(ex, 2) + std::pow(ey, 2);
+		const double e = std::sqrt(e2);
+
+		const double dex = ecc_x(nr, naz) - ecc_x_tmp(nr, naz);
+		const double dey = ecc_y(nr, naz) - ecc_y_tmp(nr, naz);
+
+		const double de = (ex * dex + ex * dey) / e;
+		const double dp = (ex * dey - ey * dex) / e2;
+
+		dEcc(nr, naz) += de * sigma(nr, naz) * Surf[nr] / mass;
+		dPer(nr, naz) += dp * sigma(nr, naz) * Surf[nr] / mass;
+	}
+	}
+
+}
+
 
 /**
 	compute alpha gravitational
