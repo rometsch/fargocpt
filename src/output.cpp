@@ -1096,7 +1096,7 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 
 	if (CPU_Master) {
 
-	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "torques_dE.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "eccentricity_change.dat") == -1) {
 		logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 		PersonalExit(1);
