@@ -333,6 +333,13 @@ void write_quantities(t_data &data, bool force_update)
     const double disk_eccentricity = disk_quantities[0];
     const double disk_periastron = disk_quantities[1];
 
+	quantities::calculate_disk_ecc_vector(data);
+	const double e = quantities::gas_reduce_mass_average(data, data[t_data::ECCENTRICITY_NEW], quantities_radius_limit);
+	const double P = quantities::gas_reduce_mass_average(data, data[t_data::PERIASTRON_NEW], quantities_radius_limit);
+
+	printf("e = %.5e	%.5e	p = %.5e	%.5e\n",
+		   disk_eccentricity, disk_eccentricity-e, disk_periastron, disk_periastron-P);
+
     // computate absolute deviation from start values (this has to be done on
     // all nodes!)
 
@@ -814,11 +821,12 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 					   const double quantitiy_radius)
 {
     double local_eccentricity = 0.0;
-    double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
     double disk_eccentricity = 0.0;
+	double local_mass = 0.0;
+	double global_mass = 0.0;
     // double semi_major_axis = 0.0;
     // double local_semi_major_axis = 0.0;
-    double local_mass = 0.0;
+	double cell_mass = 0.0;
     double periastron = 0.0;
     double local_periastron = 0.0;
 
@@ -834,17 +842,18 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
-		local_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
+		cell_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
 			     Surf[n_radial];
 		local_eccentricity +=
 		    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) *
-		    local_mass;
+			cell_mass;
 		// local_semi_major_axis +=
 		// data[t_data::SEMI_MAJOR_AXIS](n_radial, n_azimuthal) *
 		// local_mass;
 		local_periastron +=
 		    data[t_data::PERIASTRON](n_radial, n_azimuthal) *
-		    local_mass;
+			cell_mass;
+		local_mass += cell_mass;
 	    }
 	}
     }
@@ -857,10 +866,12 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
     MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0,
 	       MPI_COMM_WORLD);
 
-    if (gas_total_mass > 0.0) {
-	disk_eccentricity /= gas_total_mass;
-	// semi_major_axis /= gas_total_mass;
-	periastron /= gas_total_mass;
+	MPI_Reduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM, 0,
+		  MPI_COMM_WORLD);
+
+	if (global_mass > 0.0) {
+	disk_eccentricity /= global_mass;
+	periastron /= global_mass;
     } else {
 	disk_eccentricity = 0.0;
 	periastron = 0.0;
