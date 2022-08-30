@@ -32,7 +32,7 @@
 #include "opacity.h"
 #include "output.h"
 #include "parameters.h"
-#include "particles.h"
+#include "particles/particles.h"
 #include "pvte_law.h"
 #include "quantities.h"
 #include "selfgravity.h"

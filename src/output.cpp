@@ -10,7 +10,7 @@
 #include "nongnu.h"
 #include "options.h"
 #include "parameters.h"
-#include "particles.h"
+#include "particles/particles.h"
 #include "quantities.h"
 #include "start_mode.h"
 #include "stress.h"

@@ -1,8 +1,8 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include "constants.h"
-#include "util.h"
+#include "../constants.h"
+#include "../util.h"
 #include <math.h>
 
 class t_particle

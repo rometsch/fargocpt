@@ -23,7 +23,6 @@
 #include "options.h"
 #include "output.h"
 #include "parameters.h"
-#include "particles.h"
 #include "quantities.h"
 #include "selfgravity.h"
 #include "split.h"
@@ -32,6 +31,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "particles/particles.h"
 #include "random/random.h"
 
 int TimeToWrite;

@@ -2,7 +2,7 @@
 #define DIFFUSION_H
 
 #include "../data.h"
-#include "../particle.h"
+#include "particle.h"
 
 namespace dust_diffusion
 {

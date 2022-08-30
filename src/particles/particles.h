@@ -1,7 +1,7 @@
 #ifndef PARTICLES_H
 #define PARTICLES_H
 
-#include "data.h"
+#include "../data.h"
 #include "particle.h"
 
 namespace particles

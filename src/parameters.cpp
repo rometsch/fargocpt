@@ -21,7 +21,6 @@
 #include "viscosity.h"
 #include "config.h"
 #include "units.h"
-#include "particles.h"
 
 #include <limits>
 constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
