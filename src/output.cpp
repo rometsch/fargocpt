@@ -1129,9 +1129,27 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 		fprintf(
 		fd,
 		"# Different torques and eccentricity changes by update steps.\n"
+		"# Time unit is %.18g (cgs).\n"
 		"# Torque unit is %.18g (cgs).\n"
 		"# Eccentricity unit is 1.\n"
-		"# Syntax: coarse output step <tab> advection_torque <tab> viscous_torque <tab> gravitational_torque <tab> ecc change from source terms <tab> de from art visc <tab> de from visc <tab> de from transport <tab> Periastron change from source terms <tab> dP from art visc <tab> dP from visc <tab> dP from transport\n",
+		"# Syntax:\n"
+		"# 0 : coarse output step\n"
+		"# 1 : PhysicalTime\n"
+
+		"# 2 : advection_torque\n"
+		"# 3 : viscous_torque\n"
+		"# 4 : gravitational_torque\n"
+
+		"# 5 : ecc change from source terms\n"
+		"# 6 : ecc change from artificial viscosity\n"
+		"# 7 : ecc change from viscosity\n"
+		"# 8 : ecc change from transport\n"
+
+		"# 9 : Periastron change from source terms\n"
+		"# 10: Periastron change from artificial viscosity\n"
+		"# 11: Periastron change from from viscosity\n"
+		"# 12: Periastron change from transport\n",
+		units::time.get_cgs_factor(),
 		units::torque.get_cgs_factor());
 		fd_created = true;
 	}
@@ -1199,10 +1217,23 @@ void write_torques_and_ecc_changes(t_data &data, unsigned int coarseOutputNumber
 	data[t_data::DELTA_PERIASTRON_TRANSPORT].clear();
 
 	if (CPU_Master) {
-	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber,
-		adv_torque, visc_torque, grav_torque,
-			source_de, art_visc_de, visc_de, transport_de,
-			source_dp, art_visc_dp, visc_dp, transport_dp);
+	fprintf(fd, "%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		coarseOutputNumber,
+		PhysicalTime,
+
+		adv_torque,
+		visc_torque,
+		grav_torque,
+
+		source_de,
+		art_visc_de,
+		visc_de,
+		transport_de,
+
+		source_dp,
+		art_visc_dp,
+		visc_dp,
+		transport_dp);
 	fclose(fd);
 	}
 }
