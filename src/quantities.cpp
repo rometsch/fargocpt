@@ -145,7 +145,7 @@ double gas_reduce_mass_average(t_data &data, const t_polargrid& arr, const doubl
 	MPI_Reduce(&local_reduced_quantity, &global_reduced_quantity, 1, MPI_DOUBLE, MPI_SUM,
 		  0, MPI_COMM_WORLD);
 
-	if(CPU_Master){
+	if(CPU_Master && global_mass > 0.0){
 	global_reduced_quantity /= global_mass;
 	return global_reduced_quantity;
 	} else {
@@ -665,12 +665,13 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 	const double sinFrameAngle = std::sin(FrameAngle);
 	const double cosFrameAngle = std::cos(FrameAngle);
 
+	const unsigned int N_radial_size = density.get_size_radial();
 	const unsigned int N_azimuthal_size = density.get_size_azimuthal();
 
-	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
+	for (unsigned int nr = 0; nr < N_radial_size; ++nr) {
 	for (unsigned int naz = 0; naz < N_azimuthal_size; ++naz) {
 
-		const unsigned int naz_next = naz == N_azimuthal_size ? 0 : naz + 1;
+		const unsigned int naz_next = naz == N_azimuthal_size - 1 ? 0 : naz + 1;
 		const double total_mass = cms_mass + density(nr, naz) * Surf[nr];
 
 		// location of the cell
