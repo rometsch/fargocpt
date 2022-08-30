@@ -451,10 +451,6 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 				   bool force_update)
 {
 	static int last_timestep_calculated = -1;
-	double angle, r_x, r_y, j;
-	double v_xmed, v_ymed;
-	double e_x, e_y;
-	double total_mass = 0.0;
 
 	const double num_nbody = data.get_planetary_system().get_number_of_planets();
 	const double cms_mass = data.get_planetary_system().get_mass(num_nbody);
@@ -476,18 +472,19 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 	for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
 		 ++n_azimuthal) {
-		total_mass =
+		const double total_mass =
 		cms_mass + data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
 
 		// location of the cell
-		angle = (double)n_azimuthal /
+		const double angle = (double)n_azimuthal /
 			(double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
 			M_PI;
-		r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
-		r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
+		const double r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
+		const double r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
+		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
 
 		// averaged velocities
-		v_xmed =
+		const double v_xmed =
 		std::cos(angle) * 0.5 *
 			(data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 			 data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) -
@@ -500,7 +497,7 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 						? 0
 						: n_azimuthal + 1)) +
 			 OmegaFrame * Rmed[n_radial]) - cms_vel.x;
-		v_ymed =
+		const double v_ymed =
 		std::sin(angle) * 0.5 *
 			(data[t_data::V_RADIAL](n_radial, n_azimuthal) +
 			 data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) +
@@ -515,12 +512,12 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 			 OmegaFrame * Rmed[n_radial]) - cms_vel.y;
 
 		// specific angular momentum for each cell j = j*e_z
-		j = r_x * v_ymed - r_y * v_xmed;
+		const double j = r_x * v_ymed - r_y * v_xmed;
 		// Runge-Lenz vector Ax = x*vy*vy-y*vx*vy-G*m*x/d;
-		e_x =
-		j * v_ymed / (constants::G * total_mass) - r_x / Rmed[n_radial];
-		e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
-		  r_y / Rmed[n_radial];
+		const double e_x =
+		j * v_ymed / (constants::G * total_mass) - r_x / dist;
+		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
+		  r_y / dist;
 
 		data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
 		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
@@ -574,6 +571,8 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 		    M_PI;
 		const double r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
 		const double r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
+		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
+
 
 	    // averaged velocities
 		const double v_xmed =
@@ -607,9 +606,9 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 		const double j = r_x * v_ymed - r_y * v_xmed;
 	    // Runge-Lenz vector Ax = x*vy*vy-y*vx*vy-G*m*x/d;
 		const double e_x =
-		j * v_ymed / (constants::G * total_mass) - r_x / Rmed[n_radial];
+		j * v_ymed / (constants::G * total_mass) - r_x / dist;
 		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
-		  r_y / Rmed[n_radial];
+		  r_y / dist;
 
 	    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
 		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
@@ -666,10 +665,9 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 	const double sinFrameAngle = std::sin(FrameAngle);
 	const double cosFrameAngle = std::cos(FrameAngle);
 
-	const unsigned int N_radial_size = density.get_size_radial();
 	const unsigned int N_azimuthal_size = density.get_size_azimuthal();
 
-	for (unsigned int nr = 0; nr < N_radial_size; ++nr) {
+	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
 	for (unsigned int naz = 0; naz < N_azimuthal_size; ++naz) {
 
 		const unsigned int naz_next = naz == N_azimuthal_size ? 0 : naz + 1;
@@ -724,14 +722,14 @@ void calculate_disk_ecc_vector(t_data &data){
 		if(data.get_planetary_system().get_number_of_planets() > 1){
 			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
 			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
-				n_bodies_for_cms = 1;
+				n_bodies_for_cms = parameters::n_bodies_for_hydroframe_center;
 			} else {
 				// We are looking at a circumbinary (or more Nbodies) disk
 				n_bodies_for_cms = data.get_planetary_system().get_number_of_planets();
 			}
 		} else {
 			// We only have a star, compute ecc around primary
-			n_bodies_for_cms = 1;
+			n_bodies_for_cms = parameters::n_bodies_for_hydroframe_center;
 		}
 	} else {
 		// If we have multiple objects as hydro center, always compute eccentricity around hydro center

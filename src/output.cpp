@@ -337,7 +337,7 @@ void write_quantities(t_data &data, bool force_update)
 	const double e = quantities::gas_reduce_mass_average(data, data[t_data::ECCENTRICITY_NEW], quantities_radius_limit);
 	const double P = quantities::gas_reduce_mass_average(data, data[t_data::PERIASTRON_NEW], quantities_radius_limit);
 
-	printf("e = %.5e	%.5e	p = %.5e	%.5e\n",
+	logging::print_master(LOG_INFO "e = %.5e	%.5e	p = %.5e	%.5e\n",
 		   disk_eccentricity, disk_eccentricity-e, disk_periastron, disk_periastron-P);
 
     // computate absolute deviation from start values (this has to be done on
