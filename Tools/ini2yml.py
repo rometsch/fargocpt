@@ -22,10 +22,80 @@ def main():
         pass
 
     handle_default_star(params)
+    handle_implicit_units(params)
 
     write_yaml_file(params, args.outfile)
 
     insert_comments(comments, args.outfile)
+
+
+def contains(d, search_key):
+    """ Is there a key in d which in lowercase matches the search key.
+
+    Parameter
+    ---------
+    params: dict
+        Dictionary containing the config.
+    search_key: str
+        Key to search for.
+    
+    Return
+    ------
+    bool
+    """
+    found_key = False
+    for key in [k for k in d.keys()]:
+        if key.lower() == search_key.lower():
+            # check if setting is set to yes
+            found_key = True
+    return found_key
+
+def keyname(d, search_key):
+    """ Which key in d matches the search key in lowercase form.
+
+    Parameter
+    ---------
+    params: dict
+        Dictionary containing the config.
+    search_key: str
+        Key to search for.
+    
+    Return
+    ------
+    str or None
+    """
+    keyname = None
+    for key in [k for k in d.keys()]:
+        if key.lower() == search_key.lower():
+            # check if setting is set to yes
+            keyname = key
+    return keyname
+
+def add_unit(params, key, unit):
+    if contains(params, key):
+        if not unit in params[keyname(params, key)]:
+            params[keyname(params, key)] += " " + unit
+    
+
+def handle_implicit_units(params):
+    """ Add units to parameters where they were implicitly assumed before.
+    
+    E.g. the surface density was given in g/cm2 before.
+    Now this entry would be in code units!
+
+    Parameter
+    ---------
+    params: dict
+        Dictionary containing the config.
+    """
+    add_unit(params, "sigma0", "g/cm2")
+    add_unit(params, "ParticleRadius", "cm")
+    add_unit(params, "ParticleDensity", "g/cm3")
+    add_unit(params, "MaximumTemperature", "K")
+    add_unit(params, "MinimumTemperature", "K")
+    add_unit(params, "mofvalue", "solMass/yr")
+    
+
 
 
 def handle_default_star(params):
@@ -42,7 +112,8 @@ def handle_default_star(params):
     found_key = False
     for key in [k for k in params.keys()]:
         if key.lower() == "defaultstar":
-            found_key = True
+            # check if setting is set to yes
+            found_key = params[key][0].lower() == "y"
             params.pop(key)
 
     if not found_key:
