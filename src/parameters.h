@@ -124,8 +124,6 @@ extern double heating_viscous_factor;
 extern bool heating_star_enabled;
 /// star heating factor
 extern double heating_star_factor;
-/// star heating ramping time
-extern double heating_star_ramping_time;
 /// star heating mode
 extern bool heating_star_simple;
 

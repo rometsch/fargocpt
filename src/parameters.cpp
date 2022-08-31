@@ -91,7 +91,6 @@ bool heating_viscous_enabled;
 double heating_viscous_factor;
 bool heating_star_enabled;
 double heating_star_factor;
-double heating_star_ramping_time;
 bool heating_star_simple;
 
 double cooling_radiative_factor;
@@ -729,8 +728,6 @@ void read(const std::string &filename, t_data &data)
 	heating_star_enabled = config::cfg.get_flag("HeatingStar", "no");
 	heating_star_factor =
 	config::cfg.get<double>("HeatingStarFactor", 1.0);
-    heating_star_ramping_time =
-	config::cfg.get<double>("HeatingStarRampingTime", 0.0, T0);
     heating_star_simple =
 	config::cfg.get_flag("HeatingStarSimple", "yes");
 
