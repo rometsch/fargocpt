@@ -1375,13 +1375,13 @@ void mass_overflow(t_data &data)
     // Calculate sigma from temperature according to
     // Meyer & Meyer-Hofmeister (1983a) equation 17
     const double Porb =
-	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0;
+	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0; // TODO: check unit!
     // cross section Q
     const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
     // stream radius W
     const double W = std::sqrt(Q / M_PI);
     // circumference circ
-    const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor();
+    const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor(); // TODO: check unit!
 
     double sigma = 2 * W / circ;
     int number_of_cells =
@@ -1513,13 +1513,13 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
     // Calculate sigma from temperature according to
     // Meyer & Meyer-Hofmeister (1983a) equation 17
     const double Porb =
-	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0;
+	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0; // TODO: check unit!
     // cross section Q
     const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
     // stream radius W
     const double W = std::sqrt(Q * M_1_PI);
     // circumference circ
-    const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor();
+    const double circ = 2.0 * M_PI * r_cell * units::length.get_cgs_factor(); // TODO: check unit!
 
     double sigma = 2.0 * W / circ;
     int number_of_cells =
