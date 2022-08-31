@@ -597,7 +597,7 @@ std::string text_file_variable_description(
 	{"velocity", units::velocity.get_cgs_factor_symbol()},
 	{"power", units::power.get_cgs_factor_symbol()},
 	{"specific power", unit_descriptor(units::power.get_cgs_factor() /
-					       units::length.get_cgs_factor() *
+					       units::length.get_cgs_factor() /
 					       units::length.get_cgs_factor(),
 					   "erg cm2/s/g")},
 	{"potential", units::potential.get_cgs_factor_symbol()},
