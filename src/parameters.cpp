@@ -1317,10 +1317,10 @@ void summarize_parameters()
     logging::print_master(LOG_INFO "Tau factor: %g\n", tau_factor);
     logging::print_master(LOG_INFO "Kappa factor: %g\n", kappa_factor);
 
-    logging::print_master(LOG_INFO "Minimum temperature: %.5e\n",
-			  minimum_temperature);
-    logging::print_master(LOG_INFO "Maximum temperature: %.5e\n",
-			  maximum_temperature);
+    logging::print_master(LOG_INFO "Minimum temperature: %.5e K = %.5e\n",
+			  minimum_temperature*units::temperature, minimum_temperature);
+    logging::print_master(LOG_INFO "Maximum temperature: %.5e K = %.5e\n",
+			  maximum_temperature*units::temperature, maximum_temperature);
 
     logging::print_master(
 	LOG_INFO
