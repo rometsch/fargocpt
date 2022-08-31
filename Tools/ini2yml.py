@@ -6,6 +6,7 @@ from typing import OrderedDict
 import yaml
 import argparse
 
+
 def main():
     args = parse_cli_args()
     params, comments = parse_ini_file(args.infile)
@@ -13,8 +14,10 @@ def main():
         planet_config_path = params["PlanetConfig"]
         if os.path.exists(planet_config_path):
             planet_params = parse_planet_config(planet_config_path)
-            comments.append({"comment" : "Planets", "next_key" : "planets"})
+            comments.append({"comment": "Planets", "next_key": "planets"})
             params["planets"] = planet_params
+            print(f"Added {len(planet_params)} planets")
+            remove_entry(params, "PlanetConfig")
         else:
             print("Planet config file '{}' not found.".format(planet_config_path))
             print("Hint: are you in the same dir as the fargo binary?")
@@ -25,10 +28,34 @@ def main():
     handle_implicit_units(params)
     for planet in params["planets"]:
         add_unit(planet, "temperature", "K")
+        add_unit(planet, "radius", "solRadius")
+
+    remove_deprecated_entries(params)
 
     write_yaml_file(params, args.outfile)
 
     insert_comments(comments, args.outfile)
+
+
+def remove_entry(params, key):
+    if contains(params, key):
+        params.pop(keyname(params, key))
+    print(f"Removed deprecated parameter {key} which has no effect anymore.")
+
+
+def remove_deprecated_entries(params):
+    """ Remove deprecated settings which have no effect anymore.
+
+    Parameters
+    ----------
+    params: dict
+        Dictionary containing the config.
+    """
+    remove_entry(params, "Sigma0InCodeUnits")
+
+    for planet in params["planets"]:
+        remove_entry(planet, "Feels Disk")
+        remove_entry(planet, "Nbody interaction")
 
 
 def contains(d, search_key):
@@ -40,7 +67,7 @@ def contains(d, search_key):
         Dictionary containing the config.
     search_key: str
         Key to search for.
-    
+
     Return
     ------
     bool
@@ -52,6 +79,7 @@ def contains(d, search_key):
             found_key = True
     return found_key
 
+
 def keyname(d, search_key):
     """ Which key in d matches the search key in lowercase form.
 
@@ -61,7 +89,7 @@ def keyname(d, search_key):
         Dictionary containing the config.
     search_key: str
         Key to search for.
-    
+
     Return
     ------
     str or None
@@ -73,15 +101,17 @@ def keyname(d, search_key):
             keyname = key
     return keyname
 
+
 def add_unit(params, key, unit):
     if contains(params, key):
         if not unit in params[keyname(params, key)]:
             params[keyname(params, key)] += " " + unit
-    
+            print(f"Added unit {unit} to parameter {key}.")
+
 
 def handle_implicit_units(params):
     """ Add units to parameters where they were implicitly assumed before.
-    
+
     E.g. the surface density was given in g/cm2 before.
     Now this entry would be in code units!
 
@@ -96,13 +126,11 @@ def handle_implicit_units(params):
     add_unit(params, "MaximumTemperature", "K")
     add_unit(params, "MinimumTemperature", "K")
     add_unit(params, "mofvalue", "solMass/yr")
-    
-
 
 
 def handle_default_star(params):
     """ Add default star to planet if needed. 
-    
+
     The default star setting is deprecated in the new yml config format.
     Thus, add the default star explicitly on conversion.
 
@@ -120,26 +148,27 @@ def handle_default_star(params):
 
     if not found_key:
         return
-    
+
     if "StarTemperature" in params:
-        temperature = params.pop("StarTemperature") + " K" 
+        temperature = params.pop("StarTemperature") + " K"
     else:
         temperature = "5778 K"
 
     if "StarRadius" in params:
-        radius = params.pop("StarRadius")
+        radius = params.pop("StarRadius") + " solRadius"
     else:
         radius = "1 solRadius"
 
     default_star = {
-        "name" : "DefaultStar",
-        "semi-major axis" : "0.0 au",
-        "mass" : "1.0",
-        "eccentricity" : "0.0",
-        "radius" : radius,
-        "temperature" : temperature
+        "name": "DefaultStar",
+        "semi-major axis": "0.0 au",
+        "mass": "1.0",
+        "eccentricity": "0.0",
+        "radius": radius,
+        "temperature": temperature
     }
     params["planets"] = [default_star] + params["planets"]
+    print("Added a default star to the planets list.")
 
 
 def insert_comments(comments, filename):
@@ -177,7 +206,7 @@ def insert_comments(comments, filename):
             continue
 
         new_line = line.rstrip()
-        
+
         if isinstance(res, dict):
             key = list(res.keys())[0]
             if key in inline_comments:
@@ -196,10 +225,10 @@ def insert_comments(comments, filename):
                 new_lines.append("# " + standalone_comments_after[key])
                 new_lines.append("")
 
-
     with open(filename, "w") as out_file:
         for line in new_lines:
             print(line, file=out_file)
+
 
 def parse_planet_config(planet_config_file):
     """ Parse a FargoCPT planet config file.
@@ -251,19 +280,19 @@ def parse_ini_file(file_path):
             if len(data) == 0:
                 continue
             if data["type"] == "comment":
-                comment = {"comment" : data["comment"]}
+                comment = {"comment": data["comment"]}
                 if last_key != "":
                     comment["last_key"] = last_key
                 comments.append(comment)
-                
+
             elif data["type"] == "value":
                 key = data["key"]
                 value = data["value"]
 
                 params[key] = value
                 if "comment" in data:
-                    comment = { "comment" : data["comment"],
-                                "this_key" : key}
+                    comment = {"comment": data["comment"],
+                               "this_key": key}
                     comments.append(comment)
                 last_key = key
     return params, comments
