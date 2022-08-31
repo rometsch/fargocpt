@@ -358,8 +358,8 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.load_file(filename);
 
     // units
-	const std::string l0s = config::cfg.get<std::string>("l0", "");
-	const std::string m0s = config::cfg.get<std::string>("m0", "");
+	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
+	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");
 
 	units::set_baseunits(l0s, m0s);
 
@@ -374,10 +374,11 @@ void read(const std::string &filename, t_data &data)
     units::calculate_unit_factors();
 
     /* grid */
-    NRadial = config::cfg.get<unsigned int>("NRAD", 64);
-    NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
     RMIN = config::cfg.get<double>("RMIN", L0);
     RMAX = config::cfg.get<double>("RMAX", L0);
+	
+    NRadial = config::cfg.get<unsigned int>("NRAD", 64);
+    NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
 
     quantities_radius_limit =
 	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
