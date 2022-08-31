@@ -205,7 +205,6 @@ t_planet::t_planet()
     m_planet_number = 0;
     m_temperature = 0.0;
     m_radius = 0.0;
-    m_irradiate = false;
     m_irradiation_rampuptime = false;
     m_rampuptime = 0.0;
     m_disk_on_planet_acceleration = {0.0, 0.0};
@@ -233,7 +232,7 @@ void t_planet::print()
 
     std::cout << "Temperature: " << m_temperature << "\n";
     std::cout << "Radius: " << m_radius << "\n";
-    std::cout << "Does irradiate: " << m_irradiate << "\n";
+    std::cout << "Does irradiate: " << (m_temperature > 0 ? "yes" : "no") << "\n";
     std::cout << "m_irradiation_rampuptime: " << m_irradiation_rampuptime << "\n";
     std::cout << "m_rampuptime: " << m_rampuptime << "\n";
 
@@ -509,7 +508,6 @@ void t_planet::write_binary(const std::string &filename) const
     pl.m_planet_number = m_planet_number;
     pl.m_temperature = m_temperature;
     pl.m_radius = m_radius;
-    pl.m_irradiate = m_irradiate;
     pl.m_irradiation_rampuptime = m_irradiation_rampuptime;
     pl.m_rampuptime = m_rampuptime;
     pl.m_disk_on_planet_acceleration = m_disk_on_planet_acceleration;

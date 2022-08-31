@@ -56,7 +56,6 @@ class t_planet
     unsigned int m_planet_number;
     double m_temperature;
     double m_radius;
-    bool m_irradiate;
     double m_irradiation_rampuptime;
     double m_rampuptime;
     Pair m_disk_on_planet_acceleration;
@@ -98,7 +97,6 @@ class t_planet
     {
 	m_radius = value;
     }
-    inline void set_irradiate(const bool value) { m_irradiate = value; }
     inline void set_irradiation_rampuptime(const double value) { m_irradiation_rampuptime = value; }
     inline void set_rampuptime(const double value) { m_rampuptime = value; }
     inline void set_disk_on_planet_acceleration(const Pair value)
@@ -145,7 +143,7 @@ class t_planet
     }
     inline double get_temperature(void) const { return m_temperature; }
     inline double get_planet_radial_extend(void) const { return m_radius; }
-    inline double get_irradiate(void) const { return m_irradiate; }
+    inline double get_irradiate(void) const { return m_temperature > 0; }
     inline double get_irradiation_rampuptime(void) const { return m_irradiation_rampuptime; }
     inline double get_rampuptime(void) const { return m_rampuptime; }
     inline const Pair get_disk_on_planet_acceleration(void) const

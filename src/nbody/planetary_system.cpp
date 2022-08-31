@@ -134,8 +134,6 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     const double temperature = cfg.get<double>("temperature", "5778.0 K", units::Temp0);
 
-    const bool irradiate = cfg.get_flag("irradiate", "no");
-
 	const double irrad_rampup = cfg.get<double>("irradiation ramp-up time", 0.0, units::T0);
 
     const double argument_of_pericenter =
@@ -176,7 +174,6 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     planet->set_planet_radial_extend(radius);
     planet->set_temperature(temperature);
-    planet->set_irradiate(irradiate);
 	planet->set_irradiation_rampuptime(irrad_rampup);
     planet->set_rampuptime(ramp_up_time);
 
