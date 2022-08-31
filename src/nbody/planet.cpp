@@ -206,6 +206,7 @@ t_planet::t_planet()
     m_temperature = 0.0;
     m_radius = 0.0;
     m_irradiate = false;
+    m_irradiation_rampuptime = false;
     m_rampuptime = 0.0;
     m_disk_on_planet_acceleration = {0.0, 0.0};
     m_nbody_on_planet_acceleration = {0.0, 0.0};
@@ -233,6 +234,7 @@ void t_planet::print()
     std::cout << "Temperature: " << m_temperature << "\n";
     std::cout << "Radius: " << m_radius << "\n";
     std::cout << "Does irradiate: " << m_irradiate << "\n";
+    std::cout << "m_irradiation_rampuptime: " << m_irradiation_rampuptime << "\n";
     std::cout << "m_rampuptime: " << m_rampuptime << "\n";
 
     std::cout << "m_disk_on_planet_acceleration: "
@@ -377,6 +379,7 @@ void t_planet::copy(const planet_member_variables &other)
     // m_radius = other.m_radius;
     // m_irradiate = other.m_irradiate;
     // m_rampuptime = other.m_rampuptime;
+    // m_irradiation_rampuptime = other.m_irradiation_rampuptime;
     m_disk_on_planet_acceleration = other.m_disk_on_planet_acceleration;
     m_nbody_on_planet_acceleration = other.m_nbody_on_planet_acceleration;
 
@@ -507,6 +510,7 @@ void t_planet::write_binary(const std::string &filename) const
     pl.m_temperature = m_temperature;
     pl.m_radius = m_radius;
     pl.m_irradiate = m_irradiate;
+    pl.m_irradiation_rampuptime = m_irradiation_rampuptime;
     pl.m_rampuptime = m_rampuptime;
     pl.m_disk_on_planet_acceleration = m_disk_on_planet_acceleration;
     pl.m_nbody_on_planet_acceleration = m_nbody_on_planet_acceleration;

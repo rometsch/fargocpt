@@ -725,13 +725,14 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("HeatingViscous", "no");
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
-    heating_star_enabled = config::cfg.get_flag("HeatingStar", "no");
-    heating_star_factor =
+    
+	heating_star_enabled = config::cfg.get_flag("HeatingStar", "no");
+	heating_star_factor =
 	config::cfg.get<double>("HeatingStarFactor", 1.0);
     heating_star_ramping_time =
 	config::cfg.get<double>("HeatingStarRampingTime", 0.0, T0);
     heating_star_simple =
-	config::cfg.get_flag("HeatingStarSimple", "no");
+	config::cfg.get_flag("HeatingStarSimple", "yes");
 
     radiative_diffusion_enabled =
 	config::cfg.get_flag("RadiativeDiffusion", "no");

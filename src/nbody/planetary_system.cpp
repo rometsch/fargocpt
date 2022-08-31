@@ -120,10 +120,12 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     const bool irradiate = cfg.get_flag("irradiate", "no");
 
+	const double irrad_rampup = cfg.get<double>("irradiation ramp-up time", 0.0, units::T0);
+
     const double argument_of_pericenter =
 	cfg.get<double>("argument of pericenter", 0.0);
 
-    double ramp_up_time = cfg.get<double>("ramp-up time", 0.0);
+    const double ramp_up_time = cfg.get<double>("ramp-up time", 0.0);
 
     std::string name = "planet" + std::to_string(get_number_of_planets());
     if (cfg.contains("name")) {
@@ -159,6 +161,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
     planet->set_planet_radial_extend(radius);
     planet->set_temperature(temperature);
     planet->set_irradiate(irradiate);
+	planet->set_irradiation_rampuptime(irrad_rampup);
     planet->set_rampuptime(ramp_up_time);
 
     planet->set_disk_on_planet_acceleration(Pair()); // initialize to zero
@@ -273,10 +276,10 @@ void t_planetary_system::list_planets()
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	logging::print(LOG_INFO
-		       " %3i | % 10.7g | % 10.7g |          %c | % 10.7g |\n",
+		       " %3i | % 10.7g | % 10.5g |        %s | % 10.7g |\n",
 		       i, get_planet(i).get_temperature() * units::temperature,
 		       get_planet(i).get_planet_radial_extend(),
-		       (get_planet(i).get_irradiate()) ? 'X' : '-',
+		       (get_planet(i).get_irradiate()) ? "yes" : " no",
 		       get_planet(i).get_rampuptime());
     }
 

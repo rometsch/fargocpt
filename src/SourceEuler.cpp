@@ -958,320 +958,324 @@ void update_with_artificial_viscosity(t_data &data, double dt)
     }
 }
 
-void calculate_qplus(t_data &data)
-{
 
-    const double *cell_center_x = CellCenterX->Field;
-    const double *cell_center_y = CellCenterY->Field;
+void irradiation(t_data &data) {
 
-    if (parameters::EXPLICIT_VISCOSITY) {
-	// clear up all Qplus terms
-	data[t_data::QPLUS].clear();
-    }
+	const auto & plsys = data.get_planetary_system();
+	const unsigned int Npl = plsys.get_number_of_planets();
 
-    if (parameters::heating_viscous_enabled && parameters::EXPLICIT_VISCOSITY) {
+	for (unsigned int npl=0; npl < Npl; npl ++) { 
+		const auto& planet = plsys.get_planet(npl);
+		if (planet.get_irradiate()) {
+			irradiation_single(data, planet);
+		}
+	}
+}
+
+void irradiation_single(t_data &data, const t_planet &planet) {
+
+	const double rampup_time = planet.get_irradiation_rampuptime();
+
+	double ramping = 1.0;
+	
+	if (PhysicalTime < rampup_time) {
+	    ramping =
+		1.0 -
+		std::pow(std::cos(PhysicalTime * M_PI / 2.0 / rampup_time), 2);
+	}
+
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double radius = planet.get_planet_radial_extend();
+	const double temperature = planet.get_temperature();
+
+	const unsigned int Nrad = data[t_data::QPLUS].get_max_radial();
+	const unsigned int Naz = data[t_data::QPLUS].get_max_azimuthal();
+	// Simple star heating (see Masterthesis Alexandros Ziampras)
+	for (unsigned int nrad = 1; nrad < Nrad; ++nrad) {
+	for (unsigned int naz = 0; naz <= Naz; ++naz) {
+		const unsigned int ncell = nrad * data[t_data::SIGMA].get_size_azimuthal() + naz;
+		const double xc = CellCenterX->Field[ncell];
+		const double yc = CellCenterY->Field[ncell];
+		const double distance = std::sqrt(std::pow(x - xc, 2) + std::pow(y - yc, 2));
+		const double HoverR = data[t_data::SCALE_HEIGHT](nrad, naz) * InvRmed[nrad];
+		const double sigma = constants::sigma.get_code_value();
+		const double tau_eff = data[t_data::TAU_EFF](nrad, naz);
+		const double eps = 0.5; // TODO: add a parameter
+		// choose according to Chiang & Goldreich (1997)
+		const double dlogH_dlogr = 9.0 / 7.0;
+		// use eq. 7 from Menou & Goodman (2004) (rearranged), Qirr
+		// = 2*(1-eps)*L_star/(4 pi r^2)*(dlogH/dlogr - 1) * H/r *
+		// 1/Tau_eff here we use (1-eps) =
+		// parameters::heating_star_factor L_star = 4 pi R_star^2
+		// sigma_sb T_star^4
+		double qplus = 2 * (1 - eps); // 2*(1-eps)
+		qplus *=
+		sigma * std::pow(temperature, 4) *
+		std::pow(radius / distance, 2); // *L_star/(4 pi r^2)
+		qplus *= dlogH_dlogr - 1;		// *(dlogH/dlogr - 1)
+		qplus *= HoverR;			// * H/r
+		qplus /= tau_eff;			// * 1/Tau_eff
+		data[t_data::QPLUS](nrad, naz) += ramping * qplus;
+	}
+	}
+	
+}
+
+void irradiation_visibility(t_data &data) {
+	const auto & star = data.get_planetary_system().get_planet(0);
+	// rampup time in T0 for star
+	const double rampup_time = star.get_irradiation_rampuptime();
+
+	double ramping = 1.0;
+	
+	if (PhysicalTime < rampup_time) {
+		ramping =
+		1.0 -
+		std::pow(std::cos(PhysicalTime * M_PI / 2.0 / rampup_time), 2);
+	}
+
+	const double radius = star.get_planet_radial_extend();
+	const double temperature = star.get_temperature();
+
+	const unsigned int zbuffer_len =
+	parameters::zbuffer_size *
+	data[t_data::QPLUS].get_size_azimuthal();
+	if (zbuffer_len <= 0) {
+		die("z buffer size is zero!\n");
+		return;
+	}
+
+	unsigned int *zbuffer =
+	(unsigned int *)malloc(zbuffer_len * sizeof(unsigned int));
+
+	double dtheta = parameters::zbuffer_maxangle /
+			(double)(parameters::zbuffer_size - 1);
+
+	for (unsigned int n_azimuthal = 0;
+		n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+		++n_azimuthal) {
+	// init z-buffer
+	for (unsigned int n_theta = 0;
+			n_theta < parameters::zbuffer_size; ++n_theta) {
+		zbuffer[n_azimuthal * parameters::zbuffer_size + n_theta] =
+		UINT_MAX;
+	}
+
+	for (int n_radial =
+			data[t_data::QPLUS].get_max_radial() -
+			(CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
+			n_radial >=
+			(int)((CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP);
+			n_radial--) {
+		for (unsigned int n_theta = 0;
+			n_theta < parameters::zbuffer_size; ++n_theta) {
+		double theta = (double)n_theta * dtheta;
+
+		if (tan(theta) <
+			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
+			InvRmed[n_radial]) {
+			if (zbuffer[n_azimuthal * parameters::zbuffer_size +
+				n_theta] > IMIN + n_radial) {
+			zbuffer[n_azimuthal * parameters::zbuffer_size +
+				n_theta] = IMIN + n_radial;
+			} else {
+			break;
+			}
+		}
+		}
+	}
+	}
+
+	if (zbuffer_len <= 0) {
+	free(zbuffer);
+	die("z buffer size is zero!\n");
+	return;
+	}
+	// sync
+	unsigned int *zbuffer_global =
+	(unsigned int *)malloc(zbuffer_len * sizeof(unsigned int));
+	MPI_Allreduce(zbuffer, zbuffer_global, zbuffer_len, MPI_UNSIGNED,
+			MPI_MIN, MPI_COMM_WORLD);
+	free(zbuffer);
+	zbuffer = zbuffer_global;
+
+	// calculate visiblity
+	for (unsigned int n_radial = 1;
+		n_radial <= data[t_data::QPLUS].get_max_radial() - 1;
+		++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+			n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+			++n_azimuthal) {
+		// check for self-shadowing
+		unsigned int n_theta = 0;
+
+		// get next nt
+		while ((std::tan(n_theta * dtheta) <=
+			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
+			InvRmed[n_radial]) &&
+			(n_theta < parameters::zbuffer_size))
+		n_theta++;
+
+		if (zbuffer[n_azimuthal * parameters::zbuffer_size +
+			n_theta] >= IMIN + n_radial) {
+		data[t_data::VISIBILITY](n_radial, n_azimuthal) = 1.0;
+		} else {
+		data[t_data::VISIBILITY](n_radial, n_azimuthal) = 0.0;
+		}
+	}
+	}
+
+	for (unsigned int n_radial = 1;
+		n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+			n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+			++n_azimuthal) {
+		// calculate "mean" visibility
+		double visibility = 0;
+
+		visibility += data[t_data::VISIBILITY](
+		n_radial - 1,
+		n_azimuthal == 0
+			? data[t_data::VISIBILITY].get_max_azimuthal()
+			: n_azimuthal - 1);
+		visibility +=
+		data[t_data::VISIBILITY](n_radial - 1, n_azimuthal);
+		visibility += data[t_data::VISIBILITY](
+		n_radial - 1,
+		n_azimuthal ==
+			data[t_data::VISIBILITY].get_max_azimuthal()
+			? 0
+			: n_azimuthal + 1);
+
+		visibility += data[t_data::VISIBILITY](
+		n_radial,
+		n_azimuthal == 0
+			? data[t_data::VISIBILITY].get_max_azimuthal()
+			: n_azimuthal - 1);
+		visibility +=
+		data[t_data::VISIBILITY](n_radial, n_azimuthal);
+		visibility += data[t_data::VISIBILITY](
+		n_radial,
+		n_azimuthal ==
+			data[t_data::VISIBILITY].get_max_azimuthal()
+			? 0
+			: n_azimuthal + 1);
+
+		visibility += data[t_data::VISIBILITY](
+		n_radial + 1,
+		n_azimuthal == 0
+			? data[t_data::VISIBILITY].get_max_azimuthal()
+			: n_azimuthal - 1);
+		visibility +=
+		data[t_data::VISIBILITY](n_radial + 1, n_azimuthal);
+		visibility += data[t_data::VISIBILITY](
+		n_radial + 1,
+		n_azimuthal ==
+			data[t_data::VISIBILITY].get_max_azimuthal()
+			? 0
+			: n_azimuthal + 1);
+
+		visibility /= 9.0;
+
+		// see Günther et. al (2004) or Phil Armitage "Astrophysics
+		// of Planet Format" p. 46
+		double alpha =
+		(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) -
+			data[t_data::SCALE_HEIGHT](n_radial - 1,
+						n_azimuthal)) *
+			InvDiffRmed[n_radial] -
+		data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
+			InvRmed[n_radial];
+
+		if (alpha < 0.0) {
+		alpha = 0.0;
+		}
+
+		// primary star
+		double qplus =
+		ramping * visibility * parameters::heating_star_factor *
+		2.0 * alpha * constants::sigma.get_code_value() *
+		std::pow(temperature, 4) *
+		std::pow(radius / Rmed[n_radial], 2);
+
+		data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
+	}
+	}
+
+	free(zbuffer);
+}
+
+void viscous_heating(t_data &data) {
+
 	/* We calculate the heating source term Qplus from i=1 to max-1 */
 	for (unsigned int n_radial = 1;
-	     n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		 ++n_azimuthal) {
+		n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+		++n_azimuthal) {
 		if (data[t_data::VISCOSITY](n_radial, n_azimuthal) != 0.0) {
-		    // average tau_r_phi over 4 cells
-		    double tau_r_phi =
+			// average tau_r_phi over 4 cells
+			double tau_r_phi =
 			0.25 *
 			(data[t_data::TAU_R_PHI](n_radial, n_azimuthal) +
-			 data[t_data::TAU_R_PHI](n_radial + 1, n_azimuthal) +
-			 data[t_data::TAU_R_PHI](
-			     n_radial,
-			     n_azimuthal ==
-				     data[t_data::TAU_R_PHI].get_max_azimuthal()
-				 ? 0
-				 : n_azimuthal + 1) +
-			 data[t_data::TAU_R_PHI](
-			     n_radial + 1,
-			     n_azimuthal ==
-				     data[t_data::TAU_R_PHI].get_max_azimuthal()
-				 ? 0
-				 : n_azimuthal + 1));
+				data[t_data::TAU_R_PHI](n_radial + 1, n_azimuthal) +
+				data[t_data::TAU_R_PHI](
+					n_radial,
+					n_azimuthal ==
+						data[t_data::TAU_R_PHI].get_max_azimuthal()
+					? 0
+					: n_azimuthal + 1) +
+				data[t_data::TAU_R_PHI](
+					n_radial + 1,
+					n_azimuthal ==
+						data[t_data::TAU_R_PHI].get_max_azimuthal()
+					? 0
+					: n_azimuthal + 1));
 
-		    double qplus =
+			double qplus =
 			1.0 /
 			(2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-			 data[t_data::SIGMA](n_radial, n_azimuthal)) *
+				data[t_data::SIGMA](n_radial, n_azimuthal)) *
 			(std::pow(data[t_data::TAU_R_R](n_radial, n_azimuthal),
-				  2) +
-			 2 * std::pow(tau_r_phi, 2) +
-			 std::pow(
-			     data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal),
-			     2));
-		    qplus +=
+					2) +
+				2 * std::pow(tau_r_phi, 2) +
+				std::pow(
+					data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal),
+					2));
+			qplus +=
 			(2.0 / 9.0) *
 			data[t_data::VISCOSITY](n_radial, n_azimuthal) *
 			data[t_data::SIGMA](n_radial, n_azimuthal) *
 			std::pow(data[t_data::DIV_V](n_radial, n_azimuthal), 2);
 
-		    qplus *= parameters::heating_viscous_factor;
-		    data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
+			qplus *= parameters::heating_viscous_factor;
+			data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
 		}
-	    }
-	}
-    }
+	}}
+}
 
+void calculate_qplus(t_data &data)
+{
+
+	// clear up all Qplus terms
+	data[t_data::QPLUS].clear();
+
+    if (parameters::heating_viscous_enabled && parameters::EXPLICIT_VISCOSITY) {
+		viscous_heating(data);
+    }
     if (parameters::heating_star_enabled) {
-	double ramping = 1.0;
-	if (PhysicalTime < parameters::heating_star_ramping_time) {
-	    ramping =
-		1.0 -
-		std::pow(std::cos(PhysicalTime * M_PI / 2.0 /
-				  (parameters::heating_star_ramping_time)),
-			 2);
-	}
-
-	const auto& star = data.get_planetary_system().get_planet(0);
-	const double x_star = star.get_x();
-	const double y_star = star.get_y();
-	const double star_radius = star.get_planet_radial_extend();
-	const double star_temperature = star.get_temperature();
-
-	if (parameters::heating_star_simple) {
-	    if (!parameters::cooling_radiative_enabled) {
-		die("Need to calulate Tau_eff first!\n"); // TODO: make it
-							  // properly!
-	    }
-
-
-
-	    // Simple star heating (see Masterthesis Alexandros Ziampras)
-	    for (unsigned int n_radial = 1;
-		 n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
-		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		     ++n_azimuthal) {
-
-		    const unsigned int ncell =
-			n_radial * data[t_data::SIGMA].get_size_azimuthal() +
-			n_azimuthal;
-		    const double xc = cell_center_x[ncell];
-		    const double yc = cell_center_y[ncell];
-		    const double distance = std::sqrt(std::pow(x_star - xc, 2) +
-						      std::pow(y_star - yc, 2));
-		    const double HoverR =
-			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
-			InvRmed[n_radial];
-		    const double sigma = constants::sigma.get_code_value();
-		    const double tau_eff =
-			data[t_data::TAU_EFF](n_radial, n_azimuthal);
-		    const double eps = 0.5; // TODO: add a parameter
-		    // choose according to Chiang & Goldreich (1997)
-		    const double dlogH_dlogr = 9.0 / 7.0;
-		    // use eq. 7 from Menou & Goodman (2004) (rearranged), Qirr
-		    // = 2*(1-eps)*L_star/(4 pi r^2)*(dlogH/dlogr - 1) * H/r *
-		    // 1/Tau_eff here we use (1-eps) =
-		    // parameters::heating_star_factor L_star = 4 pi R_star^2
-		    // sigma_sb T_star^4
-		    double qplus = 2 * (1 - eps); // 2*(1-eps)
-		    qplus *=
-			sigma * std::pow(star_temperature, 4) *
-			std::pow(star_radius / distance, 2); // *L_star/(4 pi r^2)
-		    qplus *= dlogH_dlogr - 1;		// *(dlogH/dlogr - 1)
-		    qplus *= HoverR;			// * H/r
-		    qplus /= tau_eff;			// * 1/Tau_eff
-		    data[t_data::QPLUS](n_radial, n_azimuthal) +=
-			ramping * qplus;
+		if (!parameters::cooling_radiative_enabled) {
+			// TODO: make it properly!
+			die("Need to calulate Tau_eff first!\n"); 
 		}
-	    }
-	} else {
+		if (parameters::heating_star_simple) {
+			irradiation(data);
 
-	    const unsigned int zbuffer_len =
-		parameters::zbuffer_size *
-		data[t_data::QPLUS].get_size_azimuthal();
-	    if (zbuffer_len <= 0) {
-		die("z buffer size is zero!\n");
-		return;
-	    }
-
-	    unsigned int *zbuffer =
-		(unsigned int *)malloc(zbuffer_len * sizeof(unsigned int));
-
-	    double dtheta = parameters::zbuffer_maxangle /
-			    (double)(parameters::zbuffer_size - 1);
-
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		 ++n_azimuthal) {
-		// init z-buffer
-		for (unsigned int n_theta = 0;
-		     n_theta < parameters::zbuffer_size; ++n_theta) {
-		    zbuffer[n_azimuthal * parameters::zbuffer_size + n_theta] =
-			UINT_MAX;
+		} else {
+			irradiation_visibility(data);
 		}
-
-		for (int n_radial =
-			 data[t_data::QPLUS].get_max_radial() -
-			 (CPU_Rank == CPU_Highest ? GHOSTCELLS_B : CPUOVERLAP);
-		     n_radial >=
-		     (int)((CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP);
-		     n_radial--) {
-		    for (unsigned int n_theta = 0;
-			 n_theta < parameters::zbuffer_size; ++n_theta) {
-			double theta = (double)n_theta * dtheta;
-
-			if (tan(theta) <
-			    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
-				InvRmed[n_radial]) {
-			    if (zbuffer[n_azimuthal * parameters::zbuffer_size +
-					n_theta] > IMIN + n_radial) {
-				zbuffer[n_azimuthal * parameters::zbuffer_size +
-					n_theta] = IMIN + n_radial;
-			    } else {
-				break;
-			    }
-			}
-		    }
-		}
-	    }
-
-	    if (zbuffer_len <= 0) {
-		free(zbuffer);
-		die("z buffer size is zero!\n");
-		return;
-	    }
-	    // sync
-	    unsigned int *zbuffer_global =
-		(unsigned int *)malloc(zbuffer_len * sizeof(unsigned int));
-	    MPI_Allreduce(zbuffer, zbuffer_global, zbuffer_len, MPI_UNSIGNED,
-			  MPI_MIN, MPI_COMM_WORLD);
-	    free(zbuffer);
-	    zbuffer = zbuffer_global;
-
-	    // calculate visiblity
-	    for (unsigned int n_radial = 1;
-		 n_radial <= data[t_data::QPLUS].get_max_radial() - 1;
-		 ++n_radial) {
-		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		     ++n_azimuthal) {
-		    // check for self-shadowing
-		    unsigned int n_theta = 0;
-
-		    // get next nt
-		    while ((std::tan(n_theta * dtheta) <=
-			    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
-				InvRmed[n_radial]) &&
-			   (n_theta < parameters::zbuffer_size))
-			n_theta++;
-
-		    if (zbuffer[n_azimuthal * parameters::zbuffer_size +
-				n_theta] >= IMIN + n_radial) {
-			data[t_data::VISIBILITY](n_radial, n_azimuthal) = 1.0;
-		    } else {
-			data[t_data::VISIBILITY](n_radial, n_azimuthal) = 0.0;
-		    }
-		}
-	    }
-
-	    for (unsigned int n_radial = 1;
-		 n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
-		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		     ++n_azimuthal) {
-		    // calculate "mean" visibility
-		    double visibility = 0;
-
-		    visibility += data[t_data::VISIBILITY](
-			n_radial - 1,
-			n_azimuthal == 0
-			    ? data[t_data::VISIBILITY].get_max_azimuthal()
-			    : n_azimuthal - 1);
-		    visibility +=
-			data[t_data::VISIBILITY](n_radial - 1, n_azimuthal);
-		    visibility += data[t_data::VISIBILITY](
-			n_radial - 1,
-			n_azimuthal ==
-				data[t_data::VISIBILITY].get_max_azimuthal()
-			    ? 0
-			    : n_azimuthal + 1);
-
-		    visibility += data[t_data::VISIBILITY](
-			n_radial,
-			n_azimuthal == 0
-			    ? data[t_data::VISIBILITY].get_max_azimuthal()
-			    : n_azimuthal - 1);
-		    visibility +=
-			data[t_data::VISIBILITY](n_radial, n_azimuthal);
-		    visibility += data[t_data::VISIBILITY](
-			n_radial,
-			n_azimuthal ==
-				data[t_data::VISIBILITY].get_max_azimuthal()
-			    ? 0
-			    : n_azimuthal + 1);
-
-		    visibility += data[t_data::VISIBILITY](
-			n_radial + 1,
-			n_azimuthal == 0
-			    ? data[t_data::VISIBILITY].get_max_azimuthal()
-			    : n_azimuthal - 1);
-		    visibility +=
-			data[t_data::VISIBILITY](n_radial + 1, n_azimuthal);
-		    visibility += data[t_data::VISIBILITY](
-			n_radial + 1,
-			n_azimuthal ==
-				data[t_data::VISIBILITY].get_max_azimuthal()
-			    ? 0
-			    : n_azimuthal + 1);
-
-		    visibility /= 9.0;
-
-		    // see Günther et. al (2004) or Phil Armitage "Astrophysics
-		    // of Planet Format" p. 46
-		    double alpha =
-			(data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) -
-			 data[t_data::SCALE_HEIGHT](n_radial - 1,
-						    n_azimuthal)) *
-			    InvDiffRmed[n_radial] -
-			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) *
-			    InvRmed[n_radial];
-
-		    if (alpha < 0.0) {
-			alpha = 0.0;
-		    }
-
-		    // primary star
-		    double qplus =
-			ramping * visibility * parameters::heating_star_factor *
-			2.0 * alpha * constants::sigma.get_code_value() *
-			std::pow(star_temperature, 4) *
-			std::pow(star_radius / Rmed[n_radial], 2);
-
-		    data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
-
-		    /* // secondary star/plantes
-		    for (unsigned int planet = 1; planet >
-		    data.get_planetary_system().get_number_of_planets();
-		    ++planet) { double planet_x =
-		    data.get_planetary_system().get_planet(planet).get_x();
-			    double planet_y =
-		    data.get_planetary_system().get_planet(planet).get_y();
-
-			    double cell_x =
-		    Rmed[n_radial]*cos((double)n_azimuthal/(double)data[t_data::QPLUS].get_size_azimuthal()*2.0*PI);
-			    double cell_y =
-		    Rmed[n_radial]*sin((double)n_azimuthal/(double)data[t_data::QPLUS].get_size_azimuthal()*2.0*PI);
-
-			    double distance =
-		    sqrt(pow2(planet_x-cell_x)+pow2(planet_y-cell_y));
-
-			    data[t_data::QPLUS](n_radial,n_azimuthal) +=
-		    parameters::heating_star_factor*alpha*constants::sigma.get_code_value()*pow4(data.get_planetary_system().get_planet(planet).get_temperature())*pow2(data.get_planetary_system().get_planet(planet).get_radius()/distance);
-		    }
-		    */
-		}
-	    }
-
-	    free(zbuffer);
-	}
-    }
+	}    
 }
 
 void calculate_qminus(t_data &data)
