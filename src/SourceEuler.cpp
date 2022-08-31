@@ -689,6 +689,11 @@ void AlgoGas(t_data &data)
 
 	    hydro_dt = CalculateHydroTimeStep(data, hydro_dt, false);
 		frog_dt = 0.5 * hydro_dt;
+
+		if(ECC_GROWTH_MONITOR){
+			quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_transport, delta_peri_transport);
+		}
+
 	}
     }
 }
@@ -870,7 +875,7 @@ void update_with_sourceterms(t_data &data, const double dt)
     }
 
 	if(ECC_GROWTH_MONITOR){
-		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_source, delta_peri_source);
+		//quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_source, delta_peri_source);
 	}
 
 }
@@ -1274,7 +1279,7 @@ void update_with_artificial_viscosity(t_data &data, const double time, const dou
 	}
 
 	if(ECC_GROWTH_MONITOR){
-		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_art_visc, delta_peri_art_visc);
+		//quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_art_visc, delta_peri_art_visc);
 	}
 }
 

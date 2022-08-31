@@ -436,7 +436,7 @@ void update_velocities_with_viscosity(t_data &data, const double dt)
     }
 
 	if(ECC_GROWTH_MONITOR){
-		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_visc, delta_peri_visc);
+		//quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_visc, delta_peri_visc);
 	}
 }
 
