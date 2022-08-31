@@ -53,6 +53,7 @@ def remove_deprecated_entries(params):
     """
     obsolete = [
         "Sigma0InCodeUnits",
+        "ViscosityInCgs",
         "HeatingStar",
         "HeatingStarRampingTime"
     ]

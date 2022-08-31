@@ -555,17 +555,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    LOG_INFO "Viscosity is kinematic viscosity with nu = %.3e\n",
 	    parameters::VISCOSITY);
     }
-    const bool VISCOSITY_in_CGS =
-	cfg.get_flag("VISCOSITYINCGS", false);
-    if (VISCOSITY_in_CGS) {
-	logging::print_master(
-	    LOG_INFO
-	    "Viscosity changed to code units from %.3e cgs to %.3e code\n",
-	    parameters::VISCOSITY,
-	    parameters::VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor());
-	parameters::VISCOSITY =
-	    parameters::VISCOSITY * units::kinematic_viscosity.get_inverse_cgs_factor();
-    }
+
 }
 
 void PrintUsage(char *execname)
