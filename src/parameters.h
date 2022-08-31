@@ -30,6 +30,8 @@ extern unsigned int NINTERM;
 extern unsigned int NTOT;
 extern double quantities_radius_limit;
 
+// cells per scaleheight
+extern double cps;
 
 extern int ShockTube;
 extern bool SpreadingRing;

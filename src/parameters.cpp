@@ -51,6 +51,7 @@ unsigned int NINTERM;
 unsigned int NTOT;
 double quantities_radius_limit;
 
+double cps;
 
 int ShockTube = false;
 bool SpreadingRing = false;

@@ -161,11 +161,69 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     default:
 	die("Invalid setting for Transport");
     }
+    
+
+    // disc
+    parameters::ASPECTRATIO_REF = cfg.get<double>("ASPECTRATIO", 0.05);
+    parameters::ASPECTRATIO_MODE = cfg.get<int>("AspectRatioMode", 0);
+
+    const double T0 = cfg.get<double>("Temperature0", "-1", units::Temp0);
+    if (T0 > 0.0) // rescale parameters::ASPECTRATIO_REF according to Temperature
+	parameters::ASPECTRATIO_REF = sqrt(T0 * constants::R / parameters::MU);
 
     // time settings
     parameters::NTOT = cfg.get<unsigned int>("NTOT", 1000);
     parameters::NINTERM = cfg.get<unsigned int>("NINTERM", 10);
     parameters::DT = cfg.get<double>("DT", 1.0);
+
+
+
+	parameters::cps = config::cfg.get<double>("cps", -1.0);
+	
+	const double H = parameters::ASPECTRATIO_REF; // H(r=1)
+	if (parameters::cps > 0) {
+		if (config::cfg.contains("Nrad") || config::cfg.contains("Nsec")) {
+			die("Cannot set resolution by cps when number of cells are set explicitly!");
+		}
+		const double cps = parameters::cps;
+		switch (parameters::radial_grid_type) {
+			case parameters::arithmetic_spacing:
+				NRadial = (unsigned int) std::round(cps*(RMAX - RMIN) / H);
+				NAzimuthal = (unsigned int) std::round(2*M_PI/(RMAX-RMIN)*NRadial);
+				break;
+			case parameters::logarithmic_spacing:
+				NRadial = (unsigned int) std::round(std::log(RMAX/(double )RMIN) / std::log(1 + H/cps));
+				NAzimuthal = (unsigned int) std::round(2*M_PI/(std::pow(RMAX/(double )RMIN, 1.0/(double) NRadial) - 1));
+				break;
+			default:
+				die("Setting resolution is not supported for the selected radial grid spacing.");
+		}
+		logging::print_master( LOG_INFO
+		"Grid resolution set using cps = %f\n", cps);
+	}
+
+	dphi = 2.0 * M_PI / (double)NAzimuthal;
+    invdphi = (double)NAzimuthal / (2.0 * M_PI);
+
+	double cpsrad;
+	switch (parameters::radial_grid_type) {
+	case parameters::arithmetic_spacing:
+		cpsrad = H/ ((RMAX-RMIN)/(double) NRadial);
+		break;
+	case parameters::logarithmic_spacing:
+		cpsrad = H/(std::pow(RMAX/((double) RMIN), 1.0/((double) NRadial)) - 1);
+		break;
+	default:
+		cpsrad = -1;
+	}
+	const double cpsaz = NAzimuthal * H / (2*M_PI);
+
+
+	logging::print_master(
+		LOG_INFO
+		"The grid has (Nrad, Naz) = (%u, %u) cells with (%f, %f) cps.\n",
+		NRadial, NAzimuthal, cpsrad, cpsaz);
+
 
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
@@ -183,13 +241,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		NAzimuthal, lround(optimal_N_azimuthal));
 	}
     }
-
-    dphi = 2.0 * M_PI / (double)NAzimuthal;
-    invdphi = (double)NAzimuthal / (2.0 * M_PI);
-
-    // disc
-    parameters::ASPECTRATIO_REF = cfg.get<double>("ASPECTRATIO", 0.05);
-    parameters::ASPECTRATIO_MODE = cfg.get<int>("AspectRatioMode", 0);
 
     switch (parameters::ASPECTRATIO_MODE) {
     case 0:
@@ -530,10 +581,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    LOG_ERROR
 	    "A non-vanishing potential smoothing length is required.\n");
     }
-
-    const double T0 = cfg.get<double>("Temperature0", "-1", units::Temp0);
-    if (T0 > 0.0) // rescale parameters::ASPECTRATIO_REF according to Temperature
-	parameters::ASPECTRATIO_REF = sqrt(T0 * constants::R / parameters::MU);
 
     StabilizeViscosity = cfg.get<int>("STABILIZEVISCOSITY", 0);
 
