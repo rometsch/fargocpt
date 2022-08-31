@@ -56,15 +56,47 @@ def remove_deprecated_entries(params):
         "ViscosityInCgs",
         "TemperatureCGS0",
         "HeatingStar",
+        "HeatingStarFactor",
+        "HeatingStarSimple",
         "HeatingStarRampingTime"
     ]
     for key in obsolete:
         remove_entry(params, key)
 
     for planet in params["nbody"]:
+        try:
+            if not get_flag(planet, "irradiate"):
+                planet["temperature"] = "0 K"
+        except KeyError:
+            pass
+
         remove_entry(planet, "Feels Disk")
         remove_entry(planet, "Nbody interaction")
 
+def get_flag(params, key):
+    """ Get a flag from the params dict and return true or false.
+
+    Parameter
+    ---------
+    params: dict
+        Dictionary containing the config.
+    search_key: str
+        Key to search for.
+
+    Return
+    ------
+    bool
+    """
+    if contains(params, key):
+        val = params[keyname(params, key)]
+        if val.lower() in ["no", "false"]:
+            return False
+        elif val.lower() in ["yes", "true"]:
+            return True
+        else:
+            raise ValueError(f"{val} can't be interpreted as bool")
+    else:
+        raise KeyError(f"Key '{key}' not found.")
 
 def contains(d, search_key):
     """ Is there a key in d which in lowercase matches the search key.
@@ -161,6 +193,12 @@ def handle_default_star(params):
         temperature = params.pop("StarTemperature") + " K"
     else:
         temperature = "5778 K"
+
+    try:
+        if not get_flag(params, "HeatingStar"):
+            temperature = "0"
+    except KeyError:
+        pass
 
     if "StarRadius" in params:
         radius = params.pop("StarRadius") + " solRadius"
@@ -269,10 +307,6 @@ def parse_planet_config(nbody_config_file):
             values = line.split()
             for key, val in zip(keys, values):
                 planet[key] = val
-        try:
-            del planet["Nbody interaction"]
-        except KeyError:
-            pass
         nbody.append(planet)
     return nbody
 
