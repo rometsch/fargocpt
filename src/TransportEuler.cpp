@@ -9,8 +9,8 @@ declare zone centered; we then transport then normally, and deduce the new
 velocity in each zone by a proper averaging).
 */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "polargrid.h"
 #include "radialgrid.h"
@@ -111,7 +111,7 @@ void FreeTransport()
 }
 
 void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
-	       PolarGrid *VAzimuthal, PolarGrid *Energy, double dt)
+		   PolarGrid *VAzimuthal, PolarGrid *Energy, const double dt)
 {
     compute_momenta_from_velocities(*Density, *VRadial, *VAzimuthal);
 
@@ -120,6 +120,16 @@ void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     OneWindTheta(data, Density, VAzimuthal, Energy, dt);
 
     compute_velocities_from_momenta(*Density, *VRadial, *VAzimuthal);
+
+	// assure minimum density after transport
+	assure_minimum_value(data[t_data::DENSITY],
+			 parameters::sigma_floor * parameters::sigma0);
+
+	if (parameters::Adiabatic) {
+	// assure minimum temperature after transport. it
+	// is crucial the check minimum density before!
+	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+	}
 }
 
 void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
@@ -293,8 +303,40 @@ void QuantitiesAdvection(t_data &data, PolarGrid *Density,
     VanLeerTheta(data, VAzimuthal, Density, dt); /* MUST be the last line */
 }
 
-/**
+static double van_leer_lim(const double a, const double b){
+	if(a*b > 0.0){
+		return 2.0*a*b / (a+b);
+	} else {
+		return 0;
+	}
+}
 
+static double minmod(const double a, const double b){
+	if(a*b > 0.0)
+		return std::fabs(a) < std::fabs(b) ? a : b;
+	else
+		return 0.0;
+}
+
+static double MC_lim(const double a, const double b){
+	return minmod(0.5*(a+b), 2.0*minmod(a, b));
+}
+
+static double flux_limiter(const double a, const double b){
+	switch(flux_limiter_type){
+		case 0:
+			return van_leer_lim(a, b);
+			break;
+		case 1:
+			return MC_lim(a, b);
+			break;
+		default:
+			return van_leer_lim(a, b);
+			break;
+	}
+}
+
+/**
 */
 // void compute_star_radial(t_polargrid* base, t_polargrid* V_Radial,
 // t_polargrid* star, double dt)
@@ -316,11 +358,8 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 		      InvDiffRmed[nRadial];
 		dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
 		      InvDiffRmed[nRadial + 1];
-		if (dqp * dqm > 0.0)
-		    dq[cell] = 2.0 * dqp * dqm / (dqp + dqm);
-		else
-		    dq[cell] = 0.0;
-	    }
+		dq[cell] = flux_limiter(dqp, dqm);
+		}
 	}
     }
     // TODO: changed to nRadial =1 because of nRadial-1
@@ -387,12 +426,8 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 		ljp = nRadial * Qbase->Nsec;
 	    }
 	    dqm = (Qbase->Field[cell] - Qbase->Field[ljm]);
-	    dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
-	    if (dqp * dqm > 0.0) {
-		dq[cell] = dqp * dqm / (dqp + dqm) * invdxtheta;
-	    } else {
-		dq[cell] = 0.0;
-	    }
+		dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
+		dq[cell] = 0.5*flux_limiter(dqp, dqm) * invdxtheta;
 	}
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    // cell = nAzimuthal+nRadial*Qbase->Nsec;
@@ -543,10 +578,10 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 			       nRadial == Qbase->get_max_radial() - 1) {
 			if (varq_sup > 0) {
 			    sum_without_ghost_cells(MassDelta.OuterNegative,
-						    varq_sup, nRadial);
+							-varq_sup, nRadial);
 			} else {
 			    sum_without_ghost_cells(MassDelta.OuterPositive,
-						    varq_sup, nRadial);
+							-varq_sup, nRadial);
 			}
 		    }
 		}

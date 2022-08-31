@@ -1,4 +1,3 @@
-#include <math.h>
 #include <stdlib.h>
 #include <vector>
 
@@ -18,6 +17,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "quantities.h"
 
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
@@ -58,7 +58,7 @@ void ComputeIndirectTermDisk(t_data &data)
     IndirectTerm.y = IndirectTermDisk.y;
 }
 
-void ComputeIndirectTerm(t_data &data)
+void ComputeIndirectTermNbodyEuler(t_data &data)
 {
     IndirectTermPlanets.x = 0.0;
     IndirectTermPlanets.y = 0.0;
@@ -81,6 +81,37 @@ void ComputeIndirectTerm(t_data &data)
 
     IndirectTerm.x += IndirectTermPlanets.x;
     IndirectTerm.y += IndirectTermPlanets.y;
+}
+
+void ComputeIndirectTermNbody(t_data &data, const double dt)
+{
+
+	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
+		ComputeNbodyOnNbodyAccel(data.get_planetary_system());
+		ComputeIndirectTermNbodyEuler(data);
+		data.get_planetary_system().copy_data_to_rebound();
+		data.get_planetary_system().m_rebound->t = PhysicalTime;
+	} else {
+
+	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
+
+	if(dt != 0.0){ // Indirect term from Rebound
+	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
+	/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, but shifting the center to 0.0 causes an error
+	/// because the gas does not feel the kick
+	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
+	pair accel{delta_vel.x/dt, delta_vel.y/dt};
+
+	IndirectTermPlanets.x = -accel.x;
+	IndirectTermPlanets.y = -accel.y;
+	} else {
+	IndirectTermPlanets.x = 0.0;
+	IndirectTermPlanets.y = 0.0;
+	}
+	}
+
+	IndirectTerm.x += IndirectTermPlanets.x;
+	IndirectTerm.y += IndirectTermPlanets.y;
 }
 
 /* Below : work in non-rotating frame */
@@ -138,10 +169,8 @@ void CalculateNbodyPotential(t_data &data)
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
-		    if ((std::abs(xpl[k]) + std::abs(ypl[k])) >
-			1.0e-10) { // only for non central objects
-			// position of the l1 point between planet and central
-			// star.
+			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
+			// position of the l1 point between planet and central star.
 			const double l1 = l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
@@ -226,8 +255,7 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-		    if ((std::abs(xpl[k]) + std::abs(ypl[k])) >
-			1.0e-10) { // only for non central objects
+			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
@@ -314,8 +342,7 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-		    if ((std::abs(xpl[k]) + std::abs(ypl[k])) >
-			1.0e-10) { // only for non central objects
+			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
 			const double l1 = l1pl[k];
@@ -388,12 +415,9 @@ void ComputeDiskOnNbodyAccel(t_data &data)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	double l1 = -1.0; // l1 = 0.0 causes divide by 0 error. I believe its
-			  // because of lazy if(...) evaluation.
-	if (k > 0) {
-	    l1 = planet.get_dimensionless_roche_radius() *
+	const double l1 = planet.get_dimensionless_roche_radius() *
 		 planet.get_distance_to_primary();
-	}
+
 
 	accel =
 	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
@@ -463,40 +487,34 @@ void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system)
 }
 
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
-void ComputeNbodyOnNbodyAccelRK5(t_data &data, double dt)
+void ComputeNbodyOnNbodyAccelRK5(t_data &data, const double dt)
 {
     unsigned int n = data.get_planetary_system().get_number_of_planets();
 
-    if (parameters::integrate_planets) {
-	for (unsigned int i = 0;
-	     i < data.get_planetary_system().get_number_of_planets(); i++) {
-	    q0[i + 0 * n] = data.get_planetary_system().get_planet(i).get_x();
-	    q0[i + 1 * n] = data.get_planetary_system().get_planet(i).get_y();
-	    q0[i + 2 * n] = data.get_planetary_system().get_planet(i).get_vx();
-	    q0[i + 3 * n] = data.get_planetary_system().get_planet(i).get_vy();
-	    PlanetMasses[i] =
-		data.get_planetary_system().get_planet(i).get_mass();
-	}
+	if (parameters::integrate_planets) {
+		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
+			q0[i+0*n] = data.get_planetary_system().get_planet(i).get_x();
+			q0[i+1*n] = data.get_planetary_system().get_planet(i).get_y();
+			q0[i+2*n] = data.get_planetary_system().get_planet(i).get_vx();
+			q0[i+3*n] = data.get_planetary_system().get_planet(i).get_vy();
+			PlanetMasses[i] = data.get_planetary_system().get_planet(i).get_mass();
+		}
 
 	RungeKutta(q0, dt, PlanetMasses, q1, n);
 
-	for (unsigned int i = 0;
-	     i < data.get_planetary_system().get_number_of_planets(); i++) {
-	    data.get_planetary_system()
-		.get_planet(i)
-		.set_nbody_on_planet_acceleration_x(q1[i + 2 * n]);
-	    data.get_planetary_system()
-		.get_planet(i)
-		.set_nbody_on_planet_acceleration_y(q1[i + 3 * n]);
+		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
+			data.get_planetary_system().get_planet(i).set_nbody_on_planet_acceleration_x(q1[i+2*n]);
+			data.get_planetary_system().get_planet(i).set_nbody_on_planet_acceleration_y(q1[i+3*n]);
+		}
+
 	}
-    }
 }
 
 /**
 	Updates planets velocities due to disk influence if "DiskFeedback" is
    set.
 */
-void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
+void UpdatePlanetVelocitiesWithDiskForce(t_data &data, const double dt)
 {
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
@@ -505,9 +523,9 @@ void UpdatePlanetVelocitiesWithDiskForce(t_data &data, double dt)
 
 	    const Pair gamma = planet.get_disk_on_planet_acceleration();
 	    const double new_vx =
-		planet.get_vx() + dt * gamma.x + dt * IndirectTermDisk.x;
+		planet.get_vx() + dt * gamma.x;
 	    const double new_vy =
-		planet.get_vy() + dt * gamma.y + dt * IndirectTermDisk.y;
+		planet.get_vy() + dt * gamma.y;
 	    planet.set_vx(new_vx);
 	    planet.set_vy(new_vy);
 	}

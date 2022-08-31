@@ -66,11 +66,11 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 		/// Thus we add the gravitational potential smoothing proposed
 		/// by Klahr & Kley 2005; but the derivative of it, since we
 		/// apply it directly on the force
-		if (l1 > 0.0) {
-		    const double r_sm = l1 * parameters::klahr_smoothing_radius;
+		if (std::sqrt(x*x + y*y) > 10.e-10) {
+			const double r_sm = l1 * parameters::klahr_smoothing_radius;
 		    const double dist = std::sqrt(dist_2);
 
-		    if (dist < r_sm && r_sm > 0.0) {
+			if (dist < r_sm) {
 			smooth_factor_klahr =
 			    -(3.0 * std::pow(dist / r_sm, 4.0) -
 			      4.0 * std::pow(dist / r_sm, 3.0));

@@ -9,10 +9,7 @@
 #include "output.h"
 #include "parameters.h"
 #include <chrono>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
 
 namespace logging
 {
@@ -76,10 +73,10 @@ int vprint(const char *fmt, va_list args)
 	int res = vasprintf(&buf, fmt, args);
 	if (!time_format) {
 	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
-		    (int)(log(CPU_Number) / log(10) + 1), CPU_Rank, buf);
+			(int)(std::log(CPU_Number) / std::log(10) + 1), CPU_Rank, buf);
 	} else {
 	    fprintf(current_level <= error_level ? stderr : stdout,
-		    "[%0*i %s] %s", (int)(log(CPU_Number) / log(10) + 1),
+			"[%0*i %s] %s", (int)(std::log(CPU_Number) / std::log(10) + 1),
 		    CPU_Rank, time_buf, buf);
 	}
 	free(buf);
@@ -140,8 +137,8 @@ void print_runtime_final()
 	N_hydro_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
-void print_runtime_info(unsigned int output_number,
-			unsigned int time_step_coarse, double dt)
+void print_runtime_info(t_data &data, unsigned int output_number,
+			unsigned int time_step_coarse, const double dt)
 {
     // Print a line with information about the runtime: current hyrdro step,
     // average runtime, ... depending on whether enough real time or number of

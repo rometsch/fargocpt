@@ -38,8 +38,10 @@ class BoundaryFlow
     double InnerNegative;
     double OuterPositive;
     double OuterNegative;
-    double WaveDampingPositive;
-    double WaveDampingNegative;
+	double InnerWaveDampingPositive;
+	double InnerWaveDampingNegative;
+	double OuterWaveDampingPositive;
+	double OuterWaveDampingNegative;
     double FloorPositive;
 
     BoundaryFlow() { reset(); };
@@ -50,14 +52,20 @@ class BoundaryFlow
 	InnerNegative = 0.0;
 	OuterPositive = 0.0;
 	OuterNegative = 0.0;
-	WaveDampingPositive = 0.0;
-	WaveDampingNegative = 0.0;
+	InnerWaveDampingPositive = 0.0;
+	InnerWaveDampingNegative = 0.0;
+	OuterWaveDampingPositive = 0.0;
+	OuterWaveDampingNegative = 0.0;
 	FloorPositive = 0.0;
     }
 };
 
 #define YES 1
 #define NO 0
+
+
+#define INDIRECT_TERM_REBOUND 0
+#define INDIRECT_TERM_EULER 1
 
 // TODO: This could be problematic on large NR
 #define MAX1D 16384

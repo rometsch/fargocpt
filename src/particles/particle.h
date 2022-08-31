@@ -3,7 +3,7 @@
 
 #include "../constants.h"
 #include "../util.h"
-#include <math.h>
+#include <cmath>
 
 class t_particle
 {

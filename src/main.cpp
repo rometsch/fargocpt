@@ -142,6 +142,11 @@ int main(int argc, char *argv[])
     data.get_planetary_system().compute_dist_to_primary();
     data.get_planetary_system().init_roche_radii();
 
+	// TODO: check with Lucas why needed?
+	if(parameters::heating_star_enabled){
+		data[t_data::ASPECTRATIO].set_do_before_write(nullptr);
+	}
+
     parameters::VISCOUS_ACCRETION = false;
     if (parameters::boundary_inner ==
 	parameters::boundary_condition_viscous_outflow) {

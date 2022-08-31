@@ -11,7 +11,6 @@
 #include <iostream>
 #include <map>
 #include <math.h>
-#include <sstream>
 #include <stdio.h>
 #include <string.h>
 
@@ -209,6 +208,9 @@ t_planet::t_planet()
     m_rampuptime = 0.0;
     m_disk_on_planet_acceleration = {0.0, 0.0};
     m_nbody_on_planet_acceleration = {0.0, 0.0};
+
+	m_omega = 0.0;
+	m_orbital_period = 0.0;
     m_semi_major_axis = 0.0;
     m_distance_to_primary = 0.0;
     m_dimensionless_roche_radius = 0.0;
@@ -301,16 +303,16 @@ double t_planet::get_rampup_mass() const
 double t_planet::get_orbital_period() const
 {
 
-    double M;
-    if (m_planet_number <= parameters::n_bodies_for_hydroframe_center) {
-	M = hydro_center_mass;
-    } else {
-	M = hydro_center_mass + get_mass();
-    }
-    const double P =
-	2.0 * M_PI *
-	std::sqrt(std::pow(get_semi_major_axis(), 3) / (M * constants::G));
-    return P;
+	double M;
+	if(m_planet_number <= parameters::n_bodies_for_hydroframe_center){
+		M = hydro_center_mass;
+	}else{
+		M = hydro_center_mass + get_mass();
+	}
+	const double P = 2.0 * M_PI *
+			std::sqrt(std::pow(get_semi_major_axis(), 3) /
+				  (M * constants::G));
+	return P;
 }
 
 /**
@@ -331,13 +333,7 @@ double t_planet::get_omega() const
 
 double t_planet::get_omega() const
 {
-    double distance = get_semi_major_axis();
-    if (!is_distance_zero(distance)) {
-	return std::sqrt(((hydro_center_mass + get_mass()) * constants::G) /
-			 std::pow(distance, 3));
-    } else {
-	return 0.0;
-    }
+	return m_omega;
 }
 
 /**
@@ -561,17 +557,19 @@ void t_planet::restart()
 
 void t_planet::copy_orbital_elements(const t_planet &other)
 {
-    m_semi_major_axis = other.get_semi_major_axis();
-    m_eccentricity = other.get_eccentricity();
-    m_mean_anomaly = other.get_mean_anomaly();
-    m_true_anomaly = other.get_true_anomaly();
-    m_eccentric_anomaly = other.get_eccentric_anomaly();
-    m_pericenter_angle = other.get_pericenter_angle();
+	m_semi_major_axis = other.get_semi_major_axis();
+	m_eccentricity = other.get_eccentricity();
+	m_mean_anomaly = other.get_mean_anomaly();
+	m_true_anomaly = other.get_true_anomaly();
+	m_eccentric_anomaly = other.get_eccentric_anomaly();
+	m_pericenter_angle = other.get_pericenter_angle();
 }
 
 void t_planet::set_orbital_elements_zero()
 {
 
+	m_omega = 0.0;
+	m_orbital_period = 0.0;
     m_semi_major_axis = 0.0;
     m_eccentricity = 0.0;
     m_mean_anomaly = 0.0;
@@ -587,21 +585,31 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 {
     // mass of reference (primary for default star and sum of inner planet mass
     // otherwise)
-    double Ax, Ay, e, d, h, a, E, M, V;
+	double E, V;
     double PerihelionPA;
     double temp;
-    double m = com_mass + get_mass();
+	const double m = com_mass + get_mass();
 
-    h = x * vy - y * vx;
-    d = std::sqrt(x * x + y * y);
+	const double h = x * vy - y * vx;
+	const double d = std::sqrt(x * x + y * y);
     if (is_distance_zero(d) || h == 0.0) {
 	set_orbital_elements_zero();
 	return;
     }
-    Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
-    Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
-    e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
-    a = h * h / constants::G / m / (1.0 - e * e);
+	const double Ax = x * vy * vy - y * vx * vy - constants::G * m * x / d;
+	const double Ay = y * vx * vx - x * vx * vy - constants::G * m * y / d;
+	const double e = std::sqrt(Ax * Ax + Ay * Ay) / constants::G / m;
+	const double a = h * h / constants::G / m / (1.0 - e * e);
+
+	if (e > 1.0 || e < 0 || a < 0.0) {
+	set_orbital_elements_zero();
+	return;
+	}
+
+	const double P = 2.0 * M_PI * std::sqrt(std::pow(a, 3) /
+				  (m * constants::G));
+	const double omega = std::sqrt((m * constants::G) /
+								   std::pow(a, 3));
 
     if (e != 0.0) {
 	temp = (1.0 - d / a) / e;
@@ -622,7 +630,7 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	E = -E;
     }
 
-    M = E - e * std::sin(E);
+	const double M = E - e * std::sin(E);
 
     if (e != 0.0) {
 	temp = (a * (1.0 - e * e) / d - 1.0) / e;

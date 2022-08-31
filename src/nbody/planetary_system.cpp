@@ -11,10 +11,11 @@
 #include <cstring>
 #include <ctype.h>
 #include <fstream>
-#include <math.h>
-#include <sstream>
-#include <stdio.h>
-#include "config.h"
+#include <cmath>
+#include <cstdio>
+#include <cassert>
+#include <iostream>
+#include "quantities.h"
 
 extern boolean CICPlanet;
 extern int Corotating;
@@ -29,6 +30,7 @@ t_planetary_system::~t_planetary_system()
 
     m_planets.clear();
     reb_free_simulation(m_rebound);
+	reb_free_simulation(m_rebound_predictor);
 }
 
 void t_planetary_system::init_rebound()
@@ -38,6 +40,7 @@ void t_planetary_system::init_rebound()
     m_rebound->dt = 1e-6;
     m_rebound->softening = 0.0; // 5e-4; // Jupiter radius in au
     m_rebound->integrator = reb_simulation::REB_INTEGRATOR_IAS15;
+	m_rebound->exact_finish_time = 1;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_MERCURIUS;
     // m_rebound->integrator = reb_simulation::REB_INTEGRATOR_WHFAST; // crashes
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
@@ -61,6 +64,8 @@ void t_planetary_system::init_rebound()
 	p.sim = nullptr;
 	reb_add(m_rebound, p);
     }
+
+	m_rebound_predictor = reb_copy_simulation(m_rebound);
 }
 
 void t_planetary_system::init_system(const std::string &filename)
@@ -146,15 +151,14 @@ void t_planetary_system::init_planet(config::Config &cfg)
 	name = cfg.get<std::string>("name");
     }
 
-    const bool cell_centered = cfg.get_flag("cell centered", "no");
-    if (cell_centered) {
-	// initialization puts centered-in-cell planets (with
-	// excentricity = 0 only)
-	if (eccentricity > 0) {
-	    die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
-	}
-	semi_major_axis = find_cell_centere_radius(semi_major_axis);
-    }
+	    if (CICPlanet) {
+		// initialization puts centered-in-cell planets (with
+		// excentricity = 0 only)
+		unsigned int j = 0;
+		while (GlobalRmed[j] < semi_major_axis)
+		    j++;
+		semi_major_axis = Radii[j + 1];
+	    }
 
     t_planet *planet = new t_planet();
 
@@ -220,13 +224,14 @@ void t_planetary_system::init_hydro_frame_center()
 	"The first %d planets are used to calculate the hydro frame center.\n",
 	parameters::n_bodies_for_hydroframe_center);
 
-    move_to_hydro_frame_center();
+	move_to_hydro_frame_center();
 
     update_global_hydro_frame_center_mass();
     logging::print_master(LOG_INFO
 	"The mass of the planets used as hydro frame center is %e.\n",
 	hydro_center_mass);
 }
+
 
 
 void t_planetary_system::list_planets()
@@ -389,6 +394,13 @@ void t_planetary_system::initialize_planet_jacobi_adjust_first_two(
     } else {
 	// initialize the second planet around the origin, such that the two
 	// bodies have the correct separation
+
+	// Flip pericenter angle such that heavier component sits at the
+	// center in the beginning and shift from there.
+	if(mass > m_planets[0]->get_mass()){
+		omega += M_PI;
+	}
+
 	initialize_planet_jacobi(planet, mass, semi_major_axis, eccentricity,
 				 omega, true_anomaly);
 	t_planet *planet1 = m_planets[0];
@@ -556,6 +568,36 @@ Pair t_planetary_system::get_hydro_frame_center_position() const
     return get_center_of_mass(parameters::n_bodies_for_hydroframe_center);
 }
 
+Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor() const
+{
+	double vx_old = 0.0;
+	double vy_old = 0.0;
+	double vx_new = 0.0;
+	double vy_new = 0.0;
+	double mass = 0.0;
+	for (unsigned int i = 0; i < parameters::n_bodies_for_hydroframe_center; i++) {
+	const double new_vx = m_rebound_predictor->particles[i].vx;
+	const double new_vy = m_rebound_predictor->particles[i].vy;
+	const double planet_m = m_rebound->particles[i].m;
+	const double old_vx = m_rebound->particles[i].vx;
+	const double old_vy = m_rebound->particles[i].vy;
+	mass += planet_m;
+	vx_old += old_vx * planet_m;
+	vy_old += old_vy * planet_m;
+	vx_new += new_vx * planet_m;
+	vy_new += new_vy * planet_m;
+	}
+	Pair delta_vel;
+	if (mass > 0) {
+	delta_vel.x = (vx_new - vx_old) / mass;
+	delta_vel.y = (vy_new - vy_old) / mass;
+	} else {
+	delta_vel.x = 0.0;
+	delta_vel.y = 0.0;
+	}
+	return delta_vel;
+}
+
 /**
    Analogous to get_hydro_frame_center but returns its velocity.
 */
@@ -584,8 +626,18 @@ void t_planetary_system::update_global_hydro_frame_center_mass()
     hydro_center_mass = get_hydro_frame_center_mass();
 }
 
+
+void t_planetary_system::apply_indirect_term_on_Nbody(const pair accel, const double dt)
+{
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	m_rebound->particles[i].vx -= dt*accel.x;
+	m_rebound->particles[i].vy -= dt*accel.y;
+	}
+}
+
 /**
-   Move the planetary system to the chosen frame center.
+ * @brief t_planetary_system::shift_to_hydro_frame_center
+ * move positions and velocities to hydro_frame_center
  */
 void t_planetary_system::move_to_hydro_frame_center()
 {
@@ -630,12 +682,12 @@ void t_planetary_system::calculate_orbital_elements()
 	planet.calculate_orbital_elements(x, y, vx, vy, M);
     }
 
-    // Binary, both stars have same orbital elements
-    if (get_number_of_planets() == 2) {
-	auto &primary = get_planet(0);
-	const auto &secondary = get_planet(1);
-	primary.copy_orbital_elements(secondary);
-    }
+	// Binary, both stars have same orbital elements
+	if(get_number_of_planets() == 2){
+		auto &primary = get_planet(0);
+		const auto &secondary = get_planet(1);
+		primary.copy_orbital_elements(secondary);
+	}
 }
 
 /**
@@ -669,18 +721,68 @@ void t_planetary_system::copy_data_from_rebound()
     }
 }
 
+void t_planetary_system::copy_rebound_to_predictor()
+{
+	m_rebound_predictor->t = m_rebound->t;
+	m_rebound_predictor->dt = m_rebound->dt;
+	m_rebound_predictor->dt_last_done = m_rebound->dt_last_done;
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	m_rebound_predictor->particles[i].x = m_rebound->particles[i].x;
+	m_rebound_predictor->particles[i].y = m_rebound->particles[i].y;
+	m_rebound_predictor->particles[i].vx = m_rebound->particles[i].vx;
+	m_rebound_predictor->particles[i].vy = m_rebound->particles[i].vy;
+	m_rebound_predictor->particles[i].r = m_rebound->particles[i].r;
+	m_rebound_predictor->particles[i].m = m_rebound->particles[i].m;
+	}
+}
+
+void t_planetary_system::compare_rebound_to_predictor()
+{
+	std::cout
+	<< (m_rebound_predictor->t == m_rebound->t)
+	<< (m_rebound_predictor->dt == m_rebound->dt)
+	<< (m_rebound_predictor->dt_last_done == m_rebound->dt_last_done);
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	std::cout
+	<< (m_rebound_predictor->particles[i].x == m_rebound->particles[i].x)
+	<< (m_rebound_predictor->particles[i].y == m_rebound->particles[i].y)
+	<< (m_rebound_predictor->particles[i].vx == m_rebound->particles[i].vx)
+	<< (m_rebound_predictor->particles[i].vy == m_rebound->particles[i].vy)
+	<< (m_rebound_predictor->particles[i].r == m_rebound->particles[i].r)
+	<< (m_rebound_predictor->particles[i].m == m_rebound->particles[i].m);
+	}
+	std::cout << std::endl;
+}
+
+/**
+   Integrate the predictor nbody system forward in time using rebound.
+*/
+void t_planetary_system::integrate_indirect_term_predictor(double time, double dt)
+{
+	if (get_number_of_planets() < 2) {
+	// don't integrate a single particle that doesn't move
+	return;
+	}
+
+	copy_data_to_rebound();
+	m_rebound->t = time;
+	copy_rebound_to_predictor();
+	disable_trap_fpe_gnu();
+	reb_integrate(m_rebound_predictor, time + dt);
+	enable_trap_fpe_gnu();
+}
+
 /**
    Integrate the nbody system forward in time using rebound.
 */
-void t_planetary_system::integrate(double time, double dt)
+void t_planetary_system::integrate(const double time, const double dt)
 {
     if (get_number_of_planets() < 2) {
 	// don't integrate a single particle that doesn't move
 	return;
     }
 
-    copy_data_to_rebound();
-    m_rebound->t = time;
+	// data has already been copied to rebound in ComputeIndirectTermNbodyAndFixVelocities
 
     disable_trap_fpe_gnu();
     reb_integrate(m_rebound, time + dt);

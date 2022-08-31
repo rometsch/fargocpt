@@ -3,9 +3,8 @@
 	\author Tobias Mueller <Tobias_Mueller@twam.info>
 */
 #include <algorithm>
-#include <ctype.h>
-#include <math.h>
-#include <string.h>
+#include <cmath>
+
 #include <vector>
 
 #include "LowTasks.h"
@@ -145,12 +144,14 @@ double profile_cutoff_point_inner;
 double profile_cutoff_width_inner;
 
 bool disk_feedback;
+int indirect_term_mode;
 
 bool integrate_planets;
 bool do_init_secondary_disk;
 
 double density_factor;
 double tau_factor;
+double tau_min;
 double kappa_factor;
 
 bool self_gravity;
@@ -836,6 +837,7 @@ void read(const std::string &filename, t_data &data)
 
     tau_factor = config::cfg.get<double>("TauFactor", 0.5);
     kappa_factor = config::cfg.get<double>("KappaFactor", 1.0);
+	tau_min = config::cfg.get<double>("TauMin", 0.01);
 
     EXPLICIT_VISCOSITY =
 	config::cfg.get_flag("ExplicitViscosity", "yes");
@@ -913,6 +915,8 @@ void read(const std::string &filename, t_data &data)
 	"Please add the central object to the planet configuration.");
 
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
+
+	indirect_term_mode = config::cfg.get<int>("IndirectTermMode", INDIRECT_TERM_REBOUND);
 
     // self gravity
     self_gravity = config::cfg.get_flag("SelfGravity", "no");
@@ -1301,6 +1305,7 @@ void summarize_parameters()
     logging::print_master(LOG_INFO "Surface density factor: %g\n",
 			  density_factor);
     logging::print_master(LOG_INFO "Tau factor: %g\n", tau_factor);
+	logging::print_master(LOG_INFO "Tau min: %g\n", tau_min);
     logging::print_master(LOG_INFO "Kappa factor: %g\n", kappa_factor);
 
     logging::print_master(LOG_INFO "Minimum temperature: %.5e K = %.5e\n",

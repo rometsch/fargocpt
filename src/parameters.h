@@ -239,11 +239,14 @@ extern double mof_rampingtime;
 /// replaces feels_disk
 extern bool disk_feedback;
 
+extern int indirect_term_mode;
+
 /// factor for conversation from surface density to density
 extern double density_factor;
 
 /// factor for tau calculation
 extern double tau_factor;
+extern double tau_min;
 
 /// factor for kappa calculation
 extern double kappa_factor;

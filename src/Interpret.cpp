@@ -225,6 +225,12 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		NRadial, NAzimuthal, cpsrad, cpsaz);
 
 
+	if(parameters::klahr_smoothing_radius == 0.0){ // otherwise Ofast will optimize out zero checks and then divide by zero
+		parameters::klahr_smoothing_radius = 0.001 * (RMAX - RMIN)/(double)NRadial;
+	}
+
+
+
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);
@@ -582,6 +588,43 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    "A non-vanishing potential smoothing length is required.\n");
     }
 
+
+	{
+	/// Read Flux Limiter
+	char flux_limiter_text[512];
+	strncpy(
+		flux_limiter_text,
+		config::cfg.get<std::string>("FluxLimiter", "VanLeer"),
+		256); // same as MAXNAME from config.cpp
+	for (char *t = flux_limiter_text; *t != '\0'; ++t) {
+		*t = tolower(*t);
+	}
+
+	bool could_read_flux_limiter = false;
+	if (strcmp(flux_limiter_text, "vanleer") == 0 ||
+		strcmp(flux_limiter_text, "van") == 0 ||
+		strcmp(flux_limiter_text, "leer") == 0 ||
+		strcmp(flux_limiter_text, "vl") == 0  ||
+		strcmp(flux_limiter_text, "v") == 0) {
+		logging::print_master(LOG_INFO "Using VanLeer flux limiter\n");
+		flux_limiter_type = 0;
+		could_read_flux_limiter = true;
+	}
+
+	if (strcmp(flux_limiter_text, "mc") == 0 ||
+		strcmp(flux_limiter_text, "m") == 0) {
+		logging::print_master(LOG_INFO "Using MC flux limiter\n");
+		flux_limiter_type = 1;
+		could_read_flux_limiter = true;
+	}
+
+	if(!could_read_flux_limiter){
+		logging::print_master(LOG_INFO "Defaulting to VanLeer flux limiter\n");
+		flux_limiter_type = 0;
+	}
+	}
+
+	/// Read Viscosity Stuff
     StabilizeViscosity = cfg.get<int>("STABILIZEVISCOSITY", 0);
 
     if (StabilizeViscosity == 1) {

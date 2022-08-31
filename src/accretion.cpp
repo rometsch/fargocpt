@@ -45,12 +45,12 @@ static std::tuple<int, int> hill_azimuthal_index(const double angle,
 {
     /* Calculate the index in azimuthal direction
        where the Hill sphere starts and stops */
-	const double max_angle = std::min(2.0 * M_PI, 2.0 * RHill / Rplanet);
+	const double max_angle = std::min(2.0*M_PI, 2.0 * RHill / Rplanet);
 	const int j_min = get_med_azimuthal_id(angle - max_angle);
 	int j_max = get_med_azimuthal_id(angle + max_angle) + 1;
 	j_max = j_min + std::min(j_max - j_min, (int)NAzimuthal - 1);
 	std::tuple<int, int> ids(j_min, j_max);
-    return ids;
+	return ids;
 }
 
 static void update_planet(t_planet &planet, const double dMplanet,
@@ -122,7 +122,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 	for (int j = j_min; j <= j_max; j++) {
 	    // map azimuthal index to [0, ns]
 	    int jf = clamp_phi_id_to_grid(j);
-	    ;
+
 	    // calculate cell 1d index
 	    int l = jf + i * ns;
 	    int lip = l + ns;
@@ -243,14 +243,13 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
 
     for (unsigned int i = i_min; i <= i_max; i++) {
 	for (int j = j_min; j <= j_max; j++) {
-	    // map azimuthal index to [0, ns]
-	    int jf = clamp_phi_id_to_grid(j);
-	    ;
-	    // calculate cell 1d index
-	    int l = jf + i * ns;
-	    int lip = l + ns;
-	    int ljp = l + 1;
-	    if (jf == ns - 1) {
+		// map azimuthal index to [0, ns]
+		int jf = clamp_phi_id_to_grid(j);
+		// calculate cell 1d index
+		int l = jf + i * ns;
+		int lip = l + ns;
+		int ljp = l + 1;
+		if (jf == ns - 1) {
 		ljp = i * ns;
 	    }
 

@@ -18,10 +18,6 @@
 #include "viscosity.h"
 
 #include <dirent.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "unistd.h" // for access()
 #include <cfloat>
@@ -65,113 +61,115 @@ const static std::map<const std::string, const int> quantities_file_column_v2 =
      {"delta mass wave damping negative", 20},
      {"delta mass floor density positive", 21}};
 
-const static std::map<const std::string, const int>
-    quantities_file_column_v2_1 = {{"time step", 0},
-				   {"analysis time step", 1},
-				   {"physical time", 2},
-				   {"mass", 3},
-				   {"angular momentum", 4},
-				   {"total energy", 5},
-				   {"internal energy", 6},
-				   {"kinematic energy", 7},
-				   {"potential energy", 8},
-				   {"radial kinetic energy", 9},
-				   {"azimuthal kinetic energy", 10},
-				   {"eccentricity", 11},
-				   {"periastron", 12},
-				   {"qplus", 13},
-				   {"qminus", 14},
-				   {"pdivv", 15},
-				   {"delta mass inner positive", 16},
-				   {"delta mass inner negative", 17},
-				   {"delta mass outer positive", 18},
-				   {"delta mass outer negative", 19},
-				   {"delta mass wave damping positive", 20},
-				   {"delta mass wave damping negative", 21},
-				   {"delta mass floor density positive", 22}};
+const std::map<const std::string, const int> quantities_file_column_v2_1 = {
+    {"time step", 0},
+    {"analysis time step", 1},
+    {"physical time", 2},
+    {"mass", 3},
+    {"angular momentum", 4},
+    {"total energy", 5},
+    {"internal energy", 6},
+    {"kinematic energy", 7},
+    {"potential energy", 8},
+    {"radial kinetic energy", 9},
+    {"azimuthal kinetic energy", 10},
+    {"eccentricity", 11},
+    {"periastron", 12},
+    {"qplus", 13},
+    {"qminus", 14},
+    {"pdivv", 15},
+    {"delta mass inner positive", 16},
+    {"delta mass inner negative", 17},
+    {"delta mass outer positive", 18},
+    {"delta mass outer negative", 19},
+    {"delta mass wave damping positive", 20},
+    {"delta mass wave damping negative", 21},
+    {"delta mass floor density positive", 22}};
 
-const static std::map<const std::string, const int>
-    quantities_file_column_v2_2 = {{"time step", 0},
-				   {"analysis time step", 1},
-				   {"physical time", 2},
-				   {"mass", 3},
-				   {"radius", 4},
-				   {"angular momentum", 5},
-				   {"total energy", 6},
-				   {"internal energy", 7},
-				   {"kinematic energy", 8},
-				   {"potential energy", 9},
-				   {"radial kinetic energy", 10},
-				   {"azimuthal kinetic energy", 11},
-				   {"eccentricity", 12},
-				   {"periastron", 13},
-				   {"qplus", 14},
-				   {"qminus", 15},
-				   {"pdivv", 16},
-				   {"delta mass inner positive", 17},
-				   {"delta mass inner negative", 18},
-				   {"delta mass outer positive", 19},
-				   {"delta mass outer negative", 20},
-				   {"delta mass wave damping positive", 21},
-				   {"delta mass wave damping negative", 22},
-				   {"delta mass floor density positive", 23}};
+const std::map<const std::string, const int> quantities_file_column_v2_2 = {
+    {"time step", 0},
+    {"analysis time step", 1},
+    {"physical time", 2},
+    {"mass", 3},
+    {"radius", 4},
+    {"angular momentum", 5},
+    {"total energy", 6},
+    {"internal energy", 7},
+    {"kinematic energy", 8},
+    {"potential energy", 9},
+    {"radial kinetic energy", 10},
+    {"azimuthal kinetic energy", 11},
+    {"eccentricity", 12},
+    {"periastron", 13},
+    {"qplus", 14},
+    {"qminus", 15},
+    {"pdivv", 16},
+    {"delta mass inner positive", 17},
+    {"delta mass inner negative", 18},
+    {"delta mass outer positive", 19},
+    {"delta mass outer negative", 20},
+    {"delta mass wave damping positive", 21},
+    {"delta mass wave damping negative", 22},
+    {"delta mass floor density positive", 23}};
 
-const static std::map<const std::string, const int>
-    quantities_file_column_v2_3 = {{"time step", 0},
-				   {"analysis time step", 1},
-				   {"physical time", 2},
-				   {"mass", 3},
-				   {"radius", 4},
-				   {"angular momentum", 5},
-				   {"total energy", 6},
-				   {"internal energy", 7},
-				   {"kinematic energy", 8},
-				   {"potential energy", 9},
-				   {"radial kinetic energy", 10},
-				   {"azimuthal kinetic energy", 11},
-				   {"eccentricity", 12},
-				   {"periastron", 13},
-				   {"viscous dissipation", 14},
-				   {"luminosity", 15},
-				   {"pdivv", 16},
-				   {"delta mass inner positive", 17},
-				   {"delta mass inner negative", 18},
-				   {"delta mass outer positive", 19},
-				   {"delta mass outer negative", 20},
-				   {"delta mass wave damping positive", 21},
-				   {"delta mass wave damping negative", 22},
-				   {"delta mass floor density positive", 23},
-				   {"aspect ratio", 24}};
+const std::map<const std::string, const int> quantities_file_column_v2_3 = {
+    {"time step", 0},
+    {"analysis time step", 1},
+    {"physical time", 2},
+    {"mass", 3},
+    {"radius", 4},
+    {"angular momentum", 5},
+    {"total energy", 6},
+    {"internal energy", 7},
+    {"kinematic energy", 8},
+    {"potential energy", 9},
+    {"radial kinetic energy", 10},
+    {"azimuthal kinetic energy", 11},
+    {"eccentricity", 12},
+    {"periastron", 13},
+    {"viscous dissipation", 14},
+    {"luminosity", 15},
+    {"pdivv", 16},
+    {"delta mass inner positive", 17},
+    {"delta mass inner negative", 18},
+    {"delta mass outer positive", 19},
+    {"delta mass outer negative", 20},
+	{"delta mass inner wave damping positive", 21},
+	{"delta mass inner wave damping negative", 22},
+	{"delta mass outer wave damping positive", 23},
+	{"delta mass outer wave damping negative", 24},
+	{"delta mass floor density positive", 25},
+	{"aspect ratio", 26}};
 
-const static std::map<const std::string, const std::string>
-    quantities_file_variables = {{"physical time", "time"},
-				 {"mass", "mass"},
-				 {"radius", "length"},
-				 {"angular momentum", "angular_momentum"},
-				 {"total energy", "energy"},
-				 {"internal energy", "energy"},
-				 {"kinematic energy", "energy"},
-				 {"potential energy", "energy"},
-				 {"viscous dissipation", "power"},
-				 {"luminosity", "power"},
-				 {"pdivv", "pressure per time"},
-				 {"radial kinetic energy", "energy"},
-				 {"azimuthal kinetic energy", "energy"},
-				 {"delta mass inner positive", "mass"},
-				 {"delta mass inner negative", "mass"},
-				 {"delta mass outer positive", "mass"},
-				 {"delta mass outer negative", "mass"},
-				 {"delta mass wave damping positive", "mass"},
-				 {"delta mass wave damping negative", "mass"},
-				 {"delta mass floor density positive", "mass"},
-				 {"time step", "1"},
-				 {"analysis time step", "1"},
-				 {"omega frame", "frequency"},
-				 {"lost mass", "mass"},
-				 {"frame angle", "frequency"},
-				 {"eccentricity", "1"},
-				 {"periastron", "1"},
-				 {"aspect ratio", "1"}};
+const std::map<const std::string, const std::string> quantities_file_variables =
+    {{"physical time", "time"},
+     {"mass", "mass"},
+     {"radius", "length"},
+     {"angular momentum", "angular_momentum"},
+     {"total energy", "energy"},
+     {"internal energy", "energy"},
+     {"kinematic energy", "energy"},
+     {"potential energy", "energy"},
+     {"viscous dissipation", "power"},
+     {"luminosity", "power"},
+     {"pdivv", "pressure per time"},
+     {"radial kinetic energy", "energy"},
+     {"azimuthal kinetic energy", "energy"},
+     {"delta mass inner positive", "mass"},
+     {"delta mass inner negative", "mass"},
+     {"delta mass outer positive", "mass"},
+     {"delta mass outer negative", "mass"},
+     {"delta mass wave damping positive", "mass"},
+     {"delta mass wave damping negative", "mass"},
+     {"delta mass floor density positive", "mass"},
+     {"time step", "1"},
+     {"analysis time step", "1"},
+     {"omega frame", "frequency"},
+     {"lost mass", "mass"},
+     {"frame angle", "frequency"},
+     {"eccentricity", "1"},
+     {"periastron", "1"},
+     {"aspect ratio", "1"}};
 
 static const auto quantities_file_column = quantities_file_column_v2_3;
 
@@ -444,8 +442,10 @@ void write_quantities(t_data &data, bool force_update)
     double InnerNegative = 0.0;
     double OuterPositive = 0.0;
     double OuterNegative = 0.0;
-    double WaveDampingPositive = 0.0;
-    double WaveDampingNegative = 0.0;
+	double InnerWaveDampingPositive = 0.0;
+	double OuterWaveDampingPositive = 0.0;
+	double InnerWaveDampingNegative = 0.0;
+	double OuterWaveDampingNegative = 0.0;
     double FloorPositive = 0.0;
 
     MPI_Reduce(&data.pdivv_total, &pdivv_total, 1, MPI_DOUBLE, MPI_SUM, 0,
@@ -458,10 +458,14 @@ void write_quantities(t_data &data, bool force_update)
 	       0, MPI_COMM_WORLD);
     MPI_Reduce(&MassDelta.OuterNegative, &OuterNegative, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.WaveDampingPositive, &WaveDampingPositive, 1,
+	MPI_Reduce(&MassDelta.InnerWaveDampingPositive, &InnerWaveDampingPositive, 1,
 	       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.WaveDampingNegative, &WaveDampingNegative, 1,
+	MPI_Reduce(&MassDelta.OuterWaveDampingPositive, &OuterWaveDampingPositive, 1,
+		   MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.InnerWaveDampingNegative, &InnerWaveDampingNegative, 1,
 	       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&MassDelta.OuterWaveDampingNegative, &OuterWaveDampingNegative, 1,
+		   MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&MassDelta.FloorPositive, &FloorPositive, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
 
@@ -469,13 +473,14 @@ void write_quantities(t_data &data, bool force_update)
 	// print to logfile
 	fprintf(
 	    fd,
-	    "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 	    N_output, N_outer_loop, PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
 	    qminus, pdivv_total, InnerPositive, InnerNegative, OuterPositive,
-	    OuterNegative, WaveDampingPositive, WaveDampingNegative,
+		OuterNegative, InnerWaveDampingPositive, InnerWaveDampingNegative,
+		OuterWaveDampingPositive, OuterWaveDampingNegative,
 	    FloorPositive, scale_height);
 
 	// close file

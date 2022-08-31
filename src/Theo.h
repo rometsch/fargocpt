@@ -4,7 +4,7 @@
 #include "constants.h"
 #include "global.h"
 #include "types.h"
-#include <math.h>
+#include <cmath>
 
 double calculate_omega_kepler(double r);
 void RefillSigma(t_polargrid *Density);

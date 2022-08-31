@@ -5,7 +5,7 @@
 #include "types.h"
 
 void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
-	       PolarGrid *VAzimuthal, PolarGrid *Energy, double dt);
+		   PolarGrid *VAzimuthal, PolarGrid *Energy, const double dt);
 void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 		PolarGrid *Energy, double dt);
 void ComputeThetaElongations(PolarGrid *VAzimuthal, double dt);

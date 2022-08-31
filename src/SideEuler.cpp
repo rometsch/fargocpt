@@ -7,10 +7,7 @@
 
 */
 
-#include <float.h>
-#include <math.h>
 #include <mpi.h>
-#include <stdio.h>
 
 #include "Force.h"
 #include "Interpret.h"
@@ -42,7 +39,7 @@ extern boolean OuterSourceMass;
 	\param Denom denominator
 	\param Result result
 */
-void divise_polargrid(t_polargrid &num, t_polargrid &denom, t_polargrid &result)
+void divise_polargrid(const t_polargrid &num, const t_polargrid &denom, t_polargrid &result)
 {
     const unsigned int Nmax =
 	result.get_size_radial() * result.get_size_azimuthal();

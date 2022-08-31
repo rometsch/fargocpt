@@ -9,9 +9,9 @@
 #include "LowTasks.h"
 #include "logging.h"
 #include "units.h"
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+
+
+#include <cstring>
 
 namespace constants
 {

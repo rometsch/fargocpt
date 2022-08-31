@@ -9,8 +9,7 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value);
 bool assure_temperature_range(t_data &data);
 
 void move_polargrid(t_polargrid &dst, t_polargrid &src);
-void copy_polargrid(t_polargrid &dst, t_polargrid &src);
-void SwitchPolarGrid(t_polargrid *dst, t_polargrid *src);
+void copy_polargrid(t_polargrid &dst, const t_polargrid& src);
 
 void recalculate_derived_disk_quantities(t_data &data, bool force_update);
 void init_euler(t_data &data);
@@ -18,10 +17,10 @@ void FreeEuler();
 
 void AlgoGas(t_data &data);
 
-void update_with_sourceterms(t_data &data, double dt);
-void update_with_artificial_viscosity(t_data &data, double dt);
-void SubStep3(t_data &data, double dt);
-void radiative_diffusion(t_data &data, double dt);
+void update_with_sourceterms(t_data &data, const double dt);
+void update_with_artificial_viscosity(t_data &data, const double dt);
+void SubStep3(t_data &data, const double dt);
+void radiative_diffusion(t_data &data, const double dt);
 
 void calculate_qplus(t_data &data);
 void viscous_heating(t_data &data);

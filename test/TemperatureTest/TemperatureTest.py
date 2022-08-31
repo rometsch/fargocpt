@@ -18,7 +18,7 @@ def run(fargo_path, par_file):
     wd = os.getcwd()
     os.chdir(fargo_path)
 
-    subprocess.call('./fargo start ' + par_file, shell=True)
+    subprocess.call('mpirun -n 4 ./fargo start ' + par_file, shell=True)
     os.chdir(wd)
 
 def test(out1, dt):

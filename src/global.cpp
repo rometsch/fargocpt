@@ -143,6 +143,7 @@ double hydro_center_mass;
 int OnlyInit;
 int GotoNextOutput, 
     StabilizeViscosity;
+int flux_limiter_type;
 int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;

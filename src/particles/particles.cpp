@@ -21,7 +21,7 @@
 #include "../output.h"
 #include "../Theo.h"
 #include <cstring>
-#include <math.h>
+#include <cmath>
 #include <mpi.h>
 #include <random>
 #include <sstream>

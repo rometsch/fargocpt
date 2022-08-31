@@ -13,7 +13,7 @@
 #include "util.h"
 #include <algorithm>
 #include <cstring>
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "constants.h"
@@ -185,10 +185,11 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    vphi = vphi * pluto_v0 *
 				   units::velocity.get_inverse_cgs_factor();
 
+				const double m_bin = data.get_planetary_system().get_mass(2);
 			    const double Cs =
 				pluto_aspect_ratio *
-				sqrt(constants::G * hydro_center_mass / RMAX) *
-				std::pow(RMAX, parameters::FLARINGINDEX);
+				sqrt(constants::G * m_bin / RMAX) *
+				std::pow(RMAX, FLARINGINDEX);
 			    const double P = sigma * Cs * Cs;
 			    const double T =
 				parameters::MU / constants::R * P / sigma;
@@ -241,7 +242,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
     }
 }
 
-void apply_boundary_condition(t_data &data, double dt, bool final)
+void apply_boundary_condition(t_data &data, const double dt, const bool final)
 {
     // if this is the final boundary condition and damping is enable, do it
     if (final && parameters::damping) {
@@ -747,11 +748,11 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -804,11 +805,11 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -863,11 +864,11 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -920,11 +921,11 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -985,11 +986,11 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.InnerWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -1108,11 +1109,11 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(MassDelta.WaveDampingPositive,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingPositive,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(MassDelta.WaveDampingNegative,
+			sum_without_ghost_cells(MassDelta.OuterWaveDampingNegative,
 						delta * Surf[n_radial],
 						n_radial);
 		    }
@@ -1195,8 +1196,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
-		    std::sqrt(constants::G * com_mass / r_com) * corr -
-		    OmegaFrame * r_com;
+			std::sqrt(constants::G * com_mass / r_com) * corr;
 		const double cell_vr_com = vr_init;
 
 		const double cell_vx_com =
@@ -1267,8 +1267,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 		// Velocity in center of mass frame
 		const double cell_vphi_com =
-		    std::sqrt(constants::G * com_mass / r_com) * corr -
-		    OmegaFrame * r_com;
+			std::sqrt(constants::G * com_mass / r_com) * corr;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
@@ -1280,13 +1279,97 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double cell_vx = cell_vx_com + com_vel.x;
 		const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed;
+		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed -
+				OmegaFrame * rmed;
 
 		const double vp = vphi_arr(n_radial, n_azimuthal);
 		const double vp_new = (vp - vp0) * exp_factor + vp0;
 		vphi_arr(n_radial, n_azimuthal) = vp_new;
 	    }
 	}
+
+	if (parameters::Adiabatic){
+	t_polargrid &energy = data[t_data::ENERGY];
+	//t_polargrid &sigma = data[t_data::DENSITY];
+	for (unsigned int nr = clamped_vphi_id;
+		 nr < energy.get_size_radial(); ++nr) {
+		double factor = std::pow(
+		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int naz = 0;
+		 naz < energy.get_size_azimuthal(); ++naz) {
+	const double cell_x = (*CellCenterX)(nr, naz);
+	const double cell_y = (*CellCenterY)(nr, naz);
+
+	// Position in center of mass frame
+	const double x_com = cell_x - com_pos.x;
+	const double y_com = cell_y - com_pos.y;
+	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+	/// Initial profile temperature
+	const double cell_energy_profile =
+	1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	std::pow(ASPECTRATIO_REF, 2) *
+	std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+	constants::G * com_mass;
+	/*
+	const double cell_sigma = sigma(nr, naz);
+	const double temperature_floor =
+	parameters::minimum_temperature *
+	units::temperature.get_inverse_cgs_factor();
+
+	const double energy_floor = temperature_floor * cell_sigma /
+				parameters::MU * constants::R /
+				(ADIABATICINDEX - 1.0);
+	const double cell_energy0 = std::max(cell_energy_profile, energy_floor);
+				*/
+	const double cell_energy0 = cell_energy_profile;
+
+	const double cell_energy = energy(nr, naz);
+	const double energy_new = (cell_energy - cell_energy0) * exp_factor + cell_energy0;
+
+	energy(nr, naz)  = energy_new;
+		}
+	}
+	}
+
+
+	/*
+
+	t_polargrid &sigma = data[t_data::DENSITY];
+	for (unsigned int nr = clamped_vphi_id;
+		 nr < sigma.get_size_radial(); ++nr) {
+		double factor = std::pow(
+		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int naz = 0;
+		 naz < sigma.get_size_azimuthal(); ++naz) {
+	const double cell_x = (*CellCenterX)(nr, naz);
+	const double cell_y = (*CellCenterY)(nr, naz);
+
+	// Position in center of mass frame
+	const double x_com = cell_x - com_pos.x;
+	const double y_com = cell_y - com_pos.y;
+	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+	const double cell_sigma0 =
+	parameters::sigma0 *
+	std::pow(r_com,
+		 -SIGMASLOPE); // we assume the floor is not reached.
+
+	const double cell_sigma = sigma(nr, naz);
+	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;
+
+	sigma(nr, naz)  = sigma_new;
+		}
+	}*/
+
     }
 }
 
@@ -1917,9 +2000,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
@@ -1933,8 +2016,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr -
-		OmegaFrame * r_com;
+		std::sqrt(constants::G * com_mass / r_com) * corr;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -1948,7 +2030,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    const double cell_vphi =
 		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
-	    vaz(nr, naz) = cell_vphi;
+		vaz(nr, naz) = cell_vphi - OmegaFrame * rmed;
 	} /// END V_PHI
 
 	{ /// V_R
@@ -1971,9 +2053,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
@@ -1987,8 +2069,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr -
-		OmegaFrame * r_com;
+		std::sqrt(constants::G * com_mass / r_com) * corr;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -2024,9 +2105,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * FLARINGINDEX) *
+					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
@@ -2040,8 +2121,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    // Velocity in center of mass frame
 	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr -
-		OmegaFrame * r_com;
+		std::sqrt(constants::G * com_mass / r_com) * corr;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -2072,7 +2152,6 @@ void initial_center_of_mass_boundary(t_data &data)
 			 -parameters::SIGMASLOPE); // we assume the floor is not reached.
 	    sigma(nr, naz) = cell_sigma;
 
-	    /*
 	    /// Initial profile temperature
 	const double cell_energy =
 	    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
@@ -2089,9 +2168,9 @@ void initial_center_of_mass_boundary(t_data &data)
 				    (parameters::ADIABATICINDEX - 1.0);
 
 	energy(nr, naz) = std::max(cell_energy, energy_floor);
-	    */
+
 	    /// dP / dr = 0
-	    energy(nr, naz) = energy(nr - 1, naz);
+		/// energy(nr, naz) = energy(nr - 1, naz);
 	} /// END DENSITY and ENERGY
     }
 }

@@ -57,28 +57,35 @@ static void StsStep2(t_data &data, double dt)
 	data[t_data::QPLUS].clear();
     }
 
-    const bool add_kep_inner =
+	/// Do not Apply sub keplerian boundary for boundary conditions that set
+	/// Vphi themselves
+	const bool add_kep_inner =
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_boundary_layer) &&
 	(parameters::boundary_inner !=
-	 parameters::boundary_condition_precribed_time_variable);
+	 parameters::boundary_condition_precribed_time_variable) &&
+	(!parameters::domegadr_zero);
 
-    if (add_kep_inner) {
+	if (add_kep_inner) {
 	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
-    }
+	}
 
-    if ((parameters::boundary_outer !=
+	if ((parameters::boundary_outer !=
+	 parameters::boundary_condition_center_of_mass_initial) &&
+	(parameters::boundary_outer !=
+	 parameters::boundary_condition_zero_gradient) &&
+	(parameters::boundary_outer !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_outer !=
 	 parameters::boundary_condition_boundary_layer) &&
 	(parameters::boundary_outer !=
 	 parameters::boundary_condition_precribed_time_variable) &&
-	(!parameters::massoverflow)) {
+	(!parameters::massoverflow) && (!parameters::domegadr_zero)) {
 	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
-				       add_kep_inner);
-    }
+					   add_kep_inner);
+	}
 
     if (parameters::artificial_viscosity ==
 	parameters::artificial_viscosity_SN) {
@@ -118,6 +125,41 @@ static void StsStep2(t_data &data, double dt)
 		    data[t_data::Q_PHI](n_radial, n_azimuthal) = 0.0;
 		}
 	    }
+	}
+
+	// If gas disk is adiabatic, we add artificial viscosity as a source
+	// term for advection of thermal energy polargrid
+	if (parameters::Adiabatic) {
+
+		if (parameters::artificial_viscosity_dissipation) {
+		for (int n_radial = 0;
+			 n_radial <= data[t_data::QPLUS].get_max_radial();
+			 ++n_radial) {
+			const double dxtheta = dphi * Rmed[n_radial];
+			const double invdxtheta = 1.0 / dxtheta;
+			for (int n_azimuthal = 0;
+			 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
+			 ++n_azimuthal) {
+			data[t_data::QPLUS](n_radial, n_azimuthal) =
+				-data[t_data::Q_R](n_radial, n_azimuthal) *
+				(data[t_data::V_RADIAL](n_radial + 1,
+							n_azimuthal) -
+				 data[t_data::V_RADIAL](n_radial,
+							n_azimuthal)) *
+				InvDiffRsup[n_radial] -
+				data[t_data::Q_PHI](n_radial, n_azimuthal) *
+				(data[t_data::V_AZIMUTHAL](
+					 n_radial,
+					 n_azimuthal == data[t_data::V_AZIMUTHAL]
+							.get_max_azimuthal()
+					 ? 0
+					 : n_azimuthal + 1) -
+				 data[t_data::V_AZIMUTHAL](n_radial,
+							   n_azimuthal)) *
+				invdxtheta;
+			}
+		}
+		}
 	}
 
 	// add artificial viscous pressure source term to v_radial
@@ -167,41 +209,6 @@ static void StsStep2(t_data &data, double dt)
 				 ? data[t_data::Q_PHI].get_max_azimuthal()
 				 : n_azimuthal - 1)) *
 			invdxtheta;
-	    }
-	}
-
-	// If gas disk is adiabatic, we add artificial viscosity as a source
-	// term for advection of thermal energy polargrid
-	if (parameters::Adiabatic) {
-
-	    if (parameters::artificial_viscosity_dissipation) {
-		for (int n_radial = 0;
-		     n_radial <= data[t_data::QPLUS].get_max_radial();
-		     ++n_radial) {
-		    const double dxtheta = dphi * Rmed[n_radial];
-		    const double invdxtheta = 1.0 / dxtheta;
-		    for (int n_azimuthal = 0;
-			 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-			 ++n_azimuthal) {
-			data[t_data::QPLUS](n_radial, n_azimuthal) =
-			    -data[t_data::Q_R](n_radial, n_azimuthal) *
-				(data[t_data::V_RADIAL](n_radial + 1,
-							n_azimuthal) -
-				 data[t_data::V_RADIAL](n_radial,
-							n_azimuthal)) *
-				InvDiffRsup[n_radial] -
-			    data[t_data::Q_PHI](n_radial, n_azimuthal) *
-				(data[t_data::V_AZIMUTHAL](
-				     n_radial,
-				     n_azimuthal == data[t_data::V_AZIMUTHAL]
-							.get_max_azimuthal()
-					 ? 0
-					 : n_azimuthal + 1) -
-				 data[t_data::V_AZIMUTHAL](n_radial,
-							   n_azimuthal)) *
-				invdxtheta;
-		    }
-		}
 	    }
 	}
     }
@@ -259,7 +266,7 @@ static void calculateQvis(t_data &data)
 	}
 
 	/// We calculate the heating source term Qplus for i=max
-	for (int n_azimuthal = 0;
+	/*for (int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (data[t_data::VISCOSITY](data[t_data::QPLUS].get_max_radial(),
@@ -285,9 +292,9 @@ static void calculateQvis(t_data &data)
 		data[t_data::QPLUS](data[t_data::QPLUS].get_max_radial(),
 				    n_azimuthal) += qplus;
 	    }
-	}
+	}*/
 	/// We calculate the heating source term Qplus for i=0
-	for (int n_azimuthal = 0;
+	/*for (int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
 	     ++n_azimuthal) {
 	    if (data[t_data::VISCOSITY](0, n_azimuthal) != 0.0) {
@@ -300,8 +307,8 @@ static void calculateQvis(t_data &data)
 			     std::log(Rmed[1] / Rmed[2]));
 
 		data[t_data::QPLUS](0, n_azimuthal) += qplus;
-	    }
-	}
+		}
+	}*/
     }
 }
 
@@ -400,7 +407,7 @@ static double STS_CorrectTimeStep(int n0, double dta)
     return (dtr);
 }
 
-void Sts(t_data &data, double dt)
+void Sts(t_data &data, const double dt)
 {
 
     if (parameters::heating_viscous_enabled) {
@@ -408,7 +415,7 @@ void Sts(t_data &data, double dt)
 	data[t_data::QPLUS].clear();
     }
 
-    boundary_conditions::apply_boundary_condition(data, dt, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
     double dt_par;
 
     MPI_Allreduce(&dt_parabolic_local, &dt_par, 1, MPI_DOUBLE, MPI_MIN,
@@ -448,9 +455,9 @@ void Sts(t_data &data, double dt)
 
 	ComputeViscousStressTensor(data);
 	viscosity::update_velocities_with_viscosity(
-	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL], tau);
+		data, tau);
 
-	boundary_conditions::apply_boundary_condition(data, tau, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
 
 	if (parameters::Adiabatic) {
 
