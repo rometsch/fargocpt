@@ -224,17 +224,6 @@ void t_radialgrid::write1D(std::string filename, bool one_file) const
 	}
     }
 
-    // if unit is set multiply values by factor
-    unsigned int value_offset = 1;
-    if (one_file)
-	value_offset = 0;
-    if (m_unit) {
-	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-	    buffer[number_of_values * n_radial + value_offset] *=
-		m_unit->get_cgs_factor();
-	}
-    }
-
     MPI_File_write_all(fh, buffer, count * number_of_values, MPI_DOUBLE,
 		       &status);
 
@@ -297,14 +286,6 @@ void t_radialgrid::read1D(const char *_filename)
 
     // close file
     MPI_File_close(&fh);
-
-    // if unit is set multiply values by factor
-    if (m_unit) {
-	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
-	    buffer_file[number_of_values * n_radial + 1] /=
-		m_unit->get_cgs_factor();
-	}
-    }
 
     // allocate buffers for radius & value and copy values from buffer to it
     double *buffer_radius = new double[count];
