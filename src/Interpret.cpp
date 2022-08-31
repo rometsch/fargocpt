@@ -591,28 +591,23 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
 	{
 	/// Read Flux Limiter
-	char flux_limiter_text[512];
-	strncpy(
-		flux_limiter_text,
-		config::cfg.get<std::string>("FluxLimiter", "VanLeer"),
-		256); // same as MAXNAME from config.cpp
-	for (char *t = flux_limiter_text; *t != '\0'; ++t) {
-		*t = tolower(*t);
-	}
+
+	
+	std::string flux_limiter_text = config::cfg.get<std::string>("FluxLimiter", "VanLeer");
 
 	bool could_read_flux_limiter = false;
-	if (strcmp(flux_limiter_text, "vanleer") == 0 ||
-		strcmp(flux_limiter_text, "van") == 0 ||
-		strcmp(flux_limiter_text, "leer") == 0 ||
-		strcmp(flux_limiter_text, "vl") == 0  ||
-		strcmp(flux_limiter_text, "v") == 0) {
+	if (strcmp(flux_limiter_text.c_str(), "vanleer") == 0 ||
+		strcmp(flux_limiter_text.c_str(), "van") == 0 ||
+		strcmp(flux_limiter_text.c_str(), "leer") == 0 ||
+		strcmp(flux_limiter_text.c_str(), "vl") == 0  ||
+		strcmp(flux_limiter_text.c_str(), "v") == 0) {
 		logging::print_master(LOG_INFO "Using VanLeer flux limiter\n");
 		flux_limiter_type = 0;
 		could_read_flux_limiter = true;
 	}
 
-	if (strcmp(flux_limiter_text, "mc") == 0 ||
-		strcmp(flux_limiter_text, "m") == 0) {
+	if (strcmp(flux_limiter_text.c_str(), "mc") == 0 ||
+		strcmp(flux_limiter_text.c_str(), "m") == 0) {
 		logging::print_master(LOG_INFO "Using MC flux limiter\n");
 		flux_limiter_type = 1;
 		could_read_flux_limiter = true;

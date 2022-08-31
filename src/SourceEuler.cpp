@@ -55,41 +55,41 @@ Pair IndirectTermPlanets;
 	\param array polargrid to check
 	\returns >0 if there are negative entries, 0 otherwise
 */
-static int DetectCrash(t_polargrid *array)
-{
-    unsigned int result = 0;
+// static int DetectCrash(t_polargrid *array)
+// {
+//     unsigned int result = 0;
 
-    for (unsigned int n_radial = 0; n_radial < array->Nrad; ++n_radial) {
-	for (unsigned int n_azimuthal = 0; n_azimuthal < array->Nsec;
-	     ++n_azimuthal) {
-	    /// since nan < 0 is false and nan > 0 is false
-	    /// we need to assure that array > 0 to catch bad values
-	    if (!((*array)(n_radial, n_azimuthal) > 0.0)) {
-		logging::print(LOG_WARNING "%s negative in cell: (%u,%u)=%g\n",
-			       array->get_name(), n_radial, n_azimuthal,
-			       (*array)(n_radial, n_azimuthal));
-		result += 1;
-	    }
-	}
-    }
+//     for (unsigned int n_radial = 0; n_radial < array->Nrad; ++n_radial) {
+// 	for (unsigned int n_azimuthal = 0; n_azimuthal < array->Nsec;
+// 	     ++n_azimuthal) {
+// 	    /// since nan < 0 is false and nan > 0 is false
+// 	    /// we need to assure that array > 0 to catch bad values
+// 	    if (!((*array)(n_radial, n_azimuthal) > 0.0)) {
+// 		logging::print(LOG_WARNING "%s negative in cell: (%u,%u)=%g\n",
+// 			       array->get_name(), n_radial, n_azimuthal,
+// 			       (*array)(n_radial, n_azimuthal));
+// 		result += 1;
+// 	    }
+// 	}
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
-static void HandleCrash(t_data &data)
-{
-    if (DetectCrash(&data[t_data::SIGMA])) {
-	logging::print(LOG_ERROR "DetectCrash: Density < 0\n");
-	PersonalExit(1);
-    }
+// static void HandleCrash(t_data &data)
+// {
+//     if (DetectCrash(&data[t_data::SIGMA])) {
+// 	logging::print(LOG_ERROR "DetectCrash: Density < 0\n");
+// 	PersonalExit(1);
+//     }
 
-    if (parameters::Adiabatic) {
-	if (DetectCrash(&data[t_data::ENERGY])) {
-	    logging::print(LOG_ERROR "DetectCrash: Energy < 0\n");
-	    PersonalExit(1);
-	}
-    }
-}
+//     if (parameters::Adiabatic) {
+// 	if (DetectCrash(&data[t_data::ENERGY])) {
+// 	    logging::print(LOG_ERROR "DetectCrash: Energy < 0\n");
+// 	    PersonalExit(1);
+// 	}
+//     }
+// }
 
 void ComputeViscousStressTensor(t_data &data)
 {
@@ -520,7 +520,7 @@ void AlgoGas(t_data &data)
 	    /// TODO moved apply boundaries here
 		boundary_conditions::apply_boundary_condition(data, 0.0, false);
 
-		Transport(data, &data[t_data::DENSITY], &data[t_data::V_RADIAL],
+		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 			  hydro_dt);
 	}
@@ -917,9 +917,6 @@ void update_with_artificial_viscosity(t_data &data, const double dt)
 	}
     }
 }
-
-void calculate_qplus(t_data &data)
-{
 
 void irradiation(t_data &data) {
 
@@ -1791,7 +1788,6 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	// Calculate and fill VMean array
 	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
->>>>>>> Lucas_Nbody
 	 ++n_radial) {
 	v_mean[n_radial] = 0.0;
 	for (unsigned int n_azimuthal = 0;
@@ -2001,8 +1997,8 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		const double SigmaFloor =
 		parameters::sigma0 * parameters::sigma_floor;
 		logging::print(LOG_INFO "Cell has a surface denstity of : %g\t%g g/cm^2\t%g 1/SigmaFloor\n",
-			   data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug), data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)*units::surface_density,
-				data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)/SigmaFloor);
+			   data[t_data::SIGMA](n_radial_debug, n_azimuthal_debug), data[t_data::SIGMA](n_radial_debug, n_azimuthal_debug)*units::surface_density,
+				data[t_data::SIGMA](n_radial_debug, n_azimuthal_debug)/SigmaFloor);
 		if (parameters::Adiabatic) {
 		const double mu = pvte::get_mu(data, n_radial_debug, n_azimuthal_debug);
 		const double gamma_eff =
@@ -2010,7 +2006,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		const double cell_temperature =
 			mu / constants::R * (gamma_eff - 1.0) *
 			data[t_data::ENERGY](n_radial_debug, n_azimuthal_debug) /
-			data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug) *
+			data[t_data::SIGMA](n_radial_debug, n_azimuthal_debug) *
 			units::temperature.get_cgs_factor();
 		logging::print(LOG_INFO "Cell has a Temperature of      : %g K\n",
 			   cell_temperature);
@@ -2197,7 +2193,7 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 			const double dist = std::max(
 				std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
-		Cs2 += (ASPECTRATIO_REF * ASPECTRATIO_REF * std::pow(dist, 2.0*FLARINGINDEX)
+		Cs2 += (parameters::ASPECTRATIO_REF * parameters::ASPECTRATIO_REF * std::pow(dist, 2.0*parameters::FLARINGINDEX)
 				* constants::G * mpl[k]) / dist;
 	    }
 

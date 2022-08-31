@@ -189,7 +189,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    const double Cs =
 				pluto_aspect_ratio *
 				sqrt(constants::G * m_bin / RMAX) *
-				std::pow(RMAX, FLARINGINDEX);
+				std::pow(RMAX, parameters::FLARINGINDEX);
 			    const double P = sigma * Cs * Cs;
 			    const double T =
 				parameters::MU / constants::R * P / sigma;
@@ -1311,9 +1311,9 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	/// Initial profile temperature
 	const double cell_energy_profile =
-	1.0 / (ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	std::pow(ASPECTRATIO_REF, 2) *
-	std::pow(r_com, -SIGMASLOPE - 1.0 + 2.0 * FLARINGINDEX) *
+	1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
+	std::pow(parameters::ASPECTRATIO_REF, 2) *
+	std::pow(r_com, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
 	constants::G * com_mass;
 	/*
 	const double cell_sigma = sigma(nr, naz);
@@ -2000,9 +2000,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
@@ -2053,9 +2053,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
++					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =
@@ -2105,9 +2105,9 @@ void initial_center_of_mass_boundary(t_data &data)
 		vr0 = 0.0;
 	    } else {
 		corr =
-		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * FLARINGINDEX) *
-					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
+		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
+					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
+					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		const double v_k = std::sqrt(constants::G * com_mass / r_com);
 		const double h =

@@ -185,7 +185,7 @@ void init_radialarrays()
 
 	// TODO: Is already calculated a few lines above. assert should check
 	// this
-	assert((Rmed[nRadial] - GlobalRmed[nRadial + IMIN]) < DBL_EPSILON);
+	assert((Rmed[nRadial] - GlobalRmed[nRadial + IMIN]) < std::numeric_limits<double>::epsilon());
 
 	Surf[nRadial] =
 	    M_PI * (std::pow(Rsup[nRadial], 2) - std::pow(Rinf[nRadial], 2)) /
@@ -1576,13 +1576,13 @@ void init_gas_velocities(t_data &data)
 				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 
 		    /// Viscous speed
-			const double h = ASPECTRATIO_REF * std::pow(r_com, FLARINGINDEX);
+			const double h = parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
 		    const double cs_iso =
-			ASPECTRATIO_REF *
+			parameters::ASPECTRATIO_REF *
 			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, FLARINGINDEX);
-		    const double H = ASPECTRATIO_REF * r_com;
-		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+			std::pow(r_com, parameters::FLARINGINDEX);
+		    const double H = h * r_com;
+		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		    vr0 = -3.0 * nu / r_com *
 			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 		}
@@ -1650,13 +1650,13 @@ void init_gas_velocities(t_data &data)
 
 		    /// Viscous speed
 		    const double cs_iso =
-			ASPECTRATIO_REF *
+			parameters::ASPECTRATIO_REF *
 			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, FLARINGINDEX);
-		    const double H = ASPECTRATIO_REF * r_com;
-		    const double nu = ALPHAVISCOSITY * cs_iso * H;
+			std::pow(r_com, parameters::FLARINGINDEX);
+		    const double H = parameters::ASPECTRATIO_REF * r_com;
+		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
 		    vr0 = -3.0 * nu / r_com *
-			  (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
+			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
 		}
 
 		// Velocities in center of mass frame

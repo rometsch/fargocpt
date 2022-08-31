@@ -107,7 +107,7 @@ void t_planetary_system::derive_config() {
 }
 
 // find the cell center radius in which r lies.
-static double find_cell_centere_radius(const double r)
+static double find_cell_center_radius(const double r)
 {
     if (r < RMIN || r > RMAX) {
 	die("Can not find cell center radius outside the grid at r = %f!", r);
@@ -152,12 +152,11 @@ void t_planetary_system::init_planet(config::Config &cfg)
     }
 
 	    if (CICPlanet) {
-		// initialization puts centered-in-cell planets (with
-		// excentricity = 0 only)
-		unsigned int j = 0;
-		while (GlobalRmed[j] < semi_major_axis)
-		    j++;
-		semi_major_axis = Radii[j + 1];
+		// initialization puts centered-in-cell planets
+		if (eccentricity > 0) {
+			die("Centering planet in cell and eccentricity > 0 are not supported at the same time.");
+		}
+		semi_major_axis = find_cell_center_radius(semi_major_axis);
 	    }
 
     t_planet *planet = new t_planet();

@@ -122,7 +122,7 @@ void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     compute_velocities_from_momenta(*Density, *VRadial, *VAzimuthal);
 
 	// assure minimum density after transport
-	assure_minimum_value(data[t_data::DENSITY],
+	assure_minimum_value(data[t_data::SIGMA],
 			 parameters::sigma_floor * parameters::sigma0);
 
 	if (parameters::Adiabatic) {

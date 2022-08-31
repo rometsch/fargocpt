@@ -657,6 +657,8 @@ void t_planet::calculate_orbital_elements(double x, double y, double vx,
 	PerihelionPA = std::atan2(y, x);
     }
 
+    m_omega = omega;
+    m_orbital_period = P;
     m_semi_major_axis = a;
     m_eccentricity = e;
     m_mean_anomaly = M;
