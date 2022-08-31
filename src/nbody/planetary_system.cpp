@@ -246,21 +246,21 @@ void t_planetary_system::list_planets()
     logging::print(LOG_INFO "\n");
     logging::print(
 	LOG_INFO
-	" #   | e          | a          | T [t0]     | T [a]      | accreting  | feels disk | feels plan.|\n");
+	" #   | e          | a          | T [t0]     | T [a]      | accreting  |\n");
     logging::print(
 	LOG_INFO
-	"-----+------------+------------+------------+------------+------------+------------+------------+\n");
+	"-----+------------+------------+------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	logging::print(
 	    LOG_INFO
-	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |          %c |          %c |\n",
+	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |\n",
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(),
 	    get_planet(i).get_orbital_period(),
 	    get_planet(i).get_orbital_period() * units::time.get_cgs_factor() /
 		units::cgs_Year,
-	    get_planet(i).get_acc(), '-', '-');
+	    get_planet(i).get_acc());
     }
 
     logging::print(LOG_INFO "\n");
