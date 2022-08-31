@@ -37,6 +37,7 @@ Config::Config(const std::string &filename) {
 Config::Config(const YAML::Node &n)
 {
     m_root = std::make_shared<YAML::Node>(YAML::Clone(lowercased_node(n)));
+    m_default = std::make_shared<YAML::Node>();
 };
 
 Config Config::get_subconfig(const std::string &key)
@@ -63,11 +64,16 @@ void Config::print() {
     std::cout << *m_root << std::endl;
 }
 
+void Config::print_default() {
+    std::cout << *m_default << std::endl;
+}
+
 void Config::load_file(const std::string &filename)
 {
 	std::ifstream infile(filename);
     YAML::Node node = YAML::Load(infile);
     m_root = std::make_shared<YAML::Node>(lowercased_node(node));
+    m_default = std::make_shared<YAML::Node>();
 }
 
 template <typename T> bool isnan(const T &x) {
@@ -111,6 +117,7 @@ bool Config::get_flag(const std::string &key)
 
 bool Config::get_flag(const std::string &key, const bool default_value)
 {
+    (*m_default)[key] = default_value;
     if (contains(key)) {
 	return get_flag(key);
     } else {
@@ -120,6 +127,7 @@ bool Config::get_flag(const std::string &key, const bool default_value)
 
 bool Config::get_flag(const std::string &key, const std::string &default_value)
 {
+    (*m_default)[key] = default_value;
     if (contains(key)) {
 	return get_flag(key);
     } else {
@@ -129,11 +137,13 @@ bool Config::get_flag(const std::string &key, const std::string &default_value)
 
 bool Config::get_flag(const std::string &key, const char *default_value)
 {
+    (*m_default)[key] = default_value;
     return get_flag(key, std::string(default_value));
 }
 
 char Config::get_first_letter_lowercase(const std::string &key, const std::string &default_value)
 {
+    (*m_default)[key] = default_value;
     std::string value = get<std::string>(key, default_value);
     if (value.length() == 0) {
         value = std::string(default_value);
@@ -204,6 +214,7 @@ template <typename T> T Config::get(const std::string &key, const units::precise
 
 template <typename T> T Config::get(const std::string &key, const T &default_value)
 {
+    (*m_default)[key] = default_value;
     T rv;
     const std::string lkey = lowercase(key);
     if (contains(key)) {
@@ -235,6 +246,7 @@ template <typename T> T Config::get(const std::string &key,
                             const T &default_value, 
                             const units::precise_unit& unit) 
 {    
+    (*m_default)[key] = default_value;
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;
@@ -259,6 +271,7 @@ template <typename T> T Config::get(const std::string &key,
                             const std::string &default_value, 
                             const units::precise_unit& unit) 
 {
+    (*m_default)[key] = default_value;
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;

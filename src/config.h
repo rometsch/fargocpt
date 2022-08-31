@@ -18,6 +18,7 @@ class Config
 {
   private:
     std::shared_ptr<YAML::Node> m_root;
+    std::shared_ptr<YAML::Node> m_default;
 
   public:
     Config(){};
@@ -56,6 +57,7 @@ class Config
     std::vector<Config> get_planet_config();
 
     void print();
+    void print_default();
 };
 
 extern Config cfg;

@@ -171,6 +171,7 @@ int main(int argc, char *argv[])
     }
 
     parameters::summarize_parameters();
+	config::cfg.print_default();
 
 
     boundary_conditions::init_prescribed_time_variable_boundaries(data);
