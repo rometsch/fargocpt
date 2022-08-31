@@ -58,8 +58,7 @@ class t_planetary_system
     void config_consistency_checks();
     void init_corotation_body();
     void init_hydro_frame_center();
-
-
+    void derive_config();
 
     void init_planet(config::Config& cfg);
     void list_planets();

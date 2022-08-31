@@ -112,7 +112,6 @@ int main(int argc, char *argv[])
     // output are files created)
     output::check_free_space(data);
 
-    parameters::summarize_parameters();
     parameters::write_grid_data_to_file();
 
     units::print_code_units();
@@ -170,6 +169,9 @@ int main(int argc, char *argv[])
 	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
 	PersonalExit(1);
     }
+
+    parameters::summarize_parameters();
+
 
     boundary_conditions::init_prescribed_time_variable_boundaries(data);
     init_physics(data);

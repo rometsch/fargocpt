@@ -721,11 +721,10 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
 
     heating_viscous_enabled =
-	config::cfg.get_flag("HeatingViscous", "no");
+	config::cfg.get_flag("HeatingViscous", "yes");
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
     
-	heating_star_enabled = config::cfg.get_flag("HeatingStar", "no");
 	heating_star_factor =
 	config::cfg.get<double>("HeatingStarFactor", 1.0);
     heating_star_simple =
@@ -1322,10 +1321,9 @@ void summarize_parameters()
 
     logging::print_master(
 	LOG_INFO
-	"Heating from star is %s. Using %s model with ramping time of %g and a total factor %g.\n",
+	"Heating from star and planets is %s. Using %s model with a total factor %g.\n",
 	heating_star_enabled ? "enabled" : "disabled",
-	heating_star_simple ? "simplified" : "advanced",
-	heating_star_ramping_time, heating_star_factor);
+	heating_star_simple ? "simplified" : "advanced", heating_star_factor);
     logging::print_master(
 	LOG_INFO
 	"Heating from viscous dissipation is %s. Using a total factor of %g.\n",

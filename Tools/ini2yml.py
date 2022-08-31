@@ -51,7 +51,13 @@ def remove_deprecated_entries(params):
     params: dict
         Dictionary containing the config.
     """
-    remove_entry(params, "Sigma0InCodeUnits")
+    obsolete = [
+        "Sigma0InCodeUnits",
+        "HeatingStar",
+        "HeatingStarRampingTime"
+    ]
+    for key in obsolete:
+        remove_entry(params, key)
 
     for planet in params["planets"]:
         remove_entry(planet, "Feels Disk")
