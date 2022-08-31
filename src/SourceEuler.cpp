@@ -181,11 +181,9 @@ bool assure_temperature_range(t_data &data)
     t_polargrid &energy = data[t_data::ENERGY];
     t_polargrid &density = data[t_data::SIGMA];
 
-    const double Tmin = parameters::minimum_temperature *
-			units::temperature.get_inverse_cgs_factor();
+    const double Tmin = parameters::minimum_temperature;
 
-    const double Tmax = parameters::maximum_temperature *
-			units::temperature.get_inverse_cgs_factor();
+    const double Tmax = parameters::maximum_temperature;
 
     for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
 	 ++n_radial) {
