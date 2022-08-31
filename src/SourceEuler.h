@@ -25,7 +25,6 @@ void radiative_diffusion(t_data &data, double dt);
 
 void calculate_qplus(t_data &data);
 void viscous_heating(t_data &data);
-void irradiation_visibility(t_data &data);
 void irradiation(t_data &data);
 void irradiation_single(t_data &data, const t_planet &planet);
 
