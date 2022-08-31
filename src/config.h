@@ -54,10 +54,11 @@ class Config
     bool contains(const std::string &key);
 
     Config get_subconfig(const std::string &key);
-    std::vector<Config> get_planet_config();
+    std::vector<Config> get_nbody_config();
 
     void print();
     void print_default();
+    void write_default(const std::string &filename);
 };
 
 extern Config cfg;

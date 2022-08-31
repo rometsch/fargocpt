@@ -68,7 +68,7 @@ void t_planetary_system::init_system(const std::string &filename)
 
     config::Config cfg(filename);
 
-    std::vector<config::Config> planet_configs = cfg.get_planet_config();
+    std::vector<config::Config> planet_configs = cfg.get_nbody_config();
     for (auto &planet_cfg : planet_configs) {
 		init_planet(planet_cfg);
     }

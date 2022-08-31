@@ -171,7 +171,9 @@ int main(int argc, char *argv[])
     }
 
     parameters::summarize_parameters();
-	// config::cfg.print_default();
+	if (config::cfg.get_flag("WriteDefaultValues", "no")) {
+		config::cfg.write_default(output::outdir + "default_config.yml");
+	}
 
 
     boundary_conditions::init_prescribed_time_variable_boundaries(data);

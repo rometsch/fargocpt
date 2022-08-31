@@ -47,17 +47,17 @@ Config Config::get_subconfig(const std::string &key)
 }
 
 
-std::vector<Config> Config::get_planet_config()
+std::vector<Config> Config::get_nbody_config()
 {
     const auto &n = *m_root;
-    std::vector<Config> planets;
-    if (contains("planets")) {
-        auto & node = n["planets"];
-        for (auto &planet_node : n["planets"]) {
-            planets.emplace_back(YAML::Clone(planet_node));
+    std::vector<Config> bodies;
+    if (contains("nbody")) {
+        auto & node = n["nbody"];
+        for (auto &new_node : n["nbody"]) {
+            bodies.emplace_back(YAML::Clone(new_node));
         }
     }
-    return planets;
+    return bodies;
 }
 
 void Config::print() {
@@ -66,6 +66,14 @@ void Config::print() {
 
 void Config::print_default() {
     std::cout << *m_default << std::endl;
+}
+
+void Config::write_default(const std::string &filename) {
+    const auto & default_values = *m_default;
+    const std::string outstr = YAML::Dump(default_values);
+    std::ofstream out(filename);
+    out << outstr;
+    out.close();
 }
 
 void Config::load_file(const std::string &filename)
