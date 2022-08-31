@@ -89,9 +89,6 @@ double maximum_temperature;
 double MU;
 bool heating_viscous_enabled;
 double heating_viscous_factor;
-bool heating_star_enabled;
-double heating_star_factor;
-bool heating_star_simple;
 
 double cooling_radiative_factor;
 bool cooling_radiative_enabled;
@@ -376,7 +373,7 @@ void read(const std::string &filename, t_data &data)
     /* grid */
     RMIN = config::cfg.get<double>("RMIN", L0);
     RMAX = config::cfg.get<double>("RMAX", L0);
-	
+
     NRadial = config::cfg.get<unsigned int>("NRAD", 64);
     NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
 
@@ -725,11 +722,7 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("HeatingViscous", "yes");
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
-    
-	heating_star_factor =
-	config::cfg.get<double>("HeatingStarFactor", 1.0);
-    heating_star_simple =
-	config::cfg.get_flag("HeatingStarSimple", "yes");
+
 
     radiative_diffusion_enabled =
 	config::cfg.get_flag("RadiativeDiffusion", "no");
@@ -961,13 +954,6 @@ void read(const std::string &filename, t_data &data)
     default:
 	die("Invalid setting for Opacity: %s",
 	    config::cfg.get<std::string>("Opacity", "Lin").c_str());
-    }
-
-    if (heating_star_enabled) {
-	if (star_radius*L0 < 0.1*units::solar_radius_in_au*units::au) {
-	    die("Star radius is smaller than Jupiter with %.3e [R_sol]. This cannot be an active star\n",
-		star_radius);
-	}
     }
 
     // boundary layer parameters
@@ -1320,11 +1306,6 @@ void summarize_parameters()
     logging::print_master(LOG_INFO "Maximum temperature: %.5e K = %.5e\n",
 			  maximum_temperature*units::temperature, maximum_temperature);
 
-    logging::print_master(
-	LOG_INFO
-	"Heating from star and planets is %s. Using %s model with a total factor %g.\n",
-	heating_star_enabled ? "enabled" : "disabled",
-	heating_star_simple ? "simplified" : "advanced", heating_star_factor);
     logging::print_master(
 	LOG_INFO
 	"Heating from viscous dissipation is %s. Using a total factor of %g.\n",

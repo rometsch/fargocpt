@@ -120,12 +120,6 @@ extern double maximum_temperature;
 extern bool heating_viscous_enabled;
 /// viscous heating factor
 extern double heating_viscous_factor;
-/// enable star heating
-extern bool heating_star_enabled;
-/// star heating factor
-extern double heating_star_factor;
-/// star heating mode
-extern bool heating_star_simple;
 
 /// local radiative cooling enabled
 extern bool cooling_radiative_enabled;
