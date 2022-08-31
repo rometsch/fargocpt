@@ -634,7 +634,7 @@ void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
 	if(parameters::n_bodies_for_hydroframe_center == 1){
 		if(data.get_planetary_system().get_number_of_planets() > 1){
 			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
-			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
+			if(data.get_planetary_system().get_planet(1).get_semi_major_axis()*15.0 > RMAX){
 				calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
 			} else {
 				// We are looking at a circumbinary (or more Nbodies) disk
