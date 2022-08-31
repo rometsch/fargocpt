@@ -470,10 +470,10 @@ void compute_gamma_mu(t_data &data)
 			    units::energy_density.get_cgs_factor() / densityCGS;
 	    } else {
 		densityCGS =
-		    sigma / (parameters::density_factor * H) * units::density;
+		    sigma / (parameters::density_factor * H) * units::density.get_cgs_factor();
 
 		energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) *
-			    units::energy_density /
+			    units::energy_density.get_cgs_factor() /
 			    (sigma * units::surface_density);
 	    }
 
