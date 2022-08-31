@@ -89,6 +89,7 @@ double maximum_temperature;
 double MU;
 bool heating_viscous_enabled;
 double heating_viscous_factor;
+bool heating_star_enabled;
 
 double cooling_radiative_factor;
 bool cooling_radiative_enabled;

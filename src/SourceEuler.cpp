@@ -1004,17 +1004,22 @@ void irradiation_single(t_data &data, const t_planet &planet) {
 		const double eps = 0.5; // TODO: add a parameter
 		// choose according to Chiang & Goldreich (1997)
 		const double dlogH_dlogr = 9.0 / 7.0;
+		
+		// irradiation contribution near and far from the star
+		// see D'Angelo & Marzari 2012
+		const double roverd = distance < radius ? 1.0 : radius/distance;
+		const double W_G = 0.4 * roverd + HoverR * (dlogH_dlogr - 1.0);
+
 		// use eq. 7 from Menou & Goodman (2004) (rearranged), Qirr
 		// = 2*(1-eps)*L_star/(4 pi r^2)*(dlogH/dlogr - 1) * H/r *
 		// 1/Tau_eff here we use (1-eps) =
 		// parameters::heating_star_factor L_star = 4 pi R_star^2
 		// sigma_sb T_star^4
-		double qplus = 2 * (1 - eps); // 2*(1-eps)
-		qplus *=
-		sigma * std::pow(temperature, 4) *
-		std::pow(radius / distance, 2); // *L_star/(4 pi r^2)
-		qplus *= dlogH_dlogr - 1;		// *(dlogH/dlogr - 1)
-		qplus *= HoverR;			// * H/r
+		// with modifications from D'Angelo & Marzari 2012
+		// for near and far field
+		double qplus = 2 * (1 - eps);
+		qplus *= sigma * std::pow(temperature, 4) * std::pow(roverd, 2); // *L_star/(4 pi r^2)
+		qplus *= W_G;
 		qplus /= tau_eff;			// * 1/Tau_eff
 		data[t_data::QPLUS](nrad, naz) += ramping * qplus;
 	}

@@ -121,6 +121,8 @@ extern bool heating_viscous_enabled;
 /// viscous heating factor
 extern double heating_viscous_factor;
 
+extern bool heating_star_enabled;
+
 /// local radiative cooling enabled
 extern bool cooling_radiative_enabled;
 /// local radiative cooling factor
