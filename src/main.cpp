@@ -269,7 +269,6 @@ int main(int argc, char *argv[])
 			      "Finished restarting planetary system.\n");
 
 	recalculate_derived_disk_quantities(data, PhysicalTime);
-	quantities::calculate_disk_ecc_vector(data);
 
 	if (parameters::variableGamma) {
 

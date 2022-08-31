@@ -281,6 +281,8 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
     }
 
 	ECC_GROWTH_MONITOR = config::value_as_bool_default("WriteEccentricityChange", NO);
+	ecc_old = 0.0;
+	peri_old = 0.0;
 	delta_ecc_source = 0.0;
 	delta_peri_source = 0.0;
 	delta_ecc_art_visc = 0.0;

@@ -287,13 +287,10 @@ t_data::t_data()
 
 	m_polargrids[ECCENTRICITY_NEW].set_scalar(true);
 	m_polargrids[ECCENTRICITY_NEW].set_name("Eccentricity New");
-	m_polargrids[ECCENTRICITY_OLD].set_scalar(true);
-	m_polargrids[ECCENTRICITY_OLD].set_name("Eccentricity Old");
 
 	m_polargrids[PERIASTRON_NEW].set_scalar(true);
 	m_polargrids[PERIASTRON_NEW].set_name("Periastron New");
-	m_polargrids[PERIASTRON_OLD].set_scalar(true);
-	m_polargrids[PERIASTRON_OLD].set_name("Periastron Old");
+
 
     pdivv_total = 0.0;
 }

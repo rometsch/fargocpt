@@ -133,7 +133,7 @@ void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 	}
 
 	if(ECC_GROWTH_MONITOR){
-		//quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_transport, delta_peri_transport);
+		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_transport, delta_peri_transport);
 	}
 }
 

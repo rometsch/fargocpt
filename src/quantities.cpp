@@ -763,36 +763,22 @@ void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 {
 	// ecc holds the current eccentricity
 	t_polargrid &ecc_new = data[t_data::ECCENTRICITY_NEW];
-	t_polargrid &ecc_old = data[t_data::ECCENTRICITY_OLD];
-
 	t_polargrid &P_new = data[t_data::PERIASTRON_NEW];
-	t_polargrid &P_old = data[t_data::PERIASTRON_OLD];
-
-	// store data ecc in ecc_tmp
-	move_polargrid(ecc_old, ecc_new);
-	move_polargrid(P_old, P_new);
 
 	// compute new eccentricity into ecc
 	calculate_disk_ecc_vector(data);
 
-	const double e = quantities::gas_reduce_mass_average(data, ecc_new, quantities_radius_limit);
-	const double P = quantities::gas_reduce_mass_average(data, P_new, quantities_radius_limit);
+	const double e_new = quantities::gas_reduce_mass_average(data, ecc_new, quantities_radius_limit);
+	const double peri_new = quantities::gas_reduce_mass_average(data, P_new, quantities_radius_limit);
 
-	const double e_tmp = quantities::gas_reduce_mass_average(data, ecc_old, quantities_radius_limit);
-	const double P_tmp = quantities::gas_reduce_mass_average(data, P_old, quantities_radius_limit);
+	const double de = e_new - ecc_old;
+	double dp = peri_new - peri_old;
 
-	const double de = e - e_tmp;
-	double dp = P - P_tmp;
+	ecc_old = e_new;
+	peri_old = peri_new;
 
-	if(dp < 0.0){
-		dp += 2 * M_PI;
-	}
-	if(dp > 2*M_PI){
-		dp -= 2*M_PI;
-	}
 	dEcc += de;
 	dPer += dp;
-
 }
 
 

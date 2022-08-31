@@ -140,6 +140,7 @@ extern double POLYTROPIC_CONSTANT;
 extern BoundaryFlow MassDelta;
 
 extern int ECC_GROWTH_MONITOR;
+extern double ecc_old, peri_old;
 extern double delta_ecc_source, delta_peri_source;
 extern double delta_ecc_art_visc, delta_peri_art_visc;
 extern double delta_ecc_visc, delta_peri_visc;
