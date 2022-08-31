@@ -13,10 +13,10 @@ def main():
     try:
         planet_config_path = params["PlanetConfig"]
         if os.path.exists(planet_config_path):
-            planet_params = parse_planet_config(planet_config_path)
-            comments.append({"comment": "Planets", "next_key": "planets"})
-            params["planets"] = planet_params
-            print(f"Added {len(planet_params)} planets")
+            nbody_params = parse_planet_config(planet_config_path)
+            comments.append({"comment": "Nbody", "next_key": "nbody"})
+            params["nbody"] = nbody_params
+            print(f"Added {len(nbody_params)} planets")
             remove_entry(params, "PlanetConfig")
         else:
             print("Planet config file '{}' not found.".format(planet_config_path))
@@ -26,7 +26,7 @@ def main():
 
     handle_default_star(params)
     handle_implicit_units(params)
-    for planet in params["planets"]:
+    for planet in params["nbody"]:
         add_unit(planet, "temperature", "K")
         add_unit(planet, "radius", "solRadius")
 
@@ -54,13 +54,14 @@ def remove_deprecated_entries(params):
     obsolete = [
         "Sigma0InCodeUnits",
         "ViscosityInCgs",
+        "TemperatureCGS0",
         "HeatingStar",
         "HeatingStarRampingTime"
     ]
     for key in obsolete:
         remove_entry(params, key)
 
-    for planet in params["planets"]:
+    for planet in params["nbody"]:
         remove_entry(planet, "Feels Disk")
         remove_entry(planet, "Nbody interaction")
 
@@ -174,8 +175,8 @@ def handle_default_star(params):
         "radius": radius,
         "temperature": temperature
     }
-    params["planets"] = [default_star] + params["planets"]
-    print("Added a default star to the planets list.")
+    params["nbody"] = [default_star] + params["nbody"]
+    print("Added a default star to the nbody list.")
 
 
 def insert_comments(comments, filename):
@@ -237,12 +238,12 @@ def insert_comments(comments, filename):
             print(line, file=out_file)
 
 
-def parse_planet_config(planet_config_file):
+def parse_planet_config(nbody_config_file):
     """ Parse a FargoCPT planet config file.
 
     Parameters
     ----------first_comment
-        Path to the planet config file.
+        Path to the nbody config file.
     """
     keys = [
         "name",
@@ -258,8 +259,8 @@ def parse_planet_config(planet_config_file):
         "phi",
         "ramp-up time"
     ]
-    planets = []
-    with open(planet_config_file, "r") as in_file:
+    nbody = []
+    with open(nbody_config_file, "r") as in_file:
         for line in in_file:
             planet = dict()
             line = line.strip()
@@ -272,8 +273,8 @@ def parse_planet_config(planet_config_file):
             del planet["Nbody interaction"]
         except KeyError:
             pass
-        planets.append(planet)
-    return planets
+        nbody.append(planet)
+    return nbody
 
 
 def parse_ini_file(file_path):
@@ -316,7 +317,7 @@ def write_yaml_file(params, out_file_path):
         Path to the output file.
     """
     with open(out_file_path, "w") as out_file:
-        yaml.dump(params, out_file, width=200, sort_keys=None)
+        yaml.dump(params, out_file, width=200, sort_keys=None, default_style='')
 
 
 def parse_line(line, n):
