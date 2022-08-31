@@ -94,7 +94,6 @@ void t_planetary_system::derive_config() {
 	parameters::heating_star_enabled = false;
 	for (unsigned int n=0; n < get_number_of_planets(); n++) {
 		const auto & planet = get_planet(n);
-		std::cout << "planet " << n << (planet.get_irradiate() ? " is" : "is not") << "irradiating" << std::endl;
 		if (planet.get_irradiate()) {
 			parameters::heating_star_enabled = true;
 			break;
