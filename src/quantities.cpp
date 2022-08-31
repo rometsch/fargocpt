@@ -722,7 +722,7 @@ void calculate_disk_ecc_vector(t_data &data){
 	if(parameters::n_bodies_for_hydroframe_center == 1){
 		if(data.get_planetary_system().get_number_of_planets() > 1){
 			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
-			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
+			if(data.get_planetary_system().get_planet(1).get_semi_major_axis()*15.0 > RMAX){
 				n_bodies_for_cms = parameters::n_bodies_for_hydroframe_center;
 			} else {
 				// We are looking at a circumbinary (or more Nbodies) disk
@@ -744,7 +744,7 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 	if(parameters::n_bodies_for_hydroframe_center == 1){
 		if(data.get_planetary_system().get_number_of_planets() > 1){
 			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
-			if(data.get_planetary_system().get_planet(1).get_semi_major_axis() < RMAX*0.1){
+			if(data.get_planetary_system().get_planet(1).get_semi_major_axis()*15.0 > RMAX){
 				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (primary) center!\n");
 			} else {
 				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the center of mass of the Nbody system!\n");
@@ -779,6 +779,7 @@ void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 
 	dEcc += de;
 	dPer += dp;
+	return;
 }
 
 
