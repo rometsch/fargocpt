@@ -188,12 +188,12 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		const double cps = parameters::cps;
 		switch (parameters::radial_grid_type) {
 			case parameters::arithmetic_spacing:
-				NRadial = (unsigned int) std::round(cps*(RMAX - RMIN) / H);
-				NAzimuthal = (unsigned int) std::round(2*M_PI/(RMAX-RMIN)*NRadial);
+				NRadial = std::round(cps*(RMAX - RMIN) / H);
+				NAzimuthal = std::round(2*M_PI/(RMAX-RMIN)*NRadial);
 				break;
 			case parameters::logarithmic_spacing:
-				NRadial = (unsigned int) std::round(std::log(RMAX/(double )RMIN) / std::log(1 + H/cps));
-				NAzimuthal = (unsigned int) std::round(2*M_PI/(std::pow(RMAX/(double )RMIN, 1.0/(double) NRadial) - 1));
+				NRadial = std::round(std::log(RMAX/(double )RMIN) / std::log(1 + H/cps));
+				NAzimuthal = std::round(2*M_PI/(std::pow(RMAX/(double )RMIN, 1.0/(double) NRadial) - 1));
 				break;
 			default:
 				die("Setting resolution is not supported for the selected radial grid spacing.");
