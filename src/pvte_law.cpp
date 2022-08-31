@@ -463,6 +463,7 @@ void compute_gamma_mu(t_data &data)
 
 	    double densityCGS, energyCGS;
 
+        // TODO: check units!
 	    if (parameters::ShockTube > 0) {
 		densityCGS = sigma * units::density.get_cgs_factor();
 		energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) *
