@@ -774,6 +774,13 @@ void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 	const double de = e_new - ecc_old;
 	double dp = peri_new - peri_old;
 
+	if(dp < -M_PI){
+		dp += 2.0*M_PI;
+	}
+	if(dp > M_PI){
+		dp -= 2.0*M_PI;
+	}
+
 	ecc_old = e_new;
 	peri_old = peri_new;
 
