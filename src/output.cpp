@@ -1150,7 +1150,7 @@ void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigne
 		"# 8 : Periastron change from source terms\n"
 		"# 9 : Periastron change from artificial viscosity\n"
 		"# 10: Periastron change from from viscosity\n"
-		"# 11: Periastron change from transport\n",
+		"# 11: Periastron change from transport\n"
 		"# 12: Periastron change from damping\n",
 		units::time.get_cgs_factor(),
 		units::torque.get_cgs_factor());
