@@ -871,6 +871,24 @@ void read(char *filename, t_data &data)
 
 	indirect_term_mode = config::value_as_int_default("IndirectTermMode", INDIRECT_TERM_REBOUND);
 
+	switch(indirect_term_mode){
+		case INDIRECT_TERM_REBOUND:
+		{
+			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleratrion with shifting the Nbody system to the center.\n");
+			break;
+		}
+		case INDIRECT_TERM_EULER:
+		{
+			logging::print_master(LOG_INFO "Indirect Term computed as current force (euler) on Hydro center with shifting the Nbody system to the center.\n");
+			break;
+		}
+		case INDIRECT_TERM_REB_SPRING:
+		{
+			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleratrion with spring force keeping the Nbody system near the center.\n");
+			break;
+		}
+	}
+
     // self gravity
     self_gravity = config::value_as_bool_default("SelfGravity", 0);
 
