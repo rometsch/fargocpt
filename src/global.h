@@ -145,6 +145,7 @@ extern double delta_ecc_source, delta_peri_source;
 extern double delta_ecc_art_visc, delta_peri_art_visc;
 extern double delta_ecc_visc, delta_peri_visc;
 extern double delta_ecc_transport, delta_peri_transport;
+extern double delta_ecc_damp, delta_peri_damp;
 
 extern double dtemp;
 extern int debug_outputs;

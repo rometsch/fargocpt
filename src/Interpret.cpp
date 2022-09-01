@@ -291,6 +291,9 @@ void ReadVariables(char *filename, t_data &data, int argc, char **argv)
 	delta_peri_visc = 0.0;
 	delta_ecc_transport = 0.0;
 	delta_peri_transport = 0.0;
+	delta_ecc_damp = 0.0;
+	delta_peri_damp = 0.0;
+
 
     // Frame settings
     Corotating = 0;

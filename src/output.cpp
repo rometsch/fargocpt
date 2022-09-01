@@ -1145,11 +1145,13 @@ void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigne
 		"# 4 : ecc change from artificial viscosity\n"
 		"# 5 : ecc change from viscosity\n"
 		"# 6 : ecc change from transport\n"
+		"# 7 : ecc change from damping\n"
 
-		"# 7 : Periastron change from source terms\n"
-		"# 8 : Periastron change from artificial viscosity\n"
-		"# 9 : Periastron change from from viscosity\n"
-		"# 10: Periastron change from transport\n",
+		"# 8 : Periastron change from source terms\n"
+		"# 9 : Periastron change from artificial viscosity\n"
+		"# 10: Periastron change from from viscosity\n"
+		"# 11: Periastron change from transport\n",
+		"# 12: Periastron change from damping\n",
 		units::time.get_cgs_factor(),
 		units::torque.get_cgs_factor());
 		fd_created = true;
@@ -1157,7 +1159,7 @@ void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigne
 	}
 
 	if (CPU_Master) {
-	fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+	fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 		coarseOutputNumber,
 		fineOutputNumber,
 		PhysicalTime,
@@ -1166,11 +1168,13 @@ void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigne
 		delta_ecc_art_visc,
 		delta_ecc_visc,
 		delta_ecc_transport,
+		delta_ecc_damp,
 
 		delta_peri_source,
 		delta_peri_art_visc,
 		delta_peri_visc,
-		delta_peri_transport);
+		delta_peri_transport,
+		delta_peri_damp);
 	fclose(fd);
 	}
 
@@ -1178,11 +1182,13 @@ void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigne
 	delta_ecc_art_visc = 0.0;
 	delta_ecc_visc = 0.0;
 	delta_ecc_transport = 0.0;
+	delta_ecc_damp = 0.0;
 
 	delta_peri_source = 0.0;
 	delta_peri_art_visc = 0.0;
 	delta_peri_visc = 0.0;
 	delta_peri_transport = 0.0;
+	delta_peri_damp = 0.0;
 }
 
 } // namespace output

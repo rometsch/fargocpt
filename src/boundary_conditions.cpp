@@ -11,6 +11,7 @@
 #include "logging.h"
 #include "parameters.h"
 #include "util.h"
+#include "quantities.h"
 #include <algorithm>
 #include <cstring>
 #include <cmath>
@@ -248,6 +249,10 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     // if this is the final boundary condition and damping is enable, do it
     if (final && parameters::damping) {
 	damping(data, dt);
+
+	if(ECC_GROWTH_MONITOR){
+		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_damp, delta_peri_damp);
+	}
     }
 
     // inner boundary

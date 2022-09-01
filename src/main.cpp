@@ -377,7 +377,9 @@ int main(int argc, char *argv[])
 	    output::write_quantities(data, force_update_for_output);
 	}
 
+	if(ECC_GROWTH_MONITOR){
 	output::write_ecc_peri_changes(N_output, N_outer_loop);
+	}
 
 
 	if (write_complete_output && parameters::write_torques) {
