@@ -445,8 +445,9 @@ void AlgoGas(t_data &data)
 
 	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false);
 
+	double total_disk_mass_old = 1.0;
 	if(parameters::keep_mass_constant){
-	const double total_disk_mass_old =
+	total_disk_mass_old =
 	quantities::gas_total_mass(data, RMAX);
 	}
 
