@@ -134,6 +134,7 @@ OmegaFrame		1.0
 Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback		Yes		# Calculate incfluence of the disk on the star
 IndirectTermMode	0		# 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
+KeepDiskMassConstant NO
 
 ### Mesh parameters
 

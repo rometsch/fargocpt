@@ -158,6 +158,8 @@ extern t_initialize_condition energy_initialize_condition;
 /// filename to read energy profile from
 extern char *energy_filename;
 
+extern bool keep_mass_constant;
+
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
 /// profile cutoff point

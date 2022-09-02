@@ -88,6 +88,8 @@ double sigma0;
 t_initialize_condition energy_initialize_condition;
 char *energy_filename = NULL;
 
+bool keep_mass_constant;
+
 t_artificial_viscosity artificial_viscosity;
 double artificial_viscosity_factor;
 bool artificial_viscosity_dissipation;
@@ -815,6 +817,12 @@ void read(char *filename, t_data &data)
     if (config::key_exists("CVNR")) {
 	die("Parameter CVNR has been renamed to ArtificialViscosityFactor");
     }
+
+	keep_mass_constant =
+	config::value_as_bool_default("KeepDiskMassConstant", false);
+	if(keep_mass_constant){
+		logging::print_master(LOG_INFO "Disk mass is kept constant at initial value.\n");
+	}
 
     //
     thickness_smoothing =
