@@ -9,6 +9,6 @@
 - removed default star, central object needs to be declared as a planet now
 - irradiation is now controlled by setting a temperature > 0 in the nbody config rather than the "HeatingStar" flag
 - backtraces are written to file by default
-- arch env variable renamed to FARGOCPT_ARCH
+- simplify build process and remove FARGO_ARCH, use specific env variables now (see arch.defs)
 
 

@@ -1,48 +1,46 @@
-# !! Define Environment variable FARGOCPT_ARCH to reflect your architecture
-# for ex.: setenv FARGOCPT_ARCH LINUX (or export FARGOCPT_ARCH=LINUX depending on your shell)
-# Possible choices :
-#   undefined -> LINUX
-#	LINUX : look for libraries in /usr/lib and includes in /usr/include
-#	LINUXENV : define MPI_HOME and FFTW_HOME as env variable, look there
-#	HLR2 : HLR cluster config
-#	BINAC : Binac cluster config
+# !! Define the environment variables to reflect your architecture.
+# environment variable which can be set are
+# - FARCOCPT_CC : select the c compiler (default mpicc)
+# - FARCOCPT_CXX : select the c++ compiler (default mpic++)
+# - FARCOCPT_CFLAGS : select additional CFLAGS
+# - MPI_HOME : prefix of the MPI installation (default /usr)
+# - FFTW_HOME : prefix of the FFTW installation (default /usr)
+# - GSL_HOME : prefix of the GSL installation (default /usr)
 
-# default to LINUX
-FARGOCPT_ARCH ?= LINUX
-$(info FARGOCPT_ARCH=$(FARGOCPT_ARCH))
 
-# Generic Linux platform
-# FARGOCPT_ARCH must be set to LINUX
-CC_LINUX = mpicc
-CXX_LINUX = mpic++
-CFLAGS_LINUX =
-MPI_PREFIX_LINUX = /usr
-FFTW_PREFIX_LINUX = /usr
-GSL_PREFIX_LINUX = /usr
-
-# Generic Linux platform
-# FARGOCPT_ARCH must be set to LINUXENV
-CC_LINUXENV = mpicc
-CXX_LINUXENV = mpicxx
-CFLAGS_LINUXENV =
-MPI_PREFIX_LINUXENV = $(MPI_HOME)
-FFTW_PREFIX_LINUXENV = $(FFTW_HOME)
-GSL_PREFIX_LINUXENV = /usr/gsl/2.1
-
-# HLR2
-# FARGOCPT_ARCH must be set to HLR2
-CC_HLR2 = mpicc
-CXX_HLR2 = mpic++
-CFLAGS_HLR2 =
-MPI_PREFIX_HLR2 = /opt/openmpi/1.10
-FFTW_PREFIX_HLR2 = /opt/fftw/3.3_openmpi_1.10
-GSL_PREFIX_HLR2 = /opt/gsl/2.1
-
-# BINAC
-# FARGOCPT_ARCH must be set to BINAC
-CC_BINAC = mpicc
-CXX_BINAC = mpicxx
-CFLAGS_BINAC =
-MPI_PREFIX_BINAC = $(MPI_HOME)
-FFTW_PREFIX_BINAC = $(FFTW_HOME)
-GSL_PREFIX_BINAC = /opt/bwhpc/common/numlib/gsl/2.1
+# (MPI)-C compiler to use
+ifeq (undefined,$(origin FARGOCPT_CC))
+    CC = mpicc
+else
+    CC = $(FARGOCPT_CC)
+endif
+# (MPI)-C++ compiler to use
+ifeq (undefined,$(origin FARGOCPT_CXX))
+    CXX = mpic++
+else
+    CXX = $(FARGOCPT_CXX)
+endif
+# CFLAGS
+ifeq (undefined,$(origin FARGOCPT_CFLAGS))
+    CFLAGS = 
+else
+    CFLAGS = $(FARGOCPT_CFLAGS)
+endif
+# MPI location
+ifeq (undefined,$(origin MPI_HOME))
+    MPI_PREFIX = /usr
+else
+    MPI_PREFIX = $(MPI_HOME)
+endif
+# FFTW location
+ifeq (undefined,$(origin FFTW_HOME))
+    FFTW_PREFIX = /usr
+else
+    FFTW_PREFIX = $(FFTW_HOME)
+endif
+# GSL location
+ifeq (undefined,$(origin GSL_HOME))
+    GSL_PREFIX = /usr
+else
+    GSL_PREFIX = $(GSL_HOME)
+endif

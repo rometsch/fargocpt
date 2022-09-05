@@ -19,13 +19,6 @@ GIT_CHANGED = "$(shell git diff-index --name-only HEAD | sed -e '{:q;N;s/\n/, /g
 OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
 
 
-# (MPI)-C compiler to use
-CC = $(CC_$(FARGO_ARCH))
-# (MPI)-C++ compiler to use
-CXX = $(CXX_$(FARGO_ARCH))
-
-# C Flags
-CFLAGS := $(CFLAGS_$(FARGO_ARCH))
 
 # handle debug ENV variable
 ifeq "$(FARGO_DEBUG)" "1"
@@ -39,11 +32,6 @@ endif
 
 # C++ Flags
 CXXFLAGS = $(CFLAGS)
-
-# set MPI/FFTW paths for libs and includes
-MPI_PREFIX = $(MPI_PREFIX_$(FARGO_ARCH))
-FFTW_PREFIX= $(FFTW_PREFIX_$(FARGO_ARCH))
-GSL_PREFIX= $(GSL_$(FARGO_ARCH))
 
 _CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include -I.
 _CXXFLAGS = -std=c++17 $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include -I.
