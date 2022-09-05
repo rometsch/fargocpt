@@ -14,12 +14,12 @@ The conservative form can is derived as follows:
 
 $\int \frac{\partial \Sigma v_r}{\partial t} \mathrm{d}V = \int \frac{1}{r}\frac{\partial r \tau_{rr}}{\partial r} \mathrm{d}V$
 
-with $\mathrm{d}V = r \mathrm{d}r \matrm{d} \varphi$, we have: where we
+with $\mathrm{d}V = r \mathrm{d}r \mathrm{d} \varphi$, we have: where we
 integrate $\varphi$ over $\varphi^{j-1/2}$ to $\varphi^{j+1/2}$
 and integrate $r$ from $R_b^{i-1}$ to $R_b^i$ such that the middle of the
 integration is at $R_a^i$, $\varphi^j$,  where $v_r$ is located.
 
-$\int \frac{\partial \Sigma v_r}{\partial t} r \mathrm{d}r \matrm{d} \varphi = \int \frac{1}{r}\frac{\partial r \tau_{rr}}{\partial r} r \mathrm{d}r \matrm{d} \varphi$
+$\int \frac{\partial \Sigma v_r}{\partial t} r \mathrm{d}r \mathrm{d} \varphi = \int \frac{1}{r}\frac{\partial r \tau_{rr}}{\partial r} r \mathrm{d}r \mathrm{d} \varphi$
 
 $\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int^{R_b^i}_{R_b^{i-1}} \partial (r \tau_{rr}) \Delta\varphi$
 
@@ -32,7 +32,7 @@ $\frac{\partial v_r}{dt} = \frac{1}{\Sigma}\frac{2}{R_b^i + R_b^{i-1}} \frac{R_b
 
 $\int \frac{\partial \Sigma v_r}{\partial t} \mathrm{d}V = \int \frac{1}{r}\frac{\partial \tau_{r\varphi}}{\partial \varphi} \mathrm{d}V$
 
-$\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \frac{1}{r}\frac{\partial \tau_{r\varphi}}{\partial \varphi}  r \mathrm{d}r \matrm{d} \varphi$
+$\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \frac{1}{r}\frac{\partial \tau_{r\varphi}}{\partial \varphi}  r \mathrm{d}r \mathrm{d} \varphi$
 
 $\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \partial^{\varphi} \tau_{r\varphi}  \mathrm{d}r$
 
@@ -47,7 +47,7 @@ $\frac{\partial v_r}{\partial t} = \frac{1}{\Sigma} \frac{2}{R_b^i + R_b^{i-1}} 
 
 $\int \frac{\partial \Sigma v_r}{\partial t} \mathrm{d}V = \int \frac{1}{r} \tau_{\varphi\varphi} \mathrm{d}V$
 
-$\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \frac{1}{r}\tau_{\varphi \varphi}  r \mathrm{d}r \matrm{d} \varphi$
+$\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \frac{1}{r}\tau_{\varphi \varphi}  r \mathrm{d}r \mathrm{d} \varphi$
 
 $\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \tau_{\varphi \varphi}  (R_b^i - R_b^{i-1}) \Delta \varphi$
 
@@ -76,7 +76,7 @@ Considering both these things, the velocity update in Masset 2002:
 
   $\frac{\partial \Sigma l}{\partial t} = \frac{1}{r}\frac{\partial (r^2 \tau_{r\varphi})}{\partial r} + \frac{\partial (\tau_{\varphi \varphi})}{\partial \varphi}$
   
-Again we integrate over $\mathrm{d}V = r \mathrm{d}r \matrm{d} \varphi$, we
+Again we integrate over $\mathrm{d}V = r \mathrm{d}r \mathrm{d} \varphi$, we
 have: we have $\varphi$ ranging over $\varphi^{j+1}$ to $\varphi^{j}$ and
 integrate $r$ from $R_a^{i+1}$ to $R_a^i$ such that the middle of the
 integration is at $R_b^i$, $\varphi^{j-1/2}$, where $v_\varphi$ is located.
@@ -85,7 +85,7 @@ integration is at $R_b^i$, $\varphi^{j-1/2}$, where $v_\varphi$ is located.
   
   $\int \frac{\partial \Sigma l}{\partial t} \mathrm{d}V = \int \frac{1}{r}\frac{\partial (r^2 \tau_{r\varphi})}{\partial r} \mathrm{d}V$
 
-  $\int \frac{\partial \Sigma l}{\partial t} r \mathrm{d}r \matrm{d} \varphi = \int \partial (r^2 \tau_{r\varphi})\matrm{d} \varphi$
+  $\int \frac{\partial \Sigma l}{\partial t} r \mathrm{d}r \mathrm{d} \varphi = \int \partial (r^2 \tau_{r\varphi})\mathrm{d} \varphi$
 
   
   $\frac{1}{2}((R_a^{i+1})^2 - (R_a^i)^2) \Delta \varphi \frac{\partial \Sigma l}{\partial t} = ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^{i})^2 \tau_{r\varphi}^{i}) \Delta \varphi$
