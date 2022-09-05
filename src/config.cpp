@@ -38,7 +38,7 @@ Config::Config(const YAML::Node &n)
 {
     m_root = std::make_shared<YAML::Node>(YAML::Clone(lowercased_node(n)));
     m_default = std::make_shared<YAML::Node>();
-};
+}
 
 Config Config::get_subconfig(const std::string &key)
 {
@@ -273,7 +273,7 @@ template <typename T> T Config::get(const std::string &key,
         die("Value for key '%s' was converted to nan!\n", key.c_str());
     }
     return rv;
-};
+}
 
 template <typename T> T Config::get(const std::string &key, 
                             const std::string &default_value, 
@@ -298,7 +298,7 @@ template <typename T> T Config::get(const std::string &key,
         die("Value for key '%s' was converted to nan!\n", key.c_str());
     }
     return rv;
-};
+}
 
 template double Config::get(const std::string &key);
 template int Config::get(const std::string &key);
