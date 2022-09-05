@@ -3,7 +3,7 @@ include arch.defs
 EXENAME        = ../fargo
 
 # compiler warnings
-OPTIONS += -Wall -Wextra -Wpedantic -Wmissing-declarations -Werror=redundant-decls -DOMPI_SKIP_MPICXX # -Werror 
+OPTIONS += -Wall -Wextra -Wpedantic -Wmissing-declarations -Werror=redundant-decls -DOMPI_SKIP_MPICXX -Werror -Werror=format-security
 # architechture
 OPTIONS += -march=native
 # add symbols for backtrace

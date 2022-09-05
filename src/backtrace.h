@@ -10,6 +10,6 @@
 
 #define BACKTRACE_MAXDEPTH 50
 
-void PrintTrace(void);
+void PrintTrace(bool = true);
 
 #endif // BACKTRACE_H

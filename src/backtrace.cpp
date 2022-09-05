@@ -13,21 +13,11 @@
 #include "backtrace.h"
 #include "global.h"
 #include "logging.h"
+#include "output.h"
 
-/**
-	prints backtrace for debugging
-	code from https://stackoverflow.com/a/1925461
-*/
-void PrintTrace()
-{
-
-	
-	std::cerr << std::endl;
-	std::cerr << std::endl;
-	std::cerr <<"Backtrace for your convenience:" << std::endl;
-	std::cerr << "----------------------------------------------------------------------" << std::endl;
-
-    void *array[BACKTRACE_MAXDEPTH];
+void Backtrace(std::ostream &);
+void Backtrace(std::ostream &out) {
+	void *array[BACKTRACE_MAXDEPTH];
     int size = backtrace(array, BACKTRACE_MAXDEPTH);
     char **messages = backtrace_symbols(array, size);
 
@@ -59,14 +49,14 @@ void PrintTrace()
 
 	    // if demangling is successful, output the demangled function name
 	    if (status == 0) {
-		std::cerr << "[" << CPU_Rank << "] [bt]: (" << i << ") "
+		out << "[" << CPU_Rank << "] [bt]: (" << i << ") "
 			  << messages[i] << " : " << real_name << "+"
 			  << offset_begin << offset_end << std::endl;
 
 	    }
 	    // otherwise, output the mangled function name
 	    else {
-		std::cerr << "[" << CPU_Rank << "] [bt]: (" << i << ") "
+		out << "[" << CPU_Rank << "] [bt]: (" << i << ") "
 			  << messages[i] << " : " << mangled_name << "+"
 			  << offset_begin << offset_end << std::endl;
 	    }
@@ -74,9 +64,26 @@ void PrintTrace()
 	}
 	// otherwise, print the whole line
 	else {
-	    std::cerr << "[" << CPU_Rank << "] [bt]: (" << i << ") "
+	    out << "[" << CPU_Rank << "] [bt]: (" << i << ") "
 		      << messages[i] << std::endl;
 	}
     }
     free(messages);
+}
+
+/**
+	prints backtrace for debugging
+	code from https://stackoverflow.com/a/1925461
+*/
+void PrintTrace(bool tofile)
+{
+	if (tofile) {
+		const std::string filename = output::outdir + "backtrace.txt";
+		std::ofstream out(filename);
+		Backtrace(out);
+		std::cerr << std::endl << "[" << CPU_Rank << "] [bt]: backtrace written to " << filename << std::endl;
+	} else {
+		std::cerr << std::endl << std::endl;
+		Backtrace(std::cerr);
+	}
 }
