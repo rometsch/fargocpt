@@ -7,5 +7,5 @@ This is yet another version of the FARGO code.
 :glob:
 
 *
-*/*
+Numerics/*
 ```
