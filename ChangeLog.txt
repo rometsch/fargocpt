@@ -8,5 +8,7 @@
 - OUTPUTDIR is now in output namespace and called outdir
 - removed default star, central object needs to be declared as a planet now
 - irradiation is now controlled by setting a temperature > 0 in the nbody config rather than the "HeatingStar" flag
+- backtraces are written to file by default
+- arch env variable renamed to FARGOCPT_ARCH
 
 

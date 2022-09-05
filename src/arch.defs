@@ -1,5 +1,5 @@
-# !! Define Environment variable FARGO_ARCH to reflect your architecture
-# for ex.: setenv FARGO_ARCH LINUX (or export FARGO_ARCH=LINUX depending on your shell)
+# !! Define Environment variable FARGOCPT_ARCH to reflect your architecture
+# for ex.: setenv FARGOCPT_ARCH LINUX (or export FARGOCPT_ARCH=LINUX depending on your shell)
 # Possible choices :
 #   undefined -> LINUX
 #	LINUX : look for libraries in /usr/lib and includes in /usr/include
@@ -8,11 +8,11 @@
 #	BINAC : Binac cluster config
 
 # default to LINUX
-FARGO_ARCH ?= LINUX
-$(info FARGO_ARCH=$(FARGO_ARCH))
+FARGOCPT_ARCH ?= LINUX
+$(info FARGOCPT_ARCH=$(FARGOCPT_ARCH))
 
 # Generic Linux platform
-# FARGO_ARCH must be set to LINUX
+# FARGOCPT_ARCH must be set to LINUX
 CC_LINUX = mpicc
 CXX_LINUX = mpic++
 CFLAGS_LINUX =
@@ -21,7 +21,7 @@ FFTW_PREFIX_LINUX = /usr
 GSL_PREFIX_LINUX = /usr
 
 # Generic Linux platform
-# FARGO_ARCH must be set to LINUXENV
+# FARGOCPT_ARCH must be set to LINUXENV
 CC_LINUXENV = mpicc
 CXX_LINUXENV = mpicxx
 CFLAGS_LINUXENV =
@@ -30,7 +30,7 @@ FFTW_PREFIX_LINUXENV = $(FFTW_HOME)
 GSL_PREFIX_LINUXENV = /usr/gsl/2.1
 
 # HLR2
-# FARGO_ARCH must be set to HLR2
+# FARGOCPT_ARCH must be set to HLR2
 CC_HLR2 = mpicc
 CXX_HLR2 = mpic++
 CFLAGS_HLR2 =
@@ -39,7 +39,7 @@ FFTW_PREFIX_HLR2 = /opt/fftw/3.3_openmpi_1.10
 GSL_PREFIX_HLR2 = /opt/gsl/2.1
 
 # BINAC
-# FARGO_ARCH must be set to BINAC
+# FARGOCPT_ARCH must be set to BINAC
 CC_BINAC = mpicc
 CXX_BINAC = mpicxx
 CFLAGS_BINAC =
