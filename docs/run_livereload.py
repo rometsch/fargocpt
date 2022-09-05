@@ -5,6 +5,7 @@ def main():
     server = Server()
     server.watch('source/*.rst', shell('make html'), delay=1)
     server.watch('source/*.md', shell('make html'), delay=1)
+    server.watch('source/*/*.md', shell('make html'), delay=1)
     server.watch('source/*.py', shell('make html'), delay=1)
     server.watch('_static/*', shell('make html'), delay=1)
     server.watch('_templates/*', shell('make html'), delay=1)
