@@ -49,48 +49,6 @@ Pair IndirectTerm{0.0, 0.0};
 Pair IndirectTermDisk{0.0, 0.0};
 Pair IndirectTermPlanets{0.0, 0.0};
 
-/**
-	Checks polargrid for negative entries.
-
-	\param array polargrid to check
-	\returns >0 if there are negative entries, 0 otherwise
-*/
-static int DetectCrash(t_polargrid *array)
-{
-    unsigned int result = 0;
-
-    for (unsigned int n_radial = 0; n_radial < array->Nrad; ++n_radial) {
-	for (unsigned int n_azimuthal = 0; n_azimuthal < array->Nsec;
-	     ++n_azimuthal) {
-	    /// since nan < 0 is false and nan > 0 is false
-	    /// we need to assure that array > 0 to catch bad values
-	    if (!((*array)(n_radial, n_azimuthal) > 0.0)) {
-		logging::print(LOG_WARNING "%s negative in cell: (%u,%u)=%g\n",
-			       array->get_name(), n_radial, n_azimuthal,
-			       (*array)(n_radial, n_azimuthal));
-		result += 1;
-	    }
-	}
-    }
-
-    return result;
-}
-
-static void HandleCrash(t_data &data)
-{
-    if (DetectCrash(&data[t_data::DENSITY])) {
-	logging::print(LOG_ERROR "DetectCrash: Density < 0\n");
-	PersonalExit(1);
-    }
-
-    if (parameters::Adiabatic) {
-	if (DetectCrash(&data[t_data::ENERGY])) {
-	    logging::print(LOG_ERROR "DetectCrash: Energy < 0\n");
-	    PersonalExit(1);
-	}
-    }
-}
-
 void ComputeViscousStressTensor(t_data &data)
 {
     if ((parameters::artificial_viscosity ==
