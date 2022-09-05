@@ -9,36 +9,53 @@ It was modified quite substantially by Tobias Müller and is now used and mainta
 ## Building the code
 
 The building process is managed by the makefile `src/makefile`.
-Compile time flags are set in `src/makefile.defs` and the environment in selected and specified in `src/arch.defs`.
+Compile time flags are set in `src/makefile.defs` and the environment is selected and specified in `src/arch.defs`.
 
-### 
+### Architecture definitions
 
+FargoCPT depends on the three following libraries to be installed on your system:
+- MPI
+- FFTW 
+- GSL 
+
+Their location can be specified using environment variables
+- FARCOCPT_CC: select the c compiler (default mpicc)
+- FARCOCPT_CXX: select the c++ compiler (default mpic++)
+- FARCOCPT_CFLAGS: select additional CFLAGS (default empty)
+- MPI_HOME: prefix of the MPI installation (default /usr)
+- FFTW_HOME: prefix of the FFTW installation (default /usr)
+- GSL_HOME: prefix of the GSL installation (default /usr)
+
+If you installed MPI, FFTW, and GSL through a package manager, chances are good that the defaults will work out of the box.
+The same can be expected for clusters that use the `module` framework. Then the `_HOME` variables should be set by loading the modules.
+
+The `_HOME` variables should be the path that points to the directory that includes both the `include` and `lib` that contain the header files and shared libraries. To find them, search for, e.g., `mpi.h` and `libmpi.so` (use the `locate` or `find` commands).
 
 ## Tests
 
 + Hydro
-    + Shocktube
+  + Shocktube
 + Viscosity
-    + Viscous spreading ring
+  + Viscous spreading ring
 + Heating/Cooling
-    + passive disk -> power law profile
-    + betacooling background
-    + betacooling aspect ratio
+  + passive disk -> power law profile
+  + beta cooling background
+  + beta cooling aspect ratio
 + Dust
-    + Dust drift
-    + Dust diffusion
-+ Nbody
-    + migrating low mass planet
+  + Dust drift
+  + Dust diffusion
++ N-body
+  + migrating low mass planet
 + self-gravity
-    + tbd
+TBD
 + program
-    + valgrind run
-        + ignore openmpi errors
-        + ignore rebound padding (Syscall param write(buf) points to uninitialised byte(s))
+  + valgrind run
+    + ignore OpenMPI errors
+      + ignore rebound padding (Syscall param write(buf) points to uninitialized byte(s))
 
 
-### Open Source code used in this program
+## Open Source code used in this program
 
-+ [REBOUND](https://github.com/hannorein/rebound) for NBody (GPL3)
++ [REBOUND](https://github.com/hannorein/rebound) for N-body (GPL3)
 + [yaml-cpp](https://github.com/jbeder/yaml-cpp) for the config files (MIT License)
 + [units by LLNL](https://github.com/LLNL/units) for the handling of physical units (BSD 3-Clause)
