@@ -9,9 +9,9 @@ import sys
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'test'
-copyright = '2022, Thomas'
-author = 'Thomas'
+project = 'FargoCPT'
+copyright = '2022, Thomas Rometsch'
+author = 'Thomas Rometsch & Lucas Jordan'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
