@@ -81,9 +81,8 @@ void PrintTrace(bool tofile)
 		const std::string filename = output::outdir + "backtrace.txt";
 		std::ofstream out(filename);
 		Backtrace(out);
-		std::cerr << std::endl << "[" << CPU_Rank << "] [bt]: backtrace written to " << filename << std::endl;
+		std::cerr << "[" << CPU_Rank << "] [bt]: backtrace written to " << filename << std::endl;
 	} else {
-		std::cerr << std::endl << std::endl;
 		Backtrace(std::cerr);
 	}
 }
