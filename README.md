@@ -5,6 +5,23 @@
 This is the version of the [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code used by some members of the Computational Physics Tübingen group.
 It was modified quite substantially by Tobias Müller and is now used and maintained by Lucas Jordan and Thomas Rometsch.
 
+## Usage
+
+Start a simulation with one of the following commands:
+```
+mpirun -n NPROC ./fargo start setup/config.yml
+mpirun -n NPROC ./fargo restart 5 setup/config.yml
+mpirun -n NPROC ./fargo auto setup/config.yml
+```
+where `NPROC` is the number of processors you want to use.
+
+The first line with the `start` command begins a new simulation. 
+Should the output directory already exists, the previous directory is backed up (`_bak` is appended to its name).
+
+The second line is used to `restart` a simulation that already exists in the output directory that is specified in the config file at output number 5.
+
+The third line starts fargo in `auto` mode. In this mode, the simulation is restarted at the last available output if there are already some outputs, otherwise, a fresh simulation is started.
+
 
 ## Building the code
 
