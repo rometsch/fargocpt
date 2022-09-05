@@ -3,6 +3,7 @@ build/*
 src/build/
 
 docs/.venv
+docs/build
 
 # Prerequisites
 *__pycache__
