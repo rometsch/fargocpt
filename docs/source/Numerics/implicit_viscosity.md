@@ -1,5 +1,6 @@
+# Implicit viscosity
 
-* Problem description
+## Problem description
 In simulations with strong radial gradients in density, e.g. at the gap edge
 carved by a massive planet or at the disk truncation radius caused by a
 companion, the velocity updates by the viscous terms can become unstable and
@@ -19,7 +20,7 @@ be the azimuthal velocity update from the viscous stress tensor that reads:
  strong radial gradients in $\tau_{r \varphi}$ where the value for neighboring
  cells can reach differences above a factor of 100, causing numerical instability.
 
-* Proposed Solution
+## Proposed Solution
   The viscous interactions between the cells are a diffusion process. Therefore
   the velocity should never become faster/slower than the fastest/slowest cell
   it is in contact with. During the timestep, we consider all properties but the
@@ -35,7 +36,7 @@ be the azimuthal velocity update from the viscous stress tensor that reads:
   should not overshoot over $v_{eq}$.
 
 
-* Stabilizing Scheme
+## Stabilizing Scheme
 
   The explicit form of the update is:
   ${v}_\varphi^\mathrm{new} = v_\varphi + dt (c_1 \cdot v_\varphi + c_2)$
@@ -80,7 +81,7 @@ be the azimuthal velocity update from the viscous stress tensor that reads:
 
   For simplicity, we compute the two terms separately and combine them again later:
 
-** $\tau_{r\varphi}$
+## $\tau_{r\varphi}$
 
   $\frac{2}{(R_a^{i+1})^2 - (R_a^i)^2}\cdot ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^i)^2 \tau_{r\varphi}^i)$
    
@@ -111,7 +112,7 @@ be the azimuthal velocity update from the viscous stress tensor that reads:
 
   $c_{1,r\varphi} = -\frac{2}{\Delta (R_a^2)^{i}} \frac{1}{R_b^i}\left((\frac{R_a^3 \bar{\nu} \bar{\Sigma}}{\Delta R_b})^{i+1} + (\frac{R_a^3 \bar{\nu} \bar{\Sigma}}{\Delta R_b})^{i}\right)$
 
-** $\tau_{\varphi\varphi}$
+## $\tau_{\varphi\varphi}$
    
 $(\tau_{\varphi\varphi}^{i,j} - \tau_{\varphi\varphi}^{i,j-1}) \cdot \frac{1}{\Delta\varphi}$
 
@@ -149,14 +150,14 @@ $c_{1,\varphi\varphi} = -\frac{2}{3}\frac{1}{R_b \Delta \varphi}\left[\frac{(2\n
  
 
 
-* Vr case
+## Vr case
 
     $\frac{d v}{dt} = \frac{2}{R_b^i + R_b^{i-1}} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}[(R_b^{i} \tau_{rr}^{i} - R_b^{i-1} \tau_{rr}^{i-1}) \cdot \frac{1}{\Delta R_b} + (\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi} + \frac{1}{2}(\tau_{\varphi\varphi}^{i} + \tau_{\varphi\varphi}^{i-1})]$
   
 
   For simplicity, we compute the terms separately and combine them again later:
 
-** $\tau_{r\varphi}$
+### $\tau_{r\varphi}$
 
    $(\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi}$
    
@@ -191,7 +192,7 @@ $c_{1,\varphi\varphi} = -\frac{2}{3}\frac{1}{R_b \Delta \varphi}\left[\frac{(2\n
   $c_{1,r\varphi} = -[\frac{(\bar{\nu} \bar{\Sigma})^{i,j+1}}{\Delta \varphi^2 R_a^i} + \frac{(\bar{\nu} \bar{\Sigma})^{ij}}{\Delta \varphi^2 R_a^i}]$
 
 
-** $\tau_{\varphi\varphi}$
+### $\tau_{\varphi\varphi}$
    
 $\frac{1}{2}(\tau_{\varphi\varphi}^{i,j} + \tau_{\varphi\varphi}^{i-1,j})$
 
@@ -217,7 +218,7 @@ $+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{v_r^{i}}{R_b
 $c_{1,\varphi\varphi} = \frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^i} + \frac{1}{3}\frac{R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})$
 $+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
 
-** $\tau_{rr}$
+### $\tau_{rr}$
    
 $\Delta v_r = \frac{R_b^i\tau_{rr}^{i,j} - R_b^{i-1}\tau_{rr}^{i-1,j}}{\Delta R_b^i}$
 
@@ -249,18 +250,13 @@ $c_{1,v_r} = \frac{1}{R_a^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}
 
 
 
-* Method example from simple diffusion problem
+## Method example from simple diffusion problem
   The implicit method with the corrected constants reproduces the explicit method, but prevents overshoots.
 
-  #+attr_html: :width 600px
-  #+attr_latex: :width 600px
-  [[./diff_0.3.png]]
 
-    #+attr_html: :width 600px
-    #+attr_latex: :width 600px
-  [[./diff_1.0.png]]
+![Differences for cfl=0.3](./diff_0.3.png)
 
-    #+attr_html: :width 600px
-    #+attr_latex: :width 600px
-  [[./diff_1.5.png]]
+![Differences for cfl=1.0](./diff_1.0.png)
+
+![Differences for cfl=1.5](./diff_1.5.png)
 

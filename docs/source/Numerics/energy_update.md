@@ -1,4 +1,4 @@
-* Understanding our energy equation
+# Understanding our energy equation
 
 FargoCPT code (old):
 
@@ -8,9 +8,9 @@ $\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^-}{\alpha}$
 
 
 
-* What is $\alpha$
+## What is $\alpha$
 
-** Equation to solve: $\frac{\partial (e + E_{rad})}{\partial t} = -p\nabla u + Q^+ - Q^- - \nabla F$
+### Equation to solve: $\frac{\partial (e + E_{rad})}{\partial t} = -p\nabla u + Q^+ - Q^- - \nabla F$
   
 $\frac{\partial e}{\partial t} = - p \nabla u + Q^+$
 
@@ -38,14 +38,14 @@ $\alpha = 1 +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 
 $\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^- - \nabla F} {\alpha}$
 
 
-* Questions
+## Questions
 
-** Is this operation splitting still correct?
+### Is this operation splitting still correct?
 $\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^-}{\alpha}$
 
 $\frac{\partial e}{\partial t} = -p\nabla u$
 
 $\frac{\partial e}{\partial t} = \frac{Q^+ - Q^-}{\alpha}$
 
-**  What is the actually emitted energy?
+###  What is the actually emitted energy?
 $Q^-$ or $\frac{Q^-}{\alpha}$

@@ -1,8 +1,8 @@
-* Conservative form
+# Conservative form
 
   Baruteau 2008 writes the viscosity updates as:
 
-** Radial velocity
+## Radial velocity
   
   $\frac{\partial \Sigma v_r}{\partial \mathrm{d}t} = \frac{1}{r}[\frac{\partial (r \tau_{rr})}{\partial r} + \frac{\partial (\tau_{r\varphi})}{\partial \varphi} - \tau_{\varphi \varphi}]$
 
@@ -61,7 +61,7 @@ The total $v_r$ update is just the sum of the 3 parts we just covered:
 $\frac{\partial v_r}{\partial t} = \frac{2}{\Sigma^i + \Sigma^{i-1}} \frac{2}{R_b^i + R_b^{i-1}} (\frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{R_b^i - R_b^{i-1}} + \tau_{\varphi \varphi} + \frac{\tau_{r\varphi}^{j+1} - \tau_{r\varphi}^j} {\Delta \varphi})$
 
 
-** Azimuthal velocity
+## Azimuthal velocity
 
    For the azimuthal velocity, it is important to do the update for the angular
    momentum such that it is conserved (see D'Angelo et al. 2002  Eq. 4).
