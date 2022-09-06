@@ -1,3 +1,7 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <cassert>
 
 #include <cmath>
@@ -75,6 +79,7 @@ void makeZetaTables()
     }
 
     b1 = 2.0 * THETA_R;
+	#pragma omp parallel for
     for (j = 0; j < Nzeta; j++) {
 	const double T = Temp0 * std::exp(j * dy);
 	inv_T2 = 1.0 / (T * T);
@@ -144,6 +149,7 @@ void initializeLookupTables()
 {
     makeZetaTables();
 
+	#pragma omp parallel for collapse(2)
     for (int i = 0; i < Ni; ++i) {
 	for (int j = 0; j < Nj; ++j) {
 	    double rhoi = std::pow(10.0, (deltaLogRho * i)) * rhomin;
@@ -449,6 +455,7 @@ void compute_gamma_mu(t_data &data)
 		logging::print_master(LOG_INFO "Lookup tables generated \n");
 	}
     */
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;

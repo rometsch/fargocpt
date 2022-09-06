@@ -3,13 +3,13 @@ include arch.defs
 EXENAME        = ../fargo
 
 # compiler warnings
-OPTIONS += -Wall -Wextra -Wpedantic -Wmissing-declarations -Werror=redundant-decls # -Werror 
+OPTIONS += -Wall -Wextra -Wpedantic -Wmissing-declarations -Werror=redundant-decls -DOMPI_SKIP_MPICXX #-Werror -Werror=format-security 
 # architechture
 OPTIONS += -march=native
 # add symbols for backtrace
 OPTIONS += -rdynamic
 # optimizations, applied to options later
-OPTIMIZATION := -Ofast -flto=auto
+OPTIMIZATION := -Ofast -flto=auto -fopenmp
 
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"
@@ -50,5 +50,3 @@ LIBS = -lm -lstdc++fs -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PR
 
 #statically link rebound
 LIBS += -Lrebound -lrebound
-
-

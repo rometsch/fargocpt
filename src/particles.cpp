@@ -2588,6 +2588,7 @@ void write(unsigned int timestep)
 
 void rotate(const double angle)
 {
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	// rotate positions
 	if (CartesianParticles) {

@@ -9,7 +9,9 @@
    in ViscousTerm(), which properly evaluate the stress tensor in 2D cylindrical
    coordinates.
 */
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <math.h>
 
 #include "LowTasks.h"
@@ -38,6 +40,7 @@ void update_viscosity(t_data &data)
     static bool calculated = false;
     // if alpha-viscosity
     if (ViscosityAlpha) {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_rad = 0;
 	     n_rad <= data[t_data::VISCOSITY].get_max_radial(); ++n_rad) {
 	    for (unsigned int n_az = 0;
@@ -76,6 +79,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 {
 
     // calculate div(v)
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::DIV_V].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -98,6 +102,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
     }
 
     // calculate tau_r_r
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::TAU_R_R].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -118,6 +123,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
     }
 
     // calculate tau_phi_phi
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::TAU_PHI_PHI].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -153,6 +159,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
     }
 
     // calculate tau_r_phi
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 1;
 	 n_radial <= data[t_data::TAU_R_PHI].get_max_radial() - 1; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -207,6 +214,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
     }
 
     if (include_artifical_viscosity) {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::DIV_V].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -238,6 +246,7 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
     }
 
     if (StabilizeViscosity) {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 1;
 	     n_radial < data[t_data::V_RADIAL].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -381,6 +390,8 @@ void update_velocities_with_viscosity(t_data &data, const double dt)
     const t_polargrid &Trp = data[t_data::TAU_R_PHI];
     const t_polargrid &Trr = data[t_data::TAU_R_R];
     const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
+
+	#pragma omp parallel for collapse(2)
     for (unsigned int nr = 1; nr < v_radial.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < v_radial.get_size_azimuthal(); ++naz) {
 	    const int naz_plus =
@@ -459,17 +470,17 @@ static void get_tau_rp(t_data &data, double &tau_rp_1, double &tau_rp_2,
 	return;
     }
 
-    int n_azimuthal_minus =
+	const int n_azimuthal_minus =
 	(n_azimuthal == 0 ? data[t_data::DENSITY].get_max_azimuthal()
 			  : n_azimuthal - 1);
 
-    double dvphirdr =
+	const double dvphirdr =
 	(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) * InvRb[n_radial] -
 	 data[t_data::V_AZIMUTHAL](n_radial - 1, n_azimuthal) *
 	     InvRb[n_radial - 1]) *
 	InvDiffRmed[n_radial];
     // d(v_r)/dphi
-    double dvrdphi =
+	const double dvrdphi =
 	(data[t_data::V_RADIAL](n_radial, n_azimuthal) -
 	 data[t_data::V_RADIAL](n_radial,
 				n_azimuthal == 0

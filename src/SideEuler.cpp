@@ -6,7 +6,9 @@
    PolarGrid 's or initialize the forces evaluation.
 
 */
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <mpi.h>
 
 #include "Force.h"
@@ -136,13 +138,13 @@ void divise_polargrid(const t_polargrid &num, const t_polargrid &denom, t_polarg
 {
     const unsigned int Nmax =
 	result.get_size_radial() * result.get_size_azimuthal();
+
+	#pragma omp parallel for
     for (unsigned int n = 0; n < Nmax; n++) {
 	assert(denom.Field[n] > 0.0);
 	/// denom + DBL_EPSILON can cause problems because DBL_EPSILON can be
 	/// bigger than denom, depending on units.
-	result.Field[n] =
-	    num.Field[n] /
-	    denom.Field[n]; /// in case of crash, use something like
+	result.Field[n] = num.Field[n] / denom.Field[n]; /// in case of crash, use something like
 			    /// (denom.Field[n] + 1.0e-200) instead.
     }
 }
@@ -212,6 +214,7 @@ void NonReflectingBoundary_inner(t_data &data, t_polargrid *VRadial,
 	dangle *= (Rmed[1] - Rmed[0]);
 	i_angle = (int)(dangle / 2.0 / M_PI * (double)NAzimuthal + .5);
 
+	#pragma omp parallel for
 	for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * Density->Nsec;
 	    jp = nAzimuthal + i_angle;
@@ -268,6 +271,7 @@ void NonReflectingBoundary_outer(t_data &data, t_polargrid *VRadial,
     if (CPU_Rank == CPU_Highest) {
 	csnrm2 = 0.0;
 	csnrm1 = 0.0;
+	#pragma omp parallel for
 	for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	    csnrm2 +=
 		data[t_data::SOUNDSPEED]
@@ -359,6 +363,7 @@ void EvanescentBoundary(t_data &data, double step)
 	    0.2667 * (GlobalRmed[GlobalNRadial - 1] - rp);
 
     lambda = 0.0;
+	#pragma omp parallel for
     for (nRadial = Zero_or_active; nRadial < Max_or_active; ++nRadial) {
 	if ((Rmed[nRadial] < DRMIN) || (Rmed[nRadial] > DRMAX)) {
 	    /* Damping operates only inside the wave killing zones */
@@ -417,9 +422,10 @@ void EvanescentBoundary(t_data &data, double step)
 		vtheta[cell] =
 		    (vtheta[cell] + lambda * vtheta0) / (1.0 + lambda);
 		dens[cell] = (dens[cell] + lambda * dens0) / (1.0 + lambda);
-		if (parameters::Adiabatic)
+		if (parameters::Adiabatic){
 		    energ[cell] =
 			(energ[cell] + lambda * energ0) / (1.0 + lambda);
+		}
 	    }
 	}
     }
@@ -440,6 +446,7 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
 	return;
 
     nRadial = Density->Nrad - 1;
+	#pragma omp parallel for
     for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	cell = nAzimuthal + nRadial * Density->Nsec;
 	averageRho += Density->Field[cell];
@@ -448,6 +455,7 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
     averageRho /= (double)(Density->Nsec);
     averageRho = SigmaMed[Density->Nrad - 1] - averageRho;
 
+	#pragma omp parallel for
     for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	cell = nAzimuthal + nRadial * Density->Nsec;
 	Density->Field[cell] += averageRho;
@@ -455,6 +463,8 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
 
     penul_vr =
 	IMPOSEDDISKDRIFT * pow((Rinf[Density->Nrad - 1] / 1.0), -SIGMASLOPE);
+
+	#pragma omp parallel for
     for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	cell = nAzimuthal + nRadial * Density->Nsec;
 	VRadial->Field[cell] = penul_vr;
@@ -469,10 +479,10 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
     double VKepIn = 0.0;
     if (!parameters::self_gravity) {
 	/* (3.4) on page 44 */
-	VKepIn = sqrt(constants::G * hydro_center_mass / Rb[0] *
+	VKepIn = std::sqrt(constants::G * hydro_center_mass / Rb[0] *
 		      (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-				 pow(ASPECTRATIO_REF, 2.0) *
-				 pow(Rb[0], 2.0 * FLARINGINDEX)));
+				 std::pow(ASPECTRATIO_REF, 2.0) *
+				 std::pow(Rb[0], 2.0 * FLARINGINDEX)));
     } else {
 	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
 
@@ -480,15 +490,16 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 	/* VKepIn is only needed on innermost CPU */
 	if (CPU_Rank == 0) {
 	    // viscosity::aspect_ratio(Rmed[0])
-	    VKepIn = sqrt(constants::G * hydro_center_mass / Rb[0] *
+		VKepIn = std::sqrt(constants::G * hydro_center_mass / Rb[0] *
 			      (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-					 pow(ASPECTRATIO_REF, 2.0) *
-					 pow(Rb[0], 2.0 * FLARINGINDEX)) -
+					 std::pow(ASPECTRATIO_REF, 2.0) *
+					 std::pow(Rb[0], 2.0 * FLARINGINDEX)) -
 			  Rb[0] * GLOBAL_AxiSGAccr[0]);
 	}
     }
 
     if (CPU_Rank == 0) {
+	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
 	    v_azimuthal(0, n_azimuthal) = VKepIn - Rb[0] * OmegaFrame;
@@ -504,11 +515,11 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
     double VKepOut = 0.0;
     if (!parameters::self_gravity) {
 	/* (3.4) on page 44 */
-	VKepOut = sqrt(constants::G * hydro_center_mass /
+	VKepOut = std::sqrt(constants::G * hydro_center_mass /
 		       Rb[v_azimuthal.get_max_radial()] *
 		       (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-				  pow(ASPECTRATIO_REF, 2.0) *
-				  pow(Rb[v_azimuthal.get_max_radial()],
+				  std::pow(ASPECTRATIO_REF, 2.0) *
+				  std::pow(Rb[v_azimuthal.get_max_radial()],
 				      2.0 * FLARINGINDEX)));
     } else {
 
@@ -521,11 +532,11 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	if (CPU_Rank == CPU_Highest) {
 	    // viscosity::aspect_ratio(Rmed[VAzimuthal->Nrad-1])
 	    VKepOut =
-		sqrt(constants::G * hydro_center_mass /
+		std::sqrt(constants::G * hydro_center_mass /
 			 Rb[v_azimuthal.get_max_radial()] *
 			 (1.0 - (1.0 + SIGMASLOPE - 2.0 * FLARINGINDEX) *
-				    pow(ASPECTRATIO_REF, 2.0) *
-				    pow(Rb[v_azimuthal.get_max_radial()],
+					std::pow(ASPECTRATIO_REF, 2.0) *
+					std::pow(Rb[v_azimuthal.get_max_radial()],
 					2.0 * FLARINGINDEX)) -
 		     Rb[v_azimuthal.get_max_radial()] *
 			 GLOBAL_AxiSGAccr[v_azimuthal.get_max_radial() + IMIN]);
@@ -533,6 +544,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
     }
 
     if (CPU_Rank == CPU_Highest) {
+	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
 	    v_azimuthal(v_azimuthal.get_max_radial(), n_azimuthal) =
@@ -545,7 +557,8 @@ void correct_v_azimuthal(t_polargrid &v_azimuthal, double dOmega)
 {
     // TODO: maybe think about max-1 here as this might be alread set in
     // boundary condition or change in ApplySubKeplerianBoundary
-    for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {

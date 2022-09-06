@@ -3,6 +3,9 @@
 
 	All boundary conditions are handled in this file.
 */
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "boundary_conditions.h"
 #include "Theo.h"
@@ -405,6 +408,7 @@ void open_boundary_inner(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
+	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
@@ -435,6 +439,7 @@ void open_boundary_outer(t_data &data)
     if (CPU_Rank != CPU_Highest)
 	return;
 
+	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
@@ -473,6 +478,7 @@ void zero_gradient_boundary_inner(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
+	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
@@ -495,6 +501,7 @@ void zero_gradient_boundary_outer(t_data &data)
     if (CPU_Rank != CPU_Highest)
 	return;
 
+	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
@@ -535,6 +542,7 @@ void zero_gradient_boundary_outer(t_data &data)
 void reflecting_boundary_inner(t_data &data)
 {
     if (CPU_Rank == 0) {
+	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
@@ -570,6 +578,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	const double percent_to_next_timestep =
 	    real_time - double(integer_time);
 
+	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
@@ -663,6 +672,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 void reflecting_boundary_outer(t_data &data)
 {
     if (CPU_Rank == CPU_Highest) {
+	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {
@@ -700,6 +710,7 @@ void viscous_outflow_boundary_inner(t_data &data)
 
 	const double s = parameters::viscous_outflow_speed;
 
+	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
 	     ++n_azimuthal) {
@@ -740,6 +751,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -796,6 +808,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -851,6 +864,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -912,6 +926,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -978,6 +993,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	    quantity0(n_radial, 0) /= quantity.get_size_azimuthal();
 	}
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -1030,6 +1046,7 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 
 	const double s = parameters::viscous_outflow_speed;
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = Zero_no_ghost; n_radial <= limit;
 	     ++n_radial) {
 	    double factor = std::pow(
@@ -1100,6 +1117,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	    quantity0(n_radial, 0) /= quantity.get_size_azimuthal();
 	}
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -1157,6 +1175,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vrad_id;
 	     n_radial < vrad_arr.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -1228,6 +1247,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	    get_rinf_id(RMAX * parameters::damping_outer_limit) + 1,
 	    vphi_arr.is_vector());
 
+	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vphi_id;
 	     n_radial < vphi_arr.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -1299,6 +1319,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	if (parameters::Adiabatic){
 	t_polargrid &energy = data[t_data::ENERGY];
 	//t_polargrid &sigma = data[t_data::DENSITY];
+	#pragma omp parallel for
 	for (unsigned int nr = clamped_vphi_id;
 		 nr < energy.get_size_radial(); ++nr) {
 		double factor = std::pow(
@@ -1797,6 +1818,7 @@ void boundary_layer_inner_boundary(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
+	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
@@ -1994,6 +2016,7 @@ void initial_center_of_mass_boundary(t_data &data)
     auto &vaz = data[t_data::V_AZIMUTHAL];
 
     const unsigned int nr = data[t_data::DENSITY].get_max_radial();
+	#pragma omp parallel for
     for (unsigned int naz = 0; naz <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++naz) {
 
@@ -2208,6 +2231,7 @@ void jibin_boundary_inner(t_data &data)
     const double corr = std::sqrt(1.0 + (p + q) * h * h);
     const double vaz = R * OmegaK * corr - R * OmegaFrame;
 
+	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	 ++n_azimuthal) {
@@ -2247,6 +2271,7 @@ void jibin_boundary_outer(t_data &data)
 	const double corr = std::sqrt(1.0 + (p + q) * h * h);
 	const double vaz = R * OmegaK * corr - R * OmegaFrame;
 
+	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
 	     ++n_azimuthal) {

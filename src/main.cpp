@@ -1,3 +1,9 @@
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#warning "Your compiler does not support OpenMP, at least with the flags you're using."
+#endif
+
 #include <fstream>
 #include <mpi.h>
 #include <string.h>
@@ -32,6 +38,13 @@
 #include "util.h"
 #include "viscosity.h"
 
+// copy paste from https://github.com/jeffhammond/HPCInfo/blob/master/mpi/with-threads/mpi-openmp.c
+#define MPI_THREAD_STRING(level)  \
+		( level==MPI_THREAD_SERIALIZED ? "THREAD_SERIALIZED" : \
+				( level==MPI_THREAD_MULTIPLE ? "THREAD_MULTIPLE" : \
+						( level==MPI_THREAD_FUNNELED ? "THREAD_FUNNELED" : \
+								( level==MPI_THREAD_SINGLE ? "THREAD_SINGLE" : "THIS_IS_IMPOSSIBLE" ) ) ) )
+
 int TimeToWrite;
 int Restart = 0;
 static int StillWriteOneOutput;
@@ -51,19 +64,39 @@ int main(int argc, char *argv[])
     t_data data;
 
     N_hydro_iter = 0;
+	N_outer_loop = 0;
 
     resize_radialarrays(MAX1D);
 
-    N_outer_loop = 0;
 
     int CPU_NameLength;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
 
+	int provided;
+	int requested = MPI_THREAD_FUNNELED;
+	MPI_Init_thread(&argc, &argv, requested, &provided);
+	if(provided < requested) {
+		die("MPI_Init_thread provided %s when %s was requested.  Exiting. \n",
+					   MPI_THREAD_STRING(provided), MPI_THREAD_STRING(requested));
+	}
+
     // initialize MPI
-    MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &CPU_Rank);
     MPI_Comm_size(MPI_COMM_WORLD, &CPU_Number);
     selfgravity::mpi_init();
+
+#ifdef _OPENMP
+	#pragma omp parallel
+	{
+		int omp_id  = omp_get_thread_num();
+		int omp_num = omp_get_num_threads();
+		printf("MPI rank # %2d OpenMP thread # %2d of %2d \n", CPU_Rank, omp_id, omp_num);
+		fflush(stdout);
+	}
+#else
+	printf("MPI rank # %2d \n", CPU_Rank);
+	fflush(stdout);
+#endif
 
     // are we master CPU?
     CPU_Master = (CPU_Rank == 0 ? 1 : 0);

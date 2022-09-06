@@ -6,7 +6,9 @@
    exception of the evaluation of the viscous force). The transport substep is
    treated elsewhere.
 */
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <cassert>
 #include <cfloat>
 #include <climits>
@@ -104,6 +106,7 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
     bool found = false;
     bool is_dens = strcmp(dst.get_name(), "dens") == 0;
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0; n_radial < dst.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -144,6 +147,7 @@ bool assure_temperature_range(t_data &data)
     const double Tmax = parameters::maximum_temperature *
 			units::temperature.get_inverse_cgs_factor();
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -671,6 +675,7 @@ void update_with_sourceterms(t_data &data, const double dt)
     double supp_torque = 0.0; // for imposed disk drift
 
     if (parameters::Adiabatic) {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -725,6 +730,7 @@ void update_with_sourceterms(t_data &data, const double dt)
     }
 
     // update v_radial with source terms
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 1;
 	 n_radial <= data[t_data::V_RADIAL].get_max_radial() - 1; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -779,10 +785,12 @@ void update_with_sourceterms(t_data &data, const double dt)
     }
 
     // update v_azimuthal with source terms
+	#pragma omp parallel for
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial(); ++n_radial) {
+
 	if (IMPOSEDDISKDRIFT != 0.0) {
-	    supp_torque = IMPOSEDDISKDRIFT * 0.5 *
+		supp_torque = IMPOSEDDISKDRIFT * 0.5 *
 			  std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
 	}
 	//const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
@@ -889,6 +897,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	t_polargrid &visc = data[t_data::VISCOSITY];
 
 	// calculate div(v)
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0;
 	 nr < DIV_V.get_size_radial(); ++nr) {
 	for (unsigned int naz = 0; naz < DIV_V.get_size_azimuthal(); ++naz) {
@@ -965,6 +974,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	}
 
 	if (StabilizeArtViscosity > 0) {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < vr.get_max_radial(); ++nr) {
 		for (unsigned int naz = 0; naz < vr.get_size_azimuthal(); ++naz) {
 
@@ -1025,7 +1035,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	}
 
 
-
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < vr.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < vr.get_size_azimuthal(); ++naz) {
 		const int naz_minus =
@@ -1139,6 +1149,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	t_polargrid &Qphi = data[t_data::Q_PHI];
 
 	// calculate q_r and q_phi
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0;
 		 nr < Qr.get_size_radial(); ++nr) {
 		for (unsigned int naz = 0;
@@ -1170,14 +1181,16 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	// perform this update before the velocities are updated
 	if (parameters::Adiabatic) {
 	    if (parameters::artificial_viscosity_dissipation) {
+		#pragma omp parallel for
 		for (unsigned int nr = 0;
 			 nr < energy.get_size_radial();
 			 ++nr) {
 			const double dxtheta = dphi * Rmed[nr];
-		    const double invdxtheta = 1.0 / dxtheta;
+			const double invdxtheta = 1.0 / dxtheta;
+
 			for (unsigned int naz = 0;
 			 naz < energy.get_size_azimuthal();
-			 ++naz) {
+			 ++naz) {	
 
 			const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
 
@@ -1196,6 +1209,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	}
 
 	// add artificial viscous pressure source term to v_radial
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < vr.get_size_radial() - 1; ++nr) {
 		for (unsigned int naz = 0; naz < vr.get_size_azimuthal(); ++naz) {
 		// 1/Sigma dq_r/dr : Sigma is calculated as a mean value between
@@ -1207,9 +1221,10 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	}
 
 	// add artificial viscous pressure source term to v_azimuthal
+	#pragma omp parallel for
 	for (unsigned int nr = 0; nr < vphi.get_size_radial(); ++nr) {
 		const double dxtheta = dphi * Rmed[nr];
-	    const double invdxtheta = 1.0 / dxtheta;
+		const double invdxtheta = 1.0 / dxtheta;
 		for (unsigned int naz = 0; naz < vphi.get_size_azimuthal(); ++naz) {
 		// 1/Sigma 1/r dq_phi/dphi : Sigma is calculated as a mean value
 		// between the neightbour cells
@@ -1257,6 +1272,7 @@ void calculate_qplus(t_data &data, const double current_time)
 
     if (parameters::heating_viscous_enabled && EXPLICIT_VISCOSITY) {
 	/* We calculate the heating source term Qplus from i=1 to max-1 */
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 1;
 	     n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -1337,6 +1353,7 @@ void calculate_qplus(t_data &data, const double current_time)
 		const double y_star = planet.get_y();
 
 	    // Simple star heating (see Masterthesis Alexandros Ziampras)
+		#pragma omp parallel for collapse(2)
 	    for (unsigned int n_radial = 1;
 		 n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
 		for (unsigned int n_azimuthal = 0;
@@ -1578,6 +1595,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
     // beta cooling
     if (parameters::cooling_beta_enabled) {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 1;
 	     n_radial < data[t_data::QMINUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -1606,7 +1624,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
     // local radiative cooling
     if (parameters::cooling_radiative_enabled) {
-
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 1;
 	     n_radial < data[t_data::QMINUS].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -1697,6 +1715,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
     // calculate tau_cool if needed for output
     if (data[t_data::TAU_COOL].get_write_1D() ||
 	data[t_data::TAU_COOL].get_write_2D()) {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::TAU_COOL].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -1714,6 +1733,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
 	data[t_data::P_DIVV].get_write_2D() ||
 	parameters::radiative_diffusion_enabled) {
 	data.pdivv_total = 0;
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
@@ -1731,6 +1751,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
     }
 
     // Now we can update energy with source terms
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 1;
 	 n_radial < data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -1843,6 +1864,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
 	// We set minimum Temperature here such that H (thru Cs) is also computed with the minimum Temperature
+	#pragma omp parallel for
 	for (unsigned int naz = 0; naz < Energy.get_size_azimuthal(); ++naz) {
 		const unsigned int nr_max = Energy.get_max_radial();
 
@@ -1884,6 +1906,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	compute_scale_height(data, current_time);
 
     // calcuate Ka for K(i/2,j)
+	#pragma omp parallel for collapse(2)
     for (unsigned int nr = 1; nr < Ka.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
 	    const unsigned int n_azimuthal_plus =
@@ -1936,7 +1959,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	}
     }
 
-
+	#pragma omp parallel for
 	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
 		const unsigned int nr_max = Ka.get_max_radial();
 		if(CPU_Rank == CPU_Highest && parameters::boundary_outer == parameters::boundary_condition_reflecting){
@@ -1963,6 +1986,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	}
 
     // calcuate Kb for K(i,j/2)
+	#pragma omp parallel for collapse(2)
     for (unsigned int nr = 1; nr < Kb.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Kb.get_size_azimuthal(); ++naz) {
 	    // unsigned int n_azimuthal_plus = (n_azimuthal ==
@@ -2022,6 +2046,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
     const double c_v = constants::R / (parameters::MU * (ADIABATICINDEX - 1.0));
 
     // calculate A,B,C,D,E
+	#pragma omp parallel for collapse(2)
     for (unsigned int nr = 1; nr < Temperature.get_size_radial() - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Temperature.get_size_azimuthal();
 	     ++naz) {
@@ -2566,6 +2591,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 static void compute_sound_speed_normal(t_data &data)
 {
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -2606,6 +2632,7 @@ static void compute_iso_sound_speed_center_of_mass(t_data &data)
     const double m_cm = data.get_planetary_system().get_mass();
 
     // Cs^2 = h^2 * vk * r ^ 2*Flaring
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0;
 	 n_rad <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
@@ -2660,6 +2687,7 @@ static void compute_iso_sound_speed_nbody(t_data &data, const double current_tim
     assert(N_planets > 1);
 
     // Cs^2 = h^2 * vk * r ^ 2*Flaring
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0;
 	 n_rad <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
@@ -2728,13 +2756,15 @@ void compute_sound_speed(t_data &data, const double current_time)
 void compute_scale_height_old(t_data &data)
 {
 
+	#pragma omp parallel for
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_radial) {
-	double inv_omega_kepler = 1.0 / calculate_omega_kepler(Rb[n_radial]);
+	const double inv_omega_kepler = 1.0 / calculate_omega_kepler(Rb[n_radial]);
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::SCALE_HEIGHT].get_max_azimuthal();
 	     ++n_azimuthal) {
+
 	    if (parameters::Adiabatic || parameters::Polytropic) {
 		// h = H/r = c_s,iso / v_k = c_s/sqrt(gamma) / v_k
 		// H = h*r = c_s,iso / W_k = c_s/sqrt(gamma) / W_k
@@ -2785,6 +2815,7 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
     // for an Nbody system, H^-2 = sum_n (H_n)^-2
     // See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
     // Better see Thun et al. 2017 Eq. 8 instead.
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0;
 	 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
@@ -2864,6 +2895,7 @@ void compute_scale_height_center_of_mass(t_data &data)
     const Pair r_cm = data.get_planetary_system().get_center_of_mass();
     const double m_cm = data.get_planetary_system().get_mass();
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0;
 	 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
 	for (unsigned int n_az = 0;
@@ -2935,11 +2967,13 @@ void compute_scale_height(t_data &data, const double current_time)
 void compute_pressure(t_data &data)
 {
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::PRESSURE].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::PRESSURE].get_max_azimuthal();
 	     ++n_azimuthal) {
+
 	    if (parameters::Adiabatic) {
 		const double gamma_eff =
 		    pvte::get_gamma_eff(data, n_radial, n_azimuthal);
@@ -2970,6 +3004,7 @@ void compute_pressure(t_data &data)
 void compute_temperature(t_data &data)
 {
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::TEMPERATURE].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -3009,6 +3044,7 @@ void compute_rho(t_data &data, const double current_time)
 {
 	compute_scale_height(data, current_time);
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::RHO].get_max_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -3077,6 +3113,7 @@ void compute_heating_cooling_for_CFL(t_data &data, const double current_time)
 	calculate_qminus(data, current_time); // first to calculate teff
 	calculate_qplus(data, current_time);
 
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 1;
 	     n_radial < data[t_data::ENERGY].get_max_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;

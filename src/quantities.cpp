@@ -467,6 +467,8 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 	// calculations outside the loop for speedup
 	double sinFrameAngle = std::sin(FrameAngle);
 	double cosFrameAngle = std::cos(FrameAngle);
+
+	#pragma omp parallel for collapse(2)
 	for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -557,6 +559,8 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
     // calculations outside the loop for speedup
 	const double sinFrameAngle = std::sin(FrameAngle);
 	const double cosFrameAngle = std::cos(FrameAngle);
+
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
