@@ -348,20 +348,18 @@ static double flux_limiter(const double a, const double b){
 void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 			 t_polargrid *QStar, double dt)
 {
-    unsigned int nRadial, nAzimuthal;
-    double dqp, dqm;
 
-    for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+	for (unsigned int nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
 	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
 	    unsigned int cellNextRadial = cell + Qbase->Nsec;
 	    if ((nRadial == 0) || (nRadial == Qbase->Nrad - 1)) {
 		dq[cell] = 0.0;
 	    } else {
-		dqm = (Qbase->Field[cell] - Qbase->Field[cellPrevRadial]) *
+		const double dqm = (Qbase->Field[cell] - Qbase->Field[cellPrevRadial]) *
 		      InvDiffRmed[nRadial];
-		dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
+		const double dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
 		      InvDiffRmed[nRadial + 1];
 		dq[cell] = flux_limiter(dqp, dqm);
 		}
@@ -370,8 +368,8 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
     // TODO: changed to nRadial =1 because of nRadial-1
     // TODO: potential problem: Using Rmed[nRadial] - Rmed[nRadial-1] for
     // a-mesh Qties (v_rad,..) as well as for b-mesh Qties (Density,...)
-    for (nRadial = 1; nRadial < Qbase->Nrad; ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+	for (unsigned int nRadial = 1; nRadial < Qbase->Nrad; ++nRadial) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
 	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
 	    if (VRadial->Field[cell] > 0.0)
@@ -387,7 +385,7 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 	}
     }
     // TODO: check here
-    for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	(*QStar)(0, nAzimuthal) = 0.0;
 	if ((parameters::boundary_outer !=
 	     parameters::boundary_condition_evanescent) &&
@@ -411,38 +409,35 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 		      double dt)
 {
-    unsigned int nRadial, nAzimuthal, cell;
+	for (unsigned int nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
+	const double dxtheta = dphi * Rmed[nRadial];
+	const double invdxtheta = 1.0 / dxtheta;
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+		const unsigned int cell = nAzimuthal + nRadial * Qbase->Nsec;
 
-    int ljp, ljm, jm;
-    double dqp, dqm, dxtheta, ksi, invdxtheta;
-
-    for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	dxtheta = dphi * Rmed[nRadial];
-	invdxtheta = 1.0 / dxtheta;
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    cell = nAzimuthal + nRadial * Qbase->Nsec;
-
-	    ljp = cell + 1;
-	    ljm = cell - 1;
+		unsigned int ljp = cell + 1;
+		unsigned int ljm = cell - 1;
 	    if (nAzimuthal == 0) {
 		ljm = nRadial * Qbase->Nsec + Qbase->Nsec - 1;
 	    }
 	    if (nAzimuthal == Qbase->Nsec - 1) {
 		ljp = nRadial * Qbase->Nsec;
 	    }
-	    dqm = (Qbase->Field[cell] - Qbase->Field[ljm]);
-		dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
+		const double dqm = (Qbase->Field[cell] - Qbase->Field[ljm]);
+		const double dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
 		dq[cell] = 0.5*flux_limiter(dqp, dqm) * invdxtheta;
 	}
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 	    // cell = nAzimuthal+nRadial*Qbase->Nsec;
-	    cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
+		const unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
 
-	    jm = nAzimuthal - 1;
-	    if (nAzimuthal == 0)
+		unsigned int jm = nAzimuthal - 1;
+		if (nAzimuthal == 0){
 		jm = Qbase->Nsec - 1;
-	    ljm = jm + nRadial * Qbase->Nsec;
-	    ksi = VAzimuthal->Field[cell] * dt;
+		}
+
+		unsigned int ljm = jm + nRadial * Qbase->Nsec;
+		const double ksi = VAzimuthal->Field[cell] * dt;
 	    if (ksi > 0.0) {
 		QStar->Field[cell] =
 		    Qbase->Field[ljm] + (dxtheta - ksi) * dq[ljm];
@@ -537,7 +532,6 @@ void compute_velocities_from_momenta(t_polargrid &density,
 void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		   double dt)
 {
-    unsigned int nRadial, nAzimuthal;
     bool is_density = false;
     units::t_unit *unit = Qbase->get_unit();
     if (unit != nullptr) {
@@ -549,8 +543,8 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		     *Work); // work = qbase/densityint
     compute_star_radial(Work, VRadial, QRStar, dt);
 
-    for (nRadial = 0; nRadial < Qbase->get_size_radial(); ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < Qbase->get_size_azimuthal();
+	for (unsigned int nRadial = 0; nRadial < Qbase->get_size_radial(); ++nRadial) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->get_size_azimuthal();
 	     ++nAzimuthal) {
 	    const unsigned int cell = nAzimuthal + nRadial * Qbase->Nsec;
 	    const int lip = cell + Qbase->Nsec;
@@ -613,30 +607,25 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 void VanLeerTheta(t_data &data, PolarGrid *VAzimuthal, PolarGrid *Qbase,
 		  double dt)
 {
-    unsigned int nRadial, nAzimuthal, cell;
-
-    int ljp;
-
     divise_polargrid(*Qbase, data[t_data::DENSITY_INT],
 		     *Work); // work = qbase/densityint
 
     ComputeStarTheta(Work, VAzimuthal, QRStar, dt);
 
-    for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	double dxrad = (Rsup[nRadial] - Rinf[nRadial]) * dt;
-	double invsurf = 1.0 / Surf[nRadial];
+	for (unsigned int nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
+	const double dxrad = (Rsup[nRadial] - Rinf[nRadial]) * dt;
+	const double invsurf = InvSurf[nRadial];
 
 	if (!UniformTransport || !NoSplitAdvection[nRadial]) {
-	    for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-		double varq;
+		for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
 
-		cell = nAzimuthal + nRadial * Qbase->Nsec;
-		ljp = cell + 1;
+		const unsigned int cell = nAzimuthal + nRadial * Qbase->Nsec;
+		unsigned int ljp = cell + 1;
 
 		if (nAzimuthal == Qbase->Nsec - 1)
 		    ljp = nRadial * Qbase->Nsec;
 
-		varq = dxrad * QRStar->Field[cell] * DensityStar->Field[cell] *
+		double varq = dxrad * QRStar->Field[cell] * DensityStar->Field[cell] *
 		       VAzimuthal->Field[cell];
 		varq -= dxrad * QRStar->Field[ljp] * DensityStar->Field[ljp] *
 			VAzimuthal->Field[ljp];
