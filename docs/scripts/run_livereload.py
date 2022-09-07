@@ -1,4 +1,3 @@
-#!.venv/bin/python
 import socket
 import errno
 from genericpath import exists
@@ -6,9 +5,6 @@ from livereload import Server, shell
 
 
 def main():
-    if not exists("build/html"):
-        shell("bash -c 'source .venv/bin/activate && make html'")()
-
     server = Server()
     server.watch('source/**.rst', shell('make html'), delay=1)
     server.watch('source/**.md', shell('make html'), delay=1)
