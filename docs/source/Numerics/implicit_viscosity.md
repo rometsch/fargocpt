@@ -55,7 +55,7 @@ factor of $\frac{1}{1-dt\cdot c_1}$ ($c_1 <= 0$).
 We can now demand that the implicit step is the same as the explicit step. If
 we do this, we find that we need to correct the constants used in the implicit
 step by a factor of $c_1^\mathrm{implicit} = \frac{c_1^\mathrm{explicit}}{1+
-dt\cdot c_1^\mathrm{explicit}$. If the term $1 + dt\cdot c_1$ becomes zero or
+dt\cdot c_1^\mathrm{explicit}}$. If the term $1 + dt\cdot c_1$ becomes zero or
 negative, the explicit update overshoots over the equilibrium velocity of the
 current system, causing instability. If we define $c_1^\mathrm{implicit} =
 \frac{c_1^\mathrm{explicit}}{\mathrm{max}(0,\,\, 1+ dt\cdot
@@ -127,8 +127,10 @@ We can expand the term:
 $\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1} + v_r^i}{R_b^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \frac{\nu_a^j}{\Delta \varphi} (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})$
 $-\frac{(2\nu\Sigma)^{j-1}}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j} - v_\varphi^{j-1}}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1,j-1} + v_r^{i,j-1}}{R_b^i} - \frac{1}{3}\frac{v_r^{i+1,j-1} R_a^{i+1} - v_r^{i,j-1} R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] - \frac{\nu_a^{j-1}}{\Delta \varphi} (\frac{v_r^{i+1,j-1} R_a^{i+1} - v_r^{i,j-1} R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j} - v_\varphi^{j-1}}{R_b^i \Delta \varphi})$
 
+TODO: fix extra closed bracket
+
 We drop all terms that do not contain $v_\varphi$:
-$\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{2}{3}\frac{- v_\varphi^j}{R_b^i \Delta \varphi}\right] + \frac{\nu_a^j}{\Delta \varphi} (- v_\varphi^j}{R_b^i \Delta \varphi})$
+$\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{2}{3}\frac{- v_\varphi^j}{R_b^i \Delta \varphi}\right] + \frac{\nu_a^j}{\Delta \varphi} (- v_\varphi^j}{R_b^i \Delta \varphi})}$
 $-\frac{(2\nu\Sigma)^{j-1}}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j}}{R_b^i \Delta \varphi} \right] - \frac{\nu_a^{j-1}}{\Delta \varphi} (\frac{v_\varphi^{j}}{R_b^i \Delta \varphi})$
 
 $v_\varphi^j \frac{2}{3}\frac{-1}{R_b^i \Delta \varphi} [\frac{(2\nu\Sigma)^j}{\Delta\varphi} + \frac{(2\nu\Sigma)^{j-1}}{\Delta\varphi}]$
@@ -205,7 +207,7 @@ $+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{v_r^{i}}{R_b
 $-2c_{1,\varphi\varphi} = \frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^i} + \frac{1}{3}\frac{R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})$
 $+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})$
 
-\*\* $\tau_{rr}$
+## $\tau_{rr}$
 
 $\Delta v_r = \frac{R_b^i\tau_{rr}^{i,j} - R_b^{i-1}\tau_{rr}^{i-1,j}}{\Delta R_b^i}$
 
