@@ -1,19 +1,24 @@
 #!.venv/bin/python
-from livereload import Server, shell
-
-def main():
-    server = Server()
-    server.watch('source/*.rst', shell('make html'), delay=1)
-    server.watch('source/*.md', shell('make html'), delay=1)
-    server.watch('source/*/*.md', shell('make html'), delay=1)
-    server.watch('source/*.py', shell('make html'), delay=1)
-    server.watch('_static/*', shell('make html'), delay=1)
-    server.watch('_templates/*', shell('make html'), delay=1)
-
-    server.serve(root='build/html', port=get_next_free_port(5500))
-
 import socket
 import errno
+from genericpath import exists
+from livereload import Server, shell
+
+
+def main():
+    if not exists("build/html"):
+        shell("bash -c 'source .venv/bin/activate && make html'")()
+
+    server = Server()
+    server.watch('source/**.rst', shell('make html'), delay=1)
+    server.watch('source/**.md', shell('make html'), delay=1)
+    server.watch('source/**.py', shell('make html'), delay=1)
+    server.watch('_static/**', shell('make html'), delay=1)
+    server.watch('_templates/**', shell('make html'), delay=1)
+
+    port = get_next_free_port(5500)
+    server.serve(root='build/html', port=port)
+
 
 def is_port_free(port):
     """ Check whether the port is free to use on localhost.
