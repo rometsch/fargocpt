@@ -19,7 +19,6 @@
 #include "constants.h"
 #include "global.h"
 #include "logging.h"
-#include "macros.h"
 #include "nongnu.h"
 #include "parameters.h"
 #include "quantities.h"

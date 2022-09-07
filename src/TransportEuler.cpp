@@ -22,7 +22,6 @@ velocity in each zone by a proper averaging).
 #include "boundary_conditions.h"
 #include "constants.h"
 #include "global.h"
-#include "macros.h"
 #include "parameters.h"
 #include "util.h"
 
@@ -336,6 +335,12 @@ static double flux_limiter(const double a, const double b){
 	}
 }
 
+static unsigned int cell_number(const unsigned int nrad, 
+								const unsigned int naz, 
+								const unsigned int Naz_tot) {
+    return nrad * Naz_tot + naz;
+}
+
 /**
 */
 // void compute_star_radial(t_polargrid* base, t_polargrid* V_Radial,
@@ -348,7 +353,7 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 
     for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
+	    unsigned int cell = cell_number(nRadial, nAzimuthal, Qbase->Nsec);
 	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
 	    unsigned int cellNextRadial = cell + Qbase->Nsec;
 	    if ((nRadial == 0) || (nRadial == Qbase->Nrad - 1)) {
@@ -367,7 +372,7 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
     // a-mesh Qties (v_rad,..) as well as for b-mesh Qties (Density,...)
     for (nRadial = 1; nRadial < Qbase->Nrad; ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    unsigned int cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
+	    unsigned int cell = cell_number(nRadial, nAzimuthal, Qbase->Nsec);
 	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
 	    if (VRadial->Field[cell] > 0.0)
 		QStar->Field[cell] = Qbase->Field[cellPrevRadial] +
@@ -430,8 +435,7 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 		dq[cell] = 0.5*flux_limiter(dqp, dqm) * invdxtheta;
 	}
 	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    // cell = nAzimuthal+nRadial*Qbase->Nsec;
-	    cell = CELL(nRadial, nAzimuthal, Qbase->Nsec);
+	    cell = cell_number(nRadial, nAzimuthal, Qbase->Nsec);
 
 	    jm = nAzimuthal - 1;
 	    if (nAzimuthal == 0)
