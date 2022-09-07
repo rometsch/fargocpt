@@ -241,6 +241,7 @@ static double get_particle_eccentricity_cart(int particle_index)
 static void init_particle_timestep(t_data &data)
 {
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double sk, h1, der2, der12, sqr;
 
@@ -594,6 +595,7 @@ void init(t_data &data)
     }
 
     if (parameters::particle_disk_gravity_enabled) {
+	#pragma omp parallel for
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	    correct_for_self_gravity(i);
 	}
@@ -1112,6 +1114,7 @@ void check_tstop(t_data &data)
 		  MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
     dt = DT / global_gas_time_step_cfl;
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	const double radius = particles[i].radius;
 	const double r = particles[i].get_distance_to_star();
@@ -1215,6 +1218,7 @@ void check_tstop(t_data &data)
 void update_velocities_from_indirect_term(const double dt)
 {
     // Naming of r and phi weird!!!!!!!
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double indirect_q1_dot;
@@ -1245,6 +1249,7 @@ void update_velocities_from_indirect_term(const double dt)
 void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 {
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double r = particles[i].get_distance_to_star();
 	double phi = particles[i].get_angle();
@@ -1340,6 +1345,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 void update_velocities_from_gas_drag(t_data &data, double dt)
 {
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double r = particles[i].get_distance_to_star();
 	double phi = particles[i].get_angle();
@@ -1582,6 +1588,7 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 
     // update particles
     unsigned int offset = particle_offsets[CPU_Rank];
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double &vx = particles[i].r_dot;
 	double &vy = particles[i].phi_dot;
@@ -1600,6 +1607,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 {
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	// initialize
@@ -1691,6 +1699,7 @@ void integrate_semiimplicit(t_data &data, const double dt)
 {
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	// initialize
@@ -1783,6 +1792,7 @@ void integrate_implicit(t_data &data, const double dt)
     minus_r_dot_rel0 = 0.0;
     tstop0 = 1e+300;
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	const double r0 = particles[i].r;
 	const double phi0 = particles[i].phi;
@@ -1876,6 +1886,7 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 
     // as particles move independent of each other, we can integrate one after
     // one
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double fac, fac11;
@@ -2211,6 +2222,7 @@ void integrate_explicit(t_data &data, const double dt)
 
     // as particles move independent of each other, we can integrate one after
     // one
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double k1_r, k1_phi, k1_r_dot, k1_phi_dot;
