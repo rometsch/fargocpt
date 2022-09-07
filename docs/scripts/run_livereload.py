@@ -1,13 +1,19 @@
 import socket
 import errno
-from genericpath import exists
 from livereload import Server, shell
 
+import os
 
 def main():
+    print(os.getcwd())
     server = Server()
     server.watch('source/**.rst', shell('make html'), delay=1)
-    server.watch('source/**.md', shell('make html'), delay=1)
+    server.watch('source/*.md', shell('make html'), delay=1)
+    server.watch('source/*.md', shell('make html'), delay=1)
+    for root, dirs, _ in os.walk("source"):
+        for d in dirs:
+            server.watch(f"{root}/{d}/*.md", shell('make html'), delay=1)
+    # server.watch('source/Numerics/*.md', shell('make html'), delay=1)
     server.watch('source/**.py', shell('make html'), delay=1)
     server.watch('_static/**', shell('make html'), delay=1)
     server.watch('_templates/**', shell('make html'), delay=1)
