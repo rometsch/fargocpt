@@ -3,9 +3,7 @@
 This is yet another version of the FARGO code.
 
 ``` {toctree}
-:maxdepth: 2
-:glob:
+:maxdepth: 3
 
-*
-Numerics/*
+Numerics/index
 ```
