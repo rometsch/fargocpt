@@ -342,8 +342,7 @@ void init_physics(t_data &data)
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);
     }
-
-    // boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
 }
 
 /**
@@ -1821,15 +1820,11 @@ void init_gas_velocities(t_data &data)
 	if (parameters::self_gravity && !CentrifugalBalance)
 	selfgravity::init_azimuthal_velocity(data[t_data::V_AZIMUTHAL]);
 
-	for (unsigned int n_radial = 1;
+	for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial(); ++n_radial) {
-	if (n_radial == data[t_data::V_AZIMUTHAL].Nrad) {
-	    r = Rmed[data[t_data::V_AZIMUTHAL].Nrad - 1];
-	    ri = Rinf[data[t_data::V_AZIMUTHAL].Nrad - 1];
-	} else {
-	    r = Rmed[n_radial];
-	    ri = Rinf[n_radial];
-	}
+
+	r = Rmed[n_radial];
+	ri = Rinf[n_radial];
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
@@ -1841,13 +1836,22 @@ void init_gas_velocities(t_data &data)
 		    std::sqrt(1.0 - std::pow(ASPECTRATIO_REF, 2) *
 					std::pow(r, 2.0 * FLARINGINDEX) *
 					(1. + SIGMASLOPE - 2.0 * FLARINGINDEX));
-	    }
+		}
 
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= OmegaFrame * r;
 
-	    if (CentrifugalBalance)
+		if (CentrifugalBalance){
+		if(n_radial == 0){
+			// extrapolate keplerian profile for nr = 0
+			const double vkep0 = Rmed[0] * calculate_omega_kepler(Rmed[0]);
+			const double vkep1 = Rmed[1] * calculate_omega_kepler(Rmed[1]);
+			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
+				vt_cent[1 + IMIN] * vkep0 / vkep1;
+		} else {
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    vt_cent[n_radial + IMIN];
+		}
+		}
 
 	    if (n_radial == data[t_data::V_RADIAL].Nrad) {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
@@ -1858,7 +1862,16 @@ void init_gas_velocities(t_data &data)
 
 		if (!parameters::initialize_vradial_zero) {
 		    if (ViscosityAlpha) {
-			const double nu = 0.5 * (data[t_data::VISCOSITY](n_radial, n_azimuthal) + data[t_data::VISCOSITY](n_radial-1, n_azimuthal));
+			double nu;
+			if(n_radial == 0){
+				// nu = alpha c_s h = alpha h^2 * vk
+				// so we extrapolate with the vk profile
+				const double vkep0 = Rmed[0] * calculate_omega_kepler(Rmed[0]);
+				const double vkep1 = Rmed[1] * calculate_omega_kepler(Rmed[1]);
+					nu = data[t_data::VISCOSITY](n_radial, n_azimuthal) * vkep0 / vkep1;
+			} else {
+				nu = 0.5 * (data[t_data::VISCOSITY](n_radial, n_azimuthal) + data[t_data::VISCOSITY](n_radial-1, n_azimuthal));
+			}
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
 				3.0 * nu / Rinf[n_radial] *
 			    (-SIGMASLOPE + 2.0 * FLARINGINDEX + 1.0);
@@ -1870,15 +1883,7 @@ void init_gas_velocities(t_data &data)
 			    (-SIGMASLOPE + .5);
 		    }
 		}
-	    }
+		}
 	}
-    }
-
-    /// set VRadial for innermost and outermost ring to 0
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
-	 ++n_azimuthal) {
-	data[t_data::V_RADIAL](0, n_azimuthal) = 0.0;
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].Nrad, n_azimuthal) = 0.0;
-    }
+	}
 }
