@@ -2371,7 +2371,7 @@ static void timestep_debug_report(t_data &data,
 	logging::print(
 				LOG_INFO
 				"Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
-				n_radial_debug, n_azimuthal_debug);
+				IMIN + n_radial_debug, n_azimuthal_debug);
 	logging::print(LOG_INFO "located at radius Rmed         : %g\n",
 				   Rmed[n_radial_debug]);
 	const double SigmaFloor =
