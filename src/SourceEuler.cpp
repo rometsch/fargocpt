@@ -283,15 +283,24 @@ void init_euler(t_data &data, const double current_time)
 	compute_heating_cooling_for_CFL(data, current_time);
 }
 
-static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
+static double PlanNextTimestepSize(t_data &data, double dt, double force_calc)
 {
 
     if (!SloppyCFL || force_calc) {
 	last_dt = dt;
-	const double local_gas_time_step_cfl = condition_cfl(
-	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-	    data[t_data::SOUNDSPEED], DT - dtemp);
-	dt = (DT - dtemp) / local_gas_time_step_cfl;
+	const double dt_cfl = condition_cfl(data, 0.0);
+
+	if(PRINT_SIG_INFO){
+		condition_cfl(data, dt_cfl);
+	}
+
+	// don't let dt grow too fast
+	const double limited_dt = std::min(parameters::CFL_max_var * last_dt, dt_cfl);
+
+	// Limit dt un such a way, that we precisely end up on DT
+	const double deltaT = DT - dtemp; // time till full DT
+	const double inverse_dt_limited = std::max(deltaT / limited_dt, 1.0);
+	dt = deltaT / inverse_dt_limited;
     }
     return dt;
 }
@@ -402,7 +411,7 @@ void AlgoGas(t_data &data)
     }
     // recalculate timestep, even for no_disk = true, so that particle drag has
     // reasonable timestep size
-    hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
+	hydro_dt = PlanNextTimestepSize(data, last_dt, true);
 	double frog_dt = hydro_dt * 0.5;
 
 	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false);
@@ -652,7 +661,7 @@ void AlgoGas(t_data &data)
 	    // this must be done after CommunicateBoundaries
 		recalculate_derived_disk_quantities(data, end_time);
 
-	    hydro_dt = CalculateHydroTimeStep(data, hydro_dt, false);
+		hydro_dt = PlanNextTimestepSize(data, hydro_dt, false);
 		frog_dt = 0.5 * hydro_dt;
 
 	}
@@ -2281,28 +2290,163 @@ static void print_info()
 	logging::print_master(LOG_INFO "PhysicalTime = %g\n", PhysicalTime);
 }
 
+static void timestep_debug_report(t_data &data,
+								  const unsigned int n_radial_debug,
+								  const unsigned int n_azimuthal_debug,
+								  const double dt_global,
+								  const double dt_cell,
+								  const double invdt1,
+								  const double invdt2,
+								  const double invdt3,
+								  const double invdt4,
+								  const double invdt5,
+								  const double invdt6,
+								  const double dt_shear,
+								  const double dt_stable_visc
+								  ){
+	if (PRINT_SIG_INFO) {
+	PRINT_SIG_INFO = 0;
+
+	const unsigned int n_radial = n_radial_debug;
+	const unsigned int n_azimuthal = n_azimuthal_debug;
+
+	// debugging variables
+	double viscRadial = 0.0, viscAzimuthal = 0.0;
+	double itdbg1 = DBL_MAX, itdbg2 = DBL_MAX, itdbg3 = DBL_MAX,
+	   itdbg4 = DBL_MAX, itdbg5 = DBL_MAX, itdbg6 = DBL_MAX;
+
+	const t_polargrid &v_radial = data[t_data::V_RADIAL];
+	const t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
+
+	// velocity differences in radial & azimuthal direction
+	const double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
+			v_radial(n_radial, n_azimuthal);
+	const double dvAzimuthal =
+			v_azimuthal(n_radial,
+						n_azimuthal == v_radial.get_max_azimuthal()
+						? 0
+						: n_azimuthal + 1) - v_azimuthal(n_radial, n_azimuthal);
+
+	// cell sizes in radial & azimuthal direction
+	double dxRadial = Rsup[n_radial] - Rinf[n_radial];
+	double dxAzimuthal = Rmed[n_radial] * 2.0 * M_PI /
+				 (double)(v_radial.get_size_azimuthal());
+
+	if (invdt1 != 0) {
+		itdbg1 = 1.0 / invdt1;
+	}
+	if (invdt2 != 0) {
+		itdbg2 = 1.0 / invdt2;
+	}
+	if (invdt3 != 0) {
+		itdbg3 = 1.0 / invdt3;
+	}
+	if (invdt4 != 0) {
+		itdbg4 = 1.0 / invdt4;
+	}
+	if (invdt5 != 0) {
+		itdbg5 = 1.0 / invdt5;
+	}
+	if (invdt6 != 0) {
+		itdbg6 = 1.0 / invdt6;
+	}
+	if ((parameters::artificial_viscosity ==
+		 parameters::artificial_viscosity_SN) &&
+			(parameters::artificial_viscosity_factor > 0)) {
+		viscRadial =
+				dxRadial / dvRadial / 4.0 /
+				std::pow(parameters::artificial_viscosity_factor,
+						 2);
+		viscAzimuthal =
+				dxAzimuthal / dvAzimuthal / 4.0 /
+				std::pow(parameters::artificial_viscosity_factor,
+						 2);
+	}
+
+	print_info();
+
+	logging::print(LOG_INFO
+				   "Timestep control information for CPU %d: \n",
+				   CPU_Rank);
+	logging::print(
+				LOG_INFO
+				"Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
+				n_radial_debug, n_azimuthal_debug);
+	logging::print(LOG_INFO "located at radius Rmed         : %g\n",
+				   Rmed[n_radial_debug]);
+	const double SigmaFloor =
+			parameters::sigma0 * parameters::sigma_floor;
+	logging::print(LOG_INFO "Cell has a surface denstity of : %g\t%g g/cm^2\t%g 1/SigmaFloor\n",
+				   data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug), data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)*units::surface_density,
+			data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)/SigmaFloor);
+	if (parameters::Adiabatic) {
+		const double mu = pvte::get_mu(data, n_radial_debug, n_azimuthal_debug);
+		const double gamma_eff =
+				pvte::get_gamma_eff(data, n_radial_debug, n_azimuthal_debug);
+		const double cell_temperature =
+				mu / constants::R * (gamma_eff - 1.0) *
+				data[t_data::ENERGY](n_radial_debug, n_azimuthal_debug) /
+				data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug) *
+				units::temperature.get_cgs_factor();
+		logging::print(LOG_INFO "Cell has a Temperature of      : %g K\n",
+					   cell_temperature);
+	}
+	logging::print(LOG_INFO "Sound speed limit              : %g\n",
+				   itdbg1);
+	logging::print(LOG_INFO "Radial motion limit            : %g\n",
+				   itdbg2);
+	logging::print(LOG_INFO "Residual circular motion limit : %g\n",
+				   itdbg3);
+
+	if (parameters::artificial_viscosity_factor > 0 && parameters::artificial_viscosity ==
+			parameters::artificial_viscosity_SN) {
+		logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
+					   itdbg4);
+		logging::print(LOG_INFO "   Arise from r with limit     : %g\n",
+					   viscRadial);
+		logging::print(LOG_INFO "   and from theta with limit   : %g\n",
+					   viscAzimuthal);
+	} else if (parameters::artificial_viscosity_factor > 0 && (StabilizeViscosity == 2 || StabilizeArtViscosity == 2)) {
+		logging::print(LOG_INFO "Viscosity stability limit %g\n", dt_stable_visc);
+
+	} else {
+		logging::print(LOG_INFO
+					   "Articifial Viscosity limit     : disabled\n");
+	}
+	logging::print(LOG_INFO "Fargo shear limit %g\n", dt_shear);
+	logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
+				   itdbg5);
+	logging::print(LOG_INFO "Heating cooling limit      : %g\n",
+				   itdbg6);
+	logging::print(LOG_INFO "Limit time step for this cell  : %g\n",
+				   dt_cell);
+	logging::print(LOG_INFO "Limit time step adopted        : %g\n",
+				   dt_global);
+
+	}
+
+}
+
 /**
 	\param VRadial radial velocity polar grid
 	\param VAzimuthal azimuthal velocity polar grid
 	\param SoundSpeed sound speed polar grid
 	\param deltaT
 */
-double condition_cfl(t_data &data, t_polargrid &v_radial,
-			 t_polargrid &v_azimuthal, t_polargrid &soundspeed,
-			 const double deltaT)
+double condition_cfl(t_data &data, const double dt_global_input)
 {
-	dt_parabolic_local = 1e100;
+
+	const t_polargrid &v_radial = data[t_data::V_RADIAL];
+	const t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
+	const t_polargrid &soundspeed = data[t_data::SOUNDSPEED];
+
+
+	dt_parabolic_local = DBL_MAX;
 	std::vector<double> v_mean(v_radial.get_size_radial());
 	std::vector<double> v_residual(v_radial.get_size_azimuthal());
-	double dt_core = DBL_MAX, dt_cell;
-
-	// debugging variables
-	double viscRadial = 0.0, viscAzimuthal = 0.0;
-	unsigned int n_azimuthal_debug = 0, n_radial_debug = 0;
-	double itdbg1 = DBL_MAX, itdbg2 = DBL_MAX, itdbg3 = DBL_MAX,
-	   itdbg4 = DBL_MAX, itdbg5 = DBL_MAX, itdbg6 = DBL_MAX;
 
 	// Calculate and fill VMean array
+	#pragma omp parallel for
 	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
 	 ++n_radial) {
 	v_mean[n_radial] = 0.0;
@@ -2313,8 +2457,23 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 	v_mean[n_radial] /= (double)(v_azimuthal.get_size_azimuthal());
 	}
 
+	double dt_core = parameters::CFL * dphi /
+			fabs(v_mean[0]*InvRmed[0] - v_mean[1]*InvRmed[1]);
+
+	#pragma omp parallel for reduction(min : dt_core)
 	for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
+
+		// FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
+		const double shear_dt =
+				parameters::CFL * dphi /
+				fabs(v_mean[n_radial] * InvRmed[n_radial] -
+				 v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
+
+			if (shear_dt < dt_core){
+				dt_core = shear_dt;
+			}
+
 	// cell sizes in radial & azimuthal direction
 	double dxRadial = Rsup[n_radial] - Rinf[n_radial];
 	double dxAzimuthal = Rmed[n_radial] * 2.0 * M_PI /
@@ -2337,7 +2496,6 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
-		double invdt1, invdt2, invdt3, invdt4, invdt5, invdt6;
 
 		// velocity differences in radial & azimuthal direction
 		double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
@@ -2350,16 +2508,17 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		v_azimuthal(n_radial, n_azimuthal);
 
 		// sound speed limit
-		invdt1 = soundspeed(n_radial, n_azimuthal) /
+		const double invdt1 = soundspeed(n_radial, n_azimuthal) /
 			 (std::min(dxRadial, dxAzimuthal));
 
 		// radial motion limit
-		invdt2 = fabs(v_radial(n_radial, n_azimuthal)) / dxRadial;
+		const double invdt2 = fabs(v_radial(n_radial, n_azimuthal)) / dxRadial;
 
 		// residual circular motion limit
-		invdt3 = fabs(v_residual[n_azimuthal]) / dxAzimuthal;
+		const double invdt3 = fabs(v_residual[n_azimuthal]) / dxAzimuthal;
 
 		// artificial viscosity limit
+		double invdt4;
 		if (parameters::artificial_viscosity ==
 		parameters::artificial_viscosity_SN) {
 		if (dvRadial >= 0.0) {
@@ -2382,11 +2541,12 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		}
 
 		// kinematic viscosity limit
-		invdt5 = 4.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
+		const double invdt5 = 4.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
 			 std::max(1 / std::pow(dxRadial, 2),
 				  1 / std::pow(dxAzimuthal, 2)) * 0.6; // factor 1/2 because of leapfrog
 
 		// heating / cooling limit
+		double invdt6;
 		if (parameters::Adiabatic) {
 		// Limit energy update from heating / cooling to given fraction
 		// per dt
@@ -2400,6 +2560,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		invdt6 = 0.0;
 		}
 
+		double dt_cell;
 		if (EXPLICIT_VISCOSITY) {
 		// calculate new dt based on different limits
 		dt_cell = parameters::CFL /
@@ -2423,6 +2584,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 		dt_cell = std::min(dt_cell, 3.0 * dt_parabolic_local);
 		}
 
+		double dt_stable_visc = DBL_MAX;
 		if (StabilizeViscosity == 2) {
 		const double cphi =
 			data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial,
@@ -2439,6 +2601,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 		if (c != 0.0) {
 			const double dtStable = -parameters::CFL / c;
+			dt_stable_visc = dtStable;
 			dt_cell = std::min(dt_cell, dtStable);
 		}
 		}
@@ -2460,132 +2623,37 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 		if (c != 0.0) {
 			const double dtStable = -parameters::CFL / c;
+			dt_stable_visc = dtStable;
 			dt_cell = std::min(dt_cell, dtStable);
 		}
 		}
 
+		if(dt_cell == dt_global_input){
+			timestep_debug_report(data,
+								  n_radial,
+								  n_azimuthal,
+								  dt_global_input,
+								  dt_cell,
+								  invdt1,
+								  invdt2,
+								  invdt3,
+								  invdt4,
+								  invdt5,
+								  invdt6,
+								  shear_dt,
+								  dt_stable_visc);
+		}
+
 		if (dt_cell < dt_core) {
 		dt_core = dt_cell;
-
-		if (PRINT_SIG_INFO) {
-			n_radial_debug = n_radial;
-			n_azimuthal_debug = n_azimuthal;
-			if (invdt1 != 0) {
-			itdbg1 = 1.0 / invdt1;
-			}
-			if (invdt2 != 0) {
-			itdbg2 = 1.0 / invdt2;
-			}
-			if (invdt3 != 0) {
-			itdbg3 = 1.0 / invdt3;
-			}
-			if (invdt4 != 0) {
-			itdbg4 = 1.0 / invdt4;
-			}
-			if (invdt5 != 0) {
-			itdbg5 = 1.0 / invdt5;
-			}
-			if (invdt6 != 0) {
-			itdbg6 = 1.0 / invdt6;
-			}
-			if ((parameters::artificial_viscosity ==
-			 parameters::artificial_viscosity_SN) &&
-			(parameters::artificial_viscosity_factor > 0)) {
-			viscRadial =
-				dxRadial / dvRadial / 4.0 /
-				std::pow(parameters::artificial_viscosity_factor,
-					 2);
-			viscAzimuthal =
-				dxAzimuthal / dvAzimuthal / 4.0 /
-				std::pow(parameters::artificial_viscosity_factor,
-					 2);
-			}
-		}
 		}
 	}
-	}
-
-	// FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size - 1; ++n_radial) {
-	const double azimuthal_cell_size = 2.0 * M_PI / (double)NAzimuthal;
-	const double shear_dt =
-		parameters::CFL * azimuthal_cell_size /
-		fabs(v_mean[n_radial] * InvRmed[n_radial] -
-		 v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
-
-	if (shear_dt < dt_core)
-		dt_core = shear_dt;
 	}
 
 	double dt_global;
 	MPI_Allreduce(&dt_core, &dt_global, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
-	if (PRINT_SIG_INFO) {
-	print_info();
-
-	if (dt_core == dt_global) {
-
-		logging::print(LOG_INFO
-			   "Timestep control information for CPU %d: \n",
-			   CPU_Rank);
-		logging::print(
-		LOG_INFO
-		"Most restrictive cell at nRadial=%d and nAzimuthal=%d\n",
-		n_radial_debug, n_azimuthal_debug);
-		logging::print(LOG_INFO "located at radius Rmed         : %g\n",
-			   Rmed[n_radial_debug]);
-		const double SigmaFloor =
-		parameters::sigma0 * parameters::sigma_floor;
-		logging::print(LOG_INFO "Cell has a surface denstity of : %g\t%g g/cm^2\t%g 1/SigmaFloor\n",
-			   data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug), data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)*units::surface_density,
-				data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug)/SigmaFloor);
-		if (parameters::Adiabatic) {
-		const double mu = pvte::get_mu(data, n_radial_debug, n_azimuthal_debug);
-		const double gamma_eff =
-			pvte::get_gamma_eff(data, n_radial_debug, n_azimuthal_debug);
-		const double cell_temperature =
-			mu / constants::R * (gamma_eff - 1.0) *
-			data[t_data::ENERGY](n_radial_debug, n_azimuthal_debug) /
-			data[t_data::DENSITY](n_radial_debug, n_azimuthal_debug) *
-			units::temperature.get_cgs_factor();
-		logging::print(LOG_INFO "Cell has a Temperature of      : %g K\n",
-			   cell_temperature);
-		}
-		logging::print(LOG_INFO "Sound speed limit              : %g\n",
-			   itdbg1);
-		logging::print(LOG_INFO "Radial motion limit            : %g\n",
-			   itdbg2);
-		logging::print(LOG_INFO "Residual circular motion limit : %g\n",
-			   itdbg3);
-
-		if (parameters::artificial_viscosity_factor > 0) {
-		logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
-				   itdbg4);
-		logging::print(LOG_INFO "   Arise from r with limit     : %g\n",
-				   viscRadial);
-		logging::print(LOG_INFO "   and from theta with limit   : %g\n",
-				   viscAzimuthal);
-		} else {
-		logging::print(LOG_INFO
-				   "Articifial Viscosity limit     : disabled\n");
-		}
-		logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
-			   itdbg5);
-		logging::print(LOG_INFO "Heating cooling limit      : %g\n",
-			   itdbg6);
-		logging::print(LOG_INFO "Limit time step for this cell  : %g\n",
-			   dt_core);
-		logging::print(LOG_INFO "Limit time step adopted        : %g\n",
-			   dt_global);
-	}
-
-	PRINT_SIG_INFO = 0;
-	}
-
-	dt_global = std::min(parameters::CFL_max_var * last_dt, dt_global);
-
-	return std::max(deltaT / dt_global, 1.0);
+	return dt_global;
 }
 
 static void compute_sound_speed_normal(t_data &data)

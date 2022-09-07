@@ -27,9 +27,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 void calculate_qplus(t_data &data, const double current_time);
 void calculate_qminus(t_data &data, const double current_time);
 
-double condition_cfl(t_data &data, t_polargrid &v_radial,
-		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
-		     const double deltaT);
+double condition_cfl(t_data &data, const double dt_global_input = 0.0);
 
 void compute_sound_speed(t_data &data, const double current_time);
 void compute_scale_height(t_data &data, const double current_time);

@@ -1106,8 +1106,7 @@ void check_tstop(t_data &data)
     CommunicateBoundaries(&data[t_data::DENSITY], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
     local_gas_time_step_cfl =
-	condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-		      data[t_data::SOUNDSPEED], DT);
+	condition_cfl(data);
 
     MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1,
 		  MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
