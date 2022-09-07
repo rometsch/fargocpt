@@ -1,3 +1,7 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <stdlib.h>
 #include <vector>
 
@@ -153,6 +157,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
     const unsigned int N_rad_max = pot.get_max_radial();
     const unsigned int N_az_max = pot.get_max_azimuthal();
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const int cell = get_cell_id(n_rad, n_az);
@@ -230,6 +235,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
     const unsigned int N_az_max =
 	data[t_data::ACCEL_RADIAL].get_size_azimuthal();
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 1;
 	 n_rad < data[t_data::ACCEL_RADIAL].get_size_radial() - 1; ++n_rad) {
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
@@ -318,6 +324,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
     }
 
     double *accel_phi = data[t_data::ACCEL_AZIMUTHAL].Field;
+
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0;
 	 n_rad < data[t_data::ACCEL_AZIMUTHAL].get_size_radial(); ++n_rad) {
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
