@@ -1,4 +1,4 @@
-# Understanding our energy equation
+# Implicit energy update
 
 FargoCPT code (old):
 
