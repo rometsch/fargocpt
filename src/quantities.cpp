@@ -1044,18 +1044,14 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 
 			static const unsigned int N_planets =
 					data.get_planetary_system().get_number_of_planets();
-			static std::vector<double> xpl(N_planets);
-			static std::vector<double> ypl(N_planets);
-			static std::vector<double> mpl(N_planets);
-			static std::vector<double> rpl(N_planets);
 
 			// setup planet data
 			for (unsigned int k = 0; k < N_planets; k++) {
 				const t_planet &planet = data.get_planetary_system().get_planet(k);
-				mpl[k] = planet.get_rampup_mass(PhysicalTime);
-				xpl[k] = planet.get_x();
-				ypl[k] = planet.get_y();
-				rpl[k] = planet.get_planet_radial_extend();
+				g_mpl[k] = planet.get_rampup_mass(PhysicalTime);
+				g_xpl[k] = planet.get_x();
+				g_ypl[k] = planet.get_y();
+				g_rpl[k] = planet.get_planet_radial_extend();
 			}
 
 			// h = H/r
@@ -1086,10 +1082,10 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 						const double min_dist =
 								0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
 											   Rmed[n_rad] * dphi) +
-								rpl[k];
+								g_rpl[k];
 
-						const double dx = x - xpl[k];
-						const double dy = y - ypl[k];
+						const double dx = x - g_xpl[k];
+						const double dy = y - g_ypl[k];
 
 						const double dist = std::max(
 									std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
@@ -1099,13 +1095,13 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 							const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
 
 								const double tmp_inv_h2 =
-										constants::G * mpl[k] * gamma1 / (dist * cs2);
+										constants::G * g_mpl[k] * gamma1 / (dist * cs2);
 								inv_h2 += tmp_inv_h2;
 
 						} else {
 
 								const double tmp_inv_h2 =
-										constants::G * mpl[k] / (dist * cs2);
+										constants::G * g_mpl[k] / (dist * cs2);
 								inv_h2 += tmp_inv_h2;
 						}
 					}
