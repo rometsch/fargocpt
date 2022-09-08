@@ -36,9 +36,6 @@
 #include "simulation.h"
 #include "circumplanetary_mass.h"
 
-int Restart = 0;
-extern int SelfGravity, SGZeroMode;
-
 // TODO: NRad darf nicht größer sein als MAX1D
 // copy operator for t_polargrid
 // write all polargrids on error

@@ -29,8 +29,6 @@
 #include "open-simplex-noise.h"
 #include "options.h"
 
-extern int Restart;
-
 /**
 	resize all (global) radialarrays
 */
