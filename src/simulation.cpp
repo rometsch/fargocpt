@@ -255,9 +255,6 @@ void run(t_data &data) {
 	hydro_dt = last_dt;
 
     for (; N_outer_loop <= parameters::NTOT; N_outer_loop++) {
-		
-		logging::print_master(LOG_INFO "Start of iteration %u of %u\n",
-		N_outer_loop, parameters::NTOT);
 
 		// do hydro and nbody
 		// recalculate timestep, even for no_disk = true, so that particle drag has
