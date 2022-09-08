@@ -431,11 +431,11 @@ void t_planet::write(const unsigned int file_type)
     // create filename
     switch (file_type) {
     case 0:
-    filename = output::snapshot_dir + "/planet" + std::to_string(get_planet_number()) + ".bin";
+    filename = output::snapshot_dir + "planet" + std::to_string(get_planet_number()) + ".bin";
 	write_binary(filename);
 	break;
     case 1:
-    filename = output::snapshot_dir + "/bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    filename = output::outdir + "bigplanet" + std::to_string(get_planet_number()) + ".dat";
 	write_ascii(filename);
 	reset_accreted_mass();
 	break;
@@ -475,6 +475,7 @@ void t_planet::write_ascii(const std::string &filename) const
 	accretion_rate);
 
     // close file
+
     fclose(fd);
 }
 
