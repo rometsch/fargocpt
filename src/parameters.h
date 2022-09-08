@@ -227,6 +227,7 @@ extern bool calculate_disk;
 // control centering of frame
 extern unsigned int n_bodies_for_hydroframe_center;
 extern unsigned int corotation_reference_body;
+extern bool corotating;
 
 extern bool massoverflow;
 extern unsigned int mof_planet;

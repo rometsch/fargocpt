@@ -29,7 +29,6 @@
 #include "options.h"
 
 extern int Restart;
-extern boolean Corotating;
 
 /**
 	resize all (global) radialarrays
@@ -310,7 +309,7 @@ void init_physics(t_data &data)
 
     OmegaFrame = parameters::OMEGAFRAME;
 
-    if (Corotating) {
+    if (parameters::corotating) {
 	OmegaFrame = data.get_planetary_system()
 			 .get_planet(parameters::corotation_reference_body)
 			 .get_omega();

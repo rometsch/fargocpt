@@ -20,6 +20,7 @@
 #include "../util.h"
 #include "../output.h"
 #include "../Theo.h"
+#include "../frame_of_reference.h"
 #include <cstring>
 #include <cmath>
 #include <mpi.h>
@@ -28,7 +29,6 @@
 #include <stdlib.h>
 #include <vector>
 
-extern Pair IndirectTerm;
 
 namespace particles
 {
@@ -1258,8 +1258,8 @@ static void update_velocities_from_indirect_term(const double dt)
 	double indirect_q1_dot;
 	double indirect_q2_dot;
 	if (parameters::CartesianParticles) {
-	    indirect_q1_dot = IndirectTerm.x * dt + particles[i].r_dot;
-	    indirect_q2_dot = IndirectTerm.y * dt + particles[i].phi_dot;
+	    indirect_q1_dot = frame_of_reference::IndirectTerm.x * dt + particles[i].r_dot;
+	    indirect_q2_dot = frame_of_reference::IndirectTerm.y * dt + particles[i].phi_dot;
 	} else {
 	    double r = particles[i].r;
 	    double phi = particles[i].phi;
@@ -1267,11 +1267,11 @@ static void update_velocities_from_indirect_term(const double dt)
 	    const double r_dot = particles[i].r_dot;
 	    const double phi_dot = particles[i].phi_dot;
 
-	    indirect_q1_dot = r_dot + dt * (IndirectTerm.x * std::cos(phi) +
-					    IndirectTerm.y * std::sin(phi));
+	    indirect_q1_dot = r_dot + dt * (frame_of_reference::IndirectTerm.x * std::cos(phi) +
+					    frame_of_reference::IndirectTerm.y * std::sin(phi));
 	    indirect_q2_dot = phi_dot + dt *
-					    (-IndirectTerm.x * std::sin(phi) +
-					     IndirectTerm.y * std::cos(phi)) /
+					    (-frame_of_reference::IndirectTerm.x * std::sin(phi) +
+					     frame_of_reference::IndirectTerm.y * std::cos(phi)) /
 					    r;
 	}
 

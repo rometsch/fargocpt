@@ -11,8 +11,6 @@
 #include <mpi.h>
 #include <vector>
 
-extern boolean Corotating;
-
 namespace quantities
 {
 

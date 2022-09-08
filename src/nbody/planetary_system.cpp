@@ -18,7 +18,6 @@
 #include "quantities.h"
 
 extern boolean CICPlanet;
-extern int Corotating;
 
 t_planetary_system::t_planetary_system() {}
 
@@ -193,7 +192,7 @@ void t_planetary_system::config_consistency_checks()
 	die("No stars or planets!");
     }
 
-    if ((get_number_of_planets() <= 1) && (Corotating == YES)) {
+    if ((get_number_of_planets() <= 1) && (parameters::corotating)) {
 	logging::print_master(LOG_ERROR
 	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
 	PersonalExit(1);
@@ -202,7 +201,7 @@ void t_planetary_system::config_consistency_checks()
 
 void t_planetary_system::init_corotation_body()
 {
-    if (Corotating == YES &&
+    if (parameters::corotating &&
 	parameters::corotation_reference_body > get_number_of_planets() - 1) {
 	die("Id of reference planet for corotation is not valid. Is '%d' but must be <= '%d'.",
 	    parameters::corotation_reference_body, get_number_of_planets() - 1);

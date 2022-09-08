@@ -42,12 +42,8 @@
 #include "viscosity.h"
 
 #include <cstring>
-extern boolean Corotating;
 
 extern boolean FastTransport;
-Pair IndirectTerm;
-Pair IndirectTermDisk;
-Pair IndirectTermPlanets;
 
 /**
 	Checks polargrid for negative entries.
@@ -113,7 +109,7 @@ void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
     }
 }
 
-static void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
+void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 						     int nTimeStep, double dt)
 {
     if (data[t_data::ADVECTION_TORQUE].get_write()) {
@@ -294,7 +290,7 @@ void init_euler(t_data &data)
     compute_heating_cooling_for_CFL(data);
 }
 
-static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
+double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 {
 
     if (!SloppyCFL || force_calc) {
@@ -305,53 +301,6 @@ static double CalculateHydroTimeStep(t_data &data, double dt, double force_calc)
 	dt = (parameters::DT - dtemp) / local_gas_time_step_cfl;
     }
     return dt;
-}
-
-static void init_corotation(t_data &data, double &planet_corot_ref_old_x,
-			    double &planet_corot_ref_old_y)
-{
-    if (Corotating == YES) {
-	// save old planet positions
-	const unsigned int n = parameters::corotation_reference_body;
-	const auto &planet = data.get_planetary_system().get_planet(n);
-	planet_corot_ref_old_x = planet.get_x();
-	planet_corot_ref_old_y = planet.get_y();
-    }
-}
-
-static void handle_corotation(t_data &data, const double dt,
-			      const double corot_old_x,
-			      const double corot_old_y)
-{
-    if (Corotating == YES) {
-	unsigned int n = parameters::corotation_reference_body;
-	auto &planet = data.get_planetary_system().get_planet(n);
-	const double x = planet.get_x();
-	const double y = planet.get_y();
-	const double distance_new = std::sqrt(std::pow(x, 2) + std::pow(y, 2));
-	const double distance_old =
-	    std::sqrt(std::pow(corot_old_x, 2) + std::pow(corot_old_y, 2));
-	const double cross = corot_old_x * y - x * corot_old_y;
-
-	// new = r_new x r_old = distance_new * distance_old * sin(alpha*dt)
-	const double OmegaNew =
-		std::asin(cross / (distance_new * distance_old)) / dt;
-
-	const double domega = (OmegaNew - OmegaFrame);
-	if (parameters::calculate_disk) {
-	    correct_v_azimuthal(data[t_data::V_AZIMUTHAL], domega);
-	}
-	OmegaFrame = OmegaNew;
-    }
-
-    if (parameters::integrate_planets) {
-	data.get_planetary_system().rotate(OmegaFrame * dt);
-    }
-    if (parameters::integrate_particles) {
-	particles::rotate(OmegaFrame * dt);
-    }
-
-    FrameAngle += OmegaFrame * dt;
 }
 
 /**
@@ -392,186 +341,6 @@ void move_polargrid(t_polargrid &dst, t_polargrid &src)
 	   (dst.get_size_azimuthal() == src.get_size_azimuthal()));
 
     std::swap(dst.Field, src.Field);
-}
-
-/**
-	\param data
-	\param sys
-*/
-void AlgoGas(t_data &data)
-{
-    // old coordinates of corotation body
-    double planet_corot_ref_old_x = 0.0;
-    double planet_corot_ref_old_y = 0.0;
-
-    if (parameters::calculate_disk) {
-	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			      &data[t_data::V_AZIMUTHAL],
-			      &data[t_data::ENERGY]);
-    }
-    // recalculate timestep, even for no_disk = true, so that particle drag has
-    // reasonable timestep size
-    hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
-
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
-
-    // keep mass constant
-    // const double total_disk_mass_old =
-    // quantities::gas_total_mass(data, 2.0*RMAX);
-
-    while (dtemp < parameters::DT) {
-	if (SIGTERM_RECEIVED) {
-	    output::write_full_output(data, "autosave");
-	    PersonalExit(0);
-	}
-	logging::print_master(
-	    LOG_VERBOSE
-	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
-	    (int)ceil(log10(parameters::NTOT)), N_outer_loop, parameters::NTOT,
-	    (double)N_outer_loop / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
-	    dtemp / parameters::DT * 100.0);
-
-	dtemp += hydro_dt;
-
-	init_corotation(data, planet_corot_ref_old_x, planet_corot_ref_old_y);
-
-	if (parameters::disk_feedback) {
-	    ComputeDiskOnNbodyAccel(data);
-	}
-
-	ComputeIndirectTermDisk(data);
-	if (parameters::disk_feedback) {
-	    UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
-	}
-
-	/// IndirectTerm is fully completed here (Disk + Nbody)
-	ComputeIndirectTermNbody(data, hydro_dt);
-	data.get_planetary_system().apply_indirect_term_on_Nbody(IndirectTerm, hydro_dt);
-
-
-	if (parameters::integrate_planets) {
-	    data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
-	    /// Nbody positions and velocities are not updated yet!
-	}
-
-	if (parameters::calculate_disk) {
-	    /** Gravitational potential from star and planet(s) is computed and
-	     * stored here*/
-	    if (parameters::body_force_from_potential) {
-		CalculateNbodyPotential(data);
-	    } else {
-		CalculateAccelOnGas(data);
-	    }
-	}
-
-	if (parameters::integrate_particles) {
-	    particles::integrate(data, hydro_dt);
-	}
-
-	/** Planets' positions and velocities are updated from gravitational
-	 * interaction with star and other planets */
-	if (parameters::integrate_planets) {
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_frame_center();
-
-	    /// Needed for Aspectratio mode = 1
-	    /// and to correctly compute circumplanetary disk mass
-	    data.get_planetary_system().compute_dist_to_primary();
-
-	    /// Needed if they can change and massoverflow or planet accretion
-	    /// is on
-	    data.get_planetary_system().calculate_orbital_elements();
-	}
-
-	/* Below we correct v_azimuthal, planet's position and velocities if we
-	 * work in a frame non-centered on the star. Same for dust particles. */
-	handle_corotation(data, hydro_dt, planet_corot_ref_old_x,
-			  planet_corot_ref_old_y);
-
-	/* Now we update gas */
-	if (parameters::calculate_disk) {
-		//HandleCrash(data);
-
-	    update_with_sourceterms(data, hydro_dt);
-
-	    if (parameters::EXPLICIT_VISCOSITY) {
-		// compute and add acceleartions due to disc viscosity as a
-		// source term
-		update_with_artificial_viscosity(data, hydro_dt);
-		if (parameters::Adiabatic) {
-		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-		}
-		recalculate_derived_disk_quantities(data, true);
-		ComputeViscousStressTensor(data);
-		viscosity::update_velocities_with_viscosity(data, hydro_dt);
-	    }
-
-	    if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, hydro_dt);
-	    }
-
-	    if (parameters::Adiabatic) {
-		SubStep3(data, hydro_dt);
-		if (parameters::radiative_diffusion_enabled) {
-		    radiative_diffusion(data, hydro_dt);
-		}
-	    }
-
-	    /// TODO moved apply boundaries here
-		boundary_conditions::apply_boundary_condition(data, 0.0, false);
-
-		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  hydro_dt);
-	}
-
-	PhysicalTime += hydro_dt;
-	N_hydro_iter = N_hydro_iter + 1;
-	logging::print_runtime_info(N_outer_loop / parameters::NINTERM, N_outer_loop,
-				    hydro_dt);
-
-	if (parameters::calculate_disk) {
-	    CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
-				  &data[t_data::V_AZIMUTHAL],
-				  &data[t_data::ENERGY]);
-
-	    // We only recompute once, assuming that cells hit by planet
-	    // accretion are not also hit by viscous accretion at inner
-	    // boundary.
-	    if (parameters::VISCOUS_ACCRETION) {
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
-		viscosity::update_viscosity(data);
-	    }
-
-		// minimum density is assured inside AccreteOntoPlanets
-	    accretion::AccreteOntoPlanets(data, hydro_dt);
-
-	    boundary_conditions::apply_boundary_condition(data, hydro_dt, true);
-
-	    // const double total_disk_mass_new =
-	    //  quantities::gas_total_mass(data, 2.0*RMAX);
-
-	    // data[t_data::DENSITY] *=
-	    //(total_disk_mass_old / total_disk_mass_new);
-
-	    CalculateMonitorQuantitiesAfterHydroStep(data, N_outer_loop,
-						     hydro_dt);
-
-	    if (parameters::variableGamma &&
-		!parameters::VISCOUS_ACCRETION) { // If VISCOUS_ACCRETION is active,
-				      // scale_height is already updated
-		// Recompute scale height after Transport to update the 3D
-		// density
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
-	    }
-	    // this must be done after CommunicateBoundaries
-	    recalculate_derived_disk_quantities(data, true);
-
-	    hydro_dt = CalculateHydroTimeStep(data, hydro_dt, false);
-	}
-    }
 }
 
 /**

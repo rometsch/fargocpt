@@ -37,7 +37,6 @@
 #include "circumplanetary_mass.h"
 
 int Restart = 0;
-extern int Corotating;
 extern int SelfGravity, SGZeroMode;
 
 // TODO: NRad darf nicht größer sein als MAX1D
@@ -168,7 +167,7 @@ int main(int argc, char *argv[])
     }
 
     if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
-	(Corotating == YES)) {
+	(parameters::corotating)) {
 	logging::print_master(
 	    LOG_ERROR
 	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");

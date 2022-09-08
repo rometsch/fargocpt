@@ -42,6 +42,10 @@ void compute_pressure(t_data &data, bool force_update);
 void compute_temperature(t_data &data, bool force_update);
 void compute_rho(t_data &data, bool force_update);
 
+double CalculateHydroTimeStep(t_data &data, double dt, double force_calc);
+void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
+						     int nTimeStep, double dt);
+
 void ComputeViscousStressTensor(t_data &data);
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename,
 				   int line);

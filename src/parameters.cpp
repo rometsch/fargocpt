@@ -128,6 +128,7 @@ bool calculate_disk;
 // control centering of frame
 unsigned int n_bodies_for_hydroframe_center;
 unsigned int corotation_reference_body;
+bool corotating;
 
 bool massoverflow;
 unsigned int mof_planet;
