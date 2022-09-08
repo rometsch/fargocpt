@@ -210,3 +210,8 @@ double dtemp;
 int debug_outputs;
 volatile sig_atomic_t SIGTERM_RECEIVED = 0, PRINT_SIG_INFO = 0;
 
+std::vector<double> g_xpl;
+std::vector<double> g_ypl;
+std::vector<double> g_mpl;
+std::vector<double> g_rpl;
+std::vector<double> g_l1pl;

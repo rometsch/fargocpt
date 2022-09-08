@@ -260,6 +260,14 @@ void init_euler(t_data &data, const double current_time)
     InitCellCenterCoordinates();
     InitTransport();
 
+	static const unsigned int N_planets =
+	data.get_planetary_system().get_number_of_planets();
+	g_xpl.resize(N_planets);
+	g_ypl.resize(N_planets);
+	g_mpl.resize(N_planets);
+	g_rpl.resize(N_planets);
+	g_l1pl.resize(N_planets);
+
     if (parameters::Locally_Isothermal) {
 	compute_sound_speed(data, current_time);
 	compute_pressure(data);
@@ -2738,18 +2746,14 @@ static void compute_iso_sound_speed_nbody(t_data &data, const double current_tim
 
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-    static std::vector<double> xpl(N_planets);
-    static std::vector<double> ypl(N_planets);
-    static std::vector<double> mpl(N_planets);
-    static std::vector<double> rpl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass(current_time);
-	xpl[k] = planet.get_x();
-	ypl[k] = planet.get_y();
-	rpl[k] = planet.get_planet_radial_extend();
+	g_mpl[k] = planet.get_rampup_mass(current_time);
+	g_xpl[k] = planet.get_x();
+	g_ypl[k] = planet.get_y();
+	g_rpl[k] = planet.get_planet_radial_extend();
     }
 
     assert(N_planets > 1);
@@ -2777,16 +2781,16 @@ static void compute_iso_sound_speed_nbody(t_data &data, const double current_tim
 			const double min_dist =
 				0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
 					   Rmed[n_rad] * dphi) +
-				rpl[k];
+				g_rpl[k];
 
-			const double dx = x - xpl[k];
-			const double dy = y - ypl[k];
+			const double dx = x - g_xpl[k];
+			const double dy = y - g_ypl[k];
 
 			const double dist = std::max(
 				std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
 		Cs2 += (ASPECTRATIO_REF * ASPECTRATIO_REF * std::pow(dist, 2.0*FLARINGINDEX)
-				* constants::G * mpl[k]) / dist;
+				* constants::G * g_mpl[k]) / dist;
 	    }
 
 		const double Cs = std::sqrt(Cs2);

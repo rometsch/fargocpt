@@ -151,5 +151,10 @@ extern double dtemp;
 extern int debug_outputs;
 extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;
 
+extern std::vector<double> g_xpl;
+extern std::vector<double> g_ypl;
+extern std::vector<double> g_mpl;
+extern std::vector<double> g_rpl;
+extern std::vector<double> g_l1pl;
 
 #endif // GLOBAL_H

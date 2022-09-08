@@ -133,20 +133,16 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 {
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-    static std::vector<double> xpl(N_planets);
-    static std::vector<double> ypl(N_planets);
-    static std::vector<double> mpl(N_planets);
-    static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass(current_time);
-	xpl[k] = planet.get_x();
-	ypl[k] = planet.get_y();
+	g_mpl[k] = planet.get_rampup_mass(current_time);
+	g_xpl[k] = planet.get_x();
+	g_ypl[k] = planet.get_y();
 
 	if (ASPECTRATIO_MODE == 1) {
-	    l1pl[k] = planet.get_dimensionless_roche_radius() *
+		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
     }
@@ -167,8 +163,8 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double smooth = compute_smoothing(data, n_rad, n_az);
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
+		const double dx = x - g_xpl[k];
+		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double d_smoothed =
 		    std::sqrt(dist_2 + std::pow(smooth, 2));
@@ -180,9 +176,9 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
-			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central star.
-			const double l1 = l1pl[k];
+			const double l1 = g_l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -199,7 +195,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 
 		// direct term from planet
 		pot(n_rad, n_az) +=
-		    -constants::G * mpl[k] / d_smoothed * smooth_factor_klahr;
+			-constants::G * g_mpl[k] / d_smoothed * smooth_factor_klahr;
 	    }
 	    // apply indirect term
 	    // correct frame with contributions from disk and planets
@@ -213,20 +209,16 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-    static std::vector<double> xpl(N_planets);
-    static std::vector<double> ypl(N_planets);
-    static std::vector<double> mpl(N_planets);
-    static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass(current_time);
-	xpl[k] = planet.get_x();
-	ypl[k] = planet.get_y();
+	g_mpl[k] = planet.get_rampup_mass(current_time);
+	g_xpl[k] = planet.get_x();
+	g_ypl[k] = planet.get_y();
 
 	if (ASPECTRATIO_MODE == 1) {
-	    l1pl[k] = planet.get_dimensionless_roche_radius() *
+		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
     }
@@ -250,8 +242,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	    pair ar = IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
+		const double dx = x - g_xpl[k];
+		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
 		const double dist_sm = std::sqrt(dist_2_sm);
@@ -267,10 +259,10 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
-			const double l1 = l1pl[k];
+			const double l1 = g_l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -285,9 +277,9 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		}
 
 		// direct term from planet
-		ar.x -= dx * constants::G * mpl[k] * inv_dist_3_sm *
+		ar.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
 			smooth_factor_klahr;
-		ar.y -= dy * constants::G * mpl[k] * inv_dist_3_sm *
+		ar.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
 			smooth_factor_klahr;
 	    }
 
@@ -340,8 +332,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	    pair aphi = IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
+		const double dx = x - g_xpl[k];
+		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
 		const double dist_3_sm = std::sqrt(dist_2_sm) * dist_2_sm;
@@ -356,10 +348,10 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
-			const double l1 = l1pl[k];
+			const double l1 = g_l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -374,9 +366,9 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		}
 
 		// direct term from planet
-		aphi.x -= dx * constants::G * mpl[k] * inv_dist_3_sm *
+		aphi.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
 			  smooth_factor_klahr;
-		aphi.y -= dy * constants::G * mpl[k] * inv_dist_3_sm *
+		aphi.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
 			  smooth_factor_klahr;
 	    }
 
