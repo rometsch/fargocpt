@@ -52,6 +52,9 @@ Pair IndirectTerm{0.0, 0.0};
 Pair IndirectTermDisk{0.0, 0.0};
 Pair IndirectTermPlanets{0.0, 0.0};
 
+static std::vector<double> v_mean;
+static std::vector<double> v_residual;
+
 void ComputeViscousStressTensor(t_data &data)
 {
     if ((parameters::artificial_viscosity ==
@@ -260,6 +263,11 @@ void init_euler(t_data &data, const double current_time)
 {
     InitCellCenterCoordinates();
     InitTransport();
+
+	const t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
+	v_mean.resize(v_azimuthal.get_size_radial());
+	v_residual.resize(v_azimuthal.get_size_radial()*v_azimuthal.get_size_azimuthal());
+
 
 	static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
@@ -2465,8 +2473,6 @@ double condition_cfl(t_data &data, const double dt_global_input)
 
 
 	dt_parabolic_local = std::numeric_limits<double>::max();
-	std::vector<double> v_mean(v_azimuthal.get_size_radial());
-	std::vector<double> v_residual(v_azimuthal.get_size_radial()*v_azimuthal.get_size_azimuthal());
 
 	// Calculate and fill VMean array
 	#pragma omp parallel for
@@ -2510,7 +2516,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			v_azimuthal(n_radial, n_azimuthal) - v_mean[n_radial];
 		} else {
 		// Standard algorithm
-		v_residual[n_azimuthal] = v_azimuthal(n_radial, n_azimuthal);
+		v_residual[CELL(n_radial, n_azimuthal, v_azimuthal.get_size_azimuthal())] = v_azimuthal(n_radial, n_azimuthal);
 		}
 	}
 
