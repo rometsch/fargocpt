@@ -251,9 +251,9 @@ void t_polargrid::write1D(unsigned int number) const
     if (m_write_max_max_1D) {
 	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
 	    // min
-	    buffer[number_of_values * n_radial + 2] = DBL_MAX;
+		buffer[number_of_values * n_radial + 2] = std::numeric_limits.max();
 	    // max
-	    buffer[number_of_values * n_radial + 3] = -DBL_MAX;
+		buffer[number_of_values * n_radial + 3] = std::numeric_limits.lowest();
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < get_size_azimuthal(); ++n_azimuthal) {
@@ -507,7 +507,7 @@ unsigned int t_polargrid::bytes_needed_2D() const
 
 double t_polargrid::get_max() const
 {
-    double local_max = -DBL_MAX;
+	double local_max = std::numeric_limits.lowest();
 
     const unsigned int Nmax = Nrad * Nsec;
     for (unsigned int n = 0; n < Nmax; n++) {

@@ -2115,8 +2115,8 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
     static double omega = parameters::radiative_diffusion_omega;
 
     unsigned int iterations = 0;
-    double absolute_norm = DBL_MAX;
-    double norm_change = DBL_MAX;
+	double absolute_norm = std::numeric_limits.max();
+	double norm_change = std::numeric_limits.max();
 
     const int l = CPUOVERLAP * NAzimuthal;
     const int oo = (Temperature.Nrad - CPUOVERLAP) * NAzimuthal;
@@ -2320,8 +2320,8 @@ static void timestep_debug_report(t_data &data,
 
 	// debugging variables
 	double viscRadial = 0.0, viscAzimuthal = 0.0;
-	double itdbg1 = DBL_MAX, itdbg2 = DBL_MAX, itdbg3 = DBL_MAX,
-	   itdbg4 = DBL_MAX, itdbg5 = DBL_MAX, itdbg6 = DBL_MAX;
+	double itdbg1 = std::numeric_limits.max(), itdbg2 = std::numeric_limits.max(), itdbg3 = std::numeric_limits.max(),
+	   itdbg4 = std::numeric_limits.max(), itdbg5 = std::numeric_limits.max(), itdbg6 = std::numeric_limits.max();
 
 	const t_polargrid &v_radial = data[t_data::V_RADIAL];
 	const t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
@@ -2449,7 +2449,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 	const t_polargrid &soundspeed = data[t_data::SOUNDSPEED];
 
 
-	dt_parabolic_local = DBL_MAX;
+	dt_parabolic_local = std::numeric_limits.max();
 	std::vector<double> v_mean(v_radial.get_size_radial());
 	std::vector<double> v_residual(v_radial.get_size_azimuthal());
 
@@ -2592,7 +2592,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		dt_cell = std::min(dt_cell, 3.0 * dt_parabolic_local);
 		}
 
-		double dt_stable_visc = DBL_MAX;
+		double dt_stable_visc = std::numeric_limits.max();
 		if (StabilizeViscosity == 2) {
 		const double cphi =
 			data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial,
