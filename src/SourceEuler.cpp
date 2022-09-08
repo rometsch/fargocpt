@@ -2465,8 +2465,8 @@ double condition_cfl(t_data &data, const double dt_global_input)
 
 
 	dt_parabolic_local = std::numeric_limits<double>::max();
-	std::vector<double> v_mean(v_radial.get_size_radial());
-	std::vector<double> v_residual(v_radial.get_size_azimuthal());
+	std::vector<double> v_mean(v_azimuthal.get_size_radial());
+	std::vector<double> v_residual(v_azimuthal.get_size_radial()*v_azimuthal.get_size_azimuthal());
 
 	// Calculate and fill VMean array
 	#pragma omp parallel for
@@ -2506,7 +2506,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
 		if (FastTransport) {
 		// FARGO algorithm
-		v_residual[n_azimuthal] =
+		v_residual[CELL(n_radial, n_azimuthal, v_azimuthal.get_size_azimuthal())] =
 			v_azimuthal(n_radial, n_azimuthal) - v_mean[n_radial];
 		} else {
 		// Standard algorithm
