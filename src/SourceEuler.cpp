@@ -42,6 +42,7 @@
 #include "units.h"
 #include "util.h"
 #include "viscosity.h"
+#include "macros.h"
 
 #include <cstring>
 extern boolean Corotating;
@@ -2313,7 +2314,7 @@ static void timestep_debug_report(t_data &data,
 								  const double dt_stable_visc
 								  ){
 	if (PRINT_SIG_INFO) {
-	PRINT_SIG_INFO = 0;
+	PRINT_SIG_INFO = false;
 
 	const unsigned int n_radial = n_radial_debug;
 	const unsigned int n_azimuthal = n_azimuthal_debug;
@@ -2322,23 +2323,6 @@ static void timestep_debug_report(t_data &data,
 	double viscRadial = 0.0, viscAzimuthal = 0.0;
 	double itdbg1 = std::numeric_limits<double>::max(), itdbg2 = std::numeric_limits<double>::max(), itdbg3 = std::numeric_limits<double>::max(),
 	   itdbg4 = std::numeric_limits<double>::max(), itdbg5 = std::numeric_limits<double>::max(), itdbg6 = std::numeric_limits<double>::max();
-
-	const t_polargrid &v_radial = data[t_data::V_RADIAL];
-	const t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
-
-	// velocity differences in radial & azimuthal direction
-	const double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
-			v_radial(n_radial, n_azimuthal);
-	const double dvAzimuthal =
-			v_azimuthal(n_radial,
-						n_azimuthal == v_radial.get_max_azimuthal()
-						? 0
-						: n_azimuthal + 1) - v_azimuthal(n_radial, n_azimuthal);
-
-	// cell sizes in radial & azimuthal direction
-	double dxRadial = Rsup[n_radial] - Rinf[n_radial];
-	double dxAzimuthal = Rmed[n_radial] * 2.0 * M_PI /
-				 (double)(v_radial.get_size_azimuthal());
 
 	if (invdt1 != 0) {
 		itdbg1 = 1.0 / invdt1;
@@ -2361,6 +2345,37 @@ static void timestep_debug_report(t_data &data,
 	if ((parameters::artificial_viscosity ==
 		 parameters::artificial_viscosity_SN) &&
 			(parameters::artificial_viscosity_factor > 0)) {
+
+
+		const t_polargrid &v_radial = data[t_data::V_RADIAL];
+		const t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
+
+		// velocity differences in radial & azimuthal direction
+		double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
+				v_radial(n_radial, n_azimuthal);
+		double dvAzimuthal =
+				v_azimuthal(n_radial,
+							n_azimuthal == v_radial.get_max_azimuthal()
+							? 0
+							: n_azimuthal + 1) - v_azimuthal(n_radial, n_azimuthal);
+
+		if (dvRadial >= 0.0) {
+			dvRadial = std::numeric_limits<double>::min();
+		} else {
+			dvRadial = -dvRadial;
+		}
+
+		if (dvAzimuthal >= 0.0) {
+			dvAzimuthal = std::numeric_limits<double>::min();
+		} else {
+			dvAzimuthal = -dvAzimuthal;
+		}
+
+		// cell sizes in radial & azimuthal direction
+		double dxRadial = Rsup[n_radial] - Rinf[n_radial];
+		double dxAzimuthal = Rmed[n_radial] * 2.0 * M_PI /
+					 (double)(v_radial.get_size_azimuthal());
+
 		viscRadial =
 				dxRadial / dvRadial / 4.0 /
 				std::pow(parameters::artificial_viscosity_factor,
@@ -2499,9 +2514,6 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		}
 	}
 
-	// there is no v_residual[v_radial.Nsec]
-	// v_residual[v_radial.Nsec]=v_residual[0];
-
 	for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
 
@@ -2510,10 +2522,10 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			 (std::min(dxRadial, dxAzimuthal));
 
 		// radial motion limit
-		const double invdt2 = fabs(v_radial(n_radial, n_azimuthal)) / dxRadial;
+		const double invdt2 = v_radial(n_radial, n_azimuthal) / dxRadial;
 
 		// residual circular motion limit
-		const double invdt3 = fabs(v_residual[n_azimuthal]) / dxAzimuthal;
+		const double invdt3 = v_residual[CELL(n_radial, n_azimuthal, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
 
 		// artificial viscosity limit
 		double invdt4;
