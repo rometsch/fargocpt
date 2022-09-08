@@ -41,7 +41,6 @@ extern int SelfGravity, SGZeroMode;
 
 // TODO: NRad darf nicht größer sein als MAX1D
 // copy operator for t_polargrid
-// Handle SIGTERM
 // write all polargrids on error
 
 int main(int argc, char *argv[])
@@ -98,7 +97,7 @@ int main(int argc, char *argv[])
     CPU_Name[CPU_NameLength] = '\0';
     logging::print(LOG_INFO "fargo: running on %s\n", CPU_Name);
 
-    // control behavoir for floating point exceptions trapping (default is not
+    // control behavior for floating point exceptions trapping (default is not
     // to do anything)
     // setfpe();
 
