@@ -10,6 +10,7 @@ namespace sim {
 
 extern double hydro_dt;
 extern double last_dt;
+extern double dtemp;
 
 void init(t_data &data);
 void run(t_data &data);

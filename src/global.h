@@ -105,7 +105,6 @@ extern double RMAX;
 
 extern BoundaryFlow MassDelta;
 
-extern double dtemp;
 extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;
 
 #endif // GLOBAL_H

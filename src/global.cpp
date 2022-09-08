@@ -164,5 +164,4 @@ double RMAX;
 
 BoundaryFlow MassDelta;
 
-double dtemp;
 volatile sig_atomic_t SIGTERM_RECEIVED = 0, PRINT_SIG_INFO = 0;

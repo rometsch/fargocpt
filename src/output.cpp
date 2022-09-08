@@ -527,7 +527,7 @@ void write_misc()
     misc.PhysicalTime = PhysicalTime;
     misc.OmegaFrame = refframe::OmegaFrame;
     misc.FrameAngle = refframe::FrameAngle;
-    misc.dtemp = dtemp;
+    misc.dtemp = sim::dtemp;
     misc.last_dt = sim::last_dt;
     misc.N_iter = N_hydro_iter;
 
@@ -652,7 +652,7 @@ int load_misc()
     PhysicalTime = misc.PhysicalTime;
     refframe::OmegaFrame = misc.OmegaFrame;
     refframe::FrameAngle = misc.FrameAngle;
-    dtemp = misc.dtemp;
+    sim::dtemp = misc.dtemp;
     sim::last_dt = misc.last_dt;
     N_hydro_iter = misc.N_iter;
 

@@ -20,6 +20,8 @@ namespace sim {
 
 double hydro_dt;
 double last_dt;
+double dtemp;
+
 
 static void write_snapshot(t_data &data) {
 	// Outputs are done here

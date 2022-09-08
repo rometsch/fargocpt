@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
 
     } else {
 	// create planet files
-	dtemp = 0.0;
+	sim::dtemp = 0.0;
 	data.get_planetary_system().create_planet_files();
 
 	// create 1D info files
