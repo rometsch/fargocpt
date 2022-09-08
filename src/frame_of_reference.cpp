@@ -4,6 +4,7 @@
 #include "global.h"
 #include "particles/particles.h"
 #include "types.h"
+#include "Pframeforce.h"
 
 namespace refframe {
 
@@ -59,5 +60,98 @@ void handle_corotation(t_data &data, const double dt)
 
     FrameAngle += OmegaFrame * dt;
 }
+
+
+/**
+ * @brief ComputeIndirectTerm: IndirectTerm is the correction therm that needs
+ * to be added to the accelerations.
+ * @param force
+ * @param data
+ */
+void ComputeIndirectTermDisk(t_data &data)
+{
+    IndirectTerm.x = 0.0;
+    IndirectTerm.y = 0.0;
+    IndirectTermDisk.x = 0.0;
+    IndirectTermDisk.y = 0.0;
+
+    // compute disk indirect term
+    if (parameters::disk_feedback) {
+	// add up contributions from disk on all bodies used to calculate the
+	// center
+	double mass_center = 0.0;
+	for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
+	     n++) {
+	    t_planet &planet = data.get_planetary_system().get_planet(n);
+	    const double mass = planet.get_mass();
+	    const Pair accel = planet.get_disk_on_planet_acceleration();
+	    IndirectTermDisk.x -= mass * accel.x;
+	    IndirectTermDisk.y -= mass * accel.y;
+	    mass_center += mass;
+	}
+	IndirectTermDisk.x /= mass_center;
+	IndirectTermDisk.y /= mass_center;
+    }
+
+    IndirectTerm.x = IndirectTermDisk.x;
+    IndirectTerm.y = IndirectTermDisk.y;
+}
+
+void ComputeIndirectTermNbodyEuler(t_data &data)
+{
+    IndirectTermPlanets.x = 0.0;
+    IndirectTermPlanets.y = 0.0;
+
+    // compute nbody indirect term
+    // add up contributions from mutual interactions from all bodies used to
+    // calculate the center
+    double mass_center = 0.0;
+    for (unsigned int n = 0; n < parameters::n_bodies_for_hydroframe_center;
+	 n++) {
+	t_planet &planet = data.get_planetary_system().get_planet(n);
+	const double mass = planet.get_mass();
+	const Pair accel = planet.get_nbody_on_planet_acceleration();
+	IndirectTermPlanets.x -= mass * accel.x;
+	IndirectTermPlanets.y -= mass * accel.y;
+	mass_center += mass;
+    }
+    IndirectTermPlanets.x /= mass_center;
+    IndirectTermPlanets.y /= mass_center;
+
+    IndirectTerm.x += IndirectTermPlanets.x;
+    IndirectTerm.y += IndirectTermPlanets.y;
+}
+
+void ComputeIndirectTermNbody(t_data &data, const double dt)
+{
+
+	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
+		ComputeNbodyOnNbodyAccel(data.get_planetary_system());
+		ComputeIndirectTermNbodyEuler(data);
+		data.get_planetary_system().copy_data_to_rebound();
+		data.get_planetary_system().m_rebound->t = PhysicalTime;
+	} else {
+
+	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
+
+	if(dt != 0.0){ // Indirect term from Rebound
+	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
+	/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, but shifting the center to 0.0 causes an error
+	/// because the gas does not feel the kick
+	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
+	pair accel{delta_vel.x/dt, delta_vel.y/dt};
+
+	IndirectTermPlanets.x = -accel.x;
+	IndirectTermPlanets.y = -accel.y;
+	} else {
+	IndirectTermPlanets.x = 0.0;
+	IndirectTermPlanets.y = 0.0;
+	}
+	}
+
+	IndirectTerm.x += IndirectTermPlanets.x;
+	IndirectTerm.y += IndirectTermPlanets.y;
+}
+
 
 }

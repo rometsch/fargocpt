@@ -94,13 +94,13 @@ static double step(t_data &data) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
-	ComputeIndirectTermDisk(data);
+	refframe::ComputeIndirectTermDisk(data);
 	if (parameters::disk_feedback) {
 	    UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
 	}
 
 	/// IndirectTerm is fully completed here (Disk + Nbody)
-	ComputeIndirectTermNbody(data, hydro_dt);
+	refframe::ComputeIndirectTermNbody(data, hydro_dt);
 	data.get_planetary_system().apply_indirect_term_on_Nbody(
 		refframe::IndirectTerm, hydro_dt);
 

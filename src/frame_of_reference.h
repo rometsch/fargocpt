@@ -15,6 +15,10 @@ extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;
 extern Pair IndirectTermPlanets;
 
+void ComputeIndirectTermDisk(t_data &data);
+void ComputeIndirectTermNbodyEuler(t_data &data);
+void ComputeIndirectTermNbody(t_data &data, const double dt);
+
 void init_corotation(t_data &data);
 void handle_corotation(t_data &data, const double dt);
 
