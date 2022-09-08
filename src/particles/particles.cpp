@@ -1139,9 +1139,7 @@ void check_tstop(t_data &data)
     double global_gas_time_step_cfl = 1.0;
     CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-    local_gas_time_step_cfl =
-	cfl::condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-		      data[t_data::SOUNDSPEED], parameters::DT);
+    local_gas_time_step_cfl = cfl::condition_cfl(data);
 
     MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1,
 		  MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
@@ -1236,7 +1234,7 @@ void check_tstop(t_data &data)
 	     parameters::integrator == parameters::integrator_adaptive)) {
 	    logging::print_master(
 		LOG_ERROR
-		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!");
+		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!\n");
 	    PersonalExit(1);
 	}
 
@@ -1244,7 +1242,7 @@ void check_tstop(t_data &data)
 	    parameters::integrator == parameters::integrator_semiimplicit) {
 	    logging::print_master(
 		LOG_ERROR
-		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!");
+		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!\n");
 	    PersonalExit(1);
 	}
     }

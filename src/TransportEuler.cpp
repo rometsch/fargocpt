@@ -47,7 +47,6 @@ static double *dq;
 static int Nshift[MAX1D];
 static boolean NoSplitAdvection[MAX1D];
 static boolean UniformTransport;
-extern int N_output;
 extern boolean OpenInner;
 
 /**

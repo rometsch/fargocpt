@@ -12,23 +12,24 @@ namespace cfl {
 	\param VRadial radial velocity polar grid
 	\param VAzimuthal azimuthal velocity polar grid
 	\param SoundSpeed sound speed polar grid
-	\param deltaT
 */
 static void print_info()
 {
 	logging::print_master(LOG_INFO
 			  "\nInteractive status requested with SIGUSR1\n");
 	logging::print_master(LOG_INFO "hydro dt = %g\n", sim::hydro_dt);
-	logging::print_master(LOG_INFO "output number = %d\n", N_output);
-	logging::print_master(LOG_INFO "outer loop iteration = %d\n", N_outer_loop);
-	logging::print_master(LOG_INFO "N hydro step = %d\n", N_hydro_iter);
-	logging::print_master(LOG_INFO "PhysicalTime = %g\n", PhysicalTime);
+	logging::print_master(LOG_INFO "output number = %d\n", sim::N_output);
+	logging::print_master(LOG_INFO "outer loop iteration = %d\n", sim::N_outer_loop);
+	logging::print_master(LOG_INFO "N hydro step = %d\n", sim::N_hydro_iter);
+	logging::print_master(LOG_INFO "PhysicalTime = %g\n", sim::PhysicalTime);
 }
 
-double condition_cfl(t_data &data, t_polargrid &v_radial,
-			 t_polargrid &v_azimuthal, t_polargrid &soundspeed,
-			 const double deltaT)
+double condition_cfl(t_data &data)
 {
+    t_polargrid &v_radial = data[t_data::V_RADIAL];
+    t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
+	t_polargrid &soundspeed = data[t_data::SOUNDSPEED];
+    
 	dt_parabolic_local = std::numeric_limits<double>::max();
 	std::vector<double> v_mean(v_radial.get_size_radial());
 	std::vector<double> v_residual(v_radial.get_size_azimuthal());
@@ -300,10 +301,7 @@ double condition_cfl(t_data &data, t_polargrid &v_radial,
 
 	PRINT_SIG_INFO = 0;
 	}
-
-	dt_global = std::min(parameters::CFL_max_var * sim::last_dt, dt_global);
-
-	return std::max(deltaT / dt_global, 1.0);
+    return dt_global;
 }
 
 

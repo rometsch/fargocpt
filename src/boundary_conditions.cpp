@@ -12,6 +12,7 @@
 #include "parameters.h"
 #include "util.h"
 #include "frame_of_reference.h"
+#include "simulation.h"
 #include <algorithm>
 #include <cstring>
 #include <cmath>
@@ -556,7 +557,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	    data.get_planetary_system().get_planet(1).get_orbital_period();
 
 	const double step_size = T_bin / (double)PRESCRIBED_TIME_SEGMENT_NUMBER;
-	const double real_time = PhysicalTime / step_size;
+	const double real_time = sim::PhysicalTime / step_size;
 	const int integer_time = (int)std::floor(real_time);
 	const int time_id = integer_time % PRESCRIBED_TIME_SEGMENT_NUMBER;
 	const int time_id_next = (time_id + 1) % PRESCRIBED_TIME_SEGMENT_NUMBER;
@@ -1406,13 +1407,13 @@ void mass_overflow(t_data &data)
 
     static double last_PhysicalTime = 0.0;
 
-    double dt = PhysicalTime - last_PhysicalTime;
+    double dt = sim::PhysicalTime - last_PhysicalTime;
 
     if (dt == 0.0) {
 	return;
     }
 
-    last_PhysicalTime = PhysicalTime;
+    last_PhysicalTime = sim::PhysicalTime;
 
     // get location of binary star
     if (parameters::mof_planet + 1 >
@@ -1480,8 +1481,8 @@ void mass_overflow(t_data &data)
 	    parameters::mof_rampingtime * planet.get_orbital_period();
 
 	double ramp_factor;
-	if (PhysicalTime < t_ramp) {
-	    ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 4);
+	if (sim::PhysicalTime < t_ramp) {
+	    ramp_factor = std::pow(std::sin(sim::PhysicalTime * M_PI_2 / t_ramp), 4);
 	} else {
 	    ramp_factor = 1.0;
 	}
@@ -1615,8 +1616,8 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	parameters::mof_rampingtime * planet.get_orbital_period();
 
     double ramp_factor;
-    if (PhysicalTime < t_ramp) {
-	ramp_factor = std::pow(std::sin(PhysicalTime * M_PI_2 / t_ramp), 6);
+    if (sim::PhysicalTime < t_ramp) {
+	ramp_factor = std::pow(std::sin(sim::PhysicalTime * M_PI_2 / t_ramp), 6);
     } else {
 	ramp_factor = 1.0;
     }

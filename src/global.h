@@ -80,8 +80,6 @@ extern t_radialarray GLOBAL_AxiSGAccr;
 extern t_radialarray EnergyMed;
 extern t_radialarray SigmaMed;
 
-extern double PhysicalTime, PhysicalTimeInitial;
-
 extern double hydro_center_mass;
 
 extern int StabilizeViscosity;
@@ -93,10 +91,6 @@ extern t_polargrid *CellCenterX, *CellCenterY;
 extern double dphi;
 extern double invdphi;
 extern double dt_parabolic_local;
-
-extern int N_output;
-extern unsigned int N_outer_loop;
-extern unsigned int N_hydro_iter;
 
 extern unsigned int NAzimuthal;
 extern unsigned int NRadial;

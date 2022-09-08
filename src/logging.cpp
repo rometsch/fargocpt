@@ -8,6 +8,7 @@
 #include "global.h"
 #include "output.h"
 #include "parameters.h"
+#include "simulation.h"
 #include <chrono>
 #include <cmath>
 
@@ -119,6 +120,7 @@ void start_timer()
     realtime_last_log = realtime_start;
 }
 
+
 void print_runtime_final()
 {
     std::chrono::steady_clock::time_point realtime_end =
@@ -128,13 +130,13 @@ void print_runtime_final()
 			  .count();
 
     double time_per_step_ms = 0.0;
-    if (N_hydro_iter != 0) {
-	time_per_step_ms = realtime / (1000.0 * N_hydro_iter);
+    if (sim::N_hydro_iter != 0) {
+	time_per_step_ms = realtime / (1000.0 * sim::N_hydro_iter);
     }
     logging::print_master(
 	LOG_INFO
 	"-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
-	N_hydro_iter, PhysicalTime, realtime / 1000000.0, time_per_step_ms);
+	sim::N_hydro_iter, sim::PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
 void print_runtime_info(const unsigned int output_number,
@@ -160,7 +162,7 @@ void print_runtime_info(const unsigned int output_number,
     // Do we have to log because enough steps passed?
     bool log_bc_steps =
 	parameters::log_after_steps > 0 &&
-	(N_hydro_iter - n_last_log) >= parameters::log_after_steps;
+	(sim::N_hydro_iter - n_last_log) >= parameters::log_after_steps;
     // Do we have to log because enough real time passed?
     bool log_bc_time =
 	parameters::log_after_real_seconds > 0 &&
@@ -178,18 +180,18 @@ void print_runtime_info(const unsigned int output_number,
 		       realtime_now - realtime_start)
 		       .count();
 	double time_per_step_ms = 0.0;
-	if ((N_hydro_iter - n_last_log) != 0) {
+	if ((sim::N_hydro_iter - n_last_log) != 0) {
 	    time_per_step_ms =
-		realtime_since_last / (1000.0 * (N_hydro_iter - n_last_log));
+		realtime_since_last / (1000.0 * (sim::N_hydro_iter - n_last_log));
 	}
 
 	logging::print_master(
 	    LOG_INFO
 	    "Logging info: output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
-	    output_number, time_step_coarse, N_hydro_iter, PhysicalTime, dt,
+	    output_number, time_step_coarse, sim::N_hydro_iter, sim::PhysicalTime, dt,
 	    realtime / 1000000.0, time_per_step_ms);
 
-	n_last_log = N_hydro_iter;
+	n_last_log = sim::N_hydro_iter;
 	realtime_last_log = realtime_now;
     }
 }

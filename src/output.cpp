@@ -308,13 +308,13 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
     }
 
     // write polar grids
-    output::write_grids(data, N_output, N_hydro_iter, PhysicalTime);
+    output::write_grids(data, sim::N_output, sim::N_hydro_iter, sim::PhysicalTime);
     // write planet data
     data.get_planetary_system().write_planets(0);
     // write misc stuff (important for resuming)
     output::write_misc();
     // write time info for coarse output
-    output::write_coarse_time(N_output, N_outer_loop);
+    output::write_coarse_time(sim::N_output, sim::N_outer_loop);
     // write particles
     if (parameters::integrate_particles) {
 	particles::write();
@@ -400,7 +400,7 @@ void write_quantities(t_data &data, bool force_update)
     }
 
     const auto disk_quantities = reduce_disk_quantities(
-	data, N_output, force_update, quantities_limit_radius);
+	data, sim::N_output, force_update, quantities_limit_radius);
     const double disk_eccentricity = disk_quantities[0];
     const double disk_periastron = disk_quantities[1];
 
@@ -439,7 +439,7 @@ void write_quantities(t_data &data, bool force_update)
     const double totalEnergy =
 	internalEnergy + kinematicEnergy + gravitationalEnergy;
 
-    quantities::compute_aspectratio(data, N_output, force_update);
+    quantities::compute_aspectratio(data, sim::N_output, force_update);
     const double scale_height =
 	quantities::gas_aspect_ratio(data, quantities_limit_radius);
 
@@ -480,7 +480,7 @@ void write_quantities(t_data &data, bool force_update)
 	fprintf(
 	    fd,
 		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
-	    N_output, N_outer_loop, PhysicalTime, totalMass, diskRadius,
+	    sim::N_output, sim::N_outer_loop, sim::PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
@@ -522,14 +522,14 @@ void write_misc()
 	memset(&misc, 0, sizeof(misc_entry));
 
 	
-    misc.timestep = N_output;
-    misc.nTimeStep = N_outer_loop;
-    misc.PhysicalTime = PhysicalTime;
+    misc.timestep = sim::N_output;
+    misc.nTimeStep = sim::N_outer_loop;
+    misc.PhysicalTime = sim::PhysicalTime;
     misc.OmegaFrame = refframe::OmegaFrame;
     misc.FrameAngle = refframe::FrameAngle;
     misc.dtemp = sim::dtemp;
     misc.last_dt = sim::last_dt;
-    misc.N_iter = N_hydro_iter;
+    misc.N_iter = sim::N_hydro_iter;
 
     wf.write((char *)&misc, sizeof(misc));
 
@@ -647,14 +647,14 @@ int load_misc()
 
     rf.read((char *)&misc, sizeof(misc_entry));
 
-    N_output = misc.timestep;
-    N_outer_loop = misc.nTimeStep;
-    PhysicalTime = misc.PhysicalTime;
+    sim::N_output = misc.timestep;
+    sim::N_outer_loop = misc.nTimeStep;
+    sim::PhysicalTime = misc.PhysicalTime;
     refframe::OmegaFrame = misc.OmegaFrame;
     refframe::FrameAngle = misc.FrameAngle;
     sim::dtemp = misc.dtemp;
     sim::last_dt = misc.last_dt;
-    N_hydro_iter = misc.N_iter;
+    sim::N_hydro_iter = misc.N_iter;
 
     rf.close();
     return misc.timestep;
@@ -930,7 +930,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	    fd_created_luminosity = true;
 	}
 
-	fprintf(fd, "%.20e\t", PhysicalTime);
+	fprintf(fd, "%.20e\t", sim::PhysicalTime);
 
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
@@ -980,7 +980,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	    fd_created_dissipation = true;
 	}
 
-	fprintf(fd, "%.20e\t", PhysicalTime);
+	fprintf(fd, "%.20e\t", sim::PhysicalTime);
 
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
@@ -1051,7 +1051,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 	fprintf(fd, "%u\t%u\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
-		PhysicalTime);
+		sim::PhysicalTime);
 	fclose(fd);
     }
 }
@@ -1153,12 +1153,12 @@ void CheckAngularMomentumConservation(t_data &data)
     if (firstStart) {
 	firstStart = 0;
 
-	// PhysicalTime < 1e-10 was the "old" condition for saving start values
-	if (PhysicalTime > 1e-10) {
+	// sim::PhysicalTime < 1e-10 was the "old" condition for saving start values
+	if (sim::PhysicalTime > 1e-10) {
 	    logging::print_master(
 		LOG_INFO
 		"CheckAngularMomentumConservation is called for the first time very late: t=%f\n",
-		PhysicalTime);
+		sim::PhysicalTime);
 	}
 
 	planetsStartAngularMomentum = planetsAngularMomentum;
@@ -1166,7 +1166,7 @@ void CheckAngularMomentumConservation(t_data &data)
 	totalStartAngularMomentum = totalAngularMomentum;
 	logging::print_master(
 	    LOG_INFO "time = %lg, Hp0 = %lg, Hg0 = %lg et Ht0 = %lg\n",
-	    PhysicalTime, planetsStartAngularMomentum, gasStartAngularMomentum,
+	    sim::PhysicalTime, planetsStartAngularMomentum, gasStartAngularMomentum,
 	    totalStartAngularMomentum);
     }
 
@@ -1193,7 +1193,7 @@ void CheckAngularMomentumConservation(t_data &data)
 	fabs(totalAngularMomentum - totalStartAngularMomentum);
 
     // print to logfile
-    fprintf(fd, "%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n", PhysicalTime,
+    fprintf(fd, "%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n", sim::PhysicalTime,
 	    planetsAngularMomentum, gasAngularMomentum, totalAngularMomentum,
 	    totalAngularMomentum / totalStartAngularMomentum);
 

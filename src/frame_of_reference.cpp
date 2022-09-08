@@ -5,6 +5,7 @@
 #include "particles/particles.h"
 #include "types.h"
 #include "Pframeforce.h"
+#include "simulation.h"
 
 namespace refframe {
 
@@ -129,10 +130,10 @@ void ComputeIndirectTermNbody(t_data &data, const double dt)
 		ComputeNbodyOnNbodyAccel(data.get_planetary_system());
 		ComputeIndirectTermNbodyEuler(data);
 		data.get_planetary_system().copy_data_to_rebound();
-		data.get_planetary_system().m_rebound->t = PhysicalTime;
+		data.get_planetary_system().m_rebound->t = sim::PhysicalTime;
 	} else {
 
-	data.get_planetary_system().integrate_indirect_term_predictor(PhysicalTime, dt);
+	data.get_planetary_system().integrate_indirect_term_predictor(sim::PhysicalTime, dt);
 
 	if(dt != 0.0){ // Indirect term from Rebound
 	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.

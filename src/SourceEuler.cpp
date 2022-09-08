@@ -693,10 +693,10 @@ void irradiation_single(t_data &data, const t_planet &planet) {
 
 	double ramping = 1.0;
 	
-	if (PhysicalTime < rampup_time) {
+	if (sim::PhysicalTime < rampup_time) {
 	    ramping =
 		1.0 -
-		std::pow(std::cos(PhysicalTime * M_PI / 2.0 / rampup_time), 2);
+		std::pow(std::cos(sim::PhysicalTime * M_PI / 2.0 / rampup_time), 2);
 	}
 
 	const double x = planet.get_x();
@@ -829,7 +829,7 @@ void calculate_qminus(t_data &data)
 
 		double beta_inv = 1 / parameters::cooling_beta;
 		if (t_ramp_up > 0.0) {
-		    const double t = PhysicalTime;
+		    const double t = sim::PhysicalTime;
 		    double ramp_factor =
 			1 - std::exp(-std::pow(2 * t / t_ramp_up, 2));
 		    beta_inv = beta_inv * ramp_factor;
@@ -1515,10 +1515,10 @@ static void compute_sound_speed_normal(t_data &data, bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::SOUNDSPEED].get_max_radial(); ++n_radial) {
@@ -1558,10 +1558,10 @@ static void compute_iso_sound_speed_center_of_mass(t_data &data,
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     const Pair r_cm = data.get_planetary_system().get_center_of_mass();
     const double m_cm = data.get_planetary_system().get_mass();
@@ -1604,10 +1604,10 @@ static void compute_iso_sound_speed_nbody(t_data &data, const bool force_update)
 
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
@@ -1698,10 +1698,10 @@ void compute_scale_height_old(t_data &data, const bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_radial) {
@@ -1740,10 +1740,10 @@ void compute_scale_height_nbody(t_data &data, const bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
@@ -1843,10 +1843,10 @@ void compute_scale_height_center_of_mass(t_data &data, const bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     const Pair r_cm = data.get_planetary_system().get_center_of_mass();
     const double m_cm = data.get_planetary_system().get_mass();
@@ -1923,10 +1923,10 @@ void compute_pressure(t_data &data, bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::PRESSURE].get_max_radial(); ++n_radial) {
@@ -1964,10 +1964,10 @@ void compute_temperature(t_data &data, bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::TEMPERATURE].get_max_radial(); ++n_radial) {
@@ -2008,10 +2008,10 @@ void compute_rho(t_data &data, bool force_update)
 {
     static double last_physicaltime_calculated = -1;
 
-    if ((!force_update) && (last_physicaltime_calculated == PhysicalTime)) {
+    if ((!force_update) && (last_physicaltime_calculated == sim::PhysicalTime)) {
 	return;
     }
-    last_physicaltime_calculated = PhysicalTime;
+    last_physicaltime_calculated = sim::PhysicalTime;
 
     compute_scale_height(data, force_update);
 

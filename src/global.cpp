@@ -138,7 +138,6 @@ t_radialarray SigmaInf;
 t_radialarray GLOBAL_bufarray;
 t_radialarray GLOBAL_AxiSGAccr;
 
-double PhysicalTime, PhysicalTimeInitial;
 double hydro_center_mass;
 int OnlyInit;
 int StabilizeViscosity;
@@ -152,9 +151,6 @@ double dphi;
 double invdphi;
 double dt_parabolic_local;
 
-int N_output;
-unsigned int N_outer_loop;
-unsigned int N_hydro_iter;
 
 unsigned int NRadial;
 unsigned int NAzimuthal;

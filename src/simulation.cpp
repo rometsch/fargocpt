@@ -22,6 +22,11 @@ double hydro_dt;
 double last_dt;
 double dtemp;
 
+double PhysicalTime, PhysicalTimeInitial;
+unsigned int N_output;
+unsigned int N_outer_loop;
+unsigned long int N_hydro_iter;
+
 
 static void write_snapshot(t_data &data) {
 	// Outputs are done here
@@ -74,13 +79,11 @@ static void handle_outputs(t_data &data) {
 
 }
 
-static double CalculateHydroTimeStep(t_data &data, double dt)
+static double CalculateTimeStep(t_data &data, double dt)
 {
 	last_dt = dt;
-	const double local_gas_time_step_cfl = cfl::condition_cfl(
-	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
-	    data[t_data::SOUNDSPEED], parameters::DT - dtemp);
-	return (parameters::DT - dtemp) / local_gas_time_step_cfl;
+	const double cfl_dt = cfl::condition_cfl(data);
+	return std::min(parameters::CFL_max_var * last_dt, cfl_dt);;
 }
 
 
@@ -89,8 +92,7 @@ Do one step of the integration.
 
 Returns the time covered.
 */
-static double step(t_data &data) {
-	hydro_dt = CalculateHydroTimeStep(data, hydro_dt);
+static void step(t_data &data, const double dt) {
 
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
@@ -98,17 +100,17 @@ static double step(t_data &data) {
 
 	refframe::ComputeIndirectTermDisk(data);
 	if (parameters::disk_feedback) {
-	    UpdatePlanetVelocitiesWithDiskForce(data, hydro_dt);
+	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
 
 	/// IndirectTerm is fully completed here (Disk + Nbody)
-	refframe::ComputeIndirectTermNbody(data, hydro_dt);
+	refframe::ComputeIndirectTermNbody(data, dt);
 	data.get_planetary_system().apply_indirect_term_on_Nbody(
-		refframe::IndirectTerm, hydro_dt);
+		refframe::IndirectTerm, dt);
 
 
 	if (parameters::integrate_planets) {
-	    data.get_planetary_system().integrate(PhysicalTime, hydro_dt);
+	    data.get_planetary_system().integrate(PhysicalTime, dt);
 	    /// Nbody positions and velocities are not updated yet!
 	}
 
@@ -123,7 +125,7 @@ static double step(t_data &data) {
 	}
 
 	if (parameters::integrate_particles) {
-	    particles::integrate(data, hydro_dt);
+	    particles::integrate(data, dt);
 	}
 
 	/** Planets' positions and velocities are updated from gravitational
@@ -143,34 +145,34 @@ static double step(t_data &data) {
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
 	 * work in a frame non-centered on the star. Same for dust particles. */
-	refframe::handle_corotation(data, hydro_dt);
+	refframe::handle_corotation(data, dt);
 
 	/* Now we update gas */
 	if (parameters::calculate_disk) {
 		//HandleCrash(data);
 
-	    update_with_sourceterms(data, hydro_dt);
+	    update_with_sourceterms(data, dt);
 
 	    if (parameters::EXPLICIT_VISCOSITY) {
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
-		update_with_artificial_viscosity(data, hydro_dt);
+		update_with_artificial_viscosity(data, dt);
 		if (parameters::Adiabatic) {
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 		recalculate_derived_disk_quantities(data, true);
 		ComputeViscousStressTensor(data);
-		viscosity::update_velocities_with_viscosity(data, hydro_dt);
+		viscosity::update_velocities_with_viscosity(data, dt);
 	    }
 
 	    if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, hydro_dt);
+		Sts(data, dt);
 	    }
 
 	    if (parameters::Adiabatic) {
-		SubStep3(data, hydro_dt);
+		SubStep3(data, dt);
 		if (parameters::radiative_diffusion_enabled) {
-		    radiative_diffusion(data, hydro_dt);
+		    radiative_diffusion(data, dt);
 		}
 	    }
 
@@ -179,13 +181,13 @@ static double step(t_data &data) {
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  hydro_dt);
+			  dt);
 	}
 
-	PhysicalTime += hydro_dt;
+	PhysicalTime += dt;
 	N_hydro_iter = N_hydro_iter + 1;
 	logging::print_runtime_info(N_outer_loop / parameters::NINTERM, N_outer_loop,
-				    hydro_dt);
+				    dt);
 
 	if (parameters::calculate_disk) {
 	    CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
@@ -202,9 +204,9 @@ static double step(t_data &data) {
 	    }
 
 		// minimum density is assured inside AccreteOntoPlanets
-	    accretion::AccreteOntoPlanets(data, hydro_dt);
+	    accretion::AccreteOntoPlanets(data, dt);
 
-	    boundary_conditions::apply_boundary_condition(data, hydro_dt, true);
+	    boundary_conditions::apply_boundary_condition(data, dt, true);
 
 	    // const double total_disk_mass_new =
 	    //  quantities::gas_total_mass(data, 2.0*RMAX);
@@ -213,7 +215,7 @@ static double step(t_data &data) {
 	    //(total_disk_mass_old / total_disk_mass_new);
 
 	    CalculateMonitorQuantitiesAfterHydroStep(data, N_outer_loop,
-						     hydro_dt);
+						     dt);
 
 	    if (parameters::variableGamma &&
 		!parameters::VISCOUS_ACCRETION) { // If VISCOUS_ACCRETION is active,
@@ -226,7 +228,6 @@ static double step(t_data &data) {
 	    // this must be done after CommunicateBoundaries
 	    recalculate_derived_disk_quantities(data, true);
 	}
-	return hydro_dt;
 }
 
 static void print_progress() {
@@ -253,29 +254,42 @@ void run(t_data &data) {
 
 	// Jumpstart dt
 	hydro_dt = last_dt;
-
-    for (; N_outer_loop <= parameters::NTOT; N_outer_loop++) {
+	bool towrite = false;
+	const double t_final = parameters::NTOT * parameters::DT;
+    for (; PhysicalTime < t_final; N_hydro_iter++) {
 
 		// do hydro and nbody
 		// recalculate timestep, even for no_disk = true, so that particle drag has
     	// reasonable timestep size
 		if (!parameters::calculate_disk) {
-			hydro_dt = CalculateHydroTimeStep(data, last_dt);
+			hydro_dt = CalculateTimeStep(data, last_dt);
 		}
+					
 		
-		while (dtemp < parameters::DT) {
-			if (SIGTERM_RECEIVED) {
-				output::write_full_output(data, "autosave");
-				PersonalExit(0);
-			}
-
-			const double step_dt = step(data);
-			dtemp += step_dt;
+		if (SIGTERM_RECEIVED) {
+			output::write_full_output(data, "autosave");
+			PersonalExit(0);
 		}
-		dtemp = 0.0;
 
-		handle_outputs(data);
-		print_progress();
+		PRINT_SIG_INFO = 1;
+		const double cfl_dt = CalculateTimeStep(data, hydro_dt);
+		if ((N_outer_loop+1)*parameters::DT >= PhysicalTime + cfl_dt) {
+			hydro_dt = cfl_dt;
+			towrite = false;
+		} else {
+			// TODO: fix, gives negative dt
+			hydro_dt = (N_outer_loop+1)*parameters::DT - PhysicalTime;
+			N_outer_loop++;
+			towrite = true;
+		}
+		step(data, hydro_dt);
+		
+		PhysicalTime += hydro_dt;
+
+		if (towrite) {
+			handle_outputs(data);
+			print_progress();
+		}
     }
 	logging::print_master(
 			LOG_INFO "Reached end of simulation at iteration %u of %u\n",

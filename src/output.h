@@ -16,14 +16,14 @@ extern std::string last_snapshot_dir;
 extern std::string outdir;
 
 struct misc_entry {
-    int timestep;
+    unsigned int timestep;
     unsigned int nTimeStep;
     double PhysicalTime;
     double OmegaFrame;
     double FrameAngle;
     double dtemp;
     double last_dt;
-    unsigned int N_iter;
+    unsigned long int N_iter;
 };
 
 void check_free_space(t_data &data);

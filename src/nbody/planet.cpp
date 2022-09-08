@@ -7,6 +7,7 @@
 #include "../parameters.h"
 #include "../util.h"
 #include "../frame_of_reference.h"
+#include "../simulation.h"
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -287,10 +288,10 @@ double t_planet::get_rampup_mass() const
 {
     double ramping = 1.0;
     if (get_rampuptime() > 0) {
-	if (PhysicalTime < get_rampuptime() * get_orbital_period()) {
+	if (sim::PhysicalTime < get_rampuptime() * get_orbital_period()) {
 	    ramping =
 		1.0 -
-		std::pow(std::cos(PhysicalTime * M_PI_2 /
+		std::pow(std::cos(sim::PhysicalTime * M_PI_2 /
 				  (get_rampuptime() * get_orbital_period())),
 			 2);
 	}
@@ -468,8 +469,8 @@ void t_planet::write_ascii(const std::string &filename) const
     fprintf(
 	fd,
 	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
-	N_output, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
-	PhysicalTime, refframe::OmegaFrame, get_circumplanetary_mass(),
+	sim::N_output, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
+	sim::PhysicalTime, refframe::OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
 	get_true_anomaly(), get_pericenter_angle(), get_torque(), accreted_mass,
@@ -494,7 +495,7 @@ void t_planet::write_binary(const std::string &filename) const
     planet_member_variables pl;
     memset(&pl, 0, sizeof(planet_member_variables));
 
-    pl.timestep = N_output;
+    pl.timestep = sim::N_output;
     pl.m_mass = m_mass;
     pl.m_x = m_x;
     pl.m_y = m_y;

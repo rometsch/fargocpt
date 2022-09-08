@@ -12,6 +12,11 @@ extern double hydro_dt;
 extern double last_dt;
 extern double dtemp;
 
+extern double PhysicalTime, PhysicalTimeInitial;
+extern unsigned int N_output;
+extern unsigned int N_outer_loop;
+extern unsigned long int N_hydro_iter;
+
 void init(t_data &data);
 void run(t_data &data);
 

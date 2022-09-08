@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 
     t_data data;
 
-    N_hydro_iter = 0;
-    N_outer_loop = 0;
+    sim::N_hydro_iter = 0;
+    sim::N_outer_loop = 0;
 
     resize_radialarrays(MAX1D);
 
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
     if (start_mode::mode == start_mode::mode_restart) {
 
-	N_outer_loop = 0;
+	sim::N_outer_loop = 0;
 	start_mode::restart_from = output::load_misc();
 
 	if (parameters::is_damping_initial) {
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
 	}
 	MPI_Barrier(MPI_COMM_WORLD);
     }
-    PhysicalTimeInitial = PhysicalTime;
+    sim::PhysicalTimeInitial = sim::PhysicalTime;
 
     logging::start_timer();
 
