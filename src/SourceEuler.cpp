@@ -2115,8 +2115,8 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
     static double omega = parameters::radiative_diffusion_omega;
 
     unsigned int iterations = 0;
-	double absolute_norm = std::numeric_limits.max();
-	double norm_change = std::numeric_limits.max();
+	double absolute_norm = std::numeric_limits<double>::max();
+	double norm_change = std::numeric_limits<double>::max();
 
     const int l = CPUOVERLAP * NAzimuthal;
     const int oo = (Temperature.Nrad - CPUOVERLAP) * NAzimuthal;
@@ -2320,8 +2320,8 @@ static void timestep_debug_report(t_data &data,
 
 	// debugging variables
 	double viscRadial = 0.0, viscAzimuthal = 0.0;
-	double itdbg1 = std::numeric_limits.max(), itdbg2 = std::numeric_limits.max(), itdbg3 = std::numeric_limits.max(),
-	   itdbg4 = std::numeric_limits.max(), itdbg5 = std::numeric_limits.max(), itdbg6 = std::numeric_limits.max();
+	double itdbg1 = std::numeric_limits<double>::max(), itdbg2 = std::numeric_limits<double>::max(), itdbg3 = std::numeric_limits<double>::max(),
+	   itdbg4 = std::numeric_limits<double>::max(), itdbg5 = std::numeric_limits<double>::max(), itdbg6 = std::numeric_limits<double>::max();
 
 	const t_polargrid &v_radial = data[t_data::V_RADIAL];
 	const t_polargrid &v_azimuthal = data[t_data::V_AZIMUTHAL];
@@ -2449,7 +2449,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 	const t_polargrid &soundspeed = data[t_data::SOUNDSPEED];
 
 
-	dt_parabolic_local = std::numeric_limits.max();
+	dt_parabolic_local = std::numeric_limits<double>::max();
 	std::vector<double> v_mean(v_radial.get_size_radial());
 	std::vector<double> v_residual(v_radial.get_size_azimuthal());
 
@@ -2505,16 +2505,6 @@ double condition_cfl(t_data &data, const double dt_global_input)
 	for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
 
-		// velocity differences in radial & azimuthal direction
-		double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
-				  v_radial(n_radial, n_azimuthal);
-		double dvAzimuthal =
-		v_azimuthal(n_radial,
-				n_azimuthal == v_radial.get_max_azimuthal()
-				? 0
-				: n_azimuthal + 1) -
-		v_azimuthal(n_radial, n_azimuthal);
-
 		// sound speed limit
 		const double invdt1 = soundspeed(n_radial, n_azimuthal) /
 			 (std::min(dxRadial, dxAzimuthal));
@@ -2529,6 +2519,17 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		double invdt4;
 		if (parameters::artificial_viscosity ==
 		parameters::artificial_viscosity_SN) {
+
+			// velocity differences in radial & azimuthal direction
+			double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
+					v_radial(n_radial, n_azimuthal);
+			double dvAzimuthal =
+					v_azimuthal(n_radial,
+								n_azimuthal == v_radial.get_max_azimuthal()
+								? 0
+								: n_azimuthal + 1) -
+					v_azimuthal(n_radial, n_azimuthal);
+
 		if (dvRadial >= 0.0) {
 			dvRadial = std::numeric_limits<double>::min();
 		} else {
@@ -2592,7 +2593,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		dt_cell = std::min(dt_cell, 3.0 * dt_parabolic_local);
 		}
 
-		double dt_stable_visc = std::numeric_limits.max();
+		double dt_stable_visc = std::numeric_limits<double>::max();
 		if (StabilizeViscosity == 2) {
 		const double cphi =
 			data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial,
