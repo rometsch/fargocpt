@@ -113,10 +113,10 @@ void CheckAngularMomentumConservation(t_data &data)
 
     // computate absolute deviation from start values
     planetsAngularMomentum =
-	fabs(planetsAngularMomentum - planetsStartAngularMomentum);
-    gasAngularMomentum = fabs(gasAngularMomentum - gasStartAngularMomentum);
+	std::fabs(planetsAngularMomentum - planetsStartAngularMomentum);
+	gasAngularMomentum = std::fabs(gasAngularMomentum - gasStartAngularMomentum);
     totalAngularMomentum =
-	fabs(totalAngularMomentum - totalStartAngularMomentum);
+	std::fabs(totalAngularMomentum - totalStartAngularMomentum);
 
     // print to logfile
     fprintf(fd, "%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n", PhysicalTime,
@@ -162,6 +162,7 @@ void InitCellCenterCoordinates()
     CellCenterX = CreatePolarGrid(NRadial + 1, NAzimuthal, "cell_center_x");
     CellCenterY = CreatePolarGrid(NRadial + 1, NAzimuthal, "cell_center_y");
 
+	#pragma omp parallel for collapse(2)
     for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
 	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * CellCenterX->Nsec;
@@ -446,7 +447,7 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
 	return;
 
     nRadial = Density->Nrad - 1;
-	#pragma omp parallel for
+	#pragma omp parallel for reduction(+ : averageRho)
     for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	cell = nAzimuthal + nRadial * Density->Nsec;
 	averageRho += Density->Field[cell];

@@ -567,7 +567,7 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		     *Work); // work = qbase/densityint
     compute_star_radial(Work, VRadial, QRStar, dt);
 
-	#pragma omp parallel for collapse(2)
+	#pragma omp parallel for
 	for (unsigned int nRadial = 0; nRadial < Qbase->get_size_radial(); ++nRadial) {
 	for (unsigned int nAzimuthal = 0; nAzimuthal < Qbase->get_size_azimuthal();
 	     ++nAzimuthal) {

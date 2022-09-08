@@ -29,6 +29,7 @@ double gas_total_mass(t_data &data, const double quantitiy_radius)
     double global_mass = 0.0;
 
     // calculate mass of this process' cells
+	#pragma omp parallel for reduction(+ : local_mass)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -59,6 +60,7 @@ double gas_quantity_reduce(const t_polargrid& arr, const double quantitiy_radius
 
 	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
 	// they would be included twice!)
+	#pragma omp parallel for reduction(+ : local_reduced_quantity)
 	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
 	for (unsigned int naz = 0; naz < arr.get_size_azimuthal(); ++naz) {
 		// eccentricity and semi major axis weighted with cellmass
@@ -90,6 +92,7 @@ double gas_allreduce_mass_average(t_data &data, const t_polargrid& arr, const do
 
 	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
 	// they would be included twice!)
+	#pragma omp parallel for reduction(+ : local_reduced_quantity, local_mass)
 	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
 	for (unsigned int naz = 0; naz < arr.get_size_azimuthal(); ++naz) {
 		// eccentricity and semi major axis weighted with cellmass
@@ -122,11 +125,12 @@ double gas_reduce_mass_average(t_data &data, const t_polargrid& arr, const doubl
 	double local_mass = 0.0;
 	double global_mass = 0.0;
 
-	double global_reduced_quantity = 0.0;
 	double local_reduced_quantity = 0.0;
+	double global_reduced_quantity = 0.0;
 
 	// Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
 	// they would be included twice!)
+	#pragma omp parallel for reduction(+ : local_reduced_quantity, local_mass)
 	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
 	for (unsigned int naz = 0; naz < arr.get_size_azimuthal(); ++naz) {
 		// eccentricity and semi major axis weighted with cellmass
@@ -164,10 +168,12 @@ double gas_disk_radius(t_data &data, const double total_mass)
 
     const unsigned int local_array_start = Zero_or_active;
     const unsigned int local_array_end = Max_or_active;
-    const unsigned int send_size = local_array_end - local_array_start;
+	static const unsigned int send_size = local_array_end - local_array_start;
 
-    std::vector<double> local_mass(send_size);
+	static std::vector<double> local_mass(send_size);
+	double *tmp_arr = &local_mass[0]; // openMP does not accept vectors
 
+	#pragma omp parallel for reduction(+ : tmp_arr[:send_size])
     for (unsigned int n_radial = local_array_start; n_radial < local_array_end;
 	 ++n_radial) {
 	local_mass[n_radial - local_array_start] = 0.0;
@@ -198,7 +204,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 		}
 	    }
 	}
-
+	(void) tmp_arr; // So the compiler does not complain about unused variable
     found_radius:
 	void();
     }
@@ -213,6 +219,7 @@ double gas_angular_momentum(t_data &data, const double quantitiy_radius)
     double local_angular_momentum = 0.0;
     double global_angular_momentum = 0.0;
 
+	#pragma omp parallel for reduction(+ : local_angular_momentum)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -252,6 +259,7 @@ double gas_internal_energy(t_data &data, const double quantitiy_radius)
     double local_internal_energy = 0.0;
     double global_internal_energy = 0.0;
 
+	#pragma omp parallel for reduction(+ : local_internal_energy)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -276,6 +284,7 @@ double gas_viscous_dissipation(t_data &data, const double quantitiy_radius)
     double local_qplus = 0.0;
     double global_qplus = 0.0;
 
+	#pragma omp parallel for reduction(+ : local_qplus)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -299,6 +308,7 @@ double gas_luminosity(t_data &data, const double quantitiy_radius)
     double local_qminus = 0.0;
     double global_qminus = 0.0;
 
+	#pragma omp parallel for reduction(+ : local_qminus)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -325,8 +335,7 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
     double local_kinematic_energy = 0.0;
     double global_kinematic_energy = 0.0;
 
-    double v_radial_center, v_azimuthal_center;
-
+	#pragma omp parallel for reduction(+ : local_kinematic_energy)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -334,7 +343,7 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
 	     ++n_azimuthal) {
 	    // centered-in-cell radial velocity
 	    if (Rmed[n_radial] <= quantitiy_radius) {
-		v_radial_center =
+		double v_radial_center =
 		    (Rmed[n_radial] - Rinf[n_radial]) *
 			data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
 		    (Rsup[n_radial] - Rmed[n_radial]) *
@@ -342,7 +351,7 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
 		v_radial_center /= (Rsup[n_radial] - Rinf[n_radial]);
 
 		// centered-in-cell azimuthal velocity
-		v_azimuthal_center =
+		double v_azimuthal_center =
 		    0.5 *
 			(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 			 data[t_data::V_AZIMUTHAL](
@@ -375,8 +384,7 @@ double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius)
     double local_kinematic_energy = 0.0;
     double global_kinematic_energy = 0.0;
 
-    double v_radial_center;
-
+	#pragma omp parallel for reduction(+ : local_kinematic_energy)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -384,7 +392,7 @@ double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius)
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell radial velocity
-		v_radial_center =
+		double v_radial_center =
 		    (Rmed[n_radial] - Rinf[n_radial]) *
 			data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) +
 		    (Rsup[n_radial] - Rmed[n_radial]) *
@@ -414,8 +422,7 @@ double gas_azimuthal_kinematic_energy(t_data &data,
     double local_kinematic_energy = 0.0;
     double global_kinematic_energy = 0.0;
 
-    double v_azimuthal_center;
-
+	#pragma omp parallel for reduction(+ : local_kinematic_energy)
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -423,7 +430,7 @@ double gas_azimuthal_kinematic_energy(t_data &data,
 	     ++n_azimuthal) {
 	    if (Rmed[n_radial] <= quantitiy_radius) {
 		// centered-in-cell azimuthal velocity
-		v_azimuthal_center =
+		double v_azimuthal_center =
 		    0.5 *
 			(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
 			 data[t_data::V_AZIMUTHAL](
@@ -672,6 +679,7 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 	const unsigned int N_radial_size = density.get_size_radial();
 	const unsigned int N_azimuthal_size = density.get_size_azimuthal();
 
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < N_radial_size; ++nr) {
 	for (unsigned int naz = 0; naz < N_azimuthal_size; ++naz) {
 
@@ -817,6 +825,7 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
 
     stress::calculate_gravitational_stress(data);
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_GRAV].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -840,6 +849,7 @@ void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 {
     calculate_alpha_grav(data, timestep, true);
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_GRAV_MEAN].get_size_radial();
 	 ++n_radial) {
@@ -872,6 +882,7 @@ void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 	}
     }
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_REYNOLDS].get_size_radial();
 	 ++n_radial) {
@@ -891,6 +902,7 @@ void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 {
     calculate_alpha_reynolds(data, timestep, true);
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::ALPHA_REYNOLDS_MEAN].get_size_radial();
 	 ++n_radial) {
@@ -912,6 +924,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 {
     double kappa;
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_radial = 1;
 	 n_radial < data[t_data::TOOMRE].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -952,6 +965,7 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 
     last_timestep_calculated = timestep;
 
+	#pragma omp parallel for
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::LUMINOSITY_1D].get_size_radial(); ++n_radial) {
 	// L = int( int(sigma T^4 r ,phi) ,r);
@@ -979,6 +993,7 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 
     last_timestep_calculated = timestep;
 
+	#pragma omp parallel for
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::DISSIPATION_1D].get_size_radial();
 	 ++n_radial) {
@@ -1006,6 +1021,7 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 
     // divide the data in massflow by the large timestep DT before writing out
     // to obtain the massflow from the mass difference
+	#pragma omp parallel for collapse(2)
     for (unsigned int nRadial = 0;
 	 nRadial < data[t_data::MASSFLOW].get_size_radial(); ++nRadial) {
 	for (unsigned int n_azimuthal = 0;
@@ -1027,7 +1043,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 
     switch (ASPECTRATIO_MODE) {
     case 0: {
-
+			#pragma omp parallel for collapse(2)
 			for (unsigned int n_radial = 0;
 				 n_radial <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_radial) {
 				for (unsigned int n_azimuthal = 0;
@@ -1059,6 +1075,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 			// for an Nbody system, H^-2 = sum_n (H_n)^-2
 			// See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
 			// Better see Thun et al. 2017 Eq. 8 instead.
+			#pragma omp parallel for collapse(2)
 			for (unsigned int n_rad = 0;
 				 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
 				for (unsigned int n_az = 0;
@@ -1118,6 +1135,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 		const Pair r_cm = data.get_planetary_system().get_center_of_mass();
 		const double m_cm = data.get_planetary_system().get_mass();
 
+		#pragma omp parallel for collapse(2)
 		for (unsigned int n_rad = 0;
 		 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
 		for (unsigned int n_az = 0;
@@ -1167,6 +1185,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 	break;
     }
     default: {
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nRad = 0;
 	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
 	    for (unsigned int nAz = 0;
@@ -1191,6 +1210,7 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
 	denom = (double)NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nRadial = 0;
 	     nRadial < data[t_data::VISCOUS_TORQUE].get_size_radial();
 	     ++nRadial) {
@@ -1215,6 +1235,7 @@ void calculate_gravitational_torque(t_data &data, unsigned int timestep,
 	denom = (double)NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nRadial = 0;
 	     nRadial < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
 			   .get_size_radial();
@@ -1242,6 +1263,7 @@ void calculate_advection_torque(t_data &data, unsigned int timestep,
 	denom = (double)NINTERM;
 	// divide the data in massflow by the large timestep DT before writing
 	// out to obtain the massflow from the mass difference
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nRadial = 0;
 	     nRadial < data[t_data::ADVECTION_TORQUE].get_size_radial();
 	     ++nRadial) {

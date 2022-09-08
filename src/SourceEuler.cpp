@@ -2490,48 +2490,48 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			fabs(v_mean[0]*InvRmed[0] - v_mean[1]*InvRmed[1]);
 
 	#pragma omp parallel for reduction(min : dt_core)
-	for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size; ++n_radial) {
+	for (unsigned int nr = radial_first_active;
+	 nr < radial_active_size; ++nr) {
 
 		// FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
 		const double shear_dt =
 				parameters::CFL * dphi /
-				fabs(v_mean[n_radial] * InvRmed[n_radial] -
-				 v_mean[n_radial + 1] * InvRmed[n_radial + 1]);
+				fabs(v_mean[nr] * InvRmed[nr] -
+				 v_mean[nr + 1] * InvRmed[nr + 1]);
 
 			if (shear_dt < dt_core){
 				dt_core = shear_dt;
 			}
 
 	// cell sizes in radial & azimuthal direction
-	double dxRadial = Rsup[n_radial] - Rinf[n_radial];
-	double dxAzimuthal = Rmed[n_radial] * 2.0 * M_PI /
+	double dxRadial = Rsup[nr] - Rinf[nr];
+	double dxAzimuthal = Rmed[nr] * 2.0 * M_PI /
 				 (double)(v_radial.get_size_azimuthal());
 
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
+	for (unsigned int naz = 0;
+		 naz < v_radial.get_size_azimuthal(); ++naz) {
 		if (FastTransport) {
 		// FARGO algorithm
-		v_residual[CELL(n_radial, n_azimuthal, v_azimuthal.get_size_azimuthal())] =
-			v_azimuthal(n_radial, n_azimuthal) - v_mean[n_radial];
+		v_residual[CELL(nr, naz, v_azimuthal.get_size_azimuthal())] =
+			v_azimuthal(nr, naz) - v_mean[nr];
 		} else {
 		// Standard algorithm
-		v_residual[CELL(n_radial, n_azimuthal, v_azimuthal.get_size_azimuthal())] = v_azimuthal(n_radial, n_azimuthal);
+		v_residual[CELL(nr, naz, v_azimuthal.get_size_azimuthal())] = v_azimuthal(nr, naz);
 		}
 	}
 
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < v_radial.get_size_azimuthal(); ++n_azimuthal) {
+	for (unsigned int naz = 0;
+		 naz < v_radial.get_size_azimuthal(); ++naz) {
 
 		// sound speed limit
-		const double invdt1 = soundspeed(n_radial, n_azimuthal) /
+		const double invdt1 = soundspeed(nr, naz) /
 			 (std::min(dxRadial, dxAzimuthal));
 
 		// radial motion limit
-		const double invdt2 = v_radial(n_radial, n_azimuthal) / dxRadial;
+		const double invdt2 = v_radial(nr, naz) / dxRadial;
 
 		// residual circular motion limit
-		const double invdt3 = v_residual[CELL(n_radial, n_azimuthal, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
+		const double invdt3 = v_residual[CELL(nr, naz, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
 
 		// artificial viscosity limit
 		double invdt4;
@@ -2539,14 +2539,14 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		parameters::artificial_viscosity_SN) {
 
 			// velocity differences in radial & azimuthal direction
-			double dvRadial = v_radial(n_radial + 1, n_azimuthal) -
-					v_radial(n_radial, n_azimuthal);
+			double dvRadial = v_radial(nr + 1, naz) -
+					v_radial(nr, naz);
 			double dvAzimuthal =
-					v_azimuthal(n_radial,
-								n_azimuthal == v_radial.get_max_azimuthal()
+					v_azimuthal(nr,
+								naz == v_radial.get_max_azimuthal()
 								? 0
-								: n_azimuthal + 1) -
-					v_azimuthal(n_radial, n_azimuthal);
+								: naz + 1) -
+					v_azimuthal(nr, naz);
 
 		if (dvRadial >= 0.0) {
 			dvRadial = std::numeric_limits<double>::min();
@@ -2568,7 +2568,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		}
 
 		// kinematic viscosity limit
-		const double invdt5 = 4.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
+		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) *
 			 std::max(1 / std::pow(dxRadial, 2),
 				  1 / std::pow(dxAzimuthal, 2)) * 0.6; // factor 1/2 because of leapfrog
 
@@ -2579,9 +2579,9 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		// per dt
 		const double inv_limit =
 			1.0 / parameters::HEATING_COOLING_CFL_LIMIT;
-		const double Qp = data[t_data::QPLUS](n_radial, n_azimuthal);
-		const double Qm = data[t_data::QMINUS](n_radial, n_azimuthal);
-		const double E = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double Qp = data[t_data::QPLUS](nr, naz);
+		const double Qm = data[t_data::QMINUS](nr, naz);
+		const double E = data[t_data::ENERGY](nr, naz);
 		invdt6 = inv_limit * std::fabs((Qp - Qm) / E) * 0.6; // factor 1/2 because of leapfrog
 		} else {
 		invdt6 = 0.0;
@@ -2614,10 +2614,10 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		double dt_stable_visc = std::numeric_limits<double>::max();
 		if (StabilizeViscosity == 2) {
 		const double cphi =
-			data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](n_radial,
-								  n_azimuthal);
+			data[t_data::VISCOSITY_CORRECTION_FACTOR_PHI](nr,
+								  naz);
 		const double cr = data[t_data::VISCOSITY_CORRECTION_FACTOR_R](
-			n_radial, n_azimuthal);
+			nr, naz);
 		const double c =
 			std::min(cphi, cr); // c < 0.0 is negative, so take min to
 					// get 'larger' negative number
@@ -2635,10 +2635,10 @@ double condition_cfl(t_data &data, const double dt_global_input)
 
 		if (StabilizeArtViscosity == 2) {
 		const double cphi =
-			data[t_data::ART_VISCOSITY_CORRECTION_FACTOR_PHI](n_radial,
-								  n_azimuthal);
+			data[t_data::ART_VISCOSITY_CORRECTION_FACTOR_PHI](nr,
+								  naz);
 		const double cr = data[t_data::ART_VISCOSITY_CORRECTION_FACTOR_R](
-			n_radial, n_azimuthal);
+			nr, naz);
 		const double c =
 			std::min(cphi, cr); // c < 0.0 is negative, so take min to
 					// get 'larger' negative number
@@ -2657,8 +2657,8 @@ double condition_cfl(t_data &data, const double dt_global_input)
 
 		if(dt_cell == dt_global_input){
 			timestep_debug_report(data,
-								  n_radial,
-								  n_azimuthal,
+								  nr,
+								  naz,
 								  dt_global_input,
 								  dt_cell,
 								  invdt1,
