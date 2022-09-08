@@ -84,7 +84,7 @@ extern double OmegaFrame, PhysicalTime, PhysicalTimeInitial, FrameAngle;
 
 extern double hydro_center_mass;
 
-extern int GotoNextOutput, StabilizeViscosity;
+extern int StabilizeViscosity;
 extern int flux_limiter_type;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;

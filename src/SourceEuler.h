@@ -43,7 +43,6 @@ void compute_temperature(t_data &data, bool force_update);
 void compute_rho(t_data &data, bool force_update);
 
 void ComputeViscousStressTensor(t_data &data);
-void ComputeCircumPlanetaryMasses(t_data &data);
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename,
 				   int line);
 

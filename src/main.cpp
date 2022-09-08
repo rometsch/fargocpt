@@ -33,10 +33,10 @@
 #include "viscosity.h"
 #include "particles/particles.h"
 #include "random/random.h"
+#include "simulation.h"
+#include "circumplanetary_mass.h"
 
-int TimeToWrite;
 int Restart = 0;
-static int StillWriteOneOutput;
 extern int Corotating;
 extern int SelfGravity, SGZeroMode;
 
@@ -53,10 +53,10 @@ int main(int argc, char *argv[])
     t_data data;
 
     N_hydro_iter = 0;
+    N_outer_loop = 0;
 
     resize_radialarrays(MAX1D);
 
-    N_outer_loop = 0;
 
     int CPU_NameLength;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
@@ -203,9 +203,7 @@ int main(int argc, char *argv[])
 	copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
     }
 
-    bool dont_do_restart_output_at_start = false;
     if (start_mode::mode == start_mode::mode_restart) {
-	dont_do_restart_output_at_start = true;
 
 	N_outer_loop = 0;
 	start_mode::restart_from = output::load_misc();
@@ -328,86 +326,10 @@ int main(int argc, char *argv[])
     CommunicateBoundaries(&data[t_data::SIGMA0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
-    for (; N_outer_loop <= parameters::NTOT; ++N_outer_loop) {
-	logging::print_master(LOG_INFO "Start of iteration %u of %u\n",
-			      N_outer_loop, parameters::NTOT);
-	// write outputs
 
-	bool force_update_for_output = true;
-	N_output = (N_outer_loop / parameters::NINTERM); // note: integer division
-	bool write_complete_output = (parameters::NINTERM * N_output == N_outer_loop);
-	if (dont_do_restart_output_at_start) {
-	    write_complete_output = false;
-	}
-	/// asure planet torques are computed
-	if (!parameters::disk_feedback &&
-	    (write_complete_output || parameters::write_at_every_timestep)) {
-	    ComputeDiskOnNbodyAccel(data);
-	}
-
-	if (write_complete_output) {
-	    // Outputs are done here
-	    TimeToWrite = YES;
-	    force_update_for_output = false;
-	    output::last_snapshot_dir = output::snapshot_dir;
-	    output::write_full_output(data, std::to_string(N_output));
-	    output::cleanup_autosave();
-
-	    if (N_output == 0 && parameters::damping) {
-		// Write damping data as a reference.
-		const std::string snapshot_dir_old = output::snapshot_dir;
-		output::write_full_output(data, "damping", false);
-		output::snapshot_dir = snapshot_dir_old;
-	    }
-
-	    if (GotoNextOutput && (!StillWriteOneOutput)) {
-		PersonalExit(0);
-	    }
-	    StillWriteOneOutput--;
-	} else {
-	    TimeToWrite = NO;
-	}
-
-	//(void) InnerOutputCounter;
-	// InnerOutputCounter++;
-	// if (InnerOutputCounter == 1) {
-	if ((write_complete_output || parameters::write_at_every_timestep) &&
-	    !(dont_do_restart_output_at_start)) {
-	    // InnerOutputCounter = 0;
-	    ComputeCircumPlanetaryMasses(data);
-	    data.get_planetary_system().write_planets(1);
-	    // WriteBigPlanetSystemFile(sys, TimeStep);
-	}
-
-	// write disk quantities like eccentricity, ...
-	if ((write_complete_output || parameters::write_at_every_timestep) &&
-	    !(dont_do_restart_output_at_start) &&
-	    parameters::write_disk_quantities) {
-	    output::write_quantities(data, force_update_for_output);
-	}
-
-	if (write_complete_output && parameters::write_torques) {
-	    output::write_torques(data, force_update_for_output);
-	}
-	if (parameters::write_lightcurves &&
-	    (parameters::write_at_every_timestep || write_complete_output) &&
-	    !(dont_do_restart_output_at_start)) {
-	    output::write_lightcurves(data, N_output, force_update_for_output);
-	}
-	dont_do_restart_output_at_start = false;
-
-	// Exit if last timestep reached and last output is written
-	if (N_outer_loop == parameters::NTOT) {
-	    logging::print_master(
-		LOG_INFO "Reached end of simulation at iteration %u of %u\n",
-		N_outer_loop, parameters::NTOT);
-	    break;
-	}
-
-	// do hydro and nbody
-	AlgoGas(data);
-	dtemp = 0.0;
-    }
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	run_simulation(data);	
+    
 
     logging::print_runtime_final();
 

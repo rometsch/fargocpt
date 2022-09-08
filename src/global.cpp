@@ -141,8 +141,7 @@ t_radialarray GLOBAL_AxiSGAccr;
 double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
 double hydro_center_mass;
 int OnlyInit;
-int GotoNextOutput, 
-    StabilizeViscosity;
+int StabilizeViscosity;
 int flux_limiter_type;
 int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
