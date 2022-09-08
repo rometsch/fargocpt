@@ -2158,7 +2158,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
-
+	/// Cannot be OpenMP parallelized due to Temperature being iteratively computed
 	for (unsigned int nr = 1; nr < Temperature.get_size_radial() - 1;
 	     ++nr) {
 	    for (unsigned int naz = 0; naz < Temperature.get_size_azimuthal();
