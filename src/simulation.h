@@ -11,7 +11,8 @@ namespace sim {
 extern double hydro_dt;
 extern double last_dt;
 
-void run_simulation(t_data &data);
+void init(t_data &data);
+void run(t_data &data);
 
 }
 

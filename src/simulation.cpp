@@ -227,55 +227,27 @@ static double step(t_data &data) {
 	return hydro_dt;
 }
 
-
-/**
-	\param data
-	\param sys
-*/
-static void AlgoGas(t_data &data)
-{
-
-    if (parameters::calculate_disk) {
-	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			      &data[t_data::V_AZIMUTHAL],
-			      &data[t_data::ENERGY]);
-    }
-    // recalculate timestep, even for no_disk = true, so that particle drag has
-    // reasonable timestep size
-    hydro_dt = CalculateHydroTimeStep(data, last_dt);
-
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
-	refframe::init_corotation(data);
-
-
-    // keep mass constant
-    // const double total_disk_mass_old =
-    // quantities::gas_total_mass(data, 2.0*RMAX);
-
+static void print_progress() {
 	logging::print_master(
-	    LOG_VERBOSE
-	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
-	    (int)ceil(log10(parameters::NTOT)), N_outer_loop, parameters::NTOT,
-	    (double)N_outer_loop / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
-	    dtemp / parameters::DT * 100.0);
-
-    while (dtemp < parameters::DT) {
-		if (SIGTERM_RECEIVED) {
-			output::write_full_output(data, "autosave");
-			PersonalExit(0);
-		}
-
-		const double step_dt = step(data);
-		dtemp += step_dt;
-
-	}
+	LOG_VERBOSE
+	"AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
+	(int)ceil(log10(parameters::NTOT)), N_outer_loop, parameters::NTOT,
+	(double)N_outer_loop / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
+	dtemp / parameters::DT * 100.0);
 }
 
-void run_simulation(t_data &data) {
+void init(t_data &data) {
+	boundary_conditions::apply_boundary_condition(data, 0.0, false); // TODO: move to init
+	refframe::init_corotation(data); // TODO: move to init
 
 	if (start_mode::mode != start_mode::mode_restart) {
 		handle_outputs(data);
 	}
+}
+
+void run(t_data &data) {
+
+	init(data);
 
 	// Jumpstart dt
 	hydro_dt = last_dt;
@@ -286,14 +258,29 @@ void run_simulation(t_data &data) {
 		N_outer_loop, parameters::NTOT);
 
 		// do hydro and nbody
-		AlgoGas(data);
+		// recalculate timestep, even for no_disk = true, so that particle drag has
+    	// reasonable timestep size
+		if (!parameters::calculate_disk) {
+			hydro_dt = CalculateHydroTimeStep(data, last_dt);
+		}
+		
+		while (dtemp < parameters::DT) {
+			if (SIGTERM_RECEIVED) {
+				output::write_full_output(data, "autosave");
+				PersonalExit(0);
+			}
+
+			const double step_dt = step(data);
+			dtemp += step_dt;
+		}
 		dtemp = 0.0;
 
 		handle_outputs(data);
+		print_progress();
     }
 	logging::print_master(
 			LOG_INFO "Reached end of simulation at iteration %u of %u\n",
-			N_outer_loop, parameters::NTOT);
+			N_outer_loop - 1, parameters::NTOT);
 }
 
 
