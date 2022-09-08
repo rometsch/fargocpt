@@ -193,7 +193,7 @@ void init_radialarrays()
 
 	// TODO: Is already calculated a few lines above. assert should check
 	// this
-	assert((Rmed[nRadial] - GlobalRmed[nRadial + IMIN]) < DBL_EPSILON);
+	assert((Rmed[nRadial] - GlobalRmed[nRadial + IMIN]) < std::numeric_limits.epsilon());
 
 	Surf[nRadial] =
 	    M_PI * (std::pow(Rsup[nRadial], 2) - std::pow(Rinf[nRadial], 2)) /
