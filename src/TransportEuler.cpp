@@ -476,12 +476,12 @@ void compute_momenta_from_velocities(t_polargrid &density,
 			     n_azimuthal == v_azimuthal.get_max_azimuthal()
 				 ? 0
 				 : n_azimuthal + 1) +
-		 Rb[n_radial] * frame_of_reference::OmegaFrame) *
+		 Rb[n_radial] * refframe::OmegaFrame) *
 		Rb[n_radial];
 	    angular_momentum_minus(n_radial, n_azimuthal) =
 		density(n_radial, n_azimuthal) *
 		(v_azimuthal(n_radial, n_azimuthal) +
-		 Rb[n_radial] * frame_of_reference::OmegaFrame) *
+		 Rb[n_radial] * refframe::OmegaFrame) *
 		Rb[n_radial];
 	}
     }
@@ -520,7 +520,7 @@ void compute_velocities_from_momenta(t_polargrid &density,
 		    (density(n_radial, n_azimuthal_minus) +
 		     density(n_radial, n_azimuthal)) *
 		    InvRb[n_radial] -
-		Rb[n_radial] * frame_of_reference::OmegaFrame;
+		Rb[n_radial] * refframe::OmegaFrame;
 	}
     }
 }

@@ -1281,7 +1281,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double cell_vy = cell_vy_com + com_vel.y;
 
 		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed -
-				frame_of_reference::OmegaFrame * rmed;
+				refframe::OmegaFrame * rmed;
 
 		const double vp = vphi_arr(n_radial, n_azimuthal);
 		const double vp_new = (vp - vp0) * exp_factor + vp0;
@@ -1445,7 +1445,7 @@ void mass_overflow(t_data &data)
 	vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
 		     // vr_fraction = 0.002)
     const double vphi_stream =
-	(omega_planet - frame_of_reference::OmegaFrame) *
+	(omega_planet - refframe::OmegaFrame) *
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
 	const double mdot_code = parameters::mof_value;
@@ -1583,7 +1583,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
 		     // vr_fraction = 0.002)
     const double vphi_stream =
-	(omega_planet - frame_of_reference::OmegaFrame) *
+	(omega_planet - refframe::OmegaFrame) *
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
 	const double stream_mdot_code = parameters::mof_value;
@@ -2031,7 +2031,7 @@ void initial_center_of_mass_boundary(t_data &data)
 
 	    const double cell_vphi =
 		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
-		vaz(nr, naz) = cell_vphi - frame_of_reference::OmegaFrame * rmed;
+		vaz(nr, naz) = cell_vphi - refframe::OmegaFrame * rmed;
 	} /// END V_PHI
 
 	{ /// V_R
@@ -2190,7 +2190,7 @@ void jibin_boundary_inner(t_data &data)
     const double R = Rmed[0];
     const double OmegaK = 1.0 / (R * std::sqrt(R));
     const double corr = std::sqrt(1.0 + (p + q) * h * h);
-    const double vaz = R * OmegaK * corr - R * frame_of_reference::OmegaFrame;
+    const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
 
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
@@ -2229,7 +2229,7 @@ void jibin_boundary_outer(t_data &data)
 	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
 	const double OmegaK = 1.0 / (R * std::sqrt(R));
 	const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	const double vaz = R * OmegaK * corr - R * frame_of_reference::OmegaFrame;
+	const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();

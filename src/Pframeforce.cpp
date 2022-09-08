@@ -28,10 +28,10 @@
  */
 void ComputeIndirectTermDisk(t_data &data)
 {
-    frame_of_reference::IndirectTerm.x = 0.0;
-    frame_of_reference::IndirectTerm.y = 0.0;
-    frame_of_reference::IndirectTermDisk.x = 0.0;
-    frame_of_reference::IndirectTermDisk.y = 0.0;
+    refframe::IndirectTerm.x = 0.0;
+    refframe::IndirectTerm.y = 0.0;
+    refframe::IndirectTermDisk.x = 0.0;
+    refframe::IndirectTermDisk.y = 0.0;
 
     // compute disk indirect term
     if (parameters::disk_feedback) {
@@ -43,22 +43,22 @@ void ComputeIndirectTermDisk(t_data &data)
 	    t_planet &planet = data.get_planetary_system().get_planet(n);
 	    const double mass = planet.get_mass();
 	    const Pair accel = planet.get_disk_on_planet_acceleration();
-	    frame_of_reference::IndirectTermDisk.x -= mass * accel.x;
-	    frame_of_reference::IndirectTermDisk.y -= mass * accel.y;
+	    refframe::IndirectTermDisk.x -= mass * accel.x;
+	    refframe::IndirectTermDisk.y -= mass * accel.y;
 	    mass_center += mass;
 	}
-	frame_of_reference::IndirectTermDisk.x /= mass_center;
-	frame_of_reference::IndirectTermDisk.y /= mass_center;
+	refframe::IndirectTermDisk.x /= mass_center;
+	refframe::IndirectTermDisk.y /= mass_center;
     }
 
-    frame_of_reference::IndirectTerm.x = frame_of_reference::IndirectTermDisk.x;
-    frame_of_reference::IndirectTerm.y = frame_of_reference::IndirectTermDisk.y;
+    refframe::IndirectTerm.x = refframe::IndirectTermDisk.x;
+    refframe::IndirectTerm.y = refframe::IndirectTermDisk.y;
 }
 
 void ComputeIndirectTermNbodyEuler(t_data &data)
 {
-    frame_of_reference::IndirectTermPlanets.x = 0.0;
-    frame_of_reference::IndirectTermPlanets.y = 0.0;
+    refframe::IndirectTermPlanets.x = 0.0;
+    refframe::IndirectTermPlanets.y = 0.0;
 
     // compute nbody indirect term
     // add up contributions from mutual interactions from all bodies used to
@@ -69,15 +69,15 @@ void ComputeIndirectTermNbodyEuler(t_data &data)
 	t_planet &planet = data.get_planetary_system().get_planet(n);
 	const double mass = planet.get_mass();
 	const Pair accel = planet.get_nbody_on_planet_acceleration();
-	frame_of_reference::IndirectTermPlanets.x -= mass * accel.x;
-	frame_of_reference::IndirectTermPlanets.y -= mass * accel.y;
+	refframe::IndirectTermPlanets.x -= mass * accel.x;
+	refframe::IndirectTermPlanets.y -= mass * accel.y;
 	mass_center += mass;
     }
-    frame_of_reference::IndirectTermPlanets.x /= mass_center;
-    frame_of_reference::IndirectTermPlanets.y /= mass_center;
+    refframe::IndirectTermPlanets.x /= mass_center;
+    refframe::IndirectTermPlanets.y /= mass_center;
 
-    frame_of_reference::IndirectTerm.x += frame_of_reference::IndirectTermPlanets.x;
-    frame_of_reference::IndirectTerm.y += frame_of_reference::IndirectTermPlanets.y;
+    refframe::IndirectTerm.x += refframe::IndirectTermPlanets.x;
+    refframe::IndirectTerm.y += refframe::IndirectTermPlanets.y;
 }
 
 void ComputeIndirectTermNbody(t_data &data, const double dt)
@@ -99,16 +99,16 @@ void ComputeIndirectTermNbody(t_data &data, const double dt)
 	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
 	pair accel{delta_vel.x/dt, delta_vel.y/dt};
 
-	frame_of_reference::IndirectTermPlanets.x = -accel.x;
-	frame_of_reference::IndirectTermPlanets.y = -accel.y;
+	refframe::IndirectTermPlanets.x = -accel.x;
+	refframe::IndirectTermPlanets.y = -accel.y;
 	} else {
-	frame_of_reference::IndirectTermPlanets.x = 0.0;
-	frame_of_reference::IndirectTermPlanets.y = 0.0;
+	refframe::IndirectTermPlanets.x = 0.0;
+	refframe::IndirectTermPlanets.y = 0.0;
 	}
 	}
 
-	frame_of_reference::IndirectTerm.x += frame_of_reference::IndirectTermPlanets.x;
-	frame_of_reference::IndirectTerm.y += frame_of_reference::IndirectTermPlanets.y;
+	refframe::IndirectTerm.x += refframe::IndirectTermPlanets.x;
+	refframe::IndirectTerm.y += refframe::IndirectTermPlanets.y;
 }
 
 /* Below : work in non-rotating frame */
@@ -189,7 +189,7 @@ void CalculateNbodyPotential(t_data &data)
 	    }
 	    // apply indirect term
 	    // correct frame with contributions from disk and planets
-	    pot(n_rad, n_az) += -frame_of_reference::IndirectTerm.x * x - frame_of_reference::IndirectTerm.y * y;
+	    pot(n_rad, n_az) += -refframe::IndirectTerm.x * x - refframe::IndirectTerm.y * y;
 	}
     }
 }
@@ -232,7 +232,7 @@ void CalculateAccelOnGas(t_data &data)
 	    const double y = r * std::sin(phi);
 	    const double smooth = compute_smoothing_r(data, n_rad, n_az);
 
-	    pair ar = frame_of_reference::IndirectTerm;
+	    pair ar = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double dx = x - xpl[k];
@@ -320,7 +320,7 @@ void CalculateAccelOnGas(t_data &data)
 	    const double y = r * std::sin(phi);
 	    const double smooth = compute_smoothing_az(data, n_rad, n_az);
 
-	    pair aphi = frame_of_reference::IndirectTerm;
+	    pair aphi = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double dx = x - xpl[k];

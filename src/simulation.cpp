@@ -127,7 +127,7 @@ void AlgoGas(t_data &data)
 
 	dtemp += hydro_dt;
 
-	frame_of_reference::init_corotation(data);
+	refframe::init_corotation(data);
 
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
@@ -141,7 +141,7 @@ void AlgoGas(t_data &data)
 	/// IndirectTerm is fully completed here (Disk + Nbody)
 	ComputeIndirectTermNbody(data, hydro_dt);
 	data.get_planetary_system().apply_indirect_term_on_Nbody(
-		frame_of_reference::IndirectTerm, hydro_dt);
+		refframe::IndirectTerm, hydro_dt);
 
 
 	if (parameters::integrate_planets) {
@@ -180,7 +180,7 @@ void AlgoGas(t_data &data)
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
 	 * work in a frame non-centered on the star. Same for dust particles. */
-	frame_of_reference::handle_corotation(data, hydro_dt);
+	refframe::handle_corotation(data, hydro_dt);
 
 	/* Now we update gas */
 	if (parameters::calculate_disk) {

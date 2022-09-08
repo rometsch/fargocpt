@@ -140,7 +140,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
-		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * frame_of_reference::OmegaFrame;
+		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * refframe::OmegaFrame;
 	    const double vrcell = 0.5 * (vrad[l] + vrad[lip]);
 	    // calculate cartesian velocities
 	    const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
@@ -262,7 +262,7 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
-		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * frame_of_reference::OmegaFrame;
+		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * refframe::OmegaFrame;
 	    const double vrcell = 0.5 * (vrad[l] + vrad[lip]);
 	    // calculate cartesian velocities
 	    const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
@@ -387,7 +387,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
-		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * frame_of_reference::OmegaFrame;
+		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * refframe::OmegaFrame;
 	    const double vrcell = 0.5 * (vrad[l] + vrad[lip]);
 	    // calculate cartesian velocities
 	    const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];

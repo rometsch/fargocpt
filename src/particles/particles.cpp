@@ -97,7 +97,7 @@ static double check_angle(double &phi)
 static double corret_v_gas_azimuthal_omega_frame(const double v_az_gas,
 						 const double r_particle)
 {
-    const double v_az_corrected = v_az_gas + r_particle * frame_of_reference::OmegaFrame;
+    const double v_az_corrected = v_az_gas + r_particle * refframe::OmegaFrame;
     return v_az_corrected;
 }
 
@@ -1258,8 +1258,8 @@ static void update_velocities_from_indirect_term(const double dt)
 	double indirect_q1_dot;
 	double indirect_q2_dot;
 	if (parameters::CartesianParticles) {
-	    indirect_q1_dot = frame_of_reference::IndirectTerm.x * dt + particles[i].r_dot;
-	    indirect_q2_dot = frame_of_reference::IndirectTerm.y * dt + particles[i].phi_dot;
+	    indirect_q1_dot = refframe::IndirectTerm.x * dt + particles[i].r_dot;
+	    indirect_q2_dot = refframe::IndirectTerm.y * dt + particles[i].phi_dot;
 	} else {
 	    double r = particles[i].r;
 	    double phi = particles[i].phi;
@@ -1267,11 +1267,11 @@ static void update_velocities_from_indirect_term(const double dt)
 	    const double r_dot = particles[i].r_dot;
 	    const double phi_dot = particles[i].phi_dot;
 
-	    indirect_q1_dot = r_dot + dt * (frame_of_reference::IndirectTerm.x * std::cos(phi) +
-					    frame_of_reference::IndirectTerm.y * std::sin(phi));
+	    indirect_q1_dot = r_dot + dt * (refframe::IndirectTerm.x * std::cos(phi) +
+					    refframe::IndirectTerm.y * std::sin(phi));
 	    indirect_q2_dot = phi_dot + dt *
-					    (-frame_of_reference::IndirectTerm.x * std::sin(phi) +
-					     frame_of_reference::IndirectTerm.y * std::cos(phi)) /
+					    (-refframe::IndirectTerm.x * std::sin(phi) +
+					     refframe::IndirectTerm.y * std::cos(phi)) /
 					    r;
 	}
 

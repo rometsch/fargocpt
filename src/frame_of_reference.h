@@ -4,7 +4,7 @@
 #include "data.h"
 #include "types.h"
 
-namespace frame_of_reference{ 
+namespace refframe{ 
 
 extern double planet_corot_ref_old_x;
 extern double planet_corot_ref_old_y;

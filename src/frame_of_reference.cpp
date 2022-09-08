@@ -5,7 +5,7 @@
 #include "particles/particles.h"
 #include "types.h"
 
-namespace frame_of_reference {
+namespace refframe {
 
 double planet_corot_ref_old_x;
 double planet_corot_ref_old_y;

@@ -156,7 +156,7 @@ double gas_angular_momentum(t_data &data, const double quantitiy_radius)
 				       : n_azimuthal - 1)) *
 		    Rmed[n_radial] *
 		    (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
-		     frame_of_reference::OmegaFrame * Rmed[n_radial]);
+		     refframe::OmegaFrame * Rmed[n_radial]);
 	    }
 	    // local_angular_momentum +=
 	    // Surf[n_radial]*data[t_data::DENSITY](n_radial,n_azimuthal)*Rmed[n_radial]*(0.5*(data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal)+data[t_data::V_AZIMUTHAL](n_radial,n_azimuthal
@@ -277,7 +277,7 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius)
 							  .get_max_azimuthal()
 					   ? 0
 					   : n_azimuthal + 1)) +
-		    Rmed[n_radial] * frame_of_reference::OmegaFrame;
+		    Rmed[n_radial] * refframe::OmegaFrame;
 
 		local_kinematic_energy +=
 		    0.5 * Surf[n_radial] *
@@ -358,7 +358,7 @@ double gas_azimuthal_kinematic_energy(t_data &data,
 							  .get_max_azimuthal()
 					   ? 0
 					   : n_azimuthal + 1)) +
-		    Rmed[n_radial] * frame_of_reference::OmegaFrame;
+		    Rmed[n_radial] * refframe::OmegaFrame;
 
 		local_kinematic_energy +=
 		    0.5 * Surf[n_radial] *
@@ -426,8 +426,8 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	}
     }
     // calculations outside the loop for speedup
-    double sinFrameAngle = std::sin(frame_of_reference::FrameAngle);
-    double cosFrameAngle = std::cos(frame_of_reference::FrameAngle);
+    double sinFrameAngle = std::sin(refframe::FrameAngle);
+    double cosFrameAngle = std::cos(refframe::FrameAngle);
     for (unsigned int n_radial = 0;
 	 n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -457,7 +457,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 							   .get_max_azimuthal()
 					    ? 0
 					    : n_azimuthal + 1)) +
-			 frame_of_reference::OmegaFrame * Rmed[n_radial]) - cms_vel.x;
+			 refframe::OmegaFrame * Rmed[n_radial]) - cms_vel.x;
 	    v_ymed =
 		std::sin(angle) * 0.5 *
 		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
@@ -470,7 +470,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 							   .get_max_azimuthal()
 					    ? 0
 					    : n_azimuthal + 1)) +
-			 frame_of_reference::OmegaFrame * Rmed[n_radial]) - cms_vel.y;
+			 refframe::OmegaFrame * Rmed[n_radial]) - cms_vel.y;
 
 	    // specific angular momentum for each cell j = j*e_z
 	    j = r_x * v_ymed - r_y * v_xmed;
@@ -483,7 +483,7 @@ void calculate_disk_quantities(t_data &data, unsigned int timestep,
 	    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
 		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
-	    if (frame_of_reference::FrameAngle != 0.0) {
+	    if (refframe::FrameAngle != 0.0) {
 		// periastron grid is rotated to non-rotating coordinate system
 		// to prevent phase jumps of atan2 in later transformations like
 		// you would have had if you back-transform the output

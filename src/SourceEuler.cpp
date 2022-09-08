@@ -447,7 +447,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 		    n_azimuthal == data[t_data::V_AZIMUTHAL].get_max_azimuthal()
 			? 0
 			: n_azimuthal + 1);
-	    vt2 = 0.25 * vt2 + Rinf[n_radial] * frame_of_reference::OmegaFrame;
+	    vt2 = 0.25 * vt2 + Rinf[n_radial] * refframe::OmegaFrame;
 	    vt2 = vt2 * vt2;
 
 		const double InvR = 2.0 / (Rmed[n_radial] + Rmed[n_radial-1]);
