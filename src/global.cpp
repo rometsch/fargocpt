@@ -138,7 +138,7 @@ t_radialarray SigmaInf;
 t_radialarray GLOBAL_bufarray;
 t_radialarray GLOBAL_AxiSGAccr;
 
-double OmegaFrame, FrameAngle, PhysicalTime, PhysicalTimeInitial;
+double PhysicalTime, PhysicalTimeInitial;
 double hydro_center_mass;
 int OnlyInit;
 int StabilizeViscosity;

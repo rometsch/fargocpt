@@ -23,6 +23,7 @@
 #include "selfgravity.h"
 #include "util.h"
 #include "viscosity.h"
+#include "frame_of_reference.h"
 #include <gsl/gsl_sf_bessel.h>
 
 #include "open-simplex-noise.h"
@@ -307,15 +308,15 @@ void init_physics(t_data &data)
 	}
     }
 
-    OmegaFrame = parameters::OMEGAFRAME;
+    frame_of_reference::OmegaFrame = parameters::OMEGAFRAME;
 
     if (parameters::corotating) {
-	OmegaFrame = data.get_planetary_system()
+	frame_of_reference::OmegaFrame = data.get_planetary_system()
 			 .get_planet(parameters::corotation_reference_body)
 			 .get_omega();
     }
 
-    FrameAngle = 0;
+    frame_of_reference::FrameAngle = 0;
 
     // only gas velocities remain to be initialized
     init_euler(data);
@@ -537,7 +538,7 @@ void init_spreading_ring_test_jibin(t_data &data)
 		0.05 * sig_disk * (1.0 - 2.0 * (rand() / (double)RAND_MAX));
 	    const double vr = 0.0;
 	    const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	    const double vaz = R * OmegaK * corr - R * OmegaFrame;
+	    const double vaz = R * OmegaK * corr - R * frame_of_reference::OmegaFrame;
 
 	    const double sig = sig_ring + sig_disk + sig_noise;
 
@@ -1675,7 +1676,7 @@ void init_gas_velocities(t_data &data)
 		const double vy = vy_com + v_cms.y;
 
 		const double vaz = vy * std::cos(phi) - vx * std::sin(phi);
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz - OmegaFrame * r;
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz - frame_of_reference::OmegaFrame * r;
 	    }
 	}
 
@@ -1779,7 +1780,7 @@ void init_gas_velocities(t_data &data)
 	}
 
 	for (unsigned int i = 1; i < GlobalNRadial; i++)
-	    vt_int[i] = std::sqrt(vt_int[i] * Radii[i]) - Radii[i] * OmegaFrame;
+	    vt_int[i] = std::sqrt(vt_int[i] * Radii[i]) - Radii[i] * frame_of_reference::OmegaFrame;
 
 	t1 = vt_cent[0] = vt_int[1] + .75 * (vt_int[1] - vt_int[2]);
 	r1 = ConstructSequence(vt_cent, vt_int, GlobalNRadial);
@@ -1818,7 +1819,7 @@ void init_gas_velocities(t_data &data)
 					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
 	    }
 
-	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= OmegaFrame * r;
+	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= frame_of_reference::OmegaFrame * r;
 
 	    if (CentrifugalBalance)
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =

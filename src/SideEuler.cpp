@@ -25,6 +25,7 @@
 #include "selfgravity.h"
 #include "util.h"
 #include "viscosity.h"
+#include "frame_of_reference.h"
 #include <cassert>
 
 extern boolean Damping;
@@ -294,7 +295,7 @@ void EvanescentBoundary(t_data &data, double step)
 	    Rmed[i]*GLOBAL_AxiSGAccr[i+IMIN] );
 	    }
 	    // this could be refined if CentrifugalBalance is used...
-	    vtheta0 -= Rmed[i]*OmegaFrame;
+	    vtheta0 -= Rmed[i]*frame_of_reference::OmegaFrame;
 	    vrad0 = -3.0*viscosity/Rmed[i]*(-parameters::SIGMASLOPE+.5);
 	    dens0 = SigmaMed[i];
 	    energ0 = EnergyMed[i];
@@ -397,7 +398,7 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
     if (CPU_Rank == 0) {
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
-	    v_azimuthal(0, n_azimuthal) = VKepIn - Rb[0] * OmegaFrame;
+	    v_azimuthal(0, n_azimuthal) = VKepIn - Rb[0] * frame_of_reference::OmegaFrame;
 	}
     }
 }
@@ -442,7 +443,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < v_azimuthal.get_size_azimuthal(); n_azimuthal++) {
 	    v_azimuthal(v_azimuthal.get_max_radial(), n_azimuthal) =
-		VKepOut - Rb[v_azimuthal.get_max_radial()] * OmegaFrame;
+		VKepOut - Rb[v_azimuthal.get_max_radial()] * frame_of_reference::OmegaFrame;
 	}
     }
 }

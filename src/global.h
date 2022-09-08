@@ -80,8 +80,7 @@ extern t_radialarray GLOBAL_AxiSGAccr;
 extern t_radialarray EnergyMed;
 extern t_radialarray SigmaMed;
 
-extern double OmegaFrame, // TODO: move to frame_of_reference.h
-PhysicalTime, PhysicalTimeInitial, FrameAngle;
+extern double PhysicalTime, PhysicalTimeInitial;
 
 extern double hydro_center_mass;
 

@@ -8,6 +8,8 @@ namespace frame_of_reference{
 
 extern double planet_corot_ref_old_x;
 extern double planet_corot_ref_old_y;
+extern double OmegaFrame;
+extern double FrameAngle;
 
 extern Pair IndirectTerm;
 extern Pair IndirectTermDisk;

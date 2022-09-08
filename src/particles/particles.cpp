@@ -97,7 +97,7 @@ static double check_angle(double &phi)
 static double corret_v_gas_azimuthal_omega_frame(const double v_az_gas,
 						 const double r_particle)
 {
-    const double v_az_corrected = v_az_gas + r_particle * OmegaFrame;
+    const double v_az_corrected = v_az_gas + r_particle * frame_of_reference::OmegaFrame;
     return v_az_corrected;
 }
 

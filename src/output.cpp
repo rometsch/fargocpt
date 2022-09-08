@@ -16,6 +16,7 @@
 #include "stress.h"
 #include "util.h"
 #include "viscosity.h"
+#include "frame_of_reference.h"
 
 #include <dirent.h>
 
@@ -523,8 +524,8 @@ void write_misc()
     misc.timestep = N_output;
     misc.nTimeStep = N_outer_loop;
     misc.PhysicalTime = PhysicalTime;
-    misc.OmegaFrame = OmegaFrame;
-    misc.FrameAngle = FrameAngle;
+    misc.OmegaFrame = frame_of_reference::OmegaFrame;
+    misc.FrameAngle = frame_of_reference::FrameAngle;
     misc.dtemp = dtemp;
     misc.last_dt = last_dt;
     misc.N_iter = N_hydro_iter;
@@ -648,8 +649,8 @@ int load_misc()
     N_output = misc.timestep;
     N_outer_loop = misc.nTimeStep;
     PhysicalTime = misc.PhysicalTime;
-    OmegaFrame = misc.OmegaFrame;
-    FrameAngle = misc.FrameAngle;
+    frame_of_reference::OmegaFrame = misc.OmegaFrame;
+    frame_of_reference::FrameAngle = misc.FrameAngle;
     dtemp = misc.dtemp;
     last_dt = misc.last_dt;
     N_hydro_iter = misc.N_iter;

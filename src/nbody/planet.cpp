@@ -1,11 +1,12 @@
 #include "planet.h"
-#include "LowTasks.h"
-#include "constants.h"
-#include "global.h"
-#include "logging.h"
-#include "output.h"
-#include "parameters.h"
-#include "util.h"
+#include "../LowTasks.h"
+#include "../constants.h"
+#include "../global.h"
+#include "../logging.h"
+#include "../output.h"
+#include "../parameters.h"
+#include "../util.h"
+#include "../frame_of_reference.h"
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -468,7 +469,7 @@ void t_planet::write_ascii(const std::string &filename) const
 	fd,
 	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 	N_output, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
-	PhysicalTime, OmegaFrame, get_circumplanetary_mass(),
+	PhysicalTime, frame_of_reference::OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
 	get_true_anomaly(), get_pericenter_angle(), get_torque(), accreted_mass,
