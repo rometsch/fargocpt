@@ -14,7 +14,12 @@
 #include "TransportEuler.h"
 #include "sts.h"
 #include "accretion.h"
+#include "cfl.h"
 
+namespace sim {
+
+double hydro_dt;
+double last_dt;
 
 static void write_snapshot(t_data &data) {
 	// Outputs are done here
@@ -67,67 +72,23 @@ static void handle_outputs(t_data &data) {
 
 }
 
-void run_simulation(t_data &data) {
-
-	if (start_mode::mode != start_mode::mode_restart) {
-		handle_outputs(data);
-	}
-
-    for (; N_outer_loop <= parameters::NTOT; N_outer_loop++) {
-		
-		logging::print_master(LOG_INFO "Start of iteration %u of %u\n",
-		N_outer_loop, parameters::NTOT);
-
-		// do hydro and nbody
-		AlgoGas(data);
-		dtemp = 0.0;
-
-		handle_outputs(data);
-    }
-	logging::print_master(
-			LOG_INFO "Reached end of simulation at iteration %u of %u\n",
-			N_outer_loop, parameters::NTOT);
+static double CalculateHydroTimeStep(t_data &data, double dt)
+{
+	last_dt = dt;
+	const double local_gas_time_step_cfl = cfl::condition_cfl(
+	    data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
+	    data[t_data::SOUNDSPEED], parameters::DT - dtemp);
+	return (parameters::DT - dtemp) / local_gas_time_step_cfl;
 }
 
 
+/*
+Do one step of the integration.
 
-/**
-	\param data
-	\param sys
+Returns the time covered.
 */
-void AlgoGas(t_data &data)
-{
-
-    if (parameters::calculate_disk) {
-	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			      &data[t_data::V_AZIMUTHAL],
-			      &data[t_data::ENERGY]);
-    }
-    // recalculate timestep, even for no_disk = true, so that particle drag has
-    // reasonable timestep size
-    hydro_dt = CalculateHydroTimeStep(data, last_dt, true);
-
-	boundary_conditions::apply_boundary_condition(data, 0.0, false);
-
-    // keep mass constant
-    // const double total_disk_mass_old =
-    // quantities::gas_total_mass(data, 2.0*RMAX);
-
-    while (dtemp < parameters::DT) {
-	if (SIGTERM_RECEIVED) {
-	    output::write_full_output(data, "autosave");
-	    PersonalExit(0);
-	}
-	logging::print_master(
-	    LOG_VERBOSE
-	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
-	    (int)ceil(log10(parameters::NTOT)), N_outer_loop, parameters::NTOT,
-	    (double)N_outer_loop / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
-	    dtemp / parameters::DT * 100.0);
-
-	dtemp += hydro_dt;
-
-	refframe::init_corotation(data);
+static double step(t_data &data) {
+	hydro_dt = CalculateHydroTimeStep(data, hydro_dt);
 
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
@@ -262,8 +223,78 @@ void AlgoGas(t_data &data)
 	    }
 	    // this must be done after CommunicateBoundaries
 	    recalculate_derived_disk_quantities(data, true);
-
-	    hydro_dt = CalculateHydroTimeStep(data, hydro_dt, false);
 	}
-    }
+	return hydro_dt;
 }
+
+
+/**
+	\param data
+	\param sys
+*/
+static void AlgoGas(t_data &data)
+{
+
+    if (parameters::calculate_disk) {
+	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
+			      &data[t_data::V_AZIMUTHAL],
+			      &data[t_data::ENERGY]);
+    }
+    // recalculate timestep, even for no_disk = true, so that particle drag has
+    // reasonable timestep size
+    hydro_dt = CalculateHydroTimeStep(data, last_dt);
+
+	boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	refframe::init_corotation(data);
+
+
+    // keep mass constant
+    // const double total_disk_mass_old =
+    // quantities::gas_total_mass(data, 2.0*RMAX);
+
+	logging::print_master(
+	    LOG_VERBOSE
+	    "AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
+	    (int)ceil(log10(parameters::NTOT)), N_outer_loop, parameters::NTOT,
+	    (double)N_outer_loop / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
+	    dtemp / parameters::DT * 100.0);
+
+    while (dtemp < parameters::DT) {
+		if (SIGTERM_RECEIVED) {
+			output::write_full_output(data, "autosave");
+			PersonalExit(0);
+		}
+
+		const double step_dt = step(data);
+		dtemp += step_dt;
+
+	}
+}
+
+void run_simulation(t_data &data) {
+
+	if (start_mode::mode != start_mode::mode_restart) {
+		handle_outputs(data);
+	}
+
+	// Jumpstart dt
+	hydro_dt = last_dt;
+
+    for (; N_outer_loop <= parameters::NTOT; N_outer_loop++) {
+		
+		logging::print_master(LOG_INFO "Start of iteration %u of %u\n",
+		N_outer_loop, parameters::NTOT);
+
+		// do hydro and nbody
+		AlgoGas(data);
+		dtemp = 0.0;
+
+		handle_outputs(data);
+    }
+	logging::print_master(
+			LOG_INFO "Reached end of simulation at iteration %u of %u\n",
+			N_outer_loop, parameters::NTOT);
+}
+
+
+} // close namespace sim

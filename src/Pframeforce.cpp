@@ -458,31 +458,6 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
     }
 }
 
-void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system)
-{
-
-    for (unsigned int npl = 0; npl < planetary_system.get_number_of_planets();
-	 npl++) {
-	t_planet &planet = planetary_system.get_planet(npl);
-	const double vx_old = planet.get_vx();
-	const double vy_old = planet.get_vy();
-
-	const double vx_new = planetary_system.m_rebound->particles[npl].vx;
-	const double vy_new = planetary_system.m_rebound->particles[npl].vy;
-
-	if (hydro_dt > 0.0) {
-	    const double ax = (vx_new - vx_old) / hydro_dt;
-	    const double ay = (vy_new - vy_old) / hydro_dt;
-
-	    planet.set_nbody_on_planet_acceleration_x(ax);
-	    planet.set_nbody_on_planet_acceleration_y(ay);
-	} else {
-	    planet.set_nbody_on_planet_acceleration_x(0.0);
-	    planet.set_nbody_on_planet_acceleration_y(0.0);
-	}
-    }
-}
-
 static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
 void ComputeNbodyOnNbodyAccelRK5(t_data &data, const double dt)
 {

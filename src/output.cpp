@@ -17,6 +17,7 @@
 #include "util.h"
 #include "viscosity.h"
 #include "frame_of_reference.h"
+#include "simulation.h"
 
 #include <dirent.h>
 
@@ -527,7 +528,7 @@ void write_misc()
     misc.OmegaFrame = refframe::OmegaFrame;
     misc.FrameAngle = refframe::FrameAngle;
     misc.dtemp = dtemp;
-    misc.last_dt = last_dt;
+    misc.last_dt = sim::last_dt;
     misc.N_iter = N_hydro_iter;
 
     wf.write((char *)&misc, sizeof(misc));
@@ -652,7 +653,7 @@ int load_misc()
     refframe::OmegaFrame = misc.OmegaFrame;
     refframe::FrameAngle = misc.FrameAngle;
     dtemp = misc.dtemp;
-    last_dt = misc.last_dt;
+    sim::last_dt = misc.last_dt;
     N_hydro_iter = misc.N_iter;
 
     rf.close();

@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
 
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	run_simulation(data);	
+	sim::run_simulation(data);	
     
 
     logging::print_runtime_final();

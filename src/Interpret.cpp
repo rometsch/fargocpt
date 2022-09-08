@@ -15,6 +15,7 @@
 #include "units.h"
 #include "config.h"
 #include "output.h"
+#include "simulation.h"
 
 extern int damping_energy_id;
 extern std::vector<parameters::t_DampingType> damping_vector;
@@ -22,7 +23,6 @@ extern std::vector<parameters::t_DampingType> damping_vector;
 // frame
 int GuidingCenter;
 
-int FastTransport;
 int OuterSourceMass, CICPlanet;
 
 #include <algorithm>
@@ -83,7 +83,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     parameters::SpreadingRing =
 	cfg.get_flag("SpreadingRing", false);
 
-    last_dt = cfg.get<double>("FirstDT", 1e-9);
+    sim::last_dt = cfg.get<double>("FirstDT", 1e-9);
 
     parameters::SIGMASLOPE = cfg.get<double>("SIGMASLOPE", 0.0);
     parameters::IMPOSEDDISKDRIFT = cfg.get<double>("IMPOSEDDISKDRIFT", 0.0);
@@ -153,10 +153,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     switch (cfg.get_first_letter_lowercase("TRANSPORT", "Fast")) {
     case 'f':
-	FastTransport = 1;
+	parameters::fast_transport = true;
 	break;
     case 's':
-	FastTransport = 0;
+	parameters::fast_transport = false;
 	break;
     default:
 	die("Invalid setting for Transport");

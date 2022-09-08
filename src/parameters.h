@@ -240,6 +240,8 @@ extern double mof_rampingtime;
 /// replaces feels_disk
 extern bool disk_feedback;
 
+extern bool fast_transport;
+
 extern int indirect_term_mode;
 
 /// factor for conversation from surface density to density

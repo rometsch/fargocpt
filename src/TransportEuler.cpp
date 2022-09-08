@@ -48,7 +48,6 @@ static int Nshift[MAX1D];
 static boolean NoSplitAdvection[MAX1D];
 static boolean UniformTransport;
 extern int N_output;
-extern boolean FastTransport;
 extern boolean OpenInner;
 
 /**
@@ -227,7 +226,7 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 	    l = j + i * ns;
 	    vt[l] = (Ntilde - Nround) * Rmed[i] * invdt * dphi;
 	}
-	if (!FastTransport) {
+	if (!parameters::fast_transport) {
 	    NoSplitAdvection[i] = YES;
 	    for (j = 0; j < ns; j++) {
 		l = j + i * ns;

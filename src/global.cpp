@@ -150,9 +150,7 @@ t_polargrid *CellCenterX, *CellCenterY;
 
 double dphi;
 double invdphi;
-double last_dt;
 double dt_parabolic_local;
-double hydro_dt;
 
 int N_output;
 unsigned int N_outer_loop;

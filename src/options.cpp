@@ -137,10 +137,6 @@ void parse(int argc, char **argv)
 	    CentrifugalBalance = YES;
 	    break;
 
-	case 'c':
-	    SloppyCFL = YES;
-	    break;
-
 	case 'n':
 	    disable = true;
 	    break;

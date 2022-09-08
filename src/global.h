@@ -92,9 +92,7 @@ extern t_polargrid *CellCenterX, *CellCenterY;
 
 extern double dphi;
 extern double invdphi;
-extern double last_dt;
 extern double dt_parabolic_local;
-extern double hydro_dt;
 
 extern int N_output;
 extern unsigned int N_outer_loop;

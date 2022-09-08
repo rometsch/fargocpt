@@ -131,7 +131,7 @@ QuantitiesRadiusLimit: '2.5'   # Disk quantities will be computed only within th
 
 Ntot: '2'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
-DT: '0.0628'   # Time step length. 2PI = 1 orbit
+DT: '0.628'   # Time step length. 2PI = 1 orbit
 FirstDT: '1.0e-1'
 CFLmaxVar: '1.1'
 OutputDir: output/out

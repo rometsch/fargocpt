@@ -15,8 +15,6 @@ void recalculate_derived_disk_quantities(t_data &data, bool force_update);
 void init_euler(t_data &data);
 void FreeEuler();
 
-void AlgoGas(t_data &data);
-
 void update_with_sourceterms(t_data &data, const double dt);
 void update_with_artificial_viscosity(t_data &data, const double dt);
 void SubStep3(t_data &data, const double dt);
@@ -29,9 +27,6 @@ void irradiation_single(t_data &data, const t_planet &planet);
 
 void calculate_qminus(t_data &data);
 
-double condition_cfl(t_data &data, t_polargrid &v_radial,
-		     t_polargrid &v_azimuthal, t_polargrid &soundspeed,
-		     const double deltaT);
 
 void compute_sound_speed(t_data &data, bool force_update);
 void compute_scale_height(t_data &data, const bool force_update);
@@ -42,7 +37,6 @@ void compute_pressure(t_data &data, bool force_update);
 void compute_temperature(t_data &data, bool force_update);
 void compute_rho(t_data &data, bool force_update);
 
-double CalculateHydroTimeStep(t_data &data, double dt, double force_calc);
 void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 						     int nTimeStep, double dt);
 

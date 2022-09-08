@@ -145,6 +145,7 @@ double profile_cutoff_point_inner;
 double profile_cutoff_width_inner;
 
 bool disk_feedback;
+bool fast_transport;
 int indirect_term_mode;
 
 bool integrate_planets;

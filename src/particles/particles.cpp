@@ -21,6 +21,7 @@
 #include "../output.h"
 #include "../Theo.h"
 #include "../frame_of_reference.h"
+#include "../cfl.h"
 #include <cstring>
 #include <cmath>
 #include <mpi.h>
@@ -1139,7 +1140,7 @@ void check_tstop(t_data &data)
     CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
     local_gas_time_step_cfl =
-	condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
+	cfl::condition_cfl(data, data[t_data::V_RADIAL], data[t_data::V_AZIMUTHAL],
 		      data[t_data::SOUNDSPEED], parameters::DT);
 
     MPI_Allreduce(&local_gas_time_step_cfl, &global_gas_time_step_cfl, 1,
