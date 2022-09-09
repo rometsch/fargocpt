@@ -441,8 +441,9 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
 {
     double averageRho = 0.0;
 
-    if (CPU_Rank != CPU_Highest)
+	if (CPU_Rank != CPU_Highest){
 	return;
+	}
 
 	const unsigned int Nphi = Density->Nsec;
 	const unsigned int nRadial = Density->Nrad - 1;
