@@ -154,18 +154,19 @@ void divise_polargrid(const t_polargrid &num, const t_polargrid &denom, t_polarg
 */
 void InitCellCenterCoordinates()
 {
-    unsigned int nRadial, nAzimuthal, cell;
-
     delete CellCenterY;
     delete CellCenterX;
 
     CellCenterX = CreatePolarGrid(NRadial + 1, NAzimuthal, "cell_center_x");
     CellCenterY = CreatePolarGrid(NRadial + 1, NAzimuthal, "cell_center_y");
 
+	const unsigned int Nr = CellCenterX->Nrad;
+	const unsigned int Nphi = CellCenterX->Nsec;
+
 	#pragma omp parallel for collapse(2)
-    for (nRadial = 0; nRadial < CellCenterX->Nrad; ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < CellCenterX->Nsec; ++nAzimuthal) {
-	    cell = nAzimuthal + nRadial * CellCenterX->Nsec;
+	for (unsigned int nRadial = 0; nRadial < Nr; ++nRadial) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
+		unsigned int cell = CELL(nRadial, nAzimuthal, Nphi);
 	    CellCenterX->Field[cell] =
 		Rmed[nRadial] * std::cos(dphi * (double)nAzimuthal);
 	    CellCenterY->Field[cell] =
@@ -558,11 +559,15 @@ void correct_v_azimuthal(t_polargrid &v_azimuthal, double dOmega)
 {
     // TODO: maybe think about max-1 here as this might be alread set in
     // boundary condition or change in ApplySubKeplerianBoundary
+
+	// We update velocities from old OmegaFrame to new OmegaFrame;
+	// As the ghost cells should have the old OmegaFrame, we need to update them here aswell.
+	const unsigned int Nr = v_azimuthal.get_size_radial();
+	const unsigned int Nphi = v_azimuthal.get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
+	for (unsigned int n_radial = 0; n_radial < Nr; ++n_radial) {
+	for (unsigned int n_azimuthal = 0; n_azimuthal < Nphi; ++n_azimuthal) {
 	    v_azimuthal(n_radial, n_azimuthal) -= dOmega * Rb[n_radial];
 	}
     }
