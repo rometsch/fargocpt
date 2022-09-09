@@ -475,48 +475,48 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 	double sinFrameAngle = std::sin(FrameAngle);
 	double cosFrameAngle = std::cos(FrameAngle);
 
+	const unsigned int Nr = data[t_data::DENSITY].get_size_radial();
+	const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
-		 ++n_azimuthal) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		const double total_mass =
-		cms_mass + data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+		cms_mass + data[t_data::DENSITY](nr, naz) * Surf[nr];
 
 		// location of the cell
-		const double angle = (double)n_azimuthal * dphi;
-		const double r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
-		const double r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
+		const double angle = (double)naz * dphi;
+		const double r_x = Rmed[nr] * std::cos(angle) - cms_pos.x;
+		const double r_y = Rmed[nr] * std::sin(angle) - cms_pos.y;
 		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
 
 		// averaged velocities
 		const double v_xmed =
 		std::cos(angle) * 0.5 *
-			(data[t_data::V_RADIAL](n_radial, n_azimuthal) +
-			 data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) -
+			(data[t_data::V_RADIAL](nr, naz) +
+			 data[t_data::V_RADIAL](nr + 1, naz)) -
 		std::sin(angle) *
 			(0.5 *
-			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			 (data[t_data::V_AZIMUTHAL](nr, naz) +
 			  data[t_data::V_AZIMUTHAL](
-				  n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+				  nr, naz == data[t_data::V_AZIMUTHAL]
 							   .get_max_azimuthal()
 						? 0
-						: n_azimuthal + 1)) +
-			 OmegaFrame * Rmed[n_radial]) - cms_vel.x;
+						: naz + 1)) +
+			 OmegaFrame * Rmed[nr]) - cms_vel.x;
 		const double v_ymed =
 		std::sin(angle) * 0.5 *
-			(data[t_data::V_RADIAL](n_radial, n_azimuthal) +
-			 data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) +
+			(data[t_data::V_RADIAL](nr, naz) +
+			 data[t_data::V_RADIAL](nr + 1, naz)) +
 		std::cos(angle) *
 			(0.5 *
-			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			 (data[t_data::V_AZIMUTHAL](nr, naz) +
 			  data[t_data::V_AZIMUTHAL](
-				  n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+				  nr, naz == data[t_data::V_AZIMUTHAL]
 							   .get_max_azimuthal()
 						? 0
-						: n_azimuthal + 1)) +
-			 OmegaFrame * Rmed[n_radial]) - cms_vel.y;
+						: naz + 1)) +
+			 OmegaFrame * Rmed[nr]) - cms_vel.y;
 
 		// specific angular momentum for each cell j = j*e_z
 		const double j = r_x * v_ymed - r_y * v_xmed;
@@ -526,7 +526,7 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / dist;
 
-		data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
+		data[t_data::ECCENTRICITY](nr, naz) =
 		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 		if (FrameAngle != 0.0) {
@@ -534,11 +534,11 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 		// to prevent phase jumps of atan2 in later transformations like
 		// you would have had if you back-transform the output
 		// periastron values
-		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
+		data[t_data::PERIASTRON](nr, naz) =
 			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
 				   e_x * cosFrameAngle - e_y * sinFrameAngle);
 		} else {
-		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
+		data[t_data::PERIASTRON](nr, naz) =
 			std::atan2(e_y, e_x);
 		}
 	}
@@ -565,49 +565,49 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 	const double sinFrameAngle = std::sin(FrameAngle);
 	const double cosFrameAngle = std::cos(FrameAngle);
 
+	const unsigned int Nr = data[t_data::DENSITY].get_size_radial();
+	const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::DENSITY].get_size_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::DENSITY].get_size_azimuthal();
-	     ++n_azimuthal) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		const double total_mass =
-		cms_mass +	data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
+		cms_mass +	data[t_data::DENSITY](nr, naz) * Surf[nr];
 
 	    // location of the cell
-		const double angle = (double)n_azimuthal * dphi;
-		const double r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
-		const double r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
+		const double angle = (double)naz * dphi;
+		const double r_x = Rmed[nr] * std::cos(angle) - cms_pos.x;
+		const double r_y = Rmed[nr] * std::sin(angle) - cms_pos.y;
 		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
 
 
 	    // averaged velocities
 		const double v_xmed =
 		std::cos(angle) * 0.5 *
-		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
-		     data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) -
+			(data[t_data::V_RADIAL](nr, naz) +
+			 data[t_data::V_RADIAL](nr + 1, naz)) -
 		std::sin(angle) *
 		    (0.5 *
-			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			 (data[t_data::V_AZIMUTHAL](nr, naz) +
 			  data[t_data::V_AZIMUTHAL](
-			      n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+				  nr, naz == data[t_data::V_AZIMUTHAL]
 							   .get_max_azimuthal()
 					    ? 0
-					    : n_azimuthal + 1)) +
-			 OmegaFrame * Rmed[n_radial]) - cms_vel.x;
+						: naz + 1)) +
+			 OmegaFrame * Rmed[nr]) - cms_vel.x;
 		const double v_ymed =
 		std::sin(angle) * 0.5 *
-		    (data[t_data::V_RADIAL](n_radial, n_azimuthal) +
-		     data[t_data::V_RADIAL](n_radial + 1, n_azimuthal)) +
+			(data[t_data::V_RADIAL](nr, naz) +
+			 data[t_data::V_RADIAL](nr + 1, naz)) +
 		std::cos(angle) *
 		    (0.5 *
-			 (data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+			 (data[t_data::V_AZIMUTHAL](nr, naz) +
 			  data[t_data::V_AZIMUTHAL](
-			      n_radial, n_azimuthal == data[t_data::V_AZIMUTHAL]
+				  nr, naz == data[t_data::V_AZIMUTHAL]
 							   .get_max_azimuthal()
 					    ? 0
-					    : n_azimuthal + 1)) +
-			 OmegaFrame * Rmed[n_radial]) - cms_vel.y;
+						: naz + 1)) +
+			 OmegaFrame * Rmed[nr]) - cms_vel.y;
 
 	    // specific angular momentum for each cell j = j*e_z
 		const double j = r_x * v_ymed - r_y * v_xmed;
@@ -617,7 +617,7 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / dist;
 
-	    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) =
+		data[t_data::ECCENTRICITY](nr, naz) =
 		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 	    if (FrameAngle != 0.0) {
@@ -625,11 +625,11 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 		// to prevent phase jumps of atan2 in later transformations like
 		// you would have had if you back-transform the output
 		// periastron values
-		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
+		data[t_data::PERIASTRON](nr, naz) =
 		    std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
 			       e_x * cosFrameAngle - e_y * sinFrameAngle);
 	    } else {
-		data[t_data::PERIASTRON](n_radial, n_azimuthal) =
+		data[t_data::PERIASTRON](nr, naz) =
 		    std::atan2(e_y, e_x);
 	    }
 	}
@@ -672,14 +672,14 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 	const double sinFrameAngle = std::sin(FrameAngle);
 	const double cosFrameAngle = std::cos(FrameAngle);
 
-	const unsigned int N_radial_size = density.get_size_radial();
-	const unsigned int N_azimuthal_size = density.get_size_azimuthal();
+	const unsigned int Nr = density.get_size_radial();
+	const unsigned int Naz = density.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < N_radial_size; ++nr) {
-	for (unsigned int naz = 0; naz < N_azimuthal_size; ++naz) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
 
-		const unsigned int naz_next = naz == N_azimuthal_size - 1 ? 0 : naz + 1;
+		const unsigned int naz_next = (naz == Naz - 1 ? 0 : naz + 1);
 		const double total_mass = cms_mass + density(nr, naz) * Surf[nr];
 
 		// location of the cell
@@ -821,21 +821,21 @@ void calculate_alpha_grav(t_data &data, unsigned int timestep,
 
     stress::calculate_gravitational_stress(data);
 
+	const unsigned int Nr = data[t_data::ALPHA_GRAV].get_size_radial();
+	const unsigned int Nphi = data[t_data::ALPHA_GRAV].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::ALPHA_GRAV].get_size_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::ALPHA_GRAV].get_size_azimuthal();
-	     ++n_azimuthal) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    /*data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) = -2.0/3.0 *
 	     * (data[t_data::T_GRAVITATIONAL](n_radial,n_azimuthal)+data[t_data::T_REYNOLDS](n_radial,
 	     * n_azimuthal))/(data[t_data::DENSITY](n_radial,n_azimuthal)*pow2(data[t_data::SOUNDSPEED](n_radial,
 	     * n_azimuthal)));*/
-	    data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) =
+		data[t_data::ALPHA_GRAV](nr, naz) =
 		2.0 / 3.0 *
-		data[t_data::T_GRAVITATIONAL](n_radial, n_azimuthal) /
-		(data[t_data::DENSITY](n_radial, n_azimuthal) *
-		 std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal), 2));
+		data[t_data::T_GRAVITATIONAL](nr, naz) /
+		(data[t_data::DENSITY](nr, naz) *
+		 std::pow(data[t_data::SOUNDSPEED](nr, naz), 2));
 	}
     }
 }
@@ -845,15 +845,14 @@ void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
 {
     calculate_alpha_grav(data, timestep, true);
 
+	const unsigned int Nr = data[t_data::ALPHA_GRAV_MEAN].get_size_radial();
+	const unsigned int Nphi = data[t_data::ALPHA_GRAV_MEAN].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::ALPHA_GRAV_MEAN].get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::ALPHA_GRAV_MEAN].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::ALPHA_GRAV_MEAN](n_radial, n_azimuthal) +=
-		data[t_data::ALPHA_GRAV](n_radial, n_azimuthal) * dt;
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		data[t_data::ALPHA_GRAV_MEAN](nr, naz) +=
+		data[t_data::ALPHA_GRAV](nr, naz) * dt;
 	}
     }
 }
@@ -878,17 +877,16 @@ void calculate_alpha_reynolds(t_data &data, unsigned int timestep,
 	}
     }
 
+	const unsigned int Nr = data[t_data::ALPHA_REYNOLDS].get_size_radial();
+	const unsigned int Nphi = data[t_data::ALPHA_REYNOLDS].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::ALPHA_REYNOLDS].get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::ALPHA_REYNOLDS].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) =
-		2.0 / 3.0 * data[t_data::T_REYNOLDS](n_radial, n_azimuthal) /
-		(data[t_data::DENSITY](n_radial, n_azimuthal) *
-		 std::pow(data[t_data::SOUNDSPEED](n_radial, n_azimuthal), 2));
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		data[t_data::ALPHA_REYNOLDS](nr, naz) =
+		2.0 / 3.0 * data[t_data::T_REYNOLDS](nr, naz) /
+		(data[t_data::DENSITY](nr, naz) *
+		 std::pow(data[t_data::SOUNDSPEED](nr, naz), 2));
 	}
     }
 }
@@ -898,16 +896,14 @@ void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 {
     calculate_alpha_reynolds(data, timestep, true);
 
+	const unsigned int Nr = data[t_data::ALPHA_REYNOLDS_MEAN].get_size_radial();
+	const unsigned int Nphi = data[t_data::ALPHA_REYNOLDS_MEAN].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::ALPHA_REYNOLDS_MEAN].get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <
-	     data[t_data::ALPHA_REYNOLDS_MEAN].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::ALPHA_REYNOLDS_MEAN](n_radial, n_azimuthal) +=
-		data[t_data::ALPHA_REYNOLDS](n_radial, n_azimuthal) * dt;
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		data[t_data::ALPHA_REYNOLDS_MEAN](nr, naz) +=
+		data[t_data::ALPHA_REYNOLDS](nr, naz) * dt;
 	}
     }
 }
@@ -920,32 +916,28 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 {
     double kappa;
 
+	const unsigned int Nr = data[t_data::TOOMRE].get_size_radial();
+	const unsigned int Nphi = data[t_data::TOOMRE].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 1;
-	 n_radial < data[t_data::TOOMRE].get_size_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::TOOMRE].get_size_azimuthal();
-	     ++n_azimuthal) {
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
 	    kappa = std::sqrt(std::fabs(
-		std::pow(InvRmed[n_radial], 3) *
-		(std::pow(data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) *
-			      Rmed[n_radial],
-			  2) -
-		 std::pow(data[t_data::V_AZIMUTHAL](n_radial - 1, n_azimuthal) *
-			      Rmed[n_radial - 1],
-			  2)) *
-		InvDiffRmed[n_radial]));
+		std::pow(InvRmed[nr], 3) *
+		(std::pow(data[t_data::V_AZIMUTHAL](nr, naz) * Rmed[nr],  2) -
+		 std::pow(data[t_data::V_AZIMUTHAL](nr - 1, naz) * Rmed[nr - 1], 2)) *
+		InvDiffRmed[nr]));
 
 	    // Q = (c_s kappa) / (Pi G Sigma)
 	    // data[t_data::TOOMRE](n_radial, n_azimuthal) =
 	    // data[t_data::SOUNDSPEED](n_radial,
 	    // n_azimuthal)*calculate_omega_kepler(Rmed[n_radial])/(PI*G*data[t_data::DENSITY](n_radial,
 	    // n_azimuthal));
-	    data[t_data::TOOMRE](n_radial, n_azimuthal) =
-		data[t_data::SOUNDSPEED](n_radial, n_azimuthal) * kappa /
+		data[t_data::TOOMRE](nr, naz) =
+		data[t_data::SOUNDSPEED](nr, naz) * kappa /
 		(M_PI * constants::G *
-		 data[t_data::DENSITY](n_radial, n_azimuthal));
+		 data[t_data::DENSITY](nr, naz));
 	}
     }
 }
@@ -961,18 +953,18 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
 
     last_timestep_calculated = timestep;
 
-	#pragma omp parallel for
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::LUMINOSITY_1D].get_size_radial(); ++n_radial) {
-	// L = int( int(sigma T^4 r ,phi) ,r);
-	data[t_data::LUMINOSITY_1D](n_radial) = 0.0;
+	const unsigned int Nr = data[t_data::LUMINOSITY_1D].get_size_radial();
+	const unsigned int Nphi = data[t_data::LUMINOSITY_1D].get_size_azimuthal();
 
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::QMINUS].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
-	    data[t_data::LUMINOSITY_1D](n_radial) +=
-		data[t_data::QMINUS](n_radial, n_azimuthal) * Rmed[n_radial] *
+	#pragma omp parallel for
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	// L = int( int(sigma T^4 r ,phi) ,r);
+	data[t_data::LUMINOSITY_1D](nr) = 0.0;
+
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const double dr = (Rsup[nr] - Rinf[nr]);
+		data[t_data::LUMINOSITY_1D](nr) +=
+		data[t_data::QMINUS](nr, naz) * Rmed[nr] *
 		dr * dphi;
 	}
     }
@@ -989,19 +981,18 @@ void calculate_radial_dissipation(t_data &data, unsigned int timestep,
 
     last_timestep_calculated = timestep;
 
+	const unsigned int Nr = data[t_data::DISSIPATION_1D].get_size_radial();
+	const unsigned int Nphi = data[t_data::QPLUS].get_size_azimuthal();
+
 	#pragma omp parallel for
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::DISSIPATION_1D].get_size_radial();
-	 ++n_radial) {
-	data[t_data::DISSIPATION_1D](n_radial) = 0.0;
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	data[t_data::DISSIPATION_1D](nr) = 0.0;
 
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::QPLUS].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    double dr = (Rsup[n_radial] - Rinf[n_radial]);
+	for (unsigned int naz = 0;  naz < Nphi; ++naz) {
+		double dr = (Rsup[nr] - Rinf[nr]);
 
-	    data[t_data::DISSIPATION_1D](n_radial) +=
-		data[t_data::QPLUS](n_radial, n_azimuthal) * Rmed[n_radial] *
+		data[t_data::DISSIPATION_1D](nr) +=
+		data[t_data::QPLUS](nr, naz) * Rmed[nr] *
 		dr * dphi;
 	}
     }
@@ -1012,20 +1003,11 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     (void)timestep;
     (void)force_update;
 
-    double denom;
-    denom = NINTERM * DT;
+	const double denom = NINTERM * DT;
 
     // divide the data in massflow by the large timestep DT before writing out
     // to obtain the massflow from the mass difference
-	#pragma omp parallel for collapse(2)
-    for (unsigned int nRadial = 0;
-	 nRadial < data[t_data::MASSFLOW].get_size_radial(); ++nRadial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::MASSFLOW].get_size_azimuthal();
-	     ++n_azimuthal) {
-	    data[t_data::MASSFLOW](nRadial, n_azimuthal) *= 1. / denom;
-	}
-    }
+	 data[t_data::MASSFLOW](nRadial, n_azimuthal) /= denom;
 }
 
 
@@ -1037,16 +1019,16 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 	return;
     }
 
+	const unsigned int Nr = data[t_data::SCALE_HEIGHT].get_size_radial();
+	const unsigned int Nphi = data[t_data::SCALE_HEIGHT].get_max_azimuthal();
+
     switch (ASPECTRATIO_MODE) {
     case 0: {
 			#pragma omp parallel for collapse(2)
-			for (unsigned int n_radial = 0;
-				 n_radial <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_radial) {
-				for (unsigned int n_azimuthal = 0;
-					 n_azimuthal <= data[t_data::SCALE_HEIGHT].get_max_azimuthal();
-					 ++n_azimuthal) {
-					const double h = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) / Rb[n_radial];
-					data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = h;
+			for (unsigned int nr = 0; nr < Nr; ++nr) {
+				for (unsigned int naz = 0; naz <= Nphi; ++naz) {
+					const double h = data[t_data::SCALE_HEIGHT](nr, naz) / Rb[nr];
+					data[t_data::ASPECTRATIO](nr, naz) = h;
 				}
 			}
 
@@ -1072,16 +1054,14 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 			// See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
 			// Better see Thun et al. 2017 Eq. 8 instead.
 			#pragma omp parallel for collapse(2)
-			for (unsigned int n_rad = 0;
-				 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
-				for (unsigned int n_az = 0;
-					 n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
+			for (unsigned int nr = 0; nr < Nr; ++nr) {
+			for (unsigned int naz = 0; naz < Nphi(); ++naz) {
 
-					const int cell = get_cell_id(n_rad, n_az);
+					const int cell = get_cell_id(nr, naz);
 					const double x = CellCenterX->Field[cell];
 					const double y = CellCenterY->Field[cell];
 					const double cs2 =
-							std::pow(data[t_data::SOUNDSPEED](n_rad, n_az), 2);
+							std::pow(data[t_data::SOUNDSPEED](nr, naz), 2);
 
 					double inv_h2 = 0.0; // inverse aspectratio squared
 
@@ -1093,8 +1073,8 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 						/// this is an rough estimate without explanation
 						/// alternatively you can think about it yourself
 						const double min_dist =
-								0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
-											   Rmed[n_rad] * dphi) +
+								0.5 * std::max(Rsup[nr] - Rinf[nr],
+											   Rmed[nr] * dphi) +
 								g_rpl[k];
 
 						const double dx = x - g_xpl[k];
@@ -1105,7 +1085,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 
 						// H^2 = (GM / dist^3 / Cs_iso^2)^-1
 						if (parameters::Adiabatic || parameters::Polytropic) {
-							const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
+							const double gamma1 = pvte::get_gamma1(data, nr, naz);
 
 								const double tmp_inv_h2 =
 										constants::G * g_mpl[k] * gamma1 / (dist * cs2);
@@ -1120,7 +1100,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 					}
 
 						const double h = std::sqrt(1.0 / inv_h2);
-						data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+						data[t_data::ASPECTRATIO](nr, naz) = h;
 				}
 			}
 
@@ -1132,15 +1112,13 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 		const double m_cm = data.get_planetary_system().get_mass();
 
 		#pragma omp parallel for collapse(2)
-		for (unsigned int n_rad = 0;
-		 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
-		for (unsigned int n_az = 0;
-			 n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
+		for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int n_az = 0; n_az < Nphi; ++n_az) {
 
-			const int cell = get_cell_id(n_rad, n_az);
+			const int cell = get_cell_id(nr, n_az);
 			const double x = CellCenterX->Field[cell];
 			const double y = CellCenterY->Field[cell];
-			const double cs = data[t_data::SOUNDSPEED](n_rad, n_az);
+			const double cs = data[t_data::SOUNDSPEED](nr, n_az);
 
 			// const double min_dist =
 			//	0.5 * std::max(Rsup[n_rad] - Rinf[n_rad],
@@ -1159,22 +1137,22 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 			if (parameters::Adiabatic || parameters::Polytropic) {
 			/// Convert sound speed to isothermal sound speed cs,iso = cs /
 			/// sqrt(gamma)
-			const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
+			const double gamma1 = pvte::get_gamma1(data, nr, n_az);
 			const double h = cs * std::sqrt(dist / (constants::G * m_cm * gamma1));
 
 			if(parameters::heating_star_enabled || parameters::self_gravity){
-			data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+			data[t_data::ASPECTRATIO](nr, n_az) = h;
 			}
 			const double H = dist * h;
-			data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+			data[t_data::SCALE_HEIGHT](nr, n_az) = H;
 
 			} else { // locally isothermal
 			const double h = cs * std::sqrt(dist / (constants::G * m_cm));
 			if(parameters::heating_star_enabled || parameters::self_gravity){
-			data[t_data::ASPECTRATIO](n_rad, n_az) = h;
+			data[t_data::ASPECTRATIO](nr, n_az) = h;
 			}
 			const double H = dist * h;
-			data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
+			data[t_data::SCALE_HEIGHT](nr, n_az) = H;
 			}
 		}
 	}
@@ -1182,12 +1160,10 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
     }
     default: {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nRad = 0;
-	     nRad < data[t_data::ASPECTRATIO].get_size_radial(); ++nRad) {
-	    for (unsigned int nAz = 0;
-		 nAz < data[t_data::ASPECTRATIO].get_size_azimuthal(); ++nAz) {
-		data[t_data::ASPECTRATIO](nRad, nAz) =
-		    data[t_data::SCALE_HEIGHT](nRad, nAz) / Rmed[nRad];
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		data[t_data::ASPECTRATIO](nr, naz) =
+			data[t_data::SCALE_HEIGHT](nr, naz) / Rmed[nr];
 	    }
 	}
     }
@@ -1200,22 +1176,9 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    double denom;
-
     if (!parameters::write_at_every_timestep) {
-	denom = (double)NINTERM;
-	// divide the data in massflow by the large timestep DT before writing
-	// out to obtain the massflow from the mass difference
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nRadial = 0;
-	     nRadial < data[t_data::VISCOUS_TORQUE].get_size_radial();
-	     ++nRadial) {
-	    for (unsigned int nAzimuthal = 0;
-		 nAzimuthal < data[t_data::VISCOUS_TORQUE].get_size_azimuthal();
-		 ++nAzimuthal) {
-		data[t_data::VISCOUS_TORQUE](nRadial, nAzimuthal) *= 1. / denom;
-	    }
-	}
+	const double denom = (double)NINTERM;
+	data[t_data::VISCOUS_TORQUE](nr, naz) /= denom;
     }
 }
 
@@ -1225,25 +1188,9 @@ void calculate_gravitational_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    double denom;
-
     if (!parameters::write_at_every_timestep) {
-	denom = (double)NINTERM;
-	// divide the data in massflow by the large timestep DT before writing
-	// out to obtain the massflow from the mass difference
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nRadial = 0;
-	     nRadial < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
-			   .get_size_radial();
-	     ++nRadial) {
-	    for (unsigned int nAzimuthal = 0;
-		 nAzimuthal < data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
-				  .get_size_azimuthal();
-		 ++nAzimuthal) {
-		data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED](
-		    nRadial, nAzimuthal) *= 1. / denom;
-	    }
-	}
+	const double denom = (double)NINTERM;
+	data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED] /= denom;
     }
 }
 
@@ -1253,24 +1200,9 @@ void calculate_advection_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    double denom;
-
     if (!parameters::write_at_every_timestep) {
-	denom = (double)NINTERM;
-	// divide the data in massflow by the large timestep DT before writing
-	// out to obtain the massflow from the mass difference
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nRadial = 0;
-	     nRadial < data[t_data::ADVECTION_TORQUE].get_size_radial();
-	     ++nRadial) {
-	    for (unsigned int nAzimuthal = 0;
-		 nAzimuthal <
-		 data[t_data::ADVECTION_TORQUE].get_size_azimuthal();
-		 ++nAzimuthal) {
-		data[t_data::ADVECTION_TORQUE](nRadial, nAzimuthal) *=
-		    1. / denom;
-	    }
-	}
+	const double denom = (double)NINTERM;
+	data[t_data::ADVECTION_TORQUE](nRadial, nAzimuthal) /= denom;
     }
 }
 
