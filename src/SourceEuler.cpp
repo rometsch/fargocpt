@@ -110,25 +110,26 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
     bool found = false;
     bool is_dens = strcmp(dst.get_name(), "dens") == 0;
 
+	const unsigned int Nr = dst.get_size_radial();
+	const unsigned int Nphi = dst.get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 0; n_radial < dst.get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < dst.get_size_azimuthal(); ++n_azimuthal) {
-	    if (dst(n_radial, n_azimuthal) < minimum_value) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		if (dst(nr, naz) < minimum_value) {
 		if (is_dens) {
 		    double mass_delta =
-			(minimum_value - dst(n_radial, n_azimuthal)) *
-			Surf[n_radial];
+			(minimum_value - dst(nr, naz)) *
+			Surf[nr];
 		    sum_without_ghost_cells(MassDelta.FloorPositive, mass_delta,
-					    n_radial);
+						nr);
 		}
-		dst(n_radial, n_azimuthal) = minimum_value;
+		dst(nr, naz) = minimum_value;
 #ifndef NDEBUG
 		logging::print(LOG_DEBUG
 			       "assure_minimum_value: %s(%u,%u)=%g < %g\n",
-			       dst.get_name(), n_radial, n_azimuthal,
-			       dst(n_radial, n_azimuthal), minimum_value);
+				   dst.get_name(), nr, naz,
+				   dst(nr, naz), minimum_value);
 #endif
 		found = true;
 	    }
@@ -151,54 +152,54 @@ bool assure_temperature_range(t_data &data)
     const double Tmax = parameters::maximum_temperature *
 			units::temperature.get_inverse_cgs_factor();
 
-	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 0; n_radial < energy.get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < energy.get_size_azimuthal(); ++n_azimuthal) {
+	const unsigned int Nr = energy.get_size_radial();
+	const unsigned int Nphi = energy.get_size_azimuthal();
 
-	    const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
-	    const double gamma_eff =
-		pvte::get_gamma_eff(data, n_radial, n_azimuthal);
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+
+		const double mu = pvte::get_mu(data, nr, naz);
+		const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
 
 	    const double minimum_energy = Tmin *
-					  density(n_radial, n_azimuthal) / mu *
+					  density(nr, naz) / mu *
 					  constants::R / (gamma_eff - 1.0);
 
 	    const double maximum_energy = Tmax *
-					  density(n_radial, n_azimuthal) / mu *
+					  density(nr, naz) / mu *
 					  constants::R / (gamma_eff - 1.0);
 
-	    if (!(energy(n_radial, n_azimuthal) > minimum_energy)) {
+		if (!(energy(nr, naz) > minimum_energy)) {
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_minimum_temperature: (%u,%u)=%g<%g\n",
-		    n_radial, n_azimuthal,
-		    energy(n_radial, n_azimuthal) *
+			nr, naz,
+			energy(nr, naz) *
 			units::temperature.get_cgs_factor() /
-			density(n_radial, n_azimuthal) * mu / constants::R *
+			density(nr, naz) * mu / constants::R *
 			(gamma_eff - 1.0),
 		    Tmin * units::temperature.get_cgs_factor(), Tmin);
 #endif
-		energy(n_radial, n_azimuthal) =
-		    Tmin * density(n_radial, n_azimuthal) / mu * constants::R /
+		energy(nr, naz) =
+			Tmin * density(nr, naz) / mu * constants::R /
 		    (gamma_eff - 1.0);
 		found = true;
 	    }
 
-	    if (!(energy(n_radial, n_azimuthal) < maximum_energy)) {
+		if (!(energy(nr, naz) < maximum_energy)) {
 #ifndef NDEBUG
 		logging::print(
 		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
-		    n_radial, n_azimuthal,
-		    energy(n_radial, n_azimuthal) *
+			nr, naz,
+			energy(nr, naz) *
 			units::temperature.get_cgs_factor() /
-			density(n_radial, n_azimuthal) * mu / constants::R *
+			density(nr, naz) * mu / constants::R *
 			(gamma_eff - 1.0),
 		    Tmax * units::temperature.get_cgs_factor(), Tmax);
 #endif
-		energy(n_radial, n_azimuthal) =
-		    Tmax * density(n_radial, n_azimuthal) / mu * constants::R /
+		energy(nr, naz) =
+			Tmax * density(nr, naz) / mu * constants::R /
 		    (gamma_eff - 1.0);
 		found = true;
 	    }
@@ -700,30 +701,25 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     double supp_torque = 0.0; // for imposed disk drift
 
+	const unsigned int Nr = data[t_data::ENERGY].get_size_radial();
+	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();
+
     if (parameters::Adiabatic) {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
-		 ++n_azimuthal) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
 		const double DIV_V =
-		    (data[t_data::V_RADIAL](n_radial + 1, n_azimuthal) *
-			 Ra[n_radial + 1] -
-		     data[t_data::V_RADIAL](n_radial, n_azimuthal) *
-			 Ra[n_radial]) *
-			InvDiffRsup[n_radial] * InvRb[n_radial] +
-		    (data[t_data::V_AZIMUTHAL](
-			 n_radial,
-			 n_azimuthal == data[t_data::ENERGY].get_max_azimuthal()
-			     ? 0
-			     : n_azimuthal + 1) -
-		     data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal)) *
-			invdphi * InvRb[n_radial];
+			(data[t_data::V_RADIAL](nr + 1, naz) * Ra[nr + 1] -
+			 data[t_data::V_RADIAL](nr, naz) * Ra[nr]) *
+			InvDiffRsup[nr] * InvRb[nr] +
+			(data[t_data::V_AZIMUTHAL](nr, naz_next) -
+			 data[t_data::V_AZIMUTHAL](nr, naz)) *
+			invdphi * InvRb[nr];
 
 		const double gamma =
-		    pvte::get_gamma_eff(data, n_radial, n_azimuthal);
+			pvte::get_gamma_eff(data, nr, naz);
 
 		/*
 		// Like D'Angelo et al. 2003 eq. 25
@@ -737,10 +733,10 @@ void update_with_sourceterms(t_data &data, const double dt)
 
 		// Like D'Angelo et al. 2003 eq. 24
 		const double energy_old =
-		    data[t_data::ENERGY](n_radial, n_azimuthal);
+			data[t_data::ENERGY](nr, naz);
 		const double energy_new =
 		    energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
-		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
+		data[t_data::ENERGY](nr, naz) = energy_new;
 
 		/*
 		// Zeus2D like, see Stone & Norman 1992
@@ -757,54 +753,44 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     // update v_radial with source terms
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 1;
-	 n_radial <= data[t_data::V_RADIAL].get_max_radial() - 1; ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
-	     ++n_azimuthal) {
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    // 1/Sigma * dP/dr : Sigma is calculated as a mean value between the
 	    // neightbour cells
 	    const double gradp =
 		2.0 /
-		(data[t_data::DENSITY](n_radial, n_azimuthal) +
-		 data[t_data::DENSITY](n_radial - 1, n_azimuthal)) *
-		(data[t_data::PRESSURE](n_radial, n_azimuthal) -
-		 data[t_data::PRESSURE](n_radial - 1, n_azimuthal)) *
-		InvDiffRmed[n_radial];
+		(data[t_data::DENSITY](nr, naz) +
+		 data[t_data::DENSITY](nr - 1, naz)) *
+		(data[t_data::PRESSURE](nr, naz) -
+		 data[t_data::PRESSURE](nr - 1, naz)) *
+		InvDiffRmed[nr];
 
 	    // dPhi/dr
 	    double gradphi;
 	    if (parameters::body_force_from_potential) {
-		gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
-			   data[t_data::POTENTIAL](n_radial - 1, n_azimuthal)) *
-			  InvDiffRmed[n_radial];
+		gradphi = (data[t_data::POTENTIAL](nr, naz) -
+			   data[t_data::POTENTIAL](nr - 1, naz)) *
+			  InvDiffRmed[nr];
 	    } else {
-		gradphi = -data[t_data::ACCEL_RADIAL](n_radial, n_azimuthal);
+		gradphi = -data[t_data::ACCEL_RADIAL](nr, naz);
 	    }
 
+		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 	    // v_phi^2/r : v_phi^2 is calculated by a mean in both directions
 	    double vt2 =
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
-		data[t_data::V_AZIMUTHAL](
-		    n_radial,
-		    n_azimuthal == data[t_data::V_AZIMUTHAL].get_max_azimuthal()
-			? 0
-			: n_azimuthal + 1) +
-		data[t_data::V_AZIMUTHAL](n_radial - 1, n_azimuthal) +
-		data[t_data::V_AZIMUTHAL](
-		    n_radial - 1,
-		    n_azimuthal == data[t_data::V_AZIMUTHAL].get_max_azimuthal()
-			? 0
-			: n_azimuthal + 1);
-	    vt2 = 0.25 * vt2 + Rinf[n_radial] * OmegaFrame;
+		data[t_data::V_AZIMUTHAL](nr, naz) +
+		data[t_data::V_AZIMUTHAL](nr, naz_next) +
+		data[t_data::V_AZIMUTHAL](nr - 1, naz) +
+		data[t_data::V_AZIMUTHAL](nr - 1, naz_next);
+		vt2 = 0.25 * vt2 + Rinf[nr] * OmegaFrame;
 	    vt2 = vt2 * vt2;
 
-		const double InvR = 2.0 / (Rmed[n_radial] + Rmed[n_radial-1]);
+		const double InvR = 2.0 / (Rmed[nr] + Rmed[nr-1]);
 
 	    // add all terms to new v_radial: v_radial_new = v_radial +
 	    // dt*(source terms)
-	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		data[t_data::V_RADIAL](n_radial, n_azimuthal) +
+		data[t_data::V_RADIAL](nr, naz) =
+		data[t_data::V_RADIAL](nr, naz) +
 		dt * (-gradp - gradphi + vt2 * InvR);
 
 	}
@@ -812,54 +798,46 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     // update v_azimuthal with source terms
 	#pragma omp parallel for
-    for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial(); ++n_radial) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
 
 	if (IMPOSEDDISKDRIFT != 0.0) {
 		supp_torque = IMPOSEDDISKDRIFT * 0.5 *
-			  std::pow(Rmed[n_radial], -2.5 + SIGMASLOPE);
+			  std::pow(Rmed[nr], -2.5 + SIGMASLOPE);
 	}
 	//const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
-	const double invdxtheta = 2.0 / (dphi * (Rsup[n_radial]+Rinf[n_radial]));
+	const double invdxtheta = 2.0 / (dphi * (Rsup[nr]+Rinf[nr]));
 
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
-	     ++n_azimuthal) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
-	    const double n_az_minus =
-		(n_azimuthal == 0 ? data[t_data::PRESSURE].get_max_azimuthal()
-				  : n_azimuthal - 1);
+		const double naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
 	    // 1/Sigma 1/r dP/dphi
 	    const double gradp =
 		2.0 /
-		(data[t_data::DENSITY](n_radial, n_azimuthal) +
-		 data[t_data::DENSITY](
-		     n_radial, n_azimuthal == 0
-				   ? data[t_data::DENSITY].get_max_azimuthal()
-				   : n_azimuthal - 1)) *
-		(data[t_data::PRESSURE](n_radial, n_azimuthal) -
-		 data[t_data::PRESSURE](n_radial, n_az_minus)) *
+		(data[t_data::DENSITY](nr, naz) +
+		 data[t_data::DENSITY](nr, naz_prev)) *
+		(data[t_data::PRESSURE](nr, naz) -
+		 data[t_data::PRESSURE](nr, naz_prev)) *
 		invdxtheta;
 
 	    // 1/r dPhi/dphi
 	    double gradphi;
 	    if (parameters::body_force_from_potential) {
-		gradphi = (data[t_data::POTENTIAL](n_radial, n_azimuthal) -
-			   data[t_data::POTENTIAL](n_radial, n_az_minus)) *
+		gradphi = (data[t_data::POTENTIAL](nr, naz) -
+			   data[t_data::POTENTIAL](nr, naz_prev)) *
 			  invdxtheta;
 	    } else {
-		gradphi = -data[t_data::ACCEL_AZIMUTHAL](n_radial, n_azimuthal);
+		gradphi = -data[t_data::ACCEL_AZIMUTHAL](nr, naz);
 	    }
 
 	    // add all terms to new v_azimuthal: v_azimuthal_new = v_azimuthal +
 	    // dt*(source terms)
-	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +
+		data[t_data::V_AZIMUTHAL](nr, naz) =
+		data[t_data::V_AZIMUTHAL](nr, naz) +
 		dt * (-gradp - gradphi);
 
 	    if (IMPOSEDDISKDRIFT != 0.0) {
 		// add term for imposed disk drift
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) +=
+		data[t_data::V_AZIMUTHAL](nr, naz) +=
 		    dt * supp_torque;
 	    }
 	}
@@ -922,18 +900,19 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	t_polargrid &Qp = data[t_data::QPLUS];
 	t_polargrid &visc = data[t_data::VISCOSITY];
 
+	const unsigned int Nr = DIV_V.get_size_radial();
+	const unsigned int Nphi = DIV_V.get_size_azimuthal();
+
 	// calculate div(v)
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0;
-	 nr < DIV_V.get_size_radial(); ++nr) {
-	for (unsigned int naz = 0; naz < DIV_V.get_size_azimuthal(); ++naz) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
 		const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
 
 		DIV_V(nr, naz) = (vr(nr + 1, naz) * Ra[nr + 1] -
 		 vr(nr, naz) * Ra[nr]) * InvDiffRsup[nr] * InvRb[nr] +
 		(vphi(nr, naz_next) - vphi(nr, naz)) * invdphi * InvRb[nr];
-
 
 		const double Dr = Ra[nr+1] - Ra[nr];
 		const double rDphi = Rmed[nr] * dphi;
@@ -1000,26 +979,24 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	}
 
 	if (StabilizeArtViscosity > 0) {
+	const unsigned int Nrv = vr.get_max_radial(); // = Nr + 1 (vr is a vector)
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < vr.get_max_radial(); ++nr) {
-		for (unsigned int naz = 0; naz < vr.get_size_azimuthal(); ++naz) {
+	for (unsigned int nr = 1; nr < Nrv; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
-		unsigned int naz_minus =
-			(naz == 0 ? visc.get_max_azimuthal()
-			 : naz - 1);
+		unsigned int naz_prev = (naz == 0 ? Nphi - 1 : naz - 1);
 
 		/// Calc V_phi correction factor
 		/// //////////////////////////////////////
 
 		const double SigNuArt = SIGMA_ART_NU(nr, naz);
-		const double SigNuArt_jm = SIGMA_ART_NU(nr, naz_minus);
+		const double SigNuArt_jm = SIGMA_ART_NU(nr, naz_prev);
 
 		const double cphi_pp = -(SigNuArt_jm + SigNuArt) *
 				(invdphi * invdphi * InvRmed[nr]);
 
-		const double sigma_phi_avg =
-			0.5 * (density(nr, naz) +
-			   density(nr, naz_minus));
+		const double sigma_phi_avg = 0.5 *
+				(density(nr, naz) + density(nr, naz_prev));
 
 		const double c1_phi =
 			cphi_pp / (sigma_phi_avg * Rmed[nr]);
@@ -1062,12 +1039,12 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < vr.get_size_radial() - 1; ++nr) {
-	for (unsigned int naz = 0; naz < vr.get_size_azimuthal(); ++naz) {
-		const int naz_minus =
-		(naz == 0 ? density.get_max_azimuthal() : naz - 1);
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
-		const double sigma_phi_avg = 0.5 * (density(nr, naz) + density(nr, naz_minus));
+		const int naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
+
+		const double sigma_phi_avg = 0.5 * (density(nr, naz) + density(nr, naz_prev));
 
 		// See D'Angelo et al. 2002 Nested-grid calculations of disk-planet
 		// interaction It is important to use the conservative form here and
@@ -1079,7 +1056,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 		double dVp =
 		dt * InvRb[nr] / (sigma_phi_avg) *
-		(Tau_art(nr, naz) - Tau_art(nr, naz_minus)) * invdphi;
+		(Tau_art(nr, naz) - Tau_art(nr, naz_prev)) * invdphi;
 
 
 		if (StabilizeArtViscosity == 1) {
