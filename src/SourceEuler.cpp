@@ -1152,13 +1152,14 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	t_polargrid &Qphi = data[t_data::Q_PHI];
 
 	// calculate q_r and q_phi
+	const unsigned int Nr = Qr.get_size_radial();
+	const unsigned int Nphi = Qr.get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0;
-		 nr < Qr.get_size_radial(); ++nr) {
-		for (unsigned int naz = 0;
-		 naz < Qr.get_size_azimuthal();
-		 ++naz) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		double dv_r = vr(nr+1, naz) - vr(nr, naz);
+
 		if (dv_r < 0.0) {
 			Qr(nr, naz) =
 			std::pow(parameters::artificial_viscosity_factor, 2) *
@@ -1166,9 +1167,10 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 		} else {
 			Qr(nr, naz) = 0.0;
 		}
-		const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
-		double dv_phi =
-			vphi(nr, naz_next) - vphi(nr, naz);
+
+		const double naz_next = naz == Nphi-1 ? 0 : naz + 1;
+		double dv_phi =	vphi(nr, naz_next) - vphi(nr, naz);
+
 		if (dv_phi < 0.0) {
 			Qphi(nr, naz) =
 			std::pow(parameters::artificial_viscosity_factor, 2) *
@@ -1185,17 +1187,14 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	if (parameters::Adiabatic) {
 	    if (parameters::artificial_viscosity_dissipation) {
 		#pragma omp parallel for
-		for (unsigned int nr = 0;
-			 nr < energy.get_size_radial();
-			 ++nr) {
+		for (unsigned int nr = 0; nr < Nr; ++nr) {
+
 			const double dxtheta = dphi * Rmed[nr];
 			const double invdxtheta = 1.0 / dxtheta;
 
-			for (unsigned int naz = 0;
-			 naz < energy.get_size_azimuthal();
-			 ++naz) {	
+			for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
-			const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
+			const double naz_next = naz == Nphi-1 ? 0 : naz + 1;
 
 			const double dv_r =	vr(nr+1, naz) - vr(nr, naz);
 			const double dv_phi = vphi(nr,	naz_next) -	vphi(nr, naz);
@@ -1213,8 +1212,8 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 
 	// add artificial viscous pressure source term to v_radial
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < vr.get_size_radial() - 1; ++nr) {
-		for (unsigned int naz = 0; naz < vr.get_size_azimuthal(); ++naz) {
+	for (unsigned int nr = 1; nr < Nr; ++nr) { // Nr = Nr_vr-1, so were leaving out the ghost cells
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// 1/Sigma dq_r/dr : Sigma is calculated as a mean value between
 		// the neightbour cells
 		vr(nr, naz) = vr(nr, naz) -
@@ -1225,17 +1224,17 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 
 	// add artificial viscous pressure source term to v_azimuthal
 	#pragma omp parallel for
-	for (unsigned int nr = 0; nr < vphi.get_size_radial(); ++nr) {
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+
 		const double dxtheta = dphi * Rmed[nr];
 		const double invdxtheta = 1.0 / dxtheta;
-		for (unsigned int naz = 0; naz < vphi.get_size_azimuthal(); ++naz) {
+
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// 1/Sigma 1/r dq_phi/dphi : Sigma is calculated as a mean value
 		// between the neightbour cells
-		const unsigned int naz_prev = naz == 0
-				? vphi.get_max_azimuthal() : naz - 1;
+		const unsigned int naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
 
-		vphi(nr, naz) =
-			vphi(nr, naz) -
+		vphi(nr, naz) =	vphi(nr, naz) -
 			dt * 2.0 / (density(nr, naz) + density(nr, naz_prev)) *
 			(Qphi(nr, naz) - Qphi(nr, naz_prev)) * invdxtheta;
 	    }
@@ -1274,50 +1273,42 @@ void calculate_qplus(t_data &data, const double current_time)
     }
 
     if (parameters::heating_viscous_enabled && EXPLICIT_VISCOSITY) {
+	const unsigned int Nr_m1 = data[t_data::QPLUS].get_max_radial();
+	const unsigned int Nphi = data[t_data::QPLUS].get_size_azimuthal();
+
 	/* We calculate the heating source term Qplus from i=1 to max-1 */
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 1;
-	     n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		 ++n_azimuthal) {
-		if (data[t_data::VISCOSITY](n_radial, n_azimuthal) != 0.0) {
+	for (unsigned int nr = 1; nr < Nr_m1; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+
+		if (data[t_data::VISCOSITY](nr, naz) != 0.0) {
+			const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 		    // average tau_r_phi over 4 cells
 		    double tau_r_phi =
 			0.25 *
-			(data[t_data::TAU_R_PHI](n_radial, n_azimuthal) +
-			 data[t_data::TAU_R_PHI](n_radial + 1, n_azimuthal) +
-			 data[t_data::TAU_R_PHI](
-			     n_radial,
-			     n_azimuthal ==
-				     data[t_data::TAU_R_PHI].get_max_azimuthal()
-				 ? 0
-				 : n_azimuthal + 1) +
-			 data[t_data::TAU_R_PHI](
-			     n_radial + 1,
-			     n_azimuthal ==
-				     data[t_data::TAU_R_PHI].get_max_azimuthal()
-				 ? 0
-				 : n_azimuthal + 1));
+			(data[t_data::TAU_R_PHI](nr, naz) +
+			 data[t_data::TAU_R_PHI](nr + 1, naz) +
+			 data[t_data::TAU_R_PHI](nr, naz_next) +
+			 data[t_data::TAU_R_PHI](nr + 1, naz_next));
 
 		    double qplus =
 			1.0 /
-			(2.0 * data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-			 data[t_data::DENSITY](n_radial, n_azimuthal)) *
-			(std::pow(data[t_data::TAU_R_R](n_radial, n_azimuthal),
+			(2.0 * data[t_data::VISCOSITY](nr, naz) *
+			 data[t_data::DENSITY](nr, naz)) *
+			(std::pow(data[t_data::TAU_R_R](nr, naz),
 				  2) +
 			 2 * std::pow(tau_r_phi, 2) +
 			 std::pow(
-			     data[t_data::TAU_PHI_PHI](n_radial, n_azimuthal),
+				 data[t_data::TAU_PHI_PHI](nr, naz),
 			     2));
 		    qplus +=
 			(2.0 / 9.0) *
-			data[t_data::VISCOSITY](n_radial, n_azimuthal) *
-			data[t_data::DENSITY](n_radial, n_azimuthal) *
-			std::pow(data[t_data::DIV_V](n_radial, n_azimuthal), 2);
+			data[t_data::VISCOSITY](nr, naz) *
+			data[t_data::DENSITY](nr, naz) *
+			std::pow(data[t_data::DIV_V](nr, naz), 2);
 
 		    qplus *= parameters::heating_viscous_factor;
-		    data[t_data::QPLUS](n_radial, n_azimuthal) += qplus;
+			data[t_data::QPLUS](nr, naz) += qplus;
 		}
 	    }
 	}
@@ -1356,16 +1347,15 @@ void calculate_qplus(t_data &data, const double current_time)
 		const double y_star = planet.get_y();
 
 	    // Simple star heating (see Masterthesis Alexandros Ziampras)
-		#pragma omp parallel for collapse(2)
-	    for (unsigned int n_radial = 1;
-		 n_radial < data[t_data::QPLUS].get_max_radial(); ++n_radial) {
-		for (unsigned int n_azimuthal = 0;
-		     n_azimuthal <= data[t_data::QPLUS].get_max_azimuthal();
-		     ++n_azimuthal) {
+		const unsigned int Nr_m1 = data[t_data::QPLUS].get_max_radial();
+		const unsigned int Nphi = data[t_data::QPLUS].get_size_azimuthal();
 
-		    const unsigned int ncell =
-			n_radial * data[t_data::DENSITY].get_size_azimuthal() +
-			n_azimuthal;
+		#pragma omp parallel for collapse(2)
+		for (unsigned int nr = 1; nr < Nr_m1; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+
+			const unsigned int ncell = CELL(nr, naz, Nphi);
+
 		    const double xc = cell_center_x[ncell];
 		    const double yc = cell_center_y[ncell];
 		    const double distance = std::sqrt(std::pow(x_star - xc, 2) +
@@ -1375,11 +1365,11 @@ void calculate_qplus(t_data &data, const double current_time)
 			data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) / distance;*/
 
 			const double HoverR =
-			data[t_data::ASPECTRATIO](n_radial, n_azimuthal);
+			data[t_data::ASPECTRATIO](nr, naz);
 
 			const double sigma_sb = constants::sigma.get_code_value();
 		    const double tau_eff =
-			data[t_data::TAU_EFF](n_radial, n_azimuthal);
+			data[t_data::TAU_EFF](nr, naz);
 		    const double eps = 0.5; // TODO: add a parameter
 		    // choose according to Chiang & Goldreich (1997)
 		    const double dlogH_dlogr = 9.0 / 7.0;
@@ -1400,7 +1390,7 @@ void calculate_qplus(t_data &data, const double current_time)
 			qplus *= W_G;
 		    qplus /= tau_eff;			// * 1/Tau_eff
 
-		    data[t_data::QPLUS](n_radial, n_azimuthal) +=
+			data[t_data::QPLUS](nr, naz) +=
 			ramping * qplus;
 		}
 		}
@@ -1598,16 +1588,17 @@ void calculate_qminus(t_data &data, const double current_time)
 
     // beta cooling
     if (parameters::cooling_beta_enabled) {
+
+	const unsigned int Nr = data[t_data::QMINUS].get_max_radial(); // = Size - 1
+	const unsigned int Nphi = data[t_data::QMINUS].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 1;
-	     n_radial < data[t_data::QMINUS].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
-		 ++n_azimuthal) {
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// Q- = E Omega/beta
-		const double r = Rmed[n_radial];
+		const double r = Rmed[nr];
 		const double omega_k = calculate_omega_kepler(r);
-		const double E = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double E = data[t_data::ENERGY](nr, naz);
 		const double t_ramp_up = parameters::cooling_beta_ramp_up;
 
 		double beta_inv = 1 / parameters::cooling_beta;
@@ -1620,7 +1611,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
 		const double qminus = E * omega_k * beta_inv;
 
-		data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
+		data[t_data::QMINUS](nr, naz) += qminus;
 	    }
 	}
     }
@@ -1628,70 +1619,67 @@ void calculate_qminus(t_data &data, const double current_time)
     // local radiative cooling
     if (parameters::cooling_radiative_enabled) {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 1;
-	     n_radial < data[t_data::QMINUS].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::QMINUS].get_max_azimuthal();
-		 ++n_azimuthal) {
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// calculate Rosseland mean opacity kappa. opaclin needs values
 		// in cgs units
 		const double temperatureCGS =
-		    data[t_data::TEMPERATURE](n_radial, n_azimuthal) *
+			data[t_data::TEMPERATURE](nr, naz) *
 		    units::temperature;
 
 		const double H =
-		    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+			data[t_data::SCALE_HEIGHT](nr, naz);
 
 		const double densityCGS =
-		    data[t_data::DENSITY](n_radial, n_azimuthal) /
+			data[t_data::DENSITY](nr, naz) /
 		    (parameters::density_factor * H) * units::density;
 
 		const double kappaCGS =
 		    opacity::opacity(densityCGS, temperatureCGS);
 
-		data[t_data::KAPPA](n_radial, n_azimuthal) =
+		data[t_data::KAPPA](nr, naz) =
 		    parameters::kappa_factor * kappaCGS *
 		    units::opacity.get_inverse_cgs_factor();
 
 		// mean vertical optical depth: tau = 1/2 kappa Sigma
-		data[t_data::TAU](n_radial, n_azimuthal) =
+		data[t_data::TAU](nr, naz) =
 		    parameters::tau_factor *
 		    (1.0 / parameters::density_factor) *
-		    data[t_data::KAPPA](n_radial, n_azimuthal) *
-		    data[t_data::DENSITY](n_radial, n_azimuthal);
+			data[t_data::KAPPA](nr, naz) *
+			data[t_data::DENSITY](nr, naz);
 
 
 		if(parameters::heating_star_enabled){
 		//  irradiated disk tau_eff = 3/8 tau + 1/2 + 1/(4*tau+tau_min)
 		//  compare D'Angelo & Marzari 2012
-		data[t_data::TAU_EFF](n_radial, n_azimuthal) =
-		    3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal) +
+		data[t_data::TAU_EFF](nr, naz) =
+			3.0 / 8.0 * data[t_data::TAU](nr, naz) +
 			0.5 +
 		    1.0 /
-			(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + parameters::tau_min);
+			(4.0 * data[t_data::TAU](nr, naz) + parameters::tau_min);
 		} else {
 			//  non irradiated disk tau_eff = 3/8 tau + sqrt(3)/4 + 1/(4*tau+tau_min)
-			data[t_data::TAU_EFF](n_radial, n_azimuthal) =
-				3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal) +
+			data[t_data::TAU_EFF](nr, naz) =
+				3.0 / 8.0 * data[t_data::TAU](nr, naz) +
 				std::sqrt(3.0) / 4.0 +
 				1.0 /
-				(4.0 * data[t_data::TAU](n_radial, n_azimuthal) + parameters::tau_min);
+				(4.0 * data[t_data::TAU](nr, naz) + parameters::tau_min);
 		}
 
 		if (parameters::opacity ==
 		    parameters::opacity_simple) { // Compare D'Angelo et. al
 						  // 2003 eq.(28)
-		    data[t_data::TAU_EFF](n_radial, n_azimuthal) =
-			3.0 / 8.0 * data[t_data::TAU](n_radial, n_azimuthal);
+			data[t_data::TAU_EFF](nr, naz) =
+			3.0 / 8.0 * data[t_data::TAU](nr, naz);
 		}
 		// Q = factor 2 sigma_sb T^4 / tau_eff
 
 		const double factor = parameters::cooling_radiative_factor;
 		const double sigma_sb = constants::sigma.get_code_value();
 		const double T4 = std::pow(
-		    data[t_data::TEMPERATURE](n_radial, n_azimuthal), 4);
+			data[t_data::TEMPERATURE](nr, naz), 4);
 		const double tau_eff =
-		    data[t_data::TAU_EFF](n_radial, n_azimuthal);
+			data[t_data::TAU_EFF](nr, naz);
 		const double Tmin4 =
 		    std::pow(parameters::minimum_temperature *
 				 units::temperature.get_inverse_cgs_factor(),
@@ -1700,7 +1688,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		const double qminus =
 		    factor * 2 * sigma_sb * (T4 - Tmin4) / tau_eff;
 
-		data[t_data::QMINUS](n_radial, n_azimuthal) += qminus;
+		data[t_data::QMINUS](nr, naz) += qminus;
 	    }
 	}
     }
@@ -1715,18 +1703,18 @@ void SubStep3(t_data &data, const double current_time, const double dt)
 	calculate_qminus(data, current_time); // first to calculate teff
 	calculate_qplus(data, current_time);
 
+	const unsigned int Nr = data[t_data::TAU_COOL].get_size_radial();
+	const unsigned int Nphi = data[t_data::TAU_COOL].get_size_azimuthal();
+
     // calculate tau_cool if needed for output
     if (data[t_data::TAU_COOL].get_write_1D() ||
 	data[t_data::TAU_COOL].get_write_2D()) {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::TAU_COOL].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::TAU_COOL].get_max_azimuthal();
-		 ++n_azimuthal) {
-		data[t_data::TAU_COOL](n_radial, n_azimuthal) =
-		    data[t_data::ENERGY](n_radial, n_azimuthal) /
-		    data[t_data::QMINUS](n_radial, n_azimuthal);
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		data[t_data::TAU_COOL](nr, naz) =
+			data[t_data::ENERGY](nr, naz) /
+			data[t_data::QMINUS](nr, naz);
 	    }
 	}
     }
@@ -1735,54 +1723,51 @@ void SubStep3(t_data &data, const double current_time, const double dt)
     if (data[t_data::P_DIVV].get_write_1D() ||
 	data[t_data::P_DIVV].get_write_2D() ||
 	parameters::radiative_diffusion_enabled) {
-	data.pdivv_total = 0;
-	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
-		 ++n_azimuthal) {
-		double pdivv =
-		    (pvte::get_gamma_eff(data, n_radial, n_azimuthal) - 1.0) *
-		    dt * data[t_data::DIV_V](n_radial, n_azimuthal) *
-		    data[t_data::ENERGY](n_radial, n_azimuthal);
-		data[t_data::P_DIVV](n_radial, n_azimuthal) = pdivv;
 
-		sum_without_ghost_cells(data.pdivv_total, pdivv, n_radial);
+	data.pdivv_total = 0;
+	double &pdivv_tmp = data.pdivv_total;
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		double pdivv =
+			(pvte::get_gamma_eff(data, nr, naz) - 1.0) *
+			dt * data[t_data::DIV_V](nr, naz) *
+			data[t_data::ENERGY](nr, naz);
+		data[t_data::P_DIVV](nr, naz) = pdivv;
+
+		sum_without_ghost_cells(pdivv_tmp, pdivv, nr);
 	    }
 	}
     }
 
     // Now we can update energy with source terms
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_radial = 1;
-	 n_radial < data[t_data::ENERGY].get_max_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
-	     ++n_azimuthal) {
+	for (unsigned int nr = 1; nr < Nr-1; ++nr) {// Don't update ghost cells
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
 	    const double sigma_sb = constants::sigma;
 	    const double c = constants::c;
-	    const double mu = pvte::get_mu(data, n_radial, n_azimuthal);
+		const double mu = pvte::get_mu(data, nr, naz);
 	    const double gamma =
-		pvte::get_gamma_eff(data, n_radial, n_azimuthal);
+		pvte::get_gamma_eff(data, nr, naz);
 
 	    const double Rgas = constants::R;
 
-	    const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
 
-	    const double sigma = data[t_data::DENSITY](n_radial, n_azimuthal);
-	    const double energy = data[t_data::ENERGY](n_radial, n_azimuthal);
+		const double sigma = data[t_data::DENSITY](nr, naz);
+		const double energy = data[t_data::ENERGY](nr, naz);
 
 	    const double inv_pow4 =
 		std::pow(mu * (gamma - 1.0) / (Rgas * sigma), 4);
 	    double alpha = 1.0 + 2.0 * H * 4.0 * sigma_sb / c * inv_pow4 *
 				     std::pow(energy, 3);
 
-	    data[t_data::QPLUS](n_radial, n_azimuthal) /= alpha;
-	    data[t_data::QMINUS](n_radial, n_azimuthal) /= alpha;
-	    const double Qplus = data[t_data::QPLUS](n_radial, n_azimuthal);
-	    const double Qminus = data[t_data::QMINUS](n_radial, n_azimuthal);
+		data[t_data::QPLUS](nr, naz) /= alpha;
+		data[t_data::QMINUS](nr, naz) /= alpha;
+		const double Qplus = data[t_data::QPLUS](nr, naz);
+		const double Qminus = data[t_data::QMINUS](nr, naz);
 
 	    double energy_new = energy + dt * (Qplus - Qminus);
 
@@ -1792,17 +1777,17 @@ void SubStep3(t_data &data, const double current_time, const double dt)
 	    // we set energy to equilibrium energy
 	    if ((sigma < SigmaFloor)) {
 		const double tau_eff =
-		    data[t_data::TAU_EFF](n_radial, n_azimuthal);
+			data[t_data::TAU_EFF](nr, naz);
 		const double e4 = Qplus * tau_eff / (2.0 * sigma_sb);
 		const double constant = (Rgas / mu * sigma / (gamma - 1.0));
 		// energy, where current heating cooling rate are in equilibirum
 		const double eq_energy = std::pow(e4, 1.0 / 4.0) * constant;
 
-		data[t_data::QMINUS](n_radial, n_azimuthal) = Qplus;
+		data[t_data::QMINUS](nr, naz) = Qplus;
 		energy_new = eq_energy;
 	    }
 
-	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
+		data[t_data::ENERGY](nr, naz) = energy_new;
 	}
     }
 
