@@ -828,24 +828,22 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
+	const unsigned int Nphi = data[t_data::DENSITY].get_size_azimuthal();
 	#pragma omp parallel for collapse(2) reduction(+ : local_eccentricity, local_periastron, local_mass)
-    for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size; ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::DENSITY].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantitiy_radius) {
+	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		if (Rmed[nr] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
-		cell_mass = data[t_data::DENSITY](n_radial, n_azimuthal) *
-			     Surf[n_radial];
+		cell_mass = data[t_data::DENSITY](nr, naz) *
+				 Surf[nr];
 		local_eccentricity +=
-		    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) *
+			data[t_data::ECCENTRICITY](nr, naz) *
 			cell_mass;
 		// local_semi_major_axis +=
 		// data[t_data::SEMI_MAJOR_AXIS](n_radial, n_azimuthal) *
 		// local_mass;
 		local_periastron +=
-		    data[t_data::PERIASTRON](n_radial, n_azimuthal) *
+			data[t_data::PERIASTRON](nr, naz) *
 			cell_mass;
 		local_mass += cell_mass;
 	    }
