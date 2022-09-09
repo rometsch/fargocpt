@@ -1,0 +1,11 @@
+export OMPI_MCA_mpi_cuda_support=0
+export OMP_DISPLAY_ENV=VERBOSE
+export OMP_NUM_THREADS=4
+export OMP_THREAD_LIMIT=4
+export OMP_PLACES=cores
+export OMP_PROC_BIND=close
+export OMP_WAIT_POLICY=active
+
+numactl mpirun -n 1 --map-by NUMA:PE=4 ./fargo start setups/old/fargo.par
+
+mpirun --map-by socket --bind-to core --report-bindings true 5 -np 1 ./fargo start setups/old/fargo.par
