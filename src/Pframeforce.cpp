@@ -226,10 +226,11 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
     double *acc_r = data[t_data::ACCEL_RADIAL].Field;
     const unsigned int N_az_max =
 	data[t_data::ACCEL_RADIAL].get_size_azimuthal();
+	const unsigned int Nr = data[t_data::ACCEL_RADIAL].get_size_radial() - 1;
 
 	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 1;
-	 n_rad < data[t_data::ACCEL_RADIAL].get_size_radial() - 1; ++n_rad) {
+	 n_rad < Nr; ++n_rad) { // No need to compute Vr at the top of the outer ghost cells
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
 
 	    const double phi = (double)n_az * dphi;
@@ -319,7 +320,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
 	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0;
-	 n_rad < data[t_data::ACCEL_AZIMUTHAL].get_size_radial(); ++n_rad) {
+	 n_rad < Nr; ++n_rad) {
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
 
 	    const double phi = ((double)n_az - 0.5) * dphi;
