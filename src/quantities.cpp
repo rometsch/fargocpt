@@ -485,9 +485,7 @@ static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int time
 		cms_mass + data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
 
 		// location of the cell
-		const double angle = (double)n_azimuthal /
-			(double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
-			M_PI;
+		const double angle = (double)n_azimuthal * dphi;
 		const double r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
 		const double r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
 		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
@@ -577,9 +575,7 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 		cms_mass +	data[t_data::DENSITY](n_radial, n_azimuthal) * Surf[n_radial];
 
 	    // location of the cell
-		const double angle = (double)n_azimuthal /
-		    (double)data[t_data::V_RADIAL].get_size_azimuthal() * 2.0 *
-		    M_PI;
+		const double angle = (double)n_azimuthal * dphi;
 		const double r_x = Rmed[n_radial] * std::cos(angle) - cms_pos.x;
 		const double r_y = Rmed[n_radial] * std::sin(angle) - cms_pos.y;
 		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
@@ -687,7 +683,7 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 		const double total_mass = cms_mass + density(nr, naz) * Surf[nr];
 
 		// location of the cell
-		const double angle = (double)naz / (double)density.get_size_azimuthal() * 2.0 *	M_PI;
+		const double angle = (double)naz * dphi;
 		const double r_x = Rmed[nr] * std::cos(angle) - cms_pos.x;
 		const double r_y = Rmed[nr] * std::sin(angle) - cms_pos.y;
 		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
