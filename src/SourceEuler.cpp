@@ -1586,11 +1586,11 @@ void calculate_qminus(t_data &data, const double current_time)
     // clear up all Qminus terms
     data[t_data::QMINUS].clear();
 
-    // beta cooling
-    if (parameters::cooling_beta_enabled) {
-
 	const unsigned int Nr = data[t_data::QMINUS].get_max_radial(); // = Size - 1
 	const unsigned int Nphi = data[t_data::QMINUS].get_size_azimuthal();
+
+    // beta cooling
+    if (parameters::cooling_beta_enabled) {
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {

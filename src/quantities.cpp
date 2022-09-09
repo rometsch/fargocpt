@@ -954,7 +954,7 @@ void calculate_radial_luminosity(t_data &data, unsigned int timestep,
     last_timestep_calculated = timestep;
 
 	const unsigned int Nr = data[t_data::LUMINOSITY_1D].get_size_radial();
-	const unsigned int Nphi = data[t_data::LUMINOSITY_1D].get_size_azimuthal();
+	const unsigned int Nphi = data[t_data::QMINUS].get_size_azimuthal();
 
 	#pragma omp parallel for
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
@@ -1007,7 +1007,7 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
 
     // divide the data in massflow by the large timestep DT before writing out
     // to obtain the massflow from the mass difference
-	 data[t_data::MASSFLOW](nRadial, n_azimuthal) /= denom;
+	 data[t_data::MASSFLOW] /= denom;
 }
 
 
@@ -1020,13 +1020,13 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
     }
 
 	const unsigned int Nr = data[t_data::SCALE_HEIGHT].get_size_radial();
-	const unsigned int Nphi = data[t_data::SCALE_HEIGHT].get_max_azimuthal();
+	const unsigned int Nphi = data[t_data::SCALE_HEIGHT].get_size_azimuthal();
 
     switch (ASPECTRATIO_MODE) {
     case 0: {
 			#pragma omp parallel for collapse(2)
 			for (unsigned int nr = 0; nr < Nr; ++nr) {
-				for (unsigned int naz = 0; naz <= Nphi; ++naz) {
+				for (unsigned int naz = 0; naz < Nphi; ++naz) {
 					const double h = data[t_data::SCALE_HEIGHT](nr, naz) / Rb[nr];
 					data[t_data::ASPECTRATIO](nr, naz) = h;
 				}
@@ -1055,7 +1055,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 			// Better see Thun et al. 2017 Eq. 8 instead.
 			#pragma omp parallel for collapse(2)
 			for (unsigned int nr = 0; nr < Nr; ++nr) {
-			for (unsigned int naz = 0; naz < Nphi(); ++naz) {
+			for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
 					const int cell = get_cell_id(nr, naz);
 					const double x = CellCenterX->Field[cell];
@@ -1178,7 +1178,7 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
 
     if (!parameters::write_at_every_timestep) {
 	const double denom = (double)NINTERM;
-	data[t_data::VISCOUS_TORQUE](nr, naz) /= denom;
+	data[t_data::VISCOUS_TORQUE] /= denom;
     }
 }
 
@@ -1202,7 +1202,7 @@ void calculate_advection_torque(t_data &data, unsigned int timestep,
 
     if (!parameters::write_at_every_timestep) {
 	const double denom = (double)NINTERM;
-	data[t_data::ADVECTION_TORQUE](nRadial, nAzimuthal) /= denom;
+	data[t_data::ADVECTION_TORQUE] /= denom;
     }
 }
 
