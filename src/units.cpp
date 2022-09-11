@@ -109,14 +109,24 @@ template <> int parse_units(const std::string &val, const precise_unit& unit) {
 
 template std::string parse_units<std::string>(const std::string &val);
 
+// TODO: pick an official system
 llnlunits::precise_unit solMass(1.98847e30, llnlunits::precise::kilogram);
+llnlunits::precise_unit solRadius(6.95700e8, llnlunits::precise::meter);
 llnlunits::precise_unit au(1.495978707e11, llnlunits::precise::meter);
+llnlunits::precise_unit jupiterMass(1.8982e27, llnlunits::precise::kilogram);
+llnlunits::precise_unit jupiterRadius(69911000, llnlunits::precise::meter);
+llnlunits::precise_unit earthMass(5.97217e24, llnlunits::precise::kilogram);
+llnlunits::precise_unit earthRadius(6371000, llnlunits::precise::meter);
+
 
 static void add_astro_units() {
-	llnlunits::addUserDefinedUnit("solMass", solMass);
-	llnlunits::precise_unit solRadius(6.95700e8, llnlunits::precise::meter);
-	llnlunits::addUserDefinedUnit("solRadius", solRadius);
 	llnlunits::addUserDefinedUnit("au", au);
+	llnlunits::addUserDefinedUnit("solMass",   solMass);
+	llnlunits::addUserDefinedUnit("solRadius", solRadius);
+	llnlunits::addUserDefinedUnit("jupiterMass",   jupiterMass);
+	llnlunits::addUserDefinedUnit("jupiterRadius", jupiterRadius);
+	llnlunits::addUserDefinedUnit("earthMass",   earthMass);
+	llnlunits::addUserDefinedUnit("earthRadius", earthRadius);
 }
 
 
