@@ -181,9 +181,10 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 # particles
 
-IntegrateParticles: no   # enable particle integrator [default = no]
+IntegrateParticles: yes   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Adaptive   # Explicit, Adaptive, Semiimplicit and Implicit
+ParticleIntegrator: Implicit   # Explicit, Adaptive, Semiimplicit and Implicit
+# Test adaptive integrator causing error: Timestep too small
 NumberOfParticles: '2000'   # number of particles [default = 0]
 ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.03'   # particle maximum Eccentricity
