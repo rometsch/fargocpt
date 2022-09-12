@@ -655,9 +655,6 @@ void PrintUsage(char *execname)
 	"-b : Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n");
     logging::print_master(
 	LOG_ERROR
-	"-c : Sloppy CFL condition (checked at each DT, not at each timestep)\n");
-    logging::print_master(
-	LOG_ERROR
 	"-d : Print some debugging information on 'stdout' at each timestep\n");
     logging::print_master(LOG_ERROR
 			  "-e : Activate EU test problem torque file output\n");
