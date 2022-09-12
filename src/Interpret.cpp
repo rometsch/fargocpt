@@ -83,7 +83,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     parameters::SpreadingRing =
 	cfg.get_flag("SpreadingRing", false);
 
-    sim::last_dt = cfg.get<double>("FirstDT", 1e-9);
+    sim::last_dt = cfg.get<double>("FirstDT", 1e-9, units::T0);
 
     parameters::SIGMASLOPE = cfg.get<double>("SIGMASLOPE", 0.0);
     parameters::IMPOSEDDISKDRIFT = cfg.get<double>("IMPOSEDDISKDRIFT", 0.0);
