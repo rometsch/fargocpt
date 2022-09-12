@@ -250,13 +250,13 @@ void init(t_data &data) {
 	refframe::init_corotation(data); // TODO: move to init
 
 	if (start_mode::mode != start_mode::mode_restart) {
+		CalculateTimeStep(data);
 		handle_outputs(data);
 	}
 }
 
 void run(t_data &data) {
 
-	init(data);
 	double step_dt = last_dt;
 	double cfl_dt = last_dt;
 
