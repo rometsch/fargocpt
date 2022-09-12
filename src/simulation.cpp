@@ -79,11 +79,17 @@ static void handle_outputs(t_data &data) {
 
 }
 
-static double CalculateTimeStep(t_data &data, double dt)
+static double CalculateTimeStep(t_data &data)
 {
-	last_dt = dt;
-	const double cfl_dt = cfl::condition_cfl(data);
-	return std::min(parameters::CFL_max_var * last_dt, cfl_dt);;
+	double rv = last_dt;
+
+	if (parameters::calculate_disk) {
+		const double cfl_dt = cfl::condition_cfl(data);
+		rv = std::min(parameters::CFL_max_var * last_dt, cfl_dt);
+		last_dt = cfl_dt;
+	}
+
+	return rv;
 }
 
 
