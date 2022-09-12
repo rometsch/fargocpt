@@ -18,7 +18,6 @@
 
 namespace sim {
 
-double hydro_dt;
 double last_dt;
 double dtemp;
 
