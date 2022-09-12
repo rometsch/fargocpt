@@ -44,35 +44,35 @@ static void write_snapshot(t_data &data) {
 static void handle_outputs(t_data &data) {
 	bool need_update_for_output = true;
 	N_snapshot = (N_monitor / parameters::NINTERM); // note: integer division
-	bool write_complete_output = (parameters::NINTERM * N_snapshot == N_monitor);
+	bool to_write_snapshot = (parameters::NINTERM * N_snapshot == N_monitor);
 
 	/// asure planet torques are computed
 	if (!parameters::disk_feedback &&
-	    (write_complete_output || parameters::write_at_every_timestep)) {
+	    (to_write_snapshot || parameters::write_at_every_timestep)) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
-	if (write_complete_output) {
+	if (to_write_snapshot) {
 	    need_update_for_output = false;
 		write_snapshot(data);
 	}
 
-	if (write_complete_output || parameters::write_at_every_timestep) {
+	if (to_write_snapshot || parameters::write_at_every_timestep) {
 	    ComputeCircumPlanetaryMasses(data);
 	    data.get_planetary_system().write_planets(1);
 	}
 
 	// write disk quantities like eccentricity, ...
-	if ((write_complete_output || parameters::write_at_every_timestep) &&
+	if ((to_write_snapshot || parameters::write_at_every_timestep) &&
 	    parameters::write_disk_quantities) {
 	    output::write_quantities(data, need_update_for_output);
 	}
 
-	if (write_complete_output && parameters::write_torques) {
+	if (to_write_snapshot && parameters::write_torques) {
 	    output::write_torques(data, need_update_for_output);
 	}
 	if (parameters::write_lightcurves &&
-	    (parameters::write_at_every_timestep || write_complete_output)) {
+	    (parameters::write_at_every_timestep || to_write_snapshot)) {
 	    output::write_lightcurves(data, N_snapshot, need_update_for_output);
 	}
 
