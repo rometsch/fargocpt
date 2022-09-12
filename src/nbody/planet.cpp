@@ -469,7 +469,7 @@ void t_planet::write_ascii(const std::string &filename) const
     fprintf(
 	fd,
 	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
-	sim::N_output, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
+	sim::N_snapshot, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
 	sim::PhysicalTime, refframe::OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
@@ -495,7 +495,7 @@ void t_planet::write_binary(const std::string &filename) const
     planet_member_variables pl;
     memset(&pl, 0, sizeof(planet_member_variables));
 
-    pl.timestep = sim::N_output;
+    pl.timestep = sim::N_snapshot;
     pl.m_mass = m_mass;
     pl.m_x = m_x;
     pl.m_y = m_y;

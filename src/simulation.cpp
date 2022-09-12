@@ -22,18 +22,18 @@ double last_dt;
 double dtemp;
 
 double PhysicalTime, PhysicalTimeInitial;
-unsigned int N_output;
-unsigned int N_outer_loop;
+unsigned int N_snapshot;
+unsigned int N_monitor;
 unsigned long int N_hydro_iter;
 
 
 static void write_snapshot(t_data &data) {
 	// Outputs are done here
 	output::last_snapshot_dir = output::snapshot_dir;
-	output::write_full_output(data, std::to_string(N_output));
+	output::write_full_output(data, std::to_string(N_snapshot));
 	output::cleanup_autosave();
 
-	if (N_output == 0 && parameters::damping) {
+	if (N_snapshot == 0 && parameters::damping) {
 	// Write damping data as a reference.
 	const std::string snapshot_dir_old = output::snapshot_dir;
 	output::write_full_output(data, "damping", false);
@@ -43,8 +43,8 @@ static void write_snapshot(t_data &data) {
 
 static void handle_outputs(t_data &data) {
 	bool need_update_for_output = true;
-	N_output = (N_outer_loop / parameters::NINTERM); // note: integer division
-	bool write_complete_output = (parameters::NINTERM * N_output == N_outer_loop);
+	N_snapshot = (N_monitor / parameters::NINTERM); // note: integer division
+	bool write_complete_output = (parameters::NINTERM * N_snapshot == N_monitor);
 
 	/// asure planet torques are computed
 	if (!parameters::disk_feedback &&
@@ -73,7 +73,7 @@ static void handle_outputs(t_data &data) {
 	}
 	if (parameters::write_lightcurves &&
 	    (parameters::write_at_every_timestep || write_complete_output)) {
-	    output::write_lightcurves(data, N_output, need_update_for_output);
+	    output::write_lightcurves(data, N_snapshot, need_update_for_output);
 	}
 
 }
@@ -192,7 +192,7 @@ static void step(t_data &data, const double dt) {
 	// TODO: move outside step
 	PhysicalTime += dt;
 	N_hydro_iter = N_hydro_iter + 1;
-	logging::print_runtime_info(N_outer_loop / parameters::NINTERM, N_outer_loop,
+	logging::print_runtime_info(N_monitor / parameters::NINTERM, N_monitor,
 				    dt);
 
 	if (parameters::calculate_disk) {
@@ -220,7 +220,7 @@ static void step(t_data &data, const double dt) {
 	    // data[t_data::DENSITY] *=
 	    //(total_disk_mass_old / total_disk_mass_new);
 
-	    CalculateMonitorQuantitiesAfterHydroStep(data, N_outer_loop,
+	    CalculateMonitorQuantitiesAfterHydroStep(data, N_monitor,
 						     dt);
 
 	    if (parameters::variableGamma &&
@@ -240,8 +240,8 @@ static void print_progress() {
 	logging::print_master(
 	LOG_VERBOSE
 	"AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
-	(int)ceil(log10(parameters::NTOT)), N_outer_loop, parameters::NTOT,
-	(double)N_outer_loop / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
+	(int)ceil(log10(parameters::NTOT)), N_monitor, parameters::NTOT,
+	(double)N_monitor / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
 	dtemp / parameters::DT * 100.0);
 }
 
@@ -272,11 +272,11 @@ void run(t_data &data) {
 
 		cfl_dt = CalculateTimeStep(data);
 
-		const double time_left_till_write = (N_outer_loop+1)*parameters::DT - PhysicalTime;
+		const double time_left_till_write = (N_monitor+1)*parameters::DT - PhysicalTime;
 
 		if (cfl_dt > time_left_till_write) {
 			step_dt = time_left_till_write;
-			N_outer_loop++;
+			N_monitor++;
 			towrite = true;
 		} else {
 			step_dt = cfl_dt;
@@ -292,7 +292,7 @@ void run(t_data &data) {
     }
 	logging::print_master(
 			LOG_INFO "Reached end of simulation at iteration %u of %u\n",
-			N_outer_loop - 1, parameters::NTOT);
+			N_snapshot, parameters::NTOT);
 }
 
 

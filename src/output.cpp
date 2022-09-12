@@ -308,13 +308,13 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
     }
 
     // write polar grids
-    output::write_grids(data, sim::N_output, sim::N_hydro_iter, sim::PhysicalTime);
+    output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::PhysicalTime);
     // write planet data
     data.get_planetary_system().write_planets(0);
     // write misc stuff (important for resuming)
     output::write_misc();
     // write time info for coarse output
-    output::write_coarse_time(sim::N_output, sim::N_outer_loop);
+    output::write_coarse_time(sim::N_snapshot, sim::N_monitor);
     // write particles
     if (parameters::integrate_particles) {
 	particles::write();
@@ -400,7 +400,7 @@ void write_quantities(t_data &data, bool force_update)
     }
 
     const auto disk_quantities = reduce_disk_quantities(
-	data, sim::N_output, force_update, quantities_limit_radius);
+	data, sim::N_snapshot, force_update, quantities_limit_radius);
     const double disk_eccentricity = disk_quantities[0];
     const double disk_periastron = disk_quantities[1];
 
@@ -439,7 +439,7 @@ void write_quantities(t_data &data, bool force_update)
     const double totalEnergy =
 	internalEnergy + kinematicEnergy + gravitationalEnergy;
 
-    quantities::compute_aspectratio(data, sim::N_output, force_update);
+    quantities::compute_aspectratio(data, sim::N_snapshot, force_update);
     const double scale_height =
 	quantities::gas_aspect_ratio(data, quantities_limit_radius);
 
@@ -480,7 +480,7 @@ void write_quantities(t_data &data, bool force_update)
 	fprintf(
 	    fd,
 		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
-	    sim::N_output, sim::N_outer_loop, sim::PhysicalTime, totalMass, diskRadius,
+	    sim::N_snapshot, sim::N_monitor, sim::PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
@@ -522,8 +522,8 @@ void write_misc()
 	memset(&misc, 0, sizeof(misc_entry));
 
 	
-    misc.timestep = sim::N_output;
-    misc.nTimeStep = sim::N_outer_loop;
+    misc.timestep = sim::N_snapshot;
+    misc.nTimeStep = sim::N_monitor;
     misc.PhysicalTime = sim::PhysicalTime;
     misc.OmegaFrame = refframe::OmegaFrame;
     misc.FrameAngle = refframe::FrameAngle;
@@ -647,8 +647,8 @@ int load_misc()
 
     rf.read((char *)&misc, sizeof(misc_entry));
 
-    sim::N_output = misc.timestep;
-    sim::N_outer_loop = misc.nTimeStep;
+    sim::N_snapshot = misc.timestep;
+    sim::N_monitor = misc.nTimeStep;
     sim::PhysicalTime = misc.PhysicalTime;
     refframe::OmegaFrame = misc.OmegaFrame;
     refframe::FrameAngle = misc.FrameAngle;

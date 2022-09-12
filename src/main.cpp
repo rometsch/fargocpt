@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     t_data data;
 
     sim::N_hydro_iter = 0;
-    sim::N_outer_loop = 0;
+    sim::N_monitor = 0;
 
     resize_radialarrays(MAX1D);
 
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 
     if (start_mode::mode == start_mode::mode_restart) {
 
-	sim::N_outer_loop = 0;
+	sim::N_monitor = 0;
 	start_mode::restart_from = output::load_misc();
 
 	if (parameters::is_damping_initial) {
