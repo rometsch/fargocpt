@@ -98,13 +98,14 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		output::outdir += "/";
 	}
     
-    ensure_directory_exists(std::string(output::outdir));
+    ensure_directory_exists(output::outdir);
     MPI_Barrier(MPI_COMM_WORLD);
 
     start_mode::configure_start_mode();
 
     ensure_directory_exists(output::outdir + "snapshots/");
     ensure_directory_exists(output::outdir + "parameters/");
+	ensure_directory_exists(output::outdir + "monitor/");
     MPI_Barrier(MPI_COMM_WORLD);
 
     if (CPU_Master) {

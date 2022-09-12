@@ -352,7 +352,7 @@ void write_grids(t_data &data, int index, int iter, double phystime)
 void write_quantities(t_data &data, bool force_update)
 {
     FILE *fd = 0;
-    std::string filename = outdir + "Quantities.dat";
+    std::string filename = outdir + "monitor/Quantities.dat";
     auto fd_filename = filename.c_str();
     static bool fd_created = false;
 
@@ -895,7 +895,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	char *fd_filename;
 	static bool fd_created_luminosity = false;
 
-	if (asprintf(&fd_filename, "%s%s", outdir.c_str(), "luminosity.dat") == -1) {
+	if (asprintf(&fd_filename, "%s%s", outdir.c_str(), "monitor/luminosity.dat") == -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
 	    PersonalExit(1);
@@ -944,7 +944,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 	// write dissipation
 	static bool fd_created_dissipation = false;
 
-	if (asprintf(&fd_filename, "%s%s", outdir.c_str(), "dissipation.dat") ==
+	if (asprintf(&fd_filename, "%s%s", outdir.c_str(), "monitor/dissipation.dat") ==
 	    -1) {
 	    logging::print_master(LOG_ERROR
 				  "Not enough memory for string buffer.\n");
@@ -1069,7 +1069,7 @@ void write_monitor_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 
-	const std::string filename = outdir + "/timeMonitor.dat";
+	const std::string filename = outdir + "/monitor/timeMonitor.dat";
 	auto fd_filename = filename.c_str();
 
 	// check if file exists and we restarted
@@ -1235,7 +1235,7 @@ void CheckAngularMomentumConservation(t_data &data)
 		return;
 	}
 
-	const std::string filename = outdir + "Momentum.dat";
+	const std::string filename = outdir + "monitor/Momentum.dat";
 
     // open logfile
     fd = fopen(filename.c_str(), "a");
