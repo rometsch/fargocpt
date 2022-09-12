@@ -933,7 +933,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 			nu_art * DIV_V(nr, naz);*/
 		SIGMA_ART_NU(nr, naz) = sigma_nu_art;
 
-		if (parameters::heating_viscous_enabled) {
+		if (parameters::Adiabatic && parameters::artificial_viscosity_dissipation) {
 		if(nr > 1 && nr < density.get_max_radial()){
 			if(ViscosityAlpha){
 				if(ALPHAVISCOSITY > 0.0 && (nr > 0)){
