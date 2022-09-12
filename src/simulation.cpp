@@ -41,14 +41,14 @@ static void write_snapshot(t_data &data) {
 	}
 }
 
-static void handle_outputs(t_data &data) {
+void handle_outputs(t_data &data) {
 	bool need_update_for_output = true;
 	N_snapshot = (N_monitor / parameters::NINTERM); // note: integer division
-	bool to_write_snapshot = (parameters::NINTERM * N_snapshot == N_monitor);
+	const bool to_write_snapshot = (parameters::NINTERM * N_snapshot == N_monitor);
+	const bool to_write_monitor = to_write_snapshot || parameters::write_at_every_timestep;
 
 	/// asure planet torques are computed
-	if (!parameters::disk_feedback &&
-	    (to_write_snapshot || parameters::write_at_every_timestep)) {
+	if (!parameters::disk_feedback && to_write_monitor) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
@@ -57,23 +57,23 @@ static void handle_outputs(t_data &data) {
 		write_snapshot(data);
 	}
 
-	if (to_write_snapshot || parameters::write_at_every_timestep) {
-	    ComputeCircumPlanetaryMasses(data);
-	    data.get_planetary_system().write_planets(1);
-	}
-
-	// write disk quantities like eccentricity, ...
-	if ((to_write_snapshot || parameters::write_at_every_timestep) &&
-	    parameters::write_disk_quantities) {
-	    output::write_quantities(data, need_update_for_output);
-	}
-
 	if (to_write_snapshot && parameters::write_torques) {
 	    output::write_torques(data, need_update_for_output);
 	}
-	if (parameters::write_lightcurves &&
-	    (parameters::write_at_every_timestep || to_write_snapshot)) {
-	    output::write_lightcurves(data, N_snapshot, need_update_for_output);
+
+	if (to_write_monitor) {
+		output::write_monitor_time(N_snapshot, N_monitor);
+	    ComputeCircumPlanetaryMasses(data);
+	    data.get_planetary_system().write_planets(1);
+
+		if (parameters::write_lightcurves) {
+			output::write_lightcurves(data, N_snapshot, need_update_for_output);
+		}
+	}
+
+	// write disk quantities like eccentricity, ...
+	if ((to_write_monitor) && parameters::write_disk_quantities) {
+	    output::write_quantities(data, need_update_for_output);
 	}
 
 }
@@ -251,7 +251,6 @@ void init(t_data &data) {
 
 	if (start_mode::mode != start_mode::mode_restart) {
 		CalculateTimeStep(data);
-		handle_outputs(data);
 	}
 }
 

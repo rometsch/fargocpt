@@ -313,14 +313,14 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
     data.get_planetary_system().write_planets(0);
     // write misc stuff (important for resuming)
     output::write_misc();
-    // write time info for coarse output
-    output::write_coarse_time(sim::N_snapshot, sim::N_monitor);
     // write particles
     if (parameters::integrate_particles) {
 	particles::write();
     }
 
     if (register_snapshot) {
+    // write time info for coarse output
+    output::write_snapshot_time(sim::N_snapshot, sim::N_monitor);
 	register_output(snapshot_id);
     }
 
@@ -997,10 +997,10 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 }
 
 /**
-Write for each coarse output step the corresponding fine grained output number
-and the simulation time in cgs units.
+Write the corresponding fine grained output number
+and the simulation time for each snapshot.
 */
-void write_coarse_time(unsigned int coarseOutputNumber,
+void write_snapshot_time(unsigned int coarseOutputNumber,
 		       unsigned int fineOutputNumber)
 {
     FILE *fd = 0;
@@ -1008,7 +1008,7 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 
     if (CPU_Master) {
 
-	const std::string filename = outdir + "timeCoarse.dat";
+	const std::string filename = outdir + "/snapshots/timeSnapshot.dat";
 	auto fd_filename = filename.c_str();
 
 	// check if file exists and we restarted
@@ -1028,7 +1028,68 @@ void write_coarse_time(unsigned int coarseOutputNumber,
 	}
 	if (fd == NULL) {
 	    logging::print_master(
-		LOG_ERROR "Can't write 'timeCoarse.dat' file. Aborting.\n");
+		LOG_ERROR "Can't write 'timeSnapshot.dat' file. Aborting.\n");
+	    PersonalExit(1);
+	}
+
+	if (!fd_created) {
+	    // print header
+	    fprintf(fd, "# Time log for course output.\n"
+			"#version: 0.1\n"
+			"#variable: 0 | time step | 1\n"
+			"#variable: 1 | analysis time step | 1\n"
+			"#variable: 2 | physical time | ");
+	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
+	    fprintf(
+		fd,
+		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
+		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
+		parameters::DT, parameters::DT * units::time.get_cgs_factor());
+	    fd_created = true;
+	}
+    }
+
+    if (CPU_Master) {
+	fprintf(fd, "%u\t%u\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
+		sim::PhysicalTime);
+	fclose(fd);
+    }
+}
+
+
+/**
+Write the corresponding snapshot output number
+and the simulation time for each monitor output.
+*/
+void write_monitor_time(unsigned int coarseOutputNumber,
+		       unsigned int fineOutputNumber)
+{
+    FILE *fd = 0;
+    static bool fd_created = false;
+
+    if (CPU_Master) {
+
+	const std::string filename = outdir + "/timeMonitor.dat";
+	auto fd_filename = filename.c_str();
+
+	// check if file exists and we restarted
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
+	    fd = fopen(fd_filename, "r");
+	    if (fd) {
+		fd_created = true;
+		fclose(fd);
+	    }
+	}
+
+	// open logfile
+	if (!fd_created) {
+	    fd = fopen(fd_filename, "w");
+	} else {
+	    fd = fopen(fd_filename, "a");
+	}
+	if (fd == NULL) {
+	    logging::print_master(
+		LOG_ERROR "Can't write 'timeMonitor.dat' file. Aborting.\n");
 	    PersonalExit(1);
 	}
 

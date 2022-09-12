@@ -341,13 +341,12 @@ void t_planetary_system::restart()
 
     logging::print_master(LOG_INFO "Loading rebound ...");
 
-    {
+    
 	reb_free_simulation(m_rebound);
-	std::string rebound_filename = output::snapshot_dir + "rebound.bin";
+	std::string rebound_filename = output::snapshot_dir + "/rebound.bin";
 	m_rebound = reb_create_simulation_from_binary(
 	    (char *)rebound_filename.c_str());
-    }
-
+    
     copy_data_from_rebound();
     calculate_orbital_elements();
 
@@ -368,7 +367,7 @@ void t_planetary_system::write_planets(int file_type)
     }
 
     if (CPU_Master) {
-	const std::string rebound_filename = output::snapshot_dir + "rebound.bin";
+	const std::string rebound_filename = output::snapshot_dir + "/rebound.bin";
 	reb_output_binary(m_rebound, rebound_filename.c_str());
     }
 }

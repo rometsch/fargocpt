@@ -631,17 +631,14 @@ void restart()
 	"Beware: when restarting particles, the user is responsible that the loaded particle file is written with the same coordinate system as the simulation is running on!\n\n");
 
     FILE *fd;
-    std::stringstream filename;
-    filename << output::snapshot_dir << "/"
-	     << "particles"
-	     << ".dat";
+    const std::string filename = output::snapshot_dir + "/particles.dat";
 
-    fd = fopen(filename.str().c_str(), "r");
+    fd = fopen(filename.c_str(), "r");
     if (fd == nullptr) {
 	logging::print_master(
 	    LOG_INFO
 	    "Can't find file particles.dat (%s). Using generated particles.\n",
-	    filename.str().c_str());
+	    filename.c_str());
 	return;
     }
     fseek(fd, 0L, SEEK_END);
@@ -686,12 +683,12 @@ void restart()
     // try to open file
 
     mpi_error_check_file_read(
-	MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(), MPI_MODE_RDONLY,
+	MPI_File_open(MPI_COMM_WORLD, filename.c_str(), MPI_MODE_RDONLY,
 		      MPI_INFO_NULL, &fh),
-	filename.str().c_str());
+	filename.c_str());
 
     logging::print_master(LOG_INFO "Reading file '%s' with %u bytes.\n",
-			  filename.str().c_str(), size);
+			  filename.c_str(), size);
 
     // get number of local particles from all nodes to compute correct offsets
     std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
@@ -2644,15 +2641,13 @@ void write()
     MPI_File fh;
     MPI_Status status;
 
-    std::stringstream filename;
-    filename << output::snapshot_dir << "/"
-	     << "particles.dat";
+    std::string filename = output::snapshot_dir + "/particles.dat";
 
     // try to open file
     mpi_error_check_file_write(
-	MPI_File_open(MPI_COMM_WORLD, filename.str().c_str(),
+	MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 		      MPI_MODE_WRONLY | MPI_MODE_CREATE, MPI_INFO_NULL, &fh),
-	filename.str().c_str());
+	filename.c_str());
 
     // get number of local particles from all nodes to compute correct offsets
     std::vector<unsigned int> nodes_number_of_particles(CPU_Number);

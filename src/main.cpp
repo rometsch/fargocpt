@@ -185,7 +185,6 @@ int main(int argc, char *argv[])
 	ComputeDiskOnNbodyAccel(data);
 	data.get_planetary_system().correct_velocity_for_disk_accel();
     }
-    logging::print_master(LOG_INFO "planets initialised.\n");
 
     if (parameters::integrate_particles) {
 	particles::init(data);
@@ -322,6 +321,10 @@ int main(int argc, char *argv[])
     CommunicateBoundaries(&data[t_data::SIGMA0], &data[t_data::V_RADIAL0],
 			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
 
+
+	if (start_mode::mode != start_mode::mode_restart) {
+		sim::handle_outputs(data);
+	}
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	sim::run(data);	
