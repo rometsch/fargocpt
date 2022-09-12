@@ -291,10 +291,6 @@ void init_physics(t_data &data)
 	logging::print_master(LOG_INFO "sg initialised\n");
     }
 
-    // ListPlanets(sys);
-    data.get_planetary_system().list_planets();
-    // data.get_planetary_system().correct_planet_accretion();
-
 	if (data.get_planetary_system().get_number_of_planets() < 2) {
 	/*if (parameters::boundary_outer ==
 	    parameters::boundary_condition_center_of_mass_initial) {

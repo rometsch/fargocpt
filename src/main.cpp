@@ -134,8 +134,8 @@ int main(int argc, char *argv[])
 
     // Here planets are initialized feeling star potential
     data.get_planetary_system().init_system(options::parameter_file);
-    data.get_planetary_system().compute_dist_to_primary();
-    data.get_planetary_system().init_roche_radii();
+
+    // data.get_planetary_system().correct_planet_accretion();
 
 	// TODO: check with Lucas why needed?
 	if(parameters::heating_star_enabled){

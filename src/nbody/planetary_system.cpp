@@ -91,7 +91,10 @@ void t_planetary_system::init_system(const std::string &filename)
 			 get_number_of_planets());
 
 		// activate irradiation if its enable for any of the planets
-	
+
+	compute_dist_to_primary();
+    init_roche_radii();
+    list_planets();
 }
 
 void t_planetary_system::derive_config() {
