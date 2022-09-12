@@ -1265,7 +1265,7 @@ void calculate_qplus(t_data &data, const double current_time)
 
     if (EXPLICIT_VISCOSITY) {
 	if(ViscosityAlpha ||
-			(!parameters::heating_viscous_enabled) ||
+			(!parameters::artificial_viscosity_dissipation) ||
 			(parameters::artificial_viscosity !=
 				 parameters::artificial_viscosity_WT)){
 	data[t_data::QPLUS].clear();
