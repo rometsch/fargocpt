@@ -189,6 +189,7 @@ static void step(t_data &data, const double dt) {
 			  dt);
 	}
 
+	// TODO: move outside step
 	PhysicalTime += dt;
 	N_hydro_iter = N_hydro_iter + 1;
 	logging::print_runtime_info(N_outer_loop / parameters::NINTERM, N_outer_loop,
@@ -281,8 +282,6 @@ void run(t_data &data) {
 			step_dt = cfl_dt;
 			towrite = false;
 		}
-
-
 
 		step(data, step_dt);
 
