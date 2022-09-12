@@ -257,43 +257,35 @@ void init(t_data &data) {
 void run(t_data &data) {
 
 	init(data);
+	double step_dt = last_dt;
+	double cfl_dt = last_dt;
 
-	// Jumpstart dt
-	hydro_dt = last_dt;
-
-	const double t_final = parameters::NTOT * parameters::DT;
+	const double t_final = parameters::NTOT * parameters::NINTERM * parameters::DT;
 
 	bool towrite = false;
 
     for (; PhysicalTime < t_final; N_hydro_iter++) {
-
-		// TODO: check whether this is still necessary
-		// do hydro and nbody
-		// recalculate timestep, even for no_disk = true, so that particle drag has
-    	// reasonable timestep size
-		if (!parameters::calculate_disk) {
-			hydro_dt = CalculateTimeStep(data, last_dt);
-		}
-					
-		
 		if (SIGTERM_RECEIVED) {
 			output::write_full_output(data, "autosave");
 			PersonalExit(0);
 		}
 
-		const double cfl_dt = CalculateTimeStep(data, hydro_dt);
+		cfl_dt = CalculateTimeStep(data);
 
 		const double time_left_till_write = (N_outer_loop+1)*parameters::DT - PhysicalTime;
-		if ( cfl_dt > time_left_till_write) {
-			hydro_dt = time_left_till_write;
+
+		if (cfl_dt > time_left_till_write) {
+			step_dt = time_left_till_write;
 			N_outer_loop++;
 			towrite = true;
 		} else {
-			hydro_dt = cfl_dt;
+			step_dt = cfl_dt;
 			towrite = false;
 		}
 
-		step(data, hydro_dt);
+
+
+		step(data, step_dt);
 
 		if (towrite) {
 			handle_outputs(data);
