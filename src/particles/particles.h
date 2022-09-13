@@ -11,6 +11,7 @@ extern std::vector<t_particle> particles;
 extern unsigned int particles_size;
 extern unsigned int local_number_of_particles;
 
+void update_velocities_from_indirect_term(const double dt);
 void init(t_data &data);
 void restart();
 // void calculate_accelerations_from_star_and_planets(t_data& data);
@@ -46,7 +47,7 @@ void update_velocity_from_disk_gravity_cart(
     const int n_azimuthal_b_minus, const int n_azimuthal_b_plus, const double r,
     const double phi, const int particle_id, const double dt);
 void check_tstop(t_data &data);
-void integrate(t_data &data, double dt);
+void integrate(t_data &data, const double current_time, double dt);
 void integrate_implicit(t_data &data, const double dt);
 void integrate_explicit(t_data &data, const double dt);
 void integrate_explicit_adaptive(t_data &data, const double dt);

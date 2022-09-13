@@ -38,6 +38,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
     axi = ayi = axo = ayo = 0.0;
     const double a = sqrt(x * x + y * y);
 
+	#pragma omp parallel for collapse(2) reduction(+ : axi, ayi, axo, ayo)
     for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size;
 	 ++n_rad) {
 	for (unsigned int n_az = 0; n_az < ns; ++n_az) {

@@ -58,12 +58,12 @@ t_data::t_data()
     m_polargrids[ECCENTRICITY].set_scalar(true);
     m_polargrids[ECCENTRICITY].set_name("Eccentricity");
     m_polargrids[ECCENTRICITY].set_do_before_write(
-	&quantities::calculate_disk_quantities);
+	&quantities::calculate_disk_ecc_peri);
 
     m_polargrids[PERIASTRON].set_scalar(true);
     m_polargrids[PERIASTRON].set_name("Periastron");
     m_polargrids[PERIASTRON].set_do_before_write(
-	&quantities::calculate_disk_quantities);
+	&quantities::calculate_disk_ecc_peri);
 
     m_polargrids[ALPHA_GRAV].set_scalar(true);
     m_polargrids[ALPHA_GRAV].set_name("alpha_grav");
@@ -128,8 +128,8 @@ t_data::t_data()
     m_polargrids[VISCOSITY].set_name("viscosity");
     m_polargrids[VISCOSITY].set_unit(units::kinematic_viscosity);
 
-    m_polargrids[ARTIFICIAL_VISCOSITY].set_scalar(true);
-    m_polargrids[ARTIFICIAL_VISCOSITY].set_name("artificial_viscosity");
+	m_polargrids[SIGMA_ART_VISC].set_scalar(true);
+	m_polargrids[SIGMA_ART_VISC].set_name("artificial_viscosity");
 
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_scalar(true);
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_R].set_name(
@@ -138,6 +138,14 @@ t_data::t_data()
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_scalar(true);
     m_polargrids[VISCOSITY_CORRECTION_FACTOR_PHI].set_name(
 	"viscosity_correction_factor_phi");
+
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_R].set_scalar(true);
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_R].set_name(
+	"artificial_viscosity_correction_factor_r");
+
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_PHI].set_scalar(true);
+	m_polargrids[ART_VISCOSITY_CORRECTION_FACTOR_PHI].set_name(
+	"artificial_viscosity_correction_factor_phi");
 
     m_polargrids[VISCOSITY_SIGMA_RP].set_vector(true);
     m_polargrids[VISCOSITY_SIGMA_RP].set_name(
@@ -152,7 +160,7 @@ t_data::t_data()
     m_polargrids[ADVECTION_TORQUE].set_unit(units::torque);
     m_polargrids[ADVECTION_TORQUE].set_do_before_write(
 	&quantities::calculate_advection_torque);
-    m_polargrids[ADVECTION_TORQUE].set_clear_after_write(true);
+	m_polargrids[ADVECTION_TORQUE].set_clear_after_write(true);
     m_polargrids[ADVECTION_TORQUE].set_integrate_azimuthally_for_1D_write(true);
 
     m_polargrids[VISCOUS_TORQUE].set_scalar(true);
@@ -160,7 +168,7 @@ t_data::t_data()
     m_polargrids[VISCOUS_TORQUE].set_unit(units::torque);
     m_polargrids[VISCOUS_TORQUE].set_do_before_write(
 	&quantities::calculate_viscous_torque);
-    m_polargrids[VISCOUS_TORQUE].set_clear_after_write(true);
+	m_polargrids[VISCOUS_TORQUE].set_clear_after_write(true);
     m_polargrids[VISCOUS_TORQUE].set_integrate_azimuthally_for_1D_write(true);
 
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_scalar(true);
@@ -169,7 +177,7 @@ t_data::t_data()
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_unit(units::torque);
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_do_before_write(
 	&quantities::calculate_gravitational_torque);
-    m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_clear_after_write(
+	m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_clear_after_write(
 	true);
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
 	.set_integrate_azimuthally_for_1D_write(true);
@@ -282,6 +290,13 @@ t_data::t_data()
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_scalar(true);
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
+
+	m_polargrids[ECCENTRICITY_NEW].set_scalar(true);
+	m_polargrids[ECCENTRICITY_NEW].set_name("Eccentricity New");
+
+	m_polargrids[PERIASTRON_NEW].set_scalar(true);
+	m_polargrids[PERIASTRON_NEW].set_name("Periastron New");
+
 
     pdivv_total = 0.0;
 }

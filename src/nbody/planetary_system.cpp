@@ -19,7 +19,10 @@
 
 extern boolean CICPlanet;
 
-t_planetary_system::t_planetary_system() {}
+t_planetary_system::t_planetary_system() {
+	m_shift_pos = pair{0.0, 0.0};
+	m_shift_vel = pair{0.0, 0.0};
+}
 
 t_planetary_system::~t_planetary_system()
 {
@@ -628,9 +631,17 @@ void t_planetary_system::update_global_hydro_frame_center_mass()
 
 void t_planetary_system::apply_indirect_term_on_Nbody(const pair accel, const double dt)
 {
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	m_rebound->particles[i].vx -= dt*accel.x;
-	m_rebound->particles[i].vy -= dt*accel.y;
+
+	for (unsigned int k = 0;
+	 k < get_number_of_planets(); k++) {
+		t_planet &planet = get_planet(k);
+		const double new_vx =
+		planet.get_vx() + dt * accel.x;
+		const double new_vy =
+		planet.get_vy() + dt * accel.y;
+
+		planet.set_vx(new_vx);
+		planet.set_vy(new_vy);
 	}
 }
 
@@ -640,20 +651,44 @@ void t_planetary_system::apply_indirect_term_on_Nbody(const pair accel, const do
  */
 void t_planetary_system::move_to_hydro_frame_center()
 {
-    Pair center = get_hydro_frame_center_position();
-    Pair vcenter = get_hydro_frame_center_velocity();
+	const Pair center = get_hydro_frame_center_position();
+	const Pair vcenter = get_hydro_frame_center_velocity();
+
+	m_shift_pos = center;
+	m_shift_vel = vcenter;
+
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	t_planet &planet = get_planet(i);
-	double x = planet.get_x();
-	double y = planet.get_y();
-	double vx = planet.get_vx();
-	double vy = planet.get_vy();
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double vx = planet.get_vx();
+	const double vy = planet.get_vy();
 
 	planet.set_x(x - center.x);
 	planet.set_y(y - center.y);
 	planet.set_vx(vx - vcenter.x);
 	planet.set_vy(vy - vcenter.y);
     }
+}
+
+/**
+ * @brief t_planetary_system::shift_to_hydro_frame_center
+ * this improved the accuracy in python tests
+ */
+void t_planetary_system::move_to_hydro_frame_center_from_last_dt()
+{
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	t_planet &planet = get_planet(i);
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double vx = planet.get_vx();
+	const double vy = planet.get_vy();
+
+	planet.set_x(x - m_shift_pos.x * 0.5);
+	planet.set_y(y - m_shift_pos.y * 0.5);
+	planet.set_vx(vx - m_shift_vel.x * 0.5);
+	planet.set_vy(vy - m_shift_vel.y * 0.5);
+	}
 }
 
 /**
@@ -781,7 +816,8 @@ void t_planetary_system::integrate(const double time, const double dt)
 	return;
     }
 
-	// data has already been copied to rebound in ComputeIndirectTermNbodyAndFixVelocities
+	copy_data_to_rebound();
+	m_rebound->t = time;
 
     disable_trap_fpe_gnu();
     reb_integrate(m_rebound, time + dt);

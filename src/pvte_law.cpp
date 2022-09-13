@@ -1,3 +1,7 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <cassert>
 
 #include <cmath>
@@ -75,6 +79,7 @@ void makeZetaTables()
     }
 
     b1 = 2.0 * THETA_R;
+	#pragma omp parallel for
     for (j = 0; j < Nzeta; j++) {
 	const double T = Temp0 * std::exp(j * dy);
 	inv_T2 = 1.0 / (T * T);
@@ -144,6 +149,7 @@ void initializeLookupTables()
 {
     makeZetaTables();
 
+	#pragma omp parallel for collapse(2)
     for (int i = 0; i < Ni; ++i) {
 	for (int j = 0; j < Nj; ++j) {
 	    double rhoi = std::pow(10.0, (deltaLogRho * i)) * rhomin;
@@ -449,37 +455,36 @@ void compute_gamma_mu(t_data &data)
 		logging::print_master(LOG_INFO "Lookup tables generated \n");
 	}
     */
-    for (unsigned int n_radial = 0;
-	 n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
-	     ++n_azimuthal) {
+	const unsigned int Nr = data[t_data::SIGMA].get_size_radial();
+	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
-	    const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
-
-	    const double H = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+		const double sigma = data[t_data::SIGMA](nr, naz);
+		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
 
 	    double densityCGS, energyCGS;
 
         // TODO: check units!
 	    if (parameters::ShockTube > 0) {
 		densityCGS = sigma * units::density.get_cgs_factor();
-		energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) *
+		energyCGS = data[t_data::ENERGY](nr, naz) *
 			    units::energy_density.get_cgs_factor() / densityCGS;
 	    } else {
 		densityCGS =
 		    sigma / (parameters::density_factor * H) * units::density.get_cgs_factor();
 
-		energyCGS = data[t_data::ENERGY](n_radial, n_azimuthal) *
-			    units::energy_density.get_cgs_factor() /
+		energyCGS = data[t_data::ENERGY](nr, naz) *
+			    units::energy_density /
 			    (sigma * units::surface_density);
 	    }
 
 	    t_eosQuantities q = lookup(densityCGS, energyCGS);
 
-	    data[t_data::GAMMAEFF](n_radial, n_azimuthal) = q.geff;
-	    data[t_data::MU](n_radial, n_azimuthal) = q.mow;
-	    data[t_data::GAMMA1](n_radial, n_azimuthal) = q.g1;
+		data[t_data::GAMMAEFF](nr, naz) = q.geff;
+		data[t_data::MU](nr, naz) = q.mow;
+		data[t_data::GAMMA1](nr, naz) = q.g1;
 	}
     }
 }

@@ -119,6 +119,8 @@ double sigma0;
 t_initialize_condition energy_initialize_condition;
 std::string energy_filename;
 
+bool keep_mass_constant;
+
 t_artificial_viscosity artificial_viscosity;
 double artificial_viscosity_factor;
 bool artificial_viscosity_dissipation;
@@ -858,6 +860,9 @@ void read(const std::string &filename, t_data &data)
     case 't': // TW
 	artificial_viscosity = artificial_viscosity_TW;
 	break;
+	case 'w': // WT
+	artificial_viscosity = artificial_viscosity_WT;
+	break;
     case 's': // SN
 	artificial_viscosity = artificial_viscosity_SN;
 	break;
@@ -873,6 +878,12 @@ void read(const std::string &filename, t_data &data)
     if (config::cfg.contains("CVNR")) {
 	die("Parameter CVNR has been renamed to ArtificialViscosityFactor");
     }
+
+	keep_mass_constant =
+	config::value_as_bool_default("KeepDiskMassConstant", false);
+	if(keep_mass_constant){
+		logging::print_master(LOG_INFO "Disk mass is kept constant at initial value.\n");
+	}
 
     //
     thickness_smoothing =
@@ -919,6 +930,24 @@ void read(const std::string &filename, t_data &data)
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
 
 	indirect_term_mode = config::cfg.get<int>("IndirectTermMode", INDIRECT_TERM_REBOUND);
+
+	switch(indirect_term_mode){
+		case INDIRECT_TERM_REBOUND:
+		{
+			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleratrion with shifting the Nbody system to the center.\n");
+			break;
+		}
+		case INDIRECT_TERM_EULER:
+		{
+			logging::print_master(LOG_INFO "Indirect Term computed as current force (euler) on Hydro center with shifting the Nbody system to the center.\n");
+			break;
+		}
+		case INDIRECT_TERM_REB_SPRING:
+		{
+			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleratrion with spring force keeping the Nbody system near the center.\n");
+			break;
+		}
+	}
 
     // self gravity
     self_gravity = config::cfg.get_flag("SelfGravity", "no");
@@ -1122,6 +1151,15 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\n",
 	    parameters::artificial_viscosity_factor);
+	logging::print_master(
+		LOG_INFO "Artificial viscosity is %s for dissipation.\n",
+		parameters::artificial_viscosity_dissipation ? "used" : "not used");
+		break;
+	case artificial_viscosity_WT:
+		logging::print_master(
+		LOG_INFO
+		"Using Tscharnuter-Winkler (1979) artificial viscosity with C = %lf.\nArtificial viscosity is applied indipendently from kinematic viscosity!\n",
+		parameters::artificial_viscosity_factor);
 	logging::print_master(
 	    LOG_INFO "Artificial viscosity is %s for dissipation.\n",
 	    parameters::artificial_viscosity_dissipation ? "used" : "not used");

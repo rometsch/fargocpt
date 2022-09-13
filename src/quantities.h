@@ -7,7 +7,9 @@ namespace quantities
 {
 
 double gas_total_mass(t_data &data, const double quantitiy_radius);
-double gas_aspect_ratio(t_data &data, const double quantitiy_radius);
+double gas_quantity_reduce(const t_polargrid& arr, const double quantitiy_radius);
+double gas_reduce_mass_average(t_data &data, const t_polargrid& arr, const double quantitiy_radius);
+double gas_allreduce_mass_average(t_data &data, const t_polargrid& arr, const double quantitiy_radius);
 double gas_disk_radius(t_data &data, const double total_mass);
 double gas_angular_momentum(t_data &data, const double quantitiy_radius);
 double gas_internal_energy(t_data &data, const double quantitiy_radius);
@@ -17,10 +19,14 @@ double gas_kinematic_energy(t_data &data, const double quantitiy_radius);
 double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius);
 double gas_azimuthal_kinematic_energy(t_data &data,
 				      const double quantitiy_radius);
-double gas_gravitational_energy(t_data &data, const double quantitiy_radius);
 
-void calculate_disk_quantities(t_data &data, unsigned int timestep,
-			       bool force_update);
+void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
+				   bool force_update);
+void state_disk_ecc_peri_calculation_center(t_data &data);
+
+void calculate_disk_ecc_vector(t_data &data);
+void calculate_disk_delta_ecc_peri(t_data &data, double& dEcc, double& dPer);
+
 void calculate_alpha_grav(t_data &data, unsigned int timestep,
 			  bool force_update);
 void calculate_alpha_grav_mean_sumup(t_data &data, unsigned int timestep,
@@ -43,6 +49,8 @@ void calculate_gravitational_torque(t_data &data, unsigned int timestep,
 				    bool force_update);
 void calculate_viscous_torque(t_data &data, unsigned int timestep,
 			      bool force_update);
+void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
+				int nTimeStep, double dt);
 } // namespace quantities
 
 #endif // QUANTITIES_H

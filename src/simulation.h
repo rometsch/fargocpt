@@ -20,6 +20,7 @@ extern unsigned long int N_hydro_iter;
 void init(t_data &data);
 void run(t_data &data);
 void handle_outputs(t_data &data);
+double CalculateTimeStep(t_data &data);
 
 }
 

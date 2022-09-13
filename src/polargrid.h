@@ -122,7 +122,6 @@ class t_polargrid
 	return Field[cell(nRadial, nAzimuthal)];
     }
 
-    double get_max() const;
     t_polargrid &operator*=(double);
     t_polargrid &operator/=(double);
 

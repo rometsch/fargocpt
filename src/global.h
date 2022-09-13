@@ -6,6 +6,7 @@
 #include <mpi.h>
 #include <csignal>
 #include <vector>
+#include "hydro_dt_logger.h"
 
 extern int CPU_Rank;
 extern int CPU_Number;
@@ -82,7 +83,8 @@ extern t_radialarray SigmaMed;
 
 extern double hydro_center_mass;
 
-extern int StabilizeViscosity;
+extern int debug;
+extern int StabilizeViscosity, StabilizeArtViscosity;
 extern int flux_limiter_type;
 extern int CentrifugalBalance, SloppyCFL;
 extern MPI_Status global_MPI_Status;
@@ -91,6 +93,7 @@ extern t_polargrid *CellCenterX, *CellCenterY;
 extern double dphi;
 extern double invdphi;
 extern double dt_parabolic_local;
+extern hydro_dt_logger dt_logger;
 
 extern unsigned int NAzimuthal;
 extern unsigned int NRadial;
@@ -100,5 +103,19 @@ extern double RMAX;
 extern BoundaryFlow MassDelta;
 
 extern volatile sig_atomic_t SIGTERM_RECEIVED, PRINT_SIG_INFO;
+
+extern int ECC_GROWTH_MONITOR;
+extern double ecc_old, peri_old;
+extern double delta_ecc_source, delta_peri_source;
+extern double delta_ecc_art_visc, delta_peri_art_visc;
+extern double delta_ecc_visc, delta_peri_visc;
+extern double delta_ecc_transport, delta_peri_transport;
+extern double delta_ecc_damp, delta_peri_damp;
+
+extern std::vector<double> g_xpl;
+extern std::vector<double> g_ypl;
+extern std::vector<double> g_mpl;
+extern std::vector<double> g_rpl;
+extern std::vector<double> g_l1pl;
 
 #endif // GLOBAL_H

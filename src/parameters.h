@@ -188,6 +188,8 @@ extern t_initialize_condition energy_initialize_condition;
 /// filename to read energy profile from
 extern std::string energy_filename;
 
+extern bool keep_mass_constant;
+
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
 /// profile cutoff point
@@ -207,6 +209,8 @@ enum t_artificial_viscosity {
     artificial_viscosity_none, // no artificial viscosity
     artificial_viscosity_TW,   // artificial viscosity based on Tscharnuter &
 			       // Winkler, 1979
+	artificial_viscosity_WT,   // artificial viscosity based on Tscharnuter &
+				   // Winkler, 1979 but explicit instead of adding on top of viscous stress tensor
     artificial_viscosity_SN    // artificial viscosity based on Stone & Norman,
 			       // 1991 (ZEUS)
 };

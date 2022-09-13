@@ -119,6 +119,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     double dPxPlanet = 0.0;
     double dPyPlanet = 0.0;
 
+	#pragma omp parallel for collapse (2) reduction(+ : dMplanet, dPxPlanet, dPyPlanet)
     for (unsigned int i = i_min; i <= i_max; i++) {
 	for (int j = j_min; j <= j_max; j++) {
 	    // map azimuthal index to [0, ns]
@@ -242,7 +243,8 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
     double dPxPlanet = 0.0;
     double dPyPlanet = 0.0;
 
-    for (unsigned int i = i_min; i <= i_max; i++) {
+	#pragma omp parallel for collapse (2) reduction(+ : dMplanet, dPxPlanet, dPyPlanet)
+	for (unsigned int i = i_min; i <= i_max; i++) {
 	for (int j = j_min; j <= j_max; j++) {
 		// map azimuthal index to [0, ns]
 		int jf = clamp_phi_id_to_grid(j);
@@ -356,6 +358,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     double dPxPlanet = 0.0;
     double dPyPlanet = 0.0;
 
+	#pragma omp parallel for collapse (2) reduction(+ : dMplanet, dPxPlanet, dPyPlanet)
     for (unsigned int i = i_min; i <= i_max; i++) {
 	for (int j = j_min; j <= j_max; j++) {
 	    // map azimuthal index to [0, ns]

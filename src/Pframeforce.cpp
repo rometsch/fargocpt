@@ -1,3 +1,7 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <stdlib.h>
 #include <vector>
 
@@ -25,24 +29,20 @@
  * @brief CalculatePotential: Nbody Potential caused by stars and planets
  * @param data
  */
-void CalculateNbodyPotential(t_data &data)
+void CalculateNbodyPotential(t_data &data, const double current_time)
 {
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-    static std::vector<double> xpl(N_planets);
-    static std::vector<double> ypl(N_planets);
-    static std::vector<double> mpl(N_planets);
-    static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass();
-	xpl[k] = planet.get_x();
-	ypl[k] = planet.get_y();
+	g_mpl[k] = planet.get_rampup_mass(current_time);
+	g_xpl[k] = planet.get_x();
+	g_ypl[k] = planet.get_y();
 
 	if (parameters::ASPECTRATIO_MODE == 1) {
-	    l1pl[k] = planet.get_dimensionless_roche_radius() *
+		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
     }
@@ -53,6 +53,7 @@ void CalculateNbodyPotential(t_data &data)
     const unsigned int N_rad_max = pot.get_max_radial();
     const unsigned int N_az_max = pot.get_max_azimuthal();
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const int cell = get_cell_id(n_rad, n_az);
@@ -62,8 +63,8 @@ void CalculateNbodyPotential(t_data &data)
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double smooth = compute_smoothing(data, n_rad, n_az);
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
+		const double dx = x - g_xpl[k];
+		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double d_smoothed =
 		    std::sqrt(dist_2 + std::pow(smooth, 2));
@@ -75,9 +76,9 @@ void CalculateNbodyPotential(t_data &data)
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
-			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central star.
-			const double l1 = l1pl[k];
+			const double l1 = g_l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -94,7 +95,7 @@ void CalculateNbodyPotential(t_data &data)
 
 		// direct term from planet
 		pot(n_rad, n_az) +=
-		    -constants::G * mpl[k] / d_smoothed * smooth_factor_klahr;
+			-constants::G * g_mpl[k] / d_smoothed * smooth_factor_klahr;
 	    }
 	    // apply indirect term
 	    // correct frame with contributions from disk and planets
@@ -103,25 +104,21 @@ void CalculateNbodyPotential(t_data &data)
     }
 }
 
-void CalculateAccelOnGas(t_data &data)
+void CalculateAccelOnGas(t_data &data, const double current_time)
 {
 
     static const unsigned int N_planets =
 	data.get_planetary_system().get_number_of_planets();
-    static std::vector<double> xpl(N_planets);
-    static std::vector<double> ypl(N_planets);
-    static std::vector<double> mpl(N_planets);
-    static std::vector<double> l1pl(N_planets);
 
     // setup planet data
     for (unsigned int k = 0; k < N_planets; k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	mpl[k] = planet.get_rampup_mass();
-	xpl[k] = planet.get_x();
-	ypl[k] = planet.get_y();
+	g_mpl[k] = planet.get_rampup_mass(current_time);
+	g_xpl[k] = planet.get_x();
+	g_ypl[k] = planet.get_y();
 
 	if (parameters::ASPECTRATIO_MODE == 1) {
-	    l1pl[k] = planet.get_dimensionless_roche_radius() *
+		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
     }
@@ -129,9 +126,11 @@ void CalculateAccelOnGas(t_data &data)
     double *acc_r = data[t_data::ACCEL_RADIAL].Field;
     const unsigned int N_az_max =
 	data[t_data::ACCEL_RADIAL].get_size_azimuthal();
+	const unsigned int Nr = data[t_data::ACCEL_RADIAL].get_size_radial() - 1;
 
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 1;
-	 n_rad < data[t_data::ACCEL_RADIAL].get_size_radial() - 1; ++n_rad) {
+	 n_rad < Nr; ++n_rad) { // No need to compute Vr at the top of the outer ghost cells
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
 
 	    const double phi = (double)n_az * dphi;
@@ -144,8 +143,8 @@ void CalculateAccelOnGas(t_data &data)
 	    pair ar = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
+		const double dx = x - g_xpl[k];
+		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
 		const double dist_sm = std::sqrt(dist_2_sm);
@@ -161,10 +160,10 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
-			const double l1 = l1pl[k];
+			const double l1 = g_l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -179,9 +178,9 @@ void CalculateAccelOnGas(t_data &data)
 		}
 
 		// direct term from planet
-		ar.x -= dx * constants::G * mpl[k] * inv_dist_3_sm *
+		ar.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
 			smooth_factor_klahr;
-		ar.y -= dy * constants::G * mpl[k] * inv_dist_3_sm *
+		ar.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
 			smooth_factor_klahr;
 	    }
 
@@ -218,8 +217,10 @@ void CalculateAccelOnGas(t_data &data)
     }
 
     double *accel_phi = data[t_data::ACCEL_AZIMUTHAL].Field;
+
+	#pragma omp parallel for collapse(2)
     for (unsigned int n_rad = 0;
-	 n_rad < data[t_data::ACCEL_AZIMUTHAL].get_size_radial(); ++n_rad) {
+	 n_rad < Nr; ++n_rad) {
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
 
 	    const double phi = ((double)n_az - 0.5) * dphi;
@@ -232,8 +233,8 @@ void CalculateAccelOnGas(t_data &data)
 	    pair aphi = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double dx = x - xpl[k];
-		const double dy = y - ypl[k];
+		const double dx = x - g_xpl[k];
+		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
 		const double dist_3_sm = std::sqrt(dist_2_sm) * dist_2_sm;
@@ -248,10 +249,10 @@ void CalculateAccelOnGas(t_data &data)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if (std::sqrt(xpl[k]*xpl[k] + ypl[k]*ypl[k]) > 1.0e-10) { // only for non central objects
+			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			// position of the l1 point between planet and central
 			// star.
-			const double l1 = l1pl[k];
+			const double l1 = g_l1pl[k];
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
@@ -266,9 +267,9 @@ void CalculateAccelOnGas(t_data &data)
 		}
 
 		// direct term from planet
-		aphi.x -= dx * constants::G * mpl[k] * inv_dist_3_sm *
+		aphi.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
 			  smooth_factor_klahr;
-		aphi.y -= dy * constants::G * mpl[k] * inv_dist_3_sm *
+		aphi.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
 			  smooth_factor_klahr;
 	    }
 
@@ -408,7 +409,7 @@ void UpdatePlanetVelocitiesWithDiskForce(t_data &data, const double dt)
 	    const double new_vy =
 		planet.get_vy() + dt * gamma.y;
 	    planet.set_vx(new_vx);
-	    planet.set_vy(new_vy);
+		planet.set_vy(new_vy);
 	}
     }
 }

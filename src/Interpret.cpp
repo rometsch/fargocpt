@@ -276,6 +276,21 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	die("died for convenience ;)");
     }
 
+	ECC_GROWTH_MONITOR = config::value_as_bool_default("WriteEccentricityChange", NO);
+	ecc_old = 0.0;
+	peri_old = 0.0;
+	delta_ecc_source = 0.0;
+	delta_peri_source = 0.0;
+	delta_ecc_art_visc = 0.0;
+	delta_peri_art_visc = 0.0;
+	delta_ecc_visc = 0.0;
+	delta_peri_visc = 0.0;
+	delta_ecc_transport = 0.0;
+	delta_peri_transport = 0.0;
+	delta_ecc_damp = 0.0;
+	delta_peri_damp = 0.0;
+
+
     // Frame settings
     parameters::corotating = false;
     GuidingCenter = false;
@@ -633,6 +648,21 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    LOG_INFO
 	    "Using pseudo implicit viscosity to limit the time step size\n");
     }
+
+	/// Read Viscosity Stuff
+	StabilizeArtViscosity = config::cfg.get<double>("STABILIZEARTVISCOSITY", 0);
+
+	if (StabilizeArtViscosity == 1) {
+	logging::print_master(
+		LOG_INFO
+		"(WT Only) Using pseudo implicit artificial viscosity to limit the viscosity update step\n");
+	}
+	if (StabilizeArtViscosity == 2) {
+	logging::print_master(
+		LOG_INFO
+		"(WT Only) Using pseudo implicit artificial viscosity to limit the time step size\n");
+	}
+
 
     if (parameters::VISCOSITY != 0.0) {
 	logging::print_master(

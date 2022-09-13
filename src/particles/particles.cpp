@@ -250,6 +250,7 @@ static double get_particle_eccentricity_cart(int particle_index)
 static void init_particle_timestep(t_data &data)
 {
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double sk, h1, der2, der12, sqr;
 
@@ -607,10 +608,14 @@ void init(t_data &data)
     }
 
     if (parameters::particle_disk_gravity_enabled) {
+	#pragma omp parallel for
 	for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	    correct_for_self_gravity(i);
 	}
     }
+
+	compute_rho(data, PhysicalTime);
+	compute_temperature(data);
     check_tstop(data);
 
     if (parameters::integrator == parameters::integrator_adaptive) {
@@ -1132,8 +1137,7 @@ void check_tstop(t_data &data)
 {
     double dt = sim::last_dt;
 
-    compute_rho(data, true);
-    compute_temperature(data, true);
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	const double radius = particles[i].radius;
 	const double r = particles[i].get_distance_to_star();
@@ -1236,9 +1240,10 @@ void check_tstop(t_data &data)
 }
 
 // apply disk feedback on primary onto the particles
-static void update_velocities_from_indirect_term(const double dt)
+void update_velocities_from_indirect_term(const double dt)
 {
     // Naming of r and phi weird!!!!!!!
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double indirect_q1_dot;
@@ -1269,8 +1274,7 @@ static void update_velocities_from_indirect_term(const double dt)
 void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 {
 
-    compute_rho(data, true);
-
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	const double r = particles[i].get_distance_to_star();
 	const double phi = particles[i].get_angle();
@@ -1373,8 +1377,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 void update_velocities_from_gas_drag(t_data &data, double dt)
 {
 
-    compute_rho(data, true);
-
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double r = particles[i].get_distance_to_star();
 	double phi = particles[i].get_angle();
@@ -1481,8 +1484,13 @@ void update_velocity_from_disk_gravity(const int n_radial_a_minus,
     particles[particle_id].phi_dot += dt * sg_azimuthal / r;
 }
 
-void integrate(t_data &data, const double dt)
+void integrate(t_data &data, const double current_time, const double dt)
 {
+
+	if (parameters::particle_gas_drag_enabled){
+		compute_rho(data, current_time);
+	}
+
     switch (parameters::integrator) {
     case parameters::integrator_explicit: {
 	integrate_explicit(data, dt);
@@ -1626,6 +1634,7 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 
     // update particles
     unsigned int offset = particle_offsets[CPU_Rank];
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	double &vx = particles[i].r_dot;
 	double &vy = particles[i].phi_dot;
@@ -1642,16 +1651,9 @@ void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
 
 void integrate_exponential_midpoint(t_data &data, const double dt)
 {
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
-    if (parameters::particle_gas_drag_enabled) {
-	compute_rho(data, true);
-    }
-
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	// initialize
@@ -1740,21 +1742,15 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	particles[i].phi_dot = l2 / std::pow(particles[i].r, 2);
 	particles[i].stokes = tstop*calculate_omega_kepler(r3);
     }
+	// TODO: check for multiple calls of move
+    move();
 }
 
 void integrate_semiimplicit(t_data &data, const double dt)
 {
-
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
     // eqs. A4-A12)
-    if (parameters::particle_gas_drag_enabled) {
-	compute_rho(data, true);
-    }
-
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	// initialize
@@ -1836,10 +1832,6 @@ void integrate_semiimplicit(t_data &data, const double dt)
 
 void integrate_implicit(t_data &data, const double dt)
 {
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // Fully implicit integrator in cylindrical coordinates (see Zhu et al.
     // 2014, eqs. A15-A18)
     double r1, phi1, l1, r_dot1, tstop1, tstop0, dt0, dt1;
@@ -1853,10 +1845,8 @@ void integrate_implicit(t_data &data, const double dt)
     minus_l_rel0 = 0.0;
     minus_r_dot_rel0 = 0.0;
     tstop0 = 1e+300;
-    if (parameters::particle_gas_drag_enabled) {
-	compute_rho(data, true);
-    }
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	const double r0 = particles[i].r;
 	const double phi0 = particles[i].phi;
@@ -1950,12 +1940,9 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	    update_velocities_from_gas_drag(data, dt);
     }
 
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
-
     // as particles move independent of each other, we can integrate one after
     // one
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double fac, fac11;
@@ -2292,12 +2279,10 @@ void integrate_explicit(t_data &data, const double dt)
 	    update_velocities_from_gas_drag(data, dt);
     } // else {
     // disk gravity on particles is inside gas_drag function
-    if (parameters::disk_feedback) {
-	update_velocities_from_indirect_term(dt);
-    }
 
     // as particles move independent of each other, we can integrate one after
     // one
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 
 	double k1_r, k1_phi, k1_r_dot, k1_phi_dot;
@@ -2673,6 +2658,7 @@ void write()
 
 void rotate(const double angle)
 {
+	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
 	// rotate positions
 	if (parameters::CartesianParticles) {

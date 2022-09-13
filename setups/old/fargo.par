@@ -33,7 +33,8 @@ ViscosityInCGS      NO      # Interpret Uniform kinematic viscosity (Viscosity b
 Viscosity		0.e-5		# Uniform kinematic viscosity
 AlphaViscosity		1.0e-3		#
 StabilizeViscosity	0		# 1 for limiting viscosity update step, 2 for limiting dt
-ArtificialViscosity	TW		# Type of artificial viscosity (none, TW, SN) [default = SN]
+StabilizeArtViscosity	0		# 1 for limiting WT artificial viscosity update step, 2 for limiting dt
+ArtificialViscosity	TW		# Type of artificial viscosity (none, TW, SN, WT(=TW but split from visc) [default = SN]
 ArtificialViscosityDissipation Yes	# Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor	1.41 	# artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex		0.0		# Slope of Temperature/radius profile
@@ -133,6 +134,7 @@ OmegaFrame		1.0
 Frame			F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback		Yes		# Calculate incfluence of the disk on the star
 IndirectTermMode	0		# 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
+KeepDiskMassConstant NO
 
 ### Mesh parameters
 
@@ -166,6 +168,7 @@ WriteEnergy		Yes		# Write energy. This is needed for restart of (adiabatic) simu
 WriteTemperature	No		# Write temperature. [default = no]
 WriteVelocity		Yes		# Write velocites. This is needed for restart of simulations. [default = yes]
 WriteSoundspeed		No		# Write sound speed [default = no]
+WriteEccentricityChange Yes
 WriteEffectiveGamma No		#
 WriteFirstAdiabaticIndex No # Usefull for PVTE EoS
 WriteMeanMolecularWeight No # 

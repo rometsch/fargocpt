@@ -25,6 +25,8 @@
 #include "viscosity.h"
 #include "frame_of_reference.h"
 #include <gsl/gsl_sf_bessel.h>
+#include "simulation.h"
+#include "cfl.h"
 
 #include "open-simplex-noise.h"
 #include "options.h"
@@ -312,14 +314,15 @@ void init_physics(t_data &data)
 
     refframe::FrameAngle = 0;
 
+	cfl::init(data);
+
     // only gas velocities remain to be initialized
-    init_euler(data);
+	init_euler(data, sim::PhysicalTime);
     init_gas_velocities(data);
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);
     }
-
-    // boundary_conditions::apply_boundary_condition(data, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
 }
 
 /**
@@ -511,6 +514,8 @@ void init_spreading_ring_test_jibin(t_data &data)
     logging::print_master(
 	LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", sig0,
 	sig0 * units::surface_density.get_cgs_factor());
+
+	srand(parameters::random_seed);
 
     for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
@@ -740,7 +745,7 @@ void init_PVTE_shock_tube_test(t_data &data)
     // after all units have calculated, calculate constants in code units
     constants::calculate_constants_in_code_units();
 
-    compute_pressure(data, false);
+	compute_pressure(data);
 
     // set SigmaMed/SigmaInf
     RefillSigma(&data[t_data::SIGMA]);
@@ -1791,15 +1796,11 @@ void init_gas_velocities(t_data &data)
 	if (parameters::self_gravity && !CentrifugalBalance)
 	selfgravity::init_azimuthal_velocity(data[t_data::V_AZIMUTHAL]);
 
-	for (unsigned int n_radial = 1;
+	for (unsigned int n_radial = 0;
 	 n_radial <= data[t_data::V_AZIMUTHAL].get_max_radial(); ++n_radial) {
-	if (n_radial == data[t_data::V_AZIMUTHAL].Nrad) {
-	    r = Rmed[data[t_data::V_AZIMUTHAL].Nrad - 1];
-	    ri = Rinf[data[t_data::V_AZIMUTHAL].Nrad - 1];
-	} else {
-	    r = Rmed[n_radial];
-	    ri = Rinf[n_radial];
-	}
+
+	r = Rmed[n_radial];
+	ri = Rinf[n_radial];
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
@@ -1815,9 +1816,18 @@ void init_gas_velocities(t_data &data)
 
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= refframe::OmegaFrame * r;
 
-	    if (CentrifugalBalance)
+		if (CentrifugalBalance){
+		if(n_radial == 0){
+			// extrapolate keplerian profile for nr = 0
+			const double vkep0 = Rmed[0] * calculate_omega_kepler(Rmed[0]);
+			const double vkep1 = Rmed[1] * calculate_omega_kepler(Rmed[1]);
+			data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
+				vt_cent[1 + IMIN] * vkep0 / vkep1;
+		} else {
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
 		    vt_cent[n_radial + IMIN];
+		}
+		}
 
 	    if (n_radial == data[t_data::V_RADIAL].Nrad) {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
@@ -1828,7 +1838,16 @@ void init_gas_velocities(t_data &data)
 
 		if (!parameters::initialize_vradial_zero) {
 		    if (parameters::ALPHAVISCOSITY > 0) {
-			const double nu = 0.5 * (data[t_data::VISCOSITY](n_radial, n_azimuthal) + data[t_data::VISCOSITY](n_radial-1, n_azimuthal));
+			double nu;
+			if(n_radial == 0){
+				// nu = alpha c_s h = alpha h^2 * vk
+				// so we extrapolate with the vk profile
+				const double vkep0 = Rmed[0] * calculate_omega_kepler(Rmed[0]);
+				const double vkep1 = Rmed[1] * calculate_omega_kepler(Rmed[1]);
+					nu = data[t_data::VISCOSITY](n_radial, n_azimuthal) * vkep0 / vkep1;
+			} else {
+				nu = 0.5 * (data[t_data::VISCOSITY](n_radial, n_azimuthal) + data[t_data::VISCOSITY](n_radial-1, n_azimuthal));
+			}
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
 				3.0 * nu / Rinf[n_radial] *
 			    (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
@@ -1840,15 +1859,7 @@ void init_gas_velocities(t_data &data)
 			    (-parameters::SIGMASLOPE + .5);
 		    }
 		}
-	    }
+		}
 	}
-    }
-
-    /// set VRadial for innermost and outermost ring to 0
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::V_RADIAL].get_max_azimuthal();
-	 ++n_azimuthal) {
-	data[t_data::V_RADIAL](0, n_azimuthal) = 0.0;
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].Nrad, n_azimuthal) = 0.0;
-    }
+	}
 }

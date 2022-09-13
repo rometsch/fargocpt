@@ -1,3 +1,9 @@
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#warning "Your compiler does not support OpenMP, at least with the flags you're using."
+#endif
+
 #include <experimental/filesystem>
 #include <fstream>
 #include <mpi.h>
@@ -36,6 +42,19 @@
 #include "simulation.h"
 #include "circumplanetary_mass.h"
 
+// copy paste from https://github.com/jeffhammond/HPCInfo/blob/master/mpi/with-threads/mpi-openmp.c
+#define MPI_THREAD_STRING(level)  \
+		( level==MPI_THREAD_SERIALIZED ? "THREAD_SERIALIZED" : \
+				( level==MPI_THREAD_MULTIPLE ? "THREAD_MULTIPLE" : \
+						( level==MPI_THREAD_FUNNELED ? "THREAD_FUNNELED" : \
+								( level==MPI_THREAD_SINGLE ? "THREAD_SINGLE" : "THIS_IS_IMPOSSIBLE" ) ) ) )
+
+int TimeToWrite;
+int Restart = 0;
+static int StillWriteOneOutput;
+extern int Corotating;
+extern int SelfGravity, SGZeroMode;
+
 // TODO: NRad darf nicht größer sein als MAX1D
 // copy operator for t_polargrid
 // write all polargrids on error
@@ -56,11 +75,31 @@ int main(int argc, char *argv[])
     int CPU_NameLength;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
 
+	int provided;
+	int requested = MPI_THREAD_FUNNELED;
+	MPI_Init_thread(&argc, &argv, requested, &provided);
+	if(provided < requested) {
+		die("MPI_Init_thread provided %s when %s was requested.  Exiting. \n",
+					   MPI_THREAD_STRING(provided), MPI_THREAD_STRING(requested));
+	}
+
     // initialize MPI
-    MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &CPU_Rank);
     MPI_Comm_size(MPI_COMM_WORLD, &CPU_Number);
     selfgravity::mpi_init();
+
+#ifdef _OPENMP
+	#pragma omp parallel
+	{
+		int omp_id  = omp_get_thread_num();
+		int omp_num = omp_get_num_threads();
+		printf("MPI rank # %2d OpenMP thread # %2d of %2d \n", CPU_Rank, omp_id, omp_num);
+		fflush(stdout);
+	}
+#else
+	printf("MPI rank # %2d \n", CPU_Rank);
+	fflush(stdout);
+#endif
 
     // are we master CPU?
     CPU_Master = (CPU_Rank == 0 ? 1 : 0);
@@ -134,6 +173,8 @@ int main(int argc, char *argv[])
 
     // Here planets are initialized feeling star potential
     data.get_planetary_system().init_system(options::parameter_file);
+	quantities::state_disk_ecc_peri_calculation_center(data);
+    // data.get_planetary_system().correct_planet_accretion();
 
     // data.get_planetary_system().correct_planet_accretion();
 
@@ -178,7 +219,7 @@ int main(int argc, char *argv[])
 
     boundary_conditions::init_prescribed_time_variable_boundaries(data);
     init_physics(data);
-	sim::init(data);
+	sim::CalculateTimeStep(data);
 
     // update planet velocity due to disk potential
     if (parameters::disk_feedback) {
@@ -252,7 +293,7 @@ int main(int argc, char *argv[])
 		logging::print_master(
 		    LOG_INFO
 		    "Cannot read Qplus, no bitwise identical restarting possible!\n");
-		compute_heating_cooling_for_CFL(data);
+		compute_heating_cooling_for_CFL(data, sim::PhysicalTime);
 	    }
 	    if (data[t_data::QMINUS].file_exists()) {
 		data[t_data::QMINUS].read2D();
@@ -260,7 +301,7 @@ int main(int argc, char *argv[])
 		logging::print_master(
 		    LOG_INFO
 		    "Cannot read Qminus, no bitwise identical restarting possible!\n");
-		compute_heating_cooling_for_CFL(data);
+		compute_heating_cooling_for_CFL(data, sim::PhysicalTime);
 	    }
 	}
 	if (parameters::integrate_particles) {
@@ -277,7 +318,7 @@ int main(int argc, char *argv[])
 	logging::print_master(LOG_INFO
 			      "Finished restarting planetary system.\n");
 
-	recalculate_derived_disk_quantities(data, true);
+	recalculate_derived_disk_quantities(data, sim::PhysicalTime);
 
 	if (parameters::variableGamma) {
 
@@ -293,10 +334,10 @@ int main(int argc, char *argv[])
 		data[t_data::GAMMA1].read2D();
 	    }
 
-	    compute_temperature(data, true);
-	    compute_sound_speed(data, true);
-	    compute_scale_height(data, true);
-	    compute_pressure(data, true);
+		compute_temperature(data);
+		compute_sound_speed(data, sim::PhysicalTime);
+		compute_scale_height(data, sim::PhysicalTime);
+		compute_pressure(data);
 	    viscosity::update_viscosity(data);
 	}
 
@@ -327,6 +368,8 @@ int main(int argc, char *argv[])
 	}
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	sim::init(data);
 	sim::run(data);	
     
 

@@ -8,7 +8,9 @@ momenta transport (we define a left and right momentum for each zone, which we
 declare zone centered; we then transport then normally, and deduce the new
 velocity in each zone by a proper averaging).
 */
-
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <cmath>
 #include <cstring>
 
@@ -25,6 +27,8 @@ velocity in each zone by a proper averaging).
 #include "parameters.h"
 #include "util.h"
 #include "frame_of_reference.h"
+#include "quantities.h"
+#include "simulation.h"
 
 // radial momentum is split to be cell centered
 static t_polargrid radial_momentum_plus;
@@ -127,6 +131,10 @@ void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 	// is crucial the check minimum density before!
 	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 	}
+
+	if(ECC_GROWTH_MONITOR){
+		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_transport, delta_peri_transport);
+	}
 }
 
 void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
@@ -147,7 +155,7 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 	    parameters::boundary_condition_precribed_time_variable) {
 	    boundary_conditions::
 		boundary_condition_precribed_time_variable_outer(data,
-								 DensityStar);
+								 DensityStar, sim::PhysicalTime);
 	}
 
 	if (parameters::massoverflow) {
@@ -176,6 +184,7 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 */
 void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal)
 {
+	#pragma omp parallel for
     for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
 	 ++n_radial) {
 	double v_azimuthal_sum = 0.0;
@@ -195,40 +204,40 @@ void compute_average_azimuthal_velocity(t_polargrid &v_azimuthal)
 */
 void compute_residual_velocity(t_polargrid &v_azimuthal)
 {
-    for (unsigned int n_radial = 0; n_radial < v_azimuthal.get_size_radial();
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
-	    v_azimuthal_res(n_radial, n_azimuthal) =
-		v_azimuthal(n_radial, n_azimuthal) - v_azimuthal_mean(n_radial);
+
+	const unsigned int Nr = v_azimuthal.get_size_radial();
+	const unsigned int Nphi = v_azimuthal.get_size_azimuthal();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		v_azimuthal_res(nr, naz) = v_azimuthal(nr, naz) - v_azimuthal_mean(nr);
 	}
     }
 }
 
 void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 {
-    int i, j, l, nr, ns;
-    long nitemp;
     double *vt, *vres, Ntilde, Nround, invdt;
-    nr = VAzimuthal->Nrad;
-    ns = VAzimuthal->Nsec;
+	const int nr = VAzimuthal->Nrad;
+	const int ns = VAzimuthal->Nsec;
     vt = VAzimuthal->Field;
     vres = v_azimuthal_res.Field;
     invdt = 1.0 / dt;
 
-    for (i = 0; i < nr; i++) {
+	#pragma omp parallel for
+	for (int i = 0; i < nr; i++) {
 	Ntilde = v_azimuthal_mean(i) * InvRmed[i] * dt * invdphi;
 	Nround = floor(Ntilde + 0.5);
-	nitemp = (long)Nround;
-	Nshift[i] = (long)nitemp;
-	for (j = 0; j < ns; j++) {
-	    l = j + i * ns;
+	const int nitemp = (int)Nround;
+	Nshift[i] = nitemp;
+	for (int j = 0; j < ns; j++) {
+		const int l = j + i * ns;
 	    vt[l] = (Ntilde - Nround) * Rmed[i] * invdt * dphi;
 	}
 	if (!parameters::fast_transport) {
 	    NoSplitAdvection[i] = YES;
-	    for (j = 0; j < ns; j++) {
-		l = j + i * ns;
+		for (int j = 0; j < ns; j++) {
+		const int l = j + i * ns;
 		vres[l] = vt[l] + vres[l];
 		vt[l] = 0.0;
 	    }
@@ -240,28 +249,34 @@ void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 
 void AdvectSHIFT(t_polargrid &array)
 {
-    int i, j, ji, l, li, nr, ns;
-    double *val;
-    val = array.Field;
-    nr = array.Nrad;
-    ns = array.Nsec;
+	double * val = array.Field;
+	const int nr = array.Nrad;
+	const int ns = array.Nsec;
 
-    for (i = 0; i < nr; i++) {
-	for (j = 0; j < ns; j++) {
-	    ji = j - Nshift[i];
-	    while (ji < 0)
+	#pragma omp parallel for collapse(2)
+	for (int i = 0; i < nr; i++) {
+	for (int j = 0; j < ns; j++) {
+		int ji = j - Nshift[i];
+		while (ji < 0){
 		ji += ns;
-	    while (ji >= ns)
+		}
+		while (ji >= ns){
 		ji -= ns;
-	    l = j + i * ns;
-	    li = ji + i * ns;
+		}
+		const int l = j + i * ns;
+		const int li = ji + i * ns;
 	    TempShift[l] = val[li];
 	}
-	for (j = 0; j < ns; j++) {
-	    l = j + i * ns;
+	}
+
+	/*#pragma omp parallel for collapse(2)
+	for (int i = 0; i < nr; i++) {
+	for (int j = 0; j < ns; j++) {
+		const int l = j + i * ns;
 	    val[l] = TempShift[l];
 	}
-    }
+	}*/
+	std::memcpy(val, TempShift, nr*ns*sizeof(double));
 }
 
 void OneWindTheta(t_data &data, PolarGrid *Density, PolarGrid *VAzimuthal,
@@ -333,7 +348,7 @@ static double flux_limiter(const double a, const double b){
 	}
 }
 
-static unsigned int cell_number(const unsigned int nrad, 
+static inline unsigned int cell_number(const unsigned int nrad, 
 								const unsigned int naz, 
 								const unsigned int Naz_tot) {
     return nrad * Naz_tot + naz;
@@ -346,20 +361,21 @@ static unsigned int cell_number(const unsigned int nrad,
 void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 			 t_polargrid *QStar, double dt)
 {
-    unsigned int nRadial, nAzimuthal;
-    double dqp, dqm;
 
-    for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    unsigned int cell = cell_number(nRadial, nAzimuthal, Qbase->Nsec);
-	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
-	    unsigned int cellNextRadial = cell + Qbase->Nsec;
-	    if ((nRadial == 0) || (nRadial == Qbase->Nrad - 1)) {
+	const unsigned int Nr = Qbase->Nrad;
+	const unsigned int Nphi = Qbase->Nsec;
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nRadial = 0; nRadial < Nr; ++nRadial) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
+		unsigned int cell = cell_number(nRadial, nAzimuthal, Nphi);
+		unsigned int cellPrevRadial = cell - Nphi;
+		unsigned int cellNextRadial = cell + Nphi;
+		if ((nRadial == 0) || (nRadial == Nr - 1)) {
 		dq[cell] = 0.0;
 	    } else {
-		dqm = (Qbase->Field[cell] - Qbase->Field[cellPrevRadial]) *
+		const double dqm = (Qbase->Field[cell] - Qbase->Field[cellPrevRadial]) *
 		      InvDiffRmed[nRadial];
-		dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
+		const double dqp = (Qbase->Field[cellNextRadial] - Qbase->Field[cell]) *
 		      InvDiffRmed[nRadial + 1];
 		dq[cell] = flux_limiter(dqp, dqm);
 		}
@@ -368,24 +384,27 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
     // TODO: changed to nRadial =1 because of nRadial-1
     // TODO: potential problem: Using Rmed[nRadial] - Rmed[nRadial-1] for
     // a-mesh Qties (v_rad,..) as well as for b-mesh Qties (Density,...)
-    for (nRadial = 1; nRadial < Qbase->Nrad; ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    unsigned int cell = cell_number(nRadial, nAzimuthal, Qbase->Nsec);
-	    unsigned int cellPrevRadial = cell - Qbase->Nsec;
-	    if (VRadial->Field[cell] > 0.0)
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nRadial = 1; nRadial < Nr; ++nRadial) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
+		unsigned int cell = cell_number(nRadial, nAzimuthal, Nphi);
+		unsigned int cellPrevRadial = cell - Nphi;
+		if (VRadial->Field[cell] > 0.0){
 		QStar->Field[cell] = Qbase->Field[cellPrevRadial] +
 				     (Rmed[nRadial] - Rmed[nRadial - 1] -
 				      VRadial->Field[cell] * dt) *
 					 0.5 * dq[cellPrevRadial];
-	    else
+		} else {
 		QStar->Field[cell] =
 		    Qbase->Field[cell] - (Rmed[nRadial + 1] - Rmed[nRadial] +
 					  VRadial->Field[cell] * dt) *
 					     0.5 * dq[cell];
+		}
 	}
     }
     // TODO: check here
-    for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
+	#pragma omp parallel for
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
 	(*QStar)(0, nAzimuthal) = 0.0;
 	if ((parameters::boundary_outer !=
 	     parameters::boundary_condition_evanescent) &&
@@ -409,37 +428,44 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 		      double dt)
 {
-    unsigned int nRadial, nAzimuthal, cell;
 
-    int ljp, ljm, jm;
-    double dqp, dqm, dxtheta, ksi, invdxtheta;
+	const unsigned int Nr = Qbase->Nrad;
+	const unsigned int Nphi = Qbase->Nsec;
 
-    for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	dxtheta = dphi * Rmed[nRadial];
-	invdxtheta = 1.0 / dxtheta;
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    cell = nAzimuthal + nRadial * Qbase->Nsec;
+	#pragma omp parallel for
+	for (unsigned int nRadial = 0; nRadial < Nr; ++nRadial) {
+	const double dxtheta = dphi * Rmed[nRadial];
+	const double invdxtheta = 1.0 / dxtheta;
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
+		const unsigned int cell = cell_number(nRadial, nAzimuthal, Nphi);
 
-	    ljp = cell + 1;
-	    ljm = cell - 1;
+		unsigned int ljp = cell + 1;
+		unsigned int ljm = cell - 1;
 	    if (nAzimuthal == 0) {
-		ljm = nRadial * Qbase->Nsec + Qbase->Nsec - 1;
+		ljm = nRadial * Nphi + Nphi - 1;
 	    }
-	    if (nAzimuthal == Qbase->Nsec - 1) {
-		ljp = nRadial * Qbase->Nsec;
+		if (nAzimuthal == Nphi - 1) {
+		ljp = nRadial * Nphi;
 	    }
-	    dqm = (Qbase->Field[cell] - Qbase->Field[ljm]);
-		dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
+		const double dqm = (Qbase->Field[cell] - Qbase->Field[ljm]);
+		const double dqp = (Qbase->Field[ljp] - Qbase->Field[cell]);
 		dq[cell] = 0.5*flux_limiter(dqp, dqm) * invdxtheta;
 	}
-	for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-	    cell = cell_number(nRadial, nAzimuthal, Qbase->Nsec);
+	}
 
-	    jm = nAzimuthal - 1;
-	    if (nAzimuthal == 0)
-		jm = Qbase->Nsec - 1;
-	    ljm = jm + nRadial * Qbase->Nsec;
-	    ksi = VAzimuthal->Field[cell] * dt;
+	#pragma omp parallel for
+	for (unsigned int nRadial = 0; nRadial < Nr; ++nRadial) {
+	const double dxtheta = dphi * Rmed[nRadial];
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
+		const unsigned int cell = cell_number(nRadial, nAzimuthal, Nphi);
+
+		unsigned int jm = nAzimuthal - 1;
+		if (nAzimuthal == 0){
+		jm = Nphi - 1;
+		}
+
+		unsigned int ljm = jm + nRadial * Nphi;
+		const double ksi = VAzimuthal->Field[cell] * dt;
 	    if (ksi > 0.0) {
 		QStar->Field[cell] =
 		    Qbase->Field[ljm] + (dxtheta - ksi) * dq[ljm];
@@ -458,10 +484,15 @@ void compute_momenta_from_velocities(t_polargrid &density,
 				     t_polargrid &v_radial,
 				     t_polargrid &v_azimuthal)
 {
-    for (unsigned int n_radial = 0; n_radial < density.get_size_radial();
+
+	const unsigned int Nr = density.get_size_radial();
+	const unsigned int Nphi = density.get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int n_radial = 0; n_radial < Nr;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < density.get_size_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < Nphi; ++n_azimuthal) {
 	    radial_momentum_plus(n_radial, n_azimuthal) =
 		density(n_radial, n_azimuthal) *
 		v_radial(n_radial + 1, n_azimuthal);
@@ -471,7 +502,7 @@ void compute_momenta_from_velocities(t_polargrid &density,
 	    angular_momentum_plus(n_radial, n_azimuthal) =
 		density(n_radial, n_azimuthal) *
 		(v_azimuthal(n_radial,
-			     n_azimuthal == v_azimuthal.get_max_azimuthal()
+				 n_azimuthal == (Nphi - 1)
 				 ? 0
 				 : n_azimuthal + 1) +
 		 Rb[n_radial] * refframe::OmegaFrame) *
@@ -492,12 +523,16 @@ void compute_velocities_from_momenta(t_polargrid &density,
 				     t_polargrid &v_radial,
 				     t_polargrid &v_azimuthal)
 {
-    for (unsigned int n_radial = 0; n_radial < density.get_size_radial();
+	const unsigned int Nr = density.get_size_radial();
+	const unsigned int Nphi = density.get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int n_radial = 0; n_radial < Nr;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < density.get_size_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < Nphi; ++n_azimuthal) {
 	    unsigned int n_azimuthal_minus =
-		(n_azimuthal == 0 ? density.get_max_azimuthal()
+		(n_azimuthal == 0 ? (Nphi - 1)
 				  : n_azimuthal - 1);
 
 	    // radial velocity from radial momentum
@@ -534,7 +569,6 @@ void compute_velocities_from_momenta(t_polargrid &density,
 void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		   double dt)
 {
-    unsigned int nRadial, nAzimuthal;
     bool is_density = false;
     units::t_unit *unit = Qbase->get_unit();
     if (unit != nullptr) {
@@ -546,11 +580,15 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		     *Work); // work = qbase/densityint
     compute_star_radial(Work, VRadial, QRStar, dt);
 
-    for (nRadial = 0; nRadial < Qbase->get_size_radial(); ++nRadial) {
-	for (nAzimuthal = 0; nAzimuthal < Qbase->get_size_azimuthal();
+	const unsigned int Nr = Qbase->get_size_radial();
+	const unsigned int Nphi = Qbase->get_size_azimuthal();
+
+	#pragma omp parallel for
+	for (unsigned int nRadial = 0; nRadial < Nr; ++nRadial) {
+	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi;
 	     ++nAzimuthal) {
-	    const unsigned int cell = nAzimuthal + nRadial * Qbase->Nsec;
-	    const int lip = cell + Qbase->Nsec;
+		const unsigned int cell = nAzimuthal + nRadial * Nphi;
+		const int lip = cell + Nphi;
 	    // mass crossing inf interface
 	    const double varq_inf =
 		dt * dphi * Rinf[nRadial] * QRStar->Field[cell] *
@@ -568,6 +606,9 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 		    // if ((nRadial == 0) && (parameters::boundary_inner ==
 		    // parameters::boundary_condition_open)) if ((nRadial == 0)
 		    // && (OpenInner))
+
+			// we do not need to care about parallel summation,
+			// since each OpenMP thread handles a specific nRadial by themself
 		    if (CPU_Rank == 0 && nRadial == 1) {
 			if (varq_inf > 0) {
 			    sum_without_ghost_cells(MassDelta.InnerPositive,
@@ -577,7 +618,8 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 						    varq_inf, nRadial);
 			}
 		    } else if (CPU_Rank == CPU_Highest &&
-			       nRadial == Qbase->get_max_radial() - 1) {
+				   nRadial == Nr - 2) { // varq_sup at Nr - 2 is the mass
+				//leaving from the last active cell into the ghost cell at Nr - 1
 			if (varq_sup > 0) {
 			    sum_without_ghost_cells(MassDelta.OuterNegative,
 							-varq_sup, nRadial);
@@ -610,30 +652,29 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 void VanLeerTheta(t_data &data, PolarGrid *VAzimuthal, PolarGrid *Qbase,
 		  double dt)
 {
-    unsigned int nRadial, nAzimuthal, cell;
-
-    int ljp;
-
     divise_polargrid(*Qbase, data[t_data::DENSITY_INT],
 		     *Work); // work = qbase/densityint
 
     ComputeStarTheta(Work, VAzimuthal, QRStar, dt);
 
-    for (nRadial = 0; nRadial < Qbase->Nrad; ++nRadial) {
-	double dxrad = (Rsup[nRadial] - Rinf[nRadial]) * dt;
-	double invsurf = 1.0 / Surf[nRadial];
+	const unsigned int Nr = Qbase->Nrad;
+	const unsigned int Nphi = Qbase->Nsec;
 
-	if ((UniformTransport == NO) || (NoSplitAdvection[nRadial] == NO)) {
-	    for (nAzimuthal = 0; nAzimuthal < Qbase->Nsec; ++nAzimuthal) {
-		double varq;
+	#pragma omp parallel for
+	for (unsigned int nRadial = 0; nRadial < Nr; ++nRadial) {
+	const double dxrad = (Rsup[nRadial] - Rinf[nRadial]) * dt;
+	const double invsurf = InvSurf[nRadial];
 
-		cell = nAzimuthal + nRadial * Qbase->Nsec;
-		ljp = cell + 1;
+	if (!UniformTransport || !NoSplitAdvection[nRadial]) {
+		for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
 
-		if (nAzimuthal == Qbase->Nsec - 1)
-		    ljp = nRadial * Qbase->Nsec;
+		const unsigned int cell = nAzimuthal + nRadial * Nphi;
+		unsigned int ljp = cell + 1;
 
-		varq = dxrad * QRStar->Field[cell] * DensityStar->Field[cell] *
+		if (nAzimuthal == Nphi - 1)
+			ljp = nRadial * Nphi;
+
+		double varq = dxrad * QRStar->Field[cell] * DensityStar->Field[cell] *
 		       VAzimuthal->Field[cell];
 		varq -= dxrad * QRStar->Field[ljp] * DensityStar->Field[ljp] *
 			VAzimuthal->Field[ljp];
@@ -655,6 +696,7 @@ void boundary_layer_mass_influx(PolarGrid *QStar, PolarGrid *VRadial)
     // printf("QStar->get_max_radial() = %d, VRadial->get_max_radial() = %d\n",
     // QStar->get_max_radial(), VRadial->get_max_radial());
 
+	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
 	 n_azimuthal < QStar->get_size_azimuthal(); ++n_azimuthal) {
 	(*QStar)(QStar->get_max_radial() - 1, n_azimuthal) =

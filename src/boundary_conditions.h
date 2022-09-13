@@ -9,9 +9,9 @@ namespace boundary_conditions
 
 void init_prescribed_time_variable_boundaries(t_data &data);
 void boundary_condition_precribed_time_variable_outer(t_data &data,
-						      t_polargrid *densitystar);
+							  t_polargrid *densitystar, const double current_time);
 void apply_boundary_condition_temperature(t_data &data);
-void apply_boundary_condition(t_data &data, const double dt, const bool final);
+void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 void open_boundary_inner(t_data &data);
 void open_boundary_outer(t_data &data);
 void zero_gradient_boundary_inner(t_data &data);
@@ -20,7 +20,7 @@ void reflecting_boundary_inner(t_data &data);
 void reflecting_boundary_outer(t_data &data);
 void viscous_outflow_boundary_inner(t_data &data);
 void damping(t_data &data, double dt);
-void mass_overflow(t_data &data);
+void mass_overflow(t_data &data, const double current_time);
 void mass_overflow_willy(t_data &data, t_polargrid *densitystar,
 			 bool transport);
 void boundary_layer_inner_boundary(t_data &data);

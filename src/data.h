@@ -44,9 +44,11 @@ class t_data
 	QMINUS,		      // cooling terms
 	P_DIVV,		      // pdV work
 	VISCOSITY,	      // (kinematic) viscosity
-	ARTIFICIAL_VISCOSITY, // (artificial) viscosity
+	SIGMA_ART_VISC, // (artificial) viscosity
 	VISCOSITY_CORRECTION_FACTOR_R,
 	VISCOSITY_CORRECTION_FACTOR_PHI,
+	ART_VISCOSITY_CORRECTION_FACTOR_R,
+	ART_VISCOSITY_CORRECTION_FACTOR_PHI,
 	VISCOSITY_SIGMA_RP,
 	VISCOSITY_SIGMA,
 	TAU_R_R,	 // viscous stress tensor r,r component
@@ -78,6 +80,8 @@ class t_data
 	PRESCRIBED_DENSITY_OUTER,
 	PRESCRIBED_V_AZIMUTHAL_OUTER,
 	PRESCRIBED_V_RADIAL_OUTER,
+	ECCENTRICITY_NEW,
+	PERIASTRON_NEW,
 
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES
@@ -111,13 +115,13 @@ class t_data
     void print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal);
 
     double pdivv_total;
-    inline ptrdiff_t get_n_radial(void) { return m_n_radial; };
-    inline ptrdiff_t get_n_azimuthal(void) { return m_n_azimuthal; };
-    inline ptrdiff_t get_global_n_radial(void) { return m_global_n_radial; };
+	inline ptrdiff_t get_n_radial(void) { return m_n_radial; }
+	inline ptrdiff_t get_n_azimuthal(void) { return m_n_azimuthal; }
+	inline ptrdiff_t get_global_n_radial(void) { return m_global_n_radial; }
     inline ptrdiff_t get_global_n_azimuthal(void)
     {
 	return m_global_n_azimuthal;
-    };
+	}
 
   private:
     ptrdiff_t m_n_radial;

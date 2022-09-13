@@ -284,7 +284,7 @@ double t_planet::get_r() const
 /**
 	get ramp up mass of the planet
 */
-double t_planet::get_rampup_mass() const
+double t_planet::get_rampup_mass(const double current_time) const
 {
     double ramping = 1.0;
     if (get_rampuptime() > 0) {
@@ -304,17 +304,7 @@ double t_planet::get_rampup_mass() const
 */
 double t_planet::get_orbital_period() const
 {
-
-	double M;
-	if(m_planet_number <= parameters::n_bodies_for_hydroframe_center){
-		M = hydro_center_mass;
-	}else{
-		M = hydro_center_mass + get_mass();
-	}
-	const double P = 2.0 * M_PI *
-			std::sqrt(std::pow(get_semi_major_axis(), 3) /
-				  (M * constants::G));
-	return P;
+	return m_orbital_period;
 }
 
 /**

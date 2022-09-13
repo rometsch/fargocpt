@@ -432,16 +432,20 @@ void write_quantities(t_data &data, bool force_update)
 						   quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
-	CalculateNbodyPotential(data);
+	CalculateNbodyPotential(data, sim::PhysicalTime);
     }
-    const double gravitationalEnergy =
-	quantities::gas_gravitational_energy(data, quantities_limit_radius);
+
+	const double gravitationalEnergy =
+	-quantities::gas_reduce_mass_average(data, data[t_data::POTENTIAL], quantities_limit_radius);
+
     const double totalEnergy =
 	internalEnergy + kinematicEnergy + gravitationalEnergy;
 
-    quantities::compute_aspectratio(data, sim::N_snapshot, force_update);
-    const double scale_height =
-	quantities::gas_aspect_ratio(data, quantities_limit_radius);
+	if(!(parameters::heating_star_enabled || parameters::self_gravity)){
+	quantities::compute_aspectratio(data, sim::N_snapshot, force_update);
+	}
+	const double scale_height =
+	quantities::gas_reduce_mass_average(data, data[t_data::ASPECTRATIO], quantities_limit_radius);
 
     double pdivv_total = 0.0;
     double InnerPositive = 0.0;
@@ -782,37 +786,37 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 					   const double quantitiy_radius)
 {
     double local_eccentricity = 0.0;
-    double gas_total_mass = quantities::gas_total_mass(data, quantitiy_radius);
     double disk_eccentricity = 0.0;
+	double local_mass = 0.0;
+	double global_mass = 0.0;
     // double semi_major_axis = 0.0;
     // double local_semi_major_axis = 0.0;
-    double local_mass = 0.0;
+	double cell_mass = 0.0;
     double periastron = 0.0;
     double local_periastron = 0.0;
 
     // calculate eccentricity, semi_major_axis and periastron grid
-    quantities::calculate_disk_quantities(data, timestep, force_update);
+	quantities::calculate_disk_ecc_peri(data, timestep, force_update);
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
-    for (unsigned int n_radial = radial_first_active;
-	 n_radial < radial_active_size; ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    if (Rmed[n_radial] <= quantitiy_radius) {
+	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
+	#pragma omp parallel for collapse(2) reduction(+ : local_eccentricity, local_periastron, local_mass)
+	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		if (Rmed[nr] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
-		local_mass =
-		    data[t_data::SIGMA](n_radial, n_azimuthal) * Surf[n_radial];
+		local_mass = data[t_data::SIGMA](nr, naz) * Surf[nr];
 		local_eccentricity +=
-		    data[t_data::ECCENTRICITY](n_radial, n_azimuthal) *
-		    local_mass;
+			data[t_data::ECCENTRICITY](nr, naz) *
+			cell_mass;
 		// local_semi_major_axis +=
 		// data[t_data::SEMI_MAJOR_AXIS](n_radial, n_azimuthal) *
 		// local_mass;
 		local_periastron +=
-		    data[t_data::PERIASTRON](n_radial, n_azimuthal) *
-		    local_mass;
+			data[t_data::PERIASTRON](nr, naz) *
+			cell_mass;
+		local_mass += cell_mass;
 	    }
 	}
     }
@@ -825,10 +829,12 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
     MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0,
 	       MPI_COMM_WORLD);
 
-    if (gas_total_mass > 0.0) {
-	disk_eccentricity /= gas_total_mass;
-	// semi_major_axis /= gas_total_mass;
-	periastron /= gas_total_mass;
+	MPI_Reduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM, 0,
+		  MPI_COMM_WORLD);
+
+	if (global_mass > 0.0) {
+	disk_eccentricity /= global_mass;
+	periastron /= global_mass;
     } else {
 	disk_eccentricity = 0.0;
 	periastron = 0.0;
@@ -865,6 +871,7 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 		 MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, NULL);
     }
 
+	/// TODO: openMP parallel
     unsigned int current_lightcurves_bin = 0;
     for (unsigned int n_radial = radial_first_active;
 	 n_radial < radial_active_size; ++n_radial) {
@@ -1056,67 +1063,6 @@ void write_snapshot_time(unsigned int coarseOutputNumber,
     }
 }
 
-
-/**
-Write the corresponding snapshot output number
-and the simulation time for each monitor output.
-*/
-void write_monitor_time(unsigned int coarseOutputNumber,
-		       unsigned int fineOutputNumber)
-{
-    FILE *fd = 0;
-    static bool fd_created = false;
-
-    if (CPU_Master) {
-
-	const std::string filename = outdir + "/monitor/timeMonitor.dat";
-	auto fd_filename = filename.c_str();
-
-	// check if file exists and we restarted
-	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
-	    fd = fopen(fd_filename, "r");
-	    if (fd) {
-		fd_created = true;
-		fclose(fd);
-	    }
-	}
-
-	// open logfile
-	if (!fd_created) {
-	    fd = fopen(fd_filename, "w");
-	} else {
-	    fd = fopen(fd_filename, "a");
-	}
-	if (fd == NULL) {
-	    logging::print_master(
-		LOG_ERROR "Can't write 'timeMonitor.dat' file. Aborting.\n");
-	    PersonalExit(1);
-	}
-
-	if (!fd_created) {
-	    // print header
-	    fprintf(fd, "# Time log for course output.\n"
-			"#version: 0.1\n"
-			"#variable: 0 | time step | 1\n"
-			"#variable: 1 | analysis time step | 1\n"
-			"#variable: 2 | physical time | ");
-	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
-	    fprintf(
-		fd,
-		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
-		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
-		parameters::DT, parameters::DT * units::time.get_cgs_factor());
-	    fd_created = true;
-	}
-    }
-
-    if (CPU_Master) {
-	fprintf(fd, "%u\t%u\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
-		sim::PhysicalTime);
-	fclose(fd);
-    }
-}
-
 static std::istream &ignoreline(std::ifstream &in, std::ifstream::pos_type &pos)
 {
     pos = in.tellg();
@@ -1261,5 +1207,106 @@ void CheckAngularMomentumConservation(t_data &data)
     // close file
     fclose(fd);
 }
+
+
+void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigned fineOutputNumber)
+{
+	FILE *fd = 0;
+	char *fd_filename;
+	static bool fd_created = false;
+
+	if (CPU_Master) {
+
+	if (asprintf(&fd_filename, "%s%s", output::outdir.c_str(), "monitor/eccentricity_change.dat") == -1) {
+		logging::print_master(LOG_ERROR
+				  "Not enough memory for string buffer.\n");
+		PersonalExit(1);
+	}
+	// check if file exists and we restarted
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
+		fd = fopen(fd_filename, "r");
+		if (fd) {
+		fd_created = true;
+		fclose(fd);
+		}
+	}
+
+	// open logfile
+	if (!fd_created) {
+		fd = fopen(fd_filename, "w");
+	} else {
+		fd = fopen(fd_filename, "a");
+	}
+	if (fd == NULL) {
+		logging::print_master(
+		LOG_ERROR "Can't write 'eccentricity_change.dat' file. Aborting.\n");
+		PersonalExit(1);
+	}
+
+	free(fd_filename);
+
+	if (!fd_created) {
+		// print header
+		fprintf(
+		fd,
+		"# Different torques and eccentricity changes by update steps.\n"
+		"# Time unit is %.18g (cgs).\n"
+		"# Torque unit is %.18g (cgs).\n"
+		"# Eccentricity unit is 1.\n"
+		"# Syntax:\n"
+		"# 0 : coarse output step\n"
+		"# 1 : fine output step\n"
+		"# 2 : PhysicalTime\n"
+
+		"# 3 : ecc change from source terms\n"
+		"# 4 : ecc change from artificial viscosity\n"
+		"# 5 : ecc change from viscosity\n"
+		"# 6 : ecc change from transport\n"
+		"# 7 : ecc change from damping\n"
+
+		"# 8 : Periastron change from source terms\n"
+		"# 9 : Periastron change from artificial viscosity\n"
+		"# 10: Periastron change from from viscosity\n"
+		"# 11: Periastron change from transport\n"
+		"# 12: Periastron change from damping\n",
+		units::time.get_cgs_factor(),
+		units::torque.get_cgs_factor());
+		fd_created = true;
+	}
+	}
+
+	if (CPU_Master) {
+	fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		coarseOutputNumber,
+		fineOutputNumber,
+		sim::PhysicalTime,
+
+		delta_ecc_source,
+		delta_ecc_art_visc,
+		delta_ecc_visc,
+		delta_ecc_transport,
+		delta_ecc_damp,
+
+		delta_peri_source,
+		delta_peri_art_visc,
+		delta_peri_visc,
+		delta_peri_transport,
+		delta_peri_damp);
+	fclose(fd);
+	}
+
+	delta_ecc_source = 0.0;
+	delta_ecc_art_visc = 0.0;
+	delta_ecc_visc = 0.0;
+	delta_ecc_transport = 0.0;
+	delta_ecc_damp = 0.0;
+
+	delta_peri_source = 0.0;
+	delta_peri_art_visc = 0.0;
+	delta_peri_visc = 0.0;
+	delta_peri_transport = 0.0;
+	delta_peri_damp = 0.0;
+}
+
 
 } // namespace output

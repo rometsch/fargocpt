@@ -244,9 +244,9 @@ void t_polargrid::write1D() const
     if (m_write_max_max_1D) {
 	for (unsigned int n_radial = 0; n_radial < count; ++n_radial) {
 	    // min
-	    buffer[number_of_values * n_radial + 2] = DBL_MAX;
+		buffer[number_of_values * n_radial + 2] = std::numeric_limits<double>::max();
 	    // max
-	    buffer[number_of_values * n_radial + 3] = -DBL_MAX;
+		buffer[number_of_values * n_radial + 3] = std::numeric_limits<double>::lowest();
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < get_size_azimuthal(); ++n_azimuthal) {
@@ -467,21 +467,6 @@ unsigned int t_polargrid::bytes_needed_2D() const
     return 2.0 * sizeof(double) * get_size_azimuthal() * get_size_radial();
 }
 
-double t_polargrid::get_max() const
-{
-    double local_max = -DBL_MAX;
-
-    const unsigned int Nmax = Nrad * Nsec;
-    for (unsigned int n = 0; n < Nmax; n++) {
-	local_max = std::max(local_max, Field[n]);
-    }
-
-    double global_max;
-    MPI_Allreduce(&local_max, &global_max, 1, MPI_DOUBLE, MPI_MAX,
-		  MPI_COMM_WORLD);
-
-    return global_max;
-}
 
 /**
 	multiply each polargrid entry with a constant
@@ -489,6 +474,7 @@ double t_polargrid::get_max() const
 t_polargrid &t_polargrid::operator*=(double c)
 {
     const unsigned int Nmax = Nrad * Nsec;
+	#pragma omp parallel for
     for (unsigned int n = 0; n < Nmax; n++) {
 	Field[n] *= c;
     }
@@ -502,9 +488,11 @@ t_polargrid &t_polargrid::operator*=(double c)
 t_polargrid &t_polargrid::operator/=(double c)
 {
 
+	const double inv_c = 1.0 / c;
     const unsigned int Nmax = Nrad * Nsec;
+	#pragma omp parallel for
     for (unsigned int n = 0; n < Nmax; n++) {
-	Field[n] /= c;
+	Field[n] *= inv_c;
     }
 
     return *this;

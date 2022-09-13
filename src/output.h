@@ -57,6 +57,8 @@ std::string text_file_variable_description(
     const std::map<const std::string, const int> &variables,
     const std::map<const std::string, const std::string> &units);
 
+void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigned fineOutputNumber);
+
 std::string get_last_snapshot_id();
 std::int32_t get_latest_output_num(const std::string &snapshot_id);
 

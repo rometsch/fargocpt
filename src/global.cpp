@@ -140,12 +140,13 @@ t_radialarray GLOBAL_AxiSGAccr;
 
 double hydro_center_mass;
 int OnlyInit;
-int StabilizeViscosity;
+int StabilizeViscosity, StabilizeArtViscosity;
 int flux_limiter_type;
 int CentrifugalBalance, SloppyCFL;
 MPI_Status global_MPI_Status;
 t_polargrid *CellCenterX, *CellCenterY;
 
+hydro_dt_logger dt_logger;
 
 double dphi;
 double invdphi;
@@ -156,8 +157,23 @@ unsigned int NRadial;
 unsigned int NAzimuthal;
 double RMIN;
 double RMAX;
+double quantities_radius_limit;
 
 
 BoundaryFlow MassDelta;
+
+int ECC_GROWTH_MONITOR;
+double ecc_old, peri_old;
+double delta_ecc_source, delta_peri_source;
+double delta_ecc_art_visc, delta_peri_art_visc;
+double delta_ecc_visc, delta_peri_visc;
+double delta_ecc_transport, delta_peri_transport;
+double delta_ecc_damp, delta_peri_damp;
+
+std::vector<double> g_xpl;
+std::vector<double> g_ypl;
+std::vector<double> g_mpl;
+std::vector<double> g_rpl;
+std::vector<double> g_l1pl;
 
 volatile sig_atomic_t SIGTERM_RECEIVED = 0, PRINT_SIG_INFO = 0;
