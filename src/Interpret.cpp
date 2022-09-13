@@ -276,7 +276,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	die("died for convenience ;)");
     }
 
-	ECC_GROWTH_MONITOR = config::value_as_bool_default("WriteEccentricityChange", NO);
+	ECC_GROWTH_MONITOR = config::cfg.get_flag("WriteEccentricityChange", "no");
 	ecc_old = 0.0;
 	peri_old = 0.0;
 	delta_ecc_source = 0.0;

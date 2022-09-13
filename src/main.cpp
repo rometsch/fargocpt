@@ -49,12 +49,6 @@
 						( level==MPI_THREAD_FUNNELED ? "THREAD_FUNNELED" : \
 								( level==MPI_THREAD_SINGLE ? "THREAD_SINGLE" : "THIS_IS_IMPOSSIBLE" ) ) ) )
 
-int TimeToWrite;
-int Restart = 0;
-static int StillWriteOneOutput;
-extern int Corotating;
-extern int SelfGravity, SGZeroMode;
-
 // TODO: NRad darf nicht größer sein als MAX1D
 // copy operator for t_polargrid
 // write all polargrids on error
@@ -343,7 +337,6 @@ int main(int argc, char *argv[])
 
     } else {
 	// create planet files
-	sim::dtemp = 0.0;
 	data.get_planetary_system().create_planet_files();
 
 	// create 1D info files

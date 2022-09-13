@@ -614,7 +614,7 @@ void init(t_data &data)
 	}
     }
 
-	compute_rho(data, PhysicalTime);
+	compute_rho(data, sim::PhysicalTime);
 	compute_temperature(data);
     check_tstop(data);
 

@@ -3,9 +3,11 @@
 #include "global.h"
 #include "logging.h"
 #include "LowTasks.h"
+#include "output.h"
+#include "start_mode.h"
+#include "parameters.h"
 #include <fstream>
 #include <iostream>
-#include "start_mode.h"
 
 hydro_dt_logger::hydro_dt_logger()
 {
@@ -41,19 +43,15 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 							const unsigned int fineOutputNumber)
 {
 	FILE *fd = 0;
-	char *fd_filename;
 	static bool fd_created = false;
 
 	if (CPU_Master) {
 
-		if (asprintf(&fd_filename, "%s%s", OUTPUTDIR, "timestepLogging.dat") == -1) {
-			logging::print_master(LOG_ERROR
-								  "Not enough memory for string buffer.\n");
-			PersonalExit(1);
-		}
+		const std::string filename = output::outdir + "monitor/timestepLogging.dat";
+
 		// check if file exists and we restarted
 		if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
-			fd = fopen(fd_filename, "r");
+			fd = fopen(filename.c_str(), "r");
 			if (fd) {
 				fd_created = true;
 				fclose(fd);
@@ -62,17 +60,15 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 
 		// open logfile
 		if (!fd_created) {
-			fd = fopen(fd_filename, "w");
+			fd = fopen(filename.c_str(), "w");
 		} else {
-			fd = fopen(fd_filename, "a");
+			fd = fopen(filename.c_str(), "a");
 		}
 		if (fd == NULL) {
 			logging::print_master(
 						LOG_ERROR "Can't write 'timestepLogging.dat' file. Aborting.\n");
 			PersonalExit(1);
 		}
-
-		free(fd_filename);
 
 		if (!fd_created) {
 			// print header
@@ -81,7 +77,7 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 						"# Time log for the hydro timestep size. Each entry averaged over one DT\n"
 						"# One DT is %.18g (code) and %.18g (cgs). Time unit is: %.18g\n"
 						"# Syntax: coarse output step <tab> fine output step <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n",
-						DT, DT * units::time.get_cgs_factor(), units::time.get_cgs_factor());
+						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor());
 			fd_created = true;
 		}
 
@@ -96,7 +92,6 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 			mean_dt = 0.0;
 			std_dev = 0.0;
 		}
-
 		fprintf(fd, "%u\t%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
 				m_N_hydro_iter_DT, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
 		fclose(fd);
@@ -116,15 +111,9 @@ void hydro_dt_logger::dump()
 
 	std::ofstream wf;
 
-	char *filename = 0;
-	if (asprintf(&filename, "%sdtLoggerDump.bin", OUTPUTDIR) == -1) {
-		logging::print(LOG_ERROR "Not enough memory!\n");
-		PersonalExit(1);
-	}
+	const std::string filename  = output::outdir + "monitor/dtLoggerDump.bin";
 
-	wf = std::ofstream(filename,
-			   std::ios::out |
-				   std::ios::binary);
+	wf = std::ofstream(filename, std::ios::out | std::ios::binary);
 
 	if (!wf) {
 	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
@@ -133,7 +122,6 @@ void hydro_dt_logger::dump()
 
 	wf.write((char *)(&vars), sizeof(hydro_dt_logger_variables));
 	wf.close();
-	free(filename);
 
 }
 
@@ -142,11 +130,7 @@ void hydro_dt_logger::read()
 {
 	hydro_dt_logger_variables vars;
 
-	char *filename = 0;
-	if (asprintf(&filename, "%sdtLoggerDump.bin", OUTPUTDIR) == -1) {
-		logging::print(LOG_ERROR "Not enough memory!\n");
-		PersonalExit(1);
-	}
+	const std::string filename  = output::outdir + "monitor/dtLoggerDump.bin";
 
 	std::ifstream rf(filename, std::ofstream::binary | std::ios::in);
 
@@ -158,7 +142,6 @@ void hydro_dt_logger::read()
 	rf.read((char *)&vars, sizeof(hydro_dt_logger_variables));
 
 	rf.close();
-	free(filename);
 
 	m_N_hydro_iter_DT = vars.N_hydro_iter_DT;
 	m_sum_hydro_dt = vars.sum_hydro_dt;

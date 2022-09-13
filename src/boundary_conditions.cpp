@@ -16,12 +16,13 @@
 #include "util.h"
 #include "frame_of_reference.h"
 #include "simulation.h"
+#include "constants.h"
+#include "quantities.h"
+
 #include <algorithm>
 #include <cstring>
 #include <cmath>
 #include <vector>
-
-#include "constants.h"
 #include <cassert>
 #include <experimental/filesystem>
 #include <fstream>
@@ -338,7 +339,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	break;
     case parameters::boundary_condition_precribed_time_variable: {
 	boundary_condition_precribed_time_variable_outer(data,
-							 &data[t_data::SIGMA], sim::PhysicalTime);
+							 &data[t_data::SIGMA], current_time);
     } break;
     case parameters::boundary_condition_viscous_outflow:
 	die("outer viscous outflow boundary not implemented");
@@ -571,7 +572,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	    data.get_planetary_system().get_planet(1).get_orbital_period();
 
 	const double step_size = T_bin / (double)PRESCRIBED_TIME_SEGMENT_NUMBER;
-	const double real_time = sim::PhysicalTime / step_size;
+	const double real_time = current_time / step_size;
 	const int integer_time = (int)std::floor(real_time);
 	const int time_id = integer_time % PRESCRIBED_TIME_SEGMENT_NUMBER;
 	const int time_id_next = (time_id + 1) % PRESCRIBED_TIME_SEGMENT_NUMBER;
@@ -1458,13 +1459,13 @@ void mass_overflow(t_data &data, const double current_time)
 
     static double last_PhysicalTime = 0.0;
 
-    double dt = sim::PhysicalTime - last_PhysicalTime;
+    double dt = current_time - last_PhysicalTime;
 
     if (dt == 0.0) {
 	return;
     }
 
-    last_PhysicalTime = sim::PhysicalTime;
+    last_PhysicalTime = current_time;
 
     // get location of binary star
     if (parameters::mof_planet + 1 >
@@ -1532,8 +1533,8 @@ void mass_overflow(t_data &data, const double current_time)
 	    parameters::mof_rampingtime * planet.get_orbital_period();
 
 	double ramp_factor;
-	if (sim::PhysicalTime < t_ramp) {
-	    ramp_factor = std::pow(std::sin(sim::PhysicalTime * M_PI_2 / t_ramp), 4);
+	if (current_time < t_ramp) {
+	    ramp_factor = std::pow(std::sin(current_time * M_PI_2 / t_ramp), 4);
 	} else {
 	    ramp_factor = 1.0;
 	}

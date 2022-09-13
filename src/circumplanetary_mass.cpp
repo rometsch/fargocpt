@@ -6,14 +6,13 @@
 #include "util.h"
 
 
-
 /**
 	Calculates the gas mass inside the planets Roche lobe
 */
 void ComputeCircumPlanetaryMasses(t_data &data)
 {
-	const unsigned int Npl = data.get_planetary_system().get_number_of_planets();
-    for (unsigned int k = 1; k < Npl; ++k) {
+    for (unsigned int k = 1;
+	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
 
 	// TODO: non global
 	const double *cell_center_x = CellCenterX->Field;
@@ -28,19 +27,17 @@ void ComputeCircumPlanetaryMasses(t_data &data)
 	const double ypl = planet.get_y();
 
 	double mdcplocal = 0.0;
+	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
 
-	for (unsigned int n_radial = radial_first_active;
-	     n_radial < radial_active_size; ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
-		 ++n_azimuthal) {
-		unsigned int cell = get_cell_id(n_radial, n_azimuthal);
+	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		unsigned int cell = get_cell_id(nr, naz);
 		const double dist = std::sqrt(
 		    (cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
 		    (cell_center_y[cell] - ypl) * (cell_center_y[cell] - ypl));
 		if (dist < roche_radius) {
-		    mdcplocal += Surf[n_radial] *
-				 data[t_data::SIGMA](n_radial, n_azimuthal);
+			mdcplocal += Surf[nr] *
+				 data[t_data::SIGMA](nr, naz);
 		}
 	    }
 	}

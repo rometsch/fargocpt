@@ -320,7 +320,7 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 
     if (register_snapshot) {
     // write time info for coarse output
-    output::write_snapshot_time(sim::N_snapshot, sim::N_monitor);
+    output::write_snapshot_time();
 	register_output(snapshot_id);
     }
 
@@ -531,7 +531,6 @@ void write_misc()
     misc.PhysicalTime = sim::PhysicalTime;
     misc.OmegaFrame = refframe::OmegaFrame;
     misc.FrameAngle = refframe::FrameAngle;
-    misc.dtemp = sim::dtemp;
     misc.last_dt = sim::last_dt;
     misc.N_iter = sim::N_hydro_iter;
 
@@ -656,7 +655,6 @@ int load_misc()
     sim::PhysicalTime = misc.PhysicalTime;
     refframe::OmegaFrame = misc.OmegaFrame;
     refframe::FrameAngle = misc.FrameAngle;
-    sim::dtemp = misc.dtemp;
     sim::last_dt = misc.last_dt;
     sim::N_hydro_iter = misc.N_iter;
 
@@ -1007,15 +1005,14 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 Write the corresponding fine grained output number
 and the simulation time for each snapshot.
 */
-void write_snapshot_time(unsigned int coarseOutputNumber,
-		       unsigned int fineOutputNumber)
+void write_snapshot_time()
 {
     FILE *fd = 0;
     static bool fd_created = false;
 
     if (CPU_Master) {
 
-	const std::string filename = outdir + "/snapshots/timeSnapshot.dat";
+	const std::string filename = outdir + "snapshots/timeSnapshot.dat";
 	auto fd_filename = filename.c_str();
 
 	// check if file exists and we restarted
@@ -1057,7 +1054,67 @@ void write_snapshot_time(unsigned int coarseOutputNumber,
     }
 
     if (CPU_Master) {
-	fprintf(fd, "%u\t%u\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
+	fprintf(fd, "%u\t%u\t%#.16e\n", sim::N_snapshot, sim::N_monitor,
+		sim::PhysicalTime);
+	fclose(fd);
+    }
+}
+
+
+/**
+Write the corresponding fine grained output number
+and the simulation time for each snapshot.
+*/
+void write_monitor_time()
+{
+    FILE *fd = 0;
+    static bool fd_created = false;
+
+    if (CPU_Master) {
+
+	const std::string filename = outdir + "monitor/timeMonitor.dat";
+	auto fd_filename = filename.c_str();
+
+	// check if file exists and we restarted
+	if ((start_mode::mode == start_mode::mode_restart) && !(fd_created)) {
+	    fd = fopen(fd_filename, "r");
+	    if (fd) {
+		fd_created = true;
+		fclose(fd);
+	    }
+	}
+
+	// open logfile
+	if (!fd_created) {
+	    fd = fopen(fd_filename, "w");
+	} else {
+	    fd = fopen(fd_filename, "a");
+	}
+	if (fd == NULL) {
+	    logging::print_master(
+		LOG_ERROR "Can't write 'timeSnapshot.dat' file. Aborting.\n");
+	    PersonalExit(1);
+	}
+
+	if (!fd_created) {
+	    // print header
+	    fprintf(fd, "# Time log for course output.\n"
+			"#version: 0.1\n"
+			"#variable: 0 | time step | 1\n"
+			"#variable: 1 | analysis time step | 1\n"
+			"#variable: 2 | physical time | ");
+	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
+	    fprintf(
+		fd,
+		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
+		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
+		parameters::DT, parameters::DT * units::time.get_cgs_factor());
+	    fd_created = true;
+	}
+    }
+
+    if (CPU_Master) {
+	fprintf(fd, "%u\t%u\t%#.16e\n", sim::N_snapshot, sim::N_monitor,
 		sim::PhysicalTime);
 	fclose(fd);
     }
@@ -1110,7 +1167,7 @@ std::int32_t get_latest_output_num(const std::string &snapshot_id)
 	return -1;
     }
 
-    output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0};
+    output::misc_entry entry{0, 0, 0.0, 0.0, 0.0, 0.0, 0};
 
     misc_file.read((char *)&entry, sizeof(output::misc_entry));
 
@@ -1209,7 +1266,7 @@ void CheckAngularMomentumConservation(t_data &data)
 }
 
 
-void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigned fineOutputNumber)
+void write_ecc_peri_changes(const unsigned int snapshot_number, const unsigned monitor_number)
 {
 	FILE *fd = 0;
 	char *fd_filename;
@@ -1277,8 +1334,8 @@ void write_ecc_peri_changes(const unsigned int coarseOutputNumber, const unsigne
 
 	if (CPU_Master) {
 	fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
-		coarseOutputNumber,
-		fineOutputNumber,
+		snapshot_number,
+		monitor_number,
 		sim::PhysicalTime,
 
 		delta_ecc_source,

@@ -871,7 +871,7 @@ void read(const std::string &filename, t_data &data)
 	    config::cfg.get<std::string>("ArtificialViscosity", "SN").c_str());
     }
     artificial_viscosity_dissipation =
-	config::cfg.get_flag("ArtificialViscosityDissipation", true);
+	config::cfg.get_flag("ArtificialViscosityDissipation", "yes");
     artificial_viscosity_factor =
 	config::cfg.get<double>("ArtificialViscosityFactor", 1.41);
     // warning
@@ -880,7 +880,7 @@ void read(const std::string &filename, t_data &data)
     }
 
 	keep_mass_constant =
-	config::value_as_bool_default("KeepDiskMassConstant", false);
+	config::cfg.get_flag("KeepDiskMassConstant", "no");
 	if(keep_mass_constant){
 		logging::print_master(LOG_INFO "Disk mass is kept constant at initial value.\n");
 	}

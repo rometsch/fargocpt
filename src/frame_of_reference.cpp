@@ -98,7 +98,7 @@ void ComputeIndirectTermDisk(t_data &data)
     IndirectTerm.y = IndirectTermDisk.y;
 }
 
-void ComputeIndirectTermNbodyEuler(t_data &data, const double current_time, const double dt)
+void ComputeIndirectTermNbodyEuler(t_data &data)
 {
     IndirectTermPlanets.x = 0.0;
     IndirectTermPlanets.y = 0.0;

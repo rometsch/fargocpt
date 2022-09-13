@@ -22,8 +22,7 @@ int vprint(const char *fmt, va_list args);
 int print(const char *fmt, ...);
 int print_master(const char *fmt, ...);
 
-void print_runtime_info(const unsigned int output_number,
-			const unsigned int time_step_coarse, const double dt);
+void print_runtime_info();
 void print_runtime_final();
 void start_timer();
 

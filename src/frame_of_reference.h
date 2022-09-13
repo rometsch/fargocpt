@@ -21,6 +21,7 @@ void ComputeIndirectTermNbody(t_data &data, const double current_time, const dou
 void ComputeIndirectTermDisk(t_data &data);
 void ComputeIndirectTermNbodyEuler(t_data &data);
 
+
 void init_corotation(t_data &data);
 void handle_corotation(t_data &data, const double dt);
 

@@ -139,8 +139,7 @@ void print_runtime_final()
 	sim::N_hydro_iter, sim::PhysicalTime, realtime / 1000000.0, time_per_step_ms);
 }
 
-void print_runtime_info(const unsigned int output_number,
-			const unsigned int time_step_coarse, const double dt)
+void print_runtime_info()
 {
     // Print a line with information about the runtime: current hyrdro step,
     // average runtime, ... depending on whether enough real time or number of
@@ -187,8 +186,8 @@ void print_runtime_info(const unsigned int output_number,
 
 	logging::print_master(
 	    LOG_INFO
-	    "Logging info: output %d, timestep %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
-	    output_number, time_step_coarse, sim::N_hydro_iter, sim::PhysicalTime, dt,
+	    "Logging info: snapshot %d, monitor %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
+	    sim::N_snapshot, sim::N_monitor, sim::N_hydro_iter, sim::PhysicalTime, sim::last_dt,
 	    realtime / 1000000.0, time_per_step_ms);
 
 	n_last_log = sim::N_hydro_iter;

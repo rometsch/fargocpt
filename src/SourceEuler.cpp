@@ -113,28 +113,6 @@ void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
     }
 }
 
-void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
-						     int nTimeStep, double dt)
-{
-    if (data[t_data::ADVECTION_TORQUE].get_write()) {
-	gas_torques::calculate_advection_torque(data, dt / parameters::DT);
-    }
-    if (data[t_data::VISCOUS_TORQUE].get_write()) {
-	gas_torques::calculate_viscous_torque(data, dt / parameters::DT);
-    }
-    if (data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()) {
-	gas_torques::calculate_gravitational_torque(data, dt / parameters::DT);
-    }
-
-    if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	quantities::calculate_alpha_grav_mean_sumup(data, nTimeStep, dt / parameters::DT);
-    }
-    if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
-	quantities::calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
-							dt / parameters::DT);
-    }
-}
-
 /**
 	Assures miminum value in each cell.
 
@@ -941,7 +919,7 @@ void update_with_artificial_viscosity(t_data &data, const double time, const dou
 	}
 }
 
-static void viscous_heating(t_data &data, const double current_time) {
+static void viscous_heating(t_data &data) {
 	const unsigned int Nr_m1 = data[t_data::QPLUS].get_max_radial();
 	const unsigned int Nphi = data[t_data::QPLUS].get_size_azimuthal();
 
@@ -983,21 +961,7 @@ static void viscous_heating(t_data &data, const double current_time) {
 	}
 }
 
-
-void irradiation(t_data &data) {
-
-	const auto & plsys = data.get_planetary_system();
-	const unsigned int Npl = plsys.get_number_of_planets();
-
-	for (unsigned int npl=0; npl < Npl; npl ++) { 
-		const auto& planet = plsys.get_planet(npl);
-		if (planet.get_irradiate()) {
-			irradiation_single(data, planet);
-		}
-	}
-}
-
-void irradiation_single(t_data &data, const t_planet &planet) {
+static void irradiation_single(t_data &data, const t_planet &planet) {
 
 	const double rampup_time = planet.get_irradiation_rampuptime();
 
@@ -1055,7 +1019,21 @@ void irradiation_single(t_data &data, const t_planet &planet) {
 }
 
 
-void calculate_qplus(t_data &data, const double current_time)
+static void irradiation(t_data &data) {
+
+	const auto & plsys = data.get_planetary_system();
+	const unsigned int Npl = plsys.get_number_of_planets();
+
+	for (unsigned int npl=0; npl < Npl; npl ++) { 
+		const auto& planet = plsys.get_planet(npl);
+		if (planet.get_irradiate()) {
+			irradiation_single(data, planet);
+		}
+	}
+}
+
+
+void calculate_qplus(t_data &data)
 {
 
     if (parameters::EXPLICIT_VISCOSITY) {
@@ -1069,7 +1047,7 @@ void calculate_qplus(t_data &data, const double current_time)
 
 
     if (parameters::heating_viscous_enabled && parameters::EXPLICIT_VISCOSITY) {
-			viscous_heating(data, current_time);
+			viscous_heating(data);
     }
     if (parameters::heating_star_enabled) {
 		if (!parameters::cooling_radiative_enabled) {
@@ -1221,7 +1199,7 @@ void calculate_qminus(t_data &data, const double current_time)
 void SubStep3(t_data &data, const double current_time, const double dt)
 {
 	calculate_qminus(data, current_time); // first to calculate teff
-	calculate_qplus(data, current_time);
+	calculate_qplus(data);
 
 	const unsigned int Nr = data[t_data::TAU_COOL].get_size_radial();
 	const unsigned int Nphi = data[t_data::TAU_COOL].get_size_azimuthal();
@@ -2261,49 +2239,7 @@ void compute_rho(t_data &data, const double current_time)
 	}
     }
 }
-/**
-	Calculates the gas mass inside the planets Roche lobe
-*/
-void ComputeCircumPlanetaryMasses(t_data &data)
-{
-    for (unsigned int k = 1;
-	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
 
-	// TODO: non global
-	const double *cell_center_x = CellCenterX->Field;
-	const double *cell_center_y = CellCenterY->Field;
-
-	auto &planet = data.get_planetary_system().get_planet(k);
-	const double planet_to_prim_dist = planet.get_distance_to_primary();
-	const double roche_radius =
-	    planet_to_prim_dist * planet.get_dimensionless_roche_radius();
-
-	const double xpl = planet.get_x();
-	const double ypl = planet.get_y();
-
-	double mdcplocal = 0.0;
-	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
-
-	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
-		for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		unsigned int cell = get_cell_id(nr, naz);
-		const double dist = std::sqrt(
-		    (cell_center_x[cell] - xpl) * (cell_center_x[cell] - xpl) +
-		    (cell_center_y[cell] - ypl) * (cell_center_y[cell] - ypl));
-		if (dist < roche_radius) {
-			mdcplocal += Surf[nr] *
-				 data[t_data::SIGMA](nr, naz);
-		}
-	    }
-	}
-
-	double mdcptotal = 0.0;
-	MPI_Allreduce(&mdcplocal, &mdcptotal, 1, MPI_DOUBLE, MPI_SUM,
-		      MPI_COMM_WORLD);
-
-	planet.set_circumplanetary_mass(mdcptotal);
-    }
-}
 
 void compute_heating_cooling_for_CFL(t_data &data, const double current_time)
 {
@@ -2313,7 +2249,7 @@ void compute_heating_cooling_for_CFL(t_data &data, const double current_time)
 	ComputeViscousStressTensor(data);
 
 	calculate_qminus(data, current_time); // first to calculate teff
-	calculate_qplus(data, current_time);
+	calculate_qplus(data);
 
 	const unsigned int Nr = data[t_data::ENERGY].get_max_radial();
 	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();

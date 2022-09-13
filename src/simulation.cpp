@@ -65,11 +65,11 @@ void handle_outputs(t_data &data) {
 	}
 
 	if (to_write_monitor) {
-		dt_logger.write(N_snapshot, N_monitor);
+		// dt_logger.write(N_snapshot, N_monitor);
 		if(ECC_GROWTH_MONITOR){
 			output::write_ecc_peri_changes(sim::N_snapshot, sim::N_monitor);
 		}
-		output::write_monitor_time(N_snapshot, N_monitor);
+		output::write_monitor_time();
 	    ComputeCircumPlanetaryMasses(data);
 	    data.get_planetary_system().write_planets(1);
 
@@ -94,7 +94,7 @@ double CalculateTimeStep(t_data &data)
 		rv = std::min(parameters::CFL_max_var * last_dt, cfl_dt);
 		last_dt = cfl_dt;
 	}
-	dt_logger.update(rv);
+	// dt_logger.update(rv);
 
 	return rv;
 }
@@ -224,8 +224,7 @@ static void step_Euler(t_data &data, const double dt) {
 	// TODO: move outside step
 	PhysicalTime += dt;
 	N_hydro_iter = N_hydro_iter + 1;
-	logging::print_runtime_info(N_monitor / parameters::NINTERM, N_monitor,
-				    dt);
+	logging::print_runtime_info();
 
 	if (parameters::calculate_disk) {
 	    CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
@@ -268,21 +267,12 @@ static void step_Euler(t_data &data, const double dt) {
 	}
 }
 
-static void print_progress() {
-	logging::print_master(
-	LOG_VERBOSE
-	"AlgoGas: Total: %*i/%i (%5.2f %%) - Timestep: %#7f/%#7f (%5.2f %%)\n",
-	(int)ceil(log10(parameters::NTOT)), N_monitor, parameters::NTOT,
-	(double)N_monitor / (double)parameters::NTOT * 100.0, dtemp, parameters::DT,
-	dtemp / parameters::DT * 100.0);
-}
-
 
 /**
 	\param data
 	\param sys
 */
-void step_LeapFrog(t_data &data, const double step_dt)
+static void step_LeapFrog(t_data &data, const double step_dt)
 {
 	const double frog_dt = step_dt/2;
 	const double start_time = PhysicalTime;
@@ -465,7 +455,7 @@ void step_LeapFrog(t_data &data, const double step_dt)
 
 	PhysicalTime = end_time;
 	N_hydro_iter += 1;
-	logging::print_runtime_info(N_snapshot, N_monitor, hydro_dt);
+	logging::print_runtime_info();
 
 	if (parameters::calculate_disk) {
 	    CommunicateBoundaries(
@@ -536,9 +526,22 @@ void init(t_data &data) {
 
 }
 
+static void step(t_data &data, const double step_dt) {
+	const bool use_leapfrog = false;
+	if (use_leapfrog) {
+		step_LeapFrog(data, step_dt);
+	} else {
+		step_Euler(data, step_dt);
+	}
 
+}
 
-
+static void handle_signals(t_data &data) {
+	if (SIGTERM_RECEIVED) {
+		output::write_full_output(data, "autosave");
+		PersonalExit(0);
+	}
+}
 
 void run(t_data &data) {
 
@@ -550,10 +553,8 @@ void run(t_data &data) {
 	bool towrite = false;
 
     for (; PhysicalTime < t_final; N_hydro_iter++) {
-		if (SIGTERM_RECEIVED) {
-			output::write_full_output(data, "autosave");
-			PersonalExit(0);
-		}
+		
+		handle_signals(data);
 
 		cfl_dt = CalculateTimeStep(data);
 
@@ -568,11 +569,11 @@ void run(t_data &data) {
 			towrite = false;
 		}
 
-		step_Euler(data, step_dt);
+		step(data, step_dt);
 
 		if (towrite) {
 			handle_outputs(data);
-			print_progress();
+			logging::print_runtime_info();
 		}
     }
 	logging::print_master(

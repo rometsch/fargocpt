@@ -288,10 +288,10 @@ double t_planet::get_rampup_mass(const double current_time) const
 {
     double ramping = 1.0;
     if (get_rampuptime() > 0) {
-	if (sim::PhysicalTime < get_rampuptime() * get_orbital_period()) {
+	if (current_time < get_rampuptime() * get_orbital_period()) {
 	    ramping =
 		1.0 -
-		std::pow(std::cos(sim::PhysicalTime * M_PI_2 /
+		std::pow(std::cos(current_time * M_PI_2 /
 				  (get_rampuptime() * get_orbital_period())),
 			 2);
 	}
