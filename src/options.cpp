@@ -47,7 +47,6 @@ static const struct option long_options[] = {
     {"start", no_argument, NULL, 's'},
     {"restart", optional_argument, NULL, 'r'},
     {"auto", no_argument, NULL, 'a'},
-	{"threads", optional_argument, NULL, 't'},
     {0, 0, 0, 0}};
 
 void usage(int argc, char **argv)
@@ -66,7 +65,6 @@ void usage(int argc, char **argv)
 	"-c |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
 	"-n |                   Disable simulation. The program just reads parameters file\n"
 	"-m |                   estimate memory usage and print out\n"
-	"-t |  --threads        Set number of openMP threads\n"
 	"",
 	argv[0]);
 }
@@ -145,9 +143,6 @@ void parse(int argc, char **argv)
 
 	case 'm':
 	    memory_usage = true;
-	    break;
-	case 't':
-		start_mode::num_threads = std::stoul(std::string(optarg));
 	    break;
 	case 'h':
 	    usage(argc, argv);

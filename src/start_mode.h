@@ -8,7 +8,6 @@ enum StartMode { mode_start, mode_restart, mode_auto, mode_debug, mode_none };
 extern StartMode mode;
 extern std::int32_t restart_from;
 extern std::int32_t restart_debug;
-extern std::uint32_t num_threads;
 
 void configure_start_mode();
 } // namespace start_mode

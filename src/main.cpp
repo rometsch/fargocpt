@@ -71,10 +71,6 @@ static void init_parallel(int argc, char *argv[]) {
     selfgravity::mpi_init();
 
 #ifdef _OPENMP
-	if (start_mode::num_threads > 1) {
-		omp_set_num_threads(start_mode::num_threads);
-	}
-
 	#pragma omp parallel
 	{
 		int omp_id  = omp_get_thread_num();
