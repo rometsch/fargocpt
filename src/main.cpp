@@ -119,6 +119,20 @@ static void print_buildtimeinfo() {
 
 }
 
+static void finalize_parallel() {
+	DeallocateBoundaryCommunicationBuffers();
+    selfgravity::mpi_finalize();
+    FreeSplitDomain();
+	MPI_Finalize();
+}
+
+static void finalize() {
+	FreeEuler();
+	finalize_parallel();
+}
+
+
+
 static void init_damping(t_data &data) {
     if (parameters::is_damping_initial) {
 	// save starting values (needed for damping)
@@ -240,9 +254,7 @@ int main(int argc, char *argv[])
 
     t_data data;
 
-    sim::N_hydro_iter = 0;
-    sim::N_monitor = 0;
-
+	// TODO: discuss why this needs to be done explicitly
     resize_radialarrays(MAX1D);
 
 	init_parallel(argc, argv);
@@ -262,6 +274,11 @@ int main(int argc, char *argv[])
     // output are files created)
     output::check_free_space(data);
 
+	if (options::memory_usage) {
+		data.print_memory_usage(NRadial, NAzimuthal);
+		PersonalExit(0);
+    }
+
     parameters::write_grid_data_to_file();
 
     units::print_code_units();
@@ -269,14 +286,9 @@ int main(int argc, char *argv[])
     constants::print_constants();
     output::write_output_version();
 
-    SplitDomain();
-
     TellEverything();
 
-    if (options::memory_usage) {
-	data.print_memory_usage(NRadial, NAzimuthal);
-	PersonalExit(0);
-    }
+    SplitDomain();
 
     if (options::disable)
 	PersonalExit(0);
@@ -336,18 +348,10 @@ int main(int argc, char *argv[])
 		sim::handle_outputs(data);
 	}
 
-	sim::init(data);
 	sim::run(data);	
     
 
-    // free up everything
-    DeallocateBoundaryCommunicationBuffers();
-    FreeEuler();
-
-    selfgravity::mpi_finalize();
-    FreeSplitDomain();
-
-    MPI_Finalize();
+	finalize();
 
     return 0;
 }
