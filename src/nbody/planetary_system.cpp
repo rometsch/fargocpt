@@ -189,6 +189,10 @@ void t_planetary_system::init_planet(config::Config &cfg)
     planet->set_nbody_on_planet_acceleration(Pair());
 
     add_planet(planet);
+
+	if (accretion_efficiency < 0.0) {
+		parameters::VISCOUS_ACCRETION = true;
+	}
 }
 
 

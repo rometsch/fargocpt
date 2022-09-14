@@ -576,9 +576,10 @@ void run(t_data &data) {
 			logging::print_runtime_info();
 		}
     }
-	logging::print_master(
-			LOG_INFO "Reached end of simulation at iteration %u of %u\n",
-			N_snapshot, parameters::NTOT);
+
+
+	logging::print_runtime_final();
+
 }
 
 

@@ -670,6 +670,35 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    parameters::VISCOSITY);
     }
 
+
+	if (parameters::VISCOUS_ACCRETION) {
+	logging::print_master(
+	    LOG_INFO
+	    "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
+    }
+
+    if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
+	(parameters::corotating)) {
+	logging::print_master(
+	    LOG_ERROR
+	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
+	PersonalExit(1);
+    }
+	if (config::cfg.get_flag("WriteDefaultValues", "no")) {
+		config::cfg.write_default(output::outdir + "default_config.yml");
+	}
+
+	// TODO: check with Lucas why needed?
+	if(parameters::heating_star_enabled){
+		data[t_data::ASPECTRATIO].set_do_before_write(nullptr);
+	}
+
+    parameters::VISCOUS_ACCRETION = false;
+    if (parameters::boundary_inner == parameters::boundary_condition_viscous_outflow) {
+		parameters::VISCOUS_ACCRETION = true;
+    }
+
+
 }
 
 void PrintUsage(char *execname)

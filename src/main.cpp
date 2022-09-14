@@ -53,20 +53,8 @@
 // copy operator for t_polargrid
 // write all polargrids on error
 
-int main(int argc, char *argv[])
-{
-
-    register_signal_handlers();
-
-    t_data data;
-
-    sim::N_hydro_iter = 0;
-    sim::N_monitor = 0;
-
-    resize_radialarrays(MAX1D);
-
-
-    int CPU_NameLength;
+static void init_parallel(int argc, char *argv[]) {
+	int CPU_NameLength;
     char CPU_Name[MPI_MAX_PROCESSOR_NAME + 1];
 
 	int provided;
@@ -98,7 +86,14 @@ int main(int argc, char *argv[])
     // are we master CPU?
     CPU_Master = (CPU_Rank == 0 ? 1 : 0);
 
-    // print some information about program
+	// print information on which processor we're running
+    MPI_Get_processor_name(CPU_Name, &CPU_NameLength);
+    CPU_Name[CPU_NameLength] = '\0';
+    logging::print(LOG_INFO "fargo: running on %s\n", CPU_Name);
+}
+
+static void print_buildtimeinfo() {
+	    // print some information about program
     logging::print_master(LOG_INFO "fargo: This file was compiled on %s, %s.\n",
 			  __DATE__, __TIME__);
 #ifdef GIT_COMMIT
@@ -122,118 +117,19 @@ int main(int argc, char *argv[])
 	"fargo: This version of FARGO does assertion checks! Compile with NDEBUG to speed up!\n");
 #endif
 
-    // print information on which processor we're running
-    MPI_Get_processor_name(CPU_Name, &CPU_NameLength);
-    CPU_Name[CPU_NameLength] = '\0';
-    logging::print(LOG_INFO "fargo: running on %s\n", CPU_Name);
+}
 
-    // control behavior for floating point exceptions trapping (default is not
-    // to do anything)
-    // setfpe();
-
-    // handle command line parameters
-    options::parse(argc, argv);
-
-    ReadVariables(options::parameter_file, data, argc, argv);
-
-    // check if there is enough free space for all outputs (check before any
-    // output are files created)
-    output::check_free_space(data);
-
-    parameters::write_grid_data_to_file();
-
-    units::print_code_units();
-    units::write_code_unit_file();
-    constants::print_constants();
-    output::write_output_version();
-
-    SplitDomain();
-
-    TellEverything();
-
-    if (options::memory_usage) {
-	data.print_memory_usage(NRadial, NAzimuthal);
-	PersonalExit(0);
-    }
-
-    if (options::disable)
-	PersonalExit(0);
-
-    data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
-
-	fargo_random::init();
-
-    init_radialarrays();
-
-    // Here planets are initialized feeling star potential
-    data.get_planetary_system().init_system(options::parameter_file);
-	quantities::state_disk_ecc_peri_calculation_center(data);
-    // data.get_planetary_system().correct_planet_accretion();
-
-    // data.get_planetary_system().correct_planet_accretion();
-
-	// TODO: check with Lucas why needed?
-	if(parameters::heating_star_enabled){
-		data[t_data::ASPECTRATIO].set_do_before_write(nullptr);
-	}
-
-    parameters::VISCOUS_ACCRETION = false;
-    if (parameters::boundary_inner ==
-	parameters::boundary_condition_viscous_outflow) {
-	parameters::VISCOUS_ACCRETION = true;
-    }
-    for (unsigned int k = 0;
-	 k < data.get_planetary_system().get_number_of_planets(); ++k) {
-	if (data.get_planetary_system().get_planet(k).get_acc() < 0.0) {
-	    parameters::VISCOUS_ACCRETION = true;
-	}
-    }
-
-    logging::print_master(LOG_INFO "planets loaded.\n");
-
-    if (parameters::VISCOUS_ACCRETION) {
-	logging::print_master(
-	    LOG_INFO
-	    "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
-    }
-
-    if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
-	(parameters::corotating)) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
-	PersonalExit(1);
-    }
-
-    parameters::summarize_parameters();
-	if (config::cfg.get_flag("WriteDefaultValues", "no")) {
-		config::cfg.write_default(output::outdir + "default_config.yml");
-	}
-
-
-    boundary_conditions::init_prescribed_time_variable_boundaries(data);
-    init_physics(data);
-	sim::CalculateTimeStep(data);
-
-    // update planet velocity due to disk potential
-    if (parameters::disk_feedback) {
-	ComputeDiskOnNbodyAccel(data);
-	data.get_planetary_system().correct_velocity_for_disk_accel();
-    }
-
-    if (parameters::integrate_particles) {
-	particles::init(data);
-    }
-
+static void init_damping(t_data &data) {
     if (parameters::is_damping_initial) {
 	// save starting values (needed for damping)
-	copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
-	copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
-	copy_polargrid(data[t_data::SIGMA0], data[t_data::SIGMA]);
-	copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
+		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
+		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
+		copy_polargrid(data[t_data::SIGMA0], data[t_data::SIGMA]);
+		copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
     }
+}
 
-    if (start_mode::mode == start_mode::mode_restart) {
+static void restart_load(t_data &data) {
 
 	sim::N_monitor = 0;
 	start_mode::restart_from = output::load_misc();
@@ -335,16 +231,96 @@ int main(int argc, char *argv[])
 	    viscosity::update_viscosity(data);
 	}
 
-    } else {
-	// create planet files
-	data.get_planetary_system().create_planet_files();
+}
 
-	// create 1D info files
-	if (CPU_Master) {
-	    output::write_1D_info(data);
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
+int main(int argc, char *argv[])
+{
+
+    register_signal_handlers();
+
+    t_data data;
+
+    sim::N_hydro_iter = 0;
+    sim::N_monitor = 0;
+
+    resize_radialarrays(MAX1D);
+
+	init_parallel(argc, argv);
+    
+	print_buildtimeinfo();
+
+    // control behavior for floating point exceptions trapping (default is not
+    // to do anything)
+    // setfpe();
+
+    // handle command line parameters
+    options::parse(argc, argv);
+
+    ReadVariables(options::parameter_file, data, argc, argv);
+
+    // check if there is enough free space for all outputs (check before any
+    // output are files created)
+    output::check_free_space(data);
+
+    parameters::write_grid_data_to_file();
+
+    units::print_code_units();
+    units::write_code_unit_file();
+    constants::print_constants();
+    output::write_output_version();
+
+    SplitDomain();
+
+    TellEverything();
+
+    if (options::memory_usage) {
+	data.print_memory_usage(NRadial, NAzimuthal);
+	PersonalExit(0);
     }
+
+    if (options::disable)
+	PersonalExit(0);
+
+    data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
+
+	fargo_random::init();
+
+    init_radialarrays();
+
+    // Here planets are initialized feeling star potential
+    data.get_planetary_system().init_system(options::parameter_file);
+	quantities::state_disk_ecc_peri_calculation_center(data);
+
+    parameters::summarize_parameters();
+
+    boundary_conditions::init_prescribed_time_variable_boundaries(data);
+    init_physics(data);
+	sim::CalculateTimeStep(data);
+
+    // update planet velocity due to disk potential
+    if (parameters::disk_feedback) {
+	ComputeDiskOnNbodyAccel(data);
+	data.get_planetary_system().correct_velocity_for_disk_accel();
+    }
+
+    if (parameters::integrate_particles) {
+	particles::init(data);
+    }
+
+	init_damping(data);
+
+    if (start_mode::mode == start_mode::mode_restart) {
+		restart_load(data);
+    } else {
+		// create planet files
+		data.get_planetary_system().create_planet_files();
+
+		// create 1D info files
+		output::write_1D_info(data);
+		
+		MPI_Barrier(MPI_COMM_WORLD);
+    }
+
     sim::PhysicalTimeInitial = sim::PhysicalTime;
 
     logging::start_timer();
@@ -360,13 +336,9 @@ int main(int argc, char *argv[])
 		sim::handle_outputs(data);
 	}
 
-	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 	sim::init(data);
 	sim::run(data);	
     
-
-    logging::print_runtime_final();
 
     // free up everything
     DeallocateBoundaryCommunicationBuffers();
