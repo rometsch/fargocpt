@@ -17,6 +17,7 @@ namespace start_mode
 StartMode mode = mode_none;
 std::int32_t restart_from = -1;
 std::int32_t restart_debug = false;
+std::uint32_t num_threads = 1;
 
 static std::string &rtrim(std::string &str,
 			  const std::string &chars = "\t\n\v\f\r ")
