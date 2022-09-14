@@ -728,21 +728,22 @@ void write_torques(t_data &data, bool force_update)
 
 void write_1D_info(t_data &data)
 {
+	if (!CPU_Master) {
+		return;
+	}
+
     for (int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
 	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
-	    char *tmp;
-
-	    if (asprintf(&tmp, "%s/%s1D.info", outdir.c_str(),
-			 data[t_data::t_polargrid_type(i)].get_name()) < 0) {
-		die("Not enough memory!");
-	    }
 
 	    int Nr = GlobalNRadial;
 
-	    if (data[t_data::t_polargrid_type(i)].is_vector())
-		Nr += 1;
+	    if (data[t_data::t_polargrid_type(i)].is_vector()) {
+			Nr += 1;
+		}
 
-	    const std::string filename_info = std::string(tmp);
+		const std::string name = std::string(data[t_data::t_polargrid_type(i)].get_name());
+	    const std::string filename_info = outdir + name + "1D.info";
+
 	    std::ofstream info_ofs(filename_info);
 	    info_ofs << "# version 0.1" << std::endl;
 	    info_ofs
@@ -770,7 +771,6 @@ void write_1D_info(t_data &data)
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
 
-	    free(tmp);
 	}
     }
 }

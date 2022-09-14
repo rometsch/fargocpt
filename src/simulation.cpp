@@ -22,9 +22,9 @@ namespace sim {
 double last_dt;
 
 double PhysicalTime, PhysicalTimeInitial;
-unsigned int N_snapshot;
-unsigned int N_monitor;
-unsigned long int N_hydro_iter;
+unsigned int N_snapshot = 0;
+unsigned int N_monitor = 0;
+unsigned long int N_hydro_iter = 0;
 
 double total_disk_mass_old;
 
@@ -548,6 +548,8 @@ void run(t_data &data) {
 	double step_dt = last_dt;
 	double cfl_dt = last_dt;
 
+	init(data);
+
 	const double t_final = parameters::NTOT * parameters::NINTERM * parameters::DT;
 
 	bool towrite = false;
@@ -576,9 +578,10 @@ void run(t_data &data) {
 			logging::print_runtime_info();
 		}
     }
-	logging::print_master(
-			LOG_INFO "Reached end of simulation at iteration %u of %u\n",
-			N_snapshot, parameters::NTOT);
+
+
+	logging::print_runtime_final();
+
 }
 
 
