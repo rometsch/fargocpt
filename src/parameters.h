@@ -245,6 +245,7 @@ extern double mof_rampingtime;
 extern bool disk_feedback;
 
 extern bool fast_transport;
+extern bool leap_frog;
 
 extern int indirect_term_mode;
 

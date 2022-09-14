@@ -163,6 +163,18 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	die("Invalid setting for Transport");
     }
     
+	switch (cfg.get_first_letter_lowercase("Integrator", "Euler")) {
+    case 'e':
+	parameters::leap_frog= false;
+	break;
+    case 'l':
+	parameters::leap_frog = true;
+	break;
+    default:
+	die("Invalid setting for Integrator (valid: Euler, Leapfrog");
+    }
+    
+
 
     // disc
     parameters::ASPECTRATIO_REF = cfg.get<double>("ASPECTRATIO", 0.05);

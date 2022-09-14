@@ -278,7 +278,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 	const double frog_dt = step_dt/2;
 	const double start_time = PhysicalTime;
 	const double midstep_time = PhysicalTime + frog_dt;
-	const double end_time = PhysicalTime + hydro_dt;
+	const double end_time = PhysicalTime + step_dt;
 
 	//////////////// Leapfrog compute v_i+1/2 /////////////////////
 	if (parameters::disk_feedback) {
@@ -289,7 +289,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 	/// Indirect term will not be updated for the second leapfrog step
 	/// so compute it for the full timestep
 	/// It should be recomputed when using euler though
-	refframe::ComputeIndirectTermNbody(data, start_time, hydro_dt);
+	refframe::ComputeIndirectTermNbody(data, start_time, step_dt);
 	refframe::ComputeIndirectTermFully();
 
 	/// Update Nbody to x_i+1/2
@@ -359,7 +359,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  hydro_dt);
+			  step_dt);
 		//////////////// END Leapfrog compute x_i+1   /////////////////////
 
 	}
@@ -380,7 +380,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 	refframe::ComputeIndirectTermDisk(data);
 
 	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
-	refframe::ComputeIndirectTermNbody(data, midstep_time, hydro_dt);
+	refframe::ComputeIndirectTermNbody(data, midstep_time, step_dt);
 	}
 	refframe::ComputeIndirectTermFully();
 
@@ -473,9 +473,9 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 	    }
 
 		// minimum density is assured inside AccreteOntoPlanets
-	    accretion::AccreteOntoPlanets(data, hydro_dt);
+	    accretion::AccreteOntoPlanets(data, step_dt);
 
-		boundary_conditions::apply_boundary_condition(data, end_time, hydro_dt, true);
+		boundary_conditions::apply_boundary_condition(data, end_time, step_dt, true);
 
 		if(parameters::keep_mass_constant){
 			const double total_disk_mass_new =
@@ -485,7 +485,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 		}
 
 	    quantities::CalculateMonitorQuantitiesAfterHydroStep(data, N_monitor,
-						     hydro_dt);
+						     step_dt);
 
 	    if (parameters::variableGamma &&
 		!parameters::VISCOUS_ACCRETION) { // If VISCOUS_ACCRETION is active,
@@ -528,8 +528,7 @@ void init(t_data &data) {
 }
 
 static void step(t_data &data, const double step_dt) {
-	const bool use_leapfrog = false;
-	if (use_leapfrog) {
+	if (parameters::leap_frog) {
 		step_LeapFrog(data, step_dt);
 	} else {
 		step_Euler(data, step_dt);
