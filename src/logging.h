@@ -2,6 +2,8 @@
 #define LOGGING_H
 
 #include <stdarg.h>
+#include <chrono>
+
 
 #define LOG_ERROR "<0>"	  /* error conditions                     */
 #define LOG_WARNING "<1>" /* warning conditions                   */
@@ -17,6 +19,8 @@ namespace logging
 
 extern char print_level;
 extern char error_level;
+
+extern std::chrono::steady_clock::time_point realtime_start;
 
 int vprint(const char *fmt, va_list args);
 int print(const char *fmt, ...);

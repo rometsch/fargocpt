@@ -9,6 +9,8 @@
 #include "simulation.h"
 #include <fstream>
 #include <iostream>
+#include <chrono>
+
 
 hydro_dt_logger::hydro_dt_logger()
 {
@@ -77,10 +79,20 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 						fd,
 						"# Time log for the hydro timestep size. Each entry averaged over one DT\n"
 						"# One DT is %.18g (code) and %.18g (cgs). Time unit is: %.18g\n"
-						"# Syntax: snapshot number <tab> monitor number <tab> PhysicalTime <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n",
+						"# Syntax: snapshot number <tab> monitor number <tab> PhysicalTime <tab> walltime <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n",
 						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor());
 			fd_created = true;
 		}
+
+		double realtime = 0.0;
+
+		const std::chrono::steady_clock::time_point realtime_now = std::chrono::steady_clock::now();
+		realtime = 
+			std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - logging::realtime_start)
+			.count();
+		realtime /= 1000000.0; // to seconds
+
+
 
 		double mean_dt;
 		double std_dev;
@@ -93,8 +105,8 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 			mean_dt = 0.0;
 			std_dev = 0.0;
 		}
-		fprintf(fd, "%u\t%u\t%#.16e\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
-				sim::PhysicalTime, m_N_hydro_iter_DT, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
+		fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
+				sim::PhysicalTime, realtime, m_N_hydro_iter_DT, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
 		fclose(fd);
 
 		reset();
