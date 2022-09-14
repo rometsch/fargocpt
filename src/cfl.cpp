@@ -186,12 +186,7 @@ static void timestep_debug_report(t_data &data,
 
 }
 
-/**
-	\param VRadial radial velocity polar grid
-	\param VAzimuthal azimuthal velocity polar grid
-	\param SoundSpeed sound speed polar grid
-	\param deltaT
-*/
+
 double condition_cfl(t_data &data, const double dt_global_input)
 {
 

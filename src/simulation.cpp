@@ -46,6 +46,7 @@ static void write_snapshot(t_data &data) {
 void handle_outputs(t_data &data) {
 	bool need_update_for_output = true;
 	N_snapshot = (N_monitor / parameters::NINTERM); // note: integer division
+	
 	const bool to_write_snapshot = (parameters::NINTERM * N_snapshot == N_monitor);
 	const bool to_write_monitor = to_write_snapshot || parameters::write_at_every_timestep;
 
@@ -65,7 +66,7 @@ void handle_outputs(t_data &data) {
 	}
 
 	if (to_write_monitor) {
-		// dt_logger.write(N_snapshot, N_monitor);
+		dt_logger.write(N_snapshot, N_monitor);
 		if(ECC_GROWTH_MONITOR){
 			output::write_ecc_peri_changes(sim::N_snapshot, sim::N_monitor);
 		}
@@ -94,7 +95,7 @@ double CalculateTimeStep(t_data &data)
 		rv = std::min(parameters::CFL_max_var * last_dt, cfl_dt);
 		last_dt = cfl_dt;
 	}
-	// dt_logger.update(rv);
+	dt_logger.update(rv);
 
 	return rv;
 }
@@ -560,7 +561,8 @@ void run(t_data &data) {
 
 		cfl_dt = CalculateTimeStep(data);
 
-		const double time_left_till_write = (N_monitor+1)*parameters::DT - PhysicalTime;
+		const double time_next_monitor = (N_monitor+1)*parameters::DT;
+		const double time_left_till_write = time_next_monitor - PhysicalTime;
 
 		if (cfl_dt > time_left_till_write) {
 			step_dt = time_left_till_write;

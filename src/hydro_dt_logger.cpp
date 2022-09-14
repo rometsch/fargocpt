@@ -6,6 +6,7 @@
 #include "output.h"
 #include "start_mode.h"
 #include "parameters.h"
+#include "simulation.h"
 #include <fstream>
 #include <iostream>
 
@@ -76,7 +77,7 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 						fd,
 						"# Time log for the hydro timestep size. Each entry averaged over one DT\n"
 						"# One DT is %.18g (code) and %.18g (cgs). Time unit is: %.18g\n"
-						"# Syntax: coarse output step <tab> fine output step <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n",
+						"# Syntax: snapshot number <tab> monitor number <tab> PhysicalTime <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n",
 						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor());
 			fd_created = true;
 		}
@@ -84,16 +85,16 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 		double mean_dt;
 		double std_dev;
 		if(m_N_hydro_iter_DT > 0){
-		mean_dt = m_sum_hydro_dt / m_N_hydro_iter_DT;
+			mean_dt = m_sum_hydro_dt / m_N_hydro_iter_DT;
 
-		const double mean_sq_dt = m_sum_hydro_dt_sq / m_N_hydro_iter_DT;
-		std_dev = std::sqrt(mean_sq_dt - std::pow(mean_dt, 2));
+			const double mean_sq_dt = m_sum_hydro_dt_sq / m_N_hydro_iter_DT;
+			std_dev = std::sqrt(std::abs(mean_sq_dt - std::pow(mean_dt, 2)));
 		} else {
 			mean_dt = 0.0;
 			std_dev = 0.0;
 		}
-		fprintf(fd, "%u\t%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
-				m_N_hydro_iter_DT, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
+		fprintf(fd, "%u\t%u\t%#.16e\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
+				sim::PhysicalTime, m_N_hydro_iter_DT, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
 		fclose(fd);
 
 		reset();
