@@ -200,7 +200,7 @@ static void step_Euler(t_data &data, const double dt) {
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 		recalculate_derived_disk_quantities(data, true);
-		ComputeViscousStressTensor(data);
+		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, dt);
 	    }
 
@@ -339,7 +339,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
 		//recalculate_viscosity(data, start_time);
-		ComputeViscousStressTensor(data);
+		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 	    }
 	    if (!parameters::EXPLICIT_VISCOSITY) {
@@ -407,7 +407,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 		}
 
 		//recalculate_viscosity(data, midstep_time);
-		ComputeViscousStressTensor(data);
+		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 		}
 		if (!parameters::EXPLICIT_VISCOSITY) {

@@ -92,17 +92,6 @@
 //     }
 // }
 
-void ComputeViscousStressTensor(t_data &data)
-{
-    if ((parameters::artificial_viscosity ==
-	 parameters::artificial_viscosity_TW) &&
-	(parameters::artificial_viscosity_dissipation)) {
-	viscosity::compute_viscous_terms(data, true);
-    } else {
-	viscosity::compute_viscous_terms(data, false);
-    }
-}
-
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
 {
     if (assure_temperature_range(data)) {
@@ -630,12 +619,7 @@ void calculate_qplus(t_data &data)
 {
 
     if (parameters::EXPLICIT_VISCOSITY) {
-		if(parameters::ALPHAVISCOSITY > 0 ||
-				(!parameters::artificial_viscosity_dissipation) ||
-				(parameters::artificial_viscosity !=
-					parameters::artificial_viscosity_WT)){
 		data[t_data::QPLUS].clear();
-		}
     }
 
 
@@ -1839,7 +1823,7 @@ void compute_heating_cooling_for_CFL(t_data &data, const double current_time)
     if (parameters::Adiabatic) {
 
 	viscosity::update_viscosity(data);
-	ComputeViscousStressTensor(data);
+	viscosity::compute_viscous_stress_tensor(data);
 
 	calculate_qminus(data, current_time); // first to calculate teff
 	calculate_qplus(data);

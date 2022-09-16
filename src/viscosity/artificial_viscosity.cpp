@@ -11,7 +11,7 @@ namespace art_visc{
 
 void update_with_artificial_viscosity(t_data &data, const double time, const double dt){
 	if (parameters::artificial_viscosity ==
-	 parameters::artificial_viscosity_WT) {
+	 parameters::artificial_viscosity_TW) {
 	recalculate_viscosity(data, time);
 	art_visc::update_with_artificial_viscosity_TW(data, dt);
 	} else { // SN or TW (just for Vazimuthal ghost cells)
@@ -109,9 +109,6 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 		if (parameters::Adiabatic && parameters::artificial_viscosity_dissipation) {
 		if(nr > 1 && nr < density.get_max_radial()){
-			if(parameters::ALPHAVISCOSITY > 0){
-				if(parameters::ALPHAVISCOSITY > 0.0 && (nr > 0)){
-
 					double qplus =
 							1.0 / (2.0 * visc(nr, naz) *
 								   density(nr, naz)) * 2.0 * std::pow(Tau_art(nr, naz), 2);
@@ -127,28 +124,9 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 					//const double de_dt = (energy_new - energy_old)/dt;
 					//Qp(nr, naz) = de_dt;
 					energy(nr, naz) = energy_new;
-				}
-
-			} else {
-			if (visc(nr, naz) != 0.0) {
-
-				double qplus =
-						1.0 / (2.0 * visc(nr, naz) *
-							   density(nr, naz)) * 2.0 * std::pow(Tau_art(nr, naz), 2);
-				/*double qplus =
-					1.0 / (2.0 * visc(nr, naz) *
-					 density(nr, naz)) *
-					(std::pow(Trr(nr, naz), 2)
-					 + std::pow(Tpp(nr, naz), 2));*/
-
-				qplus *= parameters::heating_viscous_factor;
-				Qp(nr, naz) = qplus;
-				//energy(nr, naz) += dt*qplus;
-			}
-			}
-		}
 		}
 
+	}
 	}
 	}
 

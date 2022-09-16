@@ -452,7 +452,7 @@ void Sts(t_data &data, const double current_time, const double dt)
 
 	StsStep2(data, tau);
 	recalculate_viscosity(data, current_time);
-	ComputeViscousStressTensor(data);
+	viscosity::compute_viscous_stress_tensor(data);
 	viscosity::update_velocities_with_viscosity(
 		data, tau);
 
