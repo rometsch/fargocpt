@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # Convert an ini config to a json file.
-from email.policy import default
 import os
-from typing import OrderedDict
 import yaml
 import argparse
 
