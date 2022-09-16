@@ -11,6 +11,7 @@
 #include "frame_of_reference.h"
 #include "particles/particles.h"
 #include "viscosity/viscosity.h"
+#include "viscosity/artificial_viscosity.h"
 #include "TransportEuler.h"
 #include "sts.h"
 #include "accretion.h"
@@ -194,7 +195,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    if (parameters::EXPLICIT_VISCOSITY) {
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
-		update_with_artificial_viscosity(data, sim::PhysicalTime, dt);
+		art_visc::update_with_artificial_viscosity(data, sim::PhysicalTime, dt);
 		if (parameters::Adiabatic) {
 		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
@@ -333,7 +334,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 
 	    if (parameters::EXPLICIT_VISCOSITY) {
 
-		update_with_artificial_viscosity(data, start_time, frog_dt);
+		art_visc::update_with_artificial_viscosity(data, start_time, frog_dt);
 		if (parameters::Adiabatic) {
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
@@ -400,7 +401,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 		update_with_sourceterms(data, frog_dt);
 
 		if (parameters::EXPLICIT_VISCOSITY) {
-		update_with_artificial_viscosity(data, midstep_time, frog_dt);
+		art_visc::update_with_artificial_viscosity(data, midstep_time, frog_dt);
 		if (parameters::Adiabatic) {
 			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 		}
