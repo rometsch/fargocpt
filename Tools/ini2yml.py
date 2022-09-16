@@ -211,7 +211,11 @@ def handle_default_star(params):
         "radius": radius,
         "temperature": temperature
     }
-    params["nbody"] = [default_star] + params["nbody"]
+    try:
+        old_nbody = params["noby"]
+    except KeyError:
+        old_nbody = []
+    params["nbody"] = [default_star] + old_nbody
     print("Added a default star to the nbody list.")
 
 
