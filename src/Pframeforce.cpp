@@ -20,7 +20,7 @@
 #include "selfgravity.h"
 #include "units.h"
 #include "util.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include "quantities.h"
 #include "frame_of_reference.h"
 

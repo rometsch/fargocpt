@@ -25,7 +25,7 @@
 #include "stress.h"
 #include "units.h"
 #include "util.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include <cstring>
 
 static void StsStep(t_data &data, double dt)

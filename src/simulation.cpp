@@ -10,7 +10,7 @@
 #include "commbound.h"
 #include "frame_of_reference.h"
 #include "particles/particles.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include "TransportEuler.h"
 #include "sts.h"
 #include "accretion.h"

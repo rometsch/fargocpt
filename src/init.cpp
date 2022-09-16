@@ -22,7 +22,7 @@
 #include "quantities.h"
 #include "selfgravity.h"
 #include "util.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include "frame_of_reference.h"
 #include <gsl/gsl_sf_bessel.h>
 #include "simulation.h"

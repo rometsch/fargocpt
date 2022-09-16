@@ -1,7 +1,7 @@
 #ifndef VISCOSITY_H
 #define VISCOSITY_H
 
-#include "data.h"
+#include "../data.h"
 
 namespace viscosity
 {
