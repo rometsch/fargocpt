@@ -50,27 +50,25 @@ HeatingStarSimple: 'No'   # Use simplified star heating [default = No]
 MinimumTemperature: 3 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
 TauFactor: '1.0'   # correction factor for tau [default = 1.0]
+TauMin: '0.01'   # correction factor for tau [default = 1.0]
 Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst: '2.0e-6'   # used for const and simple opacity (kappa = kappa0 * T**2)
 CFL: '0.5'
 HeatingCoolingCFLlimit: '1.0'   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
-zbufferSize: '100'
-zbufferMaxAngle: '0.174'
-
 # Units
 
-l0: 1 au   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
-m0: '1 solMass'   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
+l0: 1 au   # Base length unit of the simulation [default: 1.0 au]
+m0: '0.334 solMass'   # Base mass unit of the simulation [default: 1.0 solMass]
 mu: '2.35'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
 MassOverflow: 'No'   # [default = No]
-mofValue: '1.0e-9 solMass/yr'   # flowrate in mass / time
+mofValue: '1.0e-9 solMass/yr'   # mass transfer rate through l1 point from mofPlanet in mass / time
 mofPlanet: '1' # reference for the direction from which the mass overflow happens (mass flows in at the projected position of the planet at the outer boundary)
-mofTemperature: '1500' 
-mofRampingTime: '30' # in planetary orbits
+mofTemperature: '1500'  # Temperature of the mass stream, affects the width of the stream
+mofRampingTime: '30' # growth time for the mass transfer rate in planetary orbits
 
 # Planet parameters
 
@@ -114,6 +112,8 @@ Disk: 'YES'
 OmegaFrame: '1.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
+IndirectTermMode: '0'   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
+KeepDiskMassConstant: 'NO'
 
 # Mesh parameters
 
@@ -130,7 +130,7 @@ QuantitiesRadiusLimit: '2.5'   # Disk quantities will be computed only within th
 
 # Output control parameters
 
-Ntot: '2'   # Total number of time steps
+Ntot: '2'   # Total number outputs
 Ninterm: '3'   # Time steps between outputs
 DT: '0.628'   # Time step length. 2PI = 1 orbit
 FirstDT: '1.0e-1' # initial hydro dt / dt in case of no disk
@@ -146,6 +146,7 @@ WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) s
 WriteTemperature: 'No'   # Write temperature. [default = no]
 WriteVelocity: 'Yes'   # Write velocites. This is needed for restart of simulations. [default = yes]
 WriteSoundspeed: 'No'   # Write sound speed [default = no]
+WriteEccentricityChange: 'No' # Eccentricity change monitor
 WriteEffectiveGamma: 'No'   # 
 WriteFirstAdiabaticIndex: 'No'   # Usefull for PVTE EoS
 WriteMeanMolecularWeight: 'No'   # 
@@ -212,7 +213,7 @@ StarTemperature: '5778'   # star temperature in K
 nbody:
 - name: Star
   semi-major axis: 0.0 au
-  mass: 1.0 solMass
+  mass: 1.0
   eccentricity: 0.0
   temperature:
   radius: 1.0 solRadius
