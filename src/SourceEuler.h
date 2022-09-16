@@ -17,9 +17,6 @@ void init_euler(t_data &data, const double current_time);
 void FreeEuler();
 
 void update_with_sourceterms(t_data &data, const double dt);
-void update_with_artificial_viscosity(t_data &data, const double time, const double dt);
-void update_with_artificial_viscosity_SN(t_data &data, const double dt);
-void update_with_artificial_viscosity_TW(t_data &data, const double dt);
 void SubStep3(t_data &data, const double current_time, const double dt);
 void radiative_diffusion(t_data &data, const double current_time, const double dt);
 

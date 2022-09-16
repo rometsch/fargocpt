@@ -3,9 +3,27 @@
 #include "../parameters.h"
 #include "../SideEuler.h"
 #include "../global.h"
+#include "../SourceEuler.h"
+#include "../quantities.h"
 #include <cassert>
 
 namespace art_visc{
+
+void update_with_artificial_viscosity(t_data &data, const double time, const double dt){
+	if (parameters::artificial_viscosity ==
+	 parameters::artificial_viscosity_WT) {
+	recalculate_viscosity(data, time);
+	art_visc::update_with_artificial_viscosity_TW(data, dt);
+	} else { // SN or TW (just for Vazimuthal ghost cells)
+	art_visc::update_with_artificial_viscosity_SN(data, dt);
+	recalculate_viscosity(data, time);
+	}
+
+	if(ECC_GROWTH_MONITOR){
+		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_art_visc, delta_peri_art_visc);
+	}
+}
+
 
 void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 {

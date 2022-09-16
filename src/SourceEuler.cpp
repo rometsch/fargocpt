@@ -512,22 +512,6 @@ void update_with_sourceterms(t_data &data, const double dt)
 
 }
 
-
-void update_with_artificial_viscosity(t_data &data, const double time, const double dt){
-	if (parameters::artificial_viscosity ==
-	 parameters::artificial_viscosity_WT) {
-	recalculate_viscosity(data, time);
-	art_visc::update_with_artificial_viscosity_TW(data, dt);
-	} else { // SN or TW (just for Vazimuthal ghost cells)
-	art_visc::update_with_artificial_viscosity_SN(data, dt);
-	recalculate_viscosity(data, time);
-	}
-
-	if(ECC_GROWTH_MONITOR){
-		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_art_visc, delta_peri_art_visc);
-	}
-}
-
 static void viscous_heating(t_data &data) {
 	const unsigned int Nr_m1 = data[t_data::QPLUS].get_max_radial();
 	const unsigned int Nphi = data[t_data::QPLUS].get_size_azimuthal();
