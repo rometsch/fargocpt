@@ -27,6 +27,7 @@ def main():
     for planet in params["nbody"]:
         add_unit(planet, "temperature", "K")
         add_unit(planet, "radius", "solRadius")
+    handle_nans(params)
 
     remove_deprecated_entries(params)
 
@@ -34,6 +35,13 @@ def main():
 
     insert_comments(comments, args.outfile)
 
+def handle_nans(params):
+    key = "MaximumTemperature"
+    if contains(params, key):
+        key = keyname(params, key)
+        if "nan" in params[key].lower():
+            params[key] = "1e100 K"
+            print("Replaced NaN with 1e100 K in MaximumTemperature")
 
 def remove_entry(params, key):
     if contains(params, key):
