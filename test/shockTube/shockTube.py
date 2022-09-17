@@ -17,11 +17,11 @@ def compile_fargo(fargo_path):
 
 
 def run(fargo_path, par_file):
-    wd = os.getcwd()
-    os.chdir(fargo_path)
+    # wd = os.getcwd()
+    # os.chdir(fargo_path)
 
-    subprocess.call('./fargo start ' + par_file, shell=True)
-    os.chdir(wd)
+    subprocess.call('../../fargo start ' + par_file, shell=True)
+    # os.chdir(wd)
 
 
 quants = ["gasvrad", "gasdens", "gasTemperature", "gasenergy"]
@@ -39,14 +39,14 @@ def analytic(axs):
         ax.plot(x, y, '-k', label='Analytic', lw=2)
 
 
-def test(out, label, color, dt):
+def test(out, label, color, dt, ls="--"):
 
     r12 = np.loadtxt(out + "used_rad.dat", skiprows=0)
     r1 = 0.5*(r12[1:] + r12[:-1])-r12[0]
     rmax = np.max(r1)
     rmin = np.min(r1)
 
-    file_name = out + '/gasdens' + str(dt) + ".dat"
+    file_name = f"{out}/snapshots/{dt}/Sigma.dat"
     data = np.fromfile(file_name)
     N = len(data)
     nr = len(r1)
@@ -55,9 +55,11 @@ def test(out, label, color, dt):
     for i in range(len(quants)):
         ax = axs[i]
 
-        file_name = out + quants[i] + str(dt) + ".dat"
+        name = quants[i].replace("gas", "")
+        name = name.replace("dens", "Sigma")
+        file_name = f"{out}/snapshots/{dt}/{name}.dat"
         data = np.fromfile(file_name)
-        if quants[i] == 'gasvrad':
+        if name == 'vrad':
             data = data.reshape((nr+1, nphi))
             data = np.mean(data, 1)
             data = 0.5*(data[1:] + data[:-1])
@@ -65,24 +67,28 @@ def test(out, label, color, dt):
             data = data.reshape((nr, nphi))
             data = np.mean(data, 1)
 
-        ax.plot(r1, data, ls='--', color=color, label=label, lw=2.5)
+        ax.plot(r1, data, ls=ls, color=color, label=label, lw=2.5)
 
 
 
 
 compile_fargo('../../')
-run('../../', 'test/shockTube/shocktube.par')
-run('../../', 'test/shockTube/shocktube_TW.par')
-run('../../', 'test/shockTube/shocktube_STS.par')
+run('../../', 'setups/shocktube_SN.yml')
+run('../../', 'setups/shocktube_TW.yml')
+run('../../', 'setups/shocktube_STS.yml')
+run('../../', 'setups/shocktube_TW_LF.yml')
+run('../../', 'setups/shocktube_SN_LF.yml')
 
 dt = 228
 fig, axs = plt.subplots(2,2,figsize=(8,4))
 axs = np.ravel(axs)
 
 analytic(axs)
-test('../../shocktube/', 'SN', 'red', dt)
-test('../../shocktube_TW/', 'TW', 'blue', dt)
-test('../../shocktube_STS/', 'SN STS', 'gold', dt)
+test('output/SN/', 'SN', 'red', dt)
+test('output/TW/', 'TW', 'blue', dt)
+test('output/STS/', 'SN STS', 'gold', dt, ls=":")
+test('output/TW_LF/', 'TW LF', 'green', dt, ls="-.")
+test('output/SN_LF/', 'SN LF', 'orange', dt, ls=":")
 
 
 for i in range(len(quants)):
