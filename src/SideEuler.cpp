@@ -26,7 +26,7 @@
 #include "quantities.h"
 #include "selfgravity.h"
 #include "util.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include "frame_of_reference.h"
 #include <cassert>
 

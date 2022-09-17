@@ -17,7 +17,7 @@
 #include "parameters.h"
 #include "string.h"
 #include "util.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include "config.h"
 #include "units.h"
 

@@ -29,8 +29,8 @@ FIND_LIBRARY( MPI_LIBRARY
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/..)
 
 # include files
-FILE(GLOB CPP_SOURCES "./*.cpp" "./rebound/*.c")
-FILE(GLOB H_SOURCES "./*.h" "./rebound/*.h")
+FILE(GLOB CPP_SOURCES "./*.cpp" "nbody/*.cpp" "particles/*.cpp" "random/*.cpp" "./rebound/*.c" "units/*.cpp" "viscosity/*.cpp" "yaml-cpp/*.cpp")
+FILE(GLOB H_SOURCES "./*.h" "nbody/*.h" "particles/*.h" "random/.h" "random/.hpp" "./rebound/*.h" "units/*.h" "viscosity/*.h" "yaml-cpp/*.cpp")
 # MPI dir to check if we are on BINAC
 string(SUBSTRING ${MPI_INCLUDE_DIR} 0 11 MPI_SUBSTR)
 

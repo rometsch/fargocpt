@@ -36,7 +36,7 @@
 #include "time.h"
 #include "units.h"
 #include "util.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include "particles/particles.h"
 #include "random/random.h"
 #include "simulation.h"

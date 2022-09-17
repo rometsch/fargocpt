@@ -15,7 +15,7 @@
 #include "start_mode.h"
 #include "stress.h"
 #include "util.h"
-#include "viscosity.h"
+#include "viscosity/viscosity.h"
 #include "frame_of_reference.h"
 #include "simulation.h"
 
