@@ -179,14 +179,15 @@ def handle_default_star(params):
     params: dict
         Dictionary containing the config.
     """
-    found_key = False
+    key_says_no = False
     for key in [k for k in params.keys()]:
         if key.lower() == "defaultstar":
             # check if setting is set to yes
-            found_key = params[key][0].lower() == "y"
+            key_says_no = params[key][0].lower() == "n"
             params.pop(key)
 
-    if not found_key:
+    if key_says_no:
+        # default is defaultstar is true
         return
 
     if "StarTemperature" in params:
