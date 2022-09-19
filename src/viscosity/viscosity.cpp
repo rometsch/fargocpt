@@ -90,12 +90,12 @@ void compute_viscous_stress_tensor(t_data &data)
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 
-		/// TODO div(v) = d(v_r)/dr + 1/r d(v_phi)/dphi
-	    // div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+		// old: div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+		// div(v) = d(v_r)/dr + 1/r d(v_phi)/dphi
 		data[t_data::DIV_V](nr, naz) =
-		(data[t_data::V_RADIAL](nr + 1, naz) * Ra[nr + 1] -
-		 data[t_data::V_RADIAL](nr, naz) * Ra[nr])
-				* InvDiffRsup[nr] * InvRb[nr] +
+		(data[t_data::V_RADIAL](nr + 1, naz) -
+		 data[t_data::V_RADIAL](nr, naz))
+				* InvDiffRsup[nr] +
 		(data[t_data::V_AZIMUTHAL](nr, naz_next) -
 		 data[t_data::V_AZIMUTHAL](nr, naz)) * invdphi * InvRb[nr];
 	}
