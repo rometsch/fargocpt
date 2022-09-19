@@ -171,12 +171,12 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     case 'e':
 	parameters::leap_frog= false;
 	logging::print_master(LOG_INFO
-	"Using leapfrog scheme for source terms.\n");
+	"Using standard forward euler scheme for source terms.\n");
 	break;
     case 'l':
 	parameters::leap_frog = true;
 	logging::print_master(LOG_INFO
-	"Using standard forward euler scheme for source terms.\n");
+	"Using leapfrog scheme for source terms.\n");
 	break;
     default:
 	die("Invalid setting for Integrator (valid: Euler, Leapfrog");
