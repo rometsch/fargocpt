@@ -24,7 +24,7 @@ def run(fargo_path, par_file):
     os.chdir(wd)
 
 
-quants = ["gasvrad", "gasdens", "gasTemperature", "gasenergy"]
+quants = ["vrad", "Sigma", "Temperature", "energy"]
 
 def analytic(axs):
     analytic_data = np.loadtxt("analytic_shock.dat", skiprows=2)
@@ -33,7 +33,7 @@ def analytic(axs):
     for i in range(len(quants)):
         ax = axs[i]
         y = analytic_data[:,(i+2)]
-        if quants[i] == 'gasenergy':
+        if quants[i] == 'energy':
             y = analytic_data[:,4]*analytic_data[:,3]/(1.4-1)
 
         ax.plot(x, y, '-k', label='Analytic', lw=2)
@@ -46,7 +46,7 @@ def test(out, label, color, dt):
     rmax = np.max(r1)
     rmin = np.min(r1)
 
-    file_name = out + '/gasdens' + str(dt) + ".dat"
+    file_name = out + 'snapshots/' + str(dt) + '/Sigma' + ".dat"
     data = np.fromfile(file_name)
     N = len(data)
     nr = len(r1)
@@ -55,9 +55,9 @@ def test(out, label, color, dt):
     for i in range(len(quants)):
         ax = axs[i]
 
-        file_name = out + quants[i] + str(dt) + ".dat"
+        file_name = out + '/snapshots/' + str(dt) + '/' + quants[i] + ".dat"
         data = np.fromfile(file_name)
-        if quants[i] == 'gasvrad':
+        if quants[i] == 'vrad':
             data = data.reshape((nr+1, nphi))
             data = np.mean(data, 1)
             data = 0.5*(data[1:] + data[:-1])
@@ -71,31 +71,28 @@ def test(out, label, color, dt):
 
 
 compile_fargo('../../')
-run('../../', 'test/shockTube/shocktube.par')
-run('../../', 'test/shockTube/shocktube_TW.par')
-run('../../', 'test/shockTube/shocktube_STS.par')
+run('../../', 'test/shockTube/shocktube_TW.yml')
+run('../../', 'test/shockTube/shocktube_SN.yml')
 
 dt = 228
 fig, axs = plt.subplots(2,2,figsize=(8,4))
 axs = np.ravel(axs)
 
 analytic(axs)
-test('../../shocktube/', 'SN', 'red', dt)
-test('../../shocktube_TW/', 'TW', 'blue', dt)
-test('../../shocktube_STS/', 'SN STS', 'gold', dt)
-
+test('../../shocktube_TW/', 'TW', 'red', dt)
+test('../../shocktube_SN/', 'SN', 'blue', dt)
 
 for i in range(len(quants)):
     ax = axs[i]
     ax.axis('auto')
     ax.set_title(quants[i], color='black', y = 1.06)
-    if quants[i] == 'gasdens':
+    if quants[i] == 'Sigma':
         ax.legend(loc='upper right')
-    if quants[i] == 'gasenergy':
+    if quants[i] == 'energy':
         ax.legend(loc='upper right')
-    if quants[i] == 'gasvrad':
+    if quants[i] == 'vrad':
         ax.legend(loc='upper left')
-    if quants[i] == 'gasTemperature':
+    if quants[i] == 'Temperature':
         ax.legend(loc='upper left')
 
 
