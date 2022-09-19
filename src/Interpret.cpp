@@ -155,9 +155,13 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     switch (cfg.get_first_letter_lowercase("TRANSPORT", "Fast")) {
     case 'f':
 	parameters::fast_transport = true;
+	logging::print_master(LOG_INFO
+	"Using FARGO algorithm for azimuthal advection.\n");
 	break;
     case 's':
 	parameters::fast_transport = false;
+	logging::print_master(LOG_INFO
+	"Using standard advection WITHOUT FARGO algorithm.\n");
 	break;
     default:
 	die("Invalid setting for Transport");
@@ -166,9 +170,13 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	switch (cfg.get_first_letter_lowercase("Integrator", "Euler")) {
     case 'e':
 	parameters::leap_frog= false;
+	logging::print_master(LOG_INFO
+	"Using leapfrog scheme for source terms.\n");
 	break;
     case 'l':
 	parameters::leap_frog = true;
+	logging::print_master(LOG_INFO
+	"Using standard forward euler scheme for source terms.\n");
 	break;
     default:
 	die("Invalid setting for Integrator (valid: Euler, Leapfrog");
