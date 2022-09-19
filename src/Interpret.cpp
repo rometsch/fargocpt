@@ -126,7 +126,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    par_filename += str;
 	}
 
-	//std::remove(par_filename.c_str());
+	// delete file with 'filename', do not confuse with overloaded 'remove' function that removes a part of the string
+	std::remove(par_filename.c_str());
 	std::ofstream new_par_file;
 	new_par_file.open(par_filename.c_str(),
 			  std::ofstream::out | std::ofstream::trunc);
