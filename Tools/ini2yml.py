@@ -213,8 +213,12 @@ def handle_default_star(params):
         "radius": radius,
         "temperature": temperature
     }
-    params["nbody"] = [default_star] + params["nbody"]
-    print("Added a default star to the nbody list.")
+    try:
+        params["nbody"] = [default_star] + params["nbody"]
+        print("Added a default star to the nbody list.")
+    except Exception: # If no planet file exists, nbody does not exist and we get error
+        params["nbody"] = [default_star]
+        print("Added a default star to the nbody list.")
 
 
 def insert_comments(comments, filename):
