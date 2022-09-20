@@ -76,7 +76,7 @@ void update_viscosity(t_data &data)
     }
 }
 
-void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
+void compute_viscous_stress_tensor(t_data &data)
 {
 
 	const unsigned int Nr = data[t_data::DIV_V].get_size_radial();
@@ -90,11 +90,12 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 
-	    // div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+		// old: div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+		// div(v) = d(v_r)/dr + 1/r d(v_phi)/dphi
 		data[t_data::DIV_V](nr, naz) =
-		(data[t_data::V_RADIAL](nr + 1, naz) * Ra[nr + 1] -
-		 data[t_data::V_RADIAL](nr, naz) * Ra[nr])
-				* InvDiffRsup[nr] * InvRb[nr] +
+		(data[t_data::V_RADIAL](nr + 1, naz) -
+		 data[t_data::V_RADIAL](nr, naz))
+				* InvDiffRsup[nr] +
 		(data[t_data::V_AZIMUTHAL](nr, naz_next) -
 		 data[t_data::V_AZIMUTHAL](nr, naz)) * invdphi * InvRb[nr];
 	}
@@ -193,34 +194,6 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 	}
     }
 
-    if (include_artifical_viscosity) {
-	#pragma omp for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
-		for (unsigned int naz = 0; naz < Nphi; ++naz) {
-
-		double nu_art;
-
-		const double dx_2 =
-			std::pow(std::min(Rsup[nr] - Rinf[nr],
-					  Rmed[nr] * dphi),
-			     2);
-		if (data[t_data::DIV_V](nr, naz) < 0) {
-		    nu_art = parameters::artificial_viscosity_factor *
-				 data[t_data::SIGMA](nr, naz) *
-				 dx_2 * (-data[t_data::DIV_V](nr, naz));
-		} else {
-		    nu_art = 0;
-		}
-
-		data[t_data::TAU_R_R](nr, naz) +=
-			nu_art * data[t_data::DIV_V](nr, naz);
-		data[t_data::TAU_PHI_PHI](nr, naz) +=
-			nu_art * data[t_data::DIV_V](nr, naz);
-		data[t_data::SIGMA_ART_VISC](nr, naz) = nu_art;
-	    }
-	}
-    }
-
     if (StabilizeViscosity) {
 	#pragma omp for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) { // Nr_vr - 1 = Nr
@@ -263,15 +236,6 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		double cphi_pp =
 			-FourThirdInvRbInvdphiSq[nr] * (NuSigma + NuSigma_jm);
 
-		if (include_artifical_viscosity) {
-			const double NuArt = data[t_data::SIGMA_ART_VISC](
-			nr, naz);
-			const double NuArt_jm = data[t_data::SIGMA_ART_VISC](
-			nr, naz_prev);
-			cphi_pp -= (NuArt_jm + NuArt) *
-				   (invdphi * invdphi * InvRmed[nr]);
-		}
-
 		const double sigma_avg_phi =
 			0.5 * (data[t_data::SIGMA](nr, naz) +
 			   data[t_data::SIGMA](nr, naz_prev));
@@ -304,19 +268,6 @@ void compute_viscous_terms(t_data &data, bool include_artifical_viscosity)
 		double cr_rr_2 =
 			-1.0 * Rmed[nr - 1] * 2.0 * NuSigma_im *
 			(InvDiffRsup[nr - 1] - 1.0 / 3.0 * Ra[nr] * InvDiffRsupRb[nr - 1]);
-
-		if (include_artifical_viscosity) {
-			const double NuArt = data[t_data::SIGMA_ART_VISC](
-			nr, naz);
-			const double NuArt_im = data[t_data::SIGMA_ART_VISC](
-			nr - 1, naz);
-
-			cr_pp_1 -= NuArt * Ra[nr] * InvDiffRsupRb[nr];
-			cr_pp_2 += NuArt_im * Ra[nr] * InvDiffRsupRb[nr - 1];
-
-			cr_rr_1 -= NuArt * Ra[nr] * InvDiffRsup[nr];
-			cr_rr_2 -= NuArt_im * Ra[nr] * InvDiffRsup[nr - 1];
-		}
 
 		const double cr_pp = -0.5 * (cr_pp_1 + cr_pp_2);
 		const double cr_rr = InvDiffRmed[nr] * (cr_rr_1 + cr_rr_2);

@@ -33,7 +33,6 @@ void compute_pressure(t_data &data);
 void compute_temperature(t_data &data);
 void compute_rho(t_data &data, const double current_time);
 
-void ComputeViscousStressTensor(t_data &data);
 void SetTemperatureFloorCeilValues(t_data &data, std::string filename,
 				   int line);
 

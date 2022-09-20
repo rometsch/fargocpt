@@ -64,10 +64,10 @@ static void timestep_debug_report(t_data &data,
 		itdbg1 = 1.0 / invdt1;
 	}
 	if (invdt2 != 0) {
-		itdbg2 = 1.0 / invdt2;
+		itdbg2 = std::fabs(1.0 / invdt2);
 	}
 	if (invdt3 != 0) {
-		itdbg3 = 1.0 / invdt3;
+		itdbg3 = std::fabs(1.0 / invdt3);
 	}
 	if (invdt4 != 0) {
 		itdbg4 = 1.0 / invdt4;
@@ -170,7 +170,7 @@ static void timestep_debug_report(t_data &data,
 
 	} else {
 		logging::print(LOG_INFO
-					   "Articifial Viscosity limit     : disabled\n");
+					   "Articifial Viscosity limit     : %g\n", itdbg4);
 	}
 	logging::print(LOG_INFO "Fargo shear limit %g\n", dt_shear);
 	logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
@@ -251,9 +251,11 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			 (std::min(dxRadial, dxAzimuthal));
 
 		// radial motion limit
+		// we do not need abs() because only square of it is used later
 		const double invdt2 = v_radial(nr, naz) / dxRadial;
 
 		// residual circular motion limit
+		// we do not need abs() because only square of it is used later
 		const double invdt3 = v_residual[cell_number(nr, naz, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
 
 		// artificial viscosity limit
@@ -286,8 +288,10 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		invdt4 =
 			4.0 * std::pow(parameters::artificial_viscosity_factor, 2) *
 			std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal) * 0.6; // factor 1/2 because of leapfrog
-		} else {
-		invdt4 = 0.0;
+		} else { // TW artificial viscosity
+		// taken from D'Angelo et al. 2003 THERMOHYDRODYNAMICS OF CIRCUMSTELLAR DISKS WITH HIGH-MASS PLANETS
+		const double mdiv_V = std::max(-data[t_data::DIV_V](nr, naz), 0.0);
+		invdt4 = 4.0 * mdiv_V * std::pow(parameters::artificial_viscosity_factor, 2) * 0.6; // factor 1/2 because of leapfrog
 		}
 
 		// kinematic viscosity limit

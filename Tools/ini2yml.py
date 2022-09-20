@@ -185,14 +185,15 @@ def handle_default_star(params):
     params: dict
         Dictionary containing the config.
     """
-    found_key = False
+    key_says_no = False
     for key in [k for k in params.keys()]:
         if key.lower() == "defaultstar":
             # check if setting is set to yes
-            found_key = params[key][0].lower() == "y"
+            key_says_no = params[key][0].lower() == "n"
             params.pop(key)
 
-    if not found_key:
+    if key_says_no:
+        # default is defaultstar is true
         return
 
     if "StarTemperature" in params:
@@ -220,11 +221,11 @@ def handle_default_star(params):
         "temperature": temperature
     }
     try:
-        old_nbody = params["noby"]
-    except KeyError:
-        old_nbody = []
-    params["nbody"] = [default_star] + old_nbody
-    print("Added a default star to the nbody list.")
+        params["nbody"] = [default_star] + params["nbody"]
+        print("Added a default star to the nbody list.")
+    except Exception: # If no planet file exists, nbody does not exist and we get error
+        params["nbody"] = [default_star]
+        print("Added a default star to the nbody list.")
 
 
 def insert_comments(comments, filename):

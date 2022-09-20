@@ -7,7 +7,7 @@ namespace viscosity
 {
 
 void update_viscosity(t_data &data);
-void compute_viscous_terms(t_data &data, bool include_artifical_viscosity);
+void compute_viscous_stress_tensor(t_data &data);
 void update_velocities_with_viscosity(t_data &data, const double dt);
 
 } // namespace viscosity
