@@ -7,4 +7,3 @@ if [[ ! -d .venv ]]; then
 fi
 
 source .venv/bin/activate
-python run_livereload.py
