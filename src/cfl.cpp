@@ -64,10 +64,10 @@ static void timestep_debug_report(t_data &data,
 		itdbg1 = 1.0 / invdt1;
 	}
 	if (invdt2 != 0) {
-		itdbg2 = 1.0 / invdt2;
+		itdbg2 = std::fabs(1.0 / invdt2);
 	}
 	if (invdt3 != 0) {
-		itdbg3 = 1.0 / invdt3;
+		itdbg3 = std::fabs(1.0 / invdt3);
 	}
 	if (invdt4 != 0) {
 		itdbg4 = 1.0 / invdt4;
