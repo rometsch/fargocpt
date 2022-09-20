@@ -237,6 +237,11 @@ extern double mof_temperature;
 extern double mof_value;
 extern double mof_rampingtime;
 
+extern int AlphaMode;
+extern double localAlphaThreshold;
+extern double alphaCold;
+extern double alphaHot;
+
 /// disk applies force onto star
 /// and correction terms due to off barycenter system are applied
 /// replaces feels_disk
