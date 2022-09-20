@@ -10,13 +10,13 @@ import matplotlib.pyplot as plt
 
 from scipy import interpolate, integrate
 
-quants = ["gasvrad", "gasdens", "gasTemperature", "gasenergy"]
+quants = ["vrad", "Sigma", "Temperature", "energy"]
 
 acceptable_diff = {
-    "gasvrad" : 0.015, 
-    "gasdens" : 0.0073,
-    "gasTemperature" : 0.016, 
-    "gasenergy" : 0.014
+    "vrad" : 0.015, 
+    "Sigma" : 0.0073,
+    "Temperature" : 0.016, 
+    "energy" : 0.014
 }
 
 test_cases = {
@@ -71,7 +71,7 @@ def get_analytic_spl(quant):
     if i is None:
         raise ValueError(f"{quant} is not a valid quantity")
     y = analytic_data[:,(i+2)]
-    if quants[i] == 'gasenergy':
+    if quants[i] == 'energy':
       y = analytic_data[:,4]*analytic_data[:,3]/(1.4-1)
       
     s = interpolate.InterpolatedUnivariateSpline(x, y)
@@ -104,17 +104,19 @@ def plot_output(out, label, color, Nsnap, axs, ls="--"):
     for i in range(len(quants)):
         ax = axs[i]
 
-        name = quants[i].replace("gas", "")
-        name = name.replace("dens", "Sigma")
+        name = quants[i]
+
         file_name = f"{out}/snapshots/{Nsnap}/{name}.dat"
         data = np.fromfile(file_name)
+
         if name == 'vrad':
             data = data.reshape((nr+1, nphi))
-            data = np.mean(data, 1)
+            data = np.mean(data, axis=1)
             data = 0.5*(data[1:] + data[:-1])
         else:
             data = data.reshape((nr, nphi))
-            data = np.mean(data, 1)
+            data = np.mean(data, axis=1)
+
 
         ax.plot(r1, data, ls=ls, color=color, label=label, lw=2.5)
 
@@ -130,8 +132,7 @@ def diff_to_analytic(out, quant, Nsnap):
     nphi = int(N/nr)
 
 
-    name = quant.replace("gas", "")
-    name = name.replace("dens", "Sigma")
+    name = quant
     file_name = f"{out}/snapshots/{Nsnap}/{name}.dat"
     data = np.fromfile(file_name)
     if name == 'vrad':
@@ -141,19 +142,10 @@ def diff_to_analytic(out, quant, Nsnap):
     else:
         data = data.reshape((nr, nphi))
         data = np.mean(data, 1)
-
     # restrict to 0 to 1
     inds = np.logical_and(r1 >= 0, r1 <=1)
     r1 = r1[inds]
     data = data[inds] 
-
-    r12 = np.loadtxt(out + "used_rad.dat", skiprows=0)
-    r1 = 0.5*(r12[1:] + r12[:-1])-r12[0]
-    file_name = f"{out}/snapshots/{Nsnap}/Sigma.dat"
-    data = np.fromfile(file_name)
-    N = len(data)
-    nr = len(r1)
-    nphi = int(N/nr)
 
     spl = get_analytic_spl(quant)
     analytic = spl(r1)
@@ -168,6 +160,8 @@ def visualize(Nsnapshot):
 
     analytic(axs)
     for key, val in test_cases.items():
+        if not os.path.exists(val["outdir"]):
+            continue
         plot_output(val["outdir"], 
                     key, 
                     val["color"], 
@@ -206,6 +200,8 @@ def main():
     with open("diffs.log", "w") as logfile:
         for key, val in test_cases.items():
             outdir = val["outdir"]
+            if not os.path.exists(outdir):
+                continue
             for quant in quants:
                 diff = diff_to_analytic(outdir, quant, 228)
                 is_smaller = diff < acceptable_diff[quant]
