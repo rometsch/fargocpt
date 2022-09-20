@@ -1639,7 +1639,15 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	(omega_planet - refframe::OmegaFrame) *
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
-	const double stream_mdot_code = parameters::mof_value;
+	double mdot_transfer;
+	if (parameters::variableTransfer){
+		mdot_transfer = parameters::mof_value + parameters::mof_gamma * mdot_avg;
+	}else{
+		mdot_transfer = parameters::mof_value;
+	}
+
+	const double stream_mdot_code = mdot_transfer;
+
     
     const double Sigma_stream =
 	fabs(stream_mdot_code / (dphi * Rinf[Nrad] * vr_stream));

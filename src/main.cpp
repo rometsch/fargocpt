@@ -212,6 +212,10 @@ static void restart_load(t_data &data) {
 	    particles::restart();
 	}
 
+	if(parameters::massoverflow){
+	data.get_massflow_tracker().read_from_file();
+	}
+
 	// restart planetary system
 	logging::print_master(LOG_INFO "Restarting planetary system...\n");
 	data.get_planetary_system().restart();
@@ -302,6 +306,8 @@ int main(int argc, char *argv[])
     // Here planets are initialized feeling star potential
     data.get_planetary_system().init_system(options::parameter_file);
 	quantities::state_disk_ecc_peri_calculation_center(data);
+	data.get_massflow_tracker().init(data.get_planetary_system());
+
 
     parameters::summarize_parameters();
 
