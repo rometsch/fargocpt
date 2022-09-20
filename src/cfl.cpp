@@ -251,9 +251,11 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			 (std::min(dxRadial, dxAzimuthal));
 
 		// radial motion limit
+		// we do not need abs() because only square of it is used later
 		const double invdt2 = v_radial(nr, naz) / dxRadial;
 
 		// residual circular motion limit
+		// we do not need abs() because only square of it is used later
 		const double invdt3 = v_residual[cell_number(nr, naz, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
 
 		// artificial viscosity limit
