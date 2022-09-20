@@ -698,13 +698,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
     }
 
-    if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
-	(parameters::corotating)) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
-	PersonalExit(1);
-    }
 	if (config::cfg.get_flag("WriteDefaultValues", "no")) {
 		config::cfg.write_default(output::outdir + "default_config.yml");
 	}
