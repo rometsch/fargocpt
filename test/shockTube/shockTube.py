@@ -85,7 +85,7 @@ def analytic(axs):
     for i in range(len(quants)):
         ax = axs[i]
         y = analytic_data[:,(i+2)]
-        if quants[i] == 'gasenergy':
+        if quants[i] == 'energy':
             y = analytic_data[:,4]*analytic_data[:,3]/(1.4-1)
 
         ax.plot(x, y, '-k', label='Analytic', lw=2)
@@ -147,6 +147,13 @@ def diff_to_analytic(out, quant, Nsnap):
     r1 = r1[inds]
     data = data[inds] 
 
+    r12 = np.loadtxt(out + "used_rad.dat", skiprows=0)
+    r1 = 0.5*(r12[1:] + r12[:-1])-r12[0]
+    file_name = f"{out}/snapshots/{Nsnap}/Sigma.dat"
+    data = np.fromfile(file_name)
+    N = len(data)
+    nr = len(r1)
+    nphi = int(N/nr)
 
     spl = get_analytic_spl(quant)
     analytic = spl(r1)

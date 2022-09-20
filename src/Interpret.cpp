@@ -126,6 +126,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    par_filename += str;
 	}
 
+	// delete file with 'filename', do not confuse with overloaded 'remove' function that removes a part of the string
 	std::remove(par_filename.c_str());
 	std::ofstream new_par_file;
 	new_par_file.open(par_filename.c_str(),
@@ -155,9 +156,13 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     switch (cfg.get_first_letter_lowercase("TRANSPORT", "Fast")) {
     case 'f':
 	parameters::fast_transport = true;
+	logging::print_master(LOG_INFO
+	"Using FARGO algorithm for azimuthal advection.\n");
 	break;
     case 's':
 	parameters::fast_transport = false;
+	logging::print_master(LOG_INFO
+	"Using standard advection WITHOUT FARGO algorithm.\n");
 	break;
     default:
 	die("Invalid setting for Transport");
@@ -166,9 +171,13 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	switch (cfg.get_first_letter_lowercase("Integrator", "Euler")) {
     case 'e':
 	parameters::leap_frog= false;
+	logging::print_master(LOG_INFO
+	"Using standard forward euler scheme for source terms.\n");
 	break;
     case 'l':
 	parameters::leap_frog = true;
+	logging::print_master(LOG_INFO
+	"Using leapfrog scheme for source terms.\n");
 	break;
     default:
 	die("Invalid setting for Integrator (valid: Euler, Leapfrog");
@@ -689,13 +698,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    "VISCOUS_ACCRETION is true, recomputing viscosity before accreting mass.\n");
     }
 
-    if ((data.get_planetary_system().get_number_of_planets() <= 1) &&
-	(parameters::corotating)) {
-	logging::print_master(
-	    LOG_ERROR
-	    "Error: Corotating frame is not possible with 0 or 1 planets.\n");
-	PersonalExit(1);
-    }
 	if (config::cfg.get_flag("WriteDefaultValues", "no")) {
 		config::cfg.write_default(output::outdir + "default_config.yml");
 	}
