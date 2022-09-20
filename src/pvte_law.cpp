@@ -55,49 +55,48 @@ std::vector<double> funcdum(Nzeta);
 
 void makeZetaTables()
 {
-    int i, j;
-    double dy = std::log(Tmax / Temp0) * (1. / (double)Nzeta);
-    double a, b, b1, scrh, inv_T2;
-    double zetaP, dzetaP, zetaR, dzetaR;
-    double dum1, dum2, dum3;
-    double alpha, beta, gamma;
-    double db, sum1, sum2;
+	const double dy = std::log(Tmax / Temp0) * (1. / (double)Nzeta);
+	double alpha, beta, gamma;
 
-    logging::print_master(LOG_INFO " generating Zeta tables...\n");
-    if (ORTHO_PARA_MODE == 0) {
+	logging::print_master(LOG_INFO " generating Zeta tables...\n");
+	if (ORTHO_PARA_MODE == 0) {
 	alpha = 1.0;
 	beta = 0.0;
 	gamma = 0.0;
-    } else if (ORTHO_PARA_MODE == 2) {
+	} else if (ORTHO_PARA_MODE == 2) {
 	alpha = 0.25;
 	beta = 0.75;
 	gamma = 0.0;
-    } else {
+	} else {
 	alpha = 1.0;
 	beta = 0.0;
 	gamma = 1.0;
-    }
+	}
 
-    b1 = 2.0 * THETA_R;
+	const double b1 = 2.0 * THETA_R;
 	#pragma omp parallel for
-    for (j = 0; j < Nzeta; j++) {
+	for (unsigned int j = 0; j < Nzeta; j++) {
 	const double T = Temp0 * std::exp(j * dy);
-	inv_T2 = 1.0 / (T * T);
-	zetaP = dzetaP = 0.0;
-	sum1 = sum2 = 0.0;
-	for (i = 0; i <= 10000; i++) {
-	    a = 2 * i + 1;
-	    b = i * (i + 1) * THETA_R;
-	    if ((i % 2) == 0) {
+	const double inv_T2 = 1.0 / (T * T);
+	double zetaP = 0.0;
+	double dzetaP = 0.0;
+	double sum1 = 0.0;
+	double sum2 = 0.0;
+	for (unsigned int i = 0; i <= 10000; i++) {
+		const double a = 2 * i + 1;
+		const double b = i * (i + 1) * THETA_R;
+
+		double scrh;
+		if ((i % 2) == 0) {
 		scrh = a * std::exp(-b / T);
 		zetaP += scrh;
 		dzetaP += scrh * b;
-	    } else {
-		db = b - b1;
+		} else {
+		const double db = b - b1;
 		scrh = a * std::exp(-db / T);
 		sum1 += scrh;
 		sum2 += scrh * db;
-	    }
+		}
 	}
 
 	dzetaP *= inv_T2;
@@ -106,18 +105,18 @@ void makeZetaTables()
 	const double dzO_zO_m = sum2 / sum1 * inv_T2;
 	lnT[j] = std::log(T);
 
-	scrh = zetaO * std::exp(2.0 * THETA_R / T);
+	const double scrh = zetaO * std::exp(2.0 * THETA_R / T);
 
-	zetaR =
-	    std::pow(zetaP, alpha) * std::pow(scrh, beta) + 3.0 * gamma * zetaO;
-	dzetaR = (zetaR - 3.0 * gamma * zetaO) *
-		     (alpha * (dzetaP / zetaP) + beta * dzO_zO_m) +
+	const double zetaR =
+		std::pow(zetaP, alpha) * std::pow(scrh, beta) + 3.0 * gamma * zetaO;
+	const double dzetaR = (zetaR - 3.0 * gamma * zetaO) *
+			 (alpha * (dzetaP / zetaP) + beta * dzO_zO_m) +
 		 3.0 * gamma * dzetaO;
-	dum1 = THETA_V / T;
-	dum2 = dum1 * std::exp(-dum1) / (1.0 - std::exp(-dum1));
-	dum3 = (T / zetaR) * dzetaR;
+	const double dum1 = THETA_V / T;
+	const double dum2 = dum1 * std::exp(-dum1) / (1.0 - std::exp(-dum1));
+	const double dum3 = (T / zetaR) * dzetaR;
 	funcdum[j] = 1.5 + dum2 + dum3;
-    }
+	}
 }
 
 double get_funcDum(double temperatureCGS)
