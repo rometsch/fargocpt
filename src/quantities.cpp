@@ -15,10 +15,37 @@
 #include "pvte_law.h"
 #include "simulation.h"
 #include "gas_torques.h"
+#include "viscosity/viscosity.h"
 
 
 namespace quantities
 {
+
+void fill_alpha_array(t_data &data, unsigned int timestep,
+				   bool force_update){
+
+	static int last_timestep_calculated = -1;
+
+	if (!force_update) {
+	if (last_timestep_calculated == (int)timestep) {
+		return;
+	} else {
+		last_timestep_calculated = timestep;
+	}
+	}
+
+	const unsigned int Nr = data[t_data::SIGMA].get_size_radial();
+	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const double alpha = viscosity::get_alpha(nr, naz, data);
+		data[t_data::ALPHA](nr, naz) = alpha;
+	}
+	}
+
+}
 
 /**
 	Calculates total gas mass.

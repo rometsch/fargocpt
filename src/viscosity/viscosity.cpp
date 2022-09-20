@@ -36,7 +36,6 @@ double get_alpha(int nr, int naz, t_data &data)
 {
 	switch (parameters::AlphaMode){
 		case 0:
-			data[t_data::ALPHA](nr, naz) = parameters::ALPHAVISCOSITY;
 			return parameters::ALPHAVISCOSITY;
 		case 1:
 			{
@@ -44,7 +43,6 @@ double get_alpha(int nr, int naz, t_data &data)
 			const double alpha = 
 			std::exp(std::log(parameters::alphaCold) + (std::log(parameters::alphaHot) - std::log(parameters::alphaCold)) / 
 			(1.0 + std::pow(parameters::localAlphaThreshold/temperatureCGS,8)));
-			data[t_data::ALPHA](nr, naz) = alpha;
 			return alpha;
 			}
 		case 2:
@@ -57,7 +55,6 @@ double get_alpha(int nr, int naz, t_data &data)
 			{
 				alpha = parameters::alphaCold;
 			}
-			data[t_data::ALPHA](nr, naz) = alpha;
 			return alpha;
 			}
 		case 3:
@@ -71,7 +68,6 @@ double get_alpha(int nr, int naz, t_data &data)
 			const double alpha = parameters::alphaCold + 
 			(parameters::alphaHot - parameters::alphaCold) * 
 			std::min( parameters::localAlphaThreshold * pvte::H2fraction(densityCGS, temperatureCGS), 1.0);
-			data[t_data::ALPHA](nr, naz) = alpha;
 			return alpha;
 			}
 		case 4:
@@ -89,7 +85,6 @@ double get_alpha(int nr, int naz, t_data &data)
 			if (ionFrac > parameters::localAlphaThreshold){
 				alpha = parameters::alphaHot;
 			}
-			data[t_data::ALPHA](nr, naz) = alpha;
 			return alpha;
 			}
 		case 5:
@@ -102,7 +97,6 @@ double get_alpha(int nr, int naz, t_data &data)
 			const double c = 3.27e-2;
 			const double x = (temperatureCGS - T0)/sig;
 			const double alpha = a*std::exp(-std::pow(x,2)/2) + b/2.0*std::tanh(x)+c;
-			data[t_data::ALPHA](nr, naz) = alpha;
 			return alpha;
 			}
 			
@@ -130,7 +124,7 @@ void update_viscosity(t_data &data)
 
 		// nu = alpha * c_s_adb * H = alpha * c_s_adb^2 / sqrt(gamma) /
 		// Omega_K
-		const double alpha = parameters::ALPHAVISCOSITY;
+		const double alpha = get_alpha(nr, naz, data);
 		const double c_s_adb = data[t_data::SOUNDSPEED](nr, naz);
 		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
 		const double nu = alpha * H * c_s_adb;

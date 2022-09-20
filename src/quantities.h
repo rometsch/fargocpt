@@ -20,6 +20,8 @@ double gas_radial_kinematic_energy(t_data &data, const double quantitiy_radius);
 double gas_azimuthal_kinematic_energy(t_data &data,
 				      const double quantitiy_radius);
 
+void fill_alpha_array(t_data &data, unsigned int timestep,
+				   bool force_update);
 void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
 				   bool force_update);
 void state_disk_ecc_peri_calculation_center(t_data &data);

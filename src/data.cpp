@@ -42,6 +42,7 @@ t_data::t_data()
 
     m_polargrids[ALPHA].set_scalar(true);
     m_polargrids[ALPHA].set_name("alpha");
+	m_polargrids[ALPHA].set_do_before_write(&quantities::fill_alpha_array);
 
     m_polargrids[MU].set_scalar(true);
     m_polargrids[MU].set_name("mu");
