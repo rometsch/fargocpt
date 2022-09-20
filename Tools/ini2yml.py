@@ -318,7 +318,7 @@ def parse_planet_config(nbody_config_file):
             values = line.split()
             for key, val in zip(keys, values):
                 planet[key] = val
-        nbody.append(planet)
+            nbody.append(planet)
     return nbody
 
 
