@@ -311,6 +311,8 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
     output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::PhysicalTime);
     // write planet data
     data.get_planetary_system().write_planets(0);
+	data.get_massflow_tracker().write_to_file();
+
     // write misc stuff (important for resuming)
     output::write_misc();
     // write particles

@@ -7,6 +7,7 @@
 #include "nbody/planetary_system.h"
 #include "polargrid.h"
 #include "radialgrid.h"
+#include "massflow_tracker.h"
 
 class t_data
 {
@@ -112,6 +113,10 @@ class t_data
     {
 	return m_planetary_system;
     }
+	inline t_massflow_tracker &get_massflow_tracker(){
+		return m_massflow_tracker;
+	}
+
     void print_memory_usage(unsigned int n_radial, unsigned int n_azimuthal);
 
     double pdivv_total;
@@ -131,6 +136,8 @@ class t_data
     t_polargrid m_polargrids[N_POLARGRID_TYPES];
     t_radialgrid m_radialgrids[N_RADIALGRID_TYPES];
     t_planetary_system m_planetary_system;
+	t_massflow_tracker m_massflow_tracker;
+
 };
 
 #endif // DATA_H

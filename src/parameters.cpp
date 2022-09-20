@@ -133,10 +133,14 @@ unsigned int corotation_reference_body;
 bool corotating;
 
 bool massoverflow;
+bool variableTransfer;
 unsigned int mof_planet;
 double mof_temperature;
 double mof_value;
 double mof_rampingtime;
+double mof_averaging_time;
+double mof_gamma;
+
 
 bool profile_cutoff_outer;
 double profile_cutoff_point_outer;
@@ -894,10 +898,14 @@ void read(const std::string &filename, t_data &data)
 
     // mass overflow
     massoverflow = config::cfg.get_flag("massoverflow", "no");
+	variableTransfer = config::cfg.get_flag("variableTransfer", "no");
     mof_planet = config::cfg.get<int>("mofplanet", 1);
     mof_temperature = config::cfg.get<double>("moftemperature", "1000.0 K", Temp0);
     mof_value = config::cfg.get<double>("mofvalue", 10E-9, M0/T0);
     mof_rampingtime = config::cfg.get<double>("moframpingtime", 30.0);
+	mof_averaging_time = config::cfg.get<double>("mofaveragingtime", 10.0);
+	mof_gamma = config::cfg.get<double>("mofgamma", 0.5);
+
 
     // profile damping outer
     profile_cutoff_outer =
@@ -1291,6 +1299,11 @@ void summarize_parameters()
 	    "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K and ramping time t_ramp = %g P_orb.\n",
 	    mof_planet, mof_value, mof_temperature, mof_rampingtime);
     }
+	if (parameters::variableTransfer){
+	logging::print_master(LOG_INFO
+	"Mass Transfer is variable with gamma= %g and an averaging time of t_avg = %g P_orb. \n", mof_gamma, mof_averaging_time);
+	}
+
 
     // Boundary layer
     if (boundary_inner == boundary_condition_boundary_layer) {

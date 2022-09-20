@@ -1613,10 +1613,12 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	die("Wrong Planet/Star for Mass Overflow specified! Old parameter file?");
     }
 
+	const double mdot_avg = data.get_massflow_tracker().get_mdot();
+
     const t_planet &planet =
 	data.get_planetary_system().get_planet(parameters::mof_planet);
     const double xplanet = planet.get_x();
-    const double yplanet = planet.get_y();
+	const double yplanet = planet.get_y();
 
     const double omega_planet = planet.get_omega();
     // get grid cell where binary star is nearest

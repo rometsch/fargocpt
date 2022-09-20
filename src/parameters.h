@@ -232,10 +232,13 @@ extern unsigned int corotation_reference_body;
 extern bool corotating;
 
 extern bool massoverflow;
+extern bool variableTransfer;
 extern unsigned int mof_planet;
 extern double mof_temperature;
 extern double mof_value;
 extern double mof_rampingtime;
+extern double mof_averaging_time;
+extern double mof_gamma;
 
 /// disk applies force onto star
 /// and correction terms due to off barycenter system are applied

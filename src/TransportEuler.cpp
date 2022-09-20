@@ -175,6 +175,11 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     }
 
     VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
+
+	if(parameters::massoverflow){
+	data.get_massflow_tracker().update_mass_accretion(dt);
+	}
+
 }
 
 /* Hereafter are the new specific procedures to the fast algorithm */
@@ -616,6 +621,7 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 			} else {
 			    sum_without_ghost_cells(MassDelta.InnerNegative,
 						    varq_inf, nRadial);
+				data.get_massflow_tracker().update_mass(-varq_inf);
 			}
 		    } else if (CPU_Rank == CPU_Highest &&
 				   nRadial == Nr - 2) { // varq_sup at Nr - 2 is the mass
