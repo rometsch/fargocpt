@@ -79,10 +79,10 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		// div(v) = d(v_r)/dr + 1/r d(v_phi)/dphi
+		// div(v) = 1/r d(r v_r)/dr + 1/r d(v_phi)/dphi
 		const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
 
-		const double eps_rr = (vr(nr + 1, naz) - vr(nr, naz)) * InvDiffRsup[nr];
+		const double eps_rr = (vr(nr+1, naz)*Ra[nr+1] - vr(nr, naz)*Ra[nr]) * InvDiffRsup[nr] * InvRb[nr];
 		const double eps_pp =  InvRb[nr] * ((vphi(nr, naz_next) - vphi(nr, naz)) * invdphi + 0.5*(vr(nr + 1, naz) + vr(nr, naz)));
 
 		const double div_V =  std::min(eps_rr + eps_pp, 0.0);
