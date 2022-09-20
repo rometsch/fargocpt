@@ -142,6 +142,11 @@ double mof_averaging_time;
 double mof_gamma;
 
 
+int AlphaMode;
+double localAlphaThreshold;
+double alphaCold;
+double alphaHot;
+
 bool profile_cutoff_outer;
 double profile_cutoff_point_outer;
 double profile_cutoff_width_outer;
@@ -431,6 +436,9 @@ void read(const std::string &filename, t_data &data)
 	do_write_1D);
     data[t_data::GAMMA1].set_write(
 	config::cfg.get_flag("WriteFirstAdiabaticIndex", false),
+	do_write_1D);
+	data[t_data::ALPHA].set_write(
+	config::cfg.get_flag("WriteAlpha", false),
 	do_write_1D);
     data[t_data::MU].set_write(
 	config::cfg.get_flag("WriteMeanMolecularWeight", false),
@@ -906,6 +914,12 @@ void read(const std::string &filename, t_data &data)
 	mof_averaging_time = config::cfg.get<double>("mofaveragingtime", 10.0);
 	mof_gamma = config::cfg.get<double>("mofgamma", 0.5);
 
+
+	//local alpha
+	AlphaMode = config::cfg.get<int>("AlphaMode", 0);
+	localAlphaThreshold = config::cfg.get<double>("AlphaThreshold", 2.5e4);
+	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
+	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
 
     // profile damping outer
     profile_cutoff_outer =

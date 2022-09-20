@@ -613,10 +613,36 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	PersonalExit(1);
     }
 
-    if (parameters::ALPHAVISCOSITY > 0.0) {
-	logging::print_master(LOG_INFO
+    if (parameters::ALPHAVISCOSITY > 0.0 || parameters::AlphaMode > 0) {
+		if (parameters::AlphaMode == 1){
+			logging::print_master(LOG_INFO
+			      "Smooth local alpha with a threshold of T = %.3e and alpha_cold = %.3e , alpha_Hot = %.3e\n", 
+				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
+		}
+		else if (parameters::AlphaMode == 2){
+			logging::print_master(LOG_INFO
+			      "Switched local alpha with a threshold of T = %.3e and alpha_cold = %.3e , alpha_Hot = %.3e\n", 
+				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
+		}
+		else if (parameters::AlphaMode == 3){
+			logging::print_master(LOG_INFO
+			      "Local alpha, based on hydrogen ionization with threshold = %.3e, alpha_cold = %.3e , alpha_Hot = %.3e\n", 
+				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
+		}
+		else if (parameters::AlphaMode == 4){
+			logging::print_master(LOG_INFO
+			      "Local alpha based on hydrogen ionization (switched) threshold = %.3e, alpha_cold = %.3e , alpha_Hot = %.3e\n", 
+				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
+		}
+		else if (parameters::AlphaMode == 5){
+			logging::print_master(LOG_INFO
+			      "Using local alpha after Coleman 2016. \n");
+		}
+		else {
+			logging::print_master(LOG_INFO
 			      "Viscosity is of alpha type with alpha = %.3e\n",
 			      parameters::ALPHAVISCOSITY);
+		}
     }
 
     if (parameters::thickness_smoothing <= 0.0) {

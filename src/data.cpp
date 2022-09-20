@@ -40,6 +40,9 @@ t_data::t_data()
     m_polargrids[GAMMA1].set_scalar(true);
     m_polargrids[GAMMA1].set_name("gamma1");
 
+    m_polargrids[ALPHA].set_scalar(true);
+    m_polargrids[ALPHA].set_name("alpha");
+
     m_polargrids[MU].set_scalar(true);
     m_polargrids[MU].set_name("mu");
 

@@ -25,6 +25,7 @@ class t_data
 	SOUNDSPEED,	      // soundspeed c_s (introduced by Fargo-ADSG)
 	GAMMAEFF,	      // effective adiabatic indices
 	GAMMA1,		      // first adiabatic indices
+	ALPHA,			//local alpha
 	MU,		      // mean molecular weights
 	ACCEL_RADIAL,	      // gas accerleration in r direction
 	ACCEL_AZIMUTHAL,      // gas acceleration in phi direction
