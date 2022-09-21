@@ -604,9 +604,6 @@ Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor() co
 	return delta_vel;
 }
 
-/**
-   Analogous to get_hydro_frame_center but returns its velocity.
-*/
 
 Pair t_planetary_system::get_hydro_frame_center_velocity() const
 {
@@ -614,13 +611,10 @@ Pair t_planetary_system::get_hydro_frame_center_velocity() const
 	parameters::n_bodies_for_hydroframe_center);
 }
 
-/**
-   Analogous to get_hydro_frame_center but returns its mass.
-*/
-
-double t_planetary_system::get_hydro_frame_center_mass() const
+double t_planetary_system::compute_hydro_frame_center_mass() const
 {
-    return get_mass(parameters::n_bodies_for_hydroframe_center);
+	const double Nbody_mass = get_mass(parameters::n_bodies_for_hydroframe_center);
+	return Nbody_mass;
 }
 
 /**
@@ -629,7 +623,7 @@ double t_planetary_system::get_hydro_frame_center_mass() const
 
 void t_planetary_system::update_global_hydro_frame_center_mass()
 {
-    hydro_center_mass = get_hydro_frame_center_mass();
+	hydro_center_mass = compute_hydro_frame_center_mass();
 }
 
 
