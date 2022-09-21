@@ -292,7 +292,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			const double eps_rr = (vr(nr+1, naz)*Ra[nr+1] - vr(nr, naz)*Ra[nr]) * InvDiffRsupRb[nr];
 			const double eps_pp =  InvRb[nr] * ((vphi(nr, naz_next) - vphi(nr, naz)) * invdphi + 0.5*(vr(nr + 1, naz) + vr(nr, naz)));
 			const double mdiv_V =  -std::min(eps_rr + eps_pp, 0.0);
-		invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V / cell_size * 0.6; // factor 1/2 because of leapfrog
+			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * 0.6; // factor 1/2 because of leapfrog
 		}
 
 		// kinematic viscosity limit
