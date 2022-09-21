@@ -173,13 +173,13 @@ def visualize(Nsnapshot):
         ax = axs[i]
         ax.axis('auto')
         ax.set_title(quants[i], color='black', y = 1.06)
-        if quants[i] == 'gasdens':
+        if quants[i] == 'dens':
             ax.legend(loc='upper right')
-        if quants[i] == 'gasenergy':
+        if quants[i] == 'energy':
             ax.legend(loc='upper right')
-        if quants[i] == 'gasvrad':
+        if quants[i] == 'vrad':
             ax.legend(loc='upper left')
-        if quants[i] == 'gasTemperature':
+        if quants[i] == 'Temperature':
             ax.legend(loc='upper left')
     plt.show()
 
