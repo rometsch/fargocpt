@@ -227,9 +227,9 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			}
 
 	// cell sizes in radial & azimuthal direction
-	double dxRadial = Rsup[nr] - Rinf[nr];
-	double dxAzimuthal = Rmed[nr] * 2.0 * M_PI /
-				 (double)(v_radial.get_size_azimuthal());
+	const double dxRadial = Rsup[nr] - Rinf[nr];
+	const double dxAzimuthal = Rmed[nr] * dphi;
+	const double cell_size = std::min(dxRadial, dxAzimuthal);
 
 	for (unsigned int naz = 0;
 		 naz < v_radial.get_size_azimuthal(); ++naz) {
@@ -247,8 +247,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		 naz < v_radial.get_size_azimuthal(); ++naz) {
 
 		// sound speed limit
-		const double invdt1 = soundspeed(nr, naz) /
-			 (std::min(dxRadial, dxAzimuthal));
+		const double invdt1 = soundspeed(nr, naz) / cell_size;
 
 		// radial motion limit
 		// we do not need abs() because only square of it is used later
@@ -289,15 +288,16 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			4.0 * std::pow(parameters::artificial_viscosity_factor, 2) *
 			std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal) * 0.6; // factor 1/2 because of leapfrog
 		} else { // TW artificial viscosity
-		// taken from D'Angelo et al. 2003 THERMOHYDRODYNAMICS OF CIRCUMSTELLAR DISKS WITH HIGH-MASS PLANETS
-		const double mdiv_V = std::max(-data[t_data::DIV_V](nr, naz), 0.0);
-		invdt4 = 4.0 * mdiv_V * std::pow(parameters::artificial_viscosity_factor, 2) * 0.6; // factor 1/2 because of leapfrog
+			// div(v) = 1/r d(r v_r)/dr + 1/r d(v_phi)/dphi
+			const double eps_rr = (vr(nr+1, naz)*Ra[nr+1] - vr(nr, naz)*Ra[nr]) * InvDiffRsupRb[nr];
+			const double eps_pp =  InvRb[nr] * ((vphi(nr, naz_next) - vphi(nr, naz)) * invdphi + 0.5*(vr(nr + 1, naz) + vr(nr, naz)));
+			const double mdiv_V =  -std::min(eps_rr + eps_pp, 0.0);
+		invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V / cell_size * 0.6; // factor 1/2 because of leapfrog
 		}
 
 		// kinematic viscosity limit
-		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) *
-			 std::max(1 / std::pow(dxRadial, 2),
-				  1 / std::pow(dxAzimuthal, 2)) * 0.6; // factor 1/2 because of leapfrog
+		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) / std::pow(cell_size, 2)
+				* 0.6; // factor 1/2 because of leapfrog
 
 		// heating / cooling limit
 		double invdt6;
