@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
-
-from disgrid import Data
 
 
 def parse_cli_args():
@@ -25,10 +24,8 @@ def main():
     outDir = args.outdir
     
     fig, ax = plt.subplots()
-    
-    data = Data(outDir)
 
-    plot(ax, data, N)
+    plot(ax, outDir, N)
             
     if args.outfile:
         fig.savefig(args.outfile, dpi=300)
@@ -36,10 +33,10 @@ def main():
         plt.show()
 
 
-def plot(ax, data, N, name=""):
+def plot(ax, datadir, N):
 
     print(f"Plotting particle distribution for N = {N}")
-    particles, time = data.particles.get(N)
+    particles = get_particles(datadir, N)
 
     # hacky way around fargocpt outputting x and y
     # for adaptive integrator
@@ -84,6 +81,28 @@ def particles_by_size(data, N, size=[-np.inf, np.inf]):
 
     return vals, time
 
+def get_particles(datadir, N):
+    filename = os.path.join(datadir, f"snapshots/{N}/particles.dat")
+    res = np.fromfile(
+        filename, dtype=[('Id', np.dtype(int)), ('Values', np.dtype(float), 11)])
+    ids = res["Id"]
+    vals = res["Values"]
+
+    particles = {
+        "id": ids,
+        "r": vals[:, 0],
+        "phi": vals[:, 1],
+        "r dot": vals[:, 2],
+        "phi dot": vals[:, 3],
+        "r ddot": vals[:, 4],
+        "phi ddot": vals[:, 5],
+        "mass": vals[:, 6],
+        "size": vals[:, 7],
+        "timestep": vals[:, 8],
+        "facold": vals[:, 9],
+        "stokes": vals[:, 10]
+    }
+    return particles
 
 if __name__ == "__main__":
     main()
