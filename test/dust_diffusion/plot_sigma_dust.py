@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 
-from simdata import Data
+from disgrid import Data
 
 
 def parse_cli_args():
