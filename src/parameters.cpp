@@ -1028,7 +1028,7 @@ void read(const std::string &filename, t_data &data)
 
     CFL = config::cfg.get<double>("CFL", 0.5);
     HEATING_COOLING_CFL_LIMIT =
-	config::cfg.get<double>("HeatingCoolingCFLlimit", 5.0e-2);
+	config::cfg.get<double>("HeatingCoolingCFLlimit", 10.0);
 
     CFL_max_var = config::cfg.get<double>("CFLmaxVar", 1.1);
 
