@@ -24,7 +24,7 @@ def run(fargo_path, par_file):
 def test(out1, dt):
 
 
-    file_name1 = out1 + 'gasTemperature1D' + str(dt) + ".dat"
+    file_name1 = out1 + f"snapshots/{dt}/Temperature1D.dat"
     data1 = np.fromfile(file_name1)
     print(file_name1)
     r1 = data1[::4]
@@ -63,7 +63,7 @@ def test(out1, dt):
 
     ax.plot(r1.flatten(), quant1.flatten() * T0, '.r', label='Code', lw=2.5)
 
-    file_name = out1 + 'gasdens1D' + str(dt) + ".dat"
+    file_name = out1 + f"snapshots/{dt}/Sigma1D.dat"
     data_dens = np.fromfile(file_name)
     quant2 = data_dens[1::4] * Sigma0
 

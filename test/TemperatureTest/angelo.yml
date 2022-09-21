@@ -114,9 +114,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Ntot: '10000'   # Total number of time steps
-Ninterm: '1000'   # Time steps between outputs
-DT: '6.28'   # Time step length. 2PI = 1 orbit
+Ntot: '10'   # Total number of time steps
+Ninterm: '10'   # Time steps between outputs
+DT: '6.28e2'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
