@@ -381,6 +381,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		}
 		}
 
+		if(PRINT_SIG_INFO){
 		if(dt_cell == dt_global_input || shear_dt == dt_global_input){
 			timestep_debug_report(data,
 								  nr,
@@ -395,6 +396,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 								  invdt6,
 								  shear_dt,
 								  dt_stable_visc);
+		}
 		}
 
 		if (dt_cell < dt_core) {
