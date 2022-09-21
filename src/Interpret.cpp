@@ -588,7 +588,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     CICPlanet = cfg.get_flag("CICPLANET", "no");
 
     parameters::ALPHAVISCOSITY = cfg.get<double>("ALPHAVISCOSITY", 0.0);
-    parameters::VISCOSITY = cfg.get<double>("VISCOSITY", 0.0);
+	parameters::VISCOSITY = cfg.get<double>("VISCOSITY", 0.0, units::L0*units::L0/units::T0);
 
     if (!parameters::EXPLICIT_VISCOSITY && parameters::ALPHAVISCOSITY == 0.0 &&
 	(parameters::artificial_viscosity_factor == 0.0 ||
