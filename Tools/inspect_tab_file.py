@@ -37,7 +37,25 @@ def print_columns(filename, columns, formatstrs=None):
     
 def parse_header(filename):
     header = get_header(filename)
-    names = parse_syntax_line(header)
+    detailed_header = False
+    for line in header:
+        line = line.strip()
+        if line.lower().startswith("variable:"):
+            detailed_header = True
+    
+    if detailed_header:
+        names = parse_detailed_header(header)
+    else:
+        names = parse_syntax_line(header)
+    return names
+
+def parse_detailed_header(lines):
+    names = []
+    for line in lines:
+        if line.lower().startswith("variable:"):
+            name = line.split(":", 1)[1]
+            name = name.split("|")[1]
+            names.append(name)
     return names
 
 def print_variable_info(names):
