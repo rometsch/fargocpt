@@ -49,7 +49,7 @@ static void timestep_debug_report(t_data &data,
 								  const double dt_shear,
 								  const double dt_stable_visc
 								  ){
-	if (PRINT_SIG_INFO) {
+
 	PRINT_SIG_INFO = false;
 
 	const unsigned int n_radial = n_radial_debug;
@@ -181,9 +181,6 @@ static void timestep_debug_report(t_data &data,
 				   dt_cell);
 	logging::print(LOG_INFO "Limit time step adopted        : %g\n",
 				   dt_global);
-
-	}
-
 }
 
 
@@ -212,7 +209,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 	double dt_core = parameters::CFL * dphi /
 			fabs(v_mean[0]*InvRmed[0] - v_mean[1]*InvRmed[1]);
 
-	#pragma omp parallel for reduction(min : dt_core)
+	#pragma omp parallel for reduction(min : dt_core, dt_parabolic_local)
 	for (unsigned int nr = radial_first_active;
 	 nr < radial_active_size; ++nr) {
 
@@ -384,7 +381,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		}
 		}
 
-		if(dt_cell == dt_global_input){
+		if(dt_cell == dt_global_input || shear_dt == dt_global_input){
 			timestep_debug_report(data,
 								  nr,
 								  naz,
