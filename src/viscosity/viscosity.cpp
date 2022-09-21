@@ -167,7 +167,7 @@ void compute_viscous_stress_tensor(t_data &data)
 		data[t_data::DIV_V](nr, naz) =
 		(data[t_data::V_RADIAL](nr+1, naz)*Ra[nr+1] -
 		 data[t_data::V_RADIAL](nr, naz)*Ra[nr])
-				* InvDiffRsup[nr] * InvRb[nr] +
+				* InvDiffRsupRb[nr] +
 		(data[t_data::V_AZIMUTHAL](nr, naz_next) -
 		 data[t_data::V_AZIMUTHAL](nr, naz)) * invdphi * InvRb[nr];
 	}
@@ -183,7 +183,7 @@ void compute_viscous_stress_tensor(t_data &data)
 		 data[t_data::V_RADIAL](nr, naz)) *
 		InvDiffRsup[nr];
 
-	    // tau_r_r = 2*nu*Sigma*( d(v_r)/dr - 1/3 div(v) + eta2 div(v))
+		// tau_r_r = 2*nu*Sigma*( d(v_r)/dr - 1/3 div(v))
 		data[t_data::TAU_R_R](nr, naz) =
 		2.0 * data[t_data::VISCOSITY](nr, naz) *
 		data[t_data::SIGMA](nr, naz) *

@@ -365,7 +365,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 		const double DIV_V =
 			(data[t_data::V_RADIAL](nr+1, naz)*Ra[nr+1] -
 				data[t_data::V_RADIAL](nr, naz)*Ra[nr]) *
-			InvDiffRsup[nr] * InvRb[nr] +
+			InvDiffRsupRb[nr] +
 			(data[t_data::V_AZIMUTHAL](nr, naz_next) -
 			 data[t_data::V_AZIMUTHAL](nr, naz)) *
 			invdphi * InvRb[nr];
