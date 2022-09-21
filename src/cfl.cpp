@@ -261,15 +261,14 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		double invdt4;
 		if (parameters::artificial_viscosity ==
 		parameters::artificial_viscosity_SN) {
+			const unsigned int naz_next = naz == v_radial.get_max_azimuthal()
+					? 0	: naz + 1;
 
 			// velocity differences in radial & azimuthal direction
 			double dvRadial = v_radial(nr + 1, naz) -
 					v_radial(nr, naz);
 			double dvAzimuthal =
-					v_azimuthal(nr,
-								naz == v_radial.get_max_azimuthal()
-								? 0
-								: naz + 1) -
+					v_azimuthal(nr, naz_next) -
 					v_azimuthal(nr, naz);
 
 		if (dvRadial >= 0.0) {
@@ -288,9 +287,12 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			4.0 * std::pow(parameters::artificial_viscosity_factor, 2) *
 			std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal) * 0.6; // factor 1/2 because of leapfrog
 		} else { // TW artificial viscosity
+			const unsigned int naz_next = naz == v_radial.get_max_azimuthal()
+					? 0	: naz + 1;
 			// div(v) = 1/r d(r v_r)/dr + 1/r d(v_phi)/dphi
-			const double eps_rr = (vr(nr+1, naz) - vr(nr, naz)) * InvDiffRsup[nr];
-			const double eps_pp =  InvRb[nr] * ((vphi(nr, naz_next) - vphi(nr, naz)) * invdphi + 0.5*(vr(nr + 1, naz) + vr(nr, naz)));
+			//  	 == d(v_r)/dr + 1/r [ d(v_phi)/dphi + v_r]
+			const double eps_rr = (v_radial(nr+1, naz) - v_radial(nr, naz)) * InvDiffRsup[nr];
+			const double eps_pp =  InvRb[nr] * ((v_azimuthal(nr, naz_next) - v_azimuthal(nr, naz)) * invdphi + 0.5*(v_radial(nr + 1, naz) + v_radial(nr, naz)));
 			const double mdiv_V =  -std::min(eps_rr + eps_pp, 0.0);
 			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * 0.6; // factor 1/2 because of leapfrog
 		}
