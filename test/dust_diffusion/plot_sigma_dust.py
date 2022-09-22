@@ -6,8 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 
-from disgrid import Data
-
+import os
 
 def parse_cli_args():
     parser = argparse.ArgumentParser()
@@ -34,11 +33,9 @@ def main():
     
     for label, outDir in zip(labels, outDirs):
 
-        data = Data(outDir)
-
         for N in Ns:
             try:
-                plot(ax, data, N, name=label)
+                plot(ax, outDir, N, name=label)
             except KeyError:
                 print(f"Can't plot output step {N}")
 
@@ -48,23 +45,24 @@ def main():
         plt.show()
 
 
-def plot(ax, data, N, name=""):
+def plot(ax, outdir, N, name=""):
 
     print(f"Plotting particle distribution for N = {N}")
 
     sizes = [1e-5*u.cm]
 
     for size in sizes:
-        particles, time = data.particles.get(N)
-        r = particles["r"].to_value("au")
+        particles = get_particles(outdir, N)
+        r = particles["r"]
         N_particles = len(r)
         # hacky way around fargocpt outputting x and y
         # for adaptive integrator
         if any(r < 0):
-            phi = particles["phi"].value
+            phi = particles["phi"]
             r = np.sqrt(r**2 + phi**2)
         print("N = {} particles".format(len(r)))
-        label = "{} t = {:.2f}, N = {}".format(name, time.to("yr"), N_particles)
+        t = get_time(outdir, N)
+        label = "{} N = {}, t = {:.5g} yr, Nparts = {}".format(name, N, t, N_particles)
         counts, interfaces = np.histogram(r, bins=51)
         mid = 0.5*(interfaces[1:] + interfaces[:-1])
         dr = interfaces[1:] - interfaces[:-1]
@@ -74,7 +72,7 @@ def plot(ax, data, N, name=""):
         # sigma_dust = sigma_dust / np.max(sigma_dust)
         ax.plot(mid, sigma_dust, label=label)
 
-    ax.set_xlabel(r"$r$ [au]")
+    ax.set_xlabel(r"$r$")
     ax.set_ylabel(r"particle histogram normalized")
 
     # ax.set_xscale("log")
@@ -91,7 +89,7 @@ def plot(ax, data, N, name=""):
     ax.axvline(13.54, alpha=0.75, color="black", ls=":")
     ax.axvline(7.17, alpha=0.75, color="black", ls=":")
 
-    ax.set_ylim(bottom=1, top=1000)
+    # ax.set_ylim(bottom=1, top=1000)
 
 def particles_by_size(data, N, size=[-np.inf, np.inf]):
     """ Construct trajectories for all dust particles. """
@@ -109,6 +107,50 @@ def particles_by_size(data, N, size=[-np.inf, np.inf]):
         vals[key] = vals[key][mask]
 
     return vals, time
+
+def get_time(datadir, N):
+    filename = os.path.join(datadir, f"snapshots/timeSnapshot.dat")
+    times = np.genfromtxt(filename, usecols=(2))
+    units = get_units(datadir)
+    times = (times*units["time"]).to_value("yr")
+    return times[N]
+
+def get_units(datadir):
+    filename = os.path.join(datadir, "units.dat")
+    units = {}
+    with open(filename, "r") as infile:
+        for line in infile:
+            line = line.strip()
+            if line == "" or line[0] == "#":
+                continue
+            else:
+                parts = line.split()
+                if len(parts) == 3:
+                    units[parts[0]] = parts[1] * u.Unit(parts[2])
+    return units
+
+def get_particles(datadir, N):
+    filename = os.path.join(datadir, f"snapshots/{N}/particles.dat")
+    res = np.fromfile(
+        filename, dtype=[('Id', np.dtype(int)), ('Values', np.dtype(float), 11)])
+    ids = res["Id"]
+    vals = res["Values"]
+
+    particles = {
+        "id": ids,
+        "r": vals[:, 0],
+        "phi": vals[:, 1],
+        "r dot": vals[:, 2],
+        "phi dot": vals[:, 3],
+        "r ddot": vals[:, 4],
+        "phi ddot": vals[:, 5],
+        "mass": vals[:, 6],
+        "size": vals[:, 7],
+        "timestep": vals[:, 8],
+        "facold": vals[:, 9],
+        "stokes": vals[:, 10]
+    }
+    return particles
 
 
 if __name__ == "__main__":
