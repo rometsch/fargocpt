@@ -278,6 +278,8 @@ static void step_Euler(t_data &data, const double dt) {
 /**
 	\param data
 	\param sys
+	compare Bodenheimer et al. Numerical Methods in Astrophyiscs
+	Chapter 6.3.4 Operator Splitting
 */
 static void step_LeapFrog(t_data &data, const double step_dt)
 {
