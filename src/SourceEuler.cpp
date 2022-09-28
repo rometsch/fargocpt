@@ -218,7 +218,6 @@ void recalculate_viscosity(t_data &data, const double current_time)
 	if (parameters::Locally_Isothermal) {
 	if (parameters::ASPECTRATIO_MODE > 0) {
 		compute_sound_speed(data, current_time);
-		compute_temperature(data);
 		compute_scale_height(data, current_time);
 	} else {
 		compute_pressure(data);
@@ -228,7 +227,6 @@ void recalculate_viscosity(t_data &data, const double current_time)
 	if (parameters::variableGamma) {
 		pvte::compute_gamma_mu(data);
 	}
-	compute_temperature(data);
 	compute_sound_speed(data, current_time);
 	compute_scale_height(data, current_time);
 	}
