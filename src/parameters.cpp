@@ -160,6 +160,8 @@ bool fast_transport;
 bool leap_frog;
 int indirect_term_mode;
 
+bool planet_orbit_disk_test;
+
 bool integrate_planets;
 bool do_init_secondary_disk;
 
@@ -948,6 +950,8 @@ void read(const std::string &filename, t_data &data)
 	"Please add the central object to the planet configuration.");
 
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
+	planet_orbit_disk_test = config::cfg.get_flag("PlanetOrbitDiskTest", "no");
+
 
 	indirect_term_mode = config::cfg.get<int>("IndirectTermMode", INDIRECT_TERM_REBOUND);
 

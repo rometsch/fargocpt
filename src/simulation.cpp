@@ -373,14 +373,6 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 	}
 
 	//////////////// Leapfrog compute v_i+1 /////////////////////
-	// Finish timestep of the planets but do not update Nbody system yet //
-	if (parameters::integrate_planets) {
-		if (parameters::disk_feedback) {
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
-		data.get_planetary_system().integrate(midstep_time, frog_dt);
-	}
-
 	/// planets positions still at x_i+1/2 for gas interaction
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(data);
@@ -437,11 +429,19 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 	particles::update_velocities_from_indirect_term(frog_dt);
 	}
 
-	//////////// Update Nbody to x_i+1 //////////////////
+	// Finish timestep of the planets but do not update Nbody system yet //
 	if (parameters::integrate_planets) {
+		if (parameters::disk_feedback) {
+			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
+		}
 		refframe::init_corotation(data);
+		data.get_planetary_system().integrate(midstep_time, frog_dt);
 		data.get_planetary_system().copy_data_from_rebound();
 		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
+	}
+
+	//////////// Update Nbody to x_i+1 //////////////////
+	if (parameters::integrate_planets) {
 		if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
 		data.get_planetary_system().move_to_hydro_frame_center();
 		}
