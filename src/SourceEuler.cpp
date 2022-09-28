@@ -773,6 +773,7 @@ void calculate_qminus(t_data &data, const double current_time)
 */
 void SubStep3(t_data &data, const double current_time, const double dt)
 {
+	compute_temperature(data);
 	calculate_qminus(data, current_time); // first to calculate teff
 	calculate_qplus(data);
 
