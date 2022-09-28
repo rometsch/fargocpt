@@ -172,7 +172,7 @@ static void timestep_debug_report(t_data &data,
 		logging::print(LOG_INFO
 					   "Articifial Viscosity limit     : %g\n", itdbg4);
 	}
-	logging::print(LOG_INFO "Fargo shear limit %g\n", dt_shear);
+	logging::print(LOG_INFO "Fargo shear limit		   : %g\n", dt_shear);
 	logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
 				   itdbg5);
 	logging::print(LOG_INFO "Heating cooling limit      : %g\n",
