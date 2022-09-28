@@ -18,7 +18,10 @@ def run(fargo_path, par_file):
     wd = os.getcwd()
     os.chdir(fargo_path)
 
-    subprocess.call('OMP_NUM_THREADS=4 ./fargo start ' + par_file, shell=True)
+    ## When using openMP make sure openMP_threads=1
+    ## because you cannot use OpenMP functions after fork
+    subprocess.call('./fargo start ' + par_file, shell=True)
+    #subprocess.call('mpirun -n 4  ./fargo start ' + par_file, shell=True)
     os.chdir(wd)
 
 def test(out1, dt):
