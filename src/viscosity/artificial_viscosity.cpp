@@ -19,6 +19,10 @@ void update_with_artificial_viscosity(t_data &data, const double time, const dou
 	recalculate_viscosity(data, time);
 	}
 
+	if (parameters::Adiabatic && parameters::artificial_viscosity_dissipation) {
+		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+	}
+
 	if(ECC_GROWTH_MONITOR){
 		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_art_visc, delta_peri_art_visc);
 	}
