@@ -45,6 +45,7 @@ class t_planetary_system
 	Pair get_hydro_frame_center_delta_vel_rebound_predictor() const;
     Pair get_hydro_frame_center_velocity() const;
     double get_hydro_frame_center_mass() const;
+	double compute_hydro_frame_center_mass() const;
 	void apply_indirect_term_on_Nbody(const pair accel, const double dt);
 	void move_to_hydro_frame_center();
 	void move_to_hydro_frame_center_from_last_dt();
