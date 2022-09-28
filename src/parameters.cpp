@@ -1010,7 +1010,7 @@ void read(const std::string &filename, t_data &data)
 	break;
     case 's': // simple, see Gennaro D'Angelo et al. 2003
 	opacity = opacity_simple;
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0);
+	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0);
 	break;
     default:
 	die("Invalid setting for Opacity: %s",
