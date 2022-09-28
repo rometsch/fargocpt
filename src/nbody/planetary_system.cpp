@@ -354,7 +354,7 @@ void t_planetary_system::restart()
 	m_rebound = reb_create_simulation_from_binary(
 	    (char *)rebound_filename.c_str());
     
-    copy_data_from_rebound();
+	copy_data_from_rebound_update_orbital_parameters();
     calculate_orbital_elements();
 
     logging::print_master(LOG_INFO " done\n");
@@ -742,7 +742,7 @@ void t_planetary_system::copy_data_to_rebound()
    Copy positions, velocities and masses back
    from rebound to planetary system.
 */
-void t_planetary_system::copy_data_from_rebound()
+void t_planetary_system::copy_data_from_rebound_update_orbital_parameters()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
@@ -751,6 +751,17 @@ void t_planetary_system::copy_data_from_rebound()
 	planet.set_vx(m_rebound->particles[i].vx);
 	planet.set_vy(m_rebound->particles[i].vy);
     }
+
+	if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
+	move_to_hydro_frame_center();
+	}
+
+	/// Needed for Aspectratio mode = 1
+	/// and to correctly compute circumplanetary disk mass
+	compute_dist_to_primary();
+	/// Needed if they can change and massoverflow or planet accretion
+	/// is on
+	calculate_orbital_elements();
 }
 
 void t_planetary_system::copy_rebound_to_predictor()

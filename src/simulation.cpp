@@ -175,16 +175,7 @@ static void step_Euler(t_data &data, const double dt) {
 	/** Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_frame_center();
-
-	    /// Needed for Aspectratio mode = 1
-	    /// and to correctly compute circumplanetary disk mass
-	    data.get_planetary_system().compute_dist_to_primary();
-
-	    /// Needed if they can change and massoverflow or planet accretion
-	    /// is on
-	    data.get_planetary_system().calculate_orbital_elements();
+		data.get_planetary_system().copy_data_from_rebound_update_orbital_parameters();
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
@@ -309,17 +300,7 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 		data.get_planetary_system().integrate(start_time, frog_dt);
 
 		refframe::init_corotation(data);
-		data.get_planetary_system().copy_data_from_rebound();
-		if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
-		data.get_planetary_system().move_to_hydro_frame_center();
-		}
-
-	    /// Needed for Aspectratio mode = 1
-	    /// and to correctly compute circumplanetary disk mass
-	    data.get_planetary_system().compute_dist_to_primary();
-	    /// Needed if they can change and massoverflow or planet accretion
-	    /// is on
-	    data.get_planetary_system().calculate_orbital_elements();
+		data.get_planetary_system().copy_data_from_rebound_update_orbital_parameters();
 	}
 
 	if (parameters::integrate_particles) {
@@ -436,23 +417,8 @@ static void step_LeapFrog(t_data &data, const double step_dt)
 		}
 		refframe::init_corotation(data);
 		data.get_planetary_system().integrate(midstep_time, frog_dt);
-		data.get_planetary_system().copy_data_from_rebound();
+		data.get_planetary_system().copy_data_from_rebound_update_orbital_parameters();
 		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
-	}
-
-	//////////// Update Nbody to x_i+1 //////////////////
-	if (parameters::integrate_planets) {
-		if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
-		data.get_planetary_system().move_to_hydro_frame_center();
-		}
-
-		/// Needed for Aspectratio mode = 1
-		/// and to correctly compute circumplanetary disk mass
-		data.get_planetary_system().compute_dist_to_primary();
-
-		/// Needed if they can change and massoverflow or planet accretion
-		/// is on
-		data.get_planetary_system().calculate_orbital_elements();
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we

@@ -80,7 +80,7 @@ class t_planetary_system
 	void copy_rebound_to_predictor();
 	void compare_rebound_to_predictor();
     void copy_data_to_rebound();
-    void copy_data_from_rebound();
+	void copy_data_from_rebound_update_orbital_parameters();
     void correct_velocity_for_disk_accel();
     void correct_planet_accretion();
     void compute_dist_to_primary();
