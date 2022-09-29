@@ -34,7 +34,7 @@ Transport: FARGO
 InnerBoundary: OPEN
 OuterBoundary: EVANESCENT
 Disk: 'No'
-OmegaFrame: '1.0'
+OmegaFrame: '0.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
 FirstDt: 0.1
@@ -52,10 +52,10 @@ RadialSpacing: ARITHMETIC   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Ntot: '1'   # Total number of time steps
-Ninterm: '1'   # Time steps between outputs
+Ntot: '5'   # Total number of time steps
+Ninterm: '100'   # Time steps between outputs
 DT: '8.885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
-OutputDir: output/init
+OutputDir: output/charnoz2011_fast
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 RandomSeed: '1337'   # random seed integer value
 RandomSigma: 'No'   # randomize sigma start values?
@@ -72,8 +72,8 @@ ParticleRadius: 1.0e-5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.00'   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSurfaceDensitySlope: '0.5'   # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
-ParticleMinimumRadius: '3.0'   # [default = RMIN]
-ParticleMaximumRadius: '3.0'   # [default = RMAX]
+ParticleMinimumRadius: '10.0'   # [default = RMIN]
+ParticleMaximumRadius: '10.0'   # [default = RMAX]
 ParticleMinimumEscapeRadius: '1.0'   # [default = ParticleMinimumRadius]
 ParticleMaximumEscapeRadius: '20.0'   # [default = ParticleMaximumRadius]
 ParticleGasDragEnabled: 'no'   # [default = YES]
