@@ -14,7 +14,14 @@ namespace units
 typedef llnlunits::precise_unit precise_unit;
 namespace precise = llnlunits::precise;
 
+#ifdef DO_USE_PLUTO_UNITS
+/// Source: pluto.h
+const double cgs_AU = 1.49597892e13;
+const double cgs_Msol = 2.e33;
+const double cgs_Year = 365.25636 * 24.0 * 60.0 * 60.0; // pluto.h does not have year defined
+#else
 /// astronomical unit in cgs
+/// source: https://ssd.jpl.nasa.gov/astro_par.html
 // const double cgs_AU = 149.60e11;
 const double cgs_AU = 1.495978707e13;
 
@@ -23,6 +30,7 @@ const double cgs_Msol = 1.98892e33;
 
 /// seconds of a year
 const double cgs_Year = 31556925.261; // 365.*24.*60.*60.;
+#endif
 
 const double solar_radius_in_au = 0.00465047;
 
