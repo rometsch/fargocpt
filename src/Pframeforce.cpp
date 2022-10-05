@@ -82,13 +82,11 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
-			const double dist = std::sqrt(dist_2);
-
-			if (dist < r_sm) {
+			if (d_smoothed < r_sm) {
 			    smooth_factor_klahr =
-				(std::pow(dist / r_sm, 4.0) -
-				 2.0 * std::pow(dist / r_sm, 3.0) +
-				 2.0 * dist / r_sm);
+				(std::pow(d_smoothed / r_sm, 4.0) -
+				 2.0 * std::pow(d_smoothed / r_sm, 3.0) +
+				 2.0 * d_smoothed / r_sm);
 			}
 		    }
 		}
@@ -136,6 +134,12 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	    const double phi = (double)n_az * dphi;
 	    const double r = Rinf[n_rad];
 
+		const double F = parameters::FLARINGINDEX;
+		// h should be centerd on interface 0.5 (h_(i-1,j) + h_(i,j))
+		const double h = data[t_data::ASPECTRATIO](n_rad, n_az);
+		const double eps = parameters::thickness_smoothing;
+		const double smoothing_derivative_factor = 1.0 + (F + 1.0) * std::pow(h * eps, 2);
+
 	    const double x = r * std::cos(phi);
 	    const double y = r * std::sin(phi);
 	    const double smooth = compute_smoothing_r(data, n_rad, n_az);
@@ -167,21 +171,19 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
-			const double dist = std::sqrt(dist_2);
-
-			if (dist < r_sm) {
+			if (dist_sm < r_sm) {
 			    smooth_factor_klahr =
-				-(3.0 * std::pow(dist / r_sm, 4.0) -
-				  4.0 * std::pow(dist / r_sm, 3.0));
+				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
+				  4.0 * std::pow(dist_sm / r_sm, 3.0));
 			}
 		    }
 		}
 
 		// direct term from planet
 		ar.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
-			smooth_factor_klahr;
+			smooth_factor_klahr * smoothing_derivative_factor;
 		ar.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
-			smooth_factor_klahr;
+			smooth_factor_klahr * smoothing_derivative_factor;
 	    }
 
 	    const double accel = std::cos(phi) * ar.x + std::sin(phi) * ar.y;
@@ -226,6 +228,12 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	    const double phi = ((double)n_az - 0.5) * dphi;
 	    const double r = Rmed[n_rad];
 
+		const double F = parameters::FLARINGINDEX;
+		// h should be centerd on interface 0.5 (h_(i,j) + h_(i,j+1))
+		const double h = data[t_data::ASPECTRATIO](n_rad, n_az);
+		const double eps = parameters::thickness_smoothing;
+		const double smoothing_derivative_factor = 1.0 + (F + 1.0) * std::pow(h * eps, 2);
+
 	    const double x = r * std::cos(phi);
 	    const double y = r * std::sin(phi);
 	    const double smooth = compute_smoothing_az(data, n_rad, n_az);
@@ -237,7 +245,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-		const double dist_3_sm = std::sqrt(dist_2_sm) * dist_2_sm;
+		const double dist_sm = std::sqrt(dist_2_sm);
+		const double dist_3_sm = dist_sm * dist_2_sm;
 		const double inv_dist_3_sm = 1.0 / dist_3_sm;
 
 		double smooth_factor_klahr = 1.0;
@@ -256,21 +265,19 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 			const double r_sm =
 			    l1 * parameters::klahr_smoothing_radius;
 
-			const double dist = std::sqrt(dist_2);
-
-			if (dist < r_sm) {
+			if (dist_sm < r_sm) {
 			    smooth_factor_klahr =
-				-(3.0 * std::pow(dist / r_sm, 4.0) -
-				  4.0 * std::pow(dist / r_sm, 3.0));
+				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
+				  4.0 * std::pow(dist_sm / r_sm, 3.0));
 			}
 		    }
 		}
 
 		// direct term from planet
 		aphi.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
-			  smooth_factor_klahr;
+			  smooth_factor_klahr * smoothing_derivative_factor;
 		aphi.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
-			  smooth_factor_klahr;
+			  smooth_factor_klahr * smoothing_derivative_factor;
 	    }
 
 	    const double accel =

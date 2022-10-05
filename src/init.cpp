@@ -845,12 +845,8 @@ void init_secondary_disk_energies(t_data &data)
 	    const double r = std::max(std::sqrt(x * x + y * y), min_dist);
 
 	    if (r < compute_radius) {
-		const double energy =
-		    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    scaling_factor * std::pow(parameters::ASPECTRATIO_REF, 2) *
-		    std::pow(r, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
-		    constants::G * planet.get_mass() *
-		    cutoff_outer(disk_size, cutoff_width, r);
+		const double energy = initial_energy(r, planet.get_mass()) *
+			scaling_factor * cutoff_outer(disk_size, cutoff_width, r);
 
 		const double temperature_floor =
 		    parameters::minimum_temperature *
@@ -931,20 +927,19 @@ void init_secondary_disk_velocities(t_data &data)
 	    if (r_sec < compute_radius) {
 
 		// pressure support correction
-		double corr;
+		double vphi0;
+		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
+			vphi0 = compute_v_kepler(r_sec, planet.get_mass());
+			vr0 = 0.0;
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-				  std::pow(r_sec, 2.0 * parameters::FLARINGINDEX) *
-				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
+			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
 		}
 
 		// Velocities in center of mass frame
-		const double vr_sec = 0.0;
-		const double vaz_sec =
-		    std::sqrt(constants::G * planet.get_mass() / r_sec) * corr;
+		const double vr_sec = vr0;
+		const double vaz_sec = vphi0;
 
 		const double vx_sec =
 		    (vr_sec * x_sec - vaz_sec * y_sec) / r_sec;
@@ -987,20 +982,19 @@ void init_secondary_disk_velocities(t_data &data)
 	    if (r_sec < compute_radius) {
 
 		// pressure support correction
-		double corr;
+			double vphi0;
+			double vr0;
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
+			vphi0 = compute_v_kepler(r_sec, planet.get_mass());
+			vr0 = 0.0;
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-				  std::pow(r_sec, 2.0 * parameters::FLARINGINDEX) *
-				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
+			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
 		}
 
 		// Velocities in center of mass frame
-		const double vr_sec = 0.0;
-		const double vaz_sec =
-		    std::sqrt(constants::G * planet.get_mass() / r_sec) * corr;
+		const double vr_sec = vr0;
+		const double vaz_sec = vphi0;
 
 		const double vx_sec =
 		    (vr_sec * x_sec - vaz_sec * y_sec) / r_sec;
@@ -1333,12 +1327,7 @@ void init_gas_energy(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
 		 ++n_azimuthal) {
-		const double energy =
-		    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    std::pow(parameters::ASPECTRATIO_REF, 2) *
-		    std::pow(Rmed[n_radial],
-			     -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
-		    constants::G * hydro_center_mass;
+		const double energy =  initial_energy(Rmed[n_radial], hydro_center_mass);
 		const double temperature_floor =
 		    parameters::minimum_temperature;
 		const double energy_floor =
@@ -1385,11 +1374,8 @@ void init_gas_energy(t_data &data)
 		const double y = rmed * std::sin(phi) - cms_y;
 		const double r = std::sqrt(x * x + y * y);
 
-		const double energy =
-		    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
-		    std::pow(parameters::ASPECTRATIO_REF, 2) *
-		    std::pow(r, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
-		    constants::G * mass;
+		const double energy = initial_energy(r, mass);
+
 		const double temperature_floor =
 		    parameters::minimum_temperature *
 		    units::temperature.get_inverse_cgs_factor();
@@ -1563,35 +1549,21 @@ void init_gas_velocities(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double corr;
+		double vphi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
-		    vr0 = 0.0;
+			vphi0 = compute_v_kepler(r_com, mass);
+			vr0 = 0.0;
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
-
-		    /// Viscous speed
-			const double h = parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
-		    const double cs_iso =
-			parameters::ASPECTRATIO_REF *
-			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, parameters::FLARINGINDEX);
-		    const double H = h * r_com;
-		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
-		    vr0 = -3.0 * nu / r_com *
-			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
+			vr0 = initial_viscous_radial_speed(r_com, mass);
 		}
 
 		// Velocities in center of mass frame
 		Pair v_cms =
 		    data.get_planetary_system().get_center_of_mass_velocity();
 		const double vr_com = vr0;
-		const double vaz_com =
-		    std::sqrt(constants::G * mass / r_com) * corr;
+		const double vaz_com = vphi0;
 
 		const double vx_com =
 		    (vr_com * x_com - vaz_com * y_com) / r_com;
@@ -1635,35 +1607,22 @@ void init_gas_velocities(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double corr;
+		double vphi0;
 		double vr0;
 
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
-		    vr0 = 0.0;
+			vphi0 = compute_v_kepler(r_com, mass);
+			vr0 = 0.0;
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
-
-		    /// Viscous speed
-		    const double cs_iso =
-			parameters::ASPECTRATIO_REF *
-			std::sqrt(constants::G * hydro_center_mass / r_com) *
-			std::pow(r_com, parameters::FLARINGINDEX);
-		    const double H = parameters::ASPECTRATIO_REF * r_com;
-		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
-		    vr0 = -3.0 * nu / r_com *
-			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
+			vr0 = initial_viscous_radial_speed(r_com, mass);
 		}
 
 		// Velocities in center of mass frame
 		Pair v_cms =
 		    data.get_planetary_system().get_center_of_mass_velocity();
 		const double vr_com = vr0;
-		const double vaz_com =
-		    std::sqrt(constants::G * mass / r_com) * corr;
+		const double vaz_com = vphi0;
 
 		const double vx_com =
 		    (vr_com * x_com - vaz_com * y_com) / r_com;
@@ -1698,8 +1657,7 @@ void init_gas_velocities(t_data &data)
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		    std::sqrt(constants::G * hydro_center_mass / r);
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = compute_v_kepler(r, hydro_center_mass);
 	    }
 	}
 	return;
@@ -1807,11 +1765,8 @@ void init_gas_velocities(t_data &data)
 	     ++n_azimuthal) {
 	    if (!parameters::self_gravity) {
 		// v_azimuthal = Omega_K * r * (...)
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		    r * calculate_omega_kepler(r) *
-		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-					std::pow(r, 2.0 * parameters::FLARINGINDEX) *
-					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal)
+				= initial_locally_isothermal_smoothed_v_az(r, hydro_center_mass);
 	    }
 
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= refframe::OmegaFrame * r;
@@ -1837,27 +1792,8 @@ void init_gas_velocities(t_data &data)
 		    ri;
 
 		if (!parameters::initialize_vradial_zero) {
-		    if (parameters::ALPHAVISCOSITY > 0) {
-			double nu;
-			if(n_radial == 0){
-				// nu = alpha c_s h = alpha h^2 * vk
-				// so we extrapolate with the vk profile
-				const double vkep0 = Rmed[0] * calculate_omega_kepler(Rmed[0]);
-				const double vkep1 = Rmed[1] * calculate_omega_kepler(Rmed[1]);
-					nu = data[t_data::VISCOSITY](n_radial, n_azimuthal) * vkep0 / vkep1;
-			} else {
-				nu = 0.5 * (data[t_data::VISCOSITY](n_radial, n_azimuthal) + data[t_data::VISCOSITY](n_radial-1, n_azimuthal));
-			}
-			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
-				3.0 * nu / Rinf[n_radial] *
-			    (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
-
-		    } else {
-			data[t_data::V_RADIAL](n_radial, n_azimuthal) -=
-			    3.0 *
-			    data[t_data::VISCOSITY](n_radial, n_azimuthal) / r *
-			    (-parameters::SIGMASLOPE + .5);
-		    }
+			const double vr_visc = initial_viscous_radial_speed(ri, hydro_center_mass);
+			data[t_data::V_RADIAL](n_radial, n_azimuthal) += vr_visc;
 		}
 		}
 	}

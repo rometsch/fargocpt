@@ -388,22 +388,26 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
     double VKepIn = 0.0;
     if (!parameters::self_gravity) {
 	/* (3.4) on page 44 */
-	VKepIn = std::sqrt(constants::G * hydro_center_mass / Rb[0] *
-		      (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
-				 std::pow(parameters::ASPECTRATIO_REF, 2.0) *
-				 std::pow(Rb[0], 2.0 * parameters::FLARINGINDEX)));
+	VKepIn = initial_locally_isothermal_smoothed_v_az(Rb[0], hydro_center_mass);
+
     } else {
 	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
 
 	/* (3.42) on page 55 */
 	/* VKepIn is only needed on innermost CPU */
 	if (CPU_Rank == 0) {
-	    // viscosity::aspect_ratio(Rmed[0])
-		VKepIn = std::sqrt(constants::G * hydro_center_mass / Rb[0] *
-			      (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
-					 std::pow(parameters::ASPECTRATIO_REF, 2.0) *
-					 std::pow(Rb[0], 2.0 * parameters::FLARINGINDEX)) -
-			  Rb[0] * GLOBAL_AxiSGAccr[0]);
+		const double R = Rb[0];
+		const double h0 = parameters::ASPECTRATIO_REF;
+		const double F = parameters::FLARINGINDEX;
+		const double S = parameters::SIGMASLOPE;
+		const double h = h0 * std::pow(R, F);
+		const double eps = parameters::thickness_smoothing;
+		const double vk_2 = constants::G * hydro_center_mass / R;
+		const double pressure_support_2 = 2.0 * F - 1.0 - S;
+		const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
+				/ std::sqrt(1 + std::pow(h * eps, 2));
+
+		VKepIn = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[0]);
 	}
     }
 
@@ -426,10 +430,8 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 
     if (!parameters::self_gravity) {
 	/* (3.4) on page 44 */
-	VKepOut = std::sqrt(constants::G * hydro_center_mass /
-			   Rb[nr] * (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
-				  std::pow(parameters::ASPECTRATIO_REF, 2.0) *  std::pow(Rb[nr],
-				      2.0 * parameters::FLARINGINDEX)));
+	VKepOut = initial_locally_isothermal_smoothed_v_az(Rb[nr], hydro_center_mass);
+
     } else {
 
 	if (!did_sg) {
@@ -439,11 +441,19 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	/* (3.42) on page 55 */
 	/* VKepOut is only needed on outermost CPU */
 	if (CPU_Rank == CPU_Highest) {
-	    VKepOut =
-		std::sqrt(constants::G * hydro_center_mass /
-			 Rb[nr] * (1.0 - (1.0 + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX) *
-					std::pow(parameters::ASPECTRATIO_REF, 2.0) * std::pow(Rb[nr],
-					2.0 * parameters::FLARINGINDEX)) - Rb[nr] * GLOBAL_AxiSGAccr[nr + IMIN]);
+
+		const double R = Rb[nr];
+		const double h0 = parameters::ASPECTRATIO_REF;
+		const double F = parameters::FLARINGINDEX;
+		const double S = parameters::SIGMASLOPE;
+		const double h = h0 * std::pow(R, F);
+		const double eps = parameters::thickness_smoothing;
+		const double vk_2 = constants::G * hydro_center_mass / R;
+		const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
+		const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
+				/ std::pow(std::sqrt(1 + std::pow(h * eps, 2)), 3);
+
+		VKepOut = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[nr + IMIN]);
 	}
     }
 
