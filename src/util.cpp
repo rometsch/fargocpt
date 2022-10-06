@@ -5,6 +5,17 @@
 #include <stdint.h>
 #include <string>
 
+
+/// TODO:
+/// create function to correctly average center to interface and vice versa
+/// example: for viscosity
+///const double nu = ((Rinf[n_radial]-Rmed[n_radial-1]) * data[t_data::VISCOSITY](n_radial, n_azimuthal) + (Rmed[n_radial] - Rinf[n_radial]) * data[t_data::VISCOSITY](n_radial-1, n_azimuthal)) / (Rmed[n_radial] - Rmed[n_radial-1]);
+///const double nu = 0.5*(data[t_data::VISCOSITY](n_radial, n_azimuthal) + data[t_data::VISCOSITY](n_radial-1, n_azimuthal));
+/// first version reduces the error by a factor of ~27.7 compared to computing the viscosity directly at the interface
+
+/// TODO: think how to do this for derivatives too
+
+
 bool is_number(std::string s)
 {
     for (std::uint32_t i = 0; i < s.length(); i++)
