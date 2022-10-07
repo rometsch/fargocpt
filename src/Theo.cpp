@@ -119,7 +119,7 @@ double compute_v_kepler(const double R, const double M){
 /// around mass M at radius R
 /// \param R
 /// \param M
-/// \return vr
+/// \return vr, assuming kepler velocity profile for the disk
 ///
 double initial_viscous_radial_speed(const double R, const double M){
 
@@ -128,7 +128,7 @@ double initial_viscous_radial_speed(const double R, const double M){
 	if(parameters::Adiabatic){
 		sqrt_gamma = std::sqrt(parameters::ADIABATICINDEX);
 	} else {
-		sqrt_gamma = 1;
+		sqrt_gamma = 1.0;
 	}
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =

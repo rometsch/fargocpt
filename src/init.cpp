@@ -23,6 +23,7 @@
 #include "selfgravity.h"
 #include "util.h"
 #include "viscosity/viscosity.h"
+#include "viscosity/viscous_radial_speed.h"
 #include "frame_of_reference.h"
 #include <gsl/gsl_sf_bessel.h>
 #include "simulation.h"
@@ -931,10 +932,10 @@ void init_secondary_disk_velocities(t_data &data)
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
 			vphi0 = compute_v_kepler(r_sec, planet.get_mass());
-			vr0 = 0.0;
+			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
-			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
+			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_sec, planet.get_mass());
 		}
 
 		// Velocities in center of mass frame
@@ -986,10 +987,10 @@ void init_secondary_disk_velocities(t_data &data)
 			double vr0;
 		if (parameters::initialize_pure_keplerian) {
 			vphi0 = compute_v_kepler(r_sec, planet.get_mass());
-			vr0 = 0.0;
+			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
-			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
+			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_sec, planet.get_mass());
 		}
 
 		// Velocities in center of mass frame
@@ -1553,22 +1554,22 @@ void init_gas_velocities(t_data &data)
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
 			vphi0 = compute_v_kepler(r_com, mass);
-			vr0 = 0.0;
+			vr0 = initial_viscous_radial_speed(r_com, mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
-			vr0 = initial_viscous_radial_speed(r_com, mass);
+			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_com, mass);
 		}
 
 		// Velocities in center of mass frame
 		Pair v_cms =
-		    data.get_planetary_system().get_center_of_mass_velocity();
+			data.get_planetary_system().get_center_of_mass_velocity();
 		const double vr_com = vr0;
 		const double vaz_com = vphi0;
 
 		const double vx_com =
-		    (vr_com * x_com - vaz_com * y_com) / r_com;
+			(vr_com * x_com - vaz_com * y_com) / r_com;
 		const double vy_com =
-		    (vr_com * y_com + vaz_com * x_com) / r_com;
+			(vr_com * y_com + vaz_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double vx = vx_com + v_cms.x;
@@ -1612,22 +1613,22 @@ void init_gas_velocities(t_data &data)
 
 		if (parameters::initialize_pure_keplerian) {
 			vphi0 = compute_v_kepler(r_com, mass);
-			vr0 = 0.0;
+			vr0 = initial_viscous_radial_speed(r_com, mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
-			vr0 = initial_viscous_radial_speed(r_com, mass);
+			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_com, mass);
 		}
 
 		// Velocities in center of mass frame
 		Pair v_cms =
-		    data.get_planetary_system().get_center_of_mass_velocity();
+			data.get_planetary_system().get_center_of_mass_velocity();
 		const double vr_com = vr0;
 		const double vaz_com = vphi0;
 
 		const double vx_com =
-		    (vr_com * x_com - vaz_com * y_com) / r_com;
+			(vr_com * x_com - vaz_com * y_com) / r_com;
 		const double vy_com =
-		    (vr_com * y_com + vaz_com * x_com) / r_com;
+			(vr_com * y_com + vaz_com * x_com) / r_com;
 
 		// shift velocities from center of mass frame to primary frame
 		const double vx = vx_com + v_cms.x;
@@ -1780,19 +1781,19 @@ void init_gas_velocities(t_data &data)
 				vt_cent[1 + IMIN] * vkep0 / vkep1;
 		} else {
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		    vt_cent[n_radial + IMIN];
+			vt_cent[n_radial + IMIN];
 		}
 		}
 
-	    if (n_radial == data[t_data::V_RADIAL].Nrad) {
+		if (n_radial == data[t_data::V_RADIAL].Nrad) {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
-	    } else {
+		} else {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		    parameters::IMPOSEDDISKDRIFT * parameters::sigma0 / SigmaInf[n_radial] /
-		    ri;
+			parameters::IMPOSEDDISKDRIFT * parameters::sigma0 / SigmaInf[n_radial] /
+			ri;
 
 		if (!parameters::initialize_vradial_zero) {
-			const double vr_visc = initial_viscous_radial_speed(ri, hydro_center_mass);
+			const double vr_visc = viscous_speed::get_vr_with_numerical_viscous_speed(ri, hydro_center_mass);
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) += vr_visc;
 		}
 		}
