@@ -35,6 +35,7 @@ static double get_nu(const double R, const double M){
 /// the soundspeed is inside the allowed Temperature range.
 static double get_nu2(const double R, const double M, const double Sigma){
 
+	(void)get_nu; // to prevent unused function warning
 
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
@@ -119,7 +120,7 @@ namespace viscous_speed
 /// \param mass, parameter
 /// \param f, function to derive
 /// \return df / dr at r
-double derive(const double r, const double mass, double (*f)(double, double)){
+static double derive(const double r, const double mass, double (*f)(double, double)){
 
 	const double x = r;
 	const double h = 8.0e-4 * x;
@@ -138,7 +139,7 @@ double derive(const double r, const double mass, double (*f)(double, double)){
 /// \brief get_w
 /// \return pressure supported, smoothed potential angular velocity (omega)
 ///
-double get_w(const double r, const double mass){
+static double get_w(const double r, const double mass){
 	return initial_locally_isothermal_smoothed_v_az(r, mass) / r;
 }
 
@@ -146,7 +147,7 @@ double get_w(const double r, const double mass){
 /// \brief get_r2_w
 /// \return r^2 * omega
 ///
-double get_r2_w(const double r, const double mass){
+static double get_r2_w(const double r, const double mass){
 	const double omega = get_w(r,mass);
 	return std::pow(r, 2) * omega;
 }
@@ -157,7 +158,7 @@ double get_r2_w(const double r, const double mass){
 /// \param mass
 /// \return nu * Sigma * r^3 * dw/dr
 ///
-double get_nu_S_r3_dwdr(const double r, const double mass){
+static double get_nu_S_r3_dwdr(const double r, const double mass){
 
 	const double dw_dr = derive(r, mass, get_w);
 	const double Sigma = get_sigma(r);
@@ -193,24 +194,6 @@ double get_vr_with_numerical_viscous_speed(const double r, const double mass){
 
 	return vr;
 
-}
-
-double get_vr_with_numerical_viscous_speed_wrapper(const t_radialarray &Rcenter, const t_radialarray &Rinterface, const Pair center_pos, const double mass, const int nr, const int np){
-
-
-	const double r_cell = Rcenter[nr];
-
-	const double phi = (double)np * dphi;
-	const double cell_x = r_cell * std::cos(phi);
-	const double cell_y = r_cell * std::sin(phi);
-
-	const double x = cell_x - center_pos.x;
-	const double y = cell_y - center_pos.y;
-	const double r = std::sqrt(std::pow(x, 2) + std::pow(y, 2));
-
-	const double vr = get_vr_with_numerical_viscous_speed(r, mass);
-
-	return vr;
 }
 
 } // viscous_speed
