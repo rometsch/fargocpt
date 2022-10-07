@@ -387,8 +387,13 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 {
     double VKepIn = 0.0;
     if (!parameters::self_gravity) {
+	// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+	if (parameters::profile_cutoff_inner) {
+	VKepIn = compute_v_kepler(Rb[0], hydro_center_mass);
+	} else {
 	/* (3.4) on page 44 */
 	VKepIn = initial_locally_isothermal_v_az(Rb[0], hydro_center_mass);
+	}
 
     } else {
 	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
@@ -396,8 +401,13 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 	/* (3.42) on page 55 */
 	/* VKepIn is only needed on innermost CPU */
 	if (CPU_Rank == 0) {
+		// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+		if (parameters::profile_cutoff_inner) {
+			const double vk_2 = constants::G * hydro_center_mass / R;
+			VKepIn = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
+		} else {
 		const double R = Rb[0];
-		const double h0 = parameters::ASPECTRATIO_REF;
+		//const double h0 = parameters::ASPECTRATIO_REF;
 		const double F = parameters::FLARINGINDEX;
 		const double S = parameters::SIGMASLOPE;
 		//const double h = h0 * std::pow(R, F);
@@ -409,6 +419,7 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 		const double smoothing_derivative_2 = 1.0;
 
 		VKepIn = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[0]);
+		}
 	}
     }
 
@@ -430,9 +441,13 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	const unsigned int nr = v_azimuthal.get_max_radial();
 
     if (!parameters::self_gravity) {
+	// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+	if(parameters::profile_cutoff_outer){
+	VKepOut = compute_v_kepler(Rb[nr], hydro_center_mass);
+	} else {
 	/* (3.4) on page 44 */
 	VKepOut = initial_locally_isothermal_v_az(Rb[nr], hydro_center_mass);
-
+	}
     } else {
 
 	if (!did_sg) {
@@ -442,7 +457,11 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	/* (3.42) on page 55 */
 	/* VKepOut is only needed on outermost CPU */
 	if (CPU_Rank == CPU_Highest) {
-
+		// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+		if(parameters::profile_cutoff_outer){
+			const double vk_2 = constants::G * hydro_center_mass / R;
+			VKepOut = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[nr + IMIN]);
+		} else {
 		const double R = Rb[nr];
 		//const double h0 = parameters::ASPECTRATIO_REF;
 		const double F = parameters::FLARINGINDEX;
@@ -456,6 +475,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 		const double smoothing_derivative_2 = 1.0;
 
 		VKepOut = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[nr + IMIN]);
+		}
 	}
     }
 
