@@ -541,7 +541,7 @@ void init_spreading_ring_test_jibin(t_data &data)
 	    const double corr = std::sqrt(1.0 + (p + q) * h * h);
 		const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;*/
 		const double vr = viscous_speed::get_vr_with_numerical_viscous_speed(R, 1.0);
-		const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0);
+		const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
 
 	    const double sig = sig_ring + sig_disk + sig_noise;
 

@@ -74,6 +74,35 @@ double initial_energy(const double R, const double M){
 ///
 /// \brief computes the pressure supported azimuthal velocity
 /// around mass M at distance R for the locally isothermal model
+/// \param R
+/// \return locally_isothermal_v_az
+///
+double initial_locally_isothermal_v_az(const double R, const double M){
+
+	// r_sm = sqrt(r**2 + (eps * H)**2)
+	// d r_sm / dr = r/r_sm  *  (1 + (F+1) * (eps * H / r)**2)
+
+	// Phi = GMm / r_sm
+	// vkep^2 / r = 1/Simga dP/dr + dPhi / dr
+	const double h0 = parameters::ASPECTRATIO_REF;
+	const double F = parameters::FLARINGINDEX;
+	const double S = parameters::SIGMASLOPE;
+	const double h = h0 * std::pow(R, F);
+	const double eps = parameters::thickness_smoothing;
+	const double vk_2 = constants::G * M / R;
+	const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
+
+	// for normal pressure support, the derivative should be 1
+	const double smoothing_derivative_2 = 1.0;
+
+	const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
+
+	return v_az;
+}
+
+///
+/// \brief computes the pressure supported azimuthal velocity
+/// around mass M at distance R for the locally isothermal model
 /// also inclues the derivatives of the potential smoothing
 /// \param R
 /// \return locally_isothermal_smoothed_v_az

@@ -363,8 +363,6 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// this is a work around as long as V_AZIMUTHAL is defined as a
-		// vector
 		const double R_N =
 		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
 		const double R_Nm1 =
@@ -384,8 +382,6 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// this is a work around as long as V_AZIMUTHAL is defined as a
-		// vector
 		const double R1 = Rmed[1];
 		const double R0 = Rmed[0];
 
@@ -2187,13 +2183,15 @@ void jibin_boundary_inner(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
-    const double h = parameters::ASPECTRATIO_REF;
-    const double p = parameters::SIGMASLOPE;
-    const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
+	//const double h = parameters::ASPECTRATIO_REF;
+	//const double p = parameters::SIGMASLOPE;
+	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
     const double R = Rmed[0];
-    const double OmegaK = 1.0 / (R * std::sqrt(R));
-    const double corr = std::sqrt(1.0 + (p + q) * h * h);
-    const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	//const double OmegaK = 1.0 / (R * std::sqrt(R));
+	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
+	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
+
 
 	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
@@ -2227,13 +2225,15 @@ void jibin_boundary_outer(t_data &data)
 {
     if (CPU_Rank == CPU_Highest) {
 
-	const double h = parameters::ASPECTRATIO_REF;
-	const double p = parameters::SIGMASLOPE;
-	const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
+	//const double h = parameters::ASPECTRATIO_REF;
+	//const double p = parameters::SIGMASLOPE;
+	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
 	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-	const double OmegaK = 1.0 / (R * std::sqrt(R));
-	const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	//const double OmegaK = 1.0 / (R * std::sqrt(R));
+	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
+	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
+
 
 	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
