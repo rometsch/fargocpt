@@ -115,6 +115,74 @@ static double get_sigma(const double R){
 namespace viscous_speed
 {
 
+static const int N = 1000;
+std::vector<double> r_table(N);
+std::vector<double> vr_table(N);
+static double deltaLogR;
+static double min_r;
+static double max_r;
+
+void init_vr_table_outer_boundary(t_data &data){
+
+	const auto & plsys = data.get_planetary_system();
+	const unsigned int np = plsys.get_number_of_planets();
+	const double mass = plsys.get_mass(np);
+
+	if(plsys.get_number_of_planets() == 2 && parameters::n_bodies_for_hydroframe_center == 1){
+		// case for binary with frame on one star
+		const auto &planet = plsys.get_planet(1);
+		const double e = planet.get_eccentricity();
+		const double a = planet.get_semi_major_axis();
+
+		const double q = planet.get_mass() / (planet.get_mass() + plsys.get_planet(0).get_mass());
+		const double center_of_mass_max_dist = a * (1.0 + e) * q;
+
+		min_r = Rinf[NRadial-1] * parameters::damping_outer_limit - center_of_mass_max_dist;
+		max_r = Rsup[NRadial-1] + center_of_mass_max_dist;
+	} else {
+		min_r = Rinf[NRadial-1] * parameters::damping_outer_limit;
+		max_r = Rsup[NRadial-1];
+	}
+
+	min_r = std::max(RMIN, min_r);
+
+	deltaLogR = std::log10(max_r / min_r) / (double)N;
+
+	for(unsigned int i = 0; i < N; ++i){
+		const double r = min_r * std::pow(10.0, (deltaLogR * (double)i));
+		const double vr = get_vr_with_numerical_viscous_speed(r, mass);
+
+		r_table[i] = r;
+		vr_table[i] = vr;
+	}
+}
+
+double lookup_initial_vr(const double r){
+	const int i = int(std::floor(std::log10(r / min_r) / deltaLogR));
+
+	if (i > N - 1) {
+	printf("Cell out of bounds outwards %.5e %.5e\n", r, max_r);
+	return vr_table[N-1];
+	}
+	if (i < 0) {
+	printf("Cell out of bounds inwards\n");
+	return vr_table[0];
+	}
+
+	const double r_i = r_table[i];
+	const double r_i1 = r_table[i+1];
+
+	const double vr_i = vr_table[i];
+	const double vr_i1 = vr_table[i+1];
+
+	const double x = (r - r_i) / (r_i1 - r_i);
+
+	// linear interpolation
+	const double vr = (1.0 - x) * vr_i + x * vr_i1;
+
+	return vr;
+}
+
 /// \brief derive_5th_order, see https://en.wikipedia.org/wiki/Numerical_differentiation
 /// \param r, position variable
 /// \param mass, parameter
