@@ -88,7 +88,7 @@ double initial_locally_isothermal_v_az(const double R, const double M){
 	const double F = parameters::FLARINGINDEX;
 	const double S = parameters::SIGMASLOPE;
 	const double h = h0 * std::pow(R, F);
-	const double eps = parameters::thickness_smoothing;
+	// const double eps = parameters::thickness_smoothing;
 	const double vk_2 = constants::G * M / R;
 	const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
 
