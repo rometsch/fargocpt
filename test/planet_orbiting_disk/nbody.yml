@@ -48,7 +48,7 @@ RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with 
 InnerBoundary: Reflective
 OuterBoundary: Reflective
 
-Damping: Yes     # NO, YES [default = no]
+Damping: No     # NO, YES [default = no]
 DampingInnerLimit: 1.25     # Rmin*Limit
 DampingOuterLimit: 0.84     # Rmax*Limit
 DampingTimeFactor: '0.001'
@@ -80,7 +80,7 @@ Nsec: '256'   # 1536 384		# Azimuthal number of
 # zones (sectors)
 
 Rmin: 0.0000001   # Inner boundary radius
-Rmax: 0.000001   # Outer boundary radius
+Rmax: 0.0000002   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
