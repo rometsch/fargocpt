@@ -402,11 +402,11 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 	/* VKepIn is only needed on innermost CPU */
 	if (CPU_Rank == 0) {
 		// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+		const double R = Rb[0];
 		if (parameters::profile_cutoff_inner) {
 			const double vk_2 = constants::G * hydro_center_mass / R;
 			VKepIn = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
 		} else {
-		const double R = Rb[0];
 		//const double h0 = parameters::ASPECTRATIO_REF;
 		const double F = parameters::FLARINGINDEX;
 		const double S = parameters::SIGMASLOPE;
@@ -458,15 +458,15 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	/* VKepOut is only needed on outermost CPU */
 	if (CPU_Rank == CPU_Highest) {
 		// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+		const double R = Rb[nr];
 		if(parameters::profile_cutoff_outer){
 			const double vk_2 = constants::G * hydro_center_mass / R;
 			VKepOut = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[nr + IMIN]);
 		} else {
-		const double R = Rb[nr];
-		//const double h0 = parameters::ASPECTRATIO_REF;
+		const double h0 = parameters::ASPECTRATIO_REF;
 		const double F = parameters::FLARINGINDEX;
 		const double S = parameters::SIGMASLOPE;
-		//const double h = h0 * std::pow(R, F);
+		const double h = h0 * std::pow(R, F);
 		//const double eps = parameters::thickness_smoothing;
 		const double vk_2 = constants::G * hydro_center_mass / R;
 		const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);

@@ -500,9 +500,9 @@ void init_spreading_ring_test_jibin(t_data &data)
 
     const double Disk_Mass = parameters::sigma_discmass;
     const double Ring_Mass = 1.0e-4;
-    const double h = parameters::ASPECTRATIO_REF;
+    // const double h = parameters::ASPECTRATIO_REF;
     const double p = parameters::SIGMASLOPE;
-    const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
+    // const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
     const double tau0 = 0.018;
     const double Rmin = RMIN;
     const double Rmax = RMAX;
@@ -525,7 +525,7 @@ void init_spreading_ring_test_jibin(t_data &data)
 	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 
 	    const double R = Rmed[n_radial];
-	    const double OmegaK = 1.0 / (R * std::sqrt(R));
+	    // const double OmegaK = 1.0 / (R * std::sqrt(R));
 	    const double arg = 2.0 * R / tau0;
 	    const double bessel = gsl_sf_bessel_Inu(0.25, arg);
 

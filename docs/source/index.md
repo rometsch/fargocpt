@@ -12,6 +12,7 @@ output
 units
 Numerics/index
 Code architecture/index
+Tests/index
 licence
 acknowledgements
 citations
