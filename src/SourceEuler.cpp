@@ -218,7 +218,6 @@ void recalculate_viscosity(t_data &data, const double current_time)
 	if (parameters::Locally_Isothermal) {
 	if (parameters::ASPECTRATIO_MODE > 0) {
 		compute_sound_speed(data, current_time);
-		compute_temperature(data);
 		compute_scale_height(data, current_time);
 	} else {
 		compute_pressure(data);
@@ -228,7 +227,6 @@ void recalculate_viscosity(t_data &data, const double current_time)
 	if (parameters::variableGamma) {
 		pvte::compute_gamma_mu(data);
 	}
-	compute_temperature(data);
 	compute_sound_speed(data, current_time);
 	compute_scale_height(data, current_time);
 	}
@@ -365,7 +363,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 		const double DIV_V =
 			(data[t_data::V_RADIAL](nr+1, naz)*Ra[nr+1] -
 				data[t_data::V_RADIAL](nr, naz)*Ra[nr]) *
-			InvDiffRsup[nr] * InvRb[nr] +
+			InvDiffRsupRb[nr] +
 			(data[t_data::V_AZIMUTHAL](nr, naz_next) -
 			 data[t_data::V_AZIMUTHAL](nr, naz)) *
 			invdphi * InvRb[nr];
@@ -775,6 +773,7 @@ void calculate_qminus(t_data &data, const double current_time)
 */
 void SubStep3(t_data &data, const double current_time, const double dt)
 {
+	compute_temperature(data);
 	calculate_qminus(data, current_time); // first to calculate teff
 	calculate_qplus(data);
 
@@ -1504,7 +1503,7 @@ void compute_sound_speed(t_data &data, const double current_time)
 		compute_sound_speed_normal(data);
 	    break;
 	case 1:
-		compute_iso_sound_speed_nbody(data, current_time); // has discontinuities
+		compute_iso_sound_speed_nbody(data, current_time);
 	    break;
 	case 2:
 		compute_iso_sound_speed_center_of_mass(data);
@@ -1545,7 +1544,7 @@ void compute_scale_height_old(t_data &data)
 		    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) *
 		    inv_omega_kepler;
 	    }
-		if(parameters::heating_star_enabled || parameters::self_gravity){
+		if(parameters::heating_star_enabled || parameters::self_gravity || parameters::disk_feedback || parameters::body_force_from_potential){
 			const double h = data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) / Rb[n_radial];
 		data[t_data::ASPECTRATIO](n_radial, n_azimuthal) = h;
 		}
@@ -1616,7 +1615,7 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
 			constants::G * g_mpl[k] * gamma1 / (dist3 * cs2);
 		    inv_H2 += tmp_inv_H2;
 
-			if(parameters::heating_star_enabled || parameters::self_gravity){
+			if(parameters::heating_star_enabled || parameters::self_gravity || parameters::disk_feedback || parameters::body_force_from_potential){
 			const double tmp_inv_h2 =
 			constants::G * g_mpl[k] * gamma1 / (dist * cs2);
 			inv_h2 += tmp_inv_h2;
@@ -1627,7 +1626,7 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
 			constants::G * g_mpl[k] / (dist3 * cs2);
 		    inv_H2 += tmp_inv_H2;
 
-			if(parameters::heating_star_enabled || parameters::self_gravity){
+			if(parameters::heating_star_enabled || parameters::self_gravity || parameters::disk_feedback || parameters::body_force_from_potential){
 			const double tmp_inv_h2 =
 			constants::G * g_mpl[k] / (dist * cs2);
 			inv_h2 += tmp_inv_h2;
@@ -1638,7 +1637,7 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
 	    const double H = std::sqrt(1.0 / inv_H2);
 	    data[t_data::SCALE_HEIGHT](n_rad, n_az) = H;
 
-		if(parameters::heating_star_enabled || parameters::self_gravity){
+		if(parameters::heating_star_enabled || parameters::self_gravity || parameters::disk_feedback || parameters::body_force_from_potential){
 			const double h = std::sqrt(1.0 / inv_h2);
 			data[t_data::ASPECTRATIO](n_rad, n_az) = h;
 		}
@@ -1686,7 +1685,7 @@ void compute_scale_height_center_of_mass(t_data &data)
 		const double gamma1 = pvte::get_gamma1(data, n_rad, n_az);
 		const double h = cs * std::sqrt(dist / (constants::G * m_cm * gamma1));
 
-		if(parameters::heating_star_enabled || parameters::self_gravity){
+		if(parameters::heating_star_enabled || parameters::self_gravity || parameters::disk_feedback || parameters::body_force_from_potential){
 		data[t_data::ASPECTRATIO](n_rad, n_az) = h;
 		}
 		const double H = dist * h;
@@ -1694,7 +1693,7 @@ void compute_scale_height_center_of_mass(t_data &data)
 
 	    } else { // locally isothermal
 		const double h = cs * std::sqrt(dist / (constants::G * m_cm));
-		if(parameters::heating_star_enabled || parameters::self_gravity){
+		if(parameters::heating_star_enabled || parameters::self_gravity || parameters::disk_feedback || parameters::body_force_from_potential){
 		data[t_data::ASPECTRATIO](n_rad, n_az) = h;
 		}
 		const double H = dist * h;

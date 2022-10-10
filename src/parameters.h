@@ -249,6 +249,7 @@ extern double alphaHot;
 /// and correction terms due to off barycenter system are applied
 /// replaces feels_disk
 extern bool disk_feedback;
+extern bool planet_orbit_disk_test;
 
 extern bool fast_transport;
 extern bool leap_frog;

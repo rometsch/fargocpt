@@ -19,6 +19,10 @@ void update_with_artificial_viscosity(t_data &data, const double time, const dou
 	recalculate_viscosity(data, time);
 	}
 
+	if (parameters::Adiabatic && parameters::artificial_viscosity_dissipation) {
+		SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
+	}
+
 	if(ECC_GROWTH_MONITOR){
 		quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_art_visc, delta_peri_art_visc);
 	}
@@ -79,10 +83,11 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		// div(v) = 1/r d(r v_r)/dr + 1/r d(v_phi)/dphi
 		const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
 
-		const double eps_rr = (vr(nr+1, naz)*Ra[nr+1] - vr(nr, naz)*Ra[nr]) * InvDiffRsup[nr] * InvRb[nr];
+		// div(v) = 1/r d(r v_r)/dr + 1/r d(v_phi)/dphi
+		//  	 == d(v_r)/dr + 1/r [ d(v_phi)/dphi + v_r]
+		const double eps_rr = (vr(nr+1, naz) - vr(nr, naz)) * InvDiffRsup[nr];
 		const double eps_pp =  InvRb[nr] * ((vphi(nr, naz_next) - vphi(nr, naz)) * invdphi + 0.5*(vr(nr + 1, naz) + vr(nr, naz)));
 
 		const double div_V =  std::min(eps_rr + eps_pp, 0.0);
@@ -305,7 +310,7 @@ void update_with_artificial_viscosity_TW_old(t_data &data, const double dt)
 		const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
 
 		DIV_V(nr, naz) = (vr(nr + 1, naz) * Ra[nr + 1] -
-		 vr(nr, naz) * Ra[nr]) * InvDiffRsup[nr] * InvRb[nr] +
+		 vr(nr, naz) * Ra[nr]) * InvDiffRsupRb[nr] +
 		(vphi(nr, naz_next) - vphi(nr, naz)) * invdphi * InvRb[nr];
 
 		const double Dr = Ra[nr+1] - Ra[nr];

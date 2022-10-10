@@ -575,7 +575,7 @@ static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int time
 			       bool force_update)
 {
     static int last_timestep_calculated = -1;
-	const double cms_mass = data.get_planetary_system().get_hydro_frame_center_mass();
+	const double cms_mass = hydro_center_mass;
 	const Pair cms_pos = data.get_planetary_system().get_hydro_frame_center_position();
 	const Pair cms_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
 

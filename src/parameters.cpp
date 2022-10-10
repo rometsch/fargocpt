@@ -160,6 +160,8 @@ bool fast_transport;
 bool leap_frog;
 int indirect_term_mode;
 
+bool planet_orbit_disk_test;
+
 bool integrate_planets;
 bool do_init_secondary_disk;
 
@@ -948,6 +950,8 @@ void read(const std::string &filename, t_data &data)
 	"Please add the central object to the planet configuration.");
 
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
+	planet_orbit_disk_test = config::cfg.get_flag("PlanetOrbitDiskTest", "no");
+
 
 	indirect_term_mode = config::cfg.get<int>("IndirectTermMode", INDIRECT_TERM_REBOUND);
 
@@ -1006,7 +1010,7 @@ void read(const std::string &filename, t_data &data)
 	break;
     case 's': // simple, see Gennaro D'Angelo et al. 2003
 	opacity = opacity_simple;
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0);
+	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0);
 	break;
     default:
 	die("Invalid setting for Opacity: %s",
@@ -1028,7 +1032,7 @@ void read(const std::string &filename, t_data &data)
 
     CFL = config::cfg.get<double>("CFL", 0.5);
     HEATING_COOLING_CFL_LIMIT =
-	config::cfg.get<double>("HeatingCoolingCFLlimit", 5.0e-2);
+	config::cfg.get<double>("HeatingCoolingCFLlimit", 10.0);
 
     CFL_max_var = config::cfg.get<double>("CFLmaxVar", 1.1);
 

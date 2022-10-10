@@ -44,7 +44,17 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 	for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
-	    const double smooth = compute_smoothing(data, n_rad, n_az);
+		const double smooth = compute_smoothing(data, n_rad, n_az);
+
+		// Phi = GMm / r_sm
+		// r_sm = sqrt(r**2 + (eps * H)**2)
+		// H = h*r = h * r**(F+1)
+		// d r_sm / dx = x/r_sm  *  (1 + (F+1) * (eps * H / r)**2)
+		// dPhi/dx = GMm / r_sm**3 * x * (1 + (F+1) * (eps * H / r)**2)
+		const double F = parameters::FLARINGINDEX;
+		const double h = data[t_data::ASPECTRATIO](n_rad, n_az);
+		const double eps = parameters::thickness_smoothing;
+		const double smoothing_derivative_factor = 1.0 + (F + 1.0) * std::pow(h * eps, 2);
 	    const int cell_id = n_az + n_rad * ns;
 	    const double xc = cell_center_x[cell_id];
 	    const double yc = cell_center_y[cell_id];
@@ -54,8 +64,9 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 	    const double dx = xc - x;
 	    const double dy = yc - y;
 	    const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
-	    const double dist_sm_2 = dist_2 + std::pow(smooth, 2);
-	    const double dist_sm_3 = dist_sm_2 * std::sqrt(dist_sm_2);
+		const double dist_sm_2 = dist_2 + std::pow(smooth, 2);
+		const double dist_sm = std::sqrt(dist_sm_2);
+		const double dist_sm_3 = dist_sm_2 * dist_sm;
 	    const double inv_dist_sm_3 = 1.0 / dist_sm_3;
 
 	    // just to be consistent with the force the gas feels from the
@@ -69,26 +80,25 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 		/// apply it directly on the force
 		if (std::sqrt(x*x + y*y) > 10.e-10) {
 			const double r_sm = l1 * parameters::klahr_smoothing_radius;
-		    const double dist = std::sqrt(dist_2);
 
-			if (dist < r_sm) {
+			if (dist_sm < r_sm) {
 			smooth_factor_klahr =
-			    -(3.0 * std::pow(dist / r_sm, 4.0) -
-			      4.0 * std::pow(dist / r_sm, 3.0));
+				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
+				  4.0 * std::pow(dist_sm / r_sm, 3.0));
 		    }
 		}
-	    }
+		}
 
 	    if (Rmed[n_rad] < a) {
 		axi += constants::G * cellmass * dx * inv_dist_sm_3 *
-		       smooth_factor_klahr;
+			   smooth_factor_klahr * smoothing_derivative_factor;
 		ayi += constants::G * cellmass * dy * inv_dist_sm_3 *
-		       smooth_factor_klahr;
+			   smooth_factor_klahr * smoothing_derivative_factor;
 	    } else {
 		axo += constants::G * cellmass * dx * inv_dist_sm_3 *
-		       smooth_factor_klahr;
+			   smooth_factor_klahr * smoothing_derivative_factor;
 		ayo += constants::G * cellmass * dy * inv_dist_sm_3 *
-		       smooth_factor_klahr;
+			   smooth_factor_klahr * smoothing_derivative_factor;
 	    }
 	}
     }

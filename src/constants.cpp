@@ -15,7 +15,22 @@
 
 namespace constants
 {
+#ifdef DO_USE_PLUTO_UNITS
+#undef M_PI
+#define M_PI 3.14159265358979
+/// Source pluto.h
+const double cgs_G = 6.6726e-8;
 
+/// molecular mass (dalton) in cgs
+const double cgs_m_u = 1.66053886e-24;
+
+/// Boltzmann constant in cgs
+const double cgs_k_B = 1.3806505e-16;
+/// Planck constant in cgs
+const double cgs_h = 6.62606876e-27;
+/// speed of light in cgs
+const double cgs_c = 2.99792458e10;
+#else
 const auto g = llnlunits::precise::g;
 const auto s = llnlunits::precise::second;
 const auto cm = llnlunits::precise::cm;
@@ -41,6 +56,7 @@ const double cgs_h = llnlunits::constants::h.value_as(g*cm*cm/s);
 /// speed of light in cgs
 // const double cgs_c = 299792458.e2;
 const double cgs_c = llnlunits::constants::c.value_as(cm/s);
+#endif
 
 t_constant k_B;
 t_constant m_u;
@@ -140,9 +156,13 @@ void initialize_constants()
     _R.set_cgs_unit_symbol("erg K^-1 g^-1");
 
     sigma.set_symbol("sigma");
+#ifdef DO_USE_PLUTO_UNITS
+	sigma.set_cgs_value(5.67051e-5);
+#else
     sigma.set_cgs_value(
 	2. * pow(M_PI, 5) * pow(k_B.get_cgs_value(), 4) /
 	(15. * pow(h.get_cgs_value(), 3) * pow(c.get_cgs_value(), 2)));
+#endif
     sigma.set_cgs_unit_symbol("erg cm^-2 s^-1 K^-4");
 }
 
@@ -175,6 +195,9 @@ void calculate_constants_in_code_units()
 
 void print_constants()
 {
+#ifdef DO_USE_PLUTO_UNITS
+logging::print_master(LOG_INFO "Using PLUTO like units\n");
+#endif
     logging::print_master(LOG_VERBOSE "Code constants:\n");
 #ifndef NDEBUG
     logging::print_master(LOG_VERBOSE

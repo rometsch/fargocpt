@@ -18,13 +18,16 @@ def run(fargo_path, par_file):
     wd = os.getcwd()
     os.chdir(fargo_path)
 
-    subprocess.call('mpirun -n 4 ./fargo start ' + par_file, shell=True)
+    ## When using openMP make sure openMP_threads=1
+    ## because you cannot use OpenMP functions after fork
+    subprocess.call('./fargo start ' + par_file, shell=True)
+    #subprocess.call('mpirun -n 4  ./fargo start ' + par_file, shell=True)
     os.chdir(wd)
 
 def test(out1, dt):
 
 
-    file_name1 = out1 + 'gasTemperature1D' + str(dt) + ".dat"
+    file_name1 = out1 + f"snapshots/{dt}/Temperature1D.dat"
     data1 = np.fromfile(file_name1)
     print(file_name1)
     r1 = data1[::4]
@@ -63,7 +66,7 @@ def test(out1, dt):
 
     ax.plot(r1.flatten(), quant1.flatten() * T0, '.r', label='Code', lw=2.5)
 
-    file_name = out1 + 'gasdens1D' + str(dt) + ".dat"
+    file_name = out1 + f"snapshots/{dt}/Sigma1D.dat"
     data_dens = np.fromfile(file_name)
     quant2 = data_dens[1::4] * Sigma0
 
@@ -103,5 +106,5 @@ def test(out1, dt):
     plt.show()
 
 compile_fargo('../../')
-run('../../', 'test/TemperatureTest/angelo.par')
+run('../../', 'test/TemperatureTest/angelo.yml')
 test('../../angelo/', 10)

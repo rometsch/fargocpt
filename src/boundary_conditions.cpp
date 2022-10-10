@@ -27,6 +27,7 @@
 #include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
+#include "viscosity/viscous_radial_speed.h"
 
 // temporary
 #include "LowTasks.h"
@@ -362,8 +363,6 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// this is a work around as long as V_AZIMUTHAL is defined as a
-		// vector
 		const double R_N =
 		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
 		const double R_Nm1 =
@@ -383,8 +382,6 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
-		// this is a work around as long as V_AZIMUTHAL is defined as a
-		// vector
 		const double R1 = Rmed[1];
 		const double R0 = Rmed[0];
 
@@ -1224,31 +1221,18 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double corr;
 		double vr_init;
+		double vphi_init;
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
-		    vr_init = 0.0;
+			vphi_init = compute_v_kepler(r_com, com_mass);
+			vr_init = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
-
-		    const double v_k =
-			std::sqrt(constants::G * com_mass / r_com);
-		    const double h =
-			parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
-		    const double cs_iso = h * v_k;
-		    const double H = h * r_com;
-		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
-		    vr_init = -3.0 * nu / r_com *
-			      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr_init = viscous_speed::lookup_initial_vr(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com =
-			std::sqrt(constants::G * com_mass / r_com) * corr;
+		const double cell_vphi_com = vphi_init;
 		const double cell_vr_com = vr_init;
 
 		const double cell_vx_com =
@@ -1296,31 +1280,18 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double corr;
+		double vphi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-		    corr = 1.0;
-		    vr0 = 0.0;
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-		    corr = std::sqrt(
-			1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-				  std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-				  (1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
-
-		    const double v_k =
-			std::sqrt(constants::G * com_mass / r_com);
-		    const double h =
-			parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
-		    const double cs_iso = h * v_k;
-		    const double H = h * r_com;
-		    const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
-		    vr0 = -3.0 * nu / r_com *
-			  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com =
-			std::sqrt(constants::G * com_mass / r_com) * corr;
+		const double cell_vphi_com = vphi0;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
@@ -1364,11 +1335,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 	/// Initial profile temperature
-	const double cell_energy_profile =
-	1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	std::pow(parameters::ASPECTRATIO_REF, 2) *
-	std::pow(r_com, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
-	constants::G * com_mass;
+	const double cell_energy_profile = initial_energy(r_com, com_mass);
 	/*
 	const double cell_sigma = sigma(nr, naz);
 	const double temperature_floor =
@@ -2066,30 +2033,18 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 	    // pressure support correction
-	    double corr;
+		double vphi0;
 	    double vr0;
 	    if (parameters::initialize_pure_keplerian) {
-		corr = 1.0;
-		vr0 = 0.0;
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 	    } else {
-		corr =
-		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
-
-		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h =
-		    parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
-		const double cs_iso = h * v_k;
-		const double H = h * r_com;
-		const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com *
-		      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr(r_com);
 	    }
 
 	    // Velocity in center of mass frame
-	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr;
+		const double cell_vphi_com = vphi0;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -2119,30 +2074,18 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 	    // pressure support correction
-	    double corr;
+		double vphi0;
 	    double vr0;
 	    if (parameters::initialize_pure_keplerian) {
-		corr = 1.0;
-		vr0 = 0.0;
-	    } else {
-		corr =
-		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-+					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
-
-		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h =
-		    parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
-		const double cs_iso = h * v_k;
-		const double H = h * r_com;
-		const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com *
-		      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+		} else {
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr(r_com);
 	    }
 
 	    // Velocity in center of mass frame
-	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr;
+		const double cell_vphi_com = vphi0;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -2171,30 +2114,18 @@ void initial_center_of_mass_boundary(t_data &data)
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 	    // pressure support correction
-	    double corr;
+		double vphi0;
 	    double vr0;
 	    if (parameters::initialize_pure_keplerian) {
-		corr = 1.0;
-		vr0 = 0.0;
-	    } else {
-		corr =
-		    std::sqrt(1.0 - std::pow(parameters::ASPECTRATIO_REF, 2) *
-					std::pow(r_com, 2.0 * parameters::FLARINGINDEX) *
-					(1. + parameters::SIGMASLOPE - 2.0 * parameters::FLARINGINDEX));
-
-		const double v_k = std::sqrt(constants::G * com_mass / r_com);
-		const double h =
-		    parameters::ASPECTRATIO_REF * std::pow(r_com, parameters::FLARINGINDEX);
-		const double cs_iso = h * v_k;
-		const double H = h * r_com;
-		const double nu = parameters::ALPHAVISCOSITY * cs_iso * H;
-		vr0 = -3.0 * nu / r_com *
-		      (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+		} else {
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr(r_com);
 	    }
 
 	    // Velocity in center of mass frame
-	    const double cell_vphi_com =
-		std::sqrt(constants::G * com_mass / r_com) * corr;
+		const double cell_vphi_com = vphi0;
 	    const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
@@ -2226,11 +2157,7 @@ void initial_center_of_mass_boundary(t_data &data)
 	    sigma(nr, naz) = cell_sigma;
 
 	    /// Initial profile temperature
-	const double cell_energy =
-	    1.0 / (parameters::ADIABATICINDEX - 1.0) * parameters::sigma0 *
-	    std::pow(parameters::ASPECTRATIO_REF, 2) *
-	    std::pow(r_com, -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX) *
-	    constants::G * com_mass;
+	const double cell_energy = initial_energy(r_com, com_mass);
 
 	const double temperature_floor =
 	    parameters::minimum_temperature *
@@ -2256,13 +2183,15 @@ void jibin_boundary_inner(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
-    const double h = parameters::ASPECTRATIO_REF;
-    const double p = parameters::SIGMASLOPE;
-    const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
+	//const double h = parameters::ASPECTRATIO_REF;
+	//const double p = parameters::SIGMASLOPE;
+	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
     const double R = Rmed[0];
-    const double OmegaK = 1.0 / (R * std::sqrt(R));
-    const double corr = std::sqrt(1.0 + (p + q) * h * h);
-    const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	//const double OmegaK = 1.0 / (R * std::sqrt(R));
+	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
+	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
+
 
 	#pragma omp parallel for
     for (unsigned int n_azimuthal = 0;
@@ -2296,13 +2225,15 @@ void jibin_boundary_outer(t_data &data)
 {
     if (CPU_Rank == CPU_Highest) {
 
-	const double h = parameters::ASPECTRATIO_REF;
-	const double p = parameters::SIGMASLOPE;
-	const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
+	//const double h = parameters::ASPECTRATIO_REF;
+	//const double p = parameters::SIGMASLOPE;
+	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
 	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-	const double OmegaK = 1.0 / (R * std::sqrt(R));
-	const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	//const double OmegaK = 1.0 / (R * std::sqrt(R));
+	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
+	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
+
 
 	#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;

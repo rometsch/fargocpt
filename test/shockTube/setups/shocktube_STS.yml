@@ -20,7 +20,7 @@ EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '1.0'   # Thickness over Radius in the disk
 ExplicitViscosity: 'No'
 StabilizeViscosity: '0'
-Viscosity: '0.e-1'   # Uniform kinematic viscosity
+Viscosity: '0.0'   # Uniform kinematic viscosity
 AlphaViscosity: '0.0'   # 
 ArtificialViscosity: SN   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]

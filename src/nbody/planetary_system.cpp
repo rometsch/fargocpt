@@ -354,7 +354,7 @@ void t_planetary_system::restart()
 	m_rebound = reb_create_simulation_from_binary(
 	    (char *)rebound_filename.c_str());
     
-    copy_data_from_rebound();
+	copy_data_from_rebound_update_orbital_parameters();
     calculate_orbital_elements();
 
     logging::print_master(LOG_INFO " done\n");
@@ -604,9 +604,6 @@ Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor() co
 	return delta_vel;
 }
 
-/**
-   Analogous to get_hydro_frame_center but returns its velocity.
-*/
 
 Pair t_planetary_system::get_hydro_frame_center_velocity() const
 {
@@ -614,13 +611,10 @@ Pair t_planetary_system::get_hydro_frame_center_velocity() const
 	parameters::n_bodies_for_hydroframe_center);
 }
 
-/**
-   Analogous to get_hydro_frame_center but returns its mass.
-*/
-
-double t_planetary_system::get_hydro_frame_center_mass() const
+double t_planetary_system::compute_hydro_frame_center_mass() const
 {
-    return get_mass(parameters::n_bodies_for_hydroframe_center);
+	const double Nbody_mass = get_mass(parameters::n_bodies_for_hydroframe_center);
+	return Nbody_mass;
 }
 
 /**
@@ -629,7 +623,7 @@ double t_planetary_system::get_hydro_frame_center_mass() const
 
 void t_planetary_system::update_global_hydro_frame_center_mass()
 {
-    hydro_center_mass = get_hydro_frame_center_mass();
+	hydro_center_mass = compute_hydro_frame_center_mass();
 }
 
 
@@ -748,7 +742,7 @@ void t_planetary_system::copy_data_to_rebound()
    Copy positions, velocities and masses back
    from rebound to planetary system.
 */
-void t_planetary_system::copy_data_from_rebound()
+void t_planetary_system::copy_data_from_rebound_update_orbital_parameters()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	auto &planet = get_planet(i);
@@ -757,6 +751,17 @@ void t_planetary_system::copy_data_from_rebound()
 	planet.set_vx(m_rebound->particles[i].vx);
 	planet.set_vy(m_rebound->particles[i].vy);
     }
+
+	if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
+	move_to_hydro_frame_center();
+	}
+
+	/// Needed for Aspectratio mode = 1
+	/// and to correctly compute circumplanetary disk mass
+	compute_dist_to_primary();
+	/// Needed if they can change and massoverflow or planet accretion
+	/// is on
+	calculate_orbital_elements();
 }
 
 void t_planetary_system::copy_rebound_to_predictor()

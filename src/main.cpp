@@ -315,11 +315,15 @@ int main(int argc, char *argv[])
     init_physics(data);
 	sim::CalculateTimeStep(data);
 
+	if(parameters::planet_orbit_disk_test){
+		data.get_planetary_system().get_planet(0).set_mass(1.0e-66);
+	} else {
     // update planet velocity due to disk potential
     if (parameters::disk_feedback) {
 	ComputeDiskOnNbodyAccel(data);
 	data.get_planetary_system().correct_velocity_for_disk_accel();
     }
+	}
 
     if (parameters::integrate_particles) {
 	particles::init(data);
