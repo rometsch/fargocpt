@@ -142,13 +142,14 @@ static void step_Euler(t_data &data, const double dt) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
-	refframe::ComputeIndirectTermDisk(data);
 	if (parameters::disk_feedback) {
 	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
 
-	/// IndirectTerm is fully completed here (Disk + Nbody)
+	refframe::ComputeIndirectTermDisk(data);
 	refframe::ComputeIndirectTermNbody(data, time, dt);
+	refframe::ComputeIndirectTermFully();
+
 	data.get_planetary_system().apply_indirect_term_on_Nbody(
 		refframe::IndirectTerm, dt);
 
