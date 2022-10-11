@@ -923,6 +923,17 @@ void t_planetary_system::init_roche_radii()
 	auto &planet = get_planet(i);
 	const double m = planet.get_mass();
 
+	if(m == 0){
+		planet.set_dimensionless_roche_radius(0.0);
+		primary.set_dimensionless_roche_radius(1.0);
+		return;
+	}
+	if(M == 0){
+		primary.set_dimensionless_roche_radius(0.0);
+		planet.set_dimensionless_roche_radius(1.0);
+		return;
+	}
+
 	double x = 0.0;
 	if (M > m) {
 	    x = init_l1(M, m);
