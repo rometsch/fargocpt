@@ -3,7 +3,7 @@
 
 #include "data.h"
 
-void ComputeDiskOnNbodyAccel(t_data &data);
+void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average=false);
 void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system);
 void ComputeNbodyOnNbodyAccelRK5(t_data &data, const double dt);
 void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system);

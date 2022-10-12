@@ -323,7 +323,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 /**
    Update disk forces onto planets if *diskfeedback* is turned on
 */
-void ComputeDiskOnNbodyAccel(t_data &data)
+void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
 {
     Pair accel;
     for (unsigned int k = 0;
@@ -344,7 +344,14 @@ void ComputeDiskOnNbodyAccel(t_data &data)
 	const double torque =
 	    (planet.get_x() * accel.y - planet.get_y() * accel.x) *
 	    planet.get_mass();
+
+	if(add_torqe_and_average){
+	const double old_torque = planet.get_torque();
+	const double new_torque = 0.5*(torque + old_torque);
+	planet.set_torque(new_torque);
+	} else {
 	planet.set_torque(torque);
+	}
     }
 }
 
