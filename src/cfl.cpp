@@ -206,22 +206,21 @@ double condition_cfl(t_data &data, const double dt_global_input)
 	v_mean[n_radial] /= (double)(v_azimuthal.get_size_azimuthal());
 	}
 
-	double dt_core = parameters::CFL * dphi /
-			fabs(v_mean[0]*InvRmed[0] - v_mean[1]*InvRmed[1]);
+	const double denom = fabs(v_mean[0]*InvRmed[0] - v_mean[1]*InvRmed[1]) + 1.0e-100;
+	double dt_core = parameters::CFL * dphi / denom;
 
 	#pragma omp parallel for reduction(min : dt_core, dt_parabolic_local)
 	for (unsigned int nr = radial_first_active;
 	 nr < radial_active_size; ++nr) {
-
 		// FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
-		const double shear_dt =
-				parameters::CFL * dphi /
-				fabs(v_mean[nr] * InvRmed[nr] -
-				 v_mean[nr + 1] * InvRmed[nr + 1]);
+		const double denom = fabs(v_mean[nr] * InvRmed[nr] -
+							 v_mean[nr + 1] * InvRmed[nr + 1]) + 1.0e-100;
+		double shear_dt = parameters::CFL * dphi / denom;
 
-			if (shear_dt < dt_core){
-				dt_core = shear_dt;
-			}
+		if (shear_dt < dt_core){
+			dt_core = shear_dt;
+		}
+
 
 	// cell sizes in radial & azimuthal direction
 	const double dxRadial = Rsup[nr] - Rinf[nr];

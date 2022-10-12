@@ -94,7 +94,7 @@ double CalculateTimeStep(t_data &data)
 	if (parameters::calculate_disk) {
 		const double cfl_dt = cfl::condition_cfl(data);
 		rv = std::min(parameters::CFL_max_var * last_dt, cfl_dt);
-		last_dt = cfl_dt;
+		last_dt = rv;
 
 		if(PRINT_SIG_INFO){
 			cfl::condition_cfl(data, cfl_dt);
