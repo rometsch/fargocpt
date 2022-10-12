@@ -332,6 +332,10 @@ void ComputeDiskOnNbodyAccel(t_data &data)
 	const double l1 = planet.get_dimensionless_roche_radius() *
 		 planet.get_distance_to_primary();
 
+	if(parameters::planet_orbit_disk_test && k == 0){
+		planet.set_disk_on_planet_acceleration(Pair{0.0, 0.0});
+		continue;
+	}
 
 	accel =
 	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);

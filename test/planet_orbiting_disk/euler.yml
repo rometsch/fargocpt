@@ -41,7 +41,7 @@ ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Boundary layer parameters
-KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
+KlahrSmoothingRadius: '0.4'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
@@ -73,8 +73,8 @@ PlanetOrbitDiskTest: yes
 
 # Mesh parameters
 
-Nrad: '128'   # 512 128		# Radial number of zones
-Nsec: '256'   # 1536 384		# Azimuthal number of
+Nrad: '28'   # 512 128		# Radial number of zones
+Nsec: '56'   # 1536 384		# Azimuthal number of
   #cps: 1
 
 # zones (sectors)
@@ -127,7 +127,7 @@ nbody:
 
 - name: planet
   semi-major axis: 1 au
-  mass: 1e-93
+  mass: 0.0
   accretion efficiency: '0.0'
   eccentricity: '0.5'
   radius: 1.0 solRadius
