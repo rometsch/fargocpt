@@ -25,6 +25,10 @@ class t_planetary_system
 	m_planets.push_back(planet);
 	planet->set_planet_number(get_number_of_planets());
     }
+	inline void delete_planet(const unsigned int planet_id)
+	{
+	m_planets.erase(m_planets.begin() + planet_id);
+	}
     inline unsigned int get_number_of_planets(void) const
     {
 	return m_planets.size();

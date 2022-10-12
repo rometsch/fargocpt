@@ -250,6 +250,7 @@ extern double alphaHot;
 /// replaces feels_disk
 extern bool disk_feedback;
 extern bool planet_orbit_disk_test;
+extern bool star_gasblobb_binary_test;
 
 extern bool fast_transport;
 extern bool leap_frog;

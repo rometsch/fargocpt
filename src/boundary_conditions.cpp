@@ -1225,7 +1225,11 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		double vphi_init;
 		if (parameters::initialize_pure_keplerian) {
 			vphi_init = compute_v_kepler(r_com, com_mass);
+			if(parameters::initialize_vradial_zero){
+				vr_init = 0.0;
+			} else {
 			vr_init = initial_viscous_radial_speed(r_com, com_mass);
+			}
 		} else {
 			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr_init = viscous_speed::lookup_initial_vr(r_com);
@@ -1284,7 +1288,11 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
 			vphi0 = compute_v_kepler(r_com, com_mass);
+			if(parameters::initialize_vradial_zero){
+				vr0 = 0.0;
+			} else {
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+			}
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr0 = viscous_speed::lookup_initial_vr(r_com);
