@@ -29,6 +29,7 @@ void ComputeCircumPlanetaryMasses(t_data &data)
 	double mdcplocal = 0.0;
 	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
 
+	#pragma omp parallel for reduction(+ : mdcplocal)
 	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		unsigned int cell = get_cell_id(nr, naz);
