@@ -301,6 +301,9 @@ t_data::t_data()
 	m_polargrids[PERIASTRON_NEW].set_scalar(true);
 	m_polargrids[PERIASTRON_NEW].set_name("Periastron New");
 
+    m_radialgrids[SIGMA_1D].set_scalar(true);
+    m_radialgrids[SIGMA_1D].set_name("Sigma");
+    m_radialgrids[SIGMA_1D].set_unit(units::surface_density);
 
     pdivv_total = 0.0;
 }

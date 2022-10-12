@@ -35,6 +35,8 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 SecondaryDisk: 'No'
 ThicknessSmoothing: '0.4'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
+NaiveSmoothing : yes
+CorrectDiskSelfgravity: yes
 
 # Boundary layer parameters
 KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
@@ -118,7 +120,7 @@ nbody:
   temperature: 0 K
   irradiate: n
   phi: '0.0'
-  ramp-up time: '200.0'
+  ramp-up time: 0.0
 - name: planet
   semi-major axis: 1
   mass: 2e-05

@@ -188,6 +188,8 @@ t_opacity opacity;
 
 double thickness_smoothing;
 double thickness_smoothing_sg;
+bool naive_smoothing;
+bool correct_disk_selfgravity;
 
 bool initialize_pure_keplerian;
 bool initialize_vradial_zero;
@@ -902,6 +904,8 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("ThicknessSmoothing", 0.6);
     thickness_smoothing_sg = config::cfg.get<double>(
 	"ThicknessSmoothingSG", thickness_smoothing);
+	naive_smoothing = config::cfg.get_flag("NaiveSmoothing", "no");
+	correct_disk_selfgravity = config::cfg.get_flag("CorrectDiskSelfgravity", "no");
     integrate_planets = config::cfg.get_flag("IntegratePlanets", "yes");
     do_init_secondary_disk =
 	config::cfg.get_flag("SecondaryDisk", "no");

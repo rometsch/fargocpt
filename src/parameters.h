@@ -222,6 +222,9 @@ extern bool artificial_viscosity_dissipation;
 
 extern double thickness_smoothing;
 extern double thickness_smoothing_sg;
+extern bool naive_smoothing;
+extern bool correct_disk_selfgravity;
+
 
 /// calculate disk (hydro)
 extern bool calculate_disk;

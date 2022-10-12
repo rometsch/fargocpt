@@ -320,6 +320,24 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
     }
 }
 
+
+void ComputeAverageDensity(t_data &data) {
+	const auto & sigma = data[t_data::SIGMA];
+	const unsigned int ns = sigma.Nsec;
+    auto & sigma1d = data[t_data::SIGMA_1D];
+
+    for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size;
+	 ++n_rad) {
+		double sum = 0;
+		#pragma omp parallel for collapse(1)
+		for (unsigned int n_az = 0; n_az < ns; ++n_az) {
+			sum += sigma(n_rad, n_az);
+		}
+		sigma1d(n_rad) = sum/ns;
+	}
+}
+
+
 /**
    Update disk forces onto planets if *diskfeedback* is turned on
 */
@@ -332,6 +350,9 @@ void ComputeDiskOnNbodyAccel(t_data &data)
 	const double l1 = planet.get_dimensionless_roche_radius() *
 		 planet.get_distance_to_primary();
 
+	if (parameters::correct_disk_selfgravity) {
+		ComputeAverageDensity(data);
+	}
 
 	accel =
 	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
