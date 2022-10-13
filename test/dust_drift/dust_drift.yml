@@ -1,0 +1,123 @@
+# Disk parameters
+
+Sigma0: 88.87231453905 g/cm2   # surface density at r=1 in g/cm^2
+SigmaSlope: '1.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-9]
+AspectRatio: '0.05'   # Thickness over Radius in the disk
+FlaringIndex: '0.0'   # Slope of Temperature/radius profile
+AlphaViscosity: '0.01'
+
+# Equation of State
+
+EquationOfState: Isothermal   # Isothermal Ideal Polytropic [default = Isothermal]
+AdiabaticIndex: '1.4'   # [default = 1.4]
+
+# Radiative Processes
+
+MinimumTemperature: 10 K   # minimum Temperature in K
+CoolingRadiativeLocal: 'Yes'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+HeatingViscous: 'Yes'   # enable viscous heating
+HeatingViscousFactor: '1.0'
+RadiativeDiffusion: 'No'
+
+# Units
+
+l0: '5.2'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
+m0: '1.0'   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
+mu: '2.35'   # mean molecular weight [default=1.0]
+
+# Planet parameters
+
+HydroFrameCenter: primary
+ForcedCircular: 'No'
+ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness
+
+# Self-gravity
+
+SelfGravity: 'No'   # choose: Yes, Z or No
+ThicknessSmoothingSG: '1.0'   # Softening parameters in disk thickness
+
+# Numerical method parameters
+
+Transport: Fargo
+InnerBoundary: Viscous
+ViscousOutflowSpeed: '5.0'
+OuterBoundary: OPEN
+Damping: 'No'
+Disk: 'No'
+OmegaFrame: '0.0'
+Frame: F
+DiskFeedback: 'No'
+
+# Mesh parameters
+
+Nrad: '400'   # 512 128		# Radial number of zones
+Nsec: '1403'   # 1536 384		# Azimuthal number of zones
+
+# zones (sectors)
+
+Rmin: '0.5'   # Inner boundary radius
+Rmax: '3'   # Outer boundary radius
+RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
+
+# Output control parameters
+
+Ntot: '100'   # Total number of time steps
+Ninterm: '1'   # Time steps between outputs
+DT: '0.628318531'   # 1/10th of a jupiter orbit
+FirstDt: 1e-1
+OutputDir: output/
+LogAfterRealSeconds: '600.0'
+LogAfterSteps: '100'
+WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteTemperature: 'Yes'   # Write temperature. [default = no]
+WriteVelocity: 'Yes'   # Write velocites. This is needed for restart of simulations. [default = yes]
+WriteToomre: 'No'   # Write Toomre parameter Q. [default = no]
+WriteQMinus: 'No'   # Write QMinus. [default = no]
+WriteQPlus: 'No'   # Write QPlus. [default = no]
+WriteViscosity: 'No'   # Write Viscosity. [default = no]
+WriteTauCool: 'No'   # Write TauCool. [default = no]
+WriteKappa: 'No'   # Write Kappa. [default = no]
+WriteAlphaGrav: 'No'   # Write AlphaGrav. [default = no]
+WriteEccentricity: 'Yes'   # Write eccentricity. [default = no]
+WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
+WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
+WritepdV: 'No'   # Write pdV. [default = no]
+WriteDiskQuantities: 'Yes'
+WriteTorques: 'No'   # Calculate and write torques acting in planet/star
+WriteMassFlow: 'Yes'   # Write a 1d radial file with mass flow at each interface [default = no]
+
+# particles
+
+IntegrateParticles: 'Yes'   # enable particle integrator [default = no]
+CartesianParticles: 'YES'   # enable particle integrator [default = no]
+ParticleIntegrator: midpoint
+ParticleRadius: 1e-4 cm   # particle radius in cm [default = 100]
+ParticleRadiusIncreaseFactor: '1.2589254117941673'
+ParticleSpeciesNumber: '70'
+NumberOfParticles: '70'   # number of particles [default = 0]
+ParticleEccentricity: '0.00'   # particle maximum Eccentricity
+ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
+ParticleSlope: '0'   # [default = 0]
+ParticleMinimumRadius: '1.0'   # [default = RMIN]
+ParticleMaximumRadius: '1.0'   # [default = RMAX]
+ParticleMinimumEscapeRadius: '0.5'   # [default = ParticleMinimumRadius]
+ParticleMaximumEscapeRadius: '3.0'   # [default = ParticleMaximumRadius]
+ParticleGasDragEnabled: 'yes'   # [default = YES]
+ParticleDiskGravityEnabled: 'no'   # [default = no]
+
+# Nbody
+
+nbody:
+- name: star
+  semi-major axis: '0.0'
+  mass: '1.0'
+  accretion efficiency: '0.0'
+  eccentricity: '0.0'
+  radius: 0.009304813 solRadius
+  temperature: 0 K
+  irradiate: 'NO'
+  phi: '0'
+  ramp-up time: '0'
