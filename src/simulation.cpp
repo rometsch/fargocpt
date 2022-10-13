@@ -724,7 +724,7 @@ void init(t_data &data) {
 
 static void step(t_data &data, const double step_dt) {
 	if (parameters::leap_frog) {
-		step_LeapFrog(data, step_dt);
+		step_LeapFrog_old(data, step_dt);
 	} else {
 		step_Euler(data, step_dt);
 	}
