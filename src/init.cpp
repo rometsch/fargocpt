@@ -243,6 +243,18 @@ void init_radialarrays()
 
 void init_physics(t_data &data)
 {
+
+
+	refframe::OmegaFrame = parameters::OMEGAFRAME;
+
+	if (parameters::corotating) {
+	refframe::OmegaFrame = data.get_planetary_system()
+			 .get_planet(parameters::corotation_reference_body)
+			 .get_omega();
+	}
+
+	refframe::FrameAngle = 0;
+
     if ((parameters::sigma_initialize_condition ==
 	 parameters::initialize_condition_shakura_sunyaev) &&
 	(parameters::energy_initialize_condition ==
@@ -306,16 +318,6 @@ void init_physics(t_data &data)
 	    die("Do not use Nbody aspectratio mode with only 1 body!\n");
 	}
     }
-
-    refframe::OmegaFrame = parameters::OMEGAFRAME;
-
-    if (parameters::corotating) {
-	refframe::OmegaFrame = data.get_planetary_system()
-			 .get_planet(parameters::corotation_reference_body)
-			 .get_omega();
-    }
-
-    refframe::FrameAngle = 0;
 
 	cfl::init(data);
 
@@ -1678,7 +1680,7 @@ void init_gas_velocities(t_data &data)
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = compute_v_kepler(r, hydro_center_mass);
+		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = compute_v_kepler(r, hydro_center_mass) - refframe::OmegaFrame * r;
 	    }
 	}
 	return;
@@ -1844,7 +1846,10 @@ void init_blobb_for_star_disk_binary_test(t_data &data)
 	}
 
 	const auto &planet = data.get_planetary_system().get_planet(1);
-	const double compute_radius = 0.1;
+
+	refframe::OmegaFrame = planet.get_omega();
+
+	const double compute_radius = 0.03;
 	const double cutoff_width = compute_radius / 25.0;
 	const double disk_size = compute_radius - 15.0 * cutoff_width;
 
