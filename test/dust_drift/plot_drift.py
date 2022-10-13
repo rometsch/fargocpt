@@ -6,6 +6,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
+import astropy.constants as const
 
 
 def main():
@@ -40,6 +41,10 @@ def plot_drift(outdir):
         sizes.append(size)
         Sts.append(St)
 
+    rdot_abs = np.array(rdot_abs)
+    sizes = np.array(sizes)
+    Sts = np.array(Sts)
+
     # X = sizes
     X = Sts
     Y = rdot_abs
@@ -57,6 +62,10 @@ def plot_drift(outdir):
     secax.set_ylabel(r"$\dot{r}$ [au/yr]")
 
     ax.grid(alpha=0.3)
+    
+    vdrift = theoretical_profile(Sts)
+    print(vdrift.to("cm/s"))
+    ax.plot(Sts, -vdrift.to_value("cm/s"))
 
     ax = fig.add_subplot(gs[2:])
     ax.plot(sizes, Sts)
@@ -68,6 +77,20 @@ def plot_drift(outdir):
 
     return fig
 
+
+def theoretical_profile(stokes):
+    """ Drift speed according to Picogna & Kley 2015 Eq. (C.1) (10.1051/0004-6361/201526921)
+    and Nakagawa+1986 Eq. (1.9) (10.1016/0019-1035(86)90121-1). 
+    Note that in Eq. (1.9) for eta, there is a / missing and r OmegaK^2 needs to be in the denominator.  """
+    Mstar = 1*u.solMass
+    h = 0.05
+    r = 1*u.au
+    vK = np.sqrt(const.G*Mstar/r).decompose()
+    eta = 0.5*h**2
+    vdrift = -eta*vK/(stokes + stokes**-1)
+    return vdrift
+    
+    
 
 def cmps_to_aupyr(x):
     factor = (1*u.au/u.yr).to("cm/s").value
