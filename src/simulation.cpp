@@ -500,7 +500,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 	//////////////// Leapfrog compute v_i+1/2 /////////////////////
 
-	refframe::ComputeIndirectTermNbody(data, start_time, step_dt);
+	refframe::ComputeIndirectTermNbody(data, start_time, frog_dt);
 	if (parameters::integrate_planets) { //// Nbody drift / 2
 	refframe::init_corotation(data);
 	data.get_planetary_system().integrate(start_time, frog_dt);
@@ -582,10 +582,7 @@ static void step_Euler(t_data &data, const double dt) {
 		ComputeDiskOnNbodyAccel(data, true);
 	}
 	refframe::ComputeIndirectTermDisk(data);
-
-	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
-	refframe::ComputeIndirectTermNbody(data, midstep_time, step_dt);
-	}
+	refframe::ComputeIndirectTermNbody(data, midstep_time, frog_dt);
 	refframe::ComputeIndirectTermFully();
 
 	/// update gas while Nbody positions are still at x_i+1/2
