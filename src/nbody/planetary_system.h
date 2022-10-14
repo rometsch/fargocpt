@@ -28,6 +28,8 @@ class t_planetary_system
 	inline void delete_planet(const unsigned int planet_id)
 	{
 	m_planets.erase(m_planets.begin() + planet_id);
+	reb_remove(m_rebound, planet_id, true);
+	reb_remove(m_rebound_predictor, planet_id, true);
 	}
     inline unsigned int get_number_of_planets(void) const
     {

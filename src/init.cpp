@@ -330,7 +330,8 @@ void init_physics(t_data &data)
 	viscous_speed::init_vr_table_outer_boundary(data);
 	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
 	if(parameters::star_gasblobb_binary_test){
-		data.get_planetary_system().delete_planet(1);
+		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
+		data.get_planetary_system().delete_planet(Np-1);
 	}
 }
 
@@ -1538,16 +1539,44 @@ void init_gas_velocities(t_data &data)
 
     if (parameters::sigma_initialize_condition ==
 	parameters::initialize_condition_profile_Nbody_centered) {
-	const double mass = data.get_planetary_system().get_mass();
+
+	double mass_of_center = data.get_planetary_system().get_mass();
+	Pair position_of_center = data.get_planetary_system().get_center_of_mass();
+	Pair velocity_of_center = data.get_planetary_system().get_center_of_mass_velocity();
+
+	if(parameters::star_gasblobb_binary_test){
+		// Equations assume m1 + m2 = 1
+		// a=1, e=0 to make everything simpler
+		assert(std::fabs(mass_of_center - 1.0) < 1.0e-12);
+		assert(std::fabs(data.get_planetary_system().get_planet(1).get_semi_major_axis() - 1.0) < 1.0e-12);
+		assert(std::fabs(data.get_planetary_system().get_planet(1).get_eccentricity()) < 1.0e-12);
+
+		// M = m1 + m2
+		// µ = m1 m2 / (m1 + m2)
+		// v1 = L / (a * m1)
+		// L = µ sqrt(G M a)
+		// v1 = (m1 m2 / M) /m1 sqrt(GM/a)
+		// G = 1
+		// M = 1
+		// v1 = m2 sqrt(1/a)
+		// thus we need to square the mass such that v_kepler produces the correct velocities
+
+		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
+		const double M = data.get_planetary_system().get_mass(Np-1);
+
+		mass_of_center = std::pow(M, 2);
+		position_of_center = Pair{0.0, 0.0};
+	}
+
+	const double mass = mass_of_center;
+	const Pair cms = position_of_center;
+	const Pair v_cms = velocity_of_center;
+
 	for (unsigned int n_radial = 0;
 	     n_radial < data[t_data::V_RADIAL].get_size_radial(); ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::V_RADIAL].get_size_azimuthal();
 		 ++n_azimuthal) {
-
-		Pair cms = data.get_planetary_system().get_center_of_mass();
-		const double cms_x = cms.x;
-		const double cms_y = cms.y;
 
 		const double phi = (double)n_azimuthal * dphi;
 		double r;
@@ -1561,8 +1590,8 @@ void init_gas_velocities(t_data &data)
 		const double cell_y = r * std::sin(phi);
 
 		// Position in center of mass frame
-		const double x_com = cell_x - cms_x;
-		const double y_com = cell_y - cms_y;
+		const double x_com = cell_x - cms.x;
+		const double y_com = cell_y - cms.y;
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
@@ -1579,9 +1608,6 @@ void init_gas_velocities(t_data &data)
 			vr0 = 0.0;
 		}
 
-		// Velocities in center of mass frame
-		Pair v_cms =
-			data.get_planetary_system().get_center_of_mass_velocity();
 		const double vr_com = vr0;
 		const double vaz_com = vphi0;
 
@@ -1606,10 +1632,6 @@ void init_gas_velocities(t_data &data)
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
 
-		Pair cms = data.get_planetary_system().get_center_of_mass();
-		const double cms_x = cms.x;
-		const double cms_y = cms.y;
-
 		const double phi = ((double)n_azimuthal - 0.5) * dphi;
 		double r;
 		if (n_radial == data[t_data::V_AZIMUTHAL].Nrad) {
@@ -1622,8 +1644,8 @@ void init_gas_velocities(t_data &data)
 		const double cell_y = r * std::sin(phi);
 
 		// Position in center of mass frame
-		const double x_com = cell_x - cms_x;
-		const double y_com = cell_y - cms_y;
+		const double x_com = cell_x - cms.x;
+		const double y_com = cell_y - cms.y;
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
@@ -1642,8 +1664,6 @@ void init_gas_velocities(t_data &data)
 		}
 
 		// Velocities in center of mass frame
-		Pair v_cms =
-			data.get_planetary_system().get_center_of_mass_velocity();
 		const double vr_com = vr0;
 		const double vaz_com = vphi0;
 
@@ -1845,14 +1865,40 @@ void init_blobb_for_star_disk_binary_test(t_data &data)
 		data.get_planetary_system().get_number_of_planets());
 	}
 
-	const auto &planet = data.get_planetary_system().get_planet(1);
+	const unsigned int Np = data.get_planetary_system().get_number_of_planets();
+	const auto &planet = data.get_planetary_system().get_planet(Np-1);
 
 	refframe::OmegaFrame = planet.get_omega();
 
-	const double compute_radius = 0.03;
-	const double cutoff_width = compute_radius / 25.0;
-	const double disk_size = compute_radius - 15.0 * cutoff_width;
+	//const double compute_radius = 0.005;
+	//const double cutoff_width = compute_radius / 25.0;
+	//const double disk_size = compute_radius - 15.0 * cutoff_width;
 
+	unsigned int min_nr = 0;
+	unsigned int min_np = 0;
+	double min_dist = RMAX;
+
+	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
+	 ++n_radial) {
+	for (unsigned int n_azimuthal = 0;
+		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
+		const double phi = (double)n_azimuthal * dphi;
+		const double rmed = Rmed[n_radial];
+		const double x = rmed * std::cos(phi) - planet.get_x();
+		const double y = rmed * std::sin(phi) - planet.get_y();
+		const double r = std::sqrt(x * x + y * y);
+
+		if(r < min_dist){
+			min_nr = n_radial;
+			min_np = n_azimuthal;
+			min_dist = r;
+		}
+	}
+	}
+
+	data[t_data::SIGMA](min_nr, min_np) = planet.get_mass() / Surf(min_nr);
+
+	/*
 	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -1872,7 +1918,7 @@ void init_blobb_for_star_disk_binary_test(t_data &data)
 		data[t_data::SIGMA](n_radial, n_azimuthal) = density_new;
 		}
 	}
-	}
+	}*/
 
 	// renormalize sigma
 	double total_mass = quantities::gas_total_mass(data, 2.0 * RMAX);

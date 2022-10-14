@@ -67,7 +67,7 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 
 Disk: yes
 Transport: FARGO
-Integrator: Leapfrog  # Integrator type: Euler or LeapFrog
+Integrator: Euler  # Integrator type: Euler or LeapFrog
 
 OmegaFrame: 0.0
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
@@ -102,7 +102,7 @@ Ninterm: 10     # Time steps between outputs
 DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '1.0e-3'
 CFLmaxVar: '1.1'
-OutputDir: out_leapfrog/
+OutputDir: out_euler/
 
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'

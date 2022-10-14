@@ -65,14 +65,14 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 
 # Numerical method parameters
 
-Disk: yes
+Disk: no
 Transport: FARGO
-Integrator: Leapfrog  # Integrator type: Euler or LeapFrog
+Integrator: Euler  # Integrator type: Euler or LeapFrog
 
 OmegaFrame: 0.0
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
-DiskFeedback: Yes   # Calculate incfluence of the disk on the star
-StarDiskBinaryTest: Yes
+DiskFeedback: No   # Calculate incfluence of the disk on the star
+PlanetOrbitDiskTest: no
 
 InitializePureKeplerian: 'Yes'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'Yes'   # Initialize VRadial=0  [default = no]
@@ -102,7 +102,7 @@ Ninterm: 10     # Time steps between outputs
 DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '1.0e-3'
 CFLmaxVar: '1.1'
-OutputDir: out_leapfrog/
+OutputDir: out_reb/
 
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
