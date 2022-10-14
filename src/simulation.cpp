@@ -723,12 +723,19 @@ void init(t_data &data) {
 }
 
 static void step(t_data &data, const double step_dt) {
-	if (parameters::leap_frog) {
-		step_LeapFrog_old(data, step_dt);
-	} else {
-		step_Euler(data, step_dt);
+	switch (parameters::hydro_integrator) {
+		case EULER_INTEGRATOR:
+			step_Euler(data, step_dt);
+			break;
+		case LEAPFROG_KICK_DRIFT_KICK:
+			step_LeapFrog(data, step_dt);
+			break;
+		case LEAPFROG_DRIFT_KICK_DRIFT:
+			step_LeapFrog_old(data, step_dt);
+			break;
+		default:
+			step_Euler(data, step_dt);
 	}
-
 }
 
 static void handle_signals(t_data &data) {

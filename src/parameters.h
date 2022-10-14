@@ -253,7 +253,7 @@ extern bool planet_orbit_disk_test;
 extern bool star_gasblobb_binary_test;
 
 extern bool fast_transport;
-extern bool leap_frog;
+extern int hydro_integrator;
 
 extern int indirect_term_mode;
 

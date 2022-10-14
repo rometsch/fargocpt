@@ -157,7 +157,7 @@ double profile_cutoff_width_inner;
 
 bool disk_feedback;
 bool fast_transport;
-bool leap_frog;
+int hydro_integrator;
 int indirect_term_mode;
 
 bool planet_orbit_disk_test;
