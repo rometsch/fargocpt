@@ -137,11 +137,14 @@ void init_vr_table_outer_boundary(t_data &data){
 		const double q = planet.get_mass() / (planet.get_mass() + plsys.get_planet(0).get_mass());
 		const double center_of_mass_max_dist = a * (1.0 + e) * q;
 
-		min_r = Rinf[NRadial-1] * parameters::damping_outer_limit - center_of_mass_max_dist;
-		max_r = Rsup[NRadial-1] + center_of_mass_max_dist;
+		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
+
+		min_r = Rinf[NRadial-1] * parameters::damping_outer_limit - center_of_mass_max_dist  - safety_dr;
+		max_r = Rsup[NRadial-1] + center_of_mass_max_dist + safety_dr;
 	} else {
-		min_r = Rinf[NRadial-1] * parameters::damping_outer_limit;
-		max_r = Rsup[NRadial-1];
+		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
+		min_r = Rinf[NRadial-1] * parameters::damping_outer_limit - safety_dr;
+		max_r = Rsup[NRadial-1] + safety_dr;
 	}
 
 	min_r = std::max(RMIN, min_r);
