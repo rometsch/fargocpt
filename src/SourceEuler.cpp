@@ -569,7 +569,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		const double xc = CellCenterX->Field[ncell];
 		const double yc = CellCenterY->Field[ncell];
 		const double distance = std::sqrt(std::pow(x - xc, 2) + std::pow(y - yc, 2));
-		const double HoverR = data[t_data::SCALE_HEIGHT](nrad, naz) * InvRmed[nrad];
+		const double HoverR = data[t_data::ASPECTRATIO](nrad, naz);
 		const double sigma = constants::sigma.get_code_value();
 		const double tau_eff = data[t_data::TAU_EFF](nrad, naz);
 		const double eps = 0.5; // TODO: add a parameter
@@ -588,7 +588,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		// sigma_sb T_star^4
 		// with modifications from D'Angelo & Marzari 2012
 		// for near and far field
-		double qplus = 2 * (1 - eps);
+		double qplus = 2.0 * (1.0 - eps);
 		qplus *= sigma * std::pow(temperature, 4) * std::pow(roverd, 2); // *L_star/(4 pi r^2)
 		qplus *= W_G;
 		qplus /= tau_eff;			// * 1/Tau_eff
