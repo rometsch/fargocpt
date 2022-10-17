@@ -88,7 +88,7 @@ RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with 
 # Numerical method parameters
 
 Transport: FARGO
-Integrator: LeapFrog  # Integrator type: Euler or LeapFrog
+Integrator: LeapFrog  # Integrator type: Euler or LeapFrog or KickDriftKick(Leapfrog)
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer, PRESCRIBED_TIME_VARIABLE, ZERO_GRADIENT
 

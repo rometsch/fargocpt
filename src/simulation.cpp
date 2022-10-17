@@ -727,11 +727,11 @@ static void step(t_data &data, const double step_dt) {
 		case EULER_INTEGRATOR:
 			step_Euler(data, step_dt);
 			break;
-		case LEAPFROG_KICK_DRIFT_KICK:
-			step_LeapFrog(data, step_dt);
-			break;
 		case LEAPFROG_DRIFT_KICK_DRIFT:
 			step_LeapFrog_old(data, step_dt);
+			break;
+		case LEAPFROG_KICK_DRIFT_KICK:
+			step_LeapFrog(data, step_dt);
 			break;
 		default:
 			step_Euler(data, step_dt);
