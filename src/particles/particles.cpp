@@ -618,7 +618,7 @@ void init(t_data &data)
 	compute_temperature(data);
     check_tstop(data);
 
-    if (parameters::integrator == parameters::integrator_adaptive) {
+	if (parameters::particle_integrator == parameters::integrator_adaptive) {
 		init_particle_timestep(data);
 	}
 
@@ -1221,8 +1221,8 @@ void check_tstop(t_data &data)
 	particles[i].stokes = stokes;
 
 	if (tstop < 10.0 * dt && parameters::particle_gas_drag_enabled &&
-	    (parameters::integrator == parameters::integrator_explicit ||
-	     parameters::integrator == parameters::integrator_adaptive)) {
+		(parameters::particle_integrator == parameters::integrator_explicit ||
+		 parameters::particle_integrator == parameters::integrator_adaptive)) {
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!\n");
@@ -1230,7 +1230,7 @@ void check_tstop(t_data &data)
 	}
 
 	if (tstop < 0.005 * dt && parameters::particle_gas_drag_enabled &&
-	    parameters::integrator == parameters::integrator_semiimplicit) {
+		parameters::particle_integrator == parameters::integrator_semiimplicit) {
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!\n");
@@ -1491,7 +1491,7 @@ void integrate(t_data &data, const double current_time, const double dt)
 		compute_rho(data, current_time);
 	}
 
-    switch (parameters::integrator) {
+	switch (parameters::particle_integrator) {
     case parameters::integrator_explicit: {
 	integrate_explicit(data, dt);
 	break;

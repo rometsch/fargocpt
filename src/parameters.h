@@ -368,7 +368,7 @@ enum t_particle_integrator {
 				     // - DUST
     integrator_implicit,	     // fully implicit integrator
 };
-extern t_particle_integrator integrator;
+extern t_particle_integrator particle_integrator;
 
 void read(const std::string &filename, t_data &data);
 void summarize_parameters();

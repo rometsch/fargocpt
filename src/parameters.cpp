@@ -227,7 +227,7 @@ double particle_maximum_escape_radius_sq;
 bool particle_gas_drag_enabled;
 bool particle_disk_gravity_enabled;
 bool particle_dust_diffusion;
-t_particle_integrator integrator;
+t_particle_integrator particle_integrator;
 
 // for constant opacity
 double kappa_const = 1.0;
@@ -1084,13 +1084,13 @@ void read(const std::string &filename, t_data &data)
     switch (
 	config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s")) {
     case 'e': // Explicit
-	integrator = integrator_explicit;
+	particle_integrator = integrator_explicit;
 	break;
     case 'a': // Adaptive
-	integrator = integrator_adaptive;
+	particle_integrator = integrator_adaptive;
 	break;
     case 's': // Semi-implicit
-	integrator = integrator_semiimplicit;
+	particle_integrator = integrator_semiimplicit;
 
 	if (!particle_gas_drag_enabled) {
 	    logging::print_master(
@@ -1100,7 +1100,7 @@ void read(const std::string &filename, t_data &data)
 
 	break;
     case 'm': // exponential midpoint
-	integrator = integrator_exponential_midpoint;
+	particle_integrator = integrator_exponential_midpoint;
 
 	if (!particle_gas_drag_enabled) {
 	    logging::print_master(
@@ -1110,7 +1110,7 @@ void read(const std::string &filename, t_data &data)
 
 	break;
     case 'i': // Implicit
-	integrator = integrator_implicit;
+	particle_integrator = integrator_implicit;
 
 	if (!particle_gas_drag_enabled) {
 	    logging::print_master(
@@ -1125,9 +1125,9 @@ void read(const std::string &filename, t_data &data)
 	    config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s"));
     }
 
-    if (CartesianParticles && ((integrator == integrator_implicit) ||
-			       integrator == integrator_semiimplicit ||
-			       integrator == integrator_exponential_midpoint)) {
+    if (CartesianParticles && ((particle_integrator == integrator_implicit) ||
+			       particle_integrator == integrator_semiimplicit ||
+			       particle_integrator == integrator_exponential_midpoint)) {
 	// implicit and semiimplicit integrator only implemented in polar
 	// coordiantes, but forces can be calculated in cartesian coordinates
 	CartesianParticles = false;
@@ -1475,7 +1475,7 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO "Particles disk gravity is %s.\n",
 			      particle_disk_gravity_enabled ? "enabled"
 							    : "disabled");
-	switch (integrator) {
+	switch (particle_integrator) {
 	case integrator_explicit:
 	    logging::print_master(LOG_INFO
 				  "Particles use the explicit integrator\n");
