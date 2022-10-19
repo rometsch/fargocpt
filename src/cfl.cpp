@@ -253,6 +253,15 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		// we do not need abs() because only square of it is used later
 		const double invdt3 = v_residual[cell_number(nr, naz, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
 
+		double leapfrog_cfl_factor;
+		if (parameters::hydro_integrator == LEAPFROG_DRIFT_KICK_DRIFT || parameters::hydro_integrator == LEAPFROG_KICK_DRIFT_KICK){
+			// since we are applying source terms twice with half the timestep,
+			// we can consider that by allowing double the timestep size for source terms cfl
+			leapfrog_cfl_factor = 0.6;
+		} else {
+			leapfrog_cfl_factor = 1.0;
+		}
+
 		// artificial viscosity limit
 		double invdt4;
 		if (parameters::artificial_viscosity ==
@@ -281,7 +290,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 
 		invdt4 =
 			4.0 * std::pow(parameters::artificial_viscosity_factor, 2) *
-			std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal) * 0.6; // factor 1/2 because of leapfrog
+			std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal) * leapfrog_cfl_factor;
 		} else { // TW artificial viscosity
 			const unsigned int naz_next = naz == v_radial.get_max_azimuthal()
 					? 0	: naz + 1;
@@ -290,12 +299,12 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			const double eps_rr = (v_radial(nr+1, naz) - v_radial(nr, naz)) * InvDiffRsup[nr];
 			const double eps_pp =  InvRb[nr] * ((v_azimuthal(nr, naz_next) - v_azimuthal(nr, naz)) * invdphi + 0.5*(v_radial(nr + 1, naz) + v_radial(nr, naz)));
 			const double mdiv_V =  -std::min(eps_rr + eps_pp, 0.0);
-			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * 0.6; // factor 1/2 because of leapfrog
+			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * leapfrog_cfl_factor;
 		}
 
 		// kinematic viscosity limit
 		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) / std::pow(cell_size, 2)
-				* 0.6; // factor 1/2 because of leapfrog
+				* leapfrog_cfl_factor;
 
 		// heating / cooling limit
 		double invdt6;
@@ -307,7 +316,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		const double Qp = data[t_data::QPLUS](nr, naz);
 		const double Qm = data[t_data::QMINUS](nr, naz);
 		const double E = data[t_data::ENERGY](nr, naz);
-		invdt6 = inv_limit * std::fabs((Qp - Qm) / E) * 0.6; // factor 1/2 because of leapfrog
+		invdt6 = inv_limit * std::fabs((Qp - Qm) / E) * leapfrog_cfl_factor;
 		} else {
 		invdt6 = 0.0;
 		}
