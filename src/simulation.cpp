@@ -505,8 +505,7 @@ static void step_Euler(t_data &data, const double dt) {
 	refframe::init_corotation(data);
 	data.get_planetary_system().integrate(start_time, frog_dt);
 	data.get_planetary_system().copy_data_from_rebound();
-	data.get_planetary_system().compute_dist_to_primary();
-	data.get_planetary_system().calculate_orbital_elements();
+	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 	}
 
 	if (parameters::disk_feedback) {
