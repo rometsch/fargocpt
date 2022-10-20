@@ -29,7 +29,7 @@ ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von 
 EquationOfState: Isothermal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 
-CFL: '0.45'
+CFL: '0.5'
 
 # Units
 
@@ -47,8 +47,8 @@ KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-InnerBoundary: Reflective
-OuterBoundary: Reflective
+InnerBoundary: open
+OuterBoundary: open
 
 Damping: No     # NO, YES [default = no]
 DampingInnerLimit: 1.0     # Rmin*Limit
@@ -82,10 +82,10 @@ InitializeVradialZero: 'Yes'   # Initialize VRadial=0  [default = no]
   #Nrad: '168'   # 512 128		# Radial number of zones
   #Nsec: '840'   # 1536 384		# Azimuthal number of
 
-Nrad: '168'   # 512 128		# Radial number of zones
-Nsec: '2320'   # 1536 384		# Azimuthal number of
-  #Nrad: '84'   # 512 128		# Radial number of zones
-  #Nsec: '1182'   # 1536 384		# Azimuthal number of
+  #Nrad: '168'   # 512 128		# Radial number of zones
+  #Nsec: '2320'   # 1536 384		# Azimuthal number of
+Nrad: '84'   # 512 128		# Radial number of zones
+Nsec: '1182'   # 1536 384		# Azimuthal number of
 
   #cps: 1
 
@@ -147,7 +147,8 @@ nbody:
   ramp-up time: 0
 
 - name: blobb
-  semi-major axis: 1.002553395309377 au
+    #semi-major axis: 1.002553395309377 au
+  semi-major axis: 1.0016699154560738 au
   mass: 0.5
   accretion efficiency: '0.0'
   eccentricity: '0.0'
