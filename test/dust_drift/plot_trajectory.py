@@ -7,20 +7,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 import astropy.constants as const
-from scipy import interpolate
 
 
 def main():
     fig = plot_drift("output")
-    fig.savefig("drift.jpg")
+    fig.savefig("trajectories.jpg")
 
 
 def plot_drift(outdir):
 
-    fig = plt.figure(constrained_layout=True)
-    gs = fig.add_gridspec(3, 1)
-
-    ax = fig.add_subplot(gs[:2, :])
+    fig, ax = plt.subplots()
 
     particles = construct_dust_trajectories(outdir)
 
@@ -29,72 +25,41 @@ def plot_drift(outdir):
     rdot_abs = []
 
     for i, p in particles.items():
+        # if not i%10 == 0:
+        #     continue
 
-        t = p["time"].to_value("s")
-        r = p["r"].to_value("cm")
+        t = p["time"]
+        r = p["r"]
+        
+        
+        size = p["size"][0].to("cm")
+        stokes = p["stokes"]
+        vtheo = vdrift_theo(stokes, r.to("au"))
+        print(stokes)
+        vtheo = vtheo.to("cm/s")
+        
+        r = r.to("cm")
+        t = t.to("s")
+        rdot = (r[1:] - r[:-1])/(t[1:] - t[:-1])
+        rdot = rdot.to("cm/s")
+        
+        print(rdot[-1]/vtheo[-1])
+        
+        line, = ax.plot(t[:-1].to("yr"), -rdot, label=f"s = {size:.1e}")
+        color = line.get_color()
+        ax.plot(t.to("yr"), -vtheo, ls=":", color=color)
 
-        rdot = np.abs((r[-1] - r[-2])/(t[-1] - t[-2]))
-        # rdot = (rdot*u.cm/u.s).to_value(5.2*u.au/(5.2**1.5*u.yr))
-        size = p["size"][0].to_value("cm")
-        St = p["stokes"][0]
-
-        rdot_abs.append(rdot)
-        sizes.append(size)
-        Sts.append(St)
-
-    rdot_abs = np.array(rdot_abs)
-    sizes = np.array(sizes)
-    Sts = np.array(Sts)
-
-    # X = sizes
-    X = Sts
-    Y = rdot_abs
-    ax.plot(X, Y, marker="x")
-
-    ax.set_ylabel(r"$-\dot{r}$ [cm/s]")
-
-    ax.set_xscale("log")
     ax.set_yscale("log")
-
-    # secondary y axis
-    secax = ax.secondary_yaxis(
-        'right', functions=(cmps_to_aupyr, aupyr_to_cmps))
-    secax.set_ylabel(r"$\dot{r}$ [au/yr]")
-
-    ax.grid(alpha=0.3)
+    ax.set_ylabel(r"$-\dot{r}$ [cm/s]")
+    ax.set_xlabel(r"$t$ [orbits]")
     
-    vdrift = vdrift_theo(Sts, 1*u.au).to_value("cm/s")
-    ax.plot(Sts, -vdrift)
+    ax.legend()
 
-    f = interpolate.InterpolatedUnivariateSpline(sizes, Sts)
-    f2 = interpolate.InterpolatedUnivariateSpline(Sts, sizes)
-    secax = ax.secondary_xaxis(
-        'top', functions = (f2, f)
-    )
-    secax.set_xlabel("size [cm]")
+    print(vdrift_theo(7.4e-1, 1*u.au))
+    print(vdrift_theo(7.4e-1, 1*u.au).to("au/yr"))
 
-
-
-    ax = fig.add_subplot(gs[2:3, :])
-    reldiff = (rdot_abs - np.abs(vdrift)) / np.abs(vdrift)
-    ax.plot(Sts, reldiff)
-    ax.set_xscale("log")
-    ax.set_ylabel("rel. diff.")
-    ax.set_xlabel(r"Stokes number")
-    ax.set_ylim(bottom=0)
-    ax.grid()
-
-
-    # ax = fig.add_subplot(gs[3:])
-    # ax.plot(sizes, Sts)
-    # ax.set_yscale("log")
-    # ax.set_xscale("log")
-    # ax.grid()
-    # ax.set_xlabel(r"$s$ [cm]")
-    # ax.set_ylabel("Stokes number")
 
     return fig
-
 
 
 def vdrift_theo(stokes, r):

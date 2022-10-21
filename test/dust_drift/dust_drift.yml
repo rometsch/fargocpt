@@ -1,6 +1,7 @@
 # Disk parameters
 
-Sigma0: 88.87231453905 g/cm2   # surface density at r=1 in g/cm^2
+# Sigma0: 88.87231453905 g/cm2   # surface density at r=1 in g/cm^2
+Sigma0: 10 g/cm2
 SigmaSlope: '1.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-9]
 AspectRatio: '0.05'   # Thickness over Radius in the disk
@@ -22,7 +23,7 @@ RadiativeDiffusion: 'No'
 
 # Units
 
-l0: '5.2'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
+l0: '1.0'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
 m0: '1.0'   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
 mu: '2.35'   # mean molecular weight [default=1.0]
 
@@ -51,8 +52,9 @@ DiskFeedback: 'No'
 
 # Mesh parameters
 
-Nrad: '400'   # 512 128		# Radial number of zones
-Nsec: '1403'   # 1536 384		# Azimuthal number of zones
+# Nrad: '400'   # 512 128		# Radial number of zones
+# Nsec: '1403'   # 1536 384		# Azimuthal number of zones
+cps: 1
 
 # zones (sectors)
 
@@ -62,7 +64,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 
 # Output control parameters
 
-Ntot: '100'   # Total number of time steps
+Ntot: '50'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 DT: '0.628318531'   # 1/10th of a jupiter orbit
 FirstDt: 1e-1
@@ -94,10 +96,10 @@ WriteMassFlow: 'Yes'   # Write a 1d radial file with mass flow at each interface
 IntegrateParticles: 'Yes'   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
 ParticleIntegrator: midpoint
-ParticleRadius: 1e-4 cm   # particle radius in cm [default = 100]
-ParticleRadiusIncreaseFactor: '1.2589254117941673'
-ParticleSpeciesNumber: '70'
-NumberOfParticles: '70'   # number of particles [default = 0]
+ParticleRadius: 1e-3 cm   # particle radius in cm [default = 100]
+ParticleRadiusIncreaseFactor: 10
+ParticleSpeciesNumber: '7'
+NumberOfParticles: '7'   # number of particles [default = 0]
 ParticleEccentricity: '0.00'   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSlope: '0'   # [default = 0]
@@ -113,7 +115,7 @@ ParticleDiskGravityEnabled: 'no'   # [default = no]
 nbody:
 - name: star
   semi-major axis: '0.0'
-  mass: '1.0'
+  mass: '0.55'
   accretion efficiency: '0.0'
   eccentricity: '0.0'
   radius: 0.009304813 solRadius
