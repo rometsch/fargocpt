@@ -276,14 +276,14 @@ double condition_cfl(t_data &data, const double dt_global_input)
 					v_azimuthal(nr, naz_next) -
 					v_azimuthal(nr, naz);
 
-		if (dvRadial >= 0.0) {
-			dvRadial = std::numeric_limits<double>::min();
+		if (dvRadial > 0.0) {
+			dvRadial = 0.0;
 		} else {
 			dvRadial = -dvRadial;
 		}
 
-		if (dvAzimuthal >= 0.0) {
-			dvAzimuthal = std::numeric_limits<double>::min();
+		if (dvAzimuthal > 0.0) {
+			dvAzimuthal = 0.0;
 		} else {
 			dvAzimuthal = -dvAzimuthal;
 		}
