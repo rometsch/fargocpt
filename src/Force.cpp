@@ -33,6 +33,8 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
     double axi, ayi, axo, ayo;
 
     const unsigned int ns = data[t_data::SIGMA].Nsec;
+	const auto & sigma = data[t_data::SIGMA];
+	const auto & sigma1d = data[t_data::SIGMA_1D];
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     axi = ayi = axo = ayo = 0.0;
@@ -44,7 +46,12 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 	for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
-		const double smooth = compute_smoothing(data, n_rad, n_az);
+		double smooth;
+		if (parameters::naive_smoothing) {
+			smooth = compute_smoothing_iso_planet(a);
+		} else {
+			smooth = compute_smoothing(data, n_rad, n_az);
+		}
 
 		// Phi = GMm / r_sm
 		// r_sm = sqrt(r**2 + (eps * H)**2)
@@ -58,8 +65,12 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 	    const int cell_id = n_az + n_rad * ns;
 	    const double xc = cell_center_x[cell_id];
 	    const double yc = cell_center_y[cell_id];
-	    const double cellmass =
-		Surf[n_rad] * data[t_data::SIGMA](n_rad, n_az);
+
+		double cell_sigma = sigma(n_rad, n_az);
+		if (parameters::correct_disk_selfgravity) {
+			cell_sigma -= sigma1d(n_rad);
+		}
+	    const double cellmass = Surf[n_rad] * cell_sigma;
 
 	    const double dx = xc - x;
 	    const double dy = yc - y;
@@ -121,6 +132,15 @@ double compute_smoothing(t_data &data, const int n_radial,
 {
     const double scale_height =
 	data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal);
+    const double smooth = parameters::thickness_smoothing * scale_height;
+    return smooth;
+}
+
+double compute_smoothing_iso_planet(const double Rp)
+{
+	const double h0 = parameters::ASPECTRATIO_REF;
+	const double beta = parameters::FLARINGINDEX;
+    const double scale_height = h0*std::pow(Rp, 1+beta);
     const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }

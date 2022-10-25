@@ -93,6 +93,7 @@ class t_data
 	LUMINOSITY_1D, //
 	DISSIPATION_1D,
 	TORQUE_1D,
+	SIGMA_1D,
 
 	// number of t_radialgrid_types
 	N_RADIALGRID_TYPES
