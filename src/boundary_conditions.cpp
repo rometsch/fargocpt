@@ -1190,7 +1190,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	 RMAX * parameters::damping_outer_limit)) {
 
 	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
-		get_rinf_id(RMAX * parameters::damping_outer_limit), vrad_arr.is_vector());
+		get_rinf_id(RMAX * parameters::damping_outer_limit), vrad_arr.is_vector())+1;
 
 	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
@@ -1256,7 +1256,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
 		get_rmed_id(RMAX * parameters::damping_outer_limit),
-	    vphi_arr.is_vector());
+		vphi_arr.is_vector()) + 1;
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vphi_id;
@@ -1325,7 +1325,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	for (unsigned int nr = clamped_vphi_id;
 		 nr < energy.get_size_radial(); ++nr) {
 		double factor = std::pow(
-		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 		double exp_factor = std::exp(-dt * factor / tau);
@@ -1370,7 +1370,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	for (unsigned int nr = clamped_vphi_id;
 		 nr < sigma.get_size_radial(); ++nr) {
 		double factor = std::pow(
-		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 		double exp_factor = std::exp(-dt * factor / tau);
