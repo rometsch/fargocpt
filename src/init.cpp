@@ -1699,7 +1699,7 @@ void init_gas_velocities(t_data &data)
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
 		 ++n_azimuthal) {
-		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
+		data[t_data::V_RADIAL](n_radial, n_azimuthal) = initial_viscous_radial_speed(r, hydro_center_mass);
 		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = compute_v_kepler(r, hydro_center_mass) - refframe::OmegaFrame * r;
 	    }
 	}
@@ -1827,9 +1827,6 @@ void init_gas_velocities(t_data &data)
 		}
 		}
 
-		if (n_radial == data[t_data::V_RADIAL].Nrad) {
-		data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
-		} else {
 		data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 			parameters::IMPOSEDDISKDRIFT * parameters::sigma0 / SigmaInf[n_radial] /
 			ri;
@@ -1837,7 +1834,8 @@ void init_gas_velocities(t_data &data)
 		if (!parameters::initialize_vradial_zero) {
 			const double vr_visc = viscous_speed::get_vr_with_numerical_viscous_speed(ri, hydro_center_mass);
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) += vr_visc;
-		}
+		} else {
+			data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
 		}
 	}
 	}
