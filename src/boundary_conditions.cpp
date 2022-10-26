@@ -321,7 +321,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	if (final) {
 	    damping_initial_center_of_mass_outer(data, dt);
 	}
-	initial_center_of_mass_boundary(data);
+	initial_center_of_mass_boundary_outer(data);
 	break;
     }
     case parameters::boundary_condition_zero_gradient:
@@ -1174,9 +1174,8 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 void damping_initial_center_of_mass_outer(t_data &data, double dt)
 {
 
-    // use the correct radius array corresponding to quantity
-    const t_radialarray &radius = Rinf;
-    t_polargrid &vrad_arr = data[t_data::V_RADIAL];
+	// use the correct radius array corresponding to quantity
+	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
     t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
 
     const unsigned int np = data.get_planetary_system().get_number_of_planets();
@@ -1187,21 +1186,20 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) &&
-	(radius[vrad_arr.get_max_radial()] >
+	(Rinf[vrad_arr.get_max_radial()] >
 	 RMAX * parameters::damping_outer_limit)) {
 
 	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
-	    get_rinf_id(RMAX * parameters::damping_outer_limit) + 1,
-	    vrad_arr.is_vector());
+		get_rinf_id(RMAX * parameters::damping_outer_limit), vrad_arr.is_vector());
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vrad_id;
 	     n_radial < vrad_arr.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
-		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
+		(Rinf[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 	    double exp_factor = std::exp(-dt * factor / tau);
@@ -1210,7 +1208,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = (double)n_azimuthal * dphi;
-		const double rinf = radius[n_radial];
+		const double rinf = Rinf[n_radial];
 
 		const double cell_x = rinf * std::cos(phi);
 		const double cell_y = rinf * std::sin(phi);
@@ -1256,15 +1254,15 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	    }
 	}
 
-	const unsigned int clamped_vphi_id = clamp_r_id_to_radii_grid(
-	    get_rinf_id(RMAX * parameters::damping_outer_limit) + 1,
+	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMAX * parameters::damping_outer_limit),
 	    vphi_arr.is_vector());
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vphi_id;
 	     n_radial < vphi_arr.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
-		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
+		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 	    double exp_factor = std::exp(-dt * factor / tau);
@@ -2006,7 +2004,7 @@ void keplerian2d_boundary_outer(t_data &data)
  * disk when the coordination system is centered on the primary.
  * @param data
  */
-void initial_center_of_mass_boundary(t_data &data)
+void initial_center_of_mass_boundary_outer(t_data &data)
 {
 
     if (CPU_Rank != CPU_Highest)
