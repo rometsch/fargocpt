@@ -326,10 +326,10 @@ void ComputeAverageDensity(t_data &data) {
 	const unsigned int ns = sigma.Nsec;
     auto & sigma1d = data[t_data::SIGMA_1D];
 
+	#pragma omp parallel for
     for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size;
 	 ++n_rad) {
 		double sum = 0;
-		#pragma omp parallel for collapse(1)
 		for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 			sum += sigma(n_rad, n_az);
 		}

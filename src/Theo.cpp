@@ -11,6 +11,7 @@ void RefillSigma(t_polargrid *Density)
     unsigned int nRadial, nAzimuthal, cell;
     double mean;
 
+	#pragma omp parallel for
     for (nRadial = 0; nRadial < Density->Nrad; ++nRadial) {
 	mean = 0.0;
 	for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
@@ -39,6 +40,7 @@ void RefillEnergy(t_polargrid *Energy)
     unsigned int nRadial, nAzimuthal, cell;
     double mean;
 
+	#pragma omp parallel for
     for (nRadial = 0; nRadial < Energy->Nrad; ++nRadial) {
 	mean = 0.0;
 	for (nAzimuthal = 0; nAzimuthal < Energy->Nsec; ++nAzimuthal) {
