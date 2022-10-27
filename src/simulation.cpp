@@ -17,6 +17,7 @@
 #include "accretion.h"
 #include "cfl.h"
 #include "quantities.h"
+#include "pvte_law.h"
 
 namespace sim {
 
@@ -402,7 +403,7 @@ static void step_Euler(t_data &data, const double dt) {
 			compute_sound_speed(data, end_time);
 			compute_scale_height(data, end_time);
 		}
-		
+
 		update_with_sourceterms(data, frog_dt);
 
 		if (parameters::EXPLICIT_VISCOSITY) {
