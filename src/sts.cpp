@@ -61,6 +61,8 @@ static void StsStep2(t_data &data, double dt)
 	/// Vphi themselves
 	const bool add_kep_inner =
 	(parameters::boundary_inner !=
+	parameters::boundary_condition_center_of_mass_initial) &&
+	(parameters::boundary_inner !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_boundary_layer) &&

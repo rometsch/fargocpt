@@ -327,7 +327,7 @@ void init_physics(t_data &data)
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);
     }
-	viscous_speed::init_vr_table_outer_boundary(data);
+	viscous_speed::init_vr_table_boundary(data);
 	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
 	if(parameters::star_gasblobb_binary_test){
 		const unsigned int Np = data.get_planetary_system().get_number_of_planets();

@@ -1257,7 +1257,9 @@ void summarize_parameters()
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
     case boundary_condition_center_of_mass_initial:
-	die("Inner boundary initial condition in center of mass is not implemented yet!\n");
+	logging::print_master(
+		LOG_INFO
+		"Using 'initial boundary in center of mass frame' at inner boundary.\n");
 	break;
     }
 

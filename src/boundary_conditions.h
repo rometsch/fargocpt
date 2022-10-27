@@ -28,7 +28,9 @@ void boundary_layer_outer_boundary(t_data &data);
 void keplerian2d_boundary_inner(t_data &data);
 void keplerian2d_boundary_outer(t_data &data);
 
-void initial_center_of_mass_boundary(t_data &data);
+void initial_center_of_mass_boundary_inner(t_data &data);
+void damping_initial_center_of_mass_inner(t_data &data, double dt);
+void initial_center_of_mass_boundary_outer(t_data &data);
 void damping_initial_center_of_mass_outer(t_data &data, double dt);
 
 void jibin_boundary_inner(t_data &data);

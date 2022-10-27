@@ -42,6 +42,8 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	/// Vphi themselves
 	const bool add_kep_inner =
 	(parameters::boundary_inner !=
+	parameters::boundary_condition_center_of_mass_initial) &&
+	(parameters::boundary_inner !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_boundary_layer) &&
@@ -257,6 +259,8 @@ void update_with_artificial_viscosity_TW_old(t_data &data, const double dt)
 	/// Do not Apply sub keplerian boundary for boundary conditions that set
 	/// Vphi themselves
 	const bool add_kep_inner =
+	(parameters::boundary_inner !=
+	parameters::boundary_condition_center_of_mass_initial) &&
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_inner !=
@@ -489,6 +493,8 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	/// Do not Apply sub keplerian boundary for boundary conditions that set
 	/// Vphi themselves
 	const bool add_kep_inner =
+	(parameters::boundary_inner !=
+	parameters::boundary_condition_center_of_mass_initial) &&
 	(parameters::boundary_inner !=
 	 parameters::boundary_condition_evanescent) &&
 	(parameters::boundary_inner !=
