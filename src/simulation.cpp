@@ -391,16 +391,18 @@ static void step_Euler(t_data &data, const double dt) {
 		CalculateAccelOnGas(data, end_time);
 		}
 
+		if (parameters::variableGamma) {
+		compute_sound_speed(data, end_time);
+		compute_scale_height(data, end_time);
+		pvte::compute_gamma_mu(data);
+		}
+
 		compute_pressure(data);
 		if(parameters::self_gravity || parameters::variableGamma){
-			if (parameters::variableGamma) {
-			compute_sound_speed(data, end_time);
-			compute_scale_height(data, end_time);
-			pvte::compute_gamma_mu(data);
-			}
 			compute_sound_speed(data, end_time);
 			compute_scale_height(data, end_time);
 		}
+		
 		update_with_sourceterms(data, frog_dt);
 
 		if (parameters::EXPLICIT_VISCOSITY) {
@@ -584,13 +586,15 @@ static void step_Euler(t_data &data, const double dt) {
 		CalculateAccelOnGas(data, midstep_time);
 		}
 
+		if (parameters::variableGamma) {
+		compute_sound_speed(data, midstep_time);
+		compute_scale_height(data, midstep_time);
+		pvte::compute_gamma_mu(data);
+		}
+
 		compute_pressure(data);
+
 		if(parameters::self_gravity || parameters::variableGamma){
-			if (parameters::variableGamma) {
-			compute_sound_speed(data, midstep_time);
-			compute_scale_height(data, midstep_time);
-			pvte::compute_gamma_mu(data);
-			}
 			compute_sound_speed(data, midstep_time);
 			compute_scale_height(data, midstep_time);
 		}
