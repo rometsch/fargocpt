@@ -194,9 +194,7 @@ static void step_Euler(t_data &data, const double dt) {
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
 		art_visc::update_with_artificial_viscosity(data, sim::PhysicalTime, dt);
-		if (parameters::Adiabatic) {
-		    SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-		}
+
 		recalculate_viscosity(data, sim::PhysicalTime);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, dt);
@@ -324,9 +322,6 @@ static void step_Euler(t_data &data, const double dt) {
 	    if (parameters::EXPLICIT_VISCOSITY) {
 
 		art_visc::update_with_artificial_viscosity(data, start_time, frog_dt);
-		if (parameters::Adiabatic) {
-			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-		}
 
 		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
@@ -397,7 +392,13 @@ static void step_Euler(t_data &data, const double dt) {
 		}
 
 		compute_pressure(data);
-		if(parameters::self_gravity){
+		if(parameters::self_gravity || parameters::variableGamma){
+			if (parameters::variableGamma) {
+			compute_sound_speed(data, end_time);
+			compute_scale_height(data, end_time);
+			pvte::compute_gamma_mu(data);
+			}
+			compute_sound_speed(data, end_time);
 			compute_scale_height(data, end_time);
 		}
 		update_with_sourceterms(data, frog_dt);
@@ -470,14 +471,6 @@ static void step_Euler(t_data &data, const double dt) {
 		quantities::CalculateMonitorQuantitiesAfterHydroStep(data, N_monitor,
 							 step_dt);
 
-		if (parameters::variableGamma &&
-		!parameters::VISCOUS_ACCRETION) { // If VISCOUS_ACCRETION is active,
-					  // scale_height is already updated
-		// Recompute scale height after Transport to update the 3D
-		// density
-		compute_sound_speed(data, end_time);
-		compute_scale_height(data, end_time);
-		}
 		// this must be done after CommunicateBoundaries
 		recalculate_derived_disk_quantities(data, end_time);
 
@@ -545,10 +538,8 @@ static void step_Euler(t_data &data, const double dt) {
 		if (parameters::EXPLICIT_VISCOSITY) {
 
 		art_visc::update_with_artificial_viscosity(data, start_time, frog_dt);
-		if (parameters::Adiabatic) {
-			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-		}
-		//recalculate_viscosity(data, start_time);
+
+		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 		}
@@ -594,18 +585,21 @@ static void step_Euler(t_data &data, const double dt) {
 		}
 
 		compute_pressure(data);
-		if(parameters::self_gravity){
+		if(parameters::self_gravity || parameters::variableGamma){
+			if (parameters::variableGamma) {
+			compute_sound_speed(data, midstep_time);
+			compute_scale_height(data, midstep_time);
+			pvte::compute_gamma_mu(data);
+			}
+			compute_sound_speed(data, midstep_time);
 			compute_scale_height(data, midstep_time);
 		}
 		update_with_sourceterms(data, frog_dt);
 
 		if (parameters::EXPLICIT_VISCOSITY) {
 		art_visc::update_with_artificial_viscosity(data, midstep_time, frog_dt);
-		if (parameters::Adiabatic) {
-			SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
-		}
 
-		//recalculate_viscosity(data, midstep_time);
+		recalculate_viscosity(data, midstep_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
 		}
@@ -683,14 +677,6 @@ static void step_Euler(t_data &data, const double dt) {
 		quantities::CalculateMonitorQuantitiesAfterHydroStep(data, N_monitor,
 							 step_dt);
 
-		if (parameters::variableGamma &&
-		!parameters::VISCOUS_ACCRETION) { // If VISCOUS_ACCRETION is active,
-					  // scale_height is already updated
-		// Recompute scale height after Transport to update the 3D
-		// density
-		compute_sound_speed(data, end_time);
-		compute_scale_height(data, end_time);
-		}
 		// this must be done after CommunicateBoundaries
 		recalculate_derived_disk_quantities(data, end_time);
 
