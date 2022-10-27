@@ -79,7 +79,8 @@ bool damping;
 bool is_damping_initial = false;
 double damping_inner_limit;
 double damping_outer_limit;
-double damping_time_factor;
+double damping_time_factor_inner;
+double damping_time_factor_outer;
 
 int damping_energy_id;
 std::vector<t_DampingType> damping_vector;
@@ -669,8 +670,18 @@ void read(const std::string &filename, t_data &data)
     if (damping_outer_limit > 1) {
 	die("DampingOuterLimit must not be >1\n");
     }
-    damping_time_factor =
+	damping_time_factor_inner =
 	config::cfg.get<double>("DampingTimeFactor", 1.0);
+	damping_time_factor_outer =
+	config::cfg.get<double>("DampingTimeFactor", 1.0);
+
+	damping_time_factor_inner =
+	config::cfg.get<double>("DampingTimeFactorInner", 1.0);
+	damping_time_factor_outer =
+	config::cfg.get<double>("DampingTimeFactorOuter", 1.0);
+
+	logging::print_master("DampingTimeFactor Inner: %.5e outer %.5e\n", damping_time_factor_inner,
+						  damping_time_factor_outer);
 
     t_damping_type tmp_damping_inner;
     t_damping_type tmp_damping_outer;
@@ -744,7 +755,7 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
 
     heating_viscous_enabled =
-	config::cfg.get_flag("HeatingViscous", "yes");
+	config::cfg.get_flag("HeatingViscous", "No");
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
 

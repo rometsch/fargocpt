@@ -107,7 +107,8 @@ extern double damping_inner_limit;
 /// outer damping limit
 extern double damping_outer_limit;
 /// damping time factor
-extern double damping_time_factor;
+extern double damping_time_factor_inner;
+extern double damping_time_factor_outer;
 /// vector to handle damping structs
 extern std::vector<t_DampingType> damping_vector;
 
