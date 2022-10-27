@@ -170,6 +170,10 @@ void init_vr_table_boundary(t_data &data){
 
 
 	//////////////// init inner arrays //////////////////////////////////////
+	const int Nr_limit = clamp_r_id_to_rmed_grid(
+	get_rmed_id(RMIN * parameters::damping_inner_limit), false) + 1;
+	const double safety_dr = Rsup[Nr_limit] - Rinf[Nr_limit];
+
 	if(plsys.get_number_of_planets() == 2 && parameters::n_bodies_for_hydroframe_center == 1){
 	// case for binary with frame on one star
 	const auto &planet = plsys.get_planet(1);
@@ -179,16 +183,10 @@ void init_vr_table_boundary(t_data &data){
 	const double q = planet.get_mass() / (planet.get_mass() + plsys.get_planet(0).get_mass());
 	const double center_of_mass_max_dist = a * (1.0 + e) * q;
 
-	const int Nr_limit = clamp_r_id_to_rmed_grid(
-	get_rmed_id(RMIN * parameters::damping_inner_limit), false);
-
-	const double safety_dr = Rsup[Nr_limit] - Rinf[Nr_limit];
-
 	min_r_inner = Rinf[1] - center_of_mass_max_dist  - safety_dr;
 	min_r_inner = std::max(min_r_inner, Rsup[0] - Rinf[0]);
 	max_r_inner = Rsup[1] * parameters::damping_inner_limit + center_of_mass_max_dist + safety_dr;
 } else {
-	const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
 	min_r_inner = Rinf[1] - safety_dr;
 	max_r_inner = Rsup[1] * parameters::damping_inner_limit + safety_dr;
 }
