@@ -173,7 +173,7 @@ double initial_viscous_radial_speed(const double R, const double M){
 	return vr;
 	} else {
 		const double nu = parameters::VISCOSITY;
-		const double vr = 3.0 *	nu / R * (-parameters::SIGMASLOPE + .5);
+		const double vr = -3.0 * nu / R * (-parameters::SIGMASLOPE + .5);
 		return vr;
 	}
 }
