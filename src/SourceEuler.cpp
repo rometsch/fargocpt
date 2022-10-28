@@ -219,8 +219,6 @@ void recalculate_viscosity(t_data &data, const double current_time)
 	if (parameters::ASPECTRATIO_MODE > 0) {
 		compute_sound_speed(data, current_time);
 		compute_scale_height(data, current_time);
-	} else {
-		compute_pressure(data);
 	}
 	}
 	if (parameters::Adiabatic || parameters::Polytropic) {
@@ -1217,7 +1215,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
-	/// Cannot be OpenMP parallelized due to Temperature being iteratively computed
+	/// TODO: Cannot be OpenMP parallelized due to Temperature being iteratively computed ??
 	for (unsigned int nr = 1; nr < Nr - 1; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		const double old_value = Temperature(nr, naz);

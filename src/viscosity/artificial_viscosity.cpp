@@ -9,14 +9,12 @@
 
 namespace art_visc{
 
-void update_with_artificial_viscosity(t_data &data, const double time, const double dt){
+void update_with_artificial_viscosity(t_data &data, const double dt){
 	if (parameters::artificial_viscosity ==
 	 parameters::artificial_viscosity_TW) {
-	recalculate_viscosity(data, time);
 	art_visc::update_with_artificial_viscosity_TW(data, dt);
 	} else { // SN or TW (just for Vazimuthal ghost cells)
 	art_visc::update_with_artificial_viscosity_SN(data, dt);
-	recalculate_viscosity(data, time);
 	}
 
 	if (parameters::Adiabatic && parameters::artificial_viscosity_dissipation) {
