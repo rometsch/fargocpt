@@ -154,12 +154,6 @@ static void step_Euler(t_data &data, const double dt) {
 	data.get_planetary_system().apply_indirect_term_on_Nbody(
 		refframe::IndirectTerm, dt);
 
-
-	if (parameters::integrate_planets) {
-		data.get_planetary_system().integrate(time, dt);
-		/// Nbody positions and velocities are not updated yet!
-	}
-
 	if (parameters::calculate_disk) {
 		/** Gravitational potential from star and planet(s) is computed and
 		 * stored here*/
@@ -177,6 +171,7 @@ static void step_Euler(t_data &data, const double dt) {
 	/** Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
 	if (parameters::integrate_planets) {
+		data.get_planetary_system().integrate(time, dt);
 		data.get_planetary_system().copy_data_from_rebound();
 		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 	}
