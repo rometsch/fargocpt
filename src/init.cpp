@@ -322,12 +322,12 @@ void init_physics(t_data &data)
 	cfl::init(data);
 
     // only gas velocities remain to be initialized
+	viscous_speed::init_vr_table_boundary(data);
 	init_euler(data, sim::PhysicalTime);
     init_gas_velocities(data);
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);
     }
-	viscous_speed::init_vr_table_boundary(data);
 	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
 	if(parameters::star_gasblobb_binary_test){
 		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
