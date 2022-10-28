@@ -496,6 +496,8 @@ static void step_Euler(t_data &data, const double dt) {
 
 	//////////////// Leapfrog compute v_i+1/2 /////////////////////
 
+	/// Compute indirect Term is forward looking (computes acceleration from 'dt' to 'dt + frog_dt'
+	/// so it must be done while Nbody is still at 'dt'
 	refframe::ComputeIndirectTermNbody(data, start_time, frog_dt);
 	if (parameters::integrate_planets) { //// Nbody drift / 2
 	refframe::init_corotation(data);
@@ -509,9 +511,6 @@ static void step_Euler(t_data &data, const double dt) {
 	}
 	refframe::ComputeIndirectTermDisk(data);
 
-	/// Indirect term will not be updated for the second leapfrog step
-	/// so compute it for the full timestep
-	/// It should be recomputed when using euler though
 	refframe::ComputeIndirectTermFully();
 
 	if (parameters::integrate_planets) { /// Nbody Kick 1 / 2
@@ -558,7 +557,6 @@ static void step_Euler(t_data &data, const double dt) {
 		}
 		//////////////// END /// Gas Kick 1/2 /////////////////////
 
-
 		//////////////// Gas drift 1/1 /////////////////////
 		boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
 
@@ -592,13 +590,12 @@ static void step_Euler(t_data &data, const double dt) {
 		compute_scale_height(data, midstep_time);
 		pvte::compute_gamma_mu(data);
 		}
-
-		compute_pressure(data);
-
 		if(parameters::self_gravity || parameters::variableGamma){
 			compute_sound_speed(data, midstep_time);
 			compute_scale_height(data, midstep_time);
 		}
+
+		compute_pressure(data);
 		update_with_sourceterms(data, frog_dt);
 
 		if (parameters::EXPLICIT_VISCOSITY) {
