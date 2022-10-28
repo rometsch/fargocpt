@@ -299,12 +299,15 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			const double eps_rr = (v_radial(nr+1, naz) - v_radial(nr, naz)) * InvDiffRsup[nr];
 			const double eps_pp =  InvRb[nr] * ((v_azimuthal(nr, naz_next) - v_azimuthal(nr, naz)) * invdphi + 0.5*(v_radial(nr + 1, naz) + v_radial(nr, naz)));
 			const double mdiv_V =  -std::min(eps_rr + eps_pp, 0.0);
-			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * leapfrog_cfl_factor;
+			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * leapfrog_cfl_factor * parameters::CFL;
 		}
 
 		// kinematic viscosity limit
+		// for diffusion stability: dt < dx^2 / (4 * nu)
+		// so we do not need the extra CFL factor, same for invdt4
+		// we multipy with CFL here so that it cancels out for the combined dt
 		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) / std::pow(cell_size, 2)
-				* leapfrog_cfl_factor;
+				* leapfrog_cfl_factor * parameters::CFL;
 
 		// heating / cooling limit
 		double invdt6;
