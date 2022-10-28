@@ -1,5 +1,6 @@
 # Disk parameters
 
+Integrator: Leapfrog
 Sigma0: 197 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'NO'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
@@ -65,7 +66,7 @@ MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
 IntegratePlanets: 'Yes'   # [default = yes]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
-ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
+ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 ThicknessSmoothingAtPlanet: 'No'   # use the scale height at the radius of the planet for thickness smoothing. This flag should always be NO to use the scale height at the gas cell location expect for comparison reasons.
 
@@ -85,10 +86,10 @@ Transport: FARGO
 InnerBoundary: RIGID
 OuterBoundary: RIGID
 DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
-Damping: 'No'   # NO, YES [default = no]
-DampingInnerLimit: '1.05'   # Rmin*Limit
-DampingOuterLimit: '0.95'   # Rmax*Limit
-DampingTimeFactor: '1.0e-1'
+Damping: 'Yes'   # NO, YES [default = no]
+DampingInnerLimit: '1.10'   # Rmin*Limit
+DampingOuterLimit: '0.90'   # Rmax*Limit
+DampingTimeFactor: '3.0e-1'
 DampingEnergyInner: none   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialInner: zero   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]

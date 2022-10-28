@@ -10,7 +10,7 @@ def compile_fargo(fargo_path):
     wd = os.getcwd()
     os.chdir(fargo_path)
 
-    subprocess.run(['make', '-j', '-C' 'src/'])
+    subprocess.run(['make', '-j 2', '-C' 'src/'])
     os.chdir(wd)
 
 
