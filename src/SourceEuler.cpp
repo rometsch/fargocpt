@@ -219,8 +219,6 @@ void recalculate_viscosity(t_data &data, const double current_time)
 	if (parameters::ASPECTRATIO_MODE > 0) {
 		compute_sound_speed(data, current_time);
 		compute_scale_height(data, current_time);
-	} else {
-		compute_pressure(data);
 	}
 	}
 	if (parameters::Adiabatic || parameters::Polytropic) {
