@@ -194,7 +194,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    if (parameters::EXPLICIT_VISCOSITY) {
 		// compute and add acceleartions due to disc viscosity as a
 		// source term
-		art_visc::update_with_artificial_viscosity(data, sim::PhysicalTime, dt);
+		art_visc::update_with_artificial_viscosity(data, dt);
 
 		recalculate_viscosity(data, sim::PhysicalTime);
 		viscosity::compute_viscous_stress_tensor(data);
@@ -322,7 +322,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 	    if (parameters::EXPLICIT_VISCOSITY) {
 
-		art_visc::update_with_artificial_viscosity(data, start_time, frog_dt);
+		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
@@ -407,7 +407,7 @@ static void step_Euler(t_data &data, const double dt) {
 		update_with_sourceterms(data, frog_dt);
 
 		if (parameters::EXPLICIT_VISCOSITY) {
-		art_visc::update_with_artificial_viscosity(data, end_time, frog_dt);
+		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, end_time);
 		viscosity::compute_viscous_stress_tensor(data);
@@ -539,7 +539,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 		if (parameters::EXPLICIT_VISCOSITY) {
 
-		art_visc::update_with_artificial_viscosity(data, start_time, frog_dt);
+		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
@@ -599,7 +599,7 @@ static void step_Euler(t_data &data, const double dt) {
 		update_with_sourceterms(data, frog_dt);
 
 		if (parameters::EXPLICIT_VISCOSITY) {
-		art_visc::update_with_artificial_viscosity(data, midstep_time, frog_dt);
+		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, midstep_time);
 		viscosity::compute_viscous_stress_tensor(data);

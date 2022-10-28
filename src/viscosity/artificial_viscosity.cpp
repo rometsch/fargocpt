@@ -9,7 +9,7 @@
 
 namespace art_visc{
 
-void update_with_artificial_viscosity(t_data &data, const double time, const double dt){
+void update_with_artificial_viscosity(t_data &data, const double dt){
 	if (parameters::artificial_viscosity ==
 	 parameters::artificial_viscosity_TW) {
 	art_visc::update_with_artificial_viscosity_TW(data, dt);
