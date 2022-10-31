@@ -52,7 +52,7 @@ def compile_fargo(fargo_path):
     os.chdir(fargo_path)
 
     with open("make.log", "w") as logfile:
-        subprocess.run(['make', '-j', '-C' 'src/'], stdout=logfile)
+        subprocess.run(['make', '-j', '2',  '-C' 'src/'], stdout=logfile)
     os.chdir(wd)
 
 
