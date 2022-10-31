@@ -48,16 +48,16 @@ def M_dot2(radius, surface_density, vr):
     return radius, M_dot
 
 
-mass_flow_reader = read1D(out_folder,"gasMassFlow")
-dens1D_reader = read1D(out_folder, "gasdens")
-vrad1D_reader = read1D(out_folder, "gasvrad")
-vis1D_reader = read1D(out_folder, "gasviscosity")
+mass_flow_reader = read1D(out_folder,"MassFlow")
+dens1D_reader = read1D(out_folder, "Sigma")
+vrad1D_reader = read1D(out_folder, "vrad")
+vis1D_reader = read1D(out_folder, "viscosity")
 
-N_output = np.loadtxt(out_folder + "timeCoarse.dat", usecols=(0,1), dtype=np.int)
+N_output = np.loadtxt(out_folder + "/monitor/timeMonitor.dat", usecols=(0,1), dtype=np.int)
 radii = np.loadtxt(out_folder + "used_rad.dat")
 N_DT = N_output[:,1]
-N_output = np.array([0, 30, 60, 90, 140])
-N_output = np.array([0, 1, 3, 10, 30])
+N_output = np.array([0, 50, 150, 190])
+#N_output = np.array([0, 1, 3, 10, 30])
 
 fig, axs = plt.subplots(2,1, sharex=True)
 
@@ -65,7 +65,7 @@ for ax in axs[:-0]:
     ax.set_yscale('log')
     ax.set_xscale('log')
 
-quantities = np.loadtxt("out/Quantities.dat", skiprows=24)
+quantities = np.loadtxt("out/monitor/Quantities.dat", skiprows=24)
 
 mass = quantities[:,3]
 

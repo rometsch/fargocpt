@@ -326,10 +326,10 @@ void ComputeAverageDensity(t_data &data) {
 	const unsigned int ns = sigma.Nsec;
     auto & sigma1d = data[t_data::SIGMA_1D];
 
+	#pragma omp parallel for
     for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size;
 	 ++n_rad) {
 		double sum = 0;
-		#pragma omp parallel for collapse(1)
 		for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 			sum += sigma(n_rad, n_az);
 		}
@@ -341,7 +341,7 @@ void ComputeAverageDensity(t_data &data) {
 /**
    Update disk forces onto planets if *diskfeedback* is turned on
 */
-void ComputeDiskOnNbodyAccel(t_data &data)
+void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
 {
     Pair accel;
     for (unsigned int k = 0;
@@ -349,6 +349,11 @@ void ComputeDiskOnNbodyAccel(t_data &data)
 	t_planet &planet = data.get_planetary_system().get_planet(k);
 	const double l1 = planet.get_dimensionless_roche_radius() *
 		 planet.get_distance_to_primary();
+
+	if(parameters::planet_orbit_disk_test && k == 0){
+		planet.set_disk_on_planet_acceleration(Pair{0.0, 0.0});
+		continue;
+	}
 
 	if (parameters::correct_disk_selfgravity) {
 		ComputeAverageDensity(data);
@@ -361,7 +366,14 @@ void ComputeDiskOnNbodyAccel(t_data &data)
 	const double torque =
 	    (planet.get_x() * accel.y - planet.get_y() * accel.x) *
 	    planet.get_mass();
+
+	if(add_torqe_and_average){
+	const double old_torque = planet.get_torque();
+	const double new_torque = 0.5*(torque + old_torque);
+	planet.set_torque(new_torque);
+	} else {
 	planet.set_torque(torque);
+	}
     }
 }
 

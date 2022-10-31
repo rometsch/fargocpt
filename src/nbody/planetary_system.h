@@ -25,6 +25,12 @@ class t_planetary_system
 	m_planets.push_back(planet);
 	planet->set_planet_number(get_number_of_planets());
     }
+	inline void delete_planet(const unsigned int planet_id)
+	{
+	m_planets.erase(m_planets.begin() + planet_id);
+	reb_remove(m_rebound, planet_id, true);
+	reb_remove(m_rebound_predictor, planet_id, true);
+	}
     inline unsigned int get_number_of_planets(void) const
     {
 	return m_planets.size();
@@ -80,7 +86,9 @@ class t_planetary_system
 	void copy_rebound_to_predictor();
 	void compare_rebound_to_predictor();
     void copy_data_to_rebound();
+	void move_to_hydro_center_and_update_orbital_parameters();
 	void copy_data_from_rebound_update_orbital_parameters();
+	void copy_data_from_rebound();
     void correct_velocity_for_disk_accel();
     void correct_planet_accretion();
     void compute_dist_to_primary();

@@ -206,22 +206,21 @@ double condition_cfl(t_data &data, const double dt_global_input)
 	v_mean[n_radial] /= (double)(v_azimuthal.get_size_azimuthal());
 	}
 
-	double dt_core = parameters::CFL * dphi /
-			fabs(v_mean[0]*InvRmed[0] - v_mean[1]*InvRmed[1]);
+	const double denom = fabs(v_mean[0]*InvRmed[0] - v_mean[1]*InvRmed[1]) + 1.0e-100;
+	double dt_core = parameters::CFL * dphi / denom;
 
 	#pragma omp parallel for reduction(min : dt_core, dt_parabolic_local)
 	for (unsigned int nr = radial_first_active;
 	 nr < radial_active_size; ++nr) {
-
 		// FARGO algorithm timestep criterion. See Masset 2000 Sect. 3.3.
-		const double shear_dt =
-				parameters::CFL * dphi /
-				fabs(v_mean[nr] * InvRmed[nr] -
-				 v_mean[nr + 1] * InvRmed[nr + 1]);
+		const double denom = fabs(v_mean[nr] * InvRmed[nr] -
+							 v_mean[nr + 1] * InvRmed[nr + 1]) + 1.0e-100;
+		double shear_dt = parameters::CFL * dphi / denom;
 
-			if (shear_dt < dt_core){
-				dt_core = shear_dt;
-			}
+		if (shear_dt < dt_core){
+			dt_core = shear_dt;
+		}
+
 
 	// cell sizes in radial & azimuthal direction
 	const double dxRadial = Rsup[nr] - Rinf[nr];
@@ -254,6 +253,15 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		// we do not need abs() because only square of it is used later
 		const double invdt3 = v_residual[cell_number(nr, naz, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
 
+		double leapfrog_cfl_factor;
+		if (parameters::hydro_integrator == LEAPFROG_DRIFT_KICK_DRIFT || parameters::hydro_integrator == LEAPFROG_KICK_DRIFT_KICK){
+			// since we are applying source terms twice with half the timestep,
+			// we can consider that by allowing double the timestep size for source terms cfl
+			leapfrog_cfl_factor = 0.6;
+		} else {
+			leapfrog_cfl_factor = 1.0;
+		}
+
 		// artificial viscosity limit
 		double invdt4;
 		if (parameters::artificial_viscosity ==
@@ -268,21 +276,21 @@ double condition_cfl(t_data &data, const double dt_global_input)
 					v_azimuthal(nr, naz_next) -
 					v_azimuthal(nr, naz);
 
-		if (dvRadial >= 0.0) {
-			dvRadial = std::numeric_limits<double>::min();
+		if (dvRadial > 0.0) {
+			dvRadial = 0.0;
 		} else {
 			dvRadial = -dvRadial;
 		}
 
-		if (dvAzimuthal >= 0.0) {
-			dvAzimuthal = std::numeric_limits<double>::min();
+		if (dvAzimuthal > 0.0) {
+			dvAzimuthal = 0.0;
 		} else {
 			dvAzimuthal = -dvAzimuthal;
 		}
 
 		invdt4 =
 			4.0 * std::pow(parameters::artificial_viscosity_factor, 2) *
-			std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal) * 0.6; // factor 1/2 because of leapfrog
+			std::max(dvRadial / dxRadial, dvAzimuthal / dxAzimuthal) * leapfrog_cfl_factor;
 		} else { // TW artificial viscosity
 			const unsigned int naz_next = naz == v_radial.get_max_azimuthal()
 					? 0	: naz + 1;
@@ -291,12 +299,15 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			const double eps_rr = (v_radial(nr+1, naz) - v_radial(nr, naz)) * InvDiffRsup[nr];
 			const double eps_pp =  InvRb[nr] * ((v_azimuthal(nr, naz_next) - v_azimuthal(nr, naz)) * invdphi + 0.5*(v_radial(nr + 1, naz) + v_radial(nr, naz)));
 			const double mdiv_V =  -std::min(eps_rr + eps_pp, 0.0);
-			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * 0.6; // factor 1/2 because of leapfrog
+			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * leapfrog_cfl_factor * parameters::CFL;
 		}
 
 		// kinematic viscosity limit
+		// for diffusion stability: dt < dx^2 / (4 * nu)
+		// so we do not need the extra CFL factor, same for invdt4
+		// we multipy with CFL here so that it cancels out for the combined dt
 		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) / std::pow(cell_size, 2)
-				* 0.6; // factor 1/2 because of leapfrog
+				* leapfrog_cfl_factor * parameters::CFL;
 
 		// heating / cooling limit
 		double invdt6;
@@ -308,7 +319,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		const double Qp = data[t_data::QPLUS](nr, naz);
 		const double Qm = data[t_data::QMINUS](nr, naz);
 		const double E = data[t_data::ENERGY](nr, naz);
-		invdt6 = inv_limit * std::fabs((Qp - Qm) / E) * 0.6; // factor 1/2 because of leapfrog
+		invdt6 = inv_limit * std::fabs((Qp - Qm) / E) * leapfrog_cfl_factor;
 		} else {
 		invdt6 = 0.0;
 		}

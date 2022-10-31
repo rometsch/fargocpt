@@ -63,6 +63,9 @@ class BoundaryFlow
 #define YES true
 #define NO false
 
+#define EULER_INTEGRATOR 0
+#define LEAPFROG_DRIFT_KICK_DRIFT 1
+#define LEAPFROG_KICK_DRIFT_KICK 2
 
 #define INDIRECT_TERM_REBOUND 0
 #define INDIRECT_TERM_EULER 1

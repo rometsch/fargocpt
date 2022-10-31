@@ -107,7 +107,8 @@ extern double damping_inner_limit;
 /// outer damping limit
 extern double damping_outer_limit;
 /// damping time factor
-extern double damping_time_factor;
+extern double damping_time_factor_inner;
+extern double damping_time_factor_outer;
 /// vector to handle damping structs
 extern std::vector<t_DampingType> damping_vector;
 
@@ -253,9 +254,10 @@ extern double alphaHot;
 /// replaces feels_disk
 extern bool disk_feedback;
 extern bool planet_orbit_disk_test;
+extern bool star_gasblobb_binary_test;
 
 extern bool fast_transport;
-extern bool leap_frog;
+extern int hydro_integrator;
 
 extern int indirect_term_mode;
 
@@ -370,7 +372,7 @@ enum t_particle_integrator {
 				     // - DUST
     integrator_implicit,	     // fully implicit integrator
 };
-extern t_particle_integrator integrator;
+extern t_particle_integrator particle_integrator;
 
 void read(const std::string &filename, t_data &data);
 void summarize_parameters();

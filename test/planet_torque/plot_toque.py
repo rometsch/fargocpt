@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import astropy.units as units
 
 def main():
+    fname = "out_leap/monitor/bigplanet2.dat"
 
     alpha = 1.5 # - surface density power law index
     beta = 1 # - temperature power law index
@@ -19,9 +20,9 @@ def main():
 
     expected_torque = -(2.5 + 1.7*beta - 0.1*alpha) * (0.4/(b/h))**0.71
 
-    fig, ax = plt.subplots(figsize=(10,8))
+    fig, axs = plt.subplots(2, figsize=(10,8))
 
-    fname = "output/monitor/bigplanet2.dat"
+    ax = axs[0]
     time, torque = np.genfromtxt(fname, usecols=(6,17), unpack=True)
     time = time/(2*np.pi)
     ax.plot(time, torque/Gamma0, label="corr")
@@ -37,6 +38,18 @@ def main():
     ax.set_ylabel(r"$\Gamma / \Gamma_0$")
 
     ax.legend()
+
+    ax = axs[1]
+    time, sma = np.genfromtxt(fname, usecols=(6,11), unpack=True)
+    time = time/(2*np.pi)
+    ax.plot(time, sma, label="corr")
+
+    ax.set_xlabel(r"$t$ [orbits]")
+    ax.set_ylabel(r"Semi Major Axis")
+
+    ax.legend()
+
+
 
     plt.show()
 

@@ -5,8 +5,9 @@ import re
 
 class read1D:
     def __init__(self, output_folder_path, quantity):
-        self.output_folder_path = output_folder_path + quantity + "1D"
-        with open(self.output_folder_path + ".info") as f:
+        self.output_folder_path = output_folder_path
+        self.quantity = quantity
+        with open(self.output_folder_path + quantity + "1D" + ".info") as f:
             self.header = f.readline()
             self.header = f.readline()
             self.header = f.readline()
@@ -20,7 +21,7 @@ class read1D:
             print(quantity, self.unit, self.code_to_cgs_factor)
 
     def read(self, dt, return_min_max=False):
-        with open(self.output_folder_path + str(dt) +  ".dat", "rb") as f:
+        with open(self.output_folder_path + f"/snapshots/{dt}/" + str(self.quantity) + "1D.dat", "rb") as f:
             Nr = self.Nr
             data = np.fromfile(f)
             rs = data[::4]
@@ -48,6 +49,8 @@ class read1D:
 
 
 if __name__ == "__main__":
-    mass_dens_reader = read1D("/home/jordan/UnitTest/fargocpt/Tools/test_problems/gasMassFlow1D/out/", 'gasdens')
+    mass_dens_reader = read1D("/home/jordan/develop/fargocpt/test/gasMassFlow1D/out/", 'Sigma')
 
     rs, density = mass_dens_reader.read(0)
+    print(rs)
+    print(density)

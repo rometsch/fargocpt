@@ -1,19 +1,21 @@
 # Disk parameters
 
-Disk: no
 SecondaryDisk: no
 
-Sigma0: 3341.7481 g/cm2   # surface density at r=1 in g/cm^2
-SigmaSlope: 1.5   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+Sigma0: 2.52103e+08 g/cm2   # surface density at r=1 in g/cm^2
+SigmaSlope: 0.0   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 
-SetSigma0:		Yes		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass:		1.0		# only used when SetSigma0 = true [default = 0.01]
+SetSigma0:		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
+DiscMass:		0.0		# only used when SetSigma0 = true [default = 0.01]
 
-SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-9]
-DensityFactor: '2.0'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
+SigmaFloor: 1.0e-8   # floor surface density in multiples of sigma0 [default = 1e-9]
+DensityFactor: '2.5'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
 AspectRatio: 0.0   # Thickness over Radius in the disk
 AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 FlaringIndex: 0.00   # Slope of Temperature/radius profile
+
+SigmaCondition: Nbody   # Initialize surface density by Profile, 1D or 2D [default = Profile]
+EnergyCondition: Nbody   # Initialize energy by Profile, 1D or 2D [default = Profile]
 
 ExplicitViscosity: 'YES'
 Viscosity: '0'   # Uniform kinematic viscosity
@@ -21,7 +23,7 @@ AlphaViscosity: 0.0
 
 StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
-ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
+ArtificialViscosityDissipation: 'No'   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 
 EquationOfState: Isothermal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
@@ -41,16 +43,16 @@ ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Boundary layer parameters
-KlahrSmoothingRadius: '0.4'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
+KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-InnerBoundary: Reflective
-OuterBoundary: Reflective
+InnerBoundary: open
+OuterBoundary: open
 
 Damping: No     # NO, YES [default = no]
-DampingInnerLimit: 1.25     # Rmin*Limit
-DampingOuterLimit: 0.84     # Rmax*Limit
+DampingInnerLimit: 1.0     # Rmin*Limit
+DampingOuterLimit: 1.0     # Rmax*Limit
 DampingTimeFactor: '0.001'
 DampingEnergyInner: Initial   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialInner: Initial   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
@@ -63,42 +65,51 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 
 # Numerical method parameters
 
+Disk: yes
 Transport: FARGO
-Integrator: Euler  # Integrator type: Euler or LeapFrog
+Integrator: kdk  # Integrator type: Euler or LeapFrog
 
 OmegaFrame: 0.0
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: Yes   # Calculate incfluence of the disk on the star
-PlanetOrbitDiskTest: yes
+StarDiskBinaryTest: Yes
+
+InitializePureKeplerian: 'Yes'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
+InitializeVradialZero: 'Yes'   # Initialize VRadial=0  [default = no]
 
 # Mesh parameters
 
-Nrad: '28'   # 512 128		# Radial number of zones
-Nsec: '56'   # 1536 384		# Azimuthal number of
+  #Nrad: '168'   # 512 128		# Radial number of zones
+  #Nsec: '840'   # 1536 384		# Azimuthal number of
+
+  #Nrad: '168'   # 512 128		# Radial number of zones
+  #Nsec: '2320'   # 1536 384		# Azimuthal number of
+Nrad: '84'   # 512 128		# Radial number of zones
+Nsec: '1182'   # 1536 384		# Azimuthal number of
+
   #cps: 1
 
 # zones (sectors)
 
-Rmin: 0.0000001   # Inner boundary radius
-Rmax: 0.0000002   # Outer boundary radius
+Rmin: 0.8   # Inner boundary radius
+Rmax: 1.25   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Ntot: 1     # Total number of time steps
-Ninterm: 2000     # Time steps between outputs
+Ntot: 10     # Total number of time steps
+Ninterm: 10     # Time steps between outputs
 DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
-FirstDT: '0.1'
-#FirstDT: '0.031415'
+FirstDT: '1.0e-3'
 CFLmaxVar: '1.1'
-OutputDir: euler_disk_at_center/
+OutputDir: out_leapfrog_kdk/
 
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
-WriteDensity: no   # Write surface density. This is needed for restart of simulations. [default = yes]
-WriteEnergy: no   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
-WriteVelocity: no   # Write velocites. This is needed for restart of simulations. [default = yes]
+WriteDensity: yes   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy: yes   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteVelocity: yes   # Write velocites. This is needed for restart of simulations. [default = yes]
 WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
 WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
 WriteDiskQuantities: 'Yes'   # Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
@@ -115,9 +126,9 @@ IntegratePlanets: 'Yes'   # [default = yes]
 # Nbody
 
 nbody:
-- name: star
+- name: primary
   semi-major axis: '0.0'
-  mass: 1.0
+  mass: 0.3
   accretion efficiency: '0.0'
   eccentricity: '0.0'
   radius: 1.0 solRadius
@@ -125,11 +136,22 @@ nbody:
   phi: 0
   ramp-up time: 0
 
-- name: planet
-  semi-major axis: 1 au
-  mass: 0.0
+- name: secondary
+  semi-major axis: '0.1'
+  mass: 0.2
   accretion efficiency: '0.0'
-  eccentricity: '0.5'
+  eccentricity: '0.0'
+  radius: 1.0 solRadius
+  temperature: 0 K
+  phi: 0
+  ramp-up time: 0
+
+- name: blobb
+    #semi-major axis: 1.002553395309377 au
+  semi-major axis: 1.0016699154560738 au
+  mass: 0.5
+  accretion efficiency: '0.0'
+  eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
   phi: 0

@@ -41,14 +41,14 @@ ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Boundary layer parameters
-KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
+KlahrSmoothingRadius: '0.4'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
 InnerBoundary: Reflective
 OuterBoundary: Reflective
 
-Damping: Yes     # NO, YES [default = no]
+Damping: No     # NO, YES [default = no]
 DampingInnerLimit: 1.25     # Rmin*Limit
 DampingOuterLimit: 0.84     # Rmax*Limit
 DampingTimeFactor: '0.001'
@@ -64,7 +64,7 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 # Numerical method parameters
 
 Transport: FARGO
-Integrator: Euler  # Integrator type: Euler or LeapFrog
+Integrator: Leapfrog  # Integrator type: Euler or LeapFrog
 
 OmegaFrame: 0.0
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
@@ -73,14 +73,14 @@ PlanetOrbitDiskTest: no
 
 # Mesh parameters
 
-Nrad: '128'   # 512 128		# Radial number of zones
-Nsec: '256'   # 1536 384		# Azimuthal number of
+Nrad: '28'   # 512 128		# Radial number of zones
+Nsec: '56'   # 1536 384		# Azimuthal number of
   #cps: 1
 
 # zones (sectors)
 
 Rmin: 0.0000001   # Inner boundary radius
-Rmax: 0.000001   # Outer boundary radius
+Rmax: 0.0000002   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
@@ -126,7 +126,7 @@ nbody:
 
 - name: planet
   semi-major axis: 1 au
-  mass: 1e-93
+  mass: 0.0
   accretion efficiency: '0.0'
   eccentricity: '0.5'
   radius: 1.0 solRadius

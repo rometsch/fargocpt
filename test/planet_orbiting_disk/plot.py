@@ -32,20 +32,22 @@ vy_LF = p_LF[:,4]
 fig, axs = plt.subplots(2)
 
 axs[0].set_title("Position")
-axs[0].plot(t_ref,x_ref, '-k', lw=4)
+axs[0].plot(t_ref,x_ref, '-k', lw=4, label='ref')
 axs[0].plot(t_ref,y_ref, '--k', lw=4)
-axs[0].plot(t_e,x_e, '-r', lw=3)
+axs[0].plot(t_e,x_e, '-r', lw=3, label='euler')
 axs[0].plot(t_e,y_e, '--r', lw=3)
-axs[0].plot(t_LF,x_LF, '-b')
+axs[0].plot(t_LF,x_LF, '-b', label='LF')
 axs[0].plot(t_LF,y_LF, '--b')
+axs[0].legend(loc='upper right')
 
 axs[1].set_title("Velocity")
-axs[1].plot(t_ref,vx_ref, '-k', lw=4)
+axs[1].plot(t_ref,vx_ref, '-k', lw=4, label='ref')
 axs[1].plot(t_ref,vy_ref, '--k', lw=4)
-axs[1].plot(t_e,vx_e, '-r', lw=3)
+axs[1].plot(t_e,vx_e, '-r', lw=3, label='euler')
 axs[1].plot(t_e,vy_e, '--r', lw=3)
-axs[1].plot(t_LF,vx_LF, '-b')
+axs[1].plot(t_LF,vx_LF, '-b', label='LF')
 axs[1].plot(t_LF,vy_LF, '--b')
+axs[1].legend(loc='upper right')
 
 
 plt.show()

@@ -9,8 +9,9 @@
 namespace viscous_speed
 {
 
-void init_vr_table_outer_boundary(t_data &data);
-double lookup_initial_vr(const double r);
+void init_vr_table_boundary(t_data &data);
+double lookup_initial_vr_outer(const double r);
+double lookup_initial_vr_inner(const double r);
 double get_vr_with_numerical_viscous_speed(const double r, const double mass);
 
 } // viscous_speed

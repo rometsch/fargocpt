@@ -1,0 +1,134 @@
+# Disk parameters
+
+Sigma0: 3.76e-4 #3341.7481 g/cm2   # surface density at r=1 in g/cm^2
+SigmaSlope: 1.5   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+
+SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-9]
+DensityFactor: '2.5'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
+AspectRatio: 0.05   # Thickness over Radius in the disk
+AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
+FlaringIndex: 0   # Slope of Temperature/radius profile
+
+ExplicitViscosity: 'YES'
+Viscosity: '0'   # Uniform kinematic viscosity
+AlphaViscosity: 0e-3
+
+StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
+ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
+ArtificialViscosityDissipation: 'No'   # Use artificial viscosity in dissipation function [default = yes]
+ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
+
+
+EquationOfState: Isothermal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
+AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+
+CFL: '0.4'
+
+# Units
+
+l0: 1 au   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
+m0: 1 solMass   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
+mu: 2.35   # mean molecular weight [default=1.0]
+
+# Planet parameters
+
+SecondaryDisk: 'No'
+ThicknessSmoothing: 0.4   # Softening parameters in disk thickness [default = 0.0]
+ThicknessSmoothingSG: 0.0   # Softening parameter for SG [default = ThicknessSmoothing]
+NaiveSmoothing : yes
+CorrectDiskSelfgravity: yes
+
+# Boundary layer parameters
+KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
+RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
+
+# Boundaries
+InnerBoundary: REFLECTIVE
+OuterBoundary: REFLECTIVE
+
+Damping: Yes     # NO, YES [default = no]
+DampingInnerLimit: 1.24     # Rmin*Limit
+DampingOuterLimit: 0.84     # Rmax*Limit
+DampingTimeFactorInner: '0.1'
+DampingTimeFactorOuter: '0.1'
+DampingEnergyInner: none   # Damping of energy at inner boundary, values: none, mean, zero, none [default = none]
+DampingVRadialInner: initial   # Damping of radial velocity at inner boundary, values: none, mean, zero, none [default = none]
+DampingVAzimuthalInner: none   # Damping of azimuthal velocity at inner boundary, values: none, mean, zero, none [default = none]
+DampingSurfaceDensityInner: none   # Damping of surface density at inner boundary, values: none, mean, zero, none [default = none]
+DampingEnergyOuter: none   # Damping of energy at outer boundary, values: none, mean, zero, none [default = none]
+DampingVRadialOuter: initial   # Damping of radial velocity at outer boundary, values: none, mean, zero, none [default = none]
+DampingVAzimuthalOuter: none   # Damping of azimuthal velocity at outer boundary, values: none, mean, zero, none [default = none]
+DampingSurfaceDensityOuter: none   # Damping of surface density at outer boundary, values: none, mean, zero, none [default = none]
+
+# Numerical method parameters
+
+Transport: FARGO
+Integrator: Euler  # Integrator type: Euler or LeapFrog
+
+Disk: yes
+OmegaFrame: 0.0
+Frame: C   # F: Fixed, C: Corotating, G: Guiding-Center
+DiskFeedback: No   # Calculate incfluence of the disk on the star
+
+# Mesh parameters
+
+# Nrad: '128'   # 512 128		# Radial number of zones
+# Nsec: '384'   # 1536 384		# Azimuthal number of
+cps: 6
+
+# zones (sectors)
+
+Rmin: 0.4   # Inner boundary radius
+Rmax: 1.8   # Outer boundary radius
+RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
+
+# Output control parameters
+
+Ntot: 500     # Total number of time steps
+Ninterm: 10     # Time steps between outputs
+DT: 0.6283185307179586     # Time step length. 2PI = 1 orbit
+FirstDT: '0.1'
+CFLmaxVar: '1.1'
+OutputDir: out_euler/
+LogAfterRealSeconds: '600'
+LogAfterSteps: '0'
+WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteVelocity: 'Yes'   # Write velocites. This is needed for restart of simulations. [default = yes]
+WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
+WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
+WriteDiskQuantities: 'Yes'   # Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
+
+# Planets
+
+HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+BodyForceFromPotential: 'Yes'
+IntegratePlanets: 'Yes'   # [default = yes]
+
+# Star Parameters
+
+# Nbody
+
+nbody:
+- name: star
+  semi-major axis: '1.0'
+  mass: 1.0
+  accretion efficiency: '0.0'
+  eccentricity: '0.0'
+  radius: 1.0 solRadius
+  temperature: 0 K
+  irradiate: n
+  phi: '0.0'
+  ramp-up time: 0.0
+- name: planet
+  semi-major axis: 1
+  mass: 2.0e-05
+  accretion efficiency: '0.0'
+  eccentricity: '0.0'
+  radius: 1.0 solRadius
+  temperature: 0 K
+  irradiate: n
+  phi: '0.0'
+  ramp-up time: 10

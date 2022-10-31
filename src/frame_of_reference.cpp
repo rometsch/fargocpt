@@ -71,8 +71,6 @@ void handle_corotation(t_data &data, const double dt)
  */
 void ComputeIndirectTermDisk(t_data &data)
 {
-    IndirectTerm.x = 0.0;
-    IndirectTerm.y = 0.0;
     IndirectTermDisk.x = 0.0;
     IndirectTermDisk.y = 0.0;
 
@@ -93,9 +91,6 @@ void ComputeIndirectTermDisk(t_data &data)
 	IndirectTermDisk.x /= mass_center;
 	IndirectTermDisk.y /= mass_center;
     }
-
-    IndirectTerm.x = IndirectTermDisk.x;
-    IndirectTerm.y = IndirectTermDisk.y;
 }
 
 void ComputeIndirectTermNbodyEuler(t_data &data)
@@ -117,10 +112,7 @@ void ComputeIndirectTermNbodyEuler(t_data &data)
 	mass_center += mass;
     }
     IndirectTermPlanets.x /= mass_center;
-    IndirectTermPlanets.y /= mass_center;
-
-    IndirectTerm.x += IndirectTermPlanets.x;
-    IndirectTerm.y += IndirectTermPlanets.y;
+	IndirectTermPlanets.y /= mass_center;
 }
 
 void ComputeIndirectTermNbody(t_data &data, const double current_time, const double dt)

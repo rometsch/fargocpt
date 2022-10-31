@@ -170,14 +170,19 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     
 	switch (cfg.get_first_letter_lowercase("Integrator", "Euler")) {
     case 'e':
-	parameters::leap_frog= false;
+	parameters::hydro_integrator = EULER_INTEGRATOR;
 	logging::print_master(LOG_INFO
 	"Using standard forward euler scheme for source terms.\n");
 	break;
-    case 'l':
-	parameters::leap_frog = true;
+	case 'k':
+	parameters::hydro_integrator = LEAPFROG_KICK_DRIFT_KICK;
 	logging::print_master(LOG_INFO
 	"Using leapfrog scheme for source terms.\n");
+	break;
+	case 'l':
+	parameters::hydro_integrator = LEAPFROG_DRIFT_KICK_DRIFT;
+	logging::print_master(LOG_INFO
+	"Using leapfrog (gas: kick drift kick) (nbody: drift kick drift) scheme for source terms.\n");
 	break;
     default:
 	die("Invalid setting for Integrator (valid: Euler, Leapfrog");

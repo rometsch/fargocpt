@@ -355,7 +355,6 @@ void t_planetary_system::restart()
 	    (char *)rebound_filename.c_str());
     
 	copy_data_from_rebound_update_orbital_parameters();
-    calculate_orbital_elements();
 
     logging::print_master(LOG_INFO " done\n");
 }
@@ -764,6 +763,39 @@ void t_planetary_system::copy_data_from_rebound_update_orbital_parameters()
 	calculate_orbital_elements();
 }
 
+/**
+   Copy positions, velocities and masses back
+   from rebound to planetary system.
+*/
+void t_planetary_system::copy_data_from_rebound()
+{
+	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
+	auto &planet = get_planet(i);
+	planet.set_x(m_rebound->particles[i].x);
+	planet.set_y(m_rebound->particles[i].y);
+	planet.set_vx(m_rebound->particles[i].vx);
+	planet.set_vy(m_rebound->particles[i].vy);
+	}
+}
+
+/**
+   Move Nbody system to hydro center and recompute orbital elements
+*/
+void t_planetary_system::move_to_hydro_center_and_update_orbital_parameters()
+{
+
+	if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
+	move_to_hydro_frame_center();
+	}
+
+	/// Needed for Aspectratio mode = 1
+	/// and to correctly compute circumplanetary disk mass
+	compute_dist_to_primary();
+	/// Needed if they can change and massoverflow or planet accretion
+	/// is on
+	calculate_orbital_elements();
+}
+
 void t_planetary_system::copy_rebound_to_predictor()
 {
 	m_rebound_predictor->t = m_rebound->t;
@@ -922,6 +954,17 @@ void t_planetary_system::init_roche_radii()
     for (unsigned int i = 1; i < get_number_of_planets(); ++i) {
 	auto &planet = get_planet(i);
 	const double m = planet.get_mass();
+
+	if(m == 0){
+		planet.set_dimensionless_roche_radius(0.0);
+		primary.set_dimensionless_roche_radius(1.0);
+		return;
+	}
+	if(M == 0){
+		primary.set_dimensionless_roche_radius(0.0);
+		planet.set_dimensionless_roche_radius(1.0);
+		return;
+	}
 
 	double x = 0.0;
 	if (M > m) {

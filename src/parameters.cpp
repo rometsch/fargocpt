@@ -79,7 +79,8 @@ bool damping;
 bool is_damping_initial = false;
 double damping_inner_limit;
 double damping_outer_limit;
-double damping_time_factor;
+double damping_time_factor_inner;
+double damping_time_factor_outer;
 
 int damping_energy_id;
 std::vector<t_DampingType> damping_vector;
@@ -157,10 +158,11 @@ double profile_cutoff_width_inner;
 
 bool disk_feedback;
 bool fast_transport;
-bool leap_frog;
+int hydro_integrator;
 int indirect_term_mode;
 
 bool planet_orbit_disk_test;
+bool star_gasblobb_binary_test;
 
 bool integrate_planets;
 bool do_init_secondary_disk;
@@ -228,7 +230,7 @@ double particle_maximum_escape_radius_sq;
 bool particle_gas_drag_enabled;
 bool particle_disk_gravity_enabled;
 bool particle_dust_diffusion;
-t_particle_integrator integrator;
+t_particle_integrator particle_integrator;
 
 // for constant opacity
 double kappa_const = 1.0;
@@ -668,8 +670,18 @@ void read(const std::string &filename, t_data &data)
     if (damping_outer_limit > 1) {
 	die("DampingOuterLimit must not be >1\n");
     }
-    damping_time_factor =
+	damping_time_factor_inner =
 	config::cfg.get<double>("DampingTimeFactor", 1.0);
+	damping_time_factor_outer =
+	config::cfg.get<double>("DampingTimeFactor", 1.0);
+
+	damping_time_factor_inner =
+	config::cfg.get<double>("DampingTimeFactorInner", 1.0);
+	damping_time_factor_outer =
+	config::cfg.get<double>("DampingTimeFactorOuter", 1.0);
+
+	logging::print_master("DampingTimeFactor Inner: %.5e outer %.5e\n", damping_time_factor_inner,
+						  damping_time_factor_outer);
 
     t_damping_type tmp_damping_inner;
     t_damping_type tmp_damping_outer;
@@ -743,7 +755,7 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
 
     heating_viscous_enabled =
-	config::cfg.get_flag("HeatingViscous", "yes");
+	config::cfg.get_flag("HeatingViscous", "No");
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
 
@@ -955,6 +967,7 @@ void read(const std::string &filename, t_data &data)
 
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
 	planet_orbit_disk_test = config::cfg.get_flag("PlanetOrbitDiskTest", "no");
+	star_gasblobb_binary_test = config::cfg.get_flag("StarDiskBinaryTest", "no");
 
 
 	indirect_term_mode = config::cfg.get<int>("IndirectTermMode", INDIRECT_TERM_REBOUND);
@@ -1086,13 +1099,13 @@ void read(const std::string &filename, t_data &data)
     switch (
 	config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s")) {
     case 'e': // Explicit
-	integrator = integrator_explicit;
+	particle_integrator = integrator_explicit;
 	break;
     case 'a': // Adaptive
-	integrator = integrator_adaptive;
+	particle_integrator = integrator_adaptive;
 	break;
     case 's': // Semi-implicit
-	integrator = integrator_semiimplicit;
+	particle_integrator = integrator_semiimplicit;
 
 	if (!particle_gas_drag_enabled) {
 	    logging::print_master(
@@ -1102,7 +1115,7 @@ void read(const std::string &filename, t_data &data)
 
 	break;
     case 'm': // exponential midpoint
-	integrator = integrator_exponential_midpoint;
+	particle_integrator = integrator_exponential_midpoint;
 
 	if (!particle_gas_drag_enabled) {
 	    logging::print_master(
@@ -1112,7 +1125,7 @@ void read(const std::string &filename, t_data &data)
 
 	break;
     case 'i': // Implicit
-	integrator = integrator_implicit;
+	particle_integrator = integrator_implicit;
 
 	if (!particle_gas_drag_enabled) {
 	    logging::print_master(
@@ -1127,9 +1140,9 @@ void read(const std::string &filename, t_data &data)
 	    config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s"));
     }
 
-    if (CartesianParticles && ((integrator == integrator_implicit) ||
-			       integrator == integrator_semiimplicit ||
-			       integrator == integrator_exponential_midpoint)) {
+    if (CartesianParticles && ((particle_integrator == integrator_implicit) ||
+			       particle_integrator == integrator_semiimplicit ||
+			       particle_integrator == integrator_exponential_midpoint)) {
 	// implicit and semiimplicit integrator only implemented in polar
 	// coordiantes, but forces can be calculated in cartesian coordinates
 	CartesianParticles = false;
@@ -1244,7 +1257,9 @@ void summarize_parameters()
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
     case boundary_condition_center_of_mass_initial:
-	die("Inner boundary initial condition in center of mass is not implemented yet!\n");
+	logging::print_master(
+		LOG_INFO
+		"Using 'initial boundary in center of mass frame' at inner boundary.\n");
 	break;
     }
 
@@ -1477,7 +1492,7 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO "Particles disk gravity is %s.\n",
 			      particle_disk_gravity_enabled ? "enabled"
 							    : "disabled");
-	switch (integrator) {
+	switch (particle_integrator) {
 	case integrator_explicit:
 	    logging::print_master(LOG_INFO
 				  "Particles use the explicit integrator\n");

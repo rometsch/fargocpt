@@ -1,7 +1,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #else
-#warning "Your compiler does not support OpenMP, at least with the flags you're using."
+#pragma message "Your compiler does not support OpenMP, at least with the flags you're using."
 #endif
 
 #include <experimental/filesystem>

@@ -282,6 +282,12 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     case parameters::boundary_condition_viscous_outflow:
 	viscous_outflow_boundary_inner(data);
 	break;
+	case parameters::boundary_condition_center_of_mass_initial:
+	if (final) {
+		damping_initial_center_of_mass_inner(data, dt);
+	}
+	initial_center_of_mass_boundary_inner(data);
+	break;
     case parameters::boundary_condition_jibin_spreading_ring:
 	jibin_boundary_inner(data);
 	break;
@@ -304,9 +310,6 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     case parameters::boundary_condition_precribed_time_variable:
 	die("Inner precribed time variable boundary condition is not implemented yet!\n");
 	break;
-    case parameters::boundary_condition_center_of_mass_initial:
-	die("Inner initial center of mass boundary is not implemented yet!\n");
-	break;
     }
 
     // outer boundary
@@ -321,7 +324,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	if (final) {
 	    damping_initial_center_of_mass_outer(data, dt);
 	}
-	initial_center_of_mass_boundary(data);
+	initial_center_of_mass_boundary_outer(data);
 	break;
     }
     case parameters::boundary_condition_zero_gradient:
@@ -746,7 +749,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
@@ -807,7 +810,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	// Needed for OpenMP to work
@@ -867,7 +870,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
@@ -933,7 +936,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	// Needed for OpenMP to work
@@ -994,7 +997,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// get mean quantity
@@ -1059,7 +1062,7 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 	const static unsigned int limit =
 	    get_rinf_id(RMIN * parameters::damping_inner_limit);
 
-	const double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	const double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
 			   calculate_omega_kepler(RMIN);
 
 	const double s = parameters::viscous_outflow_speed;
@@ -1122,7 +1125,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	for (unsigned int n_radial = limit;
@@ -1174,9 +1177,8 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 void damping_initial_center_of_mass_outer(t_data &data, double dt)
 {
 
-    // use the correct radius array corresponding to quantity
-    const t_radialarray &radius = Rinf;
-    t_polargrid &vrad_arr = data[t_data::V_RADIAL];
+	// use the correct radius array corresponding to quantity
+	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
     t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
 
     const unsigned int np = data.get_planetary_system().get_number_of_planets();
@@ -1187,30 +1189,29 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) &&
-	(radius[vrad_arr.get_max_radial()] >
+	(Rinf[vrad_arr.get_max_radial()] >
 	 RMAX * parameters::damping_outer_limit)) {
 
 	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
-	    get_rinf_id(RMAX * parameters::damping_outer_limit) + 1,
-	    vrad_arr.is_vector());
+		get_rinf_id(RMAX * parameters::damping_outer_limit), vrad_arr.is_vector())+1;
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
 		     calculate_omega_kepler(RMAX);
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vrad_id;
 	     n_radial < vrad_arr.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
-		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
+		(Rinf[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < vrad_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
 
 		const double phi = (double)n_azimuthal * dphi;
-		const double rinf = radius[n_radial];
+		const double rinf = Rinf[n_radial];
 
 		const double cell_x = rinf * std::cos(phi);
 		const double cell_y = rinf * std::sin(phi);
@@ -1225,10 +1226,14 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		double vphi_init;
 		if (parameters::initialize_pure_keplerian) {
 			vphi_init = compute_v_kepler(r_com, com_mass);
+			if(parameters::initialize_vradial_zero){
+				vr_init = 0.0;
+			} else {
 			vr_init = initial_viscous_radial_speed(r_com, com_mass);
+			}
 		} else {
 			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vr_init = viscous_speed::lookup_initial_vr(r_com);
+			vr_init = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
 		// Velocity in center of mass frame
@@ -1252,21 +1257,21 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	    }
 	}
 
-	const unsigned int clamped_vphi_id = clamp_r_id_to_radii_grid(
-	    get_rinf_id(RMAX * parameters::damping_outer_limit) + 1,
-	    vphi_arr.is_vector());
+	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMAX * parameters::damping_outer_limit),
+		vphi_arr.is_vector()) + 1;
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vphi_id;
 	     n_radial < vphi_arr.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
-		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
+		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < vphi_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
 
 		const double phi = ((double)n_azimuthal - 0.5) * dphi;
 		const double rmed = Rmed[n_radial];
@@ -1284,10 +1289,14 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
 			vphi0 = compute_v_kepler(r_com, com_mass);
+			if(parameters::initialize_vradial_zero){
+				vr0 = 0.0;
+			} else {
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+			}
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vr0 = viscous_speed::lookup_initial_vr(r_com);
+			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
 		// Velocity in center of mass frame
@@ -1317,9 +1326,9 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	//t_polargrid &sigma = data[t_data::DENSITY];
 	#pragma omp parallel for
 	for (unsigned int nr = clamped_vphi_id;
-		 nr < energy.get_size_radial(); ++nr) {
+		 nr < energy.get_max_radial(); ++nr) { // we leave out the last cell because it's handled by boundary conditions
 		double factor = std::pow(
-		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 		double exp_factor = std::exp(-dt * factor / tau);
@@ -1364,7 +1373,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	for (unsigned int nr = clamped_vphi_id;
 		 nr < sigma.get_size_radial(); ++nr) {
 		double factor = std::pow(
-		(radius[nr] - RMAX * parameters::damping_outer_limit) /
+		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
 		2);
 		double exp_factor = std::exp(-dt * factor / tau);
@@ -1392,6 +1401,234 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	}*/
 
     }
+}
+
+void damping_initial_center_of_mass_inner(t_data &data, double dt)
+{
+
+	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
+	t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
+
+	const unsigned int np = parameters::n_bodies_for_hydroframe_center;
+	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
+	const Pair com_vel =
+	data.get_planetary_system().get_center_of_mass_velocity(np);
+	const double com_mass = data.get_planetary_system().get_mass(np);
+
+	// is this CPU in the inner damping domain?
+	if ((parameters::damping_inner_limit > 1.0) &&
+	(Rmed[0] < RMIN * parameters::damping_inner_limit)) {
+
+	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
+		get_rinf_id(RMIN * parameters::damping_inner_limit),
+		vrad_arr.is_vector());
+
+	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
+			 calculate_omega_kepler(RMIN);
+
+	#pragma omp parallel for
+	for (unsigned int n_radial = 1; // we start at 1 because boundary takes care of nr = 0
+		 n_radial <= clamped_vrad_id; ++n_radial) {
+		double factor = std::pow(
+		(Rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
+			(RMIN - RMIN * parameters::damping_inner_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
+
+		const double phi = (double)n_azimuthal * dphi;
+		const double rinf = Rinf[n_radial];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// pressure support correction
+		double vr_init;
+		double vphi_init;
+		if (parameters::initialize_pure_keplerian) {
+			vphi_init = compute_v_kepler(r_com, com_mass);
+			if(parameters::initialize_vradial_zero){
+				vr_init = 0.0;
+			} else {
+			vr_init = initial_viscous_radial_speed(r_com, com_mass);
+			}
+		} else {
+			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr_init = viscous_speed::lookup_initial_vr_inner(r_com);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com = vphi_init;
+		const double cell_vr_com = vr_init;
+
+		const double cell_vx_com =
+			(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+			(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+
+		const double vr = vrad_arr(n_radial, n_azimuthal);
+		const double vr_new = (vr - vr0) * exp_factor + vr0;
+		vrad_arr(n_radial, n_azimuthal) = vr_new;
+		}
+	}
+
+	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
+		get_rmed_id(RMIN * parameters::damping_inner_limit),
+		vphi_arr.is_vector());
+
+	#pragma omp parallel for
+	for (unsigned int n_radial = 1;
+		 n_radial <= clamped_vphi_id; ++n_radial) {
+		double factor = std::pow(
+		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int n_azimuthal = 0;
+		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
+
+		const double phi = ((double)n_azimuthal - 0.5) * dphi;
+		const double rmed = Rmed[n_radial];
+
+		const double cell_x = rmed * std::cos(phi);
+		const double cell_y = rmed * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// pressure support correction
+		double vphi0;
+		double vr0;
+		if (parameters::initialize_pure_keplerian) {
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			if(parameters::initialize_vradial_zero){
+				vr0 = 0.0;
+			} else {
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+			}
+		} else {
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com = vphi0;
+		const double cell_vr_com = vr0;
+
+		const double cell_vx_com =
+			(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+			(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed -
+				refframe::OmegaFrame * rmed;
+
+		const double vp = vphi_arr(n_radial, n_azimuthal);
+		const double vp_new = (vp - vp0) * exp_factor + vp0;
+		vphi_arr(n_radial, n_azimuthal) = vp_new;
+		}
+	}
+
+	if (parameters::Adiabatic){
+	t_polargrid &energy = data[t_data::ENERGY];
+	//t_polargrid &sigma = data[t_data::DENSITY];
+	#pragma omp parallel for
+	for (unsigned int nr = 1;
+		 nr <= clamped_vphi_id; ++nr) {
+		double factor = std::pow(
+		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int naz = 0;
+		 naz < energy.get_size_azimuthal(); ++naz) {
+	const double cell_x = (*CellCenterX)(nr, naz);
+	const double cell_y = (*CellCenterY)(nr, naz);
+
+	// Position in center of mass frame
+	const double x_com = cell_x - com_pos.x;
+	const double y_com = cell_y - com_pos.y;
+	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+	/// Initial profile temperature
+	const double cell_energy_profile = initial_energy(r_com, com_mass);
+	/*
+	const double cell_sigma = sigma(nr, naz);
+	const double temperature_floor =
+	parameters::minimum_temperature *
+	units::temperature.get_inverse_cgs_factor();
+
+	const double energy_floor = temperature_floor * cell_sigma /
+				parameters::MU * constants::R /
+				(ADIABATICINDEX - 1.0);
+	const double cell_energy0 = std::max(cell_energy_profile, energy_floor);
+				*/
+	const double cell_energy0 = cell_energy_profile;
+
+	const double cell_energy = energy(nr, naz);
+	const double energy_new = (cell_energy - cell_energy0) * exp_factor + cell_energy0;
+
+	energy(nr, naz)  = energy_new;
+		}
+	}
+	}
+
+
+	/*
+
+	t_polargrid &sigma = data[t_data::DENSITY];
+	for (unsigned int nr = clamped_vphi_id;
+		 nr < sigma.get_size_radial(); ++nr) {
+		double factor = std::pow(
+		(Rinf[nr] - RMAX * parameters::damping_outer_limit) /
+			(RMAX - RMAX * parameters::damping_outer_limit),
+		2);
+		double exp_factor = std::exp(-dt * factor / tau);
+
+		for (unsigned int naz = 0;
+		 naz < sigma.get_size_azimuthal(); ++naz) {
+	const double cell_x = (*CellCenterX)(nr, naz);
+	const double cell_y = (*CellCenterY)(nr, naz);
+
+	// Position in center of mass frame
+	const double x_com = cell_x - com_pos.x;
+	const double y_com = cell_y - com_pos.y;
+	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+	const double cell_sigma0 =
+	parameters::sigma0 *
+	std::pow(r_com,
+		 -SIGMASLOPE); // we assume the floor is not reached.
+
+	const double cell_sigma = sigma(nr, naz);
+	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;
+
+	sigma(nr, naz)  = sigma_new;
+		}
+	}*/
+
+	}
 }
 
 /**
@@ -1998,7 +2235,7 @@ void keplerian2d_boundary_outer(t_data &data)
  * disk when the coordination system is centered on the primary.
  * @param data
  */
-void initial_center_of_mass_boundary(t_data &data)
+void initial_center_of_mass_boundary_outer(t_data &data)
 {
 
     if (CPU_Rank != CPU_Highest)
@@ -2040,7 +2277,7 @@ void initial_center_of_mass_boundary(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 	    } else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vr0 = viscous_speed::lookup_initial_vr(r_com);
+			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
@@ -2081,7 +2318,7 @@ void initial_center_of_mass_boundary(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vr0 = viscous_speed::lookup_initial_vr(r_com);
+			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
@@ -2121,7 +2358,7 @@ void initial_center_of_mass_boundary(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vr0 = viscous_speed::lookup_initial_vr(r_com);
+			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
@@ -2173,6 +2410,184 @@ void initial_center_of_mass_boundary(t_data &data)
 		/// energy(nr, naz) = energy(nr - 1, naz);
 	} /// END DENSITY and ENERGY
     }
+}
+
+
+void initial_center_of_mass_boundary_inner(t_data &data)
+{
+
+	if (CPU_Rank != 0)
+	return;
+
+	const unsigned int np = parameters::n_bodies_for_hydroframe_center;
+	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
+	const Pair com_vel =
+	data.get_planetary_system().get_center_of_mass_velocity(np);
+	const double com_mass = data.get_planetary_system().get_mass(np);
+
+	auto &sigma = data[t_data::SIGMA];
+	auto &energy = data[t_data::ENERGY];
+	auto &vrad = data[t_data::V_RADIAL];
+	auto &vaz = data[t_data::V_AZIMUTHAL];
+
+	const unsigned int nr = 0;
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz <= data[t_data::SIGMA].get_max_azimuthal();
+	 ++naz) {
+
+	{ /// V_PHI
+		const double phi = ((double)naz - 0.5) * dphi;
+		const double rmed = Rmed[nr];
+
+		const double cell_x = rmed * std::cos(phi);
+		const double cell_y = rmed * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// pressure support correction
+		double vphi0;
+		double vr0;
+		if (parameters::initialize_pure_keplerian) {
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+		} else {
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com = vphi0;
+		const double cell_vr_com = vr0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double cell_vphi =
+		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
+		vaz(nr, naz) = cell_vphi - refframe::OmegaFrame * rmed;
+	} /// END V_PHI
+
+	{ /// V_R GHOST CELL
+		const double phi = (double)naz * dphi;
+		const double rinf = Rinf[nr];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// pressure support correction
+		double vphi0;
+		double vr0;
+		if (parameters::initialize_pure_keplerian) {
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+		} else {
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com = vphi0;
+		const double cell_vr_com = vr0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+		vrad(nr, naz) = cell_vr;
+	} /// END V_R
+
+	{ /// V_R
+		const double phi = (double)naz * dphi;
+		const double rinf = Rsup[nr];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		// pressure support correction
+		double vphi0;
+		double vr0;
+		if (parameters::initialize_pure_keplerian) {
+			vphi0 = compute_v_kepler(r_com, com_mass);
+			vr0 = initial_viscous_radial_speed(r_com, com_mass);
+		} else {
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
+		}
+
+		// Velocity in center of mass frame
+		const double cell_vphi_com = vphi0;
+		const double cell_vr_com = vr0;
+
+		const double cell_vx_com =
+		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		const double cell_vy_com =
+		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+
+		// shift velocity from center of mass frame to primary frame
+		const double cell_vx = cell_vx_com + com_vel.x;
+		const double cell_vy = cell_vy_com + com_vel.y;
+
+		const double cell_vr = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+		vrad(nr + 1, naz) = cell_vr;
+	} /// END V_R GHOST CELL
+
+	{ /// DENSITY and ENERGY
+		const double cell_x = (*CellCenterX)(nr, naz);
+		const double cell_y = (*CellCenterY)(nr, naz);
+
+		// Position in center of mass frame
+		const double x_com = cell_x - com_pos.x;
+		const double y_com = cell_y - com_pos.y;
+		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
+
+		const double cell_sigma =
+		parameters::sigma0 *
+		std::pow(r_com,
+			 -parameters::SIGMASLOPE); // we assume the floor is not reached.
+		sigma(nr, naz) = cell_sigma;
+
+		/// Initial profile temperature
+	const double cell_energy = initial_energy(r_com, com_mass);
+
+	const double temperature_floor =
+		parameters::minimum_temperature *
+		units::temperature.get_inverse_cgs_factor();
+
+	const double energy_floor = temperature_floor * cell_sigma /
+					parameters::MU * constants::R /
+					(parameters::ADIABATICINDEX - 1.0);
+
+	energy(nr, naz) = std::max(cell_energy, energy_floor);
+
+		/// dP / dr = 0
+		/// energy(nr, naz) = energy(nr - 1, naz);
+	} /// END DENSITY and ENERGY
+	}
 }
 
 /**
