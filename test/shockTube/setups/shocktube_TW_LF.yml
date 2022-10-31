@@ -1,5 +1,6 @@
 # Disk parameters
 
+Integrator: Leapfrog
 ShockTube: '1'
 Sigma0: 8887231.453904748 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
@@ -18,7 +19,7 @@ ProfileCutoffWidthOuter: '0.000001'   # in [au], [default = 1]
 EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '1.0'   # Thickness over Radius in the disk
-Viscosity: '0.e-1'   # Uniform kinematic viscosity
+Viscosity: '0.0'   # Uniform kinematic viscosity
 AlphaViscosity: '0.0'   # 
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
