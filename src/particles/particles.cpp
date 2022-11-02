@@ -1005,8 +1005,9 @@ static void calculate_tstop(const double r, const double phi,
 	std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-    double sigma =
-	M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
+	const double a0_cgs = 1.5e-8;
+	const double a0 = a0_cgs * units::length.get_inverse_cgs_factor();
+    double sigma = M_PI * std::pow(a0, 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1024,8 +1025,10 @@ static void calculate_tstop(const double r, const double phi,
 
     // mean free path for molecular hydrogen (see Haghighipour & Boss, 2003 eq.
     // 20)
-    double l = 4.72e-9 / rho;
-    double f = radius / (radius + l);
+	const double rho_cgs = rho*units::density.get_inverse_cgs_factor();
+    const double l_cgs = 4.72e-9 / rho_cgs; // TODO: fix hardcoded variable
+	const double l = l_cgs * units::length.get_cgs_factor();
+    const double f = radius / (radius + l);
 
     // ***************************************************************************
     // Combined Epstein + Stokes drag regimes (see Haghighipour & Boss, 2003 eq.
@@ -1036,7 +1039,7 @@ static void calculate_tstop(const double r, const double phi,
     // double term = rho*vthermal;
     // ***************************************************************************
     // Stokes only drag regime
-    // double term = rho*vthermal*9.0/4.0*l/particles[i].radius;
+    // double term = rho*vthermal*9.0/4.0*l/radius;
     // ***************************************************************************
 
     // Stopping time
@@ -1079,6 +1082,7 @@ static void calculate_tstop2(const double r, const double phi,
 	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
     const double vg_azimuthal =
 	corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
+
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				      temperature / (M_PI * m0));
@@ -1093,8 +1097,9 @@ static void calculate_tstop2(const double r, const double phi,
     minus_l_rel = r * vg_azimuthal - l0;
 
     // a0 = 1.5e-8 cm for molecular hydrogen
-    double sigma =
-	M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
+    const double a0_cgs = 1.5e-8;
+	const double a0 = a0_cgs * units::length.get_inverse_cgs_factor();
+    double sigma = M_PI * std::pow(a0, 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
     // calculate Reynolds number
@@ -1112,8 +1117,10 @@ static void calculate_tstop2(const double r, const double phi,
 
     // mean free path for molecular hydrogen (see Haghighipour & Boss, 2003 eq.
     // 20)
-    double l = 4.72e-9 / rho;
-    double f = radius / (radius + l);
+    const double rho_cgs = rho*units::density.get_cgs_factor();
+    const double l_cgs = 4.72e-9 / rho_cgs; // TODO: fix hardcoded variable
+	const double l = l_cgs / units::length.get_cgs_factor();
+    const double f = radius / (radius + l);
 
     // ***************************************************************************
     // Combined Epstein + Stokes drag regimes (see Haghighipour & Boss, 2003 eq.
@@ -1128,7 +1135,7 @@ static void calculate_tstop2(const double r, const double phi,
     // ***************************************************************************
 
     // Stopping time
-    tstop = radius * parameters::particle_density / term;
+    tstop = radius * parameters::particle_density / term; 
 }
 
 // confirm that tstop < dt/10, else make user change integrator
@@ -1181,9 +1188,10 @@ void check_tstop(t_data &data)
 	    std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	double sigma =
-	    M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
-	double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
+	const double a0_cgs = 1.5e-8;
+	const double a0 = a0_cgs * units::length.get_inverse_cgs_factor();
+    double sigma = M_PI * std::pow(a0, 2);
+    double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
 	double reynolds = 2.0 * rho * radius * vrel / nu;
@@ -1200,8 +1208,10 @@ void check_tstop(t_data &data)
 
 	// mean free path for molecular hydrogen (see Haghighipour & Boss, 2003
 	// eq. 20)
-	double l = 4.72e-9 / rho;
-	double f = radius / (radius + l);
+    const double rho_cgs = rho*units::density.get_inverse_cgs_factor();
+    const double l_cgs = 4.72e-9 / rho_cgs; // TODO: fix hardcoded variable
+	const double l = l_cgs * units::length.get_cgs_factor();
+    const double f = radius / (radius + l);
 
 	// ***************************************************************************
 	// Combined Epstein + Stokes drag regimes (see Haghighipour & Boss, 2003
@@ -1422,9 +1432,10 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	const double vthermal = std::sqrt(
 	    8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
 	// a0 = 1.5e-8 cm for molecular hydrogen
-	const double sigma =
-	    M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
-	const double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
+	const double a0_cgs = 1.5e-8;
+	const double a0 = a0_cgs * units::length.get_inverse_cgs_factor();
+    double sigma = M_PI * std::pow(a0, 2);
+    double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
 	// calculate Reynolds number
 	const double reynolds = 2.0 * rho * particles[i].radius * vrel / nu;
