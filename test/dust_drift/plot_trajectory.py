@@ -38,14 +38,14 @@ def plot_trajectory(outdir):
             vtheo = vdrift_theo(stokes, r.to("au"))
             vtheo = vtheo.to("cm/s")
             
-            print(t, r, stokes)
+            # print(t, r, stokes)
             
             r = r.to("cm")
             t = t.to("s")
             rdot = (r[1:] - r[:-1])/(t[1:] - t[:-1])
             rdot = rdot.to("cm/s")
             
-            print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", rdot[-1]/vtheo[-1])
+            # print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", rdot[-1]/vtheo[-1])
             
             ax = axes[0]
             line, = axes[0].plot(t[:-1].to("yr"), -rdot, label=f"s = {size:.1e}")
@@ -152,7 +152,6 @@ def get_particles(datadir, N):
     # hacky way around fargocpt outputting x and y
     # for adaptive integrator
     is_cartesian = any(particles["r"] < 0)
-    is_cartesian = False
     if is_cartesian:
         x = particles["r"]
         y = particles["phi"]
@@ -161,7 +160,7 @@ def get_particles(datadir, N):
         phi = np.arctan2(x, y)
     else:
         r = particles["r"]
-        phi = particles["phi"].value
+        phi = particles["phi"].value*u.rad
 
         x = r*np.cos(phi)
         y = r*np.sin(phi)

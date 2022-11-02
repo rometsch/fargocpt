@@ -66,13 +66,15 @@ def plot_drift(outdir):
     vdrift = vdrift_theo(Sts, 1*u.au).to_value("cm/s")
     ax.plot(Sts, -vdrift)
 
-    f = interpolate.InterpolatedUnivariateSpline(sizes, Sts)
-    f2 = interpolate.InterpolatedUnivariateSpline(Sts, sizes)
-    secax = ax.secondary_xaxis(
-        'top', functions = (f2, f)
-    )
-    secax.set_xlabel("size [cm]")
-
+    try:
+        f = interpolate.InterpolatedUnivariateSpline(sizes, Sts)
+        f2 = interpolate.InterpolatedUnivariateSpline(Sts, sizes)
+        secax = ax.secondary_xaxis(
+            'top', functions = (f2, f)
+        )
+        secax.set_xlabel("size [cm]")
+    except Exception:
+        pass
 
 
     ax = fig.add_subplot(gs[2:3, :])
@@ -185,7 +187,7 @@ def get_particles(datadir, N):
         phi = np.arctan2(x, y)
     else:
         r = particles["r"]
-        phi = particles["phi"].value
+        phi = particles["phi"].value*u.rad
 
         x = r*np.cos(phi)
         y = r*np.sin(phi)

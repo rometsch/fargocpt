@@ -52,9 +52,9 @@ DiskFeedback: 'No'
 
 # Mesh parameters
 
-# Nrad: '400'   # 512 128		# Radial number of zones
-# Nsec: '1403'   # 1536 384		# Azimuthal number of zones
-cps: 1
+Nrad: '400'   # 512 128		# Radial number of zones
+Nsec: '1403'   # 1536 384		# Azimuthal number of zones
+# cps: 1
 
 # zones (sectors)
 
@@ -66,7 +66,8 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 
 Ntot: '100'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
-DT: '0.628318531'   # 1/10th of a jupiter orbit
+# DT: '0.628318531'   # 1/10th of a jupiter orbit
+DT: 1e-1   # 1/10th of a jupiter orbit
 FirstDt: 1e-1
 OutputDir: output/dust_drift
 #LogAfterRealSeconds: '600.0'
@@ -95,8 +96,8 @@ WriteMassFlow: 'Yes'   # Write a 1d radial file with mass flow at each interface
 
 IntegrateParticles: 'Yes'   # enable particle integrator [default = no]
 CartesianParticles: 'yes'   # enable particle integrator [default = no]
-ParticleIntegrator: implicit
-ParticleRadius: 1e-4 cm   # particle radius in cm [default = 100]
+ParticleIntegrator: explicit
+ParticleRadius: 1km   # particle radius in cm [default = 100]
 ParticleRadiusIncreaseFactor: 10
 ParticleSpeciesNumber: '1'
 NumberOfParticles: '1'   # number of particles [default = 0]
@@ -107,7 +108,7 @@ ParticleMinimumRadius: '1.0 au'   # [default = RMIN]
 ParticleMaximumRadius: '1.0 au'   # [default = RMAX]
 ParticleMinimumEscapeRadius: '0.5 au'   # [default = ParticleMinimumRadius]
 ParticleMaximumEscapeRadius: '3.0 au'   # [default = ParticleMaximumRadius]
-ParticleGasDragEnabled: 'yes'   # [default = YES]
+ParticleGasDragEnabled: 'no'   # [default = YES]
 ParticleDiskGravityEnabled: 'no'   # [default = no]
 
 # Nbody
