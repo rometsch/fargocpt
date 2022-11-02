@@ -1096,46 +1096,109 @@ static void calculate_tstop2(const double r, const double phi,
 
     minus_l_rel = r * vg_azimuthal - l0;
 
-    // a0 = 1.5e-8 cm for molecular hydrogen
-    const double a0_cgs = 1.5e-8;
-	const double a0 = a0_cgs * units::length.get_inverse_cgs_factor();
-    double sigma = M_PI * std::pow(a0, 2);
-    double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
+    // // a0 = 1.5e-8 cm for molecular hydrogen
+    // const double a0_cgs = 1.5e-8;
+	// const double a0 = a0_cgs * units::length.get_inverse_cgs_factor();
+    // double sigma = M_PI * std::pow(a0, 2);
+    // double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
-    // calculate Reynolds number
-    double reynolds = 2.0 * rho * radius * vrel / nu;
+    // // calculate Reynolds number
+    // double reynolds = 2.0 * rho * radius * vrel / nu;
 
-    // calculate coefficient
-    double Cd;
-    if (reynolds < 1.0) {
-	Cd = 24.0 / reynolds;
-    } else if (reynolds < 800.0) {
-	Cd = 24.0 * std::pow(reynolds, -0.6);
-    } else {
-	Cd = 0.44;
-    }
+    // // calculate coefficient
+    // double Cd;
+    // if (reynolds < 1.0) {
+	// Cd = 24.0 / reynolds;
+    // } else if (reynolds < 800.0) {
+	// Cd = 24.0 * std::pow(reynolds, -0.6);
+    // } else {
+	// Cd = 0.44;
+    // }
 
-    // mean free path for molecular hydrogen (see Haghighipour & Boss, 2003 eq.
-    // 20)
-    const double rho_cgs = rho*units::density.get_cgs_factor();
-    const double l_cgs = 4.72e-9 / rho_cgs; // TODO: fix hardcoded variable
-	const double l = l_cgs / units::length.get_cgs_factor();
-    const double f = radius / (radius + l);
+    // // mean free path for molecular hydrogen (see Haghighipour & Boss, 2003 eq.
+    // // 20)
+    // const double rho_cgs = rho*units::density.get_cgs_factor();
+    // const double l_cgs = 4.72e-9 / rho_cgs; // TODO: fix hardcoded variable
+	// const double l = l_cgs / units::length.get_cgs_factor();
+    // const double f = radius / (radius + l);
+	// printf("rho_cgs = %.3e, l_cgs = %.3e, l = %.3e, radius = %.3e, f = %.3e\n", rho_cgs, l_cgs, l, radius*units::length.get_cgs_factor(), f);
 
-    // ***************************************************************************
-    // Combined Epstein + Stokes drag regimes (see Haghighipour & Boss, 2003 eq.
-    // 8)
-    double term = rho * ((1.0 - f) * vthermal + 3.0 / 8.0 * f * Cd * vrel);
-    // ***************************************************************************
-    // Epstein only drag regime
-    // double term = rho*vthermal;
-    // ***************************************************************************
-    // Stokes only drag regime
-    // double term = rho*vthermal*9.0/4.0*l/particles[i].radius;
-    // ***************************************************************************
+	// printf("reynolds = %.3e\n", reynolds);
+	// printf("Cd = %.3e\n", Cd);
+	// printf("a0 = %.3e\n", a0);
+	// printf("a0cgs = %.3e\n", a0_cgs);
+	// printf("sigma = %.3e\n", sigma);
+	// printf("nu = %.3e\n", nu);
+	// printf("vthermal = %.3e\n", vthermal);
+	// printf("m0 = %.3e\n", m0);
+	// printf("rho = %.3e\n", rho);
+	// printf("radius = %.3e\n", radius);
+	// printf("vrel = %.3e\n", vrel);
 
-    // Stopping time
-    tstop = radius * parameters::particle_density / term; 
+
+    // // ***************************************************************************
+    // // Combined Epstein + Stokes drag regimes (see Haghighipour & Boss, 2003 eq.
+    // // 8)
+    // double term = rho * ((1.0 - f) * vthermal + 3.0 / 8.0 * f * Cd * vrel);
+    // // ***************************************************************************
+    // // Epstein only drag regime
+    // double Epstein_term = rho*vthermal;
+    // // ***************************************************************************
+    // // Stokes only drag regime
+    // // double term = rho*vthermal*9.0/4.0*l/particles[i].radius;
+    // // ***************************************************************************
+
+    // // Stopping time
+    // const double tstop_old = radius * parameters::particle_density / term; 
+
+
+	// From Giovanni Picogna, used in https://www.aanda.org/articles/aa/pdf/2018/08/aa32523-17.pdf
+	// propably adapted from https://www.aanda.org/articles/aa/pdf/2003/07/aah3912.pdf
+  if(vthermal<1.e-20) die("Zero VT %e\n",vthermal);
+  if(vthermal>1.e20) die("Zero VT1 %e\n",vthermal);
+  double sigma = M_PI*std::pow(1.5e-8/units::length.get_cgs_factor(),2);
+  double nu = 1.0/3.0*m0*vthermal/sigma;
+  if(nu<1.e-20) die("Zero nu %e\n",nu);
+  if(nu>1.e20) die("Zero nu1 %e\n",nu);
+  double l = 4.72e-9/rho;
+  if(l<1.e-20) die("Zero l %e\n",l);
+  if(l>1.e20) die("Zero l1 %e\n",l);
+  double c_s = vthermal*sqrt(M_PI/8.0);
+  if(c_s<1.e-20) die("Zero cs %e\n",c_s);
+  if(c_s>1.e20) die("Zero cs1 %e\n",c_s);
+  double Kn = 0.5*l/radius;
+  double Ma = vrel/c_s;
+  if(Ma<1.e-20) die("Zero Ma %e\n",Ma);
+  if(Ma>1.e20) die("Zero Ma1 %e\n",Ma);
+  double Re = 2.0*radius*rho*vrel/nu;
+  double CdE = 2.0*sqrt(Ma*Ma+128.0/9.0/M_PI);
+  if(CdE<1.e-20) die("Zero CdE %e\n",CdE);
+  if(CdE>1.e20) die("Zero CdE1 %e\n",CdE);
+  double CdS = 0.0;
+  if (Re <= 1.e-3) {
+      CdS = 24.0*nu/(2.0*radius*rho*c_s) + 3.6/c_s*pow(vrel,0.687)*pow(2.0*radius*rho/nu,-0.313);
+  } else if (Re <= 500.0) {
+      CdS = 24.0*Ma/Re + 3.6*Ma*pow(Re,-0.313);
+  } else if (Re <= 1500.0) {
+      CdS = Ma*9.5e-5*pow(Re,1.397);
+  } else {
+      CdS = Ma*2.61;
+  }
+  if(CdS<1.e-30) die("Zero CdS %e\n",CdS);
+  if(CdS>1.e30) die("Zero CdS1 %e\n",CdS);
+
+  double Cd = (9.0*Kn*Kn*CdE + CdS)/(3.0*Kn+1.0)/(3.0*Kn+1.0);
+  if(Cd<1.e-20) die("Zero Cd %e\n",Cd);
+  if(Cd>1.e20) die("Zero Cd1 %e\n",Cd);
+  tstop = 4.0*l*parameters::particle_density/(3.0*rho*Cd*c_s*Kn);
+	// printf("Cd = %.3e\n", Cd);
+	// printf("Kn = %.3e\n", Kn);
+	// printf("CdE = %.3e\n", CdE);
+	// printf("CdS = %.3e\n", CdS);
+	// printf("Ma = %.3e\n", Ma);
+	// printf("particle density = %.3e\n", parameters::particle_density);
+
+	// printf("tstop = %.3e, tstop_old = %.3e\n", tstop, tstop_old);
 }
 
 // confirm that tstop < dt/10, else make user change integrator
