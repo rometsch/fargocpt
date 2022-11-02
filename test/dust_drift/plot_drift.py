@@ -76,7 +76,7 @@ def plot_drift(outdir):
 
 
     ax = fig.add_subplot(gs[2:3, :])
-    reldiff = (rdot_abs - np.abs(vdrift)) / np.abs(vdrift)
+    reldiff = (np.abs(rdot_abs - np.abs(vdrift))) / np.abs(vdrift)
     ax.plot(Sts, reldiff)
     ax.set_xscale("log")
     ax.set_ylabel("rel. diff.")

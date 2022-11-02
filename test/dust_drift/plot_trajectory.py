@@ -16,7 +16,7 @@ def main():
 
 def plot_trajectory(outdir):
 
-    fig, ax = plt.subplots()
+    fig, axes = plt.subplots(figsize=(10,5), ncols=2)
 
     particles = construct_dust_trajectories(outdir)
 
@@ -25,34 +25,42 @@ def plot_trajectory(outdir):
     rdot_abs = []
 
     for i, p in particles.items():
-        # if not i%10 == 0:
-        #     continue
+        try:
+            # if not i%10 == 0:
+            #     continue
 
-        t = p["time"]
-        r = p["r"]
-        
-        
-        size = p["size"][0].to("cm")
-        stokes = p["stokes"]
-        vtheo = vdrift_theo(stokes, r.to("au"))
-        vtheo = vtheo.to("cm/s")
-        
-        r = r.to("cm")
-        t = t.to("s")
-        rdot = (r[1:] - r[:-1])/(t[1:] - t[:-1])
-        rdot = rdot.to("cm/s")
-        
-        print("stokes", stokes[-1], "\t sim / theo =", rdot[-1]/vtheo[-1])
-        
-        line, = ax.plot(t[:-1].to("yr"), -rdot, label=f"s = {size:.1e}")
-        color = line.get_color()
-        ax.plot(t.to("yr"), -vtheo, ls=":", color=color)
+            t = p["time"]
+            r = p["r"]
+            
+            
+            size = p["size"][0].to("cm")
+            stokes = p["stokes"]
+            vtheo = vdrift_theo(stokes, r.to("au"))
+            vtheo = vtheo.to("cm/s")
+            
+            print(t, r, stokes)
+            
+            r = r.to("cm")
+            t = t.to("s")
+            rdot = (r[1:] - r[:-1])/(t[1:] - t[:-1])
+            rdot = rdot.to("cm/s")
+            
+            print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", rdot[-1]/vtheo[-1])
+            
+            ax = axes[0]
+            line, = axes[0].plot(t[:-1].to("yr"), -rdot, label=f"s = {size:.1e}")
+            color = line.get_color()
+            ax.plot(t.to("yr"), -vtheo, ls=":", color=color)
+            
+            axes[1].plot(t.to("yr"), r.to("au"), color=color, label=f"s = {size:.1e}")
+        except IndexError as e:
+            print(e)
 
-    ax.set_yscale("log")
-    ax.set_ylabel(r"$-\dot{r}$ [cm/s]")
-    ax.set_xlabel(r"$t$ [orbits]")
+    axes[0].set_yscale("log")
+    axes[0].set_ylabel(r"$-\dot{r}$ [cm/s]")
+    axes[0].set_xlabel(r"$t$ [orbits]")
     
-    ax.legend()
+    axes[1].legend()
 
     # print(vdrift_theo(7.4e-1, 1*u.au))
     # print(vdrift_theo(7.4e-1, 1*u.au).to("au/yr"))
@@ -81,8 +89,8 @@ def get_output_times(datadir):
             m = re.search("physical time \| ([0-9e+-\.]+) s", line)
             if m is not None:
                 timeunit = u.Unit(m.groups()[0] + "s")
-    print("time", t)
-    print("timeunit", timeunit)
+    # print("time", t)
+    # print("timeunit", timeunit)
     if timeunit is not None:
         t = t*timeunit
     return t
@@ -144,6 +152,7 @@ def get_particles(datadir, N):
     # hacky way around fargocpt outputting x and y
     # for adaptive integrator
     is_cartesian = any(particles["r"] < 0)
+    is_cartesian = False
     if is_cartesian:
         x = particles["r"]
         y = particles["phi"]
