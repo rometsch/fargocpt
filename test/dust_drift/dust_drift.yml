@@ -64,13 +64,13 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 
 # Output control parameters
 
-Ntot: '50'   # Total number of time steps
+Ntot: '10'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 DT: '0.628318531'   # 1/10th of a jupiter orbit
 FirstDt: 1e-1
-OutputDir: output/
-LogAfterRealSeconds: '600.0'
-LogAfterSteps: '100'
+OutputDir: output/dust_drift
+#LogAfterRealSeconds: '600.0'
+#LogAfterSteps: '100'
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
@@ -96,10 +96,10 @@ WriteMassFlow: 'Yes'   # Write a 1d radial file with mass flow at each interface
 IntegrateParticles: 'Yes'   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
 ParticleIntegrator: midpoint
-ParticleRadius: 1e-3 cm   # particle radius in cm [default = 100]
+ParticleRadius: 1e-8 cm   # particle radius in cm [default = 100]
 ParticleRadiusIncreaseFactor: 10
-ParticleSpeciesNumber: '7'
-NumberOfParticles: '7'   # number of particles [default = 0]
+ParticleSpeciesNumber: '10'
+NumberOfParticles: '10'   # number of particles [default = 0]
 ParticleEccentricity: '0.00'   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSlope: '0'   # [default = 0]
@@ -115,7 +115,7 @@ ParticleDiskGravityEnabled: 'no'   # [default = no]
 nbody:
 - name: star
   semi-major axis: '0.0'
-  mass: '0.55'
+  mass: '1'
   accretion efficiency: '0.0'
   eccentricity: '0.0'
   radius: 0.009304813 solRadius
