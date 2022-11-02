@@ -511,6 +511,28 @@ double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
     particles[i].id = id_offset + i;
 }
 
+/**
+	computes density rho
+*/
+void compute_rho(t_data &data, const double current_time)
+{
+	compute_scale_height(data, current_time);
+
+	const unsigned int Nr = data[t_data::RHO].get_size_radial();
+	const unsigned int Nphi = data[t_data::RHO].get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
+		data[t_data::RHO](nr, naz) =
+		data[t_data::SIGMA](nr, naz) /
+		(parameters::density_factor * H);
+	}
+    }
+}
+
+
 void init(t_data &data)
 {
     // calculate number of initial local particles
