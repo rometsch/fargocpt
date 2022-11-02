@@ -1079,13 +1079,13 @@ void read(const std::string &filename, t_data &data)
 	1.0; // particles are distributed over a whole simulation ring which
 	     // introduces a factor 1/r for the particle surface density
     particle_minimum_radius =
-	config::cfg.get<double>("ParticleMinimumRadius", RMIN);
+	config::cfg.get<double>("ParticleMinimumRadius", RMIN, L0);
     particle_maximum_radius =
-	config::cfg.get<double>("ParticleMaximumRadius", RMAX);
+	config::cfg.get<double>("ParticleMaximumRadius", RMAX, L0);
     particle_minimum_escape_radius =
-	config::cfg.get<double>("ParticleMinimumEscapeRadius", RMIN);
+	config::cfg.get<double>("ParticleMinimumEscapeRadius", RMIN, L0);
     particle_maximum_escape_radius =
-	config::cfg.get<double>("ParticleMaximumEscapeRadius", RMAX);
+	config::cfg.get<double>("ParticleMaximumEscapeRadius", RMAX, L0);
     particle_gas_drag_enabled =
 	config::cfg.get_flag("ParticleGasDragEnabled", true);
     particle_disk_gravity_enabled =
