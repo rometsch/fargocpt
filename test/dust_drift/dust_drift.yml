@@ -13,14 +13,6 @@ AlphaViscosity: '0.01'
 EquationOfState: Isothermal   # Isothermal Ideal Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # [default = 1.4]
 
-# Radiative Processes
-
-MinimumTemperature: 10 K   # minimum Temperature in K
-CoolingRadiativeLocal: 'Yes'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
-HeatingViscous: 'Yes'   # enable viscous heating
-HeatingViscousFactor: '1.0'
-RadiativeDiffusion: 'No'
-
 # Units
 
 l0: '1.0 au'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
@@ -32,11 +24,6 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 HydroFrameCenter: primary
 ForcedCircular: 'No'
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness
-
-# Self-gravity
-
-SelfGravity: 'No'   # choose: Yes, Z or No
-ThicknessSmoothingSG: '1.0'   # Softening parameters in disk thickness
 
 # Numerical method parameters
 
@@ -56,8 +43,6 @@ Nrad: '400'   # 512 128		# Radial number of zones
 Nsec: '1403'   # 1536 384		# Azimuthal number of zones
 # cps: 1
 
-# zones (sectors)
-
 Rmin: '0.5au'   # Inner boundary radius
 Rmax: '3au'   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
@@ -68,36 +53,16 @@ Ntot: '100'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 # DT: '0.628318531'   # 1/10th of a jupiter orbit
 DT: 1e-1   # 1/10th of a jupiter orbit
-FirstDt: 1e-1
+FirstDt: 1e-2
 OutputDir: output/dust_drift
-#LogAfterRealSeconds: '600.0'
-#LogAfterSteps: '100'
-WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
-WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
-WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
-WriteTemperature: 'Yes'   # Write temperature. [default = no]
-WriteVelocity: 'Yes'   # Write velocites. This is needed for restart of simulations. [default = yes]
-WriteToomre: 'No'   # Write Toomre parameter Q. [default = no]
-WriteQMinus: 'No'   # Write QMinus. [default = no]
-WriteQPlus: 'No'   # Write QPlus. [default = no]
-WriteViscosity: 'No'   # Write Viscosity. [default = no]
-WriteTauCool: 'No'   # Write TauCool. [default = no]
-WriteKappa: 'No'   # Write Kappa. [default = no]
-WriteAlphaGrav: 'No'   # Write AlphaGrav. [default = no]
-WriteEccentricity: 'Yes'   # Write eccentricity. [default = no]
-WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
-WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
-WritepdV: 'No'   # Write pdV. [default = no]
-WriteDiskQuantities: 'Yes'
-WriteTorques: 'No'   # Calculate and write torques acting in planet/star
-WriteMassFlow: 'Yes'   # Write a 1d radial file with mass flow at each interface [default = no]
+
 
 # particles
 
 IntegrateParticles: 'Yes'   # enable particle integrator [default = no]
-CartesianParticles: 'yes'   # enable particle integrator [default = no]
+CartesianParticles: 'no'   # enable particle integrator [default = no]
 ParticleIntegrator: explicit
-ParticleRadius: 1km   # particle radius in cm [default = 100]
+ParticleRadius: 1m   # particle radius in cm [default = 100]
 ParticleRadiusIncreaseFactor: 10
 ParticleSpeciesNumber: '1'
 NumberOfParticles: '1'   # number of particles [default = 0]
@@ -108,7 +73,7 @@ ParticleMinimumRadius: '1.0 au'   # [default = RMIN]
 ParticleMaximumRadius: '1.0 au'   # [default = RMAX]
 ParticleMinimumEscapeRadius: '0.5 au'   # [default = ParticleMinimumRadius]
 ParticleMaximumEscapeRadius: '3.0 au'   # [default = ParticleMaximumRadius]
-ParticleGasDragEnabled: 'no'   # [default = YES]
+ParticleGasDragEnabled: 'yes'   # [default = YES]
 ParticleDiskGravityEnabled: 'no'   # [default = no]
 
 # Nbody
