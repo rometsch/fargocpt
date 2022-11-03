@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!/usr/bin/env bash
 make -C ../../src -j
 if [[ $? > 0 ]]; then
     echo "Error in compilation. Refusing to continue!"
@@ -7,4 +8,10 @@ fi
 # ../../fargo start dust_drift.yml
 rm -rf output/dust_drift
 mkdir -p output
-sbatch -n 6 -o "sim.log" slurm_start.sh
+
+if [[ -n "$(command -v squeue)" ]]
+then
+    sbatch -n 6 -o "simulation.log" slurm_start.sh
+else
+    ../../fargo start dust_drift.yml
+fi
