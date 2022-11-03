@@ -6,7 +6,7 @@ SigmaSlope: 1   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-Sigm
 SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-9]
 AspectRatio: '0.05'   # Thickness over Radius in the disk
 FlaringIndex: '0.0'   # Slope of Temperature/radius profile
-AlphaViscosity: '0.01'
+AlphaViscosity: '0.0'
 
 # Equation of State
 
@@ -49,20 +49,51 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 
 # Output control parameters
 
-Ntot: '100'   # Total number of time steps
+Ntot: '1000'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
-# DT: '0.628318531'   # 1/10th of a jupiter orbit
-DT: 1e-1   # 1/10th of a jupiter orbit
-FirstDt: 1e-2
+DT: '0.628318531'   # 1/10th of a jupiter orbit
+FirstDt: 1e-1
 OutputDir: output/dust_drift
 
+
+WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+WriteDensity: 'No'   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy: 'No'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteTemperature: 'No'   # Write temperature. [default = no]
+WriteVelocity: 'No'   # Write velocites. This is needed for restart of simulations. [default = yes]
+WriteSoundspeed: 'No'   # Write sound speed [default = no]
+WriteToomre: 'No'   # Write Toomre parameter Q. [default = no]
+WriteQMinus: 'No'   # Write QMinus. [default = no]
+WriteQPlus: 'No'   # Write QPlus. [default = no]
+WriteViscosity: 'No'   # Write Viscosity. [default = no]
+WriteTauCool: 'No'   # Write TauCool. [default = no]
+WriteKappa: 'No'   # Write Kappa. [default = no]
+WriteAlphaGrav: 'No'   # Write AlphaGrav. [default = no]
+WriteAlphaGravMean: 'No'   # Write AlphaGrav time average. [default = no]
+WriteAlphaReynolds: 'No'   # Write AlphaReynolds [default = no]
+WriteAlphaReynoldsMean: 'No'   # Write AlphaReynolds time average [default = no]
+WriteEccentricity: 'No'   # Write eccentricity. [default = no]
+WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
+WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
+WritepdV: 'No'   # Write pdV. [default = no]
+WriteDiskQuantities: 'No'   # Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteRadialLuminosity: 'No'   # Write radial luminosity [default = no]
+WriteRadialDissipation: 'No'   # Write radial dissipation [default = no]
+WriteLightCurves: 'No'   # Write light curves [default = no]
+WriteLightcurvesRadii: 0.4,5.2
+WriteMassFlow: 'No'   # Write a 1d radial file with mass flow at each interface [default = no]
+WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
+WritePressure: 'No'   # Write pressure [default = no]
+WriteAspectRatio: 'No'   # Write aspect ratio [default = no]
+WriteTorques: 'No'   # Calculate and write torques acting in planet/star
+WriteVerticalOpticalDepth: 'No'   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
 
 # particles
 
 IntegrateParticles: 'Yes'   # enable particle integrator [default = no]
 CartesianParticles: 'no'   # enable particle integrator [default = no]
-ParticleIntegrator: explicit
-ParticleRadius: 1m   # particle radius in cm [default = 100]
+ParticleIntegrator: implicit
+ParticleRadius: 1km   # particle radius in cm [default = 100]
 ParticleRadiusIncreaseFactor: 10
 ParticleSpeciesNumber: '1'
 NumberOfParticles: '1'   # number of particles [default = 0]

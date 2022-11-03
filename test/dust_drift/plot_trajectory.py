@@ -46,7 +46,7 @@ def plot_trajectory(outdir):
             rdot = (r[1:] - r[:-1])/(t[1:] - t[:-1])
             rdot = rdot.to("cm/s")
             
-            # print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", rdot[-1]/vtheo[-1])
+            print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", rdot[-1]/vtheo[-1])
             
             ax = axes[0]
             line, = axes[0].plot(t[:-1].to("yr"), -rdot, label=f"s = {size:.1e}")
