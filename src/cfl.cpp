@@ -307,7 +307,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		// so we do not need the extra CFL factor, same for invdt4
 		// we multipy with CFL here so that it cancels out for the combined dt
 		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) / std::pow(cell_size, 2)
-				* leapfrog_cfl_factor;
+				* leapfrog_cfl_factor * parameters::CFL;
 
 		// heating / cooling limit
 		double invdt6;
