@@ -1003,34 +1003,34 @@ static double calc_tstop_only(const double size, const double rho, const double 
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
     
 	if (nu < 1.e-20) {
-	die("Zero nu %e\n", nu);
+		die("Zero nu %e\n", nu);
     } else if (nu > 1.e20) {
-	die("Zero nu1 %e\n", nu);
+		die("Zero nu1 %e\n", nu);
     }
-    
+
 	double l = 4.72e-9 / rho;
     
 	if (l < 1.e-20) {
-	die("Zero l %e\n", l);
+		die("Zero l %e\n", l);
 	} else if (l > 1.e20) {
-	die("Zero l1 %e\n", l);
+		die("Zero l1 %e\n", l);
 	}
     
 	double c_s = vthermal * sqrt(M_PI / 8.0);
     
 	if (c_s < 1.e-20) {
-	die("Zero cs %e\n", c_s);
+		die("Zero cs %e\n", c_s);
 	} else if (c_s > 1.e20) {
-	die("Zero cs1 %e\n", c_s);
+		die("Zero cs1 %e\n", c_s);
 	}
     
 	double Kn = 0.5 * l / size;
     double Ma = vrel / c_s;
 
     if (Ma < 1.e-20) {
-	die("Zero Ma %e\n", Ma);
+		die("Zero Ma %e\n", Ma);
 	} else if (Ma > 1.e20) {
-	die("Zero Ma1 %e\n", Ma);
+		die("Zero Ma1 %e\n", Ma);
 	}
     
 	double Re = 2.0 * size * rho * vrel / nu;
@@ -1038,36 +1038,36 @@ static double calc_tstop_only(const double size, const double rho, const double 
 	double CdE = 2.0 * sqrt(Ma * Ma + 128.0 / 9.0 / M_PI);
 	
 	if (CdE < 1.e-20) {
-	die("Zero CdE %e\n", CdE);
+		die("Zero CdE %e\n", CdE);
 	} else if (CdE > 1.e20) {
-	die("Zero CdE1 %e\n", CdE);
+		die("Zero CdE1 %e\n", CdE);
 	}
     
 	double CdS = 0.0;
     
-    if (Re <= 1.e-3) {
-	CdS = 24.0 * nu / (2.0 * size * rho * c_s) +
+	if (Re <= 1.e-3) {
+		CdS = 24.0 * nu / (2.0 * size * rho * c_s) +
 	      3.6 / c_s * pow(vrel, 0.687) * pow(2.0 * size * rho / nu, -0.313);
     } else if (Re <= 500.0) {
-	CdS = 24.0 * Ma / Re + 3.6 * Ma * pow(Re, -0.313);
+		CdS = 24.0 * Ma / Re + 3.6 * Ma * pow(Re, -0.313);
     } else if (Re <= 1500.0) {
-	CdS = Ma * 9.5e-5 * pow(Re, 1.397);
+		CdS = Ma * 9.5e-5 * pow(Re, 1.397);
     } else {
-	CdS = Ma * 2.61;
+		CdS = Ma * 2.61;
     }
     
 	if (CdS < 1.e-30) {
-	die("Zero CdS %e\n", CdS);
+		die("Zero CdS %e\n", CdS);
 	} else if (CdS > 1.e30) {
-	die("Zero CdS1 %e\n", CdS);
+		die("Zero CdS1 %e\n", CdS);
 	}
 
     double Cd = (9.0 * Kn * Kn * CdE + CdS) / (3.0 * Kn + 1.0) / (3.0 * Kn + 1.0);
     
 	if (Cd < 1.e-20) {
-	die("Zero Cd %e\n", Cd);
+		die("Zero Cd %e\n", Cd);
 	} else if (Cd > 1.e20) {
-	die("Zero Cd1 %e\n", Cd);
+		die("Zero Cd1 %e\n", Cd);
 	}
     
 	const double pdens = parameters::particle_density;
@@ -1255,8 +1255,32 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	    continue;
 	}
 
-	double rho, temperature, vg_radial, vg_azimuthal;
-	interpolate_quantities(data, r, phi, rho, temperature, vg_radial, vg_azimuthal);
+	unsigned int n_radial_a_minus = 0, n_radial_a_plus = 1,
+		 n_radial_b_minus = 0, n_radial_b_plus = 1;
+    unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
+		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
+    find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		 n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		 n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+
+    // calculate gas quantities at the particle location
+    const double rho = interpolate_bilinear(
+	data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus,
+	n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+    
+	const double temperature = interpolate_bilinear(
+	data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
+	n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+    
+	const double vg_radial = interpolate_bilinear(
+	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
+	n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+    
+	const double vg_azimuthal_temp = interpolate_bilinear(
+	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+    
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 
 	// calculate gas velocities in cartesian coordinates
 	const double vg_x = std::cos(phi) * vg_radial - std::sin(phi) * vg_azimuthal;
@@ -1271,51 +1295,26 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	const double vrel_y = vy - vg_y;
 	const double vrel = std::sqrt(std::pow(vrel_x, 2) + std::pow(vrel_y, 2));
 
-	const double m0 = parameters::MU * constants::m_u.get_code_value();
-	const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
-				    temperature / (M_PI * m0));
-	// a0 = 1.5e-8 cm for molecular hydrogen
-	const double sigma =
-	    M_PI * std::pow(1.5e-8 * units::length.get_inverse_cgs_factor(), 2);
-	const double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
-	// calculate Reynolds number
-	const double reynolds = 2.0 * rho * particles[i].radius * vrel / nu;
+	const double size = particles[i].radius;
+	const double tstop = calc_tstop_only(size, rho, vrel, temperature);
 
-	// calculate coefficient
-	double Cd;
-	if (reynolds < 1.0) {
-	    Cd = 24.0 / reynolds;
-	} else if (reynolds < 800.0) {
-	    Cd = 24.0 * std::pow(reynolds, -0.6);
-	} else {
-	    Cd = 0.44;
-	}
-
-	const double fdrag_temp =
-	    -0.5 * Cd * M_PI * std::pow(particles[i].radius, 2) * rho * vrel;
-	const double fdrag_x = fdrag_temp * vrel_x;
-	const double fdrag_y = fdrag_temp * vrel_y;
+	const double a_drag_x = - vrel_x/tstop;
+	const double a_drag_y = - vrel_y/tstop;
 
 	// update velocities
-	vx += dt * fdrag_x / particles[i].mass;
-	vy += dt * fdrag_y / particles[i].mass;
+	vx += dt * a_drag_x;
+	vy += dt * a_drag_y;
 
 	// update stokes number
-	const double mass = particles[i].mass;
-	const double fdrag = fdrag_temp * vrel;
-	const double tstop = - mass*vrel/fdrag;
 	const double omega_kepler = calculate_omega_kepler(r);
 	particles[i].stokes = tstop*omega_kepler;
 
-	printf("Cd = %.3e\n", Cd);
-
-	// TODO: adadpt to new functions
-	// if (parameters::particle_disk_gravity_enabled) {
-	//     update_velocity_from_disk_gravity_cart(
-	// 	n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus,
-	// 	n_azimuthal_b_plus, r, phi, i, dt);
-	// }
+	if (parameters::particle_disk_gravity_enabled) {
+	    update_velocity_from_disk_gravity_cart(
+		n_radial_a_minus, n_radial_a_plus, n_azimuthal_b_minus,
+		n_azimuthal_b_plus, r, phi, i, dt);
+	}
     } // loop end
 
     /*
@@ -1340,29 +1339,32 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	}
 
 	// find nearest cells
-	unsigned int n_radial_a_minus = 0, n_radial_a_plus = 1;
-	unsigned int n_radial_b_minus = 0, n_radial_b_plus = 1;
-	unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0;
-	unsigned int n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
-	find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
-		     n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
-		     n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+	unsigned int n_radial_a_minus = 0, n_radial_a_plus = 1,
+		 n_radial_b_minus = 0, n_radial_b_plus = 1;
+    unsigned int n_azimuthal_a_minus = 0, n_azimuthal_a_plus = 0,
+		 n_azimuthal_b_minus = 0, n_azimuthal_b_plus = 0;
+    find_nearest(n_radial_a_minus, n_radial_a_plus, n_azimuthal_a_minus,
+		 n_azimuthal_a_plus, n_radial_b_minus, n_radial_b_plus,
+		 n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
 
-	// calculate quantities needed
-	const double rho = interpolate_bilinear(
-	    data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus,
-	    n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	const double vg_radial = interpolate_bilinear(
-	    data[t_data::V_RADIAL], true, false, n_radial_a_minus,
-	    n_radial_a_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
-	const double vg_azimuthal_temp = interpolate_bilinear(
-	    data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
-	const double vg_azimuthal =
-	    corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
+    // calculate gas quantities at the particle location
+    const double rho = interpolate_bilinear(
+	data[t_data::RHO], false, false, n_radial_b_minus, n_radial_b_plus,
+	n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+    
 	const double temperature = interpolate_bilinear(
-	    data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
-	    n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+	data[t_data::TEMPERATURE], false, false, n_radial_b_minus,
+	n_radial_b_plus, n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+    
+	const double vg_radial = interpolate_bilinear(
+	data[t_data::V_RADIAL], true, false, n_radial_a_minus, n_radial_a_plus,
+	n_azimuthal_b_minus, n_azimuthal_b_plus, r, phi);
+    
+	const double vg_azimuthal_temp = interpolate_bilinear(
+	data[t_data::V_AZIMUTHAL], false, true, n_radial_b_minus,
+	n_radial_b_plus, n_azimuthal_a_minus, n_azimuthal_a_plus, r, phi);
+    
+	const double vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 
 	// calculate relative velocities
 	const double vrel_r = particles[i].r_dot - vg_radial;
@@ -1370,33 +1372,10 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	const double vrel =
 	    std::sqrt(std::pow(vrel_r, 2) + std::pow(vrel_phi, 2));
 
-	const double m0 = parameters::MU * constants::m_u.get_code_value();
-	const double vthermal = std::sqrt(
-	    8.0 * constants::k_B.get_code_value() * temperature / (M_PI * m0));
-	// a0 = 1.5e-8 cm for molecular hydrogen
-	const double a0_cgs = 1.5e-8;
-	const double a0 = a0_cgs * units::length.get_inverse_cgs_factor();
-    double sigma = M_PI * std::pow(a0, 2);
-    double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
 
-	// calculate Reynolds number
-	const double reynolds = 2.0 * rho * particles[i].radius * vrel / nu;
-
-	// calculate coefficient
-	double Cd;
-	if (reynolds < 1.0) {
-	    Cd = 24.0 / reynolds;
-	} else if (reynolds < 800.0) {
-	    Cd = 24.0 * std::pow(reynolds, -0.6);
-	} else {
-	    Cd = 0.44;
-	}
 
 	const double size = particles[i].radius;
 	const double tstop = calc_tstop_only(size, rho, vrel, temperature);
-
-	const double mass = particles[i].mass;
-
 
 	// const double fdrag_temp = -0.5 * Cd * M_PI *
 	// 			  std::pow(particles[i].radius, 2) * rho *
@@ -1405,18 +1384,16 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	// const double fdrag_r = fdrag_temp * vrel_r;
 	// const double fdrag_phi = fdrag_temp * vrel_phi / r;
 
-	const double fdrag_r = - mass * vrel_r / tstop;
-	const double fdrag_phi = - mass * vrel_phi / r / mass;
+	const double a_drag_r = - vrel_r / tstop;
+	const double a_drag_phi = - vrel_phi / r / tstop;
 
 	// update stokes number
-	// const double fdrag = fdrag_temp * vrel;
-	// const double tstop = - mass*vrel/fdrag;
 	const double omega_kepler = calculate_omega_kepler(r);
 	particles[i].stokes = tstop*omega_kepler;
 
 	// update velocities
-	particles[i].r_dot += dt*fdrag_r;
-	particles[i].phi_dot += dt*fdrag_phi;
+	particles[i].r_dot += dt*a_drag_r;
+	particles[i].phi_dot += dt*a_drag_phi;
 
 	if (parameters::particle_disk_gravity_enabled) {
 	    update_velocity_from_disk_gravity(
@@ -1447,10 +1424,10 @@ void update_velocity_from_disk_gravity(const int n_radial_a_minus,
 
 void integrate(t_data &data, const double current_time, const double dt)
 {
-	const double q1 = particles[0].r;
-	const double q2 = particles[0].phi;
-	const double stokes = particles[0].stokes;
-	printf("t = %.3e, q1 = %.3e, q2 = %.3e, |q| = %.3e, St = %.3e\n", current_time, q1, q2, std::sqrt(q1*q1 + q2*q2), stokes);
+	// const double q1 = particles[0].r;
+	// const double q2 = particles[0].phi;
+	// const double stokes = particles[0].stokes;
+	// printf("t = %.3e, q1 = %.3e, q2 = %.3e, |q| = %.3e, St = %.3e\n", current_time, q1, q2, std::sqrt(q1*q1 + q2*q2), stokes);
 	if (parameters::particle_gas_drag_enabled){
 		compute_rho(data, current_time);
 	}
