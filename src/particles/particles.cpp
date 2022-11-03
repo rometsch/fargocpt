@@ -1001,39 +1001,50 @@ static double calc_tstop_only(const double size, const double rho, const double 
 
     double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
     double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
-    if (nu < 1.e-20)
+    
+	if (nu < 1.e-20) {
 	die("Zero nu %e\n", nu);
-    if (nu > 1.e20)
+    } else if (nu > 1.e20) {
 	die("Zero nu1 %e\n", nu);
+    }
     
 	double l = 4.72e-9 / rho;
-    if (l < 1.e-20)
+    
+	if (l < 1.e-20) {
 	die("Zero l %e\n", l);
-    if (l > 1.e20)
+	} else if (l > 1.e20) {
 	die("Zero l1 %e\n", l);
+	}
     
 	double c_s = vthermal * sqrt(M_PI / 8.0);
-    if (c_s < 1.e-20)
+    
+	if (c_s < 1.e-20) {
 	die("Zero cs %e\n", c_s);
-    if (c_s > 1.e20)
+	} else if (c_s > 1.e20) {
 	die("Zero cs1 %e\n", c_s);
+	}
     
 	double Kn = 0.5 * l / size;
     double Ma = vrel / c_s;
-    if (Ma < 1.e-20)
+
+    if (Ma < 1.e-20) {
 	die("Zero Ma %e\n", Ma);
-    if (Ma > 1.e20)
+	} else if (Ma > 1.e20) {
 	die("Zero Ma1 %e\n", Ma);
+	}
     
 	double Re = 2.0 * size * rho * vrel / nu;
     
 	double CdE = 2.0 * sqrt(Ma * Ma + 128.0 / 9.0 / M_PI);
-	if (CdE < 1.e-20)
+	
+	if (CdE < 1.e-20) {
 	die("Zero CdE %e\n", CdE);
-    if (CdE > 1.e20)
+	} else if (CdE > 1.e20) {
 	die("Zero CdE1 %e\n", CdE);
+	}
     
 	double CdS = 0.0;
+    
     if (Re <= 1.e-3) {
 	CdS = 24.0 * nu / (2.0 * size * rho * c_s) +
 	      3.6 / c_s * pow(vrel, 0.687) * pow(2.0 * size * rho / nu, -0.313);
@@ -1045,16 +1056,19 @@ static double calc_tstop_only(const double size, const double rho, const double 
 	CdS = Ma * 2.61;
     }
     
-	if (CdS < 1.e-30)
+	if (CdS < 1.e-30) {
 	die("Zero CdS %e\n", CdS);
-    if (CdS > 1.e30)
+	} else if (CdS > 1.e30) {
 	die("Zero CdS1 %e\n", CdS);
+	}
 
     double Cd = (9.0 * Kn * Kn * CdE + CdS) / (3.0 * Kn + 1.0) / (3.0 * Kn + 1.0);
-    if (Cd < 1.e-20)
+    
+	if (Cd < 1.e-20) {
 	die("Zero Cd %e\n", Cd);
-    if (Cd > 1.e20)
+	} else if (Cd > 1.e20) {
 	die("Zero Cd1 %e\n", Cd);
+	}
     
 	const double pdens = parameters::particle_density;
 	const double tstop = 4.0 * l * pdens / (3.0 * rho * Cd * c_s * Kn);
