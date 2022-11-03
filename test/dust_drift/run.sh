@@ -7,4 +7,4 @@ fi
 # ../../fargo start dust_drift.yml
 rm -rf output/dust_drift
 mkdir -p output
-sbatch -n 6 -o "output/%j.log" slurm_start.sh
+sbatch -n 6 -o "sim.log" slurm_start.sh

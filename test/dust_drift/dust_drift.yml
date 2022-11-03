@@ -91,12 +91,12 @@ WriteVerticalOpticalDepth: 'No'   # Write optical depth in vertical direction (t
 # particles
 
 IntegrateParticles: 'Yes'   # enable particle integrator [default = no]
-CartesianParticles: 'no'   # enable particle integrator [default = no]
-ParticleIntegrator: implicit
-ParticleRadius: 1km   # particle radius in cm [default = 100]
+CartesianParticles: 'yes'   # enable particle integrator [default = no]
+ParticleIntegrator: midpoint
+ParticleRadius: 1e-8 m   # particle radius in cm [default = 100]
 ParticleRadiusIncreaseFactor: 10
-ParticleSpeciesNumber: '1'
-NumberOfParticles: '1'   # number of particles [default = 0]
+ParticleSpeciesNumber: '12'
+NumberOfParticles: '12'   # number of particles [default = 0]
 ParticleEccentricity: '0.00'   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSlope: '0'   # [default = 0]
