@@ -292,12 +292,14 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
     MPI_Barrier(MPI_COMM_WORLD);
 
     // Enable output of Qplus / Qminus for bitwise exact restarting.
+	if (parameters::bitwise_exact_restarting && !parameters::Locally_Isothermal) {
     if (!data[t_data::QPLUS].get_write()) {
 	data[t_data::QPLUS].set_write(true, false);
     }
     if (!data[t_data::QMINUS].get_write()) {
 	data[t_data::QMINUS].set_write(true, false);
     }
+	}
 
     if (parameters::variableGamma) {
 	if (!data[t_data::GAMMAEFF].get_write()) {

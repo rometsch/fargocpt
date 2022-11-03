@@ -177,6 +177,7 @@ bool body_force_from_potential;
 
 bool write_torques;
 
+bool bitwise_exact_restarting;
 bool write_disk_quantities;
 bool write_lightcurves;
 bool write_at_every_timestep;
@@ -517,6 +518,8 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("WriteAtEveryTimestep", true);
     write_lightcurves =
 	config::cfg.get_flag("WriteLightCurves", false);
+
+	bitwise_exact_restarting = config::cfg.get_flag("BitwiseExactRestarting", false);
 
     write_massflow = config::cfg.get_flag("WriteMassFlow", false);
     data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);

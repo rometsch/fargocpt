@@ -284,6 +284,7 @@ extern bool body_force_from_potential;
 extern bool write_torques;
 
 /// write disk quantities
+extern bool bitwise_exact_restarting;
 extern bool write_disk_quantities;
 extern bool write_at_every_timestep;
 extern bool write_lightcurves;
