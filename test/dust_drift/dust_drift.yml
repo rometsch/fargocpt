@@ -24,7 +24,7 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 HydroFrameCenter: primary
 ForcedCircular: 'No'
 # Need to set thickness smoothing to zero in order to compare to the theoretical drift rates.
-ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness
+ThicknessSmoothing: 0.0   # Softening parameters in disk thickness
 
 # Numerical method parameters
 

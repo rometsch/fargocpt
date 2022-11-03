@@ -48,7 +48,9 @@ def plot_trajectory(outdir):
             rdot = (r[1:] - r[:-1])/(t[1:] - t[:-1])
             rdot = rdot.to("cm/s")
             
-            print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", rdot[-1]/vtheo[-1])
+            Navg = -len(rdot)//10
+            q = np.average(rdot[:-Navg]/vtheo[:-Navg])
+            print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", q)
             
             label = f"s={size:.1e}, St={stokes[-1]:.1e}"
             
