@@ -19,6 +19,8 @@ def plot_trajectory(outdir):
 
     fig, axes = plt.subplots(figsize=(10,5), ncols=2)
 
+    fig.subplots_adjust(wspace=0.4)
+
     particles = construct_dust_trajectories(outdir)
 
     sizes = []
@@ -48,23 +50,32 @@ def plot_trajectory(outdir):
             
             print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", rdot[-1]/vtheo[-1])
             
+            label = f"s={size:.1e}, St={stokes[-1]:.1e}"
+            
             ax = axes[0]
-            line, = axes[0].plot(t[:-1].to("yr"), -rdot, label=f"s = {size:.1e}")
+            line, = axes[0].plot(t[:-1].to("yr"), -rdot, label=label)
             color = line.get_color()
             ax.plot(t.to("yr"), -vtheo, ls=":", color=color)
             
-            axes[1].plot(t.to("yr"), r.to("au"), color=color, label=f"s = {size:.1e}")
+            axes[1].plot(t.to("yr"), r.to("au"), color=color, label=label)
         except IndexError as e:
             print(e)
 
+    # secondary y axis
+    secax = axes[0].secondary_yaxis(
+        'right', functions=(cmps_to_aupyr, aupyr_to_cmps))
+    secax.set_ylabel(r"$-\dot{r}$ [au/yr]")
+
+
     axes[0].set_yscale("log")
     axes[0].set_ylabel(r"$-\dot{r}$ [cm/s]")
-    axes[0].set_xlabel(r"$t$ [orbits]")
+    axes[0].set_xlabel(r"$t$ [yr]")
     
     axes[1].legend()
 
-    # print(vdrift_theo(7.4e-1, 1*u.au))
-    # print(vdrift_theo(7.4e-1, 1*u.au).to("au/yr"))
+
+    axes[1].set_ylabel(r"$r$ [au]")
+    axes[1].set_xlabel(r"$t$ [yr]")
 
 
     return fig

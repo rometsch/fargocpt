@@ -11,7 +11,7 @@ mkdir -p output
 
 if [[ -n "$(command -v squeue)" ]]
 then
-    sbatch -n 6 -o "simulation.log" slurm_start.sh
+    sbatch -n 6 -o "output/simulation.log" slurm_start.sh
 else
     ../../fargo start dust_drift.yml
 fi
