@@ -558,7 +558,12 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 
 	const double l1 = planet.get_dimensionless_roche_radius() *
 			planet.get_distance_to_primary();
-	const double min_dist = l1 * parameters::klahr_smoothing_radius;
+	const double min_dist;
+	if(x*x + y*y > 1e-10){
+		min_dist = l1 * parameters::klahr_smoothing_radius;
+	} else {
+		min_dist = 0.0;
+	}
 
 	const unsigned int Nrad = data[t_data::QPLUS].get_max_radial();
 	const unsigned int Naz = data[t_data::QPLUS].get_max_azimuthal();
