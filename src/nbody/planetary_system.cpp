@@ -146,6 +146,8 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
 	const double irrad_rampup = cfg.get<double>("irradiation ramp-up time", 0.0, units::T0);
 
+	const double phi = cfg.get<double>("trueanomaly", 0.0);
+
     const double argument_of_pericenter =
 	cfg.get<double>("argument of pericenter", 0.0);
 
@@ -167,7 +169,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
     t_planet *planet = new t_planet();
 
 	// planets starts at Periastron
-	const double nu = 0.0;
+	const double nu = phi;
 	if (get_number_of_planets() < 2) {
 	    initialize_planet_jacobi_adjust_first_two(
 		planet, mass, semi_major_axis, eccentricity,
