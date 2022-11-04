@@ -558,7 +558,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 
 	const double l1 = planet.get_dimensionless_roche_radius() *
 			planet.get_distance_to_primary();
-	const double min_dist;
+	double min_dist;
 	if(x*x + y*y > 1e-10){
 		min_dist = l1 * parameters::klahr_smoothing_radius;
 	} else {
