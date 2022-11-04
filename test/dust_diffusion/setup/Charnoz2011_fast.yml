@@ -22,16 +22,14 @@ InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
 
 IntegratePlanets: 'Yes'   # [default = yes]
 HydroFrameCenter: all   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
-ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
+ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Numerical method parameters
 
 Transport: FARGO
 
-# InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
-
-InnerBoundary: OPEN
+InnerBoundary: OPEN	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 OuterBoundary: EVANESCENT
 Disk: 'No'
 OmegaFrame: '0.0'
@@ -46,21 +44,16 @@ Nsec: '1536'   # 384		# Azimuthal number of
 
 # zones (sectors)
 
-Rmin: '1.0'   # Inner boundary radius
-Rmax: '20.0'   # Outer boundary radius
+Rmin: 1.0   # Inner boundary radius
+Rmax: 20.0   # Outer boundary radius
 RadialSpacing: ARITHMETIC   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Ntot: '5'   # Total number of time steps
-Ninterm: '100'   # Time steps between outputs
+Ntot: '10'   # Total number of time steps
+Ninterm: '10'   # Time steps between outputs
 DT: '8.885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
-OutputDir: output/charnoz2011_fast
-WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
-RandomSeed: '1337'   # random seed integer value
-RandomSigma: 'No'   # randomize sigma start values?
-RandomFactor: '0.1'   # randomize by +- 10%
-FeatureSize: '0.05'   # Feature size of the open somplex algorithm
+OutputDir: output/dust_diffusion
 
 # particles
 
@@ -87,3 +80,39 @@ nbody:
   semi-major axis: '0.0'
   mass: '0.5'
   accretion efficiency: '0.0'
+
+
+# Output config
+
+WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+WriteDensity: 'No'   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy: 'No'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteTemperature: 'No'   # Write temperature. [default = no]
+WriteVelocity: 'No'   # Write velocites. This is needed for restart of simulations. [default = yes]
+WriteSoundspeed: 'No'   # Write sound speed [default = no]
+WriteToomre: 'No'   # Write Toomre parameter Q. [default = no]
+WriteQMinus: 'No'   # Write QMinus. [default = no]
+WriteQPlus: 'No'   # Write QPlus. [default = no]
+WriteViscosity: 'No'   # Write Viscosity. [default = no]
+WriteTauCool: 'No'   # Write TauCool. [default = no]
+WriteKappa: 'No'   # Write Kappa. [default = no]
+WriteAlphaGrav: 'No'   # Write AlphaGrav. [default = no]
+WriteAlphaGravMean: 'No'   # Write AlphaGrav time average. [default = no]
+WriteAlphaReynolds: 'No'   # Write AlphaReynolds [default = no]
+WriteAlphaReynoldsMean: 'No'   # Write AlphaReynolds time average [default = no]
+WriteEccentricity: 'No'   # Write eccentricity. [default = no]
+WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
+WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
+WritepdV: 'No'   # Write pdV. [default = no]
+WriteDiskQuantities: 'No'   # Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteRadialLuminosity: 'No'   # Write radial luminosity [default = no]
+WriteRadialDissipation: 'No'   # Write radial dissipation [default = no]
+WriteLightCurves: 'No'   # Write light curves [default = no]
+WriteLightcurvesRadii: 0.4,5.2
+WriteMassFlow: 'No'   # Write a 1d radial file with mass flow at each interface [default = no]
+WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
+WritePressure: 'No'   # Write pressure [default = no]
+WriteAspectRatio: 'No'   # Write aspect ratio [default = no]
+WriteTorques: 'No'   # Calculate and write torques acting in planet/star
+WriteVerticalOpticalDepth: 'No'   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])

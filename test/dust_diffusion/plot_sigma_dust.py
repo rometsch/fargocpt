@@ -47,9 +47,9 @@ def main():
 
 
 def get_closest_analytic(t):
-    profiles = np.load("analytic_profiles.npy")
-    times = np.load("analytic_times.npy")
-    r = np.load("analytic_radii.npy")
+    profiles = np.load("analytical_data/analytic_profiles.npy")
+    times = np.load("analytical_data/analytic_times.npy")
+    r = np.load("analytical_data/analytic_radii.npy")
     
     n = np.argmin(np.abs(times - t))
     return r, profiles[n], times[n]
@@ -69,7 +69,8 @@ def plot(ax, outdir, N, name="", normalize=False):
     print("N = {} particles".format(len(r)))
     t = get_time(outdir, N)
     
-    label = "{} N = {}, t = {:.5g} yr, Nparts = {}".format(name, N, t, N_particles)
+    # label = "{} N = {}, t = {:.5g} yr, Nparts = {}".format(name, N, t, N_particles)
+    label = "{} N = {}, t = {:.2e} yr".format(name, N, t)
     counts, interfaces = np.histogram(r, bins=51)
     mid = 0.5*(interfaces[1:] + interfaces[:-1])
     dr = interfaces[1:] - interfaces[:-1]
