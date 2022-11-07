@@ -1066,7 +1066,7 @@ void read(const std::string &filename, t_data &data)
 
     particle_radius = config::cfg.get<double>("ParticleRadius", "100.0 cm", L0);
     particle_species_number =
-	config::cfg.get<unsigned int>("ParticleSpeciesNumber", 5);
+	config::cfg.get<unsigned int>("ParticleSpeciesNumber", 1);
     particle_radius_increase_factor =
 	config::cfg.get<double>("ParticleRadiusIncreaseFactor", 10.0);
     particle_eccentricity =
