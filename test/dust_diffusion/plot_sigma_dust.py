@@ -54,7 +54,7 @@ def get_closest_analytic(t):
     n = np.argmin(np.abs(times - t))
     return r, profiles[n], times[n]
 
-def plot(ax, outdir, N, name="", normalize=False):
+def plot(ax, outdir, N, name="", normalize=False, toffset=0):
 
     print(f"Plotting particle distribution for N = {N}")
 
@@ -81,7 +81,7 @@ def plot(ax, outdir, N, name="", normalize=False):
         sigma_dust = sigma_dust / np.max(sigma_dust)
     line, = ax.plot(mid, sigma_dust, label=label)
 
-    ra, pa, ta = get_closest_analytic(t)
+    ra, pa, ta = get_closest_analytic(t+toffset)
     pa = pa/np.max(pa) *np.max(sigma_dust)
     ax.plot(ra, pa, color=line.get_color(), ls="--")#, label=f"analytic t = {ta:3g} yr")
 

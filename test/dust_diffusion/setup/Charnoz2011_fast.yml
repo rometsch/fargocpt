@@ -1,3 +1,9 @@
+# Time settings
+
+Ntot: '100'   # Total number of time steps
+Ninterm: '1'   # Time steps between outputs
+DT: '0.8885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
+
 # Disk parameters
 
 Sigma0: 20 g/cm2   # surface density at r=1 in g/cm^2
@@ -39,21 +45,15 @@ FirstDt: 0.1
 
 # Mesh parameters
 
-Nrad: '512'   # 128		# Radial number of zones
-Nsec: '1536'   # 384		# Azimuthal number of
+# Nrad: '512'   # 128		# Radial number of zones
+# Nsec: '1536'   # 384		# Azimuthal number of
+cps: 10
 
 # zones (sectors)
 
-Rmin: 1.0   # Inner boundary radius
-Rmax: 20.0   # Outer boundary radius
+Rmin: 8.0   # Inner boundary radius
+Rmax: 12.0   # Outer boundary radius
 RadialSpacing: ARITHMETIC   # Logarithmic or ARITHMETIC or Exponential
-
-# Output control parameters
-
-Ntot: '10'   # Total number of time steps
-Ninterm: '10'   # Time steps between outputs
-DT: '8.885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
-OutputDir: output/dust_diffusion
 
 # particles
 
@@ -84,7 +84,7 @@ nbody:
 
 # Output config
 
-WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+OutputDir: output/dust_diffusion
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'No'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'No'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
