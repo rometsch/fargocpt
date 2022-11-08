@@ -29,6 +29,7 @@ extern double DT;
 extern unsigned int NINTERM;
 extern unsigned int NTOT;
 extern double quantities_radius_limit;
+extern double disk_radius_mass_fraction;
 
 // cells per scaleheight
 extern double cps;

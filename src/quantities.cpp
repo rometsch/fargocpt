@@ -225,7 +225,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 		for (int i = RootIMIN[id]; i <= RootIMAX[id]; ++i) {
 		++j;
 		current_mass += GLOBAL_bufarray[i];
-		if (current_mass > 0.99 * total_mass) {
+		if (current_mass > parameters::disk_radius_mass_fraction * total_mass) {
 		    radius = GlobalRmed[j];
 		    goto found_radius; // break out of nested loop
 		}

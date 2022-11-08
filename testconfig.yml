@@ -127,6 +127,7 @@ Rmax: '2.5'   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell in the logarithmic grid used to build an exponential grid
 QuantitiesRadiusLimit: '2.5'   # Disk quantities will be computed only within this radius
+DiskRadiusMassFraction: '0.99' # disk radius = radius at which this fraction of the total mass is contained
 
 # Output control parameters
 
