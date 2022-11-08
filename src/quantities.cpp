@@ -198,9 +198,8 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	static const unsigned int send_size = local_array_end - local_array_start;
 
 	static std::vector<double> local_mass(send_size);
-	double *tmp_arr = &local_mass[0]; // openMP does not accept vectors
 
-	#pragma omp parallel for reduction(+ : tmp_arr[:send_size])
+	#pragma omp parallel for
     for (unsigned int n_radial = local_array_start; n_radial < local_array_end;
 	 ++n_radial) {
 	local_mass[n_radial - local_array_start] = 0.0;
@@ -211,6 +210,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 		Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
 	}
     }
+
     double radius = 0.0;
     double current_mass = 0.0;
 
@@ -219,10 +219,10 @@ double gas_disk_radius(t_data &data, const double total_mass)
 		MPI_COMM_WORLD);
 
     if (CPU_Master) {
-	int j = -1;
+	int j = 0;
 	for (int rank = 0; rank < CPU_Number; ++rank) {
 	    int id = RootRanksOrdered[rank];
-	    for (int i = RootIMIN[id]; i <= RootIMAX[id]; ++i) {
+		for (int i = RootIMIN[id]; i <= RootIMAX[id]; ++i) {
 		++j;
 		current_mass += GLOBAL_bufarray[i];
 		if (current_mass > 0.99 * total_mass) {
@@ -231,10 +231,10 @@ double gas_disk_radius(t_data &data, const double total_mass)
 		}
 	    }
 	}
-	(void) tmp_arr; // So the compiler does not complain about unused variable
     found_radius:
 	void();
-    }
+	}
+
     return radius;
 }
 
