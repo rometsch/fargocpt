@@ -4,8 +4,10 @@
 #include "../random/random.h"
 namespace dust_diffusion
 {
-void init()
+void init(t_data &data)
 { /* Do nothing for the moment. */
+    compute_gas_diffusion_coefficient(data);
+    compute_gas_density_radial_derivative(data);
 }
 
 /* Apply dust diffusion by modelling it as a Brownian motion.
@@ -22,9 +24,12 @@ In the azimuthal direction, Keplerian shear dominates.
 void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
 		  const double dt, const unsigned int N_particles)
 {
-    compute_gas_diffusion_coefficient(data);
-    compute_gas_density_radial_derivative(data);
+    if (parameters::calculate_disk) {
+        compute_gas_diffusion_coefficient(data);
+        compute_gas_density_radial_derivative(data);
+    }
 
+    // TODO: openmp parallelize
     for (unsigned int i = 0; i < N_particles; i++) {
 	auto &particle = particles[i];
 	kick_particle(particle, data, dt);
@@ -68,6 +73,10 @@ void kick_particle(t_particle &particle, t_data &data, const double dt)
     const double mean = Dd * drho_dr * dt / rho;
     const double sigma = std::sqrt(2 * Dd * dt);
 
+    // const double snv = fargo_random::std_normal();
+    const double snv = 0.0;
+    const double deltar = mean + snv * sigma;
+
     const bool print = false;
     if (print) {
 	printf("\n[%d] r = %.3e", CPU_Rank, r);
@@ -80,9 +89,14 @@ void kick_particle(t_particle &particle, t_data &data, const double dt)
 	printf("\n[%d] mean = %.3e", CPU_Rank, mean);
 	printf("\n[%d] sigma = %.3e", CPU_Rank, sigma);
 	printf("\n[%d] dt = %.3e", CPU_Rank, dt);
+    printf("\n[%d] deltar = %.3e", CPU_Rank, deltar);
+    printf("\n[%d] drho_dr = %.3e", CPU_Rank, drho_dr);
+    printf("\n[%d] n_rad = %d", CPU_Rank, n_rad);
+    printf("\n[%d] n_az = %d", CPU_Rank, n_az);
+    printf("\n[%d] cell_size = %.3e", CPU_Rank, Rsup[n_rad] - Rinf[n_rad]);
+    printf("\n[%d] cartesian particles = %d", CPU_Rank, parameters::CartesianParticles);
     }
-    const double snv = fargo_random::std_normal();
-    particle.r += mean + snv * sigma;
+    particle.r += deltar;
 }
 
 /* Gas diffusion coefficient Dg = alpha * cs * H
@@ -95,6 +109,7 @@ void compute_gas_diffusion_coefficient(t_data &data)
     const unsigned int N_rad_max = Dg.get_max_radial();
     const unsigned int N_az_max = Dg.get_max_azimuthal();
 
+    // TODO: openmp parallelize
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const double alpha = parameters::ALPHAVISCOSITY;
@@ -128,6 +143,7 @@ void compute_gas_density_radial_derivative(t_data &data)
     const unsigned int N_rad_max = deriv.get_max_radial();
     const unsigned int N_az_max = deriv.get_max_azimuthal();
 
+    // TODO: openmp parallelize
     for (unsigned int n_rad = 1; n_rad <= N_rad_max - 1; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    deriv(n_rad, n_az) = radial_central_derivative(rho, n_rad, n_az);

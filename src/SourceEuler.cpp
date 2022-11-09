@@ -1379,10 +1379,11 @@ static void compute_sound_speed_normal(t_data &data)
 		const double h0 = parameters::ASPECTRATIO_REF;
 		const double beta = parameters::FLARINGINDEX;
 		const double G = constants::G;
+		const double vK = std::sqrt(G * hydro_center_mass / Rb[nr]);
+		const double h = h0 * std::pow(Rb[nr], beta);
 		// This follows from: cs/v_Kepler = H/r
-		data[t_data::SOUNDSPEED](nr, naz) =
-		    h0 * std::sqrt(G * hydro_center_mass / Rb[nr]) *
-			std::pow(Rb[nr], beta);
+		const double cs = h*vK;
+		data[t_data::SOUNDSPEED](nr, naz) = cs;
 	    }
 	}
     }

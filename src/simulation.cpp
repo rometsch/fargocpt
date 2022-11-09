@@ -165,6 +165,7 @@ static void step_Euler(t_data &data, const double dt) {
 	}
 
 	if (parameters::integrate_particles) {
+		particles::update_velocities_from_indirect_term(dt);
 		particles::integrate(data, time, dt);
 	}
 

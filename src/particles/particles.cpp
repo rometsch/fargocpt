@@ -477,6 +477,9 @@ double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
     particles[i].mass = volume * parameters::particle_density;
 
     double r = semi_major_axis * (1.0 + eccentricity);
+	// TODO: adjust v to include smoothing!
+	// Smoothing reduces the gravitational pull, so the velocity needs to be reduced.
+	// Otherwise, the orbit of the particle gets eccentric.
     double v =
 	std::sqrt(constants::G * (hydro_center_mass + particles[i].mass) /
 		  semi_major_axis) *
@@ -645,7 +648,7 @@ void init(t_data &data)
 	}
 
 	if (parameters::particle_dust_diffusion) {
-		dust_diffusion::init();
+		dust_diffusion::init(data);
 	}
 
 }
@@ -1685,7 +1688,6 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	particles[i].stokes = tstop*calculate_omega_kepler(r3);
     }
 	// TODO: check for multiple calls of move
-    move();
 }
 
 void integrate_semiimplicit(t_data &data, const double dt)
