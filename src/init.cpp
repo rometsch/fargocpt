@@ -712,7 +712,7 @@ void init_PVTE_shock_tube_test(t_data &data)
     units::density.set_cgs_factor(1.66053886e-19);
     units::density.set_cgs_symbol("1");
 
-    units::surface_density.set_cgs_factor(1.0);
+    units::surface_density.set_cgs_factor(1.66053886e-19);
     units::surface_density.set_cgs_symbol("1");
 
     units::opacity.set_cgs_factor(1.0);
