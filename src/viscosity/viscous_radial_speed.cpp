@@ -15,7 +15,7 @@
 /// \param M
 /// \return
 ///
-static double get_nu(const double R, const double M){
+[[maybe_unused]] static double get_nu(const double R, const double M){
 
 	double sqrt_gamma;
 	if(parameters::Adiabatic){
@@ -35,9 +35,7 @@ static double get_nu(const double R, const double M){
 
 /// does exact same as get_nu, expect it also ensures that
 /// the soundspeed is inside the allowed Temperature range.
-static double get_nu2(const double R, const double M, const double Sigma){
-
-	(void)get_nu; // to prevent unused function warning
+[[maybe_unused]] static double get_nu2(const double R, const double M, const double Sigma){
 
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
@@ -60,20 +58,19 @@ static double get_nu2(const double R, const double M, const double Sigma){
 		double energy = cutoff * 1.0/(gamma-1.0) * Sigma * std::pow(h*v_k, 2);
 
 		const double temperature_floor =
-			parameters::minimum_temperature *
-			units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 			temperature_floor *
 			Sigma /
 			parameters::MU * constants::R / (gamma - 1.0);
 
 		const double temperature_ceil =
-			parameters::maximum_temperature *
-			units::temperature.get_inverse_cgs_factor();
+			parameters::maximum_temperature;
 		const double energy_ceil =
 			temperature_ceil *
 			Sigma /
 			parameters::MU * constants::R / (gamma - 1.0);
+
 		energy = std::max(energy, energy_floor);
 		energy = std::min(energy, energy_ceil);
 

@@ -861,16 +861,14 @@ void init_secondary_disk_energies(t_data &data)
 			scaling_factor * cutoff_outer(disk_size, cutoff_width, r);
 
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		const double temperature_ceil =
-		    parameters::maximum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::maximum_temperature;
 		const double energy_ceil =
 		    temperature_ceil *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
@@ -1395,8 +1393,7 @@ void init_gas_energy(t_data &data)
 		const double energy = initial_energy(r, mass);
 
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
@@ -1461,8 +1458,7 @@ void init_gas_energy(t_data &data)
 		    cutoff_outer(parameters::profile_cutoff_point_outer,
 				 parameters::profile_cutoff_width_outer, r);
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
@@ -1510,8 +1506,7 @@ void init_gas_energy(t_data &data)
 		    cutoff_inner(parameters::profile_cutoff_point_inner,
 				 parameters::profile_cutoff_width_inner, r);
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
