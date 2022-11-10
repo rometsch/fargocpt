@@ -192,6 +192,13 @@ extern std::string energy_filename;
 
 extern bool keep_mass_constant;
 
+
+/// circumbinary ring
+extern bool cbd_ring;
+extern double cbd_ring_position;
+extern double cbd_ring_width;
+extern double cbd_ring_enhancement_factor;
+
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
 /// profile cutoff point

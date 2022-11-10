@@ -763,9 +763,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		const double tau_eff =
 			data[t_data::TAU_EFF](nr, naz);
 		const double Tmin4 =
-		    std::pow(parameters::minimum_temperature *
-				 units::temperature.get_inverse_cgs_factor(),
-			     4);
+			std::pow(parameters::minimum_temperature, 4);
 
 		const double qminus =
 		    factor * 2 * sigma_sb * (T4 - Tmin4) / tau_eff;

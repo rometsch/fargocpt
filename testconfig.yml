@@ -9,6 +9,13 @@ SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
 DensityFactor: '2.0'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
+
+  # Gaussian circumbinary ring
+CircumBinaryRing: 'no'
+CircumBinaryRingPosition: '4.5'   # in [L0], [default = 0]
+CircumBinaryRingWidth: '0.6'   # in [L0], [default = 0]
+CircumBinaryRingEnhancementFactor: '2.5'   # in [L0], [default = 0]
+
 ProfileCutoffInner: 'No'   # enable profile cutoff [default = no]
 ProfileCutoffPointInner: '4.0'   # in [L0], [default = 0]
 ProfileCutoffWidthInner: '0.5'   # in [L0], [default = 1]

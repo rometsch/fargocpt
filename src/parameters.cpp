@@ -150,6 +150,11 @@ double localAlphaThreshold;
 double alphaCold;
 double alphaHot;
 
+bool cbd_ring;
+double cbd_ring_position;
+double cbd_ring_width;
+double cbd_ring_enhancement_factor;
+
 bool profile_cutoff_outer;
 double profile_cutoff_point_outer;
 double profile_cutoff_width_outer;
@@ -946,6 +951,15 @@ void read(const std::string &filename, t_data &data)
 	localAlphaThreshold = config::cfg.get<double>("AlphaThreshold", 2.5e4);
 	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
 	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
+
+	cbd_ring =
+	config::cfg.get_flag("CircumBinaryRing", "no");
+	cbd_ring_position =
+	config::cfg.get<double>("CircumBinaryRingPosition", 4.5, L0);
+	cbd_ring_width =
+	config::cfg.get<double>("CircumBinaryRingWidth", 0.6, L0);
+	cbd_ring_enhancement_factor =
+	config::cfg.get<double>("CircumBinaryRingEnhancementFactor", 2.5);
 
     // profile damping outer
     profile_cutoff_outer =
