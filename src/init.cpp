@@ -1492,13 +1492,12 @@ void init_gas_energy(t_data &data)
 					r = Rmed[n_radial];
 				}
 
-		assert(factor_ring >= 1.0);
+			assert(factor_ring >= 1.0);
 
-		if(parameters::Adiabatic){
 			const double energy_ring =  initial_energy(r, mass);
 			const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
 			data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
-		}
+
 
 			}}
 
