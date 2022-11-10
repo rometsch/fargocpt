@@ -10,4 +10,4 @@ export OMP_NUM_THREADS=$N_OMPT
 # export OMP_PROC_BIND=close
 # export OMP_WAIT_POLICY=active
 
-numactl mpirun -n $N_MPI --map-by NUMA:PE=$OMP_NUM_THREADS ../../fargo -v start setup/Charnoz2011_fast.yml
+numactl mpirun -n $N_MPI --map-by NUMA:PE=$OMP_NUM_THREADS ../../fargo -v start setup/simple_model.yml

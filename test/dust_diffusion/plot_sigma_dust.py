@@ -83,7 +83,7 @@ def plot(ax, outdir, N, name="", normalize=False, toffset=0):
 
     ra, pa, ta = get_closest_analytic(t+toffset)
     pa = pa/np.max(pa) *np.max(sigma_dust)
-    ax.plot(ra, pa, color=line.get_color(), ls="--")#, label=f"analytic t = {ta:3g} yr")
+    ax.plot(ra, pa, color=line.get_color(), ls="--", label=f"analytic t = {ta:3g} yr")
 
     ax.set_xlabel(r"$r$")
     ax.set_ylabel(r"particle histogram normalized")
