@@ -987,7 +987,7 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 }
 
 
-static double calc_tstop_only(const double size, const double rho, const double vrel, const double temperature) {
+static double calc_tstop(const double size, const double rho, const double vrel, const double temperature) {
 
     // From Giovanni Picogna, used in
     // https://www.aanda.org/articles/aa/pdf/2018/08/aa32523-17.pdf propably
@@ -1116,7 +1116,7 @@ static void interpolate_quantities(t_data& data, const double r, const double ph
 	vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 }
 
-static void calculate_tstop(const double r, const double phi,
+static void calculate_gas_drag_implicit(const double r, const double phi,
 			    const double r_dot, const double phi_dot,
 			    t_data &data, const double radius,
 			    double &minus_r_dotel_r, double &minus_l_rel,
@@ -1135,10 +1135,10 @@ static void calculate_tstop(const double r, const double phi,
     const double vrel =
 	std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
-	tstop = calc_tstop_only(radius, rho, vrel, temperature);
+	tstop = calc_tstop(radius, rho, vrel, temperature);
 }
 
-static void calculate_tstop2(const double r, const double phi,
+static void calculate_gas_drag_expmid(const double r, const double phi,
 			     const double r_dot, const double phi_dot,
 			     t_data &data, const double radius,
 			     double &minus_r_dotel_r, double &minus_l_rel,
@@ -1156,14 +1156,14 @@ static void calculate_tstop2(const double r, const double phi,
     
     // calculate relative velocities
     minus_r_dotel_r = vg_radial - r_dot;
+    minus_l_rel = r * vg_azimuthal - l0;
+
     const double vrel_phi = vg_azimuthal - phi_dot * r0;
 
     const double vrel =
 	std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
-    minus_l_rel = r * vg_azimuthal - l0;
-
-	tstop = calc_tstop_only(radius, rho, vrel, temperature);
+	tstop = calc_tstop(radius, rho, vrel, temperature);
 }
 
 // confirm that tstop < dt/10, else make user change integrator
@@ -1190,7 +1190,7 @@ void check_tstop(t_data &data)
 	const double vrel = std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
 
 
-	const double tstop = calc_tstop_only(radius, rho, vrel, temperature);
+	const double tstop = calc_tstop(radius, rho, vrel, temperature);
 	const double stokes = tstop * calculate_omega_kepler(r);
 	particles[i].stokes = stokes;
 
@@ -1300,7 +1300,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 
 
 	const double size = particles[i].radius;
-	const double tstop = calc_tstop_only(size, rho, vrel, temperature);
+	const double tstop = calc_tstop(size, rho, vrel, temperature);
 
 	const double a_drag_x = - vrel_x/tstop;
 	const double a_drag_y = - vrel_y/tstop;
@@ -1378,7 +1378,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 
 
 	const double size = particles[i].radius;
-	const double tstop = calc_tstop_only(size, rho, vrel, temperature);
+	const double tstop = calc_tstop(size, rho, vrel, temperature);
 
 	// const double fdrag_temp = -0.5 * Cd * M_PI *
 	// 			  std::pow(particles[i].radius, 2) * rho *
@@ -1465,7 +1465,7 @@ void integrate(t_data &data, const double current_time, const double dt)
 			check_tstop(data);
 		}
 		// TODO: should be before corrector step for implicit method: see Picogna+2018 App. B.2
-		dust_diffusion::diffuse_dust(data, particles, dt, local_number_of_particles);
+		// dust_diffusion::diffuse_dust(data, particles, dt, local_number_of_particles);
     }
 	move();
 
@@ -1632,7 +1632,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	double minus_l_rel = 0.0;
 
 	if (parameters::particle_gas_drag_enabled) {
-	    calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
+	    calculate_gas_drag_expmid(r1, phi1, r_dot1, phi_dot1, data,
 			     particles[i].radius, vrel_r, minus_l_rel, tstop,
 			     r0, l0);
 	} else {
@@ -1672,6 +1672,12 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	    const double v_r_g = vrel_r + r_dot1;
 	    r_dot2 += h1 * v_r_g / tstop;
 	}
+
+	if (parameters::particle_dust_diffusion) {
+		const double kl = dust_diffusion::kick_length(particles[i], data, dt);
+		r_dot2 += kl/dt;
+	}
+
 	// END kick ///////////////////////////////////////
 
 	// Half-drift
@@ -1727,7 +1733,7 @@ void integrate_semiimplicit(t_data &data, const double dt)
 	double minus_l_rel = 0.0;
 
 	if (parameters::particle_gas_drag_enabled) {
-	    calculate_tstop2(r1, phi1, r_dot1, phi_dot1, data,
+	    calculate_gas_drag_expmid(r1, phi1, r_dot1, phi_dot1, data,
 			     particles[i].radius, vrel_r, minus_l_rel, tstop,
 			     r0, l0);
 	    dt1 = dt / (1.0 + hfdt / tstop);
@@ -1809,7 +1815,7 @@ void integrate_implicit(t_data &data, const double dt)
 	// Kick
 	// Current position
 	if (parameters::particle_gas_drag_enabled) {
-	    calculate_tstop(r0, phi0, r_dot0, phi_dot0, data,
+	    calculate_gas_drag_implicit(r0, phi0, r_dot0, phi_dot0, data,
 			    particles[i].radius, minus_r_dot_rel0, minus_l_rel0,
 			    tstop0);
 	    dt0 = 1.0 + dt / tstop0;
@@ -1826,7 +1832,7 @@ void integrate_implicit(t_data &data, const double dt)
 	}
 	// Predicted position
 	if (parameters::particle_gas_drag_enabled) {
-	    calculate_tstop2(r1, phi1, r_dot0, phi_dot0, data,
+	    calculate_gas_drag_expmid(r1, phi1, r_dot0, phi_dot0, data,
 			     particles[i].radius, minus_r_dot_rel1,
 			     minus_l_rel1, tstop1, r0, l0);
 	    dt1 = hfdt / (1.0 + hfdt / tstop0 + hfdt / tstop1 +
