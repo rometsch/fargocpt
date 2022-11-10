@@ -32,7 +32,7 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
     // TODO: openmp parallelize
     for (unsigned int i = 0; i < N_particles; i++) {
 	auto &particle = particles[i];
-	kick_particle(particle, data, dt);
+	particle.r += kick_length(particle, data, dt);
     }
 }
 
@@ -54,7 +54,7 @@ diffusion coeff!)
 Use values from the grid cell the particle is currently in without
 interpolation.
  */
-void kick_particle(t_particle &particle, t_data &data, const double dt)
+double kick_length(t_particle &particle, t_data &data, const double dt)
 {
     const double r = particle.get_distance_to_star();
     const double phi = particle.get_angle();
@@ -96,7 +96,7 @@ void kick_particle(t_particle &particle, t_data &data, const double dt)
     printf("\n[%d] cell_size = %.3e", CPU_Rank, Rsup[n_rad] - Rinf[n_rad]);
     printf("\n[%d] cartesian particles = %d", CPU_Rank, parameters::CartesianParticles);
     }
-    particle.r += deltar;
+    return deltar;
 }
 
 /* Gas diffusion coefficient Dg = alpha * cs * H
