@@ -32,7 +32,13 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
     // TODO: openmp parallelize
     for (unsigned int i = 0; i < N_particles; i++) {
 	auto &particle = particles[i];
-	particle.r += kick_length(particle, data, dt);
+    const double deltar = kick_length(particle, data, dt);
+    const double rold = particle.r;
+    const double rnew = rold + deltar;
+    // printf("\nrold = %.8e, phi_dot = %.8e, deltar = %.3e\n", rold, particle.phi_dot, deltar);
+	particle.r += deltar;
+    particle.phi_dot *= std::sqrt(rold/rnew); 
+    // printf("rnew = %.8e, phi_dot = %.8e\n", rnew, particle.phi_dot);
     }
 }
 
@@ -70,7 +76,7 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     const double rho = data[t_data::RHO](n_rad, n_az);
     const double drho_dr = data[t_data::DRHO_DR](n_rad, n_az);
 
-    const double mean = Dd * drho_dr * dt / rho;
+    const double mean = Dd / rho * drho_dr * dt;
     const double sigma = std::sqrt(2 * Dd * dt);
 
     // const double snv = fargo_random::std_normal();

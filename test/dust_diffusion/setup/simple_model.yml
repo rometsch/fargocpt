@@ -1,8 +1,8 @@
 # Time settings
 
-Ntot: 200   # Total number of time steps
+Ntot: 100   # Total number of time steps
 Ninterm: 1  # Time steps between outputs
-DT: 1.0   # Time of one orbit at 1 au
+DT: 0.1   # Time of one orbit at 1 au
 
 # Disk parameters
 

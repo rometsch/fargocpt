@@ -1465,7 +1465,7 @@ void integrate(t_data &data, const double current_time, const double dt)
 			check_tstop(data);
 		}
 		// TODO: should be before corrector step for implicit method: see Picogna+2018 App. B.2
-		// dust_diffusion::diffuse_dust(data, particles, dt, local_number_of_particles);
+		dust_diffusion::diffuse_dust(data, particles, dt, local_number_of_particles);
     }
 	move();
 
@@ -1671,11 +1671,6 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	if (parameters::particle_gas_drag_enabled) {
 	    const double v_r_g = vrel_r + r_dot1;
 	    r_dot2 += h1 * v_r_g / tstop;
-	}
-
-	if (parameters::particle_dust_diffusion) {
-		const double kl = dust_diffusion::kick_length(particles[i], data, dt);
-		r_dot2 += kl/dt;
 	}
 
 	// END kick ///////////////////////////////////////
