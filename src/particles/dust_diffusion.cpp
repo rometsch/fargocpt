@@ -36,9 +36,7 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
     const double rold = particle.r;
     const double rnew = rold + deltar;
 	particle.r = rnew;
-    // printf("\nrold = %.8e, phi_dot = %.8e, deltar = %.3e, dt = %.3e\n", rold, particle.phi_dot, deltar, dt);
-    particle.phi_dot *= std::sqrt(rold/rnew); 
-    // printf("rnew = %.8e, phi_dot = %.8e\n", rnew, particle.phi_dot);
+    particle.phi_dot *= std::pow(rold/rnew, 1.5); 
     }
 }
 
