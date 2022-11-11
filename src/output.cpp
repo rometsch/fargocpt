@@ -791,7 +791,6 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	double global_mass = 0.0;
     // double semi_major_axis = 0.0;
     // double local_semi_major_axis = 0.0;
-	double cell_mass = 0.0;
     double periastron = 0.0;
     double local_periastron = 0.0;
 
@@ -806,17 +805,18 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		if (Rmed[nr] <= quantitiy_radius) {
 		// eccentricity and semi major axis weighted with cellmass
-		local_mass = data[t_data::SIGMA](nr, naz) * Surf[nr];
+		const double cell_mass = data[t_data::SIGMA](nr, naz) * Surf[nr];
+		local_mass += cell_mass;
 		local_eccentricity +=
 			data[t_data::ECCENTRICITY](nr, naz) *
 			cell_mass;
+
 		// local_semi_major_axis +=
 		// data[t_data::SEMI_MAJOR_AXIS](n_radial, n_azimuthal) *
 		// local_mass;
 		local_periastron +=
 			data[t_data::PERIASTRON](nr, naz) *
 			cell_mass;
-		local_mass += cell_mass;
 	    }
 	}
     }

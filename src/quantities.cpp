@@ -730,18 +730,18 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / dist;
 
-		data[t_data::ECCENTRICITY_NEW](nr, naz) = std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
+		data[t_data::ECCENTRICITY](nr, naz) = std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 		if (refframe::FrameAngle != 0.0) {
 		// periastron grid is rotated to non-rotating coordinate system
 		// to prevent phase jumps of atan2 in later transformations like
 		// you would have had if you back-transform the output
 		// periastron values
-		data[t_data::PERIASTRON_NEW](nr, naz) =
+		data[t_data::PERIASTRON](nr, naz) =
 			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
 				   e_x * cosFrameAngle - e_y * sinFrameAngle);
 		} else {
-		data[t_data::PERIASTRON_NEW](nr, naz) =
+		data[t_data::PERIASTRON](nr, naz) =
 			std::atan2(e_y, e_x);
 		}
 	}
@@ -794,8 +794,8 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 {
 	// ecc holds the current eccentricity
-	t_polargrid &ecc_new = data[t_data::ECCENTRICITY_NEW];
-	t_polargrid &P_new = data[t_data::PERIASTRON_NEW];
+	t_polargrid &ecc_new = data[t_data::ECCENTRICITY];
+	t_polargrid &P_new = data[t_data::PERIASTRON];
 
 	// compute new eccentricity into ecc
 	calculate_disk_ecc_vector(data);

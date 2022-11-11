@@ -295,12 +295,6 @@ t_data::t_data()
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
     m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
 
-	m_polargrids[ECCENTRICITY_NEW].set_scalar(true);
-	m_polargrids[ECCENTRICITY_NEW].set_name("Eccentricity New");
-
-	m_polargrids[PERIASTRON_NEW].set_scalar(true);
-	m_polargrids[PERIASTRON_NEW].set_name("Periastron New");
-
     m_radialgrids[SIGMA_1D].set_scalar(true);
     m_radialgrids[SIGMA_1D].set_name("Sigma");
     m_radialgrids[SIGMA_1D].set_unit(units::surface_density);
