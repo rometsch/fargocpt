@@ -36,6 +36,8 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
     const double rold = particle.r;
     const double rnew = rold + deltar;
 	particle.r = rnew;
+    // correct azimuthal motion to avoid oscillations
+    // for a particle on a circular orbit, v_phi^new = vK(r^new) instead of vK(r^old)
     particle.phi_dot *= std::pow(rold/rnew, 1.5); 
     }
 }
@@ -77,8 +79,7 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     const double mean = Dd / rho * drho_dr * dt;
     const double sigma = std::sqrt(2 * Dd * dt);
 
-    // const double snv = fargo_random::std_normal();
-    const double snv = 0.0;
+    const double snv = fargo_random::std_normal();
     const double deltar = mean + snv * sigma;
 
     const bool print = false;
