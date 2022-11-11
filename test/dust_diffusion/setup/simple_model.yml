@@ -1,8 +1,14 @@
 # Time settings
 
-Ntot: 100   # Total number of time steps
+Ntot: 200   # Total number of time steps
 Ninterm: 1  # Time steps between outputs
-DT: 0.1   # Time of one orbit at 1 au
+DT: 1   # Time of one orbit at 1 au
+FirstDt: 1e-1
+
+ParticleDustDiffusion: 'yes'
+ParticleGasDragEnabled: 'no'   # [default = YES]
+ParticleRadius: 1e-5 cm   # particle radius in cm [default = 100]
+
 
 # Disk parameters
 
@@ -41,7 +47,6 @@ Disk: 'No'
 OmegaFrame: '0.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
-FirstDt: 1e-1
 
 # Mesh parameters
 
@@ -61,7 +66,6 @@ IntegrateParticles: 'YES'   # enable particle integrator [default = no]
 CartesianParticles: 'no'   # enable particle integrator [default = no]
 ParticleIntegrator: midpoint   # Explicit, Adaptive, Semiimplicit and Implicit
 NumberOfParticles: '1'   # number of particles [default = 0]
-ParticleRadius: 1.0e-5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: 0.00   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSurfaceDensitySlope: '0.5'   # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
@@ -71,7 +75,6 @@ ParticleMinimumEscapeRadius: '1.0'   # [default = ParticleMinimumRadius]
 ParticleMaximumEscapeRadius: '40.0'   # [default = ParticleMaximumRadius]
 ParticleGasDragEnabled: 'no'   # [default = YES]
 ParticleDiskGravityEnabled: 'no'   # [default = no]
-ParticleDustDiffusion: 'yes'
 
 # Nbody
 

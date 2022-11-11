@@ -11,13 +11,16 @@ if [[ -n "$oldpid" ]]; then
 fi
 
 
+LOGFILE="output/simulation.log"
+
 rm -rf output/dust_diffusion
 mkdir -p output
 
 if [[ -n "$(command -v squeue)" ]]
 then
-    sbatch -n 6 -o "output/simulation.log" slurm_start.sh
-    tail -f output/simulation.log
+    sbatch -n 6 -o "$LOGFILE" slurm_start.sh
+    touch $LOGFILE
+    tail -f $LOGFILE
 else
     ../../fargo start setup/simple_model.yml
 fi
