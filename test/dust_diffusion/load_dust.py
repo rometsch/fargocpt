@@ -45,11 +45,12 @@ def construct_dust_trajectories(datadir, units=True):
         for i in ids:
             particles[i]["time"].append(time)
 
-    if units:
-        for ind, p in particles.items():
-            for varname in p:
+    for ind, p in particles.items():
+        for varname in p:
+            if units:
                 p[varname] = u.Quantity(p[varname])
-
+            else:
+                p[varname] = np.array(p[varname])
     return particles
 
 
@@ -64,10 +65,10 @@ def get_particles(datadir, N, units=True):
         "id": ids,
         "r": vals[:, 0],
         "phi": vals[:, 1],
-        "r dot": vals[:, 2],
-        "phi dot": vals[:, 3],
-        "r ddot": vals[:, 4],
-        "phi ddot": vals[:, 5],
+        "r_dot": vals[:, 2],
+        "phi_dot": vals[:, 3],
+        "r_ddot": vals[:, 4],
+        "phi_ddot": vals[:, 5],
         "mass": vals[:, 6],
         "size": vals[:, 7],
         "timestep": vals[:, 8],
