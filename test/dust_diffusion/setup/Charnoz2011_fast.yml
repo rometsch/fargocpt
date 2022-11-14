@@ -1,7 +1,7 @@
 # Time settings
 
-Ntot: '100'   # Total number of time steps
-Ninterm: '1'   # Time steps between outputs
+Ntot: '120'   # Total number of time steps
+Ninterm: '1000'   # Time steps between outputs
 DT: '0.8885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
 
 # Disk parameters
@@ -47,19 +47,19 @@ FirstDt: 0.1
 
 # Nrad: '512'   # 128		# Radial number of zones
 # Nsec: '1536'   # 384		# Azimuthal number of
-cps: 10
+cps: 2
 
 # zones (sectors)
 
-Rmin: 8.0   # Inner boundary radius
-Rmax: 12.0   # Outer boundary radius
+Rmin: 1.0   # Inner boundary radius
+Rmax: 20.0   # Outer boundary radius
 RadialSpacing: ARITHMETIC   # Logarithmic or ARITHMETIC or Exponential
 
 # particles
 
 IntegrateParticles: 'YES'   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Adaptive   # Explicit, Adaptive, Semiimplicit and Implicit
+ParticleIntegrator: midpoint   # Explicit, Adaptive, Semiimplicit and Implicit
 NumberOfParticles: '10000'   # number of particles [default = 0]
 ParticleRadius: 1.0e-5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.00'   # particle maximum Eccentricity
