@@ -1,4 +1,5 @@
 #include "random.h"
+#include "../logging.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -7,9 +8,7 @@
 #endif
 #include <random>
 #include <vector>
-#include <fstream>
-#include <iostream>
-#include <string>
+
 
 
 namespace fargo_random
@@ -21,76 +20,30 @@ std::vector<std::uniform_real_distribution<double>> uniform_dists;
 std::vector<jsf64> gen_jsfs;
 uint64_t a_seed[4];
 
-static void dump_numbers() {
-    // std::vector<std::vector<double>> nums;
-    const unsigned int N = 10000;
-    // #ifdef _OPENMP
-    //     const unsigned int Nthreads = omp_get_num_threads();
-    // #else
-    //     const unsigned int Nthreads = 1;
-    // #endif
-    // nums.resize(Nthreads);
-    // for (unsigned int n=0; n<Nthreads; n++) {
-    //     nums[n].resize(N);
-    // }
-
-    #pragma omp parallel for
-    for (unsigned int n=0; n<6; n++) {
-        #ifdef _OPENMP
-            const unsigned int omp_id  = omp_get_thread_num();
-        #else
-            const unsigned int omp_id = 0;
-        #endif
-
-        const std::string filename = "rand/" + std::to_string(omp_id);
-        std::ofstream out(filename);
-
-        for (unsigned int i=0; i<N; i++) {
-            out << std_normal() << "\t" << uniform() << std::endl;
-        }
-
-        out.close();
-    }
-    // std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!! Writing numbers !!!!!!!!!!!!" << std::endl;
-    // std::cout << "Nthreads = " << Nthreads << " , N = " << N << std::endl;
-    // for (unsigned int n=0; n<Nthreads; n++) {
-    //     for (unsigned int i=0; i<N; i++) {
-    //         std::cout << n << "\t" << nums[n][i] << std::endl;
-    //     }
-    // }
-
+static unsigned int get_number_required_rngs() {
+    /* Return the number of required rngs per mpi process.
+    Each openmp threads needs its own rngs because the used ones are not thread safe.
+    Thus, the return value of this function corresponds to the number of threads used.
+    */
+    #ifdef _OPENMP
+    unsigned int N = omp_get_max_threads();
+    #else
+    unsigned int N = 1;
+    #endif
+    return N;
 }
 
 void init() {
 
-    // #ifdef _OPENMP
-    //     unsigned int omp_num = omp_get_num_threads();
-    // #else
-    //     unsigned int omp_num = 1;
-    // #endif
-    int omp_num;
-    #ifdef _OPENMP
-    #pragma omp parallel
-    {
-        // int omp_id  = omp_get_thread_num();
-        omp_num = omp_get_num_threads();
-    }
-    #else
-    // int omp_id  = 0;
-    int omp_num = 1;
-    #endif
+    const unsigned int Nrngs = get_number_required_rngs();
+    logging::print_master(LOG_INFO "Initializing %d RNGs per MPI process.", Nrngs);
 
-    std::cout << "number of threads = " << omp_num << std::endl;
-
-    for (int n=0; n<omp_num; n++) {
+    for (unsigned int n=0; n<Nrngs; n++) {
         seed(n);
         gen_jsfs.emplace_back(jsf64(a_seed[n]));
         uniform_dists.emplace_back(std::uniform_real_distribution<double>(0.0, 1.0));
         std_normal_dists.emplace_back(cxx::ziggurat_normal_distribution<double>());
     }
-
-    dump_numbers();
-
 
 }
 
@@ -108,21 +61,22 @@ void seed(unsigned int n)
     a_seed[3] = (uint64_t)seeds[6] << 32 | seeds[6];
 }
 
-double std_normal() { 
+static unsigned int thread_num() {
     #ifdef _OPENMP
-        const unsigned int omp_id  = omp_get_thread_num();
+        const unsigned int n  = omp_get_thread_num();
     #else
-        const unsigned int omp_id = 0;
+        const unsigned int n = 0;
     #endif
-    return std_normal_dists[omp_id](gen_jsfs[omp_id]); 
+    return n;
+}
+
+double std_normal() { 
+    const unsigned int n = thread_num();
+    return std_normal_dists[n](gen_jsfs[n]); 
 }
 double uniform() {
-    #ifdef _OPENMP
-        const unsigned int omp_id  = omp_get_thread_num();
-    #else
-        const unsigned int omp_id = 0;
-    #endif
-    return uniform_dists[omp_id](gen_jsfs[omp_id]); 
+    const unsigned int n = thread_num();
+    return uniform_dists[n](gen_jsfs[n]); 
 }
 
 } // namespace fargo_random
