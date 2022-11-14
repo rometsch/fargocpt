@@ -11,4 +11,5 @@ export OMP_NUM_THREADS=$N_OMPT
 # export OMP_WAIT_POLICY=active
 
 # numactl mpirun -n $N_MPI --map-by NUMA:PE=$OMP_NUM_THREADS ../../fargo -v start dust_drift.yml
-numactl mpirun -n $N_MPI --map-by NUMA:PE=$OMP_NUM_THREADS ../../fargo -v start setup/simple_model.yml
+# numactl mpirun -n $N_MPI --map-by NUMA:PE=$OMP_NUM_THREADS ../../fargo -v start setup/simple_model.yml
+numactl mpirun -n $N_MPI --map-by NUMA:PE=$OMP_NUM_THREADS ../../fargo -v start setup/Charnoz2011_fast.yml
