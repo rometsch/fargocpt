@@ -30,6 +30,7 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
     }
 
     // TODO: openmp parallelize
+    #pragma omp parallel for
     for (unsigned int i = 0; i < N_particles; i++) {
 	auto &particle = particles[i];
     const double deltar = kick_length(particle, data, dt);
