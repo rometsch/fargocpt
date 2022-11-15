@@ -297,6 +297,12 @@ void init_physics(t_data &data)
 	}
 
 	renormalize_sigma_and_report(data);
+
+	if(parameters::cbd_ring){
+	add_gaussian_density_ring(data);
+	add_gaussian_energy_ring(data);
+	}
+
     }
 
     if (parameters::self_gravity) {
@@ -1028,6 +1034,46 @@ void init_secondary_disk_velocities(t_data &data)
     }
 }
 
+
+void add_gaussian_density_ring(t_data & data){
+		const double r_ring = parameters::cbd_ring_position;
+		const double w_ring = parameters::cbd_ring_width;
+		const double factor_ring = parameters::cbd_ring_enhancement_factor;
+
+		for (unsigned int n_radial = 0;
+			 n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
+			 ++n_azimuthal) {
+
+				double r;
+				if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+					Pair cms = data.get_planetary_system().get_center_of_mass();
+					const double cms_x = cms.x;
+					const double cms_y = cms.y;
+
+					const double phi = (double)n_azimuthal * dphi;
+					const double rmed = Rmed[n_radial];
+					const double x = rmed * std::cos(phi) - cms_x;
+					const double y = rmed * std::sin(phi) - cms_y;
+					r = std::sqrt(x * x + y * y);
+
+				} else {
+					r = Rmed[n_radial];
+				}
+
+		const double sigma_ring =
+				parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
+
+		assert(factor_ring >= 1.0);
+		const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
+		data[t_data::SIGMA](n_radial, n_azimuthal) += extra_sigma;
+
+			}}
+
+}
+
+
 void init_gas_density(t_data &data)
 {
     switch (parameters::sigma_initialize_condition) {
@@ -1173,45 +1219,6 @@ void init_gas_density(t_data &data)
 	open_simplex_noise_free(osn);
     }
 
-
-	if(parameters::cbd_ring){
-		const double r_ring = parameters::cbd_ring_position;
-		const double w_ring = parameters::cbd_ring_width;
-		const double factor_ring = parameters::cbd_ring_enhancement_factor;
-
-		for (unsigned int n_radial = 0;
-			 n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
-			for (unsigned int n_azimuthal = 0;
-			 n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
-			 ++n_azimuthal) {
-
-				double r;
-				if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
-					Pair cms = data.get_planetary_system().get_center_of_mass();
-					const double cms_x = cms.x;
-					const double cms_y = cms.y;
-
-					const double phi = (double)n_azimuthal * dphi;
-					const double rmed = Rmed[n_radial];
-					const double x = rmed * std::cos(phi) - cms_x;
-					const double y = rmed * std::sin(phi) - cms_y;
-					r = std::sqrt(x * x + y * y);
-
-				} else {
-					r = Rmed[n_radial];
-				}
-
-		const double sigma_ring =
-				parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
-
-		assert(factor_ring >= 1.0);
-		const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
-		data[t_data::SIGMA](n_radial, n_azimuthal) += extra_sigma;
-
-			}}
-
-	}
-
     // profile cutoff at outer boundary?
     if (parameters::profile_cutoff_outer) {
 	logging::print_master(
@@ -1351,6 +1358,45 @@ void init_eos_arrays(t_data &data)
     }
 }
 
+void add_gaussian_energy_ring(t_data &data){
+		const double r_ring = parameters::cbd_ring_position;
+		const double w_ring = parameters::cbd_ring_width;
+		const double factor_ring = parameters::cbd_ring_enhancement_factor;
+
+		for (unsigned int n_radial = 0;
+			 n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
+			 ++n_azimuthal) {
+
+
+				double mass;
+				double r;
+				if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+					mass = data.get_planetary_system().get_mass();
+					Pair cms = data.get_planetary_system().get_center_of_mass();
+					const double cms_x = cms.x;
+					const double cms_y = cms.y;
+
+					const double phi = (double)n_azimuthal * dphi;
+					const double rmed = Rmed[n_radial];
+					const double x = rmed * std::cos(phi) - cms_x;
+					const double y = rmed * std::sin(phi) - cms_y;
+					r = std::sqrt(x * x + y * y);
+
+				} else {
+					mass = hydro_center_mass;
+					r = Rmed[n_radial];
+				}
+
+			assert(factor_ring >= 1.0);
+
+			const double energy_ring =  initial_energy(r, mass);
+			const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
+			data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
+			}}
+}
+
 void init_gas_energy(t_data &data)
 {
     if (parameters::ADIABATICINDEX == 1.0) {
@@ -1460,48 +1506,6 @@ void init_gas_energy(t_data &data)
 	die("Bad choice!"); // TODO: better explanation!
 	break;
     }
-
-	if(parameters::cbd_ring){
-		const double r_ring = parameters::cbd_ring_position;
-		const double w_ring = parameters::cbd_ring_width;
-		const double factor_ring = parameters::cbd_ring_enhancement_factor;
-
-		for (unsigned int n_radial = 0;
-			 n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
-			for (unsigned int n_azimuthal = 0;
-			 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
-			 ++n_azimuthal) {
-
-
-				double mass;
-				double r;
-				if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
-					mass = data.get_planetary_system().get_mass();
-					Pair cms = data.get_planetary_system().get_center_of_mass();
-					const double cms_x = cms.x;
-					const double cms_y = cms.y;
-
-					const double phi = (double)n_azimuthal * dphi;
-					const double rmed = Rmed[n_radial];
-					const double x = rmed * std::cos(phi) - cms_x;
-					const double y = rmed * std::sin(phi) - cms_y;
-					r = std::sqrt(x * x + y * y);
-
-				} else {
-					mass = hydro_center_mass;
-					r = Rmed[n_radial];
-				}
-
-			assert(factor_ring >= 1.0);
-
-			const double energy_ring =  initial_energy(r, mass);
-			const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
-			data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
-
-
-			}}
-
-	}
 
     // profile damping outer?
     if (parameters::profile_cutoff_outer) {
