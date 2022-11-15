@@ -1326,6 +1326,12 @@ void renormalize_sigma_and_report(t_data &data)
 		 ++n_azimuthal) {
 		data[t_data::SIGMA](n_radial, n_azimuthal) *=
 		    parameters::sigma_discmass / total_mass;
+
+		if(parameters::Adiabatic){
+			// We reduce energy by the same amount to keep Temperature constant
+			data[t_data::ENERGY](n_radial, n_azimuthal) *=
+					parameters::sigma_discmass / total_mass;
+		}
 	    }
 	}
     } else {
