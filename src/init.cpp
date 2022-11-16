@@ -1037,7 +1037,6 @@ void init_secondary_disk_velocities(t_data &data)
 
 void add_gaussian_density_ring(t_data & data){
 		const double r_ring = parameters::cbd_ring_position;
-		const double w_ring = parameters::cbd_ring_width;
 		const double factor_ring = parameters::cbd_ring_enhancement_factor;
 
 		for (unsigned int n_radial = 0;
@@ -1066,6 +1065,12 @@ void add_gaussian_density_ring(t_data & data){
 				parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
 
 		assert(factor_ring >= 1.0);
+
+		double w_ring = parameters::cbd_ring_width;
+		if(r > r_rin){
+			w_ring *= 5.0;
+		}
+
 		const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
 		data[t_data::SIGMA](n_radial, n_azimuthal) += extra_sigma;
 
@@ -1366,7 +1371,6 @@ void init_eos_arrays(t_data &data)
 
 void add_gaussian_energy_ring(t_data &data){
 		const double r_ring = parameters::cbd_ring_position;
-		const double w_ring = parameters::cbd_ring_width;
 		const double factor_ring = parameters::cbd_ring_enhancement_factor;
 
 		for (unsigned int n_radial = 0;
@@ -1396,6 +1400,12 @@ void add_gaussian_energy_ring(t_data &data){
 				}
 
 			assert(factor_ring >= 1.0);
+
+			double w_ring = parameters::cbd_ring_width;
+			if(r > r_rin){
+				w_ring *= 5.0;
+			}
+
 
 			const double energy_ring =  initial_energy(r, mass);
 			const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
