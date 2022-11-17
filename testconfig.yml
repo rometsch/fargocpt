@@ -106,7 +106,8 @@ DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
-DampingTimeFactor: '1.0e-3'
+DampingTimeFactor: '1.0e-1'
+DampingTimeRadiusOuter: '2.5' # default: RMAX
 DampingEnergyInner: Initial   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialInner: Initial   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner: Initial   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
