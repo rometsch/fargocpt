@@ -356,8 +356,6 @@ void t_planetary_system::restart()
 	m_rebound = reb_create_simulation_from_binary(
 	    (char *)rebound_filename.c_str());
     
-	copy_data_from_rebound_update_orbital_parameters();
-
     logging::print_master(LOG_INFO " done\n");
 }
 
@@ -374,7 +372,7 @@ void t_planetary_system::write_planets(int file_type)
 	get_planet(i).write(file_type);
     }
 
-    if (CPU_Master) {
+	if (CPU_Master && file_type == 0) {
 	const std::string rebound_filename = output::snapshot_dir + "/rebound.bin";
 	reb_output_binary(m_rebound, rebound_filename.c_str());
     }
