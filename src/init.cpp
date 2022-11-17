@@ -1067,7 +1067,7 @@ void add_gaussian_density_ring(t_data & data){
 		assert(factor_ring >= 1.0);
 
 		double w_ring = parameters::cbd_ring_width;
-		if(r > r_rin){
+		if(r > r_ring){
 			w_ring *= 5.0;
 		}
 
@@ -1402,7 +1402,7 @@ void add_gaussian_energy_ring(t_data &data){
 			assert(factor_ring >= 1.0);
 
 			double w_ring = parameters::cbd_ring_width;
-			if(r > r_rin){
+			if(r > r_ring){
 				w_ring *= 5.0;
 			}
 
