@@ -379,7 +379,7 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 			const double vk_2 = constants::G * hydro_center_mass / R;
 			VKepIn = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
 		} else {
-		//const double h0 = parameters::ASPECTRATIO_REF;
+		const double h0 = parameters::ASPECTRATIO_REF;
 		const double F = parameters::FLARINGINDEX;
 		const double S = parameters::SIGMASLOPE;
 		const double h = h0 * std::pow(R, F);
