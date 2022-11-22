@@ -247,94 +247,66 @@ void NonReflectingBoundary_outer(t_data &data, t_polargrid *VRadial,
 */
 void EvanescentBoundary(t_data &data, double step)
 {
-    unsigned int nRadial, nAzimuthal, cell;
 
-    double xp, yp, rp;
-    double *vrad, *vtheta, *dens, *energ;
-    double vrad0, vtheta0, /*viscosity,*/ dens0, energ0;
-    double DRMIN, DRMAX, damping, Tin, Tout, lambda;
-
-    vrad = data[t_data::V_RADIAL].Field;
-    vtheta = data[t_data::V_AZIMUTHAL].Field;
-    dens = data[t_data::SIGMA].Field;
-    energ = data[t_data::ENERGY].Field;
+    auto & vrad = data[t_data::V_RADIAL];
+    auto & vtheta = data[t_data::V_AZIMUTHAL];
+    auto & dens = data[t_data::SIGMA];
+    auto & energ = data[t_data::ENERGY];
 
     /* Orbital period at inner and outer boundary */
-    Tin = 2.0 * M_PI * pow(GlobalRmed[0], 3. / 2);
-    Tout = 2.0 * M_PI * pow(GlobalRmed[GlobalNRadial - 1], 3. / 2);
+    const double Tin = 2.0 * M_PI * pow(GlobalRmed[0], 3. / 2);
+    const double Tout = 2.0 * M_PI * pow(GlobalRmed[GlobalNRadial - 1], 3. / 2);
 
     /* DRMIN AND DRMAX are global Radii boundaries of killing wave zones */
-    xp = data.get_planetary_system().get_planet(0).get_x();
-    yp = data.get_planetary_system().get_planet(0).get_y();
-    rp = sqrt(xp * xp + yp * yp);
-    DRMIN = GlobalRmed[0] + 0.1667 * (rp - GlobalRmed[0]);
-    DRMAX = GlobalRmed[GlobalNRadial - 1] -
-	    0.2667 * (GlobalRmed[GlobalNRadial - 1] - rp);
+    const double xp = data.get_planetary_system().get_planet(1).get_x();
+    const double yp = data.get_planetary_system().get_planet(1).get_y();
+    const double rp = sqrt(xp * xp + yp * yp);
+    const double R_damp_in = GlobalRmed[0] + 0.1667 * (rp - GlobalRmed[0]);
+    const double R_damp_out = GlobalRmed[GlobalNRadial - 1] - 0.2667 * (GlobalRmed[GlobalNRadial - 1] - rp);
 
-    lambda = 0.0;
 	#pragma omp parallel for
-    for (nRadial = Zero_or_active; nRadial < Max_or_active; ++nRadial) {
-	if ((Rmed[nRadial] < DRMIN) || (Rmed[nRadial] > DRMAX)) {
+    for (unsigned int nrad = Zero_or_active; nrad < Max_or_active; ++nrad) {
+	if ((Rmed[nrad] < R_damp_in) || (Rmed[nrad] > R_damp_out)) {
+		double lambda = 0.0;
+
 	    /* Damping operates only inside the wave killing zones */
-	    if (Rmed[nRadial] < DRMIN) {
-		damping = (Rmed[nRadial] - DRMIN) / (GlobalRmed[0] - DRMIN);
+	    if (Rmed[nrad] < R_damp_in) {
+		const double Rin = GlobalRmed[0];
+		const double damping = (Rmed[nrad] - R_damp_in) / (Rin - R_damp_in);
 		lambda = damping * damping * 10.0 * step / Tin;
 	    }
-	    if (Rmed[nRadial] > DRMAX) {
-		damping = (Rmed[nRadial] - DRMAX) /
-			  (GlobalRmed[GlobalNRadial - 1] - DRMAX);
+	    if (Rmed[nrad] > R_damp_out) {
+		const double Rout = GlobalRmed[GlobalNRadial - 1];
+		const double damping = (Rmed[nrad] - R_damp_out) / (R_out - R_damp_out);
 		lambda = damping * damping * 10.0 * step / Tout;
 	    }
-	    /*
-	    if (ViscosityAlpha || (parameters::VISCOSITY != 0.0) )
-		    viscosity = FViscosity (Rmed[i]);
-	    if (!ViscosityAlpha && (parameters::VISCOSITY == 0.0) )
-		    viscosity = 0.0;
-	    if (!SelfGravity) {
-		    vtheta0 = sqrt ( G*1.0/Rmed[i] * ( 1.0 -
-	    (1.0+parameters::SIGMASLOPE-2.0*parameters::FLARINGINDEX)*
-	    pow(AspectRatio(Rmed[i]),2.0)*pow(Rmed[i],2.0*parameters::FLARINGINDEX) ) );
-	    }
-	    if (SelfGravity) {
-		    vtheta0 = sqrt ( G*1.0/Rmed[i] * ( 1.0 -
-	    (1.0+parameters::SIGMASLOPE-2.0*parameters::FLARINGINDEX)*
-	    pow(AspectRatio(Rmed[i]),2.0)*pow(Rmed[i],2.0*parameters::FLARINGINDEX) ) -
-	    Rmed[i]*GLOBAL_AxiSGAccr[i+IMIN] );
-	    }
-	    // this could be refined if CentrifugalBalance is used...
-	    vtheta0 -= Rmed[i]*refframe::OmegaFrame;
-	    vrad0 = -3.0*viscosity/Rmed[i]*(-parameters::SIGMASLOPE+.5);
-	    dens0 = SigmaMed[i];
-	    energ0 = EnergyMed[i];
-	    */
-	    vrad0 = 0.0;
-	    vtheta0 = 0.0;
-	    dens0 = 0.0;
-	    energ0 = 0.0;
-	    for (nAzimuthal = 0; nAzimuthal < data[t_data::SIGMA].Nsec;
-		 ++nAzimuthal) {
-		cell = nRadial * data[t_data::SIGMA].Nsec + nAzimuthal;
-		vrad0 += vrad[cell];
-		vtheta0 += vtheta[cell];
-		dens0 += dens[cell];
-		energ0 += energ[cell];
-	    }
-	    vrad0 /= (double)(data[t_data::SIGMA].Nsec);
-	    vtheta0 /= (double)(data[t_data::SIGMA].Nsec);
-	    dens0 /= (double)(data[t_data::SIGMA].Nsec);
-	    energ0 /= (double)(data[t_data::SIGMA].Nsec);
 
-	    for (nAzimuthal = 0; nAzimuthal < data[t_data::SIGMA].Nsec;
-		 ++nAzimuthal) {
-		cell = nRadial * data[t_data::SIGMA].Nsec + nAzimuthal;
-		vrad[cell] = (vrad[cell] + lambda * vrad0) / (1.0 + lambda);
-		vtheta[cell] =
-		    (vtheta[cell] + lambda * vtheta0) / (1.0 + lambda);
-		dens[cell] = (dens[cell] + lambda * dens0) / (1.0 + lambda);
-		if (parameters::Adiabatic){
-		    energ[cell] =
-			(energ[cell] + lambda * energ0) / (1.0 + lambda);
-		}
+	    double vrad_mean = 0.0;
+	    double vaz_mean = 0.0;
+	    double dens_mean = 0.0;
+	    double energ_mean = 0.0;
+		// Calculate azimuthal averages
+	    for (unsigned int naz = 0; naz < data[t_data::SIGMA].Nsec;
+		 ++naz) {
+		vrad_mean += vrad(nrad, naz);
+		vaz_mean += vtheta(nrad, naz);
+		dens_mean += dens(nrad, naz);
+		energ_mean += energ(nrad, naz);
+	    }
+	    vrad_mean /= (double)(data[t_data::SIGMA].Nsec);
+	    vaz_mean /= (double)(data[t_data::SIGMA].Nsec);
+	    dens_mean /= (double)(data[t_data::SIGMA].Nsec);
+	    energ_mean /= (double)(data[t_data::SIGMA].Nsec);
+
+		// Apply damping
+	    for (unsigned int naz = 0; naz < data[t_data::SIGMA].Nsec;
+		 ++naz) {
+			vrad(nrad, naz) = (vrad(nrad, naz) + lambda * vrad_mean) / (1.0 + lambda);
+			vtheta(nrad, naz) = (vtheta(nrad, naz) + lambda * vaz_mean) / (1.0 + lambda);
+			dens(nrad, naz) = (dens(nrad, naz) + lambda * dens_mean) / (1.0 + lambda);
+			if (parameters::Adiabatic){
+				energ(nrad, naz) = (energ(nrad, naz) + lambda * energ_mean) / (1.0 + lambda);
+			}
 	    }
 	}
     }
