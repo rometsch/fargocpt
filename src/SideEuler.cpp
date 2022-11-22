@@ -382,10 +382,11 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 		//const double h0 = parameters::ASPECTRATIO_REF;
 		const double F = parameters::FLARINGINDEX;
 		const double S = parameters::SIGMASLOPE;
-		//const double h = h0 * std::pow(R, F);
+		const double h = h0 * std::pow(R, F);
 		//const double eps = parameters::thickness_smoothing;
 		const double vk_2 = constants::G * hydro_center_mass / R;
-		const double pressure_support_2 = 2.0 * F - 1.0 - S;
+		const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
+
 		//const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
 		//		/ std::sqrt(1 + std::pow(h * eps, 2));
 		const double smoothing_derivative_2 = 1.0;
