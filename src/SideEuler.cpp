@@ -277,7 +277,7 @@ void EvanescentBoundary(t_data &data, double step)
 	    }
 	    if (Rmed[nrad] > R_damp_out) {
 		const double Rout = GlobalRmed[GlobalNRadial - 1];
-		const double damping = (Rmed[nrad] - R_damp_out) / (R_out - R_damp_out);
+		const double damping = (Rmed[nrad] - R_damp_out) / (Rout - R_damp_out);
 		lambda = damping * damping * 10.0 * step / Tout;
 	    }
 
