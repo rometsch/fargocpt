@@ -1,14 +1,14 @@
 # Time settings
 
-Ntot: 200   # Total number of time steps
+Ntot: 100   # Total number of time steps
 Ninterm: 1  # Time steps between outputs
-DT: 1   # Time of one orbit at 1 au
+DT: 100   # Time of one orbit at 1 au
 FirstDt: 1e-1
 
 ParticleDustDiffusion: 'yes'
 ParticleGasDragEnabled: 'no'   # [default = YES]
 ParticleRadius: 1e-5 cm   # particle radius in cm [default = 100]
-
+ParticleIntegrator: midepoint   # Explicit, Adaptive, Semiimplicit and Implicit
 
 # Disk parameters
 
@@ -64,7 +64,6 @@ RadialSpacing: ARITHMETIC   # Logarithmic or ARITHMETIC or Exponential
 
 IntegrateParticles: 'YES'   # enable particle integrator [default = no]
 CartesianParticles: 'no'   # enable particle integrator [default = no]
-ParticleIntegrator: midpoint   # Explicit, Adaptive, Semiimplicit and Implicit
 NumberOfParticles: '1'   # number of particles [default = 0]
 ParticleEccentricity: 0.00   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
