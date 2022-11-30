@@ -94,7 +94,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 		const double Dr = Ra[nr+1] - Ra[nr];
 		const double rDphi = Rmed[nr] * dphi;
-		const double dx_sq = std::pow(std::min(Dr, rDphi), 2);
+		const double dx_sq = std::pow(std::max(Dr, rDphi), 2);
 		const double l_sq = std::pow(parameters::artificial_viscosity_factor, 2) * dx_sq;
 
 		const double q_rr = l_sq * density(nr, naz) * -div_V * (eps_rr - 1.0/3.0 * div_V);
@@ -317,7 +317,7 @@ void update_with_artificial_viscosity_TW_old(t_data &data, const double dt)
 
 		const double Dr = Ra[nr+1] - Ra[nr];
 		const double rDphi = Rmed[nr] * dphi;
-		const double dx_2 = std::pow(std::min(Dr, rDphi), 2);
+		const double dx_2 = std::pow(std::max(Dr, rDphi), 2);
 
 		double sigma_nu_art;
 		if (DIV_V(nr, naz) < 0) {
