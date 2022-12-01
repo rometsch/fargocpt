@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 N_MPI=1
-N_OMPT=6
+N_OMPT=2
 
 # export OMPI_MCA_mpi_cuda_support=0
 export OMP_DISPLAY_ENV=VERBOSE

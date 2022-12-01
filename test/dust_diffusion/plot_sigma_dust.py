@@ -54,6 +54,16 @@ def get_closest_analytic(t):
     n = np.argmin(np.abs(times - t))
     return r, profiles[n], times[n]
 
+def return_sigma_dust(outdir, N):
+    
+    particles = get_particles(outdir, N)
+    r = particles["r"]
+    counts, interfaces = np.histogram(r, bins=51)
+    mid = 0.5*(interfaces[1:] + interfaces[:-1])
+    dr = interfaces[1:] - interfaces[:-1]
+    sigma_dust = counts/(dr*mid*2*np.pi)
+    return sigma_dust, mid, dr
+
 def plot(ax, outdir, N, name="", normalize=False, toffset=0):
 
     print(f"Plotting particle distribution for N = {N}")
@@ -63,9 +73,6 @@ def plot(ax, outdir, N, name="", normalize=False, toffset=0):
     N_particles = len(r)
     # hacky way around fargocpt outputting x and y
     # for adaptive integrator
-    if any(r < 0):
-        phi = particles["phi"]
-        r = np.sqrt(r**2 + phi**2)
     print("N = {} particles".format(len(r)))
     t = get_time(outdir, N)
     
@@ -74,16 +81,18 @@ def plot(ax, outdir, N, name="", normalize=False, toffset=0):
     counts, interfaces = np.histogram(r, bins=51)
     mid = 0.5*(interfaces[1:] + interfaces[:-1])
     dr = interfaces[1:] - interfaces[:-1]
-    sigma_dust = counts/(dr*mid)
+    sigma_dust = counts/(dr*mid*2*np.pi)
     # sigma_dust /= np.max(sigma_dust)
     # sigma_dust = counts*1
     if normalize:
-        sigma_dust = sigma_dust / np.max(sigma_dust)
+        integral = np.sum(sigma_dust * dr*mid * 2*np.pi)
+        sigma_dust = sigma_dust / integral
+
     line, = ax.plot(mid, sigma_dust, label=label)
 
-    ra, pa, ta = get_closest_analytic(t+toffset)
-    pa = pa/np.max(pa) *np.max(sigma_dust)
-    ax.plot(ra, pa, color=line.get_color(), ls="--", label=f"analytic t = {ta:3g} yr")
+    # ra, pa, ta = get_closest_analytic(t+toffset)
+    # pa = pa/np.max(pa) *np.max(sigma_dust)
+    # ax.plot(ra, pa, color=line.get_color(), ls="--", label=f"analytic t = {ta:3g} yr")
 
     ax.set_xlabel(r"$r$")
     ax.set_ylabel(r"particle histogram normalized")
