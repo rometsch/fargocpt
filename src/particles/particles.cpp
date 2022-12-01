@@ -425,46 +425,8 @@ static void correct_for_self_gravity(const unsigned int i)
     particles[i].phi_ddot = 0.0;
 }
 
-static void
-init_particle(const unsigned int &i, const unsigned int &id_offset,
-	      std::mt19937 &generator,
-	      std::uniform_real_distribution<double> &dis_one,
-	      std::uniform_real_distribution<double> &dis_twoPi,
-	      std::uniform_real_distribution<double> &dis_eccentricity)
-{
-    double semi_major_axis =
-	power_law_distribution(dis_one(generator), parameters::particle_slope);
-    double phi = dis_twoPi(generator);
-    double eccentricity = dis_eccentricity(generator);
-
-    /*
-    // debug setup
-////////////////////////////////////////////////////////////// const int
-num_particles_per_ring = 10; int global_id = i + id_offset;
-
-double rmin = parameters::particle_minimum_radius;
-double rmax = parameters::particle_maximum_radius;
-
-// make sure particles are not initialized on an orbit that moves out of
-    //particle-bounds
-    if(RMAX <
-parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
-	rmax =
-parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
-
-if(RMIN >
-parameters::particle_minimum_radius*(1.0-parameters::particle_eccentricity))
-	rmin =
-parameters::particle_minimum_radius/(1.0-parameters::particle_eccentricity);
-
-
-phi = 2.0*PI / num_particles_per_ring * (global_id/num_particles_per_ring);
-semi_major_axis = (rmax - rmin) *
-double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
-    rmin+0.3;
-    eccentricity = 0.0;
-    ///////////////////////////////////////////////////////////////////////////
-    */
+static void insert_particle(const unsigned int i, const unsigned int id_offset, const double semi_major_axis, 
+	const double phi, const double eccentricity) {
 
     particles[i].radius = parameters::particle_radius;
 
@@ -512,6 +474,49 @@ double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
     particles[i].facold = 0.0;
 
     particles[i].id = id_offset + i;
+}
+
+static void
+init_particle(const unsigned int &i, const unsigned int &id_offset,
+	      std::mt19937 &generator,
+	      std::uniform_real_distribution<double> &dis_one,
+	      std::uniform_real_distribution<double> &dis_twoPi,
+	      std::uniform_real_distribution<double> &dis_eccentricity)
+{
+    double semi_major_axis =
+	power_law_distribution(dis_one(generator), parameters::particle_slope);
+    double phi = dis_twoPi(generator);
+    double eccentricity = dis_eccentricity(generator);
+
+    /*
+    // debug setup
+////////////////////////////////////////////////////////////// const int
+num_particles_per_ring = 10; int global_id = i + id_offset;
+
+double rmin = parameters::particle_minimum_radius;
+double rmax = parameters::particle_maximum_radius;
+
+// make sure particles are not initialized on an orbit that moves out of
+    //particle-bounds
+    if(RMAX <
+parameters::particle_maximum_radius*(1.0+parameters::particle_eccentricity))
+	rmax =
+parameters::particle_maximum_radius/(1.0+parameters::particle_eccentricity);
+
+if(RMIN >
+parameters::particle_minimum_radius*(1.0-parameters::particle_eccentricity))
+	rmin =
+parameters::particle_minimum_radius/(1.0-parameters::particle_eccentricity);
+
+
+phi = 2.0*PI / num_particles_per_ring * (global_id/num_particles_per_ring);
+semi_major_axis = (rmax - rmin) *
+double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
+    rmin+0.3;
+    eccentricity = 0.0;
+    ///////////////////////////////////////////////////////////////////////////
+    */
+   insert_particle(i, id_offset, semi_major_axis, phi, eccentricity);
 }
 
 /**
