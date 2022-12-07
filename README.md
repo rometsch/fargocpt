@@ -2,8 +2,31 @@
 
 ## Description
 
-This is the version of the [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code used by some members of the Computational Physics Tübingen group.
-It was modified quite substantially by Tobias Müller and is now used and maintained by Lucas Jordan and Thomas Rometsch.
+This is the version of the [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code used by some members of the Computational Physics Tübingen (CPT) group.
+
+It is now used and maintained by Lucas Jordan and Thomas Rometsch with contributions by Tobias Moldenhauer (symmetric self-gravity) and Dennis Wehner (variable adiabatic index).
+
+Credit for earlier version we built uopn go to:
+- the original [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code by Frederic Masset
+- [FARGO-ADSG](http://fargo.in2p3.fr/-FARGO-ADSG-) by [Clément Baruteau](http://clement.baruteau.free.fr/work/) who added a solver for the energy equation (AD=adiabatic) and self-gravity (SG)
+- [Tobias Müller](https://twam.info) for adopting FARGO-ADSG to C++, [Giovanni Picogna](https://www.usm.uni-muenchen.de/people/picogna/index.html) for adding Langrangian particles, and other students in the CPT group.
+
+## Warning!
+
+This version is still in development.
+Most physics modules are successfully tested, however some modules (dust diffusion, self-gravity) are not yet fully tested.
+
+The tested features of the code include:
+- hydrodynamics part including the FARGO algorithm (shocktube, viscous spreading ring)
+- Nbody dynamics and interaction with gas (planet torque, barycenter test)
+- irradiation
+- dust drift
+
+## In development
+
+This code is presented as is. And it will change over time.
+The coming weeks (last weeks of 2022 and first weeks of 2023), we plan to add more tests, add documentation and examples.
+Changes to the input and output format are also possible, though the goal for the next month is to have a version 1.0.
 
 ## Usage
 
