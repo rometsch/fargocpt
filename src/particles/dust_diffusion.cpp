@@ -2,6 +2,8 @@
 #include "../find_cell_id.h"
 #include "../global.h"
 #include "../random/random.h"
+#include "../output.h"
+#include <filesystem>
 namespace dust_diffusion
 {
 void init(t_data &data)
@@ -29,6 +31,7 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
         compute_gas_density_radial_derivative(data);
     }
 
+    // std::filesystem::create_directory(output::outdir + "/" + "particles" + "/");
     // TODO: openmp parallelize
     #pragma omp parallel for
     for (unsigned int i = 0; i < N_particles; i++) {
@@ -102,6 +105,30 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     printf("\n[%d] cell_size = %.3e", CPU_Rank, Rsup[n_rad] - Rinf[n_rad]);
     printf("\n[%d] cartesian particles = %d", CPU_Rank, parameters::CartesianParticles);
     }
+
+    const bool save_state = false;
+
+    if (save_state) {
+    std::ofstream out(output::outdir + "/" + "particles" + "/" + std::to_string(particle.id));
+	out << "r : " << r << std::endl;
+	out << "phi : " << phi << std::endl;
+	out << "rho : " << rho << std::endl;
+	out << "Dg : " << Dg << std::endl;
+	out << "Dd : " << Dd << std::endl;
+	out << "Sc : " << Sc << std::endl;
+	out << "St : " << St << std::endl;
+	out << "mean : " << mean << std::endl;
+	out << "sigma : " << sigma << std::endl;
+    out << "snv : " << snv << std::endl;
+	out << "dt : " << dt << std::endl;
+    out << "deltar : " << deltar << std::endl;
+    out << "drho_dr : " << drho_dr << std::endl;
+    out << "n_rad : " << n_rad << std::endl;
+    out << "n_az : " << n_az << std::endl;
+    out << "cell_size : " << Rsup[n_rad] - Rinf[n_rad] << std::endl;
+    }
+
+
     return deltar;
 }
 
