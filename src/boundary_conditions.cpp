@@ -749,7 +749,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
@@ -810,8 +810,8 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
-		     calculate_omega_kepler(RMAX);
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	// Needed for OpenMP to work
 	double &OuterWaveDampingPositive = MassDelta.OuterWaveDampingPositive;
@@ -870,7 +870,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
@@ -936,8 +936,8 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
-		     calculate_omega_kepler(RMAX);
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	// Needed for OpenMP to work
 	double &OuterWaveDampingPositive = MassDelta.OuterWaveDampingPositive;
@@ -997,7 +997,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// get mean quantity
@@ -1062,7 +1062,7 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 	const static unsigned int limit =
 	    get_rinf_id(RMIN * parameters::damping_inner_limit);
 
-	const double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
+	const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 			   calculate_omega_kepler(RMIN);
 
 	const double s = parameters::viscous_outflow_speed;
@@ -1125,8 +1125,8 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
-		     calculate_omega_kepler(RMAX);
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
@@ -1195,8 +1195,8 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
 		get_rinf_id(RMAX * parameters::damping_outer_limit), vrad_arr.is_vector())+1;
 
-	double tau = parameters::damping_time_factor_outer * 2.0 * M_PI /
-		     calculate_omega_kepler(RMAX);
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vrad_id;
@@ -1423,7 +1423,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		get_rinf_id(RMIN * parameters::damping_inner_limit),
 		vrad_arr.is_vector());
 
-	double tau = parameters::damping_time_factor_inner * 2.0 * M_PI /
+	double tau = parameters::damping_time_factor * 2.0 * M_PI /
 			 calculate_omega_kepler(RMIN);
 
 	#pragma omp parallel for

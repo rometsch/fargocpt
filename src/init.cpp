@@ -297,6 +297,12 @@ void init_physics(t_data &data)
 	}
 
 	renormalize_sigma_and_report(data);
+
+	if(parameters::cbd_ring){
+	add_gaussian_density_ring(data);
+	add_gaussian_energy_ring(data);
+	}
+
     }
 
     if (parameters::self_gravity) {
@@ -712,7 +718,7 @@ void init_PVTE_shock_tube_test(t_data &data)
     units::density.set_cgs_factor(1.66053886e-19);
     units::density.set_cgs_symbol("1");
 
-    units::surface_density.set_cgs_factor(1.0);
+    units::surface_density.set_cgs_factor(1.66053886e-19);
     units::surface_density.set_cgs_symbol("1");
 
     units::opacity.set_cgs_factor(1.0);
@@ -861,16 +867,14 @@ void init_secondary_disk_energies(t_data &data)
 			scaling_factor * cutoff_outer(disk_size, cutoff_width, r);
 
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
 		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
 		const double temperature_ceil =
-		    parameters::maximum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::maximum_temperature;
 		const double energy_ceil =
 		    temperature_ceil *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
@@ -1029,6 +1033,51 @@ void init_secondary_disk_velocities(t_data &data)
 	}
     }
 }
+
+
+void add_gaussian_density_ring(t_data & data){
+		const double r_ring = parameters::cbd_ring_position;
+		const double factor_ring = parameters::cbd_ring_enhancement_factor;
+
+		for (unsigned int n_radial = 0;
+			 n_radial < data[t_data::SIGMA].get_size_radial(); ++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
+			 ++n_azimuthal) {
+
+				double r;
+				if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+					Pair cms = data.get_planetary_system().get_center_of_mass();
+					const double cms_x = cms.x;
+					const double cms_y = cms.y;
+
+					const double phi = (double)n_azimuthal * dphi;
+					const double rmed = Rmed[n_radial];
+					const double x = rmed * std::cos(phi) - cms_x;
+					const double y = rmed * std::sin(phi) - cms_y;
+					r = std::sqrt(x * x + y * y);
+
+				} else {
+					r = Rmed[n_radial];
+				}
+
+		const double sigma_ring =
+				parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
+
+		assert(factor_ring >= 1.0);
+
+		double w_ring = parameters::cbd_ring_width;
+		if(r > r_ring){
+			w_ring *= 5.0;
+		}
+
+		const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
+		data[t_data::SIGMA](n_radial, n_azimuthal) += extra_sigma;
+
+			}}
+
+}
+
 
 void init_gas_density(t_data &data)
 {
@@ -1282,6 +1331,12 @@ void renormalize_sigma_and_report(t_data &data)
 		 ++n_azimuthal) {
 		data[t_data::SIGMA](n_radial, n_azimuthal) *=
 		    parameters::sigma_discmass / total_mass;
+
+		if(parameters::Adiabatic){
+			// We reduce energy by the same amount to keep Temperature constant
+			data[t_data::ENERGY](n_radial, n_azimuthal) *=
+					parameters::sigma_discmass / total_mass;
+		}
 	    }
 	}
     } else {
@@ -1312,6 +1367,50 @@ void init_eos_arrays(t_data &data)
 	    data[t_data::MU](n_rad, n_az) = parameters::MU;
 	}
     }
+}
+
+void add_gaussian_energy_ring(t_data &data){
+		const double r_ring = parameters::cbd_ring_position;
+		const double factor_ring = parameters::cbd_ring_enhancement_factor;
+
+		for (unsigned int n_radial = 0;
+			 n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
+			for (unsigned int n_azimuthal = 0;
+			 n_azimuthal < data[t_data::ENERGY].get_size_azimuthal();
+			 ++n_azimuthal) {
+
+
+				double mass;
+				double r;
+				if(parameters::sigma_initialize_condition == parameters::initialize_condition_profile_Nbody_centered){
+					mass = data.get_planetary_system().get_mass();
+					Pair cms = data.get_planetary_system().get_center_of_mass();
+					const double cms_x = cms.x;
+					const double cms_y = cms.y;
+
+					const double phi = (double)n_azimuthal * dphi;
+					const double rmed = Rmed[n_radial];
+					const double x = rmed * std::cos(phi) - cms_x;
+					const double y = rmed * std::sin(phi) - cms_y;
+					r = std::sqrt(x * x + y * y);
+
+				} else {
+					mass = hydro_center_mass;
+					r = Rmed[n_radial];
+				}
+
+			assert(factor_ring >= 1.0);
+
+			double w_ring = parameters::cbd_ring_width;
+			if(r > r_ring){
+				w_ring *= 5.0;
+			}
+
+
+			const double energy_ring =  initial_energy(r, mass);
+			const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
+			data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
+			}}
 }
 
 void init_gas_energy(t_data &data)
@@ -1395,8 +1494,7 @@ void init_gas_energy(t_data &data)
 		const double energy = initial_energy(r, mass);
 
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
@@ -1461,8 +1559,7 @@ void init_gas_energy(t_data &data)
 		    cutoff_outer(parameters::profile_cutoff_point_outer,
 				 parameters::profile_cutoff_width_outer, r);
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /
@@ -1510,8 +1607,7 @@ void init_gas_energy(t_data &data)
 		    cutoff_inner(parameters::profile_cutoff_point_inner,
 				 parameters::profile_cutoff_width_inner, r);
 		const double temperature_floor =
-		    parameters::minimum_temperature *
-		    units::temperature.get_inverse_cgs_factor();
+			parameters::minimum_temperature;
 		const double energy_floor =
 		    temperature_floor *
 		    data[t_data::SIGMA](n_radial, n_azimuthal) /

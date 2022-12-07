@@ -5,7 +5,7 @@ Sigma0: 8887231.453904748 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
 DiscMass: '0.1'   # only used when SetSigma0 = true [default = 0.01]
-SigmaFloor: '1.e-100'   # floor surface density in multiples of sigma0 [default = 1e-9]
+SigmaFloor: '1.0e-100'   # floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
 DensityFactor: '1.0'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
@@ -18,12 +18,11 @@ ProfileCutoffWidthOuter: '0.000001'   # in [au], [default = 1]
 EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '1.0'   # Thickness over Radius in the disk
-Viscosity: '0.e-1'   # Uniform kinematic viscosity
+Viscosity: '0.0e-1'   # Uniform kinematic viscosity
 AlphaViscosity: '0.0'   # 
-Integrator: 'Euler'
 ArtificialViscosity: SN   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
-ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
+ArtificialViscosityFactor: '3' #1.41   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex: '0.5'   # Slope of Temperature/radius profile
 SelfGravity: 'No'   # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal Polytropic [default = Isothermal]
@@ -39,7 +38,7 @@ RadiativeDiffusionMaxIterations: '50000'   # [default = 50000]
 HeatingViscous: 'No'   # enable viscous heating
 HeatingViscousFactor: '1.0'
 MinimumTemperature: 1e-9 K   # minimum Temperature in K
-MaximumTemperature: 1e9 K   # default [NaN = disabled]
+MaximumTemperature: 1.0e6 K   # default [NaN = disabled]
 TauFactor: '1.0'   # correction factor for tau [default = 1.0]
 Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst: '2.0e-6'   # used for const and simple opacity (kappa = kappa0 * T**2)
@@ -65,14 +64,14 @@ MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
 # PlanetConfig		setups/old/Jup-res.cfg
 
-IntegratePlanets: 'No'   # [default = yes]
+IntegratePlanets: 'Yes'   # [default = yes]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Boundary layer parameters
 
-VRadIn: 0e-3   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
+VRadIn: '0.0e-3'   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
 StellarRotation: '0.0'   # Stellar rotation rate in terms of Keplerian angular velocity Om_kepler [default = 0.1]
 MassAccretionRate: '0'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
@@ -105,8 +104,8 @@ DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
 
 # Mesh parameters
 
-Nrad: '100'   # 512 128		# Radial number of zones
-Nsec: '4'   # 1536 384		# Azimuthal number of
+Nrad: '1000'   # 512 128		# Radial number of zones
+Nsec: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -140,13 +139,15 @@ WriteEccentricity: 'No'   # Write eccentricity. [default = no]
 WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
 WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
 WritepdV: 'No'   # Write pdV. [default = no]
-WriteDiskQuantities: 'No'   # Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteDiskQuantities: 'Yes'   # Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
 WriteRadialLuminosity: 'No'   # Write radial luminosity [default = no]
 WriteRadialDissipation: 'No'   # Write radial dissipation [default = no]
 WriteLightCurves: 'No'   # Write light curves [default = no]
 WriteLightcurvesRadii: 0.4,5.2
 WriteMassFlow: 'No'   # Write a 1d radial file with mass flow at each interface [default = no]
 WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
+WriteAdiabaticIndices: 'Yes'
+WriteMeanMolecularWeights: 'Yes'
 WritePressure: 'Yes'   # Write pressure [default = no]
 WriteAspectRatio: 'No'   # Write aspect ratio [default = no]
 WriteTorques: 'No'   # Calculate and write torques acting in planet/star
@@ -172,11 +173,10 @@ ParticleMinimumEscapeRadius: '0.4'   # [default = ParticleMinimumRadius]
 ParticleMaximumEscapeRadius: '2.5'   # [default = ParticleMaximumRadius]
 ParticleGasDragEnabled: 'yes'   # [default = YES]
 ParticleDiskGravityEnabled: 'no'   # [default = no]
-
 nbody:
 - name: DefaultStar
   semi-major axis: 0.0 au
-  mass: '0.0'
+  mass: '1.0'
   eccentricity: '0.0'
   radius: 0.009304813 solRadius
   temperature: 0 K

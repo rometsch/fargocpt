@@ -556,6 +556,15 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 	const double radius = planet.get_planet_radial_extend();
 	const double temperature = planet.get_temperature();
 
+	const double l1 = planet.get_dimensionless_roche_radius() *
+			planet.get_distance_to_primary();
+	double min_dist;
+	if(x*x + y*y > 1e-10){
+		min_dist = l1 * parameters::klahr_smoothing_radius;
+	} else {
+		min_dist = 0.0;
+	}
+
 	const unsigned int Nrad = data[t_data::QPLUS].get_max_radial();
 	const unsigned int Naz = data[t_data::QPLUS].get_max_azimuthal();
 	// Simple star heating (see Masterthesis Alexandros Ziampras)
@@ -566,7 +575,9 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		const unsigned int ncell = nrad * data[t_data::SIGMA].get_size_azimuthal() + naz;
 		const double xc = CellCenterX->Field[ncell];
 		const double yc = CellCenterY->Field[ncell];
-		const double distance = std::sqrt(std::pow(x - xc, 2) + std::pow(y - yc, 2));
+		const double distance_measured = std::sqrt(std::pow(x - xc, 2) + std::pow(y - yc, 2));
+		const double distance = std::max(distance_measured, min_dist);
+
 		const double HoverR = data[t_data::ASPECTRATIO](nrad, naz);
 		const double sigma = constants::sigma.get_code_value();
 		const double tau_eff = data[t_data::TAU_EFF](nrad, naz);
@@ -752,9 +763,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		const double tau_eff =
 			data[t_data::TAU_EFF](nr, naz);
 		const double Tmin4 =
-		    std::pow(parameters::minimum_temperature *
-				 units::temperature.get_inverse_cgs_factor(),
-			     4);
+			std::pow(parameters::minimum_temperature, 4);
 
 		const double qminus =
 		    factor * 2 * sigma_sb * (T4 - Tmin4) / tau_eff;

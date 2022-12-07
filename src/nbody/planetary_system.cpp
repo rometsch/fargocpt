@@ -146,6 +146,8 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
 	const double irrad_rampup = cfg.get<double>("irradiation ramp-up time", 0.0, units::T0);
 
+	const double phi = cfg.get<double>("trueanomaly", 0.0);
+
     const double argument_of_pericenter =
 	cfg.get<double>("argument of pericenter", 0.0);
 
@@ -167,7 +169,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
     t_planet *planet = new t_planet();
 
 	// planets starts at Periastron
-	const double nu = 0.0;
+	const double nu = phi;
 	if (get_number_of_planets() < 2) {
 	    initialize_planet_jacobi_adjust_first_two(
 		planet, mass, semi_major_axis, eccentricity,
@@ -354,8 +356,6 @@ void t_planetary_system::restart()
 	m_rebound = reb_create_simulation_from_binary(
 	    (char *)rebound_filename.c_str());
     
-	copy_data_from_rebound_update_orbital_parameters();
-
     logging::print_master(LOG_INFO " done\n");
 }
 
@@ -372,7 +372,7 @@ void t_planetary_system::write_planets(int file_type)
 	get_planet(i).write(file_type);
     }
 
-    if (CPU_Master) {
+	if (CPU_Master && file_type == 0) {
 	const std::string rebound_filename = output::snapshot_dir + "/rebound.bin";
 	reb_output_binary(m_rebound, rebound_filename.c_str());
     }

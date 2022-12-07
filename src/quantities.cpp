@@ -198,9 +198,8 @@ double gas_disk_radius(t_data &data, const double total_mass)
 	static const unsigned int send_size = local_array_end - local_array_start;
 
 	static std::vector<double> local_mass(send_size);
-	double *tmp_arr = &local_mass[0]; // openMP does not accept vectors
 
-	#pragma omp parallel for reduction(+ : tmp_arr[:send_size])
+	#pragma omp parallel for
     for (unsigned int n_radial = local_array_start; n_radial < local_array_end;
 	 ++n_radial) {
 	local_mass[n_radial - local_array_start] = 0.0;
@@ -211,6 +210,7 @@ double gas_disk_radius(t_data &data, const double total_mass)
 		Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
 	}
     }
+
     double radius = 0.0;
     double current_mass = 0.0;
 
@@ -219,22 +219,22 @@ double gas_disk_radius(t_data &data, const double total_mass)
 		MPI_COMM_WORLD);
 
     if (CPU_Master) {
-	int j = -1;
+	int j = 0;
 	for (int rank = 0; rank < CPU_Number; ++rank) {
 	    int id = RootRanksOrdered[rank];
-	    for (int i = RootIMIN[id]; i <= RootIMAX[id]; ++i) {
+		for (int i = RootIMIN[id]; i <= RootIMAX[id]; ++i) {
 		++j;
 		current_mass += GLOBAL_bufarray[i];
-		if (current_mass > 0.99 * total_mass) {
+		if (current_mass > parameters::disk_radius_mass_fraction * total_mass) {
 		    radius = GlobalRmed[j];
 		    goto found_radius; // break out of nested loop
 		}
 	    }
 	}
-	(void) tmp_arr; // So the compiler does not complain about unused variable
     found_radius:
 	void();
-    }
+	}
+
     return radius;
 }
 
@@ -730,18 +730,18 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / dist;
 
-		data[t_data::ECCENTRICITY_NEW](nr, naz) = std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
+		data[t_data::ECCENTRICITY](nr, naz) = std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 		if (refframe::FrameAngle != 0.0) {
 		// periastron grid is rotated to non-rotating coordinate system
 		// to prevent phase jumps of atan2 in later transformations like
 		// you would have had if you back-transform the output
 		// periastron values
-		data[t_data::PERIASTRON_NEW](nr, naz) =
+		data[t_data::PERIASTRON](nr, naz) =
 			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
 				   e_x * cosFrameAngle - e_y * sinFrameAngle);
 		} else {
-		data[t_data::PERIASTRON_NEW](nr, naz) =
+		data[t_data::PERIASTRON](nr, naz) =
 			std::atan2(e_y, e_x);
 		}
 	}
@@ -794,8 +794,8 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 {
 	// ecc holds the current eccentricity
-	t_polargrid &ecc_new = data[t_data::ECCENTRICITY_NEW];
-	t_polargrid &P_new = data[t_data::PERIASTRON_NEW];
+	t_polargrid &ecc_new = data[t_data::ECCENTRICITY];
+	t_polargrid &P_new = data[t_data::PERIASTRON];
 
 	// compute new eccentricity into ecc
 	calculate_disk_ecc_vector(data);

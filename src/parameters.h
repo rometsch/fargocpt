@@ -29,6 +29,7 @@ extern double DT;
 extern unsigned int NINTERM;
 extern unsigned int NTOT;
 extern double quantities_radius_limit;
+extern double disk_radius_mass_fraction;
 
 // cells per scaleheight
 extern double cps;
@@ -107,8 +108,8 @@ extern double damping_inner_limit;
 /// outer damping limit
 extern double damping_outer_limit;
 /// damping time factor
-extern double damping_time_factor_inner;
-extern double damping_time_factor_outer;
+extern double damping_time_factor;
+extern double damping_time_radius_outer;
 /// vector to handle damping structs
 extern std::vector<t_DampingType> damping_vector;
 
@@ -190,6 +191,13 @@ extern t_initialize_condition energy_initialize_condition;
 extern std::string energy_filename;
 
 extern bool keep_mass_constant;
+
+
+/// circumbinary ring
+extern bool cbd_ring;
+extern double cbd_ring_position;
+extern double cbd_ring_width;
+extern double cbd_ring_enhancement_factor;
 
 /// enable profile cutoff
 extern bool profile_cutoff_outer;

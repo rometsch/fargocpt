@@ -9,6 +9,13 @@ SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
 DensityFactor: '2.0'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
+
+  # Gaussian circumbinary ring
+CircumBinaryRing: 'no'
+CircumBinaryRingPosition: '4.5'   # in [L0], [default = 0]
+CircumBinaryRingWidth: '0.6'   # in [L0], [default = 0]
+CircumBinaryRingEnhancementFactor: '2.5'   # in [L0], [default = 0]
+
 ProfileCutoffInner: 'No'   # enable profile cutoff [default = no]
 ProfileCutoffPointInner: '4.0'   # in [L0], [default = 0]
 ProfileCutoffWidthInner: '0.5'   # in [L0], [default = 1]
@@ -99,7 +106,8 @@ DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
-DampingTimeFactor: '1.0e-3'
+DampingTimeFactor: '1.0e-1'
+DampingTimeRadiusOuter: '2.5' # default: RMAX
 DampingEnergyInner: Initial   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialInner: Initial   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner: Initial   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
@@ -127,6 +135,7 @@ Rmax: '2.5'   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell in the logarithmic grid used to build an exponential grid
 QuantitiesRadiusLimit: '2.5'   # Disk quantities will be computed only within this radius
+DiskRadiusMassFraction: '0.99' # disk radius = radius at which this fraction of the total mass is contained
 
 # Output control parameters
 

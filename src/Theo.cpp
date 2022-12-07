@@ -126,7 +126,7 @@ double initial_locally_isothermal_smoothed_v_az(const double R, const double M){
 
 	// for normal pressure support, the derivative should be 1
 	const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
-		/ std::sqrt(1 + std::pow(h * eps, 2));
+		/ std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
 
 	const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
 

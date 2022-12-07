@@ -1,5 +1,6 @@
 # Disk parameters
 
+Integrator: Leapfrog
 ShockTube: '1'
 Sigma0: 8887231.453904748 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)

@@ -49,6 +49,8 @@ double DT;
 unsigned int NINTERM;
 unsigned int NTOT;
 double quantities_radius_limit;
+double disk_radius_mass_fraction;
+
 
 double cps;
 
@@ -79,8 +81,8 @@ bool damping;
 bool is_damping_initial = false;
 double damping_inner_limit;
 double damping_outer_limit;
-double damping_time_factor_inner;
-double damping_time_factor_outer;
+double damping_time_factor;
+double damping_time_radius_outer;
 
 int damping_energy_id;
 std::vector<t_DampingType> damping_vector;
@@ -147,6 +149,11 @@ int AlphaMode;
 double localAlphaThreshold;
 double alphaCold;
 double alphaHot;
+
+bool cbd_ring;
+double cbd_ring_position;
+double cbd_ring_width;
+double cbd_ring_enhancement_factor;
 
 bool profile_cutoff_outer;
 double profile_cutoff_point_outer;
@@ -403,6 +410,12 @@ void read(const std::string &filename, t_data &data)
 
     quantities_radius_limit =
 	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
+
+	// Disk radius = radius at which disk_radius_mass_fraction percent
+	// of the total mass inside the domain is contained
+	// 0.99 is used in Kley et al. 2008 "Simulations of eccentric disks .."
+	disk_radius_mass_fraction =
+	config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
 
     if (quantities_radius_limit == 0.0) {
 	quantities_radius_limit = 2.0 * RMAX;
@@ -673,18 +686,14 @@ void read(const std::string &filename, t_data &data)
     if (damping_outer_limit > 1) {
 	die("DampingOuterLimit must not be >1\n");
     }
-	damping_time_factor_inner =
-	config::cfg.get<double>("DampingTimeFactor", 1.0);
-	damping_time_factor_outer =
+	damping_time_factor =
 	config::cfg.get<double>("DampingTimeFactor", 1.0);
 
-	damping_time_factor_inner =
-	config::cfg.get<double>("DampingTimeFactorInner", 1.0);
-	damping_time_factor_outer =
-	config::cfg.get<double>("DampingTimeFactorOuter", 1.0);
+	damping_time_radius_outer =
+	config::cfg.get<double>("DampingTimeRadiusOuter", RMAX);
 
-	logging::print_master("DampingTimeFactor Inner: %.5e outer %.5e\n", damping_time_factor_inner,
-						  damping_time_factor_outer);
+	logging::print_master("DampingTimeFactor: %.5e Outer damping time is computed at radius of %.5e\n", damping_time_factor,
+						  damping_time_radius_outer);
 
     t_damping_type tmp_damping_inner;
     t_damping_type tmp_damping_outer;
@@ -941,6 +950,15 @@ void read(const std::string &filename, t_data &data)
 	localAlphaThreshold = config::cfg.get<double>("AlphaThreshold", 2.5e4);
 	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
 	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
+
+	cbd_ring =
+	config::cfg.get_flag("CircumBinaryRing", "no");
+	cbd_ring_position =
+	config::cfg.get<double>("CircumBinaryRingPosition", 4.5, L0);
+	cbd_ring_width =
+	config::cfg.get<double>("CircumBinaryRingWidth", 0.6, L0);
+	cbd_ring_enhancement_factor =
+	config::cfg.get<double>("CircumBinaryRingEnhancementFactor", 2.5);
 
     // profile damping outer
     profile_cutoff_outer =
@@ -1391,9 +1409,9 @@ void summarize_parameters()
     logging::print_master(LOG_INFO "Kappa factor: %g\n", kappa_factor);
 
     logging::print_master(LOG_INFO "Minimum temperature: %.5e K = %.5e\n",
-			  minimum_temperature*units::temperature, minimum_temperature);
+			  minimum_temperature, minimum_temperature*units::temperature);
     logging::print_master(LOG_INFO "Maximum temperature: %.5e K = %.5e\n",
-			  maximum_temperature*units::temperature, maximum_temperature);
+			  maximum_temperature, maximum_temperature*units::temperature);
 
     logging::print_master(
 	LOG_INFO

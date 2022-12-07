@@ -21,7 +21,7 @@ def run(fargo_path, par_file):
     os.chdir(wd)
 
 
-quants = ["gasdens", "gasvrad", "gaspressure"]
+quants = ["Sigma", "vrad", "pressure"]
 
 x0, _, rho0, v0, p0 = np.loadtxt("plutoIdealGas0.tab", unpack=True)
 x1, _, rho1, v1, p1 = np.loadtxt("plutoIdealGas1.tab", unpack=True)
@@ -40,7 +40,7 @@ def test(out, label, color, dt):
     rmax = np.max(r1)
     rmin = np.min(r1)
 
-    file_name = out + '/gasdens' + str(dt) + ".dat"
+    file_name = out + 'snapshots/' + str(dt) + '/Sigma' + ".dat"
     data = np.fromfile(file_name)
     N = len(data)
     nr = len(r1)
@@ -49,9 +49,9 @@ def test(out, label, color, dt):
     for i in range(len(quants)):
         ax = axs[i]
 
-        file_name = out + quants[i] + str(dt) + ".dat"
+        file_name = out + 'snapshots/' + str(dt) + '/' + quants[i] + ".dat"
         data = np.fromfile(file_name)
-        if quants[i] == 'gasvrad':
+        if quants[i] == 'vrad':
             data = data.reshape((nr+1, nphi))
             data = np.mean(data, 1)
             data = 0.5*(data[1:] + data[:-1])
@@ -68,11 +68,11 @@ def analytic(axs):
     for i in range(len(quants)):
         ax = axs[i]
 
-        if quants[i] == "gaspressure":
+        if quants[i] == "pressure":
             j = 5
-        if quants[i] == "gasdens":
+        if quants[i] == "Sigma":
             j = 3
-        if quants[i] == "gasvrad":
+        if quants[i] == "vrad":
             j = 2
 
         y = analytic_data[:,(j)]
@@ -81,8 +81,8 @@ def analytic(axs):
 
 
 compile_fargo('../../')
-run('../../', 'test/shockTube_PVTE/shocktube.par')
-run('../../', 'test/shockTube_PVTE/shocktube_varGamm.par')
+run('../../', 'test/shockTube_PVTE/shocktube.yml')
+run('../../', 'test/shockTube_PVTE/shocktube_varGamm.yml')
 
 dt = 228
 fig, axs = plt.subplots(1,3,figsize=(18,6))
@@ -100,17 +100,16 @@ for i in range(len(quants)):
     ax.plot(xp1, pluto_perfectQuants1[i], ls='--',color="red",  label="Perfect Eos PLUTO")
     ax.plot(x1, pluto_quants1[i],ls='--' ,color="orange", label="Ideal Eos PLUTO")
     ax.grid()
-    if quants[i] == 'gasdens':
+    if quants[i] == 'Sigma':
         ax.legend(loc='upper right')
-    if quants[i] == 'gasenergy':
+    if quants[i] == 'energy':
         ax.legend(loc='upper right')
-    if quants[i] == 'gasvrad':
+    if quants[i] == 'vrad':
         ax.legend(loc='upper left')
-    if quants[i] == 'gasTemperature':
+    if quants[i] == 'Temperature':
         ax.legend(loc='upper left')
 
 
 plt.tight_layout()
-#plt.savefig("/home/wehner/DisksInCloseBinaries/plots/adiabaticShocktube/EosComparison.png", dpi=500)
 
 plt.show()

@@ -366,8 +366,12 @@ double gamma_mu_root(const double temperatureCGS, const double densityCGS,
     const double gamma =
 	1.0 + 1.0 / (mu * gasEnergyContributions(xMF, x, y, temperatureCGS));
 
+	const double kB = constants::k_B.get_cgs_value();
+	const double mp = llnlunits::constants::mp.value_as(llnlunits::precise::g);
+	const double R = kB / mp;
+
     const double temperature =
-	mu * energyCGS * (gamma - 1.0) / constants::_R.get_cgs_value();
+	mu * energyCGS * (gamma - 1.0) / R;
 
     return temperature - temperatureCGS;
 }
