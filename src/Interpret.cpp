@@ -36,6 +36,7 @@ int OuterSourceMass, CICPlanet;
 
 #include "options.h"
 #include <sys/stat.h>
+#include <filesystem>
 
 static void get_polytropic_constants(double &K, double &gamma)
 {
@@ -75,7 +76,9 @@ static std::string getFileName(const std::string &s)
 void ReadVariables(const std::string &filename, t_data &data, int argc, char **argv)
 {
     // read config from
-    // config::read_config_from_file(filename);
+	if (!std::filesystem::exists(filename)) {
+		die("Can not find config file %s!\n", filename.c_str());
+	}
     parameters::read(filename, data);
 	auto &cfg = config::cfg;
 

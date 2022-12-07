@@ -1388,10 +1388,11 @@ static void compute_sound_speed_normal(t_data &data)
 		const double h0 = parameters::ASPECTRATIO_REF;
 		const double beta = parameters::FLARINGINDEX;
 		const double G = constants::G;
+		const double vK = std::sqrt(G * hydro_center_mass / Rb[nr]);
+		const double h = h0 * std::pow(Rb[nr], beta);
 		// This follows from: cs/v_Kepler = H/r
-		data[t_data::SOUNDSPEED](nr, naz) =
-		    h0 * std::sqrt(G * hydro_center_mass / Rb[nr]) *
-			std::pow(Rb[nr], beta);
+		const double cs = h*vK;
+		data[t_data::SOUNDSPEED](nr, naz) = cs;
 	    }
 	}
     }
@@ -1801,28 +1802,6 @@ void compute_temperature(t_data &data)
 	}
     }
 }
-
-/**
-	computes density rho
-*/
-void compute_rho(t_data &data, const double current_time)
-{
-	compute_scale_height(data, current_time);
-
-	const unsigned int Nr = data[t_data::RHO].get_size_radial();
-	const unsigned int Nphi = data[t_data::RHO].get_size_azimuthal();
-
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
-		data[t_data::RHO](nr, naz) =
-		data[t_data::SIGMA](nr, naz) /
-		(parameters::density_factor * H);
-	}
-    }
-}
-
 
 void compute_heating_cooling_for_CFL(t_data &data, const double current_time)
 {

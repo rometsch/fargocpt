@@ -184,6 +184,7 @@ bool body_force_from_potential;
 
 bool write_torques;
 
+bool bitwise_exact_restarting;
 bool write_disk_quantities;
 bool write_lightcurves;
 bool write_at_every_timestep;
@@ -530,6 +531,8 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("WriteAtEveryTimestep", true);
     write_lightcurves =
 	config::cfg.get_flag("WriteLightCurves", false);
+
+	bitwise_exact_restarting = config::cfg.get_flag("BitwiseExactRestarting", false);
 
     write_massflow = config::cfg.get_flag("WriteMassFlow", false);
     data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
@@ -1081,7 +1084,7 @@ void read(const std::string &filename, t_data &data)
 
     particle_radius = config::cfg.get<double>("ParticleRadius", "100.0 cm", L0);
     particle_species_number =
-	config::cfg.get<unsigned int>("ParticleSpeciesNumber", 5);
+	config::cfg.get<unsigned int>("ParticleSpeciesNumber", 1);
     particle_radius_increase_factor =
 	config::cfg.get<double>("ParticleRadiusIncreaseFactor", 10.0);
     particle_eccentricity =
@@ -1097,13 +1100,13 @@ void read(const std::string &filename, t_data &data)
 	1.0; // particles are distributed over a whole simulation ring which
 	     // introduces a factor 1/r for the particle surface density
     particle_minimum_radius =
-	config::cfg.get<double>("ParticleMinimumRadius", RMIN);
+	config::cfg.get<double>("ParticleMinimumRadius", RMIN, L0);
     particle_maximum_radius =
-	config::cfg.get<double>("ParticleMaximumRadius", RMAX);
+	config::cfg.get<double>("ParticleMaximumRadius", RMAX, L0);
     particle_minimum_escape_radius =
-	config::cfg.get<double>("ParticleMinimumEscapeRadius", RMIN);
+	config::cfg.get<double>("ParticleMinimumEscapeRadius", RMIN, L0);
     particle_maximum_escape_radius =
-	config::cfg.get<double>("ParticleMaximumEscapeRadius", RMAX);
+	config::cfg.get<double>("ParticleMaximumEscapeRadius", RMAX, L0);
     particle_gas_drag_enabled =
 	config::cfg.get_flag("ParticleGasDragEnabled", true);
     particle_disk_gravity_enabled =

@@ -165,6 +165,7 @@ static void step_Euler(t_data &data, const double dt) {
 	}
 
 	if (parameters::integrate_particles) {
+		particles::update_velocities_from_indirect_term(dt);
 		particles::integrate(data, time, dt);
 	}
 
@@ -736,8 +737,6 @@ void run(t_data &data) {
 
 	const double t_final = parameters::NTOT * parameters::NINTERM * parameters::DT;
 
-	bool towrite = false;
-
     for (; PhysicalTime < t_final; N_hydro_iter++) {
 		
 		handle_signals(data);
@@ -747,18 +746,23 @@ void run(t_data &data) {
 		const double time_next_monitor = (N_monitor+1)*parameters::DT;
 		const double time_left_till_write = time_next_monitor - PhysicalTime;
 
-		if (cfl_dt > time_left_till_write) {
+		const bool overshoot = cfl_dt > time_left_till_write;
+		
+		const double dt_stretch_factor = 0.05;
+		const bool almost_there = time_left_till_write < cfl_dt*(1+dt_stretch_factor);
+
+		if (overshoot || almost_there) {
 			step_dt = time_left_till_write;
-			N_monitor++;
-			towrite = true;
 		} else {
 			step_dt = cfl_dt;
-			towrite = false;
 		}
 
 		step(data, step_dt);
 
+		const double towrite = std::fabs(time_next_monitor - PhysicalTime) < 1e-6*cfl_dt;
+		// TODO: document behaviour
 		if (towrite) {
+			N_monitor++;
 			handle_outputs(data);
 			logging::print_runtime_info();
 		}

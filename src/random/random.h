@@ -9,7 +9,7 @@ namespace fargo_random
 {
 
 void init();
-void seed();
+void seed(unsigned int);
 
 double std_normal();
 double uniform();
