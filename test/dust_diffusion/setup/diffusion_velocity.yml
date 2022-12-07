@@ -1,14 +1,19 @@
 # Time settings
 
-Ntot: '24'   # Total number of time steps
-Ninterm: '1000'   # Time steps between outputs
-DT: '0.8885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
-OutputDir: output/dust_diffusion_100k
+Ntot: 100   # Total number of time steps
+Ninterm: 1  # Time steps between outputs
+DT: 100   # Time of one orbit at 1 au
+FirstDt: 1e-1
+
+ParticleDustDiffusion: 'yes'
+ParticleGasDragEnabled: 'no'   # [default = YES]
+ParticleRadius: 1e-5 cm   # particle radius in cm [default = 100]
+ParticleIntegrator: midepoint   # Explicit, Adaptive, Semiimplicit and Implicit
 
 # Disk parameters
 
 Sigma0: 20 g/cm2   # surface density at r=1 in g/cm^2
-SigmaSlope: '1'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+SigmaSlope: 1.0   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-9]
 AspectRatio: '0.040613'   # Thickness over Radius in the disk
 AlphaViscosity: '0.01'   # 
@@ -19,8 +24,8 @@ HeatingViscous: 'No'
 
 # Units
 
-l0: '1.0 au'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
-m0: '1.0 solMass'   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
+l0: '1.0'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
+m0: '1.0'   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
 mu: '2.3'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
@@ -28,7 +33,7 @@ InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
 # Planet parameters
 
 IntegratePlanets: 'Yes'   # [default = yes]
-HydroFrameCenter: all   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
@@ -37,33 +42,30 @@ ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessS
 Transport: FARGO
 
 InnerBoundary: OPEN	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
-OuterBoundary: OPEN
+OuterBoundary: EVANESCENT
 Disk: 'No'
 OmegaFrame: '0.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
-FirstDt: 0.1
 
 # Mesh parameters
 
 # Nrad: '512'   # 128		# Radial number of zones
 # Nsec: '1536'   # 384		# Azimuthal number of
-cps: 8
+cps: 4
 
 # zones (sectors)
 
-Rmin: 1.0   # Inner boundary radius
+Rmin: 2.0   # Inner boundary radius
 Rmax: 40.0   # Outer boundary radius
-RadialSpacing: Logarithmic # ARITHMETIC   # Logarithmic or ARITHMETIC or Exponential
+RadialSpacing: ARITHMETIC   # Logarithmic or ARITHMETIC or Exponential
 
 # particles
 
 IntegrateParticles: 'YES'   # enable particle integrator [default = no]
-CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: midpoint   # Explicit, Adaptive, Semiimplicit and Implicit
-NumberOfParticles: 10000   # number of particles [default = 0]
-ParticleRadius: 1.0e-5 cm   # particle radius in cm [default = 100]
-ParticleEccentricity: '0.00'   # particle maximum Eccentricity
+CartesianParticles: 'no'   # enable particle integrator [default = no]
+NumberOfParticles: '1'   # number of particles [default = 0]
+ParticleEccentricity: 0.00   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
 ParticleSurfaceDensitySlope: '0.5'   # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
 ParticleMinimumRadius: '10.0'   # [default = RMIN]
@@ -72,19 +74,20 @@ ParticleMinimumEscapeRadius: '1.0'   # [default = ParticleMinimumRadius]
 ParticleMaximumEscapeRadius: '40.0'   # [default = ParticleMaximumRadius]
 ParticleGasDragEnabled: 'no'   # [default = YES]
 ParticleDiskGravityEnabled: 'no'   # [default = no]
-ParticleDustDiffusion: 'yes'
 
 # Nbody
 
 nbody:
 - name: Star
-  semi-major axis: '0.0'
-  mass: '0.5'
-  accretion efficiency: '0.0'
+  semi-major axis: 0.0
+  mass: 1.0
+  accretion efficiency: 0.0
+  
 
 
 # Output config
 
+OutputDir: output/dust_diffusion
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'No'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'No'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]

@@ -71,6 +71,10 @@ The same can be expected for clusters that use the `module` framework. Then the 
 
 The `_HOME` variables should be the path that points to the directory that includes both the `include` and `lib` that contain the header files and shared libraries. To find them, search for, e.g., `mpi.h` and `libmpi.so` (use the `locate` or `find` commands).
 
+## TODOs
+
++ move subkeplerian boundary condition call from artificalviscosity.cpp to boundary conditions / simulation.cpp 
+
 ## Tests
 
 + Hydro

@@ -2,10 +2,14 @@
 #include "../find_cell_id.h"
 #include "../global.h"
 #include "../random/random.h"
+#include "../output.h"
+#include <filesystem>
 namespace dust_diffusion
 {
-void init()
+void init(t_data &data)
 { /* Do nothing for the moment. */
+    compute_gas_diffusion_coefficient(data);
+    compute_gas_density_radial_derivative(data);
 }
 
 /* Apply dust diffusion by modelling it as a Brownian motion.
@@ -22,12 +26,23 @@ In the azimuthal direction, Keplerian shear dominates.
 void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
 		  const double dt, const unsigned int N_particles)
 {
-    compute_gas_diffusion_coefficient(data);
-    compute_gas_density_radial_derivative(data);
+    if (parameters::calculate_disk) {
+        compute_gas_diffusion_coefficient(data);
+        compute_gas_density_radial_derivative(data);
+    }
 
+    // std::filesystem::create_directory(output::outdir + "/" + "particles" + "/");
+    // TODO: openmp parallelize
+    #pragma omp parallel for
     for (unsigned int i = 0; i < N_particles; i++) {
 	auto &particle = particles[i];
-	kick_particle(particle, data, dt);
+    const double deltar = kick_length(particle, data, dt);
+    const double rold = particle.r;
+    const double rnew = rold + deltar;
+	particle.r = rnew;
+    // correct azimuthal motion to avoid oscillations
+    // for a particle on a circular orbit, v_phi^new = vK(r^new) instead of vK(r^old)
+    particle.phi_dot *= std::pow(rold/rnew, 1.5); 
     }
 }
 
@@ -49,7 +64,7 @@ diffusion coeff!)
 Use values from the grid cell the particle is currently in without
 interpolation.
  */
-void kick_particle(t_particle &particle, t_data &data, const double dt)
+double kick_length(t_particle &particle, t_data &data, const double dt)
 {
     const double r = particle.get_distance_to_star();
     const double phi = particle.get_angle();
@@ -65,8 +80,11 @@ void kick_particle(t_particle &particle, t_data &data, const double dt)
     const double rho = data[t_data::RHO](n_rad, n_az);
     const double drho_dr = data[t_data::DRHO_DR](n_rad, n_az);
 
-    const double mean = Dd * drho_dr * dt / rho;
+    const double mean = Dd / rho * drho_dr * dt;
     const double sigma = std::sqrt(2 * Dd * dt);
+
+    const double snv = fargo_random::std_normal();
+    const double deltar = mean + snv * sigma;
 
     const bool print = false;
     if (print) {
@@ -80,9 +98,38 @@ void kick_particle(t_particle &particle, t_data &data, const double dt)
 	printf("\n[%d] mean = %.3e", CPU_Rank, mean);
 	printf("\n[%d] sigma = %.3e", CPU_Rank, sigma);
 	printf("\n[%d] dt = %.3e", CPU_Rank, dt);
+    printf("\n[%d] deltar = %.3e", CPU_Rank, deltar);
+    printf("\n[%d] drho_dr = %.3e", CPU_Rank, drho_dr);
+    printf("\n[%d] n_rad = %d", CPU_Rank, n_rad);
+    printf("\n[%d] n_az = %d", CPU_Rank, n_az);
+    printf("\n[%d] cell_size = %.3e", CPU_Rank, Rsup[n_rad] - Rinf[n_rad]);
+    printf("\n[%d] cartesian particles = %d", CPU_Rank, parameters::CartesianParticles);
     }
-    const double snv = fargo_random::std_normal();
-    particle.r += mean + snv * sigma;
+
+    const bool save_state = false;
+
+    if (save_state) {
+    std::ofstream out(output::outdir + "/" + "particles" + "/" + std::to_string(particle.id));
+	out << "r : " << r << std::endl;
+	out << "phi : " << phi << std::endl;
+	out << "rho : " << rho << std::endl;
+	out << "Dg : " << Dg << std::endl;
+	out << "Dd : " << Dd << std::endl;
+	out << "Sc : " << Sc << std::endl;
+	out << "St : " << St << std::endl;
+	out << "mean : " << mean << std::endl;
+	out << "sigma : " << sigma << std::endl;
+    out << "snv : " << snv << std::endl;
+	out << "dt : " << dt << std::endl;
+    out << "deltar : " << deltar << std::endl;
+    out << "drho_dr : " << drho_dr << std::endl;
+    out << "n_rad : " << n_rad << std::endl;
+    out << "n_az : " << n_az << std::endl;
+    out << "cell_size : " << Rsup[n_rad] - Rinf[n_rad] << std::endl;
+    }
+
+
+    return deltar;
 }
 
 /* Gas diffusion coefficient Dg = alpha * cs * H
@@ -95,6 +142,7 @@ void compute_gas_diffusion_coefficient(t_data &data)
     const unsigned int N_rad_max = Dg.get_max_radial();
     const unsigned int N_az_max = Dg.get_max_azimuthal();
 
+    // TODO: openmp parallelize
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const double alpha = parameters::ALPHAVISCOSITY;
@@ -128,6 +176,7 @@ void compute_gas_density_radial_derivative(t_data &data)
     const unsigned int N_rad_max = deriv.get_max_radial();
     const unsigned int N_az_max = deriv.get_max_azimuthal();
 
+    // TODO: openmp parallelize
     for (unsigned int n_rad = 1; n_rad <= N_rad_max - 1; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    deriv(n_rad, n_az) = radial_central_derivative(rho, n_rad, n_az);

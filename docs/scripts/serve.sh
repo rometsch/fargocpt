@@ -11,4 +11,4 @@ if [[ ! -d build/html ]]; then
     make html
 fi
 
-python scripts/run_livereload.py
+python3 scripts/run_livereload.py
