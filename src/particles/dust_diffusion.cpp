@@ -87,11 +87,15 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     const double rho = data[t_data::RHO](n_rad, n_az);
     const double drho_dr = data[t_data::DRHO_DR](n_rad, n_az);
 
-    const double mean = Dd / rho * drho_dr * dt;
+    const double OmegaK = calculate_omega_kepler(r);
+    // multiply by an additional dt * OmegaK to match 1D radial dust diffusion eq.
+    const double mean = Dd / rho * drho_dr * dt * dt * OmegaK;
     const double sigma = std::sqrt(2 * Dd * dt);
 
     const double snv = fargo_random::std_normal();
-    const double deltar = mean + snv * sigma;
+    // Correct for missing diffusion in direction tangential to r
+    const double corr_2d = r * ( std::sqrt(1 + std::pow(sigma*snv/r,2)) - 1 );
+    const double deltar = mean + snv * sigma + corr_2d;
 
     if (print_particle_info) {
 	printf("\n[%d] r = %.3e", CPU_Rank, r);
@@ -125,6 +129,8 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
 	out << "mean : " << mean << std::endl;
 	out << "sigma : " << sigma << std::endl;
     out << "snv : " << snv << std::endl;
+    out << "OmegaK : " << OmegaK << std::endl;
+    out << "corr_2d : " << corr_2d << std::endl;
 	out << "dt : " << dt << std::endl;
     out << "deltar : " << deltar << std::endl;
     out << "drho_dr : " << drho_dr << std::endl;
