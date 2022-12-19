@@ -73,9 +73,12 @@ static void init_parallel(int argc, char *argv[]) {
 #ifdef _OPENMP
 	#pragma omp parallel
 	{
+		// print information on which processor we're running
+		MPI_Get_processor_name(CPU_Name, &CPU_NameLength);
+		CPU_Name[CPU_NameLength] = '\0';
 		int omp_id  = omp_get_thread_num();
 		int omp_num = omp_get_num_threads();
-		printf("MPI rank # %2d OpenMP thread # %2d of %2d \n", CPU_Rank, omp_id, omp_num);
+		logging::print(LOG_INFO "MPI rank # %2d OpenMP thread # %2d of %2d on %s\n", CPU_Rank, omp_id, omp_num, CPU_Name);
 		fflush(stdout);
 	}
 #else
@@ -86,10 +89,12 @@ static void init_parallel(int argc, char *argv[]) {
     // are we master CPU?
     CPU_Master = (CPU_Rank == 0 ? 1 : 0);
 
+#ifndef _OPENMP
 	// print information on which processor we're running
     MPI_Get_processor_name(CPU_Name, &CPU_NameLength);
     CPU_Name[CPU_NameLength] = '\0';
     logging::print(LOG_INFO "fargo: running on %s\n", CPU_Name);
+#endif
 }
 
 static void print_buildtimeinfo() {
