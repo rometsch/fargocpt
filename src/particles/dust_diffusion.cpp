@@ -3,13 +3,21 @@
 #include "../global.h"
 #include "../random/random.h"
 #include "../output.h"
+#include "../Theo.h"
 #include <filesystem>
 namespace dust_diffusion
 {
+
+const bool save_state = false;
+const bool print_particle_info = false;
+
 void init(t_data &data)
 { /* Do nothing for the moment. */
     compute_gas_diffusion_coefficient(data);
     compute_gas_density_radial_derivative(data);
+    if (save_state) {
+    std::filesystem::create_directory(output::outdir + "/" + "particles" + "/");
+    }
 }
 
 /* Apply dust diffusion by modelling it as a Brownian motion.
@@ -31,7 +39,6 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
         compute_gas_density_radial_derivative(data);
     }
 
-    // std::filesystem::create_directory(output::outdir + "/" + "particles" + "/");
     // TODO: openmp parallelize
     #pragma omp parallel for
     for (unsigned int i = 0; i < N_particles; i++) {
@@ -80,14 +87,17 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     const double rho = data[t_data::RHO](n_rad, n_az);
     const double drho_dr = data[t_data::DRHO_DR](n_rad, n_az);
 
-    const double mean = Dd / rho * drho_dr * dt;
+    const double OmegaK = calculate_omega_kepler(r);
+    // multiply by an additional dt * OmegaK to match 1D radial dust diffusion eq.
+    const double mean = Dd / rho * drho_dr * dt * dt * OmegaK;
     const double sigma = std::sqrt(2 * Dd * dt);
 
     const double snv = fargo_random::std_normal();
-    const double deltar = mean + snv * sigma;
+    // Correct for missing diffusion in direction tangential to r
+    const double corr_2d = r * ( std::sqrt(1 + std::pow(sigma*snv/r,2)) - 1 );
+    const double deltar = mean + snv * sigma + corr_2d;
 
-    const bool print = false;
-    if (print) {
+    if (print_particle_info) {
 	printf("\n[%d] r = %.3e", CPU_Rank, r);
 	printf("\n[%d] phi = %.3e", CPU_Rank, phi);
 	printf("\n[%d] rho = %.3e", CPU_Rank, rho);
@@ -106,7 +116,6 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     printf("\n[%d] cartesian particles = %d", CPU_Rank, parameters::CartesianParticles);
     }
 
-    const bool save_state = false;
 
     if (save_state) {
     std::ofstream out(output::outdir + "/" + "particles" + "/" + std::to_string(particle.id));
@@ -120,6 +129,8 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
 	out << "mean : " << mean << std::endl;
 	out << "sigma : " << sigma << std::endl;
     out << "snv : " << snv << std::endl;
+    out << "OmegaK : " << OmegaK << std::endl;
+    out << "corr_2d : " << corr_2d << std::endl;
 	out << "dt : " << dt << std::endl;
     out << "deltar : " << deltar << std::endl;
     out << "drho_dr : " << drho_dr << std::endl;
@@ -127,7 +138,6 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     out << "n_az : " << n_az << std::endl;
     out << "cell_size : " << Rsup[n_rad] - Rinf[n_rad] << std::endl;
     }
-
 
     return deltar;
 }
