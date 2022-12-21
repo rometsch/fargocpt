@@ -15,8 +15,9 @@ echo "Using $NOMP_THREADS OMP threads per process"
 
 if [[ -n "${PBS_NP+x}" ]];
 then
-	N_CORS_AVAIL=$PBS_NP
+	N_CORES_AVAIL=$PBS_NP
 	echo "Detected PBS environment with $PBS_NP cores available."
+	echo "Running on hosts $(cat $PBS_NODEFILE | uniq | sort -V | tr '\n' ', ')"
 else
 	N_CORES_AVAIL=$(python3 -c "print($NCPUS_PER_NODE//$NTHREADS_PER_CORE)")
 	echo "Did not detect any queuing system. I'll be greedy and take all the systems cores..."
