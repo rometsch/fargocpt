@@ -67,7 +67,7 @@ double get_alpha(int nr, int naz, t_data &data)
 		    sigma / (parameters::density_factor * scale_height) * units::density;
 			const double alpha = parameters::alphaCold + 
 			(parameters::alphaHot - parameters::alphaCold) * 
-			std::min( parameters::localAlphaThreshold * pvte::H2fraction(densityCGS, temperatureCGS), 1.0);
+			std::min( parameters::localAlphaThreshold * pvte::H_ionization_fraction(densityCGS, temperatureCGS), 1.0);
 			return alpha;
 			}
 		case 4:
@@ -78,7 +78,7 @@ double get_alpha(int nr, int naz, t_data &data)
 	    	const double scale_height = data[t_data::SCALE_HEIGHT](nr, naz);
 			const double densityCGS =
 		    sigma / (parameters::density_factor * scale_height) * units::density;
-			const double ionFrac = pvte::H2fraction(densityCGS, temperatureCGS);
+			const double ionFrac = pvte::H_ionization_fraction(densityCGS, temperatureCGS);
 
 			double alpha = parameters::alphaCold;
 

@@ -216,7 +216,7 @@ t_eosQuantities lookup(const double densityCGS, const double energyCGS)
 }
 
 // hydrogen ionization fraction
-double Hfraction(const double densityCGS, const double temperatureCGS)
+double H_ionization_fraction(const double densityCGS, const double temperatureCGS)
 {
     double x = 1.0;
     double Ax = 5.3890039e-09 * std::pow(temperatureCGS, 1.5) *
@@ -228,7 +228,7 @@ double Hfraction(const double densityCGS, const double temperatureCGS)
 }
 
 // hydrogen dissociation fraction
-double H2fraction(const double densityCGS, const double temperatureCGS)
+double H_dissociation_fraction(const double densityCGS, const double temperatureCGS)
 {
     double y = 1.0;
     double Ay = 7.5035099e-05 * std::pow(temperatureCGS, 1.5) *
@@ -245,9 +245,9 @@ double mean_molecular_weight(const double temperatureCGS,
 {
     double xMF = 0.75;
 
-    double x = Hfraction(densityCGS, temperatureCGS);
+	double x = H_ionization_fraction(densityCGS, temperatureCGS);
 
-    double y = H2fraction(densityCGS, temperatureCGS);
+	double y = H_dissociation_fraction(densityCGS, temperatureCGS);
 
     return 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
 }
@@ -271,10 +271,10 @@ double gamma_eff(const double temperatureCGS, const double densityCGS)
     const double xMF = 0.75;
 
     // hydrogen ionization fraction x
-    const double x = Hfraction(densityCGS, temperatureCGS);
+	const double x = H_ionization_fraction(densityCGS, temperatureCGS);
 
     // hydrogen dissociation fraction y
-    const double y = H2fraction(densityCGS, temperatureCGS);
+	const double y = H_dissociation_fraction(densityCGS, temperatureCGS);
 
     const double mu = mean_molecular_weight(temperatureCGS, densityCGS);
 
@@ -293,16 +293,16 @@ double gamma1(const double temperatureCGS, const double densityCGS)
     const double temperatureRight = temperatureCGS * (1.0 + epsilon);
     const double deltaTemperature = temperatureLeft - temperatureRight;
     // hydrogen ionization fraction x
-    double xL = Hfraction(densityCGS, temperatureLeft);
-    double xR = Hfraction(densityCGS, temperatureRight);
+	double xL = H_ionization_fraction(densityCGS, temperatureLeft);
+	double xR = H_ionization_fraction(densityCGS, temperatureRight);
 
-    const double xc = Hfraction(densityCGS, temperatureCGS);
+	const double xc = H_ionization_fraction(densityCGS, temperatureCGS);
 
     // hydrogen dissociation fraction y
-    double yL = H2fraction(densityCGS, temperatureLeft);
-    double yR = H2fraction(densityCGS, temperatureRight);
+	double yL = H_dissociation_fraction(densityCGS, temperatureLeft);
+	double yR = H_dissociation_fraction(densityCGS, temperatureRight);
 
-    const double yc = H2fraction(densityCGS, temperatureCGS);
+	const double yc = H_dissociation_fraction(densityCGS, temperatureCGS);
 
     // contributions to the internal energy
     const double eps = gasEnergyContributions(xMF, xc, yc, temperatureCGS);
@@ -332,12 +332,12 @@ double gamma1(const double temperatureCGS, const double densityCGS)
     const double deltaRho = rhoL - rhoR;
 
     // hydrogen ionization fraction x
-    xL = Hfraction(rhoL, temperatureCGS);
-    xR = Hfraction(rhoR, temperatureCGS);
+	xL = H_ionization_fraction(rhoL, temperatureCGS);
+	xR = H_ionization_fraction(rhoR, temperatureCGS);
 
     // hydrogen dissociation fraction y
-    yL = H2fraction(rhoL, temperatureCGS);
-    yR = H2fraction(rhoR, temperatureCGS);
+	yL = H_dissociation_fraction(rhoL, temperatureCGS);
+	yR = H_dissociation_fraction(rhoR, temperatureCGS);
 
     muL = 4.0 / (2.0 * xMF * (1.0 + yL + 2.0 * yL * xL) + 1.0 - xMF);
     muR = 4.0 / (2.0 * xMF * (1.0 + yR + 2.0 * yR * xR) + 1.0 - xMF);
@@ -356,10 +356,10 @@ double gamma_mu_root(const double temperatureCGS, const double densityCGS,
     const double xMF = 0.75;
 
     // hydrogen ionization fraction x
-    const double x = Hfraction(densityCGS, temperatureCGS);
+	const double x = H_ionization_fraction(densityCGS, temperatureCGS);
 
     // hydrogen dissociation fraction y
-    const double y = H2fraction(densityCGS, temperatureCGS);
+	const double y = H_dissociation_fraction(densityCGS, temperatureCGS);
 
     const double mu = 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
 
