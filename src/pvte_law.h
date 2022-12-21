@@ -40,10 +40,10 @@ double interpolate(const std::vector<double> &table, const int i, const int j,
 t_eosQuantities lookup(const double densityCGS, const double energyCGS);
 
 // hydrogen ionization fraction
-double Hfraction(const double densityCGS, const double temperatureCGS);
+double H_ionization_fraction(const double densityCGS, const double temperatureCGS);
 
 // hydrogen dissociation fraction
-double H2fraction(const double densityCGS, const double temperatureCGS);
+double H_dissociation_fraction(const double densityCGS, const double temperatureCGS);
 
 // mean molecular weight mu
 double mean_molecular_weight(const double temperatureCGS,
