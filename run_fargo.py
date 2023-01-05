@@ -45,7 +45,7 @@ def parse_opts():
     return opts
 
 def start(configfile, mode, N_procs, N_OMP_threads):
-
+    exe = os.path.join(os.path.dirname(__file__), "fargo")
     cmd = ["mpirun"]
     cmd += ["--np", f"{N_procs}"]
     cmd += ["--display-map"]
@@ -58,16 +58,16 @@ def start(configfile, mode, N_procs, N_OMP_threads):
     cmd += ["-x", "OMP_PROC_BIND=close"]
     cmd += ["-x", "OMP_PLACES=cores"]
     cmd += ["-x", f"OMP_NUM_THREADS={N_OMP_threads}"]
-    cmd += ["./fargo", mode, configfile]
+    cmd += [exe, mode, configfile]
     run(cmd)
 
 def get_num_cores():
     try:
-        rv = os.environ["PBS_NP"]
+        rv = int(os.environ["PBS_NP"])
         print(f"Found PBS environment with {rv} cores")
     except KeyError:
         try:
-            rv = os.environ["SLURM_NPROCS"]
+            rv = int(os.environ["SLURM_NNODES"])*int(os.environ["SLURM_JOB_CPUS_PER_NODE"])
             print(f"Found SLURM environment with {rv} cores")
         except KeyError:
             rv = get_num_cores_from_numa()
