@@ -37,7 +37,6 @@ def load_data(filename, columns, names, units, tounits):
             x = x.decompose()
             if len(tounits) > 0:
                 x = x.to(tounits[n])
-                print(x)
         rv.append(x)
     return rv
 
@@ -68,7 +67,12 @@ def print_columns(data, formatstrs=None):
             
         output_str += "\t".join(colums) + "\n"
 
-    run("less", text=True, input=output_str)
+    # get a suitable output program
+    try:
+        pager = os.environ["PAGER"]
+    except KeyError:
+        pager = "cat"
+    run(pager, text=True, input=output_str)
 
 
 def parse_header(filename):
