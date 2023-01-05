@@ -9,12 +9,17 @@ from multiprocessing import cpu_count
 def main():
     opts = parse_opts()
     
+    if opts.print_numa:
+        print(get_numa_nodes())
+    
     if opts.np is None and opts.nt is None:
         ncpu = get_num_cores()
         numa_nodes = get_numa_nodes()
-        N_cores_per_numa = len(numa_nodes[[k for k in numa_nodes.keys()][0]])
+        first_numa_node = [k for k in numa_nodes.keys()][0]
+        N_cores_per_numa = len(numa_nodes[first_numa_node])
         N_procs = max(1, ncpu//N_cores_per_numa)
         N_OMP_threads = ncpu//N_procs
+            
     elif opts.np is not None and opts.nt is None:
         N_procs = opts.np
         N_OMP_threads = 1
@@ -35,6 +40,7 @@ def parse_opts():
     parser.add_argument("configfile", help="Path of the config file.")
     parser.add_argument("-np", type=int, help="Number of processes to start.")
     parser.add_argument("-nt", type=int, help="Number of threads to start per process.")
+    parser.add_argument("--print-numa", action="store_true")
     opts = parser.parse_args()
     return opts
 
@@ -64,8 +70,20 @@ def get_num_cores():
             rv = os.environ["SLURM_NPROCS"]
             print(f"Found SLURM environment with {rv} cores")
         except KeyError:
-            rv = cpu_count()
+            rv = get_num_cores_from_numa()
             print(f"Found no PBS or SLURM environment.\nI'll be greedy and take all {rv} system cores!")
+    return rv
+
+def get_num_cores_from_numa():
+    """Return the number of physical cores on the system.
+    
+    Hyperthreads are ignored, as they don't speed up the computation.
+
+    Returns:
+        int: Number of cores.
+    """
+    numa_nodes = get_numa_nodes()
+    rv = sum([len(n) for n in numa_nodes.values()])
     return rv
 
 def get_numa_nodes():
