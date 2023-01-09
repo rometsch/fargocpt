@@ -1433,7 +1433,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		(Rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
 			(RMIN - RMIN * parameters::damping_inner_limit),
 		2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		const double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
@@ -1496,7 +1496,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		const double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
@@ -1559,7 +1559,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-		double exp_factor = std::exp(-dt * factor / tau);
+		const double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int naz = 0;
 		 naz < energy.get_size_azimuthal(); ++naz) {
