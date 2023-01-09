@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <tuple>
+#include <iostream>
 
 #include "Theo.h"
 #include "accretion.h"
@@ -192,7 +193,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     // monitoring purpose only
     planet.add_accreted_mass(dMplanet);
 
-    if (parameters::disk_feedback) { // only update planets if they feel the
+    if (parameters::disk_feedback || parameters::accrete_without_disk_feedback) { // only update planets if they feel the
 				     // disk
 	MPI_Allreduce(&dPxPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
 		      MPI_COMM_WORLD);
@@ -299,7 +300,7 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
     // monitoring purpose only
     planet.add_accreted_mass(dMplanet);
 
-    if (parameters::disk_feedback) { // only update planets if they feel the
+    if (parameters::disk_feedback || parameters::accrete_without_disk_feedback) { // only update planets if they feel the
 				     // disk
 	MPI_Allreduce(&dPxPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
 		      MPI_COMM_WORLD);
@@ -433,7 +434,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     // monitoring purpose only
     planet.add_accreted_mass(dMplanet);
 
-    if (parameters::disk_feedback) { // only update planets if they feel the
+    if (parameters::disk_feedback || parameters::accrete_without_disk_feedback) { // only update planets if they feel the
 				     // disk
 	MPI_Allreduce(&dPxPlanet, &temp, 1, MPI_DOUBLE, MPI_SUM,
 		      MPI_COMM_WORLD);
