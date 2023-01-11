@@ -32,7 +32,7 @@
 namespace viscosity
 {
 
-double get_alpha(int nr, int naz, t_data &data)
+double get_alpha(const int nr, const int naz, t_data &data)
 {
 	switch (parameters::AlphaMode){
 		case 0:
@@ -97,6 +97,34 @@ double get_alpha(int nr, int naz, t_data &data)
 			const double c = 3.27e-2;
 			const double x = (temperatureCGS - T0)/sig;
 			const double alpha = a*std::exp(-std::pow(x,2)/2) + b/2.0*std::tanh(x)+c;
+			return alpha;
+			}
+		case ALPHA_STAR_DIST_DEPENDEND:
+			{
+
+			static const unsigned int N_planets =
+			data.get_planetary_system().get_number_of_planets();
+
+			const int cell = get_cell_id(nr, naz);
+			const double x = CellCenterX->Field[cell];
+			const double y = CellCenterY->Field[cell];
+
+			double alpha = parameters::alphaHot;
+			for (unsigned int k = 0; k < N_planets; k++) {
+
+				const double dx = x - g_xpl[k];
+				const double dy = y - g_ypl[k];
+				const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
+				const double d = std::sqrt(dist_2);
+
+				const double dist_start = 0.4; // 8.0au
+				const double dist_end   = 0.9; // 18.0au
+				const double scale_unbound = (d - dist_start)/(dist_end - dist_start);
+				const double scale = std::max(0.0, std::min(scale_unbound, 1.0));
+				const double alpha_new = parameters::alphaCold + (parameters::alphaHot-parameters::alphaCold)*scale;
+				alpha = std::min(alpha, alpha_new);
+			}
+
 			return alpha;
 			}
 			

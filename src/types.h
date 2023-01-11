@@ -71,6 +71,8 @@ class BoundaryFlow
 #define INDIRECT_TERM_EULER 1
 #define INDIRECT_TERM_REB_SPRING 2
 
+#define ALPHA_STAR_DIST_DEPENDEND 10
+
 // TODO: This could be problematic on large NR
 #define MAX1D 16384
 
