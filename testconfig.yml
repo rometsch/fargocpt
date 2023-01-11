@@ -31,7 +31,10 @@ ExplicitViscosity: 'YES'
 StsNu: '0.01'
 ViscosityInCGS: 'NO'   # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
 Viscosity: '0'   # Uniform kinematic viscosity
-AlphaViscosity: '1.0e-3'   # 
+AlphaMode: 0     # Various possible ways do determine the alpha value, Default = 0
+AlphaViscosity: '1.0e-3'   # Alpha value for AlphaMode == 0
+AlphaCold: '1.0e-3' # only needed for AlphaMode != 0
+AlphaHot:  '1.0e-2'  # only needed for AlphaMode != 0
 StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]

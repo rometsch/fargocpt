@@ -646,6 +646,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 			logging::print_master(LOG_INFO
 			      "Using local alpha after Coleman 2016. \n");
 		}
+		else if (parameters::AlphaMode == ALPHA_STAR_DIST_DEPENDEND){
+			logging::print_master(LOG_INFO
+				  "Using star dist alpha, scaling from %.3e to %.3e\n", parameters::alphaCold, parameters::alphaHot);
+		}
 		else {
 			logging::print_master(LOG_INFO
 			      "Viscosity is of alpha type with alpha = %.3e\n",
