@@ -2252,7 +2252,7 @@ void initial_center_of_mass_boundary_outer(t_data &data)
     auto &vrad = data[t_data::V_RADIAL];
     auto &vaz = data[t_data::V_AZIMUTHAL];
 
-	const double experimental_correction_factor = 1.0 - Rmed[NRadial-2] / Rmed[NRadial-1];
+	const double experimental_correction_factor = Rmed[NRadial-2] / Rmed[NRadial-1];
 
     const unsigned int nr = data[t_data::SIGMA].get_max_radial();
 	#pragma omp parallel for
