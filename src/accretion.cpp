@@ -210,6 +210,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 }
 
 static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
+// like accretion onto single planets but with only one zone instead of the two
 {
     bool mass_changed = false;
     const int ns = data[t_data::SIGMA].Nsec;
