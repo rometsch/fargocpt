@@ -1,9 +1,9 @@
 include arch.defs
 
-EXENAME        = ../fargo
+EXENAME        = ../bin/fargocpt
 
 # compiler warnings
-OPTIONS += -Wall -Wextra -Wpedantic -Wmissing-declarations -Werror=redundant-decls -DOMPI_SKIP_MPICXX -Werror -Werror=format-security -Wno-unknown-pragmas
+OPTIONS += -Wall -Wextra -Wmissing-declarations -Werror=redundant-decls -DOMPI_SKIP_MPICXX -Werror=format-security -Wno-unknown-pragmas
 # architechture
 OPTIONS += -march=native
 # add symbols for backtrace

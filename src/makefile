@@ -12,6 +12,7 @@ TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
 $(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
+	mkdir -p ../bin
 	$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS)
 
 rebound/librebound.a:
