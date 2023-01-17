@@ -84,3 +84,5 @@ dkms.conf
 
 # Output files
 out*
+
+notebook/
