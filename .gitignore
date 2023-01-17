@@ -1,4 +1,5 @@
 # content of build folder
+build
 build/*
 src/build/
 
