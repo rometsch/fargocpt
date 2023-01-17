@@ -51,6 +51,8 @@ The third line starts fargo in `auto` mode. In this mode, the simulation is rest
 The building process is managed by the makefile `src/makefile`.
 Compile time flags are set in `src/makefile.defs` and the environment is selected and specified in `src/arch.defs`.
 
+To get more information about the build process, run `make -m`
+
 ### Architecture definitions
 
 FargoCPT depends on the three following libraries to be installed on your system:

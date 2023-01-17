@@ -191,11 +191,13 @@ class t_planet
     void set_orbital_elements_zero();
 
     void copy(const planet_member_variables &other);
-    void create_planet_file();
+    void create_planet_file() const;
     void write(const unsigned int file_type);
     void write_ascii(const std::string &filename) const;
     void write_binary(const std::string &filename) const;
     void restart();
+
+    std::string get_monitor_filename() const;
 
     ~t_planet();
     t_planet();

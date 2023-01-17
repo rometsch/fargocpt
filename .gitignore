@@ -1,4 +1,6 @@
 # content of build folder
+bin
+build
 build/*
 src/build/
 
@@ -84,3 +86,5 @@ dkms.conf
 
 # Output files
 out*
+
+notebook/
