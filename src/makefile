@@ -1,34 +1,46 @@
 include makefile.defs
 
-SRCS_C = $(wildcard *.c)
-SRCS_CXX = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp viscosity/*.cpp)
-SRCS = $(SRCS_C) $(SRCS_CXX)
-OBJS_C = $(SRCS_C:%.c=%.o)
-OBJS_CXX = $(patsubst %.cpp,%.o,$(SRCS_CXX))
-OBJS = $(OBJS_C) $(OBJS_CXX)
+BUILD_DIR = ../build
+
+SRCS = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp viscosity/*.cpp)
+OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 HDRS = $(wildcard *.h rebound/*.h particles/*.h random/*.h nbody/*.h viscosity/*.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
-$(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
-	mkdir -p ../bin
-	$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS)
+$(info $(OBJS))
 
-rebound/librebound.a:
-	$(MAKE) -C rebound
+build: $(EXENAME)
 
-yaml-cpp/libyamlcpp.a:
-	$(MAKE) -C yaml-cpp
+# $(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
+$(EXENAME): $(OBJS)
+	# mkdir -p $(@D)
+	@$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS)
+	@echo Building $@ with the following arguments:
+	@echo $(_CFLAGS)
+	@echo and with libraries:
+	@echo $(LIBS)
+	@echo "Build successful!"
 
-units/libunits.a:
-	$(MAKE) -C units
+# rebound/librebound.a:
+# 	$(MAKE) -C rebound
+
+# yaml-cpp/libyamlcpp.a:
+# 	$(MAKE) -C yaml-cpp
+
+# units/libunits.a:
+# 	$(MAKE) -C units
 
 $(OBJS): $(HDRS) makefile
 
-main.o: $(HDRS) makefile $(SRCS_C) $(SRCS_CXX)
+main.o: $(HDRS) makefile $(SRCS)
 
-.PHONY: clean
+list:
+	@echo $(OBJS)
+
+# http://www.gnu.org/software/make/manual/make.html#Phony-Targets
+.PHONY: build clean list
 
 clean:
 	rm -f $(OBJS) $(TEMP)
@@ -36,8 +48,7 @@ clean:
 	cd yaml-cpp && $(MAKE) clean
 	cd units && $(MAKE) clean
 
-%.o : %.c
-	$(CC) $(_CFLAGS) -c -o $@ $<
-
-%.o : %.cpp
-	$(CXX) $*.cpp -c $(_CXXFLAGS) -o $(patsubst %.cpp,%.o,$*.cpp)
+$(OBJS): $(BUILD_DIR)/%.o: %.cpp
+	@echo Compiling $<
+	@mkdir -p $(@D)
+	@$(CXX) -c $(_CXXFLAGS) -o $@ $<
