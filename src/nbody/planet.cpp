@@ -385,7 +385,12 @@ void t_planet::copy(const planet_member_variables &other)
     m_torque = other.m_torque;
 }
 
-void t_planet::create_planet_file()
+std::string t_planet::get_monitor_filename() const {
+    const std::string filename = output::outdir + "monitor/bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    return filename;
+}
+
+void t_planet::create_planet_file() const
 {
     if (!CPU_Master) {
 	return;
@@ -397,7 +402,7 @@ void t_planet::create_planet_file()
 	output::text_file_variable_description(planet_files_column,
 					       variable_units);
 
-    const std::string filename = output::outdir + "monitor/bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    const std::string filename = get_monitor_filename();
     fd = fopen(filename.c_str(), "w");
 
     if (fd == NULL) {
@@ -427,7 +432,7 @@ void t_planet::write(const unsigned int file_type)
 	write_binary(filename);
 	break;
     case 1:
-    filename = output::outdir + "monitor/bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    filename = get_monitor_filename();
 	write_ascii(filename);
 	reset_accreted_mass();
 	break;

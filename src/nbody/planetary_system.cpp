@@ -16,6 +16,7 @@
 #include <cassert>
 #include <iostream>
 #include "quantities.h"
+#include <experimental/filesystem>
 
 extern boolean CICPlanet;
 
@@ -362,7 +363,10 @@ void t_planetary_system::restart()
 void t_planetary_system::create_planet_files()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
-	get_planet(i).create_planet_file();
+		auto & p = get_planet(i);
+		if (!std::experimental::filesystem::exists(p.get_monitor_filename())) {
+			p.create_planet_file();
+		}
     }
 }
 

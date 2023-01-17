@@ -339,14 +339,14 @@ int main(int argc, char *argv[])
     if (start_mode::mode == start_mode::mode_restart) {
 		restart_load(data);
     } else {
-		// create planet files
-		data.get_planetary_system().create_planet_files();
-
 		// create 1D info files
 		output::write_1D_info(data);
 		
 		MPI_Barrier(MPI_COMM_WORLD);
     }
+	// ensure planet monitor files exist
+	data.get_planetary_system().create_planet_files();
+	MPI_Barrier(MPI_COMM_WORLD);
 
     sim::PhysicalTimeInitial = sim::PhysicalTime;
 
