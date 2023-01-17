@@ -31,9 +31,10 @@ endif
 
 CFLAGS += -std=c++17
 
-INCLUDES = -I$(FFTW_PREFIX)/include
-INCLUDES += -I$(MPI_PREFIX)/include
-INCLUDES += -I$(GSL_PREFIX)/include
+INCLUDE_MPI = -I$(MPI_PREFIX)/include
+INCLUDE_FFTW = -I$(FFTW_PREFIX)/include
+INCLUDE_GSL = -I$(GSL_PREFIX)/include
+INCLUDES = $(INCLUDE_MPI) $(INCLUDE_FFTW) $(INCLUDE_GSL)
 INCLUDES += -I.
 
 # dynamically linked libs

@@ -9,12 +9,6 @@ TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
-$(info Build parameters:)
-$(info CFLAGS: $(CFLAGS))
-$(info INCLUDES: $(INCLUDES))
-$(info LIBS: $(LIBS))
-$(info GIT_INFO: $(GIT_INFO))
-
 build: $(EXENAME)
 
 $(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
@@ -22,23 +16,9 @@ $(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
 	@echo
 	@echo "Compiling and linking $@"
 	@$(CXX) $(OBJS) $(CFLAGS) $(INCLUDES) $(LIBS) $(GIT_INFO) -o $(EXENAME) $(LIBS)
-
 	@echo
 	@echo "Build successful!"
-	@echo
-	@echo Build parameters were:
-	@echo
-	@echo CFLAGS:
-	@echo $(CFLAGS)
-	@echo
-	@echo INCLUDES:
-	@echo $(INCLUDES)
-	@echo
-	@echo LIBS:
-	@echo $(LIBS)
-	@echo
-	@echo GIT_INFO:
-	@echo $(GIT_INFO)
+	@$(MAKE) --no-print-directory info
 
 rebound/librebound.a:
 	$(MAKE) -C rebound
@@ -59,11 +39,28 @@ $(OBJS): $(BUILD_DIR)/%.o: %.cpp
 	@mkdir -p $(@D)
 	@$(CXX) -c $(CFLAGS) $(INCLUDES) $(LIBS) $(OPTIONS) -o $@ $<
 
-list:
-	@echo $(OBJS)
+info:
+	@echo
+	@echo Build parameters were:
+	@echo
+	@echo CFLAGS:
+	@echo $(CFLAGS)
+	@echo
+	@echo INCLUDES:
+	@echo $(INCLUDES)
+	@echo
+	@echo LIBS:
+	@echo $(LIBS)
+	@echo
+	@echo GIT_INFO:
+	@echo $(GIT_INFO)
+	@echo
+	@echo Include path MPI:  INCLUDE_MPI:  $(INCLUDE_MPI)
+	@echo Include path FFTW: INCLUDE_FFTW: $(INCLUDE_FFTW)
+	@echo Include path GSL:  INCLUDE_GSL:  $(INCLUDE_GSL)
 
 # http://www.gnu.org/software/make/manual/make.html#Phony-Targets
-.PHONY: build clean list
+.PHONY: build clean info
 
 clean:
 	rm -f $(OBJS) $(TEMP)
