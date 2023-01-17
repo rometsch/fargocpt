@@ -9,6 +9,7 @@ executable_path = os.path.join(os.path.dirname(__file__), "bin/fargocpt")
 
 fargo_help_string = """This script is a wrapper to start the fargocpt code.
 Its main use is to specify the number of processes started and threads used per process, and to automatically infer some information about the available cpus and the numa nodes on the system.
+Beware: this wrapper is only tested with open-mpi. Other flavors might fail.
 
 Help string from the fargo executable:
 | 
