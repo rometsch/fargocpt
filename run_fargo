@@ -1,19 +1,48 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 from subprocess import run
 import os
 import re
 
 executable_path = os.path.join(os.path.dirname(__file__), "bin/fargocpt")
 
+fargo_help_string = """This script is a wrapper to start the fargocpt code.
+Its main use is to specify the number of processes started and threads used per process, and to automatically infer some information about the available cpus and the numa nodes on the system.
+
+Help string from the fargo executable:
+| 
+| start                  Start a new simulation from scratch
+| restart <N>            Restart from an old simulation output, latest if no N specified
+| auto                   Same as restart if output files are present, otherwise same as start
+| -d | --debug           Print some debugging information on 'stdout' at each timestep
+| -v | --verbose         Verbose mode. Tells everything about parameters file
+| -q | --quiet           Only print errors and warnings
+| -b |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0
+| -c |                   Sloppy CFL condition (checked at each DT, not at each timestep)
+| -n |                   Disable simulation. The program just reads parameters file
+| -m |                   estimate memory usage and print out
+
+
+Following are the additional options available through this wrapper, refered to as [wrapper options] in the usage string:
+"""
+
+usage="%(prog)s [wrapper options] [fargo options] start|restart <N>|auto configfile"
 
 def main():
-    opts = parse_opts()
+    opts, fargo_args = parse_opts()
 
     if opts.print_numa:
         print(get_numa_nodes())
+        print("Exiting now due to --print-numa option.")
         exit(0)
+        
+    if not os.path.exists(executable_path):
+        print(f"Executable not found! I looked for {executable_path}.")
+        src_dir = os.path.relpath(os.path.join(
+            os.path.dirname(__file__), "src"), os.getcwd())
+        print(f"Please compile the code first: make -C {src_dir} -j 4")
+        exit(1)
 
     if opts.np is None and opts.nt is None:
         ncpu = get_num_cores()
@@ -33,25 +62,14 @@ def main():
         N_procs = opts.np
         N_OMP_threads = opts.nt
 
-    if not os.path.exists(executable_path):
-        print(f"Executable not found! I looked for {executable_path}.")
-        src_dir = os.path.relpath(os.path.join(
-            os.path.dirname(__file__), "src"), os.getcwd())
-        print(f"Please compile the code first: make -C {src_dir} -j 4")
-        exit(1)
-
     print(
         f"Running fargo with {N_procs} procs with {N_OMP_threads} OMP threads each.")
 
-    start(opts.configfile, opts.mode, N_procs,
-          N_OMP_threads, mpi_verbose=opts.mpi_verbose)
+    run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose)
 
 
 def parse_opts():
-    parser = ArgumentParser()
-    parser.add_argument(
-        "mode", choices=["start", "restart", "auto"], help="Start mode for fargo.")
-    parser.add_argument("configfile", help="Path of the config file.")
+    parser = ArgumentParser(usage=usage, description=fargo_help_string, formatter_class=RawTextHelpFormatter)
     parser.add_argument("-np", type=int, help="Number of processes to start.")
     parser.add_argument(
         "-nt", type=int, help="Number of threads to start per process.")
@@ -59,11 +77,11 @@ def parse_opts():
                         help="Print information about the numa nodes and exit.")
     parser.add_argument("--mpi-verbose", action="store_true",
                         help="Ask openmp and mpirun to output additional information about cpu allocation.")
-    opts = parser.parse_args()
-    return opts
+    opts, remainder = parser.parse_known_args()
+    return opts, remainder
 
 
-def start(configfile, mode, N_procs, N_OMP_threads, mpi_verbose=False):
+def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False):
     cmd = ["mpirun"]
     cmd += ["--np", f"{N_procs}"]
     if mpi_verbose:
@@ -78,7 +96,7 @@ def start(configfile, mode, N_procs, N_OMP_threads, mpi_verbose=False):
     cmd += ["-x", "OMP_PROC_BIND=close"]
     cmd += ["-x", "OMP_PLACES=cores"]
     cmd += ["-x", f"OMP_NUM_THREADS={N_OMP_threads}"]
-    cmd += [executable_path, mode, configfile]
+    cmd += [executable_path] + fargo_args
     run(cmd)
 
 
