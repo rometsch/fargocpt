@@ -14,11 +14,10 @@ OPTIMIZATION := -Ofast -flto=auto -fopenmp
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"
 GIT_CHANGED = "$(shell git diff-index --name-only HEAD | sed -e '{:q;N;s/\n/, /g;t q}')"
+GIT_INFO = -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
 
 # options to compile
-OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
-
-
+OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE
 
 # handle debug ENV variable
 ifeq "$(FARGO_DEBUG)" "1"
@@ -30,15 +29,22 @@ else
 	CFLAGS += $(OPTIMIZATION) -DNDEBUG
 endif
 
-# C++ Flags
-CXXFLAGS = $(CFLAGS)
+CFLAGS += -std=c++17
 
-_CFLAGS = $(OPTIONS) $(CFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include -I.
-_CXXFLAGS = -std=c++17 $(OPTIONS) $(CXXFLAGS) -I$(FFTW_PREFIX)/include -I$(MPI_PREFIX)/include -I$(GSL_PREFIX)/include -I.
+INCLUDES = -I$(FFTW_PREFIX)/include
+INCLUDES += -I$(MPI_PREFIX)/include
+INCLUDES += -I$(GSL_PREFIX)/include
+INCLUDES += -I.
 
-LIBS = -lm -lstdc++fs -L$(MPI_PREFIX)/lib -lmpi -L$(FFTW_PREFIX)/lib -I$(FFTW_PREFIX)/include -lfftw3_mpi -lfftw3 -L$(GSL_PREFIX)/lib64 -I$(GSL_PREFIX)/include -lgsl -lgslcblas
-
-#statically link rebound
-LIBS += -Lrebound -lrebound -Lyaml-cpp -lyamlcpp -Lunits -lunits
+# dynamically linked libs
+LIBS = -lm 
+LIBS += -lstdc++fs
+LIBS += -L$(MPI_PREFIX)/lib -lmpi 
+LIBS += -L$(FFTW_PREFIX)/lib -lfftw3_mpi -lfftw3 
+LIBS += -L$(GSL_PREFIX)/lib64 -lgsl -lgslcblas
+# statically linked libs
+LIBS += -Lrebound -lrebound
+LIBS += -Lyaml-cpp -lyamlcpp
+LIBS += -Lunits -lunits
 
 
