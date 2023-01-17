@@ -9,8 +9,13 @@ OPTIONS += -Wall -Wextra -Wmissing-declarations -Werror=redundant-decls -DOMPI_S
 OPTIONS += -march=native
 # add symbols for backtrace
 OPTIONS += -rdynamic
+# linker inline
+OPTIONS += -flto=auto 
+# use openmp
+OPTIONS += -fopenmp
+
 # optimizations, applied to options later
-OPTIMIZATION := -Ofast -flto=auto -fopenmp
+OPTIMIZATION := -Ofast
 
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"
