@@ -1,5 +1,6 @@
 include arch.defs
 
+BUILD_DIR = ../build
 EXENAME        = ../bin/fargocpt
 
 # compiler warnings
