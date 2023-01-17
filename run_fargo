@@ -4,14 +4,17 @@ from argparse import ArgumentParser
 from subprocess import run
 import os
 import re
-from multiprocessing import cpu_count
+
+executable_path = os.path.join(os.path.dirname(__file__), "bin/fargocpt")
+
 
 def main():
     opts = parse_opts()
-    
+
     if opts.print_numa:
         print(get_numa_nodes())
-    
+        exit(0)
+
     if opts.np is None and opts.nt is None:
         ncpu = get_num_cores()
         numa_nodes = get_numa_nodes()
@@ -19,7 +22,7 @@ def main():
         N_cores_per_numa = len(numa_nodes[first_numa_node])
         N_procs = max(1, ncpu//N_cores_per_numa)
         N_OMP_threads = ncpu//N_procs
-            
+
     elif opts.np is not None and opts.nt is None:
         N_procs = opts.np
         N_OMP_threads = 1
@@ -30,36 +33,54 @@ def main():
         N_procs = opts.np
         N_OMP_threads = opts.nt
 
-    print(f"Running fargo with {N_procs} procs with {N_OMP_threads} OMP threads each.")
-    
-    start(opts.configfile, opts.mode, N_procs, N_OMP_threads)
+    if not os.path.exists(executable_path):
+        print(f"Executable not found! I looked for {executable_path}.")
+        src_dir = os.path.relpath(os.path.join(
+            os.path.dirname(__file__), "src"), os.getcwd())
+        print(f"Please compile the code first: make -C {src_dir} -j 4")
+        exit(1)
+
+    print(
+        f"Running fargo with {N_procs} procs with {N_OMP_threads} OMP threads each.")
+
+    start(opts.configfile, opts.mode, N_procs,
+          N_OMP_threads, mpi_verbose=opts.mpi_verbose)
+
 
 def parse_opts():
     parser = ArgumentParser()
-    parser.add_argument("mode", choices=["start", "restart", "auto"], help="Start mode for fargo.")
+    parser.add_argument(
+        "mode", choices=["start", "restart", "auto"], help="Start mode for fargo.")
     parser.add_argument("configfile", help="Path of the config file.")
     parser.add_argument("-np", type=int, help="Number of processes to start.")
-    parser.add_argument("-nt", type=int, help="Number of threads to start per process.")
-    parser.add_argument("--print-numa", action="store_true")
+    parser.add_argument(
+        "-nt", type=int, help="Number of threads to start per process.")
+    parser.add_argument("--print-numa", action="store_true",
+                        help="Print information about the numa nodes and exit.")
+    parser.add_argument("--mpi-verbose", action="store_true",
+                        help="Ask openmp and mpirun to output additional information about cpu allocation.")
     opts = parser.parse_args()
     return opts
 
-def start(configfile, mode, N_procs, N_OMP_threads):
-    exe = os.path.join(os.path.dirname(__file__), "fargo")
+
+def start(configfile, mode, N_procs, N_OMP_threads, mpi_verbose=False):
     cmd = ["mpirun"]
     cmd += ["--np", f"{N_procs}"]
-    cmd += ["--display-map"]
-    cmd += ["--display-allocation"]
-    cmd += ["--report-bindings"]
+    if mpi_verbose:
+        cmd += ["--display-map"]
+        cmd += ["--display-allocation"]
+        cmd += ["--report-bindings"]
     cmd += ["--map-by", "ppr:1:numa"]
     cmd += ["--bind-to", "numa"]
-    cmd += ["-x", "OMP_DISPLAY_ENV=VERBOSE"]
+    if mpi_verbose:
+        cmd += ["-x", "OMP_DISPLAY_ENV=VERBOSE"]
     cmd += ["-x", "OMP_WAIT_POLICY=active"]
     cmd += ["-x", "OMP_PROC_BIND=close"]
     cmd += ["-x", "OMP_PLACES=cores"]
     cmd += ["-x", f"OMP_NUM_THREADS={N_OMP_threads}"]
-    cmd += [exe, mode, configfile]
+    cmd += [executable_path, mode, configfile]
     run(cmd)
+
 
 def get_num_cores():
     try:
@@ -67,16 +88,19 @@ def get_num_cores():
         print(f"Found PBS environment with {rv} cores")
     except KeyError:
         try:
-            rv = int(os.environ["SLURM_NNODES"])*int(os.environ["SLURM_JOB_CPUS_PER_NODE"])
+            rv = int(os.environ["SLURM_NNODES"]) * \
+                int(os.environ["SLURM_JOB_CPUS_PER_NODE"])
             print(f"Found SLURM environment with {rv} cores")
         except KeyError:
             rv = get_num_cores_from_numa()
-            print(f"Found no PBS or SLURM environment.\nI'll be greedy and take all {rv} system cores!")
+            print(
+                f"Found no PBS or SLURM environment.\nI'll be greedy and take all {rv} system cores!")
     return rv
+
 
 def get_num_cores_from_numa():
     """Return the number of physical cores on the system.
-    
+
     Hyperthreads are ignored, as they don't speed up the computation.
 
     Returns:
@@ -86,9 +110,10 @@ def get_num_cores_from_numa():
     rv = sum([len(n) for n in numa_nodes.values()])
     return rv
 
+
 def get_numa_nodes():
     """Return the numa topology of the system.
-    
+
     Data is extracted from /sys/devices/system/cpu.
     The numa nodes on the system are the keys of the dictionary.
     Each value is a list of tuples which themselves represent physical cores.
@@ -107,7 +132,8 @@ def get_numa_nodes():
 
     for cpu in cpus:
         cpu_path = os.path.join(path, cpu)
-        cpu_node = [s for s in os.listdir(cpu_path) if re.match("node\d+",s)][0]
+        cpu_node = [s for s in os.listdir(
+            cpu_path) if re.match("node\d+", s)][0]
         with open(os.path.join(cpu_path, "topology", "thread_siblings_list"), "r") as infile:
             threads = sorted(infile.read().strip().split(","))
         threads = tuple(threads)
@@ -122,5 +148,6 @@ def get_numa_nodes():
 
     return nodes
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
