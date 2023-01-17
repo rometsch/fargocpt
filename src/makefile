@@ -19,9 +19,26 @@ build: $(EXENAME)
 
 $(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
 	@mkdir -p $(@D)
-	@$(CXX) $(OBJS) $(CFLAGS) $(INCLUDES) $(LIBS) $(GIT_INFO) -o $(EXENAME) $(LIBS)
+	@echo
 	@echo "Compiling and linking $@"
+	@$(CXX) $(OBJS) $(CFLAGS) $(INCLUDES) $(LIBS) $(GIT_INFO) -o $(EXENAME) $(LIBS)
+
+	@echo
 	@echo "Build successful!"
+	@echo
+	@echo Build parameters were:
+	@echo
+	@echo CFLAGS:
+	@echo $(CFLAGS)
+	@echo
+	@echo INCLUDES:
+	@echo $(INCLUDES)
+	@echo
+	@echo LIBS:
+	@echo $(LIBS)
+	@echo
+	@echo GIT_INFO:
+	@echo $(GIT_INFO)
 
 rebound/librebound.a:
 	$(MAKE) -C rebound
