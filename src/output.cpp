@@ -39,81 +39,6 @@ std::string snapshot_dir = "";
 std::string last_snapshot_dir = "";
 std::string outdir = "";
 
-const static std::map<const std::string, const int> quantities_file_column_v2 =
-    {{"time step", 0},
-     {"physical time", 1},
-     {"mass", 2},
-     {"angular momentum", 3},
-     {"total energy", 4},
-     {"internal energy", 5},
-     {"kinematic energy", 6},
-     {"potential energy", 7},
-     {"radial kinetic energy", 8},
-     {"azimuthal kinetic energy", 9},
-     {"eccentricity", 10},
-     {"periastron", 11},
-     {"qplus", 12},
-     {"qminus", 13},
-     {"pdivv", 14},
-     {"delta mass inner positive", 15},
-     {"delta mass inner negative", 16},
-     {"delta mass outer positive", 17},
-     {"delta mass outer negative", 18},
-     {"delta mass wave damping positive", 19},
-     {"delta mass wave damping negative", 20},
-     {"delta mass floor density positive", 21}};
-
-const std::map<const std::string, const int> quantities_file_column_v2_1 = {
-    {"time step", 0},
-    {"analysis time step", 1},
-    {"physical time", 2},
-    {"mass", 3},
-    {"angular momentum", 4},
-    {"total energy", 5},
-    {"internal energy", 6},
-    {"kinematic energy", 7},
-    {"potential energy", 8},
-    {"radial kinetic energy", 9},
-    {"azimuthal kinetic energy", 10},
-    {"eccentricity", 11},
-    {"periastron", 12},
-    {"qplus", 13},
-    {"qminus", 14},
-    {"pdivv", 15},
-    {"delta mass inner positive", 16},
-    {"delta mass inner negative", 17},
-    {"delta mass outer positive", 18},
-    {"delta mass outer negative", 19},
-    {"delta mass wave damping positive", 20},
-    {"delta mass wave damping negative", 21},
-    {"delta mass floor density positive", 22}};
-
-const std::map<const std::string, const int> quantities_file_column_v2_2 = {
-    {"time step", 0},
-    {"analysis time step", 1},
-    {"physical time", 2},
-    {"mass", 3},
-    {"radius", 4},
-    {"angular momentum", 5},
-    {"total energy", 6},
-    {"internal energy", 7},
-    {"kinematic energy", 8},
-    {"potential energy", 9},
-    {"radial kinetic energy", 10},
-    {"azimuthal kinetic energy", 11},
-    {"eccentricity", 12},
-    {"periastron", 13},
-    {"qplus", 14},
-    {"qminus", 15},
-    {"pdivv", 16},
-    {"delta mass inner positive", 17},
-    {"delta mass inner negative", 18},
-    {"delta mass outer positive", 19},
-    {"delta mass outer negative", 20},
-    {"delta mass wave damping positive", 21},
-    {"delta mass wave damping negative", 22},
-    {"delta mass floor density positive", 23}};
-
 const std::map<const std::string, const int> quantities_file_column_v2_3 = {
     {"time step", 0},
     {"analysis time step", 1},
@@ -264,7 +189,7 @@ static void copy_parameters_to_snapshot_dir()
 void write_output_version()
 {
     if (CPU_Master) {
-	const std::string filename = outdir + "/fargocpt_output_v1_1";
+	const std::string filename = outdir + "/fargocpt_output_v1_2";
 	std::ofstream versionfile(filename, std::ios_base::app);
 	versionfile.close();
     }

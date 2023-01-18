@@ -17,129 +17,7 @@
 #include <string.h>
 
 // define the variables in the planet data file
-const static std::map<const std::string, const int> planet_file_column_v1 = {
-    {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"lost mass", 6},
-    {"physical time", 7},
-    {"omega frame", 8},
-    {"mdcp", 9},
-    {"exces mdcp", 10},
-    {"eccentricity", 11},
-    {"angular momentum", 12},
-    {"semi-major axis", 13},
-    {"omega", 14}};
-
-// file version 2
-const static std::map<const std::string, const int> planet_file_column_v2 = {
-    {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"physical time", 6},
-    {"omega frame", 7},
-    {"mdcp", 8},
-    {"exces mdcp", 9},
-    {"eccentricity", 10},
-    {"angular momentum", 11},
-    {"semi-major axis", 12},
-    {"omega", 13}};
-
-// file version 2.1
-const static std::map<const std::string, const int> planet_file_column_v2_1 = {
-    {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"physical time", 6},
-    {"omega frame", 7},
-    {"mdcp", 8},
-    {"exces mdcp", 9},
-    {"eccentricity", 10},
-    {"angular momentum", 11},
-    {"semi-major axis", 12},
-    {"omega kepler", 13},
-    {"mean anomaly", 14},
-    {"eccentric anomaly", 15},
-    {"true anomaly", 16},
-    {"pericenter angle", 17}};
-
-// file version 2.2
-const static std::map<const std::string, const int> planet_file_column_v2_2 = {
-    {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"physical time", 6},
-    {"omega frame", 7},
-    {"mdcp", 8},
-    {"exces mdcp", 9},
-    {"eccentricity", 10},
-    {"angular momentum", 11},
-    {"semi-major axis", 12},
-    {"omega kepler", 13},
-    {"mean anomaly", 14},
-    {"eccentric anomaly", 15},
-    {"true anomaly", 16},
-    {"pericenter angle", 17},
-    {"torque", 18}};
-
-// file version 2.3
-const static std::map<const std::string, const int> planet_file_column_v2_3 = {
-    {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"physical time", 6},
-    {"omega frame", 7},
-    {"mdcp", 8},
-    {"exces mdcp", 9},
-    {"eccentricity", 10},
-    {"angular momentum", 11},
-    {"semi-major axis", 12},
-    {"omega kepler", 13},
-    {"mean anomaly", 14},
-    {"eccentric anomaly", 15},
-    {"true anomaly", 16},
-    {"pericenter angle", 17},
-    {"torque", 18},
-    {"accreted mass", 19}};
-
-// file version 2.4
-const static std::map<const std::string, const int> planet_file_column_v2_4 = {
-    {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"physical time", 6},
-    {"omega frame", 7},
-    {"mdcp", 8},
-    {"eccentricity", 9},
-    {"angular momentum", 10},
-    {"semi-major axis", 11},
-    {"omega kepler", 12},
-    {"mean anomaly", 13},
-    {"eccentric anomaly", 14},
-    {"true anomaly", 15},
-    {"pericenter angle", 16},
-    {"torque", 17},
-    {"accreted mass", 18}};
-
-// file version 2.4
+// file version 2.5
 const static std::map<const std::string, const int> planet_file_column_v2_5 = {
     {"time step", 0},
     {"x", 1},
@@ -386,7 +264,7 @@ void t_planet::copy(const planet_member_variables &other)
 }
 
 std::string t_planet::get_monitor_filename() const {
-    const std::string filename = output::outdir + "monitor/bigplanet" + std::to_string(get_planet_number()) + ".dat";
+    const std::string filename = output::outdir + "monitor/planet" + std::to_string(get_planet_number()) + ".dat";
     return filename;
 }
 

@@ -13,7 +13,7 @@ $(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
 	@mkdir -p $(@D)
 	@echo
 	@echo "Compiling and linking $@"
-	@$(CXX) $(OBJS) $(CFLAGS) $(INCLUDES) $(LIBS) $(GIT_INFO) $(OPTIONS) -o $(EXENAME) $(LIBS)
+	$(CXX) $(OBJS) $(CFLAGS) $(INCLUDES) $(LIBS) $(GIT_INFO) $(OPTIONS) -o $(EXENAME) $(LIBS)
 	@echo
 	@echo "Build successful!"
 	@$(MAKE) --no-print-directory info
@@ -43,6 +43,9 @@ info:
 	@echo
 	@echo CFLAGS:
 	@echo $(CFLAGS)
+	@echo
+	@echo OPTIONS:
+	@echo $(OPTIONS)
 	@echo
 	@echo INCLUDES:
 	@echo $(INCLUDES)
