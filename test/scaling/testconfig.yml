@@ -128,8 +128,9 @@ KeepDiskMassConstant: 'NO'
 
 # Mesh parameters
 
-Nrad: '128'   # 512 128		# Radial number of zones
-Nsec: '384'   # 1536 384		# Azimuthal number of
+# Nrad: '128'   # 512 128		# Radial number of zones
+# Nsec: '384'   # 1536 384		# Azimuthal number of
+cps: 4
 
 # zones (sectors)
 
