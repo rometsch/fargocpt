@@ -77,10 +77,22 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 			// print header
 			fprintf(
 						fd,
-						"# Time log for the hydro timestep size. Each entry averaged over one DT\n"
-						"# One DT is %.18g (code) and %.18g (cgs). Time unit is: %.18g\n"
-						"# Syntax: snapshot number <tab> monitor number <tab> PhysicalTime <tab> walltime <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n",
-						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor());
+						"#version: 2\n"
+						"#FargoCPT Time log for the hydro timestep size.\n"
+						"#Each entry averaged over one DT\n"
+						"#One DT is %.18g (code) and %.18g (cgs). Time unit is: %.18g\n"
+						"#Syntax: snapshot number <tab> monitor number <tab> PhysicalTime <tab> walltime <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n"
+						"#version: 1.1\n"
+						"#variable: 0 | snapshot number | 1\n"
+						"#variable: 1 | monitor number | 1\n"
+						"#variable: 2 | PhysicalTime | %s\n"
+						"#variable: 3 | walltime | s\n"
+						"#variable: 4 | Number of Hydrosteps in last DT | 1\n"
+						"#variable: 6 | mean dt | %s\n"
+						"#variable: 7 | min dt | %s\n"
+						"#variable: 8 | std dev dt | %s\n",
+						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor(),
+						units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str());
 			fd_created = true;
 		}
 
