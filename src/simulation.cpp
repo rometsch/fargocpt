@@ -737,7 +737,7 @@ void run(t_data &data) {
 
 	const double t_final = parameters::NTOT * parameters::NINTERM * parameters::DT;
 
-    for (; PhysicalTime < t_final; N_hydro_iter++) {
+    for (; PhysicalTime < t_final;) {
 		
 		handle_signals(data);
 
