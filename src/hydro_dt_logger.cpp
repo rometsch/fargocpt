@@ -1,5 +1,5 @@
 #include "hydro_dt_logger.h"
-#include<cmath>
+#include <cmath>
 #include "global.h"
 #include "logging.h"
 #include "LowTasks.h"
@@ -19,6 +19,8 @@ hydro_dt_logger::hydro_dt_logger()
 	m_sum_hydro_dt_sq = 0.0;
 	m_min_hydro_dt = 1.0e300; // Infinity
 	m_max_hydro_dt = 0.0;
+	m_N_hydro_last = 0;
+	m_realtime_last = std::chrono::steady_clock::now();
 }
 
 
@@ -39,6 +41,8 @@ void hydro_dt_logger::reset()
 	m_sum_hydro_dt_sq = 0.0;
 	m_min_hydro_dt = 1.0e300;
 	m_max_hydro_dt = 0.0;
+	m_N_hydro_last = sim::N_hydro_iter;
+	m_realtime_last = std::chrono::steady_clock::now();
 }
 
 
@@ -81,30 +85,41 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 						"#FargoCPT Time log for the hydro timestep size.\n"
 						"#Each entry averaged over one DT\n"
 						"#One DT is %.18g (code) and %.18g (cgs). Time unit is: %.18g\n"
-						"#Syntax: snapshot number <tab> monitor number <tab> PhysicalTime <tab> walltime <tab> NumHydrosteps in last DT <tab> mean dt <tab> min dt <tab> max dt <tab> std dev\n"
 						"#version: 1.1\n"
 						"#variable: 0 | snapshot number | 1\n"
 						"#variable: 1 | monitor number | 1\n"
-						"#variable: 2 | PhysicalTime | %s\n"
-						"#variable: 3 | walltime | s\n"
-						"#variable: 4 | Number of Hydrosteps in last DT | 1\n"
-						"#variable: 6 | mean dt | %s\n"
-						"#variable: 7 | min dt | %s\n"
-						"#variable: 8 | std dev dt | %s\n",
+						"#variable: 2 | hydrostep number | 1\n"
+						"#variable: 3 | Number of Hydrosteps in last DT | 1\n"
+						"#variable: 4 | PhysicalTime | %s\n"
+						"#variable: 5 | walltime | s\n"
+						"#variable: 6 | walltime per hydrostep | ms\n"
+						"#variable: 7 | mean dt | %s\n"
+						"#variable: 8 | min dt | %s\n"
+						"#variable: 9 | std dev dt | %s\n",
 						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor(),
 						units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str());
 			fd_created = true;
 		}
 
-		double realtime = 0.0;
+		double realtime_sec = 0.0;
 
 		const std::chrono::steady_clock::time_point realtime_now = std::chrono::steady_clock::now();
-		realtime = 
+		realtime_sec = 
 			std::chrono::duration_cast<std::chrono::microseconds>(realtime_now - logging::realtime_start)
 			.count();
-		realtime /= 1000000.0; // to seconds
+		realtime_sec /= 1000000.0; // to seconds
 
+		const double realtime_since_last_ms =
+		std::chrono::duration_cast<std::chrono::microseconds>(
+		    realtime_now - m_realtime_last)
+		    .count() / 1000.0; // to ms
 
+		double time_per_step_ms = 0.0;
+		const long int Nsteps = sim::N_hydro_iter - m_N_hydro_last;
+		if ((Nsteps) != 0) {
+			time_per_step_ms =
+			realtime_since_last_ms / Nsteps;
+		}
 
 		double mean_dt;
 		double std_dev;
@@ -117,8 +132,8 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 			mean_dt = 0.0;
 			std_dev = 0.0;
 		}
-		fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
-				sim::PhysicalTime, realtime, m_N_hydro_iter_DT, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
+		fprintf(fd, "%u\t%u\t%lu\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
+				sim::N_hydro_iter, m_N_hydro_iter_DT, sim::PhysicalTime, realtime_sec, time_per_step_ms, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
 		fclose(fd);
 
 		reset();

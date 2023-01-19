@@ -1,5 +1,6 @@
 #ifndef HYDRO_DT_LOGGER_H
 #define HYDRO_DT_LOGGER_H
+#include <chrono>
 
 struct hydro_dt_logger_variables {
 	unsigned int N_hydro_iter_DT;
@@ -17,6 +18,8 @@ class hydro_dt_logger
 	double m_sum_hydro_dt_sq;
 	double m_min_hydro_dt;
 	double m_max_hydro_dt;
+	unsigned int m_N_hydro_last;
+	std::chrono::steady_clock::time_point m_realtime_last;
 	void reset();
 
 public:
