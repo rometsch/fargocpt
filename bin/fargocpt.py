@@ -84,7 +84,15 @@ def parse_opts():
     return opts, remainder
 
 
-def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False):
+def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None):
+    """Run a fargo simulation.
+
+    Args:
+        N_procs (int): Number of MPI processes to start.
+        N_OMP_threads (int): Number of OpenMP threads to start per process.
+        fargo_args (list of str): Arguments to be passed to the fargo executable.
+        mpi_verbose (bool, optional): Verbose output of mpirun about process allocation. Defaults to False.
+    """
     cmd = ["mpirun"]
     cmd += ["--np", f"{N_procs}"]
     if mpi_verbose:
@@ -100,7 +108,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False):
     cmd += ["-x", "OMP_PLACES=cores"]
     cmd += ["-x", f"OMP_NUM_THREADS={N_OMP_threads}"]
     cmd += [executable_path] + fargo_args
-    run(cmd)
+    run(cmd, stdout=stdout, stderr=stderr)
 
 
 def get_num_cores():
