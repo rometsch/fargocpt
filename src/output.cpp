@@ -39,7 +39,7 @@ std::string snapshot_dir = "";
 std::string last_snapshot_dir = "";
 std::string outdir = "";
 
-const std::map<const std::string, const int> quantities_file_column_v2_3 = {
+const std::map<const std::string, const int> quantities_file_column_v2_4 = {
     {"time step", 0},
     {"analysis time step", 1},
     {"physical time", 2},
@@ -66,7 +66,13 @@ const std::map<const std::string, const int> quantities_file_column_v2_3 = {
 	{"delta mass outer wave damping positive", 23},
 	{"delta mass outer wave damping negative", 24},
 	{"delta mass floor density positive", 25},
-	{"aspect ratio", 26}};
+	{"aspect ratio", 26},
+	{"indirect term nbody x", 27},
+	{"indirect term nbody y", 28},
+	{"indirect term disk x", 29},
+	{"indirect term disk y", 30}
+	};
+static const auto quantities_file_column = quantities_file_column_v2_4;
 
 const std::map<const std::string, const std::string> quantities_file_variables =
 	{{"physical time", "time"},
@@ -100,9 +106,12 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 	{"frame angle", "frequency"},
 	{"eccentricity", "1"},
 	{"periastron", "1"},
-	{"aspect ratio", "1"}};
+	{"aspect ratio", "1"},
+	{"indirect term nbody x", "acceleration"},
+	{"indirect term nbody y", "acceleration"},
+	{"indirect term disk x", "acceleration"},
+	{"indirect term disk y", "acceleration"}};
 
-static const auto quantities_file_column = quantities_file_column_v2_3;
 
 void check_free_space(t_data &data)
 {
@@ -309,7 +318,7 @@ void write_quantities(t_data &data, bool force_update)
 	if (!fd_created) {
 	    // print header
 	    fprintf(fd, "#FargoCPT quantities file\n");
-	    fprintf(fd, "#version: 2.2\n");
+	    fprintf(fd, "#version: 2.4\n");
 	    fprintf(fd, "%s",
 		    text_file_variable_description(quantities_file_column,
 						   quantities_file_variables)
@@ -412,7 +421,7 @@ void write_quantities(t_data &data, bool force_update)
 	// print to logfile
 	fprintf(
 	    fd,
-		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 	    sim::N_snapshot, sim::N_monitor, sim::PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
@@ -420,7 +429,12 @@ void write_quantities(t_data &data, bool force_update)
 	    qminus, pdivv_total, InnerPositive, InnerNegative, OuterPositive,
 		OuterNegative, InnerWaveDampingPositive, InnerWaveDampingNegative,
 		OuterWaveDampingPositive, OuterWaveDampingNegative,
-	    FloorPositive, scale_height);
+	    FloorPositive, scale_height,
+		refframe::IndirectTermDisk.x,
+		refframe::IndirectTermPlanets.x,
+		refframe::IndirectTermDisk.y,
+		refframe::IndirectTermPlanets.y
+		);
 
 	// close file
 	fclose(fd);
@@ -538,6 +552,7 @@ std::string text_file_variable_description(
 	{"1", "1"},
 	{"length", units::length.get_cgs_factor_symbol()},
 	{"velocity", units::velocity.get_cgs_factor_symbol()},
+	{"acceleration", units::acceleration.get_cgs_factor_symbol()},
 	{"power", units::power.get_cgs_factor_symbol()},
 	{"specific power", unit_descriptor(units::power.get_cgs_factor() /
 					       units::length.get_cgs_factor() /
