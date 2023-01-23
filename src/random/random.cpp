@@ -36,7 +36,7 @@ static unsigned int get_number_required_rngs() {
 void init() {
 
     const unsigned int Nrngs = get_number_required_rngs();
-    logging::print_master(LOG_INFO "Initializing %d RNGs per MPI process.", Nrngs);
+    logging::print_master(LOG_INFO "Initializing %d RNGs per MPI process.\n", Nrngs);
 
     for (unsigned int n=0; n<Nrngs; n++) {
         seed(n);
