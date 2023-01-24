@@ -99,6 +99,11 @@ void t_planetary_system::init_system(const std::string &filename)
 	compute_dist_to_primary();
     init_roche_radii();
     list_planets();
+
+
+	// ensure planet monitor files exist
+	create_planet_files();
+	MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void t_planetary_system::derive_config() {

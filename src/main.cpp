@@ -135,9 +135,6 @@ int main(int argc, char *argv[])
 		
 		MPI_Barrier(MPI_COMM_WORLD);
     }
-	// ensure planet monitor files exist
-	data.get_planetary_system().create_planet_files();
-	MPI_Barrier(MPI_COMM_WORLD);
 
     sim::PhysicalTimeInitial = sim::PhysicalTime;
 
