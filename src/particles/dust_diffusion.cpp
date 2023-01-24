@@ -39,7 +39,6 @@ void diffuse_dust(t_data &data, std::vector<t_particle> &particles,
         compute_gas_density_radial_derivative(data);
     }
 
-    // TODO: openmp parallelize
     #pragma omp parallel for
     for (unsigned int i = 0; i < N_particles; i++) {
 	auto &particle = particles[i];
@@ -152,7 +151,7 @@ void compute_gas_diffusion_coefficient(t_data &data)
     const unsigned int N_rad_max = Dg.get_max_radial();
     const unsigned int N_az_max = Dg.get_max_azimuthal();
 
-    // TODO: openmp parallelize
+    #pragma omp parallel for collapse (2)
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    const double alpha = parameters::ALPHAVISCOSITY;
@@ -186,7 +185,7 @@ void compute_gas_density_radial_derivative(t_data &data)
     const unsigned int N_rad_max = deriv.get_max_radial();
     const unsigned int N_az_max = deriv.get_max_azimuthal();
 
-    // TODO: openmp parallelize
+    #pragma omp parallel for collapse (2)
     for (unsigned int n_rad = 1; n_rad <= N_rad_max - 1; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
 	    deriv(n_rad, n_az) = radial_central_derivative(rho, n_rad, n_az);
