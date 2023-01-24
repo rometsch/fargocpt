@@ -430,10 +430,10 @@ void write_quantities(t_data &data, bool force_update)
 		OuterNegative, InnerWaveDampingPositive, InnerWaveDampingNegative,
 		OuterWaveDampingPositive, OuterWaveDampingNegative,
 	    FloorPositive, scale_height,
-		refframe::IndirectTermDisk.x,
 		refframe::IndirectTermPlanets.x,
-		refframe::IndirectTermDisk.y,
-		refframe::IndirectTermPlanets.y
+		refframe::IndirectTermPlanets.y,
+		refframe::IndirectTermDisk.x,
+		refframe::IndirectTermDisk.y
 		);
 
 	// close file
