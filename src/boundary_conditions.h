@@ -36,6 +36,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt);
 void jibin_boundary_inner(t_data &data);
 void jibin_boundary_outer(t_data &data);
 
+void init_damping(t_data &data);
 void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 			  double dt);
 void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,

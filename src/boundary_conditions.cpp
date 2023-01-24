@@ -29,7 +29,9 @@
 #include <iostream>
 #include "viscosity/viscous_radial_speed.h"
 
+
 // temporary
+#include "SourceEuler.h"
 #include "LowTasks.h"
 #include "SideEuler.h"
 extern boolean OuterSourceMass;
@@ -724,6 +726,17 @@ void viscous_outflow_boundary_inner(t_data &data)
 	    data[t_data::V_RADIAL](1, n_azimuthal) = -1.5 * s / Rinf[1] * Nu;
 	    data[t_data::V_RADIAL](0, n_azimuthal) = -1.5 * s / Rinf[0] * Nu;
 	}
+    }
+}
+
+
+void init_damping(t_data &data) {
+    if (parameters::is_damping_initial) {
+	// save starting values (needed for damping)
+		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
+		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
+		copy_polargrid(data[t_data::SIGMA0], data[t_data::SIGMA]);
+		copy_polargrid(data[t_data::ENERGY0], data[t_data::ENERGY]);
     }
 }
 
