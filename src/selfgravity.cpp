@@ -240,17 +240,12 @@ void compute_FFT_density(t_polargrid &density)
 {
 
     MPI_Request req;
-    unsigned int i, j;
-    int l;
-    int ih, lh, ir;
-    int one_if_odd, stride;
-    double *dens;
-    dens = density.Field;
-    stride = 2 * (NAzimuthal / 2 + 1);
+	double *dens = density.Field;
+    const unsigned int stride = 2 * (NAzimuthal / 2 + 1);
 
     // We communicate the hydro density field to the fftw domain decomposition
     // (d. d.)
-    one_if_odd = (CPU_Number % 2 == 0 ? 0 : 1);
+    const int one_if_odd = (CPU_Number % 2 == 0 ? 0 : 1);
 
     // every cpu except that one with no 'friend' needs to interchange data
     if (CPU_Rank != CPU_NoFriend) {
@@ -270,11 +265,11 @@ void compute_FFT_density(t_polargrid &density)
     // lower half of cpus
     if ((CPU_Rank < CPU_Number / 2) && (CPU_Rank != CPU_NoFriend)) {
 	#pragma omp parallel for collapse(2)
-	for (i = 0; i < ifront + 1; i++) {
-	    for (j = 0; j < NAzimuthal; j++) {
-		l = i * stride + j;
-		ih = i + Zero_or_active;
-		lh = ih * NAzimuthal + j;
+	for (unsigned int i = 0; i < (unsigned int) ifront + 1; i++) {
+	    for (unsigned int j = 0; j < NAzimuthal; j++) {
+		const unsigned int l = i * stride + j;
+		const unsigned int ih = i + Zero_or_active;
+		const unsigned int lh = ih * NAzimuthal + j;
 		/* S_r = sigma(u,phi) exp(u/2) */
 		S_radial[l] = dens[lh] * std::sqrt(Rmed[ih] / GlobalRmed[0]);
 		/* S_t = sigma(u,phi) exp(3*u/2) */
@@ -283,17 +278,15 @@ void compute_FFT_density(t_polargrid &density)
 	}
 
 	#pragma omp parallel for collapse(2)
-	for (i = ifront + 1; i < (unsigned int)local_Nx; i++) {
-	    for (j = 0; j < NAzimuthal; j++) {
-		l = i * stride + j;
-		ih = i - (ifront + 1);
-		lh = ih * NAzimuthal + j;
-		ir = i + IMIN + Zero_or_active;
+	for (unsigned int i = (unsigned int) ifront + 1; i < (unsigned int)local_Nx; i++) {
+	    for (unsigned int j = 0; j < NAzimuthal; j++) {
+		const unsigned int l = i * stride + j;
+		const unsigned int ih = i - ((unsigned int) ifront + 1);
+		const unsigned int lh = ih * NAzimuthal + j;
+		const unsigned int ir = i + IMIN + Zero_or_active;
 		if ((i + local_i_start) < GlobalNRadial) {
-		    S_radial[l] = dens_friend[lh] *
-				  std::sqrt(GlobalRmed[ir] / GlobalRmed[0]);
-		    S_azimuthal[l] =
-			S_radial[l] * GlobalRmed[ir] / GlobalRmed[0];
+		    S_radial[l] = dens_friend[lh] * std::sqrt(GlobalRmed[ir] / GlobalRmed[0]);
+		    S_azimuthal[l] = S_radial[l] * GlobalRmed[ir] / GlobalRmed[0];
 		} else {
 		    S_radial[l] = 0.;
 		    S_azimuthal[l] = 0.;
@@ -305,14 +298,13 @@ void compute_FFT_density(t_polargrid &density)
     // cpu with no friend (upper most if odd total cpu number)
     if (CPU_Rank == CPU_NoFriend) {
 	#pragma omp parallel for collapse(2)
-	for (i = 0; i < (unsigned int)local_Nx; i++) {
-	    for (j = 0; j < NAzimuthal; j++) {
-		l = i * stride + j;
-		ih = i + Zero_or_active;
+	for (unsigned int i = 0; i < (unsigned int)local_Nx; i++) {
+	    for (unsigned int j = 0; j < NAzimuthal; j++) {
+		const unsigned int l = i * stride + j;
+		const unsigned int ih = i + Zero_or_active;
 		if ((i + local_i_start) < GlobalNRadial) {
-		    lh = ih * NAzimuthal + j;
-		    S_radial[l] =
-			dens[lh] * std::sqrt(Rmed[ih] / GlobalRmed[0]);
+		    unsigned int lh = ih * NAzimuthal + j;
+		    S_radial[l] = dens[lh] * std::sqrt(Rmed[ih] / GlobalRmed[0]);
 		    S_azimuthal[l] = S_radial[l] * Rmed[ih] / GlobalRmed[0];
 		} else {
 		    S_radial[l] = 0.;
@@ -325,9 +317,9 @@ void compute_FFT_density(t_polargrid &density)
     // upper half of cpus
     if ((CPU_Rank >= CPU_Number / 2) && (CPU_Rank != CPU_NoFriend)) {
 	#pragma omp parallel for collapse(2)
-	for (i = 0; i < (unsigned int)local_Nx; i++) {
-	    for (j = 0; j < NAzimuthal; j++) {
-		l = i * stride + j;
+	for (unsigned int i = 0; i < (unsigned int)local_Nx; i++) {
+	    for (unsigned int j = 0; j < NAzimuthal; j++) {
+		const unsigned int l = i * stride + j;
 		if ((i + local_i_start) >= GlobalNRadial) {
 		    S_radial[l] = 0.;
 		    S_azimuthal[l] = 0.;
@@ -343,11 +335,11 @@ void compute_FFT_density(t_polargrid &density)
 
 void compute_FFT_kernel()
 {
-    double theta, u;
-    int stride = 2 * (NAzimuthal / 2 + 1);
+    const unsigned int stride = 2 * (NAzimuthal / 2 + 1);
 
 	#pragma omp parallel for
     for (unsigned int i = 0; i < (unsigned int)local_Nx; i++) {
+    double u;
 	if (i + local_i_start < GlobalNRadial) {
 	    u = std::log(Radii[i + local_i_start] / Radii[0]);
 	} else {
@@ -356,11 +348,10 @@ void compute_FFT_kernel()
 	}
 
 	for (unsigned int j = 0; j < NAzimuthal; j++) {
-	    double denominator;
-	    int l = i * stride + j;
-	    theta = 2.0 * M_PI * (double)j / (double)NAzimuthal;
+	    const unsigned int l = i * stride + j;
+	    const double theta = 2.0 * M_PI * (double)j / (double)NAzimuthal;
 
-	    denominator = std::pow(
+	    const double denominator = std::pow(
 		2 * (std::cosh(u) - std::cos(theta)) +
 		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
 		-1.5);
@@ -379,15 +370,9 @@ void compute_FFT_kernel()
 void compute_acceleration(t_polargrid &density)
 {
     MPI_Request req1, req3, req4, req5, req6;
-    unsigned int i, j, nr;
-    int l;
-    int one_if_odd;
-    int stride;
-    int ghost_size;
-    double normaccr, normacct;
-    nr = density.Nrad;
-    stride = 2 * (NAzimuthal / 2 + 1);
-    one_if_odd = (CPU_Number % 2 == 0 ? 0 : 1);
+    const unsigned int nr = density.Nrad;
+    const unsigned int stride = 2 * (NAzimuthal / 2 + 1);
+    const int one_if_odd = (CPU_Number % 2 == 0 ? 0 : 1);
 
     // First we compute sg_acc as a convolution product of reduced density and
     // kernel arrays. In fact, all bufffttabs are transposed arrays, since we
@@ -422,13 +407,13 @@ void compute_acceleration(t_polargrid &density)
     if (CPU_Rank != CPU_NoFriend) {
 	if (CPU_Rank < CPU_Number / 2) {
 		#pragma omp parallel for
-	    for (i = 0; i < transfer_size; i++) {
+	    for (unsigned int i = 0; i < transfer_size; i++) {
 		if (i < transfer_size / 2)
 		    ffttohydro_transfer[i] =
-			acc_radial[(ifront + 1 - CPUOVERLAP) * stride + i];
+			acc_radial[((unsigned int) ifront + 1 - CPUOVERLAP) * stride + i];
 		else
 		    ffttohydro_transfer[i] =
-			acc_azimuthal[(ifront + 1 - CPUOVERLAP) * stride + i -
+			acc_azimuthal[((unsigned int) ifront + 1 - CPUOVERLAP) * stride + i -
 				      transfer_size / 2];
 	    }
 	    MPI_Isend(ffttohydro_transfer, transfer_size, MPI_DOUBLE,
@@ -445,18 +430,18 @@ void compute_acceleration(t_polargrid &density)
     if (CPU_Rank < (CPU_Number + one_if_odd) / 2) {
 	if (CPU_Rank == 0) {
 		#pragma omp parallel for collapse(2)
-	    for (i = 0; i < nr; i++) {
-		for (j = 0; j < NAzimuthal; j++) {
-		    l = i * NAzimuthal + j;
+	    for (unsigned int i = 0; i < nr; i++) {
+		for (unsigned int j = 0; j < NAzimuthal; j++) {
+		    const unsigned int l = i * NAzimuthal + j;
 		    g_radial[l] = acc_radial[i * stride + j];
 		    g_azimuthal[l] = acc_azimuthal[i * stride + j];
 		}
 	    }
 	} else {
 		#pragma omp parallel for collapse(2)
-	    for (i = Zero_or_active; i < nr; i++) {
-		for (j = 0; j < NAzimuthal; j++) {
-		    l = i * NAzimuthal + j;
+	    for (unsigned int i = Zero_or_active; i < nr; i++) {
+		for (unsigned int j = 0; j < NAzimuthal; j++) {
+		    const unsigned int l = i * NAzimuthal + j;
 		    g_radial[l] = acc_radial[(i - Zero_or_active) * stride + j];
 		    g_azimuthal[l] =
 			acc_azimuthal[(i - Zero_or_active) * stride + j];
@@ -468,9 +453,9 @@ void compute_acceleration(t_polargrid &density)
     if (CPU_Rank >= (CPU_Number + one_if_odd) / 2) {
 	if (CPU_Rank == CPU_Highest) {
 		#pragma omp parallel for collapse(2)
-	    for (i = 0; i < nr; i++) {
-		for (j = 0; j < NAzimuthal; j++) {
-		    l = i * NAzimuthal + j;
+	    for (unsigned int i = 0; i < nr; i++) {
+		for (unsigned int j = 0; j < NAzimuthal; j++) {
+		    const unsigned int l = i * NAzimuthal + j;
 		    g_radial[l] = ffttohydro_transfer_friend[i * stride + j];
 		    g_azimuthal[l] =
 			ffttohydro_transfer_friend[transfer_size_friend / 2 +
@@ -479,9 +464,9 @@ void compute_acceleration(t_polargrid &density)
 	    }
 	} else {
 		#pragma omp parallel for collapse(2)
-	    for (i = 0; i < Max_or_active; i++) {
-		for (j = 0; j < NAzimuthal; j++) {
-		    l = i * NAzimuthal + j;
+	    for (unsigned int i = 0; i < Max_or_active; i++) {
+		for (unsigned int j = 0; j < NAzimuthal; j++) {
+		    unsigned int l = i * NAzimuthal + j;
 		    g_radial[l] = ffttohydro_transfer_friend[i * stride + j];
 		    g_azimuthal[l] =
 			ffttohydro_transfer_friend[transfer_size_friend / 2 +
@@ -494,7 +479,7 @@ void compute_acceleration(t_polargrid &density)
     // Now we exchange the correct amount of sg_acceleration between cpus to
     // fill ghosts.
 
-    ghost_size = CPUOVERLAP * NAzimuthal;
+    const unsigned int ghost_size = CPUOVERLAP * NAzimuthal;
     if (CPU_Number > 1) {
 	if ((CPU_Rank > 0) && (CPU_Rank < (CPU_Number + one_if_odd) / 2)) {
 	    MPI_Isend(&g_azimuthal[Zero_or_active * NAzimuthal], ghost_size,
@@ -536,18 +521,18 @@ void compute_acceleration(t_polargrid &density)
 
     // We don't forget to renormalize acc arrays!
 	#pragma omp parallel for
-    for (i = 0; i < nr; i++) {
+    for (unsigned int i = 0; i < nr; i++) {
 	// g_r(u,phi) normalized with exp(-u/2)*Δu*Δphi/(2*N_r*N_phi) (3.43 page
 	// 57) g_phi(u,phi) normalized with exp(-3*u/2)*Δu Δphi/(2*N_r*N_phi)
 	// (3.44 page 57)
-	normaccr = r_step * t_step /
+	double normaccr = r_step * t_step /
 		   ((double)(2 * GlobalNRadial) * (double)NAzimuthal);
-	normacct = normaccr;
+	double normacct = normaccr;
 	normaccr /= std::sqrt(Rmed[i] / GlobalRmed[0]);
 	normacct /=
 	    (Rmed[i] / GlobalRmed[0] * std::sqrt(Rmed[i] / GlobalRmed[0]));
-	for (j = 0; j < NAzimuthal; j++) {
-	    l = i * NAzimuthal + j;
+	for (unsigned int j = 0; j < NAzimuthal; j++) {
+	    const unsigned int l = i * NAzimuthal + j;
 	    g_radial[l] *= normaccr;
 	    g_azimuthal[l] *= normacct;
 	}
@@ -564,9 +549,6 @@ void compute_acceleration(t_polargrid &density)
 void update_velocities(t_polargrid &v_radial, t_polargrid &v_azimuthal,
 		       double dt)
 {
-    int l;
-    int jm1, lm1;
-
 	const unsigned int Nr = v_radial.get_max_radial();
 
     // Here we update velocity fields to take into account self-gravity
@@ -575,7 +557,7 @@ void update_velocities(t_polargrid &v_radial, t_polargrid &v_azimuthal,
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal < NAzimuthal;
 	     ++n_azimuthal) {
-	    l = n_radial * NAzimuthal + n_azimuthal;
+	    const unsigned int l = n_radial * NAzimuthal + n_azimuthal;
 	    // We compute VRadial - half-centered in azimuth - from
 	    // centered-in-cell radial sg acceleration
 	    if (n_radial > 0) {
@@ -589,21 +571,20 @@ void update_velocities(t_polargrid &v_radial, t_polargrid &v_azimuthal,
 
 	    // We compute VAzimuthal - half-centered in radius - from
 	    // centered-in-cell azimutal sg acceleration
-	    if (n_azimuthal == 0)
-		jm1 = NAzimuthal - 1;
-	    else
-		jm1 = n_azimuthal - 1;
-	    lm1 = n_radial * NAzimuthal + jm1;
-	    v_azimuthal(n_radial, n_azimuthal) +=
-		0.5 * dt * (g_azimuthal[l] + g_azimuthal[lm1]);
+		unsigned int jm1;
+	    if (n_azimuthal == 0) {
+			jm1 = NAzimuthal - 1;
+		} else {
+			jm1 = n_azimuthal - 1;
+		}
+	    const unsigned int lm1 = n_radial * NAzimuthal + jm1;
+	    v_azimuthal(n_radial, n_azimuthal) += 0.5 * dt * (g_azimuthal[l] + g_azimuthal[lm1]);
 	}
     }
 }
 
 void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 {
-    double omega;
-
     double *GLOBAL_AxiSGAccr = (double *)malloc(sizeof(double) * GlobalNRadial);
     mpi_make1Dprofile(g_radial, GLOBAL_AxiSGAccr);
 
@@ -620,7 +601,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 		"Radicand %lg < 0 in init_azimuthal_velocity! Maybe ThicknessSmoothingSG (%lg) is too small!\n",
 		temp, parameters::thickness_smoothing_sg);
 	}
-	omega = std::sqrt(temp);
+	const double omega = std::sqrt(temp);
 
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal < v_azimuthal.get_size_azimuthal(); ++n_azimuthal) {
