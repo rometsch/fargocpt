@@ -169,6 +169,7 @@ void init(t_data &data)
 	{
 	num_openmp_threads = omp_get_num_threads();
 	}
+
 	fftw_plan_with_nthreads(num_openmp_threads);
 	}
 #endif
@@ -268,6 +269,7 @@ void compute_FFT_density(t_polargrid &density)
 
     // lower half of cpus
     if ((CPU_Rank < CPU_Number / 2) && (CPU_Rank != CPU_NoFriend)) {
+	#pragma omp parallel for collapse(2)
 	for (i = 0; i < ifront + 1; i++) {
 	    for (j = 0; j < NAzimuthal; j++) {
 		l = i * stride + j;
@@ -280,6 +282,7 @@ void compute_FFT_density(t_polargrid &density)
 	    }
 	}
 
+	#pragma omp parallel for collapse(2)
 	for (i = ifront + 1; i < (unsigned int)local_Nx; i++) {
 	    for (j = 0; j < NAzimuthal; j++) {
 		l = i * stride + j;
@@ -301,6 +304,7 @@ void compute_FFT_density(t_polargrid &density)
 
     // cpu with no friend (upper most if odd total cpu number)
     if (CPU_Rank == CPU_NoFriend) {
+	#pragma omp parallel for collapse(2)
 	for (i = 0; i < (unsigned int)local_Nx; i++) {
 	    for (j = 0; j < NAzimuthal; j++) {
 		l = i * stride + j;
@@ -320,6 +324,7 @@ void compute_FFT_density(t_polargrid &density)
 
     // upper half of cpus
     if ((CPU_Rank >= CPU_Number / 2) && (CPU_Rank != CPU_NoFriend)) {
+	#pragma omp parallel for collapse(2)
 	for (i = 0; i < (unsigned int)local_Nx; i++) {
 	    for (j = 0; j < NAzimuthal; j++) {
 		l = i * stride + j;
