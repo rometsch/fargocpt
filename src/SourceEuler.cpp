@@ -1225,8 +1225,10 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
 	/// TODO: Cannot be OpenMP parallelized due to Temperature being iteratively computed ??
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr - 1; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+
 		const double old_value = Temperature(nr, naz);
 		const unsigned int naz_next =
 		    (naz == Temperature.get_max_azimuthal() ? 0 : naz + 1);
@@ -1346,6 +1348,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 			  omega);
 
     // compute energy from temperature
+	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		Energy(nr, naz) = Temperature(nr, naz) *
