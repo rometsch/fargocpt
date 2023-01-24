@@ -7,6 +7,9 @@
    All references to pages and equations are in "Toward predictive scenarios of
    planetary migration" by C. Baruteau
 */
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include <fftw3-mpi.h>
 #include <math.h>
@@ -100,7 +103,11 @@ void mpi_finalize(void)
     free(g_azimuthal);
 
     // cleanup MPI
-    fftw_mpi_cleanup();
+#ifdef _OPENMP
+	fftw_cleanup_threads();
+#else
+	fftw_mpi_cleanup();
+#endif
 }
 
 /**
@@ -149,6 +156,22 @@ void init(t_data &data)
 	    "A logarithmic grid is needed to compute self-gravity with polar method. Try again!\n");
 	PersonalExit(1);
     }
+
+
+
+#ifdef _OPENMP
+	int thread_success = fftw_init_threads();
+	// Tell plans to use openmp
+	// this must be done before creating plans
+	if(thread_success != 0){
+	int num_openmp_threads;
+	#pragma omp parallel
+	{
+	num_openmp_threads = omp_get_num_threads();
+	}
+	fftw_plan_with_nthreads(num_openmp_threads);
+	}
+#endif
 
     r_step = std::log(Radii[GlobalNRadial] / Radii[0]) / (double)GlobalNRadial;
     t_step = 2.0 * M_PI / (double)NAzimuthal;
@@ -318,6 +341,7 @@ void compute_FFT_kernel()
     double theta, u;
     int stride = 2 * (NAzimuthal / 2 + 1);
 
+	#pragma omp parallel for
     for (unsigned int i = 0; i < (unsigned int)local_Nx; i++) {
 	if (i + local_i_start < GlobalNRadial) {
 	    u = std::log(Radii[i + local_i_start] / Radii[0]);
@@ -365,6 +389,8 @@ void compute_acceleration(t_polargrid &density)
     // used the flag FFTW_TRANSPOSED_ORDER before. However, this is not a
     // problem: we compute double and imaginary parts of 1-dimension convolution
     // arrays buffer_FFT_acc_radial(t)
+
+	#pragma omp parallel for
     for (unsigned int i = 0; i < total_local_size; i++) {
 	FFT_acc_radial[i][0] =
 	    -constants::G * (FFT_K_radial[i][0] * FFT_S_radial[i][0] -
@@ -390,6 +416,7 @@ void compute_acceleration(t_polargrid &density)
     // fftw d.d. to the hydro mesh
     if (CPU_Rank != CPU_NoFriend) {
 	if (CPU_Rank < CPU_Number / 2) {
+		#pragma omp parallel for
 	    for (i = 0; i < transfer_size; i++) {
 		if (i < transfer_size / 2)
 		    ffttohydro_transfer[i] =
@@ -412,6 +439,7 @@ void compute_acceleration(t_polargrid &density)
     // We now compute sg_acceleration arrays on the hydro mesh
     if (CPU_Rank < (CPU_Number + one_if_odd) / 2) {
 	if (CPU_Rank == 0) {
+		#pragma omp parallel for collapse(2)
 	    for (i = 0; i < nr; i++) {
 		for (j = 0; j < NAzimuthal; j++) {
 		    l = i * NAzimuthal + j;
@@ -420,6 +448,7 @@ void compute_acceleration(t_polargrid &density)
 		}
 	    }
 	} else {
+		#pragma omp parallel for collapse(2)
 	    for (i = Zero_or_active; i < nr; i++) {
 		for (j = 0; j < NAzimuthal; j++) {
 		    l = i * NAzimuthal + j;
@@ -433,6 +462,7 @@ void compute_acceleration(t_polargrid &density)
 
     if (CPU_Rank >= (CPU_Number + one_if_odd) / 2) {
 	if (CPU_Rank == CPU_Highest) {
+		#pragma omp parallel for collapse(2)
 	    for (i = 0; i < nr; i++) {
 		for (j = 0; j < NAzimuthal; j++) {
 		    l = i * NAzimuthal + j;
@@ -443,6 +473,7 @@ void compute_acceleration(t_polargrid &density)
 		}
 	    }
 	} else {
+		#pragma omp parallel for collapse(2)
 	    for (i = 0; i < Max_or_active; i++) {
 		for (j = 0; j < NAzimuthal; j++) {
 		    l = i * NAzimuthal + j;
@@ -499,6 +530,7 @@ void compute_acceleration(t_polargrid &density)
     }
 
     // We don't forget to renormalize acc arrays!
+	#pragma omp parallel for
     for (i = 0; i < nr; i++) {
 	// g_r(u,phi) normalized with exp(-u/2)*Δu*Δphi/(2*N_r*N_phi) (3.43 page
 	// 57) g_phi(u,phi) normalized with exp(-3*u/2)*Δu Δphi/(2*N_r*N_phi)
@@ -530,8 +562,11 @@ void update_velocities(t_polargrid &v_radial, t_polargrid &v_azimuthal,
     int l;
     int jm1, lm1;
 
+	const unsigned int Nr = v_radial.get_max_radial();
+
     // Here we update velocity fields to take into account self-gravity
-    for (unsigned int n_radial = 0; n_radial < v_radial.get_max_radial();
+	#pragma omp parallel for collapse(2)
+	for (unsigned int n_radial = 0; n_radial < Nr;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0; n_azimuthal < NAzimuthal;
 	     ++n_azimuthal) {
@@ -567,6 +602,7 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
     double *GLOBAL_AxiSGAccr = (double *)malloc(sizeof(double) * GlobalNRadial);
     mpi_make1Dprofile(g_radial, GLOBAL_AxiSGAccr);
 
+	#pragma omp parallel for
     for (unsigned int n_radial = 0;
 	 n_radial < v_azimuthal.get_size_radial() - GHOSTCELLS_B; ++n_radial) {
 
