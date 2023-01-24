@@ -99,13 +99,14 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         cmd += ["--display-map"]
         cmd += ["--display-allocation"]
         cmd += ["--report-bindings"]
-    cmd += ["--map-by", "ppr:1:numa"]
-    cmd += ["--bind-to", "numa"]
     if mpi_verbose:
         cmd += ["-x", "OMP_DISPLAY_ENV=VERBOSE"]
-    cmd += ["-x", "OMP_WAIT_POLICY=active"]
-    cmd += ["-x", "OMP_PROC_BIND=close"]
-    cmd += ["-x", "OMP_PLACES=cores"]
+    if N_OMP_threads > 1:
+        cmd += ["--map-by", "ppr:1:numa"]
+        cmd += ["--bind-to", "numa"]
+        cmd += ["-x", "OMP_WAIT_POLICY=active"]
+        cmd += ["-x", "OMP_PROC_BIND=close"]
+        cmd += ["-x", "OMP_PLACES=cores"]
     cmd += ["-x", f"OMP_NUM_THREADS={N_OMP_threads}"]
     cmd += [executable_path] + fargo_args
     run(cmd, stdout=stdout, stderr=stderr)
