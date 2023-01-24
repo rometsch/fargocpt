@@ -140,12 +140,8 @@ int main(int argc, char *argv[])
 
     logging::start_timer();
 
-    CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-
-    CommunicateBoundaries(&data[t_data::SIGMA0], &data[t_data::V_RADIAL0],
-			  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
-
+    CommunicateBoundariesAll(data);
+    CommunicateBoundariesAllInitial(data);
 
 	if (start_mode::mode != start_mode::mode_restart) {
 		sim::handle_outputs(data);

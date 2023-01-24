@@ -78,6 +78,16 @@ void AllocateBoundaryCommunicationBuffers()
     buffersAllocated = 1;
 }
 
+void CommunicateBoundariesAll(t_data& data) {
+	CommunicateBoundaries(&data[t_data::SIGMA], &data[t_data::V_RADIAL],
+						  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
+}
+
+void CommunicateBoundariesAllInitial(t_data& data) {
+	CommunicateBoundaries(&data[t_data::SIGMA0], &data[t_data::V_RADIAL0],
+						  &data[t_data::V_AZIMUTHAL0], &data[t_data::ENERGY0]);
+}
+
 /**
 	Communicate boundaries.
 
