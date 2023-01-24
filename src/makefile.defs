@@ -47,7 +47,7 @@ INCLUDES += -I.
 LIBS = -lm 
 LIBS += -lstdc++fs
 LIBS += -L$(MPI_PREFIX)/lib -lmpi 
-LIBS += -L$(FFTW_PREFIX)/lib -lfftw3_mpi -lfftw3 
+LIBS += -L$(FFTW_PREFIX)/lib -lfftw3_omp -lfftw3_mpi -lfftw3
 LIBS += -L$(GSL_PREFIX)/lib64 -lgsl -lgslcblas
 # statically linked libs
 LIBS += -Lrebound -lrebound
