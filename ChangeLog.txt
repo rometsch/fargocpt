@@ -10,5 +10,6 @@
 - irradiation is now controlled by setting a temperature > 0 in the nbody config rather than the "HeatingStar" flag
 - backtraces are written to file by default
 - simplify build process and remove FARGO_ARCH, use specific env variables now (see arch.defs)
-
-
+- replaced the default executable to run, now run_fargo starts the simulations and calls bin/fargocpt and handles the parallel config
+- restructured the output directory into snapshots and monitor directories. Each snapshot dir contains all information to restart the simulation.
+- bigplanet.dat files are now called planet.dat files, now fargocpt output v1.2
