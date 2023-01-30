@@ -3,6 +3,7 @@
 ## Description
 
 This is the version of the [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code used by some members of the Computational Physics Tübingen (CPT) group.
+FargoCPT includes a number of improvements and is parallelized using a hybrid MPI-OpenMP scheme.
 
 It is now used and maintained by Lucas Jordan and Thomas Rometsch with contributions by Tobias Moldenhauer (symmetric self-gravity) and Dennis Wehner (variable adiabatic index).
 
@@ -35,6 +36,27 @@ In `auto` mode, the simulation is restarted at the last available output if ther
 
 When omitting the `-np` and `-nt` options, the starting script tries to automatically use all available resources and determine the appropritate number of processes and threads to use for the given computer - one MPI process per numa node with as many OpenMP threads as there are cores per numa node. Hyperthreads are ignored.
 
+Have a look at `./bin/fargocpt.py`, which is a Python wrapper for calling the binary executable using `mpirun` with a couple of runtime options, e.g. for binding the processes to numa nodes.
+We tested this setup for OpenMPI with versions 3 and 4.
+For any other MPI implementation, please test the available options for hybrid parallelization using `mpirun` manually.
+
+### Python
+
+The wrapper for calling FargoCPT in parallel mode is written in Python3.
+In case you want to run simulations in an automated fashion, you can import the `run_fargo` function from the `fargocpt.py` file as follows:
+
+```python
+import sys
+sys.path.append("/path/to/the/repo/bin")
+from fargocpt import run_fargo
+
+N_procs = 2
+N_OMP_threads = 8
+run_fargo(N_procs, N_OMP_threads, ["start", "testconfig.yml"])
+```
+
+See `test/scaling` for an example use case.
+
 ## Docker
 
 There is a `./docker/Dockerfile`, along with two `bash` scripts to build and run a docker image.
@@ -46,6 +68,9 @@ Please note that OpenMPI can't bind memory to numa nodes when multiple processes
 The `./docker/run.sh` script already takes this into account by launching only one process. It will be executed with as many threads as there are cores on one numa node.
 This should be sufficient for many local applications.
 On a cluster, you'll likely want to compile the code yourself.
+
+The docker image assumes that the input files is located at `/simulation/setup.yml` inside the container and output files are written relative to `/simulation`.
+Inside the container, the program can be called with the `fargocpt` command, which is a symlink to the python wrapper.
 
 ## Building the code
 
