@@ -4,7 +4,7 @@
 import os
 import sys
 
-this_dir = os.path.abspath(os.path.dirname(__file__))
+this_dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 bin_dir = os.path.join(this_dir, "bin")
 sys.path.append(bin_dir)
 
