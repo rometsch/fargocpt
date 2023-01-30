@@ -106,10 +106,15 @@ On Ubuntu (e.g. in a virtual maschine), run the following commands to get starte
 ``` bash
 sudo apt-get install -y build-essential make
 sudo apt-get install -y git
-sudo apt-get install -y libopenmpi-dev 
-sudo apt-get install -y libgsl-dev 
-sudo apt-get install -y libfftw3-mpi-dev libfftw3-dev 
+sudo apt-get install -y libopenmpi-dev
+sudo apt-get install -y libgsl-dev
+sudo apt-get install -y libfftw3-mpi-dev libfftw3-dev
 sudo apt-get install -y python3
+```
+
+or as a one-liner
+```bash
+sudo apt-get install -y build-essential make git libopenmpi-dev  libgsl-dev libfftw3-mpi-dev libfftw3-dev python3
 ```
 
 ### Architecture definitions
