@@ -47,17 +47,18 @@ def main():
         print(f"Please compile the code first: make -C {src_dir} -j 4")
         exit(1)
 
-    if opts.np is None and opts.nt is None:
-        ncpu = get_num_cores()
-        numa_nodes = get_numa_nodes()
-        first_numa_node = [k for k in numa_nodes.keys()][0]
-        N_cores_per_numa = len(numa_nodes[first_numa_node])
+    ncpu = get_num_cores()
+    numa_nodes = get_numa_nodes()
+    first_numa_node = [k for k in numa_nodes.keys()][0]
+    N_cores_per_numa = len(numa_nodes[first_numa_node])
+
+    if opts.np is None and opts.nt is None:        
         N_procs = max(1, ncpu//N_cores_per_numa)
         N_OMP_threads = ncpu//N_procs
 
     elif opts.np is not None and opts.nt is None:
         N_procs = opts.np
-        N_OMP_threads = 1
+        N_OMP_threads = N_cores_per_numa
     elif opts.np is None and opts.nt is not None:
         N_procs = 1
         N_OMP_threads = opts.nt
