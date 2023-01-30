@@ -11,47 +11,81 @@ Credit for earlier version we built uopn go to:
 - [FARGO-ADSG](http://fargo.in2p3.fr/-FARGO-ADSG-) by [Clément Baruteau](http://clement.baruteau.free.fr/work/) who added a solver for the energy equation (AD=adiabatic) and self-gravity (SG)
 - [Tobias Müller](https://twam.info) for adopting FARGO-ADSG to C++, [Giovanni Picogna](https://www.usm.uni-muenchen.de/people/picogna/index.html) for adding Langrangian particles, and other students in the CPT group.
 
-## Warning!
-
-This version is still in development.
-Most physics modules are successfully tested, however some modules (dust diffusion, self-gravity) are not yet fully tested.
-
-The tested features of the code include:
-- hydrodynamics part including the FARGO algorithm (shocktube, viscous spreading ring)
-- Nbody dynamics and interaction with gas (planet torque, barycenter test)
-- irradiation
-- dust drift
 
 ## In development
 
 This code is presented as is. And it will change over time.
-The coming weeks (last weeks of 2022 and first weeks of 2023), we plan to add more tests, add documentation and examples.
+Until the end of the first quarter in 2023, we plan to add more tests, add documentation and examples.
 Changes to the input and output format are also possible, though the goal for the next month is to have a version 1.0.
 
 ## Usage
 
 Start a simulation with one of the following commands:
 ```
-mpirun -n NPROC ./fargo start setup/config.yml
-mpirun -n NPROC ./fargo restart 5 setup/config.yml
-mpirun -n NPROC ./fargo auto setup/config.yml
+./run_fargo -np NPROCS -nt NTHREADS {start/restart N/auto} setup/config.yml
 ```
-where `NPROC` is the number of processors you want to use.
+where `NPROCS` is the number of MPI processes you want to launch and `NTHREADS` is the number of OpenMP threads per MPI process.
 
-The first line with the `start` command begins a new simulation. 
+Using the `start` command begins a new simulation. 
 Should the output directory already exists, the previous directory is backed up (`_bak` is appended to its name).
 
-The second line is used to `restart` a simulation that already exists in the output directory that is specified in the config file at output number 5.
+Using the `restart` command resumes a simulation that already exists in the output directory that is specified in the config file at output number `N`.
 
-The third line starts fargo in `auto` mode. In this mode, the simulation is restarted at the last available output if there are already some outputs, otherwise, a fresh simulation is started.
+In `auto` mode, the simulation is restarted at the last available output if there are already some outputs, otherwise, a fresh simulation is started.
 
+When omitting the `-np` and `-nt` options, the starting script tries to automatically use all available resources and determine the appropritate number of processes and threads to use for the given computer - one MPI process per numa node with as many OpenMP threads as there are cores per numa node. Hyperthreads are ignored.
+
+## Docker
+
+There is a `./docker/Dockerfile`, along with two `bash` scripts to build and run a docker image.
+
+Call `./docker/build.sh` to build a docker image based on a Ubuntu 22.04 base.
+Run the code with the `./docker/run.sh {mode} {setupfile} {outputdir}`.
+
+Please note that OpenMPI can't bind memory to numa nodes when multiple processes are started. This effectively limits the docker image to be run on one numa node.
+The `./docker/run.sh` script already takes this into account by launching only one process. It will be executed with as many threads as there are cores on one numa node.
+This should be sufficient for many local applications.
+On a cluster, you'll likely want to compile the code yourself.
 
 ## Building the code
+
+To build the code, navigate to the repository home and run
+
+```bash
+make -C src -j 4
+```
+
+This will compile the code in parallel using 4 processes. Increase this number at the risk of running out of memory.
 
 The building process is managed by the makefile `src/makefile`.
 Compile time flags are set in `src/makefile.defs` and the environment is selected and specified in `src/arch.defs`.
 
-To get more information about the build process, run `make -m`
+To get more information about the build process, run `make -m`.
+
+## Dependencies
+
+Building and running FargoCPT requires the following dependencies:
+
+- gcc
+- make
+- git
+- python3
+- openmpi
+- fftw (including lfftw3_mpi and lfftw3_omp)
+- gsl
+
+## Dependencies on Ubuntu
+
+On Ubuntu (e.g. in a virtual maschine), run the following commands to get started.
+
+``` bash
+sudo apt-get install -y build-essential make
+sudo apt-get install -y git
+sudo apt-get install -y libopenmpi-dev 
+sudo apt-get install -y libgsl-dev 
+sudo apt-get install -y libfftw3-mpi-dev libfftw3-dev 
+sudo apt-get install -y python3
+```
 
 ### Architecture definitions
 
@@ -68,14 +102,10 @@ Their location can be specified using environment variables
 - FFTW_HOME: prefix of the FFTW installation (default /usr)
 - GSL_HOME: prefix of the GSL installation (default /usr)
 
-If you installed MPI, FFTW, and GSL through a package manager, chances are good that the defaults will work out of the box.
+If you installed MPI, FFTW, and GSL through a package manager, chances are good that the defaults will work out of the box (e.g. for the Ubuntu example above).
 The same can be expected for clusters that use the `module` framework. Then the `_HOME` variables should be set by loading the modules.
 
 The `_HOME` variables should be the path that points to the directory that includes both the `include` and `lib` that contain the header files and shared libraries. To find them, search for, e.g., `mpi.h` and `libmpi.so` (use the `locate` or `find` commands).
-
-## TODOs
-
-+ move subkeplerian boundary condition call from artificalviscosity.cpp to boundary conditions / simulation.cpp 
 
 ## Tests
 
@@ -92,8 +122,8 @@ The `_HOME` variables should be the path that points to the directory that inclu
   + Dust diffusion
 + N-body
   + migrating low mass planet
-+ self-gravity
 TBD
++ self-gravity
 + program
   + valgrind run
     + ignore OpenMPI errors
