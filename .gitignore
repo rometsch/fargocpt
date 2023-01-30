@@ -88,3 +88,5 @@ dkms.conf
 out*
 
 notebook/
+
+examples/*/
