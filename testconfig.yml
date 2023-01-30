@@ -40,7 +40,7 @@ ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex: '0.0'   # Slope of Temperature/radius profile
-SelfGravity: 'No'   # choose: Yes, Z or No
+SelfGravity: yes   # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
@@ -84,7 +84,7 @@ mofRampingTime: '30' # growth time for the mass transfer rate in planetary orbit
 
 SecondaryDisk: 'No'
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
-ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
+ThicknessSmoothingSG: '0.6'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Boundary layer parameters
 
@@ -122,7 +122,7 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 Disk: 'YES'
 OmegaFrame: '1.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
-DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
+DiskFeedback: yes   # Calculate incfluence of the disk on the star
 IndirectTermMode: '0'   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
 KeepDiskMassConstant: 'NO'
 
@@ -227,7 +227,6 @@ nbody:
   semi-major axis: 0.0 au
   mass: 1.0
   eccentricity: 0.0
-  temperature:
   radius: 1.0 solRadius
   temperature: 5778 K
 - name: Jupiter
