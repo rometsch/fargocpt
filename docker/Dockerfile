@@ -12,6 +12,7 @@ RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 openmpi-bin libopenmpi-dev
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libgsl-dev 
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libfftw3-mpi-dev libfftw3-dev libfftw3-3
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3
+RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 gosu
 
 RUN mkdir /output
 COPY .git .git
@@ -21,20 +22,23 @@ COPY run_fargo .
 COPY testconfig.yml .
 RUN ln -s /output/ ./output
 
-RUN groupadd -g 999 fargouser && \
-    useradd -r -u 999 -g fargouser fargouser
+# RUN groupadd -g 999 fargouser && \
+#     useradd -r -u 999 -g fargouser fargouser
 
-RUN chown -R fargouser:fargouser /app
-RUN chown -R fargouser:fargouser /output
+# RUN chown -R fargouser:fargouser /app
+# RUN chown -R fargouser:fargouser /output
 
-USER fargouser
+# USER fargouser
 
 RUN git reset
 RUN make -C /app/src -j 4
 
-USER root
-RUN cd /usr/bin && ln -s /app/run_fargo fargocpt
+# USER root
+RUN cd /usr/local/bin && ln -s /app/run_fargo fargocpt
 
-USER fargouser
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 CMD ["fargocpt", "-np", "1", "start", "setup.yml"]
