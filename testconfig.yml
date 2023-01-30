@@ -69,7 +69,7 @@ HeatingCoolingCFLlimit: '1.0'   # energy change dT/T in substep3 only allowed to
 # Units
 
 l0: 1 au   # Base length unit of the simulation [default: 1.0 au]
-m0: '0.334 solMass'   # Base mass unit of the simulation [default: 1.0 solMass]
+m0: '1 solMass'   # Base mass unit of the simulation [default: 1.0 solMass]
 mu: '2.35'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
