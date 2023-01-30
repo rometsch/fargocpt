@@ -614,6 +614,7 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 
 			// we do not need to care about parallel summation,
 			// since each OpenMP thread handles a specific nRadial by themself
+			// and massflow in/out of the domain only happens on a single ring
 		    if (CPU_Rank == 0 && nRadial == 1) {
 			if (varq_inf > 0) {
 			    sum_without_ghost_cells(MassDelta.InnerPositive,
