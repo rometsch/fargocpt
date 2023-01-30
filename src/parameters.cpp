@@ -421,6 +421,7 @@ void read(const std::string &filename, t_data &data)
     if (quantities_radius_limit == 0.0) {
 	quantities_radius_limit = 2.0 * RMAX;
     }
+	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);
 
     exponential_cell_size_factor =
 	config::cfg.get<double>("ExponentialCellSizeFactor", 1.41);
