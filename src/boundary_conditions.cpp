@@ -766,10 +766,10 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
-	double &InnerWaveDampingPositive = MassDelta.InnerWaveDampingPositive;
-	double &InnerWaveDampingNegative = MassDelta.InnerWaveDampingNegative;
+	double &InnerWaveDampingMassCreation = MassDelta.InnerWaveDampingMassCreation;
+	double &InnerWaveDampingMassRemoval = MassDelta.InnerWaveDampingMassRemoval;
 
-	#pragma omp parallel for reduction (+ : InnerWaveDampingPositive, InnerWaveDampingNegative)
+	#pragma omp parallel for reduction (+ : InnerWaveDampingMassCreation, InnerWaveDampingMassRemoval)
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -786,12 +786,12 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(InnerWaveDampingPositive,
+			sum_without_ghost_cells(InnerWaveDampingMassCreation,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(InnerWaveDampingNegative,
-						delta * Surf[n_radial],
+			sum_without_ghost_cells(InnerWaveDampingMassRemoval,
+						-delta * Surf[n_radial],
 						n_radial);
 		    }
 		}
@@ -827,10 +827,10 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	// Needed for OpenMP to work
-	double &OuterWaveDampingPositive = MassDelta.OuterWaveDampingPositive;
-	double &OuterWaveDampingNegative = MassDelta.OuterWaveDampingNegative;
+	double &OuterWaveDampingMassCreation = MassDelta.OuterWaveDampingMassCreation;
+	double &OuterWaveDampingMassRemoval = MassDelta.OuterWaveDampingMassRemoval;
 
-	#pragma omp parallel for reduction (+ : OuterWaveDampingPositive, OuterWaveDampingNegative)
+	#pragma omp parallel for reduction (+ : OuterWaveDampingMassCreation, OuterWaveDampingMassRemoval)
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -848,12 +848,12 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(OuterWaveDampingPositive,
+			sum_without_ghost_cells(OuterWaveDampingMassCreation,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(OuterWaveDampingNegative,
-						delta * Surf[n_radial],
+			sum_without_ghost_cells(OuterWaveDampingMassRemoval,
+						-delta * Surf[n_radial],
 						n_radial);
 		    }
 		}
@@ -887,10 +887,10 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
-	double &InnerWaveDampingPositive = MassDelta.InnerWaveDampingPositive;
-	double &InnerWaveDampingNegative = MassDelta.InnerWaveDampingNegative;
+	double &InnerWaveDampingMassCreation = MassDelta.InnerWaveDampingMassCreation;
+	double &InnerWaveDampingMassRemoval = MassDelta.InnerWaveDampingMassRemoval;
 
-	#pragma omp parallel for reduction (+ : InnerWaveDampingPositive, InnerWaveDampingNegative)
+	#pragma omp parallel for reduction (+ : InnerWaveDampingMassCreation, InnerWaveDampingMassRemoval)
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -912,12 +912,12 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(InnerWaveDampingPositive,
+			sum_without_ghost_cells(InnerWaveDampingMassCreation,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(InnerWaveDampingNegative,
-						delta * Surf[n_radial],
+			sum_without_ghost_cells(InnerWaveDampingMassRemoval,
+						-delta * Surf[n_radial],
 						n_radial);
 		    }
 		}
@@ -953,10 +953,10 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	// Needed for OpenMP to work
-	double &OuterWaveDampingPositive = MassDelta.OuterWaveDampingPositive;
-	double &OuterWaveDampingNegative = MassDelta.OuterWaveDampingNegative;
+	double &OuterWaveDampingMassCreation = MassDelta.OuterWaveDampingMassCreation;
+	double &OuterWaveDampingMassRemoval = MassDelta.OuterWaveDampingMassRemoval;
 
-	#pragma omp parallel for reduction (+ : OuterWaveDampingPositive, OuterWaveDampingNegative)
+	#pragma omp parallel for reduction (+ : OuterWaveDampingMassCreation, OuterWaveDampingMassRemoval)
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -974,12 +974,12 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(OuterWaveDampingPositive,
+			sum_without_ghost_cells(OuterWaveDampingMassCreation,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(OuterWaveDampingNegative,
-						delta * Surf[n_radial],
+			sum_without_ghost_cells(OuterWaveDampingMassRemoval,
+						-delta * Surf[n_radial],
 						n_radial);
 		    }
 		}
@@ -1024,10 +1024,10 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 
 	// Needed for OpenMP to work
-	double &InnerWaveDampingPositive = MassDelta.InnerWaveDampingPositive;
-	double &InnerWaveDampingNegative = MassDelta.InnerWaveDampingNegative;
+	double &InnerWaveDampingMassCreation = MassDelta.InnerWaveDampingMassCreation;
+	double &InnerWaveDampingMassRemoval = MassDelta.InnerWaveDampingMassRemoval;
 
-	#pragma omp parallel for reduction (+ : InnerWaveDampingPositive, InnerWaveDampingNegative)
+	#pragma omp parallel for reduction (+ : InnerWaveDampingMassCreation, InnerWaveDampingMassRemoval)
 	for (unsigned int n_radial = 0; n_radial <= limit; ++n_radial) {
 	    double factor = std::pow(
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -1044,12 +1044,12 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(InnerWaveDampingPositive,
+			sum_without_ghost_cells(InnerWaveDampingMassCreation,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(InnerWaveDampingNegative,
-						delta * Surf[n_radial],
+			sum_without_ghost_cells(InnerWaveDampingMassRemoval,
+						-delta * Surf[n_radial],
 						n_radial);
 		    }
 		}
@@ -1152,10 +1152,10 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	}
 
 	// Needed for OpenMP to work
-	double &OuterWaveDampingPositive = MassDelta.OuterWaveDampingPositive;
-	double &OuterWaveDampingNegative = MassDelta.OuterWaveDampingNegative;
+	double &OuterWaveDampingMassCreation = MassDelta.OuterWaveDampingMassCreation;
+	double &OuterWaveDampingMassRemoval = MassDelta.OuterWaveDampingMassRemoval;
 
-	#pragma omp parallel for reduction (+ : OuterWaveDampingPositive, OuterWaveDampingNegative)
+	#pragma omp parallel for reduction (+ : OuterWaveDampingMassCreation, OuterWaveDampingMassRemoval)
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
 	    double factor = std::pow(
@@ -1173,12 +1173,12 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
-			sum_without_ghost_cells(OuterWaveDampingPositive,
+			sum_without_ghost_cells(OuterWaveDampingMassCreation,
 						delta * Surf[n_radial],
 						n_radial);
 		    } else {
-			sum_without_ghost_cells(OuterWaveDampingNegative,
-						delta * Surf[n_radial],
+			sum_without_ghost_cells(OuterWaveDampingMassRemoval,
+						-delta * Surf[n_radial],
 						n_radial);
 		    }
 		}

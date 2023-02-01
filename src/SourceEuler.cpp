@@ -125,7 +125,7 @@ bool assure_minimum_value(t_polargrid &dst, double minimum_value)
 		    double mass_delta =
 			(minimum_value - dst(nr, naz)) *
 			Surf[nr];
-		    sum_without_ghost_cells(MassDelta.FloorPositive, mass_delta,
+		    sum_without_ghost_cells(MassDelta.FloorMassCreation, mass_delta,
 						nr);
 		}
 		dst(nr, naz) = minimum_value;

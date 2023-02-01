@@ -57,15 +57,15 @@ const std::map<const std::string, const int> quantities_file_column_v2_4 = {
     {"viscous dissipation", 14},
     {"luminosity", 15},
     {"pdivv", 16},
-    {"delta mass inner positive", 17},
-    {"delta mass inner negative", 18},
-    {"delta mass outer positive", 19},
-    {"delta mass outer negative", 20},
-	{"delta mass inner wave damping positive", 21},
-	{"delta mass inner wave damping negative", 22},
-	{"delta mass outer wave damping positive", 23},
-	{"delta mass outer wave damping negative", 24},
-	{"delta mass floor density positive", 25},
+	{"inner boundary mass inflow", 17},
+	{"inner boundary mass outflow", 18},
+	{"outer boundary mass inflow", 19},
+	{"outer boundary mass outflow", 20},
+	{"wave damping inner mass creation", 21},
+	{"wave damping inner mass removal", 22},
+	{"wave damping outer mass creation", 23},
+	{"wave damping outer mass removal", 24},
+	{"density floor mass creation", 25},
 	{"aspect ratio", 26},
 	{"indirect term nbody x", 27},
 	{"indirect term nbody y", 28},
@@ -88,17 +88,17 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 	{"pdivv", "pressure per time"},
 	{"radial kinetic energy", "energy"},
 	{"azimuthal kinetic energy", "energy"},
-	{"delta mass inner positive", "mass"},
-	{"delta mass inner negative", "mass"},
-	{"delta mass outer positive", "mass"},
-	{"delta mass outer negative", "mass"},
-	{"delta mass wave damping positive", "mass"},
-	{"delta mass wave damping negative", "mass"},
-	{"delta mass floor density positive", "mass"},
-	{"delta mass inner wave damping positive", "mass"},
-	{"delta mass inner wave damping negative", "mass"},
-	{"delta mass outer wave damping positive", "mass"},
-	{"delta mass outer wave damping negative", "mass"},
+	{"inner boundary mass inflow", "mass"},
+	{"inner boundary mass outflow", "mass"},
+	{"outer boundary mass inflow", "mass"},
+	{"outer boundary mass outflow", "mass"},
+	{"wave damping mass creation", "mass"},
+	{"wave damping mass removal", "mass"},
+	{"density floor mass creation", "mass"},
+	{"wave damping inner mass creation", "mass"},
+	{"wave damping inner mass removal", "mass"},
+	{"wave damping outer mass creation", "mass"},
+	{"wave damping outer mass removal", "mass"},
 	{"time step", "1"},
 	{"analysis time step", "1"},
 	{"omega frame", "frequency"},
@@ -386,35 +386,35 @@ void write_quantities(t_data &data, bool force_update)
 	quantities::gas_reduce_mass_average(data, data[t_data::ASPECTRATIO], quantities_limit_radius);
 
     double pdivv_total = 0.0;
-    double InnerPositive = 0.0;
-    double InnerNegative = 0.0;
-    double OuterPositive = 0.0;
-    double OuterNegative = 0.0;
-	double InnerWaveDampingPositive = 0.0;
-	double OuterWaveDampingPositive = 0.0;
-	double InnerWaveDampingNegative = 0.0;
-	double OuterWaveDampingNegative = 0.0;
-    double FloorPositive = 0.0;
+    double InnerBoundaryInflow = 0.0;
+    double InnerBoundaryOutflow = 0.0;
+    double OuterBoundaryInflow = 0.0;
+    double OuterBoundaryOutflow = 0.0;
+	double InnerWaveDampingMassCreation = 0.0;
+	double OuterWaveDampingMassCreation = 0.0;
+	double InnerWaveDampingMassRemoval = 0.0;
+	double OuterWaveDampingMassRemoval = 0.0;
+    double FloorMassCreation = 0.0;
 
     MPI_Reduce(&data.pdivv_total, &pdivv_total, 1, MPI_DOUBLE, MPI_SUM, 0,
 	       MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.InnerPositive, &InnerPositive, 1, MPI_DOUBLE, MPI_SUM,
+    MPI_Reduce(&MassDelta.InnerBoundaryInflow, &InnerBoundaryInflow, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.InnerNegative, &InnerNegative, 1, MPI_DOUBLE, MPI_SUM,
+    MPI_Reduce(&MassDelta.InnerBoundaryOutflow, &InnerBoundaryOutflow, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.OuterPositive, &OuterPositive, 1, MPI_DOUBLE, MPI_SUM,
+    MPI_Reduce(&MassDelta.OuterBoundaryInflow, &OuterBoundaryInflow, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.OuterNegative, &OuterNegative, 1, MPI_DOUBLE, MPI_SUM,
+    MPI_Reduce(&MassDelta.OuterBoundaryOutflow, &OuterBoundaryOutflow, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
-	MPI_Reduce(&MassDelta.InnerWaveDampingPositive, &InnerWaveDampingPositive, 1,
+	MPI_Reduce(&MassDelta.InnerWaveDampingMassCreation, &InnerWaveDampingMassCreation, 1,
 	       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(&MassDelta.OuterWaveDampingPositive, &OuterWaveDampingPositive, 1,
+	MPI_Reduce(&MassDelta.OuterWaveDampingMassCreation, &OuterWaveDampingMassCreation, 1,
 		   MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(&MassDelta.InnerWaveDampingNegative, &InnerWaveDampingNegative, 1,
+	MPI_Reduce(&MassDelta.InnerWaveDampingMassRemoval, &InnerWaveDampingMassRemoval, 1,
 	       MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	MPI_Reduce(&MassDelta.OuterWaveDampingNegative, &OuterWaveDampingNegative, 1,
+	MPI_Reduce(&MassDelta.OuterWaveDampingMassRemoval, &OuterWaveDampingMassRemoval, 1,
 		   MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&MassDelta.FloorPositive, &FloorPositive, 1, MPI_DOUBLE, MPI_SUM,
+    MPI_Reduce(&MassDelta.FloorMassCreation, &FloorMassCreation, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
 
     if (CPU_Master) {
@@ -426,10 +426,13 @@ void write_quantities(t_data &data, bool force_update)
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
-	    qminus, pdivv_total, InnerPositive, InnerNegative, OuterPositive,
-		OuterNegative, InnerWaveDampingPositive, InnerWaveDampingNegative,
-		OuterWaveDampingPositive, OuterWaveDampingNegative,
-	    FloorPositive, scale_height,
+	    qminus, pdivv_total, 
+		InnerBoundaryInflow, InnerBoundaryOutflow, 
+		OuterBoundaryInflow, OuterBoundaryOutflow, 
+		InnerWaveDampingMassCreation, InnerWaveDampingMassRemoval,
+		OuterWaveDampingMassCreation, OuterWaveDampingMassRemoval,
+	    FloorMassCreation, 
+		scale_height,
 		refframe::IndirectTermPlanets.x,
 		refframe::IndirectTermPlanets.y,
 		refframe::IndirectTermDisk.x,

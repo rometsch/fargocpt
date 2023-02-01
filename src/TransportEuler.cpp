@@ -617,21 +617,21 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 			// and massflow in/out of the domain only happens on a single ring
 		    if (CPU_Rank == 0 && nRadial == 1) {
 			if (varq_inf > 0) {
-			    sum_without_ghost_cells(MassDelta.InnerPositive,
+			    sum_without_ghost_cells(MassDelta.InnerBoundaryInflow,
 						    varq_inf, nRadial);
 			} else {
-			    sum_without_ghost_cells(MassDelta.InnerNegative,
-						    varq_inf, nRadial);
+			    sum_without_ghost_cells(MassDelta.InnerBoundaryOutflow,
+						    -varq_inf, nRadial);
 				data.get_massflow_tracker().update_mass(-varq_inf);
 			}
 		    } else if (CPU_Rank == CPU_Highest &&
 				   nRadial == Nr - 2) { // varq_sup at Nr - 2 is the mass
 				//leaving from the last active cell into the ghost cell at Nr - 1
 			if (varq_sup > 0) {
-			    sum_without_ghost_cells(MassDelta.OuterNegative,
-							-varq_sup, nRadial);
+			    sum_without_ghost_cells(MassDelta.OuterBoundaryOutflow,
+							varq_sup, nRadial);
 			} else {
-			    sum_without_ghost_cells(MassDelta.OuterPositive,
+			    sum_without_ghost_cells(MassDelta.OuterBoundaryInflow,
 							-varq_sup, nRadial);
 			}
 		    }

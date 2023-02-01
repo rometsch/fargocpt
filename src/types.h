@@ -34,29 +34,29 @@ class BoundaryFlow
   public:
     // Mass flow over inner and outer boundary and mass change by wave damping
     // boundaries and floor density
-    double InnerPositive;
-    double InnerNegative;
-    double OuterPositive;
-    double OuterNegative;
-	double InnerWaveDampingPositive;
-	double InnerWaveDampingNegative;
-	double OuterWaveDampingPositive;
-	double OuterWaveDampingNegative;
-    double FloorPositive;
+    double InnerBoundaryInflow;
+    double InnerBoundaryOutflow;
+    double OuterBoundaryInflow;
+    double OuterBoundaryOutflow;
+	double InnerWaveDampingMassCreation;
+	double InnerWaveDampingMassRemoval;
+	double OuterWaveDampingMassCreation;
+	double OuterWaveDampingMassRemoval;
+    double FloorMassCreation;
 
 	BoundaryFlow() { reset(); }
 
     void reset()
     {
-	InnerPositive = 0.0;
-	InnerNegative = 0.0;
-	OuterPositive = 0.0;
-	OuterNegative = 0.0;
-	InnerWaveDampingPositive = 0.0;
-	InnerWaveDampingNegative = 0.0;
-	OuterWaveDampingPositive = 0.0;
-	OuterWaveDampingNegative = 0.0;
-	FloorPositive = 0.0;
+	InnerBoundaryInflow = 0.0;
+	InnerBoundaryOutflow = 0.0;
+	OuterBoundaryOutflow = 0.0;
+	OuterBoundaryInflow = 0.0;
+	InnerWaveDampingMassCreation = 0.0;
+	InnerWaveDampingMassRemoval = 0.0;
+	OuterWaveDampingMassCreation = 0.0;
+	OuterWaveDampingMassRemoval = 0.0;
+	FloorMassCreation = 0.0;
     }
 };
 
