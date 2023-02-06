@@ -1410,8 +1410,8 @@ void add_gaussian_energy_ring(t_data &data){
 				const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
 				data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
 			} else {
-				w_ring *= 1.9;
-				const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.85) / (2.0*std::pow(w_ring, 2)));
+				w_ring *= 1.2;
+				const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.667) / (2.0*std::pow(w_ring, 2)));
 				data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
 
 			}
