@@ -2,19 +2,23 @@ include makefile.defs
 
 CXXFLAGS += -DDO_USE_PLUTO_UNITS
 
-SRCS_C = $(wildcard *.c)
-SRCS_CXX = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp viscosity/*.cpp)
-SRCS = $(SRCS_C) $(SRCS_CXX)
-OBJS_C = $(SRCS_C:%.c=%.o)
-OBJS_CXX = $(patsubst %.cpp,%.o,$(SRCS_CXX))
-OBJS = $(OBJS_C) $(OBJS_CXX)
+SRCS = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp viscosity/*.cpp)
+OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 HDRS = $(wildcard *.h rebound/*.h particles/*.h random/*.h nbody/*.h viscosity/*.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 
+build: $(EXENAME)
+
 $(EXENAME): rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a $(OBJS)
-	$(CXX) $(OBJS) $(_CFLAGS) -o $(EXENAME) $(LIBS)
+	@mkdir -p $(@D)
+	@echo
+	@echo "Compiling and linking $@"
+	$(CXX) $(OBJS) $(CFLAGS) $(INCLUDES) $(LIBS) $(GIT_INFO) $(OPTIONS) -o $(EXENAME) $(LIBS)
+	@echo
+	@echo "Build successful!"
+	@$(MAKE) --no-print-directory info
 
 rebound/librebound.a:
 	$(MAKE) -C rebound
@@ -25,20 +29,45 @@ yaml-cpp/libyamlcpp.a:
 units/libunits.a:
 	$(MAKE) -C units
 
+main.o: $(HDRS) makefile $(SRCS)
+
 $(OBJS): $(HDRS) makefile
 
-main.o: $(HDRS) makefile $(SRCS_C) $(SRCS_CXX)
+# http://www.gnu.org/software/make/manual/make.html#Static-Pattern
+$(OBJS): $(BUILD_DIR)/%.o: %.cpp
+	@echo Compiling $<
+	@mkdir -p $(@D)
+	@$(CXX) -c $(CFLAGS) $(INCLUDES) $(LIBS) $(OPTIONS) -o $@ $<
 
-.PHONY: clean
+info:
+	@echo
+	@echo Build parameters were:
+	@echo
+	@echo CFLAGS:
+	@echo $(CFLAGS)
+	@echo
+	@echo OPTIONS:
+	@echo $(OPTIONS)
+	@echo
+	@echo INCLUDES:
+	@echo $(INCLUDES)
+	@echo
+	@echo LIBS:
+	@echo $(LIBS)
+	@echo
+	@echo GIT_INFO:
+	@echo $(GIT_INFO)
+	@echo
+	@echo Include path MPI:  INCLUDE_MPI:  $(INCLUDE_MPI)
+	@echo Include path FFTW: INCLUDE_FFTW: $(INCLUDE_FFTW)
+	@echo Include path GSL:  INCLUDE_GSL:  $(INCLUDE_GSL)
+
+# http://www.gnu.org/software/make/manual/make.html#Phony-Targets
+.PHONY: build clean info
 
 clean:
 	rm -f $(OBJS) $(TEMP)
 	cd rebound && $(MAKE) clean
 	cd yaml-cpp && $(MAKE) clean
 	cd units && $(MAKE) clean
-
-%.o : %.c
-	$(CC) $(_CFLAGS) -c -o $@ $<
-
-%.o : %.cpp
-	$(CXX) $*.cpp -c $(_CXXFLAGS) -o $(patsubst %.cpp,%.o,$*.cpp)
+	rm -rf $(BUILD_DIR)
