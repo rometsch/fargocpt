@@ -50,15 +50,15 @@ def thin(outputdir, N, force=False):
         if answer != "y":
             print("Abort.")
             exit(0)
-    print("Deleting ")
 
-    print("Inds to be deleted:", inds_to_del)
+    # print("Inds to be deleted:", inds_to_del)
     np.savetxt(outputdir/"thin_newinds.tmp", new_inds, fmt="%d")
     np.savetxt(outputdir/"thin_todel.tmp", inds_to_del, fmt="%d")
     
     print("Deleting snapshots...")
-    for n in inds_to_del:
-        print(f"{n} ", end="")
+    for k, n in enumerate(inds_to_del):
+        Ntodel = len(inds_to_del)
+        print(f"\r{n} ({k+1} / {len(inds_to_del)}, {k/Ntodel*100:.1f}%)", end="", flush=True)
         p = outputdir / "snapshots" / f"{n}"
         if not p.exists():
             continue
