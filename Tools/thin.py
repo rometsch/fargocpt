@@ -6,6 +6,7 @@ import os
 import argparse
 import numpy as np
 from pathlib import Path
+import shutil
 
 
 def main():
@@ -18,13 +19,70 @@ def main():
         thin(opts.outputdir, opts.N, force=opts.y)
 
 def thin(outputdir, N, force=False):
+    outputdir = Path(outputdir)
     inds = get_inds(outputdir)
     print(f"Output at path {outputdir}")
-    new_inds = inds[::N]
-    new_inds = np.append(new_inds, inds[-1])
+    
+    tmpfile = outputdir/"thin_newinds.tmp"
+    if tmpfile.exists():
+        print(f"Found temporary file {tmpfile}")
+        second_tmpfile = outputdir/"thin_todel.tmp"
+        if not second_tmpfile.exists():
+            print("However, did not find second temp file 'thin_todel.txt'. Exiting!")
+            exit(1)
+        print("Continuing with last settings...")
+        
+        
+        new_inds = np.genfromtxt(outputdir/"thin_newinds.tmp", dtype="int")
+        inds_to_del = np.genfromtxt(outputdir/"thin_todel.tmp", dtype="int")
+    else:
+        new_inds = inds[::N]
+        new_inds = np.append(new_inds, inds[-1])
+        inds_to_del = [n for n in inds if not n in new_inds]
+
     print(f"Thinning down to {len(new_inds)} snapshots.")
+    print("The following snapshots will be retained:")
     print(new_inds)
     print_size(outputdir, inds[0], len(new_inds))
+    
+    if not force:
+        answer = input("Do you want to proceed, delete data, and adjust the list files?\n[type 'y' if yes]: ")
+        if answer != "y":
+            print("Abort.")
+            exit(0)
+    print("Deleting ")
+
+    print("Inds to be deleted:", inds_to_del)
+    np.savetxt(outputdir/"thin_newinds.tmp", new_inds, fmt="%d")
+    np.savetxt(outputdir/"thin_todel.tmp", inds_to_del, fmt="%d")
+    
+    print("Deleting snapshots...")
+    for n in inds_to_del:
+        print(f"{n} ", end="")
+        p = outputdir / "snapshots" / f"{n}"
+        if not p.exists():
+            continue
+        shutil.rmtree(p)
+        
+    print("\nWriting new snapshot list...")
+    np.savetxt(outputdir/"snapshots"/"list.txt", new_inds, fmt="%d")
+    
+    print("Writing new time file...")
+    lines = []
+    with open(outputdir/"snapshots"/"timeSnapshot.dat", "r") as infile:
+        for line in infile:
+            if line.strip()[0] == "#":
+                lines.append(line)
+                continue
+            ind = int(line.strip().split()[0])
+            if ind in new_inds:
+                lines.append(line)
+    with open(outputdir/"snapshots"/"timeSnapshot.dat", "w") as outfile:
+        outfile.writelines(lines)
+    
+    os.remove(outputdir/"thin_newinds.tmp")
+    os.remove(outputdir/"thin_todel.tmp")
+    print("Done")
 
 def inspect(outputdir):
     """Print out how many snapshots the directory contains.
