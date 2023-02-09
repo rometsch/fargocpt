@@ -33,8 +33,16 @@
 
 namespace selfgravity
 {
+
+//#define EPSILON_SMOOTHING_SG
+#ifdef EPSILON_SMOOTHING_SG
+/// smoothing parameter of potential (introduced as B on page 53)
+double epsilon;
+#else
+/// smoothing parameters of potential as introduced by Tobi (to be published)
 double lambda_sq;
 double chi_sq;
+#endif
 /// mesh size in radial direction (introduced as Δu on page 53)
 double r_step;
 /// mesh size in azimuthal direction (introduced as Δphi on page 53)
@@ -130,10 +138,13 @@ static void update_kernel(t_data &data)
 	    aspect_ratio = parameters::ASPECTRATIO_REF;
 	}
 
+	#ifdef EPSILON_SMOOTHING_SG
+	epsilon = parameters::thickness_smoothing_sg*aspect_ratio;
+	#else
 	lambda_sq = std::pow(
 	    0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
 	chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
-
+	#endif
 	compute_FFT_kernel();
 
 	since_last_calculated = 0;
@@ -349,17 +360,27 @@ void compute_FFT_kernel()
 
 	for (unsigned int j = 0; j < NAzimuthal; j++) {
 	    const unsigned int l = i * stride + j;
-	    const double theta = 2.0 * M_PI * (double)j / (double)NAzimuthal;
+		const double theta = dphi * (double)j;
 
-	    const double denominator = std::pow(
+#ifdef EPSILON_SMOOTHING_SG
+		const double denominator = std::pow(epsilon*epsilon*std::exp(u)
+									+ 2.0 * (std::cosh(u) - std::cos(theta)),-1.5);
+
+		K_radial[l] = 1.0 + epsilon*epsilon - std::cos(theta) * std::exp(-u);
+		K_radial[l] *= denominator;
+		K_azimuthal[l] = std::sin(theta);
+		K_azimuthal[l] *= denominator;
+#else /// Correct SG smoothing
+		const double denominator = std::pow(
 		2 * (std::cosh(u) - std::cos(theta)) +
 		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
 		-1.5);
 
-	    K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
-	    K_radial[l] *= denominator;
-	    K_azimuthal[l] = std::sin(theta);
-	    K_azimuthal[l] *= denominator;
+		K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
+		K_radial[l] *= denominator;
+		K_azimuthal[l] = std::sin(theta);
+		K_azimuthal[l] *= denominator;
+#endif
 	}
     }
 
@@ -537,6 +558,19 @@ void compute_acceleration(t_polargrid &density)
 	    g_azimuthal[l] *= normacct;
 	}
     }
+#ifdef EPSILON_SMOOTHING_SG
+	// Eventually, we take the compensation from selfforce into account
+	// g_r(u,phi) is corrected by G*sigma(u,phi)*Δu*Δphi/B (3.43 page 57)
+	#pragma omp parallel for
+	for (unsigned int i = 0 ; i < nr; i++ ) {
+		for (unsigned int j = 0; j < NAzimuthal; j++ ) {
+			const unsigned int l = i*NAzimuthal + j;
+			if ( (i+IMIN) < GlobalNRadial ) {
+				g_radial[l] += constants::G*dens[l]*r_step*t_step / epsilon;
+			}
+		}
+	}
+#endif
 }
 
 /**
