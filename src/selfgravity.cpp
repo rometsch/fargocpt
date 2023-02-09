@@ -566,7 +566,7 @@ void compute_acceleration(t_polargrid &density)
 		for (unsigned int j = 0; j < NAzimuthal; j++ ) {
 			const unsigned int l = i*NAzimuthal + j;
 			if ( (i+IMIN) < GlobalNRadial ) {
-				g_radial[l] += constants::G*dens[l]*r_step*t_step / epsilon;
+				g_radial[l] += constants::G*density.Field[l]*r_step*t_step / epsilon;
 			}
 		}
 	}
