@@ -1,0 +1,49 @@
+# syntax=docker/dockerfile:1
+FROM mfisherman/openmpi
+
+USER root
+
+RUN apk update
+RUN apk add gsl-dev
+RUN apk add libexecinfo-dev
+
+WORKDIR /tmp
+RUN wget https://www.fftw.org/fftw-3.3.10.tar.gz
+RUN tar xf fftw-3.3.10.tar.gz
+WORKDIR fftw-3.3.10
+RUN ./configure --prefix=/usr --enable-mpi --enable-openmp --enable-sse2 --enable-avx --enable-avx2 --enable-avx512 --enable-avx-128-fma --enable-generic-simd128 --enable-generic-simd256
+RUN make -j 4
+RUN make install
+
+WORKDIR /app
+COPY .git .git
+COPY bin/fargocpt.py bin/
+COPY run_fargo .
+COPY src src
+
+RUN make -C /app/src -j 2 rebound/librebound.a yaml-cpp/libyamlcpp.a units/libunits.a
+
+# ARG STEP=true
+# RUN git reset
+COPY src src
+RUN make -C /app/src -j 2
+
+RUN cd /usr/local/bin && ln -s /app/run_fargo fargocpt
+
+RUN apk add python3
+
+WORKDIR /project
+RUN chown 1000:1000 /project
+
+USER 1000
+
+
+# COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+# RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# RUN mkdir /simulation
+# WORKDIR /simulation
+# RUN cp /app/testconfig.yml /simulation/setup.yml
+# CMD ["fargocpt", "-np", "1", "start", "setup.yml"]

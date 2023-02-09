@@ -2,4 +2,4 @@
 # Run this script from within the repository dir
 
 cd $(dirname $(dirname $(realpath $0)))
-sudo docker build -f docker/Dockerfile -t fargocpt .
+docker build --build-arg STEP=false -f docker/Dockerfile -t fargocpt .
