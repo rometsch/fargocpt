@@ -1,5 +1,7 @@
 include makefile.defs
 
+# CXXFLAGS += -DDO_USE_PLUTO_UNITS
+
 SRCS = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp viscosity/*.cpp)
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
 HDRS = $(wildcard *.h rebound/*.h particles/*.h random/*.h nbody/*.h viscosity/*.h)
