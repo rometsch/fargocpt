@@ -34,7 +34,11 @@ else
 endif
 # FFTW location
 ifeq (undefined,$(origin FFTW_HOME))
-    FFTW_PREFIX = /usr
+	ifeq (undefined,$(origin FFTW_MPI_HOME))
+	    FFTW_PREFIX = /usr
+	else
+	    FFTW_PREFIX = $(FFTW_MPI_HOME)
+	endif
 else
     FFTW_PREFIX = $(FFTW_HOME)
 endif
