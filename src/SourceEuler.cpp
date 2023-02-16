@@ -1580,16 +1580,17 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
 	g_rpl[k] = planet.get_planet_radial_extend();
     }
 
+	const unsigned int Nr = data[t_data::SCALE_HEIGHT].get_size_radial();
+	const unsigned int Nphi = data[t_data::SCALE_HEIGHT].get_size_azimuthal();
+
     // h = H/r
     // H = = c_s,iso / (GM/r^3) = c_s/sqrt(gamma) / / (GM/r^3)
     // for an Nbody system, H^-2 = sum_n (H_n)^-2
     // See Günter & Kley 2003 Eq. 8, but beware of wrong extra square.
     // Better see Thun et al. 2017 Eq. 8 instead.
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_rad = 0;
-	 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
-	for (unsigned int n_az = 0;
-	     n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
+	for (unsigned int n_rad = 0; n_rad < Nr; ++n_rad) {
+	for (unsigned int n_az = 0; n_az < Nphi; ++n_az) {
 
 	    const int cell = get_cell_id(n_rad, n_az);
 	    const double x = CellCenterX->Field[cell];
@@ -1665,11 +1666,12 @@ void compute_scale_height_center_of_mass(t_data &data)
     const Pair r_cm = data.get_planetary_system().get_center_of_mass();
     const double m_cm = data.get_planetary_system().get_mass();
 
+	const unsigned int Nr = data[t_data::SCALE_HEIGHT].get_size_radial();
+	const unsigned int Nphi = data[t_data::SCALE_HEIGHT].get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
-    for (unsigned int n_rad = 0;
-	 n_rad <= data[t_data::SCALE_HEIGHT].get_max_radial(); ++n_rad) {
-	for (unsigned int n_az = 0;
-	     n_az <= data[t_data::SCALE_HEIGHT].get_max_azimuthal(); ++n_az) {
+	for (unsigned int n_rad = 0; n_rad < Nr; ++n_rad) {
+	for (unsigned int n_az = 0; n_az < Nphi; ++n_az) {
 
 	    const int cell = get_cell_id(n_rad, n_az);
 	    const double x = CellCenterX->Field[cell];
