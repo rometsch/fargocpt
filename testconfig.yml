@@ -128,6 +128,7 @@ KeepDiskMassConstant: 'NO'
 
 # Mesh parameters
 
+cps:  '-1.0'  # Set cells per scaleheight: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio
 Nrad: '128'   # 512 128		# Radial number of zones
 Nsec: '384'   # 1536 384		# Azimuthal number of
 
