@@ -213,7 +213,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	const double H = parameters::ASPECTRATIO_REF; // H(r=1)
 	if (parameters::cps > 0) {
 		if (config::cfg.contains("Nrad") || config::cfg.contains("Nsec")) {
-			die("Cannot set resolution by cps when number of cells are set explicitly!");
+			logging::print_master(LOG_INFO "Cps is set, overwriting Nrad and Nsec!\n");
 		}
 		const double cps = parameters::cps;
 		switch (parameters::radial_grid_type) {
