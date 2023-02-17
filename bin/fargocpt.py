@@ -66,6 +66,10 @@ def main():
         N_procs = opts.np
         N_OMP_threads = opts.nt
 
+    ### TODO: get correct number of cores when hyperthreading is enabled
+    if N_OMP_threads == 32: # hack for bwUniCluster icelake nodes
+        N_OMP_threads = int(N_OMP_threads/2)
+
     print(
         f"Running fargo with {N_procs} procs with {N_OMP_threads} OMP threads each.")
 
