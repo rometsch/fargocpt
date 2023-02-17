@@ -119,8 +119,15 @@ def get_num_cores():
         print(f"Found PBS environment with {rv} cores")
     except KeyError:
         try:
-            rv = int(os.environ["SLURM_NNODES"]) * \
-                int(os.environ["SLURM_JOB_CPUS_PER_NODE"])
+
+            # slurm_cpus_per_node = '72(x2),36' # example SLURM_JOB_CPUS_PER_NODE string for 2 nodes 72 cores each and 1 node with 36 cores
+            slurm_cpus_per_node = os.environ["SLURM_JOB_CPUS_PER_NODE"]
+            slurm_cpus_per_node = slurm_cpus_per_node.split(',')[0] # we ignore nodes with different numbers of cores
+            # it is up to the user to assure that this does not cause problem (by only using nodes with equal number of cores)
+            slurm_cpus_per_node = slurm_cpus_per_node.split('(')[0] # filter out number of nodes used, this info is contained elsewhere 
+            slurm_cpus_per_node = int(slurm_cpus_per_node)
+
+            rv = int(os.environ["SLURM_NNODES"]) * slurm_cpus_per_node
             print(f"Found SLURM environment with {rv} cores")
         except KeyError:
             rv = get_num_cores_from_numa()
