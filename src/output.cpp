@@ -1099,7 +1099,7 @@ std::string get_last_snapshot_id()
 
 std::int32_t get_latest_output_num(const std::string &snapshot_id)
 {
-    const std::string path = outdir + "snapshots/" + snapshot_id;
+	const std::string path = outdir + "snapshots/" + snapshot_id + "/misc.bin";
 
     logging::print_master(LOG_INFO "Getting output number of snapshot %s\n",
 			  snapshot_id.c_str());
