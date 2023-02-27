@@ -46,7 +46,7 @@ extern unsigned int Zero_no_ghost;
 extern unsigned int One_no_ghost_vr;
 extern unsigned int Max_or_active;
 extern unsigned int Max_no_ghost;
-extern unsigned int MaxMo1_no_ghost_vr;
+extern unsigned int MaxMo_no_ghost_vr;
 
 extern unsigned int radial_first_active;
 extern unsigned int radial_active_size;

@@ -104,7 +104,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 		Q_pp(nr, naz) = q_pp;
 
 		if (parameters::Adiabatic && parameters::artificial_viscosity_dissipation) {
-		if(nr > 1 && nr < density.get_max_radial()){
+		if(nr > Zero_no_ghost && nr < Max_no_ghost){
 
 			const double Qplus = - l_sq * div_V * density(nr, naz) * 1.0/3.0 * (std::pow(eps_rr, 2) + std::pow(eps_pp, 2) + std::pow((eps_rr - eps_pp), 2));
 			energy(nr, naz) += Qplus * dt;
@@ -177,7 +177,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
 		const int naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
@@ -568,7 +568,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	if (parameters::Adiabatic) {
 		if (parameters::artificial_viscosity_dissipation) {
 		#pragma omp parallel for
-		for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
 
 			const double dxtheta = dphi * Rmed[nr];
 			const double invdxtheta = 1.0 / dxtheta;
@@ -593,7 +593,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 
 	// add artificial viscous pressure source term to v_radial
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr; ++nr) { // Nr = Nr_vr-1, so were leaving out the ghost cells
+	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// 1/Sigma dq_r/dr : Sigma is calculated as a mean value between
 		// the neightbour cells
@@ -605,7 +605,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 
 	// add artificial viscous pressure source term to v_azimuthal
 	#pragma omp parallel for
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
 
 		const double dxtheta = dphi * Rmed[nr];
 		const double invdxtheta = 1.0 / dxtheta;

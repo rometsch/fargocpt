@@ -790,7 +790,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
     if (data[t_data::TAU_COOL].get_write_1D() ||
 	data[t_data::TAU_COOL].get_write_2D()) {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = 1; nr < Nr-1; ++nr) { // Q_plus / Q_minus are not computed for nr = 1 or nr = Nr-1 (check max_radial usage there)
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		data[t_data::TAU_COOL](nr, naz) =
 			data[t_data::ENERGY](nr, naz) /
@@ -808,7 +808,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
 	double &pdivv_tmp = data.pdivv_total;
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = 1; nr < Nr-1; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		double pdivv =
 			(pvte::get_gamma_eff(data, nr, naz) - 1.0) *
