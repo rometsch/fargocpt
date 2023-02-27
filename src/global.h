@@ -41,9 +41,13 @@ extern int hydro_totalsize, active_hydro_totalsize,
     active_hydro_totalsize_friend;
 extern unsigned int IMIN;
 extern unsigned int IMAX;
-extern unsigned int Zero_no_ghost;
 extern unsigned int Zero_or_active;
+extern unsigned int Zero_no_ghost;
+extern unsigned int One_no_ghost_vr;
 extern unsigned int Max_or_active;
+extern unsigned int Max_no_ghost;
+extern unsigned int MaxMo1_no_ghost_vr;
+
 extern unsigned int radial_first_active;
 extern unsigned int radial_active_size;
 extern unsigned int GlobalNRadial;

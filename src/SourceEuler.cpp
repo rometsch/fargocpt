@@ -349,12 +349,11 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     double supp_torque = 0.0; // for imposed disk drift
 
-	const unsigned int Nr = data[t_data::ENERGY].get_size_radial();
 	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();
 
     if (parameters::Adiabatic) {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
@@ -401,7 +400,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     // update v_radial with source terms
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    // 1/Sigma * dP/dr : Sigma is calculated as a mean value between the
 	    // neightbour cells
@@ -446,7 +445,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     // update v_azimuthal with source terms
 	#pragma omp parallel for
-	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
 
 	if (parameters::IMPOSEDDISKDRIFT != 0.0) {
 		supp_torque = parameters::IMPOSEDDISKDRIFT * 0.5 *

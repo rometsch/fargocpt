@@ -67,7 +67,8 @@ unsigned int IMIN;
  * including ghost cells (!) */
 unsigned int IMAX;
 
-unsigned int Zero_no_ghost;
+unsigned int Zero_no_ghost; // 1 for first cpu 0 else
+unsigned int One_no_ghost_vr; // 2 for first cpu 1 else
 
 /** radial index of the inner most cell in global radial mesh of this process
  * excluding ghost cells (!) */
@@ -76,6 +77,8 @@ unsigned int Zero_or_active;
 /** radial index of the inner most cell in global radial mesh of this process
  * excluding ghost cells (!) */
 unsigned int Max_or_active;
+unsigned int Max_no_ghost;
+unsigned int MaxMo1_no_ghost_vr;
 
 unsigned int radial_first_active;
 unsigned int radial_active_size;
