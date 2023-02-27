@@ -446,7 +446,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     // update v_azimuthal with source terms
 	#pragma omp parallel for
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
 
 	if (parameters::IMPOSEDDISKDRIFT != 0.0) {
 		supp_torque = parameters::IMPOSEDDISKDRIFT * 0.5 *
