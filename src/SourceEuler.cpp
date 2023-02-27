@@ -354,7 +354,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     if (parameters::Adiabatic) {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
