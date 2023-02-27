@@ -2265,8 +2265,6 @@ void initial_center_of_mass_boundary_outer(t_data &data)
     auto &vrad = data[t_data::V_RADIAL];
     auto &vaz = data[t_data::V_AZIMUTHAL];
 
-	const double experimental_correction_factor = Rmed[NRadial-2] / Rmed[NRadial-1];
-
     const unsigned int nr = data[t_data::SIGMA].get_max_radial();
 	#pragma omp parallel for
     for (unsigned int naz = 0; naz <= data[t_data::SIGMA].get_max_azimuthal();
@@ -2297,7 +2295,7 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 
 	    // Velocity in center of mass frame
 		const double cell_vphi_com = vphi0;
-		const double cell_vr_com = vr0 * experimental_correction_factor;
+		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -2338,7 +2336,7 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 
 	    // Velocity in center of mass frame
 		const double cell_vphi_com = vphi0;
-		const double cell_vr_com = vr0 * experimental_correction_factor;
+		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
@@ -2378,7 +2376,7 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 
 	    // Velocity in center of mass frame
 		const double cell_vphi_com = vphi0;
-		const double cell_vr_com = vr0 * experimental_correction_factor;
+		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
 		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
