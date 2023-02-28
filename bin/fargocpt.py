@@ -99,7 +99,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         mpi_verbose (bool, optional): Verbose output of mpirun about process allocation. Defaults to False.
     """
     cmd = ["mpirun"]
-    #cmd += ["--np", f"{N_procs}"]
+    cmd += ["--np", f"{N_procs}"]
     if mpi_verbose:
         cmd += ["--display-map"]
         cmd += ["--display-allocation"]
