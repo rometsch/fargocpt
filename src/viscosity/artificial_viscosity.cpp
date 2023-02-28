@@ -177,7 +177,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
+	for (unsigned int nr = 1; nr < Nr-1; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
 		const int naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
