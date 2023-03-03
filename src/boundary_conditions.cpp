@@ -1243,7 +1243,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vrad_id;
-	     n_radial < vrad_arr.get_size_radial(); ++n_radial) {
+		 n_radial < MaxMo_no_ghost_vr; ++n_radial) {
 	    double factor = std::pow(
 		(Rinf[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -1306,7 +1306,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vphi_id;
-	     n_radial < vphi_arr.get_size_radial(); ++n_radial) {
+		 n_radial < Max_no_ghost; ++n_radial) {
 	    double factor = std::pow(
 		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -1369,7 +1369,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	//t_polargrid &sigma = data[t_data::DENSITY];
 	#pragma omp parallel for
 	for (unsigned int nr = clamped_vphi_id;
-		 nr < energy.get_max_radial(); ++nr) { // we leave out the last cell because it's handled by boundary conditions
+		 nr < Max_no_ghost; ++nr) {
 		double factor = std::pow(
 		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
@@ -1470,7 +1470,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 			 calculate_omega_kepler(RMIN);
 
 	#pragma omp parallel for
-	for (unsigned int n_radial = 1; // we start at 1 because boundary takes care of nr = 0
+	for (unsigned int n_radial = One_no_ghost_vr;
 		 n_radial <= clamped_vrad_id; ++n_radial) {
 		double factor = std::pow(
 		(Rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -1533,7 +1533,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		vphi_arr.is_vector());
 
 	#pragma omp parallel for
-	for (unsigned int n_radial = 1;
+	for (unsigned int n_radial = Zero_no_ghost;
 		 n_radial <= clamped_vphi_id; ++n_radial) {
 		double factor = std::pow(
 		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
@@ -1596,7 +1596,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 	t_polargrid &energy = data[t_data::ENERGY];
 	//t_polargrid &sigma = data[t_data::DENSITY];
 	#pragma omp parallel for
-	for (unsigned int nr = 1;
+	for (unsigned int nr = Zero_no_ghost;
 		 nr <= clamped_vphi_id; ++nr) {
 		double factor = std::pow(
 		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
