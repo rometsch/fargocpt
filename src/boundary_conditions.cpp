@@ -1221,7 +1221,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vrad_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
+		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = (double)n_azimuthal * dphi;
 		const double rinf = Rinf[n_radial];
@@ -1284,7 +1284,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	    double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vphi_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
+		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = ((double)n_azimuthal - 0.5) * dphi;
 		const double rmed = Rmed[n_radial];
