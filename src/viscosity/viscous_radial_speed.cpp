@@ -329,9 +329,7 @@ double get_vr_with_numerical_viscous_speed(const double r, const double mass){
 	const double den = Sigma * derive(r, mass, get_r2_w);
 
 	const double vr = num/den;
-
 	return vr;
-
 }
 
 } // viscous_speed
