@@ -43,6 +43,7 @@ namespace boundary_conditions
  * @brief get_vphi_numerical_correction_factor,
  * this functions reduces the over density at the boundary where mass flows from the ghost cells into the domain
  * necessary for the function damping_initial_center_of_mass_outer
+ * due to Rmed[1] being different on every MPI thread, this function is not bit wise exact with MPI
  * @param nr
  * @return
  */
