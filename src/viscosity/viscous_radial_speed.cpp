@@ -201,6 +201,12 @@ for(unsigned int i = 0; i < N; ++i){
 }
 }
 
+/**
+ * @brief lookup_initial_vr_outer, note that each mpi process computes its own domain inside its bounds
+ * thus it is not bit-wise exact when changing the number of mpi cores
+ * @param r
+ * @return vr at distance r from center of mass
+ */
 double lookup_initial_vr_outer(const double r){
 	const int i = int(std::floor(std::log10(r / min_r_outer) / deltaLogR_outer));
 
@@ -226,7 +232,12 @@ double lookup_initial_vr_outer(const double r){
 
 	return vr;
 }
-
+/**
+ * @brief lookup_initial_vr_inner, note that each mpi process computes its own domain inside its bounds
+ * thus it is not bit-wise exact when changing the number of mpi cores
+ * @param r
+ * @return vr at distance r from center of mass
+ */
 double lookup_initial_vr_inner(const double r){
 	const int i = int(std::floor(std::log10(r / min_r_inner) / deltaLogR_inner));
 
