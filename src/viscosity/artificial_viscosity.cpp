@@ -214,7 +214,11 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 		}*/
 
 		vphi(nr, naz) += dVp;
+	}}
 
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// a_r = 1/(r*Sigma) ( d(r*tau_r_r)/dr + d(tau_r_phi)/dphi -
 		// tau_phi_phi )
 		const double sigma_r_avg = 0.5 * (density(nr, naz) + density(nr - 1, naz));
