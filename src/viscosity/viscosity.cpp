@@ -403,16 +403,15 @@ void update_velocities_with_viscosity(t_data &data, const double dt)
     const t_polargrid &Trr = data[t_data::TAU_R_R];
     const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
 
-	const unsigned int Nr = v_radial.get_size_radial() - 1; // == v_azimuthal.get_size_radial()
-	const unsigned int Nphi = v_radial.get_size_azimuthal();
+	const unsigned int Nr = v_azimuthal.get_size_radial() - 1; // == v_azimuthal.get_size_radial()
+	const unsigned int Nphi = v_azimuthal.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 		const int naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
 
-		double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr, naz_prev));
+		const double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr, naz_prev));
 
 	    // See D'Angelo et al. 2002 Nested-grid calculations of disk-planet
 	    // interaction It is important to use the conservative form here and
@@ -433,10 +432,16 @@ void update_velocities_with_viscosity(t_data &data, const double dt)
 	    }
 
 	    v_azimuthal(nr, naz) += dVp;
+	}}
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 
 	    // a_r = 1/(r*Sigma) ( d(r*tau_r_r)/dr + d(tau_r_phi)/dphi -
 	    // tau_phi_phi )
-	    sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr - 1, naz));
+		const double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr - 1, naz));
 
 	    double dVr =
 		dt / (sigma_avg)*parameters::radial_viscosity_factor * 2.0 /
