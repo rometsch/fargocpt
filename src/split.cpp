@@ -65,8 +65,8 @@ void SplitDomain()
 	Zero_no_ghost = (CPU_Rank == 0) ? 1 : 0;
 	One_no_ghost_vr = (CPU_Rank == 0) ? 2 : 1;
 
-	Max_no_ghost = NRadial - ((CPU_Rank == CPU_Number - 1) ? 0 : 1);
-	MaxMo_no_ghost_vr = NRadial+1 - ((CPU_Rank == CPU_Number - 1) ? 1 : 2);
+	Max_no_ghost = NRadial - ((CPU_Rank == CPU_Number - 1) ? 1 : 0);
+	MaxMo_no_ghost_vr = NRadial+1 - ((CPU_Rank == CPU_Number - 1) ? 2 : 1);
 
 	Zero_or_active = (CPU_Rank == 0) ? 0 : CPUOVERLAP;
 	radial_first_active = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
