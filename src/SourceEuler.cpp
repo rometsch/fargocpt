@@ -449,7 +449,6 @@ void update_with_sourceterms(t_data &data, const double dt)
 		data[t_data::V_RADIAL](nr, naz) =
 		data[t_data::V_RADIAL](nr, naz) +
 		dt * (-gradp - gradphi + vt2 * InvR);
-
 	}
     }
 
