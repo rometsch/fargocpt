@@ -364,7 +364,7 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 	VKepIn = compute_v_kepler(Rb[0], hydro_center_mass);
 	} else {
 	/* (3.4) on page 44 */
-	VKepIn = initial_locally_isothermal_v_az(Rb[0], hydro_center_mass);
+	VKepIn = compute_v_kepler(Rb[0], hydro_center_mass);
 	}
 
     } else {
@@ -419,7 +419,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	VKepOut = compute_v_kepler(Rb[nr], hydro_center_mass);
 	} else {
 	/* (3.4) on page 44 */
-	VKepOut = initial_locally_isothermal_v_az(Rb[nr], hydro_center_mass);
+	VKepOut = initial_locally_isothermal_smoothed_v_az(Rb[nr], hydro_center_mass);
 	}
     } else {
 
