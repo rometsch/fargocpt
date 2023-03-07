@@ -25,7 +25,7 @@ if cmd_subfolder not in sys.path:
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'Tools', 'read_data'))
 from read_gasMassFlow1D import gasMassFlow1D
-from read_par_file import read_par_file, read_unit_file
+from read_par_file import read_unit_file
 from read1D import read1D
 
 out_folder = "./out/"
