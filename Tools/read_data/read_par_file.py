@@ -75,7 +75,7 @@ def read_unit_file(path_to_folder):
 
             if len(l2) > 1:
                 if l2[1][0].isdigit():
-                    unit_dict[l2[0]] = np.float(l2[1])*u.Unit(l[2])
+                    unit_dict[l2[0]] = float(l2[1])*u.Unit(l[2])
     else:
         raise ValueError("Error in read_par_file.py, could not find : " + units_file_name  + "!\n")
 
