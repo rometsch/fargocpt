@@ -72,7 +72,7 @@ Damping: 'Yes'
 DampingInnerLimit: '2.00'   # Rmin*Limit
 DampingOuterLimit: '0.64'   # Rmax*Limit
   #DampingOuterLimit: '1.0'   # Rmax*Limit
-DampingTimeFactor: '0.1'
+DampingTimeFactor: '3.0'
 DampingEnergyInner: None   # Damping of energy [default = no]
 DampingVRadialInner: Initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity [default = no]
@@ -88,9 +88,9 @@ DiskFeedback: 'NO'   # star feels the disk
 
 # Mesh parameters
 
-  # Nrad: '98'   # 512 128		# Radial number of zones
+Nrad: '198'   # 512 128		# Radial number of zones
   # Nrad: '386'   # 512 128		# Radial number of zones
-Nrad: '770'   # 512 128		# Radial number of zones
+  # Nrad: '770'   # 512 128		# Radial number of zones
 Nsec: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
