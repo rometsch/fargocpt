@@ -2382,7 +2382,7 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 				 -parameters::SIGMASLOPE); // we assume the floor is not reached.
 			const double sigma = data[t_data::SIGMA](nr-2, naz);
 
-			vr0 *= std::max(std::min(std::pow(cell_sigma / sigma, 16), 1.01), 0.99);
+			vr0 *= std::max(std::min(std::pow(cell_sigma / sigma, 16), 1.15), 0.85);
 
 
 	    }
