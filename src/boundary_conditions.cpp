@@ -1293,7 +1293,12 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double cell_vx = cell_vx_com + com_vel.x;
 		const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
+		const double cell_sigma = parameters::sigma0 * std::pow(r_com,
+				 -parameters::SIGMASLOPE); // we assume the floor is not reached.
+		const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
+		const double corr = std::pow(cell_sigma / sigma, 8);
+
+		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf * corr;
 
 		const double vr = vrad_arr(n_radial, n_azimuthal);
 		const double vr_new = (vr - vr0) * exp_factor + vr0;
@@ -2367,24 +2372,6 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vphi0 *= vphi_center_correction;
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
-
-
-			const double cell_x = (*CellCenterX)(nr-2, naz);
-			const double cell_y = (*CellCenterY)(nr-2, naz);
-			// Position in center of mass frame
-			const double x_com = cell_x - com_pos.x;
-			const double y_com = cell_y - com_pos.y;
-			const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
-
-			const double cell_sigma =
-			parameters::sigma0 *
-			std::pow(r_com,
-				 -parameters::SIGMASLOPE); // we assume the floor is not reached.
-			const double sigma = data[t_data::SIGMA](nr-2, naz);
-
-			vr0 *= std::max(std::min(std::pow(cell_sigma / sigma, 16), 1.15), 0.85);
-
-
 	    }
 
 	    // Velocity in center of mass frame
