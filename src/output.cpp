@@ -285,6 +285,34 @@ void write_grids(t_data &data, int index, int iter, double phystime)
 }
 
 /**
+ * @brief get_sigma, here for debug only
+ * @param R
+ * @return
+ */
+static double get_sigma(const double R){
+	const double S = parameters::SIGMASLOPE;
+	double density =
+		parameters::sigma0 * std::pow(R, -S);
+
+	const double density_floor =
+		parameters::sigma_floor * parameters::sigma0;
+
+	if (parameters::profile_cutoff_outer) {
+		density *= cutoff_outer(parameters::profile_cutoff_point_outer,
+							parameters::profile_cutoff_width_outer, R);
+	}
+
+	if (parameters::profile_cutoff_inner) {
+		density *= 	cutoff_inner(parameters::profile_cutoff_point_inner,
+						parameters::profile_cutoff_width_inner, R);
+	}
+
+	density = std::max(density, density_floor);
+
+	return density;
+}
+
+/**
 
 */
 void write_quantities(t_data &data, bool force_update)
