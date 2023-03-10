@@ -113,157 +113,6 @@ static double get_sigma(const double R){
 
 namespace viscous_speed
 {
-
-static const int N = 1000;
-std::vector<double> r_table_outer(N);
-std::vector<double> vr_table_outer(N);
-static double deltaLogR_outer;
-static double min_r_outer;
-static double max_r_outer;
-
-std::vector<double> r_table_inner(N);
-std::vector<double> vr_table_inner(N);
-static double deltaLogR_inner;
-static double min_r_inner;
-static double max_r_inner;
-
-void init_vr_table_boundary(t_data &data){
-
-	const auto & plsys = data.get_planetary_system();
-	const unsigned int np = plsys.get_number_of_planets();
-	const double mass = plsys.get_mass(np);
-
-	//////////////// init outer arrays //////////////////////////////////////
-	if(plsys.get_number_of_planets() == 2 && parameters::n_bodies_for_hydroframe_center == 1){
-		// case for binary with frame on one star
-		const auto &planet = plsys.get_planet(1);
-		const double e = planet.get_eccentricity();
-		const double a = planet.get_semi_major_axis();
-
-		const double q = planet.get_mass() / (planet.get_mass() + plsys.get_planet(0).get_mass());
-		const double center_of_mass_max_dist = a * (1.0 + e) * q;
-
-		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
-
-		min_r_outer = Rinf[NRadial-1] * parameters::damping_outer_limit - center_of_mass_max_dist  - safety_dr;
-		max_r_outer = Rsup[NRadial-1] + center_of_mass_max_dist + safety_dr;
-	} else {
-		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
-		min_r_outer = Rinf[NRadial-1] * parameters::damping_outer_limit - safety_dr;
-		max_r_outer = Rsup[NRadial-1] + safety_dr;
-	}
-
-	min_r_outer = std::max(RMIN, min_r_outer);
-
-	deltaLogR_outer = std::log10(max_r_outer / min_r_outer) / (double)N;
-
-	for(unsigned int i = 0; i < N; ++i){
-		const double r = min_r_outer * std::pow(10.0, (deltaLogR_outer * (double)i));
-		const double vr = get_vr_with_numerical_viscous_speed(r, mass);
-
-		r_table_outer[i] = r;
-		vr_table_outer[i] = vr;
-	}
-
-
-	//////////////// init inner arrays //////////////////////////////////////
-	const int Nr_limit = clamp_r_id_to_rmed_grid(
-	get_rmed_id(RMIN * parameters::damping_inner_limit), false) + 1;
-	const double safety_dr = Rsup[Nr_limit] - Rinf[Nr_limit];
-
-	if(plsys.get_number_of_planets() == 2 && parameters::n_bodies_for_hydroframe_center == 1){
-	// case for binary with frame on one star
-	const auto &planet = plsys.get_planet(1);
-	const double e = planet.get_eccentricity();
-	const double a = planet.get_semi_major_axis();
-
-	const double q = planet.get_mass() / (planet.get_mass() + plsys.get_planet(0).get_mass());
-	const double center_of_mass_max_dist = a * (1.0 + e) * q;
-
-	min_r_inner = Rinf[1] - center_of_mass_max_dist  - safety_dr;
-	min_r_inner = std::max(min_r_inner, Rsup[0] - Rinf[0]);
-	max_r_inner = Rsup[1] * parameters::damping_inner_limit + center_of_mass_max_dist + safety_dr;
-} else {
-	min_r_inner = Rinf[1] - safety_dr;
-	max_r_inner = Rsup[1] * parameters::damping_inner_limit + safety_dr;
-}
-
-	deltaLogR_inner = std::log10(max_r_inner / min_r_inner) / (double)N;
-
-	const unsigned int np2 = parameters::n_bodies_for_hydroframe_center;
-	const double mass2 = plsys.get_mass(np2);
-for(unsigned int i = 0; i < N; ++i){
-	const double r = min_r_inner * std::pow(10.0, (deltaLogR_inner * (double)i));
-	const double vr = get_vr_with_numerical_viscous_speed(r, mass2);
-
-	r_table_inner[i] = r;
-	vr_table_inner[i] = vr;
-}
-}
-
-/**
- * @brief lookup_initial_vr_outer, note that each mpi thread computes its own domain inside its bounds
- * thus it is not bit-wise exact when changing the number of mpi cores
- * @param r
- * @return vr at distance r from center of mass
- */
-double lookup_initial_vr_outer(const double r){
-	const int i = int(std::floor(std::log10(r / min_r_outer) / deltaLogR_outer));
-
-	if (i > N - 1) {
-	printf("Lookup outer: Cell out of bounds outwards %.5e %.5e\n", r, max_r_outer);
-	return vr_table_outer[N-1];
-	}
-	if (i < 0) {
-	printf("Lookup outer: Cell out of bounds inwards %.5e %.5e\n", r, min_r_outer);
-	return vr_table_outer[0];
-	}
-
-	const double r_i = r_table_outer[i];
-	const double r_i1 = r_table_outer[i+1];
-
-	const double vr_i = vr_table_outer[i];
-	const double vr_i1 = vr_table_outer[i+1];
-
-	const double x = (r - r_i) / (r_i1 - r_i);
-
-	// linear interpolation
-	const double vr = (1.0 - x) * vr_i + x * vr_i1;
-
-	return vr;
-}
-/**
- * @brief lookup_initial_vr_inner, note that each mpi thread computes its own domain inside its bounds
- * thus it is not bit-wise exact when changing the number of mpi cores
- * @param r
- * @return vr at distance r from center of mass
- */
-double lookup_initial_vr_inner(const double r){
-	const int i = int(std::floor(std::log10(r / min_r_inner) / deltaLogR_inner));
-
-	if (i > N - 1) {
-	printf("Lookup inner: Cell out of bounds outwards %.5e %.5e\n", r, max_r_inner);
-	return vr_table_inner[N-1];
-	}
-	if (i < 0) {
-	printf("Lookup inner: Cell out of bounds inwards %.5e %.5e\n", r, min_r_inner);
-	return vr_table_inner[0];
-	}
-
-	const double r_i = r_table_inner[i];
-	const double r_i1 = r_table_inner[i+1];
-
-	const double vr_i = vr_table_inner[i];
-	const double vr_i1 = vr_table_inner[i+1];
-
-	const double x = (r - r_i) / (r_i1 - r_i);
-
-	// linear interpolation
-	const double vr = (1.0 - x) * vr_i + x * vr_i1;
-
-	return vr;
-}
-
 /// \brief derive_5th_order, see https://en.wikipedia.org/wiki/Numerical_differentiation
 /// \param r, position variable
 /// \param mass, parameter
@@ -340,6 +189,187 @@ double get_vr_with_numerical_viscous_speed(const double r, const double mass){
 	const double den = Sigma * derive(r, mass, get_r2_w);
 
 	const double vr = num/den;
+	return vr;
+}
+
+/**
+ * @brief get_vr_with_numerical_viscous_speed_with_central_variables
+ * same as get_vr_with_numerical_viscous_speed, but Sigma is computed at the cell centers
+ * found this to work better with the gas massflow test
+ * @param r
+ * @param mass
+ * @return
+ */
+static double get_vr_with_numerical_viscous_speed_with_central_variables(const double r, const double mass){
+	// num = 1/r d/dr (nu * Sigma * r^3 *  dw / dr)
+	// den = d(r^2 w) / dr
+	// vr = num / den
+
+	const unsigned int nr = get_rinf_id(r);
+	const double dr = Rmed[nr] - Rinf[nr];
+	const double Rc = r + dr;
+
+		// numerically compute 1/r d/dr (nu * Simga * r^3 * dw / dr)
+	const double num = 1.0 / r * derive(r, mass, get_nu_S_r3_dwdr);
+
+	// numerically compute Sigma * d(r^2 w) / dr
+	const double Sigma = get_sigma(Rc);
+	const double den = Sigma * derive(r, mass, get_r2_w);
+
+	const double vr = num/den;
+	return vr;
+}
+
+
+
+/// Lookup table generation and reading
+static const int N = 1000;
+std::vector<double> r_table_outer(N);
+std::vector<double> vr_table_outer(N);
+static double deltaLogR_outer;
+static double min_r_outer;
+static double max_r_outer;
+
+std::vector<double> r_table_inner(N);
+std::vector<double> vr_table_inner(N);
+static double deltaLogR_inner;
+static double min_r_inner;
+static double max_r_inner;
+
+void init_vr_table_boundary(t_data &data){
+
+	const auto & plsys = data.get_planetary_system();
+	const unsigned int np = plsys.get_number_of_planets();
+	const double mass = plsys.get_mass(np);
+
+	//////////////// init outer arrays //////////////////////////////////////
+	if(plsys.get_number_of_planets() == 2 && parameters::n_bodies_for_hydroframe_center == 1){
+		// case for binary with frame on one star
+		const auto &planet = plsys.get_planet(1);
+		const double e = planet.get_eccentricity();
+		const double a = planet.get_semi_major_axis();
+
+		const double q = planet.get_mass() / (planet.get_mass() + plsys.get_planet(0).get_mass());
+		const double center_of_mass_max_dist = a * (1.0 + e) * q;
+
+		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
+
+		min_r_outer = Rinf[NRadial-1] * parameters::damping_outer_limit - center_of_mass_max_dist  - safety_dr;
+		max_r_outer = Rsup[NRadial-1] + center_of_mass_max_dist + safety_dr;
+	} else {
+		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
+		min_r_outer = Rinf[NRadial-1] * parameters::damping_outer_limit - safety_dr;
+		max_r_outer = Rsup[NRadial-1] + safety_dr;
+	}
+
+	min_r_outer = std::max(RMIN, min_r_outer);
+
+	deltaLogR_outer = std::log10(max_r_outer / min_r_outer) / (double)N;
+
+	for(unsigned int i = 0; i < N; ++i){
+		const double r = min_r_outer * std::pow(10.0, (deltaLogR_outer * (double)i));
+		const double vr = get_vr_with_numerical_viscous_speed_with_central_variables(r, mass);
+
+		r_table_outer[i] = r;
+		vr_table_outer[i] = vr;
+	}
+
+
+	//////////////// init inner arrays //////////////////////////////////////
+	const int Nr_limit = clamp_r_id_to_rmed_grid(
+	get_rmed_id(RMIN * parameters::damping_inner_limit), false) + 1;
+	const double safety_dr = Rsup[Nr_limit] - Rinf[Nr_limit];
+
+	if(plsys.get_number_of_planets() == 2 && parameters::n_bodies_for_hydroframe_center == 1){
+	// case for binary with frame on one star
+	const auto &planet = plsys.get_planet(1);
+	const double e = planet.get_eccentricity();
+	const double a = planet.get_semi_major_axis();
+
+	const double q = planet.get_mass() / (planet.get_mass() + plsys.get_planet(0).get_mass());
+	const double center_of_mass_max_dist = a * (1.0 + e) * q;
+
+	min_r_inner = Rinf[1] - center_of_mass_max_dist  - safety_dr;
+	min_r_inner = std::max(min_r_inner, Rsup[0] - Rinf[0]);
+	max_r_inner = Rsup[1] * parameters::damping_inner_limit + center_of_mass_max_dist + safety_dr;
+} else {
+	min_r_inner = Rinf[1] - safety_dr;
+	max_r_inner = Rsup[1] * parameters::damping_inner_limit + safety_dr;
+}
+
+	deltaLogR_inner = std::log10(max_r_inner / min_r_inner) / (double)N;
+
+	const unsigned int np2 = parameters::n_bodies_for_hydroframe_center;
+	const double mass2 = plsys.get_mass(np2);
+for(unsigned int i = 0; i < N; ++i){
+	const double r = min_r_inner * std::pow(10.0, (deltaLogR_inner * (double)i));
+	const double vr = get_vr_with_numerical_viscous_speed_with_central_variables(r, mass2);
+
+	r_table_inner[i] = r;
+	vr_table_inner[i] = vr;
+}
+}
+
+/**
+ * @brief lookup_initial_vr_outer, note that each mpi thread computes its own domain inside its bounds
+ * thus it is not bit-wise exact when changing the number of mpi cores
+ * @param r
+ * @return vr at distance r from center of mass
+ */
+double lookup_initial_vr_outer(const double r){
+	const int i = int(std::floor(std::log10(r / min_r_outer) / deltaLogR_outer));
+
+	if (i > N - 1) {
+	printf("Lookup outer: Cell out of bounds outwards %.5e %.5e\n", r, max_r_outer);
+	return vr_table_outer[N-1];
+	}
+	if (i < 0) {
+	printf("Lookup outer: Cell out of bounds inwards %.5e %.5e\n", r, min_r_outer);
+	return vr_table_outer[0];
+	}
+
+	const double r_i = r_table_outer[i];
+	const double r_i1 = r_table_outer[i+1];
+
+	const double vr_i = vr_table_outer[i];
+	const double vr_i1 = vr_table_outer[i+1];
+
+	const double x = (r - r_i) / (r_i1 - r_i);
+
+	// linear interpolation
+	const double vr = (1.0 - x) * vr_i + x * vr_i1;
+
+	return vr;
+}
+/**
+ * @brief lookup_initial_vr_inner, note that each mpi thread computes its own domain inside its bounds
+ * thus it is not bit-wise exact when changing the number of mpi cores
+ * @param r
+ * @return vr at distance r from center of mass
+ */
+double lookup_initial_vr_inner(const double r){
+	const int i = int(std::floor(std::log10(r / min_r_inner) / deltaLogR_inner));
+
+	if (i > N - 1) {
+	printf("Lookup inner: Cell out of bounds outwards %.5e %.5e\n", r, max_r_inner);
+	return vr_table_inner[N-1];
+	}
+	if (i < 0) {
+	printf("Lookup inner: Cell out of bounds inwards %.5e %.5e\n", r, min_r_inner);
+	return vr_table_inner[0];
+	}
+
+	const double r_i = r_table_inner[i];
+	const double r_i1 = r_table_inner[i+1];
+
+	const double vr_i = vr_table_inner[i];
+	const double vr_i1 = vr_table_inner[i+1];
+
+	const double x = (r - r_i) / (r_i1 - r_i);
+
+	// linear interpolation
+	const double vr = (1.0 - x) * vr_i + x * vr_i1;
+
 	return vr;
 }
 
