@@ -39,38 +39,6 @@ extern std::vector<parameters::t_DampingType> parameters::damping_vector;
 
 namespace boundary_conditions
 {
-/**
- * @brief get_vphi_numerical_correction_factor,
- * this functions reduces the over density at the boundary where mass flows from the ghost cells into the domain
- * necessary for the function damping_initial_center_of_mass_outer
- * it is used to reduce V_az, which increases V_r due to lower centrifugal support which reduces the density
- * due to Rmed[1] being different on every MPI thread, this function is not bit wise exact with MPI
- * @param nr
- * @return
- */
-static double get_vphi_numerical_correction_factor(){
-
-	// tested for gasMassflow test
-	// Rmin, Rmax = [10, 100]
-	// Nr = 98
-	// Nsec = 2
-	// const double corr7 = 0.999843284; // produces smooth radial velocity profile
-	// const double corr8 = 0.99984394; // produces smooth Sigma profile
-
-	// Position error when averaging cell centered properties to interface
-	const double err1 = 2.0*Rinf[1]/(Rmed[1]+Rmed[0]);
-
-	// Position error when averaging interface properties to cell center
-	const double err2 = 0.5*(Rsup[1]+Rinf[1])/Rmed[1];
-
-	// Scaling is not perfect, but good enough
-	//const double corr = err1 / std::pow(err2, 2.89/4.0);// 2.977586/4.0 magic number to produce corr8 from grid constants
-	const double corr = std::pow(err1 / err2, 1.04);//, 1.0855);// magic number to produce smooth Sigma profile
-
-	//printf("%.5e err = (%.16e %.16e) c = %.5e %.5e factor = %.16e\n", 2.738e-03, 1.0-err1, 1.0-err2, corr, 0.99984394, 0.99984394/corr-1.0);
-	return 1.0;//std::sqrt(corr);
-}
-
 
 int PRESCRIBED_TIME_SEGMENT_NUMBER;
 
@@ -1277,7 +1245,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 			vr_init = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass) * get_vphi_numerical_correction_factor();
+			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr_init = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
@@ -1297,7 +1265,8 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double cell_sigma = parameters::sigma0 * std::pow(r_com,
 				 -parameters::SIGMASLOPE); // we assume the floor is not reached.
 		const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
-		//const double corr = std::pow(sigma/cell_sigma, 8);
+
+		// adjust vr such that the initial density profile is restored
 		const double corr = 1.0 + (std::pow(sigma/cell_sigma, 4) - 1.0)*1000.0;
 
 		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf * corr;
@@ -1346,7 +1315,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass) * get_vphi_numerical_correction_factor();
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
@@ -1511,7 +1480,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 			vr_init = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass) * get_vphi_numerical_correction_factor();
+			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr_init = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
@@ -1574,7 +1543,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass) * get_vphi_numerical_correction_factor();
+			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
@@ -2308,8 +2277,6 @@ void initial_center_of_mass_boundary_outer(t_data &data)
     for (unsigned int naz = 0; naz <= data[t_data::SIGMA].get_max_azimuthal();
 	 ++naz) {
 
-	const double vphi_center_correction = get_vphi_numerical_correction_factor();
-
 	{ /// V_PHI
 	    const double phi = ((double)naz - 0.5) * dphi;
 	    const double rmed = Rmed[nr];
@@ -2330,7 +2297,6 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 	    } else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vphi0 *= vphi_center_correction;
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
@@ -2372,7 +2338,6 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vphi0 *= vphi_center_correction;
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
@@ -2413,7 +2378,6 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vphi0 *= vphi_center_correction;
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
@@ -2481,9 +2445,6 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 	data.get_planetary_system().get_center_of_mass_velocity(np);
 	const double com_mass = data.get_planetary_system().get_mass(np);
 
-	const double vphi_center_correction = get_vphi_numerical_correction_factor();
-
-
 	auto &sigma = data[t_data::SIGMA];
 	auto &energy = data[t_data::ENERGY];
 	auto &vrad = data[t_data::V_RADIAL];
@@ -2514,7 +2475,6 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vphi0 *= vphi_center_correction;
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
@@ -2556,7 +2516,6 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vphi0 *= vphi_center_correction;
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
@@ -2597,7 +2556,6 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
 			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vphi0 *= vphi_center_correction;
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
@@ -2621,12 +2579,6 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 	{ /// DENSITY and ENERGY
 		const double cell_x = (*CellCenterX)(nr, naz);
 		const double cell_y = (*CellCenterY)(nr, naz);
-
-		/*const double phi = (double)naz * dphi;
-		const double rinf = Rinf[nr];
-
-		const double cell_x = rinf * std::cos(phi);
-		const double cell_y = rinf * std::sin(phi);*/
 
 		// Position in center of mass frame
 		const double x_com = cell_x - com_pos.x;
