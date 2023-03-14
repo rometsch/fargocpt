@@ -1126,8 +1126,9 @@ void init_gas_density(t_data &data)
 		 n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
 		 ++n_azimuthal) {
 
+			// density uses the radius at cell interface to more accurately initialize the mass flow rate
 		const double phi = (double)n_azimuthal * dphi;
-		const double rmed = Rmed[n_radial];
+		const double rmed = Rinf[n_radial];
 		const double x = rmed * std::cos(phi) - cms_x;
 		const double y = rmed * std::sin(phi) - cms_y;
 		const double r = std::sqrt(x * x + y * y);
