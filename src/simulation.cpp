@@ -209,8 +209,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    }
 
 	    /// TODO moved apply boundaries here
-		boundary_conditions::apply_boundary_condition(data, time, dt, true);
-		//boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
+		boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
@@ -238,10 +237,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 		// minimum density is assured inside AccreteOntoPlanets
 	    accretion::AccreteOntoPlanets(data, dt);
-
-		//boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 		boundary_conditions::apply_boundary_condition(data, time, dt, true);
-
 
 	    // const double total_disk_mass_new =
 	    //  quantities::gas_total_mass(data, 2.0*RMAX);
