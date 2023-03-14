@@ -228,36 +228,6 @@ double get_vr_with_numerical_viscous_speed(const double r, const double mass){
 	return vr;
 }
 
-/**
- * @brief get_vr_with_numerical_viscous_speed_with_central_variables
- * same as get_vr_with_numerical_viscous_speed, but Sigma is computed at the cell centers
- * this function increases the accuracy of the inflowing mass rate for the gas mass flow test
- * @param r
- * @param mass
- * @return
- */
-static double get_vr_with_numerical_viscous_speed_with_central_variables(const double r, const double mass){
-	// num = 1/r d/dr (nu * Sigma * r^3 *  dw / dr)
-	// den = d(r^2 w) / dr
-	// vr = num / den
-
-	const unsigned int nr = get_rinf_id(r);
-	const double dr = Rmed[nr] - Rinf[nr];
-	const double Rc = r + dr;
-
-		// numerically compute 1/r d/dr (nu * Simga * r^3 * dw / dr)
-	const double num = 1.0 / r * derive(r, mass, get_nu_S_r3_dwdr);
-
-	// numerically compute Sigma * d(r^2 w) / dr
-	const double Sigma = get_sigma(Rc);
-	const double den = Sigma * derive(r, mass, get_r2_w);
-
-	const double vr = num/den;
-	return vr;
-}
-
-
-
 /// Lookup table generation and reading
 static const int N = 1000;
 std::vector<double> r_table_outer(N);
@@ -304,7 +274,7 @@ void init_vr_table_boundary(t_data &data){
 
 	for(unsigned int i = 0; i < N; ++i){
 		const double r = min_r_outer * std::pow(10.0, (deltaLogR_outer * (double)i));
-		const double vr = get_vr_with_numerical_viscous_speed_with_central_variables(r, mass);
+		const double vr = get_vr_with_numerical_viscous_speed(r, mass);
 
 		r_table_outer[i] = r;
 		vr_table_outer[i] = vr;
@@ -339,7 +309,7 @@ void init_vr_table_boundary(t_data &data){
 	const double mass2 = plsys.get_mass(np2);
 for(unsigned int i = 0; i < N; ++i){
 	const double r = min_r_inner * std::pow(10.0, (deltaLogR_inner * (double)i));
-	const double vr = get_vr_with_numerical_viscous_speed_with_central_variables(r, mass2);
+	const double vr = get_vr_with_numerical_viscous_speed(r, mass2);
 
 	r_table_inner[i] = r;
 	vr_table_inner[i] = vr;
