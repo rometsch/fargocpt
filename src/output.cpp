@@ -445,47 +445,6 @@ void write_quantities(t_data &data, bool force_update)
     MPI_Reduce(&MassDelta.FloorMassCreation, &FloorMassCreation, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
 
-
-	if(false){ // Debug massflow
-		double delta_mass1 = 0.0;
-		double delta_mass3 = 0.0;
-		double delta_mass7 = 0.0;
-		for (int j = 0; j < data[t_data::MASSFLOW].get_size_azimuthal(); ++j){
-			delta_mass1 += data[t_data::MASSFLOW](int(NRadial-1), j);
-			delta_mass3 += data[t_data::MASSFLOW](int(NRadial-3), j);
-			delta_mass7 += data[t_data::MASSFLOW](int(NRadial-7), j);
-			data[t_data::MASSFLOW](int(NRadial-1), j) = 0.0;
-			data[t_data::MASSFLOW](int(NRadial-3), j) = 0.0;
-			data[t_data::MASSFLOW](int(NRadial-7), j) = 0.0;
-		}
-		const double massflow1 = delta_mass1/parameters::DT * units::mass_accretion_rate * units::cgs_Year / units::cgs_Msol;
-		const double massflow3 = delta_mass3/parameters::DT * units::mass_accretion_rate * units::cgs_Year / units::cgs_Msol;
-		const double massflow7 = delta_mass7/parameters::DT * units::mass_accretion_rate * units::cgs_Year / units::cgs_Msol;
-		const double mdot = OuterBoundaryInflow/parameters::DT * units::mass_accretion_rate * units::cgs_Year / units::cgs_Msol;
-		printf("input = %.15e flow = %.5e %.5e %.5e\n", mdot/1.0e-8, massflow1/1.0e-8, massflow3/1.0e-8, massflow7/1.0e-8);
-
-		// Position error when averaging cell centered properties to interface
-		const double err1 = 2.0*Rinf[1]/(Rmed[1]+Rmed[0]);
-
-		// Position error when averaging interface properties to cell center
-		const double err2 = 0.5*(Rsup[1]+Rinf[1])/Rmed[1];
-
-		const unsigned int nr = data[t_data::SIGMA].get_max_radial();
-		const double Sigma = data[t_data::SIGMA](nr, 0);
-		const double SigmaI = get_sigma(Rinf[nr]);
-		const double SigmaM = get_sigma(Rmed[nr]);
-		const double corr = SigmaI / SigmaM;
-		//const double visc = get_nu(Rinf[nr], 1.0);
-		const double visc = data[t_data::VISCOSITY](nr, 0);
-		const double vrad = data[t_data::V_RADIAL](nr, 0);
-		//const double vrad = viscous_speed::get_vr_with_numerical_viscous_speed(Rinf[nr], 1.0);
-		const double mdot1 = 3.0 * M_PI * Sigma * visc * units::mass_accretion_rate * units::cgs_Year / units::cgs_Msol;
-		const double mdot2 = -2.0*Rinf[nr]*M_PI*Sigma*vrad * units::mass_accretion_rate * units::cgs_Year / units::cgs_Msol;
-
-		//printf("Theo visc = %.5e Theo vr = %.5e\n", mdot1/1.0e-8, mdot2/1.0e-8);
-		//printf("radial consts = %.5e %.5e r = %.5e corr = %.5e\n", err1, err2, Rinf[1]/Rmed[1], corr);
-	}
-
     if (CPU_Master) {
 	// print to logfile
 	fprintf(
