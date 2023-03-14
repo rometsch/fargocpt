@@ -423,41 +423,6 @@ void update_with_sourceterms(t_data &data, const double dt)
 	    }
 
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
-	    // v_phi^2/r : v_phi^2 is calculated by a mean in both directions
-
-		/*
-		const double vt_top =
-				0.5*(data[t_data::V_AZIMUTHAL](nr, naz) +
-				data[t_data::V_AZIMUTHAL](nr, naz_next));
-
-		const double vt_bot =
-				0.5*(data[t_data::V_AZIMUTHAL](nr - 1, naz) +
-				data[t_data::V_AZIMUTHAL](nr - 1, naz_next));
-
-		double vt_int =
-			(Rinf[nr] - Rmed[nr-1]) * vt_top +
-			(Rmed[nr] - Rinf[nr]) * vt_bot;
-		vt_int *= InvDiffRmed[nr];
-		vt_int = vt_int + Rinf[nr] * refframe::OmegaFrame;
-		const double vt_int2 = vt_int*vt_int;
-		double vt2 = vt_int2;
-
-		const double InvR = 2.0 / (Rmed[nr] + Rmed[nr-1]);
-
-	    // add all terms to new v_radial: v_radial_new = v_radial +
-	    // dt*(source terms)
-		data[t_data::V_RADIAL](nr, naz) =
-		data[t_data::V_RADIAL](nr, naz) +
-		dt * (-gradp - gradphi + vt2 * InvR);
-
-		if(nr == NRadial -2 && naz == 0 && false){
-			const double vr = data[t_data::V_RADIAL](nr, naz);
-			printf("Source dvr = %.5e  Phi = %.5e P = %.5e Cent = %.5e\n",
-				   dt * (-gradp - gradphi + vt2 * InvRinf[nr]) / vr,
-				   -gradphi,
-				   -gradp,
-					vt2 * InvRinf[nr]);
-		}*/
 
 		// v_phi^2/r : v_phi^2 is calculated by a mean in both directions
 		double vt2 =
@@ -467,17 +432,6 @@ void update_with_sourceterms(t_data &data, const double dt)
 		data[t_data::V_AZIMUTHAL](nr - 1, naz_next);
 		vt2 = 0.25 * vt2 + Rinf[nr] * refframe::OmegaFrame;
 		vt2 = vt2 * vt2;
-		//const double InvR = 2.0 / (Rmed[nr] + Rmed[nr-1]);
-
-
-		if(nr == NRadial -2 && naz == 0 && false){
-			const double vr = data[t_data::V_RADIAL](nr, naz);
-			printf("Source dvr = %.5e  Phi = %.5e P = %.5e Cent = %.5e\n",
-				   dt * (-gradp - gradphi + vt2 * InvRinf[nr]) / vr,
-				   -dt * gradphi/vr,
-				   -dt * gradp/vr,
-					dt * vt2 * InvRinf[nr]/vr);
-		}
 
 		// add all terms to new v_radial: v_radial_new = v_radial +
 		// dt*(source terms)
