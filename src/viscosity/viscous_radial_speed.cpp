@@ -195,7 +195,7 @@ double get_vr_with_numerical_viscous_speed(const double r, const double mass){
 /**
  * @brief get_vr_with_numerical_viscous_speed_with_central_variables
  * same as get_vr_with_numerical_viscous_speed, but Sigma is computed at the cell centers
- * found this to work better with the gas massflow test
+ * this function increases the accuracy of the inflowing mass rate for the gas mass flow test
  * @param r
  * @param mass
  * @return
