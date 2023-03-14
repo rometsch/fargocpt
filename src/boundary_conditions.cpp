@@ -43,6 +43,7 @@ namespace boundary_conditions
  * @brief get_vphi_numerical_correction_factor,
  * this functions reduces the over density at the boundary where mass flows from the ghost cells into the domain
  * necessary for the function damping_initial_center_of_mass_outer
+ * it is used to reduce V_az, which increases V_r due to lower centrifugal support which reduces the density
  * due to Rmed[1] being different on every MPI thread, this function is not bit wise exact with MPI
  * @param nr
  * @return
@@ -64,10 +65,10 @@ static double get_vphi_numerical_correction_factor(){
 
 	// Scaling is not perfect, but good enough
 	//const double corr = err1 / std::pow(err2, 2.89/4.0);// 2.977586/4.0 magic number to produce corr8 from grid constants
-	const double corr = std::pow(err1 / err2, 1.0855);// magic number to produce smooth Sigma profile
+	const double corr = std::pow(err1 / err2, 1.04);//, 1.0855);// magic number to produce smooth Sigma profile
 
-	//printf("r = %.3e err = (%.16e %.16e) c = %.5e %.5e factor = %.16e\n", Rmed[nr], err1, err2, corr, 0.99984394, 0.99984394/corr-1.0);
-	return std::sqrt(corr);
+	//printf("%.5e err = (%.16e %.16e) c = %.5e %.5e factor = %.16e\n", 2.738e-03, 1.0-err1, 1.0-err2, corr, 0.99984394, 0.99984394/corr-1.0);
+	return 1.0;//std::sqrt(corr);
 }
 
 
@@ -1296,7 +1297,8 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double cell_sigma = parameters::sigma0 * std::pow(r_com,
 				 -parameters::SIGMASLOPE); // we assume the floor is not reached.
 		const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
-		const double corr = std::pow(cell_sigma / sigma, 8);
+		//const double corr = std::pow(sigma/cell_sigma, 8);
+		const double corr = 1.0 + (std::pow(sigma/cell_sigma, 4) - 1.0)*1000.0;
 
 		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf * corr;
 
@@ -2619,6 +2621,12 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 	{ /// DENSITY and ENERGY
 		const double cell_x = (*CellCenterX)(nr, naz);
 		const double cell_y = (*CellCenterY)(nr, naz);
+
+		/*const double phi = (double)naz * dphi;
+		const double rinf = Rinf[nr];
+
+		const double cell_x = rinf * std::cos(phi);
+		const double cell_y = rinf * std::sin(phi);*/
 
 		// Position in center of mass frame
 		const double x_com = cell_x - com_pos.x;
