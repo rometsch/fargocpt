@@ -26,7 +26,7 @@ class read1D:
             self.header = f.readline()
             self.unit = re.search("unit = ([^,]*)", self.header).groups()[0].strip()
             self.header = f.readline()
-            self.code_to_cgs_factor = re.search("code_units_to_cgs_factor = (-?\d*\.?\d+e[+-]?\d+)", self.header).groups()[0].strip()
+            self.code_to_cgs_factor = re.search("code_units_to_cgs_factor = [+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)", self.header).groups()[0].strip()
             print(quantity, self.unit, self.code_to_cgs_factor)
 
     def read(self, dt, return_min_max=False):
