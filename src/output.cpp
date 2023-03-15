@@ -692,6 +692,7 @@ void write_1D_info(t_data &data)
 	    const std::string filename_info = outdir + name + "1D.info";
 
 	    std::ofstream info_ofs(filename_info);
+		info_ofs.precision(std::numeric_limits<double>::max_digits10);
 	    info_ofs << "# version 0.1" << std::endl;
 	    info_ofs
 		<< "# " << data[t_data::t_polargrid_type(i)].get_name()
