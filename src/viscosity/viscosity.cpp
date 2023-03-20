@@ -148,7 +148,7 @@ void update_viscosity(t_data &data)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// H = c_s^iso / Omega_K = c_s_adb / Omega_K / sqrt(gamma)
-		// c_s_adb^2 = gamma * c_s_iso
+		// c_s_adb^2 = gamma * c_s_iso^2
 
 		// nu = alpha * c_s_adb * H = alpha * c_s_adb^2 / sqrt(gamma) /
 		// Omega_K
