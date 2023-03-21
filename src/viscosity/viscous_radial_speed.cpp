@@ -267,7 +267,8 @@ double get_vr_outer_viscous_speed_correction_factor(const double r, const double
 	const double num = 1.0 / rinf * (nu_S_r3_dwdr - nu_S_r3_dwdr_m)/dr;
 
 	// numerically compute Sigma * d(r^2 w) / dr
-	const double Sigma_inf = 0.5*(Sigma + Sigma_m);
+	//const double Sigma_inf = 0.5*(Sigma + Sigma_m);
+	const double Sigma_inf = Sigma_m;
 
 	const double r2w   = std::pow(rmed  , 2) * get_w(rmed  , mass);
 	const double r2w_m = std::pow(rmed_m, 2) * get_w(rmed_m, mass);
@@ -328,9 +329,10 @@ void init_vr_table_boundary(t_data &data){
 	for(unsigned int i = 0; i < N; ++i){
 		const double r = min_r_outer * std::pow(10.0, (deltaLogR_outer * (double)i));
 		const double vr = get_vr_with_numerical_viscous_speed(r, mass);
+		const double corr = get_vr_outer_viscous_speed_correction_factor(r, mass);
 
 		r_table_outer[i] = r;
-		vr_table_outer[i] = vr;
+		vr_table_outer[i] = vr*corr;
 	}
 
 
