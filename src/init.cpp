@@ -1134,7 +1134,8 @@ void init_gas_density(t_data &data)
 		const double r = std::sqrt(x * x + y * y);
 
 		const double density =
-		    parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
+			parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE)
+				*parameters::center_mass_density_correction_factor;
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::SIGMA](n_radial, n_azimuthal) =
