@@ -214,7 +214,7 @@ static double get_nu_S_r3_dwdr(const double r, const double mass){
 ///
 double get_vr_with_numerical_viscous_speed(const double r, const double mass){
 	// num = 1/r d/dr (nu * Sigma * r^3 *  dw / dr)
-	// den = d(r^2 w) / dr
+	// den = Sigma d(r^2 w) / dr
 	// vr = num / den
 
 		// numerically compute 1/r d/dr (nu * Simga * r^3 * dw / dr)
