@@ -228,6 +228,59 @@ double get_vr_with_numerical_viscous_speed(const double r, const double mass){
 	return vr;
 }
 
+/**
+ * @brief get_vr_outer_viscous_speed_correction_factor
+ * computes vr on the actual grid and compares it with get_vr_with_numerical_viscous_speed
+ * @param r
+ * @param mass
+ * @return
+ */
+double get_vr_outer_viscous_speed_correction_factor(const double r, const double mass){
+	// num = 1/r d/dr (nu * Sigma * r^3 *  dw / dr)
+	// den = Sigma d(r^2 w) / dr
+	// vr = num / den
+	const unsigned int nr = clamp_r_id_to_rmed_grid(get_rmed_id(r), true);
+	const double rinf   = Rinf[nr];
+	const double rmed_p = Rmed[nr+1];
+	const double rmed   = Rmed[nr];
+	const double rmed_m = Rmed[nr-1];
+	const double rmed_m2= Rmed[nr-2];
+
+	// numerically compute 1/r d/dr (nu * Simga * r^3 * dw / dr)
+	const double w_p = get_w(rmed_p, mass);
+	const double w = get_w(rmed, mass);
+	const double w_m = get_w(rmed_m, mass);
+	const double w_m2 = get_w(rmed_m2, mass);
+
+	const double dw_dr = (0.5*(w_p+w) - 0.5*(w+w_m))/(Rinf[nr+1] - Rinf[nr]);
+	const double dw_dr_m = (0.5*(w+w_m) - 0.5*(w_m+w_m2))/(Rinf[nr] - Rinf[nr-1]);
+
+	const double Sigma = get_sigma(rmed);
+	const double nu = get_nu2(rmed, mass, Sigma);
+
+	const double Sigma_m = get_sigma(rmed_m);
+	const double nu_m = get_nu2(rmed_m, mass, Sigma_m);
+
+	const double nu_S_r3_dwdr = nu*Sigma*std::pow(rmed, 3) * dw_dr;
+	const double nu_S_r3_dwdr_m = nu_m*Sigma_m*std::pow(rmed_m, 3) * dw_dr_m;
+	const double dr = rmed - rmed_m;
+	const double num = 1.0 / rinf * (nu_S_r3_dwdr - nu_S_r3_dwdr_m)/dr;
+
+	// numerically compute Sigma * d(r^2 w) / dr
+	const double Sigma_inf = 0.5*(Sigma + Sigma_m);
+
+	const double r2w   = std::pow(rmed  , 2) * get_w(rmed  , mass);
+	const double r2w_m = std::pow(rmed_m, 2) * get_w(rmed_m, mass);
+
+	const double dr2w_dr = (r2w - r2w_m)/(rmed - rmed_m);
+
+	const double den = Sigma_inf * dr2w_dr;
+
+	const double vr = num/den;
+	const double vr_non_grid = get_vr_with_numerical_viscous_speed(rinf, mass);
+	return vr/vr_non_grid;
+}
+
 /// Lookup table generation and reading
 static const int N = 1000;
 std::vector<double> r_table_outer(N);
