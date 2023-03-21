@@ -199,6 +199,8 @@ extern double cbd_ring_position;
 extern double cbd_ring_width;
 extern double cbd_ring_enhancement_factor;
 
+extern double center_mass_density_correction_factor;
+
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
 /// profile cutoff point
