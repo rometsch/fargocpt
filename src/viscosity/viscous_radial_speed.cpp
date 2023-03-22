@@ -239,7 +239,7 @@ double get_vr_outer_viscous_speed_correction_factor(const double r, const double
 	// num = 1/r d/dr (nu * Sigma * r^3 *  dw / dr)
 	// den = Sigma d(r^2 w) / dr
 	// vr = num / den
-	const unsigned int nr = std::max(2, IMIN + clamp_r_id_to_rmed_grid(get_rmed_id(r), true));
+	const unsigned int nr = std::max((unsigned int)2, IMIN + clamp_r_id_to_rmed_grid(get_rmed_id(r), true));
 
 	const double rinf   = Radii[nr];
 	const double rmed_p = GlobalRmed[nr+1];
