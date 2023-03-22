@@ -1072,7 +1072,7 @@ void add_gaussian_density_ring(t_data & data){
 			data[t_data::SIGMA](n_radial, n_azimuthal) += extra_sigma;
 		} else {
 			w_ring *= 1.4;
-			const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.667) / (2.0*std::pow(w_ring, 2)));
+			const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.75) / (2.0*std::pow(w_ring, 2)));
 			data[t_data::SIGMA](n_radial, n_azimuthal) += extra_sigma;
 		}
 
@@ -1413,7 +1413,7 @@ void add_gaussian_energy_ring(t_data &data){
 				data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
 			} else {
 				w_ring *= 1.4;
-				const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.667) / (2.0*std::pow(w_ring, 2)));
+				const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.75) / (2.0*std::pow(w_ring, 2)));
 				data[t_data::ENERGY](n_radial, n_azimuthal) += extra_energy;
 
 			}
