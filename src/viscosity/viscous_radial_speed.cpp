@@ -239,12 +239,13 @@ double get_vr_outer_viscous_speed_correction_factor(const double r, const double
 	// num = 1/r d/dr (nu * Sigma * r^3 *  dw / dr)
 	// den = Sigma d(r^2 w) / dr
 	// vr = num / den
-	const unsigned int nr = clamp_r_id_to_rmed_grid(get_rmed_id(r), true);
-	const double rinf   = Rinf[nr];
-	const double rmed_p = Rmed[nr+1];
-	const double rmed   = Rmed[nr];
-	const double rmed_m = Rmed[nr-1];
-	const double rmed_m2= Rmed[nr-2];
+	const unsigned int nr = std::max(2, IMIN + clamp_r_id_to_rmed_grid(get_rmed_id(r), true));
+
+	const double rinf   = Radii[nr];
+	const double rmed_p = GlobalRmed[nr+1];
+	const double rmed   = GlobalRmed[nr];
+	const double rmed_m = GlobalRmed[nr-1];
+	const double rmed_m2= GlobalRmed[nr-2];
 
 	// numerically compute 1/r d/dr (nu * Simga * r^3 * dw / dr)
 	const double w_p = get_w(rmed_p, mass);
@@ -252,8 +253,8 @@ double get_vr_outer_viscous_speed_correction_factor(const double r, const double
 	const double w_m = get_w(rmed_m, mass);
 	const double w_m2 = get_w(rmed_m2, mass);
 
-	const double dw_dr = (0.5*(w_p+w) - 0.5*(w+w_m))/(Rinf[nr+1] - Rinf[nr]);
-	const double dw_dr_m = (0.5*(w+w_m) - 0.5*(w_m+w_m2))/(Rinf[nr] - Rinf[nr-1]);
+	const double dw_dr = (0.5*(w_p+w) - 0.5*(w+w_m))/(Radii[nr+1] - Radii[nr]);
+	const double dw_dr_m = (0.5*(w+w_m) - 0.5*(w_m+w_m2))/(Radii[nr] - Radii[nr-1]);
 
 	const double Sigma = get_sigma(rmed);
 	const double nu = get_nu2(rmed, mass, Sigma);
