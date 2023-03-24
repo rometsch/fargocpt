@@ -128,12 +128,12 @@ double initial_locally_isothermal_smoothed_v_az(const double R, const double M){
 	const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
 		/ std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
 
-	/*const double a_b = 1.0;
-	const double q_b = 0.4 / 1.4;
+	const double a_b = 1.0;
+	const double q_b = 0.2857; //0.4 / 1.4;
 	const double e_b = 0.4;
 	const double Q = std::pow(a_b,2) / 4.0 * q_b / std::pow((1.0+q_b), 2) * (1.0 + 3.0/2.0 * std::pow(e_b, 2));
-	const double v_az = std::sqrt(vk_2 * (3.0 * Q / std::pow(R, 2) + smoothing_derivative_2 + pressure_support_2));*/
-	const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
+	const double v_az = std::sqrt(vk_2 * (3.0 * Q / std::pow(R, 2) + smoothing_derivative_2 + pressure_support_2));
+	//const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
 
 	return v_az;
 }
