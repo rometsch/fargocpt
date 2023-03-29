@@ -197,6 +197,7 @@ extern bool keep_mass_constant;
 extern bool cbd_ring;
 extern double cbd_ring_position;
 extern double cbd_ring_width;
+extern double cbd_decay_width;
 extern double cbd_ring_enhancement_factor;
 
 extern double center_mass_density_correction_factor;
