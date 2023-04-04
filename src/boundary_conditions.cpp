@@ -1262,14 +1262,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		const double cell_vx = cell_vx_com + com_vel.x;
 		const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double cell_sigma = parameters::sigma0 * std::pow(r_com,
-				 -parameters::SIGMASLOPE); // we assume the floor is not reached.
-		const double sigma = data[t_data::SIGMA](n_radial, n_azimuthal);
-
-		// adjust vr such that the initial density profile is restored
-		const double corr = 1.0 + (sigma/cell_sigma - 1.0)*100.0;
-
-		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf * corr;
+		const double vr0 = (cell_x * cell_vx + cell_y * cell_vy) / rinf;
 
 		const double vr = vrad_arr(n_radial, n_azimuthal);
 		const double vr_new = (vr - vr0) * exp_factor + vr0;
