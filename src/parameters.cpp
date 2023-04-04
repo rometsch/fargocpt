@@ -154,6 +154,7 @@ bool cbd_ring;
 double cbd_ring_position;
 double cbd_ring_width;
 double cbd_decay_width;
+double cbd_decay_exponent;
 double cbd_ring_enhancement_factor;
 double center_mass_density_correction_factor;
 
@@ -963,6 +964,8 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("CircumBinaryRingWidth", 0.6, L0);
 	cbd_decay_width =
 	config::cfg.get<double>("CircumBinaryDecayWidth", cbd_ring_width*1.4, L0);
+	cbd_decay_exponent =
+	config::cfg.get<double>("CircumBinaryDecayExponent", 0.75);
 	cbd_ring_enhancement_factor =
 	config::cfg.get<double>("CircumBinaryRingEnhancementFactor", 2.5);
 	center_mass_density_correction_factor =
