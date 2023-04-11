@@ -24,4 +24,5 @@ clean:
 
 # Copy built codumentation to github directory
 copy:
+	mkdir -p ../docs
 	cp -r build/html/* ../docs/.
