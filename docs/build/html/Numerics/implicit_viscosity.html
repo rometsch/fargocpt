@@ -1,0 +1,312 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Implicit viscosity &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TODO opacities" href="opacities.html" />
+    <link rel="prev" title="TODO hydro simulations" href="hydro%20simulations.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="implicit-viscosity">
+<h1>Implicit viscosity<a class="headerlink" href="#implicit-viscosity" title="Permalink to this heading">¶</a></h1>
+<section id="problem-description">
+<h2>Problem description<a class="headerlink" href="#problem-description" title="Permalink to this heading">¶</a></h2>
+<p>In simulations with strong radial gradients in density, e.g. at the gap edge
+carved by a massive planet or at the disk truncation radius caused by a
+companion, the velocity updates by the viscous terms can become unstable and
+cause a crash. This is caused by a too large timestep overshooting the viscous
+velocity updates and spiraling out of control.</p>
+<p>From our simulations on cataclysmic variables we found the cause of the crash to
+be the azimuthal velocity update from the viscous stress tensor that reads:</p>
+<p><span class="math notranslate nohighlight">\(\Delta v_\varphi = \frac{dt}{R_b^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i,j-1})} \left[\frac{2}{(R_a^{i+1})^2 - (R_a^i)^2} \cdot ((R_a^{i+1})^2 \tau_{r \varphi}^{i+1} - (R_a^i)^2 \tau_{r \varphi}^i) + (\tau_{\varphi \varphi}^{i,j} - \tau_{\varphi \varphi}^{i,j-1}) \cdot \frac{1}{\Delta \varphi}\right]\)</span></p>
+<p>where i is the radial index and j the azimuthal index, <span class="math notranslate nohighlight">\(R_b\)</span> is the radius of
+the cell center, <span class="math notranslate nohighlight">\(R_a\)</span> is the radius of the cell interface, <span class="math notranslate nohighlight">\(\Sigma\)</span> is the
+surface density, <span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span> and <span class="math notranslate nohighlight">\(\tau_{\varphi \varphi}\)</span> are components
+of the viscous stress tensor. The indices i,j are omitted if the are the same
+among the cells. Strong radial gradients in density and temperature cause
+strong radial gradients in <span class="math notranslate nohighlight">\(\tau_{r \varphi}\)</span> where the value for neighboring
+cells can reach differences above a factor of 100, causing numerical instability.</p>
+</section>
+<section id="proposed-solution">
+<h2>Proposed Solution<a class="headerlink" href="#proposed-solution" title="Permalink to this heading">¶</a></h2>
+<p>The viscous interactions between the cells are a diffusion process. Therefore
+the velocity should never become faster/slower than the fastest/slowest cell
+it is in contact with. During the timestep, we consider all properties but the
+azimuthal velocity of the cell we want to update as fixed (similar as for an
+Euler step). Then the velocity update caused by the viscous stress tensor can
+be written in the form:</p>
+<p><span class="math notranslate nohighlight">\(\dot{v}_\varphi = c_1 \cdot v_\varphi + c_2\)</span></p>
+<p>This function is easily solvable and the azimuthal velocity should
+exponentially converge towards a equilibrium velocity of <span class="math notranslate nohighlight">\(v_{eq} =
+-\frac{c_2}{c_1}\)</span>. We can now argue, that the explicit velocity update step
+should not overshoot over <span class="math notranslate nohighlight">\(v_{eq}\)</span>.</p>
+</section>
+<section id="stabilizing-scheme">
+<h2>Stabilizing Scheme<a class="headerlink" href="#stabilizing-scheme" title="Permalink to this heading">¶</a></h2>
+<p>The explicit form of the update is:
+<span class="math notranslate nohighlight">\({v}_\varphi^\mathrm{new} = v_\varphi + dt (c_1 \cdot v_\varphi + c_2)\)</span></p>
+<p>The implicit form of the update is:
+<span class="math notranslate nohighlight">\({v}_\varphi^\mathrm{new} = v_\varphi + dt (c_1 \cdot v_\varphi^\mathrm{new} + c_2)\)</span></p>
+<p><span class="math notranslate nohighlight">\({v}_\varphi^\mathrm{new} = \frac{v_\varphi + dt c_2}{1 - dt \cdot c_1}\)</span></p>
+<p><span class="math notranslate nohighlight">\({v}_\varphi^\mathrm{new} = v_\varphi + dt \frac{c_1 \cdot v_\varphi + c_2}{1 - dt \cdot c_1}\)</span></p>
+<p>We recognize that the implicit update step is the explicit one damped by a
+factor of <span class="math notranslate nohighlight">\(\frac{1}{1-dt\cdot c_1}\)</span> (<span class="math notranslate nohighlight">\(c_1 &lt;= 0\)</span>).</p>
+<p>We can now demand that the implicit step is the same as the explicit step. If
+we do this, we find that we need to correct the constants used in the implicit
+step by a factor of <span class="math notranslate nohighlight">\(c_1^\mathrm{implicit} = \frac{c_1^\mathrm{explicit}}{1+
+dt\cdot c_1^\mathrm{explicit}}\)</span>. If the term <span class="math notranslate nohighlight">\(1 + dt\cdot c_1\)</span> becomes zero or
+negative, the explicit update overshoots over the equilibrium velocity of the
+current system, causing instability. If we define <span class="math notranslate nohighlight">\(c_1^\mathrm{implicit} =
+\frac{c_1^\mathrm{explicit}}{\mathrm{max}(0,\,\, 1+ dt\cdot
+c_1^\mathrm{explicit})}\)</span> then the implicit scheme will reproduce the explicit
+scheme while it is stable (<span class="math notranslate nohighlight">\(1 + dt \cdot c_1 &gt; 0\)</span>) and damp the velocity
+update step when <span class="math notranslate nohighlight">\((1 + dt \cdot c_1 &lt; 0)\)</span> to guarantee stability, though this
+will not conserve angular momentum anymore.</p>
+<p>We can simplify the update to</p>
+<p><span class="math notranslate nohighlight">\({v}_\varphi^\mathrm{new} = v_\varphi + dt \frac{c_1 \cdot v_\varphi + c_2}{\mathrm{max}(0,\,\,1 + dt\cdot c_1) - dt \cdot c_1}\)</span></p>
+<p>where the numerator is the explicit update as it was used before.</p>
+<p><span class="math notranslate nohighlight">\({v}_\varphi^\mathrm{new} = v_\varphi + \frac{\Delta v_\varphi^{\mathrm{expl}}}{\mathrm{max}(0,\,\,1 + dt\cdot c_1) - dt \cdot c_1}\)</span></p>
+<p>thus we only need to compute <span class="math notranslate nohighlight">\(c_1\)</span>, aka all terms that contain <span class="math notranslate nohighlight">\(v_\varphi\)</span>.
+This update will always be stable.</p>
+<p><span class="math notranslate nohighlight">\(\frac{d v}{dt} = \frac{1}{R_b^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i,j-1})}[\frac{2}{(R_a^{i+1})^2 - (R_a^i)^2}\cdot ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^i)^2 \tau_{r\varphi}^i) + (\tau_{\varphi\varphi}^{i,j} - \tau_{\varphi\varphi}^{i,j-1}) \cdot \frac{1}{\Delta\varphi}]\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{d v}{dt} \cdot (R_b^i \cdot \frac{1}{2} (\Sigma^{i,j} + \Sigma^{i,j-1})) = \frac{2}{(R_a^{i+1})^2 - (R_a^i)^2}\cdot ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^i)^2 \tau_{r\varphi}^i) + (\tau_{\varphi\varphi}^{i,j} - \tau_{\varphi\varphi}^{i,j-1}) \cdot \frac{1}{\Delta\varphi}\)</span></p>
+<p>For simplicity, we compute the two terms separately and combine them again later:</p>
+</section>
+<section id="tau-r-varphi">
+<h2><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span><a class="headerlink" href="#tau-r-varphi" title="Permalink to this heading">¶</a></h2>
+<p><span class="math notranslate nohighlight">\(\frac{2}{(R_a^{i+1})^2 - (R_a^i)^2}\cdot ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^i)^2 \tau_{r\varphi}^i)\)</span></p>
+<p>With</p>
+<p><span class="math notranslate nohighlight">\(\frac{2}{(R_a^{i+1})^2 - (R_a^i)^2} = \frac{2}{\Delta (R_a^2)^{i}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\tau_{r\varphi} = d_{rp} \bar{\nu} \bar{\Sigma}\)</span></p>
+<p><span class="math notranslate nohighlight">\(d_{r \varphi} = R_a \frac{dv_\varphi/r}{dr} + \frac{1}{R_a} \frac{dv_r}{d\varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\((\frac{dv_\varphi/r}{dr})^i = \frac{v_\varphi^i / R_b^i - v_\varphi^{i-1} / R_b^{i-1}}{R_b^i - R_b^{i-1} }\)</span></p>
+<p>we can expand the term to</p>
+<p><span class="math notranslate nohighlight">\(\frac{2}{\Delta (R_a^2)^{i}}[(R_a^2 \bar{\nu} \bar{\Sigma})^{i+1} ( R_a^{i+1} \frac{v_\varphi^{i+1} / R_b^{i+1} - v_\varphi^{i} / R_b^{i}}{R_b^{i+1} - R_b^{i}} + \frac{1}{R_a^{i+1}} (\frac{dv_r}{d\varphi})^{i+1})\)</span>
+<span class="math notranslate nohighlight">\(- (R_a^2 \bar{\nu} \bar{\Sigma})^{i} ( R_a^{i} \frac{v_\varphi^i / R_b^i - v_\varphi^{i-1} / R_b^{i-1}}{R_b^i - R_b^{i-1}} + \frac{1}{R_a^{i}} (\frac{dv_r}{d\varphi})^{i})]\)</span></p>
+<p>We are only interested in terms that contain <span class="math notranslate nohighlight">\(v_\varphi\)</span>:</p>
+<p><span class="math notranslate nohighlight">\(\frac{2}{\Delta (R_a^2)^{i}}[(R_a^2 \bar{\nu} \bar{\Sigma})^{i+1} ( R_a^{i+1} \frac{- v_\varphi^{i} / R_b^{i}}{R_b^{i+1} - R_b^{i}}) + (R_a^2 \bar{\nu} \bar{\Sigma})^{i} ( R_a^{i} \frac{-v_\varphi^i / R_b^i}{R_b^i - R_b^{i-1}})]\)</span></p>
+<p><span class="math notranslate nohighlight">\(v_\varphi^i \cdot \frac{-2}{R_b^i \Delta (R_a^2)^{i}}[(R_a^3 \bar{\nu} \bar{\Sigma})^{i+1} (\frac{1}{R_b^{i+1} - R_b^{i}}) + (R_a^3 \bar{\nu} \bar{\Sigma})^{i} (\frac{1}{R_b^i - R_b^{i-1}})]\)</span></p>
+<p>We can now define the constant</p>
+<p><span class="math notranslate nohighlight">\(c_{1,r\varphi} = -\frac{2}{\Delta (R_a^2)^{i}} \frac{1}{R_b^i}\left((\frac{R_a^3 \bar{\nu} \bar{\Sigma}}{\Delta R_b})^{i+1} + (\frac{R_a^3 \bar{\nu} \bar{\Sigma}}{\Delta R_b})^{i}\right)\)</span></p>
+</section>
+<section id="tau-varphi-varphi">
+<h2><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span><a class="headerlink" href="#tau-varphi-varphi" title="Permalink to this heading">¶</a></h2>
+<p><span class="math notranslate nohighlight">\((\tau_{\varphi\varphi}^{i,j} - \tau_{\varphi\varphi}^{i,j-1}) \cdot \frac{1}{\Delta\varphi}\)</span></p>
+<p>With
+<span class="math notranslate nohighlight">\(\tau_{\varphi\varphi} = 2\nu\Sigma(d_{\varphi\varphi} - \frac{1}{3}\nabla v)\)</span></p>
+<p><span class="math notranslate nohighlight">\(d_{\varphi\varphi} = \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1} + v_r^i}{R_b^i}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\nabla v = \frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi} = 2\nu\Sigma\left[\frac{2}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1} + v_r^i}{R_b^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})\)</span></p>
+<p>We can expand the term:
+<span class="math notranslate nohighlight">\(\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1} + v_r^i}{R_b^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \frac{\nu_a^j}{\Delta \varphi} (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})\)</span>
+<span class="math notranslate nohighlight">\(-\frac{(2\nu\Sigma)^{j-1}}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j} - v_\varphi^{j-1}}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1,j-1} + v_r^{i,j-1}}{R_b^i} - \frac{1}{3}\frac{v_r^{i+1,j-1} R_a^{i+1} - v_r^{i,j-1} R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] - \frac{\nu_a^{j-1}}{\Delta \varphi} (\frac{v_r^{i+1,j-1} R_a^{i+1} - v_r^{i,j-1} R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j} - v_\varphi^{j-1}}{R_b^i \Delta \varphi})\)</span></p>
+<p>TODO: fix extra closed bracket</p>
+<p>We drop all terms that do not contain <span class="math notranslate nohighlight">\(v_\varphi\)</span>:
+<span class="math notranslate nohighlight">\(\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{2}{3}\frac{- v_\varphi^j}{R_b^i \Delta \varphi}\right] + \frac{\nu_a^j}{\Delta \varphi} (- v_\varphi^j}{R_b^i \Delta \varphi})}\)</span>
+<span class="math notranslate nohighlight">\(-\frac{(2\nu\Sigma)^{j-1}}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j}}{R_b^i \Delta \varphi} \right] - \frac{\nu_a^{j-1}}{\Delta \varphi} (\frac{v_\varphi^{j}}{R_b^i \Delta \varphi})\)</span></p>
+<p><span class="math notranslate nohighlight">\(v_\varphi^j \frac{2}{3}\frac{-1}{R_b^i \Delta \varphi} [\frac{(2\nu\Sigma)^j}{\Delta\varphi} + \frac{(2\nu\Sigma)^{j-1}}{\Delta\varphi}]\)</span>
+<span class="math notranslate nohighlight">\(- v_\varphi^j \frac{1}{R_b^i \Delta \varphi^2} (\nu_a^j + \nu_a^{j-1})\)</span></p>
+<p>We can now define the constants:</p>
+<p><span class="math notranslate nohighlight">\(c_{1,\varphi\varphi} = -\frac{2}{3}\frac{1}{R_b \Delta \varphi}\left[\frac{(2\nu\Sigma)^j}{\Delta\varphi} + \frac{(2\nu\Sigma)^{j-1}}{\Delta\varphi}\right] - \frac{1}{R_b^i \Delta \varphi^2} (\nu_a^j - \nu_a^{j-1})\)</span></p>
+<p>Using the constants above, we can finally define</p>
+<p><span class="math notranslate nohighlight">\(c_{1,\,v_\varphi} = \frac{1}{R_b^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i,j-1})}(c_{1,r\varphi} + c_{1,\varphi\varphi})\)</span></p>
+</section>
+<section id="vr-case">
+<h2>Vr case<a class="headerlink" href="#vr-case" title="Permalink to this heading">¶</a></h2>
+<p><span class="math notranslate nohighlight">\(\frac{d v}{dt} = \frac{2}{R_b^i + R_b^{i-1}} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}[(R_b^{i} \tau_{rr}^{i} - R_b^{i-1} \tau_{rr}^{i-1}) \cdot \frac{1}{\Delta R_b} + (\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi} - \frac{1}{2}(\tau_{\varphi\varphi}^{i} + \tau_{\varphi\varphi}^{i-1})]\)</span></p>
+<p>For simplicity, we compute the terms separately and combine them again later:</p>
+</section>
+<section id="id1">
+<h2><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span><a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+<p><span class="math notranslate nohighlight">\((\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi}\)</span></p>
+<p>With</p>
+<p><span class="math notranslate nohighlight">\(\tau_{r\varphi} = d_{rp} \bar{\nu} \bar{\Sigma}\)</span></p>
+<p><span class="math notranslate nohighlight">\(d_{r \varphi} = R_a \frac{dv_\varphi/r}{dr} + \frac{1}{R_a} \frac{dv_r}{d\varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\((\frac{dv_\varphi/r}{dr})^i = \frac{v_\varphi^i / R_b^i - v_\varphi^{i-1} / R_b^{i-1}}{R_b^i - R_b^{i-1} }\)</span>
+<span class="math notranslate nohighlight">\(\frac{dv_r}{d\varphi} = \frac{v_r^{i,j} - v_r^{i,j-1}}{\Delta \varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\tau_{r\varphi}^{ij} = (\bar{\nu} \bar{\Sigma})^{ij} \cdot [R_a^i \cdot \frac{v_\varphi^{i,j} / R_b^i - v_\varphi^{i-1,j} / R_b^{i-1}}{R_b^i - R_b^{i-1} } + \frac{v_r^{i,j} - v_r^{i,j-1}}{R_a^i\Delta \varphi}]\)</span></p>
+<p>we can expand the term to</p>
+<p><span class="math notranslate nohighlight">\(\frac{(\bar{\nu} \bar{\Sigma})^{i,j+1}}{\Delta \varphi} \cdot [(R_a\frac{dv_\varphi/r}{dr})^{i,j+1} + \frac{v_r^{i,j+1} - v_r^{i,j}}{R_a^i\Delta \varphi}]\)</span>
+<span class="math notranslate nohighlight">\(- \frac{(\bar{\nu} \bar{\Sigma})^{ij}}{\Delta \varphi} \cdot [(R_a\frac{dv_\varphi/r}{dr})^{i,j} + \frac{v_r^{i,j} - v_r^{i,j-1}}{R_a^i\Delta \varphi}]\)</span></p>
+<p>we can drop all terms that do not contain <span class="math notranslate nohighlight">\(v_r\)</span>:</p>
+<p><span class="math notranslate nohighlight">\(\frac{(\bar{\nu} \bar{\Sigma})^{i,j+1}}{\Delta \varphi} \cdot [\frac{- v_r^{i,j}}{R_a^i\Delta \varphi}]\)</span>
+<span class="math notranslate nohighlight">\(- \frac{(\bar{\nu} \bar{\Sigma})^{ij}}{\Delta \varphi} \cdot [\frac{v_r^{i,j}}{R_a^i\Delta \varphi}]\)</span></p>
+<p><span class="math notranslate nohighlight">\(- v_r^{i,j} \frac{1}{R_a^i\Delta \varphi^2}((\bar{\nu} \bar{\Sigma})^{i,j+1} + (\bar{\nu} \bar{\Sigma})^{ij})\)</span></p>
+<p>We can now define the constant</p>
+<p><span class="math notranslate nohighlight">\(c_{1,r\varphi} = -[\frac{(\bar{\nu} \bar{\Sigma})^{i,j+1}}{\Delta \varphi^2 R_a^i} + \frac{(\bar{\nu} \bar{\Sigma})^{ij}}{\Delta \varphi^2 R_a^i}]\)</span></p>
+</section>
+<section id="id2">
+<h2><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span><a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
+<p>We apply the minus at the end
+<span class="math notranslate nohighlight">\(-\frac{1}{2}(\tau_{\varphi\varphi}^{i,j} + \tau_{\varphi\varphi}^{i-1,j})\)</span></p>
+<p>With
+<span class="math notranslate nohighlight">\(\tau_{\varphi\varphi} = 2\nu\Sigma(d_{\varphi\varphi} - \frac{1}{3}\nabla v)\)</span></p>
+<p><span class="math notranslate nohighlight">\(d_{\varphi\varphi} = \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1} + v_r^i}{R_b^i}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\nabla v = \frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi} = 2\nu\Sigma\left[\frac{2}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1} + v_r^i}{R_b^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})\)</span></p>
+<p>We can expand the term:
+<span class="math notranslate nohighlight">\(\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi} + \frac{1}{2}\frac{v_r^{i+1} + v_r^i}{R_b^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})\)</span>
+<span class="math notranslate nohighlight">\(+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{2}{3}\frac{v_\varphi^{j+1,i-1} - v_\varphi^{j,i-1}}{R_b^{i-1} \Delta \varphi} + \frac{1}{2}\frac{v_r^{i} + v_r^{i-1}}{R_b^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}} + \frac{v_\varphi^{i-1,j+1} - v_\varphi^{i-1,j}}{R_b^{i-1} \Delta \varphi})\)</span></p>
+<p>and drop all terms not containing <span class="math notranslate nohighlight">\(v_r\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{1}{2}\frac{v_r^i}{R_b^i} + \frac{1}{3}\frac{v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{- v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})\)</span>
+<span class="math notranslate nohighlight">\(+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{v_r^{i}}{R_b^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})\)</span></p>
+<p><span class="math notranslate nohighlight">\(-2c_{1,\varphi\varphi} = \frac{(2\nu\Sigma)^j}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^i} + \frac{1}{3}\frac{R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a^{i} (\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})\)</span>
+<span class="math notranslate nohighlight">\(+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})\)</span></p>
+</section>
+<section id="tau-rr">
+<h2><span class="math notranslate nohighlight">\(\tau_{rr}\)</span><a class="headerlink" href="#tau-rr" title="Permalink to this heading">¶</a></h2>
+<p><span class="math notranslate nohighlight">\(\Delta v_r = \frac{R_b^i\tau_{rr}^{i,j} - R_b^{i-1}\tau_{rr}^{i-1,j}}{\Delta R_b^i}\)</span></p>
+<p>With
+<span class="math notranslate nohighlight">\(\tau_{rr} = 2\nu\Sigma(d_{rr} - \frac{1}{3}\nabla v)\)</span></p>
+<p><span class="math notranslate nohighlight">\(d_{rr} = \frac{\frac{v_r^{i+1} - v_r^{i}}{\Delta R_a^i}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\nabla v = \frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\tau_{rr} = 2\nu\Sigma\left[\frac{\frac{v_r^{i+1} - v_r^{i}}{\Delta R_a^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} - \frac{1}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi}\right] + \nu_a (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})\)</span></p>
+<p>We can expand the term:
+<span class="math notranslate nohighlight">\((\frac{2\nu\Sigma R_b}{\Delta R_b})^{i}\left[\frac{\frac{v_r^{i+1} - v_r^{i}}{\Delta R_a^i} - \frac{1}{3}\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} - \frac{1}{3}\frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi}\right] + \nu_a (\frac{v_r^{i+1} R_a^{i+1} - v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i} + \frac{v_\varphi^{j+1} - v_\varphi^j}{R_b^i \Delta \varphi})\)</span>
+<span class="math notranslate nohighlight">\(- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{v_r^{i} - v_r^{i-1}}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}} - \frac{1}{3}\frac{v_\varphi^{i-1,j+1} - v_\varphi^{i-1,j}}{R_b^{i-1} \Delta \varphi}\right] - \nu_a (\frac{v_r^{i} R_a^{i} - v_r^{i-1} R_a^{i-1}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}} + \frac{v_\varphi^{i-1,j+1} - v_\varphi^{i-1,j}}{R_b^{i-1} \Delta \varphi})\)</span></p>
+<p>and drop all terms not containing <span class="math notranslate nohighlight">\(v_r\)</span></p>
+<p><span class="math notranslate nohighlight">\((\frac{2\nu\Sigma R_b}{\Delta R_b})^{i}\left[\frac{-v_r^{i}}{\Delta R_a^i} - \frac{1}{3}\frac{- v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a (\frac{- v_r^i R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})\)</span>
+<span class="math notranslate nohighlight">\(- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{v_r^{i}}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] - \nu_a (\frac{v_r^{i} R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})\)</span></p>
+<p><span class="math notranslate nohighlight">\(c_{1,rr} = (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i}\left[\frac{-1}{\Delta R_a^i} - \frac{1}{3}\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i}\right] + \nu_a (\frac{- R_a^i}{(R_a^{i+1} - R_a^i) R_b^i})\)</span>
+<span class="math notranslate nohighlight">\(- (\frac{2\nu\Sigma R_b}{\Delta R_b})^{i-1}\left[\frac{\frac{1}{\Delta R_a^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] - \nu_a (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})\)</span></p>
+<p><span class="math notranslate nohighlight">\(c_{1,v_r} = \frac{1}{R_a^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})} (c_{1,rr} + c_{1,r\varphi} + c_{1,\varphi\varphi)\)</span></p>
+</section>
+<section id="method-example-from-simple-diffusion-problem">
+<h2>Method example from simple diffusion problem<a class="headerlink" href="#method-example-from-simple-diffusion-problem" title="Permalink to this heading">¶</a></h2>
+<p>The implicit method with the corrected constants reproduces the explicit method, but prevents overshoots.</p>
+<p><img alt="" src="../_images/diff_0.3.png" /></p>
+<p><img alt="" src="../_images/diff_1.0.png" /></p>
+<p><img alt="" src="../_images/diff_1.5.png" /></p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Physics and numerics</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="N-body.html">TODO N-body</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accretion.html">TODO accretion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspect%20ratio.html">TODO aspect ratio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html">TODO boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conservative_viscosity_update.html">Conservative form</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy_update.html">Implicit energy update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frame%20of%20reference.html">TODO frame of reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html">TODO gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydro%20simulations.html">TODO hydro simulations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Implicit viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="opacities.html">TODO opacities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles.html">TODO particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html">TODO radiative processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="self-gravity.html">TODO self-gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time%20step%20calculation.html">TODO time step calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable%20gamma.html">TODO variable gamma</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viscosity.html">TODO viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wave%20damping.html">TODO wave damping</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Physics and numerics</a><ul>
+      <li>Previous: <a href="hydro%20simulations.html" title="previous chapter">TODO hydro simulations</a></li>
+      <li>Next: <a href="opacities.html" title="next chapter">TODO opacities</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Numerics/implicit_viscosity.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

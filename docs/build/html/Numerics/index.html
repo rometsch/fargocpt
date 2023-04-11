@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Physics and numerics &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TODO N-body" href="N-body.html" />
+    <link rel="prev" title="Unit system" href="../units.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="physics-and-numerics">
+<h1>Physics and numerics<a class="headerlink" href="#physics-and-numerics" title="Permalink to this heading">¶</a></h1>
+<p>This part of the documentation describes the numerics choices and algorithms used in the FargoCPT code.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="N-body.html">TODO N-body</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="N-body.html#todo-rebound-integrator">TODO rebound integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="N-body.html#todo-binary">TODO binary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="N-body.html#todo-initialization-with-jacobi-elements">TODO initialization with jacobi elements</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="accretion.html">TODO accretion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspect%20ratio.html">TODO aspect ratio</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="aspect%20ratio.html#todo-isothermal">TODO isothermal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspect%20ratio.html#todo-with-pressure">TODO with pressure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="boundary%20conditions.html">TODO boundary conditions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html#todo-outflow">TODO outflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html#todo-reflective">TODO reflective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html#todo-viscous-outflow">TODO viscous outflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html#todo-prescribed-boundaries">TODO prescribed boundaries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html#todo-mass-overflow-boundary">TODO mass overflow boundary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="conservative_viscosity_update.html">Conservative form</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="conservative_viscosity_update.html#radial-velocity">Radial velocity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conservative_viscosity_update.html#azimuthal-velocity">Azimuthal velocity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="energy_update.html">Implicit energy update</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="energy_update.html#what-is-alpha">What is <span class="math notranslate nohighlight">\(\alpha\)</span></a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy_update.html#questions">Questions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="frame%20of%20reference.html">TODO frame of reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="frame%20of%20reference.html#todo-corotation">TODO corotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frame%20of%20reference.html#todo-indirect-term-calculation">TODO indirect term calculation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gravity.html">TODO gravity</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html#todo-coupling-between-n-body-and-hydro-simulation">TODO coupling between N-body and hydro simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html#todo-gravity-from-planet-onto-gas-with-potential">TODO gravity from planet onto gas with potential</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html#todo-gravity-from-gas-onto-planet-with-force">TODO gravity from gas onto planet with force</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html#todo-smoothing">TODO smoothing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hydro%20simulations.html">TODO hydro simulations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hydro%20simulations.html#todo-transport-step-with-reference-to-fargo-paper">TODO transport step with reference to FARGO paper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydro%20simulations.html#todo-grid">TODO grid</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="implicit_viscosity.html">Implicit viscosity</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#problem-description">Problem description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#proposed-solution">Proposed Solution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#stabilizing-scheme">Stabilizing Scheme</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#tau-r-varphi"><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span></a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#tau-varphi-varphi"><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span></a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#vr-case">Vr case</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#id1"><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span></a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#id2"><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span></a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#tau-rr"><span class="math notranslate nohighlight">\(\tau_{rr}\)</span></a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html#method-example-from-simple-diffusion-problem">Method example from simple diffusion problem</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="opacities.html">TODO opacities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="particles.html">TODO particles</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="particles.html#todo-integrator">TODO integrator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles.html#todo-dust">TODO dust</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles.html#todo-dust-diffusion">TODO dust diffusion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="radiative%20processes.html">TODO radiative processes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html#todo-beta-cooling">TODO beta cooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html#todo-viscous-heating">TODO viscous heating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html#todo-irradiative-heating">TODO irradiative heating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html#todo-radiative-cooling">TODO radiative cooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html#todo-radiative-transport-with-flux-limited-diffusion">TODO radiative transport with flux-limited diffusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html#todo-qplus-qminus">TODO QPLUS/QMINUS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="self-gravity.html">TODO self-gravity</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="self-gravity.html#todo-using-tobias-moldenhauer-s-correction-to-baruteau-s-implementation">TODO using Tobias Moldenhauer’s correction to Baruteau’s implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="time%20step%20calculation.html">TODO time step calculation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable%20gamma.html">TODO variable gamma</a></li>
+<li class="toctree-l1"><a class="reference internal" href="viscosity.html">TODO viscosity</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="viscosity.html#todo-physical-viscosity">TODO physical viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viscosity.html#todo-numerical-visocisty">TODO numerical visocisty</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="wave%20damping.html">TODO wave damping</a></li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Physics and numerics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="N-body.html">TODO N-body</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accretion.html">TODO accretion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspect%20ratio.html">TODO aspect ratio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html">TODO boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conservative_viscosity_update.html">Conservative form</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy_update.html">Implicit energy update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frame%20of%20reference.html">TODO frame of reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html">TODO gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydro%20simulations.html">TODO hydro simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html">Implicit viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="opacities.html">TODO opacities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles.html">TODO particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html">TODO radiative processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="self-gravity.html">TODO self-gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time%20step%20calculation.html">TODO time step calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable%20gamma.html">TODO variable gamma</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viscosity.html">TODO viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wave%20damping.html">TODO wave damping</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../units.html" title="previous chapter">Unit system</a></li>
+      <li>Next: <a href="N-body.html" title="next chapter">TODO N-body</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Numerics/index.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
