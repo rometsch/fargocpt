@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Conservative form &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Implicit energy update" href="energy_update.html" />
+    <link rel="prev" title="TODO boundary conditions" href="boundary%20conditions.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="conservative-form">
+<h1>Conservative form<a class="headerlink" href="#conservative-form" title="Permalink to this heading">¶</a></h1>
+<p>Baruteau 2008 writes the viscosity updates as:</p>
+<section id="radial-velocity">
+<h2>Radial velocity<a class="headerlink" href="#radial-velocity" title="Permalink to this heading">¶</a></h2>
+<p><span class="math notranslate nohighlight">\(\frac{\partial \Sigma v_r}{\partial \mathrm{d}t} = \frac{1}{r}[\frac{\partial (r \tau_{rr})}{\partial r} + \frac{\partial (\tau_{r\varphi})}{\partial \varphi} - \tau_{\varphi \varphi}]\)</span></p>
+<p>Looking at the <span class="math notranslate nohighlight">\(r\)</span> part, the non-conservative form is discretized as</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial \Sigma v_r}{dt} = \frac{1}{r}\frac{\partial (r \tau_{rr})}{\partial r} = \frac{1}{R_a^i}\frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{R_b^i - R_b^{i-1}}\)</span></p>
+<p>The conservative form can is derived as follows:</p>
+<p><span class="math notranslate nohighlight">\(\int \frac{\partial \Sigma v_r}{\partial t} \mathrm{d}V = \int \frac{1}{r}\frac{\partial r \tau_{rr}}{\partial r} \mathrm{d}V\)</span></p>
+<p>with <span class="math notranslate nohighlight">\(\mathrm{d}V = r \mathrm{d}r \mathrm{d} \varphi\)</span>, we have: where we
+integrate <span class="math notranslate nohighlight">\(\varphi\)</span> over <span class="math notranslate nohighlight">\(\varphi^{j-1/2}\)</span> to <span class="math notranslate nohighlight">\(\varphi^{j+1/2}\)</span>
+and integrate <span class="math notranslate nohighlight">\(r\)</span> from <span class="math notranslate nohighlight">\(R_b^{i-1}\)</span> to <span class="math notranslate nohighlight">\(R_b^i\)</span> such that the middle of the
+integration is at <span class="math notranslate nohighlight">\(R_a^i\)</span>, <span class="math notranslate nohighlight">\(\varphi^j\)</span>,  where <span class="math notranslate nohighlight">\(v_r\)</span> is located.</p>
+<p><span class="math notranslate nohighlight">\(\int \frac{\partial \Sigma v_r}{\partial t} r \mathrm{d}r \mathrm{d} \varphi = \int \frac{1}{r}\frac{\partial r \tau_{rr}}{\partial r} r \mathrm{d}r \mathrm{d} \varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int^{R_b^i}_{R_b^{i-1}} \partial (r \tau_{rr}) \Delta\varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = (R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}) \Delta \varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_r}{dt} = \frac{2}{\Sigma}\frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{(R_b^i)^2 - (R_b^{i-1})^2}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_r}{dt} = \frac{1}{\Sigma}\frac{2}{R_b^i + R_b^{i-1}} \frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{R_b^i - R_b^{i-1}}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\int \frac{\partial \Sigma v_r}{\partial t} \mathrm{d}V = \int \frac{1}{r}\frac{\partial \tau_{r\varphi}}{\partial \varphi} \mathrm{d}V\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \frac{1}{r}\frac{\partial \tau_{r\varphi}}{\partial \varphi}  r \mathrm{d}r \mathrm{d} \varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \partial^{\varphi} \tau_{r\varphi}  \mathrm{d}r\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = (R_b^{i} - R_b^{i-1})(\tau_{r\varphi}^{j+1} - \tau_{r\varphi}^j)\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \Delta \varphi \frac{\partial v_r}{\partial t} = \frac{2(R_b^{i} - R_b^{i-1})}{((R_b^i)^2 - (R_b^{i-1})^2)}(\tau_{r\varphi}^{j+1} - \tau_{r\varphi}^j)\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_r}{\partial t} = \frac{1}{\Sigma} \frac{2}{R_b^i + R_b^{i-1}} \frac{\tau_{r\varphi}^{j+1} - \tau_{r\varphi}^j} {\Delta \varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\int \frac{\partial \Sigma v_r}{\partial t} \mathrm{d}V = \int \frac{1}{r} \tau_{\varphi\varphi} \mathrm{d}V\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \int \frac{1}{r}\tau_{\varphi \varphi}  r \mathrm{d}r \mathrm{d} \varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma \frac{1}{2}((R_b^i)^2 - (R_b^{i-1})^2) \Delta \varphi \frac{\partial v_r}{\partial t} = \tau_{\varphi \varphi}  (R_b^i - R_b^{i-1}) \Delta \varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_r}{\partial t} = \frac{1}{\Sigma} \frac{2(R_b^i - R_b^{i-1})}{(R_b^i)^2 - (R_b^{i-1})^2} \tau_{\varphi \varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_r}{\partial t} = \frac{1}{\Sigma} \frac{2}{R_b^i + R_b^{i-1}} \tau_{\varphi \varphi}\)</span></p>
+<p>The total <span class="math notranslate nohighlight">\(v_r\)</span> update is just the sum of the 3 parts we just covered:</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_r}{\partial t} = \frac{2}{\Sigma^i + \Sigma^{i-1}} \frac{2}{R_b^i + R_b^{i-1}} (\frac{R_b^i \tau_{rr}^i - R_b^{i-1} \tau_{rr}^{i-1}}{R_b^i - R_b^{i-1}} + \tau_{\varphi \varphi} + \frac{\tau_{r\varphi}^{j+1} - \tau_{r\varphi}^j} {\Delta \varphi})\)</span></p>
+</section>
+<section id="azimuthal-velocity">
+<h2>Azimuthal velocity<a class="headerlink" href="#azimuthal-velocity" title="Permalink to this heading">¶</a></h2>
+<p>For the azimuthal velocity, it is important to do the update for the angular
+momentum such that it is conserved (see D’Angelo et al. 2002  Eq. 4).</p>
+<p>The term <span class="math notranslate nohighlight">\(\frac{(\partial r \tau_{r\varphi})}{\partial r} + \tau_{r \varphi}\)</span> can be rewritten to <span class="math notranslate nohighlight">\(\frac{1}{r}\frac{(\partial r^2 \tau_{r\varphi})}{\partial r}\)</span> and we can write for the update:</p>
+<p>Considering both these things, the velocity update in Masset 2002:</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial \Sigma v_\varphi}{\partial t} = \frac{1}{r}[\frac{\partial (r \tau_{r\varphi})}{\partial r} + \frac{\partial (\tau_{\varphi \varphi})}{\partial \varphi} + \tau_{r \varphi}]\)</span></p>
+<p>can be rewritten to the angular momentum update seen in D’Angelo et al. 2002</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial \Sigma l}{\partial t} = \frac{1}{r}\frac{\partial (r^2 \tau_{r\varphi})}{\partial r} + \frac{\partial (\tau_{\varphi \varphi})}{\partial \varphi}\)</span></p>
+<p>Again we integrate over <span class="math notranslate nohighlight">\(\mathrm{d}V = r \mathrm{d}r \mathrm{d} \varphi\)</span>, we
+have: we have <span class="math notranslate nohighlight">\(\varphi\)</span> ranging over <span class="math notranslate nohighlight">\(\varphi^{j+1}\)</span> to <span class="math notranslate nohighlight">\(\varphi^{j}\)</span> and
+integrate <span class="math notranslate nohighlight">\(r\)</span> from <span class="math notranslate nohighlight">\(R_a^{i+1}\)</span> to <span class="math notranslate nohighlight">\(R_a^i\)</span> such that the middle of the
+integration is at <span class="math notranslate nohighlight">\(R_b^i\)</span>, <span class="math notranslate nohighlight">\(\varphi^{j-1/2}\)</span>, where <span class="math notranslate nohighlight">\(v_\varphi\)</span> is located.</p>
+<p><span class="math notranslate nohighlight">\(\int \frac{\partial \Sigma l}{\partial t} \mathrm{d}V = \int \frac{1}{r}\frac{\partial (r^2 \tau_{r\varphi})}{\partial r} \mathrm{d}V\)</span></p>
+<p><span class="math notranslate nohighlight">\(\int \frac{\partial \Sigma l}{\partial t} r \mathrm{d}r \mathrm{d} \varphi = \int \partial (r^2 \tau_{r\varphi})\mathrm{d} \varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{1}{2}((R_a^{i+1})^2 - (R_a^i)^2) \Delta \varphi \frac{\partial \Sigma l}{\partial t} = ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^{i})^2 \tau_{r\varphi}^{i}) \Delta \varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial \Sigma l}{\partial t} = \frac{2}{((R_a^{i+1})^2 - (R_a^i)^2)} ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^{i})^2 \tau_{r\varphi}^{i})\)</span></p>
+<p><span class="math notranslate nohighlight">\(\Sigma R_b^i \frac{\partial v_\varphi}{\partial t} = \frac{2}{((R_a^{i+1})^2 - (R_a^i)^2)} ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^{i})^2 \tau_{r\varphi}^{i})\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_\varphi}{\partial t} = \frac{1}{\Sigma R_b^i} \frac{2}{((R_a^{i+1})^2 - (R_a^i)^2)} ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^{i})^2 \tau_{r\varphi}^{i})\)</span></p>
+<p><span class="math notranslate nohighlight">\(\int \frac{\partial \Sigma l}{\partial t} \mathrm{d}V = \int \frac{\partial (\tau_{\varphi\varphi})} {\partial \varphi}  \mathrm{d}V\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{1}{2}((R_a^{i+1})^2 - (R_a^i)^2) \Delta \varphi \frac{\partial \Sigma l}{\partial t} = \int \frac{\partial (\tau_{\varphi\varphi})} {\partial \varphi} r \mathrm{d}r \mathrm{d}\varphi\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{1}{2}((R_a^{i+1})^2 - (R_a^i)^2) \Delta \varphi \frac{\partial \Sigma l}{\partial t} = \frac{1}{2}((R_a^{i+1})^2 - (R_a^i)^2) (\tau_{\varphi\varphi}^{j} - \tau_{\varphi\varphi}^{j-1})\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial \Sigma l}{\partial t} = \frac{(\tau_{\varphi\varphi}^{j} - \tau_{\varphi\varphi}^{j-1})}{\Delta \varphi}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_\varphi}{\partial t} = \frac{1}{\Sigma R_b^i} \frac{(\tau_{\varphi\varphi}^{j} - \tau_{\varphi\varphi}^{j-1})}{\Delta \varphi}\)</span></p>
+<p>The total <span class="math notranslate nohighlight">\(v_\varphi\)</span> update is then just the sum of the 2 components:</p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial v_\varphi}{\partial t} = \frac{2}{\Sigma^{j} + \Sigma^{j-1}}\frac{1}{R_b^i} (\frac{2}{((R_a^{i+1})^2 - (R_a^i)^2)} ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^{i})^2 \tau_{r\varphi}^{i}) + \frac{(\tau_{\varphi\varphi}^{j} - \tau_{\varphi\varphi}^{j-1})}{\Delta \varphi})\)</span></p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Physics and numerics</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="N-body.html">TODO N-body</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accretion.html">TODO accretion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspect%20ratio.html">TODO aspect ratio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html">TODO boundary conditions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Conservative form</a></li>
+<li class="toctree-l2"><a class="reference internal" href="energy_update.html">Implicit energy update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frame%20of%20reference.html">TODO frame of reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html">TODO gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydro%20simulations.html">TODO hydro simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html">Implicit viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="opacities.html">TODO opacities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles.html">TODO particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html">TODO radiative processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="self-gravity.html">TODO self-gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time%20step%20calculation.html">TODO time step calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable%20gamma.html">TODO variable gamma</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viscosity.html">TODO viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wave%20damping.html">TODO wave damping</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Physics and numerics</a><ul>
+      <li>Previous: <a href="boundary%20conditions.html" title="previous chapter">TODO boundary conditions</a></li>
+      <li>Next: <a href="energy_update.html" title="next chapter">Implicit energy update</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Numerics/conservative_viscosity_update.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
