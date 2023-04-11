@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Implicit energy update &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TODO frame of reference" href="frame%20of%20reference.html" />
+    <link rel="prev" title="Conservative form" href="conservative_viscosity_update.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="implicit-energy-update">
+<h1>Implicit energy update<a class="headerlink" href="#implicit-energy-update" title="Permalink to this heading">¶</a></h1>
+<p>FargoCPT code (old):</p>
+<p><span class="math notranslate nohighlight">\(\alpha = 1 +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^-}{\alpha}\)</span></p>
+<section id="what-is-alpha">
+<h2>What is <span class="math notranslate nohighlight">\(\alpha\)</span><a class="headerlink" href="#what-is-alpha" title="Permalink to this heading">¶</a></h2>
+<section id="equation-to-solve-frac-partial-e-e-rad-partial-t-p-nabla-u-q-q-nabla-f">
+<h3>Equation to solve: <span class="math notranslate nohighlight">\(\frac{\partial (e + E_{rad})}{\partial t} = -p\nabla u + Q^+ - Q^- - \nabla F\)</span><a class="headerlink" href="#equation-to-solve-frac-partial-e-e-rad-partial-t-p-nabla-u-q-q-nabla-f" title="Permalink to this heading">¶</a></h3>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t} = - p \nabla u + Q^+\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial E_{rad}}{\partial t} = - Q^- - \nabla F\)</span></p>
+<p><span class="math notranslate nohighlight">\(E_{rad} = 2 H \frac{\sigma_R}{c} T^4\)</span></p>
+<p><span class="math notranslate nohighlight">\(T = \frac{m_\mu(\gamma - 1)}{R\Sigma} e\)</span></p>
+<p><span class="math notranslate nohighlight">\(E_{rad} = 2 H \frac{\sigma_R}{c} (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^4\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial E_{rad}}{\partial t} = 2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3 \frac{\partial e}{\partial t}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial (e + E_{rad})}{\partial t} = -p\nabla u + Q^+ - Q^- - \nabla F\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t} +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3 \frac{\partial e}{\partial t}= -p\nabla u + Q^+ - Q^- - \nabla F\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t}(1 +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3)= -p\nabla u + Q^+ - Q^- - \nabla F\)</span></p>
+<p><span class="math notranslate nohighlight">\(\alpha = 1 +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^- - \nabla F} {\alpha}\)</span></p>
+</section>
+</section>
+<section id="questions">
+<h2>Questions<a class="headerlink" href="#questions" title="Permalink to this heading">¶</a></h2>
+<section id="is-this-operation-splitting-still-correct">
+<h3>Is this operation splitting still correct?<a class="headerlink" href="#is-this-operation-splitting-still-correct" title="Permalink to this heading">¶</a></h3>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^-}{\alpha}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t} = -p\nabla u\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{\partial e}{\partial t} = \frac{Q^+ - Q^-}{\alpha}\)</span></p>
+</section>
+<section id="what-is-the-actually-emitted-energy">
+<h3>What is the actually emitted energy?<a class="headerlink" href="#what-is-the-actually-emitted-energy" title="Permalink to this heading">¶</a></h3>
+<p><span class="math notranslate nohighlight">\(Q^-\)</span> or <span class="math notranslate nohighlight">\(\frac{Q^-}{\alpha}\)</span></p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Physics and numerics</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="N-body.html">TODO N-body</a></li>
+<li class="toctree-l2"><a class="reference internal" href="accretion.html">TODO accretion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aspect%20ratio.html">TODO aspect ratio</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary%20conditions.html">TODO boundary conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conservative_viscosity_update.html">Conservative form</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Implicit energy update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frame%20of%20reference.html">TODO frame of reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="gravity.html">TODO gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydro%20simulations.html">TODO hydro simulations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="implicit_viscosity.html">Implicit viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="opacities.html">TODO opacities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="particles.html">TODO particles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="radiative%20processes.html">TODO radiative processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="self-gravity.html">TODO self-gravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time%20step%20calculation.html">TODO time step calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable%20gamma.html">TODO variable gamma</a></li>
+<li class="toctree-l2"><a class="reference internal" href="viscosity.html">TODO viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wave%20damping.html">TODO wave damping</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Physics and numerics</a><ul>
+      <li>Previous: <a href="conservative_viscosity_update.html" title="previous chapter">Conservative form</a></li>
+      <li>Next: <a href="frame%20of%20reference.html" title="next chapter">TODO frame of reference</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/Numerics/energy_update.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
