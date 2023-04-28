@@ -118,6 +118,12 @@ void ComputeIndirectTermNbodyEuler(t_data &data)
 void ComputeIndirectTermNbody(t_data &data, const double current_time, const double dt)
 {
 
+	if(parameters::n_bodies_for_hydroframe_center == data.get_planetary_system().get_number_of_planets()){
+	IndirectTermPlanets.x = 0.0;
+	IndirectTermPlanets.y = 0.0;
+        return;
+	}
+
 	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
 		ComputeNbodyOnNbodyAccel(data.get_planetary_system());
 		ComputeIndirectTermNbodyEuler(data);
