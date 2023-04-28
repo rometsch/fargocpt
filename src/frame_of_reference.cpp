@@ -123,13 +123,13 @@ void ComputeIndirectTermNbody(t_data &data, const double current_time, const dou
 		ComputeIndirectTermNbodyEuler(data);
 	} else {
 
-	data.get_planetary_system().integrate_indirect_term_predictor(current_time, dt);
-
 	if(dt != 0.0){ // Indirect term from Rebound
 	/// compute the Indirect term as the effective acceleration from a high order nbody integrator.
 	/// this typically leads to vel_center ~ 0/0 but pos_center != 0/0, but shifting the center to 0.0 causes an error
 	/// because the gas does not feel the kick
-	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor();
+	data.get_planetary_system().copy_data_to_rebound();
+	data.get_planetary_system().m_rebound->t = current_time;
+	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor(dt);
 	pair accel{delta_vel.x/dt, delta_vel.y/dt};
 
 	if(parameters::indirect_term_mode == INDIRECT_TERM_REB_SPRING) { // Spring forces to keep central object near 0,0
