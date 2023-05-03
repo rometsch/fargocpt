@@ -38,7 +38,6 @@
 #include "quantities.h"
 #include "selfgravity.h"
 #include "stress.h"
-#include "sts.h"
 #include "units.h"
 #include "util.h"
 #include "viscosity/viscosity.h"
@@ -625,12 +624,9 @@ static void irradiation(t_data &data) {
 void calculate_qplus(t_data &data)
 {
 
-    if (parameters::EXPLICIT_VISCOSITY) {
-		data[t_data::QPLUS].clear();
-    }
+    data[t_data::QPLUS].clear();
 
-
-    if (parameters::heating_viscous_enabled && parameters::EXPLICIT_VISCOSITY) {
+    if (parameters::heating_viscous_enabled) {
 			viscous_heating(data);
     }
     if (parameters::heating_star_enabled) {

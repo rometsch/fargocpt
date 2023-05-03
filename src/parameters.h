@@ -8,8 +8,6 @@ namespace parameters
 
 extern double ASPECTRATIO_REF;
 extern int ASPECTRATIO_MODE;
-extern int EXPLICIT_VISCOSITY;
-extern double STS_NU;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
 extern int VISCOUS_ACCRETION;
