@@ -586,7 +586,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		const double dlogH_dlogr = 9.0 / 7.0;
 		
 		// irradiation contribution near and far from the star
-		// see D'Angelo & Marzari 2012
+		// see D'Angelo & Marzari 2012 (doi:10.1088/0004-637X/757/1/5), 
 		const double roverd = distance < radius ? 1.0 : radius/distance;
 		const double W_G = 0.4 * roverd + HoverR * (dlogH_dlogr - 1.0);
 
