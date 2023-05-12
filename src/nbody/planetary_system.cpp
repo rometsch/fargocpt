@@ -33,7 +33,6 @@ t_planetary_system::~t_planetary_system()
 
     m_planets.clear();
     reb_free_simulation(m_rebound);
-	reb_free_simulation(m_rebound_predictor);
 }
 
 void t_planetary_system::init_rebound()
@@ -67,8 +66,6 @@ void t_planetary_system::init_rebound()
 	p.sim = nullptr;
 	reb_add(m_rebound, p);
     }
-
-	m_rebound_predictor = reb_copy_simulation(m_rebound);
 }
 
 void t_planetary_system::init_system(const std::string &filename)
@@ -582,8 +579,14 @@ Pair t_planetary_system::get_hydro_frame_center_position() const
     return get_center_of_mass(parameters::n_bodies_for_hydroframe_center);
 }
 
-Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor() const
+Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor(const double dt) const
 {
+
+
+    struct reb_simulation *m_rebound_predictor;
+    m_rebound_predictor = reb_copy_simulation(m_rebound);
+    reb_integrate(m_rebound_predictor, m_rebound->t + dt);
+
 	double vx_old = 0.0;
 	double vy_old = 0.0;
 	double vx_new = 0.0;
@@ -805,56 +808,6 @@ void t_planetary_system::move_to_hydro_center_and_update_orbital_parameters()
 	calculate_orbital_elements();
 }
 
-void t_planetary_system::copy_rebound_to_predictor()
-{
-	m_rebound_predictor->t = m_rebound->t;
-	m_rebound_predictor->dt = m_rebound->dt;
-	m_rebound_predictor->dt_last_done = m_rebound->dt_last_done;
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	m_rebound_predictor->particles[i].x = m_rebound->particles[i].x;
-	m_rebound_predictor->particles[i].y = m_rebound->particles[i].y;
-	m_rebound_predictor->particles[i].vx = m_rebound->particles[i].vx;
-	m_rebound_predictor->particles[i].vy = m_rebound->particles[i].vy;
-	m_rebound_predictor->particles[i].r = m_rebound->particles[i].r;
-	m_rebound_predictor->particles[i].m = m_rebound->particles[i].m;
-	}
-}
-
-void t_planetary_system::compare_rebound_to_predictor()
-{
-	std::cout
-	<< (m_rebound_predictor->t == m_rebound->t)
-	<< (m_rebound_predictor->dt == m_rebound->dt)
-	<< (m_rebound_predictor->dt_last_done == m_rebound->dt_last_done);
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	std::cout
-	<< (m_rebound_predictor->particles[i].x == m_rebound->particles[i].x)
-	<< (m_rebound_predictor->particles[i].y == m_rebound->particles[i].y)
-	<< (m_rebound_predictor->particles[i].vx == m_rebound->particles[i].vx)
-	<< (m_rebound_predictor->particles[i].vy == m_rebound->particles[i].vy)
-	<< (m_rebound_predictor->particles[i].r == m_rebound->particles[i].r)
-	<< (m_rebound_predictor->particles[i].m == m_rebound->particles[i].m);
-	}
-	std::cout << std::endl;
-}
-
-/**
-   Integrate the predictor nbody system forward in time using rebound.
-*/
-void t_planetary_system::integrate_indirect_term_predictor(double time, double dt)
-{
-	if (get_number_of_planets() < 2) {
-	// don't integrate a single particle that doesn't move
-	return;
-	}
-
-	copy_data_to_rebound();
-	m_rebound->t = time;
-	copy_rebound_to_predictor();
-	disable_trap_fpe_gnu();
-	reb_integrate(m_rebound_predictor, time + dt);
-	enable_trap_fpe_gnu();
-}
 
 /**
    Integrate the nbody system forward in time using rebound.

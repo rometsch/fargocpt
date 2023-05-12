@@ -439,6 +439,7 @@ void t_planet::copy_orbital_elements(const t_planet &other)
 	m_true_anomaly = other.get_true_anomaly();
 	m_eccentric_anomaly = other.get_eccentric_anomaly();
 	m_pericenter_angle = other.get_pericenter_angle();
+	m_orbital_period = other.get_orbital_period();
 }
 
 void t_planet::set_orbital_elements_zero()
