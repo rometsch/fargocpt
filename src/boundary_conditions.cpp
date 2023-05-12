@@ -1380,9 +1380,9 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	}
 
 
-	/*
 
-	t_polargrid &sigma = data[t_data::DENSITY];
+
+	/*t_polargrid &sigma = data[t_data::SIGMA];
 	for (unsigned int nr = clamped_vphi_id;
 		 nr < sigma.get_size_radial(); ++nr) {
 		double factor = std::pow(
@@ -1404,7 +1404,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	const double cell_sigma0 =
 	parameters::sigma0 *
 	std::pow(r_com,
-		 -SIGMASLOPE); // we assume the floor is not reached.
+		 -parameters::SIGMASLOPE); // we assume the floor is not reached.
 
 	const double cell_sigma = sigma(nr, naz);
 	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;

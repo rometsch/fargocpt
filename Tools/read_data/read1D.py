@@ -7,6 +7,15 @@ class read1D:
     def __init__(self, output_folder_path, quantity):
         self.output_folder_path = output_folder_path
         self.quantity = quantity
+
+
+        with open(self.output_folder_path + "units.dat") as f:
+            self.header = f.readline()
+            self.header = f.readline()
+            self.header = f.readline()
+            self.l0_to_cm = re.search("l0 = [+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)", self.header).groups()[0].strip() * u.cm
+            self.l0_to_cm.decompose().to("AU")
+
         with open(self.output_folder_path + quantity + "1D" + ".info") as f:
             self.header = f.readline()
             self.header = f.readline()
@@ -17,7 +26,7 @@ class read1D:
             self.header = f.readline()
             self.unit = re.search("unit = ([^,]*)", self.header).groups()[0].strip()
             self.header = f.readline()
-            self.code_to_cgs_factor = re.search("code_units_to_cgs_factor = (-?\d*\.?\d+e[+-]?\d+)", self.header).groups()[0].strip()
+            self.code_to_cgs_factor = re.search("code_units_to_cgs_factor = [+-]?(\d+([.]\d*)?([eE][+-]?\d+)?|[.]\d+([eE][+-]?\d+)?)", self.header).groups()[0].strip()
             print(quantity, self.unit, self.code_to_cgs_factor)
 
     def read(self, dt, return_min_max=False):
@@ -35,7 +44,7 @@ class read1D:
                 raise ValueError("read1D.py: Output data length ({}) is not a multiple of Nr = {}".format(len(density), Nr))
 
             density = density*u.Unit(self.unit)*self.code_to_cgs_factor
-            rs = rs*u.Unit('au')
+            rs = rs*self.l0_to_cm
 
             if return_min_max:
                 min_density *= u.Unit(self.unit)*self.code_to_cgs_factor

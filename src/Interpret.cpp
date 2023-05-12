@@ -198,8 +198,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     parameters::ASPECTRATIO_MODE = cfg.get<int>("AspectRatioMode", 0);
 
     const double T0 = cfg.get<double>("Temperature0", "-1", units::Temp0);
-    if (T0 > 0.0) // rescale parameters::ASPECTRATIO_REF according to Temperature
+	if (T0 > 0.0){ // rescale parameters::ASPECTRATIO_REF according to Temperature
 	parameters::ASPECTRATIO_REF = sqrt(T0 * constants::R / parameters::MU);
+	}
 
     // time settings
     parameters::NTOT = cfg.get<unsigned int>("NTOT", 1000);

@@ -25,12 +25,11 @@ if cmd_subfolder not in sys.path:
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'Tools', 'read_data'))
 from read_gasMassFlow1D import gasMassFlow1D
-from read_par_file import read_par_file, read_unit_file
+from read_par_file import read_unit_file
 from read1D import read1D
 
-out_folder = "./out_damp_surface_only/"
 out_folder = "./out/"
-setup  = read_par_file("./fargo.par")
+
 units = read_unit_file(out_folder)
 def M_dot(radius, surface_density, vis):
 
@@ -53,11 +52,11 @@ dens1D_reader = read1D(out_folder, "Sigma")
 vrad1D_reader = read1D(out_folder, "vrad")
 vis1D_reader = read1D(out_folder, "viscosity")
 
-N_output = np.loadtxt(out_folder + "/monitor/timeMonitor.dat", usecols=(0,1), dtype=np.int)
+N_output = np.loadtxt(out_folder + "/monitor/timeMonitor.dat", usecols=(0,1), dtype=int)
 radii = np.loadtxt(out_folder + "used_rad.dat")
 N_DT = N_output[:,1]
-N_output = np.array([0, 50, 150, 190])
-#N_output = np.array([0, 1, 3, 10, 30])
+N_max = N_output[-1][0]
+N_output = np.array([0, int(N_max*0.333), int(N_max*0.667), N_max])
 
 fig, axs = plt.subplots(2,1, sharex=True)
 
@@ -65,16 +64,11 @@ for ax in axs[:-0]:
     ax.set_yscale('log')
     ax.set_xscale('log')
 
-quantities = np.loadtxt("out/monitor/Quantities.dat", skiprows=24)
-
-mass = quantities[:,3]
-
 
 
 ind = 0
 for n in N_output:
 
-    print(mass[N_DT[n]])
     _, sigma0 = dens1D_reader.read(0)
     _, vrad0 = vrad1D_reader.read(0)
     vrad0[vrad0 == 0] = np.max(vrad0[vrad0 != 0])
@@ -86,12 +80,14 @@ for n in N_output:
     x2_, y2_ = M_dot2(r__, sigma_, vrad_)
 
     rs, data = mass_flow_reader.read(n)
+    if n == 0:
+        data[data == 0] = np.mean(y_)
     data = data.to("solMass/yr")
     axs[0].plot(rs[1:-1], np.abs(data[1:-1]), label="Simulation " + str(n), color='C' + str(ind))
-    axs[0].plot(x_, np.abs(y_), 's', color='C' + str(ind))
+    axs[0].plot(x_, np.abs(y_), 's', color='C' + str(ind), label='From Viscosity')
     #ax.plot(r_, np.abs(sigma_), 's',label="density" + str(n))
     #ax.plot(r__, np.abs(vrad_), '.',label="vr" + str(n))
-    axs[0].plot(x2_, np.abs(y2_), '.', color='C' + str(ind))
+    axs[0].plot(x2_, np.abs(y2_), '.', color='C' + str(ind), label='From Velocity')
 
     axs[1].plot(r_, (sigma_/sigma0), '-', label="density" + str(n))
     axs[1].plot(r__, (vrad_/vrad0), '.', label="vr" + str(n), color='C' + str(ind))
