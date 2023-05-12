@@ -13,7 +13,6 @@
 #include "viscosity/viscosity.h"
 #include "viscosity/artificial_viscosity.h"
 #include "TransportEuler.h"
-#include "sts.h"
 #include "accretion.h"
 #include "cfl.h"
 #include "quantities.h"
@@ -187,19 +186,14 @@ static void step_Euler(t_data &data, const double dt) {
 
 	    update_with_sourceterms(data, dt);
 
-	    if (parameters::EXPLICIT_VISCOSITY) {
-		// compute and add acceleartions due to disc viscosity as a
-		// source term
-		art_visc::update_with_artificial_viscosity(data, dt);
+	    // compute and add acceleartions due to disc viscosity as a
+	    // source term
+	    art_visc::update_with_artificial_viscosity(data, dt);
 
-		recalculate_viscosity(data, sim::PhysicalTime);
-		viscosity::compute_viscous_stress_tensor(data);
-		viscosity::update_velocities_with_viscosity(data, dt);
-	    }
+	    recalculate_viscosity(data, sim::PhysicalTime);
+	    viscosity::compute_viscous_stress_tensor(data);
+	    viscosity::update_velocities_with_viscosity(data, dt);
 
-	    if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, time, dt);
-	    }
 
 	    if (parameters::Adiabatic) {
 		SubStep3(data, time, dt);
@@ -316,17 +310,12 @@ static void step_Euler(t_data &data, const double dt) {
 
 		update_with_sourceterms(data, frog_dt);
 
-	    if (parameters::EXPLICIT_VISCOSITY) {
-
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-	    }
-	    if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, start_time, frog_dt);
-	    }
+
 
 	    if (parameters::Adiabatic) {
 		SubStep3(data, start_time, frog_dt);
@@ -402,16 +391,11 @@ static void step_Euler(t_data &data, const double dt) {
 
 		update_with_sourceterms(data, frog_dt);
 
-		if (parameters::EXPLICIT_VISCOSITY) {
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, end_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-		}
-		if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, end_time, frog_dt);
-		}
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, end_time, frog_dt);
@@ -533,17 +517,11 @@ static void step_Euler(t_data &data, const double dt) {
 
 		update_with_sourceterms(data, frog_dt);
 
-		if (parameters::EXPLICIT_VISCOSITY) {
-
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-		}
-		if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, start_time, frog_dt);
-		}
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, start_time, frog_dt);
@@ -594,16 +572,11 @@ static void step_Euler(t_data &data, const double dt) {
 		compute_pressure(data);
 		update_with_sourceterms(data, frog_dt);
 
-		if (parameters::EXPLICIT_VISCOSITY) {
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, midstep_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-		}
-		if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, midstep_time, frog_dt);
-		}
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, midstep_time, frog_dt);

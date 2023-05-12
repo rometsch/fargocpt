@@ -29,8 +29,6 @@ namespace parameters
 
 double ASPECTRATIO_REF;
 int ASPECTRATIO_MODE;
-int EXPLICIT_VISCOSITY;
-double STS_NU;
 double VISCOSITY;
 double ALPHAVISCOSITY;
 int VISCOUS_ACCRETION;
@@ -885,15 +883,6 @@ void read(const std::string &filename, t_data &data)
     tau_factor = config::cfg.get<double>("TauFactor", 0.5);
     kappa_factor = config::cfg.get<double>("KappaFactor", 1.0);
 	tau_min = config::cfg.get<double>("TauMin", 0.01);
-
-    EXPLICIT_VISCOSITY =
-	config::cfg.get_flag("ExplicitViscosity", "yes");
-
-    if (EXPLICIT_VISCOSITY) {
-	logging::print_master(LOG_INFO "Using EXPLICIT VISCOSITY\n");
-    } else {
-	logging::print_master(LOG_INFO "Using SUPER TIMESTEPPINGG VISCOSITY\n");
-    }
 
     // artificial visocisty
     switch (config::cfg.get_first_letter_lowercase("ArtificialViscosity", "SN")) {

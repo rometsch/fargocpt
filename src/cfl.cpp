@@ -325,28 +325,12 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		}
 
 		double dt_cell;
-		if (parameters::EXPLICIT_VISCOSITY) {
 		// calculate new dt based on different limits
 		dt_cell = parameters::CFL /
 			  std::sqrt(std::pow(invdt1, 2) + std::pow(invdt2, 2) +
 					std::pow(invdt3, 2) + std::pow(invdt4, 2) +
 					std::pow(invdt5, 2) + std::pow(invdt6, 2));
-		} else {
-		// viscous timestep
-		if (invdt4 > 0.0 && invdt5 > 0.0) {
-			dt_parabolic_local = std::min(
-			dt_parabolic_local,
-			parameters::CFL / std::sqrt(std::pow(invdt4, 2) +
-							std::pow(invdt5, 2)));
-		}
 
-		// calculate new dt based on different limits
-		dt_cell = parameters::CFL /
-			  std::sqrt(std::pow(invdt1, 2) + std::pow(invdt2, 2) +
-					std::pow(invdt3, 2) + std::pow(invdt6, 2));
-
-		dt_cell = std::min(dt_cell, 3.0 * dt_parabolic_local);
-		}
 
 		double dt_stable_visc = std::numeric_limits<double>::max();
 		if (StabilizeViscosity == 2) {
