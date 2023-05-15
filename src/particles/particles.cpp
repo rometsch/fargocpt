@@ -995,8 +995,8 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 static double calc_tstop(const double size, const double rho, const double vrel, const double temperature) {
 
     // From Giovanni Picogna, used in
-    // https://www.aanda.org/articles/aa/pdf/2018/08/aa32523-17.pdf propably
-    // adapted from https://www.aanda.org/articles/aa/pdf/2003/07/aah3912.pdf
+    // Picogna et al. 2018 https://doi.org/10.1051/0004-6361/201732523 propably
+    // adapted from Woitke & Helling 2002 https://doi.org/10.1051/0004-6361:20021734
 
     const double m0 = parameters::MU * constants::m_u.get_code_value();
     const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
@@ -1007,8 +1007,8 @@ static double calc_tstop(const double size, const double rho, const double vrel,
     if (vthermal > 1.e20)
 	die("Zero VT1 %e\n", vthermal);
 
-    double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
-    double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
+    double crosssec = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2); // units of L^2
+    double nu = 1.0 / 3.0 * m0 * vthermal / crosssec; // units of M / (L * T)
     
 	if (nu < 1.e-20) {
 		die("Zero nu %e\n", nu);
@@ -1016,6 +1016,7 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 		die("Zero nu1 %e\n", nu);
     }
 
+	// TODO: there seems to be some hardcoded physical here, this needs to have proper unit treatment! Or at least it needs proper explanation in form of comments.
 	double l = 4.72e-9 / rho;
     
 	if (l < 1.e-20) {
@@ -1041,7 +1042,7 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 		die("Zero Ma1 %e\n", Ma);
 	}
     
-	double Re = 2.0 * size * rho * vrel / nu;
+	double Re = 2.0 * size * rho * vrel / nu; // units of L * M / L^3 * L / T / M * L * T = 1
     
 	double CdE = 2.0 * sqrt(Ma * Ma + 128.0 / 9.0 / M_PI);
 	
