@@ -1444,15 +1444,6 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO
 			      "Opacity uses tables from Bell & Lin, 1994\n");
 	break;
-    case opacity_zhu:
-	logging::print_master(LOG_INFO
-			      "Opacity uses tables from Zhu et al., 2012\n");
-	break;
-    case opacity_kramers:
-	logging::print_master(
-	    LOG_INFO
-	    "Kramers opacity and constant electron scattering (Thomson) used.\n");
-	break;
     case opacity_const_op:
 	logging::print_master(LOG_INFO "Using constant opacity kappa_R = %e.\n",
 			      kappa_const);
