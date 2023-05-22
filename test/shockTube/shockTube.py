@@ -182,7 +182,7 @@ def visualize(Nsnapshot):
         if quant == 'Temperature':
             ax.legend(loc='lower left')
 
-    plt.savefig('ShockTube.pdf', dpi=300, bbox_inches='tight')
+    # plt.savefig('ShockTube.pdf', dpi=300, bbox_inches='tight')
     plt.show()
 
 def main():
