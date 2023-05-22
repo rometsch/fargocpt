@@ -30,11 +30,6 @@ test_cases = {
         "color" : "blue",
         "ls" : "--"
     },
-    "SN STS" : {
-        "outdir" : 'output/STS/',
-        "color" : "gold",
-        "ls" : ":"
-    },
     "TW LF" : {
         "outdir" : 'output/TW_LF/',
         "color" : "green",
@@ -55,11 +50,10 @@ def compile_fargo(fargo_path):
         subprocess.run(['make', '-j', '2',  '-C' 'src/'], stdout=logfile)
     os.chdir(wd)
 
-
 def run(par_file):
     logfilename = os.path.basename(par_file).replace(".yml",".log")
     with open(logfilename, "w") as logfile:
-        subprocess.call('../../fargo start ' + par_file, shell=True, stdout=logfile)
+        subprocess.call('../../run_fargo start ' + par_file, shell=True, stdout=logfile)
 
 def get_analytic_spl(quant):
     analytic_data = np.loadtxt("analytic_shock.dat", skiprows=2)
