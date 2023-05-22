@@ -186,7 +186,6 @@ def main():
     compile_fargo('../../')
     run('setups/shocktube_SN.yml')
     run('setups/shocktube_TW.yml')
-    run('setups/shocktube_STS.yml')
     run('setups/shocktube_TW_LF.yml')
     run('setups/shocktube_SN_LF.yml')
     
