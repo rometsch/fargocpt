@@ -999,6 +999,9 @@ static double calc_tstop(const double size, const double rho, const double vrel,
     // adapted from Woitke & Helling (2002) https://doi.org/10.1051/0004-6361:20021734
 
     const double m0 = parameters::MU * constants::m_u.get_code_value();
+
+	// PK18 below (5) vthermal = sqrt(pi/8) * cs
+	// WH 
     const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				      temperature / (M_PI * m0));
 
