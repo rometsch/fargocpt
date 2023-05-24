@@ -149,26 +149,17 @@ def test_2D_R_PHI(out, ax, dt):
     return data
 
 
-parfile = "speith2003_log_grid.yml"
+parfile = "ring512.yml"
 compile_fargo('../../')
 run('../../', 'test/spreading_ring/' + parfile)
 
-dts = np.array([7, 17, 30, 43, 70, 86])*2-7
-
-fig, axs = plt.subplots(2,3,figsize=(8,4))
-fig.subplots_adjust(hspace=0.42)
+fig, axs = plt.subplots(1,1,figsize=(6,4.5))
 
 axs = np.ravel(axs)
+ax = axs[0]
+ax.set_ylabel('$\Sigma$ [code units]')
+ax.set_xlabel('x')
+data = test_1D("../../" + parfile[:-4], ax, 140)
 
-
-for i in range(len(dts)):
-    if i > 0:
-        axs[i].get_shared_x_axes().join(axs[i],axs[i-1])
-        axs[i].get_shared_y_axes().join(axs[i],axs[i-1])
-    dt = dts[i]
-    ax = axs[i]
-    data = test_1D("../../" + parfile[:-4], ax, dt)
-
-
-
+plt.savefig('spreading_ring.pdf', dpi=300, bbox_inches='tight')
 plt.show()
