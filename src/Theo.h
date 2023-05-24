@@ -4,10 +4,12 @@
 #include "constants.h"
 #include "global.h"
 #include "types.h"
+#include "nbody/planetary_system.h"
 
 double initial_energy(const double R, const double M);
 double initial_viscous_radial_speed(const double R, const double M);
 double initial_locally_isothermal_smoothed_v_az(const double R, const double M);
+void init_binary_quadropole_moment(const t_planetary_system &psys);
 double initial_locally_isothermal_v_az(const double R, const double M);
 double compute_v_kepler(const double R, const double M);
 double calculate_omega_kepler(double r);

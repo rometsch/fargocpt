@@ -173,6 +173,8 @@ double delta_ecc_visc, delta_peri_visc;
 double delta_ecc_transport, delta_peri_transport;
 double delta_ecc_damp, delta_peri_damp;
 
+double binary_quadropole_moment;
+
 std::vector<double> g_xpl;
 std::vector<double> g_ypl;
 std::vector<double> g_mpl;
