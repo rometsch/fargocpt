@@ -94,6 +94,7 @@ MassAccretionRate: '1'   # Mass accretion rate (from secondary, young stellar cl
 MassAccretionRadius: '0.2'   # Mass accretion radius in unints of R_hill / 2
 KlahrSmoothingRadius: '0.2'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
+ViscousOutflowSpeed: '5'     # Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed
 
 # Numerical method parameters
 
