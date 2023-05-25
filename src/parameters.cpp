@@ -213,6 +213,8 @@ double mass_accretion_rate;
 double accretion_radius_fraction;
 double klahr_smoothing_radius;
 
+double visc_accret_massflow_test;
+
 unsigned int zbuffer_size;
 double zbuffer_maxangle;
 
@@ -1059,6 +1061,9 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("MassAccretionRadius", 1.0);
     klahr_smoothing_radius = config::cfg.get<double>(
 	"KlahrSmoothingRadius", accretion_radius_fraction);
+
+    visc_accret_massflow_test =
+        config::cfg.get_flag("ViscAccretMassflowTest", "no");
 
     CFL = config::cfg.get<double>("CFL", 0.5);
     HEATING_COOLING_CFL_LIMIT =
