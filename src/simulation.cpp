@@ -384,7 +384,10 @@ static void step_Euler(t_data &data, const double dt) {
 		pvte::compute_gamma_mu(data);
 		}
 
+        if(!parameters::Locally_Isothermal){
 		compute_pressure(data);
+        }
+
 		if(parameters::self_gravity || parameters::variableGamma){
 			compute_sound_speed(data, end_time);
 			compute_scale_height(data, end_time);
@@ -570,7 +573,10 @@ static void step_Euler(t_data &data, const double dt) {
 			compute_scale_height(data, midstep_time);
 		}
 
-		compute_pressure(data);
+        if(!parameters::Locally_Isothermal){
+        compute_pressure(data);
+        }
+
 		update_with_sourceterms(data, frog_dt);
 
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
