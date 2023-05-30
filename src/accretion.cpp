@@ -358,8 +358,8 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     double f_const;
 
     if(parameters::visc_accret_massflow_test){
-    const double area = 2.0 * M_PI * ((1.0/2.0 * std::pow(RMIN, 2)     - 1.0/3.0 * std::pow(RMIN, 3)/dist_max)
-                                    - (1.0/2.0 * std::pow(dist_max, 2) - 1.0/3.0 * std::pow(dist_max, 2)));
+    const double area = 2.0 * M_PI * ((1.0/2.0 * std::pow(dist_max, 2) - 1.0/3.0 * std::pow(dist_max, 2))
+                            -(1.0/2.0 * std::pow(RMIN, 2)     - 1.0/3.0 * std::pow(RMIN, 3)/dist_max));
     f_const = 1.0 / area;
     } else {
     f_const = 3.0 / M_PI / std::pow(dist_max, 2);
