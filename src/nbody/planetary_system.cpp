@@ -763,9 +763,7 @@ void t_planetary_system::copy_data_from_rebound_update_orbital_parameters()
 	planet.set_vy(m_rebound->particles[i].vy);
     }
 
-	if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
 	move_to_hydro_frame_center();
-	}
 
 	/// Needed for Aspectratio mode = 1
 	/// and to correctly compute circumplanetary disk mass
@@ -796,9 +794,7 @@ void t_planetary_system::copy_data_from_rebound()
 void t_planetary_system::move_to_hydro_center_and_update_orbital_parameters()
 {
 
-	if(parameters::indirect_term_mode != INDIRECT_TERM_REB_SPRING){
 	move_to_hydro_frame_center();
-	}
 
 	/// Needed for Aspectratio mode = 1
 	/// and to correctly compute circumplanetary disk mass
