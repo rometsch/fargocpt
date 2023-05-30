@@ -138,6 +138,11 @@ static void step_Euler(t_data &data, const double dt) {
 
 	const double time = PhysicalTime;
 
+	if (parameters::calculate_disk){
+		// minimum density is assured inside AccreteOntoPlanets
+	    accretion::AccreteOntoPlanets(data, dt);
+	}
+
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
@@ -166,14 +171,6 @@ static void step_Euler(t_data &data, const double dt) {
 	if (parameters::integrate_particles) {
 		particles::update_velocities_from_indirect_term(dt);
 		particles::integrate(data, time, dt);
-	}
-
-	/** Planets' positions and velocities are updated from gravitational
-	 * interaction with star and other planets */
-	if (parameters::integrate_planets) {
-		data.get_planetary_system().integrate(time, dt);
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 	}
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
@@ -210,6 +207,14 @@ static void step_Euler(t_data &data, const double dt) {
 			  dt);
 	}
 
+	/** Planets' positions and velocities are updated from gravitational
+	 * interaction with star and other planets */
+	if (parameters::integrate_planets) {
+		data.get_planetary_system().integrate(time, dt);
+		data.get_planetary_system().copy_data_from_rebound();
+		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
+	}
+
 	// TODO: move outside step
 	PhysicalTime += dt;
 	N_hydro_iter = N_hydro_iter + 1;
@@ -228,9 +233,6 @@ static void step_Euler(t_data &data, const double dt) {
 		compute_scale_height(data, true);
 		viscosity::update_viscosity(data);
 	    }
-
-		// minimum density is assured inside AccreteOntoPlanets
-	    accretion::AccreteOntoPlanets(data, dt);
 
 	    boundary_conditions::apply_boundary_condition(data, time, dt, true);
 
