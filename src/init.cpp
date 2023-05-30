@@ -1935,7 +1935,7 @@ void init_gas_velocities(t_data &data)
 			ri;
 
 		if (!parameters::initialize_vradial_zero) {
-			const double vr_visc = viscous_speed::get_vr_with_numerical_viscous_speed(ri, hydro_center_mass);
+            const double vr_visc = initial_viscous_radial_speed(ri, hydro_center_mass);
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) += vr_visc;
 		} else {
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
