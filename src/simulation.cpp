@@ -184,6 +184,7 @@ static void step_Euler(t_data &data, const double dt) {
 	if (parameters::calculate_disk) {
 		//HandleCrash(data);
 
+        boundary_conditions::apply_boundary_condition(data, time, dt, false);
 	    update_with_sourceterms(data, dt);
 
 	    // compute and add acceleartions due to disc viscosity as a
