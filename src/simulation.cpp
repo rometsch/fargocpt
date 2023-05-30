@@ -224,8 +224,8 @@ static void step_Euler(t_data &data, const double dt) {
 	    // accretion are not also hit by viscous accretion at inner
 	    // boundary.
 	    if (parameters::VISCOUS_ACCRETION) {
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
+        compute_sound_speed(data, PhysicalTime);
+        compute_scale_height(data, PhysicalTime);
 		viscosity::update_viscosity(data);
 	    }
 
@@ -248,11 +248,11 @@ static void step_Euler(t_data &data, const double dt) {
 				      // scale_height is already updated
 		// Recompute scale height after Transport to update the 3D
 		// density
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
+        compute_sound_speed(data, PhysicalTime);
+        compute_scale_height(data, PhysicalTime);
 	    }
 	    // this must be done after CommunicateBoundaries
-	    recalculate_derived_disk_quantities(data, true);
+        recalculate_derived_disk_quantities(data, PhysicalTime);
 	}
 }
 
