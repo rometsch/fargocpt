@@ -19,19 +19,12 @@ double opacity(double density, double temperature)
 	return bell(density, temperature);
 	break;
 
-    case parameters::opacity_zhu:
-	return zhu(density, temperature);
-	break;
-
-    case parameters::opacity_kramers:
-	return kramers(density, temperature);
-	break;
-
     case parameters::opacity_const_op:
 	return parameters::kappa_const;
 	break;
 
     case parameters::opacity_simple:
+	// this is only used for the temperature test
 	return parameters::kappa_const * std::pow(temperature, 2);
 	break;
 
@@ -294,71 +287,6 @@ double bell(double density, double temperature)
 			    std::pow(o3 / (1 + 1.e22 / t10), 4),
 			0.25);
     }
-}
-
-/**
-	Opacities after Zhu et al. (2012)
-	based on http://www.astro.princeton.edu/~zhzhu/opaczhuice.c
-*/
-double zhu(double density, double temperature)
-{
-    double xlop, xlp, xlt, rosstabd, pre;
-
-    pre = density * temperature * 8.314472 * 1.e7 / 2.4;
-    if (pre < 0. || temperature < 0.) {
-	fprintf(stderr, "error: pre or T negative\n");
-	fprintf(stderr, "pre: %g T: %g\n", pre, temperature);
-    }
-    if (pre == 0 || temperature == 0)
-	return (1.);
-    xlp = log10(pre);
-    xlt = log10(temperature);
-
-    if (xlt < 2.23567 + 0.01899 * (xlp - 5.)) {
-	xlop = 1.5 * (xlt - 1.16331) - 0.736364;
-    } else if (xlt < 2.30713 + 0.01899 * (xlp - 5.)) {
-	xlop = -3.53154212 * xlt + 8.767726 -
-	       (7.24786 - 8.767726) * (xlp - 5.) / 16.;
-    } else if (xlt < 2.79055) {
-	xlop = 1.5 * (xlt - 2.30713) + 0.62;
-    } else if (xlt < 2.96931) {
-	xlop = -5.832 * xlt + 17.7;
-    } else if (xlt < 3.29105 + (3.29105 - 3.07651) * (xlp - 5.) / 8.) {
-	xlop = 2.129 * xlt - 5.9398;
-    } else if (xlt < 3.08 + 0.028084 * (xlp + 4)) {
-	xlop = 129.88071 - 42.98075 * xlt +
-	       (142.996475 - 129.88071) * 0.1 * (xlp + 4);
-    } else if (xlt < 3.28 + xlp / 4. * 0.12) {
-	xlop = -15.0125 + 4.0625 * xlt;
-    } else if (xlt < 3.41 + 0.03328 * xlp / 4.) {
-	xlop = 58.9294 - 18.4808 * xlt + (61.6346 - 58.9294) * xlp / 4.;
-    } else if (xlt < 3.76 + (xlp - 4) / 2. * 0.03) {
-	xlop = -12.002 + 2.90477 * xlt + (xlp - 4) / 4. * (13.9953 - 12.002);
-    } else if (xlt < 4.07 + (xlp - 4) / 2. * 0.08) {
-	xlop = -39.4077 + 10.1935 * xlt + (xlp - 4) / 2. * (40.1719 - 39.4077);
-    } else if (xlt < 5.3715 + (xlp - 6) / 2. * 0.5594) {
-	xlop = 17.5935 - 3.3647 * xlt + (xlp - 6) / 2. * (17.5935 - 15.7376);
-    } else {
-	xlop = -0.48;
-    }
-
-    if (xlop < 3.586 * xlt - 16.85 && xlt < 4.) {
-	xlop = 3.586 * xlt - 16.85;
-    }
-
-    rosstabd = std::pow(10., xlop);
-
-    return rosstabd;
-}
-
-double kramers(double density, double temperature)
-{
-    double kappa_kramer, thomson_scattering;
-
-    thomson_scattering = 0.335;
-    kappa_kramer = 5.e24 * density * std::pow(temperature, -3.5);
-
-    return thomson_scattering + kappa_kramer;
 }
 
 } // namespace opacity

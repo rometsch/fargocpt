@@ -995,10 +995,13 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 static double calc_tstop(const double size, const double rho, const double vrel, const double temperature) {
 
     // From Giovanni Picogna, used in
-    // Picogna et al. 2018 https://doi.org/10.1051/0004-6361/201732523 propably
-    // adapted from Woitke & Helling 2002 https://doi.org/10.1051/0004-6361:20021734
+    // Picogna and Kley (2018) https://doi.org/10.1051/0004-6361/201732523
+    // adapted from Woitke & Helling (2002) https://doi.org/10.1051/0004-6361:20021734
 
     const double m0 = parameters::MU * constants::m_u.get_code_value();
+
+	// PK18 below (5) vthermal = sqrt(pi/8) * cs
+	// WH 
     const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				      temperature / (M_PI * m0));
 
@@ -1007,8 +1010,11 @@ static double calc_tstop(const double size, const double rho, const double vrel,
     if (vthermal > 1.e20)
 	die("Zero VT1 %e\n", vthermal);
 
-    double crosssec = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2); // units of L^2
-    double nu = 1.0 / 3.0 * m0 * vthermal / crosssec; // units of M / (L * T)
+	// from Haghighipour & Boss (2003) 10.1086/345472, Eq. (20) below for value of molecular hydrogen.
+	const double a0 = 1.5e-8 * units::length.get_inverse_cgs_factor();
+    double cross_section = M_PI * std::pow(a0, 2); // units of L^2
+	// gas molecular viscosity HB03 (6)
+    double nu = 1.0 / 3.0 * m0 * vthermal / cross_section; // units of M / (L * T)
     
 	if (nu < 1.e-20) {
 		die("Zero nu %e\n", nu);
@@ -1016,9 +1022,9 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 		die("Zero nu1 %e\n", nu);
     }
 
-	// TODO: there seems to be some hardcoded physical here, this needs to have proper unit treatment! Or at least it needs proper explanation in form of comments.
-	double l = 4.72e-9 / rho;
-    
+	// HB03 (20)
+	const double l = m0 / M_PI/ std::pow(a0, 2) / rho;
+
 	if (l < 1.e-20) {
 		die("Zero l %e\n", l);
 	} else if (l > 1.e20) {
@@ -1081,14 +1087,6 @@ static double calc_tstop(const double size, const double rho, const double vrel,
     
 	const double pdens = parameters::particle_density;
 	const double tstop = 4.0 * l * pdens / (3.0 * rho * Cd * c_s * Kn);
-    // printf("Cd = %.3e\n", Cd);
-    // printf("Kn = %.3e\n", Kn);
-    // printf("CdE = %.3e\n", CdE);
-    // printf("CdS = %.3e\n", CdS);
-    // printf("Ma = %.3e\n", Ma);
-    // printf("particle density = %.3e\n", parameters::particle_density);
-
-    // printf("tstop = %.3e, tstop_old = %.3e\n", tstop, tstop_old);
     return tstop;
 }
 
