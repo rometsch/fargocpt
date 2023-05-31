@@ -1023,9 +1023,6 @@ void read(const std::string &filename, t_data &data)
     case 'b': // Bell
 	opacity = opacity_bell;
 	break;
-    case 'z': // Zhu
-	opacity = opacity_zhu;
-	break;
     case 'k': // Kramers
 	opacity = opacity_kramers;
 	break;
