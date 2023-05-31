@@ -430,15 +430,41 @@ void update_with_sourceterms(t_data &data, const double dt)
 		data[t_data::V_AZIMUTHAL](nr - 1, naz) +
 		data[t_data::V_AZIMUTHAL](nr - 1, naz_next);
 		vt2 = 0.25 * vt2 + Rinf[nr] * refframe::OmegaFrame;
-	    vt2 = vt2 * vt2;
+        vt2 = vt2 * vt2;
 
-		const double InvR = 2.0 / (Rmed[nr] + Rmed[nr-1]);
+        const double centrifugal_accel = vt2 * InvRinf[nr];
+
+        /*
+        const double vt_top =
+            0.5*(data[t_data::V_AZIMUTHAL](nr, naz) +
+                   data[t_data::V_AZIMUTHAL](nr, naz_next));
+
+        const double vt_bot =
+            0.5*(data[t_data::V_AZIMUTHAL](nr - 1, naz) +
+                   data[t_data::V_AZIMUTHAL](nr - 1, naz_next));
+
+        double vt_int =
+            (Rinf[nr] - Rmed[nr-1]) * vt_top +
+            (Rmed[nr] - Rinf[nr]) * vt_bot;
+        vt_int *= InvDiffRmed[nr];
+        vt_int = vt_int + Rinf[nr] * refframe::OmegaFrame;
+        const double vt_int2 = vt_int*vt_int;
+        double vt_2 = vt_int2;
+
+        const double InvR_2 = 2.0 / (Rmed[nr] + Rmed[nr-1]);
+        const double centrifugal_accel2 = vt_2 * InvR_2;
+
+        if(nr == 2 && naz == 0){
+        printf("vt2 * InvR = %.5e %.5e (%.5e)\n", dt*centrifugal_accel, dt*centrifugal_accel2, dt*(centrifugal_accel - centrifugal_accel2) / centrifugal_accel);
+        }
+        */
+
 
 	    // add all terms to new v_radial: v_radial_new = v_radial +
 	    // dt*(source terms)
 		data[t_data::V_RADIAL](nr, naz) =
 		data[t_data::V_RADIAL](nr, naz) +
-		dt * (-gradp - gradphi + vt2 * InvR);
+        dt * (-gradp - gradphi + centrifugal_accel);
 
 	}
     }
