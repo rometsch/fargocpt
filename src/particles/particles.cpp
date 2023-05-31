@@ -994,63 +994,48 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 
 static double calc_tstop(const double size, const double rho, const double vrel, const double temperature) {
 
-    // From Giovanni Picogna, used in
-    // Picogna and Kley (2018) https://doi.org/10.1051/0004-6361/201732523
-    // adapted from Woitke & Helling (2002) https://doi.org/10.1051/0004-6361:20021734
+    // From Giovanni Picogna, used in PSK18, adapted from WH02
+    // 
+	// Literature references:
+	// PSK18: Picogna, Stoll & Kley (2018) https://doi.org/10.1051/0004-6361/201732523
+	// WH02: Woitke & Helling (2002) https://doi.org/10.1051/0004-6361:20021734
+	// HB03: Haghighipour & Boss (2003) 10.1086/345472
 
     const double m0 = parameters::MU * constants::m_u.get_code_value();
 
-	// PK18 below (5) vthermal = sqrt(pi/8) * cs
-	// WH 
+	// PSK18 below (5), WH02 below Eq. (9): vthermal = sqrt(pi/8) * cs
+
     const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				      temperature / (M_PI * m0));
 
-    // if (vthermal < 1.e-20)
-	// die("Zero VT %e\n", vthermal);
-    // if (vthermal > 1.e20) {
-	// die("Zero VT1 %e\n", vthermal);
-
-	// from Haghighipour & Boss (2003) 10.1086/345472, Eq. (20) below for value of molecular hydrogen.
+	// from HB03 Eq. (20) below for value of molecular hydrogen.
 	const double a0 = 1.5e-8 * units::length.get_inverse_cgs_factor();
     double cross_section = M_PI * std::pow(a0, 2); // units of L^2
+
 	// gas molecular viscosity HB03 (6)
     double nu = 1.0 / 3.0 * m0 * vthermal / cross_section; // units of M / (L * T)
-    
-	// if (nu < 1.e-20) {
-	// 	die("Zero nu %e\n", nu);
-    // } else if (nu > 1.e20) {
-	// 	die("Zero nu1 %e\n", nu);
-    // }
 
-	// HB03 (20)
+	// HB03 Eq. (20)
 	const double l = m0 / M_PI/ std::pow(a0, 2) / rho;
 
-	// if (l < 1.e-20) {
-	// 	die("Zero l %e\n", l);
-	// } else if (l > 1.e20) {
-	// 	die("Zero l1 %e\n", l);
-	// }
+	// PSK18 below Eq. (5)
+	const double c_s = vthermal * sqrt(M_PI / 8.0);
     
-	double c_s = vthermal * sqrt(M_PI / 8.0);
+	// WH02 Eq. (6)
+	const double Kn = 0.5 * l / size;
     
-	// if (c_s < 1.e-20) {
-	// 	die("Zero cs %e\n", c_s);
-	// } else if (c_s > 1.e20) {
-	// 	die("Zero cs1 %e\n", c_s);
-	// }
-    
-	double Kn = 0.5 * l / size;
-    double Ma = vrel / c_s;
-
+	const double Ma = vrel / c_s;
     if (Ma < 1.e-20) {
 		die("Zero Ma %e\n", Ma);
 	} else if (Ma > 1.e20) {
 		die("Zero Ma1 %e\n", Ma);
 	}
+
+	// WH02 Eq. (7)
+	const double Re = 2.0 * size * rho * vrel / nu;
     
-	double Re = 2.0 * size * rho * vrel / nu; // units of L * M / L^3 * L / T / M * L * T = 1
-    
-	double CdE = 2.0 * sqrt(Ma * Ma + 128.0 / 9.0 / M_PI);
+	// follows from PSK18 Eq. (7) for the expression of tstop
+	const double CdE = 2.0 * sqrt(Ma * Ma + 128.0 / 9.0 / M_PI);
 	
 	if (CdE < 1.e-20) {
 		die("Zero CdE %e\n", CdE);
@@ -1058,8 +1043,9 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 		die("Zero CdE1 %e\n", CdE);
 	}
     
+	// Stokes drag coefficient for Kn << 1 from WH02 Eq. (15)
+	// with an additional factor of Ma which comes from rearrangnig for the calculation of tstop
 	double CdS = 0.0;
-    
 	if (Re <= 1.e-3) {
 		CdS = 24.0 * nu / (2.0 * size * rho * c_s) +
 	      3.6 / c_s * pow(vrel, 0.687) * pow(2.0 * size * rho / nu, -0.313);
@@ -1077,7 +1063,8 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 		die("Zero CdS1 %e\n", CdS);
 	}
 
-    double Cd = (9.0 * Kn * Kn * CdE + CdS) / (3.0 * Kn + 1.0) / (3.0 * Kn + 1.0);
+	// corresponds to PSK18 Eq. (6) and WH02 (18)
+    const double Cd = (9.0 * Kn * Kn * CdE + CdS) / (3.0 * Kn + 1.0) / (3.0 * Kn + 1.0);
     
 	if (Cd < 1.e-20) {
 		die("Zero Cd %e\n", Cd);
@@ -1086,6 +1073,7 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 	}
     
 	const double pdens = parameters::particle_density;
+	// follows from PSK18 Eq. (10)
 	const double tstop = 4.0 * l * pdens / (3.0 * rho * Cd * c_s * Kn);
     return tstop;
 }
