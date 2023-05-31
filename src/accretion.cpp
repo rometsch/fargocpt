@@ -396,14 +396,11 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 	    const double distance = sqrt(dx * dx + dy * dy);
 	    const double nu = data[t_data::VISCOSITY].Field[l];
 
+        // Surf[i] is needed to sum up to 1
+        // we have to remove it to compute the correct change in Sigma
+        // and then add it again for computing the accreted mass.
 	    const double spread =
-		f_const * (1.0 - distance / dist_max) * Surf[i];
-
-	    // debug variables
-	    // static double acc_max = 0.0;
-	    // const double acc = 3.0 * nu * M_PI * spread *
-	    // parameters::viscous_outflow_speed * planet.get_period() /
-	    // std::log(2); if(acc > acc_max) 	acc_max = acc;
+        f_const * (1.0 - distance / dist_max);
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
@@ -417,13 +414,11 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 	    const double facc_max_dens = 1 - density_floor / dens[l];
 	    // handle accretion zone 1
 	    if (distance < frac * RHill) {
-		// printf("Cell1 (%d %d) acc = %.3e	(%.3e)	1/acc = %.3e
-		// %.3e	i(%d %d) j(%d %d)\n", i, j, acc,
-		// planet.get_acc(), 1.0/acc, 1.0/acc_max, i_min, i_max, j_min,
-		// j_max);
 
 		const double facc_tmp = facc * nu * spread;
+
 		const double facc_ceil = std::min(facc_tmp, facc_max_dens);
+
 		const double deltaM = facc_ceil * dens[l] * Surf[i];
 		dens[l] *= 1.0 - facc_ceil;
 		if (parameters::Adiabatic) {
