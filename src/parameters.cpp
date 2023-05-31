@@ -1023,9 +1023,6 @@ void read(const std::string &filename, t_data &data)
     case 'b': // Bell
 	opacity = opacity_bell;
 	break;
-    case 'k': // Kramers
-	opacity = opacity_kramers;
-	break;
     case 'c': // Constant
 	opacity = opacity_const_op;
 	kappa_const = config::cfg.get<double>("KappaConst", 1.0);
