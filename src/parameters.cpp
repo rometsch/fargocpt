@@ -996,11 +996,6 @@ void read(const std::string &filename, t_data &data)
 			logging::print_master(LOG_INFO "Indirect Term computed as current force (euler) on Hydro center with shifting the Nbody system to the center.\n");
 			break;
 		}
-		case INDIRECT_TERM_REB_SPRING:
-		{
-			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleratrion with spring force keeping the Nbody system near the center.\n");
-			break;
-		}
 	}
 
     // self gravity
