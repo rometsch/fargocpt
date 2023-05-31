@@ -1005,10 +1005,10 @@ static double calc_tstop(const double size, const double rho, const double vrel,
     const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				      temperature / (M_PI * m0));
 
-    if (vthermal < 1.e-20)
-	die("Zero VT %e\n", vthermal);
-    if (vthermal > 1.e20)
-	die("Zero VT1 %e\n", vthermal);
+    // if (vthermal < 1.e-20)
+	// die("Zero VT %e\n", vthermal);
+    // if (vthermal > 1.e20) {
+	// die("Zero VT1 %e\n", vthermal);
 
 	// from Haghighipour & Boss (2003) 10.1086/345472, Eq. (20) below for value of molecular hydrogen.
 	const double a0 = 1.5e-8 * units::length.get_inverse_cgs_factor();
@@ -1016,28 +1016,28 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 	// gas molecular viscosity HB03 (6)
     double nu = 1.0 / 3.0 * m0 * vthermal / cross_section; // units of M / (L * T)
     
-	if (nu < 1.e-20) {
-		die("Zero nu %e\n", nu);
-    } else if (nu > 1.e20) {
-		die("Zero nu1 %e\n", nu);
-    }
+	// if (nu < 1.e-20) {
+	// 	die("Zero nu %e\n", nu);
+    // } else if (nu > 1.e20) {
+	// 	die("Zero nu1 %e\n", nu);
+    // }
 
 	// HB03 (20)
 	const double l = m0 / M_PI/ std::pow(a0, 2) / rho;
 
-	if (l < 1.e-20) {
-		die("Zero l %e\n", l);
-	} else if (l > 1.e20) {
-		die("Zero l1 %e\n", l);
-	}
+	// if (l < 1.e-20) {
+	// 	die("Zero l %e\n", l);
+	// } else if (l > 1.e20) {
+	// 	die("Zero l1 %e\n", l);
+	// }
     
 	double c_s = vthermal * sqrt(M_PI / 8.0);
     
-	if (c_s < 1.e-20) {
-		die("Zero cs %e\n", c_s);
-	} else if (c_s > 1.e20) {
-		die("Zero cs1 %e\n", c_s);
-	}
+	// if (c_s < 1.e-20) {
+	// 	die("Zero cs %e\n", c_s);
+	// } else if (c_s > 1.e20) {
+	// 	die("Zero cs1 %e\n", c_s);
+	// }
     
 	double Kn = 0.5 * l / size;
     double Ma = vrel / c_s;
