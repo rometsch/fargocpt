@@ -1933,7 +1933,7 @@ void init_gas_velocities(t_data &data)
         double vphi0;
         if(parameters::v_azimuthal_with_quadropole_support &&
             data.get_planetary_system().get_number_of_planets() > 1 &&
-            r_com > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
+            r > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
             vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r, hydro_center_mass);
         } else {
             vphi0 = initial_locally_isothermal_smoothed_v_az(r, hydro_center_mass);

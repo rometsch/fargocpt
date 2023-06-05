@@ -183,6 +183,8 @@ double tau_factor;
 double tau_min;
 double kappa_factor;
 
+bool v_azimuthal_with_quadropole_support;
+
 bool self_gravity;
 bool body_force_from_potential;
 
