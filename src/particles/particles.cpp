@@ -1166,19 +1166,10 @@ void check_tstop(t_data &data)
 	particles[i].stokes = stokes;
 
 	if (tstop < 10.0 * dt && parameters::particle_gas_drag_enabled &&
-		(parameters::particle_integrator == parameters::integrator_explicit ||
-		 parameters::particle_integrator == parameters::integrator_adaptive)) {
+		 parameters::particle_integrator == parameters::integrator_adaptive) {
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!\n");
-	    PersonalExit(1);
-	}
-
-	if (tstop < 0.005 * dt && parameters::particle_gas_drag_enabled &&
-		parameters::particle_integrator == parameters::integrator_semiimplicit) {
-	    logging::print_master(
-		LOG_ERROR
-		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!\n");
 	    PersonalExit(1);
 	}
     }
