@@ -628,7 +628,12 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 
 	// this corresponds to equation (3.42) in Baruteau, 2008
 		// also considering derivative of smoothed potential
-	const double omega_cell = initial_locally_isothermal_smoothed_v_az(Rmed[n_radial], hydro_center_mass) / Rmed[n_radial];
+    double omega_cell;
+    if(parameters::v_azimuthal_with_quadropole_support){
+    omega_cell = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(Rmed[n_radial], hydro_center_mass) / Rmed[n_radial];
+    } else {
+    omega_cell = initial_locally_isothermal_smoothed_v_az(Rmed[n_radial], hydro_center_mass) / Rmed[n_radial];
+    }
 	double temp = std::pow(omega_cell, 2) - GLOBAL_AxiSGAccr[n_radial + IMIN] / Rmed[n_radial];
 	if (temp < 0) {
 	    logging::print(

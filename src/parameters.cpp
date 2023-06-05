@@ -889,6 +889,8 @@ void read(const std::string &filename, t_data &data)
     kappa_factor = config::cfg.get<double>("KappaFactor", 1.0);
 	tau_min = config::cfg.get<double>("TauMin", 0.01);
 
+    v_azimuthal_with_quadropole_support = config::cfg.get_flag("VazimuthalConsidersQuadropoleMoment", "no");
+
     EXPLICIT_VISCOSITY =
 	config::cfg.get_flag("ExplicitViscosity", "yes");
 

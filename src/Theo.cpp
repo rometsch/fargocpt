@@ -144,18 +144,41 @@ double initial_locally_isothermal_smoothed_v_az(const double R, const double M){
 	const double eps = parameters::thickness_smoothing;
 	const double vk_2 = constants::G * M / R;
 	const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
-    const double Q = binary_quadropole_moment;
 
 	// for normal pressure support, the derivative should be 1
 	const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
 		/ std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
 
+    const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
+
+	return v_az;
+}
+
+double initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(const double R, const double M){
+
+    // r_sm = sqrt(r**2 + (eps * H)**2)
+    // d r_sm / dr = r/r_sm  *  (1 + (F+1) * (eps * H / r)**2)
+
+    // Phi = GMm / r_sm
+    // vkep^2 / r = 1/Simga dP/dr + dPhi / dr
+    const double h0 = parameters::ASPECTRATIO_REF;
+    const double F = parameters::FLARINGINDEX;
+    const double S = parameters::SIGMASLOPE;
+    const double h = h0 * std::pow(R, F);
+    const double eps = parameters::thickness_smoothing;
+    const double vk_2 = constants::G * M / R;
+    const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
+    const double Q = binary_quadropole_moment;
+
+    // for normal pressure support, the derivative should be 1
+    const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
+                                          / std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
+
     const double quadropole_support = 3.0 * Q / std::pow(R, 2);
 
     const double v_az = std::sqrt(vk_2 * (quadropole_support + smoothing_derivative_2 + pressure_support_2));
-	//const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
 
-	return v_az;
+    return v_az;
 }
 
 ///

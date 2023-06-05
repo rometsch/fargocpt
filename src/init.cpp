@@ -1708,7 +1708,15 @@ void init_gas_velocities(t_data &data)
 			vphi0 = compute_v_kepler(r_com, mass);
 			vr0 = initial_viscous_radial_speed(r_com, mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
+
+            if(parameters::v_azimuthal_with_quadropole_support &&
+                data.get_planetary_system().get_number_of_planets() > 1 &&
+                r_com > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, mass);
+            } else {
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
+            }
+
 			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_com, mass);
 		}
 		if(parameters::initialize_vradial_zero){
@@ -1763,8 +1771,15 @@ void init_gas_velocities(t_data &data)
 			vphi0 = compute_v_kepler(r_com, mass);
 			vr0 = initial_viscous_radial_speed(r_com, mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
-			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_com, mass);
+            if(parameters::v_azimuthal_with_quadropole_support &&
+                data.get_planetary_system().get_number_of_planets() > 1 &&
+                r_com > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, mass);
+            } else {
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
+            }
+
+            vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_com, mass);
 		}
 		if(parameters::initialize_vradial_zero){
 			vr0 = 0.0;
@@ -1915,8 +1930,15 @@ void init_gas_velocities(t_data &data)
 	     ++n_azimuthal) {
 	    if (!parameters::self_gravity) {
 		// v_azimuthal = Omega_K * r * (...)
-		data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal)
-				= initial_locally_isothermal_smoothed_v_az(r, hydro_center_mass);
+        double vphi0;
+        if(parameters::v_azimuthal_with_quadropole_support &&
+            data.get_planetary_system().get_number_of_planets() > 1 &&
+            r_com > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r, hydro_center_mass);
+        } else {
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r, hydro_center_mass);
+        }
+        data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi0;
 	    }
 
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= refframe::OmegaFrame * r;

@@ -399,7 +399,11 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	VKepOut = compute_v_kepler(Rb[nr], hydro_center_mass);
 	} else {
 	/* (3.4) on page 44 */
-	VKepOut = initial_locally_isothermal_smoothed_v_az(Rb[nr], hydro_center_mass);
+    if(parameters::v_azimuthal_with_quadropole_support){
+    VKepOut = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(Rb[nr], hydro_center_mass);
+    } else {
+    VKepOut = initial_locally_isothermal_smoothed_v_az(Rb[nr], hydro_center_mass);
+    }
 	}
     } else {
 
@@ -420,14 +424,16 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 		const double F = parameters::FLARINGINDEX;
 		const double S = parameters::SIGMASLOPE;
 		const double h = h0 * std::pow(R, F);
-		//const double eps = parameters::thickness_smoothing;
+        const double eps = parameters::thickness_smoothing;
 		const double vk_2 = constants::G * hydro_center_mass / R;
 		const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
-		//const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
-		//		/ std::pow(std::sqrt(1 + std::pow(h * eps, 2)), 3);
-		const double smoothing_derivative_2 = 1.0;
+        const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
+                / std::pow(std::sqrt(1 + std::pow(h * eps, 2)), 3);
 
-		VKepOut = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[nr + IMIN]);
+        const double Q = binary_quadropole_moment;
+        const double quadropole_support = 3.0 * Q / std::pow(R, 2);
+
+        VKepOut = std::sqrt(vk_2 * (quadropole_support + smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[nr + IMIN]);
 		}
 	}
     }

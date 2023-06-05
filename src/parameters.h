@@ -281,6 +281,8 @@ extern double density_factor;
 extern double tau_factor;
 extern double tau_min;
 
+extern double v_azimuthal_with_quadropole_support;
+
 /// factor for kappa calculation
 extern double kappa_factor;
 
