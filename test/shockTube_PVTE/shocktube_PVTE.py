@@ -22,6 +22,9 @@ def run(fargo_path, par_file):
 
 
 quants = ["Sigma", "vrad", "pressure"]
+# quants = ["Sigma", "pressure"]
+
+quants_key = {'Sigma': 0, 'vrad': 1, 'pressure': 2}
 
 x0, _, rho0, v0, p0 = np.loadtxt("plutoIdealGas0.tab", unpack=True)
 x1, _, rho1, v1, p1 = np.loadtxt("plutoIdealGas1.tab", unpack=True)
@@ -67,6 +70,7 @@ def analytic(axs):
 
     for i in range(len(quants)):
         ax = axs[i]
+        ax.set_xlabel('x')
 
         if quants[i] == "pressure":
             j = 5
@@ -84,8 +88,9 @@ compile_fargo('../../')
 run('../../', 'test/shockTube_PVTE/shocktube.yml')
 run('../../', 'test/shockTube_PVTE/shocktube_varGamm.yml')
 
-dt = 228
-fig, axs = plt.subplots(1,3,figsize=(18,6))
+dt = 1
+fig, axs = plt.subplots(3,1,figsize=(6,12))
+# fig, axs = plt.subplots(2,1,figsize=(6,8))
 axs = np.ravel(axs)
 
 analytic(axs)
@@ -93,23 +98,27 @@ test('../../shocktube/', 'Perfect Eos FARGO', 'black', dt)
 test('../../shocktube_varGamm/', 'Ideal Eos FARGO', 'darkblue', dt)
 
 
-for i in range(len(quants)):
-    ax = axs[i]
+for ind in range(len(quants)):
+    ax = axs[ind]
+
+    quant = quants[ind]
+    i = quants_key[quant]
+
     ax.axis('auto')
-    ax.set_title(quants[i], color='black', y = 1.06)
+    ax.set_title(quant, color='black', y = 1.00)
     ax.plot(xp1, pluto_perfectQuants1[i], ls='--',color="red",  label="Perfect Eos PLUTO")
     ax.plot(x1, pluto_quants1[i],ls='--' ,color="orange", label="Ideal Eos PLUTO")
-    ax.grid()
-    if quants[i] == 'Sigma':
+    #ax.grid()
+    if quant == 'Sigma':
         ax.legend(loc='upper right')
-    if quants[i] == 'energy':
+    if quant == 'energy':
         ax.legend(loc='upper right')
-    if quants[i] == 'vrad':
+    if quant == 'vrad':
         ax.legend(loc='upper left')
-    if quants[i] == 'Temperature':
-        ax.legend(loc='upper left')
+    if quant == 'pressure':
+        ax.legend(loc='upper right')
 
 
 plt.tight_layout()
-
+# plt.savefig('shocktube_pvte.pdf', dpi=300, bbox_inches='tight')
 plt.show()

@@ -1245,7 +1245,11 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 			vr_init = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr_init = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
@@ -1308,7 +1312,11 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
@@ -2289,7 +2297,11 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vphi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 	    } else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
@@ -2330,8 +2342,12 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vphi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
+            vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
@@ -2370,7 +2386,11 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vphi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 

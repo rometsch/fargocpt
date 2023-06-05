@@ -174,7 +174,11 @@ static double derive(const double r, const double mass, double (*f)(double, doub
 /// \return pressure supported, smoothed potential angular velocity (omega)
 ///
 static double get_w(const double r, const double mass){
-	return initial_locally_isothermal_smoothed_v_az(r, mass) / r;
+    if(parameters::v_azimuthal_with_quadropole_support){
+    return initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r, mass) / r;
+    } else {
+    return initial_locally_isothermal_smoothed_v_az(r, mass) / r;
+    }
 }
 
 ///

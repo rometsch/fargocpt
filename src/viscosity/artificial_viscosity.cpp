@@ -94,7 +94,8 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 		const double Dr = Ra[nr+1] - Ra[nr];
 		const double rDphi = Rmed[nr] * dphi;
-		const double dx_sq = std::pow(std::max(Dr, rDphi), 2);
+        //const double dx_sq = std::pow(std::max(Dr, rDphi), 2); // taking max cell size breaks the ShockTube test due to rDphi being huge (Nphi = 2)
+        const double dx_sq = std::pow(std::min(Dr, rDphi), 2);
 		const double l_sq = std::pow(parameters::artificial_viscosity_factor, 2) * dx_sq;
 
 		const double q_rr = l_sq * density(nr, naz) * -div_V * (eps_rr - 1.0/3.0 * div_V);
