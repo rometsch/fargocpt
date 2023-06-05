@@ -3,7 +3,7 @@ Integrator: Euler
 
 BodyForceFromPotential: 'Yes'
 
-Sigma0: 600.187 g/cm2   # surface density at r=1 in g/cm^2
+Sigma0: 600.547 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.5'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
 DiscMass: '0.01'   # only used when SetSigma0 = true [default = 0.01]
@@ -76,7 +76,7 @@ DampingTimeFactor: '3.0'
 DampingEnergyInner: None   # Damping of energy [default = no]
 DampingVRadialInner: Initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity [default = no]
-DampingSurfaceDensityInner: None   # Damping of surface density [default = no]
+DampingSurfaceDensityInner: Initial   # Damping of surface density [default = no]
 DampingEnergyOuter: None   # Damping of energy [default = no]
 DampingVRadialOuter: None   # Damping of radial velocity [default = no]
 DampingVAzimuthalOuter: none   # Damping of azimuthal velocity [default = no]
