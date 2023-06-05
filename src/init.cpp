@@ -477,6 +477,10 @@ void init_spreading_ring_test(t_data &data)
 			  (tau0 * std::pow(x, 0.25)) * I *
 			  std::exp(-(1.0 + x * x) / tau0);
 
+    logging::print_master(
+        LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", Sigma0,
+        Sigma0 * units::surface_density.get_cgs_factor());
+
     for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
 	for (unsigned int n_azimuthal = 0;
@@ -1175,7 +1179,7 @@ void init_gas_density(t_data &data)
     }
 
     if (parameters::SpreadingRing) {
-	init_spreading_ring_test_jibin(data);
+    init_spreading_ring_test(data);
     }
 
     if (parameters::sigma_randomize) {
