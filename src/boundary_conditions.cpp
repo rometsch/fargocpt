@@ -1246,7 +1246,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 			}
 		} else {
             if(parameters::v_azimuthal_with_quadropole_support){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            vphi_init = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
             } else { // no quadropole support
             vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
             }
