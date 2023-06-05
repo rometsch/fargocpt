@@ -359,23 +359,14 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 
     if(parameters::visc_accret_massflow_test){
 
-    // f = 1 - r/R
-    //const double area = 2.0 * M_PI * ((1.0/2.0 * std::pow(dist_max, 2) - 1.0/3.0 * std::pow(dist_max, 2))
-    //                        -(1.0/2.0 * std::pow(RMIN, 2)     - 1.0/3.0 * std::pow(RMIN, 3)/dist_max));
-
-    // f = 1
-    const double area1 = M_PI * std::pow(dist_max, 2);
-    const double area2 = M_PI * std::pow(RMIN, 2);
-    const double area = area1 - area2;
+    // normalization factor for f = 1 - r/R
+    const double area = 2.0 * M_PI * ((1.0/2.0 * std::pow(dist_max, 2) - 1.0/3.0 * std::pow(dist_max, 2))
+                            -(1.0/2.0 * std::pow(RMIN, 2)     - 1.0/3.0 * std::pow(RMIN, 3)/dist_max));
 
     f_const = 1.0 / area;
     } else {
-    // f = 1 - r/R
-    // f_const = 3.0 / M_PI / std::pow(dist_max, 2);
-
-    // f = 1
-    const double area = M_PI * std::pow(dist_max, 2);
-    f_const = 1.0 / area;
+    // normalization factor for f = 1 - r/R
+    f_const = 3.0 / M_PI / std::pow(dist_max, 2);
     }
 
     // calculate range of indeces to iterate over
@@ -413,9 +404,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
         // we have to remove it to compute the correct change in Sigma
         // and then add it again for computing the accreted mass.
         const double spread =
-            f_const;// * (1.0 - std::sqrt(distance / dist_max));
-        //const double spread =
-           //f_const * (1.0 - distance / dist_max);
+           f_const * (1.0 - distance / dist_max);
 
 
 	    // interpolate velocities to cell centers
