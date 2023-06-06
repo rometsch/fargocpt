@@ -421,13 +421,8 @@ void open_boundary_inner(t_data &data)
 	data[t_data::SIGMA](0, n_azimuthal) =
 	    data[t_data::SIGMA](1, n_azimuthal);
 
-    if(parameters::Locally_Isothermal){
-        data[t_data::PRESSURE](0, n_azimuthal) =
-            data[t_data::PRESSURE](1, n_azimuthal);
-    } else {
 	data[t_data::ENERGY](0, n_azimuthal) =
 	    data[t_data::ENERGY](1, n_azimuthal);
-    }
 
 	// set velocity to min(v[+1],0) (allow only outflow)
 	if (data[t_data::V_RADIAL](2, n_azimuthal) > 0.0) {
@@ -459,17 +454,10 @@ void open_boundary_outer(t_data &data)
 	    data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
 				n_azimuthal);
 
-    if(parameters::Locally_Isothermal){
-        data[t_data::PRESSURE](data[t_data::ENERGY].get_max_radial(),
-                             n_azimuthal) =
-            data[t_data::PRESSURE](data[t_data::ENERGY].get_max_radial() - 1,
-                                 n_azimuthal);
-    } else {
 	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
 			     n_azimuthal) =
 	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
 				 n_azimuthal);
-    }
 
 	// set velocity to min(v[+1],0) (allow only outflow)
 	if (data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 2,
