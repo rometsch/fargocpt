@@ -98,6 +98,7 @@ double CalculateTimeStep(t_data &data)
 
 		if(PRINT_SIG_INFO){
 			cfl::condition_cfl(data, cfl_dt);
+            PRINT_SIG_INFO = false;
 		}
 
 	}
