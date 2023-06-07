@@ -351,53 +351,6 @@ void update_with_sourceterms(t_data &data, const double dt)
 
 	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();
 
-    if (parameters::Adiabatic) {
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
-		for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
-		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
-		const double DIV_V =
-			(data[t_data::V_RADIAL](nr+1, naz)*Ra[nr+1] -
-				data[t_data::V_RADIAL](nr, naz)*Ra[nr]) *
-			InvDiffRsupRb[nr] +
-			(data[t_data::V_AZIMUTHAL](nr, naz_next) -
-			 data[t_data::V_AZIMUTHAL](nr, naz)) *
-			invdphi * InvRb[nr];
-
-		const double gamma =
-			pvte::get_gamma_eff(data, nr, naz);
-
-		/*
-		// Like D'Angelo et al. 2003 eq. 25
-		const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial,
-		n_azimuthal); const double dE = dt * (-P*DIV_V + 0.5*(gamma
-		- 1.0) * P * dt * std::pow(DIV_V, 2)); const double energy_old =
-		data[t_data::ENERGY](n_radial, n_azimuthal); const double
-		energy_new = energy_old + dE; data[t_data::ENERGY](n_radial,
-		n_azimuthal) = energy_new;
-		*/
-
-		// Like D'Angelo et al. 2003 eq. 24
-		const double energy_old =
-			data[t_data::ENERGY](nr, naz);
-		const double energy_new =
-		    energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
-		data[t_data::ENERGY](nr, naz) = energy_new;
-
-		/*
-		// Zeus2D like, see Stone & Norman 1992
-		// produces poor results with shock tube test
-		const double P = (gamma - 1.0);
-		const double energy_old = data[t_data::ENERGY](n_radial,
-		n_azimuthal); const double energy_new = energy_old*(1.0 -
-		0.5*dt*P*DIV_V)/(1.0 + 0.5*dt*P*DIV_V);
-		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
-		*/
-	    }
-	}
-    }
-
     // update v_radial with source terms
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
@@ -487,6 +440,53 @@ void update_with_sourceterms(t_data &data, const double dt)
 		    dt * supp_torque;
 	    }
 	}
+    }
+
+    if (parameters::Adiabatic) {
+    #pragma omp parallel for collapse(2)
+    for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
+        for (unsigned int naz = 0; naz < Nphi; ++naz) {
+        const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
+        // div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+        const double DIV_V =
+            (data[t_data::V_RADIAL](nr+1, naz)*Ra[nr+1] -
+             data[t_data::V_RADIAL](nr, naz)*Ra[nr]) *
+                InvDiffRsupRb[nr] +
+            (data[t_data::V_AZIMUTHAL](nr, naz_next) -
+             data[t_data::V_AZIMUTHAL](nr, naz)) *
+                invdphi * InvRb[nr];
+
+        const double gamma =
+            pvte::get_gamma_eff(data, nr, naz);
+
+        /*
+        // Like D'Angelo et al. 2003 eq. 25
+        const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial,
+        n_azimuthal); const double dE = dt * (-P*DIV_V + 0.5*(gamma
+        - 1.0) * P * dt * std::pow(DIV_V, 2)); const double energy_old =
+        data[t_data::ENERGY](n_radial, n_azimuthal); const double
+        energy_new = energy_old + dE; data[t_data::ENERGY](n_radial,
+        n_azimuthal) = energy_new;
+        */
+
+        // Like D'Angelo et al. 2003 eq. 24
+        const double energy_old =
+            data[t_data::ENERGY](nr, naz);
+        const double energy_new =
+            energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
+        data[t_data::ENERGY](nr, naz) = energy_new;
+
+        /*
+        // Zeus2D like, see Stone & Norman 1992
+        // produces poor results with shock tube test
+        const double P = (gamma - 1.0);
+        const double energy_old = data[t_data::ENERGY](n_radial,
+        n_azimuthal); const double energy_new = energy_old*(1.0 -
+        0.5*dt*P*DIV_V)/(1.0 + 0.5*dt*P*DIV_V);
+        data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
+        */
+        }
+    }
     }
 
 	if(ECC_GROWTH_MONITOR){
