@@ -155,7 +155,11 @@ void init_radialarrays()
 	fclose(fd_input);
     }
 
-    for (nRadial = 0; nRadial < GlobalNRadial + 1; ++nRadial) {
+    // Radial arrays have size MAX1D so we can write to N+15 safely
+    // we do this to avoid errors when accessing nr+x in the code
+    // less than 15 should be safe too, but we need at least 2 or else
+    // rmed_id_error_check accessing 'id+1' can cause errors
+    for (nRadial = 0; nRadial < GlobalNRadial + 15; ++nRadial) {
 	// Rmed is in the center of the cell where the center of mass is
 	// Rmed = 1/2 * [ (4/3 Pi r_sup^3) - (4/3 Pi r_inf^3) ] / [ (Pi r_sup^2)
 	// - (Pi r_inf^2) ]
@@ -174,7 +178,7 @@ void init_radialarrays()
 	parameters::radial_grid_names[parameters::radial_grid_type], Radii[1],
 	Radii[GlobalNRadial - 1], Radii[0], Radii[GlobalNRadial]);
 
-    for (nRadial = 0; nRadial < NRadial + 1; ++nRadial) {
+    for (nRadial = 0; nRadial < NRadial + 15; ++nRadial) {
 	Rinf[nRadial] = Radii[nRadial + IMIN];
 	Rsup[nRadial] = Radii[nRadial + IMIN + 1];
 
