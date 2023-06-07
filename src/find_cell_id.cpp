@@ -113,7 +113,7 @@ static void rmed_id_error_check(const double r, int &id)
     bool lower_than_ceil = r <= Rmed[id + 1];
 
     // this part of the check does not work if outside the domain
-    if(id > NRadial){
+    if((unsigned int)id > NRadial){
         lower_than_ceil = true;
     }
 
