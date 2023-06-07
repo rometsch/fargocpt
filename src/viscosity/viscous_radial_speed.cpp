@@ -303,6 +303,11 @@ static double max_r_inner;
 
 void init_vr_table_boundary(t_data &data){
 
+    if(parameters::boundary_outer != parameters::boundary_condition_center_of_mass_initial
+        && parameters::boundary_inner != parameters::boundary_condition_center_of_mass_initial){
+    return;
+    }
+
 	const auto & plsys = data.get_planetary_system();
 	const unsigned int np = plsys.get_number_of_planets();
 	const double mass = plsys.get_mass(np);
