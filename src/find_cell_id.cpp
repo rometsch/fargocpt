@@ -110,15 +110,15 @@ static void rmed_id_error_check(const double r, int &id)
 {
 #ifndef NDEBUG
     if (id >= 0) {
-	bool lower_than_ceil = r < Rmed[id + 1];
-	bool higher_than_floor = r > Rmed[id];
+    bool lower_than_ceil = r <= Rmed[id + 1];
+    bool higher_than_floor = r >= Rmed[id];
 
 	if (!(lower_than_ceil && higher_than_floor)) {
 	    logging::print(
 		"Error: get_rmed_id has failed for %s grid!\n",
 		parameters::radial_grid_names[parameters::radial_grid_type]);
 	    logging::print(
-		"Found id=%d for r=%.5e but check Rmed[%d] = %.5e < %.5e	< %.5e = Rmed[%d] is not true!\n",
+        "Found id=%d for r=%.5e but check Rmed[%d] = %.5e <= %.5e	<= %.5e = Rmed[%d] is not true!\n",
 		id, r, id, Rmed[id], r, Rmed[id + 1], id + 1);
 	    die("END!\n");
 	}
@@ -130,7 +130,7 @@ static void rmed_id_error_check(const double r, int &id)
 			       parameters::radial_grid_names
 				   [parameters::radial_grid_type]);
 		logging::print(
-		    "Found id=%d for r=%.5e but check Rinf[%d] = %.5e < %.5e is not true!\n",
+            "Found id=%d for r=%.5e but check Rinf[%d] = %.5e <= %.5e is not true!\n",
 		    id, r, 0, Rmed[0], r);
 		die("END!\n");
 	    }
@@ -141,7 +141,7 @@ static void rmed_id_error_check(const double r, int &id)
 			       parameters::radial_grid_names
 				   [parameters::radial_grid_type]);
 		logging::print(
-		    "Found id=%d for r=%.5e but check Rsup[%d] = %.5e	<	%.5e = r	is not true!\n",
+            "Found id=%d for r=%.5e but check Rsup[%d] = %.5e	<=	%.5e = r	is not true!\n",
 		    id, r, NRadial - 1, Rmed[NRadial - 1], r);
 		die("END!\n");
 	    }
@@ -162,15 +162,15 @@ static void rinf_id_error_check(const double r, int &id)
 {
 #ifndef NDEBUG
     if (id >= 0 && id <= (int)NRadial) {
-	bool lower_than_ceil = r < Rsup[id];
-	bool higher_than_floor = r > Rinf[id];
+    bool lower_than_ceil = r <= Rsup[id];
+    bool higher_than_floor = r >= Rinf[id];
 
 	if (!(lower_than_ceil && higher_than_floor)) {
 	    logging::print(
 		"Error: get_rinf_id_log has failed for %s grid!\n",
 		parameters::radial_grid_names[parameters::radial_grid_type]);
 	    logging::print(
-		"Found id=%d for r=%.5e but check Rinf[%d] = %.5e < %.5e	< %.5e = Rsup[%d] is not true	%d	%d!\n",
+        "Found id=%d for r=%.5e but check Rinf[%d] = %.5e <= %.5e	<= %.5e = Rsup[%d] is not true	%d	%d!\n",
 		id, r, id, Rinf[id], r, Rsup[id], id, higher_than_floor,
 		lower_than_ceil);
 	    die("END!\n");
@@ -183,7 +183,7 @@ static void rinf_id_error_check(const double r, int &id)
 			       parameters::radial_grid_names
 				   [parameters::radial_grid_type]);
 		logging::print(
-		    "Found id=%d for r=%.5e but check Rinf[%d] = %.5e < %.5e is not true!\n",
+            "Found id=%d for r=%.5e but check Rinf[%d] = %.5e <= %.5e is not true!\n",
 		    id, r, 0, Rinf[0], r);
 		die("END!\n");
 	    }
@@ -194,7 +194,7 @@ static void rinf_id_error_check(const double r, int &id)
 			       parameters::radial_grid_names
 				   [parameters::radial_grid_type]);
 		logging::print(
-		    "Found id=%d for r=%.5e but check Rsup[%d] = %.5e	<	%.5e = r	is not true!\n",
+            "Found id=%d for r=%.5e but check Rsup[%d] = %.5e	<=	%.5e = r	is not true!\n",
 		    id, r, NRadial - 1, Rsup[NRadial - 1], r);
 		die("END!\n");
 	    }

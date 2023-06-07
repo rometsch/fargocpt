@@ -83,7 +83,7 @@ void init_radialarrays()
 	case parameters::logarithmic_spacing: {
 	    cell_growth_factor =
 		std::pow((RMAX / RMIN), 1.0 / ((double)GlobalNRadial - 2.0));
-	    for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
+        for (nRadial = 0; nRadial <= GlobalNRadial + 15; ++nRadial) {
 
 		Radii[nRadial] =
 		    RMIN * std::pow(cell_growth_factor, (double)nRadial - 1.0);
@@ -94,7 +94,7 @@ void init_radialarrays()
 	    cell_growth_factor = ((double)GlobalNRadial - 2.0) / (RMAX - RMIN);
 	    const double interval =
 		(RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
-	    for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
+        for (nRadial = 0; nRadial <= GlobalNRadial + 15; ++nRadial) {
 		Radii[nRadial] = RMIN + interval * (double)(nRadial - 1.0);
 	    }
 	    break;
@@ -117,7 +117,7 @@ void init_radialarrays()
 			(Nr * std::pow(exp_growth_factor, Nr - 1.0) - f);
 	    }
 	    cell_growth_factor = exp_growth_factor;
-	    for (nRadial = 0; nRadial <= GlobalNRadial + 1; ++nRadial) {
+        for (nRadial = 0; nRadial <= GlobalNRadial + 15; ++nRadial) {
 		Radii[nRadial] = RMIN + first_cell_size *
 					    (std::pow(exp_growth_factor,
 						      (double)nRadial - 1.0) -
