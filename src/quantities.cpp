@@ -938,7 +938,6 @@ void calculate_alpha_reynolds_mean_sumup(t_data &data, unsigned int timestep,
 void calculate_toomre(t_data &data, unsigned int /* timestep */,
 		      bool /* force_update */)
 {
-    double kappa;
 
 	const unsigned int Nr = data[t_data::TOOMRE].get_size_radial();
 	const unsigned int Nphi = data[t_data::TOOMRE].get_size_azimuthal();
@@ -947,7 +946,7 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
-	    kappa = std::sqrt(std::fabs(
+        const double kappa = std::sqrt(std::fabs(
 		std::pow(InvRmed[nr], 3) *
 		(std::pow(data[t_data::V_AZIMUTHAL](nr, naz) * Rmed[nr],  2) -
 		 std::pow(data[t_data::V_AZIMUTHAL](nr - 1, naz) * Rmed[nr - 1], 2)) *

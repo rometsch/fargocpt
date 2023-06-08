@@ -14,7 +14,6 @@ extern unsigned int local_number_of_particles;
 void update_velocities_from_indirect_term(const double dt);
 void init(t_data &data);
 void restart();
-// void calculate_accelerations_from_star_and_planets(t_data& data);
 void calculate_accelerations_from_star_and_planets(
     double &ar, double &aphi, const double r, const double r_dot,
     const double phi, const double phi_dot, const double rsmooth, t_data &data);
@@ -34,7 +33,6 @@ double calculate_dust_smoothing(const double r, const double phi,
 
 void update_velocities_from_gas_drag(t_data &data, double dt);
 void update_velocities_from_gas_drag_cart(t_data &data, double dt);
-void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt);
 
 void update_velocity_from_disk_gravity(const int n_radial_a_minus,
 				       const int n_radial_a_plus,
@@ -48,11 +46,8 @@ void update_velocity_from_disk_gravity_cart(
     const double phi, const int particle_id, const double dt);
 void check_tstop(t_data &data);
 void integrate(t_data &data, const double current_time, double dt);
-void integrate_implicit(t_data &data, const double dt);
-void integrate_explicit(t_data &data, const double dt);
 void integrate_explicit_adaptive(t_data &data, const double dt);
 void integrate_exponential_midpoint(t_data &data, const double dt);
-void integrate_semiimplicit(t_data &data, const double dt);
 void write();
 void move(void);
 void rotate(const double angle);

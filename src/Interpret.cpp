@@ -599,18 +599,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     parameters::ALPHAVISCOSITY = cfg.get<double>("ALPHAVISCOSITY", 0.0);
 	parameters::VISCOSITY = cfg.get<double>("VISCOSITY", 0.0, units::L0*units::L0/units::T0);
 
-    if (!parameters::EXPLICIT_VISCOSITY && parameters::ALPHAVISCOSITY == 0.0 &&
-	(parameters::artificial_viscosity_factor == 0.0 ||
-	 parameters::artificial_viscosity ==
-	     parameters::artificial_viscosity_none) &&
-	parameters::VISCOSITY == 0.0) {
-	logging::print_master(
-	    LOG_ERROR
-	    "You cannot use super time-stepping without any viscosity!\n");
-	PersonalExit(1);
-    }
-
-    parameters::STS_NU = cfg.get<double>("STSNU", 0.01);
 
     if ((parameters::ALPHAVISCOSITY != 0.0) && (parameters::VISCOSITY != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");

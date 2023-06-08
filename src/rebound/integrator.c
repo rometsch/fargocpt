@@ -44,6 +44,11 @@
 #include "integrator_leapfrog.h"
 #include "integrator_sei.h"
 #include "integrator_janus.h"
+#include "integrator_eos.h"
+#include "integrator_bs.h"
+#include "integrator_tes.h"
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) > (b) ? (b) : (a))   ///< Returns the minimum of a and b
 
 void reb_integrator_part1(struct reb_simulation* r){
 	switch(r->integrator){
@@ -67,6 +72,15 @@ void reb_integrator_part1(struct reb_simulation* r){
 			break;
 		case REB_INTEGRATOR_JANUS:
 			reb_integrator_janus_part1(r);
+			break;
+		case REB_INTEGRATOR_EOS:
+			reb_integrator_eos_part1(r);
+			break;
+		case REB_INTEGRATOR_BS:
+			reb_integrator_bs_part1(r);
+			break;
+		case REB_INTEGRATOR_TES:
+			reb_integrator_tes_part1(r);
 			break;
 		default:
 			break;
@@ -96,6 +110,15 @@ void reb_integrator_part2(struct reb_simulation* r){
 		case REB_INTEGRATOR_JANUS:
 			reb_integrator_janus_part2(r);
 			break;
+		case REB_INTEGRATOR_EOS:
+			reb_integrator_eos_part2(r);
+			break;
+		case REB_INTEGRATOR_BS:
+			reb_integrator_bs_part2(r);
+			break;
+		case REB_INTEGRATOR_TES:
+			reb_integrator_tes_part2(r);
+			break;			
         case REB_INTEGRATOR_NONE:
             r->t += r->dt;
             r->dt_last_done = r->dt;
@@ -103,6 +126,38 @@ void reb_integrator_part2(struct reb_simulation* r){
 		default:
 			break;
 	}
+    
+    // Integrate other ODEs
+    if (r->integrator != REB_INTEGRATOR_BS && r->odes_N){
+        if (r->ode_warnings==0 && (!r->ri_whfast.safe_mode || !r->ri_saba.safe_mode || !r->ri_eos.safe_mode || !r->ri_mercurius.safe_mode)){
+            reb_warning(r, "Safe mode should be enabled when custom ODEs are being used.");
+            r->ode_warnings = 1;
+        }
+
+        double dt = r->dt_last_done;
+        double t = r->t - r->dt_last_done; // Note: floating point inaccuracy
+        double forward = (dt>0.) ? 1. : -1.;
+        r->ri_bs.firstOrLastStep = 1;
+        while(t*forward < r->t*forward && fabs((r->t - t)/(fabs(r->t)+1e-16))>1e-15){
+            if (reb_sigint== 1){
+                r->status = REB_EXIT_SIGINT;
+                return;
+            }
+            if (r->ri_bs.dt_proposed !=0.){
+                double max_dt = fabs(r->t - t);
+                dt = fabs(r->ri_bs.dt_proposed);
+                if (dt > max_dt){ // Don't overshoot N-body timestep
+                    dt = max_dt;
+                    r->ri_bs.firstOrLastStep = 1;
+                }
+                dt *= forward;
+            }
+            int success = reb_integrator_bs_step(r, dt);
+            if (success){
+                t += dt;
+            }
+        }
+    }
 }
 	
 void reb_integrator_synchronize(struct reb_simulation* r){
@@ -128,6 +183,15 @@ void reb_integrator_synchronize(struct reb_simulation* r){
 		case REB_INTEGRATOR_JANUS:
 			reb_integrator_janus_synchronize(r);
 			break;
+		case REB_INTEGRATOR_EOS:
+			reb_integrator_eos_synchronize(r);
+			break;
+		case REB_INTEGRATOR_BS:
+			reb_integrator_bs_synchronize(r);
+			break;
+		case REB_INTEGRATOR_TES:
+			reb_integrator_tes_synchronize(r);
+			break;				
 		default:
 			break;
 	}
@@ -153,6 +217,9 @@ void reb_integrator_reset(struct reb_simulation* r){
 	reb_integrator_whfast_reset(r);
 	reb_integrator_saba_reset(r);
 	reb_integrator_janus_reset(r);
+	reb_integrator_eos_reset(r);
+	reb_integrator_bs_reset(r);
+	reb_integrator_tes_reset(r);
 }
 
 void reb_update_acceleration(struct reb_simulation* r){

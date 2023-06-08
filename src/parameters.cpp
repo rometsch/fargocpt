@@ -29,8 +29,6 @@ namespace parameters
 
 double ASPECTRATIO_REF;
 int ASPECTRATIO_MODE;
-int EXPLICIT_VISCOSITY;
-double STS_NU;
 double VISCOSITY;
 double ALPHAVISCOSITY;
 int VISCOUS_ACCRETION;
@@ -893,15 +891,6 @@ void read(const std::string &filename, t_data &data)
 
     v_azimuthal_with_quadropole_support = config::cfg.get_flag("VazimuthalConsidersQuadropoleMoment", "no");
 
-    EXPLICIT_VISCOSITY =
-	config::cfg.get_flag("ExplicitViscosity", "yes");
-
-    if (EXPLICIT_VISCOSITY) {
-	logging::print_master(LOG_INFO "Using EXPLICIT VISCOSITY\n");
-    } else {
-	logging::print_master(LOG_INFO "Using SUPER TIMESTEPPINGG VISCOSITY\n");
-    }
-
     // artificial visocisty
     switch (config::cfg.get_first_letter_lowercase("ArtificialViscosity", "SN")) {
     case 'n': // none
@@ -1020,11 +1009,6 @@ void read(const std::string &filename, t_data &data)
 			logging::print_master(LOG_INFO "Indirect Term computed as current force (euler) on Hydro center with shifting the Nbody system to the center.\n");
 			break;
 		}
-		case INDIRECT_TERM_REB_SPRING:
-		{
-			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleratrion with spring force keeping the Nbody system near the center.\n");
-			break;
-		}
 	}
 
     // self gravity
@@ -1051,12 +1035,6 @@ void read(const std::string &filename, t_data &data)
 	break;
     case 'b': // Bell
 	opacity = opacity_bell;
-	break;
-    case 'z': // Zhu
-	opacity = opacity_zhu;
-	break;
-    case 'k': // Kramers
-	opacity = opacity_kramers;
 	break;
     case 'c': // Constant
 	opacity = opacity_const_op;
@@ -1134,22 +1112,9 @@ void read(const std::string &filename, t_data &data)
 
     // particle integrator
     switch (
-	config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s")) {
-    case 'e': // Explicit
-	particle_integrator = integrator_explicit;
-	break;
-    case 'a': // Adaptive
+	config::cfg.get_first_letter_lowercase("ParticleIntegrator", "m")) {
+    case 'e': // Adaptive explicit
 	particle_integrator = integrator_adaptive;
-	break;
-    case 's': // Semi-implicit
-	particle_integrator = integrator_semiimplicit;
-
-	if (!particle_gas_drag_enabled) {
-	    logging::print_master(
-		LOG_ERROR
-		"Do not use semi-implicit particle integrator without gas drag, use the explicit integrator instead.\n");
-	}
-
 	break;
     case 'm': // exponential midpoint
 	particle_integrator = integrator_exponential_midpoint;
@@ -1161,26 +1126,14 @@ void read(const std::string &filename, t_data &data)
 	}
 
 	break;
-    case 'i': // Implicit
-	particle_integrator = integrator_implicit;
-
-	if (!particle_gas_drag_enabled) {
-	    logging::print_master(
-		LOG_ERROR
-		"Do not use implicit particle integrator without gas drag, use the explicit integrator instead.\n");
-	}
-
-	break;
     default:
-	die("Invalid setting for Particle Integrator: %s	with key %s",
+    die("Invalid setting for Particle Integrator: %s	with key %c",
 	    config::cfg.get<std::string>("ParticleIntegrator", "s").c_str(),
 	    config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s"));
     }
 
-    if (CartesianParticles && ((particle_integrator == integrator_implicit) ||
-			       particle_integrator == integrator_semiimplicit ||
-			       particle_integrator == integrator_exponential_midpoint)) {
-	// implicit and semiimplicit integrator only implemented in polar
+    if (CartesianParticles && (particle_integrator == integrator_exponential_midpoint)) {
+	// exponential midpoint integrator only implemented in polar
 	// coordiantes, but forces can be calculated in cartesian coordinates
 	CartesianParticles = false;
 	ParticlesInCartesian = true;
@@ -1468,15 +1421,6 @@ void summarize_parameters()
 	logging::print_master(LOG_INFO
 			      "Opacity uses tables from Bell & Lin, 1994\n");
 	break;
-    case opacity_zhu:
-	logging::print_master(LOG_INFO
-			      "Opacity uses tables from Zhu et al., 2012\n");
-	break;
-    case opacity_kramers:
-	logging::print_master(
-	    LOG_INFO
-	    "Kramers opacity and constant electron scattering (Thomson) used.\n");
-	break;
     case opacity_const_op:
 	logging::print_master(LOG_INFO "Using constant opacity kappa_R = %e.\n",
 			      kappa_const);
@@ -1530,25 +1474,13 @@ void summarize_parameters()
 			      particle_disk_gravity_enabled ? "enabled"
 							    : "disabled");
 	switch (particle_integrator) {
-	case integrator_explicit:
-	    logging::print_master(LOG_INFO
-				  "Particles use the explicit integrator\n");
-	    break;
 	case integrator_adaptive:
 	    logging::print_master(
 		LOG_INFO "Particles use the (explicit) adaptive integrator\n");
 	    break;
-	case integrator_semiimplicit: // Semi-implicit
-	    logging::print_master(
-		LOG_INFO "Particles use the semiimplicit integrator\n");
-	    break;
 	case integrator_exponential_midpoint:
 	    logging::print_master(
 		LOG_INFO "Particles use the exponential midpoint integrator\n");
-	    break;
-	case integrator_implicit: // Implicit
-	    logging::print_master(LOG_INFO
-				  "Particles use the implicit integrator\n");
 	    break;
 	default:
 	    die("Invalid setting for Particle Integrator: %s",

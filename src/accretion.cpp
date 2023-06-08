@@ -129,11 +129,11 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     for (unsigned int i = i_min; i <= i_max; i++) {
 	for (int j = j_min; j <= j_max; j++) {
 	    // map azimuthal index to [0, ns]
-	    int jf = clamp_phi_id_to_grid(j);
+        const int jf = clamp_phi_id_to_grid(j);
 
 	    // calculate cell 1d index
-	    int l = jf + i * ns;
-	    int lip = l + ns;
+        const int l = jf + i * ns;
+        const int lip = l + ns;
 	    int ljp = l + 1;
 	    if (jf == ns - 1) {
 		ljp = i * ns;
@@ -254,10 +254,10 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
 	for (unsigned int i = i_min; i <= i_max; i++) {
 	for (int j = j_min; j <= j_max; j++) {
 		// map azimuthal index to [0, ns]
-		int jf = clamp_phi_id_to_grid(j);
+        const int jf = clamp_phi_id_to_grid(j);
 		// calculate cell 1d index
-		int l = jf + i * ns;
-		int lip = l + ns;
+        const int l = jf + i * ns;
+        const int lip = l + ns;
 		int ljp = l + 1;
 		if (jf == ns - 1) {
 		ljp = i * ns;
@@ -369,11 +369,11 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     for (unsigned int i = i_min; i <= i_max; i++) {
 	for (int j = j_min; j <= j_max; j++) {
 	    // map azimuthal index to [0, ns]
-	    int jf = clamp_phi_id_to_grid(j);
+        const int jf = clamp_phi_id_to_grid(j);
 
 	    // calculate cell 1d index
-	    int l = jf + i * ns;
-	    int lip = l + ns;
+        const int l = jf + i * ns;
+        const int lip = l + ns;
 	    int ljp = l + 1;
 	    if (jf == ns - 1) {
 		ljp = i * ns;

@@ -994,56 +994,48 @@ interpolate_bilinear(t_polargrid &quantity, bool radial_a_grid,
 
 static double calc_tstop(const double size, const double rho, const double vrel, const double temperature) {
 
-    // From Giovanni Picogna, used in
-    // https://www.aanda.org/articles/aa/pdf/2018/08/aa32523-17.pdf propably
-    // adapted from https://www.aanda.org/articles/aa/pdf/2003/07/aah3912.pdf
+    // From Giovanni Picogna, used in PSK18, adapted from WH02
+    // 
+	// Literature references:
+	// PSK18: Picogna, Stoll & Kley (2018) https://doi.org/10.1051/0004-6361/201732523
+	// WH02: Woitke & Helling (2002) https://doi.org/10.1051/0004-6361:20021734
+	// HB03: Haghighipour & Boss (2003) 10.1086/345472
 
     const double m0 = parameters::MU * constants::m_u.get_code_value();
+
+	// PSK18 below (5), WH02 below Eq. (9): vthermal = sqrt(pi/8) * cs
+
     const double vthermal = std::sqrt(8.0 * constants::k_B.get_code_value() *
 				      temperature / (M_PI * m0));
 
-    if (vthermal < 1.e-20)
-	die("Zero VT %e\n", vthermal);
-    if (vthermal > 1.e20)
-	die("Zero VT1 %e\n", vthermal);
+	// from HB03 Eq. (20) below for value of molecular hydrogen.
+	const double a0 = 1.5e-8 * units::length.get_inverse_cgs_factor();
+    double cross_section = M_PI * std::pow(a0, 2); // units of L^2
 
-    double sigma = M_PI * std::pow(1.5e-8 / units::length.get_cgs_factor(), 2);
-    double nu = 1.0 / 3.0 * m0 * vthermal / sigma;
-    
-	if (nu < 1.e-20) {
-		die("Zero nu %e\n", nu);
-    } else if (nu > 1.e20) {
-		die("Zero nu1 %e\n", nu);
-    }
+	// gas molecular viscosity HB03 (6)
+    double nu = 1.0 / 3.0 * m0 * vthermal / cross_section; // units of M / (L * T)
 
-	double l = 4.72e-9 / rho;
-    
-	if (l < 1.e-20) {
-		die("Zero l %e\n", l);
-	} else if (l > 1.e20) {
-		die("Zero l1 %e\n", l);
-	}
-    
-	double c_s = vthermal * sqrt(M_PI / 8.0);
-    
-	if (c_s < 1.e-20) {
-		die("Zero cs %e\n", c_s);
-	} else if (c_s > 1.e20) {
-		die("Zero cs1 %e\n", c_s);
-	}
-    
-	double Kn = 0.5 * l / size;
-    double Ma = vrel / c_s;
+	// HB03 Eq. (20)
+	const double l = m0 / M_PI/ std::pow(a0, 2) / rho;
 
+	// PSK18 below Eq. (5)
+	const double c_s = vthermal * sqrt(M_PI / 8.0);
+    
+	// WH02 Eq. (6)
+	const double Kn = 0.5 * l / size;
+    
+	const double Ma = vrel / c_s;
     if (Ma < 1.e-20) {
 		die("Zero Ma %e\n", Ma);
 	} else if (Ma > 1.e20) {
 		die("Zero Ma1 %e\n", Ma);
 	}
+
+	// WH02 Eq. (7)
+	const double Re = 2.0 * size * rho * vrel / nu;
     
-	double Re = 2.0 * size * rho * vrel / nu;
-    
-	double CdE = 2.0 * sqrt(Ma * Ma + 128.0 / 9.0 / M_PI);
+	// follows from PSK18 Eq. (7) for the expression of tstop
+	const double CdE = 2.0 * sqrt(Ma * Ma + 128.0 / 9.0 / M_PI);
 	
 	if (CdE < 1.e-20) {
 		die("Zero CdE %e\n", CdE);
@@ -1051,8 +1043,9 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 		die("Zero CdE1 %e\n", CdE);
 	}
     
+	// Stokes drag coefficient for Kn << 1 from WH02 Eq. (15)
+	// with an additional factor of Ma which comes from rearrangnig for the calculation of tstop
 	double CdS = 0.0;
-    
 	if (Re <= 1.e-3) {
 		CdS = 24.0 * nu / (2.0 * size * rho * c_s) +
 	      3.6 / c_s * pow(vrel, 0.687) * pow(2.0 * size * rho / nu, -0.313);
@@ -1070,7 +1063,8 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 		die("Zero CdS1 %e\n", CdS);
 	}
 
-    double Cd = (9.0 * Kn * Kn * CdE + CdS) / (3.0 * Kn + 1.0) / (3.0 * Kn + 1.0);
+	// corresponds to PSK18 Eq. (6) and WH02 (18)
+    const double Cd = (9.0 * Kn * Kn * CdE + CdS) / (3.0 * Kn + 1.0) / (3.0 * Kn + 1.0);
     
 	if (Cd < 1.e-20) {
 		die("Zero Cd %e\n", Cd);
@@ -1079,15 +1073,8 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 	}
     
 	const double pdens = parameters::particle_density;
+	// follows from PSK18 Eq. (10)
 	const double tstop = 4.0 * l * pdens / (3.0 * rho * Cd * c_s * Kn);
-    // printf("Cd = %.3e\n", Cd);
-    // printf("Kn = %.3e\n", Kn);
-    // printf("CdE = %.3e\n", CdE);
-    // printf("CdS = %.3e\n", CdS);
-    // printf("Ma = %.3e\n", Ma);
-    // printf("particle density = %.3e\n", parameters::particle_density);
-
-    // printf("tstop = %.3e, tstop_old = %.3e\n", tstop, tstop_old);
     return tstop;
 }
 
@@ -1121,27 +1108,6 @@ static void interpolate_quantities(t_data& data, const double r, const double ph
 	vg_azimuthal = corret_v_gas_azimuthal_omega_frame(vg_azimuthal_temp, r);
 }
 
-static void calculate_gas_drag_implicit(const double r, const double phi,
-			    const double r_dot, const double phi_dot,
-			    t_data &data, const double radius,
-			    double &minus_r_dotel_r, double &minus_l_rel,
-			    double &tstop)
-{
-
-    double rho, temperature, vg_radial, vg_azimuthal;
-	interpolate_quantities(data, r, phi, rho, temperature, vg_radial, vg_azimuthal);
-
-    // calculate relative velocities
-    minus_r_dotel_r = vg_radial - r_dot;
-    const double vrel_phi = vg_azimuthal - phi_dot * r;
-
-    minus_l_rel = r * vrel_phi;
-
-    const double vrel =
-	std::sqrt(std::pow(minus_r_dotel_r, 2) + std::pow(vrel_phi, 2));
-
-	tstop = calc_tstop(radius, rho, vrel, temperature);
-}
 
 static void calculate_gas_drag_expmid(const double r, const double phi,
 			     const double r_dot, const double phi_dot,
@@ -1175,7 +1141,7 @@ static void calculate_gas_drag_expmid(const double r, const double phi,
 // tstop > dt/10 can cause numerical instabilities for the explicit integrator
 void check_tstop(t_data &data)
 {
-    double dt = sim::last_dt;
+    const double dt = sim::last_dt;
 
 	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
@@ -1200,19 +1166,10 @@ void check_tstop(t_data &data)
 	particles[i].stokes = stokes;
 
 	if (tstop < 10.0 * dt && parameters::particle_gas_drag_enabled &&
-		(parameters::particle_integrator == parameters::integrator_explicit ||
-		 parameters::particle_integrator == parameters::integrator_adaptive)) {
+		 parameters::particle_integrator == parameters::integrator_adaptive) {
 	    logging::print_master(
 		LOG_ERROR
 		"Particle stopping time too small for explicit integrator! Use the semiimplicit or implicit integrator instead!\n");
-	    PersonalExit(1);
-	}
-
-	if (tstop < 0.005 * dt && parameters::particle_gas_drag_enabled &&
-		parameters::particle_integrator == parameters::integrator_semiimplicit) {
-	    logging::print_master(
-		LOG_ERROR
-		"Particle stopping time too small for semiimplicit integrator! Use the implicit integrator instead!\n");
 	    PersonalExit(1);
 	}
     }
@@ -1441,24 +1398,12 @@ void integrate(t_data &data, const double current_time, const double dt)
 	}
 
 	switch (parameters::particle_integrator) {
-    case parameters::integrator_explicit: {
-	integrate_explicit(data, dt);
-	break;
-    }
     case parameters::integrator_adaptive: {
 	integrate_explicit_adaptive(data, dt);
 	break;
     }
-    case parameters::integrator_semiimplicit: {
-	integrate_semiimplicit(data, dt);
-	break;
-    }
     case parameters::integrator_exponential_midpoint: {
 	integrate_exponential_midpoint(data, dt);
-	break;
-    }
-    case parameters::integrator_implicit: {
-	integrate_implicit(data, dt);
 	break;
     }
     default: {
@@ -1494,109 +1439,6 @@ void update_velocity_from_disk_gravity_cart(
 
     vx += dt * (std::cos(phi) * sg_radial - std::sin(phi) * sg_azimuthal);
     vy += dt * (std::sin(phi) * sg_radial + std::cos(phi) * sg_azimuthal);
-}
-
-/**
- * @brief compute_smoothing_isothermal
- * @param r
- * @return smoothing length for calculating gravitational force due to a
- * vertical gas column
- */
-static double compute_smoothing_isothermal(double r)
-{
-    double smooth;
-    const double scale_height =
-	parameters::ASPECTRATIO_REF * std::pow(r, 1.0 + parameters::FLARINGINDEX); // = H
-    smooth = parameters::thickness_smoothing * scale_height;
-    return smooth;
-}
-/**
- * @brief update_velocity_from_disk_gravity_cart_old
- * @abstract horrible inefficient way to calculate gravitational force from gas
- * on dust particles, only use for testing
- * @param data
- * @param dt
- */
-void update_velocity_from_disk_gravity_cart_old(t_data &data, double dt)
-{
-    int *number_of_particles = (int *)malloc(sizeof(int) * CPU_Number);
-    int *particle_offsets = (int *)malloc(sizeof(int) * CPU_Number);
-    t_particle *all_particles =
-	(t_particle *)malloc(sizeof(t_particle) * global_number_of_particles);
-    double *force_x =
-	(double *)malloc(sizeof(double) * global_number_of_particles);
-    double *force_y =
-	(double *)malloc(sizeof(double) * global_number_of_particles);
-
-    // get particle amounts from all nodes
-    MPI_Allgather(&local_number_of_particles, 1, MPI_INT, number_of_particles,
-		  1, MPI_INT, MPI_COMM_WORLD);
-
-    // calculate offsets
-    for (int i = 0; i < CPU_Number; ++i) {
-	particle_offsets[i] = 0;
-	for (int j = 0; j < i; ++j) {
-	    particle_offsets[i] += number_of_particles[j];
-	}
-    }
-
-    // get all particles
-    MPI_Allgatherv(&particles[0], local_number_of_particles, mpi_particle,
-		   all_particles, number_of_particles, particle_offsets,
-		   mpi_particle, MPI_COMM_WORLD);
-
-    std::memset(force_x, 0, sizeof(*force_x) * global_number_of_particles);
-    std::memset(force_y, 0, sizeof(*force_y) * global_number_of_particles);
-
-    double dphi = 2.0 * M_PI / (double)data[t_data::SIGMA].get_size_azimuthal();
-    for (unsigned int n_radial = Zero_or_active; n_radial < Max_or_active;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-	     ++n_azimuthal) {
-	    double cell_angle = n_azimuthal * dphi;
-	    double cell_x = Rmed[n_radial] * std::cos(cell_angle);
-	    double cell_y = Rmed[n_radial] * std::sin(cell_angle);
-	    double cell_mass =
-		Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
-	    for (unsigned int i = 0; i < global_number_of_particles; ++i) {
-		const double &x = all_particles[i].r;
-		const double &y = all_particles[i].phi;
-		double smoothing = compute_smoothing_isothermal(
-		    all_particles[i].get_distance_to_star());
-		double d_x = cell_x - x;
-		double d_y = cell_y - y;
-		double invdist3 = std::pow(std::pow(d_x, 2) + std::pow(d_y, 2) +
-					       std::pow(smoothing, 2),
-					   -3.0 / 2.0);
-
-		force_x[i] += constants::G * cell_mass * d_x * invdist3;
-		force_y[i] += constants::G * cell_mass * d_y * invdist3;
-	    }
-	}
-    }
-
-    // send force back
-    MPI_Allreduce(MPI_IN_PLACE, force_x, global_number_of_particles, MPI_DOUBLE,
-		  MPI_SUM, MPI_COMM_WORLD);
-    MPI_Allreduce(MPI_IN_PLACE, force_y, global_number_of_particles, MPI_DOUBLE,
-		  MPI_SUM, MPI_COMM_WORLD);
-
-    // update particles
-    unsigned int offset = particle_offsets[CPU_Rank];
-	#pragma omp parallel for
-    for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-	double &vx = particles[i].r_dot;
-	double &vy = particles[i].phi_dot;
-	vx += dt * force_x[offset + i];
-	vy += dt * force_y[offset + i];
-    }
-
-    free(number_of_particles);
-    free(particle_offsets);
-    free(all_particles);
-    free(force_x);
-    free(force_y);
 }
 
 void integrate_exponential_midpoint(t_data &data, const double dt)
@@ -1696,186 +1538,6 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 	// TODO: check for multiple calls of move
 }
 
-void integrate_semiimplicit(t_data &data, const double dt)
-{
-    // Semi implicit integrator in cylindrical coordinates (see Zhu et al. 2014,
-    // eqs. A4-A12)
-	#pragma omp parallel for
-    for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-
-	// initialize
-	const double r0 = particles[i].r;
-	const double phi0 = particles[i].phi;
-
-	const double r_dot0 = particles[i].r_dot;
-	const double phi_dot0 = particles[i].phi_dot;
-
-	const double l0 = r0 * r0 * phi_dot0;
-
-	const double hfdt = 0.5 * dt;
-	double tstop = dt;
-	double dt1 = dt;
-	double vrel_r = 0.0;
-
-	// Half-drift
-	const double r_dot1 = r_dot0;
-	const double l1 = l0;
-	const double phi_dot1 = phi_dot0; // follows from  l1 = l0
-
-	const double r1 = r0 + r_dot0 * hfdt;
-	double phi1 =
-	    phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * hfdt;
-	check_angle(phi1);
-
-	// Kick
-	const double r2 = r1;
-	const double phi2 = phi1;
-	double minus_l_rel = 0.0;
-
-	if (parameters::particle_gas_drag_enabled) {
-	    calculate_gas_drag_expmid(r1, phi1, r_dot1, phi_dot1, data,
-			     particles[i].radius, vrel_r, minus_l_rel, tstop,
-			     r0, l0);
-	    dt1 = dt / (1.0 + hfdt / tstop);
-	}
-
-	const double rsmooth = calculate_dust_smoothing(r1, phi1, particles[i].stokes, data);
-
-	double grav_r_ddot;
-	double minus_grav_l_dot;
-	if (parameters::ParticlesInCartesian) {
-	    calculate_derivitives_from_star_and_planets_in_cart(
-		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
-	} else {
-
-	    calculate_derivitives_from_star_and_planets(
-		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
-	}
-
-	double l2 = l1 + minus_grav_l_dot * dt1;
-	if (parameters::particle_gas_drag_enabled) {
-	    l2 += minus_l_rel / tstop * dt1;
-	}
-
-	// Updating radial velocity
-	double r_dot2 = r_dot1;
-	r_dot2 += grav_r_ddot * dt1;
-	r_dot2 += 0.5 * (l1 * l1 + l2 * l2) / (r1 * r1 * r1) * dt1;
-
-	if (parameters::particle_gas_drag_enabled) {
-	    r_dot2 += vrel_r / tstop * dt1;
-	}
-
-	// Half-drift
-	const double r3 = r1 + r_dot2 * hfdt;
-	const double phi3 =
-	    phi2 + 0.5 * (l2 / std::pow(r2, 2) + l2 / std::pow(r3, 2)) * hfdt;
-
-	particles[i].r_dot = r_dot2;
-	particles[i].r = r3;
-	particles[i].phi = phi3;
-	check_angle(particles[i].phi);
-	particles[i].phi_dot = l2 / std::pow(particles[i].r, 2);
-	particles[i].stokes = tstop*calculate_omega_kepler(r3);
-    }
-}
-
-void integrate_implicit(t_data &data, const double dt)
-{
-    // Fully implicit integrator in cylindrical coordinates (see Zhu et al.
-    // 2014, eqs. A15-A18)
-    double r1, phi1, l1, r_dot1, tstop1, tstop0, dt0, dt1;
-    double r_ddot0, minus_l_dot0, r_ddot1, minus_l_dot1, hfdt, minus_r_dot_rel0,
-	minus_l_rel0, minus_r_dot_rel1;
-
-    double minus_l_rel1 = 0.0;
-
-    // initialize with failsave values to suppress compiler warning
-    // "-Wmaybe-uninitialized"
-    minus_l_rel0 = 0.0;
-    minus_r_dot_rel0 = 0.0;
-    tstop0 = 1e+300;
-
-	#pragma omp parallel for
-    for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-	const double r0 = particles[i].r;
-	const double phi0 = particles[i].phi;
-	const double r_dot0 = particles[i].r_dot;
-	const double phi_dot0 = particles[i].phi_dot;
-	const double l0 = r0 * r0 * phi_dot0;
-	dt1 = dt;
-	dt0 = dt1;
-	hfdt = 0.5 * dt;
-
-	// Half-drift
-	r1 = r0 + r_dot0 * dt;
-	phi1 = phi0 + 0.5 * (l0 / std::pow(r0, 2) + l0 / std::pow(r1, 2)) * dt;
-	check_angle(phi1);
-
-	// Kick
-	// Current position
-	if (parameters::particle_gas_drag_enabled) {
-	    calculate_gas_drag_implicit(r0, phi0, r_dot0, phi_dot0, data,
-			    particles[i].radius, minus_r_dot_rel0, minus_l_rel0,
-			    tstop0);
-	    dt0 = 1.0 + dt / tstop0;
-	}
-
-	const double rsmooth = calculate_dust_smoothing(r1, phi1, particles[i].stokes, data);
-
-	if (parameters::ParticlesInCartesian) {
-	    calculate_derivitives_from_star_and_planets_in_cart(
-		r_ddot0, minus_l_dot0, r0, phi0, rsmooth, data);
-	} else {
-	    calculate_derivitives_from_star_and_planets(r_ddot0, minus_l_dot0,
-							r0, phi0, rsmooth, data);
-	}
-	// Predicted position
-	if (parameters::particle_gas_drag_enabled) {
-	    calculate_gas_drag_expmid(r1, phi1, r_dot0, phi_dot0, data,
-			     particles[i].radius, minus_r_dot_rel1,
-			     minus_l_rel1, tstop1, r0, l0);
-	    dt1 = hfdt / (1.0 + hfdt / tstop0 + hfdt / tstop1 +
-			  hfdt * dt / (tstop0 * tstop1));
-	}
-
-	if (parameters::ParticlesInCartesian) {
-	    calculate_derivitives_from_star_and_planets_in_cart(
-		r_ddot1, minus_l_dot1, r1, phi1, rsmooth, data);
-	} else {
-	    calculate_derivitives_from_star_and_planets(r_ddot1, minus_l_dot1,
-							r1, phi1, rsmooth, data);
-	}
-
-	l1 = l0;
-	l1 += (minus_l_dot0 + minus_l_dot1 * dt0) * dt1;
-	if (parameters::particle_gas_drag_enabled) {
-	    l1 += (minus_l_rel0 / tstop0 + minus_l_rel1 / tstop1 * dt0) * dt1;
-	}
-
-	r_dot1 = r_dot0;
-	r_dot1 += (r_ddot0 + r_ddot1 * dt0) * dt1;
-	r_dot1 += (std::pow(l0, 2) / std::pow(r0, 3) +
-		   std::pow(l1, 2) / std::pow(r1, 3) * dt0) *
-		  dt1;
-	if (parameters::particle_gas_drag_enabled) {
-	    r_dot1 +=
-		(minus_r_dot_rel0 / tstop0 + minus_r_dot_rel1 / tstop1 * dt0) *
-		dt1;
-	}
-
-	// Half-drift
-	const double r2 = r0 + (r_dot0 + r_dot1) * hfdt;
-	const double phi2 =
-	    phi0 + (l0 / std::pow(r0, 2) + l1 / std::pow(r2, 2)) * hfdt;
-	particles[i].r_dot = r_dot1;
-	particles[i].r = r2;
-	particles[i].phi = phi2;
-	check_angle(particles[i].phi);
-	particles[i].phi_dot = l1 / std::pow(particles[i].r, 2);
-	particles[i].stokes = tstop1*calculate_omega_kepler(r2);
-    }
-}
 
 void integrate_explicit_adaptive(t_data &data, const double dt)
 {
@@ -2215,215 +1877,6 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 	}
     }
     move();
-}
-
-void integrate_explicit(t_data &data, const double dt)
-{
-
-    if (parameters::CartesianParticles) {
-		die("Somethings wrong with integrating particles with the explicit method and cartesian calculation of forces, no clue what. Find it out!\n");
-	// disk gravity on particles is inside gas_drag function
-	if (parameters::particle_gas_drag_enabled)
-	    update_velocities_from_gas_drag_cart(data, dt);
-    } else {
-	// disk gravity on particles is inside gas_drag function
-	if (parameters::particle_gas_drag_enabled)
-	    update_velocities_from_gas_drag(data, dt);
-    } // else {
-    // disk gravity on particles is inside gas_drag function
-
-    // as particles move independent of each other, we can integrate one after
-    // one
-	#pragma omp parallel for
-    for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-
-	double k1_r, k1_phi, k1_r_dot, k1_phi_dot;
-	double k2_r, k2_phi, k2_r_dot, k2_phi_dot;
-	double k3_r, k3_phi, k3_r_dot, k3_phi_dot;
-	double k4_r, k4_phi, k4_r_dot, k4_phi_dot;
-	double k5_r, k5_phi, k5_r_dot, k5_phi_dot;
-	double k6_r, k6_phi, k6_r_dot, k6_phi_dot;
-
-	double temp_ar, temp_aphi, temp_r, temp_phi, temp_r_dot, temp_phi_dot;
-
-	temp_r = particles[i].r;
-	temp_phi = particles[i].phi;
-	temp_r_dot = particles[i].r_dot;
-	temp_phi_dot = particles[i].phi_dot;
-
-	const double rsmooth = calculate_dust_smoothing(
-	particles[i].get_distance_to_star(), particles[i].get_angle(),
-	particles[i].stokes, data);
-
-	// Cash–Karp method
-	// (http://en.wikipedia.org/wiki/Cash%E2%80%93Karp_method) cartesian
-	// coordinates are written inside the polar coordinates
-	if (parameters::CartesianParticles) {
-	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
-	} else {
-	    calculate_accelerations_from_star_and_planets(
-		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		rsmooth, data);
-	}
-
-	// calculate k1
-	k1_r_dot = temp_ar;
-	k1_phi_dot = temp_aphi;
-	k1_r = temp_r_dot;
-	k1_phi = temp_phi_dot;
-
-	temp_r = particles[i].r + dt * 0.2 * k1_r;
-	temp_phi = particles[i].phi + dt * 0.2 * k1_phi;
-
-	temp_r_dot = particles[i].r_dot + dt * 0.2 * k1_r_dot;
-	temp_phi_dot = particles[i].phi_dot + dt * 0.2 * k1_phi_dot;
-
-	if (parameters::CartesianParticles) {
-	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
-	} else {
-	    calculate_accelerations_from_star_and_planets(
-		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		rsmooth, data);
-	}
-	// calculate k2
-	k2_r_dot = temp_ar;
-	k2_phi_dot = temp_aphi;
-	k2_r = temp_r_dot;
-	k2_phi = temp_phi_dot;
-
-	temp_r = particles[i].r + dt * (0.075 * k1_r + 0.225 * k2_r);
-	temp_phi = particles[i].phi + dt * (0.075 * k1_phi + 0.225 * k2_phi);
-
-	temp_r_dot =
-	    particles[i].r_dot + dt * (0.075 * k1_r_dot + 0.225 * k2_r_dot);
-	temp_phi_dot = particles[i].phi_dot +
-		       dt * (0.075 * k1_phi_dot + 0.225 * k2_phi_dot);
-
-	if (parameters::CartesianParticles) {
-	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
-	} else {
-	    calculate_accelerations_from_star_and_planets(
-		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		rsmooth, data);
-	}
-	// calculate k3
-	k3_r_dot = temp_ar;
-	k3_phi_dot = temp_aphi;
-	k3_r = temp_r_dot;
-	k3_phi = temp_phi_dot;
-
-	temp_r = particles[i].r + dt * (0.3 * k1_r - 0.9 * k2_r + 1.2 * k3_r);
-	temp_phi = particles[i].phi +
-		   dt * (0.3 * k1_phi - 0.9 * k2_phi + 1.2 * k3_phi);
-
-	temp_r_dot = particles[i].r_dot +
-		     dt * (0.3 * k1_r_dot - 0.9 * k2_r_dot + 1.2 * k3_r_dot);
-	temp_phi_dot =
-	    particles[i].phi_dot +
-	    dt * (0.3 * k1_phi_dot - 0.9 * k2_phi_dot + 1.2 * k3_phi_dot);
-
-	if (parameters::CartesianParticles) {
-	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
-	} else {
-	    calculate_accelerations_from_star_and_planets(
-		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		rsmooth, data);
-	}
-	// calculate k4
-	k4_r_dot = temp_ar;
-	k4_phi_dot = temp_aphi;
-	k4_r = temp_r_dot;
-	k4_phi = temp_phi_dot;
-
-	temp_r =
-	    particles[i].r + dt * (-11.0 / 54.0 * k1_r + 2.5 * k2_r -
-				   70.0 / 27.0 * k3_r + 35.0 / 27.0 * k4_r);
-	temp_phi = particles[i].phi +
-		   dt * (-11.0 / 54.0 * k1_phi + 2.5 * k2_phi -
-			 70.0 / 27.0 * k3_phi + 35.0 / 27.0 * k4_phi);
-
-	temp_r_dot = particles[i].r_dot +
-		     dt * (-11.0 / 54.0 * k1_r_dot + 2.5 * k2_r_dot -
-			   70.0 / 27.0 * k3_r_dot + 35.0 / 27.0 * k4_r_dot);
-	temp_phi_dot =
-	    particles[i].phi_dot +
-	    dt * (-11.0 / 54.0 * k1_phi_dot + 2.5 * k2_phi_dot -
-		  70.0 / 27.0 * k3_phi_dot + 35.0 / 27.0 * k4_phi_dot);
-
-	if (parameters::CartesianParticles) {
-	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
-	} else {
-	    calculate_accelerations_from_star_and_planets(
-		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		rsmooth, data);
-	}
-	// calculate k5
-	k5_r_dot = temp_ar;
-	k5_phi_dot = temp_aphi;
-	k5_r = temp_r_dot;
-	k5_phi = temp_phi_dot;
-
-	temp_r = particles[i].r +
-		 dt * (1631.0 / 55296.0 * k1_r + 175.0 / 512.0 * k2_r +
-		       575.0 / 13824.0 * k3_r + 44275.0 / 110592.0 * k4_r +
-		       253.0 / 4096.0 * k5_r);
-	temp_phi = particles[i].phi +
-		   dt * (1631.0 / 55296.0 * k1_phi + 175.0 / 512.0 * k2_phi +
-			 575.0 / 13824.0 * k3_phi +
-			 44275.0 / 110592.0 * k4_phi + 253.0 / 4096.0 * k5_phi);
-
-	temp_r_dot =
-	    particles[i].r_dot +
-	    dt * (1631.0 / 55296.0 * k1_r_dot + 175.0 / 512.0 * k2_r_dot +
-		  575.0 / 13824.0 * k3_r_dot + 44275.0 / 110592.0 * k4_r_dot +
-		  253.0 / 4096.0 * k5_r_dot);
-	temp_phi_dot =
-	    particles[i].phi_dot +
-	    dt *
-		(1631.0 / 55296.0 * k1_phi_dot + 175.0 / 512.0 * k2_phi_dot +
-		 575.0 / 13824.0 * k3_phi_dot +
-		 44275.0 / 110592.0 * k4_phi_dot + 253.0 / 4096.0 * k5_phi_dot);
-
-	if (parameters::CartesianParticles) {
-	    calculate_accelerations_from_star_and_planets_cart(
-		temp_ar, temp_aphi, temp_r, temp_phi, rsmooth, data);
-	} else {
-	    calculate_accelerations_from_star_and_planets(
-		temp_ar, temp_aphi, temp_r, temp_r_dot, temp_phi, temp_phi_dot,
-		rsmooth, data);
-	}
-	// calculate k6
-	k6_r_dot = temp_ar;
-	k6_phi_dot = temp_aphi;
-	k6_r = temp_r_dot;
-	k6_phi = temp_phi_dot;
-
-	// update position & velocity
-	particles[i].r += dt * (37.0 / 378.0 * k1_r + 250.0 / 621.0 * k3_r +
-				125.0 / 594.0 * k4_r + 512.0 / 1771.0 * k6_r);
-	particles[i].phi +=
-	    dt * (37.0 / 378.0 * k1_phi + 250.0 / 621.0 * k3_phi +
-		  125.0 / 594.0 * k4_phi + 512.0 / 1771.0 * k6_phi);
-
-	if (!parameters::CartesianParticles) {
-	    check_angle(particles[i].phi);
-	}
-
-	particles[i].r_ddot =
-	    (37.0 / 378.0 * k1_r_dot + 250.0 / 621.0 * k3_r_dot +
-	     125.0 / 594.0 * k4_r_dot + 512.0 / 1771.0 * k6_r_dot);
-	particles[i].phi_ddot =
-	    (37.0 / 378.0 * k1_phi_dot + 250.0 / 621.0 * k3_phi_dot +
-	     125.0 / 594.0 * k4_phi_dot + 512.0 / 1771.0 * k6_phi_dot);
-
-	particles[i].r_dot += dt * particles[i].r_ddot;
-	particles[i].phi_dot += dt * particles[i].phi_ddot;
-    }
 }
 
 void move(void)

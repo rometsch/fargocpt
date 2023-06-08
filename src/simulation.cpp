@@ -13,7 +13,6 @@
 #include "viscosity/viscosity.h"
 #include "viscosity/artificial_viscosity.h"
 #include "TransportEuler.h"
-#include "sts.h"
 #include "accretion.h"
 #include "cfl.h"
 #include "quantities.h"
@@ -99,6 +98,7 @@ double CalculateTimeStep(t_data &data)
 
 		if(PRINT_SIG_INFO){
 			cfl::condition_cfl(data, cfl_dt);
+            PRINT_SIG_INFO = false;
 		}
 
 	}
@@ -139,6 +139,11 @@ static void step_Euler(t_data &data, const double dt) {
 
 	const double time = PhysicalTime;
 
+	if (parameters::calculate_disk){
+		// minimum density is assured inside AccreteOntoPlanets
+	    accretion::AccreteOntoPlanets(data, dt);
+	}
+
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
@@ -169,14 +174,6 @@ static void step_Euler(t_data &data, const double dt) {
 		particles::integrate(data, time, dt);
 	}
 
-	/** Planets' positions and velocities are updated from gravitational
-	 * interaction with star and other planets */
-	if (parameters::integrate_planets) {
-		data.get_planetary_system().integrate(time, dt);
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
-	}
-
 	/* Below we correct v_azimuthal, planet's position and velocities if we
 	 * work in a frame non-centered on the star. Same for dust particles. */
 	refframe::handle_corotation(data, dt);
@@ -187,19 +184,14 @@ static void step_Euler(t_data &data, const double dt) {
 
 	    update_with_sourceterms(data, dt);
 
-	    if (parameters::EXPLICIT_VISCOSITY) {
-		// compute and add acceleartions due to disc viscosity as a
-		// source term
-		art_visc::update_with_artificial_viscosity(data, dt);
+	    // compute and add acceleartions due to disc viscosity as a
+	    // source term
+	    art_visc::update_with_artificial_viscosity(data, dt);
 
-		recalculate_viscosity(data, sim::PhysicalTime);
-		viscosity::compute_viscous_stress_tensor(data);
-		viscosity::update_velocities_with_viscosity(data, dt);
-	    }
+	    recalculate_viscosity(data, sim::PhysicalTime);
+	    viscosity::compute_viscous_stress_tensor(data);
+	    viscosity::update_velocities_with_viscosity(data, dt);
 
-	    if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, time, dt);
-	    }
 
 	    if (parameters::Adiabatic) {
 		SubStep3(data, time, dt);
@@ -214,6 +206,14 @@ static void step_Euler(t_data &data, const double dt) {
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
 			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
 			  dt);
+	}
+
+	/** Planets' positions and velocities are updated from gravitational
+	 * interaction with star and other planets */
+	if (parameters::integrate_planets) {
+		data.get_planetary_system().integrate(time, dt);
+		data.get_planetary_system().copy_data_from_rebound();
+		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 	}
 
 	// TODO: move outside step
@@ -235,9 +235,8 @@ static void step_Euler(t_data &data, const double dt) {
 		viscosity::update_viscosity(data);
 	    }
 
-		// minimum density is assured inside AccreteOntoPlanets
-	    accretion::AccreteOntoPlanets(data, dt);
-		boundary_conditions::apply_boundary_condition(data, time, dt, true);
+	    boundary_conditions::apply_boundary_condition(data, time, dt, true);
+
 
 	    // const double total_disk_mass_new =
 	    //  quantities::gas_total_mass(data, 2.0*RMAX);
@@ -315,17 +314,12 @@ static void step_Euler(t_data &data, const double dt) {
 
 		update_with_sourceterms(data, frog_dt);
 
-	    if (parameters::EXPLICIT_VISCOSITY) {
-
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-	    }
-	    if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, start_time, frog_dt);
-	    }
+
 
 	    if (parameters::Adiabatic) {
 		SubStep3(data, start_time, frog_dt);
@@ -401,16 +395,11 @@ static void step_Euler(t_data &data, const double dt) {
 
 		update_with_sourceterms(data, frog_dt);
 
-		if (parameters::EXPLICIT_VISCOSITY) {
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, end_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-		}
-		if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, end_time, frog_dt);
-		}
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, end_time, frog_dt);
@@ -532,17 +521,11 @@ static void step_Euler(t_data &data, const double dt) {
 
 		update_with_sourceterms(data, frog_dt);
 
-		if (parameters::EXPLICIT_VISCOSITY) {
-
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, start_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-		}
-		if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, start_time, frog_dt);
-		}
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, start_time, frog_dt);
@@ -593,16 +576,11 @@ static void step_Euler(t_data &data, const double dt) {
 		compute_pressure(data);
 		update_with_sourceterms(data, frog_dt);
 
-		if (parameters::EXPLICIT_VISCOSITY) {
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
 
 		recalculate_viscosity(data, midstep_time);
 		viscosity::compute_viscous_stress_tensor(data);
 		viscosity::update_velocities_with_viscosity(data, frog_dt);
-		}
-		if (!parameters::EXPLICIT_VISCOSITY) {
-		Sts(data, midstep_time, frog_dt);
-		}
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, midstep_time, frog_dt);

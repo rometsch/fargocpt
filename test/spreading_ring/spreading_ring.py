@@ -1,6 +1,3 @@
-"""
-Test for Super-Time stepping from D'Angelo et al. 2003 THERMOHYDRODYNAMICS OF CIRCUMSTELLAR DISKS WITH HIGH-MASS PLANETS
-"""
 import subprocess
 import os
 
@@ -22,7 +19,7 @@ def run(fargo_path, par_file):
     wd = os.getcwd()
     os.chdir(fargo_path)
 
-    subprocess.call('mpirun -n 4 ./fargo start ' + par_file, shell=True)
+    subprocess.call('./run_fargo start ' + par_file, shell=True)
     os.chdir(wd)
 
 
@@ -42,12 +39,11 @@ def test_1D(out, ax, dt):
     M = 1.0
     nu = 4.77e-5 / R0**2
 
-    Quantities = np.loadtxt(out + '/Quantities.dat', skiprows=26)
+    Quantities = np.loadtxt(out + '/monitor/Quantities.dat', skiprows=26)
     t = Quantities[int(dt*10),2]
     x = Rmed / R0
     tau0 = 0.016
     tau = 12 * nu * t / R0**2 + tau0
-    # tau = 0.270
 
     # print(tau, tau-tau0)
 
@@ -59,7 +55,7 @@ def test_1D(out, ax, dt):
     ax.plot(Rmed, Sigma, ls='-', color='red', lw=2.5, label='Theory')
     ax.plot(Rmed, Sigma0, ls='--', color='black', lw=2.5, label='Initial')
 
-    file_name = out + '/gasdens' + str(dt) + ".dat"
+    file_name = out + f'/snapshots/{dt}/Sigma.dat'
     data = np.fromfile(file_name)
     N = len(data)
     nr = len(Rmed)
@@ -81,7 +77,7 @@ def test_1D(out, ax, dt):
     return data
 
 
-def test_2D(out, ax, dt):
+def test_2D_XY(out, ax, dt):
 
     Radii = np.loadtxt(out + "/used_rad.dat", skiprows=0)
     Radii = Radii
@@ -90,7 +86,7 @@ def test_2D(out, ax, dt):
     Rmed = 2.0/3.0*(Rsup*Rsup*Rsup-Rinf*Rinf*Rinf)
     Rmed = Rmed / (Rsup*Rsup-Rinf*Rinf)
 
-    file_name = out + '/gasdens' + str(dt) + ".dat"
+    file_name = out + f'/snapshots/{dt}/Sigma.dat'
     data = np.fromfile(file_name)
     N = len(data)
     nr = len(Rmed)
@@ -114,7 +110,7 @@ def test_2D(out, ax, dt):
     # ax.axis('equal')
     return data
 
-def test_3D(out, ax, dt):
+def test_2D_R_PHI(out, ax, dt):
 
     Radii = np.loadtxt(out + "/used_rad.dat", skiprows=0)
     Radii = Radii
@@ -123,7 +119,7 @@ def test_3D(out, ax, dt):
     Rmed = 2.0/3.0*(Rsup*Rsup*Rsup-Rinf*Rinf*Rinf)
     Rmed = Rmed / (Rsup*Rsup-Rinf*Rinf)
 
-    file_name = out + '/gasdens' + str(dt) + ".dat"
+    file_name = out + f'/snapshots/{dt}/Sigma.dat'
     data = np.fromfile(file_name)
     N = len(data)
     nr = len(Rmed)
@@ -142,26 +138,23 @@ def test_3D(out, ax, dt):
     R0 = 1
     nu = 4.77e-5 / R0**2
 
-    Quantities = np.loadtxt(out + '/Quantities.dat', skiprows=26)
+    Quantities = np.loadtxt(out + '/monitor/Quantities.dat', skiprows=26)
     t = Quantities[int(dt*10),2]
     tau0 = 0.016
     tau = 12 * nu * t / R0**2 + tau0
 
     time = (tau) * R0**2 / (12 * nu * 2 * np.pi)
-    ax.set_title(f'Sigma, dt = {time:2f}', color='black', y = 1.06)
+    ax.set_title(f'Sigma, t = {time:.2f}', color='black', y = 1.06)
 
     return data
 
 
-parfile = "speith2003_log_grid.par"
+parfile = "speith2003_log_grid.yml"
 compile_fargo('../../')
 run('../../', 'test/spreading_ring/' + parfile)
 
-dts = [0,9,18,27, 32, 50]#, 6, 14, 18, 22, 30]
-dts = np.array([7, 17, 30, 43, 70, 86])*2-7#, 6, 14, 18, 22, 30]
-#dts = np.array([0,9,12,27, 70, 120])*2#, 6, 14, 18, 22, 30]
+dts = np.array([7, 17, 30, 43, 70, 86])*2-7
 
-# dts = np.array([18,54,126,162,198, 270]) - 18#, 6, 14, 18, 22, 30]
 fig, axs = plt.subplots(2,3,figsize=(8,4))
 fig.subplots_adjust(hspace=0.42)
 

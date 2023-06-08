@@ -38,7 +38,6 @@
 #include "quantities.h"
 #include "selfgravity.h"
 #include "stress.h"
-#include "sts.h"
 #include "units.h"
 #include "util.h"
 #include "viscosity/viscosity.h"
@@ -112,7 +111,7 @@ void SetTemperatureFloorCeilValues(t_data &data, std::string filename, int line)
 bool assure_minimum_value(t_polargrid &dst, double minimum_value)
 {
     bool found = false;
-    bool is_dens = strcmp(dst.get_name(), "Sigma") == 0;
+    const bool is_dens = strcmp(dst.get_name(), "Sigma") == 0;
 
 	const unsigned int Nr = dst.get_size_radial();
 	const unsigned int Nphi = dst.get_size_azimuthal();
@@ -507,7 +506,7 @@ static void viscous_heating(t_data &data) {
 		if (data[t_data::VISCOSITY](nr, naz) != 0.0) {
 			const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 		    // average tau_r_phi over 4 cells
-		    double tau_r_phi =
+            const double tau_r_phi =
 			0.25 *
 			(data[t_data::TAU_R_PHI](nr, naz) +
 			 data[t_data::TAU_R_PHI](nr + 1, naz) +
@@ -584,7 +583,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		const double dlogH_dlogr = 9.0 / 7.0;
 		
 		// irradiation contribution near and far from the star
-		// see D'Angelo & Marzari 2012
+		// see D'Angelo & Marzari 2012 (doi:10.1088/0004-637X/757/1/5), 
 		const double roverd = distance < radius ? 1.0 : radius/distance;
 		const double W_G = 0.4 * roverd + HoverR * (dlogH_dlogr - 1.0);
 
@@ -623,12 +622,9 @@ static void irradiation(t_data &data) {
 void calculate_qplus(t_data &data)
 {
 
-    if (parameters::EXPLICIT_VISCOSITY) {
-		data[t_data::QPLUS].clear();
-    }
+    data[t_data::QPLUS].clear();
 
-
-    if (parameters::heating_viscous_enabled && parameters::EXPLICIT_VISCOSITY) {
+    if (parameters::heating_viscous_enabled) {
 			viscous_heating(data);
     }
     if (parameters::heating_star_enabled) {
@@ -1222,8 +1218,8 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
-	/// TODO: Cannot be OpenMP parallelized due to Temperature being iteratively computed ??
-	#pragma omp parallel for collapse(2)
+    /// TODO: Cannot be OpenMP parallelized due to Temperature being iteratively computed ??
+#pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
 	for (unsigned int nr = 1; nr < Nr - 1; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
@@ -1257,7 +1253,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	    }
 	}
 
-	double tmp = absolute_norm;
+    const double tmp = absolute_norm;
 	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM,
 		      MPI_COMM_WORLD);
 	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);

@@ -199,7 +199,7 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 IntegrateParticles: yes   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Implicit   # Explicit, Adaptive, Semiimplicit and Implicit
+ParticleIntegrator: Midpoint   # Explicit, Midpoint (Mignone 2019)
 # Test adaptive integrator causing error: Timestep too small
 NumberOfParticles: '2000'   # number of particles [default = 0]
 ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]

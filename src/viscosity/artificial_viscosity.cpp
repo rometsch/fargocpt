@@ -526,8 +526,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	}
 
 	if (parameters::artificial_viscosity ==
-		parameters::artificial_viscosity_SN &&
-	parameters::EXPLICIT_VISCOSITY) {
+		parameters::artificial_viscosity_SN) {
 
 	t_polargrid &energy = data[t_data::ENERGY];
 	t_polargrid &density = data[t_data::SIGMA];

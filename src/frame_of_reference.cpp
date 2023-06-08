@@ -138,20 +138,6 @@ void ComputeIndirectTermNbody(t_data &data, const double current_time, const dou
 	const pair delta_vel = data.get_planetary_system().get_hydro_frame_center_delta_vel_rebound_predictor(dt);
 	pair accel{delta_vel.x/dt, delta_vel.y/dt};
 
-	if(parameters::indirect_term_mode == INDIRECT_TERM_REB_SPRING) { // Spring forces to keep central object near 0,0
-	const pair com_pos = data.get_planetary_system().get_hydro_frame_center_position();
-	const pair com_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
-	const double omega = data.get_planetary_system().get_planet(0).get_orbital_period();
-	const double k_pos = std::pow(omega/15.0, 2);
-	const double k_vel = std::pow(omega/10.0, 2);
-
-	accel.x += com_pos.x * k_pos;
-	accel.y += com_pos.y * k_pos;
-
-	accel.x += com_vel.x * k_vel;
-	accel.y += com_vel.y * k_vel;
-	}
-
 	IndirectTermPlanets.x = -accel.x;
 	IndirectTermPlanets.y = -accel.y;
 	} else {

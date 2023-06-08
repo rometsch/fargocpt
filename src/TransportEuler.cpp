@@ -222,17 +222,16 @@ void compute_residual_velocity(t_polargrid &v_azimuthal)
 
 void ComputeConstantResidual(PolarGrid *VAzimuthal, double dt)
 {
-    double *vt, *vres, Ntilde, Nround, invdt;
 	const int nr = VAzimuthal->Nrad;
 	const int ns = VAzimuthal->Nsec;
-    vt = VAzimuthal->Field;
-    vres = v_azimuthal_res.Field;
-    invdt = 1.0 / dt;
+    double* vt = VAzimuthal->Field;
+    double* vres = v_azimuthal_res.Field;
+    const double invdt = 1.0 / dt;
 
 	#pragma omp parallel for
 	for (int i = 0; i < nr; i++) {
-	Ntilde = v_azimuthal_mean(i) * InvRmed[i] * dt * invdphi;
-	Nround = floor(Ntilde + 0.5);
+    const double Ntilde = v_azimuthal_mean(i) * InvRmed[i] * dt * invdphi;
+    const double Nround = floor(Ntilde + 0.5);
 	const int nitemp = (int)Nround;
 	Nshift[i] = nitemp;
 	for (int j = 0; j < ns; j++) {
