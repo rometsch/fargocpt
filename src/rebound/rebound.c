@@ -642,11 +642,11 @@ void reb_init_simulation(struct reb_simulation* r){
 
 #else // MPI
 #ifndef LIBREBOUND
-    printf("Process id: %d.\n", getpid());
+    //printf("Process id: %d.\n", getpid());
 #endif // LIBREBOUND
 #endif // MPI
 #ifdef OPENMP
-    printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
+    //printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
 #endif // OPENMP
 }
 
