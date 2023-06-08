@@ -152,7 +152,7 @@ def diff_to_analytic(out, quant, Nsnap):
 
 
 def visualize(Nsnapshot):
-    fig, axs = plt.subplots(2,1,figsize=(6,8))
+    fig, axs = plt.subplots(2,2,figsize=(6,8))
     axs = np.ravel(axs)
 
     analytic(axs)
