@@ -282,7 +282,7 @@ void reb_mpi_init(struct reb_simulation* const r){
         if (r->mpi_id==0) fprintf(stderr,"ERROR: Number of root boxes (%d) not a multiple of mpi nodes (%d).\n",r->root_n,r->mpi_num);
         exit(-1);
     }
-    printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
+    //printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
 }
 
 void reb_mpi_finalize(struct reb_simulation* const r){
