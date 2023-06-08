@@ -1141,7 +1141,7 @@ static void calculate_gas_drag_expmid(const double r, const double phi,
 // tstop > dt/10 can cause numerical instabilities for the explicit integrator
 void check_tstop(t_data &data)
 {
-    double dt = sim::last_dt;
+    const double dt = sim::last_dt;
 
 	#pragma omp parallel for
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {

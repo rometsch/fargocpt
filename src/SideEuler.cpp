@@ -123,7 +123,8 @@ void NonReflectingBoundary_inner(t_data &data, t_polargrid *VRadial,
 	dangle *= (Rmed[1] - Rmed[0]);
 	i_angle = (int)(dangle / 2.0 / M_PI * (double)NAzimuthal + .5);
 
-	#pragma omp parallel for
+    /// TODO OMP cannot share variables between threads
+    //#pragma omp parallel for
 	for (nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
 	    cell = nAzimuthal + nRadial * Density->Nsec;
 	    jp = nAzimuthal + i_angle;
