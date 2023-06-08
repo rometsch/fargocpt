@@ -611,6 +611,7 @@ Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor(cons
 	delta_vel.x = 0.0;
 	delta_vel.y = 0.0;
 	}
+    reb_free_simulation(m_rebound_predictor);
 	return delta_vel;
 }
 
