@@ -156,13 +156,13 @@ char Config::get_first_letter_lowercase(const std::string &key, const std::strin
     if (value.length() == 0) {
         value = std::string(default_value);
     }
-    return tolower(value[0]);
+    return (char) tolower(value[0]);
 }
 
 char Config::get_first_letter_lowercase(const std::string &key)
 {
     std::string value = get<std::string>(key);
-    return tolower(value[0]);
+    return (char) tolower(value[0]);
 }
 
 bool Config::contains(const std::string &key)
