@@ -697,7 +697,8 @@ void calculate_qminus(t_data &data, const double current_time)
 			data[t_data::SIGMA0](nr, naz);
 		    const double E0 =
 			data[t_data::ENERGY0](nr, naz);
-		    delta_E -= E0 / sigma0 * sigma;
+			const double SigmaFloor = parameters::sigma0 * parameters::sigma_floor;
+		    delta_E -= E0 / std::max(sigma0,SigmaFloor)  * sigma;
 		}
 		if (parameters::cooling_beta_aspect_ratio) {
 		    const double sigma =
