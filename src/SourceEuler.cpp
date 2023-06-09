@@ -1237,6 +1237,15 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 			 D(nr, naz) * Temperature(nr, naz_prev) +
 			 E(nr, naz) * Temperature(nr, naz_next) - Told(nr, naz));
 
+
+        if(Temperature(nr, naz) < parameters::minimum_temperature){
+            Temperature(nr, naz) = parameters::minimum_temperature;
+        }
+
+        if(Temperature(nr, naz) > parameters::maximum_temperature){
+            Temperature(nr, naz) = parameters::maximum_temperature;
+        }
+
 		// only non ghostcells to norm and don't count overlap cell's
 		// twice
 		const bool isnot_ghostcell_rank_0 =
