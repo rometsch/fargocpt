@@ -47,6 +47,7 @@ PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only f
 CoolingRadiativeLocal: 'Yes'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
+CoolingScurve: No # default =no 
 RadiativeDiffusion: 'No'   # 
 RadiativeDiffusionOmega: '1.5'   # [default = 1.5]
 RadiativeDiffusionAutoOmega: 'No'   # [default = no]

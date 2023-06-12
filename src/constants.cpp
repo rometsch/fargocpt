@@ -64,8 +64,8 @@ t_constant m_u;
 t_constant h;
 t_constant c;
 t_constant sigma;
-t_constant _R;
 t_constant _G;
+t_constant _R;
 
 #ifndef NDEBUG
 t_constant &G = _G;
