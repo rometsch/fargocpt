@@ -496,6 +496,9 @@ static void step_Euler(t_data &data, const double dt) {
 	refframe::ComputeIndirectTermFully();
 
 	if (parameters::integrate_planets) { /// Nbody Kick 1 / 2
+		// minimum density is assured inside AccreteOntoPlanets
+		accretion::AccreteOntoPlanets(data, frog_dt);
+
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 		}
@@ -597,6 +600,10 @@ static void step_Euler(t_data &data, const double dt) {
 
 	// Finish timestep of the planets but do not update Nbody system yet //
 	if (parameters::integrate_planets) {
+		
+		// minimum density is assured inside AccreteOntoPlanets
+		accretion::AccreteOntoPlanets(data, frog_dt);
+
 		/// Nbody kick 2/2
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
@@ -634,9 +641,6 @@ static void step_Euler(t_data &data, const double dt) {
 		compute_scale_height(data, end_time);
 		viscosity::update_viscosity(data);
 		}
-
-		// minimum density is assured inside AccreteOntoPlanets
-		accretion::AccreteOntoPlanets(data, step_dt);
 
 		boundary_conditions::apply_boundary_condition(data, end_time, step_dt, true);
 
