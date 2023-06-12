@@ -490,15 +490,6 @@ void compression_heating(t_data &data, const double dt){
 		const double gamma =
 			pvte::get_gamma_eff(data, nr, naz);
 
-		/*
-		// Like D'Angelo et al. 2003 eq. 25
-		const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial,
-		n_azimuthal); const double dE = dt * (-P*DIV_V + 0.5*(gamma
-		- 1.0) * P * dt * std::pow(DIV_V, 2)); const double energy_old =
-		data[t_data::ENERGY](n_radial, n_azimuthal); const double
-		energy_new = energy_old + dE; data[t_data::ENERGY](n_radial,
-		n_azimuthal) = energy_new;
-		*/
 
 		// Like D'Angelo et al. 2003 eq. 24
 		const double energy_old =
@@ -506,20 +497,7 @@ void compression_heating(t_data &data, const double dt){
 		const double energy_new =
 		    energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
 		data[t_data::ENERGY](nr, naz) = energy_new;
-		// explicit update
-		// data[t_data::ENERGY](nr, naz) *= 1 - (gamma -1)*dt*DIV_V;
-		// via Qplus
-		// data[t_data::QPLUS](nr, naz) += - (gamma -1)*DIV_V * energy_old;
-
-		/*
-		// Zeus2D like, see Stone & Norman 1992
-		// produces poor results with shock tube test
-		const double P = (gamma - 1.0);
-		const double energy_old = data[t_data::ENERGY](n_radial,
-		n_azimuthal); const double energy_new = energy_old*(1.0 -
-		0.5*dt*P*DIV_V)/(1.0 + 0.5*dt*P*DIV_V);
-		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
-		*/
+		
 	    } // end azimuthal loop
 	} // end radial loop
     } // end if adiabatic
