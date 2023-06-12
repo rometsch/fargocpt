@@ -47,12 +47,19 @@ static std::tuple<int, int> hill_azimuthal_index(const double angle,
 {
     /* Calculate the index in azimuthal direction
        where the Hill sphere starts and stops */
-	const double max_angle = std::min(2.0*M_PI, 2.0 * RHill / Rplanet);
-	const int j_min = get_med_azimuthal_id(angle - max_angle);
-	int j_max = get_med_azimuthal_id(angle + max_angle) + 1;
-	j_max = j_min + std::min(j_max - j_min, (int)NAzimuthal - 1);
-	std::tuple<int, int> ids(j_min, j_max);
-	return ids;
+    double max_angle;
+    if(Rplanet == 0.0){
+    max_angle = 2.0*M_PI;
+    } else {
+    max_angle = std::min(2.0*M_PI, 2.0 * RHill / Rplanet);
+    }
+
+    const int j_min = get_med_azimuthal_id(angle - max_angle);
+    int j_max = get_med_azimuthal_id(angle + max_angle) + 1;
+    j_max = j_min + std::min(j_max - j_min, (int)NAzimuthal - 1);
+    std::tuple<int, int> ids(j_min, j_max);
+    return ids;
+
 }
 
 static void update_planet(t_planet &planet, const double dMplanet,
@@ -348,7 +355,19 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     const double search_radius = RHill * frac + 2.0 * Rplanet / ns;
 
     const double dist_max = RHill * frac;
-    const double f_const = 3.0 / M_PI / std::pow(dist_max, 2);
+    double f_const;
+
+    if(parameters::visc_accret_massflow_test){
+
+    // normalization factor for f = 1 - r/R
+    const double area = 2.0 * M_PI * ((1.0/2.0 * std::pow(dist_max, 2) - 1.0/3.0 * std::pow(dist_max, 2))
+                            -(1.0/2.0 * std::pow(RMIN, 2)     - 1.0/3.0 * std::pow(RMIN, 3)/dist_max));
+
+    f_const = 1.0 / area;
+    } else {
+    // normalization factor for f = 1 - r/R
+    f_const = 3.0 / M_PI / std::pow(dist_max, 2);
+    }
 
     // calculate range of indeces to iterate over
     const auto [i_min, i_max] = hill_radial_index(Rplanet, search_radius);
@@ -381,14 +400,12 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 	    const double distance = sqrt(dx * dx + dy * dy);
 	    const double nu = data[t_data::VISCOSITY].Field[l];
 
-	    const double spread =
-		f_const * (1.0 - distance / dist_max) * Surf[i];
+        // Surf[i] is needed to sum up to 1
+        // we have to remove it to compute the correct change in Sigma
+        // and then add it again for computing the accreted mass.
+        const double spread =
+           f_const * (1.0 - distance / dist_max);
 
-	    // debug variables
-	    // static double acc_max = 0.0;
-	    // const double acc = 3.0 * nu * M_PI * spread *
-	    // parameters::viscous_outflow_speed * planet.get_period() /
-	    // std::log(2); if(acc > acc_max) 	acc_max = acc;
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
@@ -402,13 +419,11 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 	    const double facc_max_dens = 1 - density_floor / dens[l];
 	    // handle accretion zone 1
 	    if (distance < frac * RHill) {
-		// printf("Cell1 (%d %d) acc = %.3e	(%.3e)	1/acc = %.3e
-		// %.3e	i(%d %d) j(%d %d)\n", i, j, acc,
-		// planet.get_acc(), 1.0/acc, 1.0/acc_max, i_min, i_max, j_min,
-		// j_max);
 
 		const double facc_tmp = facc * nu * spread;
+
 		const double facc_ceil = std::min(facc_tmp, facc_max_dens);
+
 		const double deltaM = facc_ceil * dens[l] * Surf[i];
 		dens[l] *= 1.0 - facc_ceil;
 		if (parameters::Adiabatic) {

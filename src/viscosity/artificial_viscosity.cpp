@@ -50,7 +50,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	(!parameters::domegadr_zero);
 
 	if (add_kep_inner) {
-	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
+	ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
 	}
 
 	if ((parameters::boundary_outer !=
@@ -268,7 +268,7 @@ void update_with_artificial_viscosity_TW_old(t_data &data, const double dt)
 	(!parameters::domegadr_zero);
 
 	if (add_kep_inner) {
-	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
+	ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
 	}
 
 	if ((parameters::boundary_outer !=
@@ -502,7 +502,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	(!parameters::domegadr_zero);
 
 	if (add_kep_inner) {
-	ApplySubKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
+	ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
 	}
 
 	if ((parameters::boundary_outer !=

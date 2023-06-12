@@ -904,7 +904,7 @@ void t_planetary_system::init_roche_radii()
     auto &primary = get_planet(0);
     if (get_number_of_planets() < 2) {
 	primary.set_dimensionless_roche_radius(1.0);
-	primary.set_distance_to_primary(2.0 * RMAX);
+    primary.set_distance_to_primary(RMAX);
 	return;
     }
 

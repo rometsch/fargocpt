@@ -332,6 +332,8 @@ extern double mass_accretion_rate;
 extern double accretion_radius_fraction;
 extern double klahr_smoothing_radius;
 
+extern double visc_accret_massflow_test; // gas massflow test specific parameter
+
 /// CFL Factor
 extern double CFL;
 extern double CFL_max_var;
