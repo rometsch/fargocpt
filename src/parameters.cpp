@@ -1119,7 +1119,7 @@ void read(const std::string &filename, t_data &data)
 
 	break;
     default:
-	die("Invalid setting for Particle Integrator: %s	with key %s",
+    die("Invalid setting for Particle Integrator: %s	with key %c",
 	    config::cfg.get<std::string>("ParticleIntegrator", "s").c_str(),
 	    config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s"));
     }

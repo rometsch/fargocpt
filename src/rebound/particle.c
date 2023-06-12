@@ -33,6 +33,7 @@
 #include "boundary.h"
 #include "particle.h"
 #include "integrator_ias15.h"
+#include "integrator_mercurius.h"
 #ifndef COLLISIONS_NONE
 #include "collision.h"
 #endif // COLLISIONS_NONE
@@ -58,14 +59,44 @@ static void reb_add_local(struct reb_simulation* const r, struct reb_particle pt
 
 	r->particles[r->N] = pt;
 	r->particles[r->N].sim = r;
-	if (r->gravity==REB_GRAVITY_TREE || r->collision==REB_COLLISION_TREE){
+	if (r->gravity==REB_GRAVITY_TREE || r->collision==REB_COLLISION_TREE || r->collision==REB_COLLISION_LINETREE){
         if (r->root_size==-1){
             reb_error(r,"root_size is -1. Make sure you call reb_configure_box() before using a tree based gravity or collision solver.");
+            return;
+        }
+        if(fabs(pt.x)>r->boxsize.x/2. || fabs(pt.y)>r->boxsize.y/2. || fabs(pt.z)>r->boxsize.z/2.){
+            reb_error(r,"Cannot add particle outside of simulation box.");
             return;
         }
 		reb_tree_add_particle_to_tree(r, r->N);
 	}
 	(r->N)++;
+    if (r->integrator == REB_INTEGRATOR_MERCURIUS){
+        struct reb_simulation_integrator_mercurius* rim = &(r->ri_mercurius);
+        if (r->ri_mercurius.mode==0){ //WHFast part
+            rim->recalculate_dcrit_this_timestep       = 1;
+            rim->recalculate_coordinates_this_timestep = 1;
+        }else{  // IAS15 part
+            reb_integrator_ias15_reset(r);
+            if (rim->dcrit_allocatedN<r->N){
+                rim->dcrit              = realloc(rim->dcrit, sizeof(double)*r->N);
+                rim->dcrit_allocatedN = r->N;
+            }
+            rim->dcrit[r->N-1] = reb_integrator_mercurius_calculate_dcrit_for_particle(r,r->N-1);
+            if (rim->allocatedN<r->N){
+                rim->particles_backup   = realloc(rim->particles_backup,sizeof(struct reb_particle)*r->N);
+                rim->encounter_map      = realloc(rim->encounter_map,sizeof(int)*r->N);
+                rim->allocatedN = r->N;
+            }
+            rim->encounter_map[rim->encounterN] = r->N-1;
+            rim->encounterN++;
+            if (r->N_active==-1){ 
+                // If global N_active is not set, then all particles are active, so the new one as well.
+                // Otherwise, assume we're adding non active particle. 
+                rim->encounterNactive++;
+            }
+        }
+    }
 }
 
 void reb_add(struct reb_simulation* const r, struct reb_particle pt){
@@ -97,6 +128,23 @@ void reb_add(struct reb_simulation* const r, struct reb_particle pt){
 	// Add particle to local partical array.
 	reb_add_local(r, pt);
 }
+
+int reb_particle_check_testparticles(struct reb_simulation* const r){
+    if (r->N_active == r->N || r->N_active == -1){
+        return 0;
+    }
+    // Check if testparticle of type 0 has mass!=0
+    if (r->testparticle_type == 0){
+        const int N_real = r->N - r->N_var;
+        for (int i=r->N_active; i<N_real; i++){
+            if (r->particles[i].m!=0.){
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 
 int reb_get_rootbox_for_particle(const struct reb_simulation* const r, struct reb_particle pt){
 	if (r->root_size==-1) return 0;
@@ -215,24 +263,28 @@ int reb_remove(struct reb_simulation* const r, int index, int keepSorted){
     if (r->integrator == REB_INTEGRATOR_MERCURIUS){
         keepSorted = 1; // Force keepSorted for hybrid integrator
         struct reb_simulation_integrator_mercurius* rim = &(r->ri_mercurius);
-        for (int i=0;i<r->N-1;i++){
-            if (i>=index){
-                rim->dcrit[i] = rim->dcrit[i+1];
+        if (rim->dcrit_allocatedN>0 && index<rim->dcrit_allocatedN){
+            for (int i=0;i<r->N-1;i++){
+                if (i>=index){
+                    rim->dcrit[i] = rim->dcrit[i+1];
+                }
             }
         }
         reb_integrator_ias15_reset(r);
         if (r->ri_mercurius.mode==1){
             struct reb_simulation_integrator_mercurius* rim = &(r->ri_mercurius);
             int after_to_be_removed_particle = 0;
+            int encounter_index = -1;
             for (int i=0;i<rim->encounterN;i++){
                 if (after_to_be_removed_particle == 1){
                     rim->encounter_map[i-1] = rim->encounter_map[i] - 1; 
                 }
                 if (rim->encounter_map[i]==index){
+                    encounter_index = i;
                     after_to_be_removed_particle = 1;
                 }
             }
-            if (index<rim->encounterNactive){
+            if (encounter_index<rim->encounterNactive){
                 rim->encounterNactive--;
             }
             rim->encounterN--;
@@ -246,7 +298,7 @@ int reb_remove(struct reb_simulation* const r, int index, int keepSorted){
 		reb_warning(r, "Last particle removed.");
 		return 1;
 	}
-	if (index >= r->N){
+	if (index >= r->N || index < 0){
 		char warning[1024];
         sprintf(warning, "Index %d passed to particles_remove was out of range (N=%d).  Did not remove particle.", index, r->N);
 		reb_error(r, warning);
@@ -330,6 +382,13 @@ void reb_particle_imul(struct reb_particle* p1, double value){
     p1->vy *= value;
     p1->vz *= value;
     p1->m *= value;
+}
+
+double reb_particle_distance(struct reb_particle* p1, struct reb_particle* p2){
+    double dx = p1->x - p2->x;
+    double dy = p1->y - p2->y;
+    double dz = p1->z - p2->z;
+    return sqrt(dx*dx + dy*dy + dz*dz);
 }
 
 struct reb_particle reb_particle_nan(void){

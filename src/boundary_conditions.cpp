@@ -745,9 +745,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 {
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
-    double delta;
-    double X, X0, Xnew;
-    bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
+    const bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the inner damping domain?
     if ((parameters::damping_inner_limit > 1.0) &&
@@ -762,7 +760,7 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+    const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
@@ -779,11 +777,11 @@ void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
-		X = quantity(n_radial, n_azimuthal);
-		X0 = quantity0(n_radial, n_azimuthal);
-		Xnew = (X - X0) * exp_factor + X0;
+        const double X = quantity(n_radial, n_azimuthal);
+        const double X0 = quantity0(n_radial, n_azimuthal);
+        const double Xnew = (X - X0) * exp_factor + X0;
 		quantity(n_radial, n_azimuthal) = Xnew;
-		delta = Xnew - X;
+        const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
 			sum_without_ghost_cells(InnerWaveDampingMassCreation,
@@ -805,9 +803,7 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 {
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
-    double delta;
-    double X, X0, Xnew;
-    bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
+    const bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) &&
@@ -841,11 +837,11 @@ void damping_single_outer(t_polargrid &quantity, t_polargrid &quantity0,
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
-		X = quantity(n_radial, n_azimuthal);
-		X0 = quantity0(n_radial, n_azimuthal);
-		Xnew = (X - X0) * exp_factor + X0;
+        const double X = quantity(n_radial, n_azimuthal);
+        const double X0 = quantity0(n_radial, n_azimuthal);
+        const double Xnew = (X - X0) * exp_factor + X0;
 		quantity(n_radial, n_azimuthal) = Xnew;
-		delta = Xnew - X;
+        const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
 			sum_without_ghost_cells(OuterWaveDampingMassCreation,
@@ -868,7 +864,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
     (void)quantity0;
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
-    bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
+    const bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the inner damping domain?
     if ((parameters::damping_inner_limit > 1.0) &&
@@ -883,7 +879,7 @@ void damping_single_inner_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+    const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// Needed for OpenMP to work
@@ -933,7 +929,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
 
-    bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
+    const bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the outer damping domain?
     if ((parameters::damping_outer_limit < 1.0) &&
@@ -949,7 +945,7 @@ void damping_single_outer_zero(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+    const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	// Needed for OpenMP to work
@@ -993,9 +989,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 {
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
-    double delta;
-    double X, X0, Xnew;
-    bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
+    const bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the inner damping domain?
     if ((parameters::damping_inner_limit > 1.0) &&
@@ -1010,7 +1004,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMIN * parameters::damping_inner_limit), true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+    const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 		     calculate_omega_kepler(RMIN);
 
 	// get mean quantity
@@ -1033,15 +1027,15 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		(radius[n_radial] - RMIN * parameters::damping_inner_limit) /
 		    (RMIN - RMIN * parameters::damping_inner_limit),
 		2);
-	    double exp_factor = std::exp(-dt * factor / tau);
+        const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
-		X = quantity(n_radial, n_azimuthal);
-		X0 = quantity0(n_radial, 0);
-		Xnew = (X - X0) * exp_factor + X0;
+        const double X = quantity(n_radial, n_azimuthal);
+        const double X0 = quantity0(n_radial, 0);
+        const double Xnew = (X - X0) * exp_factor + X0;
 		quantity(n_radial, n_azimuthal) = Xnew;
-		delta = Xnew - X;
+        const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
 			sum_without_ghost_cells(InnerWaveDampingMassCreation,
@@ -1087,7 +1081,7 @@ void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 		(rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
 		    (RMIN - RMIN * parameters::damping_inner_limit),
 		2);
-	    double exp_factor = std::exp(-dt * factor / tau);
+        const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vrad.get_size_azimuthal(); ++n_azimuthal) {
@@ -1120,8 +1114,6 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 {
     // use the correct radius array corresponding to quantity
     t_radialarray &radius = quantity.is_scalar() ? Rb : Ra;
-    double delta;
-    double X, X0, Xnew;
     bool is_density = strcmp(quantity.get_name(), "Sigma") == 0;
 
     // is this CPU in the outer damping domain?
@@ -1138,7 +1130,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 		get_rinf_id(RMAX * parameters::damping_outer_limit) + 1, true);
 	}
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+    const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	for (unsigned int n_radial = limit;
@@ -1158,19 +1150,19 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	#pragma omp parallel for reduction (+ : OuterWaveDampingMassCreation, OuterWaveDampingMassRemoval)
 	for (unsigned int n_radial = limit;
 	     n_radial < quantity.get_size_radial(); ++n_radial) {
-	    double factor = std::pow(
+        const double factor = std::pow(
 		(radius[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-	    double exp_factor = std::exp(-dt * factor / tau);
+        const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < quantity.get_size_azimuthal(); ++n_azimuthal) {
-		X = quantity(n_radial, n_azimuthal);
-		X0 = quantity0(n_radial, 0);
-		Xnew = (X - X0) * exp_factor + X0;
+        const double X = quantity(n_radial, n_azimuthal);
+        const double X0 = quantity0(n_radial, 0);
+        const double Xnew = (X - X0) * exp_factor + X0;
 		quantity(n_radial, n_azimuthal) = Xnew;
-		delta = Xnew - X;
+        const double delta = Xnew - X;
 		if (is_density) {
 		    if (delta > 0) {
 			sum_without_ghost_cells(OuterWaveDampingMassCreation,
@@ -1208,7 +1200,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
 		get_rinf_id(RMAX * parameters::damping_outer_limit), vrad_arr.is_vector())+1;
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+    const double tau = parameters::damping_time_factor * 2.0 * M_PI /
 			 calculate_omega_kepler(parameters::damping_time_radius_outer);
 
 	#pragma omp parallel for
@@ -1218,7 +1210,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		(Rinf[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-	    double exp_factor = std::exp(-dt * factor / tau);
+        const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vrad_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
@@ -1281,7 +1273,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
 		2);
-	    double exp_factor = std::exp(-dt * factor / tau);
+        const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < vphi_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
@@ -1358,17 +1350,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	/// Initial profile temperature
 	const double cell_energy_profile = initial_energy(r_com, com_mass);
-	/*
-	const double cell_sigma = sigma(nr, naz);
-	const double temperature_floor =
-	parameters::minimum_temperature *
-	units::temperature.get_inverse_cgs_factor();
 
-	const double energy_floor = temperature_floor * cell_sigma /
-				parameters::MU * constants::R /
-				(ADIABATICINDEX - 1.0);
-	const double cell_energy0 = std::max(cell_energy_profile, energy_floor);
-				*/
 	const double cell_energy0 = cell_energy_profile;
 
 	const double cell_energy = energy(nr, naz);
@@ -1378,41 +1360,6 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		}
 	}
 	}
-
-
-
-
-	/*t_polargrid &sigma = data[t_data::SIGMA];
-	for (unsigned int nr = clamped_vphi_id;
-		 nr < sigma.get_size_radial(); ++nr) {
-		double factor = std::pow(
-		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
-		2);
-		double exp_factor = std::exp(-dt * factor / tau);
-
-		for (unsigned int naz = 0;
-		 naz < sigma.get_size_azimuthal(); ++naz) {
-	const double cell_x = (*CellCenterX)(nr, naz);
-	const double cell_y = (*CellCenterY)(nr, naz);
-
-	// Position in center of mass frame
-	const double x_com = cell_x - com_pos.x;
-	const double y_com = cell_y - com_pos.y;
-	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
-
-	const double cell_sigma0 =
-	parameters::sigma0 *
-	std::pow(r_com,
-		 -parameters::SIGMASLOPE); // we assume the floor is not reached.
-
-	const double cell_sigma = sigma(nr, naz);
-	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;
-
-	sigma(nr, naz)  = sigma_new;
-		}
-	}*/
-
     }
 }
 
@@ -1586,17 +1533,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 
 	/// Initial profile temperature
 	const double cell_energy_profile = initial_energy(r_com, com_mass);
-	/*
-	const double cell_sigma = sigma(nr, naz);
-	const double temperature_floor =
-	parameters::minimum_temperature *
-	units::temperature.get_inverse_cgs_factor();
 
-	const double energy_floor = temperature_floor * cell_sigma /
-				parameters::MU * constants::R /
-				(ADIABATICINDEX - 1.0);
-	const double cell_energy0 = std::max(cell_energy_profile, energy_floor);
-				*/
 	const double cell_energy0 = cell_energy_profile;
 
 	const double cell_energy = energy(nr, naz);
@@ -1606,40 +1543,6 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		}
 	}
 	}
-
-
-	/*
-
-	t_polargrid &sigma = data[t_data::DENSITY];
-	for (unsigned int nr = clamped_vphi_id;
-		 nr < sigma.get_size_radial(); ++nr) {
-		double factor = std::pow(
-		(Rinf[nr] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
-		2);
-		double exp_factor = std::exp(-dt * factor / tau);
-
-		for (unsigned int naz = 0;
-		 naz < sigma.get_size_azimuthal(); ++naz) {
-	const double cell_x = (*CellCenterX)(nr, naz);
-	const double cell_y = (*CellCenterY)(nr, naz);
-
-	// Position in center of mass frame
-	const double x_com = cell_x - com_pos.x;
-	const double y_com = cell_y - com_pos.y;
-	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
-
-	const double cell_sigma0 =
-	parameters::sigma0 *
-	std::pow(r_com,
-		 -SIGMASLOPE); // we assume the floor is not reached.
-
-	const double cell_sigma = sigma(nr, naz);
-	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;
-
-	sigma(nr, naz)  = sigma_new;
-		}
-	}*/
 
 	}
 }
@@ -2611,13 +2514,8 @@ void jibin_boundary_inner(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
-	//const double h = parameters::ASPECTRATIO_REF;
-	//const double p = parameters::SIGMASLOPE;
-	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
     const double R = Rmed[0];
-	//const double OmegaK = 1.0 / (R * std::sqrt(R));
-	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+
 	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
 
 
@@ -2653,13 +2551,8 @@ void jibin_boundary_outer(t_data &data)
 {
     if (CPU_Rank == CPU_Highest) {
 
-	//const double h = parameters::ASPECTRATIO_REF;
-	//const double p = parameters::SIGMASLOPE;
-	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
 	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-	//const double OmegaK = 1.0 / (R * std::sqrt(R));
-	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+
 	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
 
 

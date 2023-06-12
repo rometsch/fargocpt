@@ -1,10 +1,10 @@
 /**
- * @file 	simulationarchive.h
- * @brief 	Tools for creating and readin a Simulation Archive binary file.
+ * @file 	rotations.h
+ * @brief 	Tools for quaternions and rotations
  * @author 	Hanno Rein <hanno@hanno-rein.de>
  * 
  * @section 	LICENSE
- * Copyright (c) 2016 Hanno Rein
+ * Copyright (c) 2022 Hanno Rein
  *
  * This file is part of rebound.
  *
@@ -22,16 +22,8 @@
  * along with rebound.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#ifndef SIMULATIONARCHIVE_H
-#define SIMULATIONARCHIVE_H
-
-#include <stdint.h>
-
-struct reb_simulation;
-struct reb_particles;
-
-void reb_simulationarchive_heartbeat(struct reb_simulation* const r);  ///< Internal function to handle outputs for the Simulation Archive.
-void reb_read_simulationarchive_with_messages(struct reb_simulationarchive* sa, const char* filename, struct reb_simulationarchive* sa_shape, enum reb_input_binary_messages* warnings); ///< Internal function to read one snapshot from a simulation archive.
+#ifndef ROTATIONS_H
+#define ROTATIONS_H
 
 
-#endif 	// SIMULATIONARCHIVE_H
+#endif 	// ROTATIONS_H

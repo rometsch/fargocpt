@@ -28,7 +28,6 @@ OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE
 # handle debug ENV variable
 ifeq "$(FARGO_DEBUG)" "1"
 	CFLAGS += -g -O0 -fsanitize=address
-	LIBS += -lasan
 else ifeq "$(FARGO_DEBUG)" "valgrind"
 	CFLAGS += -g -O0
 else
