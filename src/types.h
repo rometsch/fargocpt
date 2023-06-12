@@ -70,7 +70,9 @@ class BoundaryFlow
 #define INDIRECT_TERM_REBOUND 0
 #define INDIRECT_TERM_EULER 1
 
-#define ALPHA_STAR_DIST_DEPENDEND 10
+#define CONST_ALPHA 0
+#define SCURVE_ALPHA 1
+#define ALPHA_STAR_DIST_DEPENDEND 2
 
 // TODO: This could be problematic on large NR
 #define MAX1D 16384

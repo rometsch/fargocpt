@@ -146,7 +146,6 @@ double mof_gamma;
 
 
 int AlphaMode;
-double localAlphaThreshold;
 double alphaCold;
 double alphaHot;
 
@@ -943,7 +942,6 @@ void read(const std::string &filename, t_data &data)
 
 	//local alpha
 	AlphaMode = config::cfg.get<int>("AlphaMode", 0);
-	localAlphaThreshold = config::cfg.get<double>("AlphaThreshold", 2.5e4);
 	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
 	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
 
