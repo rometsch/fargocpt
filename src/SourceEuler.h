@@ -17,9 +17,9 @@ void init_euler(t_data &data, const double current_time);
 void FreeEuler();
 
 void update_with_sourceterms(t_data &data, const double dt);
+void compression_heating(t_data &data, const double dt);
 void SubStep3(t_data &data, const double current_time, const double dt);
 void radiative_diffusion(t_data &data, const double current_time, const double dt);
-void compression_heating(t_data &data, const double dt);
 
 void calculate_qplus(t_data &data);
 void calculate_qminus(t_data &data, const double current_time);

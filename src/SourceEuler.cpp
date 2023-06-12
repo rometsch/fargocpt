@@ -333,24 +333,10 @@ void move_polargrid(t_polargrid &dst, t_polargrid &src)
     std::swap(dst.Field, src.Field);
 }
 
-/**
-	In this substep we take into account the source part of Euler equations.
-   We evolve velocities with pressure gradients, gravitational forces and
-   curvature terms
-*/
-void update_with_sourceterms(t_data &data, const double dt)
-{
-
-	// We do Self gravity first, so we don't have to recompute aspect ratio
-	if (parameters::self_gravity) {
-	selfgravity::compute(data, dt, true);
-	}
-
-    double supp_torque = 0.0; // for imposed disk drift
+static void momentum_update_radial(t_data &data, const double dt) {
 
 	const unsigned int Nr = data[t_data::ENERGY].get_size_radial();
 	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();
-
 
     // update v_radial with source terms
 	#pragma omp parallel for collapse(2)
@@ -378,24 +364,31 @@ void update_with_sourceterms(t_data &data, const double dt)
 
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 	    // v_phi^2/r : v_phi^2 is calculated by a mean in both directions
-	    double vt2 =
-		data[t_data::V_AZIMUTHAL](nr, naz) +
-		data[t_data::V_AZIMUTHAL](nr, naz_next) +
-		data[t_data::V_AZIMUTHAL](nr - 1, naz) +
-		data[t_data::V_AZIMUTHAL](nr - 1, naz_next);
-		vt2 = 0.25 * vt2 + Rinf[nr] * refframe::OmegaFrame;
-	    vt2 = vt2 * vt2;
+		const double vsum = data[t_data::V_AZIMUTHAL](nr, naz) +
+			data[t_data::V_AZIMUTHAL](nr, naz_next) +
+			data[t_data::V_AZIMUTHAL](nr - 1, naz) +
+			data[t_data::V_AZIMUTHAL](nr - 1, naz_next);
+		const double vt = 0.25 * vsum + Rinf[nr] * refframe::OmegaFrame;
+	    const double vt2 = vt * vt;
 
 		const double InvR = 2.0 / (Rmed[nr] + Rmed[nr-1]);
 
 	    // add all terms to new v_radial: v_radial_new = v_radial +
 	    // dt*(source terms)
-		data[t_data::V_RADIAL](nr, naz) =
-		data[t_data::V_RADIAL](nr, naz) +
-		dt * (-gradp - gradphi + vt2 * InvR);
-
+		data[t_data::V_RADIAL](nr, naz) += 
+			dt * (-gradp - gradphi + vt2 * InvR);
 	}
     }
+
+}
+
+
+static void momentum_update_azimuthal(t_data &data, const double dt) {
+
+	const unsigned int Nr = data[t_data::ENERGY].get_size_radial();
+	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();
+
+	double supp_torque = 0.0; // for imposed disk drift
 
     // update v_azimuthal with source terms
 	#pragma omp parallel for
@@ -443,7 +436,24 @@ void update_with_sourceterms(t_data &data, const double dt)
 	    }
 	}
     }
+}
 
+/**
+	In this substep we take into account the source part of Euler equations.
+   We evolve velocities with pressure gradients, gravitational forces and
+   curvature terms
+*/
+void update_with_sourceterms(t_data &data, const double dt)
+{
+
+	// We do Self gravity first, so we don't have to recompute aspect ratio
+	if (parameters::self_gravity) {
+	selfgravity::compute(data, dt, true);
+	}
+
+	// Momentum update due to 
+	momentum_update_radial(data, dt);
+	momentum_update_azimuthal(data, dt);
 	compression_heating(data, dt);
 
 	if(ECC_GROWTH_MONITOR){
@@ -495,9 +505,6 @@ void compression_heating(t_data &data, const double dt){
 			data[t_data::ENERGY](nr, naz);
 		const double energy_new =
 		    energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
-		if (naz == 0 && nr == 10) {
-			printf("DIV_V = %e, factor = %e\n", DIV_V, std::exp(-(gamma - 1.0) * dt * DIV_V));
-		}
 		data[t_data::ENERGY](nr, naz) = energy_new;
 		// explicit update
 		// data[t_data::ENERGY](nr, naz) *= 1 - (gamma -1)*dt*DIV_V;
