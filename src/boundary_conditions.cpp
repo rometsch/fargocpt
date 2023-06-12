@@ -1763,7 +1763,8 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 
 	double mdot_transfer;
 	if (parameters::variableTransfer){
-		mdot_transfer = parameters::mof_value + parameters::mof_gamma * mdot_avg;
+        // variable Mdot following Hameury, Lasota & Warner 1999  eq. 4
+        mdot_transfer = std::max(parameters::mof_value, parameters::mof_gamma * mdot_avg);
 	}else{
 		mdot_transfer = parameters::mof_value;
 	}

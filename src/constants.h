@@ -53,6 +53,8 @@ class t_constant
 
 /// gravitational constant
 extern t_constant _G;
+extern double global_cgs_G;
+
 /// Boltzmann constant
 extern t_constant k_B;
 /// molecular mass

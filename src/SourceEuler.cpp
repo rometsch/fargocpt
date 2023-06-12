@@ -768,6 +768,119 @@ void calculate_qminus(t_data &data, const double current_time)
 	    }
 	}
     }
+
+
+    //S-curve cooling
+    if(parameters::cooling_scurve_enabled){
+    /// Scruve cooling according to Ichikawa & Osaki (1992)
+#pragma omp parallel for collapse(2)
+    for (unsigned int nr = 1; nr < Nr; ++nr) {
+        for (unsigned int naz = 0; naz < Nphi; ++naz) {
+
+        const double H =
+            data[t_data::SCALE_HEIGHT](nr, naz);
+
+        const double Sigma =
+            data[t_data::SIGMA](nr, naz);
+
+        const double SigmaCGS = Sigma*units::surface_density.get_cgs_factor();
+
+        const double temperatureCGS =
+            data[t_data::TEMPERATURE](nr, naz) *
+            units::temperature.get_cgs_factor();
+
+        const double densityCGS =
+            Sigma /
+            (parameters::density_factor * H) * units::density.get_cgs_factor();
+
+        const double rCGS = Rmed[nr] * units::length.get_cgs_factor();
+
+
+        const double KCGS = 11.0 + 0.4 * std::log10(2.0e10/rCGS);
+
+        const double mu = pvte::mean_molecular_weight(temperatureCGS, densityCGS);
+
+        const double M = hydro_center_mass*units::mass.get_cgs_factor();
+
+        const double cgs_G = constants::global_cgs_G;
+
+        const double omega_keplerCGS = std::sqrt(cgs_G * M / (rCGS * rCGS * rCGS));
+
+        const double sigma_sb_cgs = constants::sigma.get_cgs_value();
+
+        const double logCA = 0.62 * std::log10(omega_keplerCGS) +
+                             1.62 * std::log10(SigmaCGS) - 0.31 * std::log10(mu) - 25.48;
+        const double TA = std::pow((std::pow(10.0,logCA)/sigma_sb_cgs),-1.0/5.49);
+
+        double FA = sigma_sb_cgs * std::pow(TA, 4);
+        double logFA = std::log10(FA);
+
+        double logFB = KCGS;
+        const double logTB_aux = 1.0/8.0 *
+                                     std::log10(omega_keplerCGS)+1.0/4.0 * std::log10(SigmaCGS) +
+                                 1.0/16.0 * std::log10(mu) + 25.49/8.0;
+        double logTB = 1.0/8.0 * logFB + logTB_aux;
+        double FB = std::pow(10.0, logFB);
+        double TB = std::pow(10.0, logTB);
+
+        if (FA > FB)
+        {
+            FB = FA;
+            logFB = logFA;
+            logTB = 1.0/8.0 * logFB + logTB_aux;
+            TB = std::pow(10.0, logTB);
+        }
+
+        double logFtot;
+
+        if (temperatureCGS < TA)
+        {
+            logFtot = 9.49 * std::log10(temperatureCGS) + 0.62 *
+                                                              std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS) -
+                      0.31 * std::log10(mu) - 25.48;
+        }
+        else if (temperatureCGS > TB)
+        {
+            logFtot = 8.0 * std::log10(temperatureCGS) -
+                      std::log10(omega_keplerCGS) - 2.0 * std::log10(SigmaCGS) -
+                      0.5 * std::log10(mu)-25.49;
+        }
+        else
+        {
+            if (FA < FB)
+            {
+                logFtot = (logFA - KCGS) * std::log10(temperatureCGS / TB) /
+                              std::log10(TA / TB) + KCGS;
+            }
+            else
+            {
+                logFtot = logFA;
+            }
+        }
+
+        const double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_inverse_cgs_factor();
+        if (SigmaCGS > 2.0)
+        {
+            data[t_data::QMINUS](nr, naz) += qminus_scurve;
+        }
+        else
+        {
+            /// If density is too low (outside the truncation radius) revert to radiative cooling for numerical stability
+            const double opacity = opacity::opacity(densityCGS, temperatureCGS);
+            const double optical_depth = (parameters::tau_factor / parameters::density_factor) * opacity * SigmaCGS;
+            const double tau_min = parameters::tau_min;
+            const double tau_eff = 3.0 / 8.0 * optical_depth + std::sqrt(3.0) / 4.0 +1.0 / (4.0 * optical_depth + tau_min);
+            const double T4 = std::pow(temperatureCGS, 4);
+            const double Tmin4 = std::pow(parameters::minimum_temperature*units::temperature.get_cgs_factor(),4);
+            const double qminus_rad = 2.0 * sigma_sb_cgs * (T4 - Tmin4) / tau_eff*units::energy_flux.get_inverse_cgs_factor();
+
+            data[t_data::QMINUS](nr, naz) += qminus_rad;
+        }
+
+        }
+    }
+    }
+
 }
 
 /**

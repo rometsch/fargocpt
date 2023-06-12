@@ -35,70 +35,19 @@ namespace viscosity
 double get_alpha(const int nr, const int naz, t_data &data)
 {
 	switch (parameters::AlphaMode){
-		case 0:
+        case CONST_ALPHA:
 			return parameters::ALPHAVISCOSITY;
-		case 1:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-			const double alpha = 
-			std::exp(std::log(parameters::alphaCold) + (std::log(parameters::alphaHot) - std::log(parameters::alphaCold)) / 
-			(1.0 + std::pow(parameters::localAlphaThreshold/temperatureCGS,8)));
-			return alpha;
-			}
-		case 2:
-			{
-			double alpha;
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-			if (temperatureCGS > parameters::localAlphaThreshold){
-				alpha = parameters::alphaHot;
-			}else
-			{
-				alpha = parameters::alphaCold;
-			}
-			return alpha;
-			}
-		case 3:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-
-			const double sigma = data[t_data::SIGMA](nr, naz);
-	    	const double scale_height = data[t_data::SCALE_HEIGHT](nr, naz);
-			const double densityCGS =
-		    sigma / (parameters::density_factor * scale_height) * units::density;
-			const double alpha = parameters::alphaCold + 
-			(parameters::alphaHot - parameters::alphaCold) * 
-			std::min( parameters::localAlphaThreshold * pvte::H_ionization_fraction(densityCGS, temperatureCGS), 1.0);
-			return alpha;
-			}
-		case 4:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-
-			const double sigma = data[t_data::SIGMA](nr, naz);
-	    	const double scale_height = data[t_data::SCALE_HEIGHT](nr, naz);
-			const double densityCGS =
-		    sigma / (parameters::density_factor * scale_height) * units::density;
-			const double ionFrac = pvte::H_ionization_fraction(densityCGS, temperatureCGS);
-
-			double alpha = parameters::alphaCold;
-
-			if (ionFrac > parameters::localAlphaThreshold){
-				alpha = parameters::alphaHot;
-			}
-			return alpha;
-			}
-		case 5:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-			const double T0 = 7034;
-			const double sig = 1000;
-			const double a = 8.79e-2;
-			const double b = 2.41e-3;
-			const double c = 3.27e-2;
-			const double x = (temperatureCGS - T0)/sig;
-			const double alpha = a*std::exp(-std::pow(x,2)/2) + b/2.0*std::tanh(x)+c;
-			return alpha;
-			}
+        case SCURVE_ALPHA:
+        {
+            const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
+            const double alpha_cool = parameters::alphaCold*std::pow(Rmed[nr]/0.4, 0.3);
+            const double alpha_hot = parameters::alphaHot;
+            const double alpha =
+                std::pow(10.0, 0.5*(std::log10(alpha_hot)-std::log10(alpha_cool))*
+                                       (1.0-std::tanh((4.0-std::log10(temperatureCGS))/0.4)) + std::log10(alpha_cool));
+            data[t_data::ALPHA](nr, naz) = alpha;
+            return alpha;
+        }
 		case ALPHA_STAR_DIST_DEPENDEND:
 			{
 

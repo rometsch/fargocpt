@@ -139,6 +139,9 @@ extern double cooling_beta;
 extern bool cooling_beta_initial;
 /// beta cooling to initial profile
 extern bool cooling_beta_aspect_ratio;
+/// local Scurve cooling enabled
+extern bool cooling_scurve_enabled;
+
 
 
 /// enable radiative diffusion
@@ -251,7 +254,6 @@ extern double mof_averaging_time;
 extern double mof_gamma;
 
 extern int AlphaMode;
-extern double localAlphaThreshold;
 extern double alphaCold;
 extern double alphaHot;
 
