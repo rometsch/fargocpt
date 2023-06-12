@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 def main():
 
-    test_name = "cold disk"
+    test_name = "cold disk planet"
     success = calc_deviation(os.getcwd()+"/output")
 
     if success:
@@ -87,8 +87,8 @@ def make_plot_surface_density(data):
 
         y = data.Sigmaprofiles[n]
 
-        t = n
-
+        t = n*10 # TODO: remove hardcoded time
+        
         # ax.plot(r, (profile-profile0)/profile0, label=f"t={t:.3f}yr")
         axes[0].plot(r[1:-1], y[1:-1], label=f"t={t:.0f} orb", color=color)
         y = y/profile0 - 1
@@ -144,7 +144,7 @@ def make_plot_temperature(data):
 
         y = data.Tprofiles[n]
 
-        t = n
+        t = n*10 # TODO: remove hardcoded time
 
         # ax.plot(r, (profile-profile0)/profile0, label=f"t={t:.3f}yr")
         axes[0].plot(r[1:-1], y[1:-1], label=f"t={t:.0f} orb", color=color)

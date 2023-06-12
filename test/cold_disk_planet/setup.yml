@@ -1,7 +1,7 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
 DT: 0.6283185307179586 # 10th of an orbit
-Ninterm: 10 # snapshot every orbit
-Ntot : 20 # do 20 snapshots for a total of 20 orbits
+Ninterm: 100 # snapshot every 10 orbits
+Ntot : 10 # do 10 snapshots for a total of 100 orbits
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 CFLmaxVar: 1.1
 
@@ -18,9 +18,9 @@ FlaringIndex: 0.2857142857142857
 
 ExplicitViscosity: No
 AlphaViscosity: 0.0  # 
-ArtificialViscosity: No   # Type of artificial viscosity (none, TW, SN) [default = SN]
-ArtificialViscosityDissipation: No   # Use artificial viscosity in dissipation function [default = yes]
-ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
+ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
+ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]
+ArtificialViscosityFactor: 3.0   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 SelfGravity: No     # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
@@ -170,3 +170,11 @@ nbody:
   eccentricity: 0
   radius: 1 solRadius
   temperature: 0
+- name: planet
+  semi-major axis: 1
+  mass: 2e-5
+  accretion efficiency: 0.0
+  eccentricity: 0.0
+  radius: 0.01 solRadius
+  temperature: 0 K
+  ramp-up time: 10
