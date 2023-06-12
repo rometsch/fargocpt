@@ -100,6 +100,8 @@ double cooling_beta;
 bool cooling_beta_initial;
 bool cooling_beta_aspect_ratio;
 
+bool cooling_scurve_enabled;
+
 
 bool radiative_diffusion_enabled;
 double radiative_diffusion_omega;
@@ -793,7 +795,10 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("CoolingBetaLocal", "no");
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
     cooling_beta_ramp_up =
-	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+    config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+    cooling_scurve_enabled =
+        config::cfg.get_flag("CoolingScurve", "no");
+
 	cooling_beta_aspect_ratio = false;
 	cooling_beta_initial = false;
 	switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Zero")) {
@@ -941,6 +946,12 @@ void read(const std::string &filename, t_data &data)
 	localAlphaThreshold = config::cfg.get<double>("AlphaThreshold", 2.5e4);
 	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
 	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
+
+    if(parameters::AlphaMode == 6){
+        // already continously writes alpha
+        data[t_data::ALPHA].set_do_before_write(nullptr);
+    }
+
 
 	cbd_ring =
 	config::cfg.get_flag("CircumBinaryRing", "no");
@@ -1389,6 +1400,11 @@ void summarize_parameters()
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
+
+    logging::print_master(
+        LOG_INFO "S-curve cooling is %s. \n",
+        cooling_scurve_enabled ? "enabled" : "disabled");
+
 
     if (Adiabatic) {
 	logging::print_master(

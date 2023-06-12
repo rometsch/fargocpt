@@ -39,6 +39,7 @@ const auto K = llnlunits::precise::K;
 /// gravitational constant in cgs
 // const double cgs_G = 6.6738480e-8;
 const double cgs_G = llnlunits::constants::G.value_as(cm*cm*cm/(g*s*s));
+double global_cgs_G = cgs_G;
 
 /// Boltzmann constant in cgs
 // const double cgs_k_B = 1.380650424e-16;
@@ -63,8 +64,8 @@ t_constant m_u;
 t_constant h;
 t_constant c;
 t_constant sigma;
-t_constant _G;
 t_constant _R;
+t_constant _G;
 
 #ifndef NDEBUG
 t_constant &G = _G;

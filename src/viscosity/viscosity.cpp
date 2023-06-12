@@ -98,7 +98,18 @@ double get_alpha(const int nr, const int naz, t_data &data)
 			const double x = (temperatureCGS - T0)/sig;
 			const double alpha = a*std::exp(-std::pow(x,2)/2) + b/2.0*std::tanh(x)+c;
 			return alpha;
-			}
+            }
+        case 6:
+        {
+            const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
+            const double alpha_cool = parameters::alphaCold*std::pow(Rmed[nr]/0.4, 0.3);
+            const double alpha_hot = parameters::alphaHot;
+            const double alpha =
+                std::pow(10.0, 0.5*(std::log10(alpha_hot)-std::log10(alpha_cool))*
+                                       (1.0-std::tanh((4.0-std::log10(temperatureCGS))/0.4)) + std::log10(alpha_cool));
+            data[t_data::ALPHA](nr, naz) = alpha;
+            return alpha;
+        }
 		case ALPHA_STAR_DIST_DEPENDEND:
 			{
 
