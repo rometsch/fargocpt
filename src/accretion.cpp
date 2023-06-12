@@ -343,7 +343,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     // Hill sphere every planet orbit
     // we use M_dot = 3 pi nu Sigma / (1 - sqrt(R_in / R))
     // to derive the fraction we need to remove
-    const double facc = dt * 3.0 * M_PI * parameters::viscous_outflow_speed;
+    const double facc = dt * 3.0 * M_PI * std::fabs(planet.get_acc());
 
     const double frac = parameters::accretion_radius_fraction;
 
