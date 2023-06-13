@@ -94,12 +94,13 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 
 		const double Dr = Ra[nr+1] - Ra[nr];
 		const double rDphi = Rmed[nr] * dphi;
+		double dx_sq;
 		if (Nphi <= 16) {
 			// pseudo 1D simulation, we don't care about the azimuthal extent then and need this fix
 			// TODO maybe: replace the arbitrary hardcoded threshold of 16
-			const double dx_sq = std::pow(std::min(Dr, rDphi), 2);
+			dx_sq = std::pow(std::min(Dr, rDphi), 2);
 		} else {
-        	const double dx_sq = std::pow(std::max(Dr, rDphi), 2); // taking max cell size breaks the ShockTube test due to rDphi being huge (Nphi = 2)
+        	dx_sq = std::pow(std::max(Dr, rDphi), 2); // taking max cell size breaks the ShockTube test due to rDphi being huge (Nphi = 2)
 		}
 		const double l_sq = std::pow(parameters::artificial_viscosity_factor, 2) * dx_sq;
 
