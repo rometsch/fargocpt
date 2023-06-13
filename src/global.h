@@ -41,9 +41,13 @@ extern int hydro_totalsize, active_hydro_totalsize,
     active_hydro_totalsize_friend;
 extern unsigned int IMIN;
 extern unsigned int IMAX;
-extern unsigned int Zero_no_ghost;
 extern unsigned int Zero_or_active;
+extern unsigned int Zero_no_ghost;
+extern unsigned int One_no_ghost_vr;
 extern unsigned int Max_or_active;
+extern unsigned int Max_no_ghost;
+extern unsigned int MaxMo_no_ghost_vr;
+
 extern unsigned int radial_first_active;
 extern unsigned int radial_active_size;
 extern unsigned int GlobalNRadial;
@@ -111,6 +115,8 @@ extern double delta_ecc_art_visc, delta_peri_art_visc;
 extern double delta_ecc_visc, delta_peri_visc;
 extern double delta_ecc_transport, delta_peri_transport;
 extern double delta_ecc_damp, delta_peri_damp;
+
+extern double binary_quadropole_moment;
 
 extern std::vector<double> g_xpl;
 extern std::vector<double> g_ypl;

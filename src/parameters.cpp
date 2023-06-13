@@ -100,6 +100,8 @@ double cooling_beta;
 bool cooling_beta_initial;
 bool cooling_beta_aspect_ratio;
 
+bool cooling_scurve_enabled;
+
 
 bool radiative_diffusion_enabled;
 double radiative_diffusion_omega;
@@ -144,14 +146,16 @@ double mof_gamma;
 
 
 int AlphaMode;
-double localAlphaThreshold;
 double alphaCold;
 double alphaHot;
 
 bool cbd_ring;
 double cbd_ring_position;
 double cbd_ring_width;
+double cbd_decay_width;
+double cbd_decay_exponent;
 double cbd_ring_enhancement_factor;
+double center_mass_density_correction_factor;
 
 bool profile_cutoff_outer;
 double profile_cutoff_point_outer;
@@ -177,6 +181,8 @@ double density_factor;
 double tau_factor;
 double tau_min;
 double kappa_factor;
+
+bool v_azimuthal_with_quadropole_support;
 
 bool self_gravity;
 bool body_force_from_potential;
@@ -212,6 +218,8 @@ double stellar_rotation_rate;
 double mass_accretion_rate;
 double accretion_radius_fraction;
 double klahr_smoothing_radius;
+
+double visc_accret_massflow_test;
 
 unsigned int zbuffer_size;
 double zbuffer_maxangle;
@@ -793,7 +801,10 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("CoolingBetaLocal", "no");
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
     cooling_beta_ramp_up =
-	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+    config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+    cooling_scurve_enabled =
+        config::cfg.get_flag("CoolingScurve", "no");
+
 	cooling_beta_aspect_ratio = false;
 	cooling_beta_initial = false;
 	switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Zero")) {
@@ -884,6 +895,8 @@ void read(const std::string &filename, t_data &data)
     kappa_factor = config::cfg.get<double>("KappaFactor", 1.0);
 	tau_min = config::cfg.get<double>("TauMin", 0.01);
 
+    v_azimuthal_with_quadropole_support = config::cfg.get_flag("VazimuthalConsidersQuadropoleMoment", "no");
+
     // artificial visocisty
     switch (config::cfg.get_first_letter_lowercase("ArtificialViscosity", "SN")) {
     case 'n': // none
@@ -938,9 +951,14 @@ void read(const std::string &filename, t_data &data)
 
 	//local alpha
 	AlphaMode = config::cfg.get<int>("AlphaMode", 0);
-	localAlphaThreshold = config::cfg.get<double>("AlphaThreshold", 2.5e4);
 	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
 	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
+
+    if(parameters::AlphaMode == SCURVE_ALPHA){
+        // already continously writes alpha
+        data[t_data::ALPHA].set_do_before_write(nullptr);
+    }
+
 
 	cbd_ring =
 	config::cfg.get_flag("CircumBinaryRing", "no");
@@ -948,8 +966,14 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("CircumBinaryRingPosition", 4.5, L0);
 	cbd_ring_width =
 	config::cfg.get<double>("CircumBinaryRingWidth", 0.6, L0);
+	cbd_decay_width =
+	config::cfg.get<double>("CircumBinaryDecayWidth", cbd_ring_width*1.4, L0);
+	cbd_decay_exponent =
+	config::cfg.get<double>("CircumBinaryDecayExponent", 0.75);
 	cbd_ring_enhancement_factor =
 	config::cfg.get<double>("CircumBinaryRingEnhancementFactor", 2.5);
+	center_mass_density_correction_factor =
+	config::cfg.get<double>("CenterProfileDensityCorrectionFactor", 1.0);
 
     // profile damping outer
     profile_cutoff_outer =
@@ -1049,6 +1073,9 @@ void read(const std::string &filename, t_data &data)
     klahr_smoothing_radius = config::cfg.get<double>(
 	"KlahrSmoothingRadius", accretion_radius_fraction);
 
+    visc_accret_massflow_test =
+        config::cfg.get_flag("ViscAccretMassflowTest", "no");
+
     CFL = config::cfg.get<double>("CFL", 0.5);
     HEATING_COOLING_CFL_LIMIT =
 	config::cfg.get<double>("HeatingCoolingCFLlimit", 10.0);
@@ -1114,7 +1141,7 @@ void read(const std::string &filename, t_data &data)
 
 	break;
     default:
-	die("Invalid setting for Particle Integrator: %s	with key %s",
+    die("Invalid setting for Particle Integrator: %s	with key %c",
 	    config::cfg.get<std::string>("ParticleIntegrator", "s").c_str(),
 	    config::cfg.get_first_letter_lowercase("ParticleIntegrator", "s"));
     }
@@ -1389,6 +1416,11 @@ void summarize_parameters()
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
+
+    logging::print_master(
+        LOG_INFO "S-curve cooling is %s. \n",
+        cooling_scurve_enabled ? "enabled" : "disabled");
+
 
     if (Adiabatic) {
 	logging::print_master(

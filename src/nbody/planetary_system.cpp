@@ -97,7 +97,6 @@ void t_planetary_system::init_system(const std::string &filename)
     init_roche_radii();
     list_planets();
 
-
 	// ensure planet monitor files exist
 	create_planet_files();
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -583,9 +582,8 @@ Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor(cons
 {
 
 
-    struct reb_simulation *m_rebound_predictor;
-    m_rebound_predictor = reb_copy_simulation(m_rebound);
-    reb_integrate(m_rebound_predictor, m_rebound->t + dt);
+    struct reb_simulation *rebound_predictor = reb_copy_simulation(m_rebound);
+    reb_integrate(rebound_predictor, m_rebound->t + dt);
 
 	double vx_old = 0.0;
 	double vy_old = 0.0;
@@ -593,8 +591,8 @@ Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor(cons
 	double vy_new = 0.0;
 	double mass = 0.0;
 	for (unsigned int i = 0; i < parameters::n_bodies_for_hydroframe_center; i++) {
-	const double new_vx = m_rebound_predictor->particles[i].vx;
-	const double new_vy = m_rebound_predictor->particles[i].vy;
+    const double new_vx = rebound_predictor->particles[i].vx;
+    const double new_vy = rebound_predictor->particles[i].vy;
 	const double planet_m = m_rebound->particles[i].m;
 	const double old_vx = m_rebound->particles[i].vx;
 	const double old_vy = m_rebound->particles[i].vy;
@@ -612,6 +610,7 @@ Pair t_planetary_system::get_hydro_frame_center_delta_vel_rebound_predictor(cons
 	delta_vel.x = 0.0;
 	delta_vel.y = 0.0;
 	}
+    reb_free_simulation(rebound_predictor);
 	return delta_vel;
 }
 
@@ -904,7 +903,7 @@ void t_planetary_system::init_roche_radii()
     auto &primary = get_planet(0);
     if (get_number_of_planets() < 2) {
 	primary.set_dimensionless_roche_radius(1.0);
-	primary.set_distance_to_primary(2.0 * RMAX);
+    primary.set_distance_to_primary(RMAX);
 	return;
     }
 

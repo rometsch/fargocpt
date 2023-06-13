@@ -35,70 +35,19 @@ namespace viscosity
 double get_alpha(const int nr, const int naz, t_data &data)
 {
 	switch (parameters::AlphaMode){
-		case 0:
+        case CONST_ALPHA:
 			return parameters::ALPHAVISCOSITY;
-		case 1:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-			const double alpha = 
-			std::exp(std::log(parameters::alphaCold) + (std::log(parameters::alphaHot) - std::log(parameters::alphaCold)) / 
-			(1.0 + std::pow(parameters::localAlphaThreshold/temperatureCGS,8)));
-			return alpha;
-			}
-		case 2:
-			{
-			double alpha;
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-			if (temperatureCGS > parameters::localAlphaThreshold){
-				alpha = parameters::alphaHot;
-			}else
-			{
-				alpha = parameters::alphaCold;
-			}
-			return alpha;
-			}
-		case 3:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-
-			const double sigma = data[t_data::SIGMA](nr, naz);
-	    	const double scale_height = data[t_data::SCALE_HEIGHT](nr, naz);
-			const double densityCGS =
-		    sigma / (parameters::density_factor * scale_height) * units::density;
-			const double alpha = parameters::alphaCold + 
-			(parameters::alphaHot - parameters::alphaCold) * 
-			std::min( parameters::localAlphaThreshold * pvte::H_ionization_fraction(densityCGS, temperatureCGS), 1.0);
-			return alpha;
-			}
-		case 4:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-
-			const double sigma = data[t_data::SIGMA](nr, naz);
-	    	const double scale_height = data[t_data::SCALE_HEIGHT](nr, naz);
-			const double densityCGS =
-		    sigma / (parameters::density_factor * scale_height) * units::density;
-			const double ionFrac = pvte::H_ionization_fraction(densityCGS, temperatureCGS);
-
-			double alpha = parameters::alphaCold;
-
-			if (ionFrac > parameters::localAlphaThreshold){
-				alpha = parameters::alphaHot;
-			}
-			return alpha;
-			}
-		case 5:
-			{
-			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
-			const double T0 = 7034;
-			const double sig = 1000;
-			const double a = 8.79e-2;
-			const double b = 2.41e-3;
-			const double c = 3.27e-2;
-			const double x = (temperatureCGS - T0)/sig;
-			const double alpha = a*std::exp(-std::pow(x,2)/2) + b/2.0*std::tanh(x)+c;
-			return alpha;
-			}
+        case SCURVE_ALPHA:
+        {
+            const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
+            const double alpha_cool = parameters::alphaCold*std::pow(Rmed[nr]/0.4, 0.3);
+            const double alpha_hot = parameters::alphaHot;
+            const double alpha =
+                std::pow(10.0, 0.5*(std::log10(alpha_hot)-std::log10(alpha_cool))*
+                                       (1.0-std::tanh((4.0-std::log10(temperatureCGS))/0.4)) + std::log10(alpha_cool));
+            data[t_data::ALPHA](nr, naz) = alpha;
+            return alpha;
+        }
 		case ALPHA_STAR_DIST_DEPENDEND:
 			{
 
@@ -148,7 +97,7 @@ void update_viscosity(t_data &data)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// H = c_s^iso / Omega_K = c_s_adb / Omega_K / sqrt(gamma)
-		// c_s_adb^2 = gamma * c_s_iso
+		// c_s_adb^2 = gamma * c_s_iso^2
 
 		// nu = alpha * c_s_adb * H = alpha * c_s_adb^2 / sqrt(gamma) /
 		// Omega_K
@@ -403,16 +352,15 @@ void update_velocities_with_viscosity(t_data &data, const double dt)
     const t_polargrid &Trr = data[t_data::TAU_R_R];
     const t_polargrid &Tpp = data[t_data::TAU_PHI_PHI];
 
-	const unsigned int Nr = v_radial.get_size_radial() - 1; // == v_azimuthal.get_size_radial()
-	const unsigned int Nphi = v_radial.get_size_azimuthal();
+	const unsigned int Nr = v_azimuthal.get_size_radial();
+	const unsigned int Nphi = v_azimuthal.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int nr = 1; nr < Nr-1; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 		const int naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
 
-		double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr, naz_prev));
+		const double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr, naz_prev));
 
 	    // See D'Angelo et al. 2002 Nested-grid calculations of disk-planet
 	    // interaction It is important to use the conservative form here and
@@ -433,10 +381,16 @@ void update_velocities_with_viscosity(t_data &data, const double dt)
 	    }
 
 	    v_azimuthal(nr, naz) += dVp;
+	}}
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+		const int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 
 	    // a_r = 1/(r*Sigma) ( d(r*tau_r_r)/dr + d(tau_r_phi)/dphi -
 	    // tau_phi_phi )
-	    sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr - 1, naz));
+		const double sigma_avg = 0.5 * (Sigma(nr, naz) + Sigma(nr - 1, naz));
 
 	    double dVr =
 		dt / (sigma_avg)*parameters::radial_viscosity_factor * 2.0 /

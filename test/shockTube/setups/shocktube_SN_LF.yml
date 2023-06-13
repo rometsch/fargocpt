@@ -107,7 +107,7 @@ DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
 # Mesh parameters
 
 Nrad: '100'   # 512 128		# Radial number of zones
-Nsec: '4'   # 1536 384		# Azimuthal number of
+Nsec: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -119,9 +119,9 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 # Output control parameters
 
 OutputDir: output/SN_LF/
-Ntot: '230'   # Total number of time steps
+Ntot: '1'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
-DT: '0.001'   # Time step length. 2PI = 1 orbit
+DT: '0.228'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
@@ -162,7 +162,7 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 IntegrateParticles: 'No'   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Adaptive   # Explicit, Adaptive, Semiimplicit and Implicit
+ParticleIntegrator: Explicit   # Explicit, Adaptive, Semiimplicit and Implicit
 NumberOfParticles: '400002'   # number of particles [default = 0]
 ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.03'   # particle maximum Eccentricity

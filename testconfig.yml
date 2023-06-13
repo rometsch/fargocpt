@@ -14,6 +14,7 @@ DensityFactor: '2.0'   # Factor for convertion from surface density to density [
 CircumBinaryRing: 'no'
 CircumBinaryRingPosition: '4.5'   # in [L0], [default = 0]
 CircumBinaryRingWidth: '0.6'   # in [L0], [default = 0]
+CircumBinaryDecayWidth: '0.84'   # in [L0], [default = 0]
 CircumBinaryRingEnhancementFactor: '2.5'   # in [L0], [default = 0]
 
 ProfileCutoffInner: 'No'   # enable profile cutoff [default = no]
@@ -31,7 +32,7 @@ ExplicitViscosity: 'YES'
 StsNu: '0.01'
 ViscosityInCGS: 'NO'   # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
 Viscosity: '0'   # Uniform kinematic viscosity
-AlphaMode: 0     # Various possible ways do determine the alpha value, Default = 0
+AlphaMode: 0     # 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend
 AlphaViscosity: '1.0e-3'   # Alpha value for AlphaMode == 0
 AlphaCold: '1.0e-3' # only needed for AlphaMode != 0
 AlphaHot:  '1.0e-2'  # only needed for AlphaMode != 0
@@ -47,6 +48,7 @@ PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only f
 CoolingRadiativeLocal: 'Yes'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
+CoolingScurve: No # default =no 
 RadiativeDiffusion: 'No'   # 
 RadiativeDiffusionOmega: '1.5'   # [default = 1.5]
 RadiativeDiffusionAutoOmega: 'No'   # [default = no]
@@ -94,6 +96,7 @@ MassAccretionRate: '1'   # Mass accretion rate (from secondary, young stellar cl
 MassAccretionRadius: '0.2'   # Mass accretion radius in unints of R_hill / 2
 KlahrSmoothingRadius: '0.2'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
+ViscousOutflowSpeed: '5'     # Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed   used for VISC boundary condition and inside viscous accretion
 
 # Numerical method parameters
 
@@ -106,6 +109,7 @@ InnerBoundary: OPEN
 OuterBoundary: EVANESCENT
 PrescribedBoundaryFileOuter: boundary_data_folder   # Only needed when PRESCRIBED_TIME_VARIABLE is active
 DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
+VazimuthalConsidersQuadropoleMoment: 'No' # add quadropole moment support to azimuthal velocity
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -198,7 +202,7 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 IntegrateParticles: yes   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Implicit   # Explicit, Adaptive, Semiimplicit and Implicit
+ParticleIntegrator: Midpoint   # Explicit, Midpoint (Mignone 2019)
 # Test adaptive integrator causing error: Timestep too small
 NumberOfParticles: '2000'   # number of particles [default = 0]
 ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]

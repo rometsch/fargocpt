@@ -254,7 +254,7 @@ double condition_cfl(t_data &data, const double dt_global_input)
 		const double invdt3 = v_residual[cell_number(nr, naz, v_azimuthal.get_size_azimuthal())] / dxAzimuthal;
 
 		double leapfrog_cfl_factor;
-		if (parameters::hydro_integrator == LEAPFROG_DRIFT_KICK_DRIFT || parameters::hydro_integrator == LEAPFROG_KICK_DRIFT_KICK){
+		if (parameters::hydro_integrator == LEAPFROG_INTEGRATOR){
 			// since we are applying source terms twice with half the timestep,
 			// we can consider that by allowing double the timestep size for source terms cfl
 			leapfrog_cfl_factor = 0.6;

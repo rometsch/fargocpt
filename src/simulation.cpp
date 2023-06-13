@@ -98,6 +98,7 @@ double CalculateTimeStep(t_data &data)
 
 		if(PRINT_SIG_INFO){
 			cfl::condition_cfl(data, cfl_dt);
+            PRINT_SIG_INFO = false;
 		}
 
 	}
@@ -229,8 +230,8 @@ static void step_Euler(t_data &data, const double dt) {
 	    // accretion are not also hit by viscous accretion at inner
 	    // boundary.
 	    if (parameters::VISCOUS_ACCRETION) {
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
+        compute_sound_speed(data, PhysicalTime);
+        compute_scale_height(data, PhysicalTime);
 		viscosity::update_viscosity(data);
 	    }
 
@@ -250,226 +251,22 @@ static void step_Euler(t_data &data, const double dt) {
 				      // scale_height is already updated
 		// Recompute scale height after Transport to update the 3D
 		// density
-		compute_sound_speed(data, true);
-		compute_scale_height(data, true);
+        compute_sound_speed(data, PhysicalTime);
+        compute_scale_height(data, PhysicalTime);
 	    }
 	    // this must be done after CommunicateBoundaries
-	    recalculate_derived_disk_quantities(data, true);
-	}
-}
-
-
-/**
-	\param data
-	\param sys
-	compare Bodenheimer et al. Numerical Methods in Astrophyiscs
-	Chapter 6.3.4 Operator Splitting
-	Gas:	kick drift kick
-	Nbody:	kick drift kick
-*/
-[[maybe_unused]] static void step_LeapFrog(t_data &data, const double step_dt)
-{
-	const double frog_dt = step_dt/2;
-	const double start_time = PhysicalTime;
-	const double end_time = PhysicalTime + step_dt;
-
-	//////////////// Sourceterms first half /////////////////////
-	if (parameters::disk_feedback) {
-	    ComputeDiskOnNbodyAccel(data);
-	}
-	refframe::ComputeIndirectTermDisk(data);
-	/// Indirect term will not be updated for the second leapfrog step
-	/// so compute it for the full timestep
-	/// It should be recomputed when using euler though
-	refframe::ComputeIndirectTermNbody(data, start_time, step_dt);
-	refframe::ComputeIndirectTermFully();
-
-	/// Sourceterms Nbody
-	if (parameters::integrate_planets) {
-		if (parameters::disk_feedback) {
-			// This version of disk feedback is exactly the following leapfrog method:
-			// v_1/2 = v_0   + dt/2 a(r_0)
-			// r_1 =   r_0   + dt v_1/2
-			// v_1 =   v_1/2 + dt/2 a(r_1)
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
-		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
-	}
-
-	/// Sourceterms dust
-	if (parameters::integrate_particles) {
-		particles::update_velocities_from_indirect_term(frog_dt);
-	}
-
-	/// Sourceterms Gas
-	if (parameters::calculate_disk) {
-		/// Use Nbody at x_i+1/2 for gas interaction
-		if (parameters::body_force_from_potential) {
-		CalculateNbodyPotential(data, start_time);
-		} else {
-		CalculateAccelOnGas(data, start_time);
-		}
-
-		update_with_sourceterms(data, frog_dt);
-
-		art_visc::update_with_artificial_viscosity(data, frog_dt);
-
-		recalculate_viscosity(data, start_time);
-		viscosity::compute_viscous_stress_tensor(data);
-		viscosity::update_velocities_with_viscosity(data, frog_dt);
-
-
-	    if (parameters::Adiabatic) {
-		SubStep3(data, start_time, frog_dt);
-		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, start_time, frog_dt);
-		}
-	    }
-	}
-		//////////////// END Sourceterms first half /////////////////////
-
-
-		//////////////// Transport full step  /////////////////////
-
-		if (parameters::integrate_planets) {
-			refframe::init_corotation(data);
-			data.get_planetary_system().integrate(start_time, step_dt);
-			data.get_planetary_system().copy_data_from_rebound();
-
-			data.get_planetary_system().compute_dist_to_primary();
-			data.get_planetary_system().calculate_orbital_elements();
-		}
-
-		if (parameters::integrate_particles) {
-			particles::integrate(data, start_time, frog_dt);
-		}
-
-		if (parameters::calculate_disk) {
-		boundary_conditions::apply_boundary_condition(data, start_time, 0.0, false);
-
-		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  step_dt);
-		}
-
-		// Below we correct v_azimuthal, planet's position and velocities if we
-		// work in a frame non-centered on the star. Same for dust particles.
-		refframe::handle_corotation(data, frog_dt);
-		//////////////// Transport full step   /////////////////////
-
-	//////////////// Sourceterms second half /////////////////////
-
-
-	if (parameters::disk_feedback) {
-		ComputeDiskOnNbodyAccel(data, true);
-	}
-	refframe::ComputeIndirectTermDisk(data);
-
-	if(parameters::indirect_term_mode == INDIRECT_TERM_EULER){
-	refframe::ComputeIndirectTermNbody(data, end_time, step_dt);
-	}
-	refframe::ComputeIndirectTermFully();
-
-	/// Sourceterms Gas
-	if (parameters::calculate_disk) {
-
-		if (parameters::body_force_from_potential) {
-		CalculateNbodyPotential(data, end_time);
-		} else {
-		CalculateAccelOnGas(data, end_time);
-		}
-
-		if (parameters::variableGamma) {
-		compute_sound_speed(data, end_time);
-		compute_scale_height(data, end_time);
-		pvte::compute_gamma_mu(data);
-		}
-
-		compute_pressure(data);
-		if(parameters::self_gravity || parameters::variableGamma){
-			compute_sound_speed(data, end_time);
-			compute_scale_height(data, end_time);
-		}
-
-		update_with_sourceterms(data, frog_dt);
-
-		art_visc::update_with_artificial_viscosity(data, frog_dt);
-
-		recalculate_viscosity(data, end_time);
-		viscosity::compute_viscous_stress_tensor(data);
-		viscosity::update_velocities_with_viscosity(data, frog_dt);
-
-		if (parameters::Adiabatic) {
-		SubStep3(data, end_time, frog_dt);
-		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, end_time, frog_dt);
-		}
-		}
-	}
-
-	/// Sourceterms dust
-	if (parameters::integrate_particles) {
-	particles::update_velocities_from_indirect_term(frog_dt);
-	}
-
-	/// Sourceterms Nbody
-	if (parameters::integrate_planets) {
-		if (parameters::disk_feedback) {
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
-		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
-		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
-	}
-
-	///////////// END Nbody update  ///////////////////
-
-	//////////////// END Sourceterms second half   /////////////////////
-
-	PhysicalTime = end_time;
-	N_hydro_iter += 1;
-	logging::print_runtime_info();
-
-	if (parameters::calculate_disk) {
-	    CommunicateBoundaries(
-		&data[t_data::SIGMA], &data[t_data::V_RADIAL],
-		&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY]);
-
-	    // We only recompute once, assuming that cells hit by planet
-	    // accretion are not also hit by viscous accretion at inner
-	    // boundary.
-	    if (parameters::VISCOUS_ACCRETION) {
-		recalculate_viscosity(data, end_time);
-	    }
-
-		// minimum density is assured inside AccreteOntoPlanets
-	    accretion::AccreteOntoPlanets(data, step_dt);
-
-		boundary_conditions::apply_boundary_condition(data, end_time, step_dt, true);
-
-		if(parameters::keep_mass_constant){
-			const double total_disk_mass_new =
-			quantities::gas_total_mass(data, RMAX);
-			 data[t_data::SIGMA] *=
-			(total_disk_mass_old / total_disk_mass_new);
-		}
-
-		quantities::CalculateMonitorQuantitiesAfterHydroStep(data, N_monitor,
-							 step_dt);
-
-		// this must be done after CommunicateBoundaries
-		recalculate_derived_disk_quantities(data, end_time);
-
+        recalculate_derived_disk_quantities(data, PhysicalTime);
 	}
 }
 
 ///
-/// \brief step_LeapFrog_old
+/// \brief step_LeapFrog
 /// Gas:	kick drift kick
 /// Nbody:	drift kick drift
 /// \param data
 /// \param step_dt
 ///
-[[maybe_unused]] static void step_LeapFrog_old(t_data &data, const double step_dt)
+[[maybe_unused]] static void step_LeapFrog(t_data &data, const double step_dt)
 {
 	const double frog_dt = step_dt/2;
 	const double start_time = PhysicalTime;
@@ -496,6 +293,9 @@ static void step_Euler(t_data &data, const double dt) {
 	refframe::ComputeIndirectTermFully();
 
 	if (parameters::integrate_planets) { /// Nbody Kick 1 / 2
+		// minimum density is assured inside AccreteOntoPlanets
+		accretion::AccreteOntoPlanets(data, frog_dt);
+
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 		}
@@ -571,7 +371,7 @@ static void step_Euler(t_data &data, const double dt) {
 			compute_scale_height(data, midstep_time);
 		}
 
-		compute_pressure(data);
+        compute_pressure(data);
 		update_with_sourceterms(data, frog_dt);
 
 		art_visc::update_with_artificial_viscosity(data, frog_dt);
@@ -597,6 +397,10 @@ static void step_Euler(t_data &data, const double dt) {
 
 	// Finish timestep of the planets but do not update Nbody system yet //
 	if (parameters::integrate_planets) {
+		
+		// minimum density is assured inside AccreteOntoPlanets
+		accretion::AccreteOntoPlanets(data, frog_dt);
+
 		/// Nbody kick 2/2
 		if (parameters::disk_feedback) {
 			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
@@ -634,9 +438,6 @@ static void step_Euler(t_data &data, const double dt) {
 		compute_scale_height(data, end_time);
 		viscosity::update_viscosity(data);
 		}
-
-		// minimum density is assured inside AccreteOntoPlanets
-		accretion::AccreteOntoPlanets(data, step_dt);
 
 		boundary_conditions::apply_boundary_condition(data, end_time, step_dt, true);
 
@@ -685,10 +486,7 @@ static void step(t_data &data, const double step_dt) {
 		case EULER_INTEGRATOR:
 			step_Euler(data, step_dt);
 			break;
-		case LEAPFROG_DRIFT_KICK_DRIFT:
-			step_LeapFrog_old(data, step_dt);
-			break;
-		case LEAPFROG_KICK_DRIFT_KICK:
+		case LEAPFROG_INTEGRATOR:
 			step_LeapFrog(data, step_dt);
 			break;
 		default:

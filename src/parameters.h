@@ -139,6 +139,9 @@ extern double cooling_beta;
 extern bool cooling_beta_initial;
 /// beta cooling to initial profile
 extern bool cooling_beta_aspect_ratio;
+/// local Scurve cooling enabled
+extern bool cooling_scurve_enabled;
+
 
 
 /// enable radiative diffusion
@@ -195,7 +198,11 @@ extern bool keep_mass_constant;
 extern bool cbd_ring;
 extern double cbd_ring_position;
 extern double cbd_ring_width;
+extern double cbd_decay_width;
+extern double cbd_decay_exponent;
 extern double cbd_ring_enhancement_factor;
+
+extern double center_mass_density_correction_factor;
 
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
@@ -251,7 +258,6 @@ extern double mof_averaging_time;
 extern double mof_gamma;
 
 extern int AlphaMode;
-extern double localAlphaThreshold;
 extern double alphaCold;
 extern double alphaHot;
 
@@ -274,6 +280,8 @@ extern double density_factor;
 /// factor for tau calculation
 extern double tau_factor;
 extern double tau_min;
+
+extern bool v_azimuthal_with_quadropole_support;
 
 /// factor for kappa calculation
 extern double kappa_factor;
@@ -331,6 +339,8 @@ extern double stellar_rotation_rate;
 extern double mass_accretion_rate;
 extern double accretion_radius_fraction;
 extern double klahr_smoothing_radius;
+
+extern double visc_accret_massflow_test; // gas massflow test specific parameter
 
 /// CFL Factor
 extern double CFL;

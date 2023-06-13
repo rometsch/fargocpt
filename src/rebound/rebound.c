@@ -40,6 +40,8 @@
 #include "integrator_whfast.h"
 #include "integrator_ias15.h"
 #include "integrator_mercurius.h"
+#include "integrator_bs.h"
+#include "integrator_tes.h"
 #include "boundary.h"
 #include "gravity.h"
 #include "collision.h"
@@ -64,11 +66,16 @@
 const int reb_max_messages_length = 1024;   // needs to be constant expression for array size
 const int reb_max_messages_N = 10;
 const char* reb_build_str = __DATE__ " " __TIME__;  // Date and time build string. 
-const char* reb_version_str = "3.10.1";         // **VERSIONLINE** This line gets updated automatically. Do not edit manually.
+const char* reb_version_str = "3.24.3";         // **VERSIONLINE** This line gets updated automatically. Do not edit manually.
 const char* reb_githash_str = STRINGIFY(GITHASH);             // This line gets updated automatically. Do not edit manually.
 
 static int reb_error_message_waiting(struct reb_simulation* const r);
 
+void reb_steps(struct reb_simulation* const r, unsigned int N_steps){
+    for (unsigned int i=0;i<N_steps;i++){
+        reb_step(r);
+    }
+}
 void reb_step(struct reb_simulation* const r){
     // Update walltime
     struct timeval time_beginning;
@@ -89,7 +96,7 @@ void reb_step(struct reb_simulation* const r){
     // Update and simplify tree. 
     // Prepare particles for distribution to other nodes. 
     // This function also creates the tree if called for the first time.
-    if (r->tree_needs_update || r->gravity==REB_GRAVITY_TREE || r->collision==REB_COLLISION_TREE){
+    if (r->tree_needs_update || r->gravity==REB_GRAVITY_TREE || r->collision==REB_COLLISION_TREE || r->collision==REB_COLLISION_LINETREE){
         // Check for root crossings.
         PROFILING_START()
         reb_boundary_check(r);     
@@ -137,6 +144,10 @@ void reb_step(struct reb_simulation* const r){
         r->post_timestep_modifications(r);
         r->ri_whfast.recalculate_coordinates_this_timestep = 1;
         r->ri_mercurius.recalculate_coordinates_this_timestep = 1;
+    }
+    
+    if (r->N_var){
+        reb_var_rescale(r);
     }
     PROFILING_STOP(PROFILING_CAT_INTEGRATOR)
 
@@ -214,6 +225,10 @@ void reb_error(struct reb_simulation* const r, const char* const msg){
     reb_message(r, 'e', msg);
 }
 
+void reb_stop(struct reb_simulation* const r){
+    r->status = REB_EXIT_USER;
+}
+
 int reb_get_next_message(struct reb_simulation* const r, char* const buf){
     if (r->messages){
         char* w0 = r->messages[0];
@@ -267,7 +282,7 @@ void reb_mpi_init(struct reb_simulation* const r){
         if (r->mpi_id==0) fprintf(stderr,"ERROR: Number of root boxes (%d) not a multiple of mpi nodes (%d).\n",r->root_n,r->mpi_num);
         exit(-1);
     }
-    printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
+    //printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
 }
 
 void reb_mpi_finalize(struct reb_simulation* const r){
@@ -309,6 +324,8 @@ void reb_free_pointers(struct reb_simulation* const r){
     reb_integrator_whfast_reset(r);
     reb_integrator_ias15_reset(r);
     reb_integrator_mercurius_reset(r);
+    reb_integrator_bs_reset(r);
+    reb_integrator_tes_reset(r);
     if(r->free_particle_ap){
         for(int i=0; i<r->N; i++){
             r->free_particle_ap(&r->particles[i]);
@@ -324,6 +341,10 @@ void reb_free_pointers(struct reb_simulation* const r){
     free(r->messages);
     if (r->extras_cleanup){
         r->extras_cleanup(r);
+    }
+    free(r->var_config);
+    for (int s=0; s<r->odes_N; s++){
+        r->odes[s]->r = NULL;
     }
 }
 
@@ -371,7 +392,6 @@ void reb_reset_temporary_pointers(struct reb_simulation* const r){
     r->ri_mercurius.particles_backup = NULL;
     r->ri_mercurius.particles_backup_additionalforces = NULL;
     r->ri_mercurius.encounter_map = NULL;
-
     // ********** JANUS
     r->ri_janus.allocated_N = 0;
     r->ri_janus.p_int = NULL;
@@ -379,6 +399,12 @@ void reb_reset_temporary_pointers(struct reb_simulation* const r){
     r->ri_janus.order = 6;
     r->ri_janus.scale_pos = 1e-16;
     r->ri_janus.scale_vel = 1e-16;
+    // ********** ODEs
+    r->odes = NULL;
+    r->odes_N = 0;
+    r->odes_allocatedN = 0;
+    // ********** TES
+    r->ri_tes.particles_dh = NULL;
 }
 
 int reb_reset_function_pointers(struct reb_simulation* const r){
@@ -413,7 +439,7 @@ struct reb_simulation* reb_create_simulation(){
 }
 
 
-void _reb_copy_simulation_with_messages(struct reb_simulation* r_copy,  struct reb_simulation* r, enum reb_input_binary_messages* warnings){
+void reb_copy_simulation_with_messages(struct reb_simulation* r_copy,  struct reb_simulation* r, enum reb_input_binary_messages* warnings){
     char* bufp;
     size_t sizep;
     reb_output_binary_to_stream(r, &bufp,&sizep);
@@ -452,7 +478,7 @@ int reb_diff_simulations(struct reb_simulation* r1, struct reb_simulation* r2, i
 struct reb_simulation* reb_copy_simulation(struct reb_simulation* r){
     struct reb_simulation* r_copy = reb_create_simulation();
     enum reb_input_binary_messages warnings = REB_INPUT_BINARY_WARNING_NONE;
-    _reb_copy_simulation_with_messages(r_copy,r,&warnings);
+    reb_copy_simulation_with_messages(r_copy,r,&warnings);
     r = reb_input_process_warnings(r, warnings);
     return r_copy;
 }
@@ -464,7 +490,7 @@ void reb_clear_pre_post_pointers(struct reb_simulation* const r){
 }
 
 void reb_init_simulation(struct reb_simulation* r){
-    reb_tools_init_srand();
+    reb_tools_init_srand(r);
     reb_reset_temporary_pointers(r);
     reb_reset_function_pointers(r);
     r->t        = 0; 
@@ -484,11 +510,13 @@ void reb_init_simulation(struct reb_simulation* r){
     r->N        = 0;    
     r->allocatedN   = 0;    
     r->N_active     = -1;   
+    r->var_rescale_warning   = 0;   
     r->particle_lookup_table = NULL;
     r->hash_ctr = 0;
     r->N_lookup = 0;
     r->allocatedN_lookup = 0;
     r->testparticle_type = 0;   
+    r->testparticle_hidewarnings = 0;
     r->N_var    = 0;    
     r->var_config_N = 0;    
     r->var_config   = NULL;     
@@ -514,7 +542,7 @@ void reb_init_simulation(struct reb_simulation* r){
     
     r->simulationarchive_size_first    = 0;    
     r->simulationarchive_size_snapshot = 0;    
-    r->simulationarchive_version       = 2;    
+    r->simulationarchive_version       = 3;
     r->simulationarchive_auto_interval = 0.;    
     r->simulationarchive_auto_walltime = 0.;    
     r->simulationarchive_auto_step     = 0;    
@@ -572,6 +600,23 @@ void reb_init_simulation(struct reb_simulation* r){
     r->ri_mercurius.is_synchronized = 1;
     r->ri_mercurius.encounterN = 0;
     r->ri_mercurius.hillfac = 3;
+    
+    // ********** EOS
+    r->ri_eos.n = 2;
+    r->ri_eos.phi0 = REB_EOS_LF;
+    r->ri_eos.phi1 = REB_EOS_LF;
+    r->ri_eos.safe_mode = 1;
+    r->ri_eos.is_synchronized = 1;
+    
+    
+    // ********** NS
+    reb_integrator_bs_reset(r);
+
+    // ********** TES
+    r->ri_tes.dq_max = 1e-2;                   // good fall back value and should be OK for reasonable planet masses.
+    r->ri_tes.recti_per_orbit = 1.61803398875; // golden ratio 
+    r->ri_tes.epsilon = 1e-6;
+    r->ri_tes.allocated_N = 0;
 
     // Tree parameters. Will not be used unless gravity or collision search makes use of tree.
     r->tree_needs_update= 0;
@@ -597,11 +642,11 @@ void reb_init_simulation(struct reb_simulation* r){
 
 #else // MPI
 #ifndef LIBREBOUND
-	//printf("Process id: %d.\n", getpid());
+    //printf("Process id: %d.\n", getpid());
 #endif // LIBREBOUND
 #endif // MPI
 #ifdef OPENMP
-    printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
+    //printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
 #endif // OPENMP
 }
 
@@ -619,13 +664,13 @@ int reb_check_exit(struct reb_simulation* const r, const double tmax, double* la
     }else if(tmax!=INFINITY){
         if(r->exact_finish_time==1){
             if ((r->t+r->dt)*dtsign>=tmax*dtsign){  // Next step would overshoot
-                double tscale = 1e-12*fabs(tmax);   // Find order of magnitude for time
-                if (tscale<1e-200){     // Failsafe if tmax==0.
-                    tscale = 1e-12;
-                }
                 if (r->t==tmax){
                     r->status = REB_EXIT_SUCCESS;
                 }else if(r->status == REB_RUNNING_LAST_STEP){
+                    double tscale = 1e-12*fabs(tmax);   // Find order of magnitude for time
+                    if (tscale<1e-200){     // Failsafe if tmax==0.
+                        tscale = 1e-12;
+                    }
                     if (fabs(r->t-tmax)<tscale){
                         r->status = REB_EXIT_SUCCESS;
                     }else{
@@ -655,9 +700,16 @@ int reb_check_exit(struct reb_simulation* const r, const double tmax, double* la
         }
     }
 #ifndef MPI
-    if (r->N<=0){
-        reb_warning(r,"No particles found. Will exit.");
-        r->status = REB_EXIT_NOPARTICLES; // Exit now.
+    if (!r->N){
+        if (!r->odes_N){
+            reb_warning(r,"No particles found. Will exit.");
+            r->status = REB_EXIT_NOPARTICLES; // Exit now.
+        }else{
+            if (r->integrator != REB_INTEGRATOR_BS){
+                reb_warning(r,"No particles found. Will exit. Use BS integrator to integrate user-defined ODEs without any particles present.");
+                r->status = REB_EXIT_NOPARTICLES; // Exit now.
+            }
+        }
     }
 #else
     int status_max = 0;
@@ -706,9 +758,6 @@ void reb_run_heartbeat(struct reb_simulation* const r){
             }
         }
     }
-    if (r->usleep > 0){
-        usleep(r->usleep);
-    }
 }
 
 ////////////////////////////////////////////////////
@@ -732,14 +781,23 @@ static void* reb_integrate_raw(void* args){
     reb_sigint = 0;
     signal(SIGINT, reb_sigint_handler);
     struct reb_thread_info* thread_info = (struct reb_thread_info*)args;
+	struct reb_simulation* const r = thread_info->r;
 #ifdef MPI
     // Distribute particles
     reb_communication_mpi_distribute_particles(r);
 #endif // MPI
-    struct reb_simulation* const r = thread_info->r;
+
+    if (thread_info->tmax != r->t){
+        int dt_sign = (thread_info->tmax > r->t) ? 1.0 : -1.0; // determine integration direction
+        r->dt = copysign(r->dt, dt_sign);
+    }
 
     double last_full_dt = r->dt; // need to store r->dt in case timestep gets artificially shrunk to meet exact_finish_time=1
     r->dt_last_done = 0.; // Reset in case first timestep attempt will fail
+
+    if (r->testparticle_hidewarnings==0 && reb_particle_check_testparticles(r)){
+        reb_warning(r,"At least one test particle (type 0) has finite mass. This might lead to unexpected behaviour. Set testparticle_hidewarnings=1 to hide this warning.");
+    }
 
     r->status = REB_RUNNING;
     reb_run_heartbeat(r);
@@ -760,6 +818,9 @@ static void* reb_integrate_raw(void* args){
             if (r->display_data->opengl_enabled){ pthread_mutex_unlock(&(r->display_data->mutex)); }
         }
 #endif // OPENGL
+        if (r->usleep > 0){
+            usleep(r->usleep);
+        }
     }
 
     reb_integrator_synchronize(r);
@@ -819,6 +880,13 @@ enum REB_STATUS reb_integrate(struct reb_simulation* const r, double tmax){
     }
     return r->status;
 }
+
+  
+#ifdef OPENMP
+void reb_omp_set_num_threads(int num_threads){
+    omp_set_num_threads(num_threads);
+}
+#endif // OPENMP
 
 const char* reb_logo[26] = {
 "          _                           _  ",
