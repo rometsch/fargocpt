@@ -198,7 +198,11 @@ extern bool keep_mass_constant;
 extern bool cbd_ring;
 extern double cbd_ring_position;
 extern double cbd_ring_width;
+extern double cbd_decay_width;
+extern double cbd_decay_exponent;
 extern double cbd_ring_enhancement_factor;
+
+extern double center_mass_density_correction_factor;
 
 /// enable profile cutoff
 extern bool profile_cutoff_outer;
@@ -276,6 +280,8 @@ extern double density_factor;
 /// factor for tau calculation
 extern double tau_factor;
 extern double tau_min;
+
+extern bool v_azimuthal_with_quadropole_support;
 
 /// factor for kappa calculation
 extern double kappa_factor;

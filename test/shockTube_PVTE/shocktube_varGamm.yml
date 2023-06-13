@@ -20,9 +20,9 @@ EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '1.0'   # Thickness over Radius in the disk
 Viscosity: '0.0e-1'   # Uniform kinematic viscosity
 AlphaViscosity: '0.0'   # 
-ArtificialViscosity: SN   # Type of artificial viscosity (none, TW, SN) [default = SN]
+ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
-ArtificialViscosityFactor: '3.41421'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
+ArtificialViscosityFactor: '3.0'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
 FlaringIndex: '0.5'   # Slope of Temperature/radius profile
 SelfGravity: 'No'   # choose: Yes, Z or No
 EquationOfState: PVTE   # Isothermal Ideal Polytropic [default = Isothermal]
@@ -101,11 +101,12 @@ Disk: 'YES'
 OmegaFrame: '0.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
+Integrator: Euler
 
 # Mesh parameters
 
 Nrad: '1000'   # 512 128		# Radial number of zones
-Nsec: '4'   # 1536 384		# Azimuthal number of
+Nsec: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -116,9 +117,9 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 # Output control parameters
 
-Ntot: '230'   # Total number of time steps
+Ntot: '1'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
-DT: '0.001'   # Time step length. 2PI = 1 orbit
+DT: '0.228'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]

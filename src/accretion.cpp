@@ -49,17 +49,15 @@ static std::tuple<int, int> hill_azimuthal_index(const double angle,
        where the Hill sphere starts and stops */
     double max_angle;
     if(Rplanet == 0.0){
-    max_angle = 2.0*M_PI;
+	max_angle = 2.0*M_PI;
     } else {
-    max_angle = std::min(2.0*M_PI, 2.0 * RHill / Rplanet);
+	max_angle = std::min(2.0*M_PI, 2.0 * RHill / Rplanet);
     }
-
-    const int j_min = get_med_azimuthal_id(angle - max_angle);
-    int j_max = get_med_azimuthal_id(angle + max_angle) + 1;
-    j_max = j_min + std::min(j_max - j_min, (int)NAzimuthal - 1);
-    std::tuple<int, int> ids(j_min, j_max);
-    return ids;
-
+	const int j_min = get_med_azimuthal_id(angle - max_angle);
+	int j_max = get_med_azimuthal_id(angle + max_angle) + 1;
+	j_max = j_min + std::min(j_max - j_min, (int)NAzimuthal - 1);
+	std::tuple<int, int> ids(j_min, j_max);
+	return ids;
 }
 
 static void update_planet(t_planet &planet, const double dMplanet,

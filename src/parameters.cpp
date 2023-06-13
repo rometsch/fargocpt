@@ -152,7 +152,10 @@ double alphaHot;
 bool cbd_ring;
 double cbd_ring_position;
 double cbd_ring_width;
+double cbd_decay_width;
+double cbd_decay_exponent;
 double cbd_ring_enhancement_factor;
+double center_mass_density_correction_factor;
 
 bool profile_cutoff_outer;
 double profile_cutoff_point_outer;
@@ -178,6 +181,8 @@ double density_factor;
 double tau_factor;
 double tau_min;
 double kappa_factor;
+
+bool v_azimuthal_with_quadropole_support;
 
 bool self_gravity;
 bool body_force_from_potential;
@@ -890,6 +895,8 @@ void read(const std::string &filename, t_data &data)
     kappa_factor = config::cfg.get<double>("KappaFactor", 1.0);
 	tau_min = config::cfg.get<double>("TauMin", 0.01);
 
+    v_azimuthal_with_quadropole_support = config::cfg.get_flag("VazimuthalConsidersQuadropoleMoment", "no");
+
     // artificial visocisty
     switch (config::cfg.get_first_letter_lowercase("ArtificialViscosity", "SN")) {
     case 'n': // none
@@ -959,8 +966,14 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("CircumBinaryRingPosition", 4.5, L0);
 	cbd_ring_width =
 	config::cfg.get<double>("CircumBinaryRingWidth", 0.6, L0);
+	cbd_decay_width =
+	config::cfg.get<double>("CircumBinaryDecayWidth", cbd_ring_width*1.4, L0);
+	cbd_decay_exponent =
+	config::cfg.get<double>("CircumBinaryDecayExponent", 0.75);
 	cbd_ring_enhancement_factor =
 	config::cfg.get<double>("CircumBinaryRingEnhancementFactor", 2.5);
+	center_mass_density_correction_factor =
+	config::cfg.get<double>("CenterProfileDensityCorrectionFactor", 1.0);
 
     // profile damping outer
     profile_cutoff_outer =

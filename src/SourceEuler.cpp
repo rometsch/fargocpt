@@ -348,59 +348,11 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     double supp_torque = 0.0; // for imposed disk drift
 
-	const unsigned int Nr = data[t_data::ENERGY].get_size_radial();
 	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();
-
-    if (parameters::Adiabatic) {
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
-		for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
-		// div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
-		const double DIV_V =
-			(data[t_data::V_RADIAL](nr+1, naz)*Ra[nr+1] -
-				data[t_data::V_RADIAL](nr, naz)*Ra[nr]) *
-			InvDiffRsupRb[nr] +
-			(data[t_data::V_AZIMUTHAL](nr, naz_next) -
-			 data[t_data::V_AZIMUTHAL](nr, naz)) *
-			invdphi * InvRb[nr];
-
-		const double gamma =
-			pvte::get_gamma_eff(data, nr, naz);
-
-		/*
-		// Like D'Angelo et al. 2003 eq. 25
-		const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial,
-		n_azimuthal); const double dE = dt * (-P*DIV_V + 0.5*(gamma
-		- 1.0) * P * dt * std::pow(DIV_V, 2)); const double energy_old =
-		data[t_data::ENERGY](n_radial, n_azimuthal); const double
-		energy_new = energy_old + dE; data[t_data::ENERGY](n_radial,
-		n_azimuthal) = energy_new;
-		*/
-
-		// Like D'Angelo et al. 2003 eq. 24
-		const double energy_old =
-			data[t_data::ENERGY](nr, naz);
-		const double energy_new =
-		    energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
-		data[t_data::ENERGY](nr, naz) = energy_new;
-
-		/*
-		// Zeus2D like, see Stone & Norman 1992
-		// produces poor results with shock tube test
-		const double P = (gamma - 1.0);
-		const double energy_old = data[t_data::ENERGY](n_radial,
-		n_azimuthal); const double energy_new = energy_old*(1.0 -
-		0.5*dt*P*DIV_V)/(1.0 + 0.5*dt*P*DIV_V);
-		data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
-		*/
-	    }
-	}
-    }
 
     // update v_radial with source terms
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    // 1/Sigma * dP/dr : Sigma is calculated as a mean value between the
 	    // neightbour cells
@@ -445,7 +397,7 @@ void update_with_sourceterms(t_data &data, const double dt)
 
     // update v_azimuthal with source terms
 	#pragma omp parallel for
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
 
 	if (parameters::IMPOSEDDISKDRIFT != 0.0) {
 		supp_torque = parameters::IMPOSEDDISKDRIFT * 0.5 *
@@ -488,6 +440,53 @@ void update_with_sourceterms(t_data &data, const double dt)
 		    dt * supp_torque;
 	    }
 	}
+    }
+
+    if (parameters::Adiabatic) {
+    #pragma omp parallel for collapse(2)
+    for (unsigned int nr = Zero_no_ghost; nr < Max_no_ghost; ++nr) {
+        for (unsigned int naz = 0; naz < Nphi; ++naz) {
+        const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
+        // div(v) = 1/r d(r*v_r)/dr + 1/r d(v_phi)/dphi
+        const double DIV_V =
+            (data[t_data::V_RADIAL](nr+1, naz)*Ra[nr+1] -
+             data[t_data::V_RADIAL](nr, naz)*Ra[nr]) *
+                InvDiffRsupRb[nr] +
+            (data[t_data::V_AZIMUTHAL](nr, naz_next) -
+             data[t_data::V_AZIMUTHAL](nr, naz)) *
+                invdphi * InvRb[nr];
+
+        const double gamma =
+            pvte::get_gamma_eff(data, nr, naz);
+
+        /*
+        // Like D'Angelo et al. 2003 eq. 25
+        const double P = (gamma - 1.0) * data[t_data::ENERGY](n_radial,
+        n_azimuthal); const double dE = dt * (-P*DIV_V + 0.5*(gamma
+        - 1.0) * P * dt * std::pow(DIV_V, 2)); const double energy_old =
+        data[t_data::ENERGY](n_radial, n_azimuthal); const double
+        energy_new = energy_old + dE; data[t_data::ENERGY](n_radial,
+        n_azimuthal) = energy_new;
+        */
+
+        // Like D'Angelo et al. 2003 eq. 24
+        const double energy_old =
+            data[t_data::ENERGY](nr, naz);
+        const double energy_new =
+            energy_old * std::exp(-(gamma - 1.0) * dt * DIV_V);
+        data[t_data::ENERGY](nr, naz) = energy_new;
+
+        /*
+        // Zeus2D like, see Stone & Norman 1992
+        // produces poor results with shock tube test
+        const double P = (gamma - 1.0);
+        const double energy_old = data[t_data::ENERGY](n_radial,
+        n_azimuthal); const double energy_new = energy_old*(1.0 -
+        0.5*dt*P*DIV_V)/(1.0 + 0.5*dt*P*DIV_V);
+        data[t_data::ENERGY](n_radial, n_azimuthal) = energy_new;
+        */
+        }
+    }
     }
 
 	if(ECC_GROWTH_MONITOR){
@@ -900,7 +899,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
     if (data[t_data::TAU_COOL].get_write_1D() ||
 	data[t_data::TAU_COOL].get_write_2D()) {
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = 1; nr < Nr-1; ++nr) { // Q_plus / Q_minus are not computed for nr = 1 or nr = Nr-1 (check max_radial usage there)
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		data[t_data::TAU_COOL](nr, naz) =
 			data[t_data::ENERGY](nr, naz) /
@@ -918,7 +917,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
 	double &pdivv_tmp = data.pdivv_total;
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
+	for (unsigned int nr = 1; nr < Nr-1; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		double pdivv =
 			(pvte::get_gamma_eff(data, nr, naz) - 1.0) *
@@ -1351,6 +1350,15 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 			 C(nr, naz) * Temperature(nr + 1, naz) +
 			 D(nr, naz) * Temperature(nr, naz_prev) +
 			 E(nr, naz) * Temperature(nr, naz_next) - Told(nr, naz));
+
+
+        if(Temperature(nr, naz) < parameters::minimum_temperature){
+            Temperature(nr, naz) = parameters::minimum_temperature;
+        }
+
+        if(Temperature(nr, naz) > parameters::maximum_temperature){
+            Temperature(nr, naz) = parameters::maximum_temperature;
+        }
 
 		// only non ghostcells to norm and don't count overlap cell's
 		// twice

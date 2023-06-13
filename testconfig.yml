@@ -14,6 +14,7 @@ DensityFactor: '2.0'   # Factor for convertion from surface density to density [
 CircumBinaryRing: 'no'
 CircumBinaryRingPosition: '4.5'   # in [L0], [default = 0]
 CircumBinaryRingWidth: '0.6'   # in [L0], [default = 0]
+CircumBinaryDecayWidth: '0.84'   # in [L0], [default = 0]
 CircumBinaryRingEnhancementFactor: '2.5'   # in [L0], [default = 0]
 
 ProfileCutoffInner: 'No'   # enable profile cutoff [default = no]
@@ -108,6 +109,7 @@ InnerBoundary: OPEN
 OuterBoundary: EVANESCENT
 PrescribedBoundaryFileOuter: boundary_data_folder   # Only needed when PRESCRIBED_TIME_VARIABLE is active
 DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
+VazimuthalConsidersQuadropoleMoment: 'No' # add quadropole moment support to azimuthal velocity
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit

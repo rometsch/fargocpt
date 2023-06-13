@@ -282,7 +282,7 @@ void reb_mpi_init(struct reb_simulation* const r){
         if (r->mpi_id==0) fprintf(stderr,"ERROR: Number of root boxes (%d) not a multiple of mpi nodes (%d).\n",r->root_n,r->mpi_num);
         exit(-1);
     }
-    printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
+    //printf("MPI-node: %d. Process id: %d.\n",r->mpi_id, getpid());
 }
 
 void reb_mpi_finalize(struct reb_simulation* const r){
@@ -642,11 +642,11 @@ void reb_init_simulation(struct reb_simulation* r){
 
 #else // MPI
 #ifndef LIBREBOUND
-    printf("Process id: %d.\n", getpid());
+    //printf("Process id: %d.\n", getpid());
 #endif // LIBREBOUND
 #endif // MPI
 #ifdef OPENMP
-    printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
+    //printf("Using OpenMP with %d threads per node.\n",omp_get_max_threads());
 #endif // OPENMP
 }
 

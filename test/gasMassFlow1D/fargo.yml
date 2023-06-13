@@ -13,9 +13,9 @@ SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 
 DensityFactor: '2.5'   # Factor for convertion from surface density to density [default = 2.0]
 EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
-AspectRatio: '0.05'   # Thickness over Radius in the disk
+AspectRatio: '0.005'   # Thickness over Radius in the disk
 Viscosity: '0.00'   # Uniform kinematic viscosity
-AlphaViscosity: '0.001'   # 
+AlphaViscosity: '0.1'   # 
 ArtificialViscosity: None   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]

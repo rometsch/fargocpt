@@ -1205,7 +1205,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vrad_id;
-	     n_radial < vrad_arr.get_size_radial(); ++n_radial) {
+		 n_radial < MaxMo_no_ghost_vr; ++n_radial) {
 	    double factor = std::pow(
 		(Rinf[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -1213,7 +1213,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
         const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vrad_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
+		 n_azimuthal < vrad_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = (double)n_azimuthal * dphi;
 		const double rinf = Rinf[n_radial];
@@ -1237,7 +1237,11 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 			vr_init = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi_init = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr_init = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
@@ -1268,7 +1272,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vphi_id;
-	     n_radial < vphi_arr.get_size_radial(); ++n_radial) {
+		 n_radial < Max_no_ghost; ++n_radial) {
 	    double factor = std::pow(
 		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
 		    (RMAX - RMAX * parameters::damping_outer_limit),
@@ -1276,7 +1280,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
         const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vphi_arr.get_max_azimuthal(); ++n_azimuthal) { // we leave out the last cell because it's handled by boundary conditions
+		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = ((double)n_azimuthal - 0.5) * dphi;
 		const double rmed = Rmed[n_radial];
@@ -1300,7 +1304,11 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
@@ -1331,7 +1339,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	//t_polargrid &sigma = data[t_data::DENSITY];
 	#pragma omp parallel for
 	for (unsigned int nr = clamped_vphi_id;
-		 nr < energy.get_max_radial(); ++nr) { // we leave out the last cell because it's handled by boundary conditions
+		 nr < Max_no_ghost; ++nr) {
 		double factor = std::pow(
 		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
 			(RMAX - RMAX * parameters::damping_outer_limit),
@@ -1387,7 +1395,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 			 calculate_omega_kepler(RMIN);
 
 	#pragma omp parallel for
-	for (unsigned int n_radial = 1; // we start at 1 because boundary takes care of nr = 0
+	for (unsigned int n_radial = One_no_ghost_vr;
 		 n_radial <= clamped_vrad_id; ++n_radial) {
 		double factor = std::pow(
 		(Rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
@@ -1450,7 +1458,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		vphi_arr.is_vector());
 
 	#pragma omp parallel for
-	for (unsigned int n_radial = 1;
+	for (unsigned int n_radial = Zero_no_ghost;
 		 n_radial <= clamped_vphi_id; ++n_radial) {
 		double factor = std::pow(
 		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
@@ -1513,7 +1521,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 	t_polargrid &energy = data[t_data::ENERGY];
 	//t_polargrid &sigma = data[t_data::DENSITY];
 	#pragma omp parallel for
-	for (unsigned int nr = 1;
+	for (unsigned int nr = Zero_no_ghost;
 		 nr <= clamped_vphi_id; ++nr) {
 		double factor = std::pow(
 		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
@@ -2193,7 +2201,11 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vphi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 	    } else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
@@ -2234,8 +2246,12 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vphi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
-			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
+            vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
@@ -2274,7 +2290,11 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 			vphi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            if(parameters::v_azimuthal_with_quadropole_support){
+            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            } else { // no quadropole support
+            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
