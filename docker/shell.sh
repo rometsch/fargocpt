@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-echo $@
-echo $#
-
 if (("$#"<"1")); then
     echo "usage: $0 {simulationdir}"
     exit 1
