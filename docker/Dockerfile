@@ -15,10 +15,11 @@ RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3
 
 COPY .git .git
 COPY src src
-COPY bin/fargocpt.py bin/
-COPY run_fargo .
 
 RUN make -C /app/src -j 4
+
+COPY bin/fargocpt.py bin/
+COPY run_fargo .
 
 RUN cd /usr/local/bin && ln -s /app/run_fargo fargocpt
 
