@@ -12,7 +12,6 @@ RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libopenmpi-dev
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libgsl-dev 
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libfftw3-mpi-dev libfftw3-dev
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3
-RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 gosu
 
 COPY .git .git
 COPY src src
@@ -27,7 +26,5 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /project
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 CMD ["bash"]

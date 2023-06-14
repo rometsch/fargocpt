@@ -15,7 +15,8 @@ fi
 shift 1
 
 docker run \
-    -e LOCAL_USER_ID=$UID \
+    --user $(id -u):$(id -g) \
     -v $SIMDIR:/project \
+    --rm \
     fargocpt \
     fargocpt -np 1 "$@"
