@@ -20,6 +20,7 @@ namespace constants
 #define M_PI 3.14159265358979
 /// Source pluto.h
 const double cgs_G = 6.6726e-8;
+double global_cgs_G = cgs_G;
 
 /// molecular mass (dalton) in cgs
 const double cgs_m_u = 1.66053886e-24;
