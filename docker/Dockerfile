@@ -22,9 +22,6 @@ RUN make -C /app/src -j 4
 
 RUN cd /usr/local/bin && ln -s /app/run_fargo fargocpt
 
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 WORKDIR /project
 
 CMD ["bash"]
