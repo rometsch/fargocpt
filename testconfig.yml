@@ -32,7 +32,7 @@ ExplicitViscosity: 'YES'
 StsNu: '0.01'
 ViscosityInCGS: 'NO'   # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
 Viscosity: '0'   # Uniform kinematic viscosity
-AlphaMode: 0     # Various possible ways do determine the alpha value, Default = 0
+AlphaMode: 0     # 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend
 AlphaViscosity: '1.0e-3'   # Alpha value for AlphaMode == 0
 AlphaCold: '1.0e-3' # only needed for AlphaMode != 0
 AlphaHot:  '1.0e-2'  # only needed for AlphaMode != 0
@@ -48,6 +48,7 @@ PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only f
 CoolingRadiativeLocal: 'Yes'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
+CoolingScurve: No # default =no 
 RadiativeDiffusion: 'No'   # 
 RadiativeDiffusionOmega: '1.5'   # [default = 1.5]
 RadiativeDiffusionAutoOmega: 'No'   # [default = no]
@@ -95,6 +96,7 @@ MassAccretionRate: '1'   # Mass accretion rate (from secondary, young stellar cl
 MassAccretionRadius: '0.2'   # Mass accretion radius in unints of R_hill / 2
 KlahrSmoothingRadius: '0.2'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
+ViscousOutflowSpeed: '5'     # Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed   used for VISC boundary condition and inside viscous accretion
 
 # Numerical method parameters
 
@@ -107,6 +109,7 @@ InnerBoundary: OPEN
 OuterBoundary: EVANESCENT
 PrescribedBoundaryFileOuter: boundary_data_folder   # Only needed when PRESCRIBED_TIME_VARIABLE is active
 DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
+VazimuthalConsidersQuadropoleMoment: 'No' # add quadropole moment support to azimuthal velocity
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -218,7 +221,6 @@ ParticleDiskGravityEnabled: 'no'   # [default = no]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: 'Yes'
 IntegratePlanets: 'Yes'   # [default = yes]
-VazimuthalConsidersQuadropoleMoment: 'No' # add quadropole moment support to azimuthal velocity
 
 # Star Parameters
 

@@ -764,12 +764,12 @@ double calculate_dust_smoothing(const double r, const double phi,
     const unsigned int n_rad = get_rmed_id(r);
     const unsigned int n_azi = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));
     // get gas scale height
-    const double h_gas = data[t_data::ASPECTRATIO](n_rad, n_azi);
+    const double H_gas = data[t_data::SCALE_HEIGHT](n_rad, n_azi);
     const double alpha = parameters::ALPHAVISCOSITY;
     // compute dust scale height
-    const double h_dust = h_gas * std::sqrt(alpha / (alpha + stokes));
+    const double H_dust = H_gas * std::sqrt(alpha / (alpha + stokes));
 
-    const double rsmooth = h_dust * r * parameters::thickness_smoothing;
+    const double rsmooth = H_dust * parameters::thickness_smoothing;
 
     return rsmooth;
 }

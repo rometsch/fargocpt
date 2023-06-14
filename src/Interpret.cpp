@@ -177,13 +177,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	logging::print_master(LOG_INFO
 	"Using standard forward euler scheme for source terms.\n");
 	break;
-	case 'k':
-	parameters::hydro_integrator = LEAPFROG_KICK_DRIFT_KICK;
-	logging::print_master(LOG_INFO
-	"Using leapfrog scheme for source terms.\n");
-	break;
 	case 'l':
-	parameters::hydro_integrator = LEAPFROG_DRIFT_KICK_DRIFT;
+	parameters::hydro_integrator = LEAPFROG_INTEGRATOR;
 	logging::print_master(LOG_INFO
 	"Using leapfrog (gas: kick drift kick) (nbody: drift kick drift) scheme for source terms.\n");
 	break;
@@ -611,35 +606,14 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     }
 
     if (parameters::ALPHAVISCOSITY > 0.0 || parameters::AlphaMode > 0) {
-		if (parameters::AlphaMode == 1){
-			logging::print_master(LOG_INFO
-			      "Smooth local alpha with a threshold of T = %.3e and alpha_cold = %.3e , alpha_Hot = %.3e\n", 
-				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
-		}
-		else if (parameters::AlphaMode == 2){
-			logging::print_master(LOG_INFO
-			      "Switched local alpha with a threshold of T = %.3e and alpha_cold = %.3e , alpha_Hot = %.3e\n", 
-				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
-		}
-		else if (parameters::AlphaMode == 3){
-			logging::print_master(LOG_INFO
-			      "Local alpha, based on hydrogen ionization with threshold = %.3e, alpha_cold = %.3e , alpha_Hot = %.3e\n", 
-				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
-		}
-		else if (parameters::AlphaMode == 4){
-			logging::print_master(LOG_INFO
-			      "Local alpha based on hydrogen ionization (switched) threshold = %.3e, alpha_cold = %.3e , alpha_Hot = %.3e\n", 
-				  parameters::localAlphaThreshold, parameters::alphaCold, parameters::alphaHot);
-		}
-		else if (parameters::AlphaMode == 5){
-			logging::print_master(LOG_INFO
-			      "Using local alpha after Coleman 2016. \n");
-		}
-		else if (parameters::AlphaMode == ALPHA_STAR_DIST_DEPENDEND){
+        if (parameters::AlphaMode == SCURVE_ALPHA){
+            logging::print_master(LOG_INFO
+                                  "Using scurve alpha after Ichikawa & Osaki (1992). \n");
+        } else if (parameters::AlphaMode == ALPHA_STAR_DIST_DEPENDEND)
+        {
 			logging::print_master(LOG_INFO
 				  "Using star dist alpha, scaling from %.3e to %.3e\n", parameters::alphaCold, parameters::alphaHot);
-		}
-		else {
+        } else {
 			logging::print_master(LOG_INFO
 			      "Viscosity is of alpha type with alpha = %.3e\n",
 			      parameters::ALPHAVISCOSITY);

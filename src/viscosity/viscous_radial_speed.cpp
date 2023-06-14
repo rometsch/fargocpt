@@ -74,23 +74,6 @@
 		energy = std::max(energy, energy_floor);
 		energy = std::min(energy, energy_ceil);
 
-		/*if(parameters::cbd_ring){
-			const double r_ring = parameters::cbd_ring_position;
-			const double factor_ring = parameters::cbd_ring_enhancement_factor;
-
-			const double r = R;
-			const double energy_ring =  initial_energy(r, M);
-			double w_ring = parameters::cbd_ring_width;
-			if(r < r_ring){
-				const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
-				energy += extra_energy;
-			} else {
-				w_ring *= 1.2;
-				const double extra_energy = energy_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.667) / (2.0*std::pow(w_ring, 2)));
-				energy += extra_energy;
-			}
-		}*/
-
 		cs_adb = std::sqrt(gamma * (gamma-1.0) * energy/Sigma);
 		const double cs_iso = std::sqrt((gamma-1.0) * energy/Sigma);
 		const double omega_k = v_k / R;
@@ -124,25 +107,6 @@ static double get_sigma(const double R){
 	}
 
 	density = std::max(density, density_floor);
-
-	/*if(parameters::cbd_ring){
-		const double r = R;
-		const double r_ring = parameters::cbd_ring_position;
-		const double factor_ring = parameters::cbd_ring_enhancement_factor;
-
-		const double sigma_ring =
-				parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
-
-		double w_ring = parameters::cbd_ring_width;
-		if(r < r_ring){
-			const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r_ring - r, 2) / (2.0*std::pow(w_ring, 2)));
-			density += extra_sigma;
-		} else {
-			w_ring *= 1.2;
-			const double extra_sigma = sigma_ring * (factor_ring - 1.0) * std::exp(-std::pow(r-r_ring, 0.667) / (2.0*std::pow(w_ring, 2)));
-			density += extra_sigma;
-		}
-	}*/
 
 	return density;
 }

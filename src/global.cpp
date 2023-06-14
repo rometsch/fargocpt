@@ -78,7 +78,7 @@ unsigned int Zero_or_active;
  * excluding ghost cells (!) */
 unsigned int Max_or_active;
 unsigned int Max_no_ghost;
-unsigned int MaxMo_no_ghost_vr;
+unsigned int MaxMo_no_ghost_vr; // Maximum Minus One
 
 unsigned int radial_first_active;
 unsigned int radial_active_size;

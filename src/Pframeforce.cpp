@@ -408,30 +408,6 @@ void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system)
     }
 }
 
-static double q0[MAX1D], q1[MAX1D], PlanetMasses[MAX1D];
-void ComputeNbodyOnNbodyAccelRK5(t_data &data, const double dt)
-{
-    unsigned int n = data.get_planetary_system().get_number_of_planets();
-
-	if (parameters::integrate_planets) {
-		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
-			q0[i+0*n] = data.get_planetary_system().get_planet(i).get_x();
-			q0[i+1*n] = data.get_planetary_system().get_planet(i).get_y();
-			q0[i+2*n] = data.get_planetary_system().get_planet(i).get_vx();
-			q0[i+3*n] = data.get_planetary_system().get_planet(i).get_vy();
-			PlanetMasses[i] = data.get_planetary_system().get_planet(i).get_mass();
-		}
-
-	RungeKutta(q0, dt, PlanetMasses, q1, n);
-
-		for (unsigned int i = 0; i < data.get_planetary_system().get_number_of_planets(); i++) {
-			data.get_planetary_system().get_planet(i).set_nbody_on_planet_acceleration_x(q1[i+2*n]);
-			data.get_planetary_system().get_planet(i).set_nbody_on_planet_acceleration_y(q1[i+3*n]);
-		}
-
-	}
-}
-
 /**
 	Updates planets velocities due to disk influence if "DiskFeedback" is
    set.

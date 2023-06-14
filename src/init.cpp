@@ -32,6 +32,13 @@
 #include "open-simplex-noise.h"
 #include "options.h"
 
+
+// Radial arrays have size MAX1D so we can write to N+search_buffer safely
+// we do this to avoid errors when accessing nr+x in the code
+// less than 15 should be safe too, but we need at least 2 or else
+// rmed_id_error_check accessing 'id+1' can cause errors
+const unsigned int search_buffer = 15;
+
 /**
 	resize all (global) radialarrays
 */
@@ -83,7 +90,7 @@ void init_radialarrays()
 	case parameters::logarithmic_spacing: {
 	    cell_growth_factor =
 		std::pow((RMAX / RMIN), 1.0 / ((double)GlobalNRadial - 2.0));
-        for (nRadial = 0; nRadial <= GlobalNRadial + 15; ++nRadial) {
+        for (nRadial = 0; nRadial <= GlobalNRadial + search_buffer; ++nRadial) {
 
 		Radii[nRadial] =
 		    RMIN * std::pow(cell_growth_factor, (double)nRadial - 1.0);
@@ -94,7 +101,7 @@ void init_radialarrays()
 	    cell_growth_factor = ((double)GlobalNRadial - 2.0) / (RMAX - RMIN);
 	    const double interval =
 		(RMAX - RMIN) / (double)(GlobalNRadial - 2.0);
-        for (nRadial = 0; nRadial <= GlobalNRadial + 15; ++nRadial) {
+        for (nRadial = 0; nRadial <= GlobalNRadial + search_buffer; ++nRadial) {
 		Radii[nRadial] = RMIN + interval * (double)(nRadial - 1.0);
 	    }
 	    break;
@@ -117,7 +124,7 @@ void init_radialarrays()
 			(Nr * std::pow(exp_growth_factor, Nr - 1.0) - f);
 	    }
 	    cell_growth_factor = exp_growth_factor;
-        for (nRadial = 0; nRadial <= GlobalNRadial + 15; ++nRadial) {
+        for (nRadial = 0; nRadial <= GlobalNRadial + search_buffer; ++nRadial) {
 		Radii[nRadial] = RMIN + first_cell_size *
 					    (std::pow(exp_growth_factor,
 						      (double)nRadial - 1.0) -
@@ -155,11 +162,8 @@ void init_radialarrays()
 	fclose(fd_input);
     }
 
-    // Radial arrays have size MAX1D so we can write to N+15 safely
-    // we do this to avoid errors when accessing nr+x in the code
-    // less than 15 should be safe too, but we need at least 2 or else
-    // rmed_id_error_check accessing 'id+1' can cause errors
-    for (nRadial = 0; nRadial < GlobalNRadial + 15; ++nRadial) {
+
+    for (nRadial = 0; nRadial < GlobalNRadial + search_buffer; ++nRadial) {
 	// Rmed is in the center of the cell where the center of mass is
 	// Rmed = 1/2 * [ (4/3 Pi r_sup^3) - (4/3 Pi r_inf^3) ] / [ (Pi r_sup^2)
 	// - (Pi r_inf^2) ]
@@ -178,7 +182,7 @@ void init_radialarrays()
 	parameters::radial_grid_names[parameters::radial_grid_type], Radii[1],
 	Radii[GlobalNRadial - 1], Radii[0], Radii[GlobalNRadial]);
 
-    for (nRadial = 0; nRadial < NRadial + 15; ++nRadial) {
+    for (nRadial = 0; nRadial < NRadial + search_buffer; ++nRadial) {
 	Rinf[nRadial] = Radii[nRadial + IMIN];
 	Rsup[nRadial] = Radii[nRadial + IMIN + 1];
 
@@ -2005,10 +2009,6 @@ void init_blobb_for_star_disk_binary_test(t_data &data)
 
 	refframe::OmegaFrame = planet.get_omega();
 
-	//const double compute_radius = 0.005;
-	//const double cutoff_width = compute_radius / 25.0;
-	//const double disk_size = compute_radius - 15.0 * cutoff_width;
-
 	unsigned int min_nr = 0;
 	unsigned int min_np = 0;
 	double min_dist = RMAX;
@@ -2032,28 +2032,6 @@ void init_blobb_for_star_disk_binary_test(t_data &data)
 	}
 
 	data[t_data::SIGMA](min_nr, min_np) = planet.get_mass() / Surf(min_nr);
-
-	/*
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
-
-		const double phi = (double)n_azimuthal * dphi;
-		const double rmed = Rmed[n_radial];
-		const double x = rmed * std::cos(phi) - planet.get_x();
-		const double y = rmed * std::sin(phi) - planet.get_y();
-		const double r = std::sqrt(x * x + y * y);
-
-		if (r < compute_radius) {
-		const double density = parameters::sigma0 *
-					   std::pow(r, -parameters::SIGMASLOPE) *
-					   cutoff_outer(disk_size, cutoff_width, r);
-		const double density_new = std::max(density, parameters::sigma0 * parameters::sigma_floor);
-		data[t_data::SIGMA](n_radial, n_azimuthal) = density_new;
-		}
-	}
-	}*/
 
 	// renormalize sigma
 	double total_mass = quantities::gas_total_mass(data, 2.0 * RMAX);

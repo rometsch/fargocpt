@@ -1358,17 +1358,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 
 	/// Initial profile temperature
 	const double cell_energy_profile = initial_energy(r_com, com_mass);
-	/*
-	const double cell_sigma = sigma(nr, naz);
-	const double temperature_floor =
-	parameters::minimum_temperature *
-	units::temperature.get_inverse_cgs_factor();
 
-	const double energy_floor = temperature_floor * cell_sigma /
-				parameters::MU * constants::R /
-				(ADIABATICINDEX - 1.0);
-	const double cell_energy0 = std::max(cell_energy_profile, energy_floor);
-				*/
 	const double cell_energy0 = cell_energy_profile;
 
 	const double cell_energy = energy(nr, naz);
@@ -1378,41 +1368,6 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 		}
 	}
 	}
-
-
-
-
-	/*t_polargrid &sigma = data[t_data::SIGMA];
-	for (unsigned int nr = clamped_vphi_id;
-		 nr < sigma.get_size_radial(); ++nr) {
-		double factor = std::pow(
-		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
-		2);
-		double exp_factor = std::exp(-dt * factor / tau);
-
-		for (unsigned int naz = 0;
-		 naz < sigma.get_size_azimuthal(); ++naz) {
-	const double cell_x = (*CellCenterX)(nr, naz);
-	const double cell_y = (*CellCenterY)(nr, naz);
-
-	// Position in center of mass frame
-	const double x_com = cell_x - com_pos.x;
-	const double y_com = cell_y - com_pos.y;
-	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
-
-	const double cell_sigma0 =
-	parameters::sigma0 *
-	std::pow(r_com,
-		 -parameters::SIGMASLOPE); // we assume the floor is not reached.
-
-	const double cell_sigma = sigma(nr, naz);
-	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;
-
-	sigma(nr, naz)  = sigma_new;
-		}
-	}*/
-
     }
 }
 
@@ -1586,17 +1541,7 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 
 	/// Initial profile temperature
 	const double cell_energy_profile = initial_energy(r_com, com_mass);
-	/*
-	const double cell_sigma = sigma(nr, naz);
-	const double temperature_floor =
-	parameters::minimum_temperature *
-	units::temperature.get_inverse_cgs_factor();
 
-	const double energy_floor = temperature_floor * cell_sigma /
-				parameters::MU * constants::R /
-				(ADIABATICINDEX - 1.0);
-	const double cell_energy0 = std::max(cell_energy_profile, energy_floor);
-				*/
 	const double cell_energy0 = cell_energy_profile;
 
 	const double cell_energy = energy(nr, naz);
@@ -1606,40 +1551,6 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 		}
 	}
 	}
-
-
-	/*
-
-	t_polargrid &sigma = data[t_data::DENSITY];
-	for (unsigned int nr = clamped_vphi_id;
-		 nr < sigma.get_size_radial(); ++nr) {
-		double factor = std::pow(
-		(Rinf[nr] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
-		2);
-		double exp_factor = std::exp(-dt * factor / tau);
-
-		for (unsigned int naz = 0;
-		 naz < sigma.get_size_azimuthal(); ++naz) {
-	const double cell_x = (*CellCenterX)(nr, naz);
-	const double cell_y = (*CellCenterY)(nr, naz);
-
-	// Position in center of mass frame
-	const double x_com = cell_x - com_pos.x;
-	const double y_com = cell_y - com_pos.y;
-	const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
-
-	const double cell_sigma0 =
-	parameters::sigma0 *
-	std::pow(r_com,
-		 -SIGMASLOPE); // we assume the floor is not reached.
-
-	const double cell_sigma = sigma(nr, naz);
-	const double sigma_new = (cell_sigma - cell_sigma0) * exp_factor + cell_sigma0;
-
-	sigma(nr, naz)  = sigma_new;
-		}
-	}*/
 
 	}
 }
@@ -1860,7 +1771,8 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 
 	double mdot_transfer;
 	if (parameters::variableTransfer){
-		mdot_transfer = parameters::mof_value + parameters::mof_gamma * mdot_avg;
+        // variable Mdot following Hameury, Lasota & Warner 1999  eq. 4
+        mdot_transfer = std::max(parameters::mof_value, parameters::mof_gamma * mdot_avg);
 	}else{
 		mdot_transfer = parameters::mof_value;
 	}
@@ -2623,13 +2535,8 @@ void jibin_boundary_inner(t_data &data)
     if (CPU_Rank != 0)
 	return;
 
-	//const double h = parameters::ASPECTRATIO_REF;
-	//const double p = parameters::SIGMASLOPE;
-	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
     const double R = Rmed[0];
-	//const double OmegaK = 1.0 / (R * std::sqrt(R));
-	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+
 	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
 
 
@@ -2665,13 +2572,8 @@ void jibin_boundary_outer(t_data &data)
 {
     if (CPU_Rank == CPU_Highest) {
 
-	//const double h = parameters::ASPECTRATIO_REF;
-	//const double p = parameters::SIGMASLOPE;
-	//const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
 	const double R = Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-	//const double OmegaK = 1.0 / (R * std::sqrt(R));
-	//const double corr = std::sqrt(1.0 + (p + q) * h * h);
-	//const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;
+
 	const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
 
 

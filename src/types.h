@@ -64,13 +64,14 @@ class BoundaryFlow
 #define NO false
 
 #define EULER_INTEGRATOR 0
-#define LEAPFROG_DRIFT_KICK_DRIFT 1
-#define LEAPFROG_KICK_DRIFT_KICK 2
+#define LEAPFROG_INTEGRATOR 1
 
 #define INDIRECT_TERM_REBOUND 0
 #define INDIRECT_TERM_EULER 1
 
-#define ALPHA_STAR_DIST_DEPENDEND 10
+#define CONST_ALPHA 0
+#define SCURVE_ALPHA 1
+#define ALPHA_STAR_DIST_DEPENDEND 2
 
 // TODO: This could be problematic on large NR
 #define MAX1D 16384

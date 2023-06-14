@@ -356,7 +356,7 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
 /**
 	\param VAzimuthal azimuthal velocity polar grid
 */
-void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
+void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 {
     double VKepIn = 0.0;
     if (!parameters::self_gravity) {
@@ -371,9 +371,8 @@ void ApplySubKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 	if (CPU_Rank == 0) {
         // we assume the pressure is low enough that kepler velocity is appropriate
 		const double R = Rb[0];
-
-			const double vk_2 = constants::G * hydro_center_mass / R;
-            VKepIn = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
+		const double vk_2 = constants::G * hydro_center_mass / R;
+        VKepIn = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
 	}
     }
 

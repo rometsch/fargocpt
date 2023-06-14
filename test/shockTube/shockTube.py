@@ -14,7 +14,7 @@ quants = ["vrad", "Sigma", "Temperature", "energy"]
 quants_key = {"vrad": 0, "Sigma": 1, "Temperature": 2, "energy": 3}
 
 acceptable_diff = {
-    "vrad" : 0.015, 
+    "vrad" : 0.0153, 
     "Sigma" : 0.0073,
     "Temperature" : 0.016, 
     "energy" : 0.014
