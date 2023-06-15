@@ -1049,11 +1049,12 @@ void read(const std::string &filename, t_data &data)
 	break;
     case 'c': // Constant
 	opacity = opacity_const_op;
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0);
+	// TODO: analyze situation that opacities are in cgs
+	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
 	break;
     case 's': // simple, see Gennaro D'Angelo et al. 2003
 	opacity = opacity_simple;
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0);
+	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
 	break;
     default:
 	die("Invalid setting for Opacity: %s",
