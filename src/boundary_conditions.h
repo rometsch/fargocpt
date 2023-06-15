@@ -12,6 +12,8 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 							  t_polargrid *densitystar, const double current_time);
 void apply_boundary_condition_temperature(t_data &data);
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
+void initial_boundary_inner(t_data &data);
+void initial_boundary_outer(t_data &data);
 void open_boundary_inner(t_data &data);
 void open_boundary_outer(t_data &data);
 void zero_gradient_boundary_inner(t_data &data);

@@ -583,7 +583,10 @@ void read(const std::string &filename, t_data &data)
     // boundary conditions
     switch (
 	config::cfg.get_first_letter_lowercase("InnerBoundary", "Open")) {
-    case 'o':
+    case 'i':
+	boundary_inner = boundary_condition_initial;
+	break;
+	case 'o':
 	boundary_inner = boundary_condition_open;
 	break;
     case 'n':
@@ -623,7 +626,10 @@ void read(const std::string &filename, t_data &data)
 
     switch (
 		config::cfg.get_first_letter_lowercase("OuterBoundary", "Open")) {
-    case 'o':
+    case 'i':
+	boundary_outer = boundary_condition_initial;
+	break;
+	case 'o':
 	boundary_outer = boundary_condition_open;
 	break;
     case 'n':
@@ -1214,7 +1220,11 @@ void summarize_parameters()
 
     // boundary conditions
     switch (boundary_inner) {
-    case boundary_condition_open:
+    case boundary_condition_initial:
+	logging::print_master(
+	    LOG_INFO "Using 'initial boundary condition' at inner boundary.\n");
+	break;
+	case boundary_condition_open:
 	logging::print_master(
 	    LOG_INFO "Using 'open boundary condition' at inner boundary.\n");
 	break;
@@ -1268,8 +1278,12 @@ void summarize_parameters()
 	break;
     }
 
-    switch (boundary_outer) {
-    case boundary_condition_open:
+	switch (boundary_outer) {
+    case boundary_condition_initial:
+	logging::print_master(
+	    LOG_INFO "Using 'intial boundary condition' at outer boundary.\n");
+	break;
+	case boundary_condition_open:
 	logging::print_master(
 	    LOG_INFO "Using 'open boundary condition' at outer boundary.\n");
 	break;

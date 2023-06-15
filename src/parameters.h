@@ -55,6 +55,7 @@ extern double exponential_cell_size_factor;
 
 // boundary conditions
 enum t_boundary_condition {
+    boundary_condition_initial,
     boundary_condition_open,
     boundary_condition_reflecting,
     boundary_condition_center_of_mass_initial,

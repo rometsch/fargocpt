@@ -264,6 +264,9 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 
     // inner boundary
     switch (parameters::boundary_inner) {
+	case parameters::boundary_condition_initial:
+	initial_boundary_inner(data);
+	break;
     case parameters::boundary_condition_open:
 	open_boundary_inner(data);
 	break;
@@ -316,6 +319,9 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 
     // outer boundary
     switch (parameters::boundary_outer) {
+	case parameters::boundary_condition_initial:
+	initial_boundary_outer(data);
+	break;
     case parameters::boundary_condition_open:
 	open_boundary_outer(data);
 	break;
@@ -405,6 +411,77 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     }
 }
 
+
+
+/**
+	set inner boundary values to initial values
+ */
+void initial_boundary_inner(t_data &data)
+{
+    if (CPU_Rank != 0){
+		return;
+	}
+	if (sim::N_hydro_iter == 0) {
+		return;
+	}
+
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Energy = data[t_data::ENERGY];
+	auto &vr = data[t_data::V_RADIAL];
+
+    auto &Sigma0 = data[t_data::SIGMA0];
+    auto &Energy0 = data[t_data::ENERGY0];
+	auto &vr0 = data[t_data::V_RADIAL0];
+
+	const unsigned int Naz = Sigma.get_max_azimuthal();
+
+	// printf("Sigma0 %e\n", Sigma0(0,0));
+
+	#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+		Sigma(0, naz) = Sigma0(0,naz);
+		Energy(0, naz) = Energy0(0,naz);
+		vr(0, naz) = vr0(0,naz);
+		vr(1, naz) = vr0(1,naz);
+	}
+}
+
+/**
+	set outer boundary values to initial values
+ */
+void initial_boundary_outer(t_data &data)
+{
+    if (CPU_Rank != CPU_Highest){
+		return;
+	}
+	if (sim::N_hydro_iter == 0) {
+		return;
+	}
+
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Energy = data[t_data::ENERGY];
+	auto &vr = data[t_data::V_RADIAL];
+
+    auto &Sigma0 = data[t_data::SIGMA0];
+    auto &Energy0 = data[t_data::ENERGY0];
+	auto &vr0 = data[t_data::V_RADIAL0];
+
+	const unsigned int Naz = Sigma.get_max_azimuthal();
+
+	#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+		const unsigned int nr = Sigma.get_max_radial();
+		Sigma(nr, naz) = Sigma0(nr,naz);
+		Energy(nr, naz) = Energy0(nr,naz);
+		const unsigned int nrv = vr.get_max_radial();
+		vr(nrv, naz) = vr0(nrv,naz);
+		vr(nrv-1, naz) = vr0(nrv-1,naz);
+	}
+}
+
+
+
+
 /**
 	inner open boundary condition
 */
@@ -435,6 +512,7 @@ void open_boundary_inner(t_data &data)
 	}
     }
 }
+
 
 /**
 	outer open boundary condition
@@ -731,7 +809,8 @@ void viscous_outflow_boundary_inner(t_data &data)
 
 
 void init_damping(t_data &data) {
-    if (parameters::is_damping_initial) {
+	// TODO: move this to an appropriate state checking whether initial state needs to be copied
+    if (parameters::is_damping_initial || (parameters::boundary_inner==parameters::boundary_condition_initial || parameters::boundary_outer==parameters::boundary_condition_initial)) {
 	// save starting values (needed for damping)
 		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
 		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
