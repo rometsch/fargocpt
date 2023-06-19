@@ -28,16 +28,18 @@ static inline double flux_limiter(const double R)
     // }
 }
 
-void radiative_diffusion(t_data &data, const double current_time, const double dt)
-{
-    static bool grids_allocated = false;
-    static t_polargrid Ka, Kb;
-    static t_polargrid A, B, C, D, E;
-    static t_polargrid Told;
-    static double *SendInnerBoundary, *SendOuterBoundary, *RecvInnerBoundary,
-	*RecvOuterBoundary;
+static void allocate_grids(
+    t_data &data,
+    t_polargrid &Ka,
+    t_polargrid &Kb,
+    t_polargrid &A,
+    t_polargrid &B,
+    t_polargrid &C,
+    t_polargrid &D,
+    t_polargrid &E,
+    t_polargrid &Told
+) { 
 
-    if (!grids_allocated) {
 	Ka.set_vector(true);
 	Ka.set_size(data.get_n_radial(), data.get_n_azimuthal());
 	Kb.set_scalar(true);
@@ -57,25 +59,15 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	Told.set_scalar(true);
 	Told.set_size(data.get_n_radial(), data.get_n_azimuthal());
 
-	// create arrays for communcation
-	SendInnerBoundary =
-	    (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-	SendOuterBoundary =
-	    (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-	RecvInnerBoundary =
-	    (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-	RecvOuterBoundary =
-	    (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-
-	grids_allocated = true;
     }
 
+static void set_minimum_temperature(t_data &data) {
+    
     auto &Temperature = data[t_data::TEMPERATURE];
     auto &Sigma = data[t_data::SIGMA];
     auto &Energy = data[t_data::ENERGY];
-    auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
-	const unsigned int Nphi = Kb.get_size_azimuthal();
+    const unsigned int Nphi = Temperature.get_size_azimuthal();
 
 	// We set minimum Temperature here such that H (thru Cs) is also computed with the minimum Temperature
 	#pragma omp parallel for
@@ -110,17 +102,22 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	    Energy(nr_max, naz) = minimum_energy;
 	}
     }
+}
 
-    // update temperature, soundspeed and aspect ratio
-	compute_temperature(data);
-	compute_sound_speed(data, current_time);
-	compute_scale_height(data, current_time);
 
-	const unsigned int NrKa = Ka.get_size_radial();
+static void calculate_Ka(t_data &data, t_polargrid &Ka) {
+
+    auto &Temperature = data[t_data::TEMPERATURE];
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Scale_height = data[t_data::SCALE_HEIGHT];
+
+    const unsigned int Nrad = Ka.get_size_radial();
+    const unsigned int Naz = Ka.get_size_azimuthal();
+
     // calcuate Ka for K(i/2,j)
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < NrKa - 1; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
 	    const unsigned int n_azimuthal_plus =
 		(naz == Ka.get_max_azimuthal() ? 0 : naz + 1);
 	    const unsigned int n_azimuthal_minus =
@@ -172,7 +169,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
     }
 
 	#pragma omp parallel for
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
 		const unsigned int nr_max = Ka.get_max_radial();
 		if(CPU_Rank == CPU_Highest && parameters::boundary_outer == parameters::boundary_condition_reflecting){
 		Ka(nr_max-1, naz) = 0.0;
@@ -186,7 +183,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
 	#pragma omp parallel for
 	// Similar to Tobi's original implementation
-	for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
 		const unsigned int nr_max = Ka.get_max_radial();
 		if(CPU_Rank == CPU_Highest && !(parameters::boundary_outer == parameters::boundary_condition_reflecting || parameters::boundary_outer == parameters::boundary_condition_open)){
 		Ka(nr_max-1, naz) = Ka(nr_max-2, naz);
@@ -200,7 +197,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
 
     // Similar to Tobi's original implementation
-    for (unsigned int naz = 0; naz < Ka.get_size_azimuthal(); ++naz) {
+    for (unsigned int naz = 0; naz < Naz; ++naz) {
 	const unsigned int nr_max = Ka.get_max_radial();
 	if (CPU_Rank == CPU_Highest &&
 	    !(parameters::boundary_outer ==
@@ -217,17 +214,26 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	    Ka(1, naz) = Ka(2, naz);
 	}
     }
+}
 
+
+static void calculate_Kb(t_data &data, t_polargrid &Kb) {
     // calcuate Kb for K(i,j/2)
-	const unsigned int NrKb = Kb.get_size_radial();
+
+    auto &Temperature = data[t_data::TEMPERATURE];
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Scale_height = data[t_data::SCALE_HEIGHT];
+
+	const unsigned int Nrad = Kb.get_size_radial();
+    const unsigned int Naz = Kb.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < NrKb-1; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	for (unsigned int nr = 1; nr < Nrad-1; ++nr) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
 	    // unsigned int n_azimuthal_plus = (n_azimuthal ==
 	    // Kb.get_max_azimuthal() ? 0 : n_azimuthal + 1);
 		const unsigned int naz_prev =
-		(naz == 0 ? Nphi-1 : naz - 1);
+		(naz == 0 ? Naz-1 : naz - 1);
 
 	    // average temperature azimuthally
 	    const double temperature =
@@ -277,35 +283,47 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
 	}
     }
+}
+
+static void calculate_ABCDE(
+    t_data &data,
+    t_polargrid &A,
+    t_polargrid &B,
+    t_polargrid &C,
+    t_polargrid &D,
+    t_polargrid &E,
+    t_polargrid &Ka,
+    t_polargrid &Kb,
+    t_polargrid &Told,
+    const double dt
+) {
+
+    auto &Temperature = data[t_data::TEMPERATURE];
+    auto &Sigma = data[t_data::SIGMA];
 
     const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
+	const unsigned int Nrad = Temperature.get_size_radial();
+    const unsigned int Naz = Temperature.get_size_radial();
 
-    // calculate A,B,C,D,E
-	const unsigned int Nr = Temperature.get_size_radial();
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr - 1; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
 		const double Sig = Sigma(nr, naz);
-	    const double common_factor =
-		-dt * parameters::density_factor / (Sig * c_v);
+	    const double common_factor = -dt * parameters::density_factor / (Sig * c_v);
 
 	    // 2/(dR^2)
 	    const double common_AC =
 		common_factor * 2.0 /
 		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
 	    A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
-	    C(nr, naz) =
-		common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
+	    C(nr, naz) = common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
 
 	    // 1/(r^2 dphi^2)
-	    const double common_DE =
-		common_factor / (std::pow(Rb[nr], 2) * std::pow(dphi, 2));
+	    const double common_DE = common_factor / (std::pow(Rb[nr], 2) * std::pow(dphi, 2));
 	    D(nr, naz) = common_DE * Kb(nr, naz);
-	    E(nr, naz) =
-		common_DE * Kb(nr, naz == Kb.get_max_azimuthal() ? 0 : naz + 1);
+	    E(nr, naz) = common_DE * Kb(nr, naz == Kb.get_max_azimuthal() ? 0 : naz + 1);
 
-	    B(nr, naz) =
-		-A(nr, naz) - C(nr, naz) - D(nr, naz) - E(nr, naz) + 1.0;
+	    B(nr, naz) = -A(nr, naz) - C(nr, naz) - D(nr, naz) - E(nr, naz) + 1.0;
 
 	    Told(nr, naz) = Temperature(nr, naz);
 
@@ -327,8 +345,25 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	}
     }
 
-    static unsigned int old_iterations =
-	parameters::radiative_diffusion_max_iterations;
+}
+
+static void SOR(
+    t_data &data,
+    t_polargrid &A,
+    t_polargrid &B,
+    t_polargrid &C,
+    t_polargrid &D,
+    t_polargrid &E,
+    t_polargrid &Told,
+    const double current_time
+) {
+
+    auto &Temperature = data[t_data::TEMPERATURE];
+    
+    const unsigned int Nrad = Temperature.get_size_radial();
+    const unsigned int Naz = Temperature.get_size_azimuthal();
+
+    static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
     static int direction = 1;
     static double omega = parameters::radiative_diffusion_omega;
 
@@ -339,6 +374,25 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
     const int l = CPUOVERLAP * NAzimuthal;
     const int oo = (Temperature.Nrad - CPUOVERLAP) * NAzimuthal;
     const int o = (Temperature.Nrad - 2 * CPUOVERLAP) * NAzimuthal;
+
+    static double *SendInnerBoundary, *SendOuterBoundary, *RecvInnerBoundary,
+	*RecvOuterBoundary;
+
+    static bool boundaries_allocated = false;
+    if (!boundaries_allocated) {
+        // create arrays for communcation
+        SendInnerBoundary =
+            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
+        SendOuterBoundary =
+            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
+        RecvInnerBoundary =
+            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
+        RecvOuterBoundary =
+            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
+        boundaries_allocated = true;
+    }
+
+
 
     // do SOR
     while ((norm_change > 1e-12) &&
@@ -369,8 +423,8 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	absolute_norm = 0.0;
     /// TODO: Cannot be OpenMP parallelized due to Temperature being iteratively computed ??
 #pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
-	for (unsigned int nr = 1; nr < Nr - 1; ++nr) {
-		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
 		const double old_value = Temperature(nr, naz);
 		const unsigned int naz_next =
@@ -465,7 +519,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	    memcpy(Temperature.Field + oo, RecvOuterBoundary,
 		   l * sizeof(double));
 	}
-    }
+    } // END SOR
 
     if (iterations == parameters::radiative_diffusion_max_iterations) {
 	logging::print_master(
@@ -498,16 +552,54 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
     logging::print_master(LOG_VERBOSE "%u iterations, omega=%lf\n", iterations,
 			  omega);
+}
+
+static void update_energy(t_data &data) {
+
+    auto &Temperature = data[t_data::TEMPERATURE];
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Energy = data[t_data::ENERGY];
+
+    const unsigned int Nrad = Temperature.get_size_radial();
+    const unsigned int Naz = Temperature.get_size_azimuthal();
 
     // compute energy from temperature
 	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nr - 1; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
 		Energy(nr, naz) = Temperature(nr, naz) *
 						Sigma(nr, naz) / (parameters::ADIABATICINDEX - 1.0) /
 					    parameters::MU * constants::R;
 	}
     }
+}
+
+void radiative_diffusion(t_data &data, const double current_time, const double dt)
+{
+    static t_polargrid Ka, Kb;
+    static t_polargrid A, B, C, D, E;
+    static t_polargrid Told;
+
+
+    static bool grids_allocated = false;
+    if (!grids_allocated) {
+        allocate_grids(data, Ka, Kb, A, B, C, D, E, Told);
+        grids_allocated = true;
+    }
+    
+    set_minimum_temperature(data);
+
+    // update temperature, soundspeed and aspect ratio
+	compute_temperature(data);
+	compute_sound_speed(data, current_time);
+	compute_scale_height(data, current_time);
+
+	calculate_Ka(data, Ka);
+    calculate_Kb(data, Kb);
+    calculate_ABCDE(data, A, B, C, D, E, Ka, Kb, Told, dt);
+    SOR(data, A, B, C, D, E, Told, current_time);
+
+    update_energy(data);
 
 	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 }
