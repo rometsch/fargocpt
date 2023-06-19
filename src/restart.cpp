@@ -20,7 +20,7 @@ void restart_load(t_data &data) {
 	sim::N_monitor = 0;
 	start_mode::restart_from = output::load_misc();
 
-	if (parameters::is_damping_initial) {
+	if (boundary_conditions::initial_values_needed()) {
 	    // load grids at t = 0
 	    const std::string snapshot_dir_old = output::snapshot_dir;
 	    output::snapshot_dir = output::outdir + "snapshots/damping";
@@ -42,7 +42,7 @@ void restart_load(t_data &data) {
 	    output::snapshot_dir = snapshot_dir_old;
 
 	    // save starting values (needed for damping)
-		boundary_conditions::init_damping(data);
+		boundary_conditions::copy_initial_values(data);
 	}
 
 	// recalculate SigmaMed/EnergyMed

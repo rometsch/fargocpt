@@ -680,8 +680,7 @@ void calculate_qminus(t_data &data, const double current_time)
 			data[t_data::SIGMA0](nr, naz);
 		    const double E0 =
 			data[t_data::ENERGY0](nr, naz);
-			const double SigmaFloor = parameters::sigma0 * parameters::sigma_floor;
-		    delta_E -= E0 / std::max(sigma0,SigmaFloor)  * sigma;
+		    delta_E -= E0 / sigma0 * sigma;
 		}
 		if (parameters::cooling_beta_aspect_ratio) {
 		    const double sigma =
@@ -993,12 +992,13 @@ void SubStep3(t_data &data, const double current_time, const double dt)
 
 static inline double flux_limiter(const double R)
 {
+	return 1.0/3;
     // flux limiter
-    if (R <= 2) {
-	return 2.0 / (3 + std::sqrt(9 + 10 * std::pow(R, 2)));
-    } else {
-	return 10.0 / (10 * R + 9 + std::sqrt(180 * R + 81));
-    }
+    // if (R <= 2) {
+	// return 2.0 / (3 + std::sqrt(9 + 10 * std::pow(R, 2)));
+    // } else {
+	// return 10.0 / (10 * R + 9 + std::sqrt(180 * R + 81));
+    // }
 }
 
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
@@ -1139,7 +1139,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
 	    const double lambda = flux_limiter(R);
 
-	    Ka(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
+	    Ka(nr, naz) = 8.0 * 4.0	 * constants::sigma.get_code_value() *
 			  lambda * H * H * std::pow(temperature, 3) * denom;
 	}
     }

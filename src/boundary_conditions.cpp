@@ -808,9 +808,17 @@ void viscous_outflow_boundary_inner(t_data &data)
 }
 
 
-void init_damping(t_data &data) {
-	// TODO: move this to an appropriate state checking whether initial state needs to be copied
-    if (parameters::is_damping_initial || (parameters::boundary_inner==parameters::boundary_condition_initial || parameters::boundary_outer==parameters::boundary_condition_initial)) {
+// Determine whether initial values must be stored.
+bool initial_values_needed() {
+	const bool damping = parameters::is_damping_initial;
+	const bool betacooling = parameters::cooling_beta_initial;
+	const bool boundary = parameters::boundary_inner==parameters::boundary_condition_initial || parameters::boundary_outer==parameters::boundary_condition_initial;
+	return damping || betacooling || boundary;
+}
+
+
+void copy_initial_values(t_data &data) {
+    if (initial_values_needed()) {
 	// save starting values (needed for damping)
 		copy_polargrid(data[t_data::V_RADIAL0], data[t_data::V_RADIAL]);
 		copy_polargrid(data[t_data::V_AZIMUTHAL0], data[t_data::V_AZIMUTHAL]);
