@@ -17,6 +17,7 @@
 #include "cfl.h"
 #include "quantities.h"
 #include "pvte_law.h"
+#include "fld.h"
 
 namespace sim {
 
@@ -196,7 +197,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    if (parameters::Adiabatic) {
 		SubStep3(data, time, dt);
 		if (parameters::radiative_diffusion_enabled) {
-		    radiative_diffusion(data, time, dt);
+		    fld::radiative_diffusion(data, time, dt);
 		}
 	    }
 
@@ -328,7 +329,7 @@ static void step_Euler(t_data &data, const double dt) {
 		if (parameters::Adiabatic) {
 		SubStep3(data, start_time, frog_dt);
 		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, start_time, frog_dt);
+			fld::radiative_diffusion(data, start_time, frog_dt);
 		}
 		}
 		//////////////// END /// Gas Kick 1/2 /////////////////////
@@ -383,7 +384,7 @@ static void step_Euler(t_data &data, const double dt) {
 		if (parameters::Adiabatic) {
 		SubStep3(data, midstep_time, frog_dt);
 		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, midstep_time, frog_dt);
+			fld::radiative_diffusion(data, midstep_time, frog_dt);
 		}
 		}
 	}
