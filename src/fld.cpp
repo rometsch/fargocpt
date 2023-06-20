@@ -301,8 +301,7 @@ static void calculate_Kb(t_data &data) {
     }
 }
 
-static void calculate_ABCDE(t_data &data, const double dt
-) {
+static void calculate_ABCDE(t_data &data, const double dt) {
 
     auto &Temperature = data[t_data::TEMPERATURE];
     auto &Sigma = data[t_data::SIGMA];
@@ -318,9 +317,7 @@ static void calculate_ABCDE(t_data &data, const double dt
 	    const double common_factor = -dt * parameters::density_factor / (Sig * c_v);
 
 	    // 2/(dR^2)
-	    const double common_AC =
-		common_factor * 2.0 /
-		(std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
+	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
 	    A(nr, naz) = common_AC * Ka(nr, naz) * Ra[nr] * InvDiffRmed[nr];
 	    C(nr, naz) = common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
 
@@ -353,7 +350,7 @@ static void calculate_ABCDE(t_data &data, const double dt
 
 }
 
-void SOR(t_data &data, const double current_time
+static void SOR(t_data &data, const double current_time
 ) {
 
     auto &Temperature = data[t_data::TEMPERATURE];
@@ -406,10 +403,9 @@ void SOR(t_data &data, const double current_time
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
 		const double old_value = Temperature(nr, naz);
-		const unsigned int naz_next =
-		    (naz == Temperature.get_max_azimuthal() ? 0 : naz + 1);
-		const unsigned int naz_prev =
-		    (naz == 0 ? Temperature.get_max_azimuthal() : naz - 1);
+        const unsigned int naz_last = Temperature.get_max_azimuthal();
+		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
+		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
 
 		Temperature(nr, naz) =
 		    (1.0 - omega) * Temperature(nr, naz) -
@@ -425,17 +421,18 @@ void SOR(t_data &data, const double current_time
         }
 
         if(Temperature(nr, naz) > parameters::maximum_temperature){
+            logging::print(LOG_INFO "max temp inside FLD SOR loop at %d, %d, %e\n", nr, naz, Temperature(nr, naz));
             Temperature(nr, naz) = parameters::maximum_temperature;
         }
 
 		// only non ghostcells to norm and don't count overlap cell's
 		// twice
-		const bool isnot_ghostcell_rank_0 =
-		    nr > ((CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP);
-		const bool isnot_ghostcell_rank_highest =
-		    (nr <
-		     (Temperature.get_max_radial() -
-		      ((CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP)));
+        const unsigned int nrad_last = Temperature.get_max_radial();
+        const unsigned int nghost_right = (CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP;
+        const unsigned int nghost_left = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
+		
+        const bool isnot_ghostcell_rank_0 = nr > nghost_left;
+		const bool isnot_ghostcell_rank_highest = nr < (nrad_last - nghost_right);
 
 		if (isnot_ghostcell_rank_0 && isnot_ghostcell_rank_highest) {
 		    absolute_norm +=
