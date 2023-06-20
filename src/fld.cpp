@@ -77,7 +77,7 @@ void finalize() {
 }
 
 
-static void set_minimum_temperature(t_data &data) {
+static void set_minimum_energy(t_data &data) {
     
     auto &Temperature = data[t_data::TEMPERATURE];
     auto &Sigma = data[t_data::SIGMA];
@@ -120,71 +120,9 @@ static void set_minimum_temperature(t_data &data) {
     }
 }
 
-
-static void calculate_Ka(t_data &data) {
-
-    auto &Temperature = data[t_data::TEMPERATURE];
-    auto &Sigma = data[t_data::SIGMA];
-    auto &Scale_height = data[t_data::SCALE_HEIGHT];
-
-    const unsigned int Nrad = Ka.get_size_radial();
+static void boundary_Ka() {
     const unsigned int Naz = Ka.get_size_azimuthal();
-
-    // calcuate Ka for K(i/2,j)
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
-	for (unsigned int naz = 0; naz < Naz; ++naz) {
-	    const unsigned int n_azimuthal_plus =
-		(naz == Ka.get_max_azimuthal() ? 0 : naz + 1);
-	    const unsigned int n_azimuthal_minus =
-		(naz == 0 ? Ka.get_max_azimuthal() : naz - 1);
-
-	    // average temperature radially
-	    const double temperature =
-		0.5 * (Temperature(nr - 1, naz) + Temperature(nr, naz));
-	    const double density = 0.5 * (Sigma(nr - 1, naz) + Sigma(nr, naz));
-	    const double scale_height =
-		0.5 * (Scale_height(nr - 1, naz) + Scale_height(nr, naz));
-
-	    const double temperatureCGS = temperature * units::temperature;
-	    const double H = scale_height;
-	    const double densityCGS =
-		density / (parameters::density_factor * H) * units::density;
-
-	    const double kappaCGS =
-		opacity::opacity(densityCGS, temperatureCGS);
-	    const double kappa = parameters::kappa_factor * kappaCGS *
-				 units::opacity.get_inverse_cgs_factor();
-
-	    const double denom = 1.0 / (density * kappa);
-
-	    // Levermore & Pomraning 1981
-	    // R = 4 |nabla T\/T * 1/(rho kappa)
-	    const double dT_dr =
-		(Temperature(nr, naz) - Temperature(nr - 1, naz)) *
-		InvDiffRmed[nr];
-	    const double dT_dphi =
-		InvRinf[nr] *
-		(0.5 * (Temperature(nr - 1, n_azimuthal_plus) +
-			Temperature(nr, n_azimuthal_plus)) -
-		 0.5 * (Temperature(nr - 1, n_azimuthal_minus) +
-			Temperature(nr, n_azimuthal_minus))) /
-		(2.0 * dphi);
-
-	    const double nabla_T =
-		std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
-
-	    const double R = 4.0 * nabla_T / temperature * denom * H *
-			     parameters::density_factor;
-
-	    const double lambda = flux_limiter(R);
-
-	    Ka(nr, naz) = 8.0 * 4.0	 * constants::sigma.get_code_value() *
-			  lambda * H * H * std::pow(temperature, 3) * denom;
-	}
-    }
-
-	#pragma omp parallel for
+    #pragma omp parallel for
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
 		const unsigned int nr_max = Ka.get_max_radial();
 		if(CPU_Rank == CPU_Highest && parameters::boundary_outer == parameters::boundary_condition_reflecting){
@@ -232,6 +170,58 @@ static void calculate_Ka(t_data &data) {
     }
 }
 
+static void calculate_Ka(t_data &data) {
+
+    auto &Temp = data[t_data::TEMPERATURE];
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Scale_height = data[t_data::SCALE_HEIGHT];
+
+    const unsigned int Nrad = Ka.get_size_radial();
+    const unsigned int Naz = Ka.get_size_azimuthal();
+    const unsigned int Naz_last = Ka.get_max_azimuthal();
+
+    // calcuate Ka for K(i/2,j)
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
+	    const unsigned int naz_next = (naz == Naz_last ? 0 : naz + 1);
+	    const unsigned int naz_last = (naz == 0 ? Naz_last : naz - 1);
+
+	    // average temperature radially
+	    const double temp = 0.5 * (Temp(nr - 1, naz) + Temp(nr, naz));
+	    const double surface_density = 0.5 * (Sigma(nr - 1, naz) + Sigma(nr, naz));
+	    const double H = 0.5 * (Scale_height(nr - 1, naz) + Scale_height(nr, naz));
+
+	    const double temperatureCGS = temp * units::temperature;
+	    const double densityCGS = surface_density / (parameters::density_factor * H) * units::density;
+
+	    const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+	    const double kappa = parameters::kappa_factor * kappaCGS * units::opacity.get_inverse_cgs_factor();
+
+	    const double denom = 1.0 / (surface_density * kappa);
+
+	    // Levermore & Pomraning 1981
+	    // R = 4 |nabla T\/T * 1/(rho kappa)
+	    const double dT_dr = (Temp(nr, naz) - Temp(nr - 1, naz)) * InvDiffRmed[nr];
+        const double Tnext = 0.5 * (Temp(nr - 1, naz_next) + Temp(nr, naz_next));
+        const double Tlast = 0.5 * (Temp(nr - 1, naz_last) +	Temp(nr, naz_last));
+	    const double dT_dphi = InvRinf[nr] * (Tnext-Tlast) / (2.0 * dphi);
+
+	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
+
+	    const double R = 4.0 * nabla_T / temp * denom * H * parameters::density_factor;
+
+	    const double lambda = flux_limiter(R);
+
+        const double sig = constants::sigma.get_code_value();
+
+	    Ka(nr, naz) = 8.0 * 4.0	* sig * lambda * H * H * std::pow(temp, 3) * denom;
+	}
+    }
+
+	
+}
+
 
 static void calculate_Kb(t_data &data) {
     // calcuate Kb for K(i,j/2)
@@ -248,8 +238,7 @@ static void calculate_Kb(t_data &data) {
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
 	    // unsigned int n_azimuthal_plus = (n_azimuthal ==
 	    // Kb.get_max_azimuthal() ? 0 : n_azimuthal + 1);
-		const unsigned int naz_prev =
-		(naz == 0 ? Naz-1 : naz - 1);
+		const unsigned int naz_prev = (naz == 0 ? Naz-1 : naz - 1);
 
 	    // average temperature azimuthally
 	    const double temperature =
@@ -263,28 +252,25 @@ static void calculate_Kb(t_data &data) {
 	    const double densityCGS =
 		density / (parameters::density_factor * H) * units::density;
 
-	    const double kappaCGS =
-		opacity::opacity(densityCGS, temperatureCGS);
-	    const double kappa = parameters::kappa_factor * kappaCGS *
-				 units::opacity.get_inverse_cgs_factor();
+	    const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+	    const double kappa = parameters::kappa_factor * kappaCGS * units::opacity.get_inverse_cgs_factor();
 
 	    const double denom = 1.0 / (density * kappa);
 
 	    // Levermore & Pomraning 1981
 	    // R = 4 |nabla T\/T * 1/(rho kappa)
 	    const double dT_dr =
-		(0.5 * (Temperature(nr - 1, naz_prev) + Temperature(nr - 1, naz)) -
-		 0.5 * (Temperature(nr + 1, naz_prev) + Temperature(nr + 1, naz))) /
-		(Ra[nr - 1] - Ra[nr + 1]);
-	    const double dT_dphi =
-		InvRmed[nr] * (Temperature(nr, naz) - Temperature(nr, naz_prev)) /
-		dphi;
+            (0.5 * (Temperature(nr - 1, naz_prev) + Temperature(nr - 1, naz)) -
+            0.5 * (Temperature(nr + 1, naz_prev) + Temperature(nr + 1, naz))) /
+            (Ra[nr - 1] - Ra[nr + 1]);
+            const double dT_dphi =
+            InvRmed[nr] * (Temperature(nr, naz) - Temperature(nr, naz_prev)) /
+            dphi;
 
 	    const double nabla_T =
 		std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    const double R = 4.0 * nabla_T / temperature * denom * H *
-			     parameters::density_factor;
+	    const double R = 4.0 * nabla_T / temperature * denom * H * parameters::density_factor;
 
 	    const double lambda = flux_limiter(R);
 	    /*if (n_radial == 4) {
@@ -350,104 +336,12 @@ static void calculate_ABCDE(t_data &data, const double dt) {
 
 }
 
-static void SOR(t_data &data, const double current_time
-) {
-
-    auto &Temperature = data[t_data::TEMPERATURE];
-    
-    const unsigned int Nrad = Temperature.get_size_radial();
-    const unsigned int Naz = Temperature.get_size_azimuthal();
-
-    static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
-    static int direction = 1;
-    static double omega = parameters::radiative_diffusion_omega;
-
-    unsigned int iterations = 0;
-	double absolute_norm = std::numeric_limits<double>::max();
-	double norm_change = std::numeric_limits<double>::max();
+// Communicate the temperature values among adjacent nodes
+static void communicate_parallelization_boundaries(t_polargrid &Temperature) {
 
     const int l = CPUOVERLAP * NAzimuthal;
     const int oo = (Temperature.Nrad - CPUOVERLAP) * NAzimuthal;
     const int o = (Temperature.Nrad - 2 * CPUOVERLAP) * NAzimuthal;
-
-    // do SOR
-    while ((norm_change > 1e-12) &&
-	   (parameters::radiative_diffusion_max_iterations > iterations)) {
-	// if ((CPU_Rank == CPU_Highest) && parameters::boundary_outer ==
-	// parameters::boundary_condition_open) {
-	// 	// set temperature to T_min in outermost cells
-	// 	for (unsigned int n_azimuthal = 0; n_azimuthal <=
-	// Temperature.get_max_azimuthal(); ++n_azimuthal) {
-	// 		Temperature(Temperature.get_max_radial(),
-	// n_azimuthal) =
-	// parameters::minimum_temperature*units::temperature.get_inverse_cgs_factor();
-	// 	}
-	// }
-
-	// if ((CPU_Rank == 0) && parameters::boundary_inner ==
-	// parameters::boundary_condition_open) {
-	// 	// set temperature to T_min in innermost cells
-	// 	for (unsigned int n_azimuthal = 0; n_azimuthal <=
-	// Temperature.get_max_azimuthal(); ++n_azimuthal) {
-	// 		Temperature(0, n_azimuthal) =
-	// parameters::minimum_temperature*units::temperature.get_inverse_cgs_factor();
-	// 	}
-	// }
-	boundary_conditions::apply_boundary_condition(data, current_time, 0.0, false);
-
-	norm_change = absolute_norm;
-	absolute_norm = 0.0;
-    /// TODO: Cannot be OpenMP parallelized due to Temperature being iteratively computed ??
-#pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
-	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
-		for (unsigned int naz = 0; naz < Naz; ++naz) {
-
-		const double old_value = Temperature(nr, naz);
-        const unsigned int naz_last = Temperature.get_max_azimuthal();
-		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
-		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
-
-		Temperature(nr, naz) =
-		    (1.0 - omega) * Temperature(nr, naz) -
-		    omega / B(nr, naz) *
-			(A(nr, naz) * Temperature(nr - 1, naz) +
-			 C(nr, naz) * Temperature(nr + 1, naz) +
-			 D(nr, naz) * Temperature(nr, naz_prev) +
-			 E(nr, naz) * Temperature(nr, naz_next) - Told(nr, naz));
-
-
-        if(Temperature(nr, naz) < parameters::minimum_temperature){
-            Temperature(nr, naz) = parameters::minimum_temperature;
-        }
-
-        if(Temperature(nr, naz) > parameters::maximum_temperature){
-            logging::print(LOG_INFO "max temp inside FLD SOR loop at %d, %d, %e\n", nr, naz, Temperature(nr, naz));
-            Temperature(nr, naz) = parameters::maximum_temperature;
-        }
-
-		// only non ghostcells to norm and don't count overlap cell's
-		// twice
-        const unsigned int nrad_last = Temperature.get_max_radial();
-        const unsigned int nghost_right = (CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP;
-        const unsigned int nghost_left = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
-		
-        const bool isnot_ghostcell_rank_0 = nr > nghost_left;
-		const bool isnot_ghostcell_rank_highest = nr < (nrad_last - nghost_right);
-
-		if (isnot_ghostcell_rank_0 && isnot_ghostcell_rank_highest) {
-		    absolute_norm +=
-			std::pow(old_value - Temperature(nr, naz), 2);
-		}
-	    }
-	}
-
-    const double tmp = absolute_norm;
-	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM,
-		      MPI_COMM_WORLD);
-	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
-
-	norm_change = fabs(absolute_norm - norm_change);
-	iterations++;
 
 	// communicate with other nodes
 	memcpy(SendInnerBoundary, Temperature.Field + l, l * sizeof(double));
@@ -495,6 +389,111 @@ static void SOR(t_data &data, const double current_time
 	    memcpy(Temperature.Field + oo, RecvOuterBoundary,
 		   l * sizeof(double));
 	}
+}
+
+static void boundary_T_SOR(t_polargrid &Temperature) {
+
+    const unsigned int Naz = Temperature.get_size_azimuthal();
+    const unsigned int nrad_last = Temperature.get_max_radial();
+
+    const bool at_outer_boundary = CPU_Rank == CPU_Highest;
+    const bool outer_boundary_open = parameters::boundary_outer == parameters::boundary_condition_open;
+	if (at_outer_boundary && outer_boundary_open) {
+		// set temperature to T_min in outermost cells
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+			Temperature(nrad_last, naz) = parameters::minimum_temperature;
+		}
+	}
+
+    const bool at_inner_boundary = CPU_Rank == 0;
+    const bool inner_boundary_open = parameters::boundary_inner == parameters::boundary_condition_open;
+	if (at_inner_boundary && inner_boundary_open) {
+        // set temperature to T_min in innermost cells
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+			Temperature(0, naz) = parameters::minimum_temperature;
+		}
+	}
+	// boundary_conditions::apply_boundary_condition(data, current_time, 0.0, false);
+}
+
+static bool is_not_ghost(const unsigned int nr) {
+    const unsigned int nrad_last = NRadial - 1;
+    const unsigned int nghost_right = (CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP;
+    const unsigned int nghost_left = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
+    
+    const bool isnot_ghostcell_rank_0 = nr > nghost_left;
+    const bool isnot_ghostcell_rank_highest = nr < (nrad_last - nghost_right);
+
+    return isnot_ghostcell_rank_0 && isnot_ghostcell_rank_highest;
+}
+
+static void SOR(t_data &data) {
+
+    auto &Temperature = data[t_data::TEMPERATURE];
+    
+    const unsigned int Nrad = Temperature.get_size_radial();
+    const unsigned int Naz = Temperature.get_size_azimuthal();
+
+    static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
+    static int direction = 1;
+    static double omega = parameters::radiative_diffusion_omega;
+
+    unsigned int iterations = 0;
+	double absolute_norm = std::numeric_limits<double>::max();
+	double norm_change = std::numeric_limits<double>::max();
+
+    // do SOR
+    while ((norm_change > 1e-12) &&
+	   (parameters::radiative_diffusion_max_iterations > iterations)) {
+
+    boundary_T_SOR(Temperature);
+
+	norm_change = absolute_norm;
+	absolute_norm = 0.0;
+#pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
+	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+
+		const double old_value = Temperature(nr, naz);
+        const unsigned int naz_last = Temperature.get_max_azimuthal();
+		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
+		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
+
+		Temperature(nr, naz) =
+		    (1.0 - omega) * Temperature(nr, naz) -
+		    omega / B(nr, naz) *
+			(A(nr, naz) * Temperature(nr - 1, naz) +
+			 C(nr, naz) * Temperature(nr + 1, naz) +
+			 D(nr, naz) * Temperature(nr, naz_prev) +
+			 E(nr, naz) * Temperature(nr, naz_next) - Told(nr, naz));
+
+        // Set temperature floor and ceiling
+        if(Temperature(nr, naz) < parameters::minimum_temperature){
+            Temperature(nr, naz) = parameters::minimum_temperature;
+        }
+
+        if(Temperature(nr, naz) > parameters::maximum_temperature){
+            logging::print(LOG_INFO "max temp inside FLD SOR loop at %d, %d, %e\n", nr, naz, Temperature(nr, naz));
+            Temperature(nr, naz) = parameters::maximum_temperature;
+        }
+
+		// only non ghostcells to norm and don't count overlap cell's
+		// twice
+        if (is_not_ghost(nr)) {
+		    absolute_norm += std::pow(old_value - Temperature(nr, naz), 2);
+		}
+	    }
+	}
+
+    const double tmp = absolute_norm;
+	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
+
+	norm_change = fabs(absolute_norm - norm_change);
+	iterations++;
+
+    communicate_parallelization_boundaries(Temperature);
+
     } // END SOR
 
     if (iterations == parameters::radiative_diffusion_max_iterations) {
@@ -539,20 +538,19 @@ static void update_energy(t_data &data) {
     const unsigned int Nrad = Temperature.get_size_radial();
     const unsigned int Naz = Temperature.get_size_azimuthal();
 
+    const double factor = constants::R / (parameters::ADIABATICINDEX - 1.0) / parameters::MU;
     // compute energy from temperature
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
-	for (unsigned int naz = 0; naz < Naz; ++naz) {
-		Energy(nr, naz) = Temperature(nr, naz) *
-						Sigma(nr, naz) / (parameters::ADIABATICINDEX - 1.0) /
-					    parameters::MU * constants::R;
-	}
+        for (unsigned int naz = 0; naz < Naz; ++naz) {
+            Energy(nr, naz) = factor * Temperature(nr, naz) * Sigma(nr, naz);
+        }
     }
 }
 
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
 {
-    set_minimum_temperature(data);
+    set_minimum_energy(data);
 
     // update temperature, soundspeed and aspect ratio
 	compute_temperature(data);
@@ -560,12 +558,14 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	compute_scale_height(data, current_time);
 
 	calculate_Ka(data);
+    boundary_Ka();
     calculate_Kb(data);
     calculate_ABCDE(data, dt);
-    SOR(data, current_time);
+    SOR(data);
 
     update_energy(data);
 
+    // ensure energy is consistent with min/max temperature
 	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 }
 
