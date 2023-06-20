@@ -38,6 +38,7 @@
 #include "circumplanetary_mass.h"
 #include "buildtime_info.h"
 #include "restart.h"
+#include "fld.h"
 
 
 
@@ -96,6 +97,10 @@ int main(int argc, char *argv[])
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
 
 	fargo_random::init();
+    if (parameters::radiative_diffusion_enabled) {
+		fld::init(data.get_n_radial(), data.get_n_azimuthal());
+	}
+
 
     init_radialarrays();
 

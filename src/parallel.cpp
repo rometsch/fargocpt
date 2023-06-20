@@ -6,6 +6,7 @@
 #include "split.h"
 #include "LowTasks.h"
 #include "logging.h"
+#include "fld.h"
 
 // copy paste from https://github.com/jeffhammond/HPCInfo/blob/master/mpi/with-threads/mpi-openmp.c
 #define MPI_THREAD_STRING(level)  \
@@ -68,4 +69,5 @@ void finalize_parallel() {
     selfgravity::mpi_finalize();
     FreeSplitDomain();
 	MPI_Finalize();
+	fld::finalize();
 }

@@ -17,6 +17,21 @@
 
 namespace fld {
 
+
+t_polargrid Ka;
+t_polargrid Kb;
+t_polargrid A;
+t_polargrid B;
+t_polargrid C;
+t_polargrid D;
+t_polargrid E;
+t_polargrid Told;
+
+double *SendInnerBoundary;
+double *SendOuterBoundary;
+double *RecvInnerBoundary;
+double *RecvOuterBoundary;
+
 static inline double flux_limiter(const double R)
 {
 	return 1.0/3;
@@ -28,38 +43,39 @@ static inline double flux_limiter(const double R)
     // }
 }
 
-static void allocate_grids(
-    t_data &data,
-    t_polargrid &Ka,
-    t_polargrid &Kb,
-    t_polargrid &A,
-    t_polargrid &B,
-    t_polargrid &C,
-    t_polargrid &D,
-    t_polargrid &E,
-    t_polargrid &Told
-) { 
-
+void init(const unsigned int Nrad, const unsigned int Naz) { 
 	Ka.set_vector(true);
-	Ka.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	Ka.set_size(Nrad, Naz);
 	Kb.set_scalar(true);
-	Kb.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	Kb.set_size(Nrad, Naz);
 
 	A.set_scalar(true);
-	A.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	A.set_size(Nrad, Naz);
 	B.set_scalar(true);
-	B.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	B.set_size(Nrad, Naz);
 	C.set_scalar(true);
-	C.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	C.set_size(Nrad, Naz);
 	D.set_scalar(true);
-	D.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	D.set_size(Nrad, Naz);
 	E.set_scalar(true);
-	E.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	E.set_size(Nrad, Naz);
 
 	Told.set_scalar(true);
-	Told.set_size(data.get_n_radial(), data.get_n_azimuthal());
+	Told.set_size(Nrad, Naz);
 
-    }
+    SendInnerBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
+    SendOuterBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
+    RecvInnerBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
+    RecvOuterBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
+}
+
+void finalize() {
+    free(SendInnerBoundary);
+    free(SendOuterBoundary);
+    free(RecvInnerBoundary);
+    free(RecvOuterBoundary);
+}
+
 
 static void set_minimum_temperature(t_data &data) {
     
@@ -105,7 +121,7 @@ static void set_minimum_temperature(t_data &data) {
 }
 
 
-static void calculate_Ka(t_data &data, t_polargrid &Ka) {
+static void calculate_Ka(t_data &data) {
 
     auto &Temperature = data[t_data::TEMPERATURE];
     auto &Sigma = data[t_data::SIGMA];
@@ -217,7 +233,7 @@ static void calculate_Ka(t_data &data, t_polargrid &Ka) {
 }
 
 
-static void calculate_Kb(t_data &data, t_polargrid &Kb) {
+static void calculate_Kb(t_data &data) {
     // calcuate Kb for K(i,j/2)
 
     auto &Temperature = data[t_data::TEMPERATURE];
@@ -285,17 +301,7 @@ static void calculate_Kb(t_data &data, t_polargrid &Kb) {
     }
 }
 
-static void calculate_ABCDE(
-    t_data &data,
-    t_polargrid &A,
-    t_polargrid &B,
-    t_polargrid &C,
-    t_polargrid &D,
-    t_polargrid &E,
-    t_polargrid &Ka,
-    t_polargrid &Kb,
-    t_polargrid &Told,
-    const double dt
+static void calculate_ABCDE(t_data &data, const double dt
 ) {
 
     auto &Temperature = data[t_data::TEMPERATURE];
@@ -347,15 +353,7 @@ static void calculate_ABCDE(
 
 }
 
-static void SOR(
-    t_data &data,
-    t_polargrid &A,
-    t_polargrid &B,
-    t_polargrid &C,
-    t_polargrid &D,
-    t_polargrid &E,
-    t_polargrid &Told,
-    const double current_time
+void SOR(t_data &data, const double current_time
 ) {
 
     auto &Temperature = data[t_data::TEMPERATURE];
@@ -374,25 +372,6 @@ static void SOR(
     const int l = CPUOVERLAP * NAzimuthal;
     const int oo = (Temperature.Nrad - CPUOVERLAP) * NAzimuthal;
     const int o = (Temperature.Nrad - 2 * CPUOVERLAP) * NAzimuthal;
-
-    static double *SendInnerBoundary, *SendOuterBoundary, *RecvInnerBoundary,
-	*RecvOuterBoundary;
-
-    static bool boundaries_allocated = false;
-    if (!boundaries_allocated) {
-        // create arrays for communcation
-        SendInnerBoundary =
-            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-        SendOuterBoundary =
-            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-        RecvInnerBoundary =
-            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-        RecvOuterBoundary =
-            (double *)malloc(NAzimuthal * CPUOVERLAP * sizeof(double));
-        boundaries_allocated = true;
-    }
-
-
 
     // do SOR
     while ((norm_change > 1e-12) &&
@@ -576,17 +555,6 @@ static void update_energy(t_data &data) {
 
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
 {
-    static t_polargrid Ka, Kb;
-    static t_polargrid A, B, C, D, E;
-    static t_polargrid Told;
-
-
-    static bool grids_allocated = false;
-    if (!grids_allocated) {
-        allocate_grids(data, Ka, Kb, A, B, C, D, E, Told);
-        grids_allocated = true;
-    }
-    
     set_minimum_temperature(data);
 
     // update temperature, soundspeed and aspect ratio
@@ -594,10 +562,10 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	compute_sound_speed(data, current_time);
 	compute_scale_height(data, current_time);
 
-	calculate_Ka(data, Ka);
-    calculate_Kb(data, Kb);
-    calculate_ABCDE(data, A, B, C, D, E, Ka, Kb, Told, dt);
-    SOR(data, A, B, C, D, E, Told, current_time);
+	calculate_Ka(data);
+    calculate_Kb(data);
+    calculate_ABCDE(data, dt);
+    SOR(data, current_time);
 
     update_energy(data);
 

@@ -28,6 +28,7 @@
 #include <gsl/gsl_sf_bessel.h>
 #include "simulation.h"
 #include "cfl.h"
+#include "fld.h"
 
 #include "open-simplex-noise.h"
 #include "options.h"
@@ -318,9 +319,13 @@ void init_physics(t_data &data)
 	// potential. Only the surface density is required to calculate the
 	// radial self-gravity acceleration. The disk radial and azimutal
 	// velocities are not updated
-	selfgravity::init(data);
-	logging::print_master(LOG_INFO "sg initialised\n");
+		selfgravity::init(data);
+		logging::print_master(LOG_INFO "sg initialised\n");
     }
+
+	if (parameters::radiative_diffusion_enabled) {
+		fld::init(data.get_n_radial(), data.get_n_azimuthal());
+	}
 
 	if (data.get_planetary_system().get_number_of_planets() < 2) {
 	/*if (parameters::boundary_outer ==
