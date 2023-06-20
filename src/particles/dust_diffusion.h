@@ -1,5 +1,4 @@
-#ifndef DIFFUSION_H
-#define DIFFUSION_H
+#pragma once
 
 #include "../data.h"
 #include "particle.h"
@@ -13,5 +12,3 @@ double kick_length(t_particle &particle, t_data &data, const double dt);
 void compute_gas_diffusion_coefficient(t_data &data);
 void compute_gas_density_radial_derivative(t_data &data);
 } // namespace dust_diffusion
-
-#endif // DIFFUSION_H

@@ -1,5 +1,4 @@
-#ifndef FORCE_H
-#define FORCE_H
+#pragma once
 
 #include "types.h"
 
@@ -12,4 +11,3 @@ double compute_smoothing_r(t_data &data, const int n_radial,
 			   const int n_azimuthal);
 double compute_smoothing_az(t_data &data, const int n_radial,
 			    const int n_azimuthal);
-#endif // FORCE_H

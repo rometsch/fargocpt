@@ -1,5 +1,4 @@
-#ifndef LOGGING_H
-#define LOGGING_H
+#pragma once
 
 #include <stdarg.h>
 #include <chrono>
@@ -31,5 +30,3 @@ void print_runtime_final();
 void start_timer();
 
 } // namespace logging
-
-#endif // LOGGING_H

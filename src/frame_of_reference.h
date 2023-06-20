@@ -1,5 +1,4 @@
-#ifndef FRAME_OF_REFERENCE_H
-#define FRAME_OF_REFERENCE_H
+#pragma once
 
 #include "data.h"
 #include "types.h"
@@ -26,5 +25,3 @@ void init_corotation(t_data &data);
 void handle_corotation(t_data &data, const double dt);
 
 }
-
-#endif // FRAME_OF_REFERENCE_H

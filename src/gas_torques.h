@@ -1,5 +1,4 @@
-#ifndef GAS_TORQUES_H
-#define GAS_TORQUES_H
+#pragma once
 
 #include "data.h"
 
@@ -11,4 +10,3 @@ void calculate_viscous_torque(t_data &data, const double dt);
 void calculate_gravitational_torque(t_data &data, const double dt);
 
 } // namespace gas_torques
-#endif // GAS_TORQUES_H

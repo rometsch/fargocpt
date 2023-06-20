@@ -1,5 +1,4 @@
-#ifndef BOUNDARY_CONDITIONS_H
-#define BOUNDARY_CONDITIONS_H
+#pragma once
 
 #include "data.h"
 #include "types.h"
@@ -55,5 +54,3 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 				double dt);
 } // namespace boundary_conditions
-
-#endif // BOUNDARY_CONDITIONS_H

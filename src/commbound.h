@@ -1,5 +1,4 @@
-#ifndef COMMBOUND_H
-#define COMMBOUND_H
+#pragma once
 
 #include "types.h"
 #include "data.h"
@@ -11,5 +10,3 @@ void CommunicateBoundaries(t_polargrid *Density, t_polargrid *Vrad,
 
 void CommunicateBoundariesAll(t_data& data);
 void CommunicateBoundariesAllInitial(t_data& data);
-
-#endif // COMMBOUND_H

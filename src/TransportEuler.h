@@ -1,5 +1,4 @@
-#ifndef TRANSPORTEULER_H
-#define TRANSPORTEULER_H
+#pragma once
 
 #include "data.h"
 #include "types.h"
@@ -38,5 +37,3 @@ void VanLeerRadial(t_data &data, PolarGrid *VRadial, PolarGrid *Qbase,
 void VanLeerTheta(t_data &data, PolarGrid *VAzimuthal, PolarGrid *Qbase,
 		  double dt);
 void boundary_layer_mass_influx(PolarGrid *QStar, PolarGrid *VRadial);
-
-#endif // TRANSPORTEULER_H

@@ -1,5 +1,4 @@
-#ifndef RANDOM_H
-#define RANDOM_H
+#pragma once
 
 #include "jsf.hpp"
 #include "randutils.hpp"
@@ -15,5 +14,3 @@ double std_normal();
 double uniform();
 
 } // namespace fargo_random
-
-#endif // RANDOM_H

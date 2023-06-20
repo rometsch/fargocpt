@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 
 #include <algorithm>
 #include <fstream>
@@ -64,4 +63,3 @@ class Config
 extern Config cfg;
 
 }
-#endif // CONFIG_H

@@ -1,5 +1,4 @@
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#pragma once
 
 #include "data.h"
 #include "types.h"
@@ -62,5 +61,3 @@ std::int32_t get_latest_output_num(const std::string &snapshot_id);
 void CheckAngularMomentumConservation(t_data &data);
 
 } // namespace output
-
-#endif // OUTPUT_H

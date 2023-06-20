@@ -1,5 +1,4 @@
-#ifndef BACKTRACE_H
-#define BACKTRACE_H
+#pragma once
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -11,5 +10,3 @@
 #define BACKTRACE_MAXDEPTH 50
 
 void PrintTrace(bool = true);
-
-#endif // BACKTRACE_H

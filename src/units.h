@@ -1,5 +1,4 @@
-#ifndef UNITS_H
-#define UNITS_H
+#pragma once
 
 #include <string>
 #include <type_traits>
@@ -114,5 +113,3 @@ void print_code_units();
 void write_code_unit_file();
 
 } // namespace units
-
-#endif // UNITS_H

@@ -1,5 +1,4 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
 
 /// gravitational constant in code units
 // const double G = 1.0;
@@ -83,5 +82,3 @@ void calculate_constants_in_code_units();
 void print_constants();
 
 } // namespace constants
-
-#endif // CONSTANTS_H

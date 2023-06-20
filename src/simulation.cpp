@@ -540,6 +540,10 @@ void run(t_data &data) {
 			handle_outputs(data);
 			logging::print_runtime_info();
 		}
+
+		// if (N_hydro_iter >= 2) {
+		// 	break;
+		// }
     }
 
 

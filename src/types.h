@@ -1,5 +1,4 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 
 /**
 	\file types.h
@@ -75,5 +74,3 @@ class BoundaryFlow
 
 // TODO: This could be problematic on large NR
 #define MAX1D 16384
-
-#endif // TYPES_H

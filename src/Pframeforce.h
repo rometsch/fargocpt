@@ -1,5 +1,4 @@
-#ifndef PFRAMEFORCE_H
-#define PFRAMEFORCE_H
+#pragma once
 
 #include "data.h"
 
@@ -11,5 +10,3 @@ void CalculateNbodyPotential(t_data &data, const double current_time);
 void CalculateAccelOnGas(t_data &data, const double current_time);
 void UpdatePlanetVelocitiesWithDiskForce(t_data &data, const double dt);
 double ConstructSequence(double *u, double *v, int n);
-
-#endif // PFRAMEFORCE_H

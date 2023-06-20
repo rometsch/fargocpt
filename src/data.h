@@ -1,5 +1,4 @@
-#ifndef DATA_H
-#define DATA_H
+#pragma once
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -139,5 +138,3 @@ class t_data
 	t_massflow_tracker m_massflow_tracker;
 
 };
-
-#endif // DATA_H

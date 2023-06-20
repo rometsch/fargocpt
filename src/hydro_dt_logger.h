@@ -1,5 +1,5 @@
-#ifndef HYDRO_DT_LOGGER_H
-#define HYDRO_DT_LOGGER_H
+#pragma once
+
 #include <chrono>
 
 struct hydro_dt_logger_variables {
@@ -30,5 +30,3 @@ public:
 	void dump();
 	void read();
 };
-
-#endif // HYDRO_DT_LOGGER_H

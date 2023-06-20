@@ -1,5 +1,4 @@
-#ifndef QUANTITIES_H
-#define QUANTITIES_H
+#pragma once
 
 #include "data.h"
 
@@ -54,5 +53,3 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
 void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 				int nTimeStep, double dt);
 } // namespace quantities
-
-#endif // QUANTITIES_H

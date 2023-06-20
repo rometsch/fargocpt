@@ -1,5 +1,4 @@
-#ifndef PLANETARY_SYSTEM_H
-#define PLANETARY_SYSTEM_H
+#pragma once
 
 #include "planet.h"
 #include "config.h"
@@ -92,5 +91,3 @@ class t_planetary_system
     void init_roche_radii();
     void update_roche_radii();
 };
-
-#endif // PLANETARY_SYSTEM_H

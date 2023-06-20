@@ -1,5 +1,4 @@
-#ifndef INTERPRET_H
-#define INTERPRET_H
+#pragma once
 
 #include "data.h"
 
@@ -8,5 +7,3 @@ void PrintUsage(char *execname);
 double TellNbOrbits(double time);
 double TellNbOutputs(double time);
 void TellEverything();
-
-#endif // INTERPRET_H

@@ -1,5 +1,4 @@
-#ifndef SIMULATION_H
-#define SIMULATION_H
+#pragma once
 
 #include "data.h"
 #include "nbody/planet.h"
@@ -23,5 +22,3 @@ void handle_outputs(t_data &data);
 double CalculateTimeStep(t_data &data);
 
 }
-
-#endif // SIMULATION_H

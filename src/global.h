@@ -1,5 +1,4 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#pragma once
 
 #include "radialarray.h"
 #include "types.h"
@@ -123,5 +122,3 @@ extern std::vector<double> g_ypl;
 extern std::vector<double> g_mpl;
 extern std::vector<double> g_rpl;
 extern std::vector<double> g_l1pl;
-
-#endif // GLOBAL_H

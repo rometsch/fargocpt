@@ -1,5 +1,4 @@
-#ifndef PARTICLE_H
-#define PARTICLE_H
+#pragma once
 
 #include "../constants.h"
 #include "../util.h"
@@ -40,5 +39,3 @@ class t_particle
     double get_r_dot(void) const;
     double get_phi_dot(void) const;
 };
-
-#endif // PARTICLE_H

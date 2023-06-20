@@ -1,5 +1,4 @@
-#ifndef PVTE_LAW_H
-#define PVTE_LAW_H
+#pragma once
 
 #include <vector>
 
@@ -77,5 +76,3 @@ double get_mu(t_data &data, const int n_radial, const int n_azimuthal);
 
 double get_gamma1(t_data &data, const int n_radial, const int n_azimuthal);
 } // namespace pvte
-
-#endif // PVTE_LAW_H

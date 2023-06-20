@@ -1,5 +1,4 @@
-#ifndef PARTICLES_H
-#define PARTICLES_H
+#pragma once
 
 #include "../data.h"
 #include "particle.h"
@@ -55,5 +54,3 @@ void compute_rho(t_data &data, const double current_time);
 
 
 } // namespace particles
-
-#endif // PARTICLES_H

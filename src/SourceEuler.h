@@ -1,5 +1,4 @@
-#ifndef SOURCEEULER_H
-#define SOURCEEULER_H
+#pragma once
 
 #include "data.h"
 #include "nbody/planet.h"
@@ -35,5 +34,3 @@ void SetTemperatureFloorCeilValues(t_data &data, std::string filename,
 				   int line);
 
 void compute_heating_cooling_for_CFL(t_data &data, const double current_time);
-
-#endif // SOURCEEULER_H

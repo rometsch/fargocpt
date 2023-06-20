@@ -1,5 +1,4 @@
-#ifndef PARAMETERS_H
-#define PARAMETERS_H
+#pragma once
 
 #include "data.h"
 
@@ -393,5 +392,3 @@ void write_grid_data_to_file();
 void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 			     std::string instruction);
 } // namespace parameters
-
-#endif // PARAMETERS_H

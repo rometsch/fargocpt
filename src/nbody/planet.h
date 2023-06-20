@@ -1,5 +1,4 @@
-#ifndef PLANET_H
-#define PLANET_H
+#pragma once
 
 #include "types.h"
 #include <string>
@@ -202,5 +201,3 @@ class t_planet
     ~t_planet();
     t_planet();
 };
-
-#endif // PLANET_H

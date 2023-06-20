@@ -1,5 +1,4 @@
-#ifndef RADIALARRAY_H
-#define RADIALARRAY_H
+#pragma once
 
 #include <stddef.h>
 
@@ -29,5 +28,3 @@ class t_radialarray
     inline operator const double *() const { return array; }
     inline operator double *() { return array; }
 };
-
-#endif // RADIALARRAY_H

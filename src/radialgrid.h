@@ -1,5 +1,4 @@
-#ifndef RADIALGRID_H
-#define RADIALGRID_H
+#pragma once
 
 #include "units.h"
 #include <stddef.h>
@@ -100,5 +99,3 @@ class t_radialgrid
 		    t_polargrid& operator/=(double);
     */
 };
-
-#endif // RADIALGRID_H
