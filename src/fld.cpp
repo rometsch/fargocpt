@@ -309,7 +309,7 @@ static void calculate_ABCDE(t_data &data, const double dt
 
     const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
 	const unsigned int Nrad = Temperature.get_size_radial();
-    const unsigned int Naz = Temperature.get_size_radial();
+    const unsigned int Naz = Temperature.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
