@@ -66,8 +66,8 @@ double get_alpha(const int nr, const int naz, t_data &data)
 				const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 				const double d = std::sqrt(dist_2);
 
-				const double dist_start = 0.4; // 8.0au
-				const double dist_end   = 0.9; // 18.0au
+				const double dist_start = 0.35; // 7.0au
+				const double dist_end   = 0.55; // 11.0au
 				const double scale_unbound = (d - dist_start)/(dist_end - dist_start);
 				const double scale = std::max(0.0, std::min(scale_unbound, 1.0));
 				const double alpha_new = parameters::alphaCold + (parameters::alphaHot-parameters::alphaCold)*scale;
