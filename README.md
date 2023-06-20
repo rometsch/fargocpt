@@ -87,6 +87,15 @@ Compile time flags are set in `src/makefile.defs` and the environment is selecte
 
 To get more information about the build process, run `make -m`.
 
+Custom options can be passed to the build process by specifying the argument `CLI_OPTIONS` when invoking make.
+This adds the contents of this argument to the options passed to the compiler.
+In the codebase, this is used for automatic tests where the code needs to be recompiled.
+E.g., the 1D FLD test recompiles the code with
+```
+make -C ../../src CLI_OPTIONS="-DCONSTANT_FLD_FLUXLIMITER"
+```
+to enable the `CONSTANT_FLD_FLUXLIMTER`, an option that will never be used in production.
+
 ## Dependencies
 
 Building and running FargoCPT requires the following dependencies:
