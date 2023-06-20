@@ -34,13 +34,15 @@ double *RecvOuterBoundary;
 
 static inline double flux_limiter(const double R)
 {
+	#ifdef CONSTANT_FLD_FLUXLIMITER
 	return 1.0/3;
-    // flux limiter
-    // if (R <= 2) {
-	// return 2.0 / (3 + std::sqrt(9 + 10 * std::pow(R, 2)));
-    // } else {
-	// return 10.0 / (10 * R + 9 + std::sqrt(180 * R + 81));
-    // }
+	#else
+    if (R <= 2) {
+	return 2.0 / (3 + std::sqrt(9 + 10 * std::pow(R, 2)));
+    } else {
+	return 10.0 / (10 * R + 9 + std::sqrt(180 * R + 81));
+    }
+	#endif
 }
 
 void init(const unsigned int Nrad, const unsigned int Naz) { 
