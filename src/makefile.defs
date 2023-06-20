@@ -34,6 +34,11 @@ else
 	CFLAGS += $(OPTIMIZATION) -DNDEBUG
 endif
 
+# add options passed via the command line
+ifdef CLI_OPTIONS
+	OPTIONS += $(CLI_OPTIONS)
+endif
+
 CFLAGS += -std=c++17
 
 INCLUDE_MPI = -I$(MPI_PREFIX)/include
