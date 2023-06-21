@@ -171,9 +171,8 @@ static void radial_boundary_diffusion_coeff() {
     }
 }
 
-static inline double get_opacity(const double temperature, const double surface_density, const double scale_height) {
+static inline double get_opacity(const double temperature, const double density) {
 	// Convert to cgs units and call the opacity routine.
-	const double density = surface_density / (parameters::density_factor * scale_height);
 
 	const double temperatureCGS = temperature * units::temperature;
 	const double densityCGS = density * units::density;
@@ -207,11 +206,11 @@ static void calculate_diffusion_coeff_radial(t_data &data) {
 	    const double Sigma = 0.5 * (Surface_density(nr - 1, naz) + Surface_density(nr, naz));
 	    const double H = 0.5 * (Scale_height(nr - 1, naz) + Scale_height(nr, naz));
 
-		const double kappa = get_opacity(T, Sigma, H);
+		const double density = Sigma / (parameters::density_factor * H);
+		const double kappa = get_opacity(T, density);
 	    const double denom = 1.0 / (Sigma * kappa);
 
-	    // Levermore & Pomraning 1981
-	    // R = 4 |nabla T\/T * 1/(rho kappa)
+		// calculate temperature gradient length
 	    const double dT_dr = (Temp(nr, naz) - Temp(nr - 1, naz)) * InvDiffRmed[nr];
         const double Tnext = 0.5 * (Temp(nr - 1, naz_next) + Temp(nr, naz_next));
         const double Tlast = 0.5 * (Temp(nr - 1, naz_last) +	Temp(nr, naz_last));
@@ -219,13 +218,18 @@ static void calculate_diffusion_coeff_radial(t_data &data) {
 
 	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    const double R = 4.0 * nabla_T / T * denom * H * parameters::density_factor;
+		// Levermore & Pomraning 1981
+	    // R = 4 |nabla T\/T * lrad
+		// lrad = 1/(rho kappa), photon mean free path
+		const double lrad = 1  / (density * kappa);
+	    const double R = 4.0 * nabla_T / T * lrad;
 
 	    const double lambda = flux_limiter(R);
 
-        const double sig = constants::sigma.get_code_value();
+        const double sigRad = constants::sigma.get_code_value();
+		const double fsq = std::pow(parameters::density_factor,2);
 
-	    Ka(nr, naz) = 8.0 * 4.0	* sig * lambda * H * H * std::pow(T, 3) * denom;
+	    Ka(nr, naz) = lambda * fsq * 16 * sigRad * denom * H * std::pow(T, 3);
 	}
     }
 
@@ -256,11 +260,11 @@ static void calculate_diffusion_coeff_azimuthal(t_data &data) {
 		const double Sigma = 0.5 * (Surface_density(nr, naz_prev) + Surface_density(nr, naz));
 	    const double H = 0.5 * (Scale_height(nr, naz_prev) + Scale_height(nr, naz));
 
-		const double kappa = get_opacity(T, Sigma, H);
+		const double density = Sigma / (parameters::density_factor * H);
+		const double kappa = get_opacity(T, density);
 	    const double denom = 1.0 / (Sigma * kappa);
 
-	    // Levermore & Pomraning 1981
-	    // R = 4 |nabla T\/T * 1/(rho kappa)
+		// calculate temperature gradient length
 		// values are located on the azimuthal interface
 		const double Router = Ra[nr + 1];
 		const double Rinner = Ra[nr - 1];
@@ -271,14 +275,18 @@ static void calculate_diffusion_coeff_azimuthal(t_data &data) {
 
 	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    const double R = 4.0 * nabla_T / T * denom * H * parameters::density_factor;
+	    // Levermore & Pomraning 1981
+	    // R = 4 |nabla T\/T * lrad
+		// lrad = 1/(rho kappa), photon mean free path
+		const double lrad = 1  / (density * kappa);
+	    const double R = 4.0 * nabla_T / T * lrad;
 
 	    const double lambda = flux_limiter(R);
 
-	    Kb(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
-			  lambda * H * H * std::pow(T, 3) * denom;
-	    // Kb(n_radial, n_azimuthal)
-	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
+        const double sigRad = constants::sigma.get_code_value();
+		const double fsq = std::pow(parameters::density_factor,2);
+
+	    Kb(nr, naz) = lambda * fsq * 16 * sigRad * denom * H * std::pow(T, 3);
 	}
     }
 }
@@ -287,8 +295,10 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 	// calculate the matrix elements of the linear equation 
 
     auto &Temperature = data[t_data::TEMPERATURE];
-    auto &Sigma = data[t_data::SIGMA];
+    auto &Surface_density = data[t_data::SIGMA];
+	auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
+	// TODO: check whether we need gamma_eff here
     const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
 	const unsigned int Nrad = Temperature.get_size_radial();
     const unsigned int Naz = Temperature.get_size_azimuthal();
@@ -296,8 +306,10 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
-		const double Sig = Sigma(nr, naz);
-	    const double common_factor = -dt * parameters::density_factor / (Sig * c_v);
+		const double Sigma = Surface_density(nr, naz);
+		const double H = Scale_height(nr, naz);
+		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10)
+	    const double common_factor = -dt * H / (Sigma * c_v);
 
 	    // 2/(dR^2)
 	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
@@ -305,9 +317,10 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 	    C(nr, naz) = common_AC * Ka(nr + 1, naz) * Ra[nr + 1] * InvDiffRmed[nr + 1];
 
 	    // 1/(r^2 dphi^2)
+		const unsigned int naz_next = naz == Kb.get_max_azimuthal() ? 0 : naz + 1;
 	    const double common_DE = common_factor / (std::pow(Rb[nr], 2) * std::pow(dphi, 2));
 	    D(nr, naz) = common_DE * Kb(nr, naz);
-	    E(nr, naz) = common_DE * Kb(nr, naz == Kb.get_max_azimuthal() ? 0 : naz + 1);
+	    E(nr, naz) = common_DE * Kb(nr, naz_next);
 
 	    B(nr, naz) = -A(nr, naz) - C(nr, naz) - D(nr, naz) - E(nr, naz) + 1.0;
 
