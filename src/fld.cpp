@@ -17,15 +17,14 @@
 
 namespace fld {
 
+// Radiative transport using Flux-Limited-Diffusion
+// See Ph.D. thesis of Tobias W.A. Müller 2013, Appendix A for the equations.
+// The document can be found at http://nbn-resolving.de/urn:nbn:de:bsz:21-opus-72189
 
-t_polargrid Ka;
-t_polargrid Kb;
-t_polargrid A;
-t_polargrid B;
-t_polargrid C;
-t_polargrid D;
-t_polargrid E;
-t_polargrid Told;
+t_polargrid Ka; // diffusion coefficient on radial boundaries
+t_polargrid Kb; // diffusion coefficient on azimuthal boundaries
+t_polargrid A, B, C, D, E; // Matrix elements of linear equation
+t_polargrid Told; // Intermediate store for old values.
 
 double *SendInnerBoundary;
 double *SendOuterBoundary;
@@ -81,11 +80,10 @@ void finalize() {
 
 static void set_minimum_energy(t_data &data) {
     
-    auto &Temperature = data[t_data::TEMPERATURE];
     auto &Sigma = data[t_data::SIGMA];
     auto &Energy = data[t_data::ENERGY];
 
-    const unsigned int Nphi = Temperature.get_size_azimuthal();
+    const unsigned int Nphi = Sigma.get_size_azimuthal();
 
 	// We set minimum Temperature here such that H (thru Cs) is also computed with the minimum Temperature
 	#pragma omp parallel for
@@ -122,7 +120,8 @@ static void set_minimum_energy(t_data &data) {
     }
 }
 
-static void boundary_Ka() {
+static void radial_boundary_diffusion_coeff() {
+
     const unsigned int Naz = Ka.get_size_azimuthal();
     #pragma omp parallel for
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
@@ -172,10 +171,24 @@ static void boundary_Ka() {
     }
 }
 
-static void calculate_Ka(t_data &data) {
+static inline double get_opacity(const double temperature, const double surface_density, const double scale_height) {
+	// Convert to cgs units and call the opacity routine.
+	const double density = surface_density / (parameters::density_factor * scale_height);
+
+	const double temperatureCGS = temperature * units::temperature;
+	const double densityCGS = density * units::density;
+
+	const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
+	const double kappa = parameters::kappa_factor * kappaCGS * units::opacity.get_inverse_cgs_factor();
+
+	return kappa;
+}
+
+static void calculate_diffusion_coeff_radial(t_data &data) {
+	// Calculate the diffusion coefficient on at the radial interface locations.
 
     auto &Temp = data[t_data::TEMPERATURE];
-    auto &Sigma = data[t_data::SIGMA];
+    auto &Surface_density = data[t_data::SIGMA];
     auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
     const unsigned int Nrad = Ka.get_size_radial();
@@ -190,17 +203,12 @@ static void calculate_Ka(t_data &data) {
 	    const unsigned int naz_last = (naz == 0 ? Naz_last : naz - 1);
 
 	    // average temperature radially
-	    const double temp = 0.5 * (Temp(nr - 1, naz) + Temp(nr, naz));
-	    const double surface_density = 0.5 * (Sigma(nr - 1, naz) + Sigma(nr, naz));
+	    const double T = 0.5 * (Temp(nr - 1, naz) + Temp(nr, naz));
+	    const double Sigma = 0.5 * (Surface_density(nr - 1, naz) + Surface_density(nr, naz));
 	    const double H = 0.5 * (Scale_height(nr - 1, naz) + Scale_height(nr, naz));
 
-	    const double temperatureCGS = temp * units::temperature;
-	    const double densityCGS = surface_density / (parameters::density_factor * H) * units::density;
-
-	    const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
-	    const double kappa = parameters::kappa_factor * kappaCGS * units::opacity.get_inverse_cgs_factor();
-
-	    const double denom = 1.0 / (surface_density * kappa);
+		const double kappa = get_opacity(T, Sigma, H);
+	    const double denom = 1.0 / (Sigma * kappa);
 
 	    // Levermore & Pomraning 1981
 	    // R = 4 |nabla T\/T * 1/(rho kappa)
@@ -211,13 +219,13 @@ static void calculate_Ka(t_data &data) {
 
 	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    const double R = 4.0 * nabla_T / temp * denom * H * parameters::density_factor;
+	    const double R = 4.0 * nabla_T / T * denom * H * parameters::density_factor;
 
 	    const double lambda = flux_limiter(R);
 
         const double sig = constants::sigma.get_code_value();
 
-	    Ka(nr, naz) = 8.0 * 4.0	* sig * lambda * H * H * std::pow(temp, 3) * denom;
+	    Ka(nr, naz) = 8.0 * 4.0	* sig * lambda * H * H * std::pow(T, 3) * denom;
 	}
     }
 
@@ -225,11 +233,12 @@ static void calculate_Ka(t_data &data) {
 }
 
 
-static void calculate_Kb(t_data &data) {
-    // calcuate Kb for K(i,j/2)
+static void calculate_diffusion_coeff_azimuthal(t_data &data) {
+	// Calculate the diffusion coefficient on at the azimuthal interface locations.
 
-    auto &Temperature = data[t_data::TEMPERATURE];
-    auto &Sigma = data[t_data::SIGMA];
+    // calcuate Kb for K(i,j/2)
+    auto &Temp = data[t_data::TEMPERATURE];
+    auto &Surface_density = data[t_data::SIGMA];
     auto &Scale_height = data[t_data::SCALE_HEIGHT];
 
 	const unsigned int Nrad = Kb.get_size_radial();
@@ -242,54 +251,40 @@ static void calculate_Kb(t_data &data) {
 	    // Kb.get_max_azimuthal() ? 0 : n_azimuthal + 1);
 		const unsigned int naz_prev = (naz == 0 ? Naz-1 : naz - 1);
 
-	    // average temperature azimuthally
-	    const double temperature =
-		0.5 * (Temperature(nr, naz_prev) + Temperature(nr, naz));
-		const double density = 0.5 * (Sigma(nr, naz_prev) + Sigma(nr, naz));
-	    const double scale_height =
-		0.5 * (Scale_height(nr, naz_prev) + Scale_height(nr, naz));
+	    // average azimuthally
+	    const double T = 0.5 * (Temp(nr, naz_prev) + Temp(nr, naz));
+		const double Sigma = 0.5 * (Surface_density(nr, naz_prev) + Surface_density(nr, naz));
+	    const double H = 0.5 * (Scale_height(nr, naz_prev) + Scale_height(nr, naz));
 
-	    const double temperatureCGS = temperature * units::temperature;
-	    const double H = scale_height;
-	    const double densityCGS =
-		density / (parameters::density_factor * H) * units::density;
-
-	    const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
-	    const double kappa = parameters::kappa_factor * kappaCGS * units::opacity.get_inverse_cgs_factor();
-
-	    const double denom = 1.0 / (density * kappa);
+		const double kappa = get_opacity(T, Sigma, H);
+	    const double denom = 1.0 / (Sigma * kappa);
 
 	    // Levermore & Pomraning 1981
 	    // R = 4 |nabla T\/T * 1/(rho kappa)
-	    const double dT_dr =
-            (0.5 * (Temperature(nr - 1, naz_prev) + Temperature(nr - 1, naz)) -
-            0.5 * (Temperature(nr + 1, naz_prev) + Temperature(nr + 1, naz))) /
-            (Ra[nr - 1] - Ra[nr + 1]);
-            const double dT_dphi =
-            InvRmed[nr] * (Temperature(nr, naz) - Temperature(nr, naz_prev)) /
-            dphi;
+		// values are located on the azimuthal interface
+		const double Router = Ra[nr + 1];
+		const double Rinner = Ra[nr - 1];
+		const double Touter = 0.5 * (Temp(nr + 1, naz_prev) + Temp(nr + 1, naz));
+		const double Tinner = 0.5 * (Temp(nr - 1, naz_prev) + Temp(nr - 1, naz));
+	    const double dT_dr = (Touter - Tinner) / (Router - Rinner);
+        const double dT_dphi = InvRmed[nr] * (Temp(nr, naz) - Temp(nr, naz_prev)) / dphi;
 
-	    const double nabla_T =
-		std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
+	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    const double R = 4.0 * nabla_T / temperature * denom * H * parameters::density_factor;
+	    const double R = 4.0 * nabla_T / T * denom * H * parameters::density_factor;
 
 	    const double lambda = flux_limiter(R);
-	    /*if (n_radial == 4) {
-		    printf("kb:
-	    phi=%lg\tR=%lg\tlambda=%lg\tdphi=%lg\tdr=%lg\tnabla=%lg\tT=%lg\tH=%lg\n",
-	    dphi*n_azimuthal, R, lambda,dT_dphi,dT_dr,nabla_T,temperature,H);
-	    }*/
 
 	    Kb(nr, naz) = 8.0 * 4.0 * constants::sigma.get_code_value() *
-			  lambda * H * H * std::pow(temperature, 3) * denom;
+			  lambda * H * H * std::pow(T, 3) * denom;
 	    // Kb(n_radial, n_azimuthal)
 	    // = 16.0*parameters::density_factor*constants::sigma.get_code_value()*lambda*H*pow3(temperature)*denom;
 	}
     }
 }
 
-static void calculate_ABCDE(t_data &data, const double dt) {
+static void calculate_matrix_elements(t_data &data, const double dt) {
+	// calculate the matrix elements of the linear equation 
 
     auto &Temperature = data[t_data::TEMPERATURE];
     auto &Sigma = data[t_data::SIGMA];
@@ -418,7 +413,9 @@ static void boundary_T_SOR(t_polargrid &Temperature) {
 	// boundary_conditions::apply_boundary_condition(data, current_time, 0.0, false);
 }
 
-static bool is_not_ghost(const unsigned int nr) {
+static bool is_active(const unsigned int nr) {
+	// Check whether a radial cell index belongs to an active cell.
+	// An active cell is neither a ghost cell nor an overlap cell.
     const unsigned int nrad_last = NRadial - 1;
     const unsigned int nghost_right = (CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP;
     const unsigned int nghost_left = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
@@ -481,7 +478,7 @@ static void SOR(t_data &data) {
 
 		// only non ghostcells to norm and don't count overlap cell's
 		// twice
-        if (is_not_ghost(nr)) {
+        if (is_active(nr)) {
 		    absolute_norm += std::pow(old_value - Temperature(nr, naz), 2);
 		}
 	    }
@@ -559,10 +556,13 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	compute_sound_speed(data, current_time);
 	compute_scale_height(data, current_time);
 
-	calculate_Ka(data);
-    boundary_Ka();
-    calculate_Kb(data);
-    calculate_ABCDE(data, dt);
+	// calculate diffusion coefficient
+	calculate_diffusion_coeff_radial(data);
+    radial_boundary_diffusion_coeff();
+    calculate_diffusion_coeff_azimuthal(data);
+
+	// setup linear equation and solve the diffusion equation
+    calculate_matrix_elements(data, dt);
     SOR(data);
 
     update_energy(data);
