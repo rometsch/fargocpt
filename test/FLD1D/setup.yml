@@ -1,13 +1,14 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
-DT: 0.314159265359 # 10th of an orbit
-Ninterm: 200 # snapshot every 10 orbits
-Ntot : 100 # do 10 snapshots for a total of 100 orbits
+DT: 3.14159265359 # half of an orbit
+Ninterm: 40 # snapshot every 200 orbits
+Ntot : 100 # do 10 snapshots for a total of 1000 orbits
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 CFLmaxVar: 1.1
 
 
 # Disk parameters
 
+Disk: no # this turns of hydro evolution when set to no
 Sigma0: 7.570776897752835e-05   # surface density at r=1 in g/cm^2
 SigmaSlope: 0.5   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-9]
