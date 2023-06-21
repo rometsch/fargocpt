@@ -11,4 +11,5 @@ void parse(int argc, char **argv);
 extern bool memory_usage;
 extern std::string parameter_file;
 extern bool disable;
+extern int max_iteration_number;
 } // namespace options

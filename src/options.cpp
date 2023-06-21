@@ -36,8 +36,9 @@ namespace options
 std::string parameter_file = "";
 bool memory_usage = false;
 bool disable = false;
+int max_iteration_number = -1;
 
-static const char short_options[] = "-dvqbcnmht";
+static const char short_options[] = "-dvqbcnmhtN:";
 
 static const struct option long_options[] = {
     {"help", no_argument, NULL, 'h'},
@@ -58,13 +59,14 @@ void usage(int argc, char **argv)
 	"start                  Start a new simulation from scratch\n"
 	"restart <N>            Restart from an old simulation output, latest if no N specified\n"
 	"auto                   Same as restart if output files are present, otherwise same as start\n"
-	"-d | --debug           Print some debugging information on 'stdout' at each timestep\n"
-	"-v | --verbose         Verbose mode. Tells everything about parameters file\n"
-	"-q | --quiet           Only print errors and warnings\n"
-	"-b |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
-	"-c |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
-	"-n |                   Disable simulation. The program just reads parameters file\n"
-	"-m |                   estimate memory usage and print out\n"
+	"-d     | --debug           Print some debugging information on 'stdout' at each timestep\n"
+	"-v     | --verbose         Verbose mode. Tells everything about parameters file\n"
+	"-q     | --quiet           Only print errors and warnings\n"
+	"-b     |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
+	"-c     |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
+	"-n     |                   Disable simulation. The program just reads parameters file\n"
+	"-m     |                   estimate memory usage and print out\n"
+	"-N <N> |                   Perform N hydro steps.\n"
 	"",
 	argv[0]);
 }
@@ -144,6 +146,16 @@ void parse(int argc, char **argv)
 	case 'm':
 	    memory_usage = true;
 	    break;
+
+	case 'N':
+	    if (is_number(optarg)) {
+			max_iteration_number = std::atoi(optarg);
+		}
+		if (max_iteration_number < 0) {
+			die("Input Error: Max number of iterations can not be negative.\n");
+		}
+	    break;
+	
 	case 'h':
 	    usage(argc, argv);
 	    PersonalExit(EXIT_SUCCESS);

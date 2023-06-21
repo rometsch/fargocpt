@@ -18,6 +18,7 @@
 #include "quantities.h"
 #include "pvte_law.h"
 #include "fld.h"
+#include "options.h"
 
 namespace sim {
 
@@ -37,7 +38,7 @@ static void write_snapshot(t_data &data) {
 	output::write_full_output(data, std::to_string(N_snapshot));
 	output::cleanup_autosave();
 
-	if (N_snapshot == 0 && parameters::damping) {
+	if (N_snapshot == 0 && boundary_conditions::initial_values_needed()) {
 	// Write damping data as a reference.
 	const std::string snapshot_dir_old = output::snapshot_dir;
 	output::write_full_output(data, "damping", false);
@@ -195,18 +196,23 @@ static void step_Euler(t_data &data, const double dt) {
 
 
 	    if (parameters::Adiabatic) {
-		SubStep3(data, time, dt);
-		if (parameters::radiative_diffusion_enabled) {
-		    fld::radiative_diffusion(data, time, dt);
+			SubStep3(data, time, dt);
 		}
-	    }
+	}
 
-	    /// TODO moved apply boundaries here
+	/* Do radiative transport. This can be done independent of the hydro simulation. */
+	if (parameters::Adiabatic && parameters::radiative_diffusion_enabled) {
+		    fld::radiative_diffusion(data, time, dt);
+	}
+	    
+	/* Continue with hydro simulation */
+	if (parameters::calculate_disk) {
+		/// TODO moved apply boundaries here
 		boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  dt);
+				&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
+				dt);
 	}
 
 	/** Planets' positions and velocities are updated from gravitational
@@ -510,9 +516,14 @@ void run(t_data &data) {
 	init(data);
 
 	const double t_final = parameters::NTOT * parameters::NINTERM * parameters::DT;
+	const bool iteration_restriction = options::max_iteration_number >= 0;
 
     for (; PhysicalTime < t_final;) {
-		
+
+		if (iteration_restriction &&  N_hydro_iter >= (long unsigned int) options::max_iteration_number) {
+			break;
+		}
+
 		handle_signals(data);
 
 		cfl_dt = CalculateTimeStep(data);
@@ -541,9 +552,7 @@ void run(t_data &data) {
 			logging::print_runtime_info();
 		}
 
-		// if (N_hydro_iter >= 2) {
-		// 	break;
-		// }
+
     }
 
 
