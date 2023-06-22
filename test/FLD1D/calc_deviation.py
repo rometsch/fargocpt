@@ -16,6 +16,8 @@ def main():
         print(f"FAIL: {test_name} at {os.getcwd()}")
 
 
+
+
 def calc_deviation(outdir):
 
     data = load_data(outdir)
@@ -23,8 +25,13 @@ def calc_deviation(outdir):
     Nfirst = data.Ns[0]
     Nlast = data.Ns[-1]
 
-    deltaT = data.Tprofiles[Nlast] / data.Tprofiles[Nfirst] - 1
-    dev = np.max(np.abs(deltaT))
+
+    Rmin, Rmax = 0.2, 10
+    R = np.geomspace(Rmin, Rmax, 1000)
+    theo = theoretical_results(data.rc)
+
+    deltaT = data.Tprofiles[Nlast] / theo.T - 1
+    dev = np.max(np.abs(deltaT[data.rc < 6]))
 
     success = dev < 0.1
 
@@ -35,6 +42,47 @@ def calc_deviation(outdir):
     return success
 
 
+def theoretical_results(R):
+    """Calculate the theoretical equilibrium temperature profile.
+
+    Credit: Alex Ziampras
+
+    Args:
+        R: Radius array in units of au.
+
+    Returns:
+        Namespace with results
+    """
+    mu = 2.353
+    K = 106701.29 # code unit for temperature
+    T0 = mu * 0.05**2 * K
+
+    Rmin = R[0]
+    Rmax = R[-1]
+    
+    f1, f2 = -3.5, 5 # old module
+    f1, f2 = -2, 9/2 # new module
+
+    R1 = Rmin ** f1
+    R2 = Rmax ** f1
+    T1 = (T0 / Rmin)**f2
+    T2 = (T0 / Rmax)**f2
+    c1 = (T2-T1) / (R2-R1)
+    c2 = (R2*T1 - R1*T2) / (R2-R1)
+    T = (c1 * R ** f1 + c2) ** (1/f2)
+
+    from types import SimpleNamespace
+
+    theo = SimpleNamespace()
+    theo.R = R
+    theo.T = T
+    theo.T0 = T0
+    theo.T0p = T0/R
+    theo.Sigma = R**-0.5
+    theo.H = T**0.5*R**1.5
+    return theo
+
+
 def load_data(outdir):
 
     data = SimpleNamespace()
@@ -43,6 +91,7 @@ def load_data(outdir):
         f"{outdir}/dimensions.dat", usecols=(4, 5), unpack=True, dtype=int)
     data.ri = np.genfromtxt(f"{outdir}/used_rad.dat")  # [1:-1]
     data.phii = np.linspace(0, 2*np.pi, data.Naz+1)
+    data.rc = 0.5*(data.ri[1:] + data.ri[:-1])
 
     data.Ns = np.genfromtxt(f"{outdir}/snapshots/list.txt", dtype=int)
 
