@@ -50,7 +50,6 @@ void integrate_exponential_midpoint(t_data &data, const double dt);
 void write();
 void move(void);
 void rotate(const double angle);
-void compute_rho(t_data &data, const double current_time);
 
 
 } // namespace particles
