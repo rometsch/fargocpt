@@ -152,6 +152,8 @@ extern double radiative_diffusion_omega;
 extern bool radiative_diffusion_omega_auto_enabled;
 /// maximum iterations in SOR in radiative diffusion
 extern unsigned int radiative_diffusion_max_iterations;
+/// tolerance for the radiative diffusion
+extern double radiative_diffusion_tolerance;
 
 // initialisation
 enum t_initialize_condition {

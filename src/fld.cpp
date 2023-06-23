@@ -455,8 +455,7 @@ static void SOR(t_data &data) {
 	double norm_change = std::numeric_limits<double>::max();
 
     // do SOR
-    while ((norm_change > 1e-12) &&
-	   (parameters::radiative_diffusion_max_iterations > iterations)) {
+	const double tolerance = parameters::radiative_diffusion_tolerance;
 
     boundary_T_SOR(Temperature);
 
