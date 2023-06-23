@@ -1404,35 +1404,30 @@ void compute_pressure(t_data &data)
 */
 void compute_temperature(t_data &data)
 {
+	auto &T = data[t_data::TEMPERATURE];
+	auto &Sig = data[t_data::SIGMA];
+	auto &E = data[t_data::ENERGY];
+	auto P = data[t_data::PRESSURE];
 
-	const unsigned int Nr = data[t_data::TEMPERATURE].get_size_radial();
-	const unsigned int Nphi = data[t_data::TEMPERATURE].get_size_azimuthal();
+	const unsigned int Nr = T.get_size_radial();
+	const unsigned int Nphi = T.get_size_azimuthal();
+
+	const double Rgas = constants::R;
+	const double polyconst = parameters::POLYTROPIC_CONSTANT;
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
-		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    if (parameters::Adiabatic) {
-		const double mu = pvte::get_mu(data, nr, naz);
-		const double gamma_eff =
-			pvte::get_gamma_eff(data, nr, naz);
-
-		data[t_data::TEMPERATURE](nr, naz) =
-		    mu / constants::R * (gamma_eff - 1.0) *
-			data[t_data::ENERGY](nr, naz) /
-			data[t_data::SIGMA](nr, naz);
+			const double mu = pvte::get_mu(data, nr, naz);
+			const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
+			T(nr, naz) = mu / Rgas * (gamma_eff - 1.0) * E(nr, naz) / Sig(nr, naz);
 	    } else if (parameters::Polytropic) {
-		const double mu = pvte::get_mu(data, nr, naz);
-		const double gamma_eff =
-			pvte::get_gamma_eff(data, nr, naz);
-		data[t_data::TEMPERATURE](nr, naz) =
-		    mu / constants::R * parameters::POLYTROPIC_CONSTANT *
-			std::pow(data[t_data::SIGMA](nr, naz),
-			     gamma_eff - 1.0);
+			const double mu = pvte::get_mu(data, nr, naz);
+			const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
+			T(nr, naz) = mu / Rgas * polyconst * std::pow(Sig(nr, naz),gamma_eff - 1.0);
 	    } else { // Isothermal
-		data[t_data::TEMPERATURE](nr, naz) =
-		    parameters::MU / constants::R *
-			data[t_data::PRESSURE](nr, naz) /
-			data[t_data::SIGMA](nr, naz);
+			T(nr, naz) = parameters::MU / Rgas * P(nr, naz) / Sig(nr, naz);
 	    }
 	}
     }
