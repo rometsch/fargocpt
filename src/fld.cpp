@@ -13,13 +13,20 @@
 #include "SourceEuler.h"
 #include "boundary_conditions.h"
 #include "logging.h"
+#include "compute.h"
 
 
 namespace fld {
 
 // Radiative transport using Flux-Limited-Diffusion
-// See Ph.D. thesis of Tobias W.A. Müller 2013, Appendix A for the equations.
+// This was first implemented by Tobias Müller according to his Ph.D. thesis 2013. 
+// See Appendix A therein for the equations of discretization.
 // The document can be found at http://nbn-resolving.de/urn:nbn:de:bsz:21-opus-72189
+// In this implementation we changed the formulation back to FLD in 3 dimensions
+// but with the radiation transport restricted to the midplane.
+// Instead of using the surface density and the scale height at various locations,
+// we compute the midplane density once and then use the precomputed values.
+// This makes the implementation much cleaner.
 
 t_polargrid Ka; // diffusion coefficient on radial boundaries
 t_polargrid Kb; // diffusion coefficient on azimuthal boundaries
@@ -98,8 +105,7 @@ static void set_minimum_energy(t_data &data) {
 	    const double gamma_eff = pvte::get_gamma_eff(data, 1, naz);
 	    Sigma(0, naz) = Sigma(1, naz);
 
-	    const double minimum_energy =
-		Tmin * Sigma(1, naz) / mu * constants::R / (gamma_eff - 1.0);
+	    const double minimum_energy = Tmin * Sigma(1, naz) / mu * constants::R / (gamma_eff - 1.0);
 
 	    Energy(0, naz) = minimum_energy;
 	}
@@ -112,8 +118,7 @@ static void set_minimum_energy(t_data &data) {
 	    const double gamma_eff = pvte::get_gamma_eff(data, nr_max - 1, naz);
 	    Sigma(nr_max, naz) = Sigma(nr_max - 1, naz);
 
-	    const double minimum_energy = Tmin * Sigma(nr_max - 1, naz) / mu *
-					  constants::R / (gamma_eff - 1.0);
+	    const double minimum_energy = Tmin * Sigma(nr_max - 1, naz) / mu * constants::R / (gamma_eff - 1.0);
 
 	    Energy(nr_max, naz) = minimum_energy;
 	}
@@ -183,12 +188,30 @@ static inline double get_opacity(const double temperature, const double density)
 	return kappa;
 }
 
-static void calculate_diffusion_coeff_radial(t_data &data) {
+static inline double diffusion_coeff(const double rho, const double T, const double nabla_T) {
+	// FLD diffusion coefficient
+
+	const double kappa = get_opacity(T, rho);
+
+	// Levermore & Pomraning 1981
+	// R = 4 |nabla T\/T * lrad
+	// lrad = 1/(rho kappa), photon mean free path
+	const double lrad = 1  / (rho * kappa);
+	const double R = 4.0 * nabla_T / T * lrad;
+
+	const double lambda = flux_limiter(R);
+
+	const double sigRad = constants::sigma.get_code_value();
+	const double K = lambda * 16 * sigRad / (rho * kappa) * std::pow(T, 3);
+
+	return K;
+}
+
+static void compute_diffusion_coeff_radial(t_data &data) {
 	// Calculate the diffusion coefficient on at the radial interface locations.
 
     auto &Temp = data[t_data::TEMPERATURE];
-    auto &Surface_density = data[t_data::SIGMA];
-    auto &Scale_height = data[t_data::SCALE_HEIGHT];
+    auto &Density = data[t_data::RHO];
 
     const unsigned int Nrad = Ka.get_size_radial();
     const unsigned int Naz = Ka.get_size_azimuthal();
@@ -203,33 +226,17 @@ static void calculate_diffusion_coeff_radial(t_data &data) {
 
 	    // average temperature radially
 	    const double T = 0.5 * (Temp(nr - 1, naz) + Temp(nr, naz));
-	    const double Sigma = 0.5 * (Surface_density(nr - 1, naz) + Surface_density(nr, naz));
-	    const double H = 0.5 * (Scale_height(nr - 1, naz) + Scale_height(nr, naz));
-
-		const double density = Sigma / (parameters::density_factor * H);
-		const double kappa = get_opacity(T, density);
-	    const double denom = 1.0 / (Sigma * kappa);
+	    const double rho = 0.5 * (Density(nr - 1, naz) + Density(nr, naz));
 
 		// calculate temperature gradient length
 	    const double dT_dr = (Temp(nr, naz) - Temp(nr - 1, naz)) * InvDiffRmed[nr];
         const double Tnext = 0.5 * (Temp(nr - 1, naz_next) + Temp(nr, naz_next));
-        const double Tlast = 0.5 * (Temp(nr - 1, naz_last) +	Temp(nr, naz_last));
+        const double Tlast = 0.5 * (Temp(nr - 1, naz_last) + Temp(nr, naz_last));
 	    const double dT_dphi = InvRinf[nr] * (Tnext-Tlast) / (2.0 * dphi);
 
 	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-		// Levermore & Pomraning 1981
-	    // R = 4 |nabla T\/T * lrad
-		// lrad = 1/(rho kappa), photon mean free path
-		const double lrad = 1  / (density * kappa);
-	    const double R = 4.0 * nabla_T / T * lrad;
-
-	    const double lambda = flux_limiter(R);
-
-        const double sigRad = constants::sigma.get_code_value();
-		const double fsq = std::pow(parameters::density_factor,2);
-
-	    Ka(nr, naz) = lambda * fsq * 16 * sigRad * denom * H * std::pow(T, 3);
+	    Ka(nr, naz) = diffusion_coeff(rho, T, nabla_T);
 	}
     }
 
@@ -237,13 +244,12 @@ static void calculate_diffusion_coeff_radial(t_data &data) {
 }
 
 
-static void calculate_diffusion_coeff_azimuthal(t_data &data) {
+static void compute_diffusion_coeff_azimuthal(t_data &data) {
 	// Calculate the diffusion coefficient on at the azimuthal interface locations.
 
     // calcuate Kb for K(i,j/2)
     auto &Temp = data[t_data::TEMPERATURE];
-    auto &Surface_density = data[t_data::SIGMA];
-    auto &Scale_height = data[t_data::SCALE_HEIGHT];
+    auto &Density = data[t_data::RHO];
 
 	const unsigned int Nrad = Kb.get_size_radial();
     const unsigned int Naz = Kb.get_size_azimuthal();
@@ -257,12 +263,7 @@ static void calculate_diffusion_coeff_azimuthal(t_data &data) {
 
 	    // average azimuthally
 	    const double T = 0.5 * (Temp(nr, naz_prev) + Temp(nr, naz));
-		const double Sigma = 0.5 * (Surface_density(nr, naz_prev) + Surface_density(nr, naz));
-	    const double H = 0.5 * (Scale_height(nr, naz_prev) + Scale_height(nr, naz));
-
-		const double density = Sigma / (parameters::density_factor * H);
-		const double kappa = get_opacity(T, density);
-	    const double denom = 1.0 / (Sigma * kappa);
+		const double rho = 0.5 * (Density(nr, naz_prev) + Density(nr, naz));
 
 		// calculate temperature gradient length
 		// values are located on the azimuthal interface
@@ -275,18 +276,7 @@ static void calculate_diffusion_coeff_azimuthal(t_data &data) {
 
 	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    // Levermore & Pomraning 1981
-	    // R = 4 |nabla T\/T * lrad
-		// lrad = 1/(rho kappa), photon mean free path
-		const double lrad = 1  / (density * kappa);
-	    const double R = 4.0 * nabla_T / T * lrad;
-
-	    const double lambda = flux_limiter(R);
-
-        const double sigRad = constants::sigma.get_code_value();
-		const double fsq = std::pow(parameters::density_factor,2);
-
-	    Kb(nr, naz) = lambda * fsq * 16 * sigRad * denom * H * std::pow(T, 3);
+	    Kb(nr, naz) = diffusion_coeff(rho, T, nabla_T);
 	}
     }
 }
@@ -295,21 +285,21 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 	// calculate the matrix elements of the linear equation 
 
     auto &Temperature = data[t_data::TEMPERATURE];
-    auto &Surface_density = data[t_data::SIGMA];
-	auto &Scale_height = data[t_data::SCALE_HEIGHT];
+	auto &Density = data[t_data::RHO];
 
 	// TODO: check whether we need gamma_eff here
     const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
+	// printf("c_v = %e\n", c_v);
 	const unsigned int Nrad = Temperature.get_size_radial();
     const unsigned int Naz = Temperature.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
-		const double Sigma = Surface_density(nr, naz);
-		const double H = Scale_height(nr, naz);
-		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10)
-	    const double common_factor = -dt * H / (Sigma * c_v);
+
+		const double rho = Density(nr, naz);
+		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10) adjusted for 3D FLD in midplane
+	    const double common_factor = -dt / (rho * c_v);
 
 	    // 2/(dR^2)
 	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
@@ -456,6 +446,9 @@ static void SOR(t_data &data) {
 
     // do SOR
 	const double tolerance = parameters::radiative_diffusion_tolerance;
+	const unsigned int maxiter = parameters::radiative_diffusion_max_iterations;
+
+    while ((norm_change > tolerance) && (maxiter > iterations)) {
 
     boundary_T_SOR(Temperature);
 
@@ -501,6 +494,7 @@ static void SOR(t_data &data) {
 	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
 
 	norm_change = fabs(absolute_norm - norm_change);
+	// printf("iter %u, norm_change = %e\n", iterations, norm_change);
 	iterations++;
 
     communicate_parallelization_boundaries(Temperature);
@@ -542,19 +536,19 @@ static void SOR(t_data &data) {
 
 static void update_energy(t_data &data) {
 
-    auto &Temperature = data[t_data::TEMPERATURE];
+    auto &Temp = data[t_data::TEMPERATURE];
     auto &Sigma = data[t_data::SIGMA];
     auto &Energy = data[t_data::ENERGY];
 
-    const unsigned int Nrad = Temperature.get_size_radial();
-    const unsigned int Naz = Temperature.get_size_azimuthal();
+    const unsigned int Nrad = Temp.get_size_radial();
+    const unsigned int Naz = Temp.get_size_azimuthal();
 
     const double factor = constants::R / (parameters::ADIABATICINDEX - 1.0) / parameters::MU;
     // compute energy from temperature
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
         for (unsigned int naz = 0; naz < Naz; ++naz) {
-            Energy(nr, naz) = factor * Temperature(nr, naz) * Sigma(nr, naz);
+            Energy(nr, naz) = factor * Temp(nr, naz) * Sigma(nr, naz);
         }
     }
 }
@@ -566,12 +560,14 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
     // update temperature, soundspeed and aspect ratio
 	compute_temperature(data);
 	compute_sound_speed(data, current_time);
-	compute_scale_height(data, current_time);
+	// compute_scale_height(data, current_time); done in compute::midplane_density
+	compute::midplane_density(data, current_time);
+
 
 	// calculate diffusion coefficient
-	calculate_diffusion_coeff_radial(data);
+	compute_diffusion_coeff_radial(data);
     radial_boundary_diffusion_coeff();
-    calculate_diffusion_coeff_azimuthal(data);
+    compute_diffusion_coeff_azimuthal(data);
 
 	// setup linear equation and solve the diffusion equation
     calculate_matrix_elements(data, dt);
