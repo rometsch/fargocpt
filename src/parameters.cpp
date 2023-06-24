@@ -396,11 +396,12 @@ void read(const std::string &filename, t_data &data)
     // units
 	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
 	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");
-	const std::string t0s = config::cfg.get<std::string>("t0", "1.0");
-	const std::string temp0s = config::cfg.get<std::string>("temp0", "1.0");
+	// const std::string t0s = config::cfg.get<std::string>("t0", "1.0");
+	// const std::string temp0s = config::cfg.get<std::string>("temp0", "1.0");
 
 
-	units::set_baseunits(l0s, m0s, t0s, temp0s);
+	// units::set_baseunits(l0s, m0s, t0s, temp0s);
+	units::set_baseunits(l0s, m0s);
 
 	units::precise_unit L0 = units::L0;
 	units::precise_unit M0 = units::M0;

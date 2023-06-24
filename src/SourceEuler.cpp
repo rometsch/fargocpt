@@ -1407,7 +1407,7 @@ void compute_temperature(t_data &data)
 	auto &T = data[t_data::TEMPERATURE];
 	auto &Sig = data[t_data::SIGMA];
 	auto &E = data[t_data::ENERGY];
-	auto P = data[t_data::PRESSURE];
+	auto &P = data[t_data::PRESSURE];
 
 	const unsigned int Nr = T.get_size_radial();
 	const unsigned int Nphi = T.get_size_azimuthal();
