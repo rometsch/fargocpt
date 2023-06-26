@@ -1421,7 +1421,8 @@ void compute_temperature(t_data &data)
 	    if (parameters::Adiabatic) {
 			const double mu = pvte::get_mu(data, nr, naz);
 			const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
-			T(nr, naz) = mu / Rgas * (gamma_eff - 1.0) * E(nr, naz) / Sig(nr, naz);
+			const double c_v_inv = mu / Rgas * (gamma_eff - 1.0);
+			T(nr, naz) = c_v_inv * E(nr, naz) / Sig(nr, naz);
 	    } else if (parameters::Polytropic) {
 			const double mu = pvte::get_mu(data, nr, naz);
 			const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);

@@ -40,15 +40,15 @@ double *RecvOuterBoundary;
 
 static inline double flux_limiter(const double R)
 {
-	#ifdef CONSTANT_FLD_FLUXLIMITER
-	return 1.0/3;
-	#else
+	const bool constant_fluxlimiter = parameters::radiative_diffusion_test_2d || parameters::radiative_diffusion_test_1d;
+	if (constant_fluxlimiter) {
+		return 1.0/3;
+	}
     if (R <= 2) {
 	return 2.0 / (3 + std::sqrt(9 + 10 * std::pow(R, 2)));
     } else {
 	return 10.0 / (10 * R + 9 + std::sqrt(180 * R + 81));
     }
-	#endif
 }
 
 void init(const unsigned int Nrad, const unsigned int Naz) { 
@@ -194,7 +194,8 @@ static inline double diffusion_coeff(const double rho, const double T, const dou
 	const double kappa = get_opacity(T, rho);
 
 	// Levermore & Pomraning 1981
-	// R = 4 |nabla T\/T * lrad
+	// TODO: check for error! this should be E, not T!
+	// R = 4 |nabla T|/T * lrad
 	// lrad = 1/(rho kappa), photon mean free path
 	const double lrad = 1  / (rho * kappa);
 	const double R = 4.0 * nabla_T / T * lrad;
@@ -236,7 +237,7 @@ static void compute_diffusion_coeff_radial(t_data &data) {
 
 	    const double nabla_T = std::sqrt(std::pow(dT_dr, 2) + std::pow(dT_dphi, 2));
 
-	    Ka(nr, naz) = diffusion_coeff(rho, T, nabla_T);
+	    Ka(nr, naz) = diffusion_coeff(rho, T, nabla_T);	
 	}
     }
 
@@ -290,6 +291,7 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 	// TODO: check whether we need gamma_eff here
     const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
 	// printf("c_v = %e\n", c_v);
+	// const double c_v = 1;
 	const unsigned int Nrad = Temperature.get_size_radial();
     const unsigned int Naz = Temperature.get_size_azimuthal();
 
@@ -300,6 +302,9 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 		const double rho = Density(nr, naz);
 		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10) adjusted for 3D FLD in midplane
 	    const double common_factor = -dt / (rho * c_v);
+		if (nr == 20 && naz == 20) {
+			printf("common_factor = %e\n", common_factor);
+		}
 
 	    // 2/(dR^2)
 	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
@@ -543,14 +548,34 @@ static void update_energy(t_data &data) {
     const unsigned int Nrad = Temp.get_size_radial();
     const unsigned int Naz = Temp.get_size_azimuthal();
 
-    const double factor = constants::R / (parameters::ADIABATICINDEX - 1.0) / parameters::MU;
+    const double c_v = constants::R / (parameters::ADIABATICINDEX - 1.0) / parameters::MU;
     // compute energy from temperature
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
         for (unsigned int naz = 0; naz < Naz; ++naz) {
-            Energy(nr, naz) = factor * Temp(nr, naz) * Sigma(nr, naz);
+            Energy(nr, naz) = c_v * Temp(nr, naz) * Sigma(nr, naz);
         }
     }
+}
+
+static void set_constant_midplane_density(t_data &data){
+	// set the midplane density to a constant 1 g/cm3 for testing purposes
+	auto &Rho = data[t_data::RHO];
+	
+	const unsigned int Nrad = Rho.get_size_radial();
+	const unsigned int Naz = Rho.get_size_azimuthal();
+
+	const double density_cgs = 1;
+	const double density = density_cgs*units::density.get_inverse_cgs_factor();
+	printf("density = %e\n", density);
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 1; nr < Nrad; ++nr) {
+        for (unsigned int naz = 0; naz < Naz; ++naz) {
+            Rho(nr, naz) = density;
+        }
+    }
+
 }
 
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
@@ -563,6 +588,9 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	// compute_scale_height(data, current_time); done in compute::midplane_density
 	compute::midplane_density(data, current_time);
 
+	if (parameters::radiative_diffusion_test_2d) {
+		set_constant_midplane_density(data);
+	}
 
 	// calculate diffusion coefficient
 	compute_diffusion_coeff_radial(data);

@@ -18,6 +18,7 @@
 #include "viscosity/viscosity.h"
 #include "frame_of_reference.h"
 #include "simulation.h"
+#include "fld.h"
 
 #include <dirent.h>
 
@@ -242,6 +243,21 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 	    data[t_data::GAMMA1].set_write(true, false);
 	}
     }
+
+	fld::Ka.set_name("Ka");
+	fld::Ka.write2D();
+	fld::Kb.set_name("Kb");
+	fld::Kb.write2D();
+	fld::A.set_name("A");
+	fld::A.write2D();
+	fld::B.set_name("B");
+	fld::B.write2D();
+	fld::C.set_name("C");
+	fld::C.write2D();
+	fld::D.set_name("D");
+	fld::D.write2D();
+	fld::E.set_name("E");
+	fld::E.write2D();
 
     // write polar grids
     output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::PhysicalTime);

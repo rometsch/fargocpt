@@ -67,10 +67,10 @@ t_constant sigma;
 t_constant _G;
 t_constant _R;
 
-#ifndef NDEBUG
+// #ifndef NDEBUG
 t_constant &G = _G;
 t_constant &R = _R;
-#endif
+// #endif
 
 t_constant::t_constant()
 {
@@ -173,20 +173,20 @@ void initialize_constants()
 */
 void calculate_constants_in_code_units()
 {
-#ifndef NDEBUG
+// #ifndef NDEBUG
     G.set_code_value(G.get_cgs_value() /
 		     (units::length * units::length * units::length /
 		      (units::mass * units::time * units::time)));
-#endif
+// #endif
     k_B.set_code_value(k_B.get_cgs_value() /
 		       (units::energy / units::temperature));
     m_u.set_code_value(m_u.get_cgs_value() / (units::mass));
     h.set_code_value(h.get_cgs_value() / (units::energy * units::time));
     c.set_code_value(c.get_cgs_value() / (units::length / units::time));
-#ifndef NDEBUG
+// #ifndef NDEBUG
     R.set_code_value(R.get_cgs_value() /
 		     (units::energy / (units::temperature * units::mass)));
-#endif
+// #endif
     sigma.set_code_value(
 	sigma.get_cgs_value() /
 	(units::energy /
@@ -200,16 +200,16 @@ void print_constants()
 logging::print_master(LOG_INFO "Using PLUTO like units\n");
 #endif
     logging::print_master(LOG_VERBOSE "Code constants:\n");
-#ifndef NDEBUG
+// #ifndef NDEBUG
     logging::print_master(LOG_VERBOSE
 			  "     gravitational constant: %8s = %15g = %15g %s\n",
 			  G.get_symbol(), G.get_code_value(), G.get_cgs_value(),
 			  G.get_cgs_unit_symbol());
-#else
-    logging::print_master(
-	LOG_VERBOSE
-	"     gravitational constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
-#endif
+// #else
+    // logging::print_master(
+	// LOG_VERBOSE
+	// "     gravitational constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
+// #endif
     logging::print_master(LOG_VERBOSE
 			  "         Boltzmann constant: %8s = %15g = %15g %s\n",
 			  k_B.get_symbol(), k_B.get_code_value(),
@@ -226,16 +226,16 @@ logging::print_master(LOG_INFO "Using PLUTO like units\n");
 			  "             speed of light: %8s = %15g = %15g %s\n",
 			  c.get_symbol(), c.get_code_value(), c.get_cgs_value(),
 			  c.get_cgs_unit_symbol());
-#ifndef NDEBUG
+// #ifndef NDEBUG
     logging::print_master(LOG_VERBOSE
 			  "      specific gas constant: %8s = %15g = %15g %s\n",
 			  R.get_symbol(), R.get_code_value(), R.get_cgs_value(),
 			  R.get_cgs_unit_symbol());
-#else
-    logging::print_master(
-	LOG_VERBOSE
-	"      specific gas constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
-#endif
+// #else
+    // logging::print_master(
+	// LOG_VERBOSE
+	// "      specific gas constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
+// #endif
     logging::print_master(LOG_VERBOSE
 			  "  Stefan-Boltzmann constant: %8s = %15g = %15g %s\n",
 			  sigma.get_symbol(), sigma.get_code_value(),

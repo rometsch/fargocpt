@@ -130,13 +130,19 @@ static void add_astro_units() {
 }
 
 
-void set_baseunits(	const std::string &l0s, 
-					const std::string &m0s) {
+void set_baseunits(
+	const std::string &l0s, 
+	const std::string &m0s,
+	const std::string &t0s,
+	const std::string &temp0s
+) {
 
 	add_astro_units();
 
 	const bool l0hu = has_unit(l0s);
 	const bool m0hu = has_unit(m0s);
+	const bool t0hu = has_unit(t0s);
+	const bool temp0hu = has_unit(temp0s);
 
 	if (m0hu && l0hu) {
 		L0 = llnlunits::measurement_from_string(l0s).as_unit();
@@ -160,13 +166,26 @@ void set_baseunits(	const std::string &l0s,
 		die("l0 and m0 need to either all have a unit or all have no unit!\n However, they are l0 = %s, m0 = %s!", l0s.c_str(), m0s.c_str());
 	}
 
-	T0 = llnlunits::sqrt((1 * L0 * L0 * L0) / (1* M0 * llnlunits::constants::G)).as_unit();
+	if (t0hu) {
+		T0 = llnlunits::measurement_from_string(t0s).as_unit();	
+	} else {
+		T0 = llnlunits::sqrt((1 * L0 * L0 * L0) / (1* M0 * llnlunits::constants::G)).as_unit();
+	}
+	if (!T0.is_convertible(llnlunits::second)) {
+		die("Baseunit of time '%s' not convertible to second!", t0s.c_str());
+	}
 
-	const auto G = llnlunits::constants::G;
-	const auto mu = llnlunits::constants::mu;
-	const auto kB = llnlunits::constants::k;
-	Temp0 = (1*G*mu/kB*M0/L0).as_unit();
-
+	if (temp0hu) {
+		Temp0 = llnlunits::measurement_from_string(temp0s).as_unit();
+	} else {
+		const auto G = llnlunits::constants::G;
+		const auto mu = llnlunits::constants::mu;
+		const auto kB = llnlunits::constants::k;
+		Temp0 = (1*G*mu/kB*M0/L0).as_unit();
+	}
+	if (!Temp0.is_convertible(llnlunits::Kelvin)) {
+		die("Baseunit of temperature '%s' not convertible to Kelvin!", temp0s.c_str());
+	}
 }
 
 

@@ -154,6 +154,10 @@ extern bool radiative_diffusion_omega_auto_enabled;
 extern unsigned int radiative_diffusion_max_iterations;
 /// tolerance for the radiative diffusion
 extern double radiative_diffusion_tolerance;
+// enable 2d test
+extern bool radiative_diffusion_test_2d;
+// enable 1d test
+extern bool radiative_diffusion_test_1d;
 
 // initialisation
 enum t_initialize_condition {

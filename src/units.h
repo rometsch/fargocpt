@@ -102,8 +102,11 @@ extern t_unit mass_accretion_rate;
 
 bool has_unit(const std::string &val);
 
-void set_baseunits( const std::string &l0, 
-                    const std::string &m0);
+void set_baseunits(
+  const std::string &l0, 
+  const std::string &m0,
+  const std::string &t0,
+  const std::string &temp0);
 
 template <typename T> T parse_units(const std::string &val);
 template <typename T> T parse_units(const std::string &val, const precise_unit &baseunit);

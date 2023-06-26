@@ -69,13 +69,13 @@ extern t_constant sigma;
 
 // _G and _R are always defined with _ and are linked to G and R with compilied
 // without NDEBUG otherswise to const double 1
-#ifndef NDEBUG
+// #ifndef NDEBUG
 extern t_constant &G;
 extern t_constant &R;
-#else
-const double R = 1.0;
-const double G = 1.0;
-#endif
+// #else
+// const double R = 1.0;
+// const double G = 1.0;
+// #endif
 
 void initialize_constants();
 void calculate_constants_in_code_units();
