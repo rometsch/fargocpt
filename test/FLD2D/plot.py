@@ -71,6 +71,11 @@ def plot_field(data, name, N, ax=None, dataunit=None, lengthunit=None, vmin=None
                 Z0 = Z0.reshape(Nr+1, Nphi)[:-1,:]
             Z = Z-Z0
 
+    if not diff:
+        print("min value: {:e}".format(np.min(Z)))
+        print("max value: {:e}".format(np.max(Z)))
+
+
     if toprint:
         print(Z)
 
@@ -111,7 +116,7 @@ varname = opts.n
 try:
     E0 = d.get(var=varname, dim="2d", N=0).data.to_value("erg/cm2")
     Elast = d.get(var=varname, dim="2d", N=N).data.to_value("erg/cm2")
-    print(np.sum(np.abs(E0 - Elast)))
+    print("Difference to initial =", np.sum(np.abs(E0 - Elast)))
 except KeyError:
     pass
 
