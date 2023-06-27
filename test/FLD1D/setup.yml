@@ -33,6 +33,7 @@ RadiativeDiffusion: Yes
 RadiativeDiffusionOmega: 1.5   # [default = 1.5]
 RadiativeDiffusionAutoOmega: No     # [default = no]
 RadiativeDiffusionMaxIterations: 50000   # [default = 50000]
+RadiativeDiffusionTest1D: yes
 
 MinimumTemperature: 3 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
@@ -43,8 +44,10 @@ HeatingCoolingCFLlimit: '1.0'   # energy change dT/T in substep3 only allowed to
 
 # Units
 
-l0: 1.0 au   # Base length unit of the simulation [default: 1.0 au]
+l0: 1.0 au  # Base length unit of the simulation [default: 1.0 au]
 m0: 1.0 solMass   # Base mass unit of the simulation [default: 1.0 solMass]
+# t0: 1.0 s
+# temp0: 1 K
 mu: 2.35   # mean molecular weight [default=1.0]
 
 # smoothing parameters
