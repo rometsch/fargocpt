@@ -104,10 +104,12 @@ bool cooling_scurve_enabled;
 
 
 bool radiative_diffusion_enabled;
+t_radiative_diffusion_variable radiative_diffusion_variable;
 double radiative_diffusion_omega;
 bool radiative_diffusion_omega_auto_enabled;
 unsigned int radiative_diffusion_max_iterations;
 double radiative_diffusion_tolerance;
+double radiative_diffusion_test_2d_density;
 bool radiative_diffusion_test_2d;
 bool radiative_diffusion_test_1d;
 
@@ -793,15 +795,20 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
 
 
-    radiative_diffusion_enabled =
-	config::cfg.get_flag("RadiativeDiffusion", "no");
-    radiative_diffusion_omega =
-	config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
-    radiative_diffusion_omega_auto_enabled =
-	config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
-    radiative_diffusion_max_iterations = config::cfg.get<unsigned int>(
-	"RadiativeDiffusionMaxIterations", 50000);
+    radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "no");
+	const std::string rdvar = config::cfg.get<std::string>("RadiativeDiffusionVariable", "temperature");
+	if (rdvar == "energy") {
+		radiative_diffusion_variable = t_radiative_diffusion_variable::energy;
+	} else if (rdvar == "temperature") {
+		radiative_diffusion_variable = t_radiative_diffusion_variable::temperature;
+	} else {
+		die("Radiative diffusion variable can only be 'temperature' or 'energy', not '%s'\n", rdvar.c_str());
+	}
+    radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
+    radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
+    radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
 	radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
+	radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
 	radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
 	radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
 

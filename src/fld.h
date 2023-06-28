@@ -4,7 +4,7 @@
 
 namespace fld {
 
-extern t_polargrid Ka, Kb, A, B, C, D, E;
+extern t_polargrid Ka, Kb, A, B, C, D, E, Erad, Trad, Xold;
 
 void init(const unsigned int Nrad, const unsigned int Naz);
 void finalize();

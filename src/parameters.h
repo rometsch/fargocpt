@@ -146,6 +146,12 @@ extern bool cooling_scurve_enabled;
 
 /// enable radiative diffusion
 extern bool radiative_diffusion_enabled;
+/// choose variable, temperature or energy
+enum t_radiative_diffusion_variable {
+    temperature,
+    energy
+};
+extern t_radiative_diffusion_variable radiative_diffusion_variable;
 /// omega for SOR in radiative diffusion
 extern double radiative_diffusion_omega;
 /// enable automatic omega in SOR in radiative diffusion
@@ -156,6 +162,8 @@ extern unsigned int radiative_diffusion_max_iterations;
 extern double radiative_diffusion_tolerance;
 // enable 2d test
 extern bool radiative_diffusion_test_2d;
+// constant density for 2d fld test
+extern double radiative_diffusion_test_2d_density;
 // enable 1d test
 extern bool radiative_diffusion_test_1d;
 

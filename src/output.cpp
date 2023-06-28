@@ -259,6 +259,15 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 	fld::E.set_name("E");
 	fld::E.write2D();
 
+	fld::Trad.set_name("Trad");
+	fld::Trad.write2D();
+
+	fld::Erad.set_name("Erad");
+	fld::Erad.write2D();
+	
+	fld::Xold.set_name("Xold");
+	fld::Xold.write2D();
+
     // write polar grids
     output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::PhysicalTime);
     // write planet data
