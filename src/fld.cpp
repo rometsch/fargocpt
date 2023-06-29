@@ -31,7 +31,7 @@ namespace fld {
 t_polargrid Ka; // diffusion coefficient on radial boundaries
 t_polargrid Kb; // diffusion coefficient on azimuthal boundaries
 t_polargrid A, B, C, D, E; // Matrix elements of linear equation
-t_polargrid Erad, Trad, Xold; // Intermediate store for old values.
+t_polargrid Erad, Trad, Xold, Xtmp; // Intermediate store for old values.
 
 double Erad_max;
 double Erad_min;
@@ -81,6 +81,11 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 
 	Xold.set_scalar(true);
 	Xold.set_size(Nrad, Naz);
+
+	if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::Jacobi) {
+		Xtmp.set_scalar(true);
+		Xtmp.set_size(Nrad, Naz);
+	}
 
     SendInnerBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
     SendOuterBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
@@ -512,6 +517,96 @@ static inline void floorceil_x_single(double &x) {
 	}
 }
 
+
+static void Jacobi(t_polargrid &X) {
+	// Solve the linear system using the Jacobi method
+	// Based on the book "Iterative Methods for Sparse Linear Systems" by Yousef Saad
+	// DOI: 10.1137/1.9780898718003
+	// downloaded 2023-06-28 from the author's academic webpage: 
+	// https://www-users.cse.umn.edu/~saad/IterMethBook_2ndEd.pdf
+	// The method is described in Chapter 4.1 and the relevant equation is Eq. (4.4)
+
+    const unsigned int Nrad = X.get_size_radial();
+    const unsigned int Naz = X.get_size_azimuthal();
+
+    static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
+
+    unsigned int iterations = 0;
+	double absolute_norm = std::numeric_limits<double>::max();
+	double norm_change = std::numeric_limits<double>::max();
+
+    // do SOR
+	const double tolerance = parameters::radiative_diffusion_tolerance;
+	const unsigned int maxiter = parameters::radiative_diffusion_max_iterations;
+
+    while ((norm_change > tolerance) && (maxiter > iterations)) {
+
+    boundary_T_SOR(X);
+
+	copy_polargrid(Xtmp, X);
+
+	norm_change = absolute_norm;
+	absolute_norm = 0.0;
+	#pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
+	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+
+        const unsigned int naz_last = X.get_max_azimuthal();
+		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
+		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
+		const double old_value = X(nr, naz);
+
+		const double aii = B(nr, naz);
+		const double xn = Xold(nr, naz); // value at iteration n
+		const double sum =
+			A(nr, naz) * X(nr - 1, naz) +
+			C(nr, naz) * X(nr + 1, naz) +
+			D(nr, naz) * X(nr, naz_prev) +
+			E(nr, naz) * X(nr, naz_next);
+
+		// perform the update step given in Eq. (4.4) in the reference given above
+		const double xup = (xn - sum)/aii; // update value at iteration n+1
+
+		Xtmp(nr, naz) = xup;
+		// ensure minimum and maximum temperature
+		floorceil_x_single(Xtmp(nr, naz));
+
+		// only non ghostcells to norm and don't count overlap cell's
+		// twice
+		if (is_active(nr)) {
+			absolute_norm += std::pow(old_value - Xtmp(nr, naz), 2);
+		}
+		} // azimuthal loop
+	} // radial loop
+
+	copy_polargrid(X, Xtmp);
+
+    const double tmp = absolute_norm;
+	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
+
+	norm_change = fabs(absolute_norm - norm_change);
+	// printf("iter %u, norm_change = %e\n", iterations, norm_change);
+	iterations++;
+
+    communicate_parallelization_boundaries(X);
+
+    } // END Loop
+
+
+    if (iterations == parameters::radiative_diffusion_max_iterations) {
+	logging::print_master(
+	    LOG_WARNING
+	    "Maximum iterations (%u) reached in radiative_diffusion with Jacobi solver. Norm is %lg with a last change of %lg.\n",
+	    parameters::radiative_diffusion_max_iterations, absolute_norm, norm_change);
+    }
+
+    old_iterations = iterations;
+
+    logging::print_master(LOG_VERBOSE "%u iterations\n", iterations);
+}
+
+
 static void SOR(t_polargrid &X) {
 
     const unsigned int Nrad = X.get_size_radial();
@@ -535,8 +630,9 @@ static void SOR(t_polargrid &X) {
 
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
-#pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
+// #pragma omp parallel for collapse(2) shared(X) reduction(+ : absolute_norm) schedule(static,1)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+#pragma omp parallel for shared(X) reduction(+ : absolute_norm) schedule(static,1)
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
 		const double old_value = X(nr, naz);
@@ -723,7 +819,11 @@ static void radiative_diffusion_energy(t_data &data, const double dt) {
     calculate_matrix_elements(data, dt);
 	save_old_values(Erad);
 
-    SOR(Erad);
+	if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::SOR) {
+		SOR(Erad);
+	} else {
+		Jacobi(Erad);
+	}
 
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	compute_radiation_temperature(Trad, Erad);
@@ -744,7 +844,11 @@ static void radiative_diffusion_temperature(t_data &data, const double dt) {
     calculate_matrix_elements(data, dt);
 	save_old_values(Trad);
 
-    SOR(Trad);
+	if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::SOR) {
+		SOR(Trad);
+	} else {
+		Jacobi(Trad);
+	}
 
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	copy_polargrid(data[t_data::TEMPERATURE], Trad);
