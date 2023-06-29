@@ -152,6 +152,12 @@ enum t_radiative_diffusion_variable {
     energy
 };
 extern t_radiative_diffusion_variable radiative_diffusion_variable;
+/// choose linear system solver
+enum t_radiative_diffusion_solver {
+    SOR,
+    Jacobi
+};
+extern t_radiative_diffusion_solver radiative_diffusion_solver;
 /// omega for SOR in radiative diffusion
 extern double radiative_diffusion_omega;
 /// enable automatic omega in SOR in radiative diffusion

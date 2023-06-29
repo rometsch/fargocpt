@@ -105,6 +105,7 @@ bool cooling_scurve_enabled;
 
 bool radiative_diffusion_enabled;
 t_radiative_diffusion_variable radiative_diffusion_variable;
+t_radiative_diffusion_solver radiative_diffusion_solver;
 double radiative_diffusion_omega;
 bool radiative_diffusion_omega_auto_enabled;
 unsigned int radiative_diffusion_max_iterations;
@@ -803,6 +804,14 @@ void read(const std::string &filename, t_data &data)
 		radiative_diffusion_variable = t_radiative_diffusion_variable::temperature;
 	} else {
 		die("Radiative diffusion variable can only be 'temperature' or 'energy', not '%s'\n", rdvar.c_str());
+	}
+	const std::string rdsol = config::cfg.get<std::string>("RadiativeDiffusionSolver", "SOR");
+	if (rdsol == "SOR") {
+		radiative_diffusion_solver = t_radiative_diffusion_solver::SOR;
+	} else if (rdsol == "Jacobi") {
+		radiative_diffusion_solver = t_radiative_diffusion_solver::Jacobi;
+	} else {
+		die("Radiative diffusion solver can only be 'SOR' or 'Jacobi', not '%s'\n", rdsol.c_str());
 	}
     radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");

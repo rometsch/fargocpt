@@ -7,12 +7,15 @@ parser.add_argument("N", type=int, default=-1, help="Snapshot number to plot.")
 parser.add_argument("-n", type=str, default="energy density", help="Variable to plot")
 parser.add_argument("-p", action="store_true", help="Print the values")
 parser.add_argument("--log", action="store_true", help="Log plot")
+parser.add_argument("-d", type=str, default=None, help="Output directory")
 
 
 opts = parser.parse_args()
 
+outdir = opts.d if opts.d is not None else "output/out"
+
 from disgrid import Data
-d = Data("output/out")
+d = Data(outdir)
 d.avail()
 
 
@@ -41,7 +44,7 @@ def plot_field(data, name, N, ax=None, dataunit=None, lengthunit=None, vmin=None
     else:
         field = data.get(var="mass density", dim="2d", N=N)
         if dataunit == None:
-            dataunit = "a.u."
+            dataunit = "code units"
 
     ri = field.grid.get_interfaces("r")
     if lengthunit is None:
@@ -90,7 +93,10 @@ def plot_field(data, name, N, ax=None, dataunit=None, lengthunit=None, vmin=None
         norm = mplcolors.Normalize(vmin=vmin, vmax=vmax)
     if diff:
         vmax = np.max(np.abs(Z))
-        norm = mplcolors.Normalize(vmin=-vmax, vmax=vmax)
+        if logplot:
+            norm = mplcolors.SymLogNorm(vmin=-vmax, vmax=vmax, linthresh = 1e-2*vmax)
+        else:
+            norm = mplcolors.Normalize(vmin=-vmax, vmax=vmax)
         cmap = "bwr"
     pcm = ax.pcolormesh(X,Y,Z, norm=norm, cmap=cmap)
     ax.set_aspect("equal")
@@ -121,6 +127,7 @@ except KeyError:
     pass
 
 
-plot_field(d, varname, N, dataunit=None, cmap="magma", diff=False, toprint=opts.p, logplot=opts.log);
-plot_field(d, varname, N, dataunit=None, cmap="magma", diff=True, toprint=opts.p);
+fig = plot_field(d, varname, N, dataunit=None, cmap="magma", diff=False, toprint=opts.p, logplot=opts.log)
+fig.savefig("plot.jpg", dpi=150)
+plot_field(d, varname, N, dataunit=None, cmap="magma", diff=True, toprint=opts.p, logplot=opts.log)
 plt.show()

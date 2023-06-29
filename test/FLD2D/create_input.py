@@ -14,21 +14,20 @@ with open("setup.yml", "r") as infile:
     rmin = params["Rmin"]
     rmax = params["Rmax"]
 
-ri = np.geomspace(rmin, rmax, Nrad+1)
+ri = np.linspace(rmin, rmax, Nrad+1)
 phii = np.linspace(0, 2*np.pi, Naz+1)
 Ri, Phii = np.meshgrid(ri, phii, indexing="ij")
 
 dphi = phii[1] - phii[0]
+dr = ri[1:] - ri[:-1]
 A = 0.5*(Ri[1:,1:]**2 - Ri[:-1,1:]**2)*dphi
 
 # now create an energy array with values in cgs with the energy located in one cell
 
-nr = 3*Nrad//4
+nr = Nrad//2
 nphi = 0
 
-T0 = 100*units.K
-cv = const.ch
-# energy0 = 
+print(dr[nr])
 
 energy0 = 1e10 / A[nr, nphi]
 energymin = 1e-10*energy0

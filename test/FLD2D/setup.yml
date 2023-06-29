@@ -2,10 +2,12 @@ DiskFeedback: no   # Calculate incfluence of the disk on the star
 # DT: 2e-18 # 
 Ninterm: 1
 Ntot : 1
-DT:      1e5
-FirstDT: 1e5 # initial hydro dt / dt in case of no disk
-CFLmaxVar: 1.1
+DT:      1e-5
+FirstDT: 1e-5 # initial hydro dt / dt in case of no disk
 
+RadiativeDiffusionSolver: Jacobi
+
+OutputDir: output/out/
 
 # Disk parameters
 
@@ -36,8 +38,10 @@ RadiativeDiffusionAutoOmega: No     # [default = no]
 RadiativeDiffusionMaxIterations: 50000   # [default = 50000]
 RadiativeDiffusionTolerance: 1e-12
 RadiativeDiffusionTest2D: yes
+RadiativeDiffusionTest2DDensity: 1 g/cm3
+RadiativeDiffusionVariable: energy
 
-MinimumTemperature: 1e-5 K   # minimum Temperature in K
+MinimumTemperature: 1e-10 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
 Opacity: constant   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst: 1.0 cm2/g
@@ -70,8 +74,8 @@ Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 
 # Mesh parameters
 
-Nrad: 50   # Radial number of zones
-Nsec: 100   # Azimuthal number of
+Nrad: 80   # Radial number of zones
+Nsec: 120   # Azimuthal number of
 # cps: 3
 
 
@@ -79,11 +83,10 @@ Nsec: 100   # Azimuthal number of
 
 Rmin: 0.2   # Inner boundary radius
 Rmax: 10.0   # Outer boundary radius
-RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
+RadialSpacing: Arithmetic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-OutputDir: output/out/
 LogAfterRealSeconds: 300
 LogAfterSteps: '0'
 DebugOutputs: No
