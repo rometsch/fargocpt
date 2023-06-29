@@ -7,5 +7,5 @@
 namespace compute {
     
     void midplane_density(t_data &data, const double current_time);
-
+    void opacity(t_data &data);
 }
