@@ -52,7 +52,6 @@ std::vector<Config> Config::get_nbody_config()
     const auto &n = *m_root;
     std::vector<Config> bodies;
     if (contains("nbody")) {
-        auto & node = n["nbody"];
         for (auto &new_node : n["nbody"]) {
             bodies.emplace_back(YAML::Clone(new_node));
         }
@@ -98,7 +97,7 @@ template <> bool isnan(const std::string &x) {
 
 
 static bool string_decide(const std::string &val) {
-    bool rv;
+    bool rv = false;
     const std::string l = lowercase(val);
     if (l == "yes" || l == "true") {
         rv = true;
@@ -118,7 +117,7 @@ bool Config::get_flag(const std::string &key)
     try {
         rv = root[lkey].as<bool>();
     } catch (YAML::TypedBadConversion<bool> const &) {
-        die("Conversion from yaml failed for key '%s'\n", key);
+        die("Conversion from yaml failed for key '%s'\n", key.c_str());
     }
     return rv;
 }

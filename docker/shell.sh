@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-if [ $# -le 2 ]; then
-    echo "usage: $0 {simulationdir} {fargo args}"
+if (("$#"<"1")); then
+    echo "usage: $0 {simulationdir}"
     exit 1
 fi
 
@@ -12,11 +12,10 @@ if [ ! -d "$SIMDIR" ]; then
     exit 1
 fi
 
-shift 1
-
 docker run \
     --user $(id -u):$(id -g) \
     -v $SIMDIR:/project \
     --rm \
+    -it \
     fargocpt \
-    fargocpt -np 1 "$@"
+    /bin/bash

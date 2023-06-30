@@ -15,7 +15,6 @@
 #include "global.h"
 #include "init.h"
 #include "logging.h"
-#include "nongnu.h"
 #include "output.h"
 #include "parameters.h"
 #include "pvte_law.h"

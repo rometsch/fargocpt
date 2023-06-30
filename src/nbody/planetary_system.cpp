@@ -1,13 +1,12 @@
 #include "planetary_system.h"
-#include "LowTasks.h"
-#include "Theo.h"
-#include "constants.h"
-#include "fpe.h"
-#include "global.h"
-#include "logging.h"
-#include "parameters.h"
-#include "types.h"
-#include "output.h"
+#include "../LowTasks.h"
+#include "../Theo.h"
+#include "../constants.h"
+#include "../global.h"
+#include "../logging.h"
+#include "../parameters.h"
+#include "../types.h"
+#include "../output.h"
 #include <cstring>
 #include <ctype.h>
 #include <fstream>
@@ -15,8 +14,8 @@
 #include <cstdio>
 #include <cassert>
 #include <iostream>
-#include "quantities.h"
-#include <experimental/filesystem>
+#include "../quantities.h"
+#include <filesystem>
 
 extern boolean CICPlanet;
 
@@ -365,7 +364,7 @@ void t_planetary_system::create_planet_files()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 		auto & p = get_planet(i);
-		if (!std::experimental::filesystem::exists(p.get_monitor_filename())) {
+		if (!std::filesystem::exists(p.get_monitor_filename())) {
 			p.create_planet_file();
 		}
     }
@@ -817,9 +816,7 @@ void t_planetary_system::integrate(const double time, const double dt)
 	copy_data_to_rebound();
 	m_rebound->t = time;
 
-    disable_trap_fpe_gnu();
     reb_integrate(m_rebound, time + dt);
-    enable_trap_fpe_gnu();
 }
 
 /**

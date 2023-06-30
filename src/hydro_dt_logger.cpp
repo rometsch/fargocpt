@@ -156,7 +156,7 @@ void hydro_dt_logger::dump()
 	wf = std::ofstream(filename, std::ios::out | std::ios::binary);
 
 	if (!wf) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.c_str());
 	die("End\n");
 	}
 
@@ -175,7 +175,7 @@ void hydro_dt_logger::read()
 	std::ifstream rf(filename, std::ofstream::binary | std::ios::in);
 
 	if (!rf) {
-	logging::print(LOG_ERROR "Can't read %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't read %s file. Aborting.\n", filename.c_str());
 	die("End\n");
 	}
 

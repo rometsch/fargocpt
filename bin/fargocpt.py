@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 from subprocess import run
+from sys import platform
 import os
 import re
 
@@ -70,8 +71,7 @@ def main():
     if N_OMP_threads == 32: # hack for bwUniCluster icelake nodes
         N_OMP_threads = int(N_OMP_threads/2)
 
-    print(
-        f"Running fargo with {N_procs} procs with {N_OMP_threads} OMP threads each.")
+    print(f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.")
 
     run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose)
 
@@ -107,8 +107,16 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     if mpi_verbose:
         cmd += ["-x", "OMP_DISPLAY_ENV=VERBOSE"]
     if N_OMP_threads > 1:
-        cmd += ["--map-by", "ppr:1:numa"]
-        cmd += ["--bind-to", "numa"]
+        if platform != "darwin":
+            if os.path.exists("/.dockerenv"):
+                # bind to l3cache because bind to numa does not work inside docker
+                cmd += ["-x", "OMPI_MCA_rmaps_base_mapping_policy=l3cache"]
+                cmd += ["-x", "OMPI_MCA_hwloc_base_binding_policy=l3cache"]
+                cmd += ["--map-by", "ppr:1:socket"]
+                cmd += ["--bind-to", "socket"]
+            else:
+                cmd += ["--map-by", "ppr:1:numa"]
+                cmd += ["--bind-to", "numa"]
         cmd += ["-x", "OMP_WAIT_POLICY=active"]
         cmd += ["-x", "OMP_PROC_BIND=close"]
         cmd += ["-x", "OMP_PLACES=cores"]
@@ -135,8 +143,6 @@ def get_num_cores():
             print(f"Found SLURM environment with {rv} cores")
         except KeyError:
             rv = get_num_cores_from_numa()
-            print(
-                f"Found no PBS or SLURM environment.\nI'll be greedy and take all {rv} system cores!")
     return rv
 
 
@@ -154,6 +160,34 @@ def get_num_cores_from_numa():
 
 
 def get_numa_nodes():
+    if platform == "linux":
+        return get_numa_nodes_linux()
+    elif platform == "darwin":
+        return get_numa_nodes_osx()
+    else:
+        raise RuntimeError(f"Unsupported platform {platform}")
+
+def get_numa_nodes_osx():
+    """Return a fake numa topology of the system.
+
+    This function just takes the number of physical cores 
+    and puts it into the correct datastructure for the script to work.
+
+    Returns:
+        dict: Topology of the numa nodes.
+    """
+    from subprocess import run, PIPE
+    rv = run(["sysctl", "-n", "hw.physicalcpu"], stdout=PIPE)
+    ncpus = int(rv.stdout.strip().decode("utf8"))
+
+    nodes = {
+        "node0" : [(f"{n}", f"{n+ncpus}") for n in range(ncpus)]
+    }
+    return nodes
+
+
+
+def get_numa_nodes_linux():
     """Return the numa topology of the system.
 
     Data is extracted from /sys/devices/system/cpu.

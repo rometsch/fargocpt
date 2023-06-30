@@ -9,7 +9,7 @@
 #include "start_mode.h"
 #include "boundary_conditions.h"
 #include "Theo.h"
-#include <experimental/filesystem>
+#include <filesystem>
 #include "SourceEuler.h"
 #include "particles/particles.h"
 #include "circumplanetary_mass.h"
@@ -24,7 +24,7 @@ void restart_load(t_data &data) {
 	    // load grids at t = 0
 	    const std::string snapshot_dir_old = output::snapshot_dir;
 	    output::snapshot_dir = output::outdir + "snapshots/damping";
-	    if (!std::experimental::filesystem::exists(output::snapshot_dir)) {
+	    if (!std::filesystem::exists(output::snapshot_dir)) {
 		logging::print_master(
 		    LOG_ERROR
 		    "Damping zone activated but no snapshot with damping data found. Make sure to copy the 'damping' snapshot!\n");
