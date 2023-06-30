@@ -5,7 +5,6 @@
 #endif
 
 #include "parameters.h"
-#include "nongnu.h"
 #include "constants.h"
 #include "units.h"
 #include "opacity.h"
