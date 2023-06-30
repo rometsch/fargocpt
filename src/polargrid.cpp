@@ -15,7 +15,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <gsl/gsl_spline.h>
 #include <mpi.h>
 
@@ -282,7 +282,7 @@ bool t_polargrid::file_exists()
     std::string filename;
     filename = output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
-    bool exists = std::experimental::filesystem::exists(filename);
+    bool exists = std::filesystem::exists(filename);
 
     return exists;
 }

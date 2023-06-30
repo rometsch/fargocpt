@@ -21,7 +21,6 @@
 #include "constants.h"
 #include "global.h"
 #include "logging.h"
-#include "nongnu.h"
 #include "parameters.h"
 #include "quantities.h"
 #include "selfgravity.h"

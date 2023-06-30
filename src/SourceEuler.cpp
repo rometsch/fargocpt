@@ -29,7 +29,6 @@
 #include "gas_torques.h"
 #include "global.h"
 #include "logging.h"
-#include "nongnu.h"
 #include "opacity.h"
 #include "output.h"
 #include "parameters.h"

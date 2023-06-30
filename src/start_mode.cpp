@@ -6,7 +6,7 @@
 
 #include "util.h"
 #include <cstdint>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -31,13 +31,13 @@ void configure_start_mode()
 
 	switch (mode) {
 	case mode_start:
-	    if (!std::experimental::filesystem::is_empty(output::outdir)) {
+	    if (!std::filesystem::is_empty(output::outdir)) {
 		std::string backup_path = output::outdir;
 		rtrim(backup_path, "/");
 		backup_path += "_bak";
 
 		for (uint32_t i = 1;
-		     std::experimental::filesystem::exists(backup_path); i++) {
+		     std::filesystem::exists(backup_path); i++) {
 		    backup_path = output::outdir;
 		    rtrim(backup_path, "/");
 		    backup_path += "_bak" + std::to_string(i);
@@ -45,12 +45,12 @@ void configure_start_mode()
 		logging::print_master(LOG_INFO
 				      "%s is not empty, backing up as %s\n",
 				      output::outdir.c_str(), backup_path.c_str());
-		std::experimental::filesystem::rename(output::outdir, backup_path);
-		std::experimental::filesystem::create_directory(output::outdir);
+		std::filesystem::rename(output::outdir, backup_path);
+		std::filesystem::create_directory(output::outdir);
 	    }
 	    break;
 	case mode_auto:
-	    if (std::experimental::filesystem::is_empty(output::outdir)) {
+	    if (std::filesystem::is_empty(output::outdir)) {
 		logging::print_master(
 		    LOG_INFO "No output found, starting fresh simulation\n");
 		mode = mode_start;

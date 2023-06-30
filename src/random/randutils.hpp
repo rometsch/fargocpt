@@ -459,7 +459,7 @@ class auto_seeded : public SeedSeq {
     default_seeds local_entropy()
     {
         // This is a constant that changes every time we compile the code
-        constexpr uint32_t compile_stamp =
+        [[maybe_unused]] constexpr uint32_t compile_stamp =
             fnv(2166136261U, __DATE__ __TIME__ __FILE__);
 
         // Some people think you shouldn't use the random device much because

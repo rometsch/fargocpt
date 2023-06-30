@@ -324,7 +324,7 @@ void t_planet::write_ascii(const std::string &filename) const
     // open file
     FILE *fd = fopen(filename.c_str(), "a");
     if (fd == NULL) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.c_str());
 	PersonalExit(1);
     }
 
@@ -361,7 +361,7 @@ void t_planet::write_binary(const std::string &filename) const
 
     wf = std::ofstream(filename, std::ios::out | std::ios::binary);
     if (!wf) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.c_str());
 	die("End\n");
     }
 

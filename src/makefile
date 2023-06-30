@@ -37,7 +37,7 @@ $(OBJS): $(HDRS) makefile
 $(OBJS): $(BUILD_DIR)/%.o: %.cpp
 	@echo Compiling $<
 	@mkdir -p $(@D)
-	@$(CXX) -c $(CFLAGS) $(INCLUDES) $(LIBS) $(OPTIONS) -o $@ $<
+	@$(CXX) -c $(CFLAGS) $(INCLUDES) $(OPTIONS) -o $@ $<
 
 info:
 	@echo
@@ -61,6 +61,7 @@ info:
 	@echo Include path MPI:  INCLUDE_MPI:  $(INCLUDE_MPI)
 	@echo Include path FFTW: INCLUDE_FFTW: $(INCLUDE_FFTW)
 	@echo Include path GSL:  INCLUDE_GSL:  $(INCLUDE_GSL)
+	@echo Include path OMP:  INCLUDE_OMP:  $(INCLUDE_OMP)
 
 # http://www.gnu.org/software/make/manual/make.html#Phony-Targets
 .PHONY: build clean info
