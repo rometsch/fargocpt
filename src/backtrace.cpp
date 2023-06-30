@@ -6,13 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ucontext.h>
+#include <sys/ucontext.h>
 #include <unistd.h>
 
-#include "LowTasks.h"
 #include "backtrace.h"
 #include "global.h"
-#include "logging.h"
 #include "output.h"
 
 void Backtrace(std::ostream &);

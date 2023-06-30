@@ -2,7 +2,6 @@
 #include "../LowTasks.h"
 #include "../Theo.h"
 #include "../constants.h"
-#include "../fpe.h"
 #include "../global.h"
 #include "../logging.h"
 #include "../parameters.h"
@@ -817,13 +816,7 @@ void t_planetary_system::integrate(const double time, const double dt)
 	copy_data_to_rebound();
 	m_rebound->t = time;
 
-#ifdef _TRAP_FPE
-    disable_trap_fpe_gnu();
-#endif
     reb_integrate(m_rebound, time + dt);
-#ifdef _TRAP_FPE
-    enable_trap_fpe_gnu();
-#endif
 }
 
 /**
