@@ -56,7 +56,7 @@ int vprint(const char *fmt, va_list args)
 	    time(&ti);
 	    switch (time_format) {
 	    case 1: // print timestamp
-		sprintf(time_buf, "%i", (int)ti);
+		    std::snprintf(time_buf, 80, "%i", (int)ti);
 		break;
 	    case 2: // print UTC time
 		ts = gmtime(&ti);
@@ -70,8 +70,8 @@ int vprint(const char *fmt, va_list args)
 	    }
 	}
 
-	char *buf;
-	int res = vasprintf(&buf, fmt, args);
+	char buf[1028];
+	int res = std::vsnprintf(buf, 1028, fmt, args);
 	if (!time_format) {
 	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
 			(int)(std::log(CPU_Number) / std::log(10) + 1), CPU_Rank, buf);
@@ -80,7 +80,6 @@ int vprint(const char *fmt, va_list args)
 			"[%0*i %s] %s", (int)(std::log(CPU_Number) / std::log(10) + 1),
 		    CPU_Rank, time_buf, buf);
 	}
-	free(buf);
 	return res;
     }
 

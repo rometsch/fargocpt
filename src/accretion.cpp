@@ -116,11 +116,16 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double search_radius = RHill * frac1 + 2.0 * Rplanet / ns;
 
     // calculate range of indeces to iterate over
-    const auto [i_min, i_max] = hill_radial_index(Rplanet, search_radius);
-    const double angle = planet.get_phi();
-    const auto [j_min, j_max] =
-	hill_azimuthal_index(angle, Rplanet, search_radius);
+    const auto iminmax = hill_radial_index(Rplanet, search_radius);
+    const unsigned int i_min = std::get<0>(iminmax);
+    const unsigned int i_max = std::get<1>(iminmax);
 
+    const double angle = planet.get_phi();
+    const auto  jminmax = hill_azimuthal_index(angle, Rplanet, search_radius);
+    const int j_min = std::get<0>(jminmax);
+    const int j_max = std::get<1>(jminmax);
+
+    
     double dMplanet = 0.0;
     double dPxPlanet = 0.0;
     double dPyPlanet = 0.0;
@@ -241,10 +246,14 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double search_radius = RHill * frac + 2.0 * Rplanet / ns;
 
     // calculate range of indeces to iterate over
-    const auto [i_min, i_max] = hill_radial_index(Rplanet, search_radius);
+    const auto iminmax = hill_radial_index(Rplanet, search_radius);
+    const unsigned int i_min = std::get<0>(iminmax);
+    const unsigned int i_max = std::get<1>(iminmax);
+
     const double angle = planet.get_phi();
-    const auto [j_min, j_max] =
-	hill_azimuthal_index(angle, Rplanet, search_radius);
+    const auto  jminmax = hill_azimuthal_index(angle, Rplanet, search_radius);
+    const int j_min = std::get<0>(jminmax);
+    const int j_max = std::get<1>(jminmax);
 
     double dMplanet = 0.0;
     double dPxPlanet = 0.0;
@@ -368,11 +377,16 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     }
 
     // calculate range of indeces to iterate over
-    const auto [i_min, i_max] = hill_radial_index(Rplanet, search_radius);
-    const double angle = planet.get_phi();
-    const auto [j_min, j_max] =
-	hill_azimuthal_index(angle, Rplanet, search_radius);
+    const auto iminmax = hill_radial_index(Rplanet, search_radius);
+    const unsigned int i_min = std::get<0>(iminmax);
+    const unsigned int i_max = std::get<1>(iminmax);
 
+    const double angle = planet.get_phi();
+    const auto  jminmax = hill_azimuthal_index(angle, Rplanet, search_radius);
+    const int j_min = std::get<0>(jminmax);
+    const int j_max = std::get<1>(jminmax);
+
+    
     double dMplanet = 0.0;
     double dPxPlanet = 0.0;
     double dPyPlanet = 0.0;

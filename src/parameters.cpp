@@ -1494,20 +1494,15 @@ void summarize_parameters()
     }
 
     if (write_lightcurves) {
-	char *buffer, *temp;
-	unsigned int pos = 0;
 
-	buffer = (char *)malloc((pos + 1) * sizeof(char));
+	std::string lightcurves_radii_string = "";
 	for (unsigned int i = 0; i < lightcurves_radii.size(); ++i) {
-	    int size = asprintf(&temp, "%lf, ", lightcurves_radii[i]);
-	    buffer = (char *)realloc(buffer, (pos + size + 1) * sizeof(char));
-	    strncpy(&buffer[pos], temp, strlen(&buffer[pos]));
-	    free(temp);
-	    pos += size;
+		lightcurves_radii_string += std::to_string(lightcurves_radii[i]);
+		if (i != lightcurves_radii.size()-1) {
+			lightcurves_radii_string += ", ";
+		}
 	}
-	buffer[pos - 2] = '0';
-
-	logging::print_master(LOG_INFO "Lightcurves radii are: %s\n", buffer);
+	logging::print_master(LOG_INFO "Lightcurves radii are: %s\n", lightcurves_radii_string.c_str());
     }
 
     // particles

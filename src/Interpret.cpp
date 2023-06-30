@@ -123,7 +123,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
 	if (start_mode::mode == start_mode::mode_restart) {
 	    char str[12];
-	    sprintf(str, "%d", start_mode::restart_from);
+	    std::snprintf(str, 12, "%d", start_mode::restart_from);
 
 	    par_filename += "_restart_";
 	    par_filename += str;
@@ -354,7 +354,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	break;
     default:
 	die("Invalid setting for HydroFrameCenter: %s",
-	    cfg.get<std::string>("HydroFrameCenter", "primary"));
+	    cfg.get<std::string>("HydroFrameCenter", "primary").c_str());
     }
 
     if (parameters::n_bodies_for_hydroframe_center != 1 &&

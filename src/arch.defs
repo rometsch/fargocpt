@@ -48,3 +48,9 @@ ifeq (undefined,$(origin GSL_HOME))
 else
     GSL_PREFIX = $(GSL_HOME)
 endif
+# OPENMP location
+ifeq (undefined,$(origin OMP_HOME))
+    OMP_PREFIX = /usr
+else
+    OMP_PREFIX = $(OMP_HOME)
+endif

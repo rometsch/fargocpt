@@ -775,9 +775,8 @@ void calculate_accelerations_from_star_and_planets(
 	const double phi_planet = planet.get_phi();
 
 	const double delta_phi = phi - phi_planet;
-	double sin_delta_phi;
-	double cos_delta_phi;
-	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
+	double sin_delta_phi = std::sin(delta_phi);
+	double cos_delta_phi = std::cos(delta_phi);
 
 	const double distance_to_planet =
 	    std::sqrt(r * r + r_planet * r_planet -
@@ -842,9 +841,8 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 	const double planet_mass = planet.get_mass();
 
 	const double delta_phi = phi - phi_planet;
-	double sin_delta_phi;
-	double cos_delta_phi;
-	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
+	double sin_delta_phi = std::sin(delta_phi);
+	double cos_delta_phi = std::cos(delta_phi);
 
 	const double distance_to_planet = std::sqrt(
 	    r * r + r_planet * r_planet - 2.0 * r * r_planet * cos_delta_phi);

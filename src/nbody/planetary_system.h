@@ -1,8 +1,8 @@
 #pragma once
 
 #include "planet.h"
-#include "config.h"
-#include "rebound/rebound.h"
+#include "../config.h"
+#include "../rebound/rebound.h"
 #include <vector>
 
 class t_planetary_system

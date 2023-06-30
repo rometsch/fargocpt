@@ -24,7 +24,7 @@
 #include <cmath>
 #include <vector>
 #include <cassert>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include "viscosity/viscous_radial_speed.h"
@@ -87,7 +87,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 		std::string file_name_body = parameters::PRESCRIBED_BOUNDARY_OUTER_FILE + "/" + std::to_string(Nphi) + "shift";
 
 		std::string file_name_test = file_name_body + "0.dat";
-		if (!std::experimental::filesystem::exists(
+		if (!std::filesystem::exists(
 			file_name_test)) {
 		    die("Prescribed boundary file %s does not exist!\n",
 			file_name_test.c_str());
@@ -95,10 +95,10 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 
 		// get number of files
 		int num_files = 0;
-		const std::experimental::filesystem::path File_Folder{
+		const std::filesystem::path File_Folder{
 		    parameters::PRESCRIBED_BOUNDARY_OUTER_FILE};
 		for (auto const &dir_entry :
-		     std::experimental::filesystem::directory_iterator{
+		     std::filesystem::directory_iterator{
 			 File_Folder}) {
 		    std::string path_string{dir_entry.path()};
 		    if (path_string.find(file_name_body) != std::string::npos) {
@@ -136,7 +136,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 
 		// read data
 		for (auto const &dir_entry :
-		     std::experimental::filesystem::directory_iterator{
+		     std::filesystem::directory_iterator{
 			 File_Folder}) {
 		    std::string path_string{dir_entry.path()};
 		    if (path_string.find(file_name_body) != std::string::npos) {
