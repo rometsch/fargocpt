@@ -18,6 +18,7 @@ int CPU_Rank;
 /** total number of processes, not an unsigned integer because MPI excepts it to
  * be signed */
 int CPU_Number;
+int Thread_Number;
 
 /** is this process the master process */
 int CPU_Master;

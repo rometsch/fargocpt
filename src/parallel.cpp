@@ -46,8 +46,12 @@ void init_parallel(int argc, char *argv[]) {
 		int omp_num = omp_get_num_threads();
 		logging::print(LOG_INFO "MPI rank # %2d OpenMP thread # %2d of %2d on %s\n", CPU_Rank, omp_id, omp_num, CPU_Name);
 		fflush(stdout);
+		if (omp_id == 0) {
+			Thread_Number = omp_num;
+		}
 	}
 #else
+	Thread_Number = 1;
 	printf("MPI rank # %2d \n", CPU_Rank);
 	fflush(stdout);
 #endif

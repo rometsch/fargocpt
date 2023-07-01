@@ -9,6 +9,7 @@
 
 extern int CPU_Rank;
 extern int CPU_Number;
+extern int Thread_Number;
 extern int CPU_Master;
 extern int CPU_Next;
 extern int CPU_Prev;
