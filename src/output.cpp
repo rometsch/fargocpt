@@ -243,29 +243,49 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 	}
     }
 
-	fld::Ka.set_name("Ka");
-	fld::Ka.write2D();
-	fld::Kb.set_name("Kb");
-	fld::Kb.write2D();
-	fld::A.set_name("A");
-	fld::A.write2D();
-	fld::B.set_name("B");
-	fld::B.write2D();
-	fld::C.set_name("C");
-	fld::C.write2D();
-	fld::D.set_name("D");
-	fld::D.write2D();
-	fld::E.set_name("E");
-	fld::E.write2D();
-
-	fld::Trad.set_name("Trad");
-	fld::Trad.write2D();
-
-	fld::Erad.set_name("Erad");
-	fld::Erad.write2D();
-	
-	fld::Xold.set_name("Xold");
-	fld::Xold.write2D();
+	if (parameters::radiative_diffusion_test_module) {
+		fld2::Ka.set_name("Ka");
+		fld2::Ka.write2D();
+		fld2::Kb.set_name("Kb");
+		fld2::Kb.write2D();
+		fld2::A.set_name("A");
+		fld2::A.write2D();
+		fld2::B.set_name("B");
+		fld2::B.write2D();
+		fld2::C.set_name("C");
+		fld2::C.write2D();
+		fld2::D.set_name("D");
+		fld2::D.write2D();
+		fld2::E.set_name("E");
+		fld2::E.write2D();
+		fld2::Trad.set_name("Trad");
+		fld2::Trad.write2D();
+		fld2::Erad.set_name("Erad");
+		fld2::Erad.write2D();
+		fld2::Xold.set_name("Xold");
+		fld2::Xold.write2D();
+	} else {
+		fld::Ka.set_name("Ka");
+		fld::Ka.write2D();
+		fld::Kb.set_name("Kb");
+		fld::Kb.write2D();
+		fld::A.set_name("A");
+		fld::A.write2D();
+		fld::B.set_name("B");
+		fld::B.write2D();
+		fld::C.set_name("C");
+		fld::C.write2D();
+		fld::D.set_name("D");
+		fld::D.write2D();
+		fld::E.set_name("E");
+		fld::E.write2D();
+		fld::Trad.set_name("Trad");
+		fld::Trad.write2D();
+		fld::Erad.set_name("Erad");
+		fld::Erad.write2D();
+		fld::Xold.set_name("Xold");
+		fld::Xold.write2D();
+	}
 
     // write polar grids
     output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::PhysicalTime);

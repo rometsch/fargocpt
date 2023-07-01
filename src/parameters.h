@@ -172,6 +172,7 @@ extern bool radiative_diffusion_test_2d;
 extern double radiative_diffusion_test_2d_density;
 // enable 1d test
 extern bool radiative_diffusion_test_1d;
+extern bool radiative_diffusion_test_module;
 
 // initialisation
 enum t_initialize_condition {

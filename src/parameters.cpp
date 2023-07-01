@@ -113,6 +113,8 @@ double radiative_diffusion_tolerance;
 double radiative_diffusion_test_2d_density;
 bool radiative_diffusion_test_2d;
 bool radiative_diffusion_test_1d;
+bool radiative_diffusion_test_module;
+
 
 t_initialize_condition sigma_initialize_condition;
 std::string sigma_filename;
@@ -820,6 +822,8 @@ void read(const std::string &filename, t_data &data)
 	radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
 	radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
 	radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
+	radiative_diffusion_test_module = config::cfg.get_flag("RadiativeDiffusionTestModule", "no");
+
 
     zbuffer_size = config::cfg.get<unsigned int>("zbufferSize", 100);
     zbuffer_maxangle =

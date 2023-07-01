@@ -1,4 +1,4 @@
-#include "fld.h"
+#include "fld2.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -15,7 +15,7 @@
 #include "compute.h"
 
 
-namespace fld {
+namespace fld2 {
 
 // Radiative transport using Flux-Limited-Diffusion
 // This was first implemented by Tobias Müller according to his Ph.D. thesis 2013. 
@@ -37,6 +37,19 @@ double Erad_min;
 
 bool use_temperature;
 bool constant_fluxlimiter;
+
+// The full hydro algorithm needs multiple overlapping cells between
+// two adjacent cores because many substeps in which information can flow are involved.
+// This number is store in the global variable CPUOVERLAP.
+// For radiative transport, only one overlap cell is needed
+// because in every iteration of the matrix solver information flows only one step.
+// Hence we can safe time during communication by reducing the overlap to one inside this module.
+// We need to consider that the arrays are still allocated with the global CPUOVERLAP,
+// so we define an nstart and nstop for the iteration of the solver iteration loop.
+const unsigned int cpuoverlap = 1;
+unsigned int nstart;
+unsigned int nstop;
+unsigned int nskip;
 
 double *SendInnerBoundary;
 double *SendOuterBoundary;
@@ -86,10 +99,10 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 		Xtmp.set_size(Nrad, Naz);
 	}
 
-    SendInnerBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
-    SendOuterBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
-    RecvInnerBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
-    RecvOuterBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
+    SendInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
+    SendOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
+    RecvInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
+    RecvOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
 
 	constant_fluxlimiter = parameters::radiative_diffusion_test_2d || parameters::radiative_diffusion_test_1d;
 	use_temperature = parameters::radiative_diffusion_variable == parameters::t_radiative_diffusion_variable::temperature;
@@ -98,7 +111,19 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	Erad_min = aR*std::pow(parameters::minimum_temperature, 4);
 	Erad_max = aR*std::pow(parameters::maximum_temperature, 4);
 
-	fld2::init(Nrad, Naz);
+	// define start and end radial index for the solver iteration loop
+	if (CPU_Rank == 0) {
+		nstart = 1;
+	} else {
+		nstart = CPUOVERLAP;
+	}
+	nskip = nstart;
+
+	if (CPU_Rank == CPU_Highest) {
+		nstop = NRadial - 1;
+	} else {
+		nstop = NRadial - CPUOVERLAP;
+	}
 }
 
 void finalize() {
@@ -106,7 +131,6 @@ void finalize() {
     free(SendOuterBoundary);
     free(RecvInnerBoundary);
     free(RecvOuterBoundary);
-	fld2::finalize();
 }
 
 
@@ -390,54 +414,66 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 // Communicate the temperature values among adjacent nodes
 static void communicate_parallelization_boundaries(t_polargrid &Temperature) {
 
-    const int l = CPUOVERLAP * NAzimuthal;
-    const int oo = (Temperature.Nrad - CPUOVERLAP) * NAzimuthal;
-    const int o = (Temperature.Nrad - 2 * CPUOVERLAP) * NAzimuthal;
+	const unsigned int Nrad = Temperature.Nrad;
+	const unsigned int Naz = NAzimuthal;
+
+    const int l = cpuoverlap * NAzimuthal;
+    const int oo = (Nrad - cpuoverlap) * NAzimuthal;
+    const int o = (Nrad - 2 * cpuoverlap) * NAzimuthal;
+
+	const unsigned int start_active = CPUOVERLAP*Naz;
+	const unsigned int end_active = (Nrad - CPUOVERLAP)*Naz;
+	const unsigned int last_active = end_active - l;
+
+	const unsigned int start_inner_boundary = (CPUOVERLAP-cpuoverlap)*Naz;
+	const unsigned int start_outer_boundary = end_active;
 
 	// communicate with other nodes
-	memcpy(SendInnerBoundary, Temperature.Field + l, l * sizeof(double));
-	memcpy(SendOuterBoundary, Temperature.Field + o, l * sizeof(double));
+	memcpy(SendInnerBoundary, Temperature.Field + start_active, l * sizeof(double));
+	memcpy(SendOuterBoundary, Temperature.Field + last_active, l * sizeof(double));
 
 	MPI_Request req1, req2, req3, req4;
 
 	if (CPU_Rank % 2 == 0) {
 	    if (CPU_Rank != 0) {
-		MPI_Isend(SendInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendInnerBoundary, l,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req1);
-		MPI_Irecv(RecvInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvInnerBoundary, l,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req2);
 	    }
 	    if (CPU_Rank != CPU_Highest) {
-		MPI_Isend(SendOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendOuterBoundary, l,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req3);
-		MPI_Irecv(RecvOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvOuterBoundary, l,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req4);
 	    }
 	} else {
 	    if (CPU_Rank != CPU_Highest) {
-		MPI_Irecv(RecvOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvOuterBoundary, l,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req3);
-		MPI_Isend(SendOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendOuterBoundary, l,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req4);
 	    }
 	    if (CPU_Rank != 0) {
-		MPI_Irecv(RecvInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvInnerBoundary, l,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req1);
-		MPI_Isend(SendInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendInnerBoundary, l,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req2);
 	    }
 	}
 
+	// copy values revceived from inner core to the inner local boundary
 	if (CPU_Rank != 0) {
 	    MPI_Wait(&req1, &global_MPI_Status);
 	    MPI_Wait(&req2, &global_MPI_Status);
-	    memcpy(Temperature.Field, RecvInnerBoundary, l * sizeof(double));
+	    memcpy(Temperature.Field + start_inner_boundary, RecvInnerBoundary, l * sizeof(double));
 	}
 
+	// copy values received from outer core to the outer local boundary
 	if (CPU_Rank != CPU_Highest) {
 	    MPI_Wait(&req3, &global_MPI_Status);
 	    MPI_Wait(&req4, &global_MPI_Status);
-	    memcpy(Temperature.Field + oo, RecvOuterBoundary,
+	    memcpy(Temperature.Field + start_outer_boundary, RecvOuterBoundary,
 		   l * sizeof(double));
 	}
 }
@@ -531,8 +567,6 @@ static void Jacobi(t_polargrid &X) {
     const unsigned int Nrad = X.get_size_radial();
     const unsigned int Naz = X.get_size_azimuthal();
 
-    static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
-
     unsigned int iterations = 0;
 	double absolute_norm = std::numeric_limits<double>::max();
 	double norm_change = std::numeric_limits<double>::max();
@@ -550,7 +584,7 @@ static void Jacobi(t_polargrid &X) {
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
 	#pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
-	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
+	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
         const unsigned int naz_last = X.get_max_azimuthal();
@@ -603,8 +637,6 @@ static void Jacobi(t_polargrid &X) {
 	    parameters::radiative_diffusion_max_iterations, absolute_norm, norm_change);
     }
 
-    old_iterations = iterations;
-
     logging::print_master(LOG_VERBOSE "%u iterations\n", iterations);
 }
 
@@ -632,9 +664,22 @@ static void SOR(t_polargrid &X) {
 
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
+
+	static const unsigned int chunk_size = std::ceil((float)(nstop-nstart+1)/Thread_Number);
+	if (iterations==0) {
+		printf("[%i] Thread number = %i, chunk size = %u, size = %i\n", CPU_Rank, Thread_Number, chunk_size, nstop - nstart+1);
+	}
 // #pragma omp parallel for collapse(2) shared(X) reduction(+ : absolute_norm) schedule(static,1)
-	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
-#pragma omp parallel for shared(X) reduction(+ : absolute_norm) schedule(static,1)
+// #pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic)
+#pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic, chunk_size)
+	// int id = omp_get_thread_num();
+    // int b = id * chunk_size;
+    // int e = id == n_threads - 1 ? n : b + chunk_size;
+    // printf("thread %d: %d items\n", id, e - b);
+    // for (int i = b; i < e; i++) {
+    //   // process item i
+    // }
+	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
 		const double old_value = X(nr, naz);

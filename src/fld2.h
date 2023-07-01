@@ -1,9 +1,8 @@
 #pragma once
 
 #include "data.h"
-#include "fld2.h"
 
-namespace fld {
+namespace fld2 {
 
 extern t_polargrid Ka, Kb, A, B, C, D, E, Erad, Trad, Xold;
 
