@@ -94,10 +94,10 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	Xold.set_scalar(true);
 	Xold.set_size(Nrad, Naz);
 
-	if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::Jacobi) {
+	// if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::Jacobi) {
 		Xtmp.set_scalar(true);
 		Xtmp.set_size(Nrad, Naz);
-	}
+	// }
 
     SendInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
     SendOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
@@ -575,6 +575,14 @@ static void Jacobi(t_polargrid &X) {
 	const double tolerance = parameters::radiative_diffusion_tolerance;
 	const unsigned int maxiter = parameters::radiative_diffusion_max_iterations;
 
+	// initialize solution vector with zero
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = nstart; nr < nstop; ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+			X(nr, naz) = 0.0;
+		}
+	}
+
     while ((norm_change > tolerance) && (maxiter > iterations)) {
 
     boundary_T_SOR(X);
@@ -665,13 +673,13 @@ static void SOR(t_polargrid &X) {
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
 
-	static const unsigned int chunk_size = std::ceil((float)(nstop-nstart+1)/Thread_Number);
-	if (iterations==0) {
-		printf("[%i] Thread number = %i, chunk size = %u, size = %i\n", CPU_Rank, Thread_Number, chunk_size, nstop - nstart+1);
-	}
+	// static const unsigned int chunk_size = std::ceil((float)(nstop-nstart+1)/Thread_Number);
+	// if (iterations==0) {
+	// 	printf("[%i] Thread number = %i, chunk size = %u, size = %i\n", CPU_Rank, Thread_Number, chunk_size, nstop - nstart+1);
+	// }
 // #pragma omp parallel for collapse(2) shared(X) reduction(+ : absolute_norm) schedule(static,1)
 // #pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic)
-#pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic, chunk_size)
+// #pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic, chunk_size)
 	// int id = omp_get_thread_num();
     // int b = id * chunk_size;
     // int e = id == n_threads - 1 ? n : b + chunk_size;
@@ -679,6 +687,8 @@ static void SOR(t_polargrid &X) {
     // for (int i = b; i < e; i++) {
     //   // process item i
     // }
+
+#pragma omp parallel for collapse(2) shared(X) reduction(+ : absolute_norm) schedule(static,1)
 	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
@@ -852,6 +862,101 @@ static void floor_T(t_polargrid &T){
     }
 }
 
+
+void check_solution(t_polargrid &X) {
+	
+	double diff = 0;
+	double diff_abs = 0;
+
+	const unsigned int Nrad = X.get_size_radial();
+	const unsigned int Naz = X.get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2) reduction(+ : diff, diff_abs)
+	for (unsigned int nr = nstart; nr < nstop; ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+
+        const unsigned int naz_last = X.get_max_azimuthal();
+		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
+		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
+
+		const double xold = Xold(nr, naz); // value at iteration n
+		const double xnew =
+			A(nr, naz) * X(nr - 1, naz) +
+			B(nr, naz) * X(nr, naz) +
+			C(nr, naz) * X(nr + 1, naz) +
+			D(nr, naz) * X(nr, naz_prev) +
+			E(nr, naz) * X(nr, naz_next);
+
+		// only non ghostcells to norm and don't count overlap cell's
+		// twice
+		if (is_active(nr)) {
+			diff += xnew - xold;
+			diff_abs += std::abs(xnew - xold);
+		}
+		} // azimuthal loop
+	} // radial loop
+
+
+    double tmp = diff;
+	MPI_Allreduce(&tmp, &diff, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	printf("Sum of differences in RD solver : %e\n", diff);
+
+	tmp = diff_abs;
+	MPI_Allreduce(&tmp, &diff_abs, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	printf("Sum of |differences| in RD solver : %e\n", diff_abs);
+}
+
+
+void check_matrix() {
+	
+	double diff = 0;
+	double diff_abs = 0;
+
+	const unsigned int Nrad = A.get_size_radial();
+	const unsigned int Naz = A.get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2) reduction(+ : diff, diff_abs)
+	for (unsigned int nr = nstart; nr < nstop; ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+
+		if (!is_active(nr)) {
+			continue;
+		}
+
+		const double d = B(nr, naz);
+		const double a1 = A(nr, naz);
+		const double a2 = C(nr, naz);
+		const double a3 = D(nr, naz);
+		const double a4 = E(nr, naz);
+
+		if (std::abs(a1) > std::abs(d)) {
+			printf("Off diagonal element A = %e > diagonal %e at (%u, %u)\n", a1, d, nr, naz);
+		}
+
+		if (std::abs(a2) > std::abs(d)) {
+			printf("Off diagonal element C = %e > diagonal %e at (%u, %u)\n", a2, d, nr, naz);
+		}
+
+		if (std::abs(a3) > std::abs(d)) {
+			printf("Off diagonal element D = %e > diagonal %e at (%u, %u)\n", a3, d, nr, naz);
+		}
+
+		if (std::abs(a4) > std::abs(d)) {
+			printf("Off diagonal element E = %e > diagonal %e at (%u, %u)\n", a4, d, nr, naz);
+		}
+
+
+		} // azimuthal loop
+	} // radial loop
+
+
+    // double tmp = diff;
+	// MPI_Allreduce(&tmp, &diff, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	// printf("Sum of differences in RD solver : %e\n", diff);
+
+}
+
+
 static void radiative_diffusion_energy(t_data &data, const double dt) {
 
 	// instantaneously equilibrate photon gas temperature to ideal gas temperature
@@ -871,6 +976,9 @@ static void radiative_diffusion_energy(t_data &data, const double dt) {
 	} else {
 		Jacobi(Erad);
 	}
+
+	check_matrix();
+	check_solution(Erad);
 
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	compute_radiation_temperature(Trad, Erad);
@@ -897,11 +1005,15 @@ static void radiative_diffusion_temperature(t_data &data, const double dt) {
 		Jacobi(Trad);
 	}
 
+	check_matrix();
+	check_solution(Trad);
+
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	copy_polargrid(data[t_data::TEMPERATURE], Trad);
 
 	compute_radiation_energy_density(Erad, Trad);
 }
+
 
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
 {

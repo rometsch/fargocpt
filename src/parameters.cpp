@@ -1457,10 +1457,11 @@ void summarize_parameters()
 	cooling_radiative_factor);
     logging::print_master(
 	LOG_INFO
-	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
+	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations using %s solver.\n",
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
-	radiative_diffusion_omega, radiative_diffusion_max_iterations);
+	radiative_diffusion_omega, radiative_diffusion_max_iterations,
+	radiative_diffusion_solver == t_radiative_diffusion_solver::SOR ? "SOR" : "Jacobi");
 
     logging::print_master(
         LOG_INFO "S-curve cooling is %s. \n",

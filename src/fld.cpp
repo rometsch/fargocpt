@@ -541,6 +541,15 @@ static void Jacobi(t_polargrid &X) {
 	const double tolerance = parameters::radiative_diffusion_tolerance;
 	const unsigned int maxiter = parameters::radiative_diffusion_max_iterations;
 
+	// initialize solution vector with zero
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 0; nr < X.get_max_radial(); ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+			X(nr, naz) = 0.0;
+		}
+	}
+
+
     while ((norm_change > tolerance) && (maxiter > iterations)) {
 
     boundary_T_SOR(X);
@@ -860,6 +869,10 @@ static void radiative_diffusion_temperature(t_data &data, const double dt) {
 
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
 {
+	if (parameters::radiative_diffusion_test_module) {
+		fld2::radiative_diffusion(data, current_time, dt);
+		return;
+	}
     set_minimum_energy(data);
 	
     // update temperature, soundspeed and aspect ratio
