@@ -55,13 +55,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 
 		// Phi = GMm / r_sm
 		// r_sm = sqrt(r**2 + (eps * H)**2)
-		// H = h*r = h * r**(F+1)
-		// d r_sm / dx = x/r_sm  *  (1 + (F+1) * (eps * H / r)**2)
-		// dPhi/dx = GMm / r_sm**3 * x * (1 + (F+1) * (eps * H / r)**2)
-		const double F = parameters::FLARINGINDEX;
-		const double h = data[t_data::ASPECTRATIO](n_rad, n_az);
-		const double eps = parameters::thickness_smoothing;
-		const double smoothing_derivative_factor = 1.0 + (F + 1.0) * std::pow(h * eps, 2);
+
 	    const int cell_id = n_az + n_rad * ns;
 	    const double xc = cell_center_x[cell_id];
 	    const double yc = cell_center_y[cell_id];
@@ -102,14 +96,14 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 
 	    if (Rmed[n_rad] < a) {
 		axi += constants::G * cellmass * dx * inv_dist_sm_3 *
-			   smooth_factor_klahr * smoothing_derivative_factor;
+			   smooth_factor_klahr;
 		ayi += constants::G * cellmass * dy * inv_dist_sm_3 *
-			   smooth_factor_klahr * smoothing_derivative_factor;
+			   smooth_factor_klahr;
 	    } else {
 		axo += constants::G * cellmass * dx * inv_dist_sm_3 *
-			   smooth_factor_klahr * smoothing_derivative_factor;
+			   smooth_factor_klahr;
 		ayo += constants::G * cellmass * dy * inv_dist_sm_3 *
-			   smooth_factor_klahr * smoothing_derivative_factor;
+			   smooth_factor_klahr;
 	    }
 	}
     }
