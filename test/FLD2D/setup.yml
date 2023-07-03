@@ -2,10 +2,24 @@ DiskFeedback: no   # Calculate incfluence of the disk on the star
 # DT: 2e-18 # 
 Ninterm: 1
 Ntot : 1
-DT:      1e-5
-FirstDT: 1e-5 # initial hydro dt / dt in case of no disk
+DT:      1e-10
+FirstDT: 1e-10 # initial hydro dt / dt in case of no disk
 
-RadiativeDiffusionSolver: Jacobi
+RadiativeDiffusionSolver: SOR
+RadiativeDiffusionTestModule: yes
+RadiativeDiffusion: Yes     
+RadiativeDiffusionOmega: 1.5   # [default = 1.5]
+RadiativeDiffusionAutoOmega: No     # [default = no]
+RadiativeDiffusionMaxIterations: 50000   # [default = 50000]
+RadiativeDiffusionTolerance: 1e-12
+RadiativeDiffusionTest2D: yes
+RadiativeDiffusionTest2DDensity: 1 g/cm3
+RadiativeDiffusionVariable: energy
+
+MinimumTemperature: 3 K   # minimum Temperature in K
+MaximumTemperature: 1e100 K   # maximum Temperature in K
+Opacity: constant   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
+KappaConst: 1.0 cm2/g
 
 OutputDir: output/out/
 
@@ -32,19 +46,9 @@ CoolingRadiativeLocal: No   # enable local radiative cooling Q- = 2 * sigma_R * 
 CoolingBetaLocal: No    # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBetaReference: initial
 CoolingBeta: 100
-RadiativeDiffusion: Yes     
-RadiativeDiffusionOmega: 1.5   # [default = 1.5]
-RadiativeDiffusionAutoOmega: No     # [default = no]
-RadiativeDiffusionMaxIterations: 50000   # [default = 50000]
-RadiativeDiffusionTolerance: 1e-12
-RadiativeDiffusionTest2D: yes
-RadiativeDiffusionTest2DDensity: 1 g/cm3
-RadiativeDiffusionVariable: energy
 
-MinimumTemperature: 1e-10 K   # minimum Temperature in K
-MaximumTemperature: 1e100 K   # maximum Temperature in K
-Opacity: constant   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
-KappaConst: 1.0 cm2/g
+
+
 CFL: '0.5'
 HeatingCoolingCFLlimit: '1.0'   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 

@@ -27,10 +27,11 @@ A = 0.5*(Ri[1:,1:]**2 - Ri[:-1,1:]**2)*dphi
 nr = Nrad//2
 nphi = 0
 
-print(dr[nr])
+# print(dr[nr])
 
 energy0 = 1e10 / A[nr, nphi]
-energymin = 1e-10*energy0
+# energymin = 1e-10*energy0
+energymin = 0
 energy = np.ones((Nrad, Naz), dtype=np.float64)*energymin
 
 energy[nr, nphi] = energy0
