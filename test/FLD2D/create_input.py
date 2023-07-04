@@ -4,65 +4,106 @@ import numpy as np
 import yaml
 import astropy.constants as const
 import astropy.units as units
+from types import SimpleNamespace
 
+def get_fargo_grid(setupfile):
 
-# get size of grid specified in the setup file
-with open("setup.yml", "r") as infile:
-    params = yaml.safe_load(infile)
-    Nrad = params["Nrad"]
-    Naz = params["Nsec"]
-    rmin = params["Rmin"]
-    rmax = params["Rmax"]
+    # get size of grid specified in the setup file
+    with open(setupfile, "r") as infile:
+        params = yaml.safe_load(infile)
+        Nrad = params["Nrad"]
+        Naz = params["Nsec"]
+        rmin = params["Rmin"]
+        rmax = params["Rmax"]
 
-ri = np.linspace(rmin, rmax, Nrad+1)
-phii = np.linspace(0, 2*np.pi, Naz+1)
-Ri, Phii = np.meshgrid(ri, phii, indexing="ij")
-rc = 2/3*(ri[1:]**2/(ri[1:]+ri[:-1])) + ri[:-1] # approx center in polar coords
-phic = 0.5*(phii[1:]+phii[:-1])
+    ri = np.linspace(rmin, rmax, Nrad+1)
+    phii = np.linspace(0, 2*np.pi, Naz+1)
+    Ri, Phii = np.meshgrid(ri, phii, indexing="ij")
+    Xi = Ri*np.cos(Phii)
+    Yi = Ri*np.sin(Phii)
 
-Rc, Phic = np.meshgrid(rc, phic, indexing="ij")
-Xc = Rc*np.cos(Phic)
-Yc = Rc*np.sin(Phic)
+    rc = 2/3*(ri[1:]**2/(ri[1:]+ri[:-1])) + ri[:-1] # approx center in polar coords
+    phic = 0.5*(phii[1:]+phii[:-1])
+    Rc, Phic = np.meshgrid(rc, phic, indexing="ij")
+    Xc = Rc*np.cos(Phic)
+    Yc = Rc*np.sin(Phic)
 
-dphi = phii[1] - phii[0]
-dr = ri[1:] - ri[:-1]
-A = 0.5*(Ri[1:,1:]**2 - Ri[:-1,1:]**2)*dphi
+    dphi = phii[1] - phii[0]
+    dr = ri[1:] - ri[:-1]
+    A = 0.5*(Ri[1:,1:]**2 - Ri[:-1,1:]**2)*dphi
 
-# now create an energy array with values in cgs with the energy located in one cell
-
-nr = Nrad//2
-nphi = 0
-
-# print(dr[nr])
-
-c = 1e10
-rho = 1
-kappa = 1
-K = 1/3*c/(rho*kappa)
-
-xcell = Xc[nr, nphi]
-ycell = Yc[nr, nphi]
-DX = Xc - xcell
-DY = Yc - ycell
-Dist = np.sqrt(DX**2 + DY**2)
+    return SimpleNamespace(
+        Nrad=Nrad, Naz=Naz,
+        ri=ri, phii=phii, Ri=Ri, Phii=Phii, Xi=Xi, Yi=Yi,
+        rc=rc, phic=phic, Rc=Rc, Phic=Phic, Xc=Xc, Yc=Yc, 
+        dphi=dphi, dr=dr, A=A
+    )
 
 def analytical_solution(r, t, E0, K):
     return 3*E0/(4*np.pi*t*K)*np.exp(-r**2/(4*K*t))
 
-t0 = 1e-10
+def get_solution_array(setupfile, t):
+    g = get_fargo_grid(setupfile)
 
-energy0 = 1e10 / A[nr, nphi]
-# energymin = 1e-10*energy0
-# energymin = 0
-# energy = np.ones((Nrad, Naz), dtype=np.float64)*energymin
+    nr = g.Nrad//2
+    nphi = 0
 
-initial_condition = analytical_solution(Dist,t0, energy0, K)
-energy = initial_condition
+    # print(dr[nr])
 
-# save this energy array to file
-energy.tofile("output/out/snapshots/0/energy.dat")
+    c = 1e10
+    rho = 1
+    kappa = 1
+    K = 1/3*c/(rho*kappa)
 
-import os
-if os.path.exists("output/out/snapshots/damping"):
-    energy.tofile("output/out/snapshots/damping/energy.dat")
+    E0 = 1e2
+    energy0 = E0 / g.A[nr, nphi]
+
+    xcell = g.Xc[nr, nphi]
+    ycell = g.Yc[nr, nphi]
+    DX = g.Xc - xcell
+    DY = g.Yc - ycell
+    Dist = np.sqrt(DX**2 + DY**2)
+
+    return analytical_solution(Dist,t, energy0, K)
+
+def Erad_to_Eint(Erad):
+    """ Convert radiative energy density to internal energy density based on the test model. """
+    mu = 2.35
+    gamma = 1.4
+
+    Rg = const.k_B / const.m_p
+    cv = Rg / mu / (gamma - 1)
+    cv = cv.cgs.value
+    Sigma = 1 # g/cm3
+
+    sigmaR = const.sigma_sb
+    aR = 4*sigmaR/const.c
+    aR = aR.to_value("erg/(cm3*K4)")
+    Trad = (Erad/aR)**0.25
+
+    # assume instantaneous equilibrium
+    Tgas = Trad
+
+    Eint = cv*Sigma*Tgas
+    return Eint
+
+
+
+if __name__ == "__main__":
+    # now create an energy array with values in cgs with the energy located in one cell
+    
+    # get initial time
+    with open("test_settings.yml", "r") as infile:
+        params = yaml.safe_load(infile)
+        t0 = float(params["t0"])
+
+    Erad = get_solution_array("setup.yml", t0)
+    initial_condition = Erad_to_Eint(Erad)
+
+    # save this energy array to file
+    initial_condition.tofile("output/out/snapshots/0/energy.dat")
+
+    import os
+    if os.path.exists("output/out/snapshots/damping"):
+        initial_condition.tofile("output/out/snapshots/damping/energy.dat")
 
