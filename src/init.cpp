@@ -163,17 +163,17 @@ void init_radialarrays()
     }
 
 
-    for (nRadial = 0; nRadial < GlobalNRadial + search_buffer; ++nRadial) {
+    for (unsigned int nr = 0; nr < GlobalNRadial + search_buffer; ++nr) {
 	// Rmed is in the center of the cell where the center of mass is
 	// Rmed = 1/2 * [ (4/3 Pi r_sup^3) - (4/3 Pi r_inf^3) ] / [ (Pi r_sup^2)
 	// - (Pi r_inf^2) ]
-	GlobalRmed[nRadial] =
-	    2.0 / 3.0 *
-	    (Radii[nRadial + 1] * Radii[nRadial + 1] * Radii[nRadial + 1] -
-	     Radii[nRadial] * Radii[nRadial] * Radii[nRadial]);
-	GlobalRmed[nRadial] =
-	    GlobalRmed[nRadial] / (Radii[nRadial + 1] * Radii[nRadial + 1] -
-				   Radii[nRadial] * Radii[nRadial]);
+	// Note that this is different from the center of mass of the cell which is
+	// Rmed = 4/3(r2^3-r1^3)/(r2^2-r1^2)*(1-cos(dphi))/dphi
+	// However, the latter does not lie in the cell for large phi2-phi1
+	// and converges to the former for small dphi with differences as dphi^3
+	// around x=0: (1-cos(x))/x = x/2 + x^3/24 + x^5/720 + O(x^7)
+	GlobalRmed[nr] = 2.0 / 3.0 * (std::pow(Radii[nr + 1],3) - std::pow(Radii[nr],3));
+	GlobalRmed[nr] = GlobalRmed[nr] / (std::pow(Radii[nr + 1],2) - std::pow(Radii[nr],2));
     }
 
     logging::print_master(
