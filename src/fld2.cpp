@@ -912,10 +912,31 @@ void check_matrix() {
 	double diff = 0;
 	double diff_abs = 0;
 
+	double min_d = 1e300;
+	double max_d = -1e300;
+	double avg_d = 0;
+
+	double min_a1 = 1e300;
+	double max_a1 = -1e300;
+	double avg_a1 = 0;
+
+	double min_a2 = 1e300;
+	double max_a2 = -1e300;
+	double avg_a2 = 0;
+
+	double min_a3 = 1e300;
+	double max_a3 = -1e300;
+	double avg_a3 = 0;
+
+	double min_a4 = 1e300;
+	double max_a4 = -1e300;
+	double avg_a4 = 0;
+
+
 	const unsigned int Nrad = A.get_size_radial();
 	const unsigned int Naz = A.get_size_azimuthal();
 
-	#pragma omp parallel for collapse(2) reduction(+ : diff, diff_abs)
+	// #pragma omp parallel for collapse(2) reduction(+ : diff, diff_abs)
 	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
@@ -928,6 +949,26 @@ void check_matrix() {
 		const double a2 = C(nr, naz);
 		const double a3 = D(nr, naz);
 		const double a4 = E(nr, naz);
+
+		avg_d += d;
+		min_d = std::min(min_d, d);
+		max_d = std::max(max_d, d);
+
+		avg_a1 += a1 ;
+		min_a1 = std::min(min_a1, a1);
+		max_a1 = std::max(max_a1, a1);
+
+		avg_a2 += a2 ;
+		min_a2 = std::min(min_a2, a2);
+		max_a2 = std::max(max_a2, a2);
+
+		avg_a3 += a3 ;
+		min_a3 = std::min(min_a3, a3);
+		max_a3 = std::max(max_a3, a3);
+
+		avg_a4 += a4 ;
+		min_a4 = std::min(min_a4, a4);
+		max_a4 = std::max(max_a4, a4);
 
 		if (std::abs(a1) > std::abs(d)) {
 			printf("Off diagonal element A = %e > diagonal %e at (%u, %u)\n", a1, d, nr, naz);
@@ -948,6 +989,18 @@ void check_matrix() {
 
 		} // azimuthal loop
 	} // radial loop
+
+	avg_d /= (nstop - nstart +1)*(Naz);
+	avg_a1 /= (nstop - nstart +1)*(Naz);
+	avg_a2 /= (nstop - nstart +1)*(Naz);
+	avg_a3 /= (nstop - nstart +1)*(Naz);
+	avg_a4 /= (nstop - nstart +1)*(Naz);
+
+	printf("Matrix B diagonal elements: min = %e, max = %e. avg = %e\n", min_d, max_d, avg_d);
+	printf("Matrix A a1 elements: min = %e, max = %e. avg = %e\n", min_a1, max_a1, avg_a1);
+	printf("Matrix C a2 elements: min = %e, max = %e. avg = %e\n", min_a2, max_a2, avg_a2);
+	printf("Matrix D a3 elements: min = %e, max = %e. avg = %e\n", min_a3, max_a3, avg_a3);
+	printf("Matrix E a4 elements: min = %e, max = %e. avg = %e\n", min_a4, max_a4, avg_a4);
 
 
     // double tmp = diff;
