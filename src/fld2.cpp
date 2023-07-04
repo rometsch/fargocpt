@@ -650,6 +650,9 @@ static void Jacobi(t_polargrid &X) {
 
 
 static void SOR(t_polargrid &X) {
+	/*
+	Solve the linear system using succesive over-relaxation.
+	*/
 
     const unsigned int Nrad = X.get_size_radial();
     const unsigned int Naz = X.get_size_azimuthal();
@@ -673,22 +676,11 @@ static void SOR(t_polargrid &X) {
 	norm_change = absolute_norm;
 	absolute_norm = 0.0;
 
-	// static const unsigned int chunk_size = std::ceil((float)(nstop-nstart+1)/Thread_Number);
-	// if (iterations==0) {
-	// 	printf("[%i] Thread number = %i, chunk size = %u, size = %i\n", CPU_Rank, Thread_Number, chunk_size, nstop - nstart+1);
-	// }
-// #pragma omp parallel for collapse(2) shared(X) reduction(+ : absolute_norm) schedule(static,1)
-// #pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic)
-// #pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic, chunk_size)
-	// int id = omp_get_thread_num();
-    // int b = id * chunk_size;
-    // int e = id == n_threads - 1 ? n : b + chunk_size;
-    // printf("thread %d: %d items\n", id, e - b);
-    // for (int i = b; i < e; i++) {
-    //   // process item i
-    // }
-
-#pragma omp parallel for collapse(2) shared(X) reduction(+ : absolute_norm) schedule(static,1)
+	// Each thread should get a single consecutive range of rings just as in the MPI parallelization.
+	// We first calculate the size of these consecutive ring ranges (chunk_size) and then tell openmp
+	// to give every thread chunk_size consecutive rings with the schedule(dynamic, chunk_size) directive.
+	static const unsigned int chunk_size = std::ceil((float)(nstop-nstart+1)/Thread_Number);
+	#pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic, chunk_size)
 	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
