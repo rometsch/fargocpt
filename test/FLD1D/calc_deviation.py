@@ -3,12 +3,17 @@
 import os
 import numpy as np
 from types import SimpleNamespace
-
+from argparse import ArgumentParser
+from matplotlib import colormaps
 
 def main():
 
-    test_name = "FLD1D"
-    success = calc_deviation(os.getcwd()+"/output/out")
+    parser = ArgumentParser()
+    parser.add_argument("testname")
+    opts = parser.parse_args()
+
+    test_name = "FLD1D" + "-" + opts.testname
+    success = calc_deviation(os.getcwd()+"/output/out", test_name)
 
     if success:
         print(f"SUCCESS: {test_name}")
@@ -18,7 +23,7 @@ def main():
 
 
 
-def calc_deviation(outdir):
+def calc_deviation(outdir, testname):
 
     data = load_data(outdir)
 
@@ -31,13 +36,13 @@ def calc_deviation(outdir):
     theo = theoretical_results(data.rc)
 
     deltaT = data.Tprofiles[Nlast] / theo.T - 1
-    dev = np.max(np.abs(deltaT[data.rc < 6]))
+    dev = np.max(np.abs(deltaT[data.rc < 9.5]))
 
     success = dev < 0.1
 
-    make_plot_temperature(data)
-    make_plot_surface_density(data)
-    make_plot_surface_density_2d(data)
+    make_plot_temperature(data, testname)
+    make_plot_surface_density(data, testname)
+    make_plot_surface_density_2d(data, testname)
 
     return success
 
@@ -117,12 +122,12 @@ def load_data(outdir):
     return data
 
 
-def make_plot_surface_density(data):
+def make_plot_surface_density(data, testname):
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(nrows=2, dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = colormaps.get_cmap("viridis")
 
     Nfirst = data.Ns[0]
     Nlast = data.Ns[-1]
@@ -148,15 +153,15 @@ def make_plot_surface_density(data):
     axes[0].set_ylabel(r"$\Sigma$")
     axes[1].set_ylabel(r"$\Sigma/\Sigma_0 - 1$")
 
-    fig.savefig(os.getcwd()+"/sigma_profiles.jpg", dpi=150)
+    fig.savefig(os.getcwd()+ f"/{testname}_sigma_profiles.jpg", dpi=150)
 
 
-def make_plot_surface_density_2d(data):
+def make_plot_surface_density_2d(data, testname):
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = colormaps.get_cmap("viridis")
 
     Nlast = data.Ns[-1]
 
@@ -170,16 +175,16 @@ def make_plot_surface_density_2d(data):
     ax.set_xlabel(r"$r$")
     ax.set_ylabel(r"$\phi$")
 
-    fig.savefig(os.getcwd()+"/sigma_2d.jpg", dpi=150)
+    fig.savefig(os.getcwd()+f"/{testname}_sigma_2d.jpg", dpi=150)
 
 
-def make_plot_temperature(data):
+def make_plot_temperature(data, testname):
 
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(nrows=2, dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = colormaps.get_cmap("viridis")
 
     Nfirst = data.Ns[0]
     Nlast = data.Ns[-1]
@@ -205,7 +210,7 @@ def make_plot_temperature(data):
     axes[0].set_ylabel(fr"$T$ [K]")
     axes[1].set_ylabel(fr"$T/T_0 - 1$")
 
-    fig.savefig(os.getcwd()+"/temperature_profiles.jpg", dpi=150)
+    fig.savefig(os.getcwd()+f"/{testname}_temperature_profiles.jpg", dpi=150)
 
 
 if __name__ == "__main__":

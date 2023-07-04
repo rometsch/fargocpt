@@ -1,7 +1,7 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
 DT: 3.14159265359 # half of an orbit
 Ninterm: 2 # snapshot every 1 orbits
-Ntot : 100 # do 10 snapshots for a total of 100 orbits
+Ntot : 200 # do 10 snapshots for a total of 200 orbits
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 CFLmaxVar: 1.1
 
@@ -29,6 +29,8 @@ CoolingRadiativeLocal: No   # enable local radiative cooling Q- = 2 * sigma_R * 
 CoolingBetaLocal: No    # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBetaReference: initial
 CoolingBeta: 100
+
+
 RadiativeDiffusion: Yes     
 RadiativeDiffusionOmega: 1.5   # [default = 1.5]
 RadiativeDiffusionAutoOmega: No     # [default = no]
