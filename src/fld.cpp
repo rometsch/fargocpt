@@ -38,6 +38,22 @@ double Erad_min;
 bool use_temperature;
 bool constant_fluxlimiter;
 
+// set tolrance value relative to temperature floor
+double tolerance;
+
+// The full hydro algorithm needs multiple overlapping cells between
+// two adjacent cores because many substeps in which information can flow are involved.
+// This number is store in the global variable CPUOVERLAP.
+// For radiative transport, only one overlap cell is needed
+// because in every iteration of the matrix solver information flows only one step.
+// Hence we can safe time during communication by reducing the overlap to one inside this module.
+// We need to consider that the arrays are still allocated with the global CPUOVERLAP,
+// so we define an nstart and nstop for the iteration of the solver iteration loop.
+const unsigned int cpuoverlap = 1;
+unsigned int nstart;
+unsigned int nstop;
+unsigned int nskip;
+
 double *SendInnerBoundary;
 double *SendOuterBoundary;
 double *RecvInnerBoundary;
@@ -55,6 +71,9 @@ static inline double flux_limiter(const double R)
     }
 }
 
+/*
+Setup variables and arrays for the fld module.
+*/
 void init(const unsigned int Nrad, const unsigned int Naz) { 
 	Ka.set_vector(true);
 	Ka.set_size(Nrad, Naz);
@@ -81,15 +100,15 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	Xold.set_scalar(true);
 	Xold.set_size(Nrad, Naz);
 
-	if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::Jacobi) {
+	// if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::Jacobi) {
 		Xtmp.set_scalar(true);
 		Xtmp.set_size(Nrad, Naz);
-	}
+	// }
 
-    SendInnerBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
-    SendOuterBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
-    RecvInnerBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
-    RecvOuterBoundary = (double *)malloc(Naz * CPUOVERLAP * sizeof(double));
+    SendInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
+    SendOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
+    RecvInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
+    RecvOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
 
 	constant_fluxlimiter = parameters::radiative_diffusion_test_2d || parameters::radiative_diffusion_test_1d;
 	use_temperature = parameters::radiative_diffusion_variable == parameters::t_radiative_diffusion_variable::temperature;
@@ -98,7 +117,54 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	Erad_min = aR*std::pow(parameters::minimum_temperature, 4);
 	Erad_max = aR*std::pow(parameters::maximum_temperature, 4);
 
-	fld2::init(Nrad, Naz);
+	const double reltol = parameters::radiative_diffusion_tolerance;
+	if (use_temperature) {
+		tolerance = reltol*parameters::minimum_temperature;
+	} else {
+		tolerance = reltol*Erad_min;
+	}
+	logging::print_master(LOG_INFO "FLD solver has tolerance %e in code units.\n", tolerance);
+
+	// define start and end radial index for the solver iteration loop
+	if (CPU_Rank == 0) {
+		nstart = 1;
+	} else {
+		nstart = CPUOVERLAP;
+	}
+	nskip = nstart;
+
+	if (CPU_Rank == CPU_Highest) {
+		nstop = NRadial - 1;
+	} else {
+		nstop = NRadial - CPUOVERLAP;
+	}
+}
+
+
+void handle_output() {
+	if (!parameters::radiative_diffusion_dump_data) {
+		return;
+	}
+	Ka.set_name("Ka");
+	Ka.write2D();
+	Kb.set_name("Kb");
+	Kb.write2D();
+	A.set_name("A");
+	A.write2D();
+	B.set_name("B");
+	B.write2D();
+	C.set_name("C");
+	C.write2D();
+	D.set_name("D");
+	D.write2D();
+	E.set_name("E");
+	E.write2D();
+	Trad.set_name("Trad");
+	Trad.write2D();
+	Erad.set_name("Erad");
+	Erad.write2D();
+	Xold.set_name("Xold");
+	Xold.write2D();
 }
 
 void finalize() {
@@ -106,10 +172,13 @@ void finalize() {
     free(SendOuterBoundary);
     free(RecvInnerBoundary);
     free(RecvOuterBoundary);
-	fld2::finalize();
 }
 
 
+/*
+Set floor value for internal energy.
+These values are different from the floor values of the radiative energy!
+*/
 static void set_minimum_energy(t_data &data) {
     
     auto &Sigma = data[t_data::SIGMA];
@@ -150,6 +219,9 @@ static void set_minimum_energy(t_data &data) {
     }
 }
 
+/*
+Boundary conditions for the diffusion coefficient.
+*/
 static void radial_boundary_diffusion_coeff() {
 
     const unsigned int Naz = Ka.get_size_azimuthal();
@@ -201,8 +273,13 @@ static void radial_boundary_diffusion_coeff() {
     }
 }
 
+/*
+Get opacity in code units.
+
+First convert temperature and density to cgs and then convert opacity from cgs to code units.
+Convert to cgs units and call the opacity routine.
+*/
 static inline double get_opacity(const double temperature, const double density) {
-	// Convert to cgs units and call the opacity routine.
 
 	const double temperatureCGS = temperature * units::temperature;
 	const double densityCGS = density * units::density;
@@ -214,8 +291,10 @@ static inline double get_opacity(const double temperature, const double density)
 }
 
 
+/*
+FLD diffusion coefficient for diffusion equation of energy
+*/
 static inline double diffusion_coeff_energy(const double lrad, const double E, const double nabla_E) {
-	// FLD diffusion coefficient for diffusion equation of energy
 
 	// Levermore & Pomraning 1981
 	// R = |nabla E|/E * lrad
@@ -229,8 +308,10 @@ static inline double diffusion_coeff_energy(const double lrad, const double E, c
 	return K;
 }
 
+/*
+FLD diffusion coefficient for diffusion equation of temperature
+*/
 static inline double diffusion_coeff_temperature(const double lrad, const double T, const double nabla_T) {
-	// FLD diffusion coefficient for diffusion equation of temperature
 
 	// Levermore & Pomraning 1981
 	// R = |nabla E|/E * lrad = 4 |nabla T|/T * lrad
@@ -262,8 +343,10 @@ static inline double diffusion_coeff(const double rho, const double x, const dou
 	}
 }
 
+/*
+Calculate the diffusion coefficient on at the radial interface locations.
+*/
 static void compute_diffusion_coeff_radial(t_data &data, t_polargrid &X) {
-	// Calculate the diffusion coefficient on at the radial interface locations.
 
     auto &Density = data[t_data::RHO];
 
@@ -297,8 +380,10 @@ static void compute_diffusion_coeff_radial(t_data &data, t_polargrid &X) {
 }
 
 
+/*
+Calculate the diffusion coefficient on at the azimuthal interface locations.
+*/
 static void compute_diffusion_coeff_azimuthal(t_data &data, t_polargrid &X) {
-	// Calculate the diffusion coefficient on at the azimuthal interface locations.
 
     // calcuate Kb for K(i,j/2)
     auto &Density = data[t_data::RHO];
@@ -343,8 +428,11 @@ static void save_old_values(t_polargrid &X) {
 	}
 }
 
+/*
+Calculate the matrix elements resulting from the diffusion equation discretization.
+This sets up the linear system that is solved later.
+*/
 static void calculate_matrix_elements(t_data &data, const double dt) {
-	// calculate the matrix elements of the linear equation 
 
 	auto &Density = data[t_data::RHO];
 
@@ -387,62 +475,79 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 
 }
 
-// Communicate the temperature values among adjacent nodes
+/*
+Communicate values among adjacent nodes during the matrix solver loop.
+This communication function only uses one overlap cell 
+which makes it different from the standard communication function used
+in the hydro solver.
+*/
 static void communicate_parallelization_boundaries(t_polargrid &Temperature) {
 
-    const int l = CPUOVERLAP * NAzimuthal;
-    const int oo = (Temperature.Nrad - CPUOVERLAP) * NAzimuthal;
-    const int o = (Temperature.Nrad - 2 * CPUOVERLAP) * NAzimuthal;
+	const unsigned int Nrad = Temperature.Nrad;
+	const unsigned int Naz = NAzimuthal;
+
+    const unsigned int Noc = cpuoverlap * NAzimuthal; // Number of overlap cells
+
+	const unsigned int start_active = CPUOVERLAP*Naz;
+	const unsigned int end_active = (Nrad - CPUOVERLAP)*Naz;
+	const unsigned int last_active = end_active - Noc;
+
+	const unsigned int start_inner_boundary = (CPUOVERLAP-cpuoverlap)*Naz;
+	const unsigned int start_outer_boundary = end_active;
 
 	// communicate with other nodes
-	memcpy(SendInnerBoundary, Temperature.Field + l, l * sizeof(double));
-	memcpy(SendOuterBoundary, Temperature.Field + o, l * sizeof(double));
+	memcpy(SendInnerBoundary, Temperature.Field + start_active, Noc * sizeof(double));
+	memcpy(SendOuterBoundary, Temperature.Field + last_active, Noc * sizeof(double));
 
 	MPI_Request req1, req2, req3, req4;
 
 	if (CPU_Rank % 2 == 0) {
 	    if (CPU_Rank != 0) {
-		MPI_Isend(SendInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendInnerBoundary, Noc,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req1);
-		MPI_Irecv(RecvInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvInnerBoundary, Noc,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req2);
 	    }
 	    if (CPU_Rank != CPU_Highest) {
-		MPI_Isend(SendOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendOuterBoundary, Noc,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req3);
-		MPI_Irecv(RecvOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvOuterBoundary, Noc,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req4);
 	    }
 	} else {
 	    if (CPU_Rank != CPU_Highest) {
-		MPI_Irecv(RecvOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvOuterBoundary, Noc,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req3);
-		MPI_Isend(SendOuterBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendOuterBoundary, Noc,
 			  MPI_DOUBLE, CPU_Next, 0, MPI_COMM_WORLD, &req4);
 	    }
 	    if (CPU_Rank != 0) {
-		MPI_Irecv(RecvInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Irecv(RecvInnerBoundary, Noc,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req1);
-		MPI_Isend(SendInnerBoundary, NAzimuthal * CPUOVERLAP,
+		MPI_Isend(SendInnerBoundary, Noc,
 			  MPI_DOUBLE, CPU_Prev, 0, MPI_COMM_WORLD, &req2);
 	    }
 	}
 
+	// copy values revceived from inner core to the inner local boundary
 	if (CPU_Rank != 0) {
 	    MPI_Wait(&req1, &global_MPI_Status);
 	    MPI_Wait(&req2, &global_MPI_Status);
-	    memcpy(Temperature.Field, RecvInnerBoundary, l * sizeof(double));
+	    memcpy(Temperature.Field + start_inner_boundary, RecvInnerBoundary, Noc * sizeof(double));
 	}
 
+	// copy values received from outer core to the outer local boundary
 	if (CPU_Rank != CPU_Highest) {
 	    MPI_Wait(&req3, &global_MPI_Status);
 	    MPI_Wait(&req4, &global_MPI_Status);
-	    memcpy(Temperature.Field + oo, RecvOuterBoundary,
-		   l * sizeof(double));
+	    memcpy(Temperature.Field + start_outer_boundary, RecvOuterBoundary, Noc * sizeof(double));
 	}
 }
 
-static void boundary_T_SOR(t_polargrid &X) {
+/*
+Boundary condition to be applied inside the matrix solver loop.
+*/
+static void boundary_inside_SOR(t_polargrid &X) {
 	double minval;
 	if (use_temperature) {
 		minval = parameters::minimum_temperature;
@@ -471,12 +576,13 @@ static void boundary_T_SOR(t_polargrid &X) {
 			X(0, naz) = minval;
 		}
 	}
-	// boundary_conditions::apply_boundary_condition(data, current_time, 0.0, false);
 }
 
-static inline bool is_active(const unsigned int nr) {
-	// Check whether a radial cell index belongs to an active cell.
-	// An active cell is neither a ghost cell nor an overlap cell.
+/* 
+Check whether a radial cell index belongs to an active cell.
+An active cell is neither a ghost cell nor an overlap cell.
+*/
+static inline bool is_active_cell(const unsigned int nr) {
     const unsigned int nrad_last = NRadial - 1;
     const unsigned int nghost_right = (CPU_Rank == CPU_Highest) ? GHOSTCELLS_B : CPUOVERLAP;
     const unsigned int nghost_left = (CPU_Rank == 0) ? GHOSTCELLS_B : CPUOVERLAP;
@@ -487,8 +593,11 @@ static inline bool is_active(const unsigned int nr) {
     return isnot_ghostcell_rank_0 && isnot_ghostcell_rank_highest;
 }
 
+
+/*
+Set temperature floor and ceiling.
+*/
 static inline void floorceil_T_single(double &T) {
-	// Set temperature floor and ceiling
 	if(T < parameters::minimum_temperature){
 		T = parameters::minimum_temperature;
 	}
@@ -499,8 +608,10 @@ static inline void floorceil_T_single(double &T) {
 	}
 }
 
+/*
+Set energy floor and ceiling.
+*/
 static inline void floorceil_E_single(double &E) {
-	// Set temperature floor and ceiling
 	if(E < Erad_min){
 		E = Erad_min;
 	}
@@ -511,6 +622,9 @@ static inline void floorceil_E_single(double &E) {
 	}
 }
 
+/*
+Apply floor and ceiling values to the variable during matrix inversion.
+*/
 static inline void floorceil_x_single(double &x) {
 	if (use_temperature) {
 		floorceil_T_single(x);
@@ -520,107 +634,12 @@ static inline void floorceil_x_single(double &x) {
 }
 
 
-static void Jacobi(t_polargrid &X) {
-	// Solve the linear system using the Jacobi method
-	// Based on the book "Iterative Methods for Sparse Linear Systems" by Yousef Saad
-	// DOI: 10.1137/1.9780898718003
-	// downloaded 2023-06-28 from the author's academic webpage: 
-	// https://www-users.cse.umn.edu/~saad/IterMethBook_2ndEd.pdf
-	// The method is described in Chapter 4.1 and the relevant equation is Eq. (4.4)
 
-    const unsigned int Nrad = X.get_size_radial();
-    const unsigned int Naz = X.get_size_azimuthal();
-
-    static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
-
-    unsigned int iterations = 0;
-	double absolute_norm = std::numeric_limits<double>::max();
-	double norm_change = std::numeric_limits<double>::max();
-
-    // do SOR
-	const double tolerance = parameters::radiative_diffusion_tolerance;
-	const unsigned int maxiter = parameters::radiative_diffusion_max_iterations;
-
-	// initialize solution vector with zero
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < X.get_max_radial(); ++nr) {
-		for (unsigned int naz = 0; naz < Naz; ++naz) {
-			X(nr, naz) = 0.0;
-		}
-	}
-
-
-    while ((norm_change > tolerance) && (maxiter > iterations)) {
-
-    boundary_T_SOR(X);
-
-	copy_polargrid(Xtmp, X);
-
-	norm_change = absolute_norm;
-	absolute_norm = 0.0;
-	#pragma omp parallel for collapse(2) reduction(+ : absolute_norm)
-	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
-		for (unsigned int naz = 0; naz < Naz; ++naz) {
-
-        const unsigned int naz_last = X.get_max_azimuthal();
-		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
-		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
-		const double old_value = X(nr, naz);
-
-		const double aii = B(nr, naz);
-		const double xn = Xold(nr, naz); // value at iteration n
-		const double sum =
-			A(nr, naz) * X(nr - 1, naz) +
-			C(nr, naz) * X(nr + 1, naz) +
-			D(nr, naz) * X(nr, naz_prev) +
-			E(nr, naz) * X(nr, naz_next);
-
-		// perform the update step given in Eq. (4.4) in the reference given above
-		const double xup = (xn - sum)/aii; // update value at iteration n+1
-
-		Xtmp(nr, naz) = xup;
-		// ensure minimum and maximum temperature
-		floorceil_x_single(Xtmp(nr, naz));
-
-		// only non ghostcells to norm and don't count overlap cell's
-		// twice
-		if (is_active(nr)) {
-			absolute_norm += std::pow(old_value - Xtmp(nr, naz), 2);
-		}
-		} // azimuthal loop
-	} // radial loop
-
-	copy_polargrid(X, Xtmp);
-
-    const double tmp = absolute_norm;
-	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
-
-	norm_change = fabs(absolute_norm - norm_change);
-	// printf("iter %u, norm_change = %e\n", iterations, norm_change);
-	iterations++;
-
-    communicate_parallelization_boundaries(X);
-
-    } // END Loop
-
-
-    if (iterations == parameters::radiative_diffusion_max_iterations) {
-	logging::print_master(
-	    LOG_WARNING
-	    "Maximum iterations (%u) reached in radiative_diffusion with Jacobi solver. Norm is %lg with a last change of %lg.\n",
-	    parameters::radiative_diffusion_max_iterations, absolute_norm, norm_change);
-    }
-
-    old_iterations = iterations;
-
-    logging::print_master(LOG_VERBOSE "%u iterations\n", iterations);
-}
-
-
+/*
+Solve the linear system using succesive over-relaxation.
+*/
 static void SOR(t_polargrid &X) {
 
-    const unsigned int Nrad = X.get_size_radial();
     const unsigned int Naz = X.get_size_azimuthal();
 
     static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
@@ -628,22 +647,26 @@ static void SOR(t_polargrid &X) {
     static double omega = parameters::radiative_diffusion_omega;
 
     unsigned int iterations = 0;
+	// track change of differences
 	double absolute_norm = std::numeric_limits<double>::max();
-	double norm_change = std::numeric_limits<double>::max();
+	double avg_absolute_change = std::numeric_limits<double>::max();
+	double last_avg_absolute_norm = 0.0;
 
     // do SOR
-	const double tolerance = parameters::radiative_diffusion_tolerance;
 	const unsigned int maxiter = parameters::radiative_diffusion_max_iterations;
 
-    while ((norm_change > tolerance) && (maxiter > iterations)) {
+    while ((avg_absolute_change > tolerance) && (maxiter > iterations)) {
 
-    boundary_T_SOR(X);
+    boundary_inside_SOR(X);
 
-	norm_change = absolute_norm;
 	absolute_norm = 0.0;
-// #pragma omp parallel for collapse(2) shared(X) reduction(+ : absolute_norm) schedule(static,1)
-	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
-#pragma omp parallel for shared(X) reduction(+ : absolute_norm) schedule(static,1)
+
+	// Each thread should get a single consecutive range of rings just as in the MPI parallelization.
+	// We first calculate the size of these consecutive ring ranges (chunk_size) and then tell openmp
+	// to give every thread chunk_size consecutive rings with the schedule(dynamic, chunk_size) directive.
+	static const unsigned int chunk_size = std::ceil((float)(nstop-nstart+1)/Thread_Number);
+	#pragma omp parallel for reduction(+ : absolute_norm) schedule(dynamic, chunk_size)
+	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
 		const double old_value = X(nr, naz);
@@ -664,7 +687,7 @@ static void SOR(t_polargrid &X) {
 
 		// only non ghostcells to norm and don't count overlap cell's
 		// twice
-        if (is_active(nr)) {
+        if (is_active_cell(nr)) {
 		    absolute_norm += std::pow(old_value - X(nr, naz), 2);
 		}
 	    }
@@ -672,9 +695,12 @@ static void SOR(t_polargrid &X) {
 
     const double tmp = absolute_norm;
 	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-	absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
 
-	norm_change = fabs(absolute_norm - norm_change);
+	// calculate the absolute change averaged over all cells
+	const double avg_absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
+
+	avg_absolute_change = fabs(avg_absolute_norm - last_avg_absolute_norm);
+	last_avg_absolute_norm = avg_absolute_norm;
 	// printf("iter %u, norm_change = %e\n", iterations, norm_change);
 	iterations++;
 
@@ -687,7 +713,7 @@ static void SOR(t_polargrid &X) {
 	    LOG_WARNING
 	    "Maximum iterations (%u) reached in radiative_diffusion (omega = %lg). Norm is %lg with a last change of %lg.\n",
 	    parameters::radiative_diffusion_max_iterations, omega,
-	    absolute_norm, norm_change);
+	    absolute_norm, avg_absolute_change);
     }
 
     // adapt omega
@@ -715,6 +741,12 @@ static void SOR(t_polargrid &X) {
 			  omega);
 }
 
+/*
+Use radiation temperature to update internal energy.
+The underlying assumption is that gas temperature 
+and radiation temperature equilibrate instantaneously.
+Thus, we can simply use the radiation temperature in place of the gas temperature.
+*/
 static void update_energy(t_data &data, t_polargrid &T) {
 
     auto &Sigma = data[t_data::SIGMA];
@@ -724,7 +756,7 @@ static void update_energy(t_data &data, t_polargrid &T) {
     const unsigned int Naz = T.get_size_azimuthal();
 
     const double c_v = constants::R / (parameters::ADIABATICINDEX - 1.0) / parameters::MU;
-    // compute energy from temperature
+
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
         for (unsigned int naz = 0; naz < Naz; ++naz) {
@@ -733,8 +765,10 @@ static void update_energy(t_data &data, t_polargrid &T) {
     }
 }
 
+/*
+Set the midplane density to a constant 1 g/cm3 for testing purposes.
+*/
 static void set_constant_midplane_density(t_data &data){
-	// set the midplane density to a constant 1 g/cm3 for testing purposes
 	auto &Rho = data[t_data::RHO];
 	
 	const unsigned int Nrad = Rho.get_size_radial();
@@ -752,26 +786,12 @@ static void set_constant_midplane_density(t_data &data){
 }
 
 
-static void print_temperature_over_one(t_data &data){
-	auto &T = data[t_data::TEMPERATURE];
-	
-	const unsigned int Nrad = T.get_size_radial();
-	const unsigned int Naz = T.get_size_azimuthal();
 
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nrad; ++nr) {
-        for (unsigned int naz = 0; naz < Naz; ++naz) {
-			if (T(nr, naz) > 1) {
-				printf("!!!!!!!!!!!!!!!!! T(%u,%u) = %e\n", nr, naz, T(nr, naz));
-				const double aR = 4*constants::sigma/constants::c;
-				printf("!!!!!!!!!!!!!!!!! aR T^4 = %e\n", aR*std::pow(T(nr, naz), 4));
-			}
-        }
-    }
-
-}
-
-static void compute_radiation_energy_density(t_polargrid &E, t_polargrid &T){
+/*
+Compute radiation energy from radiation temperature.
+Erad = aR * Trad^4
+*/
+static void Trad_to_Erad(t_polargrid &E, t_polargrid &T){
 	
 	const unsigned int Nrad = E.get_size_radial();
 	const unsigned int Naz = E.get_size_azimuthal();
@@ -786,7 +806,11 @@ static void compute_radiation_energy_density(t_polargrid &E, t_polargrid &T){
     }
 }
 
-static void compute_radiation_temperature(t_polargrid &T, t_polargrid &E){
+/*
+Compute radiation energy from radiation temperature.
+Trad = (Erad / aR)^(1/4)
+*/
+static void Erad_to_Trad(t_polargrid &T, t_polargrid &E){
 	
 	const unsigned int Nrad = E.get_size_radial();
 	const unsigned int Naz = E.get_size_azimuthal();
@@ -801,25 +825,60 @@ static void compute_radiation_temperature(t_polargrid &T, t_polargrid &E){
     }
 }
 
-static void floor_T(t_polargrid &T){
-	
-	const unsigned int Nrad = T.get_size_radial();
-	const unsigned int Naz = T.get_size_azimuthal();
 
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nrad; ++nr) {
-        for (unsigned int naz = 0; naz < Naz; ++naz) {
-			if (T(nr, naz) < parameters::minimum_temperature) {
-				T(nr, naz) = parameters::minimum_temperature;
+static void check_solution(t_polargrid &X) {
+	
+	double diff = 0;
+	double diff_abs = 0;
+	double xmax = 0;
+
+	const unsigned int Naz = X.get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2) reduction(+ : diff, diff_abs, xmax)
+	for (unsigned int nr = nstart; nr < nstop; ++nr) {
+		for (unsigned int naz = 0; naz < Naz; ++naz) {
+
+        const unsigned int naz_last = X.get_max_azimuthal();
+		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
+		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
+
+		const double xold = Xold(nr, naz); // constant vector in matrix equation
+		const double xnew =
+			A(nr, naz) * X(nr - 1, naz) +
+			B(nr, naz) * X(nr, naz) +
+			C(nr, naz) * X(nr + 1, naz) +
+			D(nr, naz) * X(nr, naz_prev) +
+			E(nr, naz) * X(nr, naz_next);
+
+		if (is_active_cell(nr)) {
+			diff += xnew - xold;
+			diff_abs += std::abs(xnew - xold);
+			if (xnew > xmax) {
+				xmax = xnew;
 			}
-        }
-    }
+		}
+		} // azimuthal loop
+	} // radial loop
+
+
+    double tmp = diff;
+	MPI_Allreduce(&tmp, &diff, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	printf("Sum of differences in RD solver : %e\n", diff);
+
+	tmp = diff_abs;
+	MPI_Allreduce(&tmp, &diff_abs, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+	printf("Sum of |differences| in RD solver : %e\n", diff_abs);
+
+	tmp = xmax;
+	MPI_Allreduce(&tmp, &xmax, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+	printf("Max value in solution vector : %e\n", xmax);
 }
+
 
 static void radiative_diffusion_energy(t_data &data, const double dt) {
 
 	// instantaneously equilibrate photon gas temperature to ideal gas temperature
-	compute_radiation_energy_density(Erad, data[t_data::TEMPERATURE]);
+	Trad_to_Erad(Erad, data[t_data::TEMPERATURE]);
 
 	// calculate diffusion coefficient
 	compute_diffusion_coeff_radial(data, Erad);
@@ -830,14 +889,12 @@ static void radiative_diffusion_energy(t_data &data, const double dt) {
     calculate_matrix_elements(data, dt);
 	save_old_values(Erad);
 
-	if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::SOR) {
-		SOR(Erad);
-	} else {
-		Jacobi(Erad);
-	}
+	SOR(Erad);
+
+	check_solution(Erad);
 
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
-	compute_radiation_temperature(Trad, Erad);
+	Erad_to_Trad(Trad, Erad);
 	copy_polargrid(data[t_data::TEMPERATURE], Trad);
 }
 
@@ -855,24 +912,18 @@ static void radiative_diffusion_temperature(t_data &data, const double dt) {
     calculate_matrix_elements(data, dt);
 	save_old_values(Trad);
 
-	if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::SOR) {
-		SOR(Trad);
-	} else {
-		Jacobi(Trad);
-	}
+	SOR(Trad);
+	check_solution(Trad);
 
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	copy_polargrid(data[t_data::TEMPERATURE], Trad);
 
-	compute_radiation_energy_density(Erad, Trad);
+	Trad_to_Erad(Erad, Trad);
 }
+
 
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
 {
-	if (parameters::radiative_diffusion_test_module) {
-		fld2::radiative_diffusion(data, current_time, dt);
-		return;
-	}
     set_minimum_energy(data);
 	
     // update temperature, soundspeed and aspect ratio

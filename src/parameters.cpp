@@ -105,7 +105,6 @@ bool cooling_scurve_enabled;
 
 bool radiative_diffusion_enabled;
 t_radiative_diffusion_variable radiative_diffusion_variable;
-t_radiative_diffusion_solver radiative_diffusion_solver;
 double radiative_diffusion_omega;
 bool radiative_diffusion_omega_auto_enabled;
 unsigned int radiative_diffusion_max_iterations;
@@ -113,7 +112,7 @@ double radiative_diffusion_tolerance;
 double radiative_diffusion_test_2d_density;
 bool radiative_diffusion_test_2d;
 bool radiative_diffusion_test_1d;
-bool radiative_diffusion_test_module;
+bool radiative_diffusion_dump_data;
 
 
 t_initialize_condition sigma_initialize_condition;
@@ -807,14 +806,6 @@ void read(const std::string &filename, t_data &data)
 	} else {
 		die("Radiative diffusion variable can only be 'temperature' or 'energy', not '%s'\n", rdvar.c_str());
 	}
-	const std::string rdsol = config::cfg.get<std::string>("RadiativeDiffusionSolver", "SOR");
-	if (rdsol == "SOR") {
-		radiative_diffusion_solver = t_radiative_diffusion_solver::SOR;
-	} else if (rdsol == "Jacobi") {
-		radiative_diffusion_solver = t_radiative_diffusion_solver::Jacobi;
-	} else {
-		die("Radiative diffusion solver can only be 'SOR' or 'Jacobi', not '%s'\n", rdsol.c_str());
-	}
     radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
     radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
@@ -822,7 +813,7 @@ void read(const std::string &filename, t_data &data)
 	radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
 	radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
 	radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
-	radiative_diffusion_test_module = config::cfg.get_flag("RadiativeDiffusionTestModule", "no");
+	radiative_diffusion_dump_data = config::cfg.get_flag("RadiativeDiffusionDumpData", "no");
 
 
     zbuffer_size = config::cfg.get<unsigned int>("zbufferSize", 100);
@@ -1457,11 +1448,11 @@ void summarize_parameters()
 	cooling_radiative_factor);
     logging::print_master(
 	LOG_INFO
-	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations using %s solver.\n",
+	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations based on %s.\n",
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations,
-	radiative_diffusion_solver == t_radiative_diffusion_solver::SOR ? "SOR" : "Jacobi");
+	radiative_diffusion_variable == t_radiative_diffusion_variable::temperature ? "temperature" : "energy");
 
     logging::print_master(
         LOG_INFO "S-curve cooling is %s. \n",
