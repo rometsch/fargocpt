@@ -81,15 +81,15 @@ def Eint_to_Erad(Eint):
 def setup_hash():
     import hashlib
     with open("test_settings.yml", "r") as infile:
-        params = yaml.safe_load(infile)
-        t0 = params["t0"]
+        test_settings = infile.read()
     with open("setup.yml", "r") as infile:
         params = yaml.safe_load(infile)
         DT = str(params["DT"])
         Nrad = str(params["Nrad"])
         Naz = str(params["Nsec"])
+        vname = str(params["RadiativeDiffusionVariable"])
 
-    s = t0 + DT + Nrad + Naz
+    s = test_settings + DT + Nrad + Naz + vname
     h = hashlib.sha256(s.encode("utf-8"))
     return h.hexdigest()
     
@@ -201,17 +201,22 @@ if __name__ == "__main__":
         cbar.set_label(r"$E_\mathrm{rad}$ [cgs]")
         ax.set_xlim(xlim); ax.set_ylim(ylim)
 
-        axsd[1].axis("off")
 
     if opts.diff and opts.solve:
 
         Z = code_solution - matrix_inversion_solution
         diffmax = np.max(np.abs(Z))
-        fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="linear", ax=axsd[2], vmin=-diffmax, vmax=diffmax, cmap="bwr")
+        fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="linear", ax=axsd[1], vmin=-diffmax, vmax=diffmax, cmap="bwr")
         ax.set_title("diff code - exact mat")
         cbar.set_label(r"$E_\mathrm{rad}$ [cgs]")
         ax.set_xlim(xlim); ax.set_ylim(ylim)
 
+        Z = matrix_inversion_solution - analytical_solution
+        diffmax = np.max(np.abs(Z))
+        fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="linear", ax=axsd[2], vmin=-diffmax, vmax=diffmax, cmap="bwr")
+        ax.set_title("exact mat - analytical")
+        cbar.set_label(r"$E_\mathrm{rad}$ [cgs]")
+        ax.set_xlim(xlim); ax.set_ylim(ylim)
 
 
 

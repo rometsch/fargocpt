@@ -39,10 +39,15 @@ def get_fargo_grid(setupfile):
         dphi=dphi, dr=dr, A=A
     )
 
-def analytical_solution(r, t, E0, K):
-    return 3*E0/(4*np.pi*t*K)*np.exp(-r**2/(4*K*t))
+def analytical_solution(r, t, E0, K, offset=0):
+    return 3*E0/(4*np.pi*t*K)*np.exp(-r**2/(4*K*t)) + offset
 
-def get_solution_array(setupfile, t):
+def get_setup_params():
+    with open("test_settings.yml", "r") as infile:
+        params = yaml.safe_load(infile)
+    return params
+
+def get_solution_array(setupfile, t, offset=0):
     g = get_fargo_grid(setupfile)
 
     nr = g.Nrad//2
@@ -50,13 +55,19 @@ def get_solution_array(setupfile, t):
 
     # print(dr[nr])
 
-    c = 1e10
+    c = 2.997e10
     rho = 1
     kappa = 1
-    K = 1/3*c/(rho*kappa)
+    lam = 1/3
+    K = lam*c/(rho*kappa)
 
-    E0 = 1e2
+    print(f"Diffusion coefficient K = {K} = {K:e}")
+
+    params = get_setup_params()
+
+    E0 = float(params["E0"])
     energy0 = E0 / g.A[nr, nphi]
+    offset = float(params["offset"])*energy0
 
     xcell = g.Xc[nr, nphi]
     ycell = g.Yc[nr, nphi]
@@ -64,7 +75,7 @@ def get_solution_array(setupfile, t):
     DY = g.Yc - ycell
     Dist = np.sqrt(DX**2 + DY**2)
 
-    return analytical_solution(Dist,t, energy0, K)
+    return analytical_solution(Dist,t, energy0, K, offset=offset)
 
 def Erad_to_Eint(Erad):
     """ Convert radiative energy density to internal energy density based on the test model. """
@@ -97,9 +108,13 @@ if __name__ == "__main__":
         params = yaml.safe_load(infile)
         t0 = float(params["t0"])
 
-    Erad = get_solution_array("setup.yml", t0)
+    Erad = get_solution_array("setup.yml", t0, offset=1e5)
     initial_condition = Erad_to_Eint(Erad)
 
+    print("Erad size", Erad.shape)
+    print("initial_condition size", initial_condition.shape)
+
+    np.array(Erad, dtype=np.float64).tofile("output/out/Erad_input.dat")
     # save this energy array to file
     initial_condition.tofile("output/out/snapshots/0/energy.dat")
 
