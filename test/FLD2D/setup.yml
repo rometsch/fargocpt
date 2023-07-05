@@ -9,13 +9,13 @@ RadiativeDiffusion: Yes
 RadiativeDiffusionDumpData: yes
 RadiativeDiffusionOmega: 1.5  # [default = 1.5]
 RadiativeDiffusionAutoOmega: No     # [default = no]
-RadiativeDiffusionMaxIterations: 50000   # [default = 50000]
-RadiativeDiffusionTolerance: 1e-10
+RadiativeDiffusionMaxIterations: 10000   # [default = 50000]
+RadiativeDiffusionTolerance: 1
 RadiativeDiffusionTest2D: yes
 RadiativeDiffusionTest2DDensity: 1 g/cm3
 RadiativeDiffusionVariable: energy
 
-MinimumTemperature: 3 K   # minimum Temperature in K
+MinimumTemperature: 0 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
 Opacity: constant   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst: 1.0 cm2/g
@@ -76,8 +76,10 @@ Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 
 # Mesh parameters
 
-Nrad: 300   # Radial number of zones
-Nsec: 1000   # Azimuthal number of
+# Nrad: 300   # Radial number of zones
+# Nsec: 1000   # Azimuthal number of
+Nrad: 100
+Nsec: 200
 # cps: 3
 
 
