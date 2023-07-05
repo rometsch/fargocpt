@@ -289,12 +289,16 @@ bool t_polargrid::file_exists()
 
 void t_polargrid::read2D(const char *_filename)
 {
+    const std::string filename = std::string(_filename);
+    if (!std::filesystem::exists(filename)) {
+        die("Attempting to load file '%s' that does not exist!\n", _filename);
+    }
     MPI_File fh;
     MPI_Status status;
     MPI_Offset size;
     unsigned int count;
 
-    const std::string filename = std::string(_filename);
+
 
     mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					    MPI_MODE_RDONLY, MPI_INFO_NULL,
