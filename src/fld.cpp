@@ -454,9 +454,6 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 		} else {
 			common_factor = -dt;
 		}
-		if (nr == 20 && naz == 20) {
-			printf("common_factor = %e\n", common_factor);
-		}
 
 	    // 2/(dR^2)
 	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
