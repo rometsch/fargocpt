@@ -30,7 +30,7 @@ namespace fld {
 t_polargrid Ka; // diffusion coefficient on radial boundaries
 t_polargrid Kb; // diffusion coefficient on azimuthal boundaries
 t_polargrid A, B, C, D, E; // Matrix elements of linear equation
-t_polargrid Erad, Trad, Xold, Xtmp; // Intermediate store for old values.
+t_polargrid Erad, Trad, Xold; // Intermediate store for old values.
 
 double Erad_max;
 double Erad_min;
@@ -99,11 +99,6 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 
 	Xold.set_scalar(true);
 	Xold.set_size(Nrad, Naz);
-
-	// if (parameters::radiative_diffusion_solver == parameters::t_radiative_diffusion_solver::Jacobi) {
-		Xtmp.set_scalar(true);
-		Xtmp.set_size(Nrad, Naz);
-	// }
 
     SendInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
     SendOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
