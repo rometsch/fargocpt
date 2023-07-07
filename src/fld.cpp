@@ -883,7 +883,9 @@ static void radiative_diffusion_energy(t_data &data, const double dt) {
 
 	SOR(Erad);
 
-	check_solution(Erad);
+	if (parameters::radiative_diffusion_check_solution) {
+		check_solution(Erad);
+	}
 
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	Erad_to_Trad(Trad, Erad);
@@ -905,7 +907,10 @@ static void radiative_diffusion_temperature(t_data &data, const double dt) {
 	save_old_values(Trad);
 
 	SOR(Trad);
-	check_solution(Trad);
+
+	if (parameters::radiative_diffusion_check_solution) {
+		check_solution(Trad);
+	}
 
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	copy_polargrid(data[t_data::TEMPERATURE], Trad);

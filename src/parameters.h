@@ -174,6 +174,9 @@ extern double radiative_diffusion_test_2d_density;
 extern bool radiative_diffusion_test_1d;
 // save internal grids of the fld module at each snapshot
 extern bool radiative_diffusion_dump_data;
+// check solution of linear system
+extern bool radiative_diffusion_check_solution;
+
 
 // initialisation
 enum t_initialize_condition {
