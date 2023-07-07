@@ -30,12 +30,8 @@ namespace fld {
 t_polargrid Ka; // diffusion coefficient on radial boundaries
 t_polargrid Kb; // diffusion coefficient on azimuthal boundaries
 t_polargrid A, B, C, D, E; // Matrix elements of linear equation
-t_polargrid Erad, Trad, Xold; // Intermediate store for old values.
+t_polargrid Trad, Told; // Intermediate store for old values.
 
-double Erad_max;
-double Erad_min;
-
-bool use_temperature;
 bool constant_fluxlimiter;
 
 // set tolrance value relative to temperature floor
@@ -59,6 +55,9 @@ double *SendOuterBoundary;
 double *RecvInnerBoundary;
 double *RecvOuterBoundary;
 
+/*
+Flux limiter after Kley (1989) https://ui.adsabs.harvard.edu/abs/1989A&A...208...98K
+*/
 static inline double flux_limiter(const double R)
 {
 	if (constant_fluxlimiter) {
@@ -94,11 +93,8 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	Trad.set_scalar(true);
 	Trad.set_size(Nrad, Naz);
 
-	Erad.set_scalar(true);
-	Erad.set_size(Nrad, Naz);
-
-	Xold.set_scalar(true);
-	Xold.set_size(Nrad, Naz);
+	Told.set_scalar(true);
+	Told.set_size(Nrad, Naz);
 
     SendInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
     SendOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
@@ -106,18 +102,9 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
     RecvOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
 
 	constant_fluxlimiter = parameters::radiative_diffusion_test_2d || parameters::radiative_diffusion_test_1d;
-	use_temperature = parameters::radiative_diffusion_variable == parameters::t_radiative_diffusion_variable::temperature;
-
-	const double aR = 4*constants::sigma/constants::c;
-	Erad_min = aR*std::pow(parameters::minimum_temperature, 4);
-	Erad_max = aR*std::pow(parameters::maximum_temperature, 4);
 
 	const double reltol = parameters::radiative_diffusion_tolerance;
-	if (use_temperature) {
-		tolerance = reltol*parameters::minimum_temperature;
-	} else {
-		tolerance = reltol*Erad_min;
-	}
+	tolerance = reltol*parameters::minimum_temperature;
 	logging::print_master(LOG_INFO "FLD solver has tolerance %e in code units.\n", tolerance);
 
 	// define start and end radial index for the solver iteration loop
@@ -136,6 +123,9 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 }
 
 
+/*
+If requested, write out all 2d arrays to the current snapshot directory.
+*/
 void handle_output() {
 	if (!parameters::radiative_diffusion_dump_data) {
 		return;
@@ -156,10 +146,8 @@ void handle_output() {
 	E.write2D();
 	Trad.set_name("Trad");
 	Trad.write2D();
-	Erad.set_name("Erad");
-	Erad.write2D();
-	Xold.set_name("Xold");
-	Xold.write2D();
+	Told.set_name("Told");
+	Told.write2D();
 }
 
 void finalize() {
@@ -285,32 +273,17 @@ static inline double get_opacity(const double temperature, const double density)
 	return kappa;
 }
 
-
-/*
-FLD diffusion coefficient for diffusion equation of energy
-*/
-static inline double diffusion_coeff_energy(const double lrad, const double E, const double nabla_E) {
-
-	// Levermore & Pomraning 1981
-	// R = |nabla E|/E * lrad
-	// lrad = 1/(rho * kappa), photon mean free path
-
-	const double R = nabla_E / E * lrad;
-	const double lambda = flux_limiter(R);
-
-	const double c = constants::c;
-	const double K = lambda * c * lrad;
-	return K;
-}
-
 /*
 FLD diffusion coefficient for diffusion equation of temperature
 */
-static inline double diffusion_coeff_temperature(const double lrad, const double T, const double nabla_T) {
+static inline double diffusion_coeff(const double rho, const double T, const double nabla_T) {
 
 	// Levermore & Pomraning 1981
 	// R = |nabla E|/E * lrad = 4 |nabla T|/T * lrad
 	// lrad = 1/(rho * kappa), photon mean free path
+	const double kappa = get_opacity(T, rho);
+	const double lrad = 1 / (rho * kappa);
+
 	const double R = 4.0 * nabla_T / T * lrad;
 	const double lambda = flux_limiter(R);
 
@@ -319,31 +292,11 @@ static inline double diffusion_coeff_temperature(const double lrad, const double
 	return K;
 }
 
-static inline double Erad2Trad(const double E) {
-	const double aR = 4*constants::sigma/constants::c;
-	return std::pow(E/aR, 0.25);
-}
-
-static inline double diffusion_coeff(const double rho, const double x, const double nabla_x) {
-	if (use_temperature) {
-		const double T = x;
-		const double kappa = get_opacity(T, rho);
-		const double lrad = 1 / (rho * kappa);
-		return diffusion_coeff_temperature(lrad, x, nabla_x);
-	} else {
-		const double T = Erad2Trad(x);
-		const double kappa = get_opacity(T, rho);
-		const double lrad = 1 / (rho * kappa);
-		return diffusion_coeff_energy(lrad, x, nabla_x);
-	}
-}
 
 /*
 Calculate the diffusion coefficient on at the radial interface locations.
 */
-static void compute_diffusion_coeff_radial(t_data &data, t_polargrid &X) {
-
-    auto &Density = data[t_data::RHO];
+static void compute_diffusion_coeff_radial(t_polargrid &Density, t_polargrid &T) {
 
     const unsigned int Nrad = Ka.get_size_radial();
     const unsigned int Naz = Ka.get_size_azimuthal();
@@ -357,13 +310,13 @@ static void compute_diffusion_coeff_radial(t_data &data, t_polargrid &X) {
 	    const unsigned int naz_last = (naz == 0 ? Naz_last : naz - 1);
 
 	    // average radially
-	    const double x = 0.5 * (X(nr - 1, naz) + X(nr, naz));
+	    const double x = 0.5 * (T(nr - 1, naz) + T(nr, naz));
 	    const double rho = 0.5 * (Density(nr - 1, naz) + Density(nr, naz));
 
 		// calculate gradient length
-	    const double dX_dr = (X(nr, naz) - X(nr - 1, naz)) * InvDiffRmed[nr];
-        const double xnext = 0.5 * (X(nr - 1, naz_next) + X(nr, naz_next));
-        const double xlast = 0.5 * (X(nr - 1, naz_last) + X(nr, naz_last));
+	    const double dX_dr = (T(nr, naz) - T(nr - 1, naz)) * InvDiffRmed[nr];
+        const double xnext = 0.5 * (T(nr - 1, naz_next) + T(nr, naz_next));
+        const double xlast = 0.5 * (T(nr - 1, naz_last) + T(nr, naz_last));
 	    const double dX_dphi = InvRinf[nr] * (xnext-xlast) / (2.0 * dphi);
 
 	    const double nabla_X = std::hypot(dX_dr, dX_dphi);
@@ -378,10 +331,9 @@ static void compute_diffusion_coeff_radial(t_data &data, t_polargrid &X) {
 /*
 Calculate the diffusion coefficient on at the azimuthal interface locations.
 */
-static void compute_diffusion_coeff_azimuthal(t_data &data, t_polargrid &X) {
+static void compute_diffusion_coeff_azimuthal(t_polargrid &Density, t_polargrid &T) {
 
     // calcuate Kb for K(i,j/2)
-    auto &Density = data[t_data::RHO];
 
 	const unsigned int Nrad = Kb.get_size_radial();
     const unsigned int Naz = Kb.get_size_azimuthal();
@@ -392,17 +344,17 @@ static void compute_diffusion_coeff_azimuthal(t_data &data, t_polargrid &X) {
 		const unsigned int naz_prev = (naz == 0 ? Naz-1 : naz - 1);
 
 	    // average azimuthally
-	    const double x = 0.5 * (X(nr, naz_prev) + X(nr, naz));
+	    const double x = 0.5 * (T(nr, naz_prev) + T(nr, naz));
 		const double rho = 0.5 * (Density(nr, naz_prev) + Density(nr, naz));
 
 		// calculate gradient length
 		// values are located on the azimuthal interface
 		const double Router = Ra[nr + 1];
 		const double Rinner = Ra[nr - 1];
-		const double xouter = 0.5 * (X(nr + 1, naz_prev) + X(nr + 1, naz));
-		const double xinner = 0.5 * (X(nr - 1, naz_prev) + X(nr - 1, naz));
+		const double xouter = 0.5 * (T(nr + 1, naz_prev) + T(nr + 1, naz));
+		const double xinner = 0.5 * (T(nr - 1, naz_prev) + T(nr - 1, naz));
 	    const double dX_dr = (xouter - xinner) / (Router - Rinner);
-        const double dX_dphi = InvRmed[nr] * (X(nr, naz) - X(nr, naz_prev)) / dphi;
+        const double dX_dphi = InvRmed[nr] * (T(nr, naz) - T(nr, naz_prev)) / dphi;
 
 	    const double nabla_X = std::hypot(dX_dr, dX_dphi);
 
@@ -411,25 +363,12 @@ static void compute_diffusion_coeff_azimuthal(t_data &data, t_polargrid &X) {
     }
 }
 
-static void save_old_values(t_polargrid &X) {
-	const unsigned int Nrad = X.get_size_radial();
-    const unsigned int Naz = X.get_size_azimuthal();
-
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nrad; ++nr) {
-		for (unsigned int naz = 0; naz < Naz; ++naz) {
-			Xold(nr, naz) = X(nr, naz);
-		}
-	}
-}
 
 /*
 Calculate the matrix elements resulting from the diffusion equation discretization.
 This sets up the linear system that is solved later.
 */
-static void calculate_matrix_elements(t_data &data, const double dt) {
-
-	auto &Density = data[t_data::RHO];
+static void calculate_matrix_elements(t_polargrid &Density, const double dt) {
 
 	// TODO: check whether we need gamma_eff here
     const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
@@ -442,13 +381,9 @@ static void calculate_matrix_elements(t_data &data, const double dt) {
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
 		double common_factor;
-		if (use_temperature) {
-			const double rho = Density(nr, naz);
-			// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10) adjusted for 3D FLD in midplane
-			common_factor = -dt / (rho * c_v);
-		} else {
-			common_factor = -dt;
-		}
+		const double rho = Density(nr, naz);
+		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10) adjusted for 3D FLD in midplane
+		common_factor = -dt / (rho * c_v);
 
 	    // 2/(dR^2)
 	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
@@ -539,24 +474,19 @@ static void communicate_parallelization_boundaries(t_polargrid &Temperature) {
 /*
 Boundary condition to be applied inside the matrix solver loop.
 */
-static void boundary_inside_SOR(t_polargrid &X) {
-	double minval;
-	if (use_temperature) {
-		minval = parameters::minimum_temperature;
-	} else {
-		minval = Erad_min;
-	}
+static void boundary_inside_SOR(t_polargrid &T) {
 
+	const double minval = parameters::minimum_temperature;
 
-    const unsigned int Naz = X.get_size_azimuthal();
-    const unsigned int nrad_last = X.get_max_radial();
+    const unsigned int Naz = T.get_size_azimuthal();
+    const unsigned int nrad_last = T.get_max_radial();
 
     const bool at_outer_boundary = CPU_Rank == CPU_Highest;
     const bool outer_boundary_open = parameters::boundary_outer == parameters::boundary_condition_open;
 	if (at_outer_boundary && outer_boundary_open) {
 		// set temperature to T_min in outermost cells
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
-			X(nrad_last, naz) = minval;
+			T(nrad_last, naz) = minval;
 		}
 	}
 
@@ -565,7 +495,7 @@ static void boundary_inside_SOR(t_polargrid &X) {
 	if (at_inner_boundary && inner_boundary_open) {
         // set temperature to T_min in innermost cells
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
-			X(0, naz) = minval;
+			T(0, naz) = minval;
 		}
 	}
 }
@@ -589,7 +519,7 @@ static inline bool is_active_cell(const unsigned int nr) {
 /*
 Set temperature floor and ceiling.
 */
-static inline void floorceil_T_single(double &T) {
+static inline void floorceil_single(double &T) {
 	if(T < parameters::minimum_temperature){
 		T = parameters::minimum_temperature;
 	}
@@ -600,39 +530,13 @@ static inline void floorceil_T_single(double &T) {
 	}
 }
 
-/*
-Set energy floor and ceiling.
-*/
-static inline void floorceil_E_single(double &E) {
-	if(E < Erad_min){
-		E = Erad_min;
-	}
-
-	if(E > Erad_max){
-		logging::print(LOG_INFO "max temp inside FLD SOR loop E = %e, T = %e\n", E, Erad2Trad(E));
-		E = Erad_max;
-	}
-}
-
-/*
-Apply floor and ceiling values to the variable during matrix inversion.
-*/
-static inline void floorceil_x_single(double &x) {
-	if (use_temperature) {
-		floorceil_T_single(x);
-	} else {
-		floorceil_E_single(x);
-	}
-}
-
-
 
 /*
 Solve the linear system using succesive over-relaxation.
 */
-static void SOR(t_polargrid &X) {
+static void SOR(t_polargrid &T) {
 
-    const unsigned int Naz = X.get_size_azimuthal();
+    const unsigned int Naz = T.get_size_azimuthal();
 
     static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
     static int direction = 1;
@@ -649,7 +553,7 @@ static void SOR(t_polargrid &X) {
 
     while ((avg_absolute_change > tolerance) && (maxiter > iterations)) {
 
-    boundary_inside_SOR(X);
+    boundary_inside_SOR(T);
 
 	absolute_norm = 0.0;
 
@@ -661,26 +565,26 @@ static void SOR(t_polargrid &X) {
 	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
-		const double old_value = X(nr, naz);
-        const unsigned int naz_last = X.get_max_azimuthal();
+		const double old_value = T(nr, naz);
+        const unsigned int naz_last = T.get_max_azimuthal();
 		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
 		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
 
-		X(nr, naz) =
-		    (1.0 - omega) * X(nr, naz) -
+		T(nr, naz) =
+		    (1.0 - omega) * T(nr, naz) -
 		    omega / B(nr, naz) *
-			(A(nr, naz) * X(nr - 1, naz) +
-			 C(nr, naz) * X(nr + 1, naz) +
-			 D(nr, naz) * X(nr, naz_prev) +
-			 E(nr, naz) * X(nr, naz_next) - Xold(nr, naz));
+			(A(nr, naz) * T(nr - 1, naz) +
+			 C(nr, naz) * T(nr + 1, naz) +
+			 D(nr, naz) * T(nr, naz_prev) +
+			 E(nr, naz) * T(nr, naz_next) - Told(nr, naz));
 
 		// ensure minimum and maximum temperature
-		floorceil_x_single(X(nr, naz));
+		floorceil_single(T(nr, naz));
 
 		// only non ghostcells to norm and don't count overlap cell's
 		// twice
         if (is_active_cell(nr)) {
-		    absolute_norm += std::pow(old_value - X(nr, naz), 2);
+		    absolute_norm += std::pow(old_value - T(nr, naz), 2);
 		}
 	    }
 	}
@@ -696,7 +600,7 @@ static void SOR(t_polargrid &X) {
 	// printf("iter %u, norm_change = %e\n", iterations, norm_change);
 	iterations++;
 
-    communicate_parallelization_boundaries(X);
+    communicate_parallelization_boundaries(T);
 
     } // END SOR
 
@@ -740,10 +644,9 @@ and radiation temperature equilibrate instantaneously.
 Thus, we can simply use the radiation temperature in place of the gas temperature.
 */
 static void update_energy(t_data &data, t_polargrid &T) {
-
-    auto &Sigma = data[t_data::SIGMA];
-    auto &Energy = data[t_data::ENERGY];
-
+	auto &Energy = data[t_data::ENERGY];
+	auto &Sigma = data[t_data::SIGMA];
+	
     const unsigned int Nrad = T.get_size_radial();
     const unsigned int Naz = T.get_size_azimuthal();
 
@@ -760,8 +663,7 @@ static void update_energy(t_data &data, t_polargrid &T) {
 /*
 Set the midplane density to a constant 1 g/cm3 for testing purposes.
 */
-static void set_constant_midplane_density(t_data &data){
-	auto &Rho = data[t_data::RHO];
+static void set_constant_midplane_density(t_polargrid &Rho){
 	
 	const unsigned int Nrad = Rho.get_size_radial();
 	const unsigned int Naz = Rho.get_size_azimuthal();
@@ -777,70 +679,36 @@ static void set_constant_midplane_density(t_data &data){
 
 }
 
-
-
 /*
-Compute radiation energy from radiation temperature.
-Erad = aR * Trad^4
+Perform the matrix multiplication with the solution vector to check agains old values
+and print the difference.
+
+This function can be used to check whether the tolerance is low enough
+such that the solution converges.
 */
-static void Trad_to_Erad(t_polargrid &E, t_polargrid &T){
-	
-	const unsigned int Nrad = E.get_size_radial();
-	const unsigned int Naz = E.get_size_azimuthal();
-
-	const double aR = 4*constants::sigma/constants::c;
-
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nrad; ++nr) {
-        for (unsigned int naz = 0; naz < Naz; ++naz) {
-			E(nr, naz) =  aR*std::pow(T(nr, naz), 4);
-        }
-    }
-}
-
-/*
-Compute radiation energy from radiation temperature.
-Trad = (Erad / aR)^(1/4)
-*/
-static void Erad_to_Trad(t_polargrid &T, t_polargrid &E){
-	
-	const unsigned int Nrad = E.get_size_radial();
-	const unsigned int Naz = E.get_size_azimuthal();
-
-	const double aR = 4*constants::sigma/constants::c;
-
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nrad; ++nr) {
-        for (unsigned int naz = 0; naz < Naz; ++naz) {
-			T(nr, naz) =  std::pow(E(nr, naz)/aR, 0.25);
-        }
-    }
-}
-
-
-static void check_solution(t_polargrid &X) {
+static void check_solution(t_polargrid &T) {
 	
 	double diff = 0;
 	double diff_abs = 0;
 	double xmax = 0;
 
-	const unsigned int Naz = X.get_size_azimuthal();
+	const unsigned int Naz = T.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2) reduction(+ : diff, diff_abs, xmax)
 	for (unsigned int nr = nstart; nr < nstop; ++nr) {
 		for (unsigned int naz = 0; naz < Naz; ++naz) {
 
-        const unsigned int naz_last = X.get_max_azimuthal();
+        const unsigned int naz_last = T.get_max_azimuthal();
 		const unsigned int naz_next = (naz == naz_last ? 0 : naz + 1);
 		const unsigned int naz_prev = (naz == 0 ? naz_last : naz - 1);
 
-		const double xold = Xold(nr, naz); // constant vector in matrix equation
+		const double xold = Told(nr, naz); // constant vector in matrix equation
 		const double xnew =
-			A(nr, naz) * X(nr - 1, naz) +
-			B(nr, naz) * X(nr, naz) +
-			C(nr, naz) * X(nr + 1, naz) +
-			D(nr, naz) * X(nr, naz_prev) +
-			E(nr, naz) * X(nr, naz_next);
+			A(nr, naz) * T(nr - 1, naz) +
+			B(nr, naz) * T(nr, naz) +
+			C(nr, naz) * T(nr + 1, naz) +
+			D(nr, naz) * T(nr, naz_prev) +
+			E(nr, naz) * T(nr, naz_next);
 
 		if (is_active_cell(nr)) {
 			diff += xnew - xold;
@@ -866,61 +734,47 @@ static void check_solution(t_polargrid &X) {
 	printf("Max value in solution vector : %e\n", xmax);
 }
 
+/*
+Perform radiation transport in the one-fluid FLD approximation.
 
-static void radiative_diffusion_energy(t_data &data, const double dt) {
+Refer to Kley & Lin (1996) doi:10.1086/177115 for a description of the approximation.
+Instead of evolving a system of coupled eqations for the radiative energy and the internal energy,
+it is assumed that the contribution from the radiation energy is negligible and the diffusion term
+is added to the equation for the internal energy directly.
+Then, the variable that is evolved is the temperature directly.
 
-	// instantaneously equilibrate photon gas temperature to ideal gas temperature
-	Trad_to_Erad(Erad, data[t_data::TEMPERATURE]);
-
-	// calculate diffusion coefficient
-	compute_diffusion_coeff_radial(data, Erad);
-    radial_boundary_diffusion_coeff();
-    compute_diffusion_coeff_azimuthal(data, Erad);
-
-	// setup linear equation and solve the diffusion equation
-    calculate_matrix_elements(data, dt);
-	save_old_values(Erad);
-
-	SOR(Erad);
-
-	if (parameters::radiative_diffusion_check_solution) {
-		check_solution(Erad);
-	}
-
-	// instantaneously equilibrate ideal gas temperature to photon gas temperature
-	Erad_to_Trad(Trad, Erad);
-	copy_polargrid(data[t_data::TEMPERATURE], Trad);
-}
-
-static void radiative_diffusion_temperature(t_data &data, const double dt) {
-
-	// instantaneously equilibrate photon gas temperature to ideal gas temperature
-	copy_polargrid(Trad, data[t_data::TEMPERATURE]);
+It sould be noted that this is only a valid assumption in the optically thick case because 
+in the optically thin case the radiation energy is not negligible anymore.
+*/
+static void one_fluid_fld(t_data &data, const double dt) {
+	auto &Density = data[t_data::RHO];
 
 	// calculate diffusion coefficient
-	compute_diffusion_coeff_radial(data, Trad);
+	compute_diffusion_coeff_radial(Density, Trad);
     radial_boundary_diffusion_coeff();
-    compute_diffusion_coeff_azimuthal(data, Trad);
+    compute_diffusion_coeff_azimuthal(Density, Trad);
 
 	// setup linear equation and solve the diffusion equation
-    calculate_matrix_elements(data, dt);
-	save_old_values(Trad);
+    calculate_matrix_elements(Density, dt);
+	copy_polargrid(Told, Trad);
 
 	SOR(Trad);
-
-	if (parameters::radiative_diffusion_check_solution) {
-		check_solution(Trad);
-	}
-
-	// instantaneously equilibrate ideal gas temperature to photon gas temperature
-	copy_polargrid(data[t_data::TEMPERATURE], Trad);
-
-	Trad_to_Erad(Erad, Trad);
 }
 
 
+/*
+Perform radiative diffusion using the one-fluid FLD method.
+
+This method solves a linear equation system resulting 
+from a diffusion equation for the temperature.
+The system is solved using the SOR method.
+*/
 void radiative_diffusion(t_data &data, const double current_time, const double dt)
 {
+    auto &Sigma = data[t_data::SIGMA];
+    auto &Energy = data[t_data::ENERGY];
+	auto &Tgas = data[t_data::TEMPERATURE];
+
     set_minimum_energy(data);
 	
     // update temperature, soundspeed and aspect ratio
@@ -931,18 +785,23 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	compute::midplane_density(data, current_time);
 
 	if (parameters::radiative_diffusion_test_2d) {
-		set_constant_midplane_density(data);
+		set_constant_midplane_density(data[t_data::RHO]);
 	}
 
-	if (use_temperature) {
-		radiative_diffusion_temperature(data, dt);
-	} else {
-		radiative_diffusion_energy(data, dt);
+	// instantaneously equilibrate photon gas temperature to ideal gas temperature
+	copy_polargrid(Trad, Tgas);
+
+	one_fluid_fld(data, dt);
+
+	if (parameters::radiative_diffusion_check_solution) {
+		check_solution(Trad);
 	}
 
-	update_energy(data, Trad);
+	// instantaneously equilibrate ideal gas temperature to photon gas temperature
+	copy_polargrid(Tgas, Trad);
 
-    // ensure energy is consistent with min/max temperature
+	update_energy(data, Tgas);
+	// ensure energy is consistent with min/max temperature
 	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 }
 

@@ -104,7 +104,6 @@ bool cooling_scurve_enabled;
 
 
 bool radiative_diffusion_enabled;
-t_radiative_diffusion_variable radiative_diffusion_variable;
 double radiative_diffusion_omega;
 bool radiative_diffusion_omega_auto_enabled;
 unsigned int radiative_diffusion_max_iterations;
@@ -799,14 +798,6 @@ void read(const std::string &filename, t_data &data)
 
 
     radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "no");
-	const std::string rdvar = config::cfg.get<std::string>("RadiativeDiffusionVariable", "temperature");
-	if (rdvar == "energy") {
-		radiative_diffusion_variable = t_radiative_diffusion_variable::energy;
-	} else if (rdvar == "temperature") {
-		radiative_diffusion_variable = t_radiative_diffusion_variable::temperature;
-	} else {
-		die("Radiative diffusion variable can only be 'temperature' or 'energy', not '%s'\n", rdvar.c_str());
-	}
     radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
     radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
@@ -1449,11 +1440,10 @@ void summarize_parameters()
 	cooling_radiative_factor);
     logging::print_master(
 	LOG_INFO
-	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations based on %s.\n",
+	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
-	radiative_diffusion_omega, radiative_diffusion_max_iterations,
-	radiative_diffusion_variable == t_radiative_diffusion_variable::temperature ? "temperature" : "energy");
+	radiative_diffusion_omega, radiative_diffusion_max_iterations);
 
     logging::print_master(
         LOG_INFO "S-curve cooling is %s. \n",
