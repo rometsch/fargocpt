@@ -13,6 +13,7 @@
 #include "boundary_conditions.h"
 #include "logging.h"
 #include "compute.h"
+#include "output.h"
 
 
 namespace fld {
@@ -96,6 +97,16 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	Told.set_scalar(true);
 	Told.set_size(Nrad, Naz);
 
+	Ka.set_name("Ka");
+	Kb.set_name("Kb");
+	A.set_name("A");
+	B.set_name("B");
+	C.set_name("C");
+	D.set_name("D");
+	E.set_name("E");
+	Trad.set_name("Trad");
+	Told.set_name("Told");
+
     SendInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
     SendOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
     RecvInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
@@ -130,23 +141,14 @@ void handle_output() {
 	if (!parameters::radiative_diffusion_dump_data) {
 		return;
 	}
-	Ka.set_name("Ka");
 	Ka.write2D();
-	Kb.set_name("Kb");
 	Kb.write2D();
-	A.set_name("A");
 	A.write2D();
-	B.set_name("B");
 	B.write2D();
-	C.set_name("C");
 	C.write2D();
-	D.set_name("D");
 	D.write2D();
-	E.set_name("E");
 	E.write2D();
-	Trad.set_name("Trad");
 	Trad.write2D();
-	Told.set_name("Told");
 	Told.write2D();
 }
 
@@ -372,18 +374,17 @@ static void calculate_matrix_elements(t_polargrid &Density, const double dt) {
 
 	// TODO: check whether we need gamma_eff here
     const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
-	// printf("c_v = %e\n", c_v);
-	// const double c_v = 1;
+
 	const unsigned int Nrad = A.get_size_radial();
     const unsigned int Naz = A.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nrad - 1; ++nr) {
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
-		double common_factor;
+		
 		const double rho = Density(nr, naz);
 		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10) adjusted for 3D FLD in midplane
-		common_factor = -dt / (rho * c_v);
+		const double common_factor = -dt / (rho * c_v);
 
 	    // 2/(dR^2)
 	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
@@ -643,9 +644,7 @@ The underlying assumption is that gas temperature
 and radiation temperature equilibrate instantaneously.
 Thus, we can simply use the radiation temperature in place of the gas temperature.
 */
-static void update_energy(t_data &data, t_polargrid &T) {
-	auto &Energy = data[t_data::ENERGY];
-	auto &Sigma = data[t_data::SIGMA];
+static void update_energy(t_polargrid &Energy, t_polargrid &Sigma, t_polargrid &T) {
 	
     const unsigned int Nrad = T.get_size_radial();
     const unsigned int Naz = T.get_size_azimuthal();
@@ -661,19 +660,19 @@ static void update_energy(t_data &data, t_polargrid &T) {
 }
 
 /*
-Set the midplane density to a constant 1 g/cm3 for testing purposes.
+Set every value in the grid to a constant.
 */
-static void set_constant_midplane_density(t_polargrid &Rho){
+static void set_constant_value(t_polargrid &X, const double constant){
 	
-	const unsigned int Nrad = Rho.get_size_radial();
-	const unsigned int Naz = Rho.get_size_azimuthal();
+	logging::print(LOG_INFO "Setting %s to constant value %e\n", X.get_name(), constant);
 
-	const double density = parameters::radiative_diffusion_test_2d_density;
+	const unsigned int Nrad = X.get_size_radial();
+	const unsigned int Naz = X.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nrad; ++nr) {
         for (unsigned int naz = 0; naz < Naz; ++naz) {
-            Rho(nr, naz) = density;
+            X(nr, naz) = constant;
         }
     }
 
@@ -734,6 +733,68 @@ static void check_solution(t_polargrid &T) {
 	printf("Max value in solution vector : %e\n", xmax);
 }
 
+
+
+/*
+This test checks the implementation of the diffusion process
+and the linear system solver.
+
+Instead of the radiative temperature, Trad is the radiative energy in this case
+and this quantity is diffused with a constant diffusion coefficient.
+
+The equation solved is de/dt = nabla * K nabla e
+
+The soluction can then be used to compare against an analytical solution.
+*/
+static void run_2d_diffusion_test(t_data &data, const double dt) {
+	const unsigned int Nrad = A.get_size_radial();
+	const unsigned int Naz = A.get_size_azimuthal();
+	t_polargrid Erad;
+	Erad.set_size(Nrad, Naz);
+	Erad.set_name("Erad2Dtest");
+
+	// load initial condition for diffusion test
+	const std::string filename_in = output::outdir + "Erad_input.dat";
+	Erad.read2D(filename_in.c_str());
+
+	// set constant midplane density
+	// const double rho = parameters::radiative_diffusion_test_2d_density;
+	const double rho = 1.0;
+	auto &Density = data[t_data::RHO];
+	set_constant_value(Density, rho);
+
+	const double lambda = 1./3;
+	// const double c = constants::c;
+	const double c = 2.997e10;
+	const double kappa = 1;
+	const double K = lambda*c/(rho*kappa) *0.8 ;
+	logging::print(LOG_INFO "Running 2D FLD test with K=%e\n", K);
+
+	// Set the K arrays to K*cV because in the temperature formulation, 
+	// there is an additional factor of 1/(rho*cV)
+	// const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
+	// const double fhack = c_v*rho;
+	const double fhack = 1;
+	set_constant_value(Ka, K);
+	set_constant_value(Kb, K);
+
+	calculate_matrix_elements(Density, dt);
+	copy_polargrid(Told, Erad);
+
+	SOR(Erad);
+
+	check_solution(Erad);
+
+	const std::string filename_out = output::outdir + "Erad_output.dat";
+	Erad.write2D(filename_out);
+
+	die("Everything is done for the 2D FLD test.\n");
+}
+
+
+
+
+
 /*
 Perform radiation transport in the one-fluid FLD approximation.
 
@@ -785,7 +846,8 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	compute::midplane_density(data, current_time);
 
 	if (parameters::radiative_diffusion_test_2d) {
-		set_constant_midplane_density(data[t_data::RHO]);
+		run_2d_diffusion_test(data, dt);
+		return;
 	}
 
 	// instantaneously equilibrate photon gas temperature to ideal gas temperature
@@ -800,7 +862,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	// instantaneously equilibrate ideal gas temperature to photon gas temperature
 	copy_polargrid(Tgas, Trad);
 
-	update_energy(data, Tgas);
+	update_energy(Energy, Sigma, Tgas);
 	// ensure energy is consistent with min/max temperature
 	SetTemperatureFloorCeilValues(data, __FILE__, __LINE__);
 }
