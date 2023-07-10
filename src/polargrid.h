@@ -92,6 +92,7 @@ class t_polargrid
     void write_polargrid(t_data &data);
     // 2D read/write
     void write2D() const;
+    void write2D(const std::string filename) const;
     void read2D(const char *filename);
     void read2D();
     bool file_exists();

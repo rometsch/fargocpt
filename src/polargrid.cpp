@@ -118,16 +118,24 @@ void t_polargrid::write_polargrid(t_data &data)
 
 	\param number file number
 */
-void t_polargrid::write2D() const
+void t_polargrid::write2D() const {
+    const std::string filename = output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
+    write2D(filename);
+}
+
+
+/**
+	write polargrid to file
+
+	\param number file number
+*/
+void t_polargrid::write2D(const std::string filename) const
 {
     MPI_File fh;
     MPI_Status status;
 
     unsigned int count;
     double *from;
-
-    std::string filename =
-	output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
