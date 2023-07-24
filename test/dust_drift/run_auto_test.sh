@@ -2,5 +2,7 @@
 
 FILEDIR="$(dirname $(realpath $0))"
 cd $FILEDIR
-OMP_NUM_THREADS=1 ../../fargo start dust_drift.yml 1> out.log 2>err.log
-./calc_deviation.py
+../../run_fargo -nt 1 start dust_drift.yml 1> out.log 2>err.log
+python3 calc_deviation.py
+python3 plot_drift.py
+python3 plot_trajectory.py
