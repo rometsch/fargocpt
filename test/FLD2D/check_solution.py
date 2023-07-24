@@ -87,9 +87,8 @@ def setup_hash():
         DT = str(params["DT"])
         Nrad = str(params["Nrad"])
         Naz = str(params["Nsec"])
-        vname = str(params["RadiativeDiffusionVariable"])
 
-    s = test_settings + DT + Nrad + Naz + vname
+    s = test_settings + DT + Nrad + Naz
     h = hashlib.sha256(s.encode("utf-8"))
     return h.hexdigest()
     
@@ -124,17 +123,18 @@ if __name__ == "__main__":
     analytical_solution = get_solution_array("setup.yml", t0+DT)
     
     # get code solution from file
-    code_solution = np.fromfile(f"{outdir}/snapshots/1/energy.dat", dtype=np.float64).reshape(g.Nrad, g.Naz)
-    code_solution = Eint_to_Erad(code_solution)
+    code_solution = np.fromfile(f"{outdir}/Erad_output.dat", dtype=np.float64).reshape(g.Nrad, g.Naz)
 
     print("max analytical {:.4e}".format(np.max(analytical_solution)))
+    print("min analytical {:.4e}".format(np.min(analytical_solution)))
     print("max code {:.4e}".format(np.max(code_solution)))
+    print("min code {:.4e}".format(np.min(code_solution)))
 
     # xlim=[47,53]
     # ylim=[-3,3]
     xlim=ylim=None
-    vmax = 1e5
-    vmin = 1 
+    vmax = 1
+    vmin = 1e-4
 
     ncols = 3 if opts.solve else 2
     nrows = 2 if opts.diff else 1
@@ -150,14 +150,14 @@ if __name__ == "__main__":
 
     Z = analytical_solution
     # Z = Z/np.max(Z)
-    fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="log", ax=axsv[0], vmin=vmin, vmax=vmax)
+    fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="log", ax=axsv[0], vmin=vmin, vmax=vmax, cmap="viridis")
     ax.set_title("analytical")
     cbar.set_label(r"$E_\mathrm{rad}$ [cgs]")
     ax.set_xlim(xlim); ax.set_ylim(ylim)
 
     Z = code_solution
     # Z = Z/np.max(Z)
-    fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="log", ax=axsv[1], vmin=vmin, vmax=vmax)
+    fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="log", ax=axsv[1], vmin=vmin, vmax=vmax, cmap="viridis")
     ax.set_title("code")
     cbar.set_label(r"$E_\mathrm{rad}$ [cgs]")
     ax.set_xlim(xlim); ax.set_ylim(ylim)
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     if opts.diff:
         axsd = axsfull[1,:]
         
-        Z = code_solution - analytical_solution
+        Z = (code_solution - analytical_solution) / np.max(np.abs(analytical_solution))
         diffmax = np.max(np.abs(Z))
         fig, ax, cbar = plot_field(g.Xi, g.Yi, Z, scaling="linear", ax=axsd[0], vmin=-diffmax, vmax=diffmax, cmap="bwr")
         ax.set_title("diff code - analytical")

@@ -1,5 +1,5 @@
 # Setting for the 2D FLD test
 
-t0: 1e-11
-offset: 0
-E0: 1e2
+t0: 0.1
+offset: 0.0
+E0: 1

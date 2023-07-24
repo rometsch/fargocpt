@@ -29,11 +29,11 @@ A(k, (k+1)%N) = eij
 
 def solve_linear_system(outdir, Xold, Nr, Naz):
 
-    a = np.fromfile(outdir + "/snapshots/1/A.dat", dtype=np.float64)
-    b = np.fromfile(outdir + "/snapshots/1/B.dat", dtype=np.float64)
-    c = np.fromfile(outdir + "/snapshots/1/C.dat", dtype=np.float64)
-    d = np.fromfile(outdir + "/snapshots/1/D.dat", dtype=np.float64)
-    e = np.fromfile(outdir + "/snapshots/1/E.dat", dtype=np.float64)
+    a = np.fromfile(outdir + "/snapshots/0/A.dat", dtype=np.float64)
+    b = np.fromfile(outdir + "/snapshots/0/B.dat", dtype=np.float64)
+    c = np.fromfile(outdir + "/snapshots/0/C.dat", dtype=np.float64)
+    d = np.fromfile(outdir + "/snapshots/0/D.dat", dtype=np.float64)
+    e = np.fromfile(outdir + "/snapshots/0/E.dat", dtype=np.float64)
 
     # b = b.reshape(Nr, Naz)
     # b[0,:] = b[1,:]

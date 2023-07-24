@@ -58,15 +58,16 @@ def get_solution_array(setupfile, t, offset=0):
     c = 2.997e10
     rho = 1
     kappa = 1
-    lam = 1/3
+    lam = 1./3
     K = lam*c/(rho*kappa)
+    K = 1
 
-    print(f"Diffusion coefficient K = {K} = {K:e}")
+    print(f"Analytical solution at t = {t:e}, K = {K} = {K:e}")
 
     params = get_setup_params()
 
     E0 = float(params["E0"])
-    energy0 = E0 / g.A[nr, nphi]
+    energy0 = E0 #/ g.A[nr, nphi]
     offset = float(params["offset"])*energy0
 
     xcell = g.Xc[nr, nphi]
@@ -76,28 +77,6 @@ def get_solution_array(setupfile, t, offset=0):
     Dist = np.sqrt(DX**2 + DY**2)
 
     return analytical_solution(Dist,t, energy0, K, offset=offset)
-
-def Erad_to_Eint(Erad):
-    """ Convert radiative energy density to internal energy density based on the test model. """
-    mu = 2.35
-    gamma = 1.4
-
-    Rg = const.k_B / const.m_p
-    cv = Rg / mu / (gamma - 1)
-    cv = cv.cgs.value
-    Sigma = 1 # g/cm3
-
-    sigmaR = const.sigma_sb
-    aR = 4*sigmaR/const.c
-    aR = aR.to_value("erg/(cm3*K4)")
-    Trad = (Erad/aR)**0.25
-
-    # assume instantaneous equilibrium
-    Tgas = Trad
-
-    Eint = cv*Sigma*Tgas
-    return Eint
-
 
 
 if __name__ == "__main__":
@@ -109,16 +88,8 @@ if __name__ == "__main__":
         t0 = float(params["t0"])
 
     Erad = get_solution_array("setup.yml", t0, offset=1e5)
-    initial_condition = Erad_to_Eint(Erad)
 
     print("Erad size", Erad.shape)
-    print("initial_condition size", initial_condition.shape)
+    print("Erad max", np.max(Erad))
 
     np.array(Erad, dtype=np.float64).tofile("output/out/Erad_input.dat")
-    # save this energy array to file
-    initial_condition.tofile("output/out/snapshots/0/energy.dat")
-
-    import os
-    if os.path.exists("output/out/snapshots/damping"):
-        initial_condition.tofile("output/out/snapshots/damping/energy.dat")
-
