@@ -56,23 +56,15 @@ def get_particles(datadir, N, units=True):
     filename = os.path.join(datadir, f"snapshots/{N}/particles.dat")
     return load_particles_file(filename, units=units)
 
-
-def dust_histogram(particles, bins=51, size=None):
-
-    if size is not None:
-        particles = filter_by_size(particles, size=size)        
+def get_sigma_dust(outdir, N, nbins=51):
     
-    # r = particles["r"] #.to_value("au")
-    x = particles["x"]
-    y = particles["y"]
-    r = np.sqrt(x**2  + y**2)
-
-    counts, interfaces = np.histogram(r, bins=bins)
+    particles = get_particles(outdir, N, units=False)
+    r = particles["r"]
+    counts, interfaces = np.histogram(r, bins=nbins)
     mid = 0.5*(interfaces[1:] + interfaces[:-1])
     dr = interfaces[1:] - interfaces[:-1]
-    sigma_dust = counts/(2*np.pi*dr*mid)
-
-    return interfaces, sigma_dust
+    sigma_dust = counts/(dr*mid*2*np.pi)
+    return sigma_dust, mid, dr
 
 
 def filter_by_size(particles, size=[]):
@@ -223,3 +215,24 @@ def get_first_particle_file(outdir):
     n = sorted(numbers)[0]
     first_file = f"{outdir}/particles{n}.dat"
     return first_file
+
+def get_time(datadir, N):
+    filename = os.path.join(datadir, f"snapshots/timeSnapshot.dat")
+    times = np.genfromtxt(filename, usecols=(2))
+    units = get_units(datadir)
+    times = (times*units["time"]).to_value("yr")
+    return times[N]
+
+def get_units(datadir):
+    filename = os.path.join(datadir, "units.dat")
+    units = {}
+    with open(filename, "r") as infile:
+        for line in infile:
+            line = line.strip()
+            if line == "" or line[0] == "#":
+                continue
+            else:
+                parts = line.split()
+                if len(parts) == 3:
+                    units[parts[0]] = parts[1] * u.Unit(parts[2])
+    return units
