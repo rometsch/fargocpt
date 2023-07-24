@@ -608,7 +608,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		data[t_data::QPLUS](nrad, naz) += ramping * qplus;
 	}
 	}
-	
+
 }
 
 

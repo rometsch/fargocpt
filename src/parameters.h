@@ -158,6 +158,8 @@ extern double radiative_diffusion_tolerance;
 extern bool radiative_diffusion_test_2d;
 // constant density for 2d fld test
 extern double radiative_diffusion_test_2d_density;
+// constant K for 2d fld test
+extern double radiative_diffusion_test_2d_K;
 // enable 1d test
 extern bool radiative_diffusion_test_1d;
 // save internal grids of the fld module at each snapshot

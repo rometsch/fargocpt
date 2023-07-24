@@ -384,7 +384,12 @@ static void calculate_matrix_elements(t_polargrid &Density, const double dt) {
 		
 		const double rho = Density(nr, naz);
 		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10) adjusted for 3D FLD in midplane
-		const double common_factor = -dt / (rho * c_v);
+		double common_factor;
+		if (parameters::radiative_diffusion_test_2d) {
+			common_factor = -dt;
+		} else {
+			common_factor = -dt / (rho * c_v);
+		}
 
 	    // 2/(dR^2)
 	    const double common_AC = common_factor * 2.0 / (std::pow(Ra[nr + 1], 2) - std::pow(Ra[nr], 2));
@@ -764,17 +769,13 @@ static void run_2d_diffusion_test(t_data &data, const double dt) {
 	set_constant_value(Density, rho);
 
 	const double lambda = 1./3;
-	// const double c = constants::c;
-	const double c = 2.997e10;
+	const double c = constants::c;
+	// const double c = 2.997e10;
 	const double kappa = 1;
-	const double K = lambda*c/(rho*kappa) *0.8 ;
+	// const double K = lambda*c/(rho*kappa);
+	const double K = parameters::radiative_diffusion_test_2d_K;
 	logging::print(LOG_INFO "Running 2D FLD test with K=%e\n", K);
 
-	// Set the K arrays to K*cV because in the temperature formulation, 
-	// there is an additional factor of 1/(rho*cV)
-	// const double c_v = constants::R / (parameters::MU * (parameters::ADIABATICINDEX - 1.0));
-	// const double fhack = c_v*rho;
-	const double fhack = 1;
 	set_constant_value(Ka, K);
 	set_constant_value(Kb, K);
 
@@ -787,6 +788,8 @@ static void run_2d_diffusion_test(t_data &data, const double dt) {
 
 	const std::string filename_out = output::outdir + "Erad_output.dat";
 	Erad.write2D(filename_out);
+
+	handle_output();
 
 	die("Everything is done for the 2D FLD test.\n");
 }
