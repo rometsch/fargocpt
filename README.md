@@ -8,7 +8,7 @@ The easiest way to get started is to clone the last commit of the repository
 ``` bash
 git clone https://github.com/rometsch/fargocpt --depth 1
 ```
-and then to go through the Jupyter notebook located at `examples/100_Quickstart.ipynb`.
+and then to go through the Jupyter notebook located at [examples/100_Quickstart.ipynb](https://github.com/rometsch/fargocpt/blob/master/examples/100_Quickstart.ipynb).
 This notebook will guide you through 
 - how to build the code,
 - how to run a simulation, 
