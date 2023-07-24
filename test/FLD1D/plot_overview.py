@@ -102,7 +102,10 @@ inds = [0, 1, 3, 5, 8, 10, 20, 30, 50, 75, 100, Nlast]
 for k, n in enumerate(inds):
     color = cmap(k/(len(inds)-1))
     
-    field = d.get(dim="2d", var=name, N=n)
+    try:
+        field = d.get(dim="2d", var=name, N=n)
+    except FileNotFoundError:
+        continue
     T = np.fromfile(d.path+f"/snapshots/{n}/Temperature.dat", dtype=np.float64).reshape(Nr, Nphi)*Tunit
 
     r = grid.get_centers("r").to_value("au")
