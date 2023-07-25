@@ -1,9 +1,29 @@
 # Fargo Version of the CPT group
 
+FargoCPT is a two-dimensional hydrodynamics + Nbody + particles code that is used to simulate protoplanetary disks with embedded planets and dust particles.
+
+This code supports Linux and MacOS and is written in C++ using MPI and OpenMP for parallelization.
+
+## Quickstart
+
+The easiest way to get started is to clone the last commit of the repository
+``` bash
+git clone https://github.com/rometsch/fargocpt --depth 1
+```
+and then to go through the Jupyter notebook located at [examples/100_Quickstart.ipynb](https://github.com/rometsch/fargocpt/blob/master/examples/100_Quickstart.ipynb).
+This notebook will guide you through 
+- how to build the code,
+- how to run a simulation, 
+- describe the output structure 
+- how to plot some results.
+
+After completing this notebook, you likely know enough to run and analyze your own experiments.
+
 ## Description
 
-This is the version of the [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code used by some members of the Computational Physics Tübingen (CPT) group.
-FargoCPT includes a number of improvements and is parallelized using a hybrid MPI-OpenMP scheme.
+This is the version of the [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code used by members of the Computational Physics Tübingen (CPT) group.
+
+FargoCPT includes a number of improvements over the original FARGO code and is parallelized using a hybrid MPI-OpenMP scheme.
 
 It is now used and maintained by Lucas Jordan and Thomas Rometsch with contributions by Tobias Moldenhauer (symmetric self-gravity) and Dennis Wehner (variable adiabatic index).
 
@@ -12,10 +32,12 @@ Credit for earlier version we built uopn go to:
 - [FARGO-ADSG](http://fargo.in2p3.fr/-FARGO-ADSG-) by [Clément Baruteau](http://clement.baruteau.free.fr/work/) who added a solver for the energy equation (AD=adiabatic) and self-gravity (SG)
 - [Tobias Müller](https://twam.info) for adopting FARGO-ADSG to C++, [Giovanni Picogna](https://www.usm.uni-muenchen.de/people/picogna/index.html) for adding Langrangian particles, and other students in the CPT group.
 
-
 ## In development
 
 This code is presented as is. And it will change over time.
+If something does not work, please __open an issue on GitHub__.
+We appreciate any feedback!
+
 Until the end of the third quarter in 2023, we plan to add more tests, add documentation and examples.
 Changes to the input and output format are also possible, though the goal for the next month is to have a version 1.0.
 
@@ -46,12 +68,10 @@ For any other MPI implementation, please test the available options for hybrid p
 To build the code, navigate to the repository home and run
 
 ```bash
-# source macos-source.env # if you are on MacOS
 make -C src -j 4
 ```
 
 This will compile the code in parallel using 4 processes. Increase this number at the risk of running out of memory.
-On MacOS, you have to first `source src/macos-source.env` for the moment, until we find a more elegant solution.
 
 The building process is managed by the makefile `src/makefile`.
 Compile time flags are set in `src/makefile.defs` and the environment is selected and specified in `src/arch.defs`.
