@@ -2,6 +2,8 @@
 
 FargoCPT is a two-dimensional hydrodynamics + Nbody + particles code that is used to simulate protoplanetary disks with embedded planets and dust particles.
 
+This code supports Linux and MacOS and is written in C++ using MPI and OpenMP for parallelization.
+
 ## Quickstart
 
 The easiest way to get started is to clone the last commit of the repository
@@ -66,12 +68,10 @@ For any other MPI implementation, please test the available options for hybrid p
 To build the code, navigate to the repository home and run
 
 ```bash
-# source macos-source.env # if you are on MacOS
 make -C src -j 4
 ```
 
 This will compile the code in parallel using 4 processes. Increase this number at the risk of running out of memory.
-On MacOS, you have to first `source src/macos-source.env` for the moment, until we find a more elegant solution.
 
 The building process is managed by the makefile `src/makefile`.
 Compile time flags are set in `src/makefile.defs` and the environment is selected and specified in `src/arch.defs`.
