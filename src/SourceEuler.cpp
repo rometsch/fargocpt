@@ -779,6 +779,10 @@ void calculate_qminus(t_data &data, const double current_time)
 
     //S-curve cooling
     if(parameters::cooling_scurve_enabled){
+
+	const double SigmaCGS_threshold = 2.0;
+	const double temperatureCGS_threshold = 1200;
+
     /// Scruve cooling according to Ichikawa & Osaki (1992)
 #pragma omp parallel for collapse(2)
     for (unsigned int nr = 1; nr < Nr; ++nr) {
@@ -790,18 +794,18 @@ void calculate_qminus(t_data &data, const double current_time)
         const double Sigma =
             data[t_data::SIGMA](nr, naz);
 
-        const double SigmaCGS = Sigma*units::surface_density.get_cgs_factor();
+        const double SigmaCGS_tmp = Sigma*units::surface_density.get_cgs_factor();
+	const double SigmaCGS = std::max(SigmaCGS_tmp, SigmaCGS_threshold);
 
-        const double temperatureCGS =
+        const double temperatureCGS_tmp =
             data[t_data::TEMPERATURE](nr, naz) *
             units::temperature.get_cgs_factor();
+	const double temperatureCGS = std::max(temperatureCGS_tmp, temperatureCGS_threshold);
 
         const double densityCGS =
-            Sigma /
-            (parameters::density_factor * H) * units::density.get_cgs_factor();
+            SigmaCGS / (parameters::density_factor * H * units::length.get_cgs_factor());
 
         const double rCGS = Rmed[nr] * units::length.get_cgs_factor();
-
 
         const double KCGS = 11.0 + 0.4 * std::log10(2.0e10/rCGS);
 
@@ -865,25 +869,21 @@ void calculate_qminus(t_data &data, const double current_time)
             }
         }
 
-        const double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_inverse_cgs_factor();
-        if (SigmaCGS > 2.0)
-        {
-            data[t_data::QMINUS](nr, naz) += qminus_scurve;
-        }
-        else
-        {
-            /// If density is too low (outside the truncation radius) revert to radiative cooling for numerical stability
-            const double opacity = opacity::opacity(densityCGS, temperatureCGS);
-            const double optical_depth = (parameters::tau_factor / parameters::density_factor) * opacity * SigmaCGS;
-            const double tau_min = parameters::tau_min;
-            const double tau_eff = 3.0 / 8.0 * optical_depth + std::sqrt(3.0) / 4.0 +1.0 / (4.0 * optical_depth + tau_min);
-            const double T4 = std::pow(temperatureCGS, 4);
-            const double Tmin4 = std::pow(parameters::minimum_temperature*units::temperature.get_cgs_factor(),4);
-            const double qminus_rad = 2.0 * sigma_sb_cgs * (T4 - Tmin4) / tau_eff*units::energy_flux.get_inverse_cgs_factor();
+        double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_inverse_cgs_factor();
 
-            data[t_data::QMINUS](nr, naz) += qminus_rad;
-        }
+	qminus_scurve *= std::pow((SigmaCGS_tmp / SigmaCGS), 0.5);
+	qminus_scurve *= std::pow(temperatureCGS_tmp / temperatureCGS, 2);
 
+        data[t_data::QMINUS](nr, naz) += qminus_scurve;
+
+	const double factor = parameters::cooling_radiative_factor;
+	const double sigma_sb = constants::sigma.get_code_value();
+	const double T4 = std::pow(
+	data[t_data::TEMPERATURE](nr, naz), 4);
+
+	const double tau_eff = 
+		factor * 2 * sigma_sb * T4 / qminus_scurve;
+	data[t_data::TAU_EFF](nr, naz) = tau_eff;
         }
     }
     }
