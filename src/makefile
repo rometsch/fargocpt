@@ -43,6 +43,8 @@ info:
 	@echo
 	@echo Build parameters were:
 	@echo
+	@echo Compiler: 
+	$(CC) --version
 	@echo CFLAGS:
 	@echo $(CFLAGS)
 	@echo
