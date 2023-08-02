@@ -95,6 +95,9 @@ Building and running FargoCPT requires the following dependencies:
 - fftw (including lfftw3_mpi and lfftw3_omp)
 - gsl
 
+For anaconda users, please create a new envrioment and activate it.
+Otherwise the mpi compiler installed with some packages might interfere with the compilation.
+
 ### Architecture definitions
 
 FargoCPT depends on the three following libraries to be installed on your system:
@@ -212,3 +215,4 @@ TBD
 + [REBOUND](https://github.com/hannorein/rebound) for N-body (GPL3)
 + [yaml-cpp](https://github.com/jbeder/yaml-cpp) for the config files (MIT License)
 + [units by LLNL](https://github.com/LLNL/units) for the handling of physical units (BSD 3-Clause)
+
