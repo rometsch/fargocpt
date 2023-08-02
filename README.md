@@ -4,10 +4,6 @@ FargoCPT is a two-dimensional hydrodynamics + Nbody + particles code that is use
 
 This code supports Linux and MacOS and is written in C++ using MPI and OpenMP for parallelization.
 
-## Tutorial
-
-[Tutorial repository](https://github.com/rometsch/spp1992-fargo-tutorial)
-
 ## Quickstart
 
 The easiest way to get started is to clone the last commit of the repository
