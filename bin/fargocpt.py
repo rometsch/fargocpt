@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, RawTextHelpFormatter
-from subprocess import run
-import sys
+from subprocess import Popen
 import signal
 from sys import platform
 import os
@@ -32,12 +31,8 @@ Help string from the fargo executable:
 Following are the additional options available through this wrapper, refered to as [wrapper options] in the usage string:
 """
 
-usage="%(prog)s [wrapper options] [fargo options] start|restart <N>|auto configfile"
+usage = "%(prog)s [wrapper options] [fargo options] start|restart <N>|auto configfile"
 
-
-def handle_KeyboardInterrupt(signum, frame):
-    print("KeyboardInterrupt received. Exiting now.")
-    raise SystemExit(signal.SIGTERM)
 
 def main():
     opts, fargo_args = parse_opts()
@@ -46,7 +41,7 @@ def main():
         print(get_numa_nodes_linux())
         print("Exiting now due to --print-numa option.")
         exit(0)
-        
+
     if not os.path.exists(executable_path):
         print(f"Executable not found! I looked for {executable_path}.")
         src_dir = os.path.relpath(os.path.join(
@@ -66,15 +61,26 @@ def main():
     else:
         N_procs, N_OMP_threads = get_auto_num_procs_and_threads()
 
-    print(f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.", flush=True)
+    print(
+        f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.", flush=True)
 
-    signal.signal(signal.SIGINT, handle_KeyboardInterrupt)
+    run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
+              fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp)
 
-    run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose, fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp)
+
+def detach_processGroup():
+    """
+    Detach a newly spawned process from the spawning process by
+    setting the process group id to the process id.
+    This will detach it from automatic signal propagation
+    and allows fargo to exit gracefully.
+    """
+    os.setpgrp()
 
 
 def parse_opts():
-    parser = ArgumentParser(usage=usage, description=fargo_help_string, formatter_class=RawTextHelpFormatter)
+    parser = ArgumentParser(
+        usage=usage, description=fargo_help_string, formatter_class=RawTextHelpFormatter)
     parser.add_argument("-np", type=int, help="Number of processes to start.")
     parser.add_argument(
         "-nt", type=int, help="Number of threads to start per process.")
@@ -134,16 +140,34 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         cmd = ["mpirun"]
         cmd += ["--np", f"{N_procs}"]
         env = os.environ.copy()
-        env_update = {"OMP_NUM_THREADS" : f"{N_OMP_threads}"}
+        env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
         env.update(env_update)
     elif fallback_openmp:
         env = os.environ.copy()
-        env_update = {"OMP_NUM_THREADS" : f"{N_OMP_threads}"}
+        env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
         env.update(env_update)
         cmd = []
     cmd += [executable_path] + fargo_args
-    print(f"Running command: {' '.join(cmd)} with env updated with {env_update}", flush=True)
-    run(cmd, stdout=stdout, stderr=stderr, env=env)
+
+    cmd_desc = f"Running command: {' '.join(cmd)}"
+    if len(env) > 0:
+        cmd_desc += " with env updated with {env_update}"
+    print(cmd_desc, flush=True)
+
+    p = Popen(cmd,
+              stdout=stdout,
+              stderr=stderr,
+              env=env,
+              preexec_fn=detach_processGroup)
+
+    def handle_termination_request(signum, frame):
+        p.send_signal(signal.SIGTERM)
+
+    print(p.pid)
+    signal.signal(signal.SIGINT, handle_termination_request)
+    signal.signal(signal.SIGTERM, handle_termination_request)
+
+    p.wait()
 
 
 def get_num_cores():
@@ -155,9 +179,11 @@ def get_num_cores():
 
             # slurm_cpus_per_node = '72(x2),36' # example SLURM_JOB_CPUS_PER_NODE string for 2 nodes 72 cores each and 1 node with 36 cores
             slurm_cpus_per_node = os.environ["SLURM_JOB_CPUS_PER_NODE"]
-            slurm_cpus_per_node = slurm_cpus_per_node.split(',')[0] # we ignore nodes with different numbers of cores
+            # we ignore nodes with different numbers of cores
+            slurm_cpus_per_node = slurm_cpus_per_node.split(',')[0]
             # it is up to the user to assure that this does not cause problem (by only using nodes with equal number of cores)
-            slurm_cpus_per_node = slurm_cpus_per_node.split('(')[0] # filter out number of nodes used, this info is contained elsewhere 
+            # filter out number of nodes used, this info is contained elsewhere
+            slurm_cpus_per_node = slurm_cpus_per_node.split('(')[0]
             slurm_cpus_per_node = int(slurm_cpus_per_node)
 
             rv = int(os.environ["SLURM_NNODES"]) * slurm_cpus_per_node
@@ -181,6 +207,7 @@ def get_num_cores_from_numa():
     numa_nodes = get_numa_nodes_linux()
     rv = sum([len(n) for n in numa_nodes.values()])
     return rv
+
 
 def get_numa_nodes_linux():
     """Return the numa topology of the system.
