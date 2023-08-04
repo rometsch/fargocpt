@@ -2,13 +2,14 @@
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 from subprocess import run
+import sys
+import signal
 from sys import platform
 import os
 import re
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
 executable_path = os.path.join(file_dir, "fargocpt")
-
 
 fargo_help_string = """This script is a wrapper to start the fargocpt code.
 Its main use is to specify the number of processes started and threads used per process, and to automatically infer some information about the available cpus and the numa nodes on the system.
@@ -33,11 +34,16 @@ Following are the additional options available through this wrapper, refered to 
 
 usage="%(prog)s [wrapper options] [fargo options] start|restart <N>|auto configfile"
 
+
+def handle_KeyboardInterrupt(signum, frame):
+    print("KeyboardInterrupt received. Exiting now.")
+    raise SystemExit(signal.SIGTERM)
+
 def main():
     opts, fargo_args = parse_opts()
 
     if opts.print_numa:
-        print(get_numa_nodes())
+        print(get_numa_nodes_linux())
         print("Exiting now due to --print-numa option.")
         exit(0)
         
@@ -48,39 +54,23 @@ def main():
         print(f"Please compile the code first: make -C {src_dir} -j 4")
         exit(1)
 
-    ncpu = get_num_cores()
-    numa_nodes = get_numa_nodes()
-    first_numa_node = [k for k in numa_nodes.keys()][0]
-    N_cores_per_numa = len(numa_nodes[first_numa_node])
-
     if opts.np is not None and opts.nt is not None:
         N_procs = opts.np
         N_OMP_threads = opts.nt
     elif opts.np is None and opts.nt is not None:
         N_procs = 1
         N_OMP_threads = opts.nt
-    elif opts.np is None and opts.nt is None:        
-        ncpu = get_num_cores()
-        numa_nodes = get_numa_nodes()
-        first_numa_node = [k for k in numa_nodes.keys()][0]
-        N_cores_per_numa = len(numa_nodes[first_numa_node])
-        N_procs = max(1, ncpu//N_cores_per_numa)
-        N_OMP_threads = ncpu//N_procs
-    else:
+    elif opts.np is not None and opts.nt is None:
         N_procs = opts.np
-        N_OMP_threads = N_cores_per_numa
-        ncpu = get_num_cores()
-        numa_nodes = get_numa_nodes()
-        first_numa_node = [k for k in numa_nodes.keys()][0]
-        N_cores_per_numa = len(numa_nodes[first_numa_node])
+        N_OMP_threads = 1
+    else:
+        N_procs, N_OMP_threads = get_auto_num_procs_and_threads()
 
-    ### TODO: get correct number of cores when hyperthreading is enabled
-    if N_OMP_threads == 32: # hack for bwUniCluster icelake nodes
-        N_OMP_threads = int(N_OMP_threads/2)
+    print(f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.", flush=True)
 
-    print(f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.")
+    signal.signal(signal.SIGINT, handle_KeyboardInterrupt)
 
-    run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose)
+    run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose, fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp)
 
 
 def parse_opts():
@@ -92,11 +82,15 @@ def parse_opts():
                         help="Print information about the numa nodes and exit.")
     parser.add_argument("--mpi-verbose", action="store_true",
                         help="Ask openmp and mpirun to output additional information about cpu allocation.")
+    parser.add_argument("--fallback-mpi", action="store_true",
+                        help="Fall back to a simpler call of mpi.")
+    parser.add_argument("--fallback-openmp", action="store_true",
+                        help="Fall back to calling openmp directly.")
     opts, remainder = parser.parse_known_args()
     return opts, remainder
 
 
-def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None):
+def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False):
     """Run a fargo simulation.
 
     Args:
@@ -104,32 +98,52 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         N_OMP_threads (int): Number of OpenMP threads to start per process.
         fargo_args (list of str): Arguments to be passed to the fargo executable.
         mpi_verbose (bool, optional): Verbose output of mpirun about process allocation. Defaults to False.
+        stdout (file, optional): File to redirect stdout to. Defaults to None.
+        stderr (file, optional): File to redirect stderr to. Defaults to None.
+        fallback_mpi (bool, optional): If True, fall back to a simpler call of mpi. Defaults to False.
+        fallback_openmp (bool, optional): If True, fall back to calling openmp directly. Defaults to False.
     """
-    cmd = ["mpirun"]
-    cmd += ["--np", f"{N_procs}"]
-    if mpi_verbose:
-        cmd += ["--display-map"]
-        cmd += ["--display-allocation"]
-        cmd += ["--report-bindings"]
-    if mpi_verbose:
-        cmd += ["-x", "OMP_DISPLAY_ENV=VERBOSE"]
-    if N_OMP_threads > 1:
-        if platform != "darwin":
-            if os.path.exists("/.dockerenv"):
-                # bind to l3cache because bind to numa does not work inside docker
-                cmd += ["-x", "OMPI_MCA_rmaps_base_mapping_policy=l3cache"]
-                cmd += ["-x", "OMPI_MCA_hwloc_base_binding_policy=l3cache"]
-                cmd += ["--map-by", "ppr:1:socket"]
-                cmd += ["--bind-to", "socket"]
-            else:
-                cmd += ["--map-by", "ppr:1:numa"]
-                cmd += ["--bind-to", "numa"]
-        cmd += ["-x", "OMP_WAIT_POLICY=active"]
-        cmd += ["-x", "OMP_PROC_BIND=close"]
-        cmd += ["-x", "OMP_PLACES=cores"]
-    cmd += ["-x", f"OMP_NUM_THREADS={N_OMP_threads}"]
+
+    if not fallback_mpi and not fallback_openmp:
+        cmd = ["mpirun"]
+        cmd += ["--np", f"{N_procs}"]
+        if mpi_verbose:
+            cmd += ["--display-map"]
+            cmd += ["--display-allocation"]
+            cmd += ["--report-bindings"]
+        if mpi_verbose:
+            cmd += ["-x", "OMP_DISPLAY_ENV=VERBOSE"]
+        if N_OMP_threads > 1:
+            if platform != "darwin":
+                if os.path.exists("/.dockerenv"):
+                    # bind to l3cache because bind to numa does not work inside docker
+                    cmd += ["-x", "OMPI_MCA_rmaps_base_mapping_policy=l3cache"]
+                    cmd += ["-x", "OMPI_MCA_hwloc_base_binding_policy=l3cache"]
+                    cmd += ["--map-by", "ppr:1:socket"]
+                    cmd += ["--bind-to", "socket"]
+                else:
+                    cmd += ["--map-by", "ppr:1:numa"]
+                    cmd += ["--bind-to", "numa"]
+            cmd += ["-x", "OMP_WAIT_POLICY=active"]
+            cmd += ["-x", "OMP_PROC_BIND=close"]
+            cmd += ["-x", "OMP_PLACES=cores"]
+        cmd += ["-x", f"OMP_NUM_THREADS={N_OMP_threads}"]
+        env = os.environ.copy()
+        env_update = {}
+    elif fallback_mpi:
+        cmd = ["mpirun"]
+        cmd += ["--np", f"{N_procs}"]
+        env = os.environ.copy()
+        env_update = {"OMP_NUM_THREADS" : f"{N_OMP_threads}"}
+        env.update(env_update)
+    elif fallback_openmp:
+        env = os.environ.copy()
+        env_update = {"OMP_NUM_THREADS" : f"{N_OMP_threads}"}
+        env.update(env_update)
+        cmd = []
     cmd += [executable_path] + fargo_args
-    run(cmd, stdout=stdout, stderr=stderr)
+    print(f"Running command: {' '.join(cmd)} with env updated with {env_update}", flush=True)
+    run(cmd, stdout=stdout, stderr=stderr, env=env)
 
 
 def get_num_cores():
@@ -149,50 +163,24 @@ def get_num_cores():
             rv = int(os.environ["SLURM_NNODES"]) * slurm_cpus_per_node
             print(f"Found SLURM environment with {rv} cores")
         except KeyError:
-            rv = get_num_cores_from_numa()
+            import psutil
+            rv = psutil.cpu_count(logical=False)
     return rv
 
 
 def get_num_cores_from_numa():
-    """Return the number of physical cores on the system.
+    """
+    Return the number of physical cores on the system.
 
+    Works only on linux systems.
     Hyperthreads are ignored, as they don't speed up the computation.
 
     Returns:
         int: Number of cores.
     """
-    numa_nodes = get_numa_nodes()
+    numa_nodes = get_numa_nodes_linux()
     rv = sum([len(n) for n in numa_nodes.values()])
     return rv
-
-
-def get_numa_nodes():
-    if platform == "linux":
-        return get_numa_nodes_linux()
-    elif platform == "darwin":
-        return get_numa_nodes_osx()
-    else:
-        raise RuntimeError(f"Unsupported platform {platform}")
-
-def get_numa_nodes_osx():
-    """Return a fake numa topology of the system.
-
-    This function just takes the number of physical cores 
-    and puts it into the correct datastructure for the script to work.
-
-    Returns:
-        dict: Topology of the numa nodes.
-    """
-    from subprocess import run, PIPE
-    rv = run(["sysctl", "-n", "hw.physicalcpu"], stdout=PIPE)
-    ncpus = int(rv.stdout.strip().decode("utf8"))
-
-    nodes = {
-        "node0" : [(f"{n}", f"{n+ncpus}") for n in range(ncpus)]
-    }
-    return nodes
-
-
 
 def get_numa_nodes_linux():
     """Return the numa topology of the system.
@@ -208,6 +196,8 @@ def get_numa_nodes_linux():
     """
 
     path = "/sys/devices/system/cpu"
+    if not os.path.exists(path):
+        raise NotImplementedError("This function only works on linux systems.")
 
     cpus = [d for d in os.listdir(path) if re.match("cpu\d+", d) is not None]
 
@@ -230,6 +220,26 @@ def get_numa_nodes_linux():
         nodes[key] = sorted(nodes[key])
 
     return nodes
+
+
+def get_auto_num_procs_and_threads():
+    """
+    Determine a configuration that respects 
+    the numa topology of the system.
+
+    Returns:
+        tuple: Number of processes and number of threads.
+    """
+    ncpu_avail = get_num_cores()
+
+    try:
+        numa_nodes = get_numa_nodes_linux()
+        first_numa_node = [k for k in numa_nodes.keys()][0]
+        N_cores_per_numa = len(numa_nodes[first_numa_node])
+        N_procs = max(1, ncpu_avail//N_cores_per_numa)
+        return N_procs, N_cores_per_numa
+    except (NotImplementedError, FileNotFoundError, KeyError):
+        return 1, ncpu_avail
 
 
 if __name__ == "__main__":
