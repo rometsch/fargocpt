@@ -137,12 +137,16 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         env = os.environ.copy()
         env_update = {}
     elif fallback_mpi:
+        N_procs = N_procs * N_OMP_threads
+        N_OMP_threads = 1
         cmd = ["mpirun"]
         cmd += ["--np", f"{N_procs}"]
         env = os.environ.copy()
         env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
         env.update(env_update)
     elif fallback_openmp:
+        N_OMP_threads = N_procs*N_OMP_threads
+        N_procs = 1
         env = os.environ.copy()
         env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
         env.update(env_update)
@@ -150,8 +154,8 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     cmd += [executable_path] + fargo_args
 
     cmd_desc = f"Running command: {' '.join(cmd)}"
-    if len(env) > 0:
-        cmd_desc += " with env updated with {env_update}"
+    if len(env_update) > 0:
+        cmd_desc += f" with env updated with {env_update}"
     print(cmd_desc, flush=True)
 
     p = Popen(cmd,
@@ -163,7 +167,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     def handle_termination_request(signum, frame):
         p.send_signal(signal.SIGTERM)
 
-    print(p.pid)
+    print(f"Process pid {p.pid}")
     signal.signal(signal.SIGINT, handle_termination_request)
     signal.signal(signal.SIGTERM, handle_termination_request)
 
@@ -171,10 +175,14 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
 
 
 def get_num_cores():
-    try:
-        rv = int(os.environ["PBS_NP"])
-        print(f"Found PBS environment with {rv} cores")
-    except KeyError:
+    rv = None
+    if "PBS_NP" in os.environ:
+        try:
+            rv = int(os.environ["PBS_NP"])
+            print(f"Found PBS environment with {rv} cores")
+        except KeyError:
+            pass
+    elif "SLURM_JOB_CPUS_PER_NODE" in os.environ and "SLURM_NNODES" in os.environ:
         try:
 
             # slurm_cpus_per_node = '72(x2),36' # example SLURM_JOB_CPUS_PER_NODE string for 2 nodes 72 cores each and 1 node with 36 cores
@@ -189,25 +197,11 @@ def get_num_cores():
             rv = int(os.environ["SLURM_NNODES"]) * slurm_cpus_per_node
             print(f"Found SLURM environment with {rv} cores")
         except KeyError:
-            import psutil
-            rv = psutil.cpu_count(logical=False)
+            pass
+    if rv is None:
+        import psutil
+        rv = psutil.cpu_count(logical=False)
     return rv
-
-
-def get_num_cores_from_numa():
-    """
-    Return the number of physical cores on the system.
-
-    Works only on linux systems.
-    Hyperthreads are ignored, as they don't speed up the computation.
-
-    Returns:
-        int: Number of cores.
-    """
-    numa_nodes = get_numa_nodes_linux()
-    rv = sum([len(n) for n in numa_nodes.values()])
-    return rv
-
 
 def get_numa_nodes_linux():
     """Return the numa topology of the system.
