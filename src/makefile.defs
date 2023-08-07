@@ -41,7 +41,8 @@ ifdef CLI_OPTIONS
 	OPTIONS += $(CLI_OPTIONS)
 endif
 
-CFLAGS += -std=c++20
+CFLAGS += -std=c++17
+
 
 INCLUDE_MPI = -I$(MPI_PREFIX)/include
 INCLUDE_FFTW = -I$(FFTW_PREFIX)/include
