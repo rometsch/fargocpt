@@ -50,7 +50,7 @@ def plot_trajectory(outdir):
             
             Navg = -len(rdot)//10
             q = np.average(rdot[:-Navg]/vtheo[:-Navg])
-            print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", q)
+            # print("stokes", stokes[-1], "\t size = ", size, "\t sim / theo =", q)
             
             label = f"s={size:.1e}, St={stokes[-1]:.1e}"
             

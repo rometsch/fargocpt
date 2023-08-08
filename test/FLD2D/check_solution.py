@@ -258,7 +258,11 @@ if __name__ == "__main__":
 
     fig.subplots_adjust(hspace=0.00)
 
+    analytical_init = get_solution_array("setup.yml", float(params["t0"]))
+
+
     ax = axs[0]
+    ax.plot(g.Xc[:,0]-x0, analytical_init[:,0], label="initial")
     ax.plot(g.Xc[:,0]-x0, analytical_solution[:,0], label="analytical")
     ax.plot(g.Xc[:,0]-x0, code_solution[:,0], label="code x")
     ax.set_xlim(xlim)

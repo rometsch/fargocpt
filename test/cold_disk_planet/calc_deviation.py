@@ -4,6 +4,9 @@ import os
 import numpy as np
 from types import SimpleNamespace
 
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
 
 def main():
 
@@ -69,11 +72,10 @@ def load_data(outdir):
 
 
 def make_plot_surface_density(data):
-    import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(nrows=2, dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = mpl.colormaps.get_cmap("viridis")
 
     Nfirst = data.Ns[0]
     Nlast = data.Ns[-1]
@@ -87,8 +89,8 @@ def make_plot_surface_density(data):
 
         y = data.Sigmaprofiles[n]
 
-        t = n*10 # TODO: remove hardcoded time
-        
+        t = n*10  # TODO: remove hardcoded time
+
         # ax.plot(r, (profile-profile0)/profile0, label=f"t={t:.3f}yr")
         axes[0].plot(r[1:-1], y[1:-1], label=f"t={t:.0f} orb", color=color)
         y = y/profile0 - 1
@@ -103,11 +105,10 @@ def make_plot_surface_density(data):
 
 
 def make_plot_surface_density_2d(data):
-    import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = mpl.colormaps.get_cmap("viridis")
 
     Nlast = data.Ns[-1]
 
@@ -126,11 +127,9 @@ def make_plot_surface_density_2d(data):
 
 def make_plot_temperature(data):
 
-    import matplotlib.pyplot as plt
-
     fig, axes = plt.subplots(nrows=2, dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = mpl.colormaps.get_cmap("viridis")
 
     Nfirst = data.Ns[0]
     Nlast = data.Ns[-1]
@@ -144,7 +143,7 @@ def make_plot_temperature(data):
 
         y = data.Tprofiles[n]
 
-        t = n*10 # TODO: remove hardcoded time
+        t = n*10  # TODO: remove hardcoded time
 
         # ax.plot(r, (profile-profile0)/profile0, label=f"t={t:.3f}yr")
         axes[0].plot(r[1:-1], y[1:-1], label=f"t={t:.0f} orb", color=color)
