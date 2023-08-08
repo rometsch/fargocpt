@@ -13,16 +13,14 @@ def get_fargo_grid(setupfile):
         params = yaml.safe_load(infile)
         Nrad = params["Nrad"]
         Naz = params["Nsec"]
-        rmin = params["Rmin"]
-        rmax = params["Rmax"]
 
-    ri = np.linspace(rmin, rmax, Nrad+1)
+    ri = np.genfromtxt("output/out/used_rad.dat")
     phii = np.linspace(0, 2*np.pi, Naz+1)
     Ri, Phii = np.meshgrid(ri, phii, indexing="ij")
     Xi = Ri*np.cos(Phii)
     Yi = Ri*np.sin(Phii)
 
-    rc = 2/3*(ri[1:]**2/(ri[1:]+ri[:-1])) + ri[:-1] # approx center in polar coords
+    rc = 2/3*(ri[1:]**2/(ri[1:]+ri[:-1]) + ri[:-1]) # approx center in polar coords
     phic = 0.5*(phii[1:]+phii[:-1])
     Rc, Phic = np.meshgrid(rc, phic, indexing="ij")
     Xc = Rc*np.cos(Phic)
@@ -39,44 +37,43 @@ def get_fargo_grid(setupfile):
         dphi=dphi, dr=dr, A=A
     )
 
-def analytical_solution(r, t, E0, K, offset=0):
-    return 3*E0/(4*np.pi*t*K)*np.exp(-r**2/(4*K*t)) + offset
+def analytical_solution(r, t, x0, K, offset=0.0):
+    return x0/(4*np.pi*t*K)*np.exp(-(r**2)/(4*K*t)) + offset
 
 def get_setup_params():
     with open("test_settings.yml", "r") as infile:
         params = yaml.safe_load(infile)
     return params
 
-def get_solution_array(setupfile, t, offset=0):
+def get_solution_array(setupfile, t):
     g = get_fargo_grid(setupfile)
+    params = get_setup_params()
 
-    nr = g.Nrad//2
+    f0 = float(params["f0"])
+    finit = f0 #/ g.A[nr, nphi]
+    offset = float(params["offset"])*finit
+
+
+    # determine location of cell closest to x0
+    x0 = params["x0"]
+    nr = np.argmin(np.abs(g.rc - x0))
+    # nr = len(g.rc)//2
     nphi = 0
 
     # print(dr[nr])
 
-    c = 2.997e10
-    rho = 1
-    kappa = 1
-    lam = 1./3
-    K = lam*c/(rho*kappa)
-    K = 1
-
-    print(f"Analytical solution at t = {t:e}, K = {K} = {K:e}")
-
-    params = get_setup_params()
-
-    E0 = float(params["E0"])
-    energy0 = E0 #/ g.A[nr, nphi]
-    offset = float(params["offset"])*energy0
-
+    K = params["K"]
+    # print(f"Analytical solution at t = {t:e}, K = {K}, y0 = {finit}, offset = {offset}")
+    
     xcell = g.Xc[nr, nphi]
     ycell = g.Yc[nr, nphi]
+
     DX = g.Xc - xcell
     DY = g.Yc - ycell
     Dist = np.sqrt(DX**2 + DY**2)
 
-    return analytical_solution(Dist,t, energy0, K, offset=offset)
+    return analytical_solution(Dist, t, finit, K, offset=offset)
+
 
 
 if __name__ == "__main__":
@@ -87,9 +84,11 @@ if __name__ == "__main__":
         params = yaml.safe_load(infile)
         t0 = float(params["t0"])
 
-    Erad = get_solution_array("setup.yml", t0, offset=1e5)
+    f0 = get_solution_array("setup.yml", t0)
 
-    print("Erad size", Erad.shape)
-    print("Erad max", np.max(Erad))
+    print("f grid size", f0.shape)
+    print("f max", np.max(f0))
 
-    np.array(Erad, dtype=np.float64).tofile("output/out/Erad_input.dat")
+    np.array(f0, dtype=np.float64).tofile("output/out/f_FLD2Dtest_input.dat")
+
+    

@@ -3,5 +3,5 @@
 FILEDIR="$(dirname $(realpath $0))"
 cd $FILEDIR
 
-./run_code.sh
-./check_solution.py --diff
+./run_code.sh &> simulation.log
+./check_solution.py --test

@@ -754,13 +754,13 @@ The soluction can then be used to compare against an analytical solution.
 static void run_2d_diffusion_test(t_data &data, const double dt) {
 	const unsigned int Nrad = A.get_size_radial();
 	const unsigned int Naz = A.get_size_azimuthal();
-	t_polargrid Erad;
-	Erad.set_size(Nrad, Naz);
-	Erad.set_name("Erad2Dtest");
+	t_polargrid x;
+	x.set_size(Nrad, Naz);
+	x.set_name("f_FLD2Dtest");
 
 	// load initial condition for diffusion test
-	const std::string filename_in = output::outdir + "Erad_input.dat";
-	Erad.read2D(filename_in.c_str());
+	const std::string filename_in = output::outdir + "f_FLD2Dtest_input.dat";
+	x.read2D(filename_in.c_str());
 
 	// set constant midplane density
 	// const double rho = parameters::radiative_diffusion_test_2d_density;
@@ -768,26 +768,26 @@ static void run_2d_diffusion_test(t_data &data, const double dt) {
 	auto &Density = data[t_data::RHO];
 	set_constant_value(Density, rho);
 
-	const double lambda = 1./3;
-	const double c = constants::c;
-	// const double c = 2.997e10;
-	const double kappa = 1;
-	// const double K = lambda*c/(rho*kappa);
 	const double K = parameters::radiative_diffusion_test_2d_K;
-	logging::print(LOG_INFO "Running 2D FLD test with K=%e\n", K);
+	const unsigned int steps = parameters::radiative_diffusion_test_2d_steps;
+
+	logging::print(LOG_INFO "Running 2D FLD test with K=%e and %u steps at dt=%e\n", K, steps, dt);
 
 	set_constant_value(Ka, K);
 	set_constant_value(Kb, K);
 
 	calculate_matrix_elements(Density, dt);
-	copy_polargrid(Told, Erad);
+	copy_polargrid(Told, x);
 
-	SOR(Erad);
+	for (unsigned int i = 0; i < steps; ++i) {
+		printf("Step %u\n", i);
+		SOR(x);
+		copy_polargrid(Told, x);
+		check_solution(x);
+	}
 
-	check_solution(Erad);
-
-	const std::string filename_out = output::outdir + "Erad_output.dat";
-	Erad.write2D(filename_out);
+	const std::string filename_out = output::outdir + "f_FLD2Dtest_output.dat";
+	x.write2D(filename_out);
 
 	handle_output();
 

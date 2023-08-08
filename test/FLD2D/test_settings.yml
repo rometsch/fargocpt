@@ -1,5 +1,22 @@
 # Setting for the 2D FLD test
 
-t0: 0.1
-offset: 0.0
-E0: 1
+t0: 1e-3
+offset: 0.1
+f0: 1.0
+x0: 1.0
+
+K: 1.0
+
+tfinal: 2e-3
+Nsteps: 10
+Niter: 1000
+tolerance: 1e-5
+
+gridspacing: Arithmetic
+# gridspacing: Log
+
+# Plot config
+Llim: 0.25
+
+# pass criteria
+threshold: 4e-2

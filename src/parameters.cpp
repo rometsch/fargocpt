@@ -110,6 +110,7 @@ unsigned int radiative_diffusion_max_iterations;
 double radiative_diffusion_tolerance;
 double radiative_diffusion_test_2d_density;
 double radiative_diffusion_test_2d_K;
+unsigned int radiative_diffusion_test_2d_steps;
 bool radiative_diffusion_test_2d;
 bool radiative_diffusion_test_1d;
 bool radiative_diffusion_dump_data;
@@ -804,6 +805,7 @@ void read(const std::string &filename, t_data &data)
     radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
 	radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
 	radiative_diffusion_test_2d_K = config::cfg.get<double>("RadiativeDiffusionTest2DK", 1.0);
+	radiative_diffusion_test_2d_steps = config::cfg.get<unsigned int>("RadiativeDiffusionTest2DSteps", 1);
 	radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
 	radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
 	radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
