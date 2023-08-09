@@ -25,6 +25,7 @@ struct misc_entry {
 };
 
 void check_free_space(t_data &data);
+bool is_autosave_dir(const std::string &path);
 void cleanup_autosave();
 
 // void write_full_output(t_data &data, const std::string &snapshot_id);

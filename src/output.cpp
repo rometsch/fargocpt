@@ -29,6 +29,7 @@
 #include <iostream>
 #include <limits>
 #include <sstream>
+#include <string>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 
@@ -204,16 +205,42 @@ void write_output_version()
     }
 }
 
+static void cleanup_autosave_listentry() {
+	// remove the last line from the list.txt file
+	std::ifstream input(outdir + "snapshots/list.txt");
+	std::ofstream output(outdir + "snapshots/list.txt.tmp");
+	for (std::string line; std::getline(input, line); ) {
+		if (line.length() > 0 && !line.compare("autosave") == 0) {
+			output << line << std::endl;
+		}
+	}
+	input.close();
+	output.close();
+	std::filesystem::rename(outdir + "snapshots/list.txt.tmp", outdir + "snapshots/list.txt");
+}
+
+bool is_autosave_dir(const std::string &snapshot_id) {
+	const auto s = snapshot_id;
+	const auto l = std::string("autosave").length();
+	if (s.length() > l) {
+		const auto ts = s.substr(s.length() - l);
+		if (ts.compare("autosave") == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void cleanup_autosave()
 {
-    const auto s = last_snapshot_dir;
-    const auto l = std::string("autosave").length();
-    if (s.length() > l) {
-	const auto ts = s.substr(s.length() - l);
-	if (ts.compare("autosave") == 0) {
-	    std::filesystem::remove_all(s);
+	if (!CPU_Master) {
+		return;
 	}
-    }
+	// remove the autosave directory if it exists
+	if (is_autosave_dir(last_snapshot_dir)) {
+		std::filesystem::remove_all(last_snapshot_dir);
+		cleanup_autosave_listentry();
+	}
 }
 
 void write_full_output(t_data &data, const std::string &snapshot_id,
