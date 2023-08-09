@@ -289,7 +289,9 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 
     if (register_snapshot) {
     // write time info for coarse output
-    output::write_snapshot_time();
+	if (snapshot_id.compare("autosave") != 0) {
+		output::write_snapshot_time();
+	}
 	register_output(snapshot_id);
     }
 
