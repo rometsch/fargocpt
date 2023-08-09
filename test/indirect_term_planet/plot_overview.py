@@ -15,13 +15,164 @@ def main():
     overview.show(follow=True)
 
 
+class Plot2D:
+
+    def __init__(self, ax, simd, var):
+        self.ax = ax
+        self.fig = ax.figure
+        self.simd = simd
+        self.var = var
+        self.type = "2"
+
+    def update(self, Nnow, tnow):
+        sigma = self.simd.get(var=self.var, dim="2d", N=Nnow)
+        Z = sigma.data.cgs.value
+        # my_nom = # you will need to scale your read data between [0, 1]
+        new_data = self.my_norm(Z)
+        new_color = self.my_cmap(new_data)
+        self.pm.update({'array': new_color})
+
+    def create(self):
+        ax = self.ax
+        Nlast = self.simd.avail()["Nlast"]
+        field = self.simd.get(var=self.var, dim="2d", N=Nlast)
+        ax.set_xlabel("x [au]")
+        ax.set_ylabel("y [au]")
+        ax.set_aspect("equal")
+        R, Phi = field.grid.get_meshgrid()
+        X = R * np.cos(Phi)
+        Y = R * np.sin(Phi)
+
+        Z = field.data.cgs.value
+        vmin=np.min(Z)
+        vmax=np.max(Z)
+        if vmin >= 0:
+            self.my_cmap = mpl.colormaps.get_cmap("viridis")
+            self.my_norm = mpl.colors.LogNorm(vmin=vmin, vmax=vmax)
+        else:
+            vabs = max(np.abs(vmin), vmax)
+            vmin = -vabs
+            vmax = vabs
+            self.my_norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
+            self.my_cmap = mpl.colormaps.get_cmap("bwr")
+        self.pm = ax.pcolormesh(X.to_value("au"), Y.to_value("au"),
+                                Z, norm=self.my_norm, cmap=self.my_cmap)
+        if vmin != vmax:
+            self.cbar = self.fig.colorbar(self.pm, ax=ax)
+            self.cbar.set_label(f"{self.var} [{field.data.cgs.unit}]")
+
+class PlotNbody:
+
+    def __init__(self, ax, simd, var):
+        self.ax = ax
+        self.simd = simd
+        self.var = var
+        self.type = "0"
+
+    def update(self, Nnow, tnow):
+        for planet, line, fill in zip(self.simd.avail()["planets"], self.planet_lines, self.planet_fills):
+            ax = self.ax
+            a = self.simd.get(var="semi-major axis", planet=planet)
+            line.set_xdata(a.time.to_value("kyr"))
+            line.set_ydata(a.data.to_value("au"))
+
+            e = self.simd.get(var="eccentricity", planet=planet).data
+            rmin = a.data.to_value("au") * (1 - e)
+            rmax = a.data.to_value("au") * (1 + e)
+            dummy = ax.fill_between(
+                a.time.to_value("kyr"), rmin, rmax, alpha=0)
+            # create invisible dummy object to extract the vertices
+            dp = dummy.get_paths()[0]
+            dummy.remove()
+            # update the vertices of the PolyCollection
+            fill.set_paths([dp.vertices])
+
+
+        self.timemarker.set_xdata([tnow, tnow])
+        ax.autoscale_view()
+
+    def create(self):
+        # Nbody
+        data = self.simd
+        tlast = data.loader.snapshot_times[-1].to_value("kyr")
+        a = data.get(var="semi-major axis", planet=0)
+        avail = data.avail()
+
+        ax = self.ax
+        ax.set_xlabel("Time [kyr]")
+        ax.set_ylabel(r"$a$ [au]")
+        self.planet_lines = []
+        self.planet_fills = []
+        for planet in avail["planets"]:
+            a = data.get(var="semi-major axis", planet=planet)
+            line, = ax.plot(a.time.to_value("kyr"), a.data.to_value(
+                "au"), label=f"planet {planet}")
+            self.planet_lines.append(line)
+            e = data.get(var="eccentricity", planet=planet).data
+            rmin = a.data.to_value("au") * (1 - e)
+            rmax = a.data.to_value("au") * (1 + e)
+            lines = ax.fill_between(a.time.to_value(
+                "kyr"), rmin, rmax, color=line.get_color(), alpha=0.4)
+            self.planet_fills.append(lines)
+        ax.legend()
+
+        self.timemarker = ax.axvline(x=tlast, color="k", linestyle="-", alpha=0.5)
+
+
+
+class PlotScalar:
+
+    def __init__(self, ax, simd, vars):
+        self.ax = ax
+        self.simd = simd
+        self.vars = vars
+        self.type = "0"
+
+    def update(self, Nnow, tnow):
+        for var, line in zip(self.vars, self.lines):
+            ax = self.ax
+            x = self.simd.get(var=var, dim="scalar")
+
+            line.set_xdata(x.time.to_value("kyr"))
+            line.set_ydata(x.data.cgs.value)
+
+            ax.autoscale_view()
+
+        self.timemarker.set_xdata([tnow, tnow])
+
+
+    def create(self):
+        # Nbody
+        data = self.simd
+        tlast = data.loader.snapshot_times[-1].to_value("kyr")
+        x = data.get(var="mass", dim="scalar")
+        klast = np.argmin(np.abs(x.time.to_value("kyr") - tlast))
+
+        ax = self.ax
+        ax.set_xlabel("Time [kyr]")
+        ax.set_ylabel(r"value [cgs]")
+
+        self.lines = []
+
+        for var in self.vars:
+            ax = self.ax
+            x = self.simd.get(var=var, dim="scalar")
+            line, = ax.plot(x.time.to_value("kyr"), x.data.cgs, 
+                            label=f"{var}")
+            self.lines.append(line)
+
+        ax.legend()
+
+        self.timemarker = ax.axvline(x=tlast, color="k", linestyle="-", alpha=0.5)
+
+
 class Overview:
 
-    def __init__(self, outputdir, update_interval=0.1):
+    def __init__(self, outputdir, update_interval=0.1, vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:indirect term disk x,indirect term disk y, indirect term nbody x, indirect term nbody y"]):
         self.outputdir = outputdir
         self.update_interval = update_interval
-
-        self.updates = []
+        self.vars = [k.split(":")[-1] for k in vars]
+        self.plot_types = [k.split(":")[0] for k in vars]
 
     def show(self, follow=False):
 
@@ -53,22 +204,47 @@ class Overview:
 
         avail = data.avail()
 
+        Nplots = len(self.vars)
+        Ncols = int(np.ceil(np.sqrt(Nplots)))
+        Nrows = int(np.ceil(Nplots / Ncols))
+
+        mosaic_def =  []
+        for k in range(Nrows):
+            rowdef = self.vars[k*Ncols:(k+1)*Ncols]
+            if len(rowdef) < Ncols:
+                rowdef += ["."] * (Ncols - len(rowdef))
+            mosaic_def.append(rowdef)
+        
+        height_ratios = [1] * Nrows + [0.1]
+
+        mosaic_def.append(["slider"] * Ncols)
+
         self.fig, self.axd = plt.subplot_mosaic(
-            [["Nbody", "Sigma"], ["slider", "slider"]], figsize=(12, 8), height_ratios=[1, 0.1])
+            mosaic_def, figsize=(12, 8), height_ratios=height_ratios)
 
         self.Nfirst = int(avail["Nfirst"])
         self.Nlast = avail["Nlast"]
         self.Nnow = self.Nlast
 
-        self.create_Nbody()
-        self.updates.append(self.update_Nbody)
 
-        self.create_Sigma()
-        self.updates.append(self.update_Sigma)
+        self.plots = {}
+
+        for v, t in zip(self.vars, self.plot_types):
+            if v == "Nbody":
+                self.plots[v] = PlotNbody(self.axd[v], data, v)
+            elif t == "2":
+                self.plots[v] = Plot2D(self.axd[v], data, v)
+            elif t == "0":
+                self.plots[v] = PlotScalar(self.axd[v], data, [s.strip() for s in v.split(',')])
+            else:
+                NotImplementedError(f"Plot type {t} not implemented for variable {v}")
+
+        for plot in self.plots.values():
+            plot.create()
 
         self.tnow = self.data.get(
             var="mass density", dim="2d", N=self.Nlast).time.to_value("kyr")
-        self.update_title()
+        self.update_title(self.Nnow, self.tnow)
 
         self.create_slider()
         self.register_keys()
@@ -113,97 +289,16 @@ class Overview:
         sigma = self.data.get(var="mass density", dim="2d", N=N)
         self.tnow = sigma.time.to_value("kyr")
         self.Nnow = N
-        for up in self.updates:
-            up()
+        for name, plot in self.plots.items():
+            plot.simd = self.data
+            plot.update(self.Nnow, self.tnow)
         self.fig.suptitle(f"N = {N}, t = {self.tnow:.2e} kyr")
         self.N_slider.set_val(N)
         self.update_slider()
         self.fig.canvas.draw_idle()
 
-    def update_title(self):
-        self.fig.suptitle(f"N = {self.Nnow}, t = {self.tnow:.2e} kyr")
-
-    def update_Sigma(self):
-        sigma = self.data.get(var="mass density", dim="2d", N=self.Nnow)
-        Z = sigma.data.to_value("g/cm**2")
-        # my_nom = # you will need to scale your read data between [0, 1]
-        new_data = self.my_norm(Z)
-        new_color = self.my_cmap(new_data)
-        self.pm.update({'array': new_color})
-
-    def create_Sigma(self):
-        ax = self.axd["Sigma"]
-        field = self.data.get(var="mass density", dim="2d", N=self.Nlast)
-        ax.set_xlabel("x [au]")
-        ax.set_ylabel("y [au]")
-        ax.set_aspect("equal")
-        R, Phi = field.grid.get_meshgrid()
-        X = R * np.cos(Phi)
-        Y = R * np.sin(Phi)
-
-        Z = field.data.to_value("g/cm**2")
-        self.my_cmap = mpl.colormaps.get_cmap("viridis")
-        self.my_norm = mpl.colors.LogNorm(vmin=np.min(Z), vmax=np.max(Z))
-        self.pm = ax.pcolormesh(X.to_value("au"), Y.to_value("au"),
-                                Z, norm=self.my_norm, cmap=self.my_cmap)
-        cbar = self.fig.colorbar(self.pm, ax=ax)
-        cbar.set_label(r"$\Sigma$ [g/cm$^2$]")
-
-    def update_Nbody(self):
-        tnow = self.tnow
-        for planet, marker, line, fill in zip(self.data.avail()["planets"], self.planet_markers, self.planet_lines, self.planet_fills):
-            ax = self.axd["Nbody"]
-
-            a = self.data.get(var="semi-major axis", planet=planet)
-            know = np.argmin(np.abs(a.time.to_value("kyr") - tnow))
-            marker.set_xdata([a.time.to_value("kyr")[know]])
-            marker.set_ydata([a.data.to_value("au")[know]])
-            line.set_xdata(a.time.to_value("kyr"))
-            line.set_ydata(a.data.to_value("au"))
-
-            e = self.data.get(var="eccentricity", planet=planet).data
-            rmin = a.data.to_value("au") * (1 - e)
-            rmax = a.data.to_value("au") * (1 + e)
-            dummy = ax.fill_between(
-                a.time.to_value("kyr"), rmin, rmax, alpha=0)
-            # create invisible dummy object to extract the vertices
-            dp = dummy.get_paths()[0]
-            dummy.remove()
-            # update the vertices of the PolyCollection
-            fill.set_paths([dp.vertices])
-
-            ax.autoscale_view()
-
-    def create_Nbody(self):
-        # Nbody
-        data = self.data
-        tlast = data.get(var="mass density", dim="2d",
-                         N=self.Nlast).time.to_value("kyr")
-        a = data.get(var="semi-major axis", planet=0)
-        klast = np.argmin(np.abs(a.time.to_value("kyr") - tlast))
-        avail = data.avail()
-
-        ax = self.axd["Nbody"]
-        ax.set_xlabel("Time [kyr]")
-        ax.set_ylabel(r"$a$ [au]")
-        self.planet_markers = []
-        self.planet_lines = []
-        self.planet_fills = []
-        for planet in avail["planets"]:
-            a = data.get(var="semi-major axis", planet=planet)
-            line, = ax.plot(a.time.to_value("kyr"), a.data.to_value(
-                "au"), label=f"planet {planet}")
-            self.planet_lines.append(line)
-            e = data.get(var="eccentricity", planet=planet).data
-            rmin = a.data.to_value("au") * (1 - e)
-            rmax = a.data.to_value("au") * (1 + e)
-            lines = ax.fill_between(a.time.to_value(
-                "kyr"), rmin, rmax, color=line.get_color(), alpha=0.4)
-            self.planet_fills.append(lines)
-            line, = ax.plot([a.time.to_value("kyr")[klast]], [a.data.to_value(
-                "au")[klast]], "o", markersize=10, color=line.get_color())
-            self.planet_markers.append(line)
-        ax.legend()
+    def update_title(self, Nnow, tnow):
+        self.fig.suptitle(f"N = {Nnow}, t = {tnow:.2e} kyr")
 
 
 def parser_cmdline():
