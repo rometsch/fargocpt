@@ -1196,10 +1196,8 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    if (!parameters::write_at_every_timestep) {
-	const double denom = (double)parameters::NINTERM;
-	data[t_data::VISCOUS_TORQUE] /= denom;
-    }
+    const double denom = (double)parameters::NINTERM;
+    data[t_data::VISCOUS_TORQUE] /= denom;
 }
 
 void calculate_gravitational_torque(t_data &data, unsigned int timestep,
@@ -1208,10 +1206,8 @@ void calculate_gravitational_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    if (!parameters::write_at_every_timestep) {
-	const double denom = (double)parameters::NINTERM;
-	data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED] /= denom;
-    }
+    const double denom = (double)parameters::NINTERM;
+    data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED] /= denom;
 }
 
 void calculate_advection_torque(t_data &data, unsigned int timestep,
@@ -1220,10 +1216,8 @@ void calculate_advection_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    if (!parameters::write_at_every_timestep) {
-	const double denom = (double)parameters::NINTERM;
-	data[t_data::ADVECTION_TORQUE] /= denom;
-    }
+    const double denom = (double)parameters::NINTERM;
+    data[t_data::ADVECTION_TORQUE] /= denom;
 }
 
 
