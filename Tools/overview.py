@@ -4,16 +4,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.widgets import Slider
-import disgrid
+try:
+    import disgrid
+except ImportError:
+    print("Dependency 'disgrid' not found. Please install it via 'pip install git+https://github.com/rometsch/disgrid'")
 import argparse
 
 
 def main():
     opts = parser_cmdline()
     vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:eccentricity", "0:mass"]
-    overview = Overview(opts.outputdir, opts.update_interval, vars=vars)
+    overview = Overview(opts.outputdir, opts.follow, vars=vars)
     overview.widget()
-    overview.show(follow=True)
+    overview.show()
 
 
 class Plot2D:
@@ -137,9 +140,9 @@ class PlotScalar:
             line.set_xdata(x.time.to_value("kyr"))
             line.set_ydata(x.data.cgs.value)
 
+        self.timemarker.set_xdata([tnow, tnow])
         ax.autoscale_view()
 
-        self.timemarker.set_xdata([tnow, tnow])
 
 
     def create(self):
@@ -169,15 +172,18 @@ class PlotScalar:
 
 class Overview:
 
-    def __init__(self, outputdir, update_interval=0.1, vars=["0:Nbody", "2:mass density", "2:velocity azimuthal"]):
+    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density", "2:velocity azimuthal"]):
         self.outputdir = outputdir
         self.update_interval = update_interval
         self.vars = [k.split(":")[-1] for k in vars]
         self.plot_types = [k.split(":")[0] for k in vars]
 
-    def show(self, follow=False):
+    def show(self, follow=None):
 
-        if not follow:
+        if follow is None:
+            follow = self.update_interval
+
+        if follow == 0.0:
             plt.show()
         else:
             plt.show(block=False)
@@ -307,8 +313,8 @@ def parser_cmdline():
         description="Plotting an overview of the simulation.")
     parser.add_argument("outputdir", type=str,
                         default="output/out", help="Path to the data file.")
-    parser.add_argument("--update_interval", type=float,
-                        default=0.1, help="Update interval in seconds.")
+    parser.add_argument("-f", "--follow", type=float,
+                        default=0, help="Update interval in seconds. Disable if 0.")
     opts = parser.parse_args()
     return opts
 
