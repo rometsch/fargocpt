@@ -10,7 +10,8 @@ import argparse
 
 def main():
     opts = parser_cmdline()
-    overview = Overview(opts.outputdir, opts.update_interval)
+    vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:eccentricity", "0:mass"]
+    overview = Overview(opts.outputdir, opts.update_interval, vars=vars)
     overview.widget()
     overview.show(follow=True)
 
@@ -129,14 +130,14 @@ class PlotScalar:
         self.type = "0"
 
     def update(self, Nnow, tnow):
+        ax = self.ax
         for var, line in zip(self.vars, self.lines):
-            ax = self.ax
             x = self.simd.get(var=var, dim="scalar")
 
             line.set_xdata(x.time.to_value("kyr"))
             line.set_ydata(x.data.cgs.value)
 
-            ax.autoscale_view()
+        ax.autoscale_view()
 
         self.timemarker.set_xdata([tnow, tnow])
 
@@ -168,7 +169,7 @@ class PlotScalar:
 
 class Overview:
 
-    def __init__(self, outputdir, update_interval=0.1, vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:indirect term disk x,indirect term disk y, indirect term nbody x, indirect term nbody y"]):
+    def __init__(self, outputdir, update_interval=0.1, vars=["0:Nbody", "2:mass density", "2:velocity azimuthal"]):
         self.outputdir = outputdir
         self.update_interval = update_interval
         self.vars = [k.split(":")[-1] for k in vars]
@@ -304,7 +305,7 @@ class Overview:
 def parser_cmdline():
     parser = argparse.ArgumentParser(
         description="Plotting an overview of the simulation.")
-    parser.add_argument("--outputdir", type=str,
+    parser.add_argument("outputdir", type=str,
                         default="output/out", help="Path to the data file.")
     parser.add_argument("--update_interval", type=float,
                         default=0.1, help="Update interval in seconds.")
