@@ -26,6 +26,7 @@ Help string from the fargo executable:
 | -c |                   Sloppy CFL condition (checked at each DT, not at each timestep)
 | -n |                   Disable simulation. The program just reads parameters file
 | -m |                   estimate memory usage and print out
+|-N <N> |                Perform N hydro steps
 
 
 Following are the additional options available through this wrapper, refered to as [wrapper options] in the usage string:
