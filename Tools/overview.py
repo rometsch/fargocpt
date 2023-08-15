@@ -15,7 +15,7 @@ def main():
     opts = parser_cmdline()
     vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:eccentricity", "0:mass"]
     overview = Overview(opts.outputdir, opts.follow, vars=vars)
-    overview.widget()
+    overview.create()
     overview.show()
 
 
@@ -177,16 +177,20 @@ class Overview:
         self.update_interval = update_interval
         self.vars = [k.split(":")[-1] for k in vars]
         self.plot_types = [k.split(":")[0] for k in vars]
+        self._is_widget_created = False
 
     def show(self, follow=None):
 
-        if follow is None:
+        if not self._is_widget_created:
+            self.create()
+
+        if follow is None or follow:
             follow = self.update_interval
 
         if follow == 0.0:
-            plt.show()
+            self.fig.show()
         else:
-            plt.show(block=False)
+            self.fig.show(block=False)
 
             # check current last N in simulation directory
             N_last_old = np.genfromtxt(
@@ -204,7 +208,7 @@ class Overview:
                     self.Nlast = int(self.data.avail()["Nlast"])
                     self.update(None, N=self.Nlast)
 
-    def widget(self):
+    def create(self, dpi=150):
 
         self.data = disgrid.Data(self.outputdir)
         data = self.data
@@ -227,7 +231,7 @@ class Overview:
         mosaic_def.append(["slider"] * Ncols)
 
         self.fig, self.axd = plt.subplot_mosaic(
-            mosaic_def, figsize=(12, 8), height_ratios=height_ratios)
+            mosaic_def, figsize=(12, 8), height_ratios=height_ratios, dpi=dpi)
 
         self.Nfirst = int(avail["Nfirst"])
         self.Nlast = avail["Nlast"]
@@ -255,6 +259,8 @@ class Overview:
 
         self.create_slider()
         self.register_keys()
+
+        self._is_widget_created = True
 
     def create_slider(self):
         # Make a horizontal sliders to control the snapshot number.
