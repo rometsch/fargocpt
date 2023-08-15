@@ -33,16 +33,16 @@
 
 namespace selfgravity
 {
-
-//#define EPSILON_SMOOTHING_SG
-#ifdef EPSILON_SMOOTHING_SG
+/// Parameters for selfgravity mode == Baruteau
 /// smoothing parameter of potential (introduced as B on page 53)
 double epsilon;
-#else
+/// Parameters for selfgravity mode == Moldenhauer
 /// smoothing parameters of potential as introduced by Tobi (to be published)
 double lambda_sq;
 double chi_sq;
-#endif
+/// Parameters for selfgravity mode == bessel kernel
+double aspect_ratio;
+
 /// mesh size in radial direction (introduced as Δu on page 53)
 double r_step;
 /// mesh size in azimuthal direction (introduced as Δphi on page 53)
@@ -127,29 +127,30 @@ void mpi_finalize(void)
 static void update_kernel(t_data &data)
 {
     // only update every 10th timestep
-    constexpr int update_every_nth_step = 10;
+    const int update_every_nth_step = parameters::self_gravity_steps_between_kernel_update;
 
     static int since_last_calculated = update_every_nth_step;
 
     if (since_last_calculated >= (update_every_nth_step - 1)) {
-	double aspect_ratio = quantities::gas_allreduce_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
+		aspect_ratio = quantities::gas_allreduce_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
 
-	if (aspect_ratio == 0.0) {
-	    aspect_ratio = parameters::ASPECTRATIO_REF;
-	}
+		// safety net
+		if (aspect_ratio == 0.0) {
+			aspect_ratio = parameters::ASPECTRATIO_REF;
+		}
 
-	#ifdef EPSILON_SMOOTHING_SG
-	epsilon = parameters::thickness_smoothing_sg*aspect_ratio;
-	#else
-	lambda_sq = std::pow(
-	    0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
-	chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
-	#endif
-	compute_FFT_kernel();
+		if (parameters::self_gravity_mode == parameters::t_sg::sg_M) {
+			lambda_sq = std::pow(
+				0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
+			chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
+		} else {
+			epsilon = parameters::thickness_smoothing_sg*aspect_ratio;
+		}
+		compute_FFT_kernel();
 
-	since_last_calculated = 0;
-    } else {
-	since_last_calculated++;
+		since_last_calculated = 0;
+	} else {
+		since_last_calculated++;
     }
 
     return;
@@ -362,7 +363,7 @@ void compute_FFT_kernel()
 	    const unsigned int l = i * stride + j;
 		const double theta = dphi * (double)j;
 
-#if defined EPSILON_SMOOTHING_SG
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_B) {
 		const double denominator = std::pow(epsilon*epsilon*std::exp(u)
 									+ 2.0 * (std::cosh(u) - std::cos(theta)),-1.5);
 
@@ -370,7 +371,8 @@ void compute_FFT_kernel()
 		K_radial[l] *= denominator;
 		K_azimuthal[l] = std::sin(theta);
 		K_azimuthal[l] *= denominator;
-#elif defined BESSEL_KERNEL_SG
+	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_BK) {
+
                 /* This Kernel is an anlytical solution in the limit Q->oo
                  * and can be faithfully used for Q>=20.
                  * A further correction accounting for all Q values is coming 
@@ -382,7 +384,7 @@ void compute_FFT_kernel()
                      * https://doi.org/10.1051/0004-6361/202346178).
                      */
                     K_radial[l] = 0.;
-                    K_theta[l]  = 0.;
+                    K_azimuthal[l]  = 0.;
 
                 } else {
                     const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
@@ -419,7 +421,7 @@ void compute_FFT_kernel()
                 }
 
 
-#else /// Correct SG smoothing
+	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_M) {
 		const double denominator = std::pow(
 		2 * (std::cosh(u) - std::cos(theta)) +
 		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
@@ -429,7 +431,7 @@ void compute_FFT_kernel()
 		K_radial[l] *= denominator;
 		K_azimuthal[l] = std::sin(theta);
 		K_azimuthal[l] *= denominator;
-#endif
+	}
 	}
     }
 

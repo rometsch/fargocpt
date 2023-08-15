@@ -309,6 +309,14 @@ extern bool do_init_secondary_disk;
 
 // self gravity
 extern bool self_gravity;
+// type of opacity
+enum t_sg {
+    sg_B,      // fourier trafo based on Baruteau PhD thesis with first order smoothing length
+    sg_M,     // smoothing length based on polynomial by Tobias Moldenhauer
+    sg_BK       // exact solution for the kernel using bessel functions by Steven Rendon Restrepo
+};
+extern t_sg self_gravity_mode;
+extern unsigned int self_gravity_steps_between_kernel_update;
 
 extern bool body_force_from_potential;
 

@@ -194,6 +194,9 @@ double kappa_factor;
 bool v_azimuthal_with_quadropole_support;
 
 bool self_gravity;
+t_sg self_gravity_mode;
+unsigned int self_gravity_steps_between_kernel_update;
+
 bool body_force_from_potential;
 
 bool write_torques;
@@ -1048,9 +1051,26 @@ void read(const std::string &filename, t_data &data)
     // self gravity
     self_gravity = config::cfg.get_flag("SelfGravity", "no");
 
+	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "b");
+	if (sgmode == "b") {
+		self_gravity_mode = t_sg::sg_B;
+	} else if (sgmode == "m") {
+		self_gravity_mode = t_sg::sg_M;
+	} else if (sgmode == "besselkernel") {
+		self_gravity_mode = t_sg::sg_BK;
+	} else {
+		logging::print_master(LOG_ERROR "Selfgravity mode %s is not supported. Choices: b, m, BesselKernel\n", sgmode.c_str());
+		die("Configuration error.");
+	}
+
+	self_gravity_steps_between_kernel_update = config::cfg.get<unsigned int>("SelfGravityStepsBetweenKernelUpdate", 10);
+
+
     if (self_gravity) {
-	logging::print_master(LOG_INFO "Self gravity enabled.\n");
+		logging::print_master(LOG_INFO "Self gravity enabled. It uses the '%s' mode. The kernel is updated every %u steps.\n", sgmode.c_str(), self_gravity_steps_between_kernel_update);
     }
+
+
 
     body_force_from_potential =
 	config::cfg.get_flag("BodyForceFromPotential", "yes");
