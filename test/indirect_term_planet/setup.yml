@@ -11,13 +11,32 @@ CFLmaxVar: 1.1 # maximum factor the timestep can increase in one hydro step
 
 ### Mesh parameters
 
-cps:  2.0  # Set cells per scaleheight: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio
+cps: 2.0   # Set cells per scaleheight: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio
 # Nrad: 128   # Radial number of zones
 # Nsec: 384   # Azimuthal number of
 
 Rmin: 0.4   # Inner boundary radius
 Rmax: 2.5   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
+
+# Boundary conditions
+
+InnerBoundary: Outflow
+OuterBoundary: Outflow
+
+Damping: No   # NO, YES [default = no]
+DampingInnerLimit: 1.10   # Rmin*Limit
+DampingOuterLimit: 0.90   # Rmax*Limit
+DampingTimeFactor: 1.0e-1
+DampingTimeRadiusOuter: 2.5 # default: RMAX
+DampingEnergyInner: Initial   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialInner: Initial   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalInner: Initial   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityInner: Initial   # Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
+DampingEnergyOuter: Initial   # Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialOuter: Initial   # Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalOuter: Initial   # Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none]
 
 ## Viscosity
 
@@ -56,7 +75,7 @@ mu: 2.35   # mean molecular weight [default=1.0]
 ## Simulation frame
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
-IndirectTermMode: 1   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
+IndirectTermMode: '1' # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
 OmegaFrame: 1.0
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 
@@ -73,10 +92,10 @@ nbody:
   radius: 1.0 solRadius
   temperature: 5778 K
 - name: Jupiter
-  semi-major axis: 1.0 au
+  semi-major axis: 0.6
   mass: 10 jupiterMass
   accretion efficiency: 0.0
-  eccentricity: 0
+  eccentricity: 0.2
   radius: 0.01 solRadius
   phi: 0.0
   ramp-up time: 0.0
@@ -132,7 +151,7 @@ AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1
 ### Initial conditions randomization
 
 RandomSeed: '1337'   # random seed integer value
-RandomSigma: 'No'   # randomize sigma start values?
+RandomSigma: No     # randomize sigma start values?
 RandomFactor: '0.1'   # randomize by +- 10%
 FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
@@ -156,30 +175,11 @@ KappaConst: 2.0e-6   # used for const and simple opacity (kappa = kappa0 * T**2)
 
 HeatingCoolingCFLlimit: 1.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
-# Boundary conditions
-
-InnerBoundary: Reflecting
-OuterBoundary: Reflecting
-
-Damping: Yes   # NO, YES [default = no]
-DampingInnerLimit: 1.10   # Rmin*Limit
-DampingOuterLimit: 0.90   # Rmax*Limit
-DampingTimeFactor: 1.0e-1
-DampingTimeRadiusOuter: 2.5 # default: RMAX
-DampingEnergyInner: Initial   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
-DampingVRadialInner: Initial   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
-DampingVAzimuthalInner: Initial   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
-DampingSurfaceDensityInner: Initial   # Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
-DampingEnergyOuter: Initial   # Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
-DampingVRadialOuter: Initial   # Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
-DampingVAzimuthalOuter: Initial   # Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
-DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none]
-
 #
 # Output control parameters
 #
 
-OutputDir: output/out
+OutputDir: output/a0.6_idm1_e0.2
 
 ## Logging messages
 LogAfterRealSeconds: 600 # write a log line to console every 'LogAfterRealSeconds' seconds
