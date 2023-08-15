@@ -362,7 +362,7 @@ void compute_FFT_kernel()
 	    const unsigned int l = i * stride + j;
 		const double theta = dphi * (double)j;
 
-#ifdef EPSILON_SMOOTHING_SG
+#if defined EPSILON_SMOOTHING_SG
 		const double denominator = std::pow(epsilon*epsilon*std::exp(u)
 									+ 2.0 * (std::cosh(u) - std::cos(theta)),-1.5);
 
@@ -370,6 +370,55 @@ void compute_FFT_kernel()
 		K_radial[l] *= denominator;
 		K_azimuthal[l] = std::sin(theta);
 		K_azimuthal[l] *= denominator;
+#elif defined BESSEL_KERNEL_SG
+                /* This Kernel is an anlytical solution in the limit Q->oo
+                 * and can be faithfully used for Q>=20.
+                 * A further correction accounting for all Q values is coming 
+                 * at end 2023.
+                 */
+                if (u==0. && theta==0.) {
+                    /* At the singularity we must cancel the Kernels or 
+                     * use tapering functions (see Sect. 4.1 of 
+                     * https://doi.org/10.1051/0004-6361/202346178).
+                     */
+                    K_radial[l] = 0.;
+                    K_theta[l]  = 0.;
+
+                } else {
+                    const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
+                                                       * (std::cosh(u) - std::cos(theta)) 
+                                                       /  std::cosh(u);
+
+                    /* The modified Bessel functions of the second kind are also 
+                     * known as "Irregular modified cylindrical Bessel functions".
+                     * This last naming is the one used in the cmath library
+                     */
+
+                    /* L_sg would be defined in Rendon Restrepo et al. 2023 (not yet published) */
+                    const double L_sg = std::pow(M_PI, 0.5) 
+                                      * (distance_squared / 8.)
+                                      * std::exp(distance_squared / 8.) 
+                                      * ( std::cyl_bessel_kl(1., distance_squared /8.) 
+                                        - std::cyl_bessel_kl(0., distance_squared /8.) );
+
+                    K_radial[l] = std::exp(1./2.*u)    // this term is specific to how SG
+                                                       // is written in Fargo (see C. Baruteau thesis p. 53)
+                                * (L_sg / 2. / M_PI / aspect_ratio) 
+                                * std::exp(-3./2.*u) 
+                                * std::pow(std::cosh(u), -0.5) 
+                                * std::pow(std::cosh(u)-std::cos(theta), -1.)
+                                * (std::exp(u)-std::cos(theta));
+
+                    K_azimuthal[l] = std::exp(3./2.*u) // this term is specific to how SG
+                                                       // is written in Fargo (see C. Baruteau thesis p. 55)
+                                   * (L_sg / 2. / M_PI / aspect_ratio) 
+                                   * std::exp(-3./2.*u) 
+                                   * std::pow(std::cosh(u), -0.5) 
+                                   * std::pow(std::cosh(u)-std::cos(theta), -1.)
+                                   * std::sin(theta);
+                }
+
+
 #else /// Correct SG smoothing
 		const double denominator = std::pow(
 		2 * (std::cosh(u) - std::cos(theta)) +
