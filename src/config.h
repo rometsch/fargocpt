@@ -49,6 +49,7 @@ class Config
 
     char get_first_letter_lowercase(const std::string &key);
     char get_first_letter_lowercase(const std::string &key, const std::string &default_value);
+    std::string get_lowercase(const std::string &key, const std::string &default_value);
 
     bool contains(const std::string &key);
 

@@ -299,6 +299,18 @@ template <typename T> T Config::get(const std::string &key,
     return rv;
 }
 
+std::string Config::get_lowercase(const std::string &key, const std::string &default_value) {
+    (*m_default)[key] = default_value;
+    std::string rv;
+    const std::string lkey = lowercase(key);
+    if (contains(key)) {
+        rv = get<std::string>(key);
+    } else {
+	    rv = default_value;
+    }
+    return lowercase(rv);
+}
+
 template double Config::get(const std::string &key);
 template int Config::get(const std::string &key);
 template unsigned int Config::get(const std::string &key);
