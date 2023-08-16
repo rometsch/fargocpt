@@ -13,7 +13,7 @@ void mpi_init(void);
 void mpi_finalize(void);
 
 void init(t_data &data);
-void update_sg_constants(t_data &data);
+void update_sg_constants();
 
 void compute(t_data &data, double dt, bool update);
 void compute_FFT_density(t_polargrid &density);

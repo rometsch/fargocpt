@@ -119,41 +119,71 @@ void mpi_finalize(void)
 }
 
 /**
+ * @brief Obtain the aspect ratio of the disk and recalculate the average if needed.
+ */
+static double get_aspect_ratio(t_data &data) {
+	double rv;
+	if (parameters::Locally_Isothermal) {
+		rv = parameters::ASPECTRATIO_REF;
+	} else {
+		rv = quantities::gas_allreduce_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
+	}
+	// safety net
+	if (rv == 0.0) {
+		rv = parameters::ASPECTRATIO_REF;
+	}
+	return rv;
+}
+
+/**
  * @brief update_sg_constants, calculate mass weighted aspect ratio and use it
  * to update lambda_sq and chi_sq. see Moldenhauer 2018 for more info on the
  * constants or Baruteau, 2008 for info on the self gravity module.
  * @param data
  */
+void update_sg_constants() {
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_M) {
+		lambda_sq = std::pow(
+			0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
+		chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
+	} else {
+		epsilon = parameters::thickness_smoothing_sg*aspect_ratio;
+	}
+}
+
+
+/**
+ * @brief upate_kernel, update the self-gravity kernel if needed.
+ * @param data
+ */
 static void update_kernel(t_data &data)
 {
-    // only update every 10th timestep
-    const int update_every_nth_step = parameters::self_gravity_steps_between_kernel_update;
+	if (parameters::Locally_Isothermal) {
+		return;
+	}
 
+	// only update every Nth timestep
+    const int update_every_nth_step = parameters::self_gravity_steps_between_kernel_update;
     static int since_last_calculated = update_every_nth_step;
 
-    if (since_last_calculated >= (update_every_nth_step - 1)) {
-		aspect_ratio = quantities::gas_allreduce_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
-
-		// safety net
-		if (aspect_ratio == 0.0) {
-			aspect_ratio = parameters::ASPECTRATIO_REF;
-		}
-
-		if (parameters::self_gravity_mode == parameters::t_sg::sg_M) {
-			lambda_sq = std::pow(
-				0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
-			chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
-		} else {
-			epsilon = parameters::thickness_smoothing_sg*aspect_ratio;
-		}
-		compute_FFT_kernel();
-
+	if (since_last_calculated >= (update_every_nth_step - 1)) {
 		since_last_calculated = 0;
 	} else {
 		since_last_calculated++;
-    }
+		return;
+	}
 
-    return;
+	// only update if the aspect ratio changed enough
+	static double last_aspect_ratio = 0;
+	aspect_ratio = get_aspect_ratio(data);
+
+	if (std::abs(last_aspect_ratio - aspect_ratio) < parameters::self_gravity_aspectratio_change_threshold) {
+		return;
+	}
+	last_aspect_ratio = aspect_ratio;
+
+	update_sg_constants();
+	compute_FFT_kernel();
 }
 
 /**
@@ -227,6 +257,9 @@ void init(t_data &data)
 	2 * GlobalNRadial, NAzimuthal, FFT_acc_azimuthal, acc_azimuthal,
 	MPI_COMM_WORLD, FFTW_MEASURE | FFTW_MPI_TRANSPOSED_IN);
 
+	aspect_ratio = get_aspect_ratio(data);
+	update_sg_constants();
+	compute_FFT_kernel();
     compute(data, 0, false);
 }
 
@@ -373,52 +406,52 @@ void compute_FFT_kernel()
 		K_azimuthal[l] *= denominator;
 	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_BK) {
 
-                /* This Kernel is an anlytical solution in the limit Q->oo
-                 * and can be faithfully used for Q>=20.
-                 * A further correction accounting for all Q values is coming 
-                 * at end 2023.
-                 */
-                if (u==0. && theta==0.) {
-                    /* At the singularity we must cancel the Kernels or 
-                     * use tapering functions (see Sect. 4.1 of 
-                     * https://doi.org/10.1051/0004-6361/202346178).
-                     */
-                    K_radial[l] = 0.;
-                    K_azimuthal[l]  = 0.;
+		/* This Kernel is an anlytical solution in the limit Q->oo
+		* and can be faithfully used for Q>=20.
+		* A further correction accounting for all Q values is coming 
+		* at end 2023.
+		*/
+		if (u==0. && theta==0.) {
+			/* At the singularity we must cancel the Kernels or 
+			* use tapering functions (see Sect. 4.1 of 
+			* https://doi.org/10.1051/0004-6361/202346178).
+			*/
+			K_radial[l] = 0.;
+			K_azimuthal[l]  = 0.;
 
-                } else {
-                    const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
-                                                       * (std::cosh(u) - std::cos(theta)) 
-                                                       /  std::cosh(u);
+		} else {
+			const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
+												* (std::cosh(u) - std::cos(theta)) 
+												/  std::cosh(u);
 
-                    /* The modified Bessel functions of the second kind are also 
-                     * known as "Irregular modified cylindrical Bessel functions".
-                     * This last naming is the one used in the cmath library
-                     */
+			/* The modified Bessel functions of the second kind are also 
+			* known as "Irregular modified cylindrical Bessel functions".
+			* This last naming is the one used in the cmath library
+			*/
 
-                    /* L_sg would be defined in Rendon Restrepo et al. 2023 (not yet published) */
-                    const double L_sg = std::pow(M_PI, 0.5) 
-                                      * (distance_squared / 8.)
-                                      * std::exp(distance_squared / 8.) 
-                                      * ( std::cyl_bessel_kl(1., distance_squared /8.) 
-                                        - std::cyl_bessel_kl(0., distance_squared /8.) );
+			/* L_sg would be defined in Rendon Restrepo et al. 2023 (not yet published) */
+			const double L_sg = std::pow(M_PI, 0.5) 
+								* (distance_squared / 8.)
+								* std::exp(distance_squared / 8.) 
+								* ( std::cyl_bessel_kl(1., distance_squared /8.) 
+								- std::cyl_bessel_kl(0., distance_squared /8.) );
 
-                    K_radial[l] = std::exp(1./2.*u)    // this term is specific to how SG
-                                                       // is written in Fargo (see C. Baruteau thesis p. 53)
-                                * (L_sg / 2. / M_PI / aspect_ratio) 
-                                * std::exp(-3./2.*u) 
-                                * std::pow(std::cosh(u), -0.5) 
-                                * std::pow(std::cosh(u)-std::cos(theta), -1.)
-                                * (std::exp(u)-std::cos(theta));
+			K_radial[l] = std::exp(1./2.*u)    // this term is specific to how SG
+												// is written in Fargo (see C. Baruteau thesis p. 53)
+						* (L_sg / 2. / M_PI / aspect_ratio) 
+						* std::exp(-3./2.*u) 
+						* std::pow(std::cosh(u), -0.5) 
+						* std::pow(std::cosh(u)-std::cos(theta), -1.)
+						* (std::exp(u)-std::cos(theta));
 
-                    K_azimuthal[l] = std::exp(3./2.*u) // this term is specific to how SG
-                                                       // is written in Fargo (see C. Baruteau thesis p. 55)
-                                   * (L_sg / 2. / M_PI / aspect_ratio) 
-                                   * std::exp(-3./2.*u) 
-                                   * std::pow(std::cosh(u), -0.5) 
-                                   * std::pow(std::cosh(u)-std::cos(theta), -1.)
-                                   * std::sin(theta);
-                }
+			K_azimuthal[l] = std::exp(3./2.*u) // this term is specific to how SG
+												// is written in Fargo (see C. Baruteau thesis p. 55)
+							* (L_sg / 2. / M_PI / aspect_ratio) 
+							* std::exp(-3./2.*u) 
+							* std::pow(std::cosh(u), -0.5) 
+							* std::pow(std::cosh(u)-std::cos(theta), -1.)
+							* std::sin(theta);
+		}
 
 
 	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_M) {
