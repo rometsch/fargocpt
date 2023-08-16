@@ -317,6 +317,7 @@ enum t_sg {
 };
 extern t_sg self_gravity_mode;
 extern unsigned int self_gravity_steps_between_kernel_update;
+extern double self_gravity_aspectratio_change_threshold;
 
 extern bool body_force_from_potential;
 
