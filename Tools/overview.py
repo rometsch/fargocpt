@@ -13,10 +13,11 @@ import argparse
 
 def main():
     opts = parser_cmdline()
-    vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:eccentricity", "0:mass"]
+    vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:eccentricity", "0:mass"] + opts.vars
     overview = Overview(opts.outputdir, opts.follow, vars=vars)
     overview.create()
     overview.show()
+    plt.show()
 
 
 class Plot2D:
@@ -64,6 +65,46 @@ class Plot2D:
         if vmin != vmax:
             self.cbar = self.fig.colorbar(self.pm, ax=ax)
             self.cbar.set_label(f"{self.var} [{field.data.cgs.unit}]")
+
+
+class Plot1D:
+
+    def __init__(self, ax, simd, vars):
+        self.ax = ax
+        self.fig = ax.figure
+        self.simd = simd
+        self.vars = vars
+        self.type = "1"
+        self.lines = []
+
+    def update(self, Nnow, tnow):
+
+        for var, line in zip(self.vars, self.lines):
+            field = self.simd.get(var, dim="2d", N=Nnow)
+            y = np.average(field.data.cgs.value, axis=1)
+            line.set_ydata(y)
+
+        self.ax.autoscale_view()
+
+    def create(self):
+        Nlast = self.simd.avail()["Nlast"]
+        Nnow = Nlast
+
+        ax = self.ax
+        ax.set_xlabel("Time [kyr]")
+        ax.set_ylabel(r"value [cgs]")
+
+        for var in self.vars:
+            ax = self.ax
+            field = self.simd.get(var, dim="2d", N=Nnow)
+            y = np.average(field.data.cgs.value, axis=1)
+            x = field.grid.get_coordinates("r").to_value("au")
+            line, = ax.plot(x, y, label=f"{var}")
+            self.lines.append(line)
+
+        ax.legend()
+
+
 
 class PlotNbody:
 
@@ -176,6 +217,7 @@ class Overview:
         self.outputdir = outputdir
         self.update_interval = update_interval
         self.vars = [k.split(":")[-1] for k in vars]
+        self.keys = vars
         self.plot_types = [k.split(":")[0] for k in vars]
         self._is_widget_created = False
 
@@ -221,7 +263,7 @@ class Overview:
 
         mosaic_def =  []
         for k in range(Nrows):
-            rowdef = self.vars[k*Ncols:(k+1)*Ncols]
+            rowdef = self.keys[k*Ncols:(k+1)*Ncols]
             if len(rowdef) < Ncols:
                 rowdef += ["."] * (Ncols - len(rowdef))
             mosaic_def.append(rowdef)
@@ -240,13 +282,15 @@ class Overview:
 
         self.plots = {}
 
-        for v, t in zip(self.vars, self.plot_types):
+        for v, t, k in zip(self.vars, self.plot_types, self.keys):
             if v == "Nbody":
-                self.plots[v] = PlotNbody(self.axd[v], data, v)
+                self.plots[k] = PlotNbody(self.axd[k], data, v)
             elif t == "2":
-                self.plots[v] = Plot2D(self.axd[v], data, v)
+                self.plots[k] = Plot2D(self.axd[k], data, v)
             elif t == "0":
-                self.plots[v] = PlotScalar(self.axd[v], data, [s.strip() for s in v.split(',')])
+                self.plots[k] = PlotScalar(self.axd[k], data, [s.strip() for s in v.split(',')])
+            elif t == "1":
+                self.plots[k] = Plot1D(self.axd[k], data, [s.strip() for s in v.split(',')])
             else:
                 NotImplementedError(f"Plot type {t} not implemented for variable {v}")
 
@@ -268,7 +312,7 @@ class Overview:
             ax=self.axd["slider"],
             label='N',
             valmin=self.Nfirst,
-            valmax=self.Nlast,
+            valmax=max(self.Nlast, self.Nfirst+1),
             valinit=self.Nlast,
             valstep=1,
         )
@@ -321,6 +365,7 @@ def parser_cmdline():
                         default="output/out", help="Path to the data file.")
     parser.add_argument("-f", "--follow", type=float,
                         default=0, help="Update interval in seconds. Disable if 0.")
+    parser.add_argument("--vars", type=str, default=[], nargs="+", help="Additional variables to be plotted. Specify them like '<dim=0,1,2>:<variable name>")
     opts = parser.parse_args()
     return opts
 
