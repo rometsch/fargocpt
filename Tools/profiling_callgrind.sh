@@ -25,4 +25,6 @@ echo "Using $Nproc MPI processes and $Nthread OMP threads"
 export OMP_NUM_THREADS="$Nthread"
 valgrind --tool=callgrind $Nproc "$FARGOCMD" "$@"
 
-echo "Now view the results using e.g. 'kcachegrind callgrind.out.<PID>'
+
+
+echo "Now view the results using e.g. 'kcachegrind $(ls | grep callgrind.out | sort -V | tail -n 1)'"
