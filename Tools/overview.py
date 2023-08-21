@@ -11,10 +11,11 @@ except ImportError:
 import argparse
 
 
+default_vars = ["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal:rphi", "2:velocity radial:rphi", "0:mass"]
+
 def main():
     opts = parser_cmdline()
-    vars=["0:Nbody", "2:mass density", "2:velocity azimuthal", "0:eccentricity", "0:mass"] + opts.vars
-    overview = Overview(opts.outputdir, opts.follow, vars=vars)
+    overview = Overview(opts.outputdir, opts.follow, vars=opts.vars)
     overview.create()
     overview.show()
     plt.show()
@@ -22,16 +23,28 @@ def main():
 
 class Plot2D:
 
-    def __init__(self, ax, simd, var):
+    def __init__(self, ax, simd, var, spec):
         self.ax = ax
         self.fig = ax.figure
         self.simd = simd
         self.var = var
         self.type = "2"
+        self.spec = spec
+        parts = spec.split(":")
+        self.rphi = len(parts) > 2 and "rphi" in parts[2]
+        self.xy = not self.rphi
+        self.plot_relative = len(parts) > 2 and "rel" in parts[2]
+        self.plot_diff = len(parts) > 2 and "diff" in parts[2]
 
     def update(self, Nnow, tnow):
-        sigma = self.simd.get(var=self.var, dim="2d", N=Nnow)
-        Z = sigma.data.cgs.value
+        field = self.simd.get(var=self.var, dim="2d", N=Nnow)
+        Z = field.data.cgs.value
+        if self.plot_relative:
+            Z = Z/self.Z0 -1
+        if self.plot_diff:
+            Z = Z - self.Z0
+        if Z.shape[0] == self.X.shape[0]:
+            Z = Z[:-1,:]
         # my_nom = # you will need to scale your read data between [0, 1]
         new_data = self.my_norm(Z)
         new_color = self.my_cmap(new_data)
@@ -41,14 +54,40 @@ class Plot2D:
         ax = self.ax
         Nlast = self.simd.avail()["Nlast"]
         field = self.simd.get(var=self.var, dim="2d", N=Nlast)
-        ax.set_xlabel("x [au]")
-        ax.set_ylabel("y [au]")
-        ax.set_aspect("equal")
+        if self.rphi:
+            ax.set_xlabel("r [au]")
+            ax.set_ylabel("phi [rad]")
+        else:
+            ax.set_xlabel("x [au]")
+            ax.set_ylabel("y [au]")
+            ax.set_aspect("equal")
+
         R, Phi = field.grid.get_meshgrid()
-        X = R * np.cos(Phi)
-        Y = R * np.sin(Phi)
+        if self.rphi:
+            X = R.to_value("au")
+            Y = Phi.value
+        else:
+            X = R * np.cos(Phi)
+            Y = R * np.sin(Phi)
+            X = X.to_value("au")
+            Y = Y.to_value("au")
+
+        self.X = X
+        self.Y = Y
 
         Z = field.data.cgs.value
+
+        if self.plot_relative or self.plot_diff:
+            field0 = self.simd.get(var=self.var, dim="2d", N="damping")
+            self.Z0 = field0.data.cgs.value
+        if self.plot_relative:
+            Z = Z/self.Z0 -1
+        if self.plot_diff:
+            Z = Z - self.Z0
+
+        if Z.shape[0] == self.X.shape[0]:
+            Z = Z[:-1,:]
+
         vmin=np.min(Z)
         vmax=np.max(Z)
         if vmin >= 0:
@@ -60,7 +99,7 @@ class Plot2D:
             vmax = vabs
             self.my_norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
             self.my_cmap = mpl.colormaps.get_cmap("bwr")
-        self.pm = ax.pcolormesh(X.to_value("au"), Y.to_value("au"),
+        self.pm = ax.pcolormesh(X, Y,
                                 Z, norm=self.my_norm, cmap=self.my_cmap)
         if vmin != vmax:
             self.cbar = self.fig.colorbar(self.pm, ax=ax)
@@ -69,13 +108,14 @@ class Plot2D:
 
 class Plot1D:
 
-    def __init__(self, ax, simd, vars):
+    def __init__(self, ax, simd, vars, spec):
         self.ax = ax
         self.fig = ax.figure
         self.simd = simd
         self.vars = vars
         self.type = "1"
         self.lines = []
+        self.spec = spec
 
     def update(self, Nnow, tnow):
 
@@ -108,11 +148,12 @@ class Plot1D:
 
 class PlotNbody:
 
-    def __init__(self, ax, simd, var):
+    def __init__(self, ax, simd, var, spec):
         self.ax = ax
         self.simd = simd
         self.var = var
         self.type = "0"
+        self.spec = spec
 
     def update(self, Nnow, tnow):
         for planet, line, fill in zip(self.simd.avail()["planets"], self.planet_lines, self.planet_fills):
@@ -167,11 +208,12 @@ class PlotNbody:
 
 class PlotScalar:
 
-    def __init__(self, ax, simd, vars):
+    def __init__(self, ax, simd, vars, spec):
         self.ax = ax
         self.simd = simd
         self.vars = vars
         self.type = "0"
+        self.spec = spec
 
     def update(self, Nnow, tnow):
         ax = self.ax
@@ -213,10 +255,10 @@ class PlotScalar:
 
 class Overview:
 
-    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density", "2:velocity azimuthal"]):
+    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal"]):
         self.outputdir = outputdir
         self.update_interval = update_interval
-        self.vars = [k.split(":")[-1] for k in vars]
+        self.vars = [k.split(":")[1] for k in vars]
         self.keys = vars
         self.plot_types = [k.split(":")[0] for k in vars]
         self._is_widget_created = False
@@ -232,7 +274,7 @@ class Overview:
         if follow == 0.0:
             self.fig.show()
         else:
-            self.fig.show(block=False)
+            plt.show(block=False)
 
             # check current last N in simulation directory
             N_last_old = np.genfromtxt(
@@ -284,13 +326,13 @@ class Overview:
 
         for v, t, k in zip(self.vars, self.plot_types, self.keys):
             if v == "Nbody":
-                self.plots[k] = PlotNbody(self.axd[k], data, v)
+                self.plots[k] = PlotNbody(self.axd[k], data, v, k)
             elif t == "2":
-                self.plots[k] = Plot2D(self.axd[k], data, v)
+                self.plots[k] = Plot2D(self.axd[k], data, v, k)
             elif t == "0":
-                self.plots[k] = PlotScalar(self.axd[k], data, [s.strip() for s in v.split(',')])
+                self.plots[k] = PlotScalar(self.axd[k], data, [s.strip() for s in v.split(',')], k)
             elif t == "1":
-                self.plots[k] = Plot1D(self.axd[k], data, [s.strip() for s in v.split(',')])
+                self.plots[k] = Plot1D(self.axd[k], data, [s.strip() for s in v.split(',')], k)
             else:
                 NotImplementedError(f"Plot type {t} not implemented for variable {v}")
 
@@ -343,16 +385,19 @@ class Overview:
             N = int(self.N_slider.val)
         if N > self.Nlast or N < self.Nfirst:
             return
-        sigma = self.data.get(var="mass density", dim="2d", N=N)
-        self.tnow = sigma.time.to_value("kyr")
-        self.Nnow = N
-        for name, plot in self.plots.items():
-            plot.simd = self.data
-            plot.update(self.Nnow, self.tnow)
-        self.fig.suptitle(f"N = {N}, t = {self.tnow:.2e} kyr")
-        self.N_slider.set_val(N)
-        self.update_slider()
-        self.fig.canvas.draw_idle()
+        try:
+            sigma = self.data.get(var="mass density", dim="2d", N=N)
+            self.tnow = sigma.time.to_value("kyr")
+            self.Nnow = N
+            for name, plot in self.plots.items():
+                plot.simd = self.data
+                plot.update(self.Nnow, self.tnow)
+            self.fig.suptitle(f"N = {N}, t = {self.tnow:.2e} kyr")
+            self.N_slider.set_val(N)
+            self.update_slider()
+            self.fig.canvas.draw_idle()
+        except (TypeError, FileNotFoundError, IndexError, KeyError):
+            pass
 
     def update_title(self, Nnow, tnow):
         self.fig.suptitle(f"N = {Nnow}, t = {tnow:.2e} kyr")
@@ -365,7 +410,7 @@ def parser_cmdline():
                         default="output/out", help="Path to the data file.")
     parser.add_argument("-f", "--follow", type=float,
                         default=0, help="Update interval in seconds. Disable if 0.")
-    parser.add_argument("--vars", type=str, default=[], nargs="+", help="Additional variables to be plotted. Specify them like '<dim=0,1,2>:<variable name>")
+    parser.add_argument("--vars", type=str, default=default_vars, nargs="+", help="Additional variables to be plotted. Specify them like '<dim=0,1,2>:<variable name>")
     opts = parser.parse_args()
     return opts
 
