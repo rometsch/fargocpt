@@ -132,7 +132,6 @@ void calculate_gravitational_torque(t_data &data, const double dt)
     for (unsigned int n_r = 0; n_r < t_grav.get_size_radial(); ++n_r) {
 
 	const double r = Rmed[n_r];
-	const double dr = (Rsup[n_r] - Rinf[n_r]);
 
 	for (unsigned int n_az = 0; n_az < t_grav.get_size_azimuthal();
 	     ++n_az) {
