@@ -152,7 +152,9 @@ void calculate_gravitational_torque(t_data &data, const double dt)
 	    } else {
 		gradphi = -data[t_data::ACCEL_AZIMUTHAL](n_r, n_az) * r;
 	    }
-		t_grav(n_r, n_az) += -r * sigma_cell * gradphi * dr * dt;
+	    //t_grav(n_r, n_az) += -r * sigma_cell * gradphi * dr * dphi * dt;
+	    // Surf = r * dr * dphi
+	    t_grav(n_r, n_az) += -sigma_cell * gradphi * Surf[n_r] * dt;
 	}
     }
 }
