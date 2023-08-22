@@ -41,10 +41,9 @@ ifdef CLI_OPTIONS
 	OPTIONS += $(CLI_OPTIONS)
 endif
 
-#
-# temporary disable gsl and fftw
-#
-OPTIONS += -DDISABLE_GSL -DDISABLE_FFTW
+# uncomment to disable gsl or fftw
+# OPTIONS += -DDISABLE_GSL 
+# OPTIONS += -DDISABLE_FFTW
 
 CFLAGS += -std=c++17
 
