@@ -15,7 +15,7 @@ default_vars = ["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal:rphi", "
 
 def main():
     opts = parser_cmdline()
-    overview = Overview(opts.outputdir, opts.follow, vars=opts.vars)
+    overview = Overview(opts.outputdir, opts.follow, vars=opts.vars, start=opts.start)
     overview.create()
     overview.show()
     plt.show()
@@ -23,13 +23,14 @@ def main():
 
 class Plot2D:
 
-    def __init__(self, ax, simd, var, spec):
+    def __init__(self, ax, simd, var, spec, start=None):
         self.ax = ax
         self.fig = ax.figure
         self.simd = simd
         self.var = var
         self.type = "2"
         self.spec = spec
+        self.start = start
         parts = spec.split(":")
         self.rphi = len(parts) > 2 and "rphi" in parts[2]
         self.xy = not self.rphi
@@ -52,8 +53,11 @@ class Plot2D:
 
     def create(self):
         ax = self.ax
-        Nlast = self.simd.avail()["Nlast"]
-        field = self.simd.get(var=self.var, dim="2d", N=Nlast)
+        if self.start is None:
+            N = self.simd.avail()["Nlast"]
+        else:
+            N = self.start
+        field = self.simd.get(var=self.var, dim="2d", N=N)
         if self.rphi:
             ax.set_xlabel("r [au]")
             ax.set_ylabel("phi [rad]")
@@ -108,7 +112,7 @@ class Plot2D:
 
 class Plot1D:
 
-    def __init__(self, ax, simd, vars, spec):
+    def __init__(self, ax, simd, vars, spec, start=None):
         self.ax = ax
         self.fig = ax.figure
         self.simd = simd
@@ -116,44 +120,67 @@ class Plot1D:
         self.type = "1"
         self.lines = []
         self.spec = spec
+        self.start = start
+        parts = spec.split(":")
+        self.plot_diff = len(parts) > 2 and "diff" in parts[2]
+        self.plot_rel = len(parts) > 2 and "rel" in parts[2]
+        if self.plot_diff and self.plot_rel:
+            raise ValueError("spec must not contain both 'diff' and 'rel' as modifier, Use one, e.g. '1:mass density:diff'")
 
     def update(self, Nnow, tnow):
 
         for var, line in zip(self.vars, self.lines):
             field = self.simd.get(var, dim="2d", N=Nnow)
             y = np.average(field.data.cgs.value, axis=1)
+            if self.plot_rel:
+                y = y/self.y0s[var] - 1
+            elif self.plot_diff:
+                y = y - self.y0s[var]
             line.set_ydata(y)
 
         self.ax.autoscale_view()
 
     def create(self):
-        Nlast = self.simd.avail()["Nlast"]
-        Nnow = Nlast
+        if self.start is None:
+            Nnow = self.simd.avail()["Nlast"]
+        else:
+            Nnow = self.start
 
         ax = self.ax
-        ax.set_xlabel("Time [kyr]")
+        ax.set_xlabel("r [au]")
         ax.set_ylabel(r"value [cgs]")
+
+
+        if self.plot_rel or self.plot_diff:
+            self.y0s = {}
+            for var in self.vars:
+                field = self.simd.get(var, dim="2d", N="damping")
+                self.y0s[var] = np.average(field.data.cgs.value, axis=1)
 
         for var in self.vars:
             ax = self.ax
             field = self.simd.get(var, dim="2d", N=Nnow)
             y = np.average(field.data.cgs.value, axis=1)
             x = field.grid.get_coordinates("r").to_value("au")
+            if self.plot_rel:
+                y = y/self.y0s[var] - 1
+            elif self.plot_diff:
+                y = y - self.y0s[var]
             line, = ax.plot(x, y, label=f"{var}")
             self.lines.append(line)
 
         ax.legend()
 
 
-
 class PlotNbody:
 
-    def __init__(self, ax, simd, var, spec):
+    def __init__(self, ax, simd, var, spec, start=None):
         self.ax = ax
         self.simd = simd
         self.var = var
         self.type = "0"
         self.spec = spec
+        self.start = start
 
     def update(self, Nnow, tnow):
         for planet, line, fill in zip(self.simd.avail()["planets"], self.planet_lines, self.planet_fills):
@@ -180,7 +207,11 @@ class PlotNbody:
     def create(self):
         # Nbody
         data = self.simd
-        tlast = data.loader.snapshot_times[-1].to_value("kyr")
+        if self.start is None:
+            N = self.simd.avail()["Nlast"]
+        else:
+            N = self.start
+        tlast = data.loader.snapshot_time(N).to_value("kyr")
         a = data.get(var="semi-major axis", planet=0)
         avail = data.avail()
 
@@ -231,7 +262,12 @@ class PlotScalar:
     def create(self):
         # Nbody
         data = self.simd
-        tlast = data.loader.snapshot_times[-1].to_value("kyr")
+        if self.start is None:
+            N = self.simd.avail()["Nlast"]
+        else:
+            N = self.start
+        tlast = data.loader.snapshot_time(N).to_value("kyr")
+
         x = data.get(var="mass", dim="scalar")
         klast = np.argmin(np.abs(x.time.to_value("kyr") - tlast))
 
@@ -255,13 +291,14 @@ class PlotScalar:
 
 class Overview:
 
-    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal"]):
+    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal"], start=None):
         self.outputdir = outputdir
         self.update_interval = update_interval
         self.vars = [k.split(":")[1] for k in vars]
         self.keys = vars
         self.plot_types = [k.split(":")[0] for k in vars]
         self._is_widget_created = False
+        self.start = start
 
     def show(self, follow=None):
 
@@ -319,20 +356,23 @@ class Overview:
 
         self.Nfirst = int(avail["Nfirst"])
         self.Nlast = avail["Nlast"]
-        self.Nnow = self.Nlast
+        if self.start is None:
+            self.Nnow = self.Nlast
+        else:
+            self.Nnow = self.start
 
 
         self.plots = {}
 
         for v, t, k in zip(self.vars, self.plot_types, self.keys):
             if v == "Nbody":
-                self.plots[k] = PlotNbody(self.axd[k], data, v, k)
+                self.plots[k] = PlotNbody(self.axd[k], data, v, k, start=self.start)
             elif t == "2":
-                self.plots[k] = Plot2D(self.axd[k], data, v, k)
+                self.plots[k] = Plot2D(self.axd[k], data, v, k, start=self.start)
             elif t == "0":
-                self.plots[k] = PlotScalar(self.axd[k], data, [s.strip() for s in v.split(',')], k)
+                self.plots[k] = PlotScalar(self.axd[k], data, [s.strip() for s in v.split(',')], k, start=self.start)
             elif t == "1":
-                self.plots[k] = Plot1D(self.axd[k], data, [s.strip() for s in v.split(',')], k)
+                self.plots[k] = Plot1D(self.axd[k], data, [s.strip() for s in v.split(',')], k, start=self.start)
             else:
                 NotImplementedError(f"Plot type {t} not implemented for variable {v}")
 
@@ -346,16 +386,24 @@ class Overview:
         self.create_slider()
         self.register_keys()
 
+
+        self.fig.tight_layout()
+
         self._is_widget_created = True
 
     def create_slider(self):
+        if self.start is None:
+            Ninit = self.Nlast
+        else:
+            Ninit = self.start
+
         # Make a horizontal sliders to control the snapshot number.
         self.N_slider = Slider(
             ax=self.axd["slider"],
             label='N',
             valmin=self.Nfirst,
             valmax=max(self.Nlast, self.Nfirst+1),
-            valinit=self.Nlast,
+            valinit=Ninit,
             valstep=1,
         )
         # Update the plot when mouse button is released instead of on update.
@@ -411,6 +459,7 @@ def parser_cmdline():
     parser.add_argument("-f", "--follow", type=float,
                         default=0, help="Update interval in seconds. Disable if 0.")
     parser.add_argument("--vars", type=str, default=default_vars, nargs="+", help="Additional variables to be plotted. Specify them like '<dim=0,1,2>:<variable name>")
+    parser.add_argument("-s", "--start", type=int, help="Start at this snapshot id.")
     opts = parser.parse_args()
     return opts
 
