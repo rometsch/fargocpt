@@ -6,8 +6,11 @@
 #include "parameters.h"
 #include "selfgravity.h"
 #include "time.h"
-#include <fftw3-mpi.h>
 #include <vector>
+
+#ifndef DISABLE_FFTW
+#include <fftw3-mpi.h>
+#endif
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE
@@ -94,11 +97,13 @@ void SplitDomain()
 	    LOG_INFO
 	    "SplitDomain: Doing some FFT test measures to optimize FFT calculations. This may take a few seconds.\n");
 
+	#ifndef DISABLE_FFTW
 	// calculate fft mesh sizes
 	total_local_size = fftw_mpi_local_size_2d_transposed(
 	    2 * GlobalNRadial, NAzimuthal, MPI_COMM_WORLD, &local_Nx,
 	    &local_i_start, &local_Ny_after_transpose,
 	    &local_j_start_after_transpose);
+	#endif
 
 	if (CPU_Number % 2 == 0) {
 	    if ((CPU_Rank == CPU_Number / 2 - 1) &&

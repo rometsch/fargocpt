@@ -41,8 +41,12 @@ ifdef CLI_OPTIONS
 	OPTIONS += $(CLI_OPTIONS)
 endif
 
-CFLAGS += -std=c++17
+#
+# temporary disable gsl and fftw
+#
+OPTIONS += -DDISABLE_GSL -DDISABLE_FFTW
 
+CFLAGS += -std=c++17
 
 INCLUDE_MPI = -I$(MPI_PREFIX)/include
 INCLUDE_FFTW = -I$(FFTW_PREFIX)/include

@@ -11,7 +11,9 @@
 #include <omp.h>
 #endif
 
-#include <fftw3-mpi.h>
+#ifndef DISABLE_FFTW
+#endif
+
 #include <math.h>
 
 #include "LowTasks.h"
@@ -25,6 +27,31 @@
 #include "selfgravity.h"
 #include "time.h"
 #include "util.h"
+
+#ifdef DISABLE_FFTW
+
+namespace selfgravity {
+
+	static void die_not_compiled() {
+		logging::print_master(LOG_ERROR
+			"Self-gravity is not compiled in. Please recompile with FFTW enabled.\n");
+		PersonalExit(1);
+	}
+
+	void init(t_data &data) { die_not_compiled(); }
+	void compute(t_data &data, double dt, bool update) { die_not_compiled(); }
+	void init_azimuthal_velocity(t_polargrid&) { die_not_compiled(); }
+	void mpi_init(void) {}
+	void mpi_finalize(void) {}
+
+	double *g_radial;
+	double *g_azimuthal;
+}
+
+
+#else // DISABLE_FFTW
+
+#include <fftw3-mpi.h>
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE
@@ -77,6 +104,8 @@ fftw_complex *FFT_acc_azimuthal;
 double *g_radial;
 double *g_azimuthal;
 
+
+
 void mpi_init(void)
 {
     // init MPI
@@ -115,7 +144,7 @@ void mpi_finalize(void)
 	fftw_cleanup_threads();
 #else
 	fftw_mpi_cleanup();
-#endif
+#endif // _OPENMP
 }
 
 /**
@@ -736,3 +765,6 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 }
 
 } // namespace selfgravity
+
+
+#endif // DISABLE_FFTW
