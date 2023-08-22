@@ -24,13 +24,16 @@
 #include "viscosity/viscosity.h"
 #include "viscosity/viscous_radial_speed.h"
 #include "frame_of_reference.h"
-#include <gsl/gsl_sf_bessel.h>
 #include "simulation.h"
 #include "cfl.h"
 #include "fld.h"
 
 #include "open-simplex-noise.h"
 #include "options.h"
+
+#ifndef DISABLE_GSL
+#include <gsl/gsl_sf_bessel.h>
+#endif // DISABLE_GSL
 
 
 // Radial arrays have size MAX1D so we can write to N+search_buffer safely
@@ -455,6 +458,17 @@ void init_shakura_sunyaev(t_data &data)
 	die("CentrifugalBalance and Shakura-Sunyaev starting values has not yet been implemented!");
 }
 
+
+#ifdef DISABLE_GSL
+void init_spreading_ring_test([[maybe_unused]] t_data &data) {
+	logging::print_master(LOG_ERROR "GSL is not compiled in. Cannot initialize spreading ring test.\n");
+	PersonalExit(1);
+}
+void init_spreading_ring_test_jibin([[maybe_unused]] t_data &data) {\
+	logging::print_master(LOG_ERROR "GSL is not compiled in. Cannot initialize spreading ring test.\n");
+	PersonalExit(1);
+}
+#else // DISABLE_GSL
 /**
 	Initializes density and energy for the spreading ring test.
 	Intented to be used with spreading_ring.par
@@ -592,6 +606,10 @@ void init_spreading_ring_test_jibin(t_data &data)
     RefillSigma(&data[t_data::SIGMA]);
     RefillEnergy(&data[t_data::ENERGY]);
 }
+#endif // DISABLE_GSL
+
+
+
 
 /**
 	Initializes density and energy for Shock Tube test.

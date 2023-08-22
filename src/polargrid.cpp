@@ -16,8 +16,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <gsl/gsl_spline.h>
 #include <mpi.h>
+
+#ifndef DISABLE_GSL
+#include <gsl/gsl_spline.h>
+#endif // DISABLE_GSL
+
 
 t_polargrid::t_polargrid()
 {
@@ -362,6 +366,12 @@ void t_polargrid::read1D(bool skip_min_max)
     read1D(filename.c_str(), skip_min_max);
 }
 
+
+#ifdef DISABLE_GSL
+void t_polargrid::read1D([[maybe_unused]] const char *_filename, [[maybe_unused]] bool skip_min_max) {
+    die("Trying to read 1D file '%s' but GSL is not compiled in!\n", _filename);
+}
+#else // DISABLE_GSL
 void t_polargrid::read1D(const char *_filename, bool skip_min_max)
 {
     MPI_File fh;
@@ -455,6 +465,7 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     gsl_spline_free(spline);
     gsl_interp_accel_free(acc);
 }
+#endif // DISABLE_GSL
 
 /**
 	calculate how much bytes are need for one 1D output
