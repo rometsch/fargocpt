@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, RawTextHelpFormatter
-from subprocess import Popen
+from subprocess import Popen, PIPE
 import signal
 from sys import platform
 import os
 import re
+import psutil
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
 executable_path = os.path.join(file_dir, "fargocpt")
@@ -97,7 +98,7 @@ def parse_opts():
     return opts, remainder
 
 
-def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False):
+def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None):
     """Run a fargo simulation.
 
     Args:
@@ -109,6 +110,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         stderr (file, optional): File to redirect stderr to. Defaults to None.
         fallback_mpi (bool, optional): If True, fall back to a simpler call of mpi. Defaults to False.
         fallback_openmp (bool, optional): If True, fall back to calling openmp directly. Defaults to False.
+        envfile (str, optional): Before running fargo, source this file first. Use for loading modules on clusters.
     """
 
     if not fallback_mpi and not fallback_openmp:
@@ -159,21 +161,29 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         cmd_desc += f" with env updated with {env_update}"
     print(cmd_desc, flush=True)
 
+    if envfile is not None:
+        cmd = f"source {envfile}; " + " ".join(cmd)
+    
     p = Popen(cmd,
-              stdout=stdout,
+              stdout=PIPE,
               stderr=stderr,
               env=env,
-              preexec_fn=detach_processGroup)
+              preexec_fn=detach_processGroup,
+              shell=True, executable="/bin/bash")
 
+    pid = p.stdout.readline().strip().decode("utf8")
+    print("fargo process pid", pid)
+    
     def handle_termination_request(signum, frame):
-        p.send_signal(signal.SIGTERM)
+        pfargo = psutil.Process(int(pid))
+        pfargo.send_signal(signal.SIGTERM)
 
-    print(f"Process pid {p.pid}")
     signal.signal(signal.SIGINT, handle_termination_request)
     signal.signal(signal.SIGTERM, handle_termination_request)
 
-    p.wait()
-
+    for line in iter(p.stdout.readline, b''):
+        line = line.decode("utf8")
+        print(line.rstrip())
 
 def get_num_cores():
     rv = None
