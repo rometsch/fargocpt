@@ -38,9 +38,9 @@ namespace selfgravity {
 		PersonalExit(1);
 	}
 
-	void init(t_data &data) { die_not_compiled(); }
-	void compute(t_data &data, double dt, bool update) { die_not_compiled(); }
-	void init_azimuthal_velocity(t_polargrid&) { die_not_compiled(); }
+	void init([[maybe_unused]] t_data &data) { die_not_compiled(); }
+	void compute([[maybe_unused]] t_data &data, [[maybe_unused]] double dt, [[maybe_unused]] bool update) { die_not_compiled(); }
+	void init_azimuthal_velocity([[maybe_unused]] t_polargrid&) { die_not_compiled(); }
 	void mpi_init(void) {}
 	void mpi_finalize(void) {}
 
