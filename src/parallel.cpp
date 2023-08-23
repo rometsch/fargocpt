@@ -1,6 +1,7 @@
-#include "parallel.h"
-#include "global.h"
 
+#include "parallel.h"
+#include <unistd.h>
+#include "global.h"
 #include "commbound.h"
 #include "selfgravity.h"
 #include "split.h"
@@ -36,6 +37,17 @@ void init_parallel(int argc, char *argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &CPU_Number);
     selfgravity::mpi_init();
 
+    // are we master CPU?
+    CPU_Master = (CPU_Rank == 0 ? 1 : 0);
+
+	pid_t pid = getpid();
+    if (CPU_Master) {
+        printf("%ld\n",(long) pid);
+    }
+
+	// make sure the pid of the master is printed before additional info
+	MPI_Barrier(MPI_COMM_WORLD);
+
 #ifdef _OPENMP
 	#pragma omp parallel
 	{
@@ -56,8 +68,6 @@ void init_parallel(int argc, char *argv[]) {
 	fflush(stdout);
 #endif
 
-    // are we master CPU?
-    CPU_Master = (CPU_Rank == 0 ? 1 : 0);
 
 #ifndef _OPENMP
 	// print information on which processor we're running
@@ -65,6 +75,9 @@ void init_parallel(int argc, char *argv[]) {
     CPU_Name[CPU_NameLength] = '\0';
     logging::print(LOG_INFO "fargo: running on %s\n", CPU_Name);
 #endif
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
 }
 
 

@@ -115,7 +115,10 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
 
     if not fallback_mpi and not fallback_openmp:
         cmd = ["mpirun"]
-        cmd += ["--np", f"{N_procs}"]
+        cmd += ["-np", f"{N_procs}"]
+        # write out pid of mpirun to correctly terminate multiprocess sims
+        if N_procs > 1:
+            cmd += ["--report-pid", "-"]
         if mpi_verbose:
             cmd += ["--display-map"]
             cmd += ["--display-allocation"]
@@ -143,7 +146,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         N_procs = N_procs * N_OMP_threads
         N_OMP_threads = 1
         cmd = ["mpirun"]
-        cmd += ["--np", f"{N_procs}"]
+        cmd += ["-np", f"{N_procs}"]
         env = os.environ.copy()
         env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
         env.update(env_update)
@@ -163,6 +166,8 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
 
     if envfile is not None:
         cmd = f"source {envfile}; " + " ".join(cmd)
+    else:
+        cmd = " ".join(cmd)
     
     p = Popen(cmd,
               stdout=PIPE,
