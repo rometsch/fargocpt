@@ -67,7 +67,8 @@ def main():
         f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.", flush=True)
 
     run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
-              fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp)
+              fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp,
+              detach=opts.detach)
 
 
 def detach_processGroup():
@@ -94,11 +95,12 @@ def parse_opts():
                         help="Fall back to a simpler call of mpi.")
     parser.add_argument("--fallback-openmp", action="store_true",
                         help="Fall back to calling openmp directly.")
+    parser.add_argument("-d", "--detach", action="store_true", help="Detach the launcher from the simulation and run in the background.")
     opts, remainder = parser.parse_known_args()
     return opts, remainder
 
 
-def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None):
+def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None, detach=False):
     """Run a fargo simulation.
 
     Args:
@@ -169,26 +171,37 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     else:
         cmd = " ".join(cmd)
     
+    if detach:
+        from sys import stdout
+        stdout = stdout
+    else:
+        stdout = PIPE
     p = Popen(cmd,
-              stdout=PIPE,
+              stdout=stdout,
               stderr=stderr,
               env=env,
               preexec_fn=detach_processGroup,
               shell=True, executable="/bin/bash")
 
-    pid = p.stdout.readline().strip().decode("utf8")
-    print("fargo process pid", pid)
     
-    def handle_termination_request(signum, frame):
-        pfargo = psutil.Process(int(pid))
-        pfargo.send_signal(signal.SIGTERM)
+    if not detach:
+        pid = p.stdout.readline().strip().decode("utf8")
+        print("fargo process pid", pid)
 
-    signal.signal(signal.SIGINT, handle_termination_request)
-    signal.signal(signal.SIGTERM, handle_termination_request)
+        def handle_termination_request(signum, frame):
+            pfargo = psutil.Process(int(pid))
+            pfargo.send_signal(signal.SIGTERM)
 
-    for line in iter(p.stdout.readline, b''):
-        line = line.decode("utf8")
-        print(line.rstrip())
+        signal.signal(signal.SIGINT, handle_termination_request)
+        signal.signal(signal.SIGTERM, handle_termination_request)
+
+
+        for line in iter(p.stdout.readline, b''):
+            line = line.decode("utf8")
+            print(line.rstrip())
+
+    else:
+        print("detaching...")
 
 def get_num_cores():
     rv = None
