@@ -126,17 +126,31 @@ class Plot1D:
         self.plot_rel = len(parts) > 2 and "rel" in parts[2]
         if self.plot_diff and self.plot_rel:
             raise ValueError("spec must not contain both 'diff' and 'rel' as modifier, Use one, e.g. '1:mass density:diff'")
+        self.plot_minmax = len(parts) > 2 and "minmax" in parts[2]
+        self.fills = dict()
 
     def update(self, Nnow, tnow):
+        ax = self.ax
 
         for var, line in zip(self.vars, self.lines):
             field = self.simd.get(var, dim="2d", N=Nnow)
-            y = np.average(field.data.cgs.value, axis=1)
+            y = field.data.cgs.value
             if self.plot_rel:
                 y = y/self.y0s[var] - 1
             elif self.plot_diff:
                 y = y - self.y0s[var]
-            line.set_ydata(y)
+            line.set_ydata(np.average(y, axis=1))
+
+            if self.plot_minmax:
+                x = field.grid.get_coordinates("r").to_value("au")
+                ymin = np.min(y, axis=1)
+                ymax = np.max(y, axis=1)
+                dummy = ax.fill_between(x, ymin, ymax, alpha=0)
+                # create invisible dummy object to extract the vertices
+                dp = dummy.get_paths()[0]
+                dummy.remove()
+                # update the vertices of the PolyCollection
+                self.fills[var].set_paths([dp.vertices])
 
         self.ax.autoscale_view()
 
@@ -155,19 +169,23 @@ class Plot1D:
             self.y0s = {}
             for var in self.vars:
                 field = self.simd.get(var, dim="2d", N="damping")
-                self.y0s[var] = np.average(field.data.cgs.value, axis=1)
+                self.y0s[var] = field.data.cgs.value
 
         for var in self.vars:
             ax = self.ax
             field = self.simd.get(var, dim="2d", N=Nnow)
-            y = np.average(field.data.cgs.value, axis=1)
+            y = field.data.cgs.value
             x = field.grid.get_coordinates("r").to_value("au")
             if self.plot_rel:
                 y = y/self.y0s[var] - 1
             elif self.plot_diff:
                 y = y - self.y0s[var]
-            line, = ax.plot(x, y, label=f"{var}")
+            line, = ax.plot(x, np.average(y, axis=1), label=f"{var}")
             self.lines.append(line)
+            if self.plot_minmax:
+                ymin = np.min(y, axis=1)
+                ymax = np.max(y, axis=1)
+                self.fills[var] = ax.fill_between(x, ymin, ymax, alpha=0.4, color=line.get_color())
 
         ax.legend()
 
@@ -239,12 +257,13 @@ class PlotNbody:
 
 class PlotScalar:
 
-    def __init__(self, ax, simd, vars, spec):
+    def __init__(self, ax, simd, vars, spec, start=None):
         self.ax = ax
         self.simd = simd
         self.vars = vars
         self.type = "0"
         self.spec = spec
+        self.start = start
 
     def update(self, Nnow, tnow):
         ax = self.ax
