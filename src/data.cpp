@@ -196,6 +196,9 @@ t_data::t_data()
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
 	.set_integrate_azimuthally_for_1D_write(true);
 
+    m_polargrids[WORKER_SCALAR_ARRAY].set_scalar(true);
+    m_polargrids[WORKER_SCALAR_ARRAY].set_name("WORKER_SCALAR_ARRAY");
+
     m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_scalar(true);
     m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_name("GAS_DIFFUSION_COEFFICIENT");
 

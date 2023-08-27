@@ -9,10 +9,9 @@
 namespace gas_torques
 {
 
-void calculate_advection_torque(t_data &data, const double dt)
+void calculate_advection_torque(t_data &data, t_polargrid &t_adv, const double dt)
 {
 
-    t_polargrid &t_adv = data[t_data::ADVECTION_TORQUE];
     t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
     t_polargrid &dens = data[t_data::SIGMA];
@@ -44,10 +43,8 @@ void calculate_advection_torque(t_data &data, const double dt)
     }
 }
 
-void calculate_viscous_torque(t_data &data, const double dt)
+void calculate_viscous_torque(t_data &data, t_polargrid &t_visc, const double dt)
 {
-
-    t_polargrid &t_visc = data[t_data::VISCOUS_TORQUE];
     t_polargrid &visc = data[t_data::VISCOSITY];
     t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
@@ -123,10 +120,9 @@ void calculate_viscous_torque(t_data &data, const double dt)
  * @param data
  * @param dt
  */
-void calculate_gravitational_torque(t_data &data, const double dt)
+void calculate_gravitational_torque(t_data &data,  t_polargrid &t_grav, const double dt)
 {
 
-    t_polargrid &t_grav = data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED];
     t_polargrid &pot_grav = data[t_data::POTENTIAL];
 
     for (unsigned int n_r = 0; n_r < t_grav.get_size_radial(); ++n_r) {

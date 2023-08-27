@@ -74,6 +74,9 @@ const std::map<const std::string, const int> quantities_file_column_v2_4 = {
 	{"frame angle", 31},
 	{"disk eccentricity", 32},
 	{"disk periastron", 33},
+	{"advection torque", 34},
+	{"viscous torque", 35},
+	{"gravitational torque", 36}
 	};
 static const auto quantities_file_column = quantities_file_column_v2_5;
 
@@ -115,7 +118,10 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 	{"indirect term nbody x", "acceleration"},
 	{"indirect term nbody y", "acceleration"},
 	{"indirect term disk x", "acceleration"},
-	{"indirect term disk y", "acceleration"}};
+	{"indirect term disk y", "acceleration"},
+	{"advection torque", "torque"},
+	{"viscous torque", "torque"},
+	{"gravitational torque", "torque"}};
 
 
 void check_free_space(t_data &data)
@@ -378,6 +384,11 @@ void write_quantities(t_data &data, bool force_update)
 	quantities::gas_azimuthal_kinematic_energy(data,
 						   quantities_limit_radius);
 
+    double tadv;
+    double tvisc;
+    double tgrav;
+    quantities::CalculateMonitorQuantitiesForOutput(data, tadv, tvisc, tgrav);
+
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data, sim::PhysicalTime);
     }
@@ -430,7 +441,7 @@ void write_quantities(t_data &data, bool force_update)
 	// print to logfile
 	fprintf(
 	    fd,
-		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 	    sim::N_snapshot, sim::N_monitor, sim::PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
@@ -448,7 +459,10 @@ void write_quantities(t_data &data, bool force_update)
 		refframe::IndirectTermDisk.y,
 		refframe::FrameAngle,
 		disk_eccentricity,
-		disk_periastron
+		disk_periastron,
+		tadv,
+		tvisc,
+		tgrav
 		);
 
 	// close file

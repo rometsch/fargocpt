@@ -52,6 +52,7 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
 			      bool force_update);
 void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 				int nTimeStep, double dt);
+void CalculateMonitorQuantitiesForOutput(t_data &data, double &tadv, double &tvisc, double &tgrav);
 } // namespace quantities
 
 #endif // QUANTITIES_H

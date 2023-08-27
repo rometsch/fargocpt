@@ -1050,13 +1050,16 @@ void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 						     int nTimeStep, double dt)
 {
     if (data[t_data::ADVECTION_TORQUE].get_write()) {
-	gas_torques::calculate_advection_torque(data, dt / parameters::DT);
+	t_polargrid &t_adv = data[t_data::ADVECTION_TORQUE];
+	gas_torques::calculate_advection_torque(data, t_adv, dt / parameters::DT);
     }
     if (data[t_data::VISCOUS_TORQUE].get_write()) {
-	gas_torques::calculate_viscous_torque(data, dt / parameters::DT);
+	t_polargrid &t_visc = data[t_data::VISCOUS_TORQUE];
+	gas_torques::calculate_viscous_torque(data, t_visc, dt / parameters::DT);
     }
     if (data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()) {
-	gas_torques::calculate_gravitational_torque(data, dt / parameters::DT);
+	t_polargrid &t_grav = data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED];
+	gas_torques::calculate_gravitational_torque(data, t_grav, dt / parameters::DT);
     }
 
     if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
@@ -1066,6 +1069,24 @@ void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 	calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
 							dt / parameters::DT);
     }
+}
+
+void CalculateMonitorQuantitiesForOutput(t_data &data, double &tadv, double &tvisc, double &tgrav)
+{
+
+    t_polargrid &worker_array = data[t_data::WORKER_SCALAR_ARRAY];
+    worker_array.clear();
+    gas_torques::calculate_advection_torque(data, worker_array, 1.0);
+    tadv = quantities::gas_quantity_reduce(worker_array, quantities_limit_radius);
+
+    worker_array.clear();
+    gas_torques::calculate_viscous_torque(data, worker_array, 1.0);
+    tvisc = quantities::gas_quantity_reduce(worker_array, quantities_limit_radius);
+
+    worker_array.clear();
+    gas_torques::calculate_gravitational_torque(data, worker_array, 1.0);
+    tgrav = quantities::gas_quantity_reduce(worker_array, quantities_limit_radius);
+
 }
 
 
