@@ -480,208 +480,6 @@ double gas_azimuthal_kinematic_energy(t_data &data,
     return global_kinematic_energy;
 }
 
-static void calculate_disk_ecc_peri_nbody_center(t_data &data, unsigned int timestep,
-				   bool force_update)
-{
-	static int last_timestep_calculated = -1;
-
-	const double num_nbody = data.get_planetary_system().get_number_of_planets();
-	const double cms_mass = data.get_planetary_system().get_mass(num_nbody);
-	const Pair cms_pos = data.get_planetary_system().get_center_of_mass(num_nbody);
-	const Pair cms_vel = data.get_planetary_system().get_center_of_mass_velocity(num_nbody);
-
-	if (!force_update) {
-	if (last_timestep_calculated == (int)timestep) {
-		return;
-	} else {
-		last_timestep_calculated = timestep;
-	}
-	}
-	// calculations outside the loop for speedup
-	double sinFrameAngle = std::sin(refframe::FrameAngle);
-	double cosFrameAngle = std::cos(refframe::FrameAngle);
-
-	const unsigned int Nr = data[t_data::SIGMA].get_size_radial();
-	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
-
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double total_mass =
-		cms_mass + data[t_data::SIGMA](nr, naz) * Surf[nr];
-
-		// location of the cell
-		const double angle = (double)naz * dphi;
-		const double r_x = Rmed[nr] * std::cos(angle) - cms_pos.x;
-		const double r_y = Rmed[nr] * std::sin(angle) - cms_pos.y;
-		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
-
-		// averaged velocities
-		const double v_xmed =
-		std::cos(angle) * 0.5 *
-			(data[t_data::V_RADIAL](nr, naz) +
-			 data[t_data::V_RADIAL](nr + 1, naz)) -
-		std::sin(angle) *
-			(0.5 *
-			 (data[t_data::V_AZIMUTHAL](nr, naz) +
-			  data[t_data::V_AZIMUTHAL](
-				  nr, naz == data[t_data::V_AZIMUTHAL]
-							   .get_max_azimuthal()
-						? 0
-						: naz + 1)) +
-			 refframe::OmegaFrame * Rmed[nr]) - cms_vel.x;
-		const double v_ymed =
-		std::sin(angle) * 0.5 *
-			(data[t_data::V_RADIAL](nr, naz) +
-			 data[t_data::V_RADIAL](nr + 1, naz)) +
-		std::cos(angle) *
-			(0.5 *
-			 (data[t_data::V_AZIMUTHAL](nr, naz) +
-			  data[t_data::V_AZIMUTHAL](
-				  nr, naz == data[t_data::V_AZIMUTHAL]
-							   .get_max_azimuthal()
-						? 0
-						: naz + 1)) +
-			 refframe::OmegaFrame * Rmed[nr]) - cms_vel.y;
-
-		// specific angular momentum for each cell j = j*e_z
-		const double j = r_x * v_ymed - r_y * v_xmed;
-		// Runge-Lenz vector Ax = x*vy*vy-y*vx*vy-G*m*x/d;
-		const double e_x =
-		j * v_ymed / (constants::G * total_mass) - r_x / dist;
-		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
-		  r_y / dist;
-
-		data[t_data::ECCENTRICITY](nr, naz) =
-		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
-
-		if (refframe::FrameAngle != 0.0) {
-		// periastron grid is rotated to non-rotating coordinate system
-		// to prevent phase jumps of atan2 in later transformations like
-		// you would have had if you back-transform the output
-		// periastron values
-		data[t_data::PERIASTRON](nr, naz) =
-			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
-				   e_x * cosFrameAngle - e_y * sinFrameAngle);
-		} else {
-		data[t_data::PERIASTRON](nr, naz) =
-			std::atan2(e_y, e_x);
-		}
-	}
-	}
-}
-
-static void calculate_disk_ecc_peri_hydro_center(t_data &data, unsigned int timestep,
-			       bool force_update)
-{
-    static int last_timestep_calculated = -1;
-	const double cms_mass = hydro_center_mass;
-	const Pair cms_pos = data.get_planetary_system().get_hydro_frame_center_position();
-	const Pair cms_vel = data.get_planetary_system().get_hydro_frame_center_velocity();
-
-    if (!force_update) {
-	if (last_timestep_calculated == (int)timestep) {
-	    return;
-	} else {
-	    last_timestep_calculated = timestep;
-	}
-    }
-
-    // calculations outside the loop for speedup
-	const double sinFrameAngle = std::sin(refframe::FrameAngle);
-	const double cosFrameAngle = std::cos(refframe::FrameAngle);
-
-	const unsigned int Nr = data[t_data::SIGMA].get_size_radial();
-	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
-
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double total_mass =
-		cms_mass +	data[t_data::SIGMA](nr, naz) * Surf[nr];
-
-	    // location of the cell
-		const double angle = (double)naz * dphi;
-		const double r_x = Rmed[nr] * std::cos(angle) - cms_pos.x;
-		const double r_y = Rmed[nr] * std::sin(angle) - cms_pos.y;
-		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
-
-
-	    // averaged velocities
-		const double v_xmed =
-		std::cos(angle) * 0.5 *
-			(data[t_data::V_RADIAL](nr, naz) +
-			 data[t_data::V_RADIAL](nr + 1, naz)) -
-		std::sin(angle) *
-		    (0.5 *
-			 (data[t_data::V_AZIMUTHAL](nr, naz) +
-			  data[t_data::V_AZIMUTHAL](
-				  nr, naz == data[t_data::V_AZIMUTHAL]
-							   .get_max_azimuthal()
-					    ? 0
-						: naz + 1)) +
-			 refframe::OmegaFrame * Rmed[nr]) - cms_vel.x;
-		const double v_ymed =
-		std::sin(angle) * 0.5 *
-			(data[t_data::V_RADIAL](nr, naz) +
-			 data[t_data::V_RADIAL](nr + 1, naz)) +
-		std::cos(angle) *
-		    (0.5 *
-			 (data[t_data::V_AZIMUTHAL](nr, naz) +
-			  data[t_data::V_AZIMUTHAL](
-				  nr, 
-				  naz == data[t_data::V_AZIMUTHAL].get_max_azimuthal() ? 0: naz + 1)) +
-			 refframe::OmegaFrame * Rmed[nr]) - cms_vel.y;
-
-	    // specific angular momentum for each cell j = j*e_z
-		const double j = r_x * v_ymed - r_y * v_xmed;
-	    // Runge-Lenz vector Ax = x*vy*vy-y*vx*vy-G*m*x/d;
-		const double e_x =
-		j * v_ymed / (constants::G * total_mass) - r_x / dist;
-		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
-		  r_y / dist;
-
-		data[t_data::ECCENTRICITY](nr, naz) =
-		std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
-
-	    if (refframe::FrameAngle != 0.0) {
-		// periastron grid is rotated to non-rotating coordinate system
-		// to prevent phase jumps of atan2 in later transformations like
-		// you would have had if you back-transform the output
-		// periastron values
-		data[t_data::PERIASTRON](nr, naz) =
-		    std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
-			       e_x * cosFrameAngle - e_y * sinFrameAngle);
-	    } else {
-		data[t_data::PERIASTRON](nr, naz) =
-		    std::atan2(e_y, e_x);
-	    }
-	}
-    }
-}
-
-void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
-				   bool force_update){
-	if(parameters::n_bodies_for_hydroframe_center == 1){
-		if(data.get_planetary_system().get_number_of_planets() > 1){
-			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
-			if(data.get_planetary_system().get_planet(1).get_semi_major_axis()*15.0 > RMAX){
-				calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
-			} else {
-				// We are looking at a circumbinary (or more Nbodies) disk
-				calculate_disk_ecc_peri_nbody_center(data, timestep, force_update);
-			}
-		} else {
-			// We only have a star, compute ecc around primary
-			calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
-		}
-	} else {
-		// If we have multiple objects as hydro center, always compute eccentricity around hydro center
-		calculate_disk_ecc_peri_hydro_center(data, timestep, force_update);
-	}
-}
-
-
 static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int num_planets_for_center)
 {
 
@@ -732,24 +530,37 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 
 		data[t_data::ECCENTRICITY](nr, naz) = std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
-		if (refframe::FrameAngle != 0.0) {
 		// periastron grid is rotated to non-rotating coordinate system
 		// to prevent phase jumps of atan2 in later transformations like
 		// you would have had if you back-transform the output
 		// periastron values
+		const double e_x_frame = e_x * cosFrameAngle - e_y * sinFrameAngle;
+		const double e_y_frame = e_y * cosFrameAngle + e_x * sinFrameAngle;
+
+		data[t_data::ECCENTRICITY_X](nr, naz) = e_x_frame;
+		data[t_data::ECCENTRICITY_Y](nr, naz) = e_y_frame;
+
 		data[t_data::PERIASTRON](nr, naz) =
-			std::atan2(e_y * cosFrameAngle + e_x * sinFrameAngle,
-				   e_x * cosFrameAngle - e_y * sinFrameAngle);
-		} else {
-		data[t_data::PERIASTRON](nr, naz) =
-			std::atan2(e_y, e_x);
-		}
+			std::atan2(e_y_frame, e_x_frame);
+
 	}
 
 	}
 }
 
-void calculate_disk_ecc_vector(t_data &data){
+void calculate_disk_ecc_vector(t_data &data, unsigned int timestep,
+			       bool force_update){
+
+
+	static int last_timestep_calculated = -1;
+	if (!force_update) {
+	if (last_timestep_calculated == (int)timestep) {
+		return;
+	} else {
+		last_timestep_calculated = timestep;
+	}
+	}
+
 	int n_bodies_for_cms;
 	if(parameters::n_bodies_for_hydroframe_center == 1){
 		if(data.get_planetary_system().get_number_of_planets() > 1){
@@ -791,17 +602,30 @@ void state_disk_ecc_peri_calculation_center(t_data &data){
 	}
 }
 
+void calculate_disk_ecc_peri(t_data &data, double &Ecc, double &Per, const bool force_update)
+{
+	       // compute new eccentricity into ecc
+	calculate_disk_ecc_vector(data, sim::N_monitor, force_update);
+
+	t_polargrid &e_x = data[t_data::ECCENTRICITY_X];
+	t_polargrid &e_y = data[t_data::ECCENTRICITY_Y];
+
+	const double avg_e_x = quantities::gas_reduce_mass_average(data, e_x, parameters::quantities_radius_limit);
+	const double avg_e_y = quantities::gas_reduce_mass_average(data, e_y, parameters::quantities_radius_limit);
+
+	Ecc = std::sqrt(std::pow(avg_e_x, 2) + std::pow(avg_e_y, 2));
+	Per = std::atan2(avg_e_y, avg_e_x);
+
+	return;
+}
+
 void calculate_disk_delta_ecc_peri(t_data &data, double &dEcc, double &dPer)
 {
-	// ecc holds the current eccentricity
-	t_polargrid &ecc_new = data[t_data::ECCENTRICITY];
-	t_polargrid &P_new = data[t_data::PERIASTRON];
+	double e_new;
+	double peri_new;
 
-	// compute new eccentricity into ecc
-	calculate_disk_ecc_vector(data);
-
-	const double e_new = quantities::gas_reduce_mass_average(data, ecc_new, parameters::quantities_radius_limit);
-	const double peri_new = quantities::gas_reduce_mass_average(data, P_new, parameters::quantities_radius_limit);
+	// force update, since this function can be called multiple times per hydro step
+	calculate_disk_ecc_peri(data, e_new, peri_new, true);
 
 	const double de = e_new - ecc_old;
 	double dp = peri_new - peri_old;

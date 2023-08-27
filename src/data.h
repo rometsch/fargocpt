@@ -32,6 +32,8 @@ class t_data
 	TOOMRE,		      // Toomre parameter Q
 	ECCENTRICITY,	      // disk eccentricity
 	PERIASTRON,	      // disk periastron
+	ECCENTRICITY_X,	      // disk eccentricity vector component
+	ECCENTRICITY_Y,	      // disk eccentricity vector component
 	ALPHA_GRAV,	      // alpha grav
 	ALPHA_GRAV_MEAN,      // alpha grav time average
 	ALPHA_REYNOLDS,	      // alpha reynolds
