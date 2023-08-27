@@ -39,7 +39,7 @@ std::string snapshot_dir = "";
 std::string last_snapshot_dir = "";
 std::string outdir = "";
 
-const std::map<const std::string, const int> quantities_file_column_v2_4 = {
+const std::map<const std::string, const int> quantities_file_column_v2_5 = {
     {"time step", 0},
     {"analysis time step", 1},
     {"physical time", 2},
@@ -387,7 +387,8 @@ void write_quantities(t_data &data, bool force_update)
     double tadv;
     double tvisc;
     double tgrav;
-    quantities::CalculateMonitorQuantitiesForOutput(data, tadv, tvisc, tgrav);
+    quantities::CalculateMonitorQuantitiesForOutput(data, tadv, tvisc, tgrav,
+						    quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data, sim::PhysicalTime);

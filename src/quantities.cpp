@@ -1071,7 +1071,8 @@ void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
     }
 }
 
-void CalculateMonitorQuantitiesForOutput(t_data &data, double &tadv, double &tvisc, double &tgrav)
+void CalculateMonitorQuantitiesForOutput(t_data &data, double &tadv, double &tvisc, double &tgrav,
+					 const double quantities_limit_radius)
 {
 
     t_polargrid &worker_array = data[t_data::WORKER_SCALAR_ARRAY];
