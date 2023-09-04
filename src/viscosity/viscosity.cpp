@@ -87,8 +87,7 @@ double get_alpha(const int nr, const int naz, t_data &data)
 			    sigma / (parameters::density_factor * scale_height) * units::density;
 			const double alpha = parameters::alphaCold +
 					     (parameters::alphaHot - parameters::alphaCold) *
-						 std::min( 1000.0 * pvte::H_dissociation_fraction(densityCGS, temperatureCGS), 1.0);
-			/// H_dissociation_fraction should be changed to H_ionization_fraction
+						 std::min( 1000.0 * pvte::H_ionization_fraction(densityCGS, temperatureCGS), 1.0);
 			return alpha;
 	}
 	}
