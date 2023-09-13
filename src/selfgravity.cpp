@@ -171,7 +171,7 @@ static double get_aspect_ratio(t_data &data) {
  * @param data
  */
 void update_sg_constants() {
-	if (parameters::self_gravity_mode == parameters::t_sg::sg_M) {
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
 		lambda_sq = std::pow(
 			0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
 		chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
@@ -483,11 +483,10 @@ void compute_FFT_kernel()
 		}
 
 
-	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_M) {
+	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
 		const double denominator = std::pow(
 		2 * (std::cosh(u) - std::cos(theta)) +
-		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
-		-1.5);
+		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq, -1.5);
 
 		K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
 		K_radial[l] *= denominator;

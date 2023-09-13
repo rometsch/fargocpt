@@ -1052,15 +1052,15 @@ void read(const std::string &filename, t_data &data)
     // self gravity
     self_gravity = config::cfg.get_flag("SelfGravity", "no");
 
-	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "b");
+	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "symmetric");
 	if (sgmode == "b") {
 		self_gravity_mode = t_sg::sg_B;
-	} else if (sgmode == "m") {
-		self_gravity_mode = t_sg::sg_M;
+	} else if (sgmode == "symmetric") {
+		self_gravity_mode = t_sg::sg_S;
 	} else if (sgmode == "besselkernel") {
 		self_gravity_mode = t_sg::sg_BK;
 	} else {
-		logging::print_master(LOG_ERROR "Selfgravity mode %s is not supported. Choices: b, m, BesselKernel\n", sgmode.c_str());
+		logging::print_master(LOG_ERROR "Selfgravity mode %s is not supported. Choices: b, s, BesselKernel\n", sgmode.c_str());
 		die("Configuration error.");
 	}
 
