@@ -949,11 +949,11 @@ void t_planetary_system::update_roche_radii()
 	double x = planet.get_dimensionless_roche_radius();
 
 	if (M > m) {
-	    update_l1(M, m, x);
+	    x = update_l1(M, m, x);
 	    planet.set_dimensionless_roche_radius(x);
 	} else {
 	    x = 1.0 - x;
-	    update_l1(m, M, x);
+	    x = update_l1(m, M, x);
 	    x = 1.0 - x;
 	}
 

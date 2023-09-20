@@ -255,11 +255,19 @@ double init_l1(const double central_star_mass, const double other_star_mass)
     return x;
 }
 
-void update_l1(const double central_star_mass, const double other_star_mass,
-	       double &l1)
+/*	Compute the Roche Radius of a point mass (other_star_mass) orbiting a star (central_star_mass)
+	using one Newton-Raphson iteration iteration.
+
+
+	@param central_star_mass
+	@param other_star_mass
+	@param old l1
+	@return roche radius
+*/ 
+double update_l1(const double central_star_mass, const double other_star_mass,
+	       double l1)
 {
     const double q = central_star_mass / (central_star_mass + other_star_mass);
-
     double x = l1;
 
     // Newton Raphson, one iteration
@@ -271,7 +279,7 @@ void update_l1(const double central_star_mass, const double other_star_mass,
 
     x = x - f / df;
 
-    l1 = x;
+    return x;
 }
 
 double eggleton_1983(const double q, const double r)
