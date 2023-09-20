@@ -10,7 +10,15 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 void apply_boundary_condition_temperature(t_data &data);
 
 /****************************************
-/*** Basic
+/// Azimuthal velocity
+****************************************/
+
+void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal);
+void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal,
+				    const bool did_sg);
+
+/****************************************
+/// Basic
 ****************************************/
 
 void initial_boundary_inner(t_data &data);
@@ -31,14 +39,14 @@ void keplerian2d_boundary_outer(t_data &data);
 void viscous_outflow_boundary_inner(t_data &data);
 
 /****************************************
-/*** Prescribed value boundaries
+/// Prescribed value boundaries
 ****************************************/
 void init_prescribed_time_variable_boundaries(t_data &data);
 void boundary_condition_precribed_time_variable_outer(t_data &data,
 							  t_polargrid *densitystar, const double current_time);
 
 /****************************************
-/*** Inflow boundaries
+/// Inflow boundaries
 ****************************************/
 void mass_overflow(t_data &data, const double current_time);
 void mass_overflow_willy(t_data &data, t_polargrid *densitystar,
@@ -48,7 +56,7 @@ void boundary_layer_outer_boundary(t_data &data);
 
 
 /****************************************
-/*** BC centered on center of mass
+/// BC centered on center of mass
 ****************************************/
 void initial_center_of_mass_boundary_inner(t_data &data);
 void damping_initial_center_of_mass_inner(t_data &data, double dt);
@@ -57,14 +65,14 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt);
 
 
 /****************************************
-/*** Jibin special stuff
+/// Jibin special stuff
 ****************************************/
 void jibin_boundary_inner(t_data &data);
 void jibin_boundary_outer(t_data &data);
 
 
 /****************************************
-/*** Damping
+/// Damping
 ****************************************/
 void damping(t_data &data, double dt);
 bool initial_values_needed();

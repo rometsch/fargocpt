@@ -17,8 +17,6 @@ void NonReflectingBoundary_outer(t_data &data, t_polargrid *VRadial,
 void EvanescentBoundary(t_data &data, double step);
 
 void ApplyOuterSourceMass(t_polargrid *Density, PolarGrid *VRadial);
-void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal);
-void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal,
-				    const bool did_sg);
+
 
 void correct_v_azimuthal(t_polargrid &v_azimuthal, double dOmega);

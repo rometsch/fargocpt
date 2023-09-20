@@ -5,6 +5,7 @@
 #include "../global.h"
 #include "../SourceEuler.h"
 #include "../quantities.h"
+#include "../boundary_conditions.h"
 #include <cassert>
 
 namespace art_visc{
@@ -50,7 +51,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	(!parameters::domegadr_zero);
 
 	if (add_kep_inner) {
-	ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
+	boundary_conditions::ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
 	}
 
 	if ((parameters::boundary_outer !=
@@ -64,7 +65,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	(parameters::boundary_outer !=
 	 parameters::boundary_condition_precribed_time_variable) &&
 	(!parameters::massoverflow) && (!parameters::domegadr_zero)) {
-	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
+	boundary_conditions::ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
 					   add_kep_inner);
 	}
 
@@ -196,7 +197,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	(!parameters::domegadr_zero);
 
 	if (add_kep_inner) {
-	ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
+	boundary_conditions::ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
 	}
 
 	if ((parameters::boundary_outer !=
@@ -210,7 +211,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	(parameters::boundary_outer !=
 	 parameters::boundary_condition_precribed_time_variable) &&
 	(!parameters::massoverflow) && (!parameters::domegadr_zero)) {
-	ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
+	boundary_conditions::ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
 					   add_kep_inner);
 	}
 

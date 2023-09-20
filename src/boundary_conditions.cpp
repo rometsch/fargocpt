@@ -18,6 +18,8 @@
 #include "simulation.h"
 #include "constants.h"
 #include "quantities.h"
+#include "axilib.h"
+#include "selfgravity.h"
 
 #include <algorithm>
 #include <cstring>
@@ -2670,6 +2672,101 @@ void jibin_boundary_outer(t_data &data)
 	     ++n_azimuthal) {
 	    data[t_data::V_AZIMUTHAL](
 		data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) = vaz;
+	}
+    }
+}
+
+
+
+
+void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal)
+{
+    double VKepIn = 0.0;
+    if (!parameters::self_gravity) {
+    // we assume the pressure is low enough that kepler velocity is appropriate
+	VKepIn = compute_v_kepler(Rb[0], hydro_center_mass);
+
+    } else {
+	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
+
+	/* (3.42) on page 55 */
+	/* VKepIn is only needed on innermost CPU */
+	if (CPU_Rank == 0) {
+        // we assume the pressure is low enough that kepler velocity is appropriate
+		const double R = Rb[0];
+		const double vk_2 = constants::G * hydro_center_mass / R;
+        VKepIn = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
+	}
+    }
+
+    if (CPU_Rank == 0) {
+	const unsigned int Nphi = v_azimuthal.get_size_azimuthal();
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz < Nphi; naz++) {
+		v_azimuthal(0, naz) = VKepIn - Rb[0] * refframe::OmegaFrame;
+	}
+    }
+}
+
+/**
+	\param VAzimuthal azimuthal velocity polar grid
+*/
+void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
+{
+    double VKepOut = 0.0;
+	const unsigned int nr = v_azimuthal.get_max_radial();
+
+    if (!parameters::self_gravity) {
+	// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+	if(parameters::profile_cutoff_outer){
+	VKepOut = compute_v_kepler(Rb[nr], hydro_center_mass);
+	} else {
+	/* (3.4) on page 44 */
+    if(parameters::v_azimuthal_with_quadropole_support){
+    VKepOut = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(Rb[nr], hydro_center_mass);
+    } else {
+    VKepOut = initial_locally_isothermal_smoothed_v_az(Rb[nr], hydro_center_mass);
+    }
+	}
+    } else {
+
+	if (!did_sg) {
+	    mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
+	}
+
+	/* (3.42) on page 55 */
+	/* VKepOut is only needed on outermost CPU */
+	if (CPU_Rank == CPU_Highest) {
+		// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
+		const double R = Rb[nr];
+		if(parameters::profile_cutoff_outer){
+			const double vk_2 = constants::G * hydro_center_mass / R;
+			VKepOut = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[nr + IMIN]);
+		} else {
+		const double h0 = parameters::ASPECTRATIO_REF;
+		const double F = parameters::FLARINGINDEX;
+		const double S = parameters::SIGMASLOPE;
+		const double h = h0 * std::pow(R, F);
+        const double eps = parameters::thickness_smoothing;
+		const double vk_2 = constants::G * hydro_center_mass / R;
+		const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
+        const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
+                / std::pow(std::sqrt(1 + std::pow(h * eps, 2)), 3);
+
+        const double Q = binary_quadropole_moment;
+        const double quadropole_support = 3.0 * Q / std::pow(R, 2);
+
+        VKepOut = std::sqrt(vk_2 * (quadropole_support + smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[nr + IMIN]);
+		}
+	}
+    }
+
+    if (CPU_Rank == CPU_Highest) {
+	const unsigned int Nphi = v_azimuthal.get_size_azimuthal();
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz < Nphi; naz++) {
+		v_azimuthal(nr, naz) =	VKepOut - Rb[nr] * refframe::OmegaFrame;
 	}
     }
 }
