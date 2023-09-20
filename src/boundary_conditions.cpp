@@ -370,38 +370,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     /// d Omega / dr = 0 has really bad effects on the massflow test
     /// not recommended
     if (parameters::domegadr_zero) {
-	/// Vphi_i / r_i - Vphi_(i-1) / r_(i-1) = 0
-	if (CPU_Rank == CPU_Highest) {
-		#pragma omp parallel for
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
-		 ++n_azimuthal) {
-		const double R_N =
-		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial()];
-		const double R_Nm1 =
-		    Rmed[data[t_data::V_AZIMUTHAL].get_max_radial() - 1];
-
-		data[t_data::V_AZIMUTHAL](
-		    data[t_data::V_AZIMUTHAL].get_max_radial(), n_azimuthal) =
-		    R_N / R_Nm1 *
-		    data[t_data::V_AZIMUTHAL](
-			data[t_data::V_AZIMUTHAL].get_max_radial() - 1,
-			n_azimuthal);
-	    }
-	}
-
-	if (CPU_Rank == 0) {
-		#pragma omp parallel for
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::V_AZIMUTHAL].get_max_azimuthal();
-		 ++n_azimuthal) {
-		const double R1 = Rmed[1];
-		const double R0 = Rmed[0];
-
-		data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
-		    R0 / R1 * data[t_data::V_AZIMUTHAL](1, n_azimuthal);
-	    }
-	}
+		zero_shear_boundary(data[t_data::V_RADIAL]);
     }
 
     if (OuterSourceMass) {
@@ -413,6 +382,37 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     }
 }
 
+/****************************************
+/ Enforce zero shear at the boundaries
+****************************************/
+void zero_shear_boundary(t_polargrid &vaz) {
+	/// Vphi_i / r_i - Vphi_(i-1) / r_(i-1) = 0
+	const unsigned int Naz = vaz.get_max_azimuthal();
+	const unsigned int Nrad = vaz.get_max_radial();
+
+	if (CPU_Rank == CPU_Highest) {
+		#pragma omp parallel for
+	    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+			const double v_active = vaz(Nrad - 1, naz);
+			const double r = Rmed[Nrad];
+			const double ri = Rmed[Nrad - 1];
+
+			vaz(Nrad, naz) = r / ri * v_active;
+	    }
+	}
+
+	if (CPU_Rank == 0) {
+		#pragma omp parallel for
+	    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+			const double v_active = vaz(1, naz);
+			const double ro = Rmed[1];
+			const double r = Rmed[0];
+
+			vaz(0, naz) = r / ro * v_active;
+	    }
+	}
+
+}
 
 
 /**
@@ -2677,25 +2677,23 @@ void jibin_boundary_outer(t_data &data)
 }
 
 
-
-
 void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 {
-    double VKepIn = 0.0;
+    double vaz_in = 0.0;
     if (!parameters::self_gravity) {
     // we assume the pressure is low enough that kepler velocity is appropriate
-	VKepIn = compute_v_kepler(Rb[0], hydro_center_mass);
+	vaz_in = compute_v_kepler(Rb[0], hydro_center_mass);
 
     } else {
 	mpi_make1Dprofile(selfgravity::g_radial, GLOBAL_AxiSGAccr);
 
 	/* (3.42) on page 55 */
-	/* VKepIn is only needed on innermost CPU */
+	/* vaz_in is only needed on innermost CPU */
 	if (CPU_Rank == 0) {
         // we assume the pressure is low enough that kepler velocity is appropriate
 		const double R = Rb[0];
 		const double vk_2 = constants::G * hydro_center_mass / R;
-        VKepIn = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
+        vaz_in = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[0]);
 	}
     }
 
@@ -2703,7 +2701,7 @@ void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 	const unsigned int Nphi = v_azimuthal.get_size_azimuthal();
 	#pragma omp parallel for
 	for (unsigned int naz = 0; naz < Nphi; naz++) {
-		v_azimuthal(0, naz) = VKepIn - Rb[0] * refframe::OmegaFrame;
+		v_azimuthal(0, naz) = vaz_in - Rb[0] * refframe::OmegaFrame;
 	}
     }
 }
@@ -2713,19 +2711,19 @@ void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal)
 */
 void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 {
-    double VKepOut = 0.0;
+    double vaz_out = 0.0;
 	const unsigned int nr = v_azimuthal.get_max_radial();
 
     if (!parameters::self_gravity) {
 	// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
 	if(parameters::profile_cutoff_outer){
-	VKepOut = compute_v_kepler(Rb[nr], hydro_center_mass);
+	vaz_out = compute_v_kepler(Rb[nr], hydro_center_mass);
 	} else {
 	/* (3.4) on page 44 */
     if(parameters::v_azimuthal_with_quadropole_support){
-    VKepOut = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(Rb[nr], hydro_center_mass);
+    vaz_out = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(Rb[nr], hydro_center_mass);
     } else {
-    VKepOut = initial_locally_isothermal_smoothed_v_az(Rb[nr], hydro_center_mass);
+    vaz_out = initial_locally_isothermal_smoothed_v_az(Rb[nr], hydro_center_mass);
     }
 	}
     } else {
@@ -2735,13 +2733,13 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 	}
 
 	/* (3.42) on page 55 */
-	/* VKepOut is only needed on outermost CPU */
+	/* vaz_out is only needed on outermost CPU */
 	if (CPU_Rank == CPU_Highest) {
 		// if we have a cutoff, we assume the pressure is low enough that kepler velocity is appropriate
 		const double R = Rb[nr];
 		if(parameters::profile_cutoff_outer){
 			const double vk_2 = constants::G * hydro_center_mass / R;
-			VKepOut = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[nr + IMIN]);
+			vaz_out = std::sqrt(vk_2 - R * GLOBAL_AxiSGAccr[nr + IMIN]);
 		} else {
 		const double h0 = parameters::ASPECTRATIO_REF;
 		const double F = parameters::FLARINGINDEX;
@@ -2756,7 +2754,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
         const double Q = binary_quadropole_moment;
         const double quadropole_support = 3.0 * Q / std::pow(R, 2);
 
-        VKepOut = std::sqrt(vk_2 * (quadropole_support + smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[nr + IMIN]);
+        vaz_out = std::sqrt(vk_2 * (quadropole_support + smoothing_derivative_2 + pressure_support_2) - R * GLOBAL_AxiSGAccr[nr + IMIN]);
 		}
 	}
     }
@@ -2766,7 +2764,7 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal, const bool did_sg)
 
 	#pragma omp parallel for
 	for (unsigned int naz = 0; naz < Nphi; naz++) {
-		v_azimuthal(nr, naz) =	VKepOut - Rb[nr] * refframe::OmegaFrame;
+		v_azimuthal(nr, naz) =	vaz_out - Rb[nr] * refframe::OmegaFrame;
 	}
     }
 }

@@ -16,6 +16,7 @@ void apply_boundary_condition_temperature(t_data &data);
 void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal);
 void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal,
 				    const bool did_sg);
+void zero_shear_boundary(t_polargrid &v_azimuthal);
 
 /****************************************
 /// Basic
