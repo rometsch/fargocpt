@@ -74,3 +74,7 @@ clean:
 	cd yaml-cpp && $(MAKE) clean
 	cd units && $(MAKE) clean
 	rm -rf $(BUILD_DIR)
+
+cleanfargo:
+	rm -f $(OBJS) $(TEMP)
+	rm -rf $(BUILD_DIR)
