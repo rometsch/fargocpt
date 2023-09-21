@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "LowTasks.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "config.h"
 #include "constants.h"
 #include "global.h"

@@ -8,18 +8,18 @@
 #endif
 
 #include "boundary_conditions.h"
-#include "Theo.h"
-#include "find_cell_id.h"
-#include "global.h"
-#include "logging.h"
-#include "parameters.h"
-#include "util.h"
-#include "frame_of_reference.h"
-#include "simulation.h"
-#include "constants.h"
-#include "quantities.h"
-#include "axilib.h"
-#include "selfgravity.h"
+#include "../Theo.h"
+#include "../find_cell_id.h"
+#include "../global.h"
+#include "../logging.h"
+#include "../parameters.h"
+#include "../util.h"
+#include "../frame_of_reference.h"
+#include "../simulation.h"
+#include "../constants.h"
+#include "../quantities.h"
+#include "../axilib.h"
+#include "../selfgravity.h"
 
 #include <algorithm>
 #include <cstring>

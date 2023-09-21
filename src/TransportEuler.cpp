@@ -21,7 +21,7 @@ velocity in each zone by a proper averaging).
 #include "SideEuler.h"
 #include "SourceEuler.h"
 #include "TransportEuler.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "constants.h"
 #include "global.h"
 #include "parameters.h"

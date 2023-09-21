@@ -2,9 +2,9 @@ include makefile.defs
 
 # CFLAGS += -DDO_USE_PLUTO_UNITS
 
-SRCS = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp viscosity/*.cpp)
+SRCS = $(wildcard *.cpp particles/*.cpp random/*.cpp nbody/*.cpp viscosity/*.cpp boundary_conditions/*.cpp)
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
-HDRS = $(wildcard *.h rebound/*.h particles/*.h random/*.h nbody/*.h viscosity/*.h)
+HDRS = $(wildcard *.h rebound/*.h particles/*.h random/*.h nbody/*.h viscosity/*.h boundary_conditions/*.h)
 TEMP = $(SRCS:%=%~) $(HDRS:%=%~)
 
 MAKEFILE_DIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))

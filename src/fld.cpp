@@ -10,7 +10,7 @@
 #include "opacity.h"
 #include "pvte_law.h"
 #include "SourceEuler.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "logging.h"
 #include "compute.h"
 #include "output.h"

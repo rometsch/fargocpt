@@ -6,7 +6,7 @@
 #include "Pframeforce.h"
 #include "start_mode.h"
 #include "SourceEuler.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "commbound.h"
 #include "frame_of_reference.h"
 #include "particles/particles.h"

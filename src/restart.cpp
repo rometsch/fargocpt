@@ -7,7 +7,7 @@
 #include "simulation.h"
 #include "parameters.h"
 #include "start_mode.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "Theo.h"
 #include <filesystem>
 #include "SourceEuler.h"

@@ -10,7 +10,7 @@
 #include "SideEuler.h"
 #include "SourceEuler.h"
 #include "Theo.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "commbound.h"
 #include "config.h"
 #include "constants.h"

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "data.h"
-#include "types.h"
+#include "../data.h"
+#include "../types.h"
 
 namespace boundary_conditions
 {

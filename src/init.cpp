@@ -10,7 +10,7 @@
 #include "Theo.h"
 #include "TransportEuler.h"
 #include "axilib.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "find_cell_id.h"
 #include "global.h"
 #include "init.h"

@@ -23,7 +23,7 @@
 #include "Theo.h"
 #include "TransportEuler.h"
 #include "accretion.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "commbound.h"
 #include "constants.h"
 #include "gas_torques.h"
