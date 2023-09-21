@@ -8,6 +8,9 @@
 #endif
 
 #include "boundary_conditions.h"
+
+#include "basic.h"
+
 #include "../Theo.h"
 #include "../find_cell_id.h"
 #include "../global.h"

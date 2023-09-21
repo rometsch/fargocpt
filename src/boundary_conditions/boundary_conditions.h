@@ -19,27 +19,6 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal,
 void zero_shear_boundary(t_polargrid &v_azimuthal);
 
 /****************************************
-/// Basic
-****************************************/
-
-void initial_boundary_inner(t_data &data);
-void initial_boundary_outer(t_data &data);
-
-void open_boundary_inner(t_data &data);
-void open_boundary_outer(t_data &data);
-
-void zero_gradient_boundary_inner(t_data &data);
-void zero_gradient_boundary_outer(t_data &data);
-
-void reflecting_boundary_inner(t_data &data);
-void reflecting_boundary_outer(t_data &data);
-
-void keplerian2d_boundary_inner(t_data &data);
-void keplerian2d_boundary_outer(t_data &data);
-
-void viscous_outflow_boundary_inner(t_data &data);
-
-/****************************************
 /// Prescribed value boundaries
 ****************************************/
 void init_prescribed_time_variable_boundaries(t_data &data);
