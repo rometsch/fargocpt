@@ -7,6 +7,8 @@
 #include <omp.h>
 #endif
 
+#include "basic.h"
+
 #include "boundary_conditions.h"
 #include "../Theo.h"
 #include "../find_cell_id.h"
@@ -116,7 +118,6 @@ void open_boundary_inner(t_data &data)
 	t_polargrid &e = data[t_data::ENERGY];
 	t_polargrid &vr = data[t_data::V_RADIAL];
 
-	const unsigned int Nrad = sig.get_max_radial();
 	const unsigned int Naz = sig.get_max_azimuthal();
 
 	#pragma omp parallel for
@@ -181,7 +182,6 @@ void zero_gradient_boundary_inner(t_data &data)
 	t_polargrid &e = data[t_data::ENERGY];
 	t_polargrid &vr = data[t_data::V_RADIAL];
 
-	const unsigned int Nrad = sig.get_max_radial();
 	const unsigned int Naz = sig.get_max_azimuthal();
 
 	#pragma omp parallel for
@@ -235,8 +235,6 @@ void reflecting_boundary_inner(t_data &data)
 	t_polargrid &e = data[t_data::ENERGY];
 	t_polargrid &vr = data[t_data::V_RADIAL];
 
-	const unsigned int Nrad = sig.get_max_radial();
-	const unsigned int Nrad_v = vr.get_max_radial();
 	const unsigned int Naz = sig.get_max_azimuthal();
 
 	#pragma omp parallel for
@@ -290,7 +288,6 @@ void viscous_outflow_boundary_inner(t_data &data)
 	t_polargrid &vr = data[t_data::V_RADIAL];
 	t_polargrid &visc = data[t_data::VISCOSITY];
 
-	const unsigned int Nrad = sig.get_max_radial();
 	const unsigned int Naz = sig.get_max_azimuthal();
 
 	for (unsigned int naz = 0; naz <= Naz; ++naz) {
