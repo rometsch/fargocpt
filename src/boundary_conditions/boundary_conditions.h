@@ -7,7 +7,6 @@ namespace boundary_conditions
 {
 
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
-void apply_boundary_condition_temperature(t_data &data);
 
 /****************************************
 /// Basic
