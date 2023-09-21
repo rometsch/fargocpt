@@ -59,15 +59,25 @@ t_data::t_data()
     m_polargrids[TOOMRE].set_name("Toomre");
     m_polargrids[TOOMRE].set_do_before_write(&quantities::calculate_toomre);
 
+
+    m_polargrids[ECCENTRICITY_X].set_scalar(true);
+    m_polargrids[ECCENTRICITY_X].set_name("Eccentricity_X");
+    m_polargrids[ECCENTRICITY_X].set_do_before_write(
+	&quantities::calculate_disk_ecc_vector);
+
+    m_polargrids[ECCENTRICITY_Y].set_scalar(true);
+    m_polargrids[ECCENTRICITY_Y].set_name("Eccentricity_Y");
+    /// Always computed together with ECCENTRICITY_X
+
     m_polargrids[ECCENTRICITY].set_scalar(true);
     m_polargrids[ECCENTRICITY].set_name("Eccentricity");
     m_polargrids[ECCENTRICITY].set_do_before_write(
-	&quantities::calculate_disk_ecc_peri);
+	&quantities::calculate_disk_ecc_vector);
 
     m_polargrids[PERIASTRON].set_scalar(true);
     m_polargrids[PERIASTRON].set_name("Periastron");
     m_polargrids[PERIASTRON].set_do_before_write(
-	&quantities::calculate_disk_ecc_peri);
+	&quantities::calculate_disk_ecc_vector);
 
     m_polargrids[ALPHA_GRAV].set_scalar(true);
     m_polargrids[ALPHA_GRAV].set_name("alpha_grav");
@@ -185,6 +195,9 @@ t_data::t_data()
 	true);
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
 	.set_integrate_azimuthally_for_1D_write(true);
+
+    m_polargrids[WORKER_SCALAR_ARRAY].set_scalar(true);
+    m_polargrids[WORKER_SCALAR_ARRAY].set_name("WORKER_SCALAR_ARRAY");
 
     m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_scalar(true);
     m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_name("GAS_DIFFUSION_COEFFICIENT");

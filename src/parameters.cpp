@@ -954,7 +954,7 @@ void read(const std::string &filename, t_data &data)
 	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
 	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
 
-    if(parameters::AlphaMode == SCURVE_ALPHA){
+	if(parameters::AlphaMode == SCURVE_ALPHA || parameters::AlphaMode == SCURVE_IONFRACTION){
         // already continously writes alpha
         data[t_data::ALPHA].set_do_before_write(nullptr);
     }

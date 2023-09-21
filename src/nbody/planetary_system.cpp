@@ -21,8 +21,6 @@
 extern boolean CICPlanet;
 
 t_planetary_system::t_planetary_system() {
-	m_shift_pos = pair{0.0, 0.0};
-	m_shift_vel = pair{0.0, 0.0};
 }
 
 t_planetary_system::~t_planetary_system()
@@ -662,9 +660,6 @@ void t_planetary_system::move_to_hydro_frame_center()
 	const Pair center = get_hydro_frame_center_position();
 	const Pair vcenter = get_hydro_frame_center_velocity();
 
-	m_shift_pos = center;
-	m_shift_vel = vcenter;
-
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	t_planet &planet = get_planet(i);
 	const double x = planet.get_x();
@@ -679,25 +674,6 @@ void t_planetary_system::move_to_hydro_frame_center()
     }
 }
 
-/**
- * @brief t_planetary_system::shift_to_hydro_frame_center
- * this improved the accuracy in python tests
- */
-void t_planetary_system::move_to_hydro_frame_center_from_last_dt()
-{
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	t_planet &planet = get_planet(i);
-	const double x = planet.get_x();
-	const double y = planet.get_y();
-	const double vx = planet.get_vx();
-	const double vy = planet.get_vy();
-
-	planet.set_x(x - m_shift_pos.x * 0.5);
-	planet.set_y(y - m_shift_pos.y * 0.5);
-	planet.set_vx(vx - m_shift_vel.x * 0.5);
-	planet.set_vy(vy - m_shift_vel.y * 0.5);
-	}
-}
 
 /**
    Calculate orbital elements of all planets.
