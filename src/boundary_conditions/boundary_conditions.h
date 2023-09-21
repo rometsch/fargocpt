@@ -68,8 +68,8 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt);
 /****************************************
 /// Jibin special stuff
 ****************************************/
-void jibin_boundary_inner(t_data &data);
-void jibin_boundary_outer(t_data &data);
+void spreading_ring_inner(t_data &data);
+void spreading_ring_outer(t_data &data);
 
 
 /****************************************
