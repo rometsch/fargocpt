@@ -44,8 +44,7 @@ void write_snapshot_time();
 void write_monitor_time();
 
 
-std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update,
+std::vector<double> reduce_disk_quantities(t_data &data,
 					   const double quantitiy_radius);
 
 int load_misc();

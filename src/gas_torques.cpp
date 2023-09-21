@@ -9,10 +9,9 @@
 namespace gas_torques
 {
 
-void calculate_advection_torque(t_data &data, const double dt)
+void calculate_advection_torque(t_data &data, t_polargrid &t_adv, const double dt)
 {
 
-    t_polargrid &t_adv = data[t_data::ADVECTION_TORQUE];
     t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
     t_polargrid &dens = data[t_data::SIGMA];
@@ -44,10 +43,8 @@ void calculate_advection_torque(t_data &data, const double dt)
     }
 }
 
-void calculate_viscous_torque(t_data &data, const double dt)
+void calculate_viscous_torque(t_data &data, t_polargrid &t_visc, const double dt)
 {
-
-    t_polargrid &t_visc = data[t_data::VISCOUS_TORQUE];
     t_polargrid &visc = data[t_data::VISCOSITY];
     t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
@@ -113,8 +110,7 @@ void calculate_viscous_torque(t_data &data, const double dt)
 
 	    t_visc(n_r, n_az) +=
 		-std::pow(r, 3.0) * viscosity_cell * sigma_cell *
-		(dphi_dot_dr + 1.0 / (std::pow(r, 2.0)) * dvr_dphi) * dt; // / parameters::DT;
-		/// TODO check this 1 / DT, function is already called with dt = hydro_dt/DT
+		(dphi_dot_dr + 1.0 / (std::pow(r, 2.0)) * dvr_dphi) * dt;
 	}
     }
 }
@@ -124,16 +120,14 @@ void calculate_viscous_torque(t_data &data, const double dt)
  * @param data
  * @param dt
  */
-void calculate_gravitational_torque(t_data &data, const double dt)
+void calculate_gravitational_torque(t_data &data,  t_polargrid &t_grav, const double dt)
 {
 
-    t_polargrid &t_grav = data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED];
     t_polargrid &pot_grav = data[t_data::POTENTIAL];
 
     for (unsigned int n_r = 0; n_r < t_grav.get_size_radial(); ++n_r) {
 
 	const double r = Rmed[n_r];
-	const double dr = (Rsup[n_r] - Rinf[n_r]);
 
 	for (unsigned int n_az = 0; n_az < t_grav.get_size_azimuthal();
 	     ++n_az) {
@@ -153,8 +147,9 @@ void calculate_gravitational_torque(t_data &data, const double dt)
 	    } else {
 		gradphi = -data[t_data::ACCEL_AZIMUTHAL](n_r, n_az) * r;
 	    }
-		t_grav(n_r, n_az) += -r * sigma_cell * gradphi * dr * dt / parameters::DT; // / DT;
-		/// TODO check this 1 / DT, function is already called with dt = hydro_dt/DT
+	    //t_grav(n_r, n_az) += -r * sigma_cell * gradphi * dr * dphi * dt;
+	    // Surf = r * dr * dphi
+	    t_grav(n_r, n_az) += -sigma_cell * gradphi * Surf[n_r] * dt;
 	}
     }
 }
