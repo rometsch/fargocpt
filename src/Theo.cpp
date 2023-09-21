@@ -119,6 +119,35 @@ double initial_locally_isothermal_v_az(const double R, const double M){
 	return v_az;
 }
 
+
+double support_azi_pressure(const double R){
+	const double h0 = parameters::ASPECTRATIO_REF;
+	const double F = parameters::FLARINGINDEX;
+	const double S = parameters::SIGMASLOPE;
+	const double h = h0 * std::pow(R, F);
+	const double rv = (2.0 * F - 1.0 - S) * std::pow(h, 2);
+	return rv;
+}
+
+double support_azi_smoothing_derivative(const double R) {
+	const double h0 = parameters::ASPECTRATIO_REF;
+	const double F = parameters::FLARINGINDEX;
+	const double h = h0 * std::pow(R, F);
+	const double eps = parameters::thickness_smoothing;
+	const double rv = (1.0 + (F+1.0) * std::pow(h * eps, 2))
+			/ std::pow(std::sqrt(1 + std::pow(h * eps, 2)), 3);
+	return rv;
+}
+
+double support_azi_quadrupole(const double R) {
+	const double Q = binary_quadropole_moment;
+	double rv = 0.0;
+	if (Q > 0.0) {
+		rv = 3.0 * Q / std::pow(R, 2);
+	}
+	return rv;
+}
+
 ///
 /// \brief computes the pressure supported azimuthal velocity
 /// around mass M at distance R for the locally isothermal model
@@ -133,22 +162,15 @@ double initial_locally_isothermal_smoothed_v_az(const double R, const double M){
 
 	// Phi = GMm / r_sm
 	// vkep^2 / r = 1/Simga dP/dr + dPhi / dr
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
-	const double S = parameters::SIGMASLOPE;
-	const double h = h0 * std::pow(R, F);
-	const double eps = parameters::thickness_smoothing;
+	const double smoothing_derivative_2 = support_azi_smoothing_derivative(R);
+	const double pressure_support_2 = support_azi_pressure(R);
+
+    const double support = smoothing_derivative_2 + pressure_support_2;
+
 	const double vk_2 = constants::G * M / R;
-	const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
-
-	// for normal pressure support, the derivative should be 1
-	const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
-		/ std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
-
-    const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
-
-	return v_az;
+	return std::sqrt(vk_2 * support);
 }
+
 
 double initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(const double R, const double M){
 
@@ -157,24 +179,15 @@ double initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(const dou
 
     // Phi = GMm / r_sm
     // vkep^2 / r = 1/Simga dP/dr + dPhi / dr
-    const double h0 = parameters::ASPECTRATIO_REF;
-    const double F = parameters::FLARINGINDEX;
-    const double S = parameters::SIGMASLOPE;
-    const double h = h0 * std::pow(R, F);
-    const double eps = parameters::thickness_smoothing;
-    const double vk_2 = constants::G * M / R;
-    const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
-    const double Q = binary_quadropole_moment;
 
-    // for normal pressure support, the derivative should be 1
-    const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
-                                          / std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
+    const double pressure_support_2 = support_azi_pressure(R);
+    const double quadropole_support = support_azi_quadrupole(R);
+	const double smoothing_derivative_2 = support_azi_smoothing_derivative(R);
 
-    const double quadropole_support = 3.0 * Q / std::pow(R, 2);
+    const double support = quadropole_support + smoothing_derivative_2 + pressure_support_2;
 
-    const double v_az = std::sqrt(vk_2 * (quadropole_support + smoothing_derivative_2 + pressure_support_2));
-
-    return v_az;
+	const double vk_2 = constants::G * M / R;
+	return std::sqrt(vk_2 * support);
 }
 
 ///

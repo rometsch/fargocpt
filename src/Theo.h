@@ -7,6 +7,9 @@
 
 double initial_energy(const double R, const double M);
 double initial_viscous_radial_speed(const double R, const double M);
+double support_azi_quadrupole(const double R);
+double support_azi_smoothing_derivative(const double R);
+double support_azi_pressure(const double R);
 double initial_locally_isothermal_smoothed_v_az(const double R, const double M);
 double initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(const double R, const double M);
 void init_binary_quadropole_moment(const t_planetary_system &psys);
