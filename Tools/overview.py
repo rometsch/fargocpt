@@ -36,6 +36,11 @@ class Plot2D:
         self.xy = not self.rphi
         self.plot_relative = len(parts) > 2 and "rel" in parts[2]
         self.plot_diff = len(parts) > 2 and "diff" in parts[2]
+        self.label_modifier = ""
+        if self.plot_relative:
+            self.label_modifier += "rel"
+        if self.plot_diff:
+            self.label_modifier += "diff"
 
     def update(self, Nnow, tnow):
         field = self.simd.get(var=self.var, dim="2d", N=Nnow)
@@ -107,7 +112,7 @@ class Plot2D:
                                 Z, norm=self.my_norm, cmap=self.my_cmap)
         if vmin != vmax:
             self.cbar = self.fig.colorbar(self.pm, ax=ax)
-            self.cbar.set_label(f"{self.var} [{field.data.cgs.unit}]")
+            self.cbar.set_label(f"{self.var} {self.label_modifier} [{field.data.cgs.unit}]")
 
 
 class Plot1D:
@@ -128,6 +133,11 @@ class Plot1D:
             raise ValueError("spec must not contain both 'diff' and 'rel' as modifier, Use one, e.g. '1:mass density:diff'")
         self.plot_minmax = len(parts) > 2 and "minmax" in parts[2]
         self.fills = dict()
+        self.label_modifier = ""
+        if self.plot_rel:
+            self.label_modifier += "rel"
+        if self.plot_diff:
+            self.label_modifier += "diff"
 
     def update(self, Nnow, tnow):
         ax = self.ax
@@ -162,7 +172,14 @@ class Plot1D:
 
         ax = self.ax
         ax.set_xlabel("r [au]")
-        ax.set_ylabel(r"value [cgs]")
+
+        if self.plot_rel:
+            label = "y/y0 - 1"
+        elif self.plot_diff:
+            label = "y - y0"
+        else:
+            label = "value [cgs]"
+        ax.set_ylabel(label)
 
 
         if self.plot_rel or self.plot_diff:
@@ -310,7 +327,7 @@ class PlotScalar:
 
 class Overview:
 
-    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal"], start=None):
+    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal"], start=None, figsize=(8,6), dpi=150):
         self.outputdir = outputdir
         self.update_interval = update_interval
         self.vars = [k.split(":")[1] for k in vars]
@@ -318,11 +335,13 @@ class Overview:
         self.plot_types = [k.split(":")[0] for k in vars]
         self._is_widget_created = False
         self.start = start
+        self.figsize = figsize
+        self.dpi = dpi
 
     def show(self, follow=None):
 
         if not self._is_widget_created:
-            self.create()
+            self.create(self.dpi)
 
         if follow is None or follow:
             follow = self.update_interval
@@ -371,7 +390,7 @@ class Overview:
         mosaic_def.append(["slider"] * Ncols)
 
         self.fig, self.axd = plt.subplot_mosaic(
-            mosaic_def, figsize=(12, 8), height_ratios=height_ratios, dpi=dpi)
+            mosaic_def, figsize=self.figsize, height_ratios=height_ratios, dpi=dpi)
 
         self.Nfirst = int(avail["Nfirst"])
         self.Nlast = avail["Nlast"]
