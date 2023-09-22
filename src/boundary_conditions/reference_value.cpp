@@ -18,7 +18,7 @@ namespace boundary_conditions
 /**
 	set inner boundary values to initial values
  */
-void initial_boundary_inner(t_data &data)
+void reference_value_boundary_inner(t_data &data)
 {
     if (CPU_Rank != 0){
 		return;
@@ -49,7 +49,7 @@ void initial_boundary_inner(t_data &data)
 /**
 	set outer boundary values to initial values
  */
-void initial_boundary_outer(t_data &data)
+void reference_value_boundary_outer(t_data &data)
 {
     if (CPU_Rank != CPU_Highest){
 		return;

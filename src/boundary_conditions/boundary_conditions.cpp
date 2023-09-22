@@ -33,7 +33,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     // inner boundary
     switch (parameters::boundary_inner) {
 	case parameters::boundary_condition_initial:
-	initial_boundary_inner(data);
+	reference_value_boundary_inner(data);
 	break;
     case parameters::boundary_condition_open:
 	open_boundary_inner(data);
@@ -88,7 +88,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
     // outer boundary
     switch (parameters::boundary_outer) {
 	case parameters::boundary_condition_initial:
-	initial_boundary_outer(data);
+	reference_value_boundary_outer(data);
 	break;
     case parameters::boundary_condition_open:
 	open_boundary_outer(data);
