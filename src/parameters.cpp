@@ -415,16 +415,17 @@ void read(const std::string &filename, t_data &data)
     NRadial = config::cfg.get<unsigned int>("NRAD", 64);
     NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
 
+
+    // Disk radius = radius at which disk_radius_mass_fraction percent
+    // of the total mass inside the domain is contained
+    // 0.99 is used in Kley et al. 2008 "Simulations of eccentric disks .."
+    disk_radius_mass_fraction =
+    config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
+
     quantities_radius_limit =
 	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
 
-	// Disk radius = radius at which disk_radius_mass_fraction percent
-	// of the total mass inside the domain is contained
-	// 0.99 is used in Kley et al. 2008 "Simulations of eccentric disks .."
-	disk_radius_mass_fraction =
-	config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
-
-    if (quantities_radius_limit == 0.0) {
+    if (quantities_radius_limit <= RMIN) {
 	quantities_radius_limit = 2.0 * RMAX;
     }
 	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);

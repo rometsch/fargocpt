@@ -363,10 +363,6 @@ void write_quantities(t_data &data, bool force_update)
     const double totalMass =
 	quantities::gas_total_mass(data, quantities_limit_radius);
 
-    if (totalMass <= 0.0) { // If roche lobe is smaller than RMIN
-	quantities::gas_total_mass(data, RMAX);
-    }
-
     const double diskRadius = quantities::gas_disk_radius(data, totalMass);
     const double totalAngularMomentum =
 	quantities::gas_angular_momentum(data, quantities_limit_radius);
