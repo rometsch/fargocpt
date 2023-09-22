@@ -25,9 +25,9 @@ namespace boundary_conditions
 
 // Determine whether initial values must be stored.
 bool initial_values_needed() {
-	const bool damping = parameters::is_damping_initial;
+	const bool damping = parameters::is_damping_reference;
 	const bool betacooling = parameters::cooling_beta_initial;
-	const bool boundary = parameters::boundary_inner==parameters::boundary_condition_initial || parameters::boundary_outer==parameters::boundary_condition_initial;
+	const bool boundary = parameters::boundary_inner==parameters::boundary_condition_reference || parameters::boundary_outer==parameters::boundary_condition_reference;
 	return damping || betacooling || boundary;
 }
 

@@ -54,7 +54,7 @@ extern double exponential_cell_size_factor;
 
 // boundary conditions
 enum t_boundary_condition {
-    boundary_condition_initial,
+    boundary_condition_reference,
     boundary_condition_open,
     boundary_condition_reflecting,
     boundary_condition_center_of_mass_initial,
@@ -81,7 +81,7 @@ extern double viscous_outflow_speed;
 /// enable different damping types
 enum t_damping_type {
     damping_none,
-    damping_initial,
+    damping_reference,
     damping_mean,
     damping_zero,
     damping_visc
@@ -100,7 +100,7 @@ extern int damping_energy_id;
 
 extern bool damping;
 /// is at least one variable damped to initial values
-extern bool is_damping_initial;
+extern bool is_damping_reference;
 /// inner damping limit
 extern double damping_inner_limit;
 /// outer damping limit

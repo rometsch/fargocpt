@@ -76,7 +76,7 @@ bool domegadr_zero;
 double viscous_outflow_speed;
 
 bool damping;
-bool is_damping_initial = false;
+bool is_damping_reference = false;
 double damping_inner_limit;
 double damping_outer_limit;
 double damping_time_factor;
@@ -301,11 +301,11 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	description_inner =
 	    "Damping " + description + " to mean value at inner boundary.";
 	break;
-    case damping_initial:
+    case damping_reference:
 	damping_type.inner_damping_function =
 	    &boundary_conditions::damping_single_inner;
 	description_inner =
-	    "Damping " + description + " to initial value at inner boundary.";
+	    "Damping " + description + " to reference value at inner boundary.";
 	break;
     case damping_zero:
 	damping_type.inner_damping_function =
@@ -333,11 +333,11 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 	description_outer =
 	    "Damping " + description + " to mean value at outer boundary.";
 	break;
-    case damping_initial:
+    case damping_reference:
 	damping_type.outer_damping_function =
 	    &boundary_conditions::damping_single_outer;
 	description_outer =
-	    "Damping " + description + " to initial value at outer boundary.";
+	    "Damping " + description + " to reference value at outer boundary.";
 	break;
     case damping_zero:
 	damping_type.outer_damping_function =
@@ -377,10 +377,10 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 	boundary_condition = parameters::t_damping_type::damping_none;
 	break;
     case 'i':
-	boundary_condition = parameters::t_damping_type::damping_initial;
+	boundary_condition = parameters::t_damping_type::damping_reference;
 	break;
     case 'y': // for legacy compatibility
-	boundary_condition = parameters::t_damping_type::damping_initial;
+	boundary_condition = parameters::t_damping_type::damping_reference;
 	break;
     case 'm':
 	boundary_condition = parameters::t_damping_type::damping_mean;
@@ -601,7 +601,7 @@ void read(const std::string &filename, t_data &data)
     switch (
 	config::cfg.get_first_letter_lowercase("InnerBoundary", "Open")) {
     case 'i':
-	boundary_inner = boundary_condition_initial;
+	boundary_inner = boundary_condition_reference;
 	break;
 	case 'o':
 	boundary_inner = boundary_condition_open;
@@ -644,7 +644,7 @@ void read(const std::string &filename, t_data &data)
     switch (
 		config::cfg.get_first_letter_lowercase("OuterBoundary", "Open")) {
     case 'i':
-	boundary_outer = boundary_condition_initial;
+	boundary_outer = boundary_condition_reference;
 	break;
 	case 'o':
 	boundary_outer = boundary_condition_open;
@@ -1258,7 +1258,7 @@ void summarize_parameters()
 
     // boundary conditions
     switch (boundary_inner) {
-    case boundary_condition_initial:
+    case boundary_condition_reference:
 	logging::print_master(
 	    LOG_INFO "Using 'initial boundary condition' at inner boundary.\n");
 	break;
@@ -1317,9 +1317,9 @@ void summarize_parameters()
     }
 
 	switch (boundary_outer) {
-    case boundary_condition_initial:
+    case boundary_condition_reference:
 	logging::print_master(
-	    LOG_INFO "Using 'intial boundary condition' at outer boundary.\n");
+	    LOG_INFO "Using 'reference boundary condition' at outer boundary.\n");
 	break;
 	case boundary_condition_open:
 	logging::print_master(
@@ -1425,16 +1425,16 @@ void summarize_parameters()
 
     if (!damping) {
 	logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
-	is_damping_initial = false;
+	is_damping_reference = false;
     } else {
-	is_damping_initial = false;
+	is_damping_reference = false;
 	for (unsigned int i = 0; i < damping_vector.size(); ++i) {
-	    is_damping_initial =
-		is_damping_initial ||
-		(damping_vector[i].type_inner == damping_initial);
-	    is_damping_initial =
-		is_damping_initial ||
-		(damping_vector[i].type_outer == damping_initial);
+	    is_damping_reference =
+		is_damping_reference ||
+		(damping_vector[i].type_inner == damping_reference);
+	    is_damping_reference =
+		is_damping_reference ||
+		(damping_vector[i].type_outer == damping_reference);
 	}
     }
 
