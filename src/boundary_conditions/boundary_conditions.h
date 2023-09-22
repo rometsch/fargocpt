@@ -65,7 +65,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt);
 
 
 /****************************************
-/// Jibin special stuff
+/// Spreading ring test
 ****************************************/
 void spreading_ring_inner(t_data &data);
 void spreading_ring_outer(t_data &data);
@@ -91,4 +91,19 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 			       double dt);
 void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 				double dt);
+
+
+/****************************************
+/// Legacy
+****************************************/
+void NonReflectingBoundary_inner(t_data &data, t_polargrid *VRadial,
+				 t_polargrid *Density, t_polargrid *Energy);
+void NonReflectingBoundary_outer(t_data &data, t_polargrid *VRadial,
+				 t_polargrid *Density, t_polargrid *Energy);
+
+void EvanescentBoundary(t_data &data, double step);
+
+void ApplyOuterSourceMass(t_polargrid *Density, PolarGrid *VRadial);
+
+
 } // namespace boundary_conditions

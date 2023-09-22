@@ -9,34 +9,11 @@
 
 #include "boundary_conditions.h"
 
-#include "../Theo.h"
-#include "../find_cell_id.h"
 #include "../global.h"
 #include "../logging.h"
 #include "../parameters.h"
-#include "../util.h"
-#include "../frame_of_reference.h"
-#include "../simulation.h"
-#include "../constants.h"
 #include "../quantities.h"
-#include "../axilib.h"
-#include "../selfgravity.h"
 
-#include <algorithm>
-#include <cstring>
-#include <cmath>
-#include <vector>
-#include <cassert>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include "viscosity/viscous_radial_speed.h"
-
-
-// temporary
-#include "SourceEuler.h"
-#include "LowTasks.h"
-#include "SideEuler.h"
 extern boolean OuterSourceMass;
 
 namespace boundary_conditions
