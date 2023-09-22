@@ -426,6 +426,7 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
 
     if (quantities_radius_limit <= RMIN) {
+	logging::print_master(LOG_INFO "QUANTITIESRADIUSLIMIT %.5e < %.5e (RMIN) too small, setting it to %.5e\n", quantities_radius_limit, RMIN, 2.0*RMAX);
 	quantities_radius_limit = 2.0 * RMAX;
     }
 	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);
