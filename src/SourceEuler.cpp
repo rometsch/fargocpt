@@ -336,36 +336,37 @@ static void momentum_update_radial(t_data &data, const double dt) {
 
 	const unsigned int Nphi = data[t_data::ENERGY].get_size_azimuthal();
 
+	t_polargrid &Sigma = data[t_data::SIGMA];
+	t_polargrid &P = data[t_data::PRESSURE];
+	t_polargrid &Phi = data[t_data::POTENTIAL];
+	t_polargrid &vaz = data[t_data::V_AZIMUTHAL];
+	t_polargrid &vrad = data[t_data::V_RADIAL];
+
+
     // update v_radial with source terms
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = One_no_ghost_vr; nr < MaxMo_no_ghost_vr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    // 1/Sigma * dP/dr : Sigma is calculated as a mean value between the
 	    // neightbour cells
-	    const double gradp =
-		2.0 /
-		(data[t_data::SIGMA](nr, naz) +
-		 data[t_data::SIGMA](nr - 1, naz)) *
-		(data[t_data::PRESSURE](nr, naz) -
-		 data[t_data::PRESSURE](nr - 1, naz)) *
-		InvDiffRmed[nr];
+	    double gradp = 2.0 / (Sigma(nr, naz) + Sigma(nr - 1, naz));
+		gradp *= (P(nr, naz) - P(nr - 1, naz));
+		gradp *= InvDiffRmed[nr];
 
 	    // dPhi/dr
 	    double gradphi;
 	    if (parameters::body_force_from_potential) {
-		gradphi = (data[t_data::POTENTIAL](nr, naz) -
-			   data[t_data::POTENTIAL](nr - 1, naz)) *
-			  InvDiffRmed[nr];
+			gradphi = (Phi(nr, naz) - Phi(nr-1, naz)) * InvDiffRmed[nr];
 	    } else {
-		gradphi = -data[t_data::ACCEL_RADIAL](nr, naz);
+			gradphi = -data[t_data::ACCEL_RADIAL](nr, naz);
 	    }
 
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
 	    // v_phi^2/r : v_phi^2 is calculated by a mean in both directions
-		const double vsum = data[t_data::V_AZIMUTHAL](nr, naz) +
-			data[t_data::V_AZIMUTHAL](nr, naz_next) +
-			data[t_data::V_AZIMUTHAL](nr - 1, naz) +
-			data[t_data::V_AZIMUTHAL](nr - 1, naz_next);
+		const double vsum = vaz(nr, naz) +
+			vaz(nr, naz_next) +
+			vaz(nr - 1, naz) +
+			vaz(nr - 1, naz_next);
 		const double vt = 0.25 * vsum + Rinf[nr] * refframe::OmegaFrame;
 	    const double vt2 = vt * vt;
 
@@ -373,8 +374,7 @@ static void momentum_update_radial(t_data &data, const double dt) {
 
 	    // add all terms to new v_radial: v_radial_new = v_radial +
 	    // dt*(source terms)
-		data[t_data::V_RADIAL](nr, naz) += 
-			dt * (-gradp - gradphi + centrifugal_accel);
+		vrad(nr, naz) += dt * (-gradp - gradphi + centrifugal_accel);
 	}
     }
 

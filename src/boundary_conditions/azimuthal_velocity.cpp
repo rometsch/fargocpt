@@ -34,9 +34,9 @@ void zero_shear_boundary(t_polargrid &vaz) {
 	    for (unsigned int naz = 0; naz <= Naz; ++naz) {
 			const double v_active = vaz(Nrad - 1, naz);
 			const double r = Rmed[Nrad];
-			const double ri = Rmed[Nrad - 1];
-
-			vaz(Nrad, naz) = r / ri * v_active;
+			const double r_active = Rmed[Nrad - 1];
+			const double Omega_active = v_active / r_active;
+			vaz(Nrad, naz) = r * Omega_active;
 	    }
 	}
 
@@ -44,10 +44,10 @@ void zero_shear_boundary(t_polargrid &vaz) {
 		#pragma omp parallel for
 	    for (unsigned int naz = 0; naz <= Naz; ++naz) {
 			const double v_active = vaz(1, naz);
-			const double ro = Rmed[1];
+			const double r_active = Rmed[1];
 			const double r = Rmed[0];
-
-			vaz(0, naz) = r / ro * v_active;
+			const double Omega_active = v_active / r_active;
+			vaz(0, naz) = r * Omega_active;
 	    }
 	}
 

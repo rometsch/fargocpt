@@ -106,7 +106,6 @@ void NonReflectingBoundary_outer(t_data &data, t_polargrid *VRadial,
 {
 
 	t_polargrid &Sigma = data[t_data::SIGMA];
-	t_polargrid &vrad = data[t_data::V_RADIAL];
 	t_polargrid &cs = data[t_data::SOUNDSPEED];
 	unsigned int Naz = Sigma.get_max_azimuthal();
 

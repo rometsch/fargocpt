@@ -484,38 +484,26 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 /**
 	Calculates radial/angular momenta from radial/azimuthal velocities
 */
-void compute_momenta_from_velocities(t_polargrid &density,
-				     t_polargrid &v_radial,
-				     t_polargrid &v_azimuthal)
+void compute_momenta_from_velocities(t_polargrid &Sig,
+				     t_polargrid &vrad,
+				     t_polargrid &vaz)
 {
 
-	const unsigned int Nr = density.get_size_radial();
-	const unsigned int Nphi = density.get_size_azimuthal();
+	const unsigned int Nr = Sig.get_size_radial();
+	const unsigned int Nphi = Sig.get_size_azimuthal();
+	const double OmegaF = refframe::OmegaFrame;
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 0; n_radial < Nr;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < Nphi; ++n_azimuthal) {
-	    radial_momentum_plus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		v_radial(n_radial + 1, n_azimuthal);
-	    radial_momentum_minus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		v_radial(n_radial, n_azimuthal);
-	    angular_momentum_plus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		(v_azimuthal(n_radial,
-				 n_azimuthal == (Nphi - 1)
-				 ? 0
-				 : n_azimuthal + 1) +
-		 Rb[n_radial] * refframe::OmegaFrame) *
-		Rb[n_radial];
-	    angular_momentum_minus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		(v_azimuthal(n_radial, n_azimuthal) +
-		 Rb[n_radial] * refframe::OmegaFrame) *
-		Rb[n_radial];
+	for (unsigned int nr = 0; nr < Nr;
+	 ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	    radial_momentum_plus(nr, naz) =	Sig(nr, naz) * vrad(nr + 1, naz);
+	    radial_momentum_minus(nr, naz) = Sig(nr, naz) *	vrad(nr, naz);
+		const unsigned int naz_ind = naz == (Nphi - 1) ? 0 : naz + 1;
+		const double vnext = vaz(nr, naz_ind);
+		const double r = Rb[nr];
+	    angular_momentum_plus(nr, naz) = Sig(nr, naz) *	(vnext + r * OmegaF) * r;
+	    angular_momentum_minus(nr, naz) = Sig(nr, naz) * (vaz(nr, naz) + r * OmegaF) * r;
 	}
     }
 }
