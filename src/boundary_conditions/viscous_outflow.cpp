@@ -21,15 +21,15 @@ void viscous_outflow_boundary_inner(t_data &data)
 	}
 
 	t_polargrid &sig = data[t_data::SIGMA];
-	t_polargrid &e = data[t_data::ENERGY];
-	t_polargrid &vr = data[t_data::V_RADIAL];
+	t_polargrid &eng = data[t_data::ENERGY];
+	t_polargrid &vrad = data[t_data::V_RADIAL];
 	t_polargrid &visc = data[t_data::VISCOSITY];
 
 	const unsigned int Naz = sig.get_max_azimuthal();
 
 	for (unsigned int naz = 0; naz <= Naz; ++naz) {
 	    sig(0, naz) = sig(1, naz);
-	    e(0, naz) = e(1, naz);
+	    eng(0, naz) = eng(1, naz);
 	}
 
 	const double s = parameters::viscous_outflow_speed;
@@ -42,8 +42,8 @@ void viscous_outflow_boundary_inner(t_data &data)
 	    const double Nu = 0.5 * (Nu0 + Nu1);
 
 	    // V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
-	    vr(1, naz) = -1.5 * s / Rinf[1] * Nu;
-	    vr(0, naz) = -1.5 * s / Rinf[0] * Nu;
+	    vrad(1, naz) = -1.5 * s / Rinf[1] * Nu;
+	    vrad(0, naz) = -1.5 * s / Rinf[0] * Nu;
 	}
 }
 

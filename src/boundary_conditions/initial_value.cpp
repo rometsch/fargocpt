@@ -27,22 +27,20 @@ void initial_boundary_inner(t_data &data)
 		return;
 	}
 
-    auto &Sigma = data[t_data::SIGMA];
-    auto &Energy = data[t_data::ENERGY];
+    auto &sig = data[t_data::SIGMA];
+    auto &eng = data[t_data::ENERGY];
 	auto &vr = data[t_data::V_RADIAL];
 
-    auto &Sigma0 = data[t_data::SIGMA0];
-    auto &Energy0 = data[t_data::ENERGY0];
+    auto &sig0 = data[t_data::SIGMA0];
+    auto &eng0 = data[t_data::ENERGY0];
 	auto &vr0 = data[t_data::V_RADIAL0];
 
-	const unsigned int Naz = Sigma.get_max_azimuthal();
-
-	// printf("Sigma0 %e\n", Sigma0(0,0));
+	const unsigned int Naz = sig.get_max_azimuthal();
 
 	#pragma omp parallel for
     for (unsigned int naz = 0; naz <= Naz; ++naz) {
-		Sigma(0, naz) = Sigma0(0,naz);
-		Energy(0, naz) = Energy0(0,naz);
+		sig(0, naz) = sig0(0,naz);
+		eng(0, naz) = eng0(0,naz);
 		vr(0, naz) = vr0(0,naz);
 		vr(1, naz) = vr0(1,naz);
 	}
@@ -61,11 +59,11 @@ void initial_boundary_outer(t_data &data)
 	}
 
     auto &sig = data[t_data::SIGMA];
-    auto &e = data[t_data::ENERGY];
+    auto &eng = data[t_data::ENERGY];
 	auto &vr = data[t_data::V_RADIAL];
 
     auto &sig0 = data[t_data::SIGMA0];
-    auto &e0 = data[t_data::ENERGY0];
+    auto &eng0 = data[t_data::ENERGY0];
 	auto &vr0 = data[t_data::V_RADIAL0];
 
 	const unsigned int Naz = sig.get_max_azimuthal();
@@ -74,7 +72,7 @@ void initial_boundary_outer(t_data &data)
     for (unsigned int naz = 0; naz <= Naz; ++naz) {
 		const unsigned int nr = sig.get_max_radial();
 		sig(nr, naz) = sig0(nr,naz);
-		e(nr, naz) = e0(nr,naz);
+		eng(nr, naz) = eng0(nr,naz);
 		const unsigned int nrv = vr.get_max_radial();
 		vr(nrv, naz) = vr0(nrv,naz);
 		vr(nrv-1, naz) = vr0(nrv-1,naz);

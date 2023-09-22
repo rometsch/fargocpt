@@ -11,6 +11,7 @@
 
 #include "../global.h"
 #include "../parameters.h"
+#include "../Theo.h"
 
 namespace boundary_conditions
 {
@@ -28,28 +29,37 @@ namespace boundary_conditions
 void boundary_layer_inner_boundary(t_data &data)
 {
 
-    if (CPU_Rank != 0)
+    if (CPU_Rank != 0) {
 	return;
+    }
 
-	#pragma omp parallel for
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-	 ++n_azimuthal) {
+    t_polargrid &Sigma = data[t_data::SIGMA];
+    t_polargrid &Energy = data[t_data::ENERGY];
+    t_polargrid &vrad = data[t_data::V_RADIAL];
+    t_polargrid &vaz = data[t_data::V_AZIMUTHAL];
+
+    const unsigned int Naz = Sigma.get_max_azimuthal();
+
+#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
 	// zero gradient
-	data[t_data::SIGMA](0, n_azimuthal) =
-	    data[t_data::SIGMA](1, n_azimuthal);
-	data[t_data::ENERGY](0, n_azimuthal) =
-	    data[t_data::ENERGY](1, n_azimuthal);
+	Sigma(0, naz) = Sigma(1, naz);
+	Energy(0, naz) = Energy(1, naz);
 
 	// set vrad to fraction of Keplerian velocity
-	data[t_data::V_RADIAL](1, n_azimuthal) =
-	    -1. * parameters::vrad_fraction_of_kepler * std::sqrt(1. / Ra[1]);
-	data[t_data::V_RADIAL](0, n_azimuthal) =
-	    data[t_data::V_RADIAL](1, n_azimuthal);
+	{
+	    const double c = parameters::vrad_fraction_of_kepler;
+	    const double vK = compute_v_kepler(hydro_center_mass, Rinf[1]);
+	    vrad(1, naz) = -c * vK;
+	    vrad(0, naz) = vrad(1, naz);
+	}
 
-	// set vphi to stellar rotation rate 
-	data[t_data::V_AZIMUTHAL](0, n_azimuthal) =
-	    parameters::stellar_rotation_rate * std::sqrt(1. / Rb[0]);
+	// set vphi to stellar rotation rate
+	{
+	    const double c = parameters::stellar_rotation_rate;
+	    const double vK = compute_v_kepler(hydro_center_mass, Rmed[0]);
+	    vaz(0, naz) = c * vK;
+	}
     }
 }
 
@@ -61,52 +71,34 @@ void boundary_layer_inner_boundary(t_data &data)
 void boundary_layer_outer_boundary(t_data &data)
 {
 
-    if (CPU_Rank != CPU_Highest)
+    if (CPU_Rank != CPU_Highest) {
 	return;
-
-	#pragma omp parallel for
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-	 ++n_azimuthal) {
-	// floating BCs
-	data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial(), n_azimuthal) =
-	    data[t_data::SIGMA](data[t_data::SIGMA].get_max_radial() - 1,
-				n_azimuthal) *
-	    std::sqrt(Ra[data[t_data::SIGMA].get_max_radial() - 1] /
-		      Ra[data[t_data::SIGMA].get_max_radial()]);
-	data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial(),
-			     n_azimuthal) =
-	    data[t_data::ENERGY](data[t_data::ENERGY].get_max_radial() - 1,
-				 n_azimuthal) *
-	    std::pow(Ra[data[t_data::ENERGY].get_max_radial() - 1] /
-			 Ra[data[t_data::ENERGY].get_max_radial()],
-		     1.25);
-
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial() - 1,
-			       n_azimuthal) =
-	    -1. *
-	    fabs(data[t_data::V_RADIAL](
-		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal)) *
-	    std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
-		      Ra[data[t_data::V_RADIAL].get_max_radial() - 1]);
-
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
-			       n_azimuthal) =
-	    -1. *
-	    fabs(data[t_data::V_RADIAL](
-		data[t_data::V_RADIAL].get_max_radial() - 2, n_azimuthal)) *
-	    std::sqrt(Ra[data[t_data::V_RADIAL].get_max_radial() - 2] /
-		      Ra[data[t_data::V_RADIAL].get_max_radial()]);
-
-	// Omega at outer boundary equals calculate_omega_kepler (plus leading
-	// order pressure correction)
-	data[t_data::V_AZIMUTHAL](data[t_data::V_AZIMUTHAL].get_max_radial(),
-				  n_azimuthal) =
-	    1. / std::sqrt(Rb[data[t_data::SIGMA].get_max_radial()]);
-	// TODO: Include pressure correction, like in uphi[*jN]
-	// = 1./sqrt(Rb[*jN]) +
-	// 0.5/Sigma[*jN]*sqrt(pow3(Rb[*jN])*pow2(Rb[*jN]))*.5/Rb[*jN]*(P[*jN+1]-P[*jN-1])/DeltaRa[*jN+1];
     }
+
+    t_polargrid &Sigma = data[t_data::SIGMA];
+    t_polargrid &Energy = data[t_data::ENERGY];
+    t_polargrid &vrad = data[t_data::V_RADIAL];
+    t_polargrid &vaz = data[t_data::V_AZIMUTHAL];
+
+    const unsigned int Naz = Sigma.get_max_azimuthal();
+    const unsigned int Nrad = Sigma.get_max_radial();
+    const unsigned int Nrad_v = vrad.get_max_radial();
+
+#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+		// floating BCs
+		Sigma(Nrad, naz) = Sigma(Nrad - 1, naz) * std::sqrt(Ra[Nrad - 1] / Ra[Nrad]);
+		Energy(Nrad, naz) = Energy(Nrad - 1, naz) * std::pow(Ra[Nrad - 1] / Ra[Nrad], 1.25);
+
+		vrad(Nrad_v - 1, naz) = -1. * fabs(vrad(Nrad_v - 2, naz)) * std::sqrt(Ra[Nrad_v - 2] / Ra[Nrad_v - 1]);
+		vrad(Nrad_v, naz) = -1. * fabs(vrad(Nrad_v - 2, naz)) * std::sqrt(Ra[Nrad_v - 2] / Ra[Nrad_v]);
+
+		// Omega at outer boundary equals calculate_omega_kepler (plus leading order pressure correction)
+		vaz(Nrad, naz) = compute_v_kepler(hydro_center_mass, Rmed[Nrad]);
+		// TODO: Include pressure correction, like in uphi[*jN]
+		// = 1./sqrt(Rb[*jN]) +
+		// 0.5/Sigma[*jN]*sqrt(pow3(Rb[*jN])*pow2(Rb[*jN]))*.5/Rb[*jN]*(P[*jN+1]-P[*jN-1])/DeltaRa[*jN+1];
+	}
 }
 
 } // namespace boundary_conditions

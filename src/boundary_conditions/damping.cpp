@@ -319,7 +319,7 @@ void damping_single_inner_mean(t_polargrid &quantity, t_polargrid &quantity0,
 	    quantity0(n_radial, 0) /= quantity.get_size_azimuthal();
 	}
 
-	// Needed for OpenMP to work
+	// Needed for OpenMP to work, OpenMP want a local variable for reduction
 	double &InnerWaveDampingMassCreation = MassDelta.InnerWaveDampingMassCreation;
 	double &InnerWaveDampingMassRemoval = MassDelta.InnerWaveDampingMassRemoval;
 
@@ -487,6 +487,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 */
 void damping(t_data &data, double dt)
 {
+	// Iterate over all function pointers previously stored
     if (parameters::damping) {
 	const unsigned int number_of_quantities_to_damp =
 	    parameters::damping_vector.size();

@@ -23,7 +23,7 @@ void reflecting_boundary_inner(t_data &data)
 	}
 
 	t_polargrid &sig = data[t_data::SIGMA];
-	t_polargrid &e = data[t_data::ENERGY];
+	t_polargrid &eng = data[t_data::ENERGY];
 	t_polargrid &vr = data[t_data::V_RADIAL];
 
 	const unsigned int Naz = sig.get_max_azimuthal();
@@ -32,7 +32,7 @@ void reflecting_boundary_inner(t_data &data)
 	for (unsigned int naz = 0; naz <= Naz; ++naz) {
 	    // copy first ring into ghost ring
 	    sig(0, naz) = sig(1, naz);
-	    e(0, naz) = e(1, naz);
+	    eng(0, naz) = eng(1, naz);
 
 	    vr(1, naz) = 0.0;
 	    vr(0, naz) = -vr(2, naz);
@@ -49,7 +49,7 @@ void reflecting_boundary_outer(t_data &data)
 	}
 
 	t_polargrid &sig = data[t_data::SIGMA];
-	t_polargrid &e = data[t_data::ENERGY];
+	t_polargrid &eng = data[t_data::ENERGY];
 	t_polargrid &vr = data[t_data::V_RADIAL];
 
 	const unsigned int Nrad = sig.get_max_radial();
@@ -61,7 +61,7 @@ void reflecting_boundary_outer(t_data &data)
 	for (unsigned int naz = 0; naz <= Naz; ++naz) {
 	    // copy last ring into ghost ring
 	    sig(Nrad, naz) = sig(Nrad - 1, naz);
-	    e(Nrad, naz) = e(Nrad - 1, naz);
+	    eng(Nrad, naz) = eng(Nrad - 1, naz);
 
 	    vr(Nrad_v - 1, naz) = 0.0;
 	    vr(Nrad_v, naz) = -vr(Nrad_v - 2, naz);

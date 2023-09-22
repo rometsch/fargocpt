@@ -22,7 +22,7 @@ static double calc_sig(const double R) {
 	return sig0 * std::pow(R, sigexp);
 }
 
-static double calc_e(const double R) {
+static double calc_eng(const double R) {
 	const double gamma = parameters::ADIABATICINDEX;
 	const double sig0 = parameters::sigma0;
 	const double sigexp = -parameters::SIGMASLOPE;
@@ -31,9 +31,9 @@ static double calc_e(const double R) {
 	return 1.0 / (gamma - 1.0) * sig0 * std::pow(h0, 2) * std::pow(R, sigexp - 1.0 + 2.0 * f);
 }
 
-static double calc_T(const double e, const double sig) {
+static double calc_T(const double eng, const double sig) {
 	const double gamma = parameters::ADIABATICINDEX;
-	return e / sig * (gamma - 1.0) * parameters::MU * constants::R;
+	return eng / sig * (gamma - 1.0) * parameters::MU * constants::R;
 }
 
 static double calc_vK(const double R) {
@@ -44,7 +44,7 @@ void keplerian2d_boundary_inner(t_data &data)
 {
 
 	auto &sig = data[t_data::SIGMA];
-	auto &e = data[t_data::ENERGY];
+	auto &eng = data[t_data::ENERGY];
 	auto &T = data[t_data::TEMPERATURE];
 	auto &vrad = data[t_data::V_RADIAL];
 	auto &vaz = data[t_data::V_AZIMUTHAL];
@@ -55,9 +55,9 @@ void keplerian2d_boundary_inner(t_data &data)
     for (unsigned int naz = 0; naz <= Naz; ++naz) {
 		sig(0, naz) = calc_sig(Rmed[0]);
 
-		e(0, naz) = calc_e(Rmed[0]);
+		eng(0, naz) = calc_eng(Rmed[0]);
 
-		T(0, naz) = calc_T(e(0, naz), sig(0, naz));
+		T(0, naz) = calc_T(eng(0, naz), sig(0, naz));
 
 		vrad(1, naz) = 0.0;
 		vrad(0, naz) = -vrad(2, naz);
@@ -69,7 +69,7 @@ void keplerian2d_boundary_inner(t_data &data)
 void keplerian2d_boundary_outer(t_data &data)
 {
 	auto &sig = data[t_data::SIGMA];
-	auto &e = data[t_data::ENERGY];
+	auto &eng = data[t_data::ENERGY];
 	auto &T = data[t_data::TEMPERATURE];
 	auto &vrad = data[t_data::V_RADIAL];
 	auto &vaz = data[t_data::V_AZIMUTHAL];
@@ -82,9 +82,9 @@ void keplerian2d_boundary_outer(t_data &data)
     for (unsigned int naz = 0; naz <= Naz; ++naz) {
 		sig(Nrad, naz) = calc_sig(Rmed[Nrad]);
 
-		e(Nrad, naz) = calc_e(Rmed[Nrad]);
+		eng(Nrad, naz) = calc_eng(Rmed[Nrad]);
 
-		T(Nrad, naz) = calc_T(e(Nrad, naz), sig(Nrad, naz));
+		T(Nrad, naz) = calc_T(eng(Nrad, naz), sig(Nrad, naz));
 
 		vrad(Nrad_v, naz) = -vrad(Nrad_v - 2, naz);
 		vrad(Nrad_v - 1, naz) = 0.0;
