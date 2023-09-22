@@ -52,13 +52,13 @@ namespace boundary_conditions
 void initial_center_of_mass_boundary_outer(t_data &data)
 {
 
-    if (CPU_Rank != CPU_Highest)
-	return;
+    if (CPU_Rank != CPU_Highest) {
+		return;
+	}
 
     const unsigned int np = data.get_planetary_system().get_number_of_planets();
     const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
-    const Pair com_vel =
-	data.get_planetary_system().get_center_of_mass_velocity(np);
+    const Pair com_vel = data.get_planetary_system().get_center_of_mass_velocity(np);
     const double com_mass = data.get_planetary_system().get_mass(np);
 
     auto &sigma = data[t_data::SIGMA];
@@ -66,10 +66,11 @@ void initial_center_of_mass_boundary_outer(t_data &data)
     auto &vrad = data[t_data::V_RADIAL];
     auto &vaz = data[t_data::V_AZIMUTHAL];
 
+
+	const unsigned int Naz = data[t_data::SIGMA].get_max_azimuthal();
     const unsigned int nr = data[t_data::SIGMA].get_max_radial();
 	#pragma omp parallel for
-    for (unsigned int naz = 0; naz <= data[t_data::SIGMA].get_max_azimuthal();
-	 ++naz) {
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
 
 	{ /// V_PHI
 	    const double phi = ((double)naz - 0.5) * dphi;
