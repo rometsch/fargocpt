@@ -237,11 +237,12 @@ static void step_Euler(t_data &data, const double dt) {
 
 	    boundary_conditions::apply_boundary_condition(data, time, dt, true);
 
-	    // const double total_disk_mass_new =
-	    //  quantities::gas_total_mass(data, 2.0*RMAX);
-
-	    // data[t_data::DENSITY] *=
-	    //(total_disk_mass_old / total_disk_mass_new);
+	    if(parameters::keep_mass_constant){
+		const double total_disk_mass_new =
+		    quantities::gas_total_mass(data, RMAX);
+		data[t_data::SIGMA] *=
+		    (total_disk_mass_old / total_disk_mass_new);
+	    }
 
 	    quantities::CalculateMonitorQuantitiesAfterHydroStep(data, N_monitor,
 						     dt);
