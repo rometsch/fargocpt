@@ -10,7 +10,6 @@
 #include "boundary_conditions.h"
 #include "../global.h"
 #include "../parameters.h"
-#include "../simulation.h"
 #include "../constants.h"
 
 
