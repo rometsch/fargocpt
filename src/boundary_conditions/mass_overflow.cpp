@@ -123,9 +123,10 @@ void mass_overflow(t_data &data, const double current_time)
 	int gridcell_r = gridcell + 1;
 	gridcell_r = gridcell_r % Nphi;
 
+	const double sigma_floor = parameters::sigma0 * parameters::sigma_floor;
 	double dens = ramp_factor * weight_factor * Sigma_stream;
-	if (dens < parameters::sigma0 * parameters::sigma_floor) {
-	    dens = parameters::sigma0 * parameters::sigma_floor;
+	if (dens < sigma_floor) {
+	    dens = sigma_floor;
 	}
 
 	if (parameters::Adiabatic) {
