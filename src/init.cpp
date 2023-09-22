@@ -439,8 +439,8 @@ void init_shakura_sunyaev(t_data &data)
 	}
     }
 
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 
     if (parameters::self_gravity) {
 	die("Self-gravity and Shakura-Sunyaev starting values has not yet been implemented!");
@@ -528,8 +528,8 @@ void init_spreading_ring_test(t_data &data)
     }
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 
 /**
@@ -603,8 +603,8 @@ void init_spreading_ring_test_jibin(t_data &data)
     }
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 #endif // DISABLE_GSL
 
@@ -706,8 +706,8 @@ void init_shock_tube_test(t_data &data)
     constants::calculate_constants_in_code_units();
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 
 void init_PVTE_shock_tube_test(t_data &data)
@@ -800,8 +800,8 @@ void init_PVTE_shock_tube_test(t_data &data)
 	compute_pressure(data);
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 
 void init_secondary_disk_densities(t_data &data)
@@ -1388,7 +1388,7 @@ void renormalize_sigma_and_report(t_data &data)
     }
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
 }
 
 void init_eos_arrays(t_data &data)
@@ -1665,7 +1665,7 @@ void init_gas_energy(t_data &data)
     }
 
     // set EnergyMed
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 
 /**

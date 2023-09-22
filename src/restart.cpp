@@ -46,9 +46,9 @@ void restart_load(t_data &data) {
 	}
 
 	// recalculate SigmaMed/EnergyMed
-	RefillSigma(&data[t_data::SIGMA]);
+	compute_azi_avg_Sigma(data[t_data::SIGMA]);
 	if (parameters::Adiabatic)
-	    RefillEnergy(&data[t_data::ENERGY]);
+	    compute_azi_avg_Energy(data[t_data::ENERGY]);
 
 	// load grids at t = restart_from
 	logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",

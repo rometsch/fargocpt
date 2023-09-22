@@ -3,50 +3,56 @@
 #include <cmath>
 #include "parameters.h"
 
+
+static void compute_azimuthal_avg(t_polargrid &X, t_radialarray &Xavg) {
+	unsigned int Imax_az = X.get_max_azimuthal();
+	unsigned int Imax_rad = X.get_max_radial();
+
+	unsigned int Naz = X.Nsec;
+
+	// Compute the azimuthal mean of X
+	#pragma omp parallel for
+    for (unsigned int nr = 0; nr <= Imax_rad; ++nr) {
+		double mean = 0.0;
+		for (unsigned int naz = 0; naz <= Imax_az; ++naz) {
+			mean += X(nr, naz);
+		}
+		mean /= (double)(Naz);
+		Xavg[nr] = mean;
+    }
+}
+
 /**
 	\param Density
 */
-void RefillSigma(t_polargrid *Density)
+void compute_azi_avg_Sigma(t_polargrid &Density)
 {
 
-	#pragma omp parallel for
-    for (unsigned int nRadial = 0; nRadial < Density->Nrad; ++nRadial) {
-    double mean = 0.0;
-    for (unsigned int nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
-        unsigned int cell = nAzimuthal + nRadial * Density->Nsec;
-	    mean += Density->Field[cell];
-	}
-	mean /= (double)(Density->Nsec);
-	SigmaMed[nRadial] = mean;
-    }
+	compute_azimuthal_avg(Density, SigmaMed);
 
     SigmaInf[0] = SigmaMed[0];
 
-    for (unsigned int nRadial = 1; nRadial < Density->Nrad; ++nRadial) {
-	SigmaInf[nRadial] =
-	    (SigmaMed[nRadial - 1] * (Rmed[nRadial] - Rinf[nRadial]) +
-	     SigmaMed[nRadial] * (Rinf[nRadial] - Rmed[nRadial - 1])) /
-	    (Rmed[nRadial] - Rmed[nRadial - 1]);
+	unsigned int Imax_rad = Density.get_max_radial();
+	// Compute SigmaMean at the interface locations
+	#pragma omp parallel for
+    for (unsigned int nr = 1; nr <= Imax_rad; ++nr) {
+		const double sigm = SigmaMed[nr - 1];
+		const double sigp = SigmaMed[nr];
+		const double dr =  (Rmed[nr] - Rmed[nr - 1]);
+
+		SigmaInf[nr] = (sigm * (Rmed[nr] - Rinf[nr]) + sigp * (Rinf[nr] - Rmed[nr-1])) / dr;
     }
 }
 
 /**
 
 */
-void RefillEnergy(t_polargrid *Energy)
+void compute_azi_avg_Energy(t_polargrid &Energy)
 {
-
-	#pragma omp parallel for
-    for (unsigned int nRadial = 0; nRadial < Energy->Nrad; ++nRadial) {
-    double mean = 0.0;
-    for (unsigned int nAzimuthal = 0; nAzimuthal < Energy->Nsec; ++nAzimuthal) {
-        unsigned int cell = nAzimuthal + nRadial * Energy->Nsec;
-	    mean += Energy->Field[cell];
-	}
-	mean /= (double)Energy->Nsec;
-	EnergyMed[nRadial] = mean;
-    }
+	compute_azimuthal_avg(Energy, EnergyMed);
 }
+
+
 void init_binary_quadropole_moment(const t_planetary_system &psys){
 
     if(parameters::n_bodies_for_hydroframe_center == 2){ // binary
