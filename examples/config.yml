@@ -180,7 +180,7 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 OutputDir: output/out
 
 ## Logging messages
-LogAfterRealSeconds: 600 # write a log line to console every 'LogAfterRealSeconds' seconds
+LogAfterRealSeconds: 10 # write a log line to console every 'LogAfterRealSeconds' seconds
 LogAfterSteps: 0         # write a log line to console every 'LogAfterSteps' hydro steps
 
 WriteAtEveryTimestep: Yes   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
