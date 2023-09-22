@@ -58,8 +58,7 @@ void zero_gradient_boundary_outer(t_data &data)
 	sig(Nrad, naz) = sig(Nrad - 1, naz);
 	eng(Nrad, naz) = eng(Nrad - 1, naz);
 
-	vrad(Nrad_v - 1, naz) =
-	    vrad(Nrad_v - 2, naz);
+	vrad(Nrad_v - 1, naz) = vrad(Nrad_v - 2, naz);
 	vrad(Nrad_v, naz) = vrad(Nrad_v - 2, naz);
     }
 }
