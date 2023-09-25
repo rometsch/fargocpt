@@ -19,6 +19,27 @@ extern boolean OuterSourceMass;
 namespace boundary_conditions
 {
 
+
+
+
+static void apply_sigma(t_data &data) {
+
+}
+
+void apply_new_boundary_condition(t_data &data, const double current_time, const double dt, const bool final) {
+	// if this is the final call of the boundary condition function during one timestep and damping is enable, do it
+    if (final && parameters::damping) {
+		damping(data, dt);
+
+		if(ECC_GROWTH_MONITOR){
+			quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_damp, delta_peri_damp);
+		}
+    }
+
+	
+
+}
+
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final)
 {
     // if this is the final call of the boundary condition function during one timestep and damping is enable, do it

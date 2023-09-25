@@ -58,6 +58,9 @@ extern t_bc_special bc_special;
 void parse_config();
 
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
+void apply_new_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
+
+void zero_gradient_boundary_inner_single(t_polargrid &x);
 
 /****************************************
 /// Basic
