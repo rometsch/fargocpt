@@ -598,6 +598,8 @@ void read(const std::string &filename, t_data &data)
     }
 
     // boundary conditions
+	boundary_conditions::parse_config();
+
     switch (
 	config::cfg.get_first_letter_lowercase("InnerBoundary", "Open")) {
     case 'i':

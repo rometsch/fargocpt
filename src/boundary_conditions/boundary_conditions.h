@@ -6,6 +6,57 @@
 namespace boundary_conditions
 {
 
+/****************************************
+/// Types of boundary conditions.
+*****************************************/
+
+enum t_bc_scalar {
+    bcs_zero_gradient,
+	bcs_disk_model,
+	bcs_reference
+};
+
+enum t_bc_vrad {
+    bcr_zero_gradient,
+	bcr_disk_model,
+	bcr_reference,
+	bcr_reflective,
+	bcr_outflow,
+	bcr_viscous,
+	bcr_Keplerian
+};
+
+enum t_bc_vaz {
+	bca_zero_gradient,
+	bca_disk_model,
+	bca_reference,
+	bca_zero_shear,
+	bca_balanced,
+	bca_Keplerian
+};
+
+enum t_bc_special {
+	bcsp_com, // center of mass
+	bcsp_mass_overflow,
+	bcsp_none
+};
+
+extern t_bc_scalar bc_sigma_inner;
+extern t_bc_scalar bc_sigma_outer;
+
+extern t_bc_scalar bc_energy_inner;
+extern t_bc_scalar bc_energy_outer;
+
+extern t_bc_vrad bc_vrad_inner;
+extern t_bc_vrad bc_vrad_outer;
+
+extern t_bc_vaz bc_vaz_inner;
+extern t_bc_vaz bc_vaz_outer;
+
+extern t_bc_special bc_special;
+
+void parse_config();
+
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 
 /****************************************
