@@ -30,6 +30,12 @@ extern std::string vaz_inner_name;
 extern std::string vaz_outer_name;
 extern std::string special_name;
 
+extern double keplerian_azimuthal_outer_factor;
+extern double keplerian_azimuthal_inner_factor;
+extern double keplerian_radial_outer_factor;
+extern double keplerian_radial_inner_factor;
+	
+
 void parse_config();
 
 void old_apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
@@ -51,11 +57,20 @@ void outflow_outer(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 void reference_inner(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
 void reference_outer(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
 
-void viscous_outflow_inner(t_polargrid &vr, t_polargrid &dummy, t_data &data);
-void viscous_inflow_outer(t_polargrid &vr, t_polargrid &dummy, t_data &data);
+void viscous_outflow_inner(t_polargrid &vrad, t_polargrid &dummy, t_data &data);
+void viscous_inflow_outer(t_polargrid &vrad, t_polargrid &dummy, t_data &data);
 
-void zero_shear_inner(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
-void zero_shear_outer(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+void zero_shear_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
+void zero_shear_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
+
+void reflecting_inner(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy);
+void reflecting_outer(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy);
+
+void keplerian_azimuthal_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
+void keplerian_azimuthal_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
+
+void keplerian_radial_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
+void keplerian_radial_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
 
 /****************************************
 /// Custom boundary conditions

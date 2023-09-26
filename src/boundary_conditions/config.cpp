@@ -41,6 +41,11 @@ namespace boundary_conditions
 	std::string vaz_outer_name;
 	std::string special_name;
 
+	double keplerian_azimuthal_outer_factor = 1.0;
+	double keplerian_azimuthal_inner_factor = 1.0;
+	double keplerian_radial_outer_factor = 1.0;
+	double keplerian_radial_inner_factor = 1.0;
+	
 
 
 	static void sigma_inner() {
@@ -50,6 +55,7 @@ namespace boundary_conditions
 			sigma_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+			sigma_inner_func = reference_inner;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for sigma inner: " + str);
 		}
@@ -63,6 +69,7 @@ namespace boundary_conditions
 			sigma_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+			sigma_outer_func = reference_outer;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for sigma outer: " + str);
 		}
@@ -76,6 +83,7 @@ namespace boundary_conditions
 			energy_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+			energy_inner_func = reference_inner;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for energy inner: " + str);
 		}
@@ -89,6 +97,7 @@ namespace boundary_conditions
 			energy_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+			energy_outer_func = reference_outer;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for energy outer: " + str);
 		}
@@ -102,16 +111,21 @@ namespace boundary_conditions
 			vrad_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
-
+			vrad_inner_func = reference_inner;
 		} else if (str == "reflective") {
+			vrad_inner_func = reflecting_inner;
 		} else if (str == "outflow") {
 			vrad_inner_func = outflow_inner;
 		} else if (str == "viscous") {
 			vrad_inner_func = viscous_outflow_inner;
 		} else if (str == "keplerian") {
+			vrad_inner_func = keplerian_radial_inner;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vrad inner: " + str);
 		}
+		// parse parameters
+		keplerian_radial_inner_factor = config::cfg.get<double>("BoundaryVradInnerKeplerianFactor", 0.1);
+		// log
 		logging::print_master(LOG_INFO "BC: Vrad inner = %s\n", str.c_str());
 	}
 
@@ -122,15 +136,21 @@ namespace boundary_conditions
 			vrad_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+			vrad_outer_func = reference_outer;
 		} else if (str == "reflective") {
+			vrad_outer_func = reflecting_outer;
 		} else if (str == "outflow") {
 			vrad_outer_func = outflow_outer;
 		} else if (str == "viscous") {
 			vrad_outer_func = viscous_inflow_outer;
 		} else if (str == "keplerian") {
+			vrad_outer_func = keplerian_radial_outer;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vrad outer: " + str);
 		}
+		// parse parameters
+		keplerian_radial_outer_factor = config::cfg.get<double>("BoundaryVradOuterKeplerianFactor", 0.1);
+		// log
 		logging::print_master(LOG_INFO "BC: Vrad outer = %s\n", str.c_str());
 	}
 
@@ -141,13 +161,18 @@ namespace boundary_conditions
 			vaz_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+			vaz_inner_func = reference_inner;
 		} else if (str == "zeroshear") {
 			vaz_inner_func = zero_shear_inner;
 		} else if (str == "balanced") {
 		} else if (str == "keplerian") {
+			vaz_inner_func = keplerian_azimuthal_inner;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vaz inner: " + str);
 		}
+		// parse parameters
+		keplerian_azimuthal_inner_factor = config::cfg.get<double>("BoundaryVazInnerKeplerianFactor", 1.0);
+		// log
 		logging::print_master(LOG_INFO "BC: Vaz inner = %s\n", str.c_str());
 	}
 
@@ -158,13 +183,18 @@ namespace boundary_conditions
 			vaz_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+			vaz_outer_func = reference_outer;
 		} else if (str == "zeroshear") {
 			vaz_outer_func = zero_shear_outer;
 		} else if (str == "balanced") {
 		} else if (str == "keplerian") {
+			vaz_outer_func = keplerian_azimuthal_outer;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vaz outer: " + str);
 		}
+		// parse parameters
+		keplerian_azimuthal_outer_factor = config::cfg.get<double>("BoundaryVazOuterKeplerianFactor", 1.0);
+		// log
 		logging::print_master(LOG_INFO "BC: Vaz outer = %s\n", str.c_str());
 	}
 
