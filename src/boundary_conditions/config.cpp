@@ -142,6 +142,7 @@ namespace boundary_conditions
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
 		} else if (str == "zeroshear") {
+			vaz_inner_func = zero_shear_inner;
 		} else if (str == "balanced") {
 		} else if (str == "keplerian") {
 		} else {
@@ -158,6 +159,7 @@ namespace boundary_conditions
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
 		} else if (str == "zeroshear") {
+			vaz_outer_func = zero_shear_outer;
 		} else if (str == "balanced") {
 		} else if (str == "keplerian") {
 		} else {
@@ -171,6 +173,7 @@ namespace boundary_conditions
 		special_name = str;
 		if (str == "com") {
 		} else if (str == "massoverflow") {
+		} else if (str == "custom") {
 		} else if (str == "none") {
 		} else {
 			throw std::runtime_error("Unknown boundary condition for special: " + str);

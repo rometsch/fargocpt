@@ -60,6 +60,10 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 		vaz_outer_func(x, x0, data);
 	}
 
+	if (special_name == "custom") {
+		custom(data);
+	}
+
 }
 
 void old_apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final)

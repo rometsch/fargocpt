@@ -54,6 +54,8 @@ void reference_outer(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
 void viscous_outflow_inner(t_polargrid &vr, t_polargrid &dummy, t_data &data);
 void viscous_inflow_outer(t_polargrid &vr, t_polargrid &dummy, t_data &data);
 
+void zero_shear_inner(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+void zero_shear_outer(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 
 /****************************************
 /// Custom boundary conditions

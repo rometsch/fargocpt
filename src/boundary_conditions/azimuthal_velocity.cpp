@@ -21,37 +21,6 @@
 namespace boundary_conditions
 {
 
-/****************************************
-/ Enforce zero shear at the boundaries
-****************************************/
-void zero_shear_boundary(t_polargrid &vaz) {
-	/// Vphi_i / r_i - Vphi_(i-1) / r_(i-1) = 0
-	const unsigned int Naz = vaz.get_max_azimuthal();
-	const unsigned int Nrad = vaz.get_max_radial();
-
-	if (CPU_Rank == CPU_Highest) {
-		#pragma omp parallel for
-	    for (unsigned int naz = 0; naz <= Naz; ++naz) {
-			const double v_active = vaz(Nrad - 1, naz);
-			const double r = Rmed[Nrad];
-			const double r_active = Rmed[Nrad - 1];
-			const double Omega_active = v_active / r_active;
-			vaz(Nrad, naz) = r * Omega_active;
-	    }
-	}
-
-	if (CPU_Rank == 0) {
-		#pragma omp parallel for
-	    for (unsigned int naz = 0; naz <= Naz; ++naz) {
-			const double v_active = vaz(1, naz);
-			const double r_active = Rmed[1];
-			const double r = Rmed[0];
-			const double Omega_active = v_active / r_active;
-			vaz(0, naz) = r * Omega_active;
-	    }
-	}
-
-}
 
 
 void ApplyKeplerianBoundaryInner(t_polargrid &vaz)

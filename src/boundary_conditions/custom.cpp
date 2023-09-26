@@ -18,7 +18,7 @@ namespace boundary_conditions
 {
 
 
-/* Template to modify to implement custom boundary conditions.
+/* Template to modify for implementing custom boundary conditions.
 //
 // How to use this template:
 // -------------------------
