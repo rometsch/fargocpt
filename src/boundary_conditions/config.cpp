@@ -165,6 +165,7 @@ namespace boundary_conditions
 		} else if (str == "zeroshear") {
 			vaz_inner_func = zero_shear_inner;
 		} else if (str == "balanced") {
+			vaz_inner_func = balanced_inner;
 		} else if (str == "keplerian") {
 			vaz_inner_func = keplerian_azimuthal_inner;
 		} else {
@@ -187,6 +188,7 @@ namespace boundary_conditions
 		} else if (str == "zeroshear") {
 			vaz_outer_func = zero_shear_outer;
 		} else if (str == "balanced") {
+			vaz_outer_func = balanced_outer;
 		} else if (str == "keplerian") {
 			vaz_outer_func = keplerian_azimuthal_outer;
 		} else {

@@ -69,8 +69,11 @@ void reflecting_outer(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy);
 void keplerian_azimuthal_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
 void keplerian_azimuthal_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
 
-void keplerian_radial_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
-void keplerian_radial_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
+void keplerian_radial_inner(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy);
+void keplerian_radial_outer(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy);
+
+void balanced_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
+void balanced_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
 
 /****************************************
 /// Custom boundary conditions

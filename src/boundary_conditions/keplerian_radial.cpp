@@ -17,7 +17,7 @@
 namespace boundary_conditions
 {
 
-void keplerian_radial_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy) {
+void keplerian_radial_inner(t_polargrid &vaz, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
 
 
 	if (CPU_Rank != 0) {
@@ -44,7 +44,7 @@ void keplerian_radial_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy
 }
 
 
-void keplerian_radial_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy) {
+void keplerian_radial_outer(t_polargrid &vaz, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
 
 
 	if (CPU_Rank != CPU_Highest) {

@@ -13,7 +13,7 @@
 namespace boundary_conditions
 {
 
-void reflecting_inner(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy) {
+void reflecting_inner(t_polargrid &vrad, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
 	
 	const unsigned int Iaz = vrad.get_max_azimuthal();
 
@@ -28,7 +28,7 @@ void reflecting_inner(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy) {
 
 }
 
-void reflecting_outer(t_polargrid &vrad, t_polargrid &dummy, t_data &ddummy) {
+void reflecting_outer(t_polargrid &vrad, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
 
 	const unsigned int Iaz = vrad.get_max_azimuthal();
 	const unsigned int Irad = vrad.get_max_radial();
