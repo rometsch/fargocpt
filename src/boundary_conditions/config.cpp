@@ -20,24 +20,35 @@ extern boolean OuterSourceMass;
 
 namespace boundary_conditions
 {
-	t_bc_scalar bc_sigma_inner;
-	t_bc_scalar bc_sigma_outer;
-	t_bc_scalar bc_energy_inner;
-	t_bc_scalar bc_energy_outer;
-	t_bc_vrad bc_vrad_inner;
-	t_bc_vrad bc_vrad_outer;
-	t_bc_vaz bc_vaz_inner;
-	t_bc_vaz bc_vaz_outer;
-	t_bc_special bc_special;
+
+	void (*sigma_inner_func)(t_polargrid &, t_polargrid &);
+	void (*sigma_outer_func)(t_polargrid &, t_polargrid &);
+	void (*energy_inner_func)(t_polargrid &, t_polargrid &);
+	void (*energy_outer_func)(t_polargrid &, t_polargrid &);
+	void (*vrad_inner_func)(t_polargrid &, t_polargrid &);
+	void (*vrad_outer_func)(t_polargrid &, t_polargrid &);
+	void (*vaz_inner_func)(t_polargrid &, t_polargrid &);
+	void (*vaz_outer_func)(t_polargrid &, t_polargrid &);
+
+
+	std::string sigma_inner_name;
+	std::string sigma_outer_name;
+	std::string energy_inner_name;
+	std::string energy_outer_name;
+	std::string vrad_inner_name;
+	std::string vrad_outer_name;
+	std::string vaz_inner_name;
+	std::string vaz_outer_name;
+
+
 
 	static void sigma_inner() {
 		const std::string str = config::cfg.get_lowercase("BoundarySigmaInner", "zerogradient");
+		sigma_inner_name = str;
 		if (str == "zerogradient") {
-			bc_sigma_inner = t_bc_scalar::bcs_zero_gradient;
+			sigma_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
-			bc_sigma_inner = t_bc_scalar::bcs_disk_model;
 		} else if (str == "reference") {
-			bc_sigma_inner = t_bc_scalar::bcs_reference;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for sigma inner: " + str);
 		}
@@ -46,12 +57,11 @@ namespace boundary_conditions
 
 	static void sigma_outer() {
 		const std::string str = config::cfg.get_lowercase("BoundarySigmaOuter", "zerogradient");
+		sigma_outer_name = str;
 		if (str == "zerogradient") {
-			bc_sigma_outer = t_bc_scalar::bcs_zero_gradient;
+			sigma_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
-			bc_sigma_outer = t_bc_scalar::bcs_disk_model;
 		} else if (str == "reference") {
-			bc_sigma_outer = t_bc_scalar::bcs_reference;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for sigma outer: " + str);
 		}
@@ -60,12 +70,11 @@ namespace boundary_conditions
 
 	static void energy_inner() {
 		const std::string str = config::cfg.get_lowercase("BoundaryEnergyInner", "zerogradient");
+		energy_inner_name = str;
 		if (str == "zerogradient") {
-			bc_energy_inner = t_bc_scalar::bcs_zero_gradient;
+			energy_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
-			bc_energy_inner = t_bc_scalar::bcs_disk_model;
 		} else if (str == "reference") {
-			bc_energy_inner = t_bc_scalar::bcs_reference;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for energy inner: " + str);
 		}
@@ -74,12 +83,11 @@ namespace boundary_conditions
 
 	static void energy_outer() {
 		const std::string str = config::cfg.get_lowercase("BoundaryEnergyOuter", "zerogradient");
+		energy_outer_name = str;
 		if (str == "zerogradient") {
-			bc_energy_outer = t_bc_scalar::bcs_zero_gradient;
+			energy_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
-			bc_energy_outer = t_bc_scalar::bcs_disk_model;
 		} else if (str == "reference") {
-			bc_energy_outer = t_bc_scalar::bcs_reference;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for energy outer: " + str);
 		}
@@ -89,19 +97,14 @@ namespace boundary_conditions
 	static void vrad_inner() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVradInner", "zerogradient");
 		if (str == "zerogradient") {
-			bc_vrad_inner = t_bc_vrad::bcr_zero_gradient;
+			vrad_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
-			bc_vrad_inner = t_bc_vrad::bcr_disk_model;
 		} else if (str == "reference") {
-			bc_vrad_inner = t_bc_vrad::bcr_reference;
 		} else if (str == "reflective") {
-			bc_vrad_inner = t_bc_vrad::bcr_reflective;
 		} else if (str == "outflow") {
-			bc_vrad_inner = t_bc_vrad::bcr_outflow;
+			vrad_inner_func = outflow_inner;
 		} else if (str == "viscous") {
-			bc_vrad_inner = t_bc_vrad::bcr_viscous;
 		} else if (str == "keplerian") {
-			bc_vrad_inner = t_bc_vrad::bcr_Keplerian;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vrad inner: " + str);
 		}
@@ -111,19 +114,14 @@ namespace boundary_conditions
 	static void vrad_outer() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVradOuter", "zerogradient");
 		if (str == "zerogradient") {
-			bc_vrad_outer = t_bc_vrad::bcr_zero_gradient;
+			vrad_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
-			bc_vrad_outer = t_bc_vrad::bcr_disk_model;
 		} else if (str == "reference") {
-			bc_vrad_outer = t_bc_vrad::bcr_reference;
 		} else if (str == "reflective") {
-			bc_vrad_outer = t_bc_vrad::bcr_reflective;
 		} else if (str == "outflow") {
-			bc_vrad_outer = t_bc_vrad::bcr_outflow;
+			vrad_outer_func = outflow_outer;
 		} else if (str == "viscous") {
-			bc_vrad_outer = t_bc_vrad::bcr_viscous;
 		} else if (str == "keplerian") {
-			bc_vrad_outer = t_bc_vrad::bcr_Keplerian;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vrad outer: " + str);
 		}
@@ -133,17 +131,12 @@ namespace boundary_conditions
 	static void vaz_inner() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVazInner", "zerogradient");
 		if (str == "zerogradient") {
-			bc_vaz_inner = t_bc_vaz::bca_zero_gradient;
+			vaz_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
-			bc_vaz_inner = t_bc_vaz::bca_disk_model;
 		} else if (str == "reference") {
-			bc_vaz_inner = t_bc_vaz::bca_reference;
 		} else if (str == "zeroshear") {
-			bc_vaz_inner = t_bc_vaz::bca_zero_shear;
 		} else if (str == "balanced") {
-			bc_vaz_inner = t_bc_vaz::bca_balanced;
 		} else if (str == "keplerian") {
-			bc_vaz_inner = t_bc_vaz::bca_Keplerian;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vaz inner: " + str);
 		}
@@ -153,17 +146,12 @@ namespace boundary_conditions
 	static void vaz_outer() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVazOuter", "zerogradient");
 		if (str == "zerogradient") {
-			bc_vaz_outer = t_bc_vaz::bca_zero_gradient;
+			vaz_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
-			bc_vaz_outer = t_bc_vaz::bca_disk_model;
 		} else if (str == "reference") {
-			bc_vaz_outer = t_bc_vaz::bca_reference;
 		} else if (str == "zeroshear") {
-			bc_vaz_outer = t_bc_vaz::bca_zero_shear;
 		} else if (str == "balanced") {
-			bc_vaz_outer = t_bc_vaz::bca_balanced;
 		} else if (str == "keplerian") {
-			bc_vaz_outer = t_bc_vaz::bca_Keplerian;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vaz outer: " + str);
 		}
@@ -173,11 +161,8 @@ namespace boundary_conditions
 	static void special() {
 		const std::string str = config::cfg.get_lowercase("BoundarySpecial", "none");
 		if (str == "com") {
-			bc_special = t_bc_special::bcsp_com;
 		} else if (str == "massoverflow") {
-			bc_special = t_bc_special::bcsp_mass_overflow;
 		} else if (str == "none") {
-			bc_special = t_bc_special::bcsp_none;
 		} else {
 			throw std::runtime_error("Unknown boundary condition for special: " + str);
 		}
