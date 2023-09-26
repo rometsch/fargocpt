@@ -51,6 +51,7 @@ void reference_value_inner(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
 void reference_value_outer(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
 
 void viscous_outflow_inner(t_polargrid &vr, t_polargrid &dummy, t_data &data);
+void viscous_inflow_outer(t_polargrid &vr, t_polargrid &dummy, t_data &data);
 
 /****************************************
 /// Basic

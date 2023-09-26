@@ -104,6 +104,7 @@ namespace boundary_conditions
 		} else if (str == "outflow") {
 			vrad_inner_func = outflow_inner;
 		} else if (str == "viscous") {
+			vrad_inner_func = viscous_outflow_inner;
 		} else if (str == "keplerian") {
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vrad inner: " + str);
@@ -121,6 +122,7 @@ namespace boundary_conditions
 		} else if (str == "outflow") {
 			vrad_outer_func = outflow_outer;
 		} else if (str == "viscous") {
+			vrad_outer_func = viscous_inflow_outer;
 		} else if (str == "keplerian") {
 		} else {
 			throw std::runtime_error("Unknown boundary condition for vrad outer: " + str);
