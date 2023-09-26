@@ -85,8 +85,11 @@ dkms.conf
 .vscode
 
 # Output files
-out*
+out*/
 
 notebook/
 
 examples/*/
+
+
+docs/
