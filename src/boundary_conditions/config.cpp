@@ -39,6 +39,7 @@ namespace boundary_conditions
 	std::string vrad_outer_name;
 	std::string vaz_inner_name;
 	std::string vaz_outer_name;
+	std::string special_name;
 
 
 
@@ -96,10 +97,12 @@ namespace boundary_conditions
 
 	static void vrad_inner() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVradInner", "zerogradient");
+		vrad_inner_name = str;
 		if (str == "zerogradient") {
 			vrad_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
+
 		} else if (str == "reflective") {
 		} else if (str == "outflow") {
 			vrad_inner_func = outflow_inner;
@@ -114,6 +117,7 @@ namespace boundary_conditions
 
 	static void vrad_outer() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVradOuter", "zerogradient");
+		vrad_outer_name = str;
 		if (str == "zerogradient") {
 			vrad_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
@@ -132,6 +136,7 @@ namespace boundary_conditions
 
 	static void vaz_inner() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVazInner", "zerogradient");
+		vaz_inner_name = str;
 		if (str == "zerogradient") {
 			vaz_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
@@ -147,6 +152,7 @@ namespace boundary_conditions
 
 	static void vaz_outer() {
 		const std::string str = config::cfg.get_lowercase("BoundaryVazOuter", "zerogradient");
+		vaz_outer_name = str;
 		if (str == "zerogradient") {
 			vaz_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
@@ -162,6 +168,7 @@ namespace boundary_conditions
 
 	static void special() {
 		const std::string str = config::cfg.get_lowercase("BoundarySpecial", "none");
+		special_name = str;
 		if (str == "com") {
 		} else if (str == "massoverflow") {
 		} else if (str == "none") {

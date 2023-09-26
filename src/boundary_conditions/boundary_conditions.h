@@ -28,6 +28,7 @@ extern std::string vrad_inner_name;
 extern std::string vrad_outer_name;
 extern std::string vaz_inner_name;
 extern std::string vaz_outer_name;
+extern std::string special_name;
 
 void parse_config();
 
@@ -47,11 +48,26 @@ void zero_gradient_outer(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 void outflow_inner(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 void outflow_outer(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 
-void reference_value_inner(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
-void reference_value_outer(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
+void reference_inner(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
+void reference_outer(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
 
 void viscous_outflow_inner(t_polargrid &vr, t_polargrid &dummy, t_data &data);
 void viscous_inflow_outer(t_polargrid &vr, t_polargrid &dummy, t_data &data);
+
+
+/****************************************
+/// Custom boundary conditions
+****************************************/
+// Modify these to implement you own custom boundary conditions.
+
+void custom_sigma_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom_sigma_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom_energy_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom_energy_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom_vrad_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom_vrad_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom_vaz_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom_vaz_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
 
 /****************************************
 /// Basic
