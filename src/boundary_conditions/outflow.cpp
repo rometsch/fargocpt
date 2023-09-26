@@ -13,7 +13,7 @@
 namespace boundary_conditions
 {
 
-void outflow_inner(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy) {
+void outflow_inner(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
     if (CPU_Rank != 0) {
         return;
     }
@@ -33,7 +33,7 @@ void outflow_inner(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy) {
 
 }
 
-void outflow_outer(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy) {
+void outflow_outer(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
     if (CPU_Rank != CPU_Highest) {
         return;
     }

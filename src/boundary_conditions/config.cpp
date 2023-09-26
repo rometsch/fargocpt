@@ -21,14 +21,14 @@ extern boolean OuterSourceMass;
 namespace boundary_conditions
 {
 
-	void (*sigma_inner_func)(t_polargrid &, t_polargrid &);
-	void (*sigma_outer_func)(t_polargrid &, t_polargrid &);
-	void (*energy_inner_func)(t_polargrid &, t_polargrid &);
-	void (*energy_outer_func)(t_polargrid &, t_polargrid &);
-	void (*vrad_inner_func)(t_polargrid &, t_polargrid &);
-	void (*vrad_outer_func)(t_polargrid &, t_polargrid &);
-	void (*vaz_inner_func)(t_polargrid &, t_polargrid &);
-	void (*vaz_outer_func)(t_polargrid &, t_polargrid &);
+	void (*sigma_inner_func)(t_polargrid &, t_polargrid &, t_data &);
+	void (*sigma_outer_func)(t_polargrid &, t_polargrid &, t_data &);
+	void (*energy_inner_func)(t_polargrid &, t_polargrid &, t_data &);
+	void (*energy_outer_func)(t_polargrid &, t_polargrid &, t_data &);
+	void (*vrad_inner_func)(t_polargrid &, t_polargrid &, t_data &);
+	void (*vrad_outer_func)(t_polargrid &, t_polargrid &, t_data &);
+	void (*vaz_inner_func)(t_polargrid &, t_polargrid &, t_data &);
+	void (*vaz_outer_func)(t_polargrid &, t_polargrid &, t_data &);
 
 
 	std::string sigma_inner_name;

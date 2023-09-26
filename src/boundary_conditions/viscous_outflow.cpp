@@ -14,6 +14,31 @@
 namespace boundary_conditions
 {
 
+
+void viscous_outflow_inner(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy, t_data &data)
+{
+    if (CPU_Rank != 0) {
+		return;
+	}
+
+	const unsigned int Iaz = vr.get_max_azimuthal();
+	const double s = parameters::viscous_outflow_speed;
+
+	const t_polargrid &visc = data[t_data::VISCOSITY];
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz <= Iaz; ++naz) {
+
+	    const double Nu0 = visc(0, naz);
+	    const double Nu1 = visc(1, naz);
+	    const double Nu = 0.5 * (Nu0 + Nu1);
+
+	    // V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
+	    vr(1, naz) = -1.5 * s / Rinf[1] * Nu;
+	    vr(0, naz) = -1.5 * s / Rinf[0] * Nu;
+	}
+}
+
 void viscous_outflow_boundary_inner(t_data &data)
 {
     if (CPU_Rank != 0) {

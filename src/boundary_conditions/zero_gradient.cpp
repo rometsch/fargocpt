@@ -36,7 +36,7 @@ static void zero_gradient_inner_vector(t_polargrid &x) {
 }
 
 
-void zero_gradient_inner(t_polargrid &x, [[maybe_unused]] t_polargrid &dummy) {
+void zero_gradient_inner(t_polargrid &x, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
 	if (CPU_Rank != 0) {
 		return;
 	}
@@ -71,7 +71,7 @@ static void zero_gradient_outer_vector(t_polargrid &x) {
 }
 
 
-void zero_gradient_outer(t_polargrid &x, [[maybe_unused]] t_polargrid &dummy) {
+void zero_gradient_outer(t_polargrid &x, [[maybe_unused]] t_polargrid &dummy, [[maybe_unused]] t_data &ddummy) {
     if (CPU_Rank != CPU_Highest) {
         return;
     }

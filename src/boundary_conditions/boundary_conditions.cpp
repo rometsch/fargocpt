@@ -35,29 +35,29 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	{
 		t_polargrid &x = data[t_data::SIGMA];
 		t_polargrid &x0 = data[t_data::SIGMA0];
-		sigma_inner_func(x, x0);
-		sigma_outer_func(x, x0);
+		sigma_inner_func(x, x0, data);
+		sigma_outer_func(x, x0, data);
 	}
 
 	{
 		t_polargrid &x = data[t_data::ENERGY];
 		t_polargrid &x0 = data[t_data::ENERGY0];
-		energy_inner_func(x, x0);
-		energy_outer_func(x, x0);
+		energy_inner_func(x, x0, data);
+		energy_outer_func(x, x0, data);
 	}
 
 	{
 		t_polargrid &x = data[t_data::V_RADIAL];
 		t_polargrid &x0 = data[t_data::V_RADIAL0];
-		vrad_inner_func(x, x0);
-		vrad_outer_func(x, x0);
+		vrad_inner_func(x, x0, data);
+		vrad_outer_func(x, x0, data);
 	}
 
 	{
 		t_polargrid &x = data[t_data::V_AZIMUTHAL];
 		t_polargrid &x0 = data[t_data::V_AZIMUTHAL0];
-		vaz_inner_func(x, x0);
-		vaz_outer_func(x, x0);
+		vaz_inner_func(x, x0, data);
+		vaz_outer_func(x, x0, data);
 	}
 
 }

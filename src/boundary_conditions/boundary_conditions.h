@@ -11,14 +11,14 @@ namespace boundary_conditions
 *****************************************/
 
 
-extern void (*sigma_inner_func)(t_polargrid &, t_polargrid &);
-extern void (*sigma_outer_func)(t_polargrid &, t_polargrid &);
-extern void (*energy_inner_func)(t_polargrid &, t_polargrid &);
-extern void (*energy_outer_func)(t_polargrid &, t_polargrid &);
-extern void (*vrad_inner_func)(t_polargrid &, t_polargrid &);
-extern void (*vrad_outer_func)(t_polargrid &, t_polargrid &);
-extern void (*vaz_inner_func)(t_polargrid &, t_polargrid &);
-extern void (*vaz_outer_func)(t_polargrid &, t_polargrid &);
+extern void (*sigma_inner_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*sigma_outer_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*energy_inner_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*energy_outer_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*vrad_inner_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*vrad_outer_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*vaz_inner_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*vaz_outer_func)(t_polargrid &, t_polargrid &, t_data &d);
 
 extern std::string sigma_inner_name;
 extern std::string sigma_outer_name;
@@ -41,15 +41,16 @@ void zero_gradient_boundary_inner_single(t_polargrid &x);
 /// Individual variable boundaries
 ****************************************/
 
-void zero_gradient_inner(t_polargrid &x, t_polargrid &dummy);
-void zero_gradient_outer(t_polargrid &x, t_polargrid &dummy);
+void zero_gradient_inner(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+void zero_gradient_outer(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 
-void outflow_inner(t_polargrid &x, t_polargrid &dummy);
-void outflow_outer(t_polargrid &x, t_polargrid &dummy);
+void outflow_inner(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+void outflow_outer(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 
-void reference_value_inner(t_polargrid &x, t_polargrid &x0);
-void reference_value_outer(t_polargrid &x, t_polargrid &x0);
+void reference_value_inner(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
+void reference_value_outer(t_polargrid &x, t_polargrid &x0, t_data &ddummy);
 
+void viscous_outflow_inner(t_polargrid &vr, t_polargrid &dummy, t_data &data);
 
 /****************************************
 /// Basic
