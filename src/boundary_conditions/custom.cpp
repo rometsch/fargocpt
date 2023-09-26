@@ -10,147 +10,75 @@
 #include "boundary_conditions.h"
 #include "../global.h"
 #include "../simulation.h"
+#include "../Theo.h"
+#include "../frame_of_reference.h"
 
 
 namespace boundary_conditions
 {
 
-void custom(t_data& data);
 
-static void reference_inner_scalar(t_polargrid &x, t_polargrid &x0) {
+/* Template to modify to implement custom boundary conditions.
+//
+// How to use this template:
+// -------------------------
+// 1) Comment out all assinments of variables that are set by by other conditions you want to keep.
+// 2) Modify the values asigned to the variables you want to change.
+//
+// For the azimuthal velocity, keep the -r*OmegaF term. This corrects for the rotating frame.
+//
+*/
+void custom(t_data& data) {
+	t_polargrid &Sigma = data[t_data::SIGMA];
+	t_polargrid &Energy = data[t_data::ENERGY];
+	t_polargrid &vrad = data[t_data::V_RADIAL];
+	t_polargrid &vaz = data[t_data::V_AZIMUTHAL];
 
-	const unsigned int Iaz = x.get_max_azimuthal();
+	if (CPU_Rank == 0) {
+		// Set inner boundary
 
-	#pragma omp parallel for
-	for (unsigned int naz = 0; naz <= Iaz; ++naz) {
-		x(0, naz) = x0(0, naz);
+		// get highest index in the azimuthal direction
+		const unsigned int Iaz = Sigma.get_max_azimuthal();
+		const double vKep = compute_v_kepler(Rmed[0], hydro_center_mass);
+		const double OmegaF = refframe::OmegaFrame;
+		const double r = Rmed[0];
+
+		#pragma omp parallel for
+		for (unsigned int naz = 0; naz <= Iaz; ++naz) {
+			// set cell interfaces of the ghost cell
+			Sigma(0, naz) = 0;
+			Energy(0, naz) = 0;
+			vaz(0, naz) = vKep - r*OmegaF;
+			// set both interfaces of the ghost cell
+			vrad(0, naz) = 0;
+			vrad(1, naz) = 0; // domain boundary
+		}
+
 	}
-}
-
-static void reference_inner_vector(t_polargrid &x, t_polargrid &x0) {
 	
-	const unsigned int Iaz = x.get_max_azimuthal();
+	if (CPU_Rank == CPU_Highest) {
+		// Set outer boundary
 
-	#pragma omp parallel for
-	for (unsigned int naz = 0; naz <= Iaz; ++naz) {
-		x(0, naz) = x0(0, naz);
-		x(1, naz) = x0(1, naz);
+		// get highest index in the both directions
+		const unsigned int Iaz = Sigma.get_max_azimuthal();
+		const unsigned int Irad = Sigma.get_max_radial();
+
+		const double vKep = compute_v_kepler(Rmed[Irad], hydro_center_mass);
+		const double OmegaF = refframe::OmegaFrame;
+		const double r = Rmed[Irad];
+
+		#pragma omp parallel for
+		for (unsigned int naz = 0; naz <= Iaz; ++naz) {
+			// set cell interfaces of the ghost cell
+			Sigma(Irad, naz) = 0;
+			Energy(Irad, naz) = 0;
+			vaz(Irad, naz) = vKep - r*OmegaF;
+			// set both interfaces of the ghost cell
+			vrad(Irad, naz) = 0;
+			vrad(Irad-1, naz) = 0; // domain boundary
+		}
+
 	}
 }
-
-
-void reference_inner(t_polargrid &x, [[maybe_unused]] t_polargrid &x0, [[maybe_unused]] t_data &ddummy) {
-	if (CPU_Rank != 0) {
-		return;
-	}
-	if (x.is_scalar()) {
-		reference_inner_scalar(x, x0);
-	} else {
-		reference_inner_vector(x, x0);
-	}
-}
-
-static void reference_outer_scalar(t_polargrid &x, t_polargrid &x0) {
-
-    const unsigned int Iaz = x.get_max_azimuthal();
-    const unsigned int Irad = x.get_max_radial();
-
-    #pragma omp parallel for
-    for (unsigned int naz = 0; naz <= Iaz; ++naz) {
-        x(Irad, naz) = x0(Irad, naz);
-    }
-}
-
-static void reference_outer_vector(t_polargrid &x, t_polargrid &x0) {
-
-	const unsigned int Iaz = x.get_max_azimuthal();
-	const unsigned int Irad = x.get_max_radial();
-
-	#pragma omp parallel for
-	for (unsigned int naz = 0; naz <= Iaz; ++naz) {
-		x(Irad, naz) = x0(Irad, naz);
-		x(Irad-1, naz) = x0(Irad-1, naz);
-	}
-}
-
-
-void reference_outer(t_polargrid &x, [[maybe_unused]] t_polargrid &x0, [[maybe_unused]] t_data &ddummy) {
-    if (CPU_Rank != CPU_Highest) {
-        return;
-    }
-    if (x.is_scalar()) {
-        reference_outer_scalar(x, x0);
-    } else {
-        reference_outer_vector(x, x0);
-    }
-}
-
-
-
-
-/**
-	set inner boundary values to initial values
- */
-void reference_value_boundary_inner(t_data &data)
-{
-    if (CPU_Rank != 0){
-		return;
-	}
-	if (sim::N_hydro_iter == 0) {
-		return;
-	}
-
-    auto &sig = data[t_data::SIGMA];
-    auto &eng = data[t_data::ENERGY];
-	auto &vr = data[t_data::V_RADIAL];
-
-    auto &sig0 = data[t_data::SIGMA0];
-    auto &eng0 = data[t_data::ENERGY0];
-	auto &vr0 = data[t_data::V_RADIAL0];
-
-	const unsigned int Naz = sig.get_max_azimuthal();
-
-	#pragma omp parallel for
-    for (unsigned int naz = 0; naz <= Naz; ++naz) {
-		sig(0, naz) = sig0(0,naz);
-		eng(0, naz) = eng0(0,naz);
-		vr(0, naz) = vr0(0,naz);
-		vr(1, naz) = vr0(1,naz);
-	}
-}
-
-/**
-	set outer boundary values to initial values
- */
-void reference_value_boundary_outer(t_data &data)
-{
-    if (CPU_Rank != CPU_Highest){
-		return;
-	}
-	if (sim::N_hydro_iter == 0) {
-		return;
-	}
-
-    auto &sig = data[t_data::SIGMA];
-    auto &eng = data[t_data::ENERGY];
-	auto &vr = data[t_data::V_RADIAL];
-
-    auto &sig0 = data[t_data::SIGMA0];
-    auto &eng0 = data[t_data::ENERGY0];
-	auto &vr0 = data[t_data::V_RADIAL0];
-
-	const unsigned int Naz = sig.get_max_azimuthal();
-
-	#pragma omp parallel for
-    for (unsigned int naz = 0; naz <= Naz; ++naz) {
-		const unsigned int nr = sig.get_max_radial();
-		sig(nr, naz) = sig0(nr,naz);
-		eng(nr, naz) = eng0(nr,naz);
-		const unsigned int nrv = vr.get_max_radial();
-		vr(nrv, naz) = vr0(nrv,naz);
-		vr(nrv-1, naz) = vr0(nrv-1,naz);
-	}
-}
-
 
 } // namespace boundary_conditions

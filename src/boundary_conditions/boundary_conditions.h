@@ -60,14 +60,7 @@ void viscous_inflow_outer(t_polargrid &vr, t_polargrid &dummy, t_data &data);
 ****************************************/
 // Modify these to implement you own custom boundary conditions.
 
-void custom_sigma_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
-void custom_sigma_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
-void custom_energy_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
-void custom_energy_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
-void custom_vrad_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
-void custom_vrad_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
-void custom_vaz_inner(t_polargrid &x, t_polargrid &x0, t_data &data);
-void custom_vaz_outer(t_polargrid &x, t_polargrid &x0, t_data &data);
+void custom(t_data &data);
 
 /****************************************
 /// Basic
