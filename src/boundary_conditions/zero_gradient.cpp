@@ -30,13 +30,13 @@ static void zero_gradient_inner_vector(t_polargrid &x) {
 
 	#pragma omp parallel for
 	for (unsigned int naz = 0; naz <= Iaz; ++naz) {
-		x(0, naz) = x(1, naz);
+		x(0, naz) = x(2, naz);
 		x(1, naz) = x(2, naz);
 	}
 }
 
 
-void zero_gradient_inner(t_polargrid &x) {
+void zero_gradient_inner(t_polargrid &x, [[maybe_unused]] t_polargrid &dummy) {
 	if (CPU_Rank != 0) {
 		return;
 	}
@@ -71,8 +71,8 @@ static void zero_gradient_outer_vector(t_polargrid &x) {
 }
 
 
-void zero_gradient_outer(t_polargrid &x) {
-    if (CPU_Rank != 0) {
+void zero_gradient_outer(t_polargrid &x, [[maybe_unused]] t_polargrid &dummy) {
+    if (CPU_Rank != CPU_Highest) {
         return;
     }
     if (x.is_scalar()) {
