@@ -54,6 +54,7 @@ namespace boundary_conditions
 		if (str == "zerogradient") {
 			sigma_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
+			sigma_inner_func = diskmodel_inner_sigma;
 		} else if (str == "reference") {
 			sigma_inner_func = reference_inner;
 		} else {
@@ -68,6 +69,7 @@ namespace boundary_conditions
 		if (str == "zerogradient") {
 			sigma_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
+			sigma_outer_func = diskmodel_outer_sigma;
 		} else if (str == "reference") {
 			sigma_outer_func = reference_outer;
 		} else {
@@ -82,6 +84,7 @@ namespace boundary_conditions
 		if (str == "zerogradient") {
 			energy_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
+			energy_inner_func = diskmodel_inner_energy;
 		} else if (str == "reference") {
 			energy_inner_func = reference_inner;
 		} else {
@@ -96,6 +99,7 @@ namespace boundary_conditions
 		if (str == "zerogradient") {
 			energy_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
+			energy_outer_func = diskmodel_outer_energy;
 		} else if (str == "reference") {
 			energy_outer_func = reference_outer;
 		} else {
@@ -109,7 +113,6 @@ namespace boundary_conditions
 		vrad_inner_name = str;
 		if (str == "zerogradient") {
 			vrad_inner_func = zero_gradient_inner;
-		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
 			vrad_inner_func = reference_inner;
 		} else if (str == "reflective") {
@@ -134,7 +137,6 @@ namespace boundary_conditions
 		vrad_outer_name = str;
 		if (str == "zerogradient") {
 			vrad_outer_func = zero_gradient_outer;
-		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
 			vrad_outer_func = reference_outer;
 		} else if (str == "reflective") {
@@ -159,7 +161,6 @@ namespace boundary_conditions
 		vaz_inner_name = str;
 		if (str == "zerogradient") {
 			vaz_inner_func = zero_gradient_inner;
-		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
 			vaz_inner_func = reference_inner;
 		} else if (str == "zeroshear") {
@@ -182,7 +183,6 @@ namespace boundary_conditions
 		vaz_outer_name = str;
 		if (str == "zerogradient") {
 			vaz_outer_func = zero_gradient_outer;
-		} else if (str == "diskmodel") {
 		} else if (str == "reference") {
 			vaz_outer_func = reference_outer;
 		} else if (str == "zeroshear") {

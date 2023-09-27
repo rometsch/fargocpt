@@ -43,6 +43,7 @@
 static void finalize() {
 	FreeEuler();
 	finalize_parallel();
+    boundary_conditions::cleanup_custom();
 }
 
 
@@ -112,6 +113,7 @@ int main(int argc, char *argv[])
     parameters::summarize_parameters();
 
     boundary_conditions::init_prescribed_time_variable_boundaries(data);
+    boundary_conditions::init_custom(data);
     init_physics(data);
 	sim::CalculateTimeStep(data);
 

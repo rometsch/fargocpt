@@ -61,7 +61,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	}
 
 	if (special_name == "custom") {
-		custom(data);
+		custom(data, current_time, dt);
 	}
 
 }

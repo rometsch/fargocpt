@@ -7,10 +7,10 @@
 #include <omp.h>
 #endif
 
-#include "boundary_conditions.h"
+#include "../constants.h"
 #include "../global.h"
 #include "../parameters.h"
-#include "../constants.h"
+#include "boundary_conditions.h"
 
 #include <filesystem>
 
@@ -21,7 +21,6 @@ int PRESCRIBED_TIME_SEGMENT_NUMBER;
 
 void init_prescribed_time_variable_boundaries(t_data &data)
 {
-	
 
     // delete old data
     if (data[t_data::PRESCRIBED_DENSITY_OUTER].Field != nullptr) {
@@ -61,11 +60,12 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 		// TODO: naming convention might need adjustment
 		const int Nphi =
 		    data[t_data::PRESCRIBED_DENSITY_OUTER].get_size_azimuthal();
-		std::string file_name_body = parameters::PRESCRIBED_BOUNDARY_OUTER_FILE + "/" + std::to_string(Nphi) + "shift";
+		std::string file_name_body =
+		    parameters::PRESCRIBED_BOUNDARY_OUTER_FILE + "/" +
+		    std::to_string(Nphi) + "shift";
 
 		std::string file_name_test = file_name_body + "0.dat";
-		if (!std::filesystem::exists(
-			file_name_test)) {
+		if (!std::filesystem::exists(file_name_test)) {
 		    die("Prescribed boundary file %s does not exist!\n",
 			file_name_test.c_str());
 		}
@@ -75,8 +75,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 		const std::filesystem::path File_Folder{
 		    parameters::PRESCRIBED_BOUNDARY_OUTER_FILE};
 		for (auto const &dir_entry :
-		     std::filesystem::directory_iterator{
-			 File_Folder}) {
+		     std::filesystem::directory_iterator{File_Folder}) {
 		    std::string path_string{dir_entry.path()};
 		    if (path_string.find(file_name_body) != std::string::npos) {
 			num_files++;
@@ -113,8 +112,7 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 
 		// read data
 		for (auto const &dir_entry :
-		     std::filesystem::directory_iterator{
-			 File_Folder}) {
+		     std::filesystem::directory_iterator{File_Folder}) {
 		    std::string path_string{dir_entry.path()};
 		    if (path_string.find(file_name_body) != std::string::npos) {
 			int file_id;
@@ -171,7 +169,8 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    vphi = vphi * pluto_v0 *
 				   units::velocity.get_inverse_cgs_factor();
 
-				const double m_bin = data.get_planetary_system().get_mass(2);
+			    const double m_bin =
+				data.get_planetary_system().get_mass(2);
 			    const double Cs =
 				pluto_aspect_ratio *
 				sqrt(constants::G * m_bin / RMAX) *
@@ -179,9 +178,9 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 			    const double P = sigma * Cs * Cs;
 			    const double T =
 				parameters::MU / constants::R * P / sigma;
-			    const double energy = T * sigma / parameters::MU *
-						  constants::R /
-						  (parameters::ADIABATICINDEX - 1.0);
+			    const double energy =
+				T * sigma / parameters::MU * constants::R /
+				(parameters::ADIABATICINDEX - 1.0);
 
 			    data[t_data::PRESCRIBED_DENSITY_OUTER](
 				file_id, n_azimuthal) = sigma;
@@ -232,7 +231,8 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 	outer boundary_condition_precribed_time_variable_outer
 */
 void boundary_condition_precribed_time_variable_outer(t_data &data,
-							  t_polargrid *densitystar, const double current_time)
+						      t_polargrid *densitystar,
+						      const double current_time)
 {
     if (CPU_Rank == CPU_Highest) {
 	const int n_radial = data[t_data::SIGMA].get_max_radial();
@@ -247,7 +247,7 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 	const double percent_to_next_timestep =
 	    real_time - double(integer_time);
 
-	#pragma omp parallel for
+#pragma omp parallel for
 	for (unsigned int n_azimuthal = 0;
 	     n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 	     ++n_azimuthal) {

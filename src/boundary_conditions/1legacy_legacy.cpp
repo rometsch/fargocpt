@@ -10,6 +10,7 @@
 #include "boundary_conditions.h"
 #include "../global.h"
 #include "../parameters.h"
+#include "../simulation.h"
 
 namespace boundary_conditions
 {
@@ -293,6 +294,215 @@ void ApplyOuterSourceMass(t_polargrid *Density, t_polargrid *VRadial)
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	const unsigned int cell = naz + nRadial * Density->Nsec;
 	VRadial->Field[cell] = penul_vr;
+    }
+}
+
+
+void zero_gradient_boundary_inner(t_data &data)
+{
+    if (CPU_Rank != 0){
+		return;
+	}
+
+	t_polargrid &sig = data[t_data::SIGMA];
+	t_polargrid &eng = data[t_data::ENERGY];
+	t_polargrid &vrad = data[t_data::V_RADIAL];
+
+	const unsigned int Naz = sig.get_max_azimuthal();
+
+	#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+		// copy first ring into ghost ring
+		sig(0, naz) = sig(1, naz);
+		eng(0, naz) = eng(1, naz);
+
+		vrad(1, naz) = vrad(2, naz);
+		vrad(0, naz) = vrad(2, naz);
+    }
+}
+
+void zero_gradient_boundary_outer(t_data &data)
+{
+    if (CPU_Rank != CPU_Highest) {
+		return;
+	}
+
+	t_polargrid &sig = data[t_data::SIGMA];
+	t_polargrid &eng = data[t_data::ENERGY];
+	t_polargrid &vrad = data[t_data::V_RADIAL];
+
+	const unsigned int Nrad = sig.get_max_radial();
+	const unsigned int Nrad_v = vrad.get_max_radial();
+	const unsigned int Naz = sig.get_max_azimuthal();
+
+
+	#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+	// copy last ring into ghost ring
+	sig(Nrad, naz) = sig(Nrad - 1, naz);
+	eng(Nrad, naz) = eng(Nrad - 1, naz);
+
+	vrad(Nrad_v - 1, naz) = vrad(Nrad_v - 2, naz);
+	vrad(Nrad_v, naz) = vrad(Nrad_v - 2, naz);
+    }
+}
+
+
+void viscous_outflow_boundary_inner(t_data &data)
+{
+    if (CPU_Rank != 0) {
+		return;
+	}
+
+	t_polargrid &sig = data[t_data::SIGMA];
+	t_polargrid &eng = data[t_data::ENERGY];
+	t_polargrid &vrad = data[t_data::V_RADIAL];
+	t_polargrid &visc = data[t_data::VISCOSITY];
+
+	const unsigned int Naz = sig.get_max_azimuthal();
+
+	for (unsigned int naz = 0; naz <= Naz; ++naz) {
+	    sig(0, naz) = sig(1, naz);
+	    eng(0, naz) = eng(1, naz);
+	}
+
+	const double s = parameters::viscous_outflow_speed;
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz <= Naz; ++naz) {
+
+	    const double Nu0 = visc(0, naz);
+	    const double Nu1 = visc(1, naz);
+	    const double Nu = 0.5 * (Nu0 + Nu1);
+
+	    // V_rad =  - 1.5 / r * Nu (Kley, Papaloizou and Ogilvie, 2008)
+	    vrad(1, naz) = -1.5 * s / Rinf[1] * Nu;
+	    vrad(0, naz) = -1.5 * s / Rinf[0] * Nu;
+	}
+}
+
+
+
+
+/**
+	inner reflecting boundary condition
+*/
+void reflecting_boundary_inner(t_data &data)
+{
+    if (CPU_Rank != 0) {
+		return;
+	}
+
+	t_polargrid &sig = data[t_data::SIGMA];
+	t_polargrid &eng = data[t_data::ENERGY];
+	t_polargrid &vr = data[t_data::V_RADIAL];
+
+	const unsigned int Naz = sig.get_max_azimuthal();
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz <= Naz; ++naz) {
+	    // copy first ring into ghost ring
+	    sig(0, naz) = sig(1, naz);
+	    eng(0, naz) = eng(1, naz);
+
+	    vr(1, naz) = 0.0;
+	    vr(0, naz) = -vr(2, naz);
+	}
+}
+
+/**
+	outer reflecting boundary condition
+*/
+void reflecting_boundary_outer(t_data &data)
+{
+    if (CPU_Rank != CPU_Highest) {
+		return;
+	}
+
+	t_polargrid &sig = data[t_data::SIGMA];
+	t_polargrid &eng = data[t_data::ENERGY];
+	t_polargrid &vr = data[t_data::V_RADIAL];
+
+	const unsigned int Nrad = sig.get_max_radial();
+	const unsigned int Nrad_v = vr.get_max_radial();
+	const unsigned int Naz = sig.get_max_azimuthal();
+
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz <= Naz; ++naz) {
+	    // copy last ring into ghost ring
+	    sig(Nrad, naz) = sig(Nrad - 1, naz);
+	    eng(Nrad, naz) = eng(Nrad - 1, naz);
+
+	    vr(Nrad_v - 1, naz) = 0.0;
+	    vr(Nrad_v, naz) = -vr(Nrad_v - 2, naz);
+	}
+}
+
+
+
+
+/**
+	set inner boundary values to initial values
+ */
+void reference_value_boundary_inner(t_data &data)
+{
+    if (CPU_Rank != 0) {
+	return;
+    }
+    if (sim::N_hydro_iter == 0) {
+	return;
+    }
+
+    auto &sig = data[t_data::SIGMA];
+    auto &eng = data[t_data::ENERGY];
+    auto &vr = data[t_data::V_RADIAL];
+
+    auto &sig0 = data[t_data::SIGMA0];
+    auto &eng0 = data[t_data::ENERGY0];
+    auto &vr0 = data[t_data::V_RADIAL0];
+
+    const unsigned int Naz = sig.get_max_azimuthal();
+
+#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+	sig(0, naz) = sig0(0, naz);
+	eng(0, naz) = eng0(0, naz);
+	vr(0, naz) = vr0(0, naz);
+	vr(1, naz) = vr0(1, naz);
+    }
+}
+
+/**
+	set outer boundary values to initial values
+ */
+void reference_value_boundary_outer(t_data &data)
+{
+    if (CPU_Rank != CPU_Highest) {
+	return;
+    }
+    if (sim::N_hydro_iter == 0) {
+	return;
+    }
+
+    auto &sig = data[t_data::SIGMA];
+    auto &eng = data[t_data::ENERGY];
+    auto &vr = data[t_data::V_RADIAL];
+
+    auto &sig0 = data[t_data::SIGMA0];
+    auto &eng0 = data[t_data::ENERGY0];
+    auto &vr0 = data[t_data::V_RADIAL0];
+
+    const unsigned int Naz = sig.get_max_azimuthal();
+
+#pragma omp parallel for
+    for (unsigned int naz = 0; naz <= Naz; ++naz) {
+	const unsigned int nr = sig.get_max_radial();
+	sig(nr, naz) = sig0(nr, naz);
+	eng(nr, naz) = eng0(nr, naz);
+	const unsigned int nrv = vr.get_max_radial();
+	vr(nrv, naz) = vr0(nrv, naz);
+	vr(nrv - 1, naz) = vr0(nrv - 1, naz);
     }
 }
 

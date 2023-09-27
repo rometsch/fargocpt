@@ -17,6 +17,29 @@
 namespace boundary_conditions
 {
 
+/* 
+// Place to declare custom variables.
+*/
+
+// Declare them here.
+
+/* In this function, you can initialize custom variables for your boundary condition.
+// E.g., you might precalculate values or load files.
+*/
+void init_custom(t_data& data) {
+
+}
+
+
+/* In this function, you can clean up whatevery you initialized in the custom_init function.
+// E.g., you might free memory or close files.
+*/
+void cleanup_custom() {
+
+}
+
+
+
 
 /* Template to modify for implementing custom boundary conditions.
 //
@@ -28,7 +51,7 @@ namespace boundary_conditions
 // For the azimuthal velocity, keep the -r*OmegaF term. This corrects for the rotating frame.
 //
 */
-void custom(t_data& data) {
+void custom([[maybe_unused]] t_data& data, [[maybe_unused]] const double t, [[maybe_unused]] const double dt) {
 	t_polargrid &Sigma = data[t_data::SIGMA];
 	t_polargrid &Energy = data[t_data::ENERGY];
 	t_polargrid &vrad = data[t_data::V_RADIAL];

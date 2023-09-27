@@ -75,12 +75,20 @@ void keplerian_radial_outer(t_polargrid &vrad, t_polargrid &dummy, t_data &ddumm
 void balanced_inner(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
 void balanced_outer(t_polargrid &vaz, t_polargrid &dummy, t_data &ddummy);
 
+void diskmodel_inner_sigma(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+void diskmodel_outer_sigma(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+void diskmodel_inner_energy(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+void diskmodel_outer_energy(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+
+
 /****************************************
 /// Custom boundary conditions
 ****************************************/
 // Modify these to implement you own custom boundary conditions.
 
-void custom(t_data &data);
+void custom(t_data &data, const double t, const double dt);
+void init_custom(t_data& data);
+void cleanup_custom();
 
 /****************************************
 /// Basic
