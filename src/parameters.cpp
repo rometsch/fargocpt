@@ -956,13 +956,39 @@ void read(const std::string &filename, t_data &data)
 		logging::print_master(LOG_INFO "Disk mass is kept constant at initial value.\n");
 	}
 
+
+    // self gravity
+    self_gravity = config::cfg.get_flag("SelfGravity", "no");
+
+	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "symmetric");
+	if (sgmode == "b") {
+		self_gravity_mode = t_sg::sg_B;
+	} else if (sgmode == "symmetric") {
+		self_gravity_mode = t_sg::sg_S;
+	} else if (sgmode == "besselkernel") {
+		self_gravity_mode = t_sg::sg_BK;
+	} else {
+		logging::print_master(LOG_ERROR "Selfgravity mode %s is not supported. Choices: b, s, BesselKernel\n", sgmode.c_str());
+		die("Configuration error.");
+	}
+
+	self_gravity_steps_between_kernel_update = config::cfg.get<unsigned int>("SelfGravityStepsBetweenKernelUpdate", 20);
+	self_gravity_aspectratio_change_threshold = config::cfg.get<double>("SelfGravityAspectRatioChangeThreshold", 0.001);
+
+    if (self_gravity) {
+		logging::print_master(LOG_INFO "Self gravity enabled. It uses the '%s' mode. The kernel is updated every %u steps and after aspect ratio changed by %f.\n", sgmode.c_str(), self_gravity_steps_between_kernel_update, self_gravity_aspectratio_change_threshold);
+    }
+
+
+
     //
     thickness_smoothing =
 	config::cfg.get<double>("ThicknessSmoothing", 0.6);
     thickness_smoothing_sg = config::cfg.get<double>(
 	"ThicknessSmoothingSG", 1.2); // recommended value from Müller, Kley & Meru 2012
 	naive_smoothing = config::cfg.get_flag("NaiveSmoothing", "no");
-	correct_disk_selfgravity = config::cfg.get_flag("CorrectDiskSelfgravity", "no");
+
+	correct_disk_selfgravity = config::cfg.get_flag("CorrectDiskSelfgravity", self_gravity ? "no" : "yes");
     integrate_planets = config::cfg.get_flag("IntegratePlanets", "yes");
     do_init_secondary_disk =
 	config::cfg.get_flag("SecondaryDisk", "no");
@@ -1050,29 +1076,6 @@ void read(const std::string &filename, t_data &data)
 			break;
 		}
 	}
-
-    // self gravity
-    self_gravity = config::cfg.get_flag("SelfGravity", "no");
-
-	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "symmetric");
-	if (sgmode == "b") {
-		self_gravity_mode = t_sg::sg_B;
-	} else if (sgmode == "symmetric") {
-		self_gravity_mode = t_sg::sg_S;
-	} else if (sgmode == "besselkernel") {
-		self_gravity_mode = t_sg::sg_BK;
-	} else {
-		logging::print_master(LOG_ERROR "Selfgravity mode %s is not supported. Choices: b, s, BesselKernel\n", sgmode.c_str());
-		die("Configuration error.");
-	}
-
-	self_gravity_steps_between_kernel_update = config::cfg.get<unsigned int>("SelfGravityStepsBetweenKernelUpdate", 20);
-	self_gravity_aspectratio_change_threshold = config::cfg.get<double>("SelfGravityAspectRatioChangeThreshold", 0.001);
-
-    if (self_gravity) {
-		logging::print_master(LOG_INFO "Self gravity enabled. It uses the '%s' mode. The kernel is updated every %u steps and after aspect ratio changed by %f.\n", sgmode.c_str(), self_gravity_steps_between_kernel_update, self_gravity_aspectratio_change_threshold);
-    }
-
 
 
     body_force_from_potential =
