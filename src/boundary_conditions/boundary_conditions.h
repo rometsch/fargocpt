@@ -156,7 +156,7 @@ void spreading_ring_outer(t_data &data);
 /****************************************
 /// Damping
 ****************************************/
-void damping(t_data &data, double dt);
+void damping(t_data &data, const double dt);
 bool initial_values_needed();
 void copy_initial_values(t_data &data);
 void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,

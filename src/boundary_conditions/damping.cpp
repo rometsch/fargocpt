@@ -485,7 +485,7 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 /**
 	damping of all selected quantities
 */
-void damping(t_data &data, double dt)
+void damping(t_data &data, const double dt)
 {
 	// Iterate over all function pointers previously stored
     if (parameters::damping) {
