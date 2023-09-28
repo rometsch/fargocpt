@@ -42,6 +42,8 @@ KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
+OuterBoundary: Reflective
+InnerBoundary: Reflective
 BoundarySigmaInner: ZeroGradient
 BoundarySigmaOuter: ZeroGradient
 BoundaryEnergyInner: ZeroGradient
@@ -68,7 +70,7 @@ DampingSurfaceDensityOuter: none   # Damping of surface density at outer boundar
 # Numerical method parameters
 
 Transport: FARGO
-Integrator: Euler  # Integrator type: Euler or LeapFrog
+Integrator: LeapFrog  # Integrator type: Euler or LeapFrog
 
 Disk: yes
 OmegaFrame: 0.0
