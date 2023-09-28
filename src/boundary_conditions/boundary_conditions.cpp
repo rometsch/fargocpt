@@ -20,9 +20,7 @@ namespace boundary_conditions
 {
 
 
-
-
-void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final) {
+static void handle_damping(t_data &data, const double dt, const bool final) {
 	// if this is the final call of the boundary condition function during one timestep and damping is enable, do it
     if (final && parameters::damping) {
 		damping(data, dt);
@@ -31,6 +29,11 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 			quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_damp, delta_peri_damp);
 		}
     }
+}
+
+void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final) {
+	
+	handle_damping(data, dt, final);
 
 	{
 		t_polargrid &x = data[t_data::SIGMA];
