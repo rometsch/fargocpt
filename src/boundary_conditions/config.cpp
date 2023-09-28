@@ -119,6 +119,8 @@ namespace boundary_conditions
 			vrad_inner_func = reflecting_inner;
 		} else if (str == "outflow") {
 			vrad_inner_func = outflow_inner;
+		} else if (str == "outflowreflective") {
+			vrad_inner_func = outflow_reflective_inner;
 		} else if (str == "viscous") {
 			vrad_inner_func = viscous_outflow_inner;
 		} else if (str == "keplerian") {
@@ -143,6 +145,8 @@ namespace boundary_conditions
 			vrad_outer_func = reflecting_outer;
 		} else if (str == "outflow") {
 			vrad_outer_func = outflow_outer;
+		} else if (str == "outflowreflective") {
+			vrad_outer_func = outflow_reflective_outer;
 		} else if (str == "viscous") {
 			vrad_outer_func = viscous_inflow_outer;
 		} else if (str == "keplerian") {

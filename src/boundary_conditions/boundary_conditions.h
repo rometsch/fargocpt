@@ -121,6 +121,12 @@ void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal,
 void zero_shear_boundary(t_polargrid &v_azimuthal);
 
 /****************************************
+/// Spreading ring test special
+****************************************/
+void outflow_reflective_inner(t_polargrid &vr, t_polargrid &dummy, t_data &ddummy);
+void outflow_reflective_outer(t_polargrid &vr, t_polargrid &dummy, t_data &ddummy);
+
+/****************************************
 /// Prescribed value boundaries
 ****************************************/
 void init_prescribed_time_variable_boundaries(t_data &data);
