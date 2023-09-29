@@ -84,7 +84,13 @@ void open_boundary_outer(t_data &data)
 
 
 
-/**
+/** Non relecting boundary as implemented by Clement Baruteau
+//
+//	Refer to page 48 of his PhD thesis https://ui.adsabs.harvard.edu/abs/2008PhDT.......292B
+//  
+//	This detects the pitch angle the spiral of a single planet at the boundary,
+//  copies the last active ring to the ghost ring and shifts the ghost ring according to the pitch angle.
+//
 	\param VRadial radial velocity polar grid
 	\param Density density polar grid
 	\param Energy energy polar grid
@@ -165,7 +171,13 @@ void NonReflectingBoundary_inner(t_data &data, t_polargrid *VRadial,
     
 }
 
-/**
+/** Non relecting boundary as implemented by Clement Baruteau
+//
+//	Refer to page 48 of his PhD thesis https://ui.adsabs.harvard.edu/abs/2008PhDT.......292B
+//
+//	This detects the pitch angle the spiral of a single planet at the boundary,
+//  copies the last active ring to the ghost ring and shifts the ghost ring according to the pitch angle.
+//
 	\param VRadial radial velocity polar grid
 	\param Density density polar grid
 	\param Energy energy polar grid
