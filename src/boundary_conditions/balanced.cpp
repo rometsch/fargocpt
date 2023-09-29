@@ -25,6 +25,9 @@ namespace boundary_conditions
 */
 static void balanced_boundary(t_polargrid &vaz, const unsigned int nr)
 {
+    // Reference in this function refer to Clement Baruteau's PhD thesis 
+    // https://ui.adsabs.harvard.edu/abs/2008PhDT.......292B
+
     const double R = Rb[nr];
 
     const double vk_2 = std::pow(compute_v_kepler(R, hydro_center_mass), 2);
