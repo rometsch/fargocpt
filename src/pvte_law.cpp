@@ -227,6 +227,38 @@ t_eosQuantities lookup(const double densityCGS, const double energyCGS)
 // hydrogen ionization fraction
 double H_ionization_fraction(const double densityCGS, const double temperatureCGS)
 {
+    /// Compare Eq. 24 In Vaidya 2015 (DOI: 10.1051/0004-6361/201526247)
+
+    const double rho = densityCGS;
+    const double T = temperatureCGS;
+
+    const double m_H = constants::m_H.get_cgs_value();
+    const double m_e = constants::m_e.get_cgs_value();
+    const double eV = constants::eV.get_cgs_value();
+    const double h_bar = constants::h.get_cgs_value() / (2.0 * M_PI);
+    const double k_B = constants::k_B.get_cgs_value();
+
+    const double rhs_exponent = -13.60 * eV / k_B;
+    const double rhs_constant = m_H / xMF * std::pow(m_e * k_B / (2*M_PI*h_bar*h_bar), 1.5);
+
+    printf("Pluto compare\n");
+    printf("m_H = %.5e %.5e (%.5e\n", m_H, 1.6733e-24, 1.6733e-24/m_H-1);
+    printf("h = %.5e %.5e (%.5e)\n", constants::h.get_cgs_value(), 6.62606876e-27, 6.62606876e-27/constants::h.get_cgs_value()-1);
+    printf("PI = %.5e %.5e (%.5e\n", M_PI, 3.14159265358979, 3.14159265358979/M_PI-1);
+    printf("m_e = %.5e %.5e (%.5e)\n", m_e, 9.1093826e-28, 9.1093826e-28/m_e-1);
+    printf("k_B = %.5e %.5e (%.5e)\n", k_B, 1.3806505e-16, 1.3806505e-16/k_B-1);
+    printf("\n");
+
+    printf("m_H = %.5e m_e = %.5e h_bar = %.5e dal=%.5e h=%.5e\n", m_H, m_e, h_bar, constants::m_u.get_cgs_value(), constants::h.get_cgs_value());
+
+    const double pluto_bar = 6.62606876e-27 / (2.0 * 3.14159265358979);
+    const double rhs_pluto = 1.6733e-24 * std::pow(9.1093826e-28 * 1.3806505e-16 / (2*3.14159265358979*pluto_bar*pluto_bar), 1.5);
+
+
+    printf("rhs_exponent = %.5e %.5e (%.5e)\n", rhs_exponent, -157821.45, -157821.45/rhs_exponent-1.0);
+    printf("rhs_constant = %.5e %.5e %.5e (%.5e)\n", rhs_constant, 5.3890039e-09, rhs_pluto, 5.3890039e-09/rhs_constant-1);
+
+
     double x = 1.0;
     double Ax = 5.3890039e-09 * std::pow(temperatureCGS, 1.5) *
 		std::exp(-157821.45 / temperatureCGS) / densityCGS;
@@ -239,6 +271,25 @@ double H_ionization_fraction(const double densityCGS, const double temperatureCG
 // hydrogen dissociation fraction
 double H_dissociation_fraction(const double densityCGS, const double temperatureCGS)
 {
+
+    /// Compare Eq. 25 In Vaidya 2015 (DOI: 10.1051/0004-6361/201526247)
+
+    const double rho = densityCGS;
+    const double T = temperatureCGS;
+
+    const double m_H = constants::m_H.get_cgs_value();
+    const double m_e = constants::m_e.get_cgs_value();
+    const double eV = constants::eV.get_cgs_value();
+    const double h_bar = constants::h.get_cgs_value() / (2.0 * M_PI);
+    const double k_B = constants::k_B.get_cgs_value();
+
+    const double rhs_exponent = -4.48 * eV / k_B;
+    const double rhs_constant = m_H / (2.0 * xMF) *
+				std::pow(m_H * k_B / (4 * M_PI * h_bar * h_bar), 1.5);
+
+    printf("diss rhs_constant = %.5e %.5e (%.5e)\n", rhs_constant, 7.5035099e-05, 7.5035099e-05/rhs_constant-1);
+    printf("diss rhs_exponent = %.5e %.5e (%.5e)\n", rhs_exponent, -51988.24, -51988.24/rhs_exponent-1);
+
     double y = 1.0;
     double Ay = 7.5035099e-05 * std::pow(temperatureCGS, 1.5) *
 		std::exp(-51988.24 / temperatureCGS) / densityCGS;
