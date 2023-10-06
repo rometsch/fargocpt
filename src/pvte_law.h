@@ -50,7 +50,7 @@ double mean_molecular_weight(const double temperatureCGS,
 			     const double densityCGS);
 
 // energy contributions to the internal energy of the gas
-double gasEnergyContributions(const double xMF, const double x, const double y,
+double gasEnergyContributions(const double x, const double y,
 			      const double temperatureCGS);
 
 // effective adiabatic index to relate pressure and internal energy

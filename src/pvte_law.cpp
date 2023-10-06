@@ -13,9 +13,14 @@
 #include "logging.h"
 #include "parameters.h"
 #include "pvte_law.h"
+#include "units.h"
 
 namespace pvte
 {
+
+// hydrogen mass fraction xMF
+const double xMF = 0.75;
+
 // Ni = number of density gridpoints
 const int Ni = 1000;
 
@@ -53,6 +58,8 @@ std::vector<double> gamma1_table(Ni *Nj);
 std::vector<double> lnT(Nzeta);
 std::vector<double> funcdum(Nzeta);
 
+/// Function copied from PLUTO Source code (zeta_tables.c)
+/// PLUTO references D'Angelo, G. et al, ApJ 778 2013
 void makeZetaTables()
 {
 	const double dy = std::log(Tmax / Temp0) * (1. / (double)Nzeta);
@@ -119,6 +126,8 @@ void makeZetaTables()
 	}
 }
 
+/// Function copied from PLUTO Source code (zeta_tables.c)
+/// PLUTO references D'Angelo, G. et al, ApJ 778 2013
 double get_funcDum(double temperatureCGS)
 {
     const double y = std::log(temperatureCGS);
@@ -243,32 +252,54 @@ double H_dissociation_fraction(const double densityCGS, const double temperature
 double mean_molecular_weight(const double temperatureCGS,
 			     const double densityCGS)
 {
-    double xMF = 0.75;
-
-	double x = H_ionization_fraction(densityCGS, temperatureCGS);
-
-	double y = H_dissociation_fraction(densityCGS, temperatureCGS);
+    double x = H_ionization_fraction(densityCGS, temperatureCGS);
+    double y = H_dissociation_fraction(densityCGS, temperatureCGS);
 
     return 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
 }
 
 // energy contributions to the internal energy of the gas
-double gasEnergyContributions(const double xMF, const double x, const double y,
+double gasEnergyContributions(const double x, const double y,
 			      const double temperatureCGS)
 {
-    const double epsH2 = 0.5 * xMF * (1.0 - y) * get_funcDum(temperatureCGS);
-    const double epsHII = 157821.45 * xMF * x * y / temperatureCGS;
-    const double epsHH = 25994.12 * xMF * y / temperatureCGS;
-    const double epsHe = 0.375 * (1.0 - xMF);
+
+    const double T = temperatureCGS;
+
+    const double eV = constants::eV.get_cgs_value();
+
+
+    /// See Table 1. In Vaidya 2015 (DOI: 10.1051/0004-6361/201526247)
+
+    // Translational energy for hydrogen
     const double epsHI = 1.5 * xMF * (1.0 + x) * y;
+
+    // Translational energy for Helium
+    const double epsHe = 0.375 * (1.0 - xMF);
+
+    // Dissociation energy for molecular hydrogen
+    const double k_B = constants::k_B.get_cgs_value();
+    const double tmp = 4.48 * eV * xMF * y /(2.0 * k_B * T);
+    const double tmp2 = 4.48 * eV * xMF /(2.0 * k_B);
+
+    const double epsHH = 25994.12 * xMF * y / temperatureCGS;
+    printf("epsHH = %.5e %.5e (%.5e)\n", 25994.12 * xMF, tmp2, 25994.12 * xMF/tmp2-1.0);
+
+    // Ionization energy for atomic hydrogen
+    const double tmp3 = 13.60 * eV * xMF /(k_B);
+    const double tmp4 = 13.60 * eV * xMF * x * y /(k_B * T);
+    const double epsHII = 157821.45 * xMF * x * y / temperatureCGS;
+    printf("epsHII = %.5e %.5e (%.5e)\n", 157821.45 * xMF, tmp3, 157821.45 * xMF/tmp3-1.0);
+
+    // Internal energy for molecular hydrogen
+    const double epsH2 = 0.5 * xMF * (1.0 - y) * get_funcDum(temperatureCGS);
+
     return epsH2 + epsHII + epsHH + epsHe + epsHI;
+
 }
 
 // effective adiabatic index to relate pressure and internal energy
 double gamma_eff(const double temperatureCGS, const double densityCGS)
 {
-    // hydrogen mass fraction xMF
-    const double xMF = 0.75;
 
     // hydrogen ionization fraction x
 	const double x = H_ionization_fraction(densityCGS, temperatureCGS);
@@ -279,7 +310,7 @@ double gamma_eff(const double temperatureCGS, const double densityCGS)
     const double mu = mean_molecular_weight(temperatureCGS, densityCGS);
 
     const double gamma_eff =
-	1.0 + 1.0 / (mu * gasEnergyContributions(xMF, x, y, temperatureCGS));
+	1.0 + 1.0 / (mu * gasEnergyContributions(x, y, temperatureCGS));
 
     return gamma_eff;
 }
@@ -287,7 +318,6 @@ double gamma_eff(const double temperatureCGS, const double densityCGS)
 // first adiabatic index to calculate the speed of sound
 double gamma1(const double temperatureCGS, const double densityCGS)
 {
-    const double xMF = 0.75;
     const double epsilon = 1.0e-4;
     const double temperatureLeft = temperatureCGS * (1.0 - epsilon);
     const double temperatureRight = temperatureCGS * (1.0 + epsilon);
@@ -305,11 +335,11 @@ double gamma1(const double temperatureCGS, const double densityCGS)
 	const double yc = H_dissociation_fraction(densityCGS, temperatureCGS);
 
     // contributions to the internal energy
-    const double eps = gasEnergyContributions(xMF, xc, yc, temperatureCGS);
+    const double eps = gasEnergyContributions(xc, yc, temperatureCGS);
 
-    const double eL = (gasEnergyContributions(xMF, xL, yL, temperatureLeft)) *
+    const double eL = (gasEnergyContributions(xL, yL, temperatureLeft)) *
 		      temperatureLeft;
-    const double eR = (gasEnergyContributions(xMF, xR, yR, temperatureRight)) *
+    const double eR = (gasEnergyContributions(xR, yR, temperatureRight)) *
 		      temperatureRight;
     const double e = eps * temperatureCGS;
 
@@ -352,8 +382,6 @@ double gamma1(const double temperatureCGS, const double densityCGS)
 double gamma_mu_root(const double temperatureCGS, const double densityCGS,
 		     const double energyCGS)
 {
-    // hydrogen mass fraction xMF
-    const double xMF = 0.75;
 
     // hydrogen ionization fraction x
 	const double x = H_ionization_fraction(densityCGS, temperatureCGS);
@@ -364,7 +392,7 @@ double gamma_mu_root(const double temperatureCGS, const double densityCGS,
     const double mu = 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
 
     const double gamma =
-	1.0 + 1.0 / (mu * gasEnergyContributions(xMF, x, y, temperatureCGS));
+	1.0 + 1.0 / (mu * gasEnergyContributions(x, y, temperatureCGS));
 
 	const double kB = constants::k_B.get_cgs_value();
 	const double mp = llnlunits::constants::mp.value_as(llnlunits::precise::g);
