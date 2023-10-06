@@ -788,9 +788,6 @@ void calculate_qminus(t_data &data, const double current_time)
     for (unsigned int nr = 1; nr < Nr; ++nr) {
         for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
-        const double H =
-            data[t_data::SCALE_HEIGHT](nr, naz);
-
         const double Sigma =
             data[t_data::SIGMA](nr, naz);
 
@@ -802,14 +799,11 @@ void calculate_qminus(t_data &data, const double current_time)
             units::temperature.get_cgs_factor();
 	const double temperatureCGS = std::max(temperatureCGS_tmp, temperatureCGS_threshold);
 
-        const double densityCGS =
-            SigmaCGS / (parameters::density_factor * H * units::length.get_cgs_factor());
-
         const double rCGS = Rmed[nr] * units::length.get_cgs_factor();
 
         const double KCGS = 11.0 + 0.4 * std::log10(2.0e10/rCGS);
 
-        const double mu = pvte::mean_molecular_weight(temperatureCGS, densityCGS);
+	const double mu = pvte::get_mu(data, nr, naz);
 
         const double M = hydro_center_mass*units::mass.get_cgs_factor();
 
