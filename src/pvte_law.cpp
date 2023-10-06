@@ -307,10 +307,10 @@ double gasEnergyContributions(const double x, const double y,
     const double epsHH = 4.48 * eV * xMF * y /(2.0 * k_B * T);
 
     // Ionization energy for atomic hydrogen
-    const double epsHII = 13.60 * eV * xMF * x * y / temperatureCGS;
+    const double epsHII = 13.60 * eV * xMF * x * y / T;
 
     // Internal energy for molecular hydrogen
-    const double epsH2 = 0.5 * xMF * (1.0 - y) * get_funcDum(temperatureCGS);
+    const double epsH2 = 0.5 * xMF * (1.0 - y) * get_funcDum(T);
 
     return epsH2 + epsHII + epsHH + epsHe + epsHI;
 
