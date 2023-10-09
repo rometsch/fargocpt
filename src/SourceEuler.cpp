@@ -783,6 +783,11 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double SigmaCGS_threshold = 2.0;
 	const double temperatureCGS_threshold = 1200;
 
+	/// Switch constants to change from Ichikawa 1992 cooling
+	/// to Kimura 2020 cooling.
+	//const double F_hot_const = 23.405; // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
+	const double F_hot_const = 25.49; // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+
     /// Scruve cooling according to Ichikawa & Osaki (1992)
     /// See page 21 & 22 in https://articles.adsabs.harvard.edu/full/1992PASJ...44...15I
     #pragma omp parallel for collapse(2)
@@ -827,26 +832,29 @@ void calculate_qminus(t_data &data, const double current_time)
 
 	// Solve logFB = F_hot(T) for T
 	const double logTB_aux = std::log10(omega_keplerCGS)+ 2.0 * std::log10(SigmaCGS) +
-				 0.5 * std::log10(mu) + 25.49;
+				 0.5 * std::log10(mu) + F_hot_const;
 	const double logTB = (logFB + logTB_aux) / 8.0;
 	const double TB = std::pow(10.0, logTB);
 
         double logFtot;
 
         if (temperatureCGS < TA)
-        {
+	{
+	// F_cold
             logFtot = 9.49 * std::log10(temperatureCGS) + 0.62 *
                                                               std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS) -
                       0.31 * std::log10(mu) - 25.48;
         }
         else if (temperatureCGS > TB)
-        {
+	{
+	// F_hot
             logFtot = 8.0 * std::log10(temperatureCGS) -
                       std::log10(omega_keplerCGS) - 2.0 * std::log10(SigmaCGS) -
-                      0.5 * std::log10(mu)-25.49;
+		      0.5 * std::log10(mu) - F_hot_const;
         }
         else
         {
+	// F_intermediate
 	    logFtot = (logFA - logFB) * std::log10(temperatureCGS / TB)
 			  / std::log10(TA / TB) + logFB;
         }
