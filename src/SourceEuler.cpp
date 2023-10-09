@@ -830,7 +830,7 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double KCGS = 11.0 + 0.4 * std::log10(2.0e10/rCGS);
 	const double logFB = std::max(KCGS, logFA);
 
-	// Solve logFB = F_hot(T) for T
+	// Solve F_hot(T) = logFB for T
 	const double logTB_aux = std::log10(omega_keplerCGS)+ 2.0 * std::log10(SigmaCGS) +
 				 0.5 * std::log10(mu) + F_hot_const;
 	const double logTB = (logFB + logTB_aux) / 8.0;
