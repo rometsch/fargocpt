@@ -846,15 +846,8 @@ void calculate_qminus(t_data &data, const double current_time)
         }
         else
         {
-            if (FA < FB)
-            {
-                logFtot = (logFA - KCGS) * std::log10(temperatureCGS / TB) /
-                              std::log10(TA / TB) + KCGS;
-            }
-            else
-            {
-                logFtot = logFA;
-            }
+	    logFtot = (logFA - logFB) * std::log10(temperatureCGS / TB)
+			  / std::log10(TA / TB) + logFB;
         }
 
         double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_inverse_cgs_factor();
