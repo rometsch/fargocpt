@@ -784,7 +784,7 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double temperatureCGS_threshold = 1200;
 
     /// Scruve cooling according to Ichikawa & Osaki (1992)
-#pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2)
     for (unsigned int nr = 1; nr < Nr; ++nr) {
         for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
@@ -820,16 +820,15 @@ void calculate_qminus(t_data &data, const double current_time)
 					    - std::log10(sigma_sb_cgs));
 	const double TA = std::pow(10.0, logTA);
 
-        double FA = sigma_sb_cgs * std::pow(TA, 4);
-        double logFA = std::log10(FA);
+	const double FA = sigma_sb_cgs * std::pow(TA, 4);
+	const double logFA = std::log10(FA);
 
-	double logFB = std::max(KCGS, logFA);
+	const double logFB = std::max(KCGS, logFA);
 	const double logTB_aux = std::log10(omega_keplerCGS)+ 2.0 * std::log10(SigmaCGS) +
 				 0.5 * std::log10(mu) + 25.49;
 
-	double logTB = (logFB + logTB_aux) / 8.0;
-        double FB = std::pow(10.0, logFB);
-        double TB = std::pow(10.0, logTB);
+	const double logTB = (logFB + logTB_aux) / 8.0;
+	const double TB = std::pow(10.0, logTB);
 
         double logFtot;
 
