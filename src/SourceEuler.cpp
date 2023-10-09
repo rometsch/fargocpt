@@ -820,21 +820,13 @@ void calculate_qminus(t_data &data, const double current_time)
         double FA = sigma_sb_cgs * std::pow(TA, 4);
         double logFA = std::log10(FA);
 
-        double logFB = KCGS;
-        const double logTB_aux = 1.0/8.0 *
-                                     std::log10(omega_keplerCGS)+1.0/4.0 * std::log10(SigmaCGS) +
-                                 1.0/16.0 * std::log10(mu) + 25.49/8.0;
-        double logTB = 1.0/8.0 * logFB + logTB_aux;
+	double logFB = std::max(KCGS, logFA);
+	const double logTB_aux = std::log10(omega_keplerCGS)+ 2.0 * std::log10(SigmaCGS) +
+				 0.5 * std::log10(mu) + 25.49;
+
+	double logTB = (logFB + logTB_aux) / 8.0;
         double FB = std::pow(10.0, logFB);
         double TB = std::pow(10.0, logTB);
-
-        if (FA > FB)
-        {
-            FB = FA;
-            logFB = logFA;
-            logTB = 1.0/8.0 * logFB + logTB_aux;
-            TB = std::pow(10.0, logTB);
-        }
 
         double logFtot;
 
