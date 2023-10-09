@@ -813,9 +813,12 @@ void calculate_qminus(t_data &data, const double current_time)
 
         const double sigma_sb_cgs = constants::sigma.get_cgs_value();
 
-        const double logCA = 0.62 * std::log10(omega_keplerCGS) +
-                             1.62 * std::log10(SigmaCGS) - 0.31 * std::log10(mu) - 25.48;
-        const double TA = std::pow((std::pow(10.0,logCA)/sigma_sb_cgs),-1.0/5.49);
+	// Solve sigma T^4 = FA(T) for T
+	const double logTA = -1.0/5.49 * (0.62 * std::log10(omega_keplerCGS)
+					    + 1.62 * std::log10(SigmaCGS)
+					    - 0.31 * std::log10(mu) - 25.48
+					    - std::log10(sigma_sb_cgs));
+	const double TA = std::pow(10.0, logTA);
 
         double FA = sigma_sb_cgs * std::pow(TA, 4);
         double logFA = std::log10(FA);
