@@ -784,6 +784,7 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double temperatureCGS_threshold = 1200;
 
     /// Scruve cooling according to Ichikawa & Osaki (1992)
+    /// See page 21 & 22 in https://articles.adsabs.harvard.edu/full/1992PASJ...44...15I
     #pragma omp parallel for collapse(2)
     for (unsigned int nr = 1; nr < Nr; ++nr) {
         for (unsigned int naz = 0; naz < Nphi; ++naz) {
@@ -801,8 +802,6 @@ void calculate_qminus(t_data &data, const double current_time)
 
         const double rCGS = Rmed[nr] * units::length.get_cgs_factor();
 
-        const double KCGS = 11.0 + 0.4 * std::log10(2.0e10/rCGS);
-
 	const double mu = pvte::get_mu(data, nr, naz);
 
         const double M = hydro_center_mass*units::mass.get_cgs_factor();
@@ -813,7 +812,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
         const double sigma_sb_cgs = constants::sigma.get_cgs_value();
 
-	// Solve sigma T^4 = FA(T) for T
+	// Solve sigma T^4 = F_cool(T) for T
 	const double logTA = -1.0/5.49 * (0.62 * std::log10(omega_keplerCGS)
 					    + 1.62 * std::log10(SigmaCGS)
 					    - 0.31 * std::log10(mu) - 25.48
@@ -823,10 +822,12 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double FA = sigma_sb_cgs * std::pow(TA, 4);
 	const double logFA = std::log10(FA);
 
+	const double KCGS = 11.0 + 0.4 * std::log10(2.0e10/rCGS);
 	const double logFB = std::max(KCGS, logFA);
+
+	// Solve logFB = F_hot(T) for T
 	const double logTB_aux = std::log10(omega_keplerCGS)+ 2.0 * std::log10(SigmaCGS) +
 				 0.5 * std::log10(mu) + 25.49;
-
 	const double logTB = (logFB + logTB_aux) / 8.0;
 	const double TB = std::pow(10.0, logTB);
 
@@ -852,6 +853,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
         double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_inverse_cgs_factor();
 
+	// Scale with power law below theshold Temperature or Surface density
 	qminus_scurve *= std::pow((SigmaCGS_tmp / SigmaCGS), 0.5);
 	qminus_scurve *= std::pow(temperatureCGS_tmp / temperatureCGS, 2);
 
