@@ -797,8 +797,8 @@ void calculate_qminus(t_data &data, const double current_time)
         const double Sigma =
             data[t_data::SIGMA](nr, naz);
 
-        const double SigmaCGS_tmp = Sigma*units::surface_density.get_cgs_factor();
-	const double SigmaCGS = std::max(SigmaCGS_tmp, SigmaCGS_threshold);
+	const double SigmaCGS = Sigma*units::surface_density.get_cgs_factor();
+	const double SigmaCGS_tmp = std::max(SigmaCGS, SigmaCGS_threshold);
 
         const double temperatureCGS_tmp =
             data[t_data::TEMPERATURE](nr, naz) *
@@ -819,7 +819,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
 	// Solve sigma T^4 = F_cool(T) for T
 	const double logTA = -1.0/5.49 * (0.62 * std::log10(omega_keplerCGS)
-					    + 1.62 * std::log10(SigmaCGS)
+					    + 1.62 * std::log10(SigmaCGS_tmp)
 					    - 0.31 * std::log10(mu) - 25.48
 					    - std::log10(sigma_sb_cgs));
 	const double TA = std::pow(10.0, logTA);
@@ -831,7 +831,7 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double logFB = std::max(KCGS, logFA);
 
 	// Solve F_hot(T) = logFB for T
-	const double logTB_aux = std::log10(omega_keplerCGS)+ 2.0 * std::log10(SigmaCGS) +
+	const double logTB_aux = std::log10(omega_keplerCGS)+ 2.0 * std::log10(SigmaCGS_tmp) +
 				 0.5 * std::log10(mu) + F_hot_const;
 	const double logTB = (logFB + logTB_aux) / 8.0;
 	const double TB = std::pow(10.0, logTB);
@@ -842,14 +842,14 @@ void calculate_qminus(t_data &data, const double current_time)
 	{
 	// F_cold
             logFtot = 9.49 * std::log10(temperatureCGS) + 0.62 *
-                                                              std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS) -
+							      std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS_tmp) -
                       0.31 * std::log10(mu) - 25.48;
         }
         else if (temperatureCGS > TB)
 	{
 	// F_hot
             logFtot = 8.0 * std::log10(temperatureCGS) -
-                      std::log10(omega_keplerCGS) - 2.0 * std::log10(SigmaCGS) -
+		      std::log10(omega_keplerCGS) - 2.0 * std::log10(SigmaCGS_tmp) -
 		      0.5 * std::log10(mu) - F_hot_const;
         }
         else
@@ -862,7 +862,7 @@ void calculate_qminus(t_data &data, const double current_time)
         double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_inverse_cgs_factor();
 
 	// Scale with power law below theshold Temperature or Surface density
-	qminus_scurve *= std::pow((SigmaCGS_tmp / SigmaCGS), 0.5);
+	qminus_scurve *= std::pow((SigmaCGS / SigmaCGS_tmp), 0.5);
 	qminus_scurve *= std::pow(temperatureCGS_tmp / temperatureCGS, 2);
 
         data[t_data::QMINUS](nr, naz) += qminus_scurve;
