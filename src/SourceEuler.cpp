@@ -800,10 +800,10 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double SigmaCGS = Sigma*units::surface_density.get_cgs_factor();
 	const double SigmaCGS_tmp = std::max(SigmaCGS, SigmaCGS_threshold);
 
-        const double temperatureCGS_tmp =
+	const double temperatureCGS =
             data[t_data::TEMPERATURE](nr, naz) *
             units::temperature.get_cgs_factor();
-	const double temperatureCGS = std::max(temperatureCGS_tmp, temperatureCGS_threshold);
+	const double temperatureCGS_tmp = std::max(temperatureCGS, temperatureCGS_threshold);
 
         const double rCGS = Rmed[nr] * units::length.get_cgs_factor();
 
@@ -838,24 +838,24 @@ void calculate_qminus(t_data &data, const double current_time)
 
         double logFtot;
 
-        if (temperatureCGS < TA)
+	if (temperatureCGS_tmp < TA)
 	{
 	// F_cold
-            logFtot = 9.49 * std::log10(temperatureCGS) + 0.62 *
+	    logFtot = 9.49 * std::log10(temperatureCGS_tmp) + 0.62 *
 							      std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS_tmp) -
                       0.31 * std::log10(mu) - 25.48;
         }
-        else if (temperatureCGS > TB)
+	else if (temperatureCGS_tmp > TB)
 	{
 	// F_hot
-            logFtot = 8.0 * std::log10(temperatureCGS) -
+	    logFtot = 8.0 * std::log10(temperatureCGS_tmp) -
 		      std::log10(omega_keplerCGS) - 2.0 * std::log10(SigmaCGS_tmp) -
 		      0.5 * std::log10(mu) - F_hot_const;
         }
         else
         {
 	// F_intermediate
-	    logFtot = (logFA - logFB) * std::log10(temperatureCGS / TB)
+	    logFtot = (logFA - logFB) * std::log10(temperatureCGS_tmp / TB)
 			  / std::log10(TA / TB) + logFB;
         }
 
@@ -863,7 +863,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
 	// Scale with power law below theshold Temperature or Surface density
 	qminus_scurve *= std::pow((SigmaCGS / SigmaCGS_tmp), 0.5);
-	qminus_scurve *= std::pow(temperatureCGS_tmp / temperatureCGS, 2);
+	qminus_scurve *= std::pow(temperatureCGS / temperatureCGS_tmp, 2);
 
         data[t_data::QMINUS](nr, naz) += qminus_scurve;
 
