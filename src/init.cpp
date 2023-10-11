@@ -704,6 +704,12 @@ void init_shock_tube_test(t_data &data)
 
     // after all units have calculated, calculate constants in code units
     constants::calculate_constants_in_code_units();
+	constants::R.set_code_value(1.0);
+    constants::R.set_cgs_value(1.0);
+	constants::R.set_cgs_unit_symbol("1");
+	constants::G.set_code_value(1.0);
+    constants::G.set_cgs_value(1.0);
+	constants::G.set_cgs_unit_symbol("1");
 
     // set SigmaMed/SigmaInf
     compute_azi_avg_Sigma(data[t_data::SIGMA]);
@@ -796,6 +802,12 @@ void init_PVTE_shock_tube_test(t_data &data)
 
     // after all units have calculated, calculate constants in code units
     constants::calculate_constants_in_code_units();
+	constants::R.set_code_value(1.0);
+    constants::R.set_cgs_value(1.0);
+	constants::R.set_cgs_unit_symbol("1");
+	constants::G.set_code_value(1.0);
+    constants::G.set_cgs_value(1.0);
+	constants::G.set_cgs_unit_symbol("1");
 
 	compute_pressure(data);
 
