@@ -94,8 +94,8 @@ fig, axs = plt.subplots(3,1,figsize=(6,12))
 axs = np.ravel(axs)
 
 analytic(axs)
-test('../../shocktube/', 'Perfect Eos FARGO', 'black', dt)
-test('../../shocktube_varGamm/', 'Ideal Eos FARGO', 'darkblue', dt)
+test('../../output/shocktube/', 'Perfect Eos FARGO', 'black', dt)
+test('../../output/shocktube_varGamm/', 'Ideal Eos FARGO', 'darkblue', dt)
 
 
 for ind in range(len(quants)):
