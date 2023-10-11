@@ -613,7 +613,11 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
         {
 			logging::print_master(LOG_INFO
 				  "Using star dist alpha, scaling from %.3e to %.3e\n", parameters::alphaCold, parameters::alphaHot);
-        } else {
+	}  else if (parameters::AlphaMode == SCURVE_IONFRACTION)
+	{
+			logging::print_master(LOG_INFO
+			"Using interpolate alpha from %.3e to %.3e with 1000 * H2 ionisation fraction\n", parameters::alphaCold, parameters::alphaHot);
+	} else {
 			logging::print_master(LOG_INFO
 			      "Viscosity is of alpha type with alpha = %.3e\n",
 			      parameters::ALPHAVISCOSITY);

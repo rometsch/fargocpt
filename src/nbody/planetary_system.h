@@ -10,8 +10,6 @@ class t_planetary_system
   private:
     // list of all planets
     std::vector<t_planet *> m_planets;
-	pair m_shift_pos;
-	pair m_shift_vel;
 
   public:
     struct reb_simulation *m_rebound;
@@ -51,7 +49,6 @@ class t_planetary_system
 	double compute_hydro_frame_center_mass() const;
 	void apply_indirect_term_on_Nbody(const pair accel, const double dt);
 	void move_to_hydro_frame_center();
-	void move_to_hydro_frame_center_from_last_dt();
 
     void update_global_hydro_frame_center_mass();
     void calculate_orbital_elements();

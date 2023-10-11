@@ -67,6 +67,13 @@ extern t_constant _R;
 /// Stefan-Boltzmann constant
 extern t_constant sigma;
 
+/// electron volt
+extern t_constant eV;
+/// electron mass
+extern t_constant m_e;
+/// Hydrogen atom mass
+extern t_constant m_H;
+
 // _G and _R are always defined with _ and are linked to G and R with compilied
 // without NDEBUG otherswise to const double 1
 // #ifndef NDEBUG

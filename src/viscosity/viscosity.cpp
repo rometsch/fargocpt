@@ -35,8 +35,10 @@ namespace viscosity
 double get_alpha(const int nr, const int naz, t_data &data)
 {
 	switch (parameters::AlphaMode){
-        case CONST_ALPHA:
-			return parameters::ALPHAVISCOSITY;
+	case CONST_ALPHA:
+	{
+	return parameters::ALPHAVISCOSITY;
+	}
         case SCURVE_ALPHA:
         {
             const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
@@ -47,8 +49,8 @@ double get_alpha(const int nr, const int naz, t_data &data)
                                        (1.0-std::tanh((4.0-std::log10(temperatureCGS))/0.4)) + std::log10(alpha_cool));
             data[t_data::ALPHA](nr, naz) = alpha;
             return alpha;
-        }
-		case ALPHA_STAR_DIST_DEPENDEND:
+	}
+	case ALPHA_STAR_DIST_DEPENDEND:
 			{
 
 			static const unsigned int N_planets =
@@ -66,8 +68,8 @@ double get_alpha(const int nr, const int naz, t_data &data)
 				const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 				const double d = std::sqrt(dist_2);
 
-				const double dist_start = 0.4; // 8.0au
-				const double dist_end   = 0.9; // 18.0au
+				const double dist_start = 0.35; // 7.0au
+				const double dist_end   = 0.55; // 11.0au
 				const double scale_unbound = (d - dist_start)/(dist_end - dist_start);
 				const double scale = std::max(0.0, std::min(scale_unbound, 1.0));
 				const double alpha_new = parameters::alphaCold + (parameters::alphaHot-parameters::alphaCold)*scale;
@@ -75,9 +77,21 @@ double get_alpha(const int nr, const int naz, t_data &data)
 			}
 
 			return alpha;
-			}
-			
+			}		
+	case SCURVE_IONFRACTION:
+	{
+			const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature;
+			const double sigma = data[t_data::SIGMA](nr, naz);
+			const double scale_height = data[t_data::SCALE_HEIGHT](nr, naz);
+			const double densityCGS =
+			    sigma / (parameters::density_factor * scale_height) * units::density;
+			const double alpha = parameters::alphaCold +
+					     (parameters::alphaHot - parameters::alphaCold) *
+						 std::min( 1000.0 * pvte::H_ionization_fraction(densityCGS, temperatureCGS), 1.0);
+			return alpha;
 	}
+	}
+
 	return 0.0;
 }
 

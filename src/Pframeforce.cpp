@@ -145,7 +145,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-		const double dist_sm = std::sqrt(dist_2_sm);
+		volatile const double dist_sm = std::sqrt(dist_2_sm);
 		const double dist_3_sm = dist_sm * dist_2_sm;
 		const double inv_dist_3_sm = 1.0 / dist_3_sm;
 
@@ -233,7 +233,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-		const double dist_sm = std::sqrt(dist_2_sm);
+		volatile const double dist_sm = std::sqrt(dist_2_sm);
 		const double dist_3_sm = dist_sm * dist_2_sm;
 		const double inv_dist_3_sm = 1.0 / dist_3_sm;
 

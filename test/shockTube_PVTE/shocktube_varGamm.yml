@@ -158,22 +158,6 @@ RandomSigma: 'No'   # randomize sigma start values?
 RandomFactor: '0.1'   # randomize by +- 10%
 FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
-# particles
-
-IntegrateParticles: 'No'   # enable particle integrator [default = no]
-CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Adaptive   # Explicit, Adaptive, Semiimplicit and Implicit
-NumberOfParticles: '400002'   # number of particles [default = 0]
-ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]
-ParticleEccentricity: '0.03'   # particle maximum Eccentricity
-ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
-ParticleSurfaceDensitySlope: '0.5'   # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
-ParticleMinimumRadius: '0.4'   # [default = RMIN]
-ParticleMaximumRadius: '2.5'   # [default = RMAX]
-ParticleMinimumEscapeRadius: '0.4'   # [default = ParticleMinimumRadius]
-ParticleMaximumEscapeRadius: '2.5'   # [default = ParticleMaximumRadius]
-ParticleGasDragEnabled: 'yes'   # [default = YES]
-ParticleDiskGravityEnabled: 'no'   # [default = no]
 nbody:
 - name: DefaultStar
   semi-major axis: 0.0 au

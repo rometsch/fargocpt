@@ -40,7 +40,7 @@ std::string snapshot_dir = "";
 std::string last_snapshot_dir = "";
 std::string outdir = "";
 
-const std::map<const std::string, const int> quantities_file_column_v2_4 = {
+const std::map<const std::string, const int> quantities_file_column_v2_5 = {
     {"time step", 0},
     {"analysis time step", 1},
     {"physical time", 2},
@@ -71,9 +71,15 @@ const std::map<const std::string, const int> quantities_file_column_v2_4 = {
 	{"indirect term nbody x", 27},
 	{"indirect term nbody y", 28},
 	{"indirect term disk x", 29},
-	{"indirect term disk y", 30}
+	{"indirect term disk y", 30},
+	{"frame angle", 31},
+	{"disk eccentricity", 32},
+	{"disk periastron", 33},
+	{"advection torque", 34},
+	{"viscous torque", 35},
+	{"gravitational torque", 36}
 	};
-static const auto quantities_file_column = quantities_file_column_v2_4;
+static const auto quantities_file_column = quantities_file_column_v2_5;
 
 const std::map<const std::string, const std::string> quantities_file_variables =
 	{{"physical time", "time"},
@@ -107,11 +113,16 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 	{"frame angle", "frequency"},
 	{"eccentricity", "1"},
 	{"periastron", "1"},
+	{"disk eccentricity", "1"},
+	{"disk periastron", "1"},
 	{"aspect ratio", "1"},
 	{"indirect term nbody x", "acceleration"},
 	{"indirect term nbody y", "acceleration"},
 	{"indirect term disk x", "acceleration"},
-	{"indirect term disk y", "acceleration"}};
+	{"indirect term disk y", "acceleration"},
+	{"advection torque", "torque"},
+	{"viscous torque", "torque"},
+	{"gravitational torque", "torque"}};
 
 
 void check_free_space(t_data &data)
@@ -370,20 +381,20 @@ void write_quantities(t_data &data, bool force_update)
 	quantities_limit_radius = parameters::quantities_radius_limit;
     }
 
+    double disk_eccentricity;
+    double disk_periastron;
+    quantities::calculate_disk_ecc_peri(data, disk_eccentricity, disk_periastron, force_update);
+
     const auto disk_quantities = reduce_disk_quantities(
-	data, sim::N_snapshot, force_update, quantities_limit_radius);
-    const double disk_eccentricity = disk_quantities[0];
-    const double disk_periastron = disk_quantities[1];
+	data, quantities_limit_radius);
+    const double average_eccentricity = disk_quantities[0];
+    const double average_periastron = disk_quantities[1];
 
     // computate absolute deviation from start values (this has to be done on
     // all nodes!)
 
     const double totalMass =
 	quantities::gas_total_mass(data, quantities_limit_radius);
-
-    if (totalMass <= 0.0) { // If roche lobe is smaller than RMIN
-	quantities::gas_total_mass(data, RMAX);
-    }
 
     const double diskRadius = quantities::gas_disk_radius(data, totalMass);
     const double totalAngularMomentum =
@@ -401,6 +412,12 @@ void write_quantities(t_data &data, bool force_update)
     const double azimuthalKinematicEnergy =
 	quantities::gas_azimuthal_kinematic_energy(data,
 						   quantities_limit_radius);
+
+    double tadv;
+    double tvisc;
+    double tgrav;
+    quantities::CalculateMonitorQuantitiesForOutput(data, tadv, tvisc, tgrav,
+						    quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data, sim::PhysicalTime);
@@ -454,11 +471,11 @@ void write_quantities(t_data &data, bool force_update)
 	// print to logfile
 	fprintf(
 	    fd,
-		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 	    sim::N_snapshot, sim::N_monitor, sim::PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
-	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
+	    azimuthalKinematicEnergy, average_eccentricity, average_periastron, qplus,
 	    qminus, pdivv_total, 
 		InnerBoundaryInflow, InnerBoundaryOutflow, 
 		OuterBoundaryInflow, OuterBoundaryOutflow, 
@@ -469,7 +486,13 @@ void write_quantities(t_data &data, bool force_update)
 		refframe::IndirectTermPlanets.x,
 		refframe::IndirectTermPlanets.y,
 		refframe::IndirectTermDisk.x,
-		refframe::IndirectTermDisk.y
+		refframe::IndirectTermDisk.y,
+		refframe::FrameAngle,
+		disk_eccentricity,
+		disk_periastron,
+		tadv,
+		tvisc,
+		tgrav
 		);
 
 	// close file
@@ -760,21 +783,16 @@ void write_1D_info(t_data &data)
 	Calculates eccentricity, semi major axis and periastron averaged with
    the radial cells
 */
-std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update,
+std::vector<double> reduce_disk_quantities(t_data &data,
 					   const double quantitiy_radius)
 {
     double local_eccentricity = 0.0;
     double disk_eccentricity = 0.0;
 	double local_mass = 0.0;
 	double global_mass = 0.0;
-    // double semi_major_axis = 0.0;
-    // double local_semi_major_axis = 0.0;
     double periastron = 0.0;
     double local_periastron = 0.0;
 
-    // calculate eccentricity, semi_major_axis and periastron grid
-	quantities::calculate_disk_ecc_peri(data, timestep, force_update);
 
     // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
     // they would be included twice!)
@@ -790,9 +808,6 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
 			data[t_data::ECCENTRICITY](nr, naz) *
 			cell_mass;
 
-		// local_semi_major_axis +=
-		// data[t_data::SEMI_MAJOR_AXIS](n_radial, n_azimuthal) *
-		// local_mass;
 		local_periastron +=
 			data[t_data::PERIASTRON](nr, naz) *
 			cell_mass;
@@ -803,8 +818,7 @@ std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
     // synchronize threads
     MPI_Reduce(&local_eccentricity, &disk_eccentricity, 1, MPI_DOUBLE, MPI_SUM,
 	       0, MPI_COMM_WORLD);
-    // MPI_Allreduce(&local_semi_major_axis, &semi_major_axis, 1, MPI_DOUBLE,
-    // MPI_SUM, MPI_COMM_WORLD);
+
     MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0,
 	       MPI_COMM_WORLD);
 
