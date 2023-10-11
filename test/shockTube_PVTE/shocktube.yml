@@ -84,6 +84,15 @@ Transport: FARGO
 
 InnerBoundary: RIGID
 OuterBoundary: RIGID
+BoundarySigmainner: zerogradient
+BoundarySigmaouter: zerogradient
+BoundaryEnergyinner: zerogradient
+BoundaryEnergyouter: zerogradient
+BoundaryVradinner: reflective
+BoundaryVradouter: reflective
+BoundaryVazinner: keplerian
+BoundaryVazouter: keplerian
+
 DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
 Damping: 'No'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
