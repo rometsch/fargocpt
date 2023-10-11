@@ -10,7 +10,7 @@
 	\param grid 2D grid
 	\param array 1D array
 */
-void mpi_make1Dprofile(double *grid, double *array)
+void mpi_make1Dprofile(double *src, double *dst)
 {
     MPI_Request req;
     unsigned int nRadial, nAzimuthal, cell;
@@ -36,7 +36,7 @@ void mpi_make1Dprofile(double *grid, double *array)
     for (nRadial = Zero_or_active; nRadial < Max_or_active; nRadial++) {
 	for (nAzimuthal = 0; nAzimuthal < NAzimuthal; nAzimuthal++) {
 	    cell = nRadial * NAzimuthal + nAzimuthal;
-	    tempArray[nRadial] += grid[cell];
+	    tempArray[nRadial] += src[cell];
 	}
 	tempArray[nRadial] /= (double)NAzimuthal;
     }
@@ -44,7 +44,7 @@ void mpi_make1Dprofile(double *grid, double *array)
     /* if only 1 CPU is calculating everything is easy :) */
     if (CPU_Number == 1) {
 	for (nRadial = 0; nRadial < GlobalNRadial; nRadial++)
-	    array[nRadial] = tempArray[nRadial];
+	    dst[nRadial] = tempArray[nRadial];
 
 	/* if more than 1 cpu... */
     } else if (CPU_Number > 1) {
@@ -52,25 +52,25 @@ void mpi_make1Dprofile(double *grid, double *array)
 	    /* first cpu initializes array and put its data in */
 	    for (nRadial = 0; nRadial < GlobalNRadial; nRadial++) {
 		if (nRadial < Max_or_active)
-		    array[nRadial] = tempArray[nRadial];
+		    dst[nRadial] = tempArray[nRadial];
 		else
-		    array[nRadial] = 0.;
+		    dst[nRadial] = 0.;
 	    }
 	    /* send it to next cpu */
-	    MPI_Isend(array, GlobalNRadial, MPI_DOUBLE, CPU_Next, 0,
+	    MPI_Isend(dst, GlobalNRadial, MPI_DOUBLE, CPU_Next, 0,
 		      MPI_COMM_WORLD, &req);
 	    MPI_Wait(&req, &global_MPI_Status);
 	} else if (CPU_Rank != 0) {
 	    /* wait for data from previous cpu */
-	    MPI_Irecv(array, GlobalNRadial, MPI_DOUBLE, CPU_Prev, 0,
+	    MPI_Irecv(dst, GlobalNRadial, MPI_DOUBLE, CPU_Prev, 0,
 		      MPI_COMM_WORLD, &req);
 	    MPI_Wait(&req, &global_MPI_Status);
 	    /* add local data */
 	    for (nRadial = Zero_or_active; nRadial < Max_or_active; nRadial++)
-		array[nRadial + IMIN] = tempArray[nRadial];
+		dst[nRadial + IMIN] = tempArray[nRadial];
 	    /* send it to next cpu */
 	    if (CPU_Rank != CPU_Highest) {
-		MPI_Isend(array, GlobalNRadial, MPI_DOUBLE, CPU_Next, 0,
+		MPI_Isend(dst, GlobalNRadial, MPI_DOUBLE, CPU_Next, 0,
 			  MPI_COMM_WORLD, &req);
 		MPI_Wait(&req, &global_MPI_Status);
 	    }
@@ -80,7 +80,7 @@ void mpi_make1Dprofile(double *grid, double *array)
 	// MPI_Barrier(MPI_COMM_WORLD);
 
 	/* highest cpu has correct array, so broadcast to everyone */
-	MPI_Bcast(array, GlobalNRadial, MPI_DOUBLE, CPU_Highest,
+	MPI_Bcast(dst, GlobalNRadial, MPI_DOUBLE, CPU_Highest,
 		  MPI_COMM_WORLD);
     }
 
