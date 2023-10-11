@@ -75,7 +75,7 @@ static double mean_molecular_weight(const double temperatureCGS,
     return 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
 }
 
-/// Function copied from PLUTO Source code (zeta_tables.c)
+/// Function adapted from PLUTO Source code (Src/EOS/PVTE/zeta_tables.c) released under GPL License.
 /// PLUTO references D'Angelo, G. et al, ApJ 778 2013
 static double get_funcDum(double temperatureCGS)
 {
