@@ -44,9 +44,6 @@ void write_snapshot_time();
 void write_monitor_time();
 
 
-std::vector<double> reduce_disk_quantities(t_data &data,
-					   const double quantitiy_radius);
-
 int load_misc();
 std::string get_version(std::string filename);
 std::string text_file_variable_description(
