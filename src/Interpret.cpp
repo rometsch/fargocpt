@@ -469,7 +469,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    parameters::Adiabatic = true;
 	    parameters::variableGamma = true;
 
-	    parameters::hydrogenMassFraction = cfg.get<int>("HydrogenMassFraction", 0.75);
+	    parameters::hydrogenMassFraction = cfg.get<double>("HydrogenMassFraction", 0.75);
 
 
 	    char ADIABATICINDEX_string[512];
