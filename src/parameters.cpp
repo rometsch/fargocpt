@@ -61,6 +61,8 @@ bool Polytropic = false;
 bool Locally_Isothermal = false;
 
 bool variableGamma = false;
+double hydrogenMassFraction;
+
 
 t_radial_grid radial_grid_type;
 const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",

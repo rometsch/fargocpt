@@ -469,6 +469,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    parameters::Adiabatic = true;
 	    parameters::variableGamma = true;
 
+	    parameters::hydrogenMassFraction = cfg.get<int>("HydrogenMassFraction", 0.75);
+
+
 	    char ADIABATICINDEX_string[512];
 	    strncpy(
 		ADIABATICINDEX_string,
@@ -497,8 +500,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    }
 	    logging::print_master(
 		LOG_INFO
-		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g!\n",
-		parameters::ADIABATICINDEX);
+		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g, HydrogenMassFraction = %g!\n",
+		parameters::ADIABATICINDEX, parameters::hydrogenMassFraction);
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||

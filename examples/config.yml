@@ -138,6 +138,7 @@ ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Ne
 
 EquationOfState: isothermal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+HydrogenMassFraction: 0.75 # needed for PVTE law, the rest of the mass is assumed to be helium
 
 ## Radiation transport
 CoolingRadiativeLocal: Yes   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
