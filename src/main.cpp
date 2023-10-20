@@ -105,7 +105,6 @@ int main(int argc, char *argv[])
 
     // Here planets are initialized feeling star potential
     data.get_planetary_system().init_system(options::parameter_file);
-	quantities::state_disk_ecc_peri_calculation_center(data);
 	data.get_massflow_tracker().init(data.get_planetary_system());
     init_binary_quadropole_moment(data.get_planetary_system());
 

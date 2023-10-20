@@ -480,12 +480,20 @@ double gas_azimuthal_kinematic_energy(t_data &data,
     return global_kinematic_energy;
 }
 
-static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int num_planets_for_center)
-{
+void calculate_disk_ecc_vector(t_data &data, unsigned int timestep,
+					     bool force_update){
 
-	const double cms_mass = data.get_planetary_system().get_mass(num_planets_for_center);
-	const Pair cms_pos = data.get_planetary_system().get_center_of_mass(num_planets_for_center);
-	const Pair cms_vel = data.get_planetary_system().get_center_of_mass_velocity(num_planets_for_center);
+
+    static int last_timestep_calculated = -1;
+    if (!force_update) {
+	if (last_timestep_calculated == (int)timestep) {
+	    return;
+	} else {
+	    last_timestep_calculated = timestep;
+	}
+    }
+
+	const double cms_mass = hydro_center_mass;
 
 	const t_polargrid &density = data[t_data::SIGMA];
 	const t_polargrid &vr = data[t_data::V_RADIAL];
@@ -506,19 +514,19 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 
 		// location of the cell
 		const double angle = (double)naz * dphi;
-		const double r_x = Rmed[nr] * std::cos(angle) - cms_pos.x;
-		const double r_y = Rmed[nr] * std::sin(angle) - cms_pos.y;
+		const double r_x = Rmed[nr] * std::cos(angle);
+		const double r_y = Rmed[nr] * std::sin(angle);
 		const double dist = std::sqrt(r_x*r_x + r_y*r_y);
 
 		// averaged velocities
 		const double v_xmed =
 		std::cos(angle) * 0.5 *	(vr(nr, naz) + vr(nr + 1, naz))
 		- std::sin(angle) *	(0.5 * (vphi(nr, naz) + vphi(nr, naz_next))
-							 + refframe::OmegaFrame * Rmed[nr]) - cms_vel.x;
+							 + refframe::OmegaFrame * Rmed[nr]);
 		const double v_ymed =
 		std::sin(angle) * 0.5 *	(vr(nr, naz) + vr(nr + 1, naz)) +
 		std::cos(angle) * (0.5 * (vphi(nr, naz) + vphi(nr, naz_next)) +
-			 refframe::OmegaFrame * Rmed[nr]) - cms_vel.y;
+			 refframe::OmegaFrame * Rmed[nr]);
 
 		// specific angular momentum for each cell j = j*e_z
 		const double j = r_x * v_ymed - r_y * v_xmed;
@@ -527,8 +535,6 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 		j * v_ymed / (constants::G * total_mass) - r_x / dist;
 		const double e_y = -1.0 * j * v_xmed / (constants::G * total_mass) -
 		  r_y / dist;
-
-		data[t_data::ECCENTRICITY](nr, naz) = std::sqrt(std::pow(e_x, 2) + std::pow(e_y, 2));
 
 		// periastron grid is rotated to non-rotating coordinate system
 		// to prevent phase jumps of atan2 in later transformations like
@@ -540,65 +546,8 @@ static void calculate_disk_ecc_vector_worker(t_data &data, const unsigned int nu
 		data[t_data::ECCENTRICITY_X](nr, naz) = e_x_frame;
 		data[t_data::ECCENTRICITY_Y](nr, naz) = e_y_frame;
 
-		data[t_data::PERIASTRON](nr, naz) =
-			std::atan2(e_y_frame, e_x_frame);
-
 	}
 
-	}
-}
-
-void calculate_disk_ecc_vector(t_data &data, unsigned int timestep,
-			       bool force_update){
-
-
-	static int last_timestep_calculated = -1;
-	if (!force_update) {
-	if (last_timestep_calculated == (int)timestep) {
-		return;
-	} else {
-		last_timestep_calculated = timestep;
-	}
-	}
-
-	int n_bodies_for_cms;
-	if(parameters::n_bodies_for_hydroframe_center == 1){
-		if(data.get_planetary_system().get_number_of_planets() > 1){
-			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
-			if(data.get_planetary_system().get_planet(1).get_semi_major_axis()*15.0 > RMAX || parameters::quantities_radius_limit < data.get_planetary_system().get_planet(1).get_semi_major_axis()){
-				n_bodies_for_cms = parameters::n_bodies_for_hydroframe_center;
-			} else {
-				// We are looking at a circumbinary (or more Nbodies) disk
-				n_bodies_for_cms = data.get_planetary_system().get_number_of_planets();
-			}
-		} else {
-			// We only have a star, compute ecc around primary
-			n_bodies_for_cms = parameters::n_bodies_for_hydroframe_center;
-		}
-	} else {
-		// If we have multiple objects as hydro center, always compute eccentricity around hydro center
-		n_bodies_for_cms = parameters::n_bodies_for_hydroframe_center;
-	}
-	calculate_disk_ecc_vector_worker(data, n_bodies_for_cms);
-
-}
-
-void state_disk_ecc_peri_calculation_center(t_data &data){
-	if(parameters::n_bodies_for_hydroframe_center == 1){
-		if(data.get_planetary_system().get_number_of_planets() > 1){
-			// Binary has effects out to ~ 15 abin, if that is not inside the domain, compute ecc around primary
-			if(data.get_planetary_system().get_planet(1).get_semi_major_axis()*15.0 > RMAX || parameters::quantities_radius_limit < data.get_planetary_system().get_planet(1).get_semi_major_axis()){
-				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (primary) center!\n");
-			} else {
-				logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the center of mass of the Nbody system!\n");
-			}
-		} else {
-			// We only have a star, compute ecc around primary
-			logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (primary) center!\n");
-		}
-	} else {
-		// If we have multiple objects as hydro center, always compute eccentricity around hydro center
-		logging::print_master(LOG_INFO "Computing eccentricity / pericenter with respect to the hydro frame (Nbody) center!\n");
 	}
 }
 

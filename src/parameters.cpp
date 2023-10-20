@@ -519,8 +519,6 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("WriteViscosity", false), do_write_1D);
     data[t_data::DIV_V].set_write(
 	config::cfg.get_flag("WriteDivV", false), do_write_1D);
-    data[t_data::ECCENTRICITY].set_write(
-	config::cfg.get_flag("WriteEccentricity", false), do_write_1D);
     data[t_data::T_REYNOLDS].set_write(
 	config::cfg.get_flag("WriteTReynolds", false), do_write_1D);
     data[t_data::T_GRAVITATIONAL].set_write(
