@@ -406,6 +406,9 @@ static void read_radiative_cooling_config(){
 
 static void read_opacity_config(){
 
+    units::precise_unit L0 = units::L0;
+    units::precise_unit M0 = units::M0;
+
     switch (config::cfg.get_first_letter_lowercase("Opacity", "Lin")) {
     case 'l': // Lin
 	opacity = opacity_lin;
@@ -444,6 +447,10 @@ static void read_scurve_config(){
 }
 
 static void read_radiative_diffusion_config(){
+
+    units::precise_unit L0 = units::L0;
+    units::precise_unit M0 = units::M0;
+
     radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
     radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
@@ -459,6 +466,8 @@ static void read_radiative_diffusion_config(){
 }
 
 static void read_cooling_legacy(){
+
+    units::precise_unit T0 = units::T0;
 
     radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "no");
     read_radiative_diffusion_config();

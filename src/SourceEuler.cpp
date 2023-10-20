@@ -694,6 +694,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		if(parameters::cooling_beta_floor){
 		    const double Tmin = parameters::minimum_temperature;
 		    const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
+		    const double mu = pvte::get_mu(data, nr, naz);
 		    const double minimum_energy = Tmin *
 						  data[t_data::SIGMA](nr, naz) / mu *
 						  constants::R / (gamma_eff - 1.0);
