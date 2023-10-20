@@ -2,22 +2,31 @@
 
 FargoCPT is a two-dimensional hydrodynamics + Nbody + particles code that is used to simulate protoplanetary disks with embedded planets and dust particles.
 
-This code supports Linux and MacOS and is written in C++ using MPI and OpenMP for parallelization.
+This code supports Linux (it runs in GitHub Codespaces!) and MacOS and is written in C++ using MPI and OpenMP for parallelization.
 
 ## Quickstart
 
-The easiest way to get started is to clone the last commit of the repository
-``` bash
-git clone https://github.com/rometsch/fargocpt --depth 1
-```
-and then to go through the Jupyter notebook located at [examples/100_Quickstart.ipynb](https://github.com/rometsch/fargocpt/blob/master/examples/100_Quickstart.ipynb).
-This notebook will guide you through 
+The easiest way to run a simulation using FargoCPT is to launch a **codespace** from this repository.
+To do this
+1) Click the green Code button, and launch a codespace.
+2) Wait a while (some minutes) until the codespace is generated.
+3) Wait bit longer until the code is compiled (this should happen automatically).
+4) Navigate to the Jupyter notebook located at [examples/100_Quickstart.ipynb](https://github.com/rometsch/fargocpt/blob/master/examples/100_Quickstart.ipynb).
+5) Go through the notebook step by step.
+
+This notebook will guide you through
 - how to build the code,
 - how to run a simulation, 
 - describe the output structure 
 - how to plot some results.
-
 After completing this notebook, you likely know enough to run and analyze your own experiments.
+
+## Running locally
+
+To run locally on your computer, clone the last commit of the repository
+``` bash
+git clone https://github.com/rometsch/fargocpt --depth 1
+```
 
 ## Description
 
