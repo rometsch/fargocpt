@@ -358,9 +358,6 @@ extern double kappa_const;
 extern bool initialize_pure_keplerian;
 extern bool initialize_vradial_zero;
 
-extern unsigned int zbuffer_size;
-extern double zbuffer_maxangle;
-
 /// boundary layer parameters
 extern double radial_viscosity_factor;
 extern double vrad_fraction_of_kepler;

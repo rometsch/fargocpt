@@ -235,9 +235,6 @@ double klahr_smoothing_radius;
 
 double visc_accret_massflow_test;
 
-unsigned int zbuffer_size;
-double zbuffer_maxangle;
-
 double CFL;
 double CFL_max_var;
 double HEATING_COOLING_CFL_LIMIT;
@@ -943,10 +940,6 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get_flag("HeatingViscous", "No");
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
-
-    zbuffer_size = config::cfg.get<unsigned int>("zbufferSize", 100);
-    zbuffer_maxangle =
-	config::cfg.get<double>("zbufferMaxAngle", 10.0 / 180.0 * M_PI);
 
     cooling_radiative_enabled = false;
     cooling_beta_enabled = false;
