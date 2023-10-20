@@ -77,7 +77,8 @@ t_planet::t_planet()
     m_vx = 0.0;
     m_vy = 0.0;
 
-    m_acc = 0.0;
+    m_accretion_efficiency = 0.0;
+    m_accretion_type = 0;
     m_accreted_mass = 0.0;
     m_name = "";
 
@@ -109,7 +110,7 @@ void t_planet::print()
     std::cout << "Name: " << m_name << "\n";
     std::cout << "(x, y): (" << m_x << ", " << m_y << "\n";
     std::cout << "(vx, vy): (" << m_vx << ", " << m_vy << "\n";
-    std::cout << "Accretion: " << m_acc << "\n";
+    std::cout << "Accretion: " << m_accretion_efficiency << "\n";
     std::cout << "Accreted mass: " << m_accreted_mass << "\n";
 
     std::cout << "Temperature: " << m_temperature << "\n";
@@ -375,7 +376,7 @@ void t_planet::write_binary(const std::string &filename) const
     pl.m_vx = m_vx;
     pl.m_vy = m_vy;
 
-    pl.m_acc = m_acc;
+    pl.m_acc = m_accretion_efficiency;
     pl.m_accreted_mass = m_accreted_mass;
     pl.m_planet_number = m_planet_number;
     pl.m_temperature = m_temperature;
