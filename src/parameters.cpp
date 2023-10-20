@@ -99,6 +99,7 @@ double cooling_beta_ramp_up;
 double cooling_beta;
 bool cooling_beta_initial;
 bool cooling_beta_aspect_ratio;
+bool cooling_beta_floor;
 
 bool cooling_scurve_enabled;
 
@@ -1463,7 +1464,7 @@ void summarize_parameters()
 	heating_viscous_factor);
 	logging::print_master(LOG_INFO "Cooling (beta) is %s and reference temperature is %s. Using beta = %g.\n",
 			  cooling_beta_enabled ? "enabled" : "disabled",
-			  cooling_beta_initial ? "the initial value" : "zero",
+			  cooling_beta_initial ? "the initial value" : cooling_beta_floor ? "floor" : "zero",
 			  cooling_beta);
 
     logging::print_master(

@@ -691,6 +691,14 @@ void calculate_qminus(t_data &data, const double current_time)
 			constants::G * hydro_center_mass * sigma;
 		    delta_E -= E0;
 		}
+		if(parameters::cooling_beta_floor){
+		    const double Tmin = parameters::minimum_temperature;
+		    const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
+		    const double minimum_energy = Tmin *
+						  data[t_data::SIGMA](nr, naz) / mu *
+						  constants::R / (gamma_eff - 1.0);
+		    delta_E -= minimum_energy;
+		}
 		const double qminus = delta_E * omega_k * beta_inv;
 
 
