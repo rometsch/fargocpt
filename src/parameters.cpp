@@ -952,7 +952,7 @@ void read(const std::string &filename, t_data &data)
     cooling_beta_enabled = false;
     cooling_scurve_enabled = false;
     radiative_diffusion_enabled =  false;
-    switch (config::cfg.get_first_letter_lowercase("Cooling", "radiative")) {
+    switch (config::cfg.get_first_letter_lowercase("Cooling", "legacy")) {
     case 'r': { // radiative
 	cooling_radiative_enabled = true;
 	read_radiative_cooling_config();
