@@ -1,5 +1,6 @@
 numpy
 matplotlib
+ipympl
 ruamel.yaml
 astropy
 git+https://github.com/rometsch/disgrid
