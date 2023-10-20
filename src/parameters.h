@@ -143,6 +143,7 @@ extern bool cooling_beta_aspect_ratio;
 extern bool cooling_beta_floor;
 /// local Scurve cooling enabled
 extern bool cooling_scurve_enabled;
+extern bool cooling_scurve_type;
 
 
 

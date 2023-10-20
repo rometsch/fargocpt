@@ -789,10 +789,13 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double SigmaCGS_threshold = 2.0;
 	const double temperatureCGS_threshold = 1200;
 
-	/// Switch constants to change from Ichikawa 1992 cooling
-	/// to Kimura 2020 cooling.
-	//const double F_hot_const = 23.405; // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
-	const double F_hot_const = 25.49; // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+	double F_hot_const;
+	if(parameters::cooling_scurve_type){
+	    F_hot_const = 23.405; // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
+	} else {
+	    F_hot_const = 25.49; // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+	}
+
 
     /// Scruve cooling according to Ichikawa & Osaki (1992)
     /// See page 21 & 22 in https://articles.adsabs.harvard.edu/full/1992PASJ...44...15I

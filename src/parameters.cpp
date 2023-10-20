@@ -102,7 +102,7 @@ bool cooling_beta_aspect_ratio;
 bool cooling_beta_floor;
 
 bool cooling_scurve_enabled;
-
+bool cooling_scurve_type;
 
 bool radiative_diffusion_enabled;
 double radiative_diffusion_omega;
@@ -398,6 +398,134 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
     return boundary_condition;
 
 }
+
+static void read_radiative_cooling_config(){
+    cooling_radiative_factor =
+	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
+}
+
+static void read_opacity_config(){
+
+    switch (config::cfg.get_first_letter_lowercase("Opacity", "Lin")) {
+    case 'l': // Lin
+	opacity = opacity_lin;
+	break;
+    case 'b': // Bell
+	opacity = opacity_bell;
+	break;
+    case 'c': // Constant
+	opacity = opacity_const_op;
+	// TODO: analyze situation that opacities are in cgs
+	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
+	break;
+    case 's': // simple, see Gennaro D'Angelo et al. 2003
+	opacity = opacity_simple;
+	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
+	break;
+    default:
+	die("Invalid setting for Opacity: %s",
+	    config::cfg.get<std::string>("Opacity", "Lin").c_str());
+    }
+}
+
+static void read_scurve_config(){
+
+    switch (config::cfg.get_first_letter_lowercase("ScurveType", "Kimura")) {
+    case 'k': // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
+	cooling_scurve_type = true;
+	break;
+    case 'i': // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+	cooling_scurve_type = false;
+	break;
+    default:
+	die("Invalid setting for scurve cooling: %s",
+	    config::cfg.get<std::string>("ScurveType", "Kimura").c_str());
+    }
+}
+
+static void read_radiative_diffusion_config(){
+    radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
+    radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
+    radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
+    radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
+
+    radiative_diffusion_test_2d_K = config::cfg.get<double>("RadiativeDiffusionTest2DK", 1.0);
+    radiative_diffusion_test_2d_steps = config::cfg.get<unsigned int>("RadiativeDiffusionTest2DSteps", 1);
+    radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
+    radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
+    radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
+    radiative_diffusion_dump_data = config::cfg.get_flag("RadiativeDiffusionDumpData", "no");
+    radiative_diffusion_check_solution = config::cfg.get_flag("RadiativeDiffusionCheckSolution", "no");
+}
+
+static void read_cooling_legacy(){
+
+    radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "no");
+    read_radiative_diffusion_config();
+
+    cooling_radiative_factor =
+	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
+    cooling_radiative_enabled =
+	config::cfg.get_flag("CoolingRadiativeLocal", "no");
+    cooling_beta_enabled =
+	config::cfg.get_flag("CoolingBetaLocal", "no");
+    cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
+    cooling_beta_ramp_up =
+	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+    cooling_scurve_enabled =
+	config::cfg.get_flag("CoolingScurve", "no");
+    cooling_scurve_type = false;
+
+    cooling_beta_aspect_ratio = false;
+    cooling_beta_initial = false;
+    switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Zero")) {
+    case 'z': // zero
+	break;
+    case 'i': // Initial
+	cooling_beta_initial = true;
+	break;
+    case 'a': // AspectRatio
+	cooling_beta_aspect_ratio = true;
+	die("Not implemented yet: CoolingBetaReference: AspectRatio");
+	break;
+    default:
+	die("Invalid setting for CoolingBetaReference: %s",
+	    config::cfg.get<std::string>("CoolingBetaReference", "Zero").c_str());
+    }
+
+
+    read_opacity_config();
+
+}
+
+static void read_beta_cooling_config(){
+    cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
+
+    units::precise_unit T0 = units::T0;
+    cooling_beta_ramp_up =
+	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+
+    cooling_beta_aspect_ratio = false;
+    cooling_beta_initial = false;
+    switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Floor")) {
+    case 'z': // zero
+	break;
+    case 'f': // floor
+	cooling_beta_floor = true;
+	break;
+    case 'i': // Initial
+	cooling_beta_initial = true;
+	break;
+    case 'a': // AspectRatio
+	cooling_beta_aspect_ratio = true;
+	die("Not implemented yet: CoolingBetaReference: AspectRatio");
+	break;
+    default:
+	die("Invalid setting for CoolingBetaReference: %s",
+	    config::cfg.get<std::string>("CoolingBetaReference", "Floor").c_str());
+    }
+}
+
 
 void read(const std::string &filename, t_data &data)
 {
@@ -807,51 +935,73 @@ void read(const std::string &filename, t_data &data)
     heating_viscous_factor =
 	config::cfg.get<double>("HeatingViscousFactor", 1.0);
 
-
-    radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "no");
-    radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
-    radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
-    radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
-	radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
-	radiative_diffusion_test_2d_K = config::cfg.get<double>("RadiativeDiffusionTest2DK", 1.0);
-	radiative_diffusion_test_2d_steps = config::cfg.get<unsigned int>("RadiativeDiffusionTest2DSteps", 1);
-	radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
-	radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
-	radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
-	radiative_diffusion_dump_data = config::cfg.get_flag("RadiativeDiffusionDumpData", "no");
-	radiative_diffusion_check_solution = config::cfg.get_flag("RadiativeDiffusionCheckSolution", "no");
-
     zbuffer_size = config::cfg.get<unsigned int>("zbufferSize", 100);
     zbuffer_maxangle =
 	config::cfg.get<double>("zbufferMaxAngle", 10.0 / 180.0 * M_PI);
 
-    cooling_radiative_factor =
-	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
-    cooling_radiative_enabled =
-	config::cfg.get_flag("CoolingRadiativeLocal", "no");
-    cooling_beta_enabled =
-	config::cfg.get_flag("CoolingBetaLocal", "no");
-    cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
-    cooling_beta_ramp_up =
-    config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
-    cooling_scurve_enabled =
-        config::cfg.get_flag("CoolingScurve", "no");
+    cooling_radiative_enabled = false;
+    cooling_beta_enabled = false;
+    cooling_scurve_enabled = false;
+    radiative_diffusion_enabled =  false;
+    switch (config::cfg.get_first_letter_lowercase("Cooling", "radiative")) {
+    case 'r': { // radiative
+	cooling_radiative_enabled = true;
+	read_radiative_cooling_config();
+	read_opacity_config();
+	break;
+    }
+    case 'b': { // beta cooling
+	cooling_beta_enabled = true;
+	read_beta_cooling_config();
+	break;
+    }
+    case 's': { // Scurve cooling
+	cooling_scurve_enabled = true;
+	read_scurve_config();
+	break;
+    }
+    case 'c': { // combined radiative & beta
+	cooling_beta_enabled = true;
+	read_beta_cooling_config();
 
-	cooling_beta_aspect_ratio = false;
-	cooling_beta_initial = false;
-	switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Zero")) {
-    case 'z': // Zero
+	cooling_radiative_enabled = true;
+	read_radiative_cooling_config();
+	read_opacity_config();
 	break;
-    case 'i': // Initial
-	cooling_beta_initial = true;
+    }
+    case 'm': { // mixed, same as combined: radiative & beta
+	cooling_beta_enabled = true;
+	read_beta_cooling_config();
+
+	cooling_radiative_enabled = true;
+	read_radiative_cooling_config();
+
+	read_opacity_config();
 	break;
-    case 'a': // AspectRatio
-	cooling_beta_aspect_ratio = true;
-	die("Not implemented yet: CoolingBetaReference: AspectRatio");
+    }
+    case 'o': { // only fld
+	radiative_diffusion_enabled = true;
+	read_radiative_diffusion_config();
+
+	read_opacity_config();
 	break;
-    default:
-	die("Invalid setting for CoolingBetaReference: %s",
-	    config::cfg.get<std::string>("CoolingBetaReference", "Zero").c_str());
+    }
+    case 'f': { // fld or full: radiative cooling and radiative diffusion
+	cooling_radiative_enabled = true;
+	read_radiative_cooling_config();
+
+	radiative_diffusion_enabled = true;
+	read_radiative_diffusion_config();
+
+	read_opacity_config();
+	break;
+    }
+    case 'n': { // no cooling (adiabatic)
+	break;
+    }
+    default: {
+	read_cooling_legacy();
+    }
     }
 
     // initialisation
@@ -1089,28 +1239,6 @@ void read(const std::string &filename, t_data &data)
     } else {
 	logging::print_master(LOG_INFO
 			      "Body force on gas computed via force.\n");
-    }
-
-    // opacity
-    switch (config::cfg.get_first_letter_lowercase("Opacity", "Lin")) {
-    case 'l': // Lin
-	opacity = opacity_lin;
-	break;
-    case 'b': // Bell
-	opacity = opacity_bell;
-	break;
-    case 'c': // Constant
-	opacity = opacity_const_op;
-	// TODO: analyze situation that opacities are in cgs
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
-	break;
-    case 's': // simple, see Gennaro D'Angelo et al. 2003
-	opacity = opacity_simple;
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
-	break;
-    default:
-	die("Invalid setting for Opacity: %s",
-	    config::cfg.get<std::string>("Opacity", "Lin").c_str());
     }
 
     // boundary layer parameters

@@ -139,18 +139,41 @@ ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Ne
 EquationOfState: isothermal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 
-## Radiation transport
-CoolingRadiativeLocal: Yes   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
-CoolingBetaLocal: No   # enable beta cooling Q- = T * Omega/beta [default = no]
-CoolingBeta: 10
-RadiativeDiffusion: No   # 
+## Cooling function
+# [default = radiative]
+# radiative : radiative cooling Q- = 2 * sigma_R * T_eff^4 
+# beta      : beta cooling
+# fld       : radiative cooling & radiative diffusion (fld)
+# scurve    : scurve cooling with optically thin and thick branch
+# mixed     : radiative cooling & beta cooling
+# combined  : radiative cooling & beta cooling
+# onlyFld   : radiative diffusion only, for testing purposes
+Cooling: radiative
+
+## Radiative cooling config
+CoolingRadiativeFactor: 1.0 # apply factor to radiative cooling
+
+## Beta Cooling config
+CoolingBeta: 10 # cooling timescale in units of orbital timescales of the cell
+CoolingBetaRampUp: 0.0 # rampup time in code units
+CoolingBetaReference: floor # beta cooling target profile [floor, initial, aspectratio]
+
+## Scurve cooling config
+ScurveType: Kimura # Kimura, Ichikawa [default = Kimura]
+
+## Radiative diffusion config
+RadiativeDiffusionOmega: 1.5 # SOR omega
+RadiativeDiffusionAutoOmega: NO # use adaptive omega for SOR
+RadiativeDiffusionMaxIterations: 50000
+RadiativeDiffusionTolerance: 1.5
+
+Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
+KappaConst: 2.0e-6   # used for const and simple opacity (kappa = kappa0 * T**2)
+
 HeatingViscous: Yes   # enable viscous heating
 
 MinimumTemperature: 3 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
-
-Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
-KappaConst: 2.0e-6   # used for const and simple opacity (kappa = kappa0 * T**2)
 
 HeatingCoolingCFLlimit: 1.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
