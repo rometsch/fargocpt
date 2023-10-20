@@ -308,7 +308,7 @@ void t_planetary_system::list_planets()
 	std::string accretion_method;
 	switch (get_planet(i).get_accretion_type()){
 	case ACCRETION_TYPE_KLEY:
-	accretion_method = "Normal Accret.";
+	accretion_method = "Kley Accret.";
 	break;
 	case ACCRETION_TYPE_SINKHOLE:
 	accretion_method = "Sinkhole Accret.";
