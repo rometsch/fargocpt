@@ -141,7 +141,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     const double radius = cfg.get<double>("radius", "0.009304813 au", units::L0);
 
-    const double temperature = cfg.get<double>("temperature", "5778.0 K", units::Temp0);
+    const double temperature = cfg.get<double>("temperature", "0.0 K", units::Temp0);
 
 	const double irrad_rampup = cfg.get<double>("irradiation ramp-up time", 0.0, units::T0);
 
