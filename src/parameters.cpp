@@ -977,7 +977,6 @@ void read(const std::string &filename, t_data &data)
 
 	cooling_radiative_enabled = true;
 	read_radiative_cooling_config();
-
 	read_opacity_config();
 	break;
     }
