@@ -180,25 +180,20 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
 
 	if(cfg.contains("accretion method")){
-	    std::string acc_method = cfg.get<std::string>("accretion method");
-	    const char method = (char)tolower(acc_method[0]);
+	    std::string acc_method = cfg.get<std::string>("accretion method", "kley");
 
-	    switch(method){
-	    case 's':
+		if (acc_method == "sinkhole") {
 			planet->set_accretion_type(ACCRETION_TYPE_SINKHOLE);
-			break;
-	    case 'v':
+		} else if (acc_method == "viscous") {
 			planet->set_accretion_type(ACCRETION_TYPE_VISCOUS);
-			break;
-	    case 'k':
+		} else if (acc_method == "kley") {
 			planet->set_accretion_type(ACCRETION_TYPE_KLEY);
-			break;
-	    case 'n':
+		} else if (acc_method == "no" || acc_method == "none") {
 			planet->set_accretion_type(ACCRETION_TYPE_NONE);
-			break;
-	    default:
-			planet->set_accretion_type(ACCRETION_TYPE_KLEY);
+		} else {
+			throw std::runtime_error("Unknown Nbody accretion mode: " + acc_method);
 	    }
+
 	}
 
     planet->set_name(name.c_str());
