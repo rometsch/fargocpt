@@ -9,7 +9,7 @@ extern double ASPECTRATIO_REF;
 extern int ASPECTRATIO_MODE;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
-extern int VISCOUS_ACCRETION;
+extern bool VISCOUS_ACCRETION;
 extern double SIGMASLOPE;
 extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;

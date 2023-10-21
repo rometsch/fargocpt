@@ -178,8 +178,26 @@ void t_planetary_system::init_planet(config::Config &cfg)
 				     eccentricity, argument_of_pericenter, nu);
 	}
 
+
+	if(cfg.contains("accretion method")){
+	    std::string acc_method = cfg.get<std::string>("accretion method", "kley");
+
+		if (acc_method == "sinkhole") {
+			planet->set_accretion_type(ACCRETION_TYPE_SINKHOLE);
+		} else if (acc_method == "viscous") {
+			planet->set_accretion_type(ACCRETION_TYPE_VISCOUS);
+		} else if (acc_method == "kley") {
+			planet->set_accretion_type(ACCRETION_TYPE_KLEY);
+		} else if (acc_method == "no" || acc_method == "none") {
+			planet->set_accretion_type(ACCRETION_TYPE_NONE);
+		} else {
+			throw std::runtime_error("Unknown Nbody accretion mode: " + acc_method);
+		}
+
+	}
+
     planet->set_name(name.c_str());
-    planet->set_acc(accretion_efficiency);
+	planet->set_accretion_efficiency(std::max(accretion_efficiency, 0.0));
 
     planet->set_planet_radial_extend(radius);
     planet->set_temperature(temperature);
@@ -191,7 +209,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     add_planet(planet);
 
-	if (accretion_efficiency < 0.0) {
+	if (planet->get_accretion_type() == ACCRETION_TYPE_VISCOUS) {
 		parameters::VISCOUS_ACCRETION = true;
 	}
 }
@@ -276,21 +294,36 @@ void t_planetary_system::list_planets()
     logging::print(LOG_INFO "\n");
     logging::print(
 	LOG_INFO
-	" #   | e          | a          | T [t0]     | T [a]      | accreting  |\n");
+	" #   | e          | a          | T [t0]     | T [a]      | accreting  | Accretion Type |\n");
     logging::print(
 	LOG_INFO
-	"-----+------------+------------+------------+------------+------------+\n");
+	"-----+------------+------------+------------+------------+------------+----------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+	std::string accretion_method;
+	switch (get_planet(i).get_accretion_type()){
+	case ACCRETION_TYPE_KLEY:
+	accretion_method = "Kley Accret.";
+	break;
+	case ACCRETION_TYPE_SINKHOLE:
+	accretion_method = "Sinkhole Accret.";
+	break;
+	case ACCRETION_TYPE_VISCOUS:
+	accretion_method = "Viscous Accret.";
+	break;
+	default:
+	accretion_method = "No Accretion";
+	}
+
 	logging::print(
 	    LOG_INFO
-	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |\n",
+	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g | %14.14s |\n",
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(),
 	    get_planet(i).get_orbital_period(),
 	    get_planet(i).get_orbital_period() * units::time.get_cgs_factor() /
 		units::cgs_Year,
-	    get_planet(i).get_acc());
+	    get_planet(i).get_accretion_efficiency(), accretion_method.c_str());
     }
 
     logging::print(LOG_INFO "\n");

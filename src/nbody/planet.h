@@ -3,6 +3,11 @@
 #include "types.h"
 #include <string>
 
+#define ACCRETION_TYPE_KLEY 0
+#define ACCRETION_TYPE_VISCOUS 1
+#define ACCRETION_TYPE_SINKHOLE 2
+#define ACCRETION_TYPE_NONE 3
+
 struct planet_member_variables {
     unsigned int timestep;
     double m_mass;
@@ -49,7 +54,8 @@ class t_planet
     double m_vx;
     double m_vy;
     /// accretion times^-1
-    double m_acc;
+    double m_accretion_efficiency;
+    int m_accretion_type;
     double m_accreted_mass;
     std::string m_name;
     unsigned int m_planet_number;
@@ -86,7 +92,9 @@ class t_planet
     inline void set_y(const double value) { m_y = value; }
     inline void set_vx(const double value) { m_vx = value; }
     inline void set_vy(const double value) { m_vy = value; }
-    inline void set_acc(const double value) { m_acc = value; }
+    inline void set_accretion_efficiency(const double value) { m_accretion_efficiency = value; }
+    inline void set_accretion_type(const int value) { m_accretion_type = value; }
+
     inline void set_torque(const double value) { m_torque = value; }
     void set_name(const std::string value);
     inline void set_planet_number(const unsigned int value)
@@ -136,7 +144,9 @@ class t_planet
     inline double get_y(void) const { return m_y; }
     inline double get_vx(void) const { return m_vx; }
     inline double get_vy(void) const { return m_vy; }
-    inline double get_acc(void) const { return m_acc; }
+    inline double get_accretion_efficiency(void) const { return m_accretion_efficiency; }
+    inline int get_accretion_type(void) const { return m_accretion_type; }
+
     inline const std::string &get_name(void) const { return m_name; }
     inline unsigned int get_planet_number(void) const
     {
