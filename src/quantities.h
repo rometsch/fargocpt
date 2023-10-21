@@ -21,7 +21,6 @@ double gas_azimuthal_kinematic_energy(t_data &data,
 
 void fill_alpha_array(t_data &data, unsigned int timestep,
 				   bool force_update);
-void state_disk_ecc_peri_calculation_center(t_data &data);
 
 void calculate_disk_ecc_peri(t_data &data, double &Ecc, double &Per, const bool force_update);
 void calculate_disk_ecc_vector(t_data &data, unsigned int timestep, bool force_update);

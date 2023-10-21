@@ -29,8 +29,6 @@ class t_data
 	ACCEL_RADIAL,	      // gas accerleration in r direction
 	ACCEL_AZIMUTHAL,      // gas acceleration in phi direction
 	TOOMRE,		      // Toomre parameter Q
-	ECCENTRICITY,	      // disk eccentricity
-	PERIASTRON,	      // disk periastron
 	ECCENTRICITY_X,	      // disk eccentricity vector component
 	ECCENTRICITY_Y,	      // disk eccentricity vector component
 	ALPHA_GRAV,	      // alpha grav

@@ -69,16 +69,6 @@ t_data::t_data()
     m_polargrids[ECCENTRICITY_Y].set_name("Eccentricity_Y");
     /// Always computed together with ECCENTRICITY_X
 
-    m_polargrids[ECCENTRICITY].set_scalar(true);
-    m_polargrids[ECCENTRICITY].set_name("Eccentricity");
-    m_polargrids[ECCENTRICITY].set_do_before_write(
-	&quantities::calculate_disk_ecc_vector);
-
-    m_polargrids[PERIASTRON].set_scalar(true);
-    m_polargrids[PERIASTRON].set_name("Periastron");
-    m_polargrids[PERIASTRON].set_do_before_write(
-	&quantities::calculate_disk_ecc_vector);
-
     m_polargrids[ALPHA_GRAV].set_scalar(true);
     m_polargrids[ALPHA_GRAV].set_name("alpha_grav");
     m_polargrids[ALPHA_GRAV].set_do_before_write(
