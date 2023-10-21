@@ -635,7 +635,7 @@ void calculate_qplus(t_data &data)
 			viscous_heating(data);
     }
     if (parameters::heating_star_enabled) {
-		if (!parameters::cooling_radiative_enabled) {
+		if (!parameters::cooling_surface_enabled) {
 			// TODO: make it properly!
 			die("Need to calulate Tau_eff first!\n"); 
 		}
@@ -709,7 +709,7 @@ void calculate_qminus(t_data &data, const double current_time)
     }
 
     // local radiative cooling
-    if (parameters::cooling_radiative_enabled) {
+    if (parameters::cooling_surface_enabled) {
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
@@ -766,7 +766,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		}
 		// Q = factor 2 sigma_sb T^4 / tau_eff
 
-		const double factor = parameters::cooling_radiative_factor;
+		const double factor = parameters::surface_cooling_factor;
 		const double sigma_sb = constants::sigma.get_code_value();
 		const double T4 = std::pow(
 			data[t_data::TEMPERATURE](nr, naz), 4);
@@ -877,7 +877,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
         data[t_data::QMINUS](nr, naz) += qminus_scurve;
 
-	const double factor = parameters::cooling_radiative_factor;
+	const double factor = parameters::surface_cooling_factor;
 	const double sigma_sb = constants::sigma.get_code_value();
 	const double T4 = std::pow(
 	data[t_data::TEMPERATURE](nr, naz), 4);

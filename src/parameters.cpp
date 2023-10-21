@@ -92,8 +92,8 @@ bool heating_viscous_enabled;
 double heating_viscous_factor;
 bool heating_star_enabled;
 
-double cooling_radiative_factor;
-bool cooling_radiative_enabled;
+double surface_cooling_factor;
+bool cooling_surface_enabled;
 bool cooling_beta_enabled;
 double cooling_beta_ramp_up;
 double cooling_beta;
@@ -396,65 +396,59 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 
 }
 
-static void read_radiative_cooling_config(){
-    cooling_radiative_factor =
+static void read_surface_cooling_config(){
+    surface_cooling_factor =
 	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
 }
 
 static void read_opacity_config(){
 
+	const std::string str = config::cfg.get_lowercase("Opacity", "Lin");
+
+	if (str == "lin") {
+		opacity = opacity_lin;
+	} else if (str == "bell") {
+		opacity = opacity_bell;
+	} else if (str == "constant") {
+		opacity = opacity_const_op;
+		// TODO: analyze situation that opacities are in cgs
+	} else if (str == "simple") {
+		opacity = opacity_simple; // see Gennaro D'Angelo et al. 2003
+	} else {
+		throw std::runtime_error("Invalid choice for opacity type: " + str);
+	}
+
+	// Get this always for setting default value.
     units::precise_unit L0 = units::L0;
     units::precise_unit M0 = units::M0;
-
-    switch (config::cfg.get_first_letter_lowercase("Opacity", "Lin")) {
-    case 'l': // Lin
-	opacity = opacity_lin;
-	break;
-    case 'b': // Bell
-	opacity = opacity_bell;
-	break;
-    case 'c': // Constant
-	opacity = opacity_const_op;
-	// TODO: analyze situation that opacities are in cgs
 	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
-	break;
-    case 's': // simple, see Gennaro D'Angelo et al. 2003
-	opacity = opacity_simple;
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
-	break;
-    default:
-	die("Invalid setting for Opacity: %s",
-	    config::cfg.get<std::string>("Opacity", "Lin").c_str());
-    }
 }
 
-static void read_scurve_config(){
+static void read_scurve_config() {
 
-    switch (config::cfg.get_first_letter_lowercase("ScurveType", "Kimura")) {
-    case 'k': // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
-	cooling_scurve_type = true;
-	break;
-    case 'i': // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
-	cooling_scurve_type = false;
-	break;
-    default:
-	die("Invalid setting for scurve cooling: %s",
-	    config::cfg.get<std::string>("ScurveType", "Kimura").c_str());
-    }
+	const std::string str = config::cfg.get_lowercase("ScurveType", "Kimura");
+
+	if (str == "kimura") { // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
+		cooling_scurve_type = true;
+	} else if (str == "ichikawa") { // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+		cooling_scurve_type = false;
+	} else {
+		throw std::runtime_error("Invalid choice for scurve type: " + str);
+	}
 }
 
 static void read_radiative_diffusion_config(){
-
-    units::precise_unit L0 = units::L0;
-    units::precise_unit M0 = units::M0;
 
     radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
     radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
     radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
 
+	// test parameters
     radiative_diffusion_test_2d_K = config::cfg.get<double>("RadiativeDiffusionTest2DK", 1.0);
     radiative_diffusion_test_2d_steps = config::cfg.get<unsigned int>("RadiativeDiffusionTest2DSteps", 1);
+	units::precise_unit L0 = units::L0;
+    units::precise_unit M0 = units::M0;
     radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
     radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
     radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
@@ -469,9 +463,9 @@ static void read_cooling_legacy(){
     radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "no");
     read_radiative_diffusion_config();
 
-    cooling_radiative_factor =
+    surface_cooling_factor =
 	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
-    cooling_radiative_enabled =
+    cooling_surface_enabled =
 	config::cfg.get_flag("CoolingRadiativeLocal", "no");
     cooling_beta_enabled =
 	config::cfg.get_flag("CoolingBetaLocal", "no");
@@ -484,6 +478,7 @@ static void read_cooling_legacy(){
 
     cooling_beta_aspect_ratio = false;
     cooling_beta_initial = false;
+
     switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Zero")) {
     case 'z': // zero
 	break;
@@ -513,22 +508,102 @@ static void read_beta_cooling_config(){
 
     cooling_beta_aspect_ratio = false;
     cooling_beta_initial = false;
-    switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Floor")) {
-    case 'z': // zero
+
+	const std::string str = config::cfg.get_lowercase("CoolingBetaReference", "Zero");
+	if (str == "zero") {
+		cooling_beta_initial = false;
+		cooling_beta_aspect_ratio = false;
+	} else if (str == "initial") {
+		cooling_beta_initial = true;
+		cooling_beta_aspect_ratio = false;
+	} else if (str == "aspectratio") {
+		cooling_beta_initial = false;
+		cooling_beta_aspect_ratio = true;
+	} else {
+		throw std::runtime_error("Invalid choice for cooling beta reference: " + str);
+	}
+
+}
+
+static void read_radiation_config() {
+
+    minimum_temperature =
+	config::cfg.get<double>("MinimumTemperature", "3 K", Temp0);
+    maximum_temperature =
+	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
+
+    heating_viscous_enabled =
+	config::cfg.get_flag("HeatingViscous", "No");
+    heating_viscous_factor =
+	config::cfg.get<double>("HeatingViscousFactor", 1.0);
+
+    cooling_surface_enabled = false;
+    cooling_beta_enabled = false;
+    cooling_scurve_enabled = false;
+    radiative_diffusion_enabled =  false;
+
+	const std::string str = config::cfg.get_lowercase("RadiationTransfer", "No");
+
+
+
+    switch (config::cfg.get_first_letter_lowercase("Cooling", "legacy")) {
+    case 'r': { // radiative
+	cooling_surface_enabled = true;
+	read_surface_cooling_config();
+	read_opacity_config();
 	break;
-    case 'f': // floor
-	cooling_beta_floor = true;
+    }
+    case 'b': { // beta cooling
+	cooling_beta_enabled = true;
+	read_beta_cooling_config();
 	break;
-    case 'i': // Initial
-	cooling_beta_initial = true;
+    }
+    case 's': { // Scurve cooling
+	cooling_scurve_enabled = true;
+	read_scurve_config();
 	break;
-    case 'a': // AspectRatio
-	cooling_beta_aspect_ratio = true;
-	die("Not implemented yet: CoolingBetaReference: AspectRatio");
+    }
+    case 'c': { // combined radiative & beta
+	cooling_beta_enabled = true;
+	read_beta_cooling_config();
+
+	cooling_surface_enabled = true;
+	read_surface_cooling_config();
+	read_opacity_config();
 	break;
-    default:
-	die("Invalid setting for CoolingBetaReference: %s",
-	    config::cfg.get<std::string>("CoolingBetaReference", "Floor").c_str());
+    }
+    case 'm': { // mixed, same as combined: radiative & beta
+	cooling_beta_enabled = true;
+	read_beta_cooling_config();
+
+	cooling_surface_enabled = true;
+	read_surface_cooling_config();
+	read_opacity_config();
+	break;
+    }
+    case 'o': { // only fld
+	radiative_diffusion_enabled = true;
+	read_radiative_diffusion_config();
+
+	read_opacity_config();
+	break;
+    }
+    case 'f': { // fld or full: radiative cooling and radiative diffusion
+	cooling_surface_enabled = true;
+	read_surface_cooling_config();
+
+	radiative_diffusion_enabled = true;
+	read_radiative_diffusion_config();
+
+	read_opacity_config();
+	break;
+    }
+    case 'n': { // no cooling (adiabatic)
+	break;
+    }
+    default: {
+	read_cooling_legacy();
+    }
     }
 }
 
@@ -931,79 +1006,8 @@ void read(const std::string &filename, t_data &data)
     // set number of bodies used to calculate barycenter in Interpret.cpp
 
     MU = config::cfg.get<double>("mu", 1.0);
-    minimum_temperature =
-	config::cfg.get<double>("MinimumTemperature", "3 K", Temp0);
-    maximum_temperature =
-	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
 
-    heating_viscous_enabled =
-	config::cfg.get_flag("HeatingViscous", "No");
-    heating_viscous_factor =
-	config::cfg.get<double>("HeatingViscousFactor", 1.0);
-
-    cooling_radiative_enabled = false;
-    cooling_beta_enabled = false;
-    cooling_scurve_enabled = false;
-    radiative_diffusion_enabled =  false;
-    switch (config::cfg.get_first_letter_lowercase("Cooling", "legacy")) {
-    case 'r': { // radiative
-	cooling_radiative_enabled = true;
-	read_radiative_cooling_config();
-	read_opacity_config();
-	break;
-    }
-    case 'b': { // beta cooling
-	cooling_beta_enabled = true;
-	read_beta_cooling_config();
-	break;
-    }
-    case 's': { // Scurve cooling
-	cooling_scurve_enabled = true;
-	read_scurve_config();
-	break;
-    }
-    case 'c': { // combined radiative & beta
-	cooling_beta_enabled = true;
-	read_beta_cooling_config();
-
-	cooling_radiative_enabled = true;
-	read_radiative_cooling_config();
-	read_opacity_config();
-	break;
-    }
-    case 'm': { // mixed, same as combined: radiative & beta
-	cooling_beta_enabled = true;
-	read_beta_cooling_config();
-
-	cooling_radiative_enabled = true;
-	read_radiative_cooling_config();
-	read_opacity_config();
-	break;
-    }
-    case 'o': { // only fld
-	radiative_diffusion_enabled = true;
-	read_radiative_diffusion_config();
-
-	read_opacity_config();
-	break;
-    }
-    case 'f': { // fld or full: radiative cooling and radiative diffusion
-	cooling_radiative_enabled = true;
-	read_radiative_cooling_config();
-
-	radiative_diffusion_enabled = true;
-	read_radiative_diffusion_config();
-
-	read_opacity_config();
-	break;
-    }
-    case 'n': { // no cooling (adiabatic)
-	break;
-    }
-    default: {
-	read_cooling_legacy();
-    }
-    }
+	read_radiation_config();
 
     // initialisation
     initialize_pure_keplerian =
@@ -1598,8 +1602,8 @@ void summarize_parameters()
 
     logging::print_master(
 	LOG_INFO "Cooling (radiative) is %s. Using a total factor of %g.\n",
-	cooling_radiative_enabled ? "enabled" : "disabled",
-	cooling_radiative_factor);
+	cooling_surface_enabled ? "enabled" : "disabled",
+	surface_cooling_factor);
     logging::print_master(
 	LOG_INFO
 	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",

@@ -126,9 +126,9 @@ extern double heating_viscous_factor;
 extern bool heating_star_enabled;
 
 /// local radiative cooling enabled
-extern bool cooling_radiative_enabled;
+extern bool cooling_surface_enabled;
 /// local radiative cooling factor
-extern double cooling_radiative_factor;
+extern double surface_cooling_factor;
 /// beta cooling enabled
 extern bool cooling_beta_enabled;
 /// beta cooling ramp up time
