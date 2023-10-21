@@ -111,9 +111,6 @@ void old_apply_boundary_condition(t_data &data, const double current_time, const
 			}
 			initial_center_of_mass_boundary_inner(data);
 		break;
-		case parameters::boundary_condition_jibin_spreading_ring:
-			spreading_ring_inner(data);
-		break;
 		case parameters::boundary_condition_evanescent: // evanescent works only for
 								// inner and outer together
 								// until now
@@ -163,9 +160,6 @@ void old_apply_boundary_condition(t_data &data, const double current_time, const
 			NonReflectingBoundary_outer(data, &data[t_data::V_RADIAL],
 							&data[t_data::SIGMA],
 							&data[t_data::ENERGY]);
-		break;
-		case parameters::boundary_condition_jibin_spreading_ring:
-			spreading_ring_outer(data);
 		break;
 		case parameters::boundary_condition_precribed_time_variable: {
 			boundary_condition_precribed_time_variable_outer(data,

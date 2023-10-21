@@ -62,7 +62,6 @@ enum t_boundary_condition {
     boundary_condition_zero_gradient,
     boundary_condition_nonreflecting,
     boundary_condition_viscous_outflow,
-    boundary_condition_jibin_spreading_ring,
     boundary_condition_boundary_layer,
     boundary_condition_precribed_time_variable,
     boundary_condition_keplerian,

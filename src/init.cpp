@@ -464,10 +464,6 @@ void init_spreading_ring_test([[maybe_unused]] t_data &data) {
 	logging::print_master(LOG_ERROR "GSL is not compiled in. Cannot initialize spreading ring test.\n");
 	PersonalExit(1);
 }
-void init_spreading_ring_test_jibin([[maybe_unused]] t_data &data) {\
-	logging::print_master(LOG_ERROR "GSL is not compiled in. Cannot initialize spreading ring test.\n");
-	PersonalExit(1);
-}
 #else // DISABLE_GSL
 /**
 	Initializes density and energy for the spreading ring test.
@@ -525,81 +521,6 @@ void init_spreading_ring_test(t_data &data)
 	    data[t_data::SIGMA](n_radial, n_azimuthal) = density;
 	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
 	}
-    }
-
-    // set SigmaMed/SigmaInf
-    compute_azi_avg_Sigma(data[t_data::SIGMA]);
-    compute_azi_avg_Energy(data[t_data::ENERGY]);
-}
-
-/**
-	Initializes density and energy for the spreading ring test.
-	Intented to be used with spreading_ring.par
-	See R. Speith and W. Kley 2003: Stability of the viscously spreading
-   ring
-   Init function copied to be equal to Jibin's pluto simulations
-*/
-void init_spreading_ring_test_jibin(t_data &data)
-{
-
-    const double Disk_Mass = parameters::sigma_discmass;
-    const double Ring_Mass = 1.0e-4;
-    // const double h = parameters::ASPECTRATIO_REF;
-    const double p = parameters::SIGMASLOPE;
-    // const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
-    const double tau0 = 0.018;
-    const double Rmin = RMIN;
-    const double Rmax = RMAX;
-
-    const double sig0 = Disk_Mass / (2.0 * M_PI) * (p + 2.0) /
-			(std::pow(Rmax, p + 2.0) - std::pow(Rmin, p + 2.0));
-    parameters::sigma0 = sig0;
-
-    logging::print_master(LOG_INFO "Initializing viscous spreading ring\n");
-
-    logging::print_master(
-	LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", sig0,
-	sig0 * units::surface_density.get_cgs_factor());
-
-	srand(parameters::random_seed);
-
-    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
-
-	    const double R = Rmed[n_radial];
-	    // const double OmegaK = 1.0 / (R * std::sqrt(R));
-	    const double arg = 2.0 * R / tau0;
-	    const double bessel = gsl_sf_bessel_Inu(0.25, arg);
-
-	    const double sig_ring = Ring_Mass * bessel *
-				    std::exp((-1.0 - R * R) / tau0) /
-				    (M_PI * tau0 * std::pow(R, 0.25));
-	    const double sig_disk = sig0 * std::pow(R, p);
-	    const double energy = 0.0;
-
-	    const double sig_noise =
-		0.05 * sig_disk * (1.0 - 2.0 * (rand() / (double)RAND_MAX));
-		/*const double vr = 0.0;
-	    const double corr = std::sqrt(1.0 + (p + q) * h * h);
-		const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;*/
-		const double vr = viscous_speed::get_vr_with_numerical_viscous_speed(R, 1.0);
-		const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
-
-	    const double sig = sig_ring + sig_disk + sig_noise;
-
-	    data[t_data::SIGMA](n_radial, n_azimuthal) = sig;
-	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
-	    data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr;
-	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
-	}
-    }
-
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal < data[t_data::V_RADIAL].Nsec; ++n_azimuthal) {
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
-			       n_azimuthal) = 0.0;
     }
 
     // set SigmaMed/SigmaInf

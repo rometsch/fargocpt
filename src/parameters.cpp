@@ -625,9 +625,6 @@ void read(const std::string &filename, t_data &data)
     case 'v':
 	boundary_inner = boundary_condition_viscous_outflow;
 	break;
-    case 'j':
-	boundary_inner = boundary_condition_jibin_spreading_ring;
-	break;
     case 'b':
 	boundary_inner = boundary_condition_boundary_layer;
 	break;
@@ -667,9 +664,6 @@ void read(const std::string &filename, t_data &data)
 	break;
     case 'v':
 	boundary_outer = boundary_condition_viscous_outflow;
-	break;
-    case 'j':
-	boundary_outer = boundary_condition_jibin_spreading_ring;
 	break;
     case 'b':
 	boundary_outer = boundary_condition_boundary_layer;
@@ -1298,11 +1292,6 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at inner boundary.\n");
 	break;
-    case boundary_condition_jibin_spreading_ring:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'boundary_condition_jibin_spreading_ring' at inner boundary.\n");
-	break;
     case boundary_condition_boundary_layer:
 	logging::print_master(
 	    LOG_INFO
@@ -1359,11 +1348,6 @@ void summarize_parameters()
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_jibin_spreading_ring:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'boundary_condition_jibin_spreading_ring' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
 	if (domegadr_zero) {
