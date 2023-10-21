@@ -209,7 +209,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     add_planet(planet);
 
-	if (accretion_efficiency < 0.0) {
+	if (planet->get_accretion_type() == ACCRETION_TYPE_VISCOUS) {
 		parameters::VISCOUS_ACCRETION = true;
 	}
 }
