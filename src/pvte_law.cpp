@@ -23,10 +23,6 @@ typedef struct {
     double mow, geff, g1;
 } t_eosQuantities;
 
-
-// hydrogen mass fraction xMF
-const double xMF = 0.75;
-
 // Ni = number of density gridpoints
 const int Ni = 1000;
 
@@ -69,8 +65,9 @@ std::vector<double> funcdum(Nzeta);
 static double mean_molecular_weight(const double temperatureCGS,
 				    const double densityCGS)
 {
-    double x = H_ionization_fraction(densityCGS, temperatureCGS);
-    double y = H_dissociation_fraction(densityCGS, temperatureCGS);
+    const double xMF = parameters::hydrogenMassFraction;
+    const double x = H_ionization_fraction(densityCGS, temperatureCGS);
+    const double y = H_dissociation_fraction(densityCGS, temperatureCGS);
 
     return 4.0 / (2.0 * xMF * (1.0 + y + 2.0 * y * x) + 1.0 - xMF);
 }
@@ -111,6 +108,7 @@ static double gasEnergyContributions(const double x, const double y,
     const double T = temperatureCGS;
     const double eV = constants::eV.get_cgs_value();
     const double k_B = constants::k_B.get_cgs_value();
+    const double xMF = parameters::hydrogenMassFraction;
 
 	   // Translational energy for hydrogen
     const double epsHI = 1.5 * xMF * (1.0 + x) * y;
@@ -153,6 +151,7 @@ static double gamma_eff(const double temperatureCGS, const double densityCGS)
 static double gamma1(const double temperatureCGS, const double densityCGS)
 {
     const double epsilon = 1.0e-4;
+    const double xMF = parameters::hydrogenMassFraction;
     const double temperatureLeft = temperatureCGS * (1.0 - epsilon);
     const double temperatureRight = temperatureCGS * (1.0 + epsilon);
     const double deltaTemperature = temperatureLeft - temperatureRight;
@@ -216,6 +215,8 @@ static double gamma1(const double temperatureCGS, const double densityCGS)
 static double gamma_mu_root(const double temperatureCGS, const double densityCGS,
 			    const double energyCGS)
 {
+
+    const double xMF = parameters::hydrogenMassFraction;
 
 	   // hydrogen ionization fraction x
     const double x = H_ionization_fraction(densityCGS, temperatureCGS);
@@ -451,6 +452,7 @@ double H_ionization_fraction(const double densityCGS, const double temperatureCG
     const double eV = constants::eV.get_cgs_value();
     const double h_bar = constants::h.get_cgs_value() / (2.0 * M_PI);
     const double k_B = constants::k_B.get_cgs_value();
+    const double xMF = parameters::hydrogenMassFraction;
 
     const double rhs_exponent = -13.60 * eV / k_B;
     const double rhs_constant = m_H / xMF * std::pow(m_e * k_B / (2*M_PI*h_bar*h_bar), 1.5);
@@ -477,6 +479,7 @@ double H_dissociation_fraction(const double densityCGS, const double temperature
     const double eV = constants::eV.get_cgs_value();
     const double h_bar = constants::h.get_cgs_value() / (2.0 * M_PI);
     const double k_B = constants::k_B.get_cgs_value();
+    const double xMF = parameters::hydrogenMassFraction;
 
     const double rhs_exponent = -4.48 * eV / k_B;
     const double rhs_constant = m_H / (2.0 * xMF) *

@@ -40,6 +40,7 @@ extern bool Polytropic;
 extern bool Locally_Isothermal;
 
 extern bool variableGamma;
+extern double hydrogenMassFraction;
 
 /// Type of radial Grid
 enum t_radial_grid {
