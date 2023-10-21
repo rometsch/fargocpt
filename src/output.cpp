@@ -73,9 +73,9 @@ const std::map<const std::string, const int> quantities_file_column_v2_5 = {
 	{"indirect term disk x", 29},
 	{"indirect term disk y", 30},
 	{"frame angle", 31},
-	{"advection torque", 34},
-	{"viscous torque", 35},
-	{"gravitational torque", 36}
+	{"advection torque", 32},
+	{"viscous torque", 33},
+	{"gravitational torque", 34}
 	};
 static const auto quantities_file_column = quantities_file_column_v2_5;
 
