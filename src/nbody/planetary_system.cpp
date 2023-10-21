@@ -192,7 +192,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
 			planet->set_accretion_type(ACCRETION_TYPE_NONE);
 		} else {
 			throw std::runtime_error("Unknown Nbody accretion mode: " + acc_method);
-	    }
+		}
 
 	}
 
