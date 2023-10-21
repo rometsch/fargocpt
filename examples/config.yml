@@ -49,6 +49,7 @@ nbody:
   semi-major axis: 1.0 au
   mass: 1 jupiterMass
   accretion efficiency: 0.0
+  accretion method: kley # can also be sinkhole, viscous, kley, or none
   eccentricity: 0
   radius: 0.01 solRadius
   phi: 0.0
