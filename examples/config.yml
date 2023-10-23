@@ -224,4 +224,5 @@ WriteScaleHeight: No   # Write scale height H [default = no]
 WriteAspectratio: No   # Write aspectratio h = H/r [default = no]
 WriteTorques: No   # Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth: No   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
-
+WriteSGAccelRad: No # Write radial SG acceleration.
+WriteSGAccelAzi: No # Write azimuthal SG acceleration.
