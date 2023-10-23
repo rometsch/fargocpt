@@ -20,9 +20,6 @@
 extern int damping_energy_id;
 extern std::vector<parameters::t_DampingType> damping_vector;
 
-// frame
-int GuidingCenter;
-
 int OuterSourceMass, CICPlanet;
 
 #include <algorithm>
@@ -318,16 +315,12 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     // Frame settings
     parameters::corotating = false;
-    GuidingCenter = false;
     switch (cfg.get_first_letter_lowercase("Frame", "Fixed")) {
     case 'f': // Fixed
+	parameters::corotating = false;
 	break;
     case 'c': // Corotating
 	parameters::corotating = true;
-	break;
-    case 'g': // Guiding-Center
-	parameters::corotating = false;
-	GuidingCenter = false;
 	break;
     default:
 	die("Invalid setting for Frame");
