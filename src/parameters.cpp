@@ -400,72 +400,8 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 
 }
 
-void read(const std::string &filename, t_data &data)
-{
-	if (filename.compare(filename.size()-4,4,".par") == 0) {
-		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!", filename.c_str());
-	}
-	config::cfg.load_file(filename);
 
-    // units
-	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
-	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");
-	const std::string t0s = config::cfg.get<std::string>("t0", "1.0");
-	const std::string temp0s = config::cfg.get<std::string>("temp0", "1.0");
-
-
-	units::set_baseunits(l0s, m0s, t0s, temp0s);
-	// units::set_baseunits(l0s, m0s);
-
-	units::precise_unit L0 = units::L0;
-	units::precise_unit M0 = units::M0;
-	units::precise_unit T0 = units::T0;
-	units::precise_unit Temp0 = units::Temp0;
-
-	constants::initialize_constants();
-
-    // now we now everything to compute unit factors
-    units::calculate_unit_factors();
-
-    /* grid */
-    RMIN = config::cfg.get<double>("RMIN", L0);
-    RMAX = config::cfg.get<double>("RMAX", L0);
-
-    NRadial = config::cfg.get<unsigned int>("NRAD", 64);
-    NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
-
-
-    // Disk radius = radius at which disk_radius_mass_fraction percent
-    // of the total mass inside the domain is contained
-    // 0.99 is used in Kley et al. 2008 "Simulations of eccentric disks .."
-    disk_radius_mass_fraction =
-    config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
-
-    quantities_radius_limit =
-	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
-
-    if (quantities_radius_limit <= RMIN) {
-	logging::print_master(LOG_INFO "QUANTITIESRADIUSLIMIT %.5e < %.5e (RMIN) too small, setting it to %.5e\n", quantities_radius_limit, RMIN, 2.0*RMAX);
-	quantities_radius_limit = 2.0 * RMAX;
-    }
-	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);
-
-    exponential_cell_size_factor =
-	config::cfg.get<double>("ExponentialCellSizeFactor", 1.41);
-    switch (config::cfg.get_first_letter_lowercase("RadialSpacing", "ARITHMETIC")) {
-    case 'a': // arithmetic
-	radial_grid_type = arithmetic_spacing;
-	break;
-    case 'l': // logarithmic;
-	radial_grid_type = logarithmic_spacing;
-	break;
-    case 'e': // exponential;
-	radial_grid_type = exponential_spacing;
-	break;
-    default:
-	die("Invalid setting for RadialSpacing");
-    }
-
+static void read_output_config(t_data &data) {
     // output settings
     bool do_write_1D = config::cfg.get_flag("DoWrite1DFiles", true);
     data[t_data::SIGMA].set_write(
@@ -602,6 +538,76 @@ void read(const std::string &filename, t_data &data)
 	// sort vector
 	sort(lightcurves_radii.begin(), lightcurves_radii.end());
     }
+
+}
+
+void read(const std::string &filename, t_data &data)
+{
+	if (filename.compare(filename.size()-4,4,".par") == 0) {
+		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!", filename.c_str());
+	}
+	config::cfg.load_file(filename);
+
+    // units
+	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
+	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");
+	const std::string t0s = config::cfg.get<std::string>("t0", "1.0");
+	const std::string temp0s = config::cfg.get<std::string>("temp0", "1.0");
+
+
+	units::set_baseunits(l0s, m0s, t0s, temp0s);
+	// units::set_baseunits(l0s, m0s);
+
+	units::precise_unit L0 = units::L0;
+	units::precise_unit M0 = units::M0;
+	units::precise_unit T0 = units::T0;
+	units::precise_unit Temp0 = units::Temp0;
+
+	constants::initialize_constants();
+
+    // now we now everything to compute unit factors
+    units::calculate_unit_factors();
+
+    /* grid */
+    RMIN = config::cfg.get<double>("RMIN", L0);
+    RMAX = config::cfg.get<double>("RMAX", L0);
+
+    NRadial = config::cfg.get<unsigned int>("NRAD", 64);
+    NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
+
+
+    // Disk radius = radius at which disk_radius_mass_fraction percent
+    // of the total mass inside the domain is contained
+    // 0.99 is used in Kley et al. 2008 "Simulations of eccentric disks .."
+    disk_radius_mass_fraction =
+    config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
+
+    quantities_radius_limit =
+	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
+
+    if (quantities_radius_limit <= RMIN) {
+	logging::print_master(LOG_INFO "QUANTITIESRADIUSLIMIT %.5e < %.5e (RMIN) too small, setting it to %.5e\n", quantities_radius_limit, RMIN, 2.0*RMAX);
+	quantities_radius_limit = 2.0 * RMAX;
+    }
+	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);
+
+    exponential_cell_size_factor =
+	config::cfg.get<double>("ExponentialCellSizeFactor", 1.41);
+    switch (config::cfg.get_first_letter_lowercase("RadialSpacing", "ARITHMETIC")) {
+    case 'a': // arithmetic
+	radial_grid_type = arithmetic_spacing;
+	break;
+    case 'l': // logarithmic;
+	radial_grid_type = logarithmic_spacing;
+	break;
+    case 'e': // exponential;
+	radial_grid_type = exponential_spacing;
+	break;
+    default:
+	die("Invalid setting for RadialSpacing");
+    }
+
+	read_output_config(data);
 
     // boundary conditions
 	boundary_conditions::parse_config();
