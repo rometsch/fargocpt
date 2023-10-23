@@ -62,7 +62,7 @@ t_data::t_data()
 
     // sg accel is cell-centered
     m_polargrids[SG_ACCEL_AZI].set_vector(false);
-    m_polargrids[SG_ACCEL_AZI].set_name("a_sg_axi");
+    m_polargrids[SG_ACCEL_AZI].set_name("a_sg_azi");
     m_polargrids[SG_ACCEL_AZI].set_unit(units::acceleration);
 
     m_polargrids[TOOMRE].set_scalar(true);

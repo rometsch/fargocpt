@@ -768,6 +768,63 @@ void write_1D_info(t_data &data)
     }
 }
 
+
+void write_2D_info(t_data &data)
+{
+	if (!CPU_Master) {
+		return;
+	}
+
+	const std::string filename_info = outdir + "info2D.yml";
+	std::ofstream info_ofs(filename_info);
+
+	info_ofs.precision(std::numeric_limits<double>::max_digits10);
+	info_ofs << "# 2D output variable descriptions" << std::endl;
+	info_ofs << "# version 0.1" << std::endl << std::endl;
+
+	const std::string indent = "  ";
+
+    for (int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
+	t_polargrid &g = data[t_data::t_polargrid_type(i)];
+	if (g.get_write_2D()) {
+
+		const std::string name = std::string(g.get_name());
+
+	    std::string unit;
+		double factor = 1.0;
+	    if (g.get_unit() != NULL) {
+			unit = std::string(g.get_unit()->get_cgs_symbol());
+			factor = g.get_unit()->get_cgs_factor();
+		}
+		
+		info_ofs << name << ":" << std::endl;
+	    info_ofs << indent << "unit: " << unit << std::endl;
+		info_ofs << indent << "code_units_to_cgs_factor: "
+			 << g.get_unit()->get_cgs_factor()
+			 << std::endl;
+
+		if (g.get_unit() != NULL) {
+			info_ofs << indent << "unit_str: " << factor << " " << unit << std::endl;
+		} else {
+			info_ofs << indent << "unit_str: 1" << std::endl;
+		}
+
+		const unsigned int Nrad = g.get_size_radial();
+		const unsigned int Nazi = g.get_size_azimuthal();
+
+		info_ofs << indent << "Nrad: " << Nrad << std::endl;
+		info_ofs << indent << "Nazi: " << Nazi << std::endl;
+		
+	    info_ofs << indent << "bigendian: " << is_big_endian() << std::endl;
+		info_ofs << indent << "vector: " << g.is_vector() << std::endl;
+		info_ofs << std::endl;
+
+
+	}
+    }
+	info_ofs.close();
+}
+
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 {
     // calculate luminosity
