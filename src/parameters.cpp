@@ -549,6 +549,10 @@ void read(const std::string &filename, t_data &data)
     data[t_data::TAU_EFF].set_write(
 	config::cfg.get_flag("WriteVerticalOpticalDepth", false),
 	do_write_1D);
+	data[t_data::SG_ACCEL_RAD].set_write(
+	config::cfg.get_flag("WriteSGAccelRad", false),do_write_1D);
+	data[t_data::SG_ACCEL_AZI].set_write(
+	config::cfg.get_flag("WriteSGAccelAzi", false),do_write_1D);
 
     write_torques = config::cfg.get_flag("WriteTorques", false);
 
