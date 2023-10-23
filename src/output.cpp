@@ -817,6 +817,10 @@ void write_2D_info(t_data &data)
 		
 	    info_ofs << indent << "bigendian: " << is_big_endian() << std::endl;
 		info_ofs << indent << "vector: " << g.is_vector() << std::endl;
+
+		const std::string filename_pattern = name + ".dat";
+		info_ofs << indent << "filename: " << filename_pattern << std::endl;
+
 		info_ofs << std::endl;
 
 
