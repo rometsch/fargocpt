@@ -317,6 +317,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     parameters::corotating = false;
     switch (cfg.get_first_letter_lowercase("Frame", "Fixed")) {
     case 'f': // Fixed
+	parameters::corotating = false;
 	break;
     case 'c': // Corotating
 	parameters::corotating = true;
