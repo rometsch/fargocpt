@@ -11,7 +11,8 @@ RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 git
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libopenmpi-dev 
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libgsl-dev 
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libfftw3-mpi-dev libfftw3-dev
-RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3
+RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3 python3-pip
+RUN pip install psutil
 
 COPY .git .git
 COPY src src
