@@ -13,3 +13,5 @@
 - replaced the default executable to run, now run_fargo starts the simulations and calls bin/fargocpt and handles the parallel config
 - restructured the output directory into snapshots and monitor directories. Each snapshot dir contains all information to restart the simulation.
 - bigplanet.dat files are now called planet.dat files, now fargocpt output v1.2
+- self gravity acceleration can now be written out to the snapshots using `WriteSGAccelRad` and `WriteSGAccelAzi` parameters
+- there is a file `info2D.yml` which describes the 2D output variables including their array size and units
