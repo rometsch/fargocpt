@@ -810,7 +810,7 @@ void write_2D_info(t_data &data)
 		}
 
 		const bool vec = g.is_vector();
-		const unsigned int Nrad = vec ? NRadial + 1 : NRadial;
+		const unsigned int Nrad = vec ? GlobalNRadial + 1 : GlobalNRadial;
 		const unsigned int Nazi = NAzimuthal;
 
 		info_ofs << indent << "Nrad: " << Nrad << std::endl;
