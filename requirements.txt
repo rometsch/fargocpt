@@ -3,4 +3,5 @@ matplotlib
 ipympl
 ruamel.yaml
 astropy
+psutil
 git+https://github.com/rometsch/disgrid

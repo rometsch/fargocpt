@@ -635,7 +635,7 @@ void calculate_qplus(t_data &data)
 			viscous_heating(data);
     }
     if (parameters::heating_star_enabled) {
-		if (!parameters::cooling_radiative_enabled) {
+		if (!parameters::cooling_surface_enabled) {
 			// TODO: make it properly!
 			die("Need to calulate Tau_eff first!\n"); 
 		}
@@ -672,7 +672,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		}
 
 		double delta_E = E;
-		if (parameters::cooling_beta_initial) {
+		if (parameters::cooling_beta_reference) {
 		    const double sigma =
 			data[t_data::SIGMA](nr, naz);
 		    const double sigma0 =
@@ -681,7 +681,7 @@ void calculate_qminus(t_data &data, const double current_time)
 			data[t_data::ENERGY0](nr, naz);
 		    delta_E -= E0 / sigma0 * sigma;
 		}
-		if (parameters::cooling_beta_aspect_ratio) {
+		if (parameters::cooling_beta_model) {
 		    const double sigma =
 			data[t_data::SIGMA](nr, naz);
 		    const double E0 =
@@ -690,6 +690,15 @@ void calculate_qminus(t_data &data, const double current_time)
 			std::pow(Rmed[nr], 2.0 * parameters::FLARINGINDEX - 1.0) *
 			constants::G * hydro_center_mass * sigma;
 		    delta_E -= E0;
+		}
+		if(parameters::cooling_beta_floor){
+		    const double Tmin = parameters::minimum_temperature;
+		    const double gamma_eff = pvte::get_gamma_eff(data, nr, naz);
+		    const double mu = pvte::get_mu(data, nr, naz);
+		    const double minimum_energy = Tmin *
+						  data[t_data::SIGMA](nr, naz) / mu *
+						  constants::R / (gamma_eff - 1.0);
+		    delta_E -= minimum_energy;
 		}
 		const double qminus = delta_E * omega_k * beta_inv;
 
@@ -700,7 +709,7 @@ void calculate_qminus(t_data &data, const double current_time)
     }
 
     // local radiative cooling
-    if (parameters::cooling_radiative_enabled) {
+    if (parameters::cooling_surface_enabled) {
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
@@ -757,7 +766,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		}
 		// Q = factor 2 sigma_sb T^4 / tau_eff
 
-		const double factor = parameters::cooling_radiative_factor;
+		const double factor = parameters::surface_cooling_factor;
 		const double sigma_sb = constants::sigma.get_code_value();
 		const double T4 = std::pow(
 			data[t_data::TEMPERATURE](nr, naz), 4);
@@ -781,10 +790,13 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double SigmaCGS_threshold = 2.0;
 	const double temperatureCGS_threshold = 1200;
 
-	/// Switch constants to change from Ichikawa 1992 cooling
-	/// to Kimura 2020 cooling.
-	//const double F_hot_const = 23.405; // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
-	const double F_hot_const = 25.49; // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+	double F_hot_const;
+	if(parameters::cooling_scurve_type){
+	    F_hot_const = 23.405; // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
+	} else {
+	    F_hot_const = 25.49; // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+	}
+
 
     /// Scruve cooling according to Ichikawa & Osaki (1992)
     /// See page 21 & 22 in https://articles.adsabs.harvard.edu/full/1992PASJ...44...15I
@@ -865,7 +877,7 @@ void calculate_qminus(t_data &data, const double current_time)
 
         data[t_data::QMINUS](nr, naz) += qminus_scurve;
 
-	const double factor = parameters::cooling_radiative_factor;
+	const double factor = parameters::surface_cooling_factor;
 	const double sigma_sb = constants::sigma.get_code_value();
 	const double T4 = std::pow(
 	data[t_data::TEMPERATURE](nr, naz), 4);

@@ -141,18 +141,36 @@ EquationOfState: isothermal   # Isothermal Ideal PVTE Polytropic [default = Isot
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 HydrogenMassFraction: 0.75 # needed for PVTE law, the rest of the mass is assumed to be helium
 
-## Radiation transport
-CoolingRadiativeLocal: Yes   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
-CoolingBetaLocal: No   # enable beta cooling Q- = T * Omega/beta [default = no]
-CoolingBeta: 10
-RadiativeDiffusion: No   # 
+## Radiation physics
+SurfaceCooling: thermal  # Type of surface cooling (no, thermal, scurve) [default = no]
+RadiativeDiffusion: No   # Enable radiation transport in the midplane with FLD (yes, no) [default = no]
+CoolingBetaLocal: no     # Enable thermal relaxation (yes, no) [default = no]
+
+
+## Radiative cooling config
+CoolingRadiativeFactor: 1.0 # apply factor to radiative cooling for thermal and scruve modes
+
+## Beta Cooling config
+CoolingBeta: 10 # cooling timescale in units of orbital timescales of the cell
+CoolingBetaRampUp: 0.0 # rampup time in code units
+CoolingBetaReference: floor # beta cooling target profile [floor, reference, model]
+
+## Scurve cooling config
+ScurveType: Kimura # Kimura, Ichikawa [default = Kimura]
+
+## Radiative diffusion config
+RadiativeDiffusionOmega: 1.5 # SOR omega
+RadiativeDiffusionAutoOmega: NO # use adaptive omega for SOR
+RadiativeDiffusionMaxIterations: 50000
+RadiativeDiffusionTolerance: 1.5
+
+Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
+KappaConst: 2.0e-6   # used for const (kappa = kappa0) and simple opacity (kappa = kappa0 * T**2)
+
 HeatingViscous: Yes   # enable viscous heating
 
 MinimumTemperature: 3 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
-
-Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
-KappaConst: 2.0e-6   # used for const and simple opacity (kappa = kappa0 * T**2)
 
 HeatingCoolingCFLlimit: 1.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 

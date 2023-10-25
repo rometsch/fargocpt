@@ -14,7 +14,7 @@ fi
 
 docker run \
     --user $(id -u):$(id -g) \
-    -v $SIMDIR:/project \
+    -v $SIMDIR:/workspaces/fargocpt \
     --rm \
     -it \
     fargocpt-devel \

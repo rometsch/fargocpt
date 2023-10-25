@@ -512,5 +512,6 @@ void AccreteOntoPlanets(t_data &data, const double dt)
 	planetary_system.update_roche_radii();
     }
 }
+}
 
 } // namespace accretion

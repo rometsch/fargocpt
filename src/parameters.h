@@ -126,9 +126,9 @@ extern double heating_viscous_factor;
 extern bool heating_star_enabled;
 
 /// local radiative cooling enabled
-extern bool cooling_radiative_enabled;
+extern bool cooling_surface_enabled;
 /// local radiative cooling factor
-extern double cooling_radiative_factor;
+extern double surface_cooling_factor;
 /// beta cooling enabled
 extern bool cooling_beta_enabled;
 /// beta cooling ramp up time
@@ -136,11 +136,14 @@ extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
 /// beta cooling to aspect ratio profile
-extern bool cooling_beta_initial;
+extern bool cooling_beta_reference;
 /// beta cooling to initial profile
-extern bool cooling_beta_aspect_ratio;
+extern bool cooling_beta_model;
+/// beta cooling to minimum temperature
+extern bool cooling_beta_floor;
 /// local Scurve cooling enabled
 extern bool cooling_scurve_enabled;
+extern bool cooling_scurve_type;
 
 
 
@@ -354,9 +357,6 @@ extern double kappa_const;
 /// initialize pure keplerian
 extern bool initialize_pure_keplerian;
 extern bool initialize_vradial_zero;
-
-extern unsigned int zbuffer_size;
-extern double zbuffer_maxangle;
 
 /// boundary layer parameters
 extern double radial_viscosity_factor;
