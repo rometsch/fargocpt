@@ -41,8 +41,6 @@ void parse_config();
 void old_apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 
-void zero_gradient_boundary_inner_single(t_polargrid &x);
-
 
 /****************************************
 /// Individual variable boundaries
