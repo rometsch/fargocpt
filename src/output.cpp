@@ -809,14 +809,15 @@ void write_2D_info(t_data &data)
 			info_ofs << indent << "unit_str: 1" << std::endl;
 		}
 
-		const unsigned int Nrad = g.get_size_radial();
-		const unsigned int Nazi = g.get_size_azimuthal();
+		const bool vec = g.is_vector();
+		const unsigned int Nrad = vec ? NRadial + 1 : NRadial;
+		const unsigned int Nazi = NAzimuthal;
 
 		info_ofs << indent << "Nrad: " << Nrad << std::endl;
 		info_ofs << indent << "Nazi: " << Nazi << std::endl;
 		
 	    info_ofs << indent << "bigendian: " << is_big_endian() << std::endl;
-		info_ofs << indent << "vector: " << g.is_vector() << std::endl;
+		info_ofs << indent << "vector: " << vec << std::endl;
 
 		const std::string filename_pattern = name + ".dat";
 		info_ofs << indent << "filename: " << filename_pattern << std::endl;
