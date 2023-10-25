@@ -23,7 +23,7 @@ mu: 2.35   # mean molecular weight [default=1.0]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 IndirectTermMode: 0   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
 OmegaFrame: 1.0
-Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
+Frame: F   # F: Fixed, C: Corotating
 
 #
 # Simulation time
@@ -224,4 +224,5 @@ WriteScaleHeight: No   # Write scale height H [default = no]
 WriteAspectratio: No   # Write aspectratio h = H/r [default = no]
 WriteTorques: No   # Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth: No   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
-
+WriteSGAccelRad: No # Write radial SG acceleration.
+WriteSGAccelAzi: No # Write azimuthal SG acceleration.

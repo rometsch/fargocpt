@@ -487,18 +487,22 @@ void AccreteOntoPlanets(t_data &data, const double dt)
 	 k++) {
 
 	auto &planet = planetary_system.get_planet(k);
-	if (planet.get_accretion_type() == ACCRETION_TYPE_SINKHOLE) {
+	switch(planet.get_accretion_type()){
+	case ACCRETION_TYPE_SINKHOLE: {
 	    const bool changed = SinkHoleSinglePlanet(data, planet, dt);
 	    masses_changed = masses_changed || changed;
-
-	} else if (planet.get_accretion_type() == ACCRETION_TYPE_KLEY) {
+	    break;
+	}
+	case ACCRETION_TYPE_KLEY: {
 	    const bool changed = AccreteOntoSinglePlanet(data, planet, dt);
 	    masses_changed = masses_changed || changed;
-
-	} else if (planet.get_accretion_type() == ACCRETION_TYPE_VISCOUS) {
+	    break;
+	}
+	case ACCRETION_TYPE_VISCOUS: {
 	    const bool changed =
 		AccreteOntoSinglePlanetViscous(data, planet, dt);
 	    masses_changed = masses_changed || changed;
+	    break;
 	}
     }
 

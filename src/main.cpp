@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
     } else {
 		// create 1D info files
 		output::write_1D_info(data);
+        output::write_2D_info(data);
 		
 		MPI_Barrier(MPI_COMM_WORLD);
     }
