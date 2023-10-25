@@ -34,8 +34,6 @@ void keplerian_radial_inner(t_polargrid &vaz,
 	for (unsigned int k = 0; k <= 1; k++) {
 	    // set first two rings
 	    const double vKep = compute_v_kepler(Rmed[k], hydro_center_mass);
-	    const double OmegaF = refframe::OmegaFrame;
-	    const double r = Rmed[k];
 	    const double c = keplerian_radial_inner_factor;
 	    vaz(k, naz) = c * vKep;
 	}
@@ -60,8 +58,6 @@ void keplerian_radial_outer(t_polargrid &vaz,
 	for (unsigned int k = Irad; k >= Irad - 1; k--) {
 	    // set last two rings
 	    const double vKep = compute_v_kepler(Rmed[k], hydro_center_mass);
-	    const double OmegaF = refframe::OmegaFrame;
-	    const double r = Rmed[k];
 	    const double c = keplerian_radial_outer_factor;
 	    vaz(k, naz) = c * vKep;
 	}
