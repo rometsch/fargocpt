@@ -31,26 +31,50 @@ namespace boundary_conditions
 	void (*vaz_outer_func)(t_polargrid &, t_polargrid &, t_data &);
 
 
-	std::string sigma_inner_name;
-	std::string sigma_outer_name;
-	std::string energy_inner_name;
-	std::string energy_outer_name;
-	std::string vrad_inner_name;
-	std::string vrad_outer_name;
-	std::string vaz_inner_name;
-	std::string vaz_outer_name;
-	std::string special_name;
+	std::string sigma_inner_name = "";
+	std::string sigma_outer_name = "";
+	std::string energy_inner_name = "";
+	std::string energy_outer_name = "";
+	std::string vrad_inner_name = "";
+	std::string vrad_outer_name = "";
+	std::string vaz_inner_name = "";
+	std::string vaz_outer_name = "";
+	std::string special_name = "";
+	std::string composite_inner_name = "";
+	std::string composite_outer_name = "";
 
 	double keplerian_azimuthal_outer_factor = 1.0;
 	double keplerian_azimuthal_inner_factor = 1.0;
 	double keplerian_radial_outer_factor = 1.0;
 	double keplerian_radial_inner_factor = 1.0;
-	
 
+	/*
+	* Get the type of an individual variabl;es boundary condition for a given key.
+	* This function takes into account types set by a composite boundary condition.
+	* See function for composites below.
+	*/
+	static std::string get_type(const std::string key, std::string &name) {
+		std::string str = config::cfg.get_lowercase(key, "infer");
+
+		if (str == "infer") {
+			if (name == "") { // nothing to infer here
+				throw std::runtime_error("Can not infer '" + key + "' when 'InnerBoundary/OuterBoundary' is set to 'individual'");
+			} else {
+				return name;
+			}
+		} else { // set individual boundary directly
+			if (name != "") {
+				throw std::runtime_error("Can not set '" + key + "' via composite when type is different from 'infer'");
+			} else {
+				name = str;
+				return str;
+			}
+		}
+	}
 
 	static void sigma_inner() {
-		const std::string str = config::cfg.get_lowercase("BoundarySigmaInner", "zerogradient");
-		sigma_inner_name = str;
+		std::string str = get_type("BoundarySigmaInner", sigma_inner_name);
+
 		if (str == "zerogradient") {
 			sigma_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
@@ -60,12 +84,13 @@ namespace boundary_conditions
 		} else {
 			throw std::runtime_error("Unknown boundary condition for sigma inner: " + str);
 		}
-		logging::print_master(LOG_INFO "BC: Sigma inner = %s\n", str.c_str());
+
+		logging::print_master(LOG_INFO "BC: Sigma inner = %s\n", sigma_inner_name.c_str());
 	}
 
 	static void sigma_outer() {
-		const std::string str = config::cfg.get_lowercase("BoundarySigmaOuter", "zerogradient");
-		sigma_outer_name = str;
+		const std::string str = get_type("BoundarySigmaOuter", sigma_outer_name);
+
 		if (str == "zerogradient") {
 			sigma_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
@@ -75,12 +100,12 @@ namespace boundary_conditions
 		} else {
 			throw std::runtime_error("Unknown boundary condition for sigma outer: " + str);
 		}
-		logging::print_master(LOG_INFO "BC: Sigma outer = %s\n", str.c_str());
+		logging::print_master(LOG_INFO "BC: Sigma outer = %s\n", sigma_outer_name.c_str());
 	}
 
 	static void energy_inner() {
-		const std::string str = config::cfg.get_lowercase("BoundaryEnergyInner", "zerogradient");
-		energy_inner_name = str;
+		const std::string str = get_type("BoundaryEnergyInner", energy_outer_name);
+
 		if (str == "zerogradient") {
 			energy_inner_func = zero_gradient_inner;
 		} else if (str == "diskmodel") {
@@ -90,12 +115,12 @@ namespace boundary_conditions
 		} else {
 			throw std::runtime_error("Unknown boundary condition for energy inner: " + str);
 		}
-		logging::print_master(LOG_INFO "BC: Energy inner = %s\n", str.c_str());
+		logging::print_master(LOG_INFO "BC: Energy inner = %s\n", energy_inner_name.c_str());
 	}
 
 	static void energy_outer() {
-		const std::string str = config::cfg.get_lowercase("BoundaryEnergyOuter", "zerogradient");
-		energy_outer_name = str;
+		const std::string str = get_type("BoundaryEnergyOuter", energy_outer_name);
+
 		if (str == "zerogradient") {
 			energy_outer_func = zero_gradient_outer;
 		} else if (str == "diskmodel") {
@@ -105,17 +130,17 @@ namespace boundary_conditions
 		} else {
 			throw std::runtime_error("Unknown boundary condition for energy outer: " + str);
 		}
-		logging::print_master(LOG_INFO "BC: Energy outer = %s\n", str.c_str());
+		logging::print_master(LOG_INFO "BC: Energy outer = %s\n", energy_outer_name.c_str());
 	}
 
 	static void vrad_inner() {
-		const std::string str = config::cfg.get_lowercase("BoundaryVradInner", "zerogradient");
-		vrad_inner_name = str;
+		const std::string str = get_type("BoundaryVradInner", vrad_inner_name);
+
 		if (str == "zerogradient") {
 			vrad_inner_func = zero_gradient_inner;
 		} else if (str == "reference") {
 			vrad_inner_func = reference_inner;
-		} else if (str == "reflective") {
+		} else if (str == "reflecting") {
 			vrad_inner_func = reflecting_inner;
 		} else if (str == "outflow") {
 			vrad_inner_func = outflow_inner;
@@ -129,17 +154,17 @@ namespace boundary_conditions
 		// parse parameters
 		keplerian_radial_inner_factor = config::cfg.get<double>("BoundaryVradInnerKeplerianFactor", 0.1);
 		// log
-		logging::print_master(LOG_INFO "BC: Vrad inner = %s\n", str.c_str());
+		logging::print_master(LOG_INFO "BC: Vrad inner = %s\n", vrad_inner_name.c_str());
 	}
 
 	static void vrad_outer() {
-		const std::string str = config::cfg.get_lowercase("BoundaryVradOuter", "zerogradient");
-		vrad_outer_name = str;
+		const std::string str = get_type("BoundaryVradOuter", vrad_outer_name);
+
 		if (str == "zerogradient") {
 			vrad_outer_func = zero_gradient_outer;
 		} else if (str == "reference") {
 			vrad_outer_func = reference_outer;
-		} else if (str == "reflective") {
+		} else if (str == "reflecting") {
 			vrad_outer_func = reflecting_outer;
 		} else if (str == "outflow") {
 			vrad_outer_func = outflow_outer;
@@ -153,11 +178,11 @@ namespace boundary_conditions
 		// parse parameters
 		keplerian_radial_outer_factor = config::cfg.get<double>("BoundaryVradOuterKeplerianFactor", 0.1);
 		// log
-		logging::print_master(LOG_INFO "BC: Vrad outer = %s\n", str.c_str());
+		logging::print_master(LOG_INFO "BC: Vrad outer = %s\n", vrad_outer_name.c_str());
 	}
 
 	static void vaz_inner() {
-		const std::string str = config::cfg.get_lowercase("BoundaryVazInner", "zerogradient");
+		const std::string str = config::cfg.get_lowercase("BoundaryVazInner", "keplerian");
 		vaz_inner_name = str;
 		if (str == "zerogradient") {
 			vaz_inner_func = zero_gradient_inner;
@@ -175,11 +200,11 @@ namespace boundary_conditions
 		// parse parameters
 		keplerian_azimuthal_inner_factor = config::cfg.get<double>("BoundaryVazInnerKeplerianFactor", 1.0);
 		// log
-		logging::print_master(LOG_INFO "BC: Vaz inner = %s\n", str.c_str());
+		logging::print_master(LOG_INFO "BC: Vaz inner = %s\n", vaz_inner_name.c_str());
 	}
 
 	static void vaz_outer() {
-		const std::string str = config::cfg.get_lowercase("BoundaryVazOuter", "zerogradient");
+		const std::string str = config::cfg.get_lowercase("BoundaryVazOuter", "keplerian");
 		vaz_outer_name = str;
 		if (str == "zerogradient") {
 			vaz_outer_func = zero_gradient_outer;
@@ -197,7 +222,7 @@ namespace boundary_conditions
 		// parse parameters
 		keplerian_azimuthal_outer_factor = config::cfg.get<double>("BoundaryVazOuterKeplerianFactor", 1.0);
 		// log
-		logging::print_master(LOG_INFO "BC: Vaz outer = %s\n", str.c_str());
+		logging::print_master(LOG_INFO "BC: Vaz outer = %s\n", vaz_outer_name.c_str());
 	}
 
 	static void special() {
@@ -213,8 +238,60 @@ namespace boundary_conditions
 		logging::print_master(LOG_INFO "BC: Special = %s\n", str.c_str());
 	}
 
+	static void composite_inner() {
+		const std::string str = config::cfg.get_lowercase("InnerBoundary", "individual");
+		composite_inner_name = str;
+		if (str == "individual") {
+			return;
+		} else if (str == "outflow") {
+			sigma_inner_name = "zerogradient";
+			energy_inner_name = "zerogradient";
+			vrad_inner_name = "outflow";
+		} else if (str == "reflecting") {
+			sigma_inner_name = "zerogradient";
+			energy_inner_name = "zerogradient";
+			vrad_inner_name = "reflecting";
+		} else if (str == "reference") {
+			sigma_inner_name = "reference";
+			energy_inner_name = "reference";
+			vrad_inner_name = "reference";
+		} else {
+			throw std::runtime_error("Unknown boundary condition for inner boundary: " + str);
+		}
+		if (str != "individual") {
+			logging::print_master(LOG_INFO "BC: Inner composite = %s\n", composite_inner_name.c_str());
+		}
+	}
+
+	static void composite_outer() {
+		const std::string str = config::cfg.get_lowercase("OuterBoundary", "individual");
+		composite_outer_name = str;
+		if (str == "individual") {
+			return;
+		} else if (str == "outflow") {
+			sigma_outer_name = "zerogradient";
+			energy_outer_name = "zerogradient";
+			vrad_outer_name = "outflow";
+		} else if (str == "reflecting") {
+			sigma_outer_name = "zerogradient";
+			energy_outer_name = "zerogradient";
+			vrad_outer_name = "reflecting";
+		} else if (str == "reference") {
+			sigma_outer_name = "reference";
+			energy_outer_name = "reference";
+			vrad_outer_name = "reference";
+		} else {
+			throw std::runtime_error("Unknown boundary condition for outer boundary: " + str);
+		}
+		if (str != "individual") {
+			logging::print_master(LOG_INFO "BC: Outer composite = %s\n", composite_outer_name.c_str());
+		}
+	}
 
 	void parse_config() {
+
+		composite_inner();
+		composite_outer();
 
 		sigma_inner();
 		sigma_outer();
@@ -232,3 +309,4 @@ namespace boundary_conditions
 	}
 
 } // namespace boundary_conditions
+
