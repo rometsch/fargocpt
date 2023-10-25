@@ -672,7 +672,7 @@ void calculate_qminus(t_data &data, const double current_time)
 		}
 
 		double delta_E = E;
-		if (parameters::cooling_beta_initial) {
+		if (parameters::cooling_beta_reference) {
 		    const double sigma =
 			data[t_data::SIGMA](nr, naz);
 		    const double sigma0 =
@@ -681,7 +681,7 @@ void calculate_qminus(t_data &data, const double current_time)
 			data[t_data::ENERGY0](nr, naz);
 		    delta_E -= E0 / sigma0 * sigma;
 		}
-		if (parameters::cooling_beta_aspect_ratio) {
+		if (parameters::cooling_beta_model) {
 		    const double sigma =
 			data[t_data::SIGMA](nr, naz);
 		    const double E0 =

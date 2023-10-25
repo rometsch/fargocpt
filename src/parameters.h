@@ -136,9 +136,9 @@ extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
 /// beta cooling to aspect ratio profile
-extern bool cooling_beta_initial;
+extern bool cooling_beta_reference;
 /// beta cooling to initial profile
-extern bool cooling_beta_aspect_ratio;
+extern bool cooling_beta_model;
 /// beta cooling to minimum temperature
 extern bool cooling_beta_floor;
 /// local Scurve cooling enabled

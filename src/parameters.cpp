@@ -97,8 +97,8 @@ bool cooling_surface_enabled;
 bool cooling_beta_enabled;
 double cooling_beta_ramp_up;
 double cooling_beta;
-bool cooling_beta_initial;
-bool cooling_beta_aspect_ratio;
+bool cooling_beta_reference;
+bool cooling_beta_model;
 bool cooling_beta_floor;
 
 bool cooling_scurve_enabled;
@@ -530,19 +530,16 @@ static void read_beta_cooling_config(){
     cooling_beta_ramp_up =
 	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
 
-    cooling_beta_aspect_ratio = false;
-    cooling_beta_initial = false;
-
 	const std::string str = config::cfg.get_lowercase("CoolingBetaReference", "Zero");
 	if (str == "zero") {
-		cooling_beta_initial = false;
-		cooling_beta_aspect_ratio = false;
-	} else if (str == "initial") {
-		cooling_beta_initial = true;
-		cooling_beta_aspect_ratio = false;
-	} else if (str == "aspectratio") {
-		cooling_beta_initial = false;
-		cooling_beta_aspect_ratio = true;
+		cooling_beta_reference = false;
+		cooling_beta_model = false;
+	} else if (str == "reference") {
+		cooling_beta_reference = true;
+		cooling_beta_model = false;
+	} else if (str == "model") {
+		cooling_beta_reference = false;
+		cooling_beta_model = true;
 	} else {
 		throw std::runtime_error("Invalid choice for cooling beta reference: " + str);
 	}
@@ -1572,7 +1569,7 @@ void summarize_parameters()
 	heating_viscous_factor);
 	logging::print_master(LOG_INFO "Cooling (beta) is %s and reference temperature is %s. Using beta = %g.\n",
 			  cooling_beta_enabled ? "enabled" : "disabled",
-			  cooling_beta_initial ? "the initial value" : cooling_beta_floor ? "floor" : "zero",
+			  cooling_beta_reference ? "the initial value" : cooling_beta_floor ? "floor" : "zero",
 			  cooling_beta);
 
     logging::print_master(
