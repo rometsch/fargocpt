@@ -197,7 +197,11 @@ void t_planetary_system::init_planet(config::Config &cfg)
 	}
 
     planet->set_name(name.c_str());
-	planet->set_accretion_efficiency(std::max(accretion_efficiency, 0.0));
+	planet->set_accretion_efficiency(accretion_efficiency);
+
+    if(planet->get_accretion_efficiency() <= 0.0){
+	planet->set_accretion_type(ACCRETION_TYPE_NONE);
+    }
 
     planet->set_planet_radial_extend(radius);
     planet->set_temperature(temperature);
@@ -341,6 +345,14 @@ void t_planetary_system::list_planets()
 		       get_planet(i).get_planet_radial_extend(),
 		       (get_planet(i).get_irradiate()) ? "yes" : " no",
 		       get_planet(i).get_rampuptime());
+    }
+
+    for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+	if(get_planet(i).get_accretion_efficiency() > 0.0){
+	if(get_planet(i).get_orbital_period() <= 0.0){
+	    die("Planet %d: %s cannot accret without an orbital period!", i, get_planet(i).get_name().c_str());
+	}
+	}
     }
 
     logging::print(LOG_INFO "\n");
