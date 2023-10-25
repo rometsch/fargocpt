@@ -396,7 +396,40 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 
 }
 
+static void read_scurve_config() {
+
+	const std::string str = config::cfg.get_lowercase("ScurveType", "Kimura");
+
+	if (str == "kimura") { // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
+		cooling_scurve_type = true;
+	} else if (str == "ichikawa") { // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+		cooling_scurve_type = false;
+	} else {
+		throw std::runtime_error("Invalid choice for scurve type: " + str);
+	}
+}
+
 static void read_surface_cooling_config(){
+
+	cooling_surface_enabled = false;
+    cooling_scurve_enabled = false;
+	
+	const std::string surface_cooling = config::cfg.get_lowercase("SurfaceCooling", "No");
+	if (surface_cooling == "no" || surface_cooling == "off" || surface_cooling == "false") {
+		cooling_surface_enabled = false;
+		cooling_scurve_enabled = false;
+	} else if (surface_cooling == "thermal") {
+		cooling_surface_enabled = true;
+		cooling_scurve_enabled = false;
+	} else if (surface_cooling == "scurve") {
+		cooling_surface_enabled = false;
+		cooling_scurve_enabled = true;
+	} else {
+		throw std::runtime_error("Invalid choice for surface cooling: " + surface_cooling);
+	}
+
+	read_scurve_config();
+
     surface_cooling_factor =
 	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
 }
@@ -424,20 +457,9 @@ static void read_opacity_config(){
 	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
 }
 
-static void read_scurve_config() {
-
-	const std::string str = config::cfg.get_lowercase("ScurveType", "Kimura");
-
-	if (str == "kimura") { // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
-		cooling_scurve_type = true;
-	} else if (str == "ichikawa") { // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
-		cooling_scurve_type = false;
-	} else {
-		throw std::runtime_error("Invalid choice for scurve type: " + str);
-	}
-}
-
 static void read_radiative_diffusion_config(){
+
+	radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "No");
 
     radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
@@ -500,6 +522,8 @@ static void read_cooling_legacy(){
 }
 
 static void read_beta_cooling_config(){
+	cooling_beta_enabled = config::cfg.get_flag("CoolingBetaLocal", "No");
+
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
 
     units::precise_unit T0 = units::T0;
@@ -527,152 +551,16 @@ static void read_beta_cooling_config(){
 
 static void read_radiation_config() {
 
-    minimum_temperature =
-	config::cfg.get<double>("MinimumTemperature", "3 K", Temp0);
-    maximum_temperature =
-	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
-
-    heating_viscous_enabled =
-	config::cfg.get_flag("HeatingViscous", "No");
-    heating_viscous_factor =
-	config::cfg.get<double>("HeatingViscousFactor", 1.0);
-
-    cooling_surface_enabled = false;
-    cooling_beta_enabled = false;
-    cooling_scurve_enabled = false;
-    radiative_diffusion_enabled =  false;
-
-	const std::string str = config::cfg.get_lowercase("RadiationTransfer", "No");
-
-
-
-    switch (config::cfg.get_first_letter_lowercase("Cooling", "legacy")) {
-    case 'r': { // radiative
-	cooling_surface_enabled = true;
+	// read all parameters to get default values
 	read_surface_cooling_config();
 	read_opacity_config();
-	break;
-    }
-    case 'b': { // beta cooling
-	cooling_beta_enabled = true;
 	read_beta_cooling_config();
-	break;
-    }
-    case 's': { // Scurve cooling
-	cooling_scurve_enabled = true;
-	read_scurve_config();
-	break;
-    }
-    case 'c': { // combined radiative & beta
-	cooling_beta_enabled = true;
-	read_beta_cooling_config();
-
-	cooling_surface_enabled = true;
-	read_surface_cooling_config();
-	read_opacity_config();
-	break;
-    }
-    case 'm': { // mixed, same as combined: radiative & beta
-	cooling_beta_enabled = true;
-	read_beta_cooling_config();
-
-	cooling_surface_enabled = true;
-	read_surface_cooling_config();
-	read_opacity_config();
-	break;
-    }
-    case 'o': { // only fld
-	radiative_diffusion_enabled = true;
 	read_radiative_diffusion_config();
 
-	read_opacity_config();
-	break;
-    }
-    case 'f': { // fld or full: radiative cooling and radiative diffusion
-	cooling_surface_enabled = true;
-	read_surface_cooling_config();
-
-	radiative_diffusion_enabled = true;
-	read_radiative_diffusion_config();
-
-	read_opacity_config();
-	break;
-    }
-    case 'n': { // no cooling (adiabatic)
-	break;
-    }
-    default: {
-	read_cooling_legacy();
-    }
-    }
 }
 
+static void read_output_config(t_data &data) {
 
-void read(const std::string &filename, t_data &data)
-{
-	if (filename.compare(filename.size()-4,4,".par") == 0) {
-		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!", filename.c_str());
-	}
-	config::cfg.load_file(filename);
-
-    // units
-	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
-	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");
-	const std::string t0s = config::cfg.get<std::string>("t0", "1.0");
-	const std::string temp0s = config::cfg.get<std::string>("temp0", "1.0");
-
-
-	units::set_baseunits(l0s, m0s, t0s, temp0s);
-	// units::set_baseunits(l0s, m0s);
-
-	units::precise_unit L0 = units::L0;
-	units::precise_unit M0 = units::M0;
-	units::precise_unit T0 = units::T0;
-	units::precise_unit Temp0 = units::Temp0;
-
-	constants::initialize_constants();
-
-    // now we now everything to compute unit factors
-    units::calculate_unit_factors();
-
-    /* grid */
-    RMIN = config::cfg.get<double>("RMIN", L0);
-    RMAX = config::cfg.get<double>("RMAX", L0);
-
-    NRadial = config::cfg.get<unsigned int>("NRAD", 64);
-    NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
-
-
-    // Disk radius = radius at which disk_radius_mass_fraction percent
-    // of the total mass inside the domain is contained
-    // 0.99 is used in Kley et al. 2008 "Simulations of eccentric disks .."
-    disk_radius_mass_fraction =
-    config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
-
-    quantities_radius_limit =
-	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
-
-    if (quantities_radius_limit <= RMIN) {
-	logging::print_master(LOG_INFO "QUANTITIESRADIUSLIMIT %.5e < %.5e (RMIN) too small, setting it to %.5e\n", quantities_radius_limit, RMIN, 2.0*RMAX);
-	quantities_radius_limit = 2.0 * RMAX;
-    }
-	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);
-
-    exponential_cell_size_factor =
-	config::cfg.get<double>("ExponentialCellSizeFactor", 1.41);
-    switch (config::cfg.get_first_letter_lowercase("RadialSpacing", "ARITHMETIC")) {
-    case 'a': // arithmetic
-	radial_grid_type = arithmetic_spacing;
-	break;
-    case 'l': // logarithmic;
-	radial_grid_type = logarithmic_spacing;
-	break;
-    case 'e': // exponential;
-	radial_grid_type = exponential_spacing;
-	break;
-    default:
-	die("Invalid setting for RadialSpacing");
-    }
 
     // output settings
     bool do_write_1D = config::cfg.get_flag("DoWrite1DFiles", true);
@@ -809,8 +697,9 @@ void read(const std::string &filename, t_data &data)
 	sort(lightcurves_radii.begin(), lightcurves_radii.end());
     }
 
-    // boundary conditions
-	boundary_conditions::parse_config();
+}
+
+static void read_boundary_config_legacy() {
 
     switch (
 	config::cfg.get_first_letter_lowercase("InnerBoundary", "Open")) {
@@ -998,6 +887,82 @@ void read(const std::string &filename, t_data &data)
 			   t_data::ENERGY0, "Energy"));
     damping_energy_id = (int)damping_vector.size() - 1;
 
+}
+
+
+void read(const std::string &filename, t_data &data)
+{
+	if (filename.compare(filename.size()-4,4,".par") == 0) {
+		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!", filename.c_str());
+	}
+	config::cfg.load_file(filename);
+
+    // units
+	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
+	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");
+	const std::string t0s = config::cfg.get<std::string>("t0", "1.0");
+	const std::string temp0s = config::cfg.get<std::string>("temp0", "1.0");
+
+
+	units::set_baseunits(l0s, m0s, t0s, temp0s);
+	// units::set_baseunits(l0s, m0s);
+
+	units::precise_unit L0 = units::L0;
+	units::precise_unit M0 = units::M0;
+	units::precise_unit T0 = units::T0;
+	units::precise_unit Temp0 = units::Temp0;
+
+	constants::initialize_constants();
+
+    // now we now everything to compute unit factors
+    units::calculate_unit_factors();
+
+    /* grid */
+    RMIN = config::cfg.get<double>("RMIN", L0);
+    RMAX = config::cfg.get<double>("RMAX", L0);
+
+    NRadial = config::cfg.get<unsigned int>("NRAD", 64);
+    NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
+
+
+    // Disk radius = radius at which disk_radius_mass_fraction percent
+    // of the total mass inside the domain is contained
+    // 0.99 is used in Kley et al. 2008 "Simulations of eccentric disks .."
+    disk_radius_mass_fraction =
+    config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
+
+    quantities_radius_limit =
+	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
+
+    if (quantities_radius_limit <= RMIN) {
+	logging::print_master(LOG_INFO "QUANTITIESRADIUSLIMIT %.5e < %.5e (RMIN) too small, setting it to %.5e\n", quantities_radius_limit, RMIN, 2.0*RMAX);
+	quantities_radius_limit = 2.0 * RMAX;
+    }
+	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);
+
+    exponential_cell_size_factor =
+	config::cfg.get<double>("ExponentialCellSizeFactor", 1.41);
+    switch (config::cfg.get_first_letter_lowercase("RadialSpacing", "ARITHMETIC")) {
+    case 'a': // arithmetic
+	radial_grid_type = arithmetic_spacing;
+	break;
+    case 'l': // logarithmic;
+	radial_grid_type = logarithmic_spacing;
+	break;
+    case 'e': // exponential;
+	radial_grid_type = exponential_spacing;
+	break;
+    default:
+	die("Invalid setting for RadialSpacing");
+    }
+
+	read_output_config(data);
+
+    // boundary conditions
+	boundary_conditions::parse_config();
+	read_boundary_config_legacy();
+
+
     calculate_disk = config::cfg.get_flag("DISK", "yes");
 	
     corotation_reference_body =
@@ -1006,6 +971,16 @@ void read(const std::string &filename, t_data &data)
     // set number of bodies used to calculate barycenter in Interpret.cpp
 
     MU = config::cfg.get<double>("mu", 1.0);
+
+    minimum_temperature =
+	config::cfg.get<double>("MinimumTemperature", "3 K", Temp0);
+    maximum_temperature =
+	config::cfg.get<double>("MaximumTemperature", "1.0e300 K", Temp0);
+
+    heating_viscous_enabled =
+	config::cfg.get_flag("HeatingViscous", "Yes");
+    heating_viscous_factor =
+	config::cfg.get<double>("HeatingViscousFactor", 1.0);
 
 	read_radiation_config();
 
