@@ -40,7 +40,7 @@ void init() {
 
     for (unsigned int n=0; n<Nrngs; n++) {
         seed(n);
-        gen_jsfs.emplace_back(jsf64(a_seed[n]));
+	gen_jsfs.emplace_back(jsf64(a_seed[0]));
         uniform_dists.emplace_back(std::uniform_real_distribution<double>(0.0, 1.0));
         std_normal_dists.emplace_back(cxx::ziggurat_normal_distribution<double>());
     }
