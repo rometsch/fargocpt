@@ -73,11 +73,9 @@ const std::map<const std::string, const int> quantities_file_column_v2_5 = {
 	{"indirect term disk x", 29},
 	{"indirect term disk y", 30},
 	{"frame angle", 31},
-	{"disk eccentricity", 32},
-	{"disk periastron", 33},
-	{"advection torque", 34},
-	{"viscous torque", 35},
-	{"gravitational torque", 36}
+	{"advection torque", 32},
+	{"viscous torque", 33},
+	{"gravitational torque", 34}
 	};
 static const auto quantities_file_column = quantities_file_column_v2_5;
 
@@ -113,8 +111,6 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 	{"frame angle", "frequency"},
 	{"eccentricity", "1"},
 	{"periastron", "1"},
-	{"disk eccentricity", "1"},
-	{"disk periastron", "1"},
 	{"aspect ratio", "1"},
 	{"indirect term nbody x", "acceleration"},
 	{"indirect term nbody y", "acceleration"},
@@ -210,7 +206,7 @@ static void copy_parameters_to_snapshot_dir()
 void write_output_version()
 {
     if (CPU_Master) {
-	const std::string filename = outdir + "/fargocpt_output_v1_2";
+	const std::string filename = outdir + "/fargocpt_output_v1_3";
 	std::ofstream versionfile(filename, std::ios_base::app);
 	versionfile.close();
     }
@@ -381,14 +377,9 @@ void write_quantities(t_data &data, bool force_update)
 	quantities_limit_radius = parameters::quantities_radius_limit;
     }
 
-    double disk_eccentricity;
-    double disk_periastron;
-    quantities::calculate_disk_ecc_peri(data, disk_eccentricity, disk_periastron, force_update);
-
-    const auto disk_quantities = reduce_disk_quantities(
-	data, quantities_limit_radius);
-    const double average_eccentricity = disk_quantities[0];
-    const double average_periastron = disk_quantities[1];
+    double average_eccentricity;
+    double average_periastron;
+    quantities::calculate_disk_ecc_peri(data, average_eccentricity, average_periastron, force_update);
 
     // computate absolute deviation from start values (this has to be done on
     // all nodes!)
@@ -471,7 +462,7 @@ void write_quantities(t_data &data, bool force_update)
 	// print to logfile
 	fprintf(
 	    fd,
-		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 	    sim::N_snapshot, sim::N_monitor, sim::PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
@@ -488,8 +479,6 @@ void write_quantities(t_data &data, bool force_update)
 		refframe::IndirectTermDisk.x,
 		refframe::IndirectTermDisk.y,
 		refframe::FrameAngle,
-		disk_eccentricity,
-		disk_periastron,
 		tadv,
 		tvisc,
 		tgrav
@@ -779,63 +768,65 @@ void write_1D_info(t_data &data)
     }
 }
 
-/**
-	Calculates eccentricity, semi major axis and periastron averaged with
-   the radial cells
-*/
-std::vector<double> reduce_disk_quantities(t_data &data,
-					   const double quantitiy_radius)
+
+void write_2D_info(t_data &data)
 {
-    double local_eccentricity = 0.0;
-    double disk_eccentricity = 0.0;
-	double local_mass = 0.0;
-	double global_mass = 0.0;
-    double periastron = 0.0;
-    double local_periastron = 0.0;
+	if (!CPU_Master) {
+		return;
+	}
+
+	const std::string filename_info = outdir + "info2D.yml";
+	std::ofstream info_ofs(filename_info);
+
+	info_ofs.precision(std::numeric_limits<double>::max_digits10);
+	info_ofs << "# 2D output variable descriptions" << std::endl;
+	info_ofs << "# version 0.1" << std::endl << std::endl;
+
+	const std::string indent = "  ";
+
+    for (int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
+	t_polargrid &g = data[t_data::t_polargrid_type(i)];
+	if (g.get_write_2D()) {
+
+		const std::string name = std::string(g.get_name());
+
+	    std::string unit;
+		double factor = 1.0;
+	    if (g.get_unit() != NULL) {
+			unit = std::string(g.get_unit()->get_cgs_symbol());
+			factor = g.get_unit()->get_cgs_factor();
+		}
+		
+		info_ofs << name << ":" << std::endl;
+	    info_ofs << indent << "unit: " << unit << std::endl;
+		info_ofs << indent << "code_units_to_cgs_factor: "
+			 << g.get_unit()->get_cgs_factor()
+			 << std::endl;
+
+		if (g.get_unit() != NULL) {
+			info_ofs << indent << "unit_str: " << factor << " " << unit << std::endl;
+		} else {
+			info_ofs << indent << "unit_str: 1" << std::endl;
+		}
+
+		const unsigned int Nrad = g.get_size_radial();
+		const unsigned int Nazi = g.get_size_azimuthal();
+
+		info_ofs << indent << "Nrad: " << Nrad << std::endl;
+		info_ofs << indent << "Nazi: " << Nazi << std::endl;
+		
+	    info_ofs << indent << "bigendian: " << is_big_endian() << std::endl;
+		info_ofs << indent << "vector: " << g.is_vector() << std::endl;
+
+		const std::string filename_pattern = name + ".dat";
+		info_ofs << indent << "filename: " << filename_pattern << std::endl;
+
+		info_ofs << std::endl;
 
 
-    // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
-    // they would be included twice!)
-	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
-	#pragma omp parallel for collapse(2) reduction(+ : local_eccentricity, local_periastron, local_mass)
-	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		if (Rmed[nr] <= quantitiy_radius) {
-		// eccentricity and semi major axis weighted with cellmass
-		const double cell_mass = data[t_data::SIGMA](nr, naz) * Surf[nr];
-		local_mass += cell_mass;
-		local_eccentricity +=
-			data[t_data::ECCENTRICITY](nr, naz) *
-			cell_mass;
-
-		local_periastron +=
-			data[t_data::PERIASTRON](nr, naz) *
-			cell_mass;
-	    }
 	}
     }
-
-    // synchronize threads
-    MPI_Reduce(&local_eccentricity, &disk_eccentricity, 1, MPI_DOUBLE, MPI_SUM,
-	       0, MPI_COMM_WORLD);
-
-    MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0,
-	       MPI_COMM_WORLD);
-
-	MPI_Reduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM, 0,
-		  MPI_COMM_WORLD);
-
-	if (global_mass > 0.0) {
-	disk_eccentricity /= global_mass;
-	periastron /= global_mass;
-    } else {
-	disk_eccentricity = 0.0;
-	periastron = 0.0;
-    }
-
-    std::vector<double> rv = {disk_eccentricity, periastron};
-
-    return rv;
+	info_ofs.close();
 }
 
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)

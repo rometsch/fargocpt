@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM ubuntu:22.04
+FROM mcr.microsoft.com/devcontainers/universal:2
 
 RUN apt-get update -qq
 RUN apt-get install -qq -y --no-install-recommends apt-utils
@@ -10,18 +10,5 @@ RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libopenmpi-dev
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libgsl-dev 
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libfftw3-mpi-dev libfftw3-dev
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3 python3-pip
+RUN pip install --upgrade pip
 RUN pip install psutil
-
-WORKDIR /workspaces/fargocpt
-
-RUN groupadd -g 503 mygroup
-RUN mkdir /home/myuser
-RUN useradd -u 503 -g 503 -m myuser -b /home
-RUN chown -R myuser:mygroup /home/myuser
-
-RUN chown -R myuser:mygroup /workspaces
-RUN chown -R myuser:mygroup /workspaces/fargocpt
-
-USER myuser
-
-CMD ["bash"]

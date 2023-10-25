@@ -9,7 +9,7 @@ extern double ASPECTRATIO_REF;
 extern int ASPECTRATIO_MODE;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
-extern int VISCOUS_ACCRETION;
+extern bool VISCOUS_ACCRETION;
 extern double SIGMASLOPE;
 extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;
@@ -40,6 +40,7 @@ extern bool Polytropic;
 extern bool Locally_Isothermal;
 
 extern bool variableGamma;
+extern double hydrogenMassFraction;
 
 /// Type of radial Grid
 enum t_radial_grid {
@@ -61,7 +62,6 @@ enum t_boundary_condition {
     boundary_condition_zero_gradient,
     boundary_condition_nonreflecting,
     boundary_condition_viscous_outflow,
-    boundary_condition_jibin_spreading_ring,
     boundary_condition_boundary_layer,
     boundary_condition_precribed_time_variable,
     boundary_condition_keplerian,

@@ -48,12 +48,22 @@ t_data::t_data()
     m_polargrids[MU].set_name("mu");
 
     m_polargrids[ACCEL_RADIAL].set_vector(true);
-    m_polargrids[ACCEL_RADIAL].set_name("arad");
+    m_polargrids[ACCEL_RADIAL].set_name("a_rad");
     m_polargrids[ACCEL_RADIAL].set_unit(units::acceleration);
 
     m_polargrids[ACCEL_AZIMUTHAL].set_vector(false);
-    m_polargrids[ACCEL_AZIMUTHAL].set_name("atheta");
+    m_polargrids[ACCEL_AZIMUTHAL].set_name("a_azi");
     m_polargrids[ACCEL_AZIMUTHAL].set_unit(units::acceleration);
+
+    // sg accel is cell-centered
+    m_polargrids[SG_ACCEL_RAD].set_vector(false);
+    m_polargrids[SG_ACCEL_RAD].set_name("a_sg_rad");
+    m_polargrids[SG_ACCEL_RAD].set_unit(units::acceleration);
+
+    // sg accel is cell-centered
+    m_polargrids[SG_ACCEL_AZI].set_vector(false);
+    m_polargrids[SG_ACCEL_AZI].set_name("a_sg_azi");
+    m_polargrids[SG_ACCEL_AZI].set_unit(units::acceleration);
 
     m_polargrids[TOOMRE].set_scalar(true);
     m_polargrids[TOOMRE].set_name("Toomre");
@@ -68,16 +78,6 @@ t_data::t_data()
     m_polargrids[ECCENTRICITY_Y].set_scalar(true);
     m_polargrids[ECCENTRICITY_Y].set_name("Eccentricity_Y");
     /// Always computed together with ECCENTRICITY_X
-
-    m_polargrids[ECCENTRICITY].set_scalar(true);
-    m_polargrids[ECCENTRICITY].set_name("Eccentricity");
-    m_polargrids[ECCENTRICITY].set_do_before_write(
-	&quantities::calculate_disk_ecc_vector);
-
-    m_polargrids[PERIASTRON].set_scalar(true);
-    m_polargrids[PERIASTRON].set_name("Periastron");
-    m_polargrids[PERIASTRON].set_do_before_write(
-	&quantities::calculate_disk_ecc_vector);
 
     m_polargrids[ALPHA_GRAV].set_scalar(true);
     m_polargrids[ALPHA_GRAV].set_name("alpha_grav");

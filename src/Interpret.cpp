@@ -20,9 +20,6 @@
 extern int damping_energy_id;
 extern std::vector<parameters::t_DampingType> damping_vector;
 
-// frame
-int GuidingCenter;
-
 int OuterSourceMass, CICPlanet;
 
 #include <algorithm>
@@ -318,16 +315,12 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     // Frame settings
     parameters::corotating = false;
-    GuidingCenter = false;
     switch (cfg.get_first_letter_lowercase("Frame", "Fixed")) {
     case 'f': // Fixed
+	parameters::corotating = false;
 	break;
     case 'c': // Corotating
 	parameters::corotating = true;
-	break;
-    case 'g': // Guiding-Center
-	parameters::corotating = false;
-	GuidingCenter = false;
 	break;
     default:
 	die("Invalid setting for Frame");
@@ -469,6 +462,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    parameters::Adiabatic = true;
 	    parameters::variableGamma = true;
 
+	    parameters::hydrogenMassFraction = cfg.get<double>("HydrogenMassFraction", 0.75);
+
+
 	    char ADIABATICINDEX_string[512];
 	    strncpy(
 		ADIABATICINDEX_string,
@@ -497,8 +493,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    }
 	    logging::print_master(
 		LOG_INFO
-		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g!\n",
-		parameters::ADIABATICINDEX);
+		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g, HydrogenMassFraction = %g!\n",
+		parameters::ADIABATICINDEX, parameters::hydrogenMassFraction);
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||

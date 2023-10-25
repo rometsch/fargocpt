@@ -135,7 +135,7 @@ find_nearest(unsigned int &n_radial_a_minus, unsigned int &n_radial_a_plus,
     n_azimuthal_b_plus = get_next_azimuthal_id(n_azimuthal_b_minus);
 }
 
-static double interpolate_bilinear_sg(const double *array1D,
+static double interpolate_bilinear_sg(const double *flattened2Darray,
 				      const unsigned int n_radial_minus,
 				      const unsigned int n_radial_plus,
 				      const unsigned int n_azimuthal_minus,
@@ -147,10 +147,10 @@ static double interpolate_bilinear_sg(const double *array1D,
     double dphi = 2.0 * M_PI / (double)NAzimuthal;
 
     // values at corners
-    double Qmm = array1D[n_radial_minus * NAzimuthal + n_azimuthal_minus];
-    double Qpm = array1D[n_radial_plus * NAzimuthal + n_azimuthal_minus];
-    double Qmp = array1D[n_radial_minus * NAzimuthal + n_azimuthal_plus];
-    double Qpp = array1D[n_radial_plus * NAzimuthal + n_azimuthal_plus];
+    double Qmm = flattened2Darray[n_radial_minus * NAzimuthal + n_azimuthal_minus];
+    double Qpm = flattened2Darray[n_radial_plus * NAzimuthal + n_azimuthal_minus];
+    double Qmp = flattened2Darray[n_radial_minus * NAzimuthal + n_azimuthal_plus];
+    double Qpp = flattened2Darray[n_radial_plus * NAzimuthal + n_azimuthal_plus];
 
     double rm = Rb[n_radial_minus];
     double rp = Rb[n_radial_plus];

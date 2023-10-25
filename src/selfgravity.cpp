@@ -101,6 +101,9 @@ double *acc_azimuthal;
 fftw_complex *FFT_acc_radial;
 fftw_complex *FFT_acc_azimuthal;
 
+// Arrays for use outside the sg module.
+// Memory is allocated in the data construct.
+// These variables only point to the respective Field array.
 double *g_radial;
 double *g_azimuthal;
 
@@ -135,9 +138,6 @@ void mpi_finalize(void)
     fftw_free(acc_azimuthal);
     fftw_free(FFT_acc_radial);
     fftw_free(FFT_acc_azimuthal);
-
-    free(g_radial);
-    free(g_azimuthal);
 
     // cleanup MPI
 #ifdef _OPENMP
@@ -262,8 +262,8 @@ void init(t_data &data)
     FFT_acc_radial = fftw_alloc_complex(total_local_size);
     FFT_acc_azimuthal = fftw_alloc_complex(total_local_size);
 
-    g_radial = (double *)malloc(sizeof(double) * hydro_totalsize);
-    g_azimuthal = (double *)malloc(sizeof(double) * hydro_totalsize);
+    g_radial = data[t_data::SG_ACCEL_RAD].Field;
+    g_azimuthal = data[t_data::SG_ACCEL_AZI].Field;
 
     // create FFT plans
     fftplan_forward_K_radial = fftw_mpi_plan_dft_r2c_2d(

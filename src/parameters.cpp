@@ -31,7 +31,7 @@ double ASPECTRATIO_REF;
 int ASPECTRATIO_MODE;
 double VISCOSITY;
 double ALPHAVISCOSITY;
-int VISCOUS_ACCRETION;
+bool VISCOUS_ACCRETION;
 double SIGMASLOPE;
 double OMEGAFRAME;
 double IMPOSEDDISKDRIFT;
@@ -61,6 +61,8 @@ bool Polytropic = false;
 bool Locally_Isothermal = false;
 
 bool variableGamma = false;
+double hydrogenMassFraction;
+
 
 t_radial_grid radial_grid_type;
 const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",
@@ -396,6 +398,147 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
 
 }
 
+static void read_output_config(t_data &data) {
+    // output settings
+    bool do_write_1D = config::cfg.get_flag("DoWrite1DFiles", true);
+    data[t_data::SIGMA].set_write(
+	config::cfg.get_flag("WriteDensity", true), do_write_1D);
+    data[t_data::V_RADIAL].set_write(
+	config::cfg.get_flag("WriteVelocity", true), do_write_1D);
+    data[t_data::V_AZIMUTHAL].set_write(
+	config::cfg.get_flag("WriteVelocity", true), do_write_1D);
+    data[t_data::ENERGY].set_write(
+	config::cfg.get_flag("WriteEnergy", true), do_write_1D);
+    data[t_data::TEMPERATURE].set_write(
+	config::cfg.get_flag("WriteTemperature", false), do_write_1D);
+    data[t_data::SOUNDSPEED].set_write(
+	config::cfg.get_flag("WriteSoundSpeed", false), do_write_1D);
+    data[t_data::GAMMAEFF].set_write(
+	config::cfg.get_flag("WriteEffectiveGamma", false),
+	do_write_1D);
+    data[t_data::GAMMA1].set_write(
+	config::cfg.get_flag("WriteFirstAdiabaticIndex", false),
+	do_write_1D);
+	data[t_data::ALPHA].set_write(
+	config::cfg.get_flag("WriteAlpha", false),
+	do_write_1D);
+    data[t_data::MU].set_write(
+	config::cfg.get_flag("WriteMeanMolecularWeight", false),
+	do_write_1D);
+    data[t_data::PRESSURE].set_write(
+	config::cfg.get_flag("WritePressure", false), do_write_1D);
+    data[t_data::TOOMRE].set_write(
+	config::cfg.get_flag("WriteToomre", false), do_write_1D);
+    data[t_data::POTENTIAL].set_write(
+	config::cfg.get_flag("WritePotential", false), do_write_1D);
+    data[t_data::QPLUS].set_write(
+	config::cfg.get_flag("WriteQPlus", false), do_write_1D);
+    data[t_data::QMINUS].set_write(
+	config::cfg.get_flag("WriteQMinus", false), do_write_1D);
+    data[t_data::KAPPA].set_write(
+	config::cfg.get_flag("WriteKappa", false), do_write_1D);
+    data[t_data::TAU_COOL].set_write(
+	config::cfg.get_flag("WriteTauCool", false), do_write_1D);
+    data[t_data::ALPHA_GRAV].set_write(
+	config::cfg.get_flag("WriteAlphaGrav", false), do_write_1D);
+    data[t_data::ALPHA_GRAV_MEAN].set_write(
+	config::cfg.get_flag("WriteAlphaGravMean", false),
+	do_write_1D);
+    data[t_data::ALPHA_REYNOLDS].set_write(
+	config::cfg.get_flag("WriteAlphaReynolds", false),
+	do_write_1D);
+    data[t_data::ALPHA_REYNOLDS_MEAN].set_write(
+	config::cfg.get_flag("WriteAlphaReynoldsMean", false),
+	do_write_1D);
+    data[t_data::VISCOSITY].set_write(
+	config::cfg.get_flag("WriteViscosity", false), do_write_1D);
+    data[t_data::DIV_V].set_write(
+	config::cfg.get_flag("WriteDivV", false), do_write_1D);
+    data[t_data::T_REYNOLDS].set_write(
+	config::cfg.get_flag("WriteTReynolds", false), do_write_1D);
+    data[t_data::T_GRAVITATIONAL].set_write(
+	config::cfg.get_flag("WriteTGravitational", false),
+	do_write_1D);
+    data[t_data::ADVECTION_TORQUE].set_write(
+	config::cfg.get_flag("WriteGasTorques", false), do_write_1D);
+    data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
+	config::cfg.get_flag("WriteGasTorques", false), do_write_1D);
+    data[t_data::VISCOUS_TORQUE].set_write(
+	config::cfg.get_flag("WriteGasTorques", false), do_write_1D);
+    data[t_data::P_DIVV].set_write(
+	config::cfg.get_flag("WritepDV", false), do_write_1D);
+    data[t_data::TAU].set_write(
+	config::cfg.get_flag("WriteTau", false), do_write_1D);
+    data[t_data::SCALE_HEIGHT].set_write(
+	config::cfg.get_flag("WriteScaleHeight", false), do_write_1D);
+    data[t_data::ASPECTRATIO].set_write(
+	config::cfg.get_flag("WriteAspectratio", false), do_write_1D);
+    data[t_data::VISIBILITY].set_write(
+	config::cfg.get_flag("WriteVisibility", false), do_write_1D);
+    data[t_data::LUMINOSITY_1D].set_write(
+	config::cfg.get_flag("WriteRadialLuminosity", false));
+    data[t_data::DISSIPATION_1D].set_write(
+	config::cfg.get_flag("WriteRadialDissipation", false));
+    data[t_data::TAU_EFF].set_write(
+	config::cfg.get_flag("WriteVerticalOpticalDepth", false),
+	do_write_1D);
+	data[t_data::SG_ACCEL_RAD].set_write(
+	config::cfg.get_flag("WriteSGAccelRad", false),do_write_1D);
+	data[t_data::SG_ACCEL_AZI].set_write(
+	config::cfg.get_flag("WriteSGAccelAzi", false),do_write_1D);
+
+    write_torques = config::cfg.get_flag("WriteTorques", false);
+
+    write_disk_quantities =
+	config::cfg.get_flag("WriteDiskQuantities", true);
+    write_at_every_timestep =
+	config::cfg.get_flag("WriteAtEveryTimestep", true);
+    write_lightcurves =
+	config::cfg.get_flag("WriteLightCurves", false);
+
+	bitwise_exact_restarting = config::cfg.get_flag("BitwiseExactRestarting", false);
+
+    write_massflow = config::cfg.get_flag("WriteMassFlow", false);
+    data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
+
+    log_after_steps = config::cfg.get<unsigned int>("LogAfterSteps", 0);
+    log_after_real_seconds =
+	config::cfg.get<double>("LogAfterRealSeconds", 600.0);
+
+
+    // parse light curve radii
+    if (config::cfg.contains("WriteLightCurvesRadii")) {
+	// get light curves radii string
+
+	std::string lightcurve_config =
+	    config::cfg.get<std::string>("WriteLightCurvesRadii");
+
+	char *lightcurves_radii_string =
+	    new char[lightcurve_config.length() + 1];
+	strcpy(lightcurves_radii_string, lightcurve_config.c_str());
+
+	char *ptr = strtok(lightcurves_radii_string, " ,");
+	while (ptr != NULL) {
+	    double value;
+	    value = strtod(ptr, NULL);
+	    if ((value > RMIN) && (value < RMAX)) {
+		lightcurves_radii.push_back(value);
+	    }
+	    ptr = strtok(NULL, " ,");
+	}
+
+	lightcurves_radii.push_back(RMIN);
+	lightcurves_radii.push_back(RMAX);
+
+	delete[] lightcurves_radii_string;
+
+	// sort vector
+	sort(lightcurves_radii.begin(), lightcurves_radii.end());
+    }
+
+}
+
+
 static void read_scurve_config() {
 
 	const std::string str = config::cfg.get_lowercase("ScurveType", "Kimura");
@@ -408,6 +551,7 @@ static void read_scurve_config() {
 		throw std::runtime_error("Invalid choice for scurve type: " + str);
 	}
 }
+
 
 static void read_surface_cooling_config(){
 
@@ -514,146 +658,6 @@ static void read_radiation_config() {
 
 }
 
-static void read_output_config(t_data &data) {
-
-
-    // output settings
-    bool do_write_1D = config::cfg.get_flag("DoWrite1DFiles", true);
-    data[t_data::SIGMA].set_write(
-	config::cfg.get_flag("WriteDensity", true), do_write_1D);
-    data[t_data::V_RADIAL].set_write(
-	config::cfg.get_flag("WriteVelocity", true), do_write_1D);
-    data[t_data::V_AZIMUTHAL].set_write(
-	config::cfg.get_flag("WriteVelocity", true), do_write_1D);
-    data[t_data::ENERGY].set_write(
-	config::cfg.get_flag("WriteEnergy", true), do_write_1D);
-    data[t_data::TEMPERATURE].set_write(
-	config::cfg.get_flag("WriteTemperature", false), do_write_1D);
-    data[t_data::SOUNDSPEED].set_write(
-	config::cfg.get_flag("WriteSoundSpeed", false), do_write_1D);
-    data[t_data::GAMMAEFF].set_write(
-	config::cfg.get_flag("WriteEffectiveGamma", false),
-	do_write_1D);
-    data[t_data::GAMMA1].set_write(
-	config::cfg.get_flag("WriteFirstAdiabaticIndex", false),
-	do_write_1D);
-	data[t_data::ALPHA].set_write(
-	config::cfg.get_flag("WriteAlpha", false),
-	do_write_1D);
-    data[t_data::MU].set_write(
-	config::cfg.get_flag("WriteMeanMolecularWeight", false),
-	do_write_1D);
-    data[t_data::PRESSURE].set_write(
-	config::cfg.get_flag("WritePressure", false), do_write_1D);
-    data[t_data::TOOMRE].set_write(
-	config::cfg.get_flag("WriteToomre", false), do_write_1D);
-    data[t_data::POTENTIAL].set_write(
-	config::cfg.get_flag("WritePotential", false), do_write_1D);
-    data[t_data::QPLUS].set_write(
-	config::cfg.get_flag("WriteQPlus", false), do_write_1D);
-    data[t_data::QMINUS].set_write(
-	config::cfg.get_flag("WriteQMinus", false), do_write_1D);
-    data[t_data::KAPPA].set_write(
-	config::cfg.get_flag("WriteKappa", false), do_write_1D);
-    data[t_data::TAU_COOL].set_write(
-	config::cfg.get_flag("WriteTauCool", false), do_write_1D);
-    data[t_data::ALPHA_GRAV].set_write(
-	config::cfg.get_flag("WriteAlphaGrav", false), do_write_1D);
-    data[t_data::ALPHA_GRAV_MEAN].set_write(
-	config::cfg.get_flag("WriteAlphaGravMean", false),
-	do_write_1D);
-    data[t_data::ALPHA_REYNOLDS].set_write(
-	config::cfg.get_flag("WriteAlphaReynolds", false),
-	do_write_1D);
-    data[t_data::ALPHA_REYNOLDS_MEAN].set_write(
-	config::cfg.get_flag("WriteAlphaReynoldsMean", false),
-	do_write_1D);
-    data[t_data::VISCOSITY].set_write(
-	config::cfg.get_flag("WriteViscosity", false), do_write_1D);
-    data[t_data::DIV_V].set_write(
-	config::cfg.get_flag("WriteDivV", false), do_write_1D);
-    data[t_data::ECCENTRICITY].set_write(
-	config::cfg.get_flag("WriteEccentricity", false), do_write_1D);
-    data[t_data::T_REYNOLDS].set_write(
-	config::cfg.get_flag("WriteTReynolds", false), do_write_1D);
-    data[t_data::T_GRAVITATIONAL].set_write(
-	config::cfg.get_flag("WriteTGravitational", false),
-	do_write_1D);
-    data[t_data::ADVECTION_TORQUE].set_write(
-	config::cfg.get_flag("WriteGasTorques", false), do_write_1D);
-    data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].set_write(
-	config::cfg.get_flag("WriteGasTorques", false), do_write_1D);
-    data[t_data::VISCOUS_TORQUE].set_write(
-	config::cfg.get_flag("WriteGasTorques", false), do_write_1D);
-    data[t_data::P_DIVV].set_write(
-	config::cfg.get_flag("WritepDV", false), do_write_1D);
-    data[t_data::TAU].set_write(
-	config::cfg.get_flag("WriteTau", false), do_write_1D);
-    data[t_data::SCALE_HEIGHT].set_write(
-	config::cfg.get_flag("WriteScaleHeight", false), do_write_1D);
-    data[t_data::ASPECTRATIO].set_write(
-	config::cfg.get_flag("WriteAspectratio", false), do_write_1D);
-    data[t_data::VISIBILITY].set_write(
-	config::cfg.get_flag("WriteVisibility", false), do_write_1D);
-    data[t_data::LUMINOSITY_1D].set_write(
-	config::cfg.get_flag("WriteRadialLuminosity", false));
-    data[t_data::DISSIPATION_1D].set_write(
-	config::cfg.get_flag("WriteRadialDissipation", false));
-    data[t_data::TAU_EFF].set_write(
-	config::cfg.get_flag("WriteVerticalOpticalDepth", false),
-	do_write_1D);
-
-    write_torques = config::cfg.get_flag("WriteTorques", false);
-
-    write_disk_quantities =
-	config::cfg.get_flag("WriteDiskQuantities", true);
-    write_at_every_timestep =
-	config::cfg.get_flag("WriteAtEveryTimestep", true);
-    write_lightcurves =
-	config::cfg.get_flag("WriteLightCurves", false);
-
-	bitwise_exact_restarting = config::cfg.get_flag("BitwiseExactRestarting", false);
-
-    write_massflow = config::cfg.get_flag("WriteMassFlow", false);
-    data[t_data::MASSFLOW].set_write(write_massflow, do_write_1D);
-
-    log_after_steps = config::cfg.get<unsigned int>("LogAfterSteps", 0);
-    log_after_real_seconds =
-	config::cfg.get<double>("LogAfterRealSeconds", 600.0);
-
-
-    // parse light curve radii
-    if (config::cfg.contains("WriteLightCurvesRadii")) {
-	// get light curves radii string
-
-	std::string lightcurve_config =
-	    config::cfg.get<std::string>("WriteLightCurvesRadii");
-
-	char *lightcurves_radii_string =
-	    new char[lightcurve_config.length() + 1];
-	strcpy(lightcurves_radii_string, lightcurve_config.c_str());
-
-	char *ptr = strtok(lightcurves_radii_string, " ,");
-	while (ptr != NULL) {
-	    double value;
-	    value = strtod(ptr, NULL);
-	    if ((value > RMIN) && (value < RMAX)) {
-		lightcurves_radii.push_back(value);
-	    }
-	    ptr = strtok(NULL, " ,");
-	}
-
-	lightcurves_radii.push_back(RMIN);
-	lightcurves_radii.push_back(RMAX);
-
-	delete[] lightcurves_radii_string;
-
-	// sort vector
-	sort(lightcurves_radii.begin(), lightcurves_radii.end());
-    }
-
-}
-
 static void read_boundary_config_legacy() {
 
     switch (
@@ -678,9 +682,6 @@ static void read_boundary_config_legacy() {
 	break;
     case 'v':
 	boundary_inner = boundary_condition_viscous_outflow;
-	break;
-    case 'j':
-	boundary_inner = boundary_condition_jibin_spreading_ring;
 	break;
     case 'b':
 	boundary_inner = boundary_condition_boundary_layer;
@@ -721,9 +722,6 @@ static void read_boundary_config_legacy() {
 	break;
     case 'v':
 	boundary_outer = boundary_condition_viscous_outflow;
-	break;
-    case 'j':
-	boundary_outer = boundary_condition_jibin_spreading_ring;
 	break;
     case 'b':
 	boundary_outer = boundary_condition_boundary_layer;
@@ -1362,11 +1360,6 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at inner boundary.\n");
 	break;
-    case boundary_condition_jibin_spreading_ring:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'boundary_condition_jibin_spreading_ring' at inner boundary.\n");
-	break;
     case boundary_condition_boundary_layer:
 	logging::print_master(
 	    LOG_INFO
@@ -1423,11 +1416,6 @@ void summarize_parameters()
 	logging::print_master(
 	    LOG_INFO
 	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_jibin_spreading_ring:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'boundary_condition_jibin_spreading_ring' at outer boundary.\n");
 	break;
     case boundary_condition_boundary_layer:
 	if (domegadr_zero) {

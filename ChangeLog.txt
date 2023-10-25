@@ -17,3 +17,5 @@
 - there is a file `info2D.yml` which describes the 2D output variables including their array size and units
 - Cooling from the disk surface: the config parameter `CoolingRadiativeLocal` has been replaced by `SurfaceCooling` which can take the value `no|false|off`, `thermal` (the existing mode), or `scurve` (new mode).
 - Beta cooling includes a new `floor` mode in which the temperature is relaxed to the floor value. Can be configured using the `CoolingBetaReference` parameter which can be `zero` (to zero Kelvin), `reference` (to the reference/damping values), `model` (to the temperature from aspect ratio). This will break your old config.
+- self gravity acceleration can now be written out to the snapshots using `WriteSGAccelRad` and `WriteSGAccelAzi` parameters
+- there is a file `info2D.yml` which describes the 2D output variables including their array size and units

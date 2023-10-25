@@ -38,14 +38,12 @@ void write_misc();
 void write_torques(t_data &data, bool force_update);
 void write_massflow_info(t_data &data);
 void write_1D_info(t_data &data);
+void write_2D_info(t_data &data);
 void write_massflow(t_data &data, unsigned int timestep);
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update);
 void write_snapshot_time();
 void write_monitor_time();
 
-
-std::vector<double> reduce_disk_quantities(t_data &data,
-					   const double quantitiy_radius);
 
 int load_misc();
 std::string get_version(std::string filename);

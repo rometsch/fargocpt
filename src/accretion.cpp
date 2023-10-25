@@ -102,7 +102,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     // const double facc = dt * planet.get_acc() / std::pow(Rplanet, 2) /
     // planet.get_period() * std::log(2);
     const double facc =
-	dt * planet.get_acc() / planet.get_orbital_period() * std::log(2);
+	dt * planet.get_accretion_efficiency() / planet.get_orbital_period() * std::log(2);
 
     const double facc1 = 1.0 / 3.0 * facc;
     const double facc2 = 2.0 / 3.0 * facc;
@@ -237,7 +237,7 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double Rplanet = planet.get_r();
 
     const double facc =
-	dt * planet.get_acc() / planet.get_orbital_period() * std::log(2.0);
+	dt * planet.get_accretion_efficiency() / planet.get_orbital_period() * std::log(2.0);
     const double frac = parameters::accretion_radius_fraction;
 
     const double RHill = planet.get_dimensionless_roche_radius() *
@@ -352,7 +352,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     // Hill sphere every planet orbit
     // we use M_dot = 3 pi nu Sigma / (1 - sqrt(R_in / R))
     // to derive the fraction we need to remove
-    const double facc = dt * 3.0 * M_PI * std::fabs(planet.get_acc());
+    const double facc = dt * 3.0 * M_PI * planet.get_accretion_efficiency();
 
     const double frac = parameters::accretion_radius_fraction;
 
@@ -487,21 +487,22 @@ void AccreteOntoPlanets(t_data &data, const double dt)
 	 k++) {
 
 	auto &planet = planetary_system.get_planet(k);
-	if (planet.get_acc() > 50.0) {
-	    // Emptying time soo large, just make it a sink hole
+	switch(planet.get_accretion_type()){
+	case ACCRETION_TYPE_SINKHOLE: {
 	    const bool changed = SinkHoleSinglePlanet(data, planet, dt);
 	    masses_changed = masses_changed || changed;
-
-	} else if (planet.get_acc() > 1e-10) {
-	    // Standard accretion after Kley
+	    break;
+	}
+	case ACCRETION_TYPE_KLEY: {
 	    const bool changed = AccreteOntoSinglePlanet(data, planet, dt);
 	    masses_changed = masses_changed || changed;
-
-	} else if (planet.get_acc() < 0.0) {
-	    // Negative accretion enables viscous accretion
+	    break;
+	}
+	case ACCRETION_TYPE_VISCOUS: {
 	    const bool changed =
 		AccreteOntoSinglePlanetViscous(data, planet, dt);
 	    masses_changed = masses_changed || changed;
+	    break;
 	}
     }
 
@@ -510,6 +511,7 @@ void AccreteOntoPlanets(t_data &data, const double dt)
 	planetary_system.update_global_hydro_frame_center_mass();
 	planetary_system.update_roche_radii();
     }
+}
 }
 
 } // namespace accretion
