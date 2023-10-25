@@ -478,48 +478,6 @@ static void read_radiative_diffusion_config(){
     radiative_diffusion_check_solution = config::cfg.get_flag("RadiativeDiffusionCheckSolution", "no");
 }
 
-static void read_cooling_legacy(){
-
-    units::precise_unit T0 = units::T0;
-
-    radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "no");
-    read_radiative_diffusion_config();
-
-    surface_cooling_factor =
-	config::cfg.get<double>("CoolingRadiativeFactor", 1.0);
-    cooling_surface_enabled =
-	config::cfg.get_flag("CoolingRadiativeLocal", "no");
-    cooling_beta_enabled =
-	config::cfg.get_flag("CoolingBetaLocal", "no");
-    cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
-    cooling_beta_ramp_up =
-	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
-    cooling_scurve_enabled =
-	config::cfg.get_flag("CoolingScurve", "no");
-    cooling_scurve_type = false;
-
-    cooling_beta_aspect_ratio = false;
-    cooling_beta_initial = false;
-
-    switch (config::cfg.get_first_letter_lowercase("CoolingBetaReference", "Zero")) {
-    case 'z': // zero
-	break;
-    case 'i': // Initial
-	cooling_beta_initial = true;
-	break;
-    case 'a': // AspectRatio
-	cooling_beta_aspect_ratio = true;
-	die("Not implemented yet: CoolingBetaReference: AspectRatio");
-	break;
-    default:
-	die("Invalid setting for CoolingBetaReference: %s",
-	    config::cfg.get<std::string>("CoolingBetaReference", "Zero").c_str());
-    }
-
-
-    read_opacity_config();
-
-}
 
 static void read_beta_cooling_config(){
 	cooling_beta_enabled = config::cfg.get_flag("CoolingBetaLocal", "No");
