@@ -15,3 +15,4 @@
 - bigplanet.dat files are now called planet.dat files, now fargocpt output v1.2
 - self gravity acceleration can now be written out to the snapshots using `WriteSGAccelRad` and `WriteSGAccelAzi` parameter
 - there is a file `info2D.yml` which describes the 2D output variables including their array size and units
+- Cooling from the disk surface: the config parameter `CoolingRadiativeLocal` has been replaced by `SurfaceCooling` which can take the value `no|false|off`, `thermal` (the existing mode), or `scurve` (new mode).
