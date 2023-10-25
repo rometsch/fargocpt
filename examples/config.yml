@@ -139,24 +139,19 @@ ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Ne
 EquationOfState: isothermal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 
-## Cooling function
-# [default = radiative]
-# radiative : radiative cooling Q- = 2 * sigma_R * T_eff^4 
-# beta      : beta cooling
-# fld       : radiative cooling & radiative diffusion (fld)
-# scurve    : scurve cooling with optically thin and thick branch
-# mixed     : radiative cooling & beta cooling
-# combined  : radiative cooling & beta cooling
-# onlyFld   : radiative diffusion only, for testing purposes
-Cooling: radiative
+## Radiation physics
+SurfaceCooling: thermal  # Type of surface cooling (no, thermal, scurve) [default = no]
+RadiativeDiffusion: No   # Enable radiation transport in the midplane with FLD (yes, no) [default = no]
+CoolingBetaLocal: no     # Enable thermal relaxation (yes, no) [default = no]
+
 
 ## Radiative cooling config
-CoolingRadiativeFactor: 1.0 # apply factor to radiative cooling
+CoolingRadiativeFactor: 1.0 # apply factor to radiative cooling for thermal and scruve modes
 
 ## Beta Cooling config
 CoolingBeta: 10 # cooling timescale in units of orbital timescales of the cell
 CoolingBetaRampUp: 0.0 # rampup time in code units
-CoolingBetaReference: floor # beta cooling target profile [floor, initial, aspectratio]
+CoolingBetaReference: floor # beta cooling target profile [floor, reference, model]
 
 ## Scurve cooling config
 ScurveType: Kimura # Kimura, Ichikawa [default = Kimura]
@@ -168,7 +163,7 @@ RadiativeDiffusionMaxIterations: 50000
 RadiativeDiffusionTolerance: 1.5
 
 Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
-KappaConst: 2.0e-6   # used for const and simple opacity (kappa = kappa0 * T**2)
+KappaConst: 2.0e-6   # used for const (kappa = kappa0) and simple opacity (kappa = kappa0 * T**2)
 
 HeatingViscous: Yes   # enable viscous heating
 
