@@ -632,16 +632,18 @@ static void read_beta_cooling_config(){
     cooling_beta_ramp_up =
 	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
 
+	cooling_beta_reference = false;
+	cooling_beta_model = false;
+	cooling_beta_floor = false;
+
 	const std::string str = config::cfg.get_lowercase("CoolingBetaReference", "Zero");
 	if (str == "zero") {
-		cooling_beta_reference = false;
-		cooling_beta_model = false;
 	} else if (str == "reference") {
 		cooling_beta_reference = true;
-		cooling_beta_model = false;
 	} else if (str == "model") {
-		cooling_beta_reference = false;
 		cooling_beta_model = true;
+	} else if (str == "floor") {
+		cooling_beta_floor = true;
 	} else {
 		throw std::runtime_error("Invalid choice for cooling beta reference: " + str);
 	}
