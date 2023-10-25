@@ -190,10 +190,10 @@ void init_radialarrays()
 	Rsup[nRadial] = Radii[nRadial + IMIN + 1];
 
 	Rmed[nRadial] = 2.0 / 3.0 *
-			(Rsup[nRadial] * Rsup[nRadial] * Rsup[nRadial] -
-			 Rinf[nRadial] * Rinf[nRadial] * Rinf[nRadial]);
-	Rmed[nRadial] = Rmed[nRadial] / (Rsup[nRadial] * Rsup[nRadial] -
-					 Rinf[nRadial] * Rinf[nRadial]);
+			(std::pow(Rsup[nRadial], 3) -
+			 std::pow(Rinf[nRadial], 3));
+	Rmed[nRadial] = Rmed[nRadial] / (std::pow(Rsup[nRadial], 2) -
+					 std::pow(Rinf[nRadial], 2));
 
 	// TODO: Is already calculated a few lines above. assert should check
 	// this
