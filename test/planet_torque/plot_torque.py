@@ -24,24 +24,24 @@ def main():
 
     expected_torque = -(2.5 + 1.7*beta - 0.1*alpha) * (0.4/(b/h))**0.71
 
-    print("alpha", alpha)
-    print("beta", beta)
-    print("q", q)
-    print("h", h)
-    print("SigmaP", SigmaP)
-    print("OmegaP", OmegaP)
-    print("b", b)
-    print("expected torque", expected_torque)
+    # print("alpha", alpha)
+    # print("beta", beta)
+    # print("q", q)
+    # print("h", h)
+    # print("SigmaP", SigmaP)
+    # print("OmegaP", OmegaP)
+    # print("b", b)
+    # print("expected torque", expected_torque)
 
 
     fig, axes = plt.subplots(ncols=2, figsize=(20,8))
 
     dirs = []
-    for name in os.listdir("output/"):
-        dirs.append(f"output/{name}")
+    for name in os.listdir("../../output/tests/planet_torque"):
+        dirs.append(f"../../output/tests/planet_torque/{name}")
         
     for outdir in dirs:
-        print(outdir)
+        # print(outdir)
 
         fname = f"{outdir}/monitor/planet2.dat"
         name = outdir.rstrip("/").split("/")[-1]
@@ -64,7 +64,22 @@ def main():
     axes[0].axhline(expected_torque, color="gray", label="theory")
     axes[0].legend()
 
-    plt.show()
+    fig.savefig("torque.jpg", dpi=150)
+
+    ratios = torque/Gamma0 / expected_torque
+    average = np.average(ratios[-len(ratios)//10:])
+
+    threshold = 0.2
+
+    with open("test_log.txt", "w") as of:
+        print(f"Deviation over last 10 percent of time is {average-1} and threshold is {threshold}.", file=of)
+
+    test_name = os.path.basename(os.getcwd())
+    if (np.abs(average - 1) < threshold):
+        print(f"SUCCESS: {test_name}")
+    else:
+        print(f"FAIL: {test_name}")
+
 
 if __name__=="__main__":
     main()

@@ -85,12 +85,12 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Ntot: 50     # Total number of time steps
+Ntot: 20     # Total number of time steps
 Ninterm: 10     # Time steps between outputs
 DT: 0.6283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'
 CFLmaxVar: '1.1'
-OutputDir: output/test
+OutputDir: ../../output/tests/planet_torque/out
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
