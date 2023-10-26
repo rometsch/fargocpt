@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     data.set_size(GlobalNRadial, NAzimuthal, NRadial, NAzimuthal);
 
 	fargo_random::init();
-    if (parameters::radiative_diffusion_enabled) {
+    if (fld::radiative_diffusion_enabled) {
 		fld::init(data.get_n_radial(), data.get_n_azimuthal());
 	}
 

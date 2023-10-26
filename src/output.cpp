@@ -277,7 +277,7 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 	}
     }
 
-	if (parameters::radiative_diffusion_enabled) {
+	if (fld::radiative_diffusion_enabled) {
 		fld::handle_output();
 	}
 		

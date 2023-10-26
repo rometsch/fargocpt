@@ -325,7 +325,7 @@ void init_physics(t_data &data)
 		logging::print_master(LOG_INFO "sg initialised\n");
     }
 
-	if (parameters::radiative_diffusion_enabled) {
+	if (fld::radiative_diffusion_enabled) {
 		fld::init(data.get_n_radial(), data.get_n_azimuthal());
 	}
 
@@ -1417,22 +1417,22 @@ void init_gas_energy(t_data &data)
 	    units::length.get_cgs_factor() / units::cgs_AU,
 	    -1.0 + 2.0 * parameters::FLARINGINDEX);
 
-	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
-		 ++n_azimuthal) {
-		const double energy =  initial_energy(Rmed[n_radial], hydro_center_mass);
-		const double temperature_floor =
-		    parameters::minimum_temperature;
-		const double energy_floor =
-		    temperature_floor *
-		    data[t_data::SIGMA](n_radial, n_azimuthal) /
+	{
+	t_polargrid &Energy = data[t_data::ENERGY];
+	t_polargrid &Sigma = data[t_data::SIGMA];
+
+	const unsigned int Irad = Energy.get_max_radial();
+	const unsigned int Iazi = Energy.get_max_azimuthal();
+	for (unsigned int nr = 0; nr <= Irad; ++nr) {
+	    for (unsigned int naz = 0; naz <= Iazi; ++naz) {
+		const double energy =  initial_energy(Rmed[nr], hydro_center_mass);
+		const double Tfloor = parameters::minimum_temperature;
+		const double energy_floor = Tfloor * Sigma(nr, naz) /
 		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
-		data[t_data::ENERGY](n_radial, n_azimuthal) =
-		    std::max(energy, energy_floor);
+		Energy(nr, naz) = std::max(energy, energy_floor);
 	    }
+	}
 	}
 	break;
 

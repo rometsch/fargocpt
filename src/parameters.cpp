@@ -20,6 +20,8 @@
 #include "viscosity/viscosity.h"
 #include "config.h"
 #include "units.h"
+#include "config.h"
+#include "fld.h"
 
 #include <limits>
 constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
@@ -105,20 +107,6 @@ bool cooling_beta_floor;
 
 bool cooling_scurve_enabled;
 bool cooling_scurve_type;
-
-bool radiative_diffusion_enabled;
-double radiative_diffusion_omega;
-bool radiative_diffusion_omega_auto_enabled;
-unsigned int radiative_diffusion_max_iterations;
-double radiative_diffusion_tolerance;
-double radiative_diffusion_test_2d_density;
-double radiative_diffusion_test_2d_K;
-unsigned int radiative_diffusion_test_2d_steps;
-bool radiative_diffusion_test_2d;
-bool radiative_diffusion_test_1d;
-bool radiative_diffusion_dump_data;
-bool radiative_diffusion_check_solution;
-
 
 t_initialize_condition sigma_initialize_condition;
 std::string sigma_filename;
@@ -601,27 +589,6 @@ static void read_opacity_config(){
 	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
 }
 
-static void read_radiative_diffusion_config(){
-
-	radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "No");
-
-    radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
-    radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
-    radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
-    radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
-
-	// test parameters
-    radiative_diffusion_test_2d_K = config::cfg.get<double>("RadiativeDiffusionTest2DK", 1.0);
-    radiative_diffusion_test_2d_steps = config::cfg.get<unsigned int>("RadiativeDiffusionTest2DSteps", 1);
-	units::precise_unit L0 = units::L0;
-    units::precise_unit M0 = units::M0;
-    radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
-    radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
-    radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
-    radiative_diffusion_dump_data = config::cfg.get_flag("RadiativeDiffusionDumpData", "no");
-    radiative_diffusion_check_solution = config::cfg.get_flag("RadiativeDiffusionCheckSolution", "no");
-}
-
 
 static void read_beta_cooling_config(){
 	cooling_beta_enabled = config::cfg.get_flag("CoolingBetaLocal", "No");
@@ -656,8 +623,7 @@ static void read_radiation_config() {
 	read_surface_cooling_config();
 	read_opacity_config();
 	read_beta_cooling_config();
-	read_radiative_diffusion_config();
-
+	fld::config();
 }
 
 static void read_boundary_config_legacy() {
@@ -1524,12 +1490,6 @@ void summarize_parameters()
 	LOG_INFO "Cooling (radiative) is %s. Using a total factor of %g.\n",
 	cooling_surface_enabled ? "enabled" : "disabled",
 	surface_cooling_factor);
-    logging::print_master(
-	LOG_INFO
-	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
-	radiative_diffusion_enabled ? "enabled" : "disabled",
-	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
-	radiative_diffusion_omega, radiative_diffusion_max_iterations);
 
     logging::print_master(
         LOG_INFO "S-curve cooling is %s. \n",

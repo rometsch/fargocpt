@@ -45,6 +45,7 @@
 #include "frame_of_reference.h"
 #include "cfl.h"
 #include "simulation.h"
+#include "fld.h"
 
 #include <cstring>
 
@@ -920,7 +921,7 @@ void SubStep3(t_data &data, const double current_time, const double dt)
     // calculate pDV for write out
     if (data[t_data::P_DIVV].get_write_1D() ||
 	data[t_data::P_DIVV].get_write_2D() ||
-	parameters::radiative_diffusion_enabled) {
+	fld::radiative_diffusion_enabled) {
 
 	data.pdivv_total = 0;
 	double &pdivv_tmp = data.pdivv_total;

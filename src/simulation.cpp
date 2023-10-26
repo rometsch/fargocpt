@@ -201,7 +201,7 @@ static void step_Euler(t_data &data, const double dt) {
 	}
 
 	/* Do radiative transport. This can be done independent of the hydro simulation. */
-	if (parameters::Adiabatic && parameters::radiative_diffusion_enabled) {
+	if (parameters::Adiabatic && fld::radiative_diffusion_enabled) {
 		    fld::radiative_diffusion(data, time, dt);
 	}
 	    
@@ -335,7 +335,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, start_time, frog_dt);
-		if (parameters::radiative_diffusion_enabled) {
+		if (fld::radiative_diffusion_enabled) {
 			fld::radiative_diffusion(data, start_time, frog_dt);
 		}
 		}
@@ -390,7 +390,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, midstep_time, frog_dt);
-		if (parameters::radiative_diffusion_enabled) {
+		if (fld::radiative_diffusion_enabled) {
 			fld::radiative_diffusion(data, midstep_time, frog_dt);
 		}
 		}

@@ -6,6 +6,7 @@
 
 #include "parameters.h"
 #include "constants.h"
+#include "config.h"
 #include "units.h"
 #include "opacity.h"
 #include "pvte_law.h"
@@ -55,6 +56,63 @@ double *SendInnerBoundary;
 double *SendOuterBoundary;
 double *RecvInnerBoundary;
 double *RecvOuterBoundary;
+
+
+// Parameters
+/// enable radiative diffusion
+bool radiative_diffusion_enabled;
+/// omega for SOR in radiative diffusion
+double radiative_diffusion_omega;
+/// enable automatic omega in SOR in radiative diffusion
+bool radiative_diffusion_omega_auto_enabled;
+/// maximum iterations in SOR in radiative diffusion
+unsigned int radiative_diffusion_max_iterations;
+/// tolerance for the radiative diffusion
+double radiative_diffusion_tolerance;
+// enable 2d test
+bool radiative_diffusion_test_2d;
+// constant density for 2d fld test
+double radiative_diffusion_test_2d_density;
+// constant K for 2d fld test
+double radiative_diffusion_test_2d_K;
+// number of diffusion steps to perform for the 2d test
+unsigned int radiative_diffusion_test_2d_steps;
+// enable 1d test
+bool radiative_diffusion_test_1d;
+// save internal grids of the fld module at each snapshot
+bool radiative_diffusion_dump_data;
+// check solution of linear system
+bool radiative_diffusion_check_solution;
+
+
+void config() {
+
+	radiative_diffusion_enabled = config::cfg.get_flag("RadiativeDiffusion", "No");
+
+    radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
+    radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
+    radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
+    radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
+
+	// test parameters
+    radiative_diffusion_test_2d_K = config::cfg.get<double>("RadiativeDiffusionTest2DK", 1.0);
+    radiative_diffusion_test_2d_steps = config::cfg.get<unsigned int>("RadiativeDiffusionTest2DSteps", 1);
+	units::precise_unit L0 = units::L0;
+    units::precise_unit M0 = units::M0;
+    radiative_diffusion_test_2d_density = config::cfg.get<double>("RadiativeDiffusionTest2DDensity", "1.0 g/cm3", M0/(L0*L0*L0));
+    radiative_diffusion_test_2d = config::cfg.get_flag("RadiativeDiffusionTest2D", "no");
+    radiative_diffusion_test_1d = config::cfg.get_flag("RadiativeDiffusionTest1D", "no");
+    radiative_diffusion_dump_data = config::cfg.get_flag("RadiativeDiffusionDumpData", "no");
+    radiative_diffusion_check_solution = config::cfg.get_flag("RadiativeDiffusionCheckSolution", "no");
+
+
+	logging::print_master(LOG_INFO
+	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
+	radiative_diffusion_enabled ? "enabled" : "disabled",
+	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
+	radiative_diffusion_omega, radiative_diffusion_max_iterations);
+}
+
 
 /*
 Flux limiter after Kley (1989) https://ui.adsabs.harvard.edu/abs/1989A&A...208...98K
@@ -112,9 +170,9 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
     RecvInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
     RecvOuterBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
 
-	constant_fluxlimiter = parameters::radiative_diffusion_test_2d || parameters::radiative_diffusion_test_1d;
+	constant_fluxlimiter = radiative_diffusion_test_2d || radiative_diffusion_test_1d;
 
-	const double reltol = parameters::radiative_diffusion_tolerance;
+	const double reltol = radiative_diffusion_tolerance;
 	tolerance = reltol*parameters::minimum_temperature;
 	logging::print_master(LOG_INFO "FLD solver has tolerance %e in code units.\n", tolerance);
 
@@ -138,7 +196,7 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 If requested, write out all 2d arrays to the current snapshot directory.
 */
 void handle_output() {
-	if (!parameters::radiative_diffusion_dump_data) {
+	if (!radiative_diffusion_dump_data) {
 		return;
 	}
 	Ka.write2D();
@@ -385,7 +443,7 @@ static void calculate_matrix_elements(t_polargrid &Density, const double dt) {
 		const double rho = Density(nr, naz);
 		// this refers to the common factor in Müller 2013 Ph.D. thesis (A.1.10) adjusted for 3D FLD in midplane
 		double common_factor;
-		if (parameters::radiative_diffusion_test_2d) {
+		if (radiative_diffusion_test_2d) {
 			common_factor = -dt;
 		} else {
 			common_factor = -dt / (rho * c_v);
@@ -544,9 +602,9 @@ static void SOR(t_polargrid &T) {
 
     const unsigned int Naz = T.get_size_azimuthal();
 
-    static unsigned int old_iterations = parameters::radiative_diffusion_max_iterations;
+    static unsigned int old_iterations = radiative_diffusion_max_iterations;
     static int direction = 1;
-    static double omega = parameters::radiative_diffusion_omega;
+    static double omega = radiative_diffusion_omega;
 
     unsigned int iterations = 0;
 	// track change of differences
@@ -555,7 +613,7 @@ static void SOR(t_polargrid &T) {
 	double last_avg_absolute_norm = 0.0;
 
     // do SOR
-	const unsigned int maxiter = parameters::radiative_diffusion_max_iterations;
+	const unsigned int maxiter = radiative_diffusion_max_iterations;
 
     while ((avg_absolute_change > tolerance) && (maxiter > iterations)) {
 
@@ -610,11 +668,11 @@ static void SOR(t_polargrid &T) {
 
     } // END SOR
 
-    if (iterations == parameters::radiative_diffusion_max_iterations) {
+    if (iterations == radiative_diffusion_max_iterations) {
 	logging::print_master(
 	    LOG_WARNING
 	    "Maximum iterations (%u) reached in radiative_diffusion (omega = %lg). Norm is %lg with a last change of %lg.\n",
-	    parameters::radiative_diffusion_max_iterations, omega,
+	    radiative_diffusion_max_iterations, omega,
 	    absolute_norm, avg_absolute_change);
     }
 
@@ -623,7 +681,7 @@ static void SOR(t_polargrid &T) {
 	direction *= -1;
     }
 
-    if (parameters::radiative_diffusion_omega_auto_enabled) {
+    if (radiative_diffusion_omega_auto_enabled) {
 	omega += direction * 0.01;
     }
 
@@ -763,13 +821,13 @@ static void run_2d_diffusion_test(t_data &data, const double dt) {
 	x.read2D(filename_in.c_str());
 
 	// set constant midplane density
-	// const double rho = parameters::radiative_diffusion_test_2d_density;
+	// const double rho = radiative_diffusion_test_2d_density;
 	const double rho = 1.0;
 	auto &Density = data[t_data::RHO];
 	set_constant_value(Density, rho);
 
-	const double K = parameters::radiative_diffusion_test_2d_K;
-	const unsigned int steps = parameters::radiative_diffusion_test_2d_steps;
+	const double K = radiative_diffusion_test_2d_K;
+	const unsigned int steps = radiative_diffusion_test_2d_steps;
 
 	logging::print(LOG_INFO "Running 2D FLD test with K=%e and %u steps at dt=%e\n", K, steps, dt);
 
@@ -848,7 +906,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	// compute_scale_height(data, current_time); done in compute::midplane_density
 	compute::midplane_density(data, current_time);
 
-	if (parameters::radiative_diffusion_test_2d) {
+	if (radiative_diffusion_test_2d) {
 		run_2d_diffusion_test(data, dt);
 		return;
 	}
@@ -858,7 +916,7 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 
 	one_fluid_fld(data, dt);
 
-	if (parameters::radiative_diffusion_check_solution) {
+	if (radiative_diffusion_check_solution) {
 		check_solution(Trad);
 	}
 
