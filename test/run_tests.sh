@@ -14,6 +14,7 @@ for DIR in $(find . -mindepth 1 -maxdepth 1 -type d)
 do
     if [[ -e "$DIR/run_auto_test.sh" ]];
     then
+        echo "RUN: $DIR"
         ./$DIR/run_auto_test.sh
     else
         echo "WARNING: $DIR contains no automatic test!"
