@@ -243,6 +243,10 @@ namespace boundary_conditions
 		composite_inner_name = str;
 		if (str == "individual") {
 			return;
+		} else if (str == "zerogradient") {
+			sigma_inner_name = "zerogradient";
+			energy_inner_name = "zerogradient";
+			vrad_inner_name = "zerogradient";
 		} else if (str == "outflow") {
 			sigma_inner_name = "zerogradient";
 			energy_inner_name = "zerogradient";
@@ -268,6 +272,10 @@ namespace boundary_conditions
 		composite_outer_name = str;
 		if (str == "individual") {
 			return;
+		} else if (str == "zerogradient") {
+			sigma_outer_name = "zerogradient";
+			energy_outer_name = "zerogradient";
+			vrad_outer_name = "zerogradient";
 		} else if (str == "outflow") {
 			sigma_outer_name = "zerogradient";
 			energy_outer_name = "zerogradient";
