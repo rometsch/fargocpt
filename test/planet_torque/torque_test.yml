@@ -42,14 +42,8 @@ KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-OuterBoundary: Reflective
-InnerBoundary: Reflective
-BoundarySigmaInner: ZeroGradient
-BoundarySigmaOuter: ZeroGradient
-BoundaryEnergyInner: ZeroGradient
-BoundaryEnergyOuter: ZeroGradient
-BoundaryVRadInner: Reflective
-BoundaryVRadOuter: Reflective
+OuterBoundary: Reflecting
+InnerBoundary: Reflecting
 BoundaryVAzInner: Balanced
 BoundaryVAzOuter: Balanced
 
