@@ -59,7 +59,7 @@ EquationOfState: Ideal   # Isothermal Ideal PVTE Polytropic [default = Isotherma
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 CoolingRadiativeLocal: No   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal: No    # enable beta cooling Q- = T * Omega/beta [default = no]
-CoolingBetaReference: initial
+CoolingBetaReference: reference
 CoolingBeta: 100
 
 
