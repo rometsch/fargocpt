@@ -1,5 +1,6 @@
 numpy
 matplotlib
+scipy
 ipympl
 ruamel.yaml
 astropy
