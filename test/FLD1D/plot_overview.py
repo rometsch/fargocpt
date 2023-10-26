@@ -97,8 +97,10 @@ cmap = colormaps.get_cmap("viridis")
 
 
 
-inds = np.linspace(Nfirst, Nlast, 10, dtype=int)
-inds = [0, 1, 3, 5, 8, 10, 20, 30, 50, 75, 100, Nlast]
+inds = np.geomspace(np.min(1,Nfirst), Nlast, 10, dtype=int)
+# inds = [0, 1, 3, 5, 8, 10, 20, 30, 50, 75, 100, Nlast]
+inds = np.append([Nfirst], inds)
+inds = np.unique(inds)
 for k, n in enumerate(inds):
     color = cmap(k/(len(inds)-1))
     

@@ -37,6 +37,8 @@ RadiativeDiffusionAutoOmega: No     # [default = no]
 RadiativeDiffusionMaxIterations: 50000   # [default = 50000]
 RadiativeDiffusionTest1D: yes
 RadiativeDiffusionTolerance: 1e-15
+RadiativeDiffusionInnerBoundary: zerogradient
+RadiativeDiffusionOuterBoundary: zerogradient
 
 
 MinimumTemperature: 3 K   # minimum Temperature in K
@@ -65,13 +67,16 @@ Transport: FARGO
 Integrator: Euler  # Integrator type: Euler or LeapFrog or KickDriftKick(Leapfrog)
 IndirectTermMode: 0   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
 
-InnerBoundary: initial
-OuterBoundary: initial
-DomegaDrZero: Yes     # Set dOmega/dr = 0 at outer boundary
+InnerBoundary: reflecting
+OuterBoundary: reflecting
+BoundaryVazOuter: keplerian
+BoundaryVazInner: keplerian
+
+DomegaDrZero: No     # Set dOmega/dr = 0 at outer boundary
 Damping: No   # NO, YES [default = no]
-DampingInnerLimit: 1.05   # Rmin*Limit
-DampingOuterLimit: 0.95  # Rmax*Limit
-DampingTimeFactor: 0.01
+DampingInnerLimit: 1.1   # Rmin*Limit
+DampingOuterLimit: 0.9  # Rmax*Limit
+DampingTimeFactor: 10
 DampingEnergyInner: Initial   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVRadialInner: Initial   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner: Initial   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
@@ -100,7 +105,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 
 
-OutputDir: output/out/
+OutputDir: ../../output/tests/FLD1D/out
 LogAfterRealSeconds: 300
 LogAfterSteps: '0'
 DebugOutputs: No

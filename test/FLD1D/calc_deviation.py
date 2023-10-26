@@ -9,7 +9,7 @@ from matplotlib import colormaps
 def main():
 
     test_name = "FLD1D"
-    success = calc_deviation(os.getcwd()+"/output/out")
+    success = calc_deviation("../../output/tests/FLD1D/out")
 
     if success:
         print(f"SUCCESS: {test_name}")

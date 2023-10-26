@@ -14,6 +14,8 @@ RadiativeDiffusionTest2D: yes
 RadiativeDiffusionTest2DDensity: 1 g/cm3
 RadiativeDiffusionTest2DK: 1.0 # diffusion coefficient for the 2D test
 RadiativeDiffusionTest2DSteps: 10  # diffusion coefficient for the 2D test
+RadiativeDiffusionInnerBoundary: zerogradient
+RadiativeDiffusionOuterBoundary: zerogradient
 
 # Mesh parameters
 
