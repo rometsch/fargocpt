@@ -36,7 +36,7 @@ MaximumTemperature: 1e100 K   # maximum Temperature in K
 Opacity: constant   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst: 1.0 cm2/g
 
-OutputDir: output/out/
+OutputDir: ../../output/tests/FLD2D/out/
 
 # Disk parameters
 
@@ -85,8 +85,8 @@ Transport: FARGO
 Integrator: Euler  # Integrator type: Euler or LeapFrog or KickDriftKick(Leapfrog)
 IndirectTermMode: 0   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
 
-InnerBoundary: initial
-OuterBoundary: initial
+InnerBoundary: reference
+OuterBoundary: reference
 OmegaFrame: 0
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 

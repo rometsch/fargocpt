@@ -12,6 +12,7 @@ from argparse import ArgumentParser
 
 from create_input import get_fargo_grid, get_solution_array
 
+basedir = "../../output/tests/FLD2D"
 
 def plot_field(Xi, Yi, Z, scaling="linear", cmap=None, log_vfloor=1e-20, vmin=None, vmax=None, linthresh=None, ax=None):
     if ax is None:
@@ -82,6 +83,8 @@ if __name__ == "__main__":
                         help="Also display exact matrix inversion solution.")
     parser.add_argument("--diff", action="store_true",
                         help="Show differences.")
+    parser.add_argument("--outfile", type=str, help="Filename for the plot output.")
+    parser.add_argument("--verbose", action="store_true", help="Print more information.")
     opts = parser.parse_args()
 
     if opts.solve:
@@ -90,7 +93,7 @@ if __name__ == "__main__":
     setupfile = "setup.yml"
     g = get_fargo_grid(setupfile)
 
-    outdir = "output/out"
+    outdir = basedir + "/out"
 
     # get final time
     with open(setupfile, "r") as infile:
@@ -124,16 +127,17 @@ if __name__ == "__main__":
             print(f"FAIL: {test_name} at {os.getcwd()}")
             exit(1)
 
+    if opts.verbose:
 
-    print("max analytical {:.4e}".format(np.max(analytical_solution)))
-    print("min analytical {:.4e}".format(np.min(analytical_solution)))
-    print("max code {:.4e}".format(np.max(code_solution)))
-    print("min code {:.4e}".format(np.min(code_solution)))
+        print("max analytical {:.4e}".format(np.max(analytical_solution)))
+        print("min analytical {:.4e}".format(np.min(analytical_solution)))
+        print("max code {:.4e}".format(np.max(code_solution)))
+        print("min code {:.4e}".format(np.min(code_solution)))
 
-    print("integral analytical - offset {:.4e}".format(integral_analytical))
-    print("integral code - offset {:.4e}".format(integral_code))
-    print("integral diff {:.4e}".format(integral_diff))
-    print("integral absdiff {:.4e}".format(integral_absdiff))
+        print("integral analytical - offset {:.4e}".format(integral_analytical))
+        print("integral code - offset {:.4e}".format(integral_code))
+        print("integral diff {:.4e}".format(integral_diff))
+        print("integral absdiff {:.4e}".format(integral_absdiff))
 
 
     # xlim=[47,53]
@@ -278,4 +282,8 @@ if __name__ == "__main__":
 
     ax.grid(alpha=0.5)
 
-    plt.show()
+    if opts.outfile is not None:
+        fig.savefig(opts.outfile, dpi=150)
+    else:
+        plt.show()
+

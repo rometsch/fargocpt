@@ -6,6 +6,8 @@ import astropy.constants as const
 import astropy.units as units
 from types import SimpleNamespace
 
+basedir = "../../output/tests/FLD2D"
+
 def get_fargo_grid(setupfile):
 
     # get size of grid specified in the setup file
@@ -14,7 +16,7 @@ def get_fargo_grid(setupfile):
         Nrad = params["Nrad"]
         Naz = params["Nsec"]
 
-    ri = np.genfromtxt("output/out/used_rad.dat")
+    ri = np.genfromtxt(f"{basedir}/out/used_rad.dat")
     phii = np.linspace(0, 2*np.pi, Naz+1)
     Ri, Phii = np.meshgrid(ri, phii, indexing="ij")
     Xi = Ri*np.cos(Phii)
@@ -89,6 +91,6 @@ if __name__ == "__main__":
     print("f grid size", f0.shape)
     print("f max", np.max(f0))
 
-    np.array(f0, dtype=np.float64).tofile("output/out/f_FLD2Dtest_input.dat")
+    np.array(f0, dtype=np.float64).tofile(f"{basedir}/out/f_FLD2Dtest_input.dat")
 
     
