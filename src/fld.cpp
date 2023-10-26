@@ -11,7 +11,6 @@
 #include "opacity.h"
 #include "pvte_law.h"
 #include "SourceEuler.h"
-#include "boundary_conditions/boundary_conditions.h"
 #include "logging.h"
 #include "compute.h"
 #include "output.h"
@@ -83,7 +82,18 @@ bool radiative_diffusion_test_1d;
 bool radiative_diffusion_dump_data;
 // check solution of linear system
 bool radiative_diffusion_check_solution;
+// inner boundary
+std::string inner_boundary_name;
+void (*inner_boundary_func)();
+// outer boundary
+std::string outer_boundary_name;
+void (*outer_boundary_func)();
 
+// declarations of boundary functions
+void boundary_inner_zeroflux();
+void boundary_outer_zeroflux();
+void boundary_inner_zerogradient();
+void boundary_outer_zerogradient();
 
 void config() {
 
@@ -105,12 +115,42 @@ void config() {
     radiative_diffusion_dump_data = config::cfg.get_flag("RadiativeDiffusionDumpData", "no");
     radiative_diffusion_check_solution = config::cfg.get_flag("RadiativeDiffusionCheckSolution", "no");
 
-
 	logging::print_master(LOG_INFO
 	"Radiative diffusion is %s. Using %s omega = %lf with a maximum %u interations.\n",
 	radiative_diffusion_enabled ? "enabled" : "disabled",
 	radiative_diffusion_omega_auto_enabled ? "auto" : "fixed",
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
+
+	// boundary conditions
+	inner_boundary_name = config::cfg.get<std::string>("RadiativeDiffusionInnerBoundary", "none");
+	outer_boundary_name = config::cfg.get<std::string>("RadiativeDiffusionOuterBoundary", "none");
+
+	if (radiative_diffusion_enabled) {
+		if (inner_boundary_name == "none") {
+			throw std::runtime_error("Need to specify inner boundary for radiative diffusion when it is enabled.");
+		}
+		if (outer_boundary_name == "none") {
+			throw std::runtime_error("Need to specify outer boundary for radiative diffusion when it is enabled.");
+		}
+	}
+
+	if (inner_boundary_name == "zeroflux") {
+		inner_boundary_func = boundary_inner_zeroflux;
+	} else if (inner_boundary_name == "zerogradient") {
+		inner_boundary_func = boundary_inner_zerogradient;
+	} else {
+		throw std::runtime_error("Unknown inner boundary for radiative diffusion.");
+	}
+
+	if (outer_boundary_name == "zeroflux") {
+		outer_boundary_func = boundary_outer_zeroflux;
+	} else if (outer_boundary_name == "zerogradient") {
+		outer_boundary_func = boundary_outer_zerogradient;
+	} else {
+		throw std::runtime_error("Unknown outer boundary for radiative diffusion.");
+	}
+
+
 }
 
 
@@ -219,101 +259,72 @@ void finalize() {
 
 
 /*
-Set floor value for internal energy.
-These values are different from the floor values of the radiative energy!
-*/
-static void set_minimum_energy(t_data &data) {
-    
-    auto &Sigma = data[t_data::SIGMA];
-    auto &Energy = data[t_data::ENERGY];
-
-    const unsigned int Nphi = Sigma.get_size_azimuthal();
-
-	// We set minimum Temperature here such that H (thru Cs) is also computed with the minimum Temperature
-	#pragma omp parallel for
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const unsigned int nr_max = Energy.get_max_radial();
-
-	if (CPU_Rank == 0 &&
-	    parameters::boundary_inner == parameters::boundary_condition_open) {
-	    const double Tmin = parameters::minimum_temperature;
-
-	    const double mu = pvte::get_mu(data, 1, naz);
-	    const double gamma_eff = pvte::get_gamma_eff(data, 1, naz);
-	    Sigma(0, naz) = Sigma(1, naz);
-
-	    const double minimum_energy = Tmin * Sigma(1, naz) / mu * constants::R / (gamma_eff - 1.0);
-
-	    Energy(0, naz) = minimum_energy;
-	}
-
-	if (CPU_Rank == CPU_Highest &&
-	    parameters::boundary_outer == parameters::boundary_condition_open) {
-	    const double Tmin = parameters::minimum_temperature; 
-
-	    const double mu = pvte::get_mu(data, nr_max - 1, naz);
-	    const double gamma_eff = pvte::get_gamma_eff(data, nr_max - 1, naz);
-	    Sigma(nr_max, naz) = Sigma(nr_max - 1, naz);
-
-	    const double minimum_energy = Tmin * Sigma(nr_max - 1, naz) / mu * constants::R / (gamma_eff - 1.0);
-
-	    Energy(nr_max, naz) = minimum_energy;
-	}
-    }
-}
-
-/*
 Boundary conditions for the diffusion coefficient.
 */
-static void radial_boundary_diffusion_coeff() {
-
-    const unsigned int Naz = Ka.get_size_azimuthal();
-    #pragma omp parallel for
-	for (unsigned int naz = 0; naz < Naz; ++naz) {
-		const unsigned int nr_max = Ka.get_max_radial();
-		if(CPU_Rank == CPU_Highest && parameters::boundary_outer == parameters::boundary_condition_reflecting){
-		Ka(nr_max-1, naz) = 0.0;
-		}
 
 
-		if(CPU_Rank == 0 && parameters::boundary_inner == parameters::boundary_condition_reflecting){
-		Ka(1, naz) = 0.0;
-		}
+void boundary_inner_zeroflux() {
+	if (CPU_Rank != 0) {
+		return;
 	}
+	const unsigned int Naz = Ka.get_size_azimuthal();
 
 	#pragma omp parallel for
-	// Similar to Tobi's original implementation
 	for (unsigned int naz = 0; naz < Naz; ++naz) {
-		const unsigned int nr_max = Ka.get_max_radial();
-		if(CPU_Rank == CPU_Highest && !(parameters::boundary_outer == parameters::boundary_condition_reflecting || parameters::boundary_outer == parameters::boundary_condition_open)){
-		Ka(nr_max-1, naz) = Ka(nr_max-2, naz);
-		}
+		Ka(1, naz) = 0.0;
+		Ka(0, naz) = 0.0;
+	}
+}
 
-
-		if(CPU_Rank == 0 && !(parameters::boundary_inner == parameters::boundary_condition_reflecting || parameters::boundary_inner == parameters::boundary_condition_open)){
-		Ka(1, naz) = Ka(2, naz);
-		}
+void boundary_outer_zeroflux() {
+	if (CPU_Rank != CPU_Highest) {
+		return;
 	}
 
-
-    // Similar to Tobi's original implementation
-    for (unsigned int naz = 0; naz < Naz; ++naz) {
+    const unsigned int Naz = Ka.get_size_azimuthal();
 	const unsigned int nr_max = Ka.get_max_radial();
-	if (CPU_Rank == CPU_Highest &&
-	    !(parameters::boundary_outer ==
-		  parameters::boundary_condition_reflecting ||
-	      parameters::boundary_outer ==
-		  parameters::boundary_condition_open)) {
-	    Ka(nr_max - 1, naz) = Ka(nr_max - 2, naz);
+
+	// reflecting boundaries
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
+		Ka(nr_max-1, naz) = 0.0;
+		Ka(nr_max, naz) = 0.0;
 	}
 
-	if (CPU_Rank == 0 && !(parameters::boundary_inner ==
-				   parameters::boundary_condition_reflecting ||
-			       parameters::boundary_inner ==
-				   parameters::boundary_condition_open)) {
-	    Ka(1, naz) = Ka(2, naz);
+}	
+
+void boundary_inner_zerogradient() {
+	if (CPU_Rank != 0) {
+		return;
 	}
-    }
+
+	const unsigned int Naz = Ka.get_size_azimuthal();
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
+		Ka(1, naz) = Ka(2, naz);
+		Ka(0, naz) = Ka(2, naz);
+	}
+}
+
+void boundary_outer_zerogradient() {
+	if (CPU_Rank != CPU_Highest) {
+		return;
+	}
+
+    const unsigned int Naz = Ka.get_size_azimuthal();
+	const unsigned int nr_max = Ka.get_max_radial();
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
+		Ka(nr_max-1, naz) = Ka(nr_max-2, naz);
+		Ka(nr_max, naz) = Ka(nr_max-2, naz);
+	}
+}
+
+static void radial_boundary_diffusion_coeff() {
+	inner_boundary_func();
+	outer_boundary_func();
 }
 
 /*
@@ -535,34 +546,6 @@ static void communicate_parallelization_boundaries(t_polargrid &Temperature) {
 	}
 }
 
-/*
-Boundary condition to be applied inside the matrix solver loop.
-*/
-static void boundary_inside_SOR(t_polargrid &T) {
-
-	const double minval = parameters::minimum_temperature;
-
-    const unsigned int Naz = T.get_size_azimuthal();
-    const unsigned int nrad_last = T.get_max_radial();
-
-    const bool at_outer_boundary = CPU_Rank == CPU_Highest;
-    const bool outer_boundary_open = parameters::boundary_outer == parameters::boundary_condition_open;
-	if (at_outer_boundary && outer_boundary_open) {
-		// set temperature to T_min in outermost cells
-		for (unsigned int naz = 0; naz < Naz; ++naz) {
-			T(nrad_last, naz) = minval;
-		}
-	}
-
-    const bool at_inner_boundary = CPU_Rank == 0;
-    const bool inner_boundary_open = parameters::boundary_inner == parameters::boundary_condition_open;
-	if (at_inner_boundary && inner_boundary_open) {
-        // set temperature to T_min in innermost cells
-		for (unsigned int naz = 0; naz < Naz; ++naz) {
-			T(0, naz) = minval;
-		}
-	}
-}
 
 /* 
 Check whether a radial cell index belongs to an active cell.
@@ -617,8 +600,6 @@ static void SOR(t_polargrid &T) {
 
     while ((avg_absolute_change > tolerance) && (maxiter > iterations)) {
 
-    boundary_inside_SOR(T);
-
 	absolute_norm = 0.0;
 
 	// Each thread should get a single consecutive range of rings just as in the MPI parallelization.
@@ -657,7 +638,9 @@ static void SOR(t_polargrid &T) {
 	MPI_Allreduce(&tmp, &absolute_norm, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
 	// calculate the absolute change averaged over all cells
-	const double avg_absolute_norm = std::sqrt(absolute_norm) / (GlobalNRadial * NAzimuthal);
+	const unsigned int Ncells = GlobalNRadial * NAzimuthal;
+	absolute_norm = std::sqrt(absolute_norm);
+	const double avg_absolute_norm = absolute_norm / Ncells;
 
 	avg_absolute_change = fabs(avg_absolute_norm - last_avg_absolute_norm);
 	last_avg_absolute_norm = avg_absolute_norm;
@@ -671,9 +654,9 @@ static void SOR(t_polargrid &T) {
     if (iterations == radiative_diffusion_max_iterations) {
 	logging::print_master(
 	    LOG_WARNING
-	    "Maximum iterations (%u) reached in radiative_diffusion (omega = %lg). Norm is %lg with a last change of %lg.\n",
+	    "Maximum iterations (%u) reached in radiative_diffusion (omega = %lg). Absolute value norm is %lg, average absolute norem is %lg with a last change of %lg.\n",
 	    radiative_diffusion_max_iterations, omega,
-	    absolute_norm, avg_absolute_change);
+	    absolute_norm, last_avg_absolute_norm, avg_absolute_change);
     }
 
     // adapt omega
@@ -896,8 +879,6 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
     auto &Sigma = data[t_data::SIGMA];
     auto &Energy = data[t_data::ENERGY];
 	auto &Tgas = data[t_data::TEMPERATURE];
-
-    set_minimum_energy(data);
 	
     // update temperature, soundspeed and aspect ratio
 	compute_temperature(data);
