@@ -349,11 +349,18 @@ void init_physics(t_data &data)
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);
     }
+	
+	boundary_conditions::copy_initial_values(data);
+
 	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
+	
 	if(parameters::star_gasblobb_binary_test){
 		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
 		data.get_planetary_system().delete_planet(Np-1);
 	}
+
+	boundary_conditions::copy_initial_values(data);
+
 }
 
 /**

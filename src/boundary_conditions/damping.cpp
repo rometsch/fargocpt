@@ -27,7 +27,7 @@ namespace boundary_conditions
 bool initial_values_needed() {
 	const bool damping = parameters::is_damping_reference;
 	const bool betacooling = parameters::cooling_beta_reference;
-	const bool boundary = parameters::boundary_inner==parameters::boundary_condition_reference || parameters::boundary_outer==parameters::boundary_condition_reference;
+	const bool boundary = boundary_conditions::reference_values_needed();
 	return damping || betacooling || boundary;
 }
 

@@ -20,6 +20,20 @@ namespace boundary_conditions
 {
 
 
+bool reference_values_needed() {
+		bool needed = false;
+		needed = needed || sigma_inner_name == "reference";
+		needed = needed || sigma_outer_name == "reference";
+		needed = needed || energy_inner_name == "reference";
+		needed = needed || energy_outer_name == "reference";
+		needed = needed || vrad_inner_name == "reference";
+		needed = needed || vrad_outer_name == "reference";
+		needed = needed || vaz_inner_name == "reference";
+		needed = needed || vaz_outer_name == "reference";
+		return needed;
+}
+
+
 static void handle_damping(t_data &data, const double dt, const bool final) {
 	// if this is the final call of the boundary condition function during one timestep and damping is enable, do it
     if (final && parameters::damping) {

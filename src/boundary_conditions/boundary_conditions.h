@@ -41,6 +41,7 @@ void parse_config();
 void old_apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 
+bool reference_values_needed();
 
 /****************************************
 /// Individual variable boundaries

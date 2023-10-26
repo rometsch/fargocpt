@@ -130,8 +130,6 @@ int main(int argc, char *argv[])
 	particles::init(data);
     }
 
-	boundary_conditions::copy_initial_values(data);
-
     if (start_mode::mode == start_mode::mode_restart) {
 		restart_load(data);
     } else {
