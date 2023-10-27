@@ -79,7 +79,6 @@ double mof_gamma;
 static std::string get_type(const std::string key, std::string &name)
 {
     std::string str = config::cfg.get_lowercase(key, "infer");
-
     if (str == "infer") {
 	if (name == "") { // nothing to infer here
 	    throw std::runtime_error(
@@ -90,13 +89,11 @@ static std::string get_type(const std::string key, std::string &name)
 	}
     } else { // set individual boundary directly
 	if (name != "") {
-	    throw std::runtime_error(
-		"Can not set '" + key +
-		"' via composite when type is different from 'infer'");
-	} else {
-	    name = str;
-	    return str;
+	    logging::print_master(LOG_INFO "BC: Overwriting %s from %s set via composite to %s.\n",
+			  key.c_str(), name.c_str(), str.c_str());
 	}
+	name = str;
+	return str;
     }
 }
 
