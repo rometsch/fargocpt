@@ -197,8 +197,6 @@ double star_radius;
 double star_temperature;
 
 double radial_viscosity_factor;
-double vrad_fraction_of_kepler;
-double stellar_rotation_rate;
 double mass_accretion_rate;
 double accretion_radius_fraction;
 double klahr_smoothing_radius;
@@ -812,9 +810,7 @@ void read(const std::string &filename, t_data &data)
     // boundary layer parameters
     radial_viscosity_factor =
 	config::cfg.get<double>("RadialViscosityFactor", 1.);
-    vrad_fraction_of_kepler = config::cfg.get<double>("VRadIn", 1.6e-3);
-    stellar_rotation_rate =
-	config::cfg.get<double>("StellarRotation", 0.1);
+
     mass_accretion_rate =
 	config::cfg.get<double>("MassAccretionRate", 1.e-9, M0/T0);
     accretion_radius_fraction =
