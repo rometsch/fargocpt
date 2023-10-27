@@ -99,7 +99,7 @@ static std::string get_type(const std::string key, std::string &name)
 
 static void sigma_inner()
 {
-    std::string str = get_type("BoundarySigmaInner", sigma_inner_name);
+    std::string str = get_type("InnerBoundarySigma", sigma_inner_name);
 
     if (str == "zerogradient") {
 	sigma_inner_func = zero_gradient_inner;
@@ -118,7 +118,7 @@ static void sigma_inner()
 
 static void sigma_outer()
 {
-    const std::string str = get_type("BoundarySigmaOuter", sigma_outer_name);
+    const std::string str = get_type("OuterBoundarySigma", sigma_outer_name);
 
     if (str == "zerogradient") {
 	sigma_outer_func = zero_gradient_outer;
@@ -136,7 +136,7 @@ static void sigma_outer()
 
 static void energy_inner()
 {
-    const std::string str = get_type("BoundaryEnergyInner", energy_outer_name);
+    const std::string str = get_type("InnerBoundaryEnergy", energy_outer_name);
 
     if (str == "zerogradient") {
 	energy_inner_func = zero_gradient_inner;
@@ -154,7 +154,7 @@ static void energy_inner()
 
 static void energy_outer()
 {
-    const std::string str = get_type("BoundaryEnergyOuter", energy_outer_name);
+    const std::string str = get_type("OuterBoundaryEnergy", energy_outer_name);
 
     if (str == "zerogradient") {
 	energy_outer_func = zero_gradient_outer;
@@ -172,7 +172,7 @@ static void energy_outer()
 
 static void vrad_inner()
 {
-    const std::string str = get_type("BoundaryVradInner", vrad_inner_name);
+    const std::string str = get_type("InnerBoundaryVrad", vrad_inner_name);
 
     if (str == "zerogradient") {
 	vrad_inner_func = zero_gradient_inner;
@@ -192,7 +192,7 @@ static void vrad_inner()
     }
     // parse parameters
     keplerian_radial_inner_factor =
-	config::cfg.get<double>("BoundaryVradInnerKeplerianFactor", 0.1);
+	config::cfg.get<double>("InnerBoundaryVradKeplerianFactor", 0.1);
     // log
     logging::print_master(LOG_INFO "BC: Vrad inner = %s\n",
 			  vrad_inner_name.c_str());
@@ -200,7 +200,7 @@ static void vrad_inner()
 
 static void vrad_outer()
 {
-    const std::string str = get_type("BoundaryVradOuter", vrad_outer_name);
+    const std::string str = get_type("OuterBoundaryVrad", vrad_outer_name);
 
     if (str == "zerogradient") {
 	vrad_outer_func = zero_gradient_outer;
@@ -220,7 +220,7 @@ static void vrad_outer()
     }
     // parse parameters
     keplerian_radial_outer_factor =
-	config::cfg.get<double>("BoundaryVradOuterKeplerianFactor", 0.1);
+	config::cfg.get<double>("OuterBoundaryVradKeplerianFactor", 0.1);
     // log
     logging::print_master(LOG_INFO "BC: Vrad outer = %s\n",
 			  vrad_outer_name.c_str());
@@ -229,7 +229,7 @@ static void vrad_outer()
 static void vaz_inner()
 {
     const std::string str =
-	config::cfg.get_lowercase("BoundaryVazInner", "keplerian");
+	config::cfg.get_lowercase("InnerBoundaryVazi", "keplerian");
     vaz_inner_name = str;
     if (str == "zerogradient") {
 	vaz_inner_func = zero_gradient_inner;
@@ -247,7 +247,7 @@ static void vaz_inner()
     }
     // parse parameters
     keplerian_azimuthal_inner_factor =
-	config::cfg.get<double>("BoundaryVazInnerKeplerianFactor", 1.0);
+	config::cfg.get<double>("InnerBoundaryVaziKeplerianFactor", 1.0);
     // log
     logging::print_master(LOG_INFO "BC: Vaz inner = %s\n",
 			  vaz_inner_name.c_str());
@@ -256,7 +256,7 @@ static void vaz_inner()
 static void vaz_outer()
 {
     const std::string str =
-	config::cfg.get_lowercase("BoundaryVazOuter", "keplerian");
+	config::cfg.get_lowercase("BoundaryOuterVazi", "keplerian");
     vaz_outer_name = str;
     if (str == "zerogradient") {
 	vaz_outer_func = zero_gradient_outer;
@@ -274,7 +274,7 @@ static void vaz_outer()
     }
     // parse parameters
     keplerian_azimuthal_outer_factor =
-	config::cfg.get<double>("BoundaryVazOuterKeplerianFactor", 1.0);
+	config::cfg.get<double>("OuterBoundaryVaziKeplerianFactor", 1.0);
     // log
     logging::print_master(LOG_INFO "BC: Vaz outer = %s\n",
 			  vaz_outer_name.c_str());
