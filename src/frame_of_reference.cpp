@@ -52,9 +52,8 @@ void handle_corotation(t_data &data, const double dt)
 	OmegaFrame = OmegaNew;
     }
 
-    if (parameters::integrate_planets) {
-	data.get_planetary_system().rotate(OmegaFrame * dt);
-    }
+    data.get_planetary_system().rotate(OmegaFrame * dt);
+
     if (parameters::integrate_particles) {
 	particles::rotate(OmegaFrame * dt);
     }
