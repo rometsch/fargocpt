@@ -45,11 +45,6 @@ KappaConst: '2.0e-6'
 CFL: '0.5'
 HeatingCoolingCFLlimit: 1000.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
-# Star Parameters
-
-zbufferSize: '100'
-zbufferMaxAngle: '0.174'
-
 # Units
 
 l0: '1.0'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
@@ -58,11 +53,6 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'Yes'   # Initialize VRadial=0  [default = no]
-MassOverflow: 'No'   # [default = No]
-MOFPLANET: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
-MOFSIGMA: '0.05'   # Sigma value for normal distribution
-MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
-
 # PlanetConfig		setups/old/Jup-res.cfg
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
@@ -70,11 +60,6 @@ ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 ThicknessSmoothingAtPlanet: 'No'   # use the scale height at the radius of the planet for thickness smoothing. This flag should always be NO to use the scale height at the gas cell location expect for comparison reasons.
 
-# Boundary layer parameters
-
-VRadIn: 1e-3   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
-StellarRotation: '0.1'   # Stellar rotation rate in terms of Keplerian angular velocity Om_kepler [default = 0.1]
-MassAccretionRate: '1'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Numerical method parameters
@@ -154,27 +139,7 @@ WritePressure: 'No'   # Write pressure [default = no]
 WriteAspectRatio: 'Yes'   # Write aspect ratio [default = no]
 WriteTorques: 'No'   # Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth: 'No'   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
-RandomSeed: '1337'   # random seed integer value
-RandomSigma: 'No'   # randomize sigma start values?
-RandomFactor: '0.1'   # randomize by +- 10%
-FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
-# particles
-
-IntegrateParticles: 'NO'   # enable particle integrator [default = no]
-CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: explicit
-NumberOfParticles: '1002'   # number of particles [default = 0]
-ParticleRadius: 1e3 cm   # particle radius in cm [default = 100]
-ParticleEccentricity: '0.03'   # particle maximum Eccentricity
-ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
-ParticleSlope: '0'   # [default = 0]
-ParticleMinimumRadius: '0.4'   # [default = RMIN]
-ParticleMaximumRadius: '2.5'   # [default = RMAX]
-ParticleMinimumEscapeRadius: '0.4'   # [default = ParticleMinimumRadius]
-ParticleMaximumEscapeRadius: '2.5'   # [default = ParticleMaximumRadius]
-ParticleGasDragEnabled: 'yes'   # [default = YES]
-ParticleDiskGravityEnabled: 'no'   # [default = no]
 nbody:
 - name: DefaultStar
   semi-major axis: 0.0 au
