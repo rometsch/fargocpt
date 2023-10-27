@@ -112,6 +112,7 @@ template <> int parse_units(const std::string &val, const precise_unit& unit) {
 template std::string parse_units<std::string>(const std::string &val);
 
 // TODO: pick an official system
+// TODO: make these visible in output
 llnlunits::precise_unit solMass(1.98847e30, llnlunits::precise::kilogram);
 llnlunits::precise_unit solRadius(6.95700e8, llnlunits::precise::meter);
 llnlunits::precise_unit au(1.495978707e11, llnlunits::precise::meter);
