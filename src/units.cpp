@@ -26,6 +26,7 @@
 namespace units
 {
 
+t_unit not_yet_defined;
 t_unit length;
 t_unit mass;
 t_unit time;
@@ -244,6 +245,9 @@ std::string t_unit::get_cgs_factor_symbol()
 
 void calculate_unit_factors()
 {
+
+    not_yet_defined.set_cgs_factor(1);
+    not_yet_defined.set_cgs_symbol("1");
 
     length.set_cgs_factor((1*L0).value_as(llnlunits::precise::cm));
     length.set_cgs_symbol("cm");
