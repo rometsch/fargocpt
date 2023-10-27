@@ -132,22 +132,24 @@ void config() {
 		if (outer_boundary_name == "none") {
 			throw std::runtime_error("Need to specify outer boundary for radiative diffusion when it is enabled.");
 		}
-	}
+	
 
-	if (inner_boundary_name == "zeroflux") {
-		inner_boundary_func = boundary_inner_zeroflux;
-	} else if (inner_boundary_name == "zerogradient") {
-		inner_boundary_func = boundary_inner_zerogradient;
-	} else {
-		throw std::runtime_error("Unknown inner boundary for radiative diffusion.");
-	}
+		if (inner_boundary_name == "zeroflux") {
+			inner_boundary_func = boundary_inner_zeroflux;
+		} else if (inner_boundary_name == "zerogradient") {
+			inner_boundary_func = boundary_inner_zerogradient;
+		} else {
+			throw std::runtime_error("Unknown inner boundary for radiative diffusion.");
+		}
 
-	if (outer_boundary_name == "zeroflux") {
-		outer_boundary_func = boundary_outer_zeroflux;
-	} else if (outer_boundary_name == "zerogradient") {
-		outer_boundary_func = boundary_outer_zerogradient;
-	} else {
-		throw std::runtime_error("Unknown outer boundary for radiative diffusion.");
+		if (outer_boundary_name == "zeroflux") {
+			outer_boundary_func = boundary_outer_zeroflux;
+		} else if (outer_boundary_name == "zerogradient") {
+			outer_boundary_func = boundary_outer_zerogradient;
+		} else {
+			throw std::runtime_error("Unknown outer boundary for radiative diffusion.");
+		}
+
 	}
 
 
