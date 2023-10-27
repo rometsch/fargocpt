@@ -10,6 +10,9 @@
 #include "logging.h"
 #include "units.h"
 #include "parameters.h"
+#include "mpi.h"
+#include "output.h"
+#include "global.h"
 
 
 #include <cstring>
@@ -298,6 +301,88 @@ logging::print_master(LOG_INFO "Using PLUTO like units\n");
 			      eV.get_symbol(), eV.get_code_value(), eV.get_cgs_value(),
 			      eV.get_cgs_unit_symbol());
     }
+}
+
+
+void write_code_constants_file()
+{
+    /* Write a file containing the base constants to the output folder. */
+
+    FILE *fd = 0;
+
+    if (CPU_Master) {
+
+	const std::string filename = output::outdir + "constants.dat";
+	fd = fopen(filename.c_str(), "w");
+	if (fd == NULL) {
+	    logging::print_master(LOG_ERROR
+				  "Can't write 'constants.dat' file. Aborting.\n");
+	    PersonalExit(1);
+	}
+
+	fprintf(fd, "# constants-file : 1.0\n");
+	fprintf(fd, "# log output of constants:\n");
+
+	fprintf(fd,
+			      "#     gravitational constant: %8s = %15g = %14g %s\n",
+			      G.get_symbol(), G.get_code_value(), G.get_cgs_value(),
+			      G.get_cgs_unit_symbol());
+	// #else
+	// logging::print_master(
+	// LOG_VERBOSE
+	// "     gravitational constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
+	// #endif
+	fprintf(fd,
+			      "#         Boltzmann constant: %8s = %15g = %15g %s\n",
+			      k_B.get_symbol(), k_B.get_code_value(),
+			      k_B.get_cgs_value(), k_B.get_cgs_unit_symbol());
+	fprintf(fd,
+			      "#             molecular mass: %8s = %15g = %15g %s\n",
+			      m_u.get_symbol(), m_u.get_code_value(),
+			      m_u.get_cgs_value(), m_u.get_cgs_unit_symbol());
+	fprintf(fd,
+			      "#            Planck constant: %8s = %15g = %15g %s\n",
+			      h.get_symbol(), h.get_code_value(), h.get_cgs_value(),
+			      h.get_cgs_unit_symbol());
+	fprintf(fd,
+			      "#             speed of light: %8s = %15g = %15g %s\n",
+			      c.get_symbol(), c.get_code_value(), c.get_cgs_value(),
+			      c.get_cgs_unit_symbol());
+	// #ifndef NDEBUG
+	fprintf(fd,
+			      "#      specific gas constant: %8s = %15g = %15g %s\n",
+			      R.get_symbol(), R.get_code_value(), R.get_cgs_value(),
+			      R.get_cgs_unit_symbol());
+	// #else
+	// logging::print_master(
+	// LOG_VERBOSE
+	// "      specific gas constant: 1 (hardcoded, compile without NDEBUG to calculate it dynamically)\n");
+	// #endif
+	fprintf(fd,
+			      "#  Stefan-Boltzmann constant: %8s = %15g = %15g %s\n",
+			      sigma.get_symbol(), sigma.get_code_value(),
+			      sigma.get_cgs_value(), sigma.get_cgs_unit_symbol());
+
+	if(parameters::variableGamma){
+	    fprintf(fd,
+				  "#             hydrogen atom mass: %8s = %15g = %15g %s\n",
+				  m_H.get_symbol(), m_H.get_code_value(), m_H.get_cgs_value(),
+				  m_H.get_cgs_unit_symbol());
+
+	    fprintf(fd,
+				  "#             electron mass: %8s = %15g = %15g %s\n",
+				  m_e.get_symbol(), m_e.get_code_value(), m_e.get_cgs_value(),
+				  m_e.get_cgs_unit_symbol());
+
+	    fprintf(fd,
+				  "#             electron volt: %8s = %15g = %15g %s\n",
+				  eV.get_symbol(), eV.get_code_value(), eV.get_cgs_value(),
+				  eV.get_cgs_unit_symbol());
+	}
+	fprintf(fd, "# Syntax: base unit <tab> value <tab> unit name\n");
+	fclose(fd);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 } // namespace constants

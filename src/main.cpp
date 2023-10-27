@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
     units::print_code_units();
     units::write_code_unit_file();
     constants::print_constants();
+    constants::write_code_constants_file();
     output::write_output_version();
 
     TellEverything();

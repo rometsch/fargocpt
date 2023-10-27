@@ -87,5 +87,6 @@ extern t_constant &R;
 void initialize_constants();
 void calculate_constants_in_code_units();
 void print_constants();
+void write_code_constants_file();
 
 } // namespace constants
