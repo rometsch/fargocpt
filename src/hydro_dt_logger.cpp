@@ -15,6 +15,7 @@
 hydro_dt_logger::hydro_dt_logger()
 {
 	m_N_hydro_iter_DT = 0;
+	m_N_hydro_in_last_interval = 0;
 	m_sum_hydro_dt = 0.0;
 	m_sum_hydro_dt_sq = 0.0;
 	m_min_hydro_dt = 1.0e300; // Infinity
@@ -36,6 +37,7 @@ void hydro_dt_logger::update(const double hydro_dt)
 
 void hydro_dt_logger::reset()
 {
+	m_N_hydro_in_last_interval= m_N_hydro_iter_DT;
 	m_N_hydro_iter_DT = 0;
 	m_sum_hydro_dt = 0.0;
 	m_sum_hydro_dt_sq = 0.0;
@@ -190,3 +192,10 @@ void hydro_dt_logger::read()
 	m_max_hydro_dt = vars.max_hydro_dt;
 
 }
+
+
+unsigned int hydro_dt_logger::get_N_hydro_in_last_interval() const {
+	unsigned int rv = std::max(m_N_hydro_iter_DT, m_N_hydro_in_last_interval);
+	return rv;
+}
+

@@ -80,6 +80,8 @@ void handle_outputs(t_data &data) {
 		if (parameters::write_lightcurves) {
 			output::write_lightcurves(data, N_snapshot, need_update_for_output);
 		}
+
+		fld::write_logfile(output::outdir + "/monitor/fld.log");
 	}
 
 	// write disk quantities like eccentricity, ...

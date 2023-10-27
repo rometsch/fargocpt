@@ -37,5 +37,5 @@ void finalize();
 void radiative_diffusion(t_data &data, const double current_time, const double dt);
 void handle_output();
 void config();
-
+void write_logfile(const std::string filename);
 }

@@ -4,6 +4,9 @@
 #include <omp.h>
 #endif
 
+#include <fstream>
+#include <filesystem>
+
 #include "parameters.h"
 #include "constants.h"
 #include "config.h"
@@ -14,7 +17,7 @@
 #include "logging.h"
 #include "compute.h"
 #include "output.h"
-
+#include "simulation.h"
 
 namespace fld {
 
@@ -88,6 +91,10 @@ void (*inner_boundary_func)();
 // outer boundary
 std::string outer_boundary_name;
 void (*outer_boundary_func)();
+
+// track number of SOR iterations
+unsigned int SOR_iterations_over_timestep = 0;
+
 
 // declarations of boundary functions
 void boundary_inner_zeroflux();
@@ -231,6 +238,77 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	} else {
 		nstop = NRadial - CPUOVERLAP;
 	}
+
+	SOR_iterations_over_timestep = 0;
+}
+
+/* 
+/// Return the average number of SOR iterations per hydro step.
+/// This is used for tracking this average in the quantities file.
+*/
+static unsigned int get_average_SOR_iterations_and_reset(unsigned int hydro_steps) {
+	unsigned int rv;
+	if (hydro_steps == 0) {
+		rv = 0;
+	} else {
+		rv = SOR_iterations_over_timestep / hydro_steps;
+	}
+	SOR_iterations_over_timestep = 0;
+	return rv;
+}
+
+static void write_logfile_header(const std::string filename) {
+
+	std::ofstream logfile;
+	logfile.open(filename, std::ios_base::app);
+	if (!logfile.is_open()) {
+		throw std::runtime_error("Could not open logfile for radiative diffusion.");
+	}
+
+	logfile << "# FLD module logfile." << std::endl;
+	logfile << "#version: 1.0" <<std::endl;
+	logfile << "#variable: 0 | time step | 1" << std::endl;
+	logfile << "#variable: 1 | monitor step | 1" << std::endl;
+	logfile << "#variable: 2 | number of hydro steps in last interval | 1" << std::endl;
+	logfile << "#variable: 3 | number of SOR iterations in last interval | 1" << std::endl;
+	logfile << "#variable: 4 | average SOR iterations per hydro step | 1" << std::endl;
+
+	logfile.close();
+}
+
+
+void write_logfile(const std::string filename) {
+	static bool header_written = false;
+	if (!CPU_Master || !radiative_diffusion_enabled) {
+		return;
+	}
+
+	if (!header_written) {
+		if (std::filesystem::exists(filename)) {
+			header_written = true;
+		} else {
+			write_logfile_header(filename);
+			header_written = true;
+		}
+	}
+	
+	std::ofstream logfile;
+	logfile.open(filename, std::ios_base::app);
+	if (!logfile.is_open()) {
+		throw std::runtime_error("Could not open logfile for radiative diffusion.");
+	}
+
+	logfile << std::scientific;
+
+	unsigned int hydro_steps = dt_logger.get_N_hydro_in_last_interval();
+	logfile << sim::N_snapshot;
+	logfile << "\t" << sim::N_monitor;
+	logfile << "\t" << hydro_steps;
+	logfile << "\t" << SOR_iterations_over_timestep;
+	logfile << "\t" << get_average_SOR_iterations_and_reset(hydro_steps);
+	logfile << std::endl;
+
+	logfile.close();
 }
 
 
@@ -648,6 +726,7 @@ static void SOR(t_polargrid &T) {
 	last_avg_absolute_norm = avg_absolute_norm;
 	// printf("iter %u, norm_change = %e\n", iterations, norm_change);
 	iterations++;
+	SOR_iterations_over_timestep++;
 
     communicate_parallelization_boundaries(T);
 
