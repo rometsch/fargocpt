@@ -110,35 +110,3 @@ def test(out1, dt):
 #compile_fargo('../../')
 #run('../../', 'test/TemperatureTest/angelo.yml')
 test('../../angelo/', 10)
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%
-
-# %%

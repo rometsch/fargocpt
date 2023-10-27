@@ -28,7 +28,7 @@ SelfGravity: 'No'   # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-CoolingRadiativeLocal: 'Yes'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+SurfaceCooling: 'thermal'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
 RadiativeDiffusion: 'No'   # 
@@ -43,6 +43,7 @@ TauFactor: '1.0'   # correction factor for tau [default = 1.0]
 Opacity: Simple   # opacity table to use (Lin, Bell, Zhu, Kramers, Const, Simple) [default = Lin]
 KappaConst: '2.0e-6'
 CFL: '0.5'
+HeatingCoolingCFLlimit: 1000.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
 # Star Parameters
 
@@ -82,8 +83,8 @@ Transport: FARGO
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
-InnerBoundary: RIGID
-OuterBoundary: RIGID
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
