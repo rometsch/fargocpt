@@ -149,7 +149,6 @@ WriteVerticalOpticalDepth: No     # Write optical depth in vertical direction (t
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: Yes
-IntegratePlanets: No     # [default = yes]
 
 nbody:
 - name: Star

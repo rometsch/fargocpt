@@ -156,7 +156,6 @@ int indirect_term_mode;
 bool planet_orbit_disk_test;
 bool star_gasblobb_binary_test;
 
-bool integrate_planets;
 bool do_init_secondary_disk;
 
 double density_factor;
@@ -717,7 +716,6 @@ void read(const std::string &filename, t_data &data)
 	naive_smoothing = config::cfg.get_flag("NaiveSmoothing", "no");
 
 	correct_disk_selfgravity = config::cfg.get_flag("CorrectDiskSelfgravity", self_gravity ? "no" : "yes");
-    integrate_planets = config::cfg.get_flag("IntegratePlanets", "yes");
     do_init_secondary_disk =
 	config::cfg.get_flag("SecondaryDisk", "no");
 

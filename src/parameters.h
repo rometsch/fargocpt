@@ -217,8 +217,6 @@ extern bool v_azimuthal_with_quadropole_support;
 /// factor for kappa calculation
 extern double kappa_factor;
 
-///
-extern bool integrate_planets;
 extern bool do_init_secondary_disk;
 
 // self gravity

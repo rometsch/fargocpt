@@ -64,7 +64,6 @@ MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
 # PlanetConfig		setups/old/Jup-res.cfg
 
-IntegratePlanets: 'Yes'   # [default = yes]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]

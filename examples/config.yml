@@ -7,9 +7,6 @@ Disk: yes   # enable disk [default = yes]
 DiskFeedback: yes   # Calculate incfluence of the disk on the star
 SelfGravity: no   # choose: Yes, Z or No
 
-## Nbody
-IntegratePlanets: Yes   # [default = yes]
-
 ## Particles
 IntegrateParticles: no   # enable particle integrator [default = no]
 

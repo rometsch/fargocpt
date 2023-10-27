@@ -219,11 +219,9 @@ static void step_Euler(t_data &data, const double dt) {
 
 	/** Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
-	if (parameters::integrate_planets) {
-		data.get_planetary_system().integrate(time, dt);
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
-	}
+	data.get_planetary_system().integrate(time, dt);
+	data.get_planetary_system().copy_data_from_rebound();
+	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 
 	// TODO: move outside step
 	PhysicalTime += dt;
@@ -288,12 +286,11 @@ static void step_Euler(t_data &data, const double dt) {
 	/// Compute indirect Term is forward looking (computes acceleration from 'dt' to 'dt + frog_dt'
 	/// so it must be done while Nbody is still at 'dt'
 	refframe::ComputeIndirectTermNbody(data, start_time, frog_dt);
-	if (parameters::integrate_planets) { //// Nbody drift / 2
+	//// Nbody drift / 2
 	refframe::init_corotation(data);
 	data.get_planetary_system().integrate(start_time, frog_dt);
 	data.get_planetary_system().copy_data_from_rebound();
 	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
-	}
 
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(data);
@@ -302,15 +299,13 @@ static void step_Euler(t_data &data, const double dt) {
 
 	refframe::ComputeIndirectTermFully();
 
-	if (parameters::integrate_planets) { /// Nbody Kick 1 / 2
-		// minimum density is assured inside AccreteOntoPlanets
-		accretion::AccreteOntoPlanets(data, frog_dt);
-
-		if (parameters::disk_feedback) {
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
-		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
+	/// Nbody Kick 1 / 2
+	// minimum density is assured inside AccreteOntoPlanets
+	accretion::AccreteOntoPlanets(data, frog_dt);
+	if (parameters::disk_feedback) {
+		UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 	}
+	data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
 
 	if (parameters::integrate_particles) {
 		particles::integrate(data, start_time, frog_dt);
@@ -405,24 +400,21 @@ static void step_Euler(t_data &data, const double dt) {
 	particles::integrate(data, midstep_time, frog_dt);
 	}
 
-	// Finish timestep of the planets but do not update Nbody system yet //
-	if (parameters::integrate_planets) {
-		
-		// minimum density is assured inside AccreteOntoPlanets
-		accretion::AccreteOntoPlanets(data, frog_dt);
+	/// Finish timestep of the planets but do not update Nbody system yet
+	// minimum density is assured inside AccreteOntoPlanets
+	accretion::AccreteOntoPlanets(data, frog_dt);
 
-		/// Nbody kick 2/2
-		if (parameters::disk_feedback) {
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
-		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
-
-		/// Nbody drift 2/2
-		refframe::init_corotation(data);
-		data.get_planetary_system().integrate(midstep_time, frog_dt);
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
+	       /// Nbody kick 2/2
+	if (parameters::disk_feedback) {
+	UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 	}
+	data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
+
+	       /// Nbody drift 2/2
+	refframe::init_corotation(data);
+	data.get_planetary_system().integrate(midstep_time, frog_dt);
+	data.get_planetary_system().copy_data_from_rebound();
+	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
 	 * work in a frame non-centered on the star. Same for dust particles. */
