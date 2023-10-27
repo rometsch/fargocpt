@@ -98,7 +98,6 @@ double sigma_random_factor;
 double sigma_floor;
 double sigma_feature_size;
 bool sigma_adjust;
-bool sigma0_in_code_units;
 double sigma_discmass;
 double sigma0;
 t_initialize_condition energy_initialize_condition;
