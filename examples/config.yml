@@ -161,7 +161,7 @@ RadiativeDiffusionAutoOmega: NO # use adaptive omega for SOR
 RadiativeDiffusionMaxIterations: 50000
 RadiativeDiffusionTolerance: 1.5
 
-Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
+Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers, Constant) [default = Lin]
 KappaConst: 2.0e-6   # used for const (kappa = kappa0) and simple opacity (kappa = kappa0 * T**2)
 
 HeatingViscous: Yes   # enable viscous heating
