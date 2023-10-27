@@ -341,9 +341,10 @@ void init_physics(t_data &data)
     }
 
 	cfl::init(data);
+	boundary_conditions::init(data);
 
     // only gas velocities remain to be initialized
-	viscous_speed::init_vr_table_boundary(data);
+
 	init_euler(data, sim::PhysicalTime);
     init_gas_velocities(data);
     if (parameters::do_init_secondary_disk) {

@@ -44,17 +44,21 @@ void init_prescribed_time_variable_boundaries(t_data &data)
 	return;
 
     if (CPU_Rank == 0) {
-	if (parameters::boundary_inner ==
-	    parameters::boundary_condition_precribed_time_variable) {
-	    die("Inner precribed time variable boundary condition is not implemented yet!\n");
-	}
+		// const bool enabled_at_inner = parameters::boundary_inner == parameters::boundary_condition_precribed_time_variable;
+		const bool enabled_at_inner = true;
+		die("TODO: Need to fix the implementation of the boundary config for this case.");
+		if (enabled_at_inner) {
+			die("Inner precribed time variable boundary condition is not implemented yet!\n");
+		}
     }
 
     if (CPU_Rank == CPU_Highest) {
-	if (parameters::boundary_outer ==
-	    parameters::boundary_condition_precribed_time_variable) {
-	    if (parameters::PRESCRIBED_BOUNDARY_OUTER_FILE == "") {
-		die("Outer prescribed time variable boundary condition is enabled but the supplied file folder is not found!\n");
+		// const bool enabled_at_outer = parameters::boundary_outer == parameters::boundary_condition_precribed_time_variable;
+		const bool enabled_at_outer = true;
+		die("TODO: Need to fix the implementation of the boundary config for this case.");
+		if (enabled_at_outer) {
+			if (parameters::PRESCRIBED_BOUNDARY_OUTER_FILE == "") {
+			die("Outer prescribed time variable boundary condition is enabled but the supplied file folder is not found!\n");
 	    } else {
 
 		// TODO: naming convention might need adjustment

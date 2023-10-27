@@ -145,20 +145,21 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
     // boundary layer:
     if (CPU_Rank == CPU_Highest) {
 
-	if (parameters::boundary_outer ==
-	    parameters::boundary_condition_boundary_layer) {
-	    boundary_layer_mass_influx(DensityStar, VRadial);
-	}
+	// TODO: adapt to new boundary
+	// if (parameters::boundary_outer ==
+	//     parameters::boundary_condition_boundary_layer) {
+	//     boundary_layer_mass_influx(DensityStar, VRadial);
+	// }
 
-	// prescribed time variable boundary
-	if (parameters::boundary_outer ==
-	    parameters::boundary_condition_precribed_time_variable) {
-	    boundary_conditions::
-		boundary_condition_precribed_time_variable_outer(data,
-								 DensityStar, sim::PhysicalTime);
-	}
+	// // prescribed time variable boundary
+	// if (parameters::boundary_outer ==
+	//     parameters::boundary_condition_precribed_time_variable) {
+	//     boundary_conditions::
+	// 	boundary_condition_precribed_time_variable_outer(data,
+	// 							 DensityStar, sim::PhysicalTime);
+	// }
 
-	if (parameters::massoverflow) {
+	if (boundary_conditions::massoverflow) {
 	    boundary_conditions::mass_overflow_willy(data, DensityStar, true);
 	}
     }
@@ -176,7 +177,7 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 
     VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
 
-	if(parameters::massoverflow){
+	if(boundary_conditions::massoverflow){
 	data.get_massflow_tracker().update_mass_accretion(dt);
 	}
 
@@ -406,18 +407,18 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 		}
 	}
     }
-    // TODO: check here
+    // TODO: adapt to new boundaries
 	#pragma omp parallel for
 	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
 	(*QStar)(0, nAzimuthal) = 0.0;
-	if ((parameters::boundary_outer !=
-	     parameters::boundary_condition_evanescent) &&
-	    (parameters::boundary_outer !=
-	     parameters::boundary_condition_boundary_layer) &&
-	    (parameters::boundary_outer !=
-	     parameters::boundary_condition_precribed_time_variable)) {
-	    (*QStar)(QStar->get_max_radial(), nAzimuthal) = 0.0;
-	}
+	// if ((parameters::boundary_outer !=
+	//      parameters::boundary_condition_evanescent) &&
+	//     (parameters::boundary_outer !=
+	//      parameters::boundary_condition_boundary_layer) &&
+	//     (parameters::boundary_outer !=
+	//      parameters::boundary_condition_precribed_time_variable)) {
+	//     (*QStar)(QStar->get_max_radial(), nAzimuthal) = 0.0;
+	// }
     }
 }
 
@@ -684,18 +685,18 @@ void VanLeerTheta(t_data &data, PolarGrid *VAzimuthal, PolarGrid *Qbase,
    account for a constant mass accretion rate M_dot = -2\pi\Sigma v_rad r
 */
 
-void boundary_layer_mass_influx(PolarGrid *QStar, PolarGrid *VRadial)
-{
+// void boundary_layer_mass_influx(PolarGrid *QStar, PolarGrid *VRadial)
+// {
 
-    // printf("QStar->get_max_radial() = %d, VRadial->get_max_radial() = %d\n",
-    // QStar->get_max_radial(), VRadial->get_max_radial());
+//     // printf("QStar->get_max_radial() = %d, VRadial->get_max_radial() = %d\n",
+//     // QStar->get_max_radial(), VRadial->get_max_radial());
 
-	#pragma omp parallel for
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal < QStar->get_size_azimuthal(); ++n_azimuthal) {
-	(*QStar)(QStar->get_max_radial() - 1, n_azimuthal) =
-	    -parameters::mass_accretion_rate /
-	    ((*VRadial)(VRadial->get_max_radial() - 1, n_azimuthal) *
-	     NAzimuthal);
-    }
-}
+// 	#pragma omp parallel for
+//     for (unsigned int n_azimuthal = 0;
+// 	 n_azimuthal < QStar->get_size_azimuthal(); ++n_azimuthal) {
+// 	(*QStar)(QStar->get_max_radial() - 1, n_azimuthal) =
+// 	    -parameters::mass_accretion_rate /
+// 	    ((*VRadial)(VRadial->get_max_radial() - 1, n_azimuthal) *
+// 	     NAzimuthal);
+//     }
+// }

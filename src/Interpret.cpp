@@ -16,9 +16,10 @@
 #include "config.h"
 #include "output.h"
 #include "simulation.h"
+#include "boundary_conditions/boundary_conditions.h"
 
 extern int damping_energy_id;
-extern std::vector<parameters::t_DampingType> damping_vector;
+extern std::vector<boundary_conditions::t_DampingType> damping_vector;
 
 int OuterSourceMass, CICPlanet;
 
@@ -565,25 +566,25 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     if (!parameters::Adiabatic) // if energy is not needed, delete the energy
 				// damping boundary conditions
     {
-	parameters::damping_vector.erase(parameters::damping_vector.begin() +
-					 parameters::damping_energy_id);
+	boundary_conditions::damping_vector.erase(boundary_conditions::damping_vector.begin() +
+					 boundary_conditions::damping_energy_id);
     }
 
     // delete unneeded calls to damping functions
     // this must be performed after deleting the energy damping boundary,
     // otherwise damping_energy_id would be incorrect.
     auto delete_damping_condition =
-	[&](const parameters::t_DampingType damper) {
+	[&](const boundary_conditions::t_DampingType damper) {
 	    return damper.inner_damping_function == nullptr &&
 			   damper.outer_damping_function == nullptr
 		       ? true
 		       : false;
 	};
-    parameters::damping_vector.erase(
-	std::remove_if(parameters::damping_vector.begin(),
-		       parameters::damping_vector.end(),
+    boundary_conditions::damping_vector.erase(
+	std::remove_if(boundary_conditions::damping_vector.begin(),
+		       boundary_conditions::damping_vector.end(),
 		       delete_damping_condition),
-	parameters::damping_vector.end());
+	boundary_conditions::damping_vector.end());
 
     CICPlanet = cfg.get_flag("CICPLANET", "no");
 
@@ -709,7 +710,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	}
 
     parameters::VISCOUS_ACCRETION = false;
-    if (parameters::boundary_inner == parameters::boundary_condition_viscous_outflow) {
+    if (boundary_conditions::vrad_inner_func == boundary_conditions::viscous_outflow_inner || boundary_conditions::vrad_outer_func == boundary_conditions::viscous_inflow_outer) {
 		parameters::VISCOUS_ACCRETION = true;
     }
 

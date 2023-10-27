@@ -36,39 +36,6 @@ void update_with_artificial_viscosity(t_data &data, const double dt){
  */
 void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 {
-
-	/// Do not Apply sub keplerian boundary for boundary conditions that set
-	/// Vphi themselves
-	const bool add_kep_inner =
-	(parameters::boundary_inner !=
-	parameters::boundary_condition_center_of_mass_initial) &&
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_evanescent) &&
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_boundary_layer) &&
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_precribed_time_variable) &&
-	(!parameters::domegadr_zero);
-
-	if (add_kep_inner) {
-	boundary_conditions::ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
-	}
-
-	if ((parameters::boundary_outer !=
-	 parameters::boundary_condition_center_of_mass_initial) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_zero_gradient) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_evanescent) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_boundary_layer) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_precribed_time_variable) &&
-	(!parameters::massoverflow) && (!parameters::domegadr_zero)) {
-	boundary_conditions::ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
-					   add_kep_inner);
-	}
-
 	t_polargrid &energy = data[t_data::ENERGY];
 	t_polargrid &density = data[t_data::SIGMA];
 	t_polargrid &vr = data[t_data::V_RADIAL];
@@ -182,39 +149,6 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 */
 void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 {
-
-	/// Do not Apply sub keplerian boundary for boundary conditions that set
-	/// Vphi themselves
-	const bool add_kep_inner =
-	(parameters::boundary_inner !=
-	parameters::boundary_condition_center_of_mass_initial) &&
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_evanescent) &&
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_boundary_layer) &&
-	(parameters::boundary_inner !=
-	 parameters::boundary_condition_precribed_time_variable) &&
-	(!parameters::domegadr_zero);
-
-	if (add_kep_inner) {
-	boundary_conditions::ApplyKeplerianBoundaryInner(data[t_data::V_AZIMUTHAL]);
-	}
-
-	if ((parameters::boundary_outer !=
-	 parameters::boundary_condition_center_of_mass_initial) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_zero_gradient) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_evanescent) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_boundary_layer) &&
-	(parameters::boundary_outer !=
-	 parameters::boundary_condition_precribed_time_variable) &&
-	(!parameters::massoverflow) && (!parameters::domegadr_zero)) {
-	boundary_conditions::ApplySubKeplerianBoundaryOuter(data[t_data::V_AZIMUTHAL],
-					   add_kep_inner);
-	}
-
 	if (parameters::artificial_viscosity ==
 		parameters::artificial_viscosity_SN) {
 

@@ -80,7 +80,7 @@ void restart_load(t_data &data) {
 	    particles::restart();
 	}
 
-	if(parameters::massoverflow){
+	if(boundary_conditions::massoverflow){
 	data.get_massflow_tracker().read_from_file();
 	}
 

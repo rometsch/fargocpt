@@ -9,6 +9,7 @@ extern double ASPECTRATIO_REF;
 extern int ASPECTRATIO_MODE;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
+// Is viscous accretion turned on at at either boundary or Nbodies?
 extern bool VISCOUS_ACCRETION;
 extern double SIGMASLOPE;
 extern double OMEGAFRAME;
@@ -52,64 +53,6 @@ enum t_radial_grid {
 extern t_radial_grid radial_grid_type;
 extern const char *radial_grid_names[];
 extern double exponential_cell_size_factor;
-
-// boundary conditions
-enum t_boundary_condition {
-    boundary_condition_reference,
-    boundary_condition_open,
-    boundary_condition_reflecting,
-    boundary_condition_center_of_mass_initial,
-    boundary_condition_zero_gradient,
-    boundary_condition_nonreflecting,
-    boundary_condition_viscous_outflow,
-    boundary_condition_boundary_layer,
-    boundary_condition_precribed_time_variable,
-    boundary_condition_keplerian,
-    boundary_condition_evanescent
-};
-
-/// type of inner boundary
-extern t_boundary_condition boundary_inner;
-/// type of outer boundary
-extern t_boundary_condition boundary_outer;
-/// set dr/dOmega zero at outer boundary
-extern bool domegadr_zero;
-
-// speed of the viscous boundary inflow
-extern double viscous_outflow_speed;
-
-/// enable different damping types
-enum t_damping_type {
-    damping_none,
-    damping_reference,
-    damping_mean,
-    damping_zero,
-    damping_visc
-};
-
-/// Struct for handling damping at boundaries
-struct t_DampingType {
-    void (*inner_damping_function)(t_polargrid &, t_polargrid &, double);
-    void (*outer_damping_function)(t_polargrid &, t_polargrid &, double);
-    t_data::t_polargrid_type array_to_damp;
-    t_data::t_polargrid_type array_with_damping_values;
-    t_damping_type type_inner;
-    t_damping_type type_outer;
-};
-extern int damping_energy_id;
-
-extern bool damping;
-/// is at least one variable damped to initial values
-extern bool is_damping_reference;
-/// inner damping limit
-extern double damping_inner_limit;
-/// outer damping limit
-extern double damping_outer_limit;
-/// damping time factor
-extern double damping_time_factor;
-extern double damping_time_radius_outer;
-/// vector to handle damping structs
-extern std::vector<t_DampingType> damping_vector;
 
 // energy equation
 /// mean molecular mass
@@ -244,15 +187,6 @@ extern bool calculate_disk;
 extern unsigned int n_bodies_for_hydroframe_center;
 extern unsigned int corotation_reference_body;
 extern bool corotating;
-
-extern bool massoverflow;
-extern bool variableTransfer;
-extern unsigned int mof_planet;
-extern double mof_temperature;
-extern double mof_value;
-extern double mof_rampingtime;
-extern double mof_averaging_time;
-extern double mof_gamma;
 
 extern int AlphaMode;
 extern double alphaCold;

@@ -36,7 +36,7 @@ void mass_overflow(t_data &data, const double current_time)
     last_PhysicalTime = current_time;
 
     // get location of binary star
-    if (parameters::mof_planet + 1 >
+    if (mof_planet + 1 >
 	data.get_planetary_system().get_number_of_planets()) {
 	logging::print_master(
 	    LOG_ERROR
@@ -44,7 +44,7 @@ void mass_overflow(t_data &data, const double current_time)
 	die("Wrong Planet/Star for Mass Overflow specified! Old parameter file?");
     }
     const t_planet &planet =
-	data.get_planetary_system().get_planet(parameters::mof_planet);
+	data.get_planetary_system().get_planet(mof_planet);
     const double xplanet = planet.get_x();
     const double yplanet = planet.get_y();
 
@@ -69,7 +69,7 @@ void mass_overflow(t_data &data, const double current_time)
 	(omega_planet - refframe::OmegaFrame) *
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
-	const double mdot_code = parameters::mof_value;
+	const double mdot_code = mof_value;
 
     const double Sigma_stream = mdot_code * dt / Surf[Nrad - 2];
 
@@ -82,7 +82,7 @@ void mass_overflow(t_data &data, const double current_time)
     const double Porb =
 	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0; // TODO: check unit!
     // cross section Q
-    const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
+    const double Q = 2.4e13 * mof_temperature * Porb * Porb;
     // stream radius W
     const double W = std::sqrt(Q / M_PI);
     // circumference circ
@@ -98,7 +98,7 @@ void mass_overflow(t_data &data, const double current_time)
     for (int i = -number_of_cells; i <= number_of_cells; i++) {
 
 	const double t_ramp =
-	    parameters::mof_rampingtime * planet.get_orbital_period();
+	    mof_rampingtime * planet.get_orbital_period();
 
 	double ramp_factor;
 	if (current_time < t_ramp) {
@@ -131,7 +131,7 @@ void mass_overflow(t_data &data, const double current_time)
 
 	if (parameters::Adiabatic) {
 	    const double T_stream =
-		parameters::mof_temperature; // Stream Temperature in Kelvin
+		mof_temperature; // Stream Temperature in Kelvin
 	    const double e_stream =
 		T_stream * units::temperature.get_inverse_cgs_factor() * dens /
 		parameters::MU * constants::R /
@@ -174,7 +174,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
     }
 
     // get location of binary star
-    if (parameters::mof_planet + 1 >
+    if (mof_planet + 1 >
 	data.get_planetary_system().get_number_of_planets()) {
 	logging::print_master(
 	    LOG_ERROR
@@ -185,7 +185,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	const double mdot_avg = data.get_massflow_tracker().get_mdot();
 
     const t_planet &planet =
-	data.get_planetary_system().get_planet(parameters::mof_planet);
+	data.get_planetary_system().get_planet(mof_planet);
     const double xplanet = planet.get_x();
 	const double yplanet = planet.get_y();
 
@@ -211,11 +211,11 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
 	double mdot_transfer;
-	if (parameters::variableTransfer){
+	if (mof_variableTransfer){
         // variable Mdot following Hameury, Lasota & Warner 1999  eq. 4
-        mdot_transfer = std::max(parameters::mof_value, parameters::mof_gamma * mdot_avg);
+        mdot_transfer = std::max(mof_value, mof_gamma * mdot_avg);
 	}else{
-		mdot_transfer = parameters::mof_value;
+		mdot_transfer = mof_value;
 	}
 
 	const double stream_mdot_code = mdot_transfer;
@@ -232,7 +232,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
     const double Porb =
 	2.0 * M_PI / omega_planet * units::time.get_cgs_factor() / 3600.0; // TODO: check unit!
     // cross section Q
-    const double Q = 2.4e13 * parameters::mof_temperature * Porb * Porb;
+    const double Q = 2.4e13 * mof_temperature * Porb * Porb;
     // stream radius W
     const double W = std::sqrt(Q * M_1_PI);
     // circumference circ
@@ -245,7 +245,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
     double sigmabar = Nphi * sigma;
 
     const double t_ramp =
-	parameters::mof_rampingtime * planet.get_orbital_period();
+	mof_rampingtime * planet.get_orbital_period();
 
     double ramp_factor;
     if (sim::PhysicalTime < t_ramp) {
@@ -280,7 +280,7 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar, bool transport)
 
 	if (parameters::Adiabatic) {
 	    const double T_stream =
-		parameters::mof_temperature; // Stream Temperature in Kelvin
+		mof_temperature; // Stream Temperature in Kelvin
 	    const double e_stream =
 		T_stream * units::temperature.get_inverse_cgs_factor() * dens /
 		parameters::MU * constants::R /

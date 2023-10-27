@@ -19,6 +19,9 @@ extern void (*vrad_inner_func)(t_polargrid &, t_polargrid &, t_data &d);
 extern void (*vrad_outer_func)(t_polargrid &, t_polargrid &, t_data &d);
 extern void (*vaz_inner_func)(t_polargrid &, t_polargrid &, t_data &d);
 extern void (*vaz_outer_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*special_inner_func)(t_polargrid &, t_polargrid &, t_data &d);
+extern void (*special_outer_func)(t_polargrid &, t_polargrid &, t_data &d);
+
 
 extern std::string sigma_inner_name;
 extern std::string sigma_outer_name;
@@ -29,6 +32,8 @@ extern std::string vrad_outer_name;
 extern std::string vaz_inner_name;
 extern std::string vaz_outer_name;
 extern std::string special_name;
+extern std::string composite_inner_name;
+extern std::string composite_outer_name;
 
 extern double keplerian_azimuthal_outer_factor;
 extern double keplerian_azimuthal_inner_factor;
@@ -36,12 +41,66 @@ extern double keplerian_radial_outer_factor;
 extern double keplerian_radial_inner_factor;
 	
 
+/****************************************
+/// Parameters
+****************************************/
+
+// speed of the viscous boundary inflow
+extern double viscous_outflow_speed;
+
+extern bool massoverflow;
+extern bool mof_variableTransfer;
+extern unsigned int mof_planet;
+extern double mof_temperature;
+extern double mof_value;
+extern double mof_rampingtime;
+extern double mof_averaging_time;
+extern double mof_gamma;
+
+/// enable different damping types
+enum t_damping_type {
+    damping_none,
+    damping_reference,
+    damping_mean,
+    damping_zero,
+    damping_visc
+};
+
+/// Struct for handling damping at boundaries
+struct t_DampingType {
+    void (*inner_damping_function)(t_polargrid &, t_polargrid &, double);
+    void (*outer_damping_function)(t_polargrid &, t_polargrid &, double);
+    t_data::t_polargrid_type array_to_damp;
+    t_data::t_polargrid_type array_with_damping_values;
+    t_damping_type type_inner;
+    t_damping_type type_outer;
+};
+extern int damping_energy_id;
+
+extern bool damping_enabled;
+/// is at least one variable damped to initial values
+extern bool is_damping_reference;
+/// inner damping limit
+extern double damping_inner_limit;
+/// outer damping limit
+extern double damping_outer_limit;
+/// damping time factor
+extern double damping_time_factor;
+extern double damping_time_radius_outer;
+/// vector to handle damping structs
+extern std::vector<t_DampingType> damping_vector;
+
+
+/****************************************
+/// Functions
+****************************************/
+
 void parse_config();
 
-void old_apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);
 
 bool reference_values_needed();
+void init(t_data &data);
 
 /****************************************
 /// Individual variable boundaries
@@ -90,34 +149,19 @@ void init_custom(t_data& data);
 void cleanup_custom();
 
 /****************************************
-/// Basic
+/// Inflow boundaries
 ****************************************/
-
-void reference_value_boundary_inner(t_data &data);
-void reference_value_boundary_outer(t_data &data);
-
-void open_boundary_inner(t_data &data);
-void open_boundary_outer(t_data &data);
-
-void zero_gradient_boundary_inner(t_data &data);
-void zero_gradient_boundary_outer(t_data &data);
-
-void reflecting_boundary_inner(t_data &data);
-void reflecting_boundary_outer(t_data &data);
-
-void keplerian2d_boundary_inner(t_data &data);
-void keplerian2d_boundary_outer(t_data &data);
-
-void viscous_outflow_boundary_inner(t_data &data);
+void mass_overflow(t_data &data, const double current_time);
+void mass_overflow_willy(t_data &data, t_polargrid *densitystar,
+			 bool transport);
 
 /****************************************
-/// Azimuthal velocity
+/// BC centered on center of mass
 ****************************************/
 
-void ApplyKeplerianBoundaryInner(t_polargrid &v_azimuthal);
-void ApplySubKeplerianBoundaryOuter(t_polargrid &v_azimuthal,
-				    const bool did_sg);
-void zero_shear_boundary(t_polargrid &v_azimuthal);
+void init_center_of_mass(t_data &data);
+void initial_center_of_mass_inner(t_data &data, const double dt, const bool final);
+void initial_center_of_mass_outer(t_data &data, const double dt, const bool final);
 
 /****************************************
 /// Prescribed value boundaries
@@ -127,35 +171,11 @@ void boundary_condition_precribed_time_variable_outer(t_data &data,
 							  t_polargrid *densitystar, const double current_time);
 
 /****************************************
-/// Inflow boundaries
-****************************************/
-void mass_overflow(t_data &data, const double current_time);
-void mass_overflow_willy(t_data &data, t_polargrid *densitystar,
-			 bool transport);
-void boundary_layer_inner_boundary(t_data &data);
-void boundary_layer_outer_boundary(t_data &data);
-
-
-/****************************************
-/// BC centered on center of mass
-****************************************/
-void initial_center_of_mass_boundary_inner(t_data &data);
-void damping_initial_center_of_mass_inner(t_data &data, double dt);
-void initial_center_of_mass_boundary_outer(t_data &data);
-void damping_initial_center_of_mass_outer(t_data &data, double dt);
-
-
-/****************************************
-/// Spreading ring test
-****************************************/
-void spreading_ring_inner(t_data &data);
-void spreading_ring_outer(t_data &data);
-
-
-/****************************************
 /// Damping
 ****************************************/
 void damping(t_data &data, const double dt);
+void damping_config();
+void describe_damping();
 bool initial_values_needed();
 void copy_initial_values(t_data &data);
 void damping_single_inner(t_polargrid &quantity, t_polargrid &quantity0,
@@ -173,18 +193,6 @@ void damping_single_outer_mean(t_polargrid &quantity, t_polargrid &quantity0,
 void damping_vradial_inner_visc(t_polargrid &vrad, t_polargrid &viscosity,
 				double dt);
 
-
-/****************************************
-/// Legacy
-****************************************/
-void NonReflectingBoundary_inner(t_data &data, t_polargrid *VRadial,
-				 t_polargrid *Density, t_polargrid *Energy);
-void NonReflectingBoundary_outer(t_data &data, t_polargrid *VRadial,
-				 t_polargrid *Density, t_polargrid *Energy);
-
-void EvanescentBoundary(t_data &data, double step);
-
-void ApplyOuterSourceMass(t_polargrid *Density, PolarGrid *VRadial);
 
 
 } // namespace boundary_conditions

@@ -71,24 +71,6 @@ const char *radial_grid_names[] = {"logarithmic", "arithmetic", "exponential",
 				   "custom"};
 double exponential_cell_size_factor;
 
-std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
-
-t_boundary_condition boundary_inner;
-t_boundary_condition boundary_outer;
-bool domegadr_zero;
-
-double viscous_outflow_speed;
-
-bool damping;
-bool is_damping_reference = false;
-double damping_inner_limit;
-double damping_outer_limit;
-double damping_time_factor;
-double damping_time_radius_outer;
-
-int damping_energy_id;
-std::vector<t_DampingType> damping_vector;
-
 double minimum_temperature;
 double maximum_temperature;
 double MU;
@@ -261,129 +243,6 @@ void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 	logging::print_master((LOG_ERROR + warn).c_str());
 	die("Config Error");
     }
-}
-
-static t_DampingType write_damping_type(t_damping_type type_inner,
-					t_damping_type type_outer,
-					t_data::t_polargrid_type quantity,
-					t_data::t_polargrid_type quantity0,
-					std::string description)
-{
-    t_DampingType damping_type;
-    damping_type.array_to_damp = quantity;
-    damping_type.array_with_damping_values = quantity0;
-    damping_type.type_inner = type_inner;
-    damping_type.type_outer = type_outer;
-    std::string description_inner;
-    std::string description_outer;
-
-    switch (type_inner) {
-    case damping_none:
-	damping_type.inner_damping_function = nullptr;
-	description_inner =
-	    "Damping " + description + " is disabled at inner boundary.";
-	break;
-    case damping_mean:
-	damping_type.inner_damping_function =
-	    &boundary_conditions::damping_single_inner_mean;
-	description_inner =
-	    "Damping " + description + " to mean value at inner boundary.";
-	break;
-    case damping_reference:
-	damping_type.inner_damping_function =
-	    &boundary_conditions::damping_single_inner;
-	description_inner =
-	    "Damping " + description + " to reference value at inner boundary.";
-	break;
-    case damping_zero:
-	damping_type.inner_damping_function =
-	    &boundary_conditions::damping_single_inner_zero;
-	description_inner =
-	    "Damping " + description + " to zero at inner boundary.";
-	break;
-    case damping_visc:
-	damping_type.inner_damping_function =
-	    &boundary_conditions::damping_vradial_inner_visc;
-	description_inner = "Damping " + description +
-			    " to viscous radial speed at inner boundary.";
-	break;
-    }
-
-    switch (type_outer) {
-    case damping_none:
-	damping_type.outer_damping_function = nullptr;
-	description_outer =
-	    "Damping " + description + " is disabled at outer boundary.";
-	break;
-    case damping_mean:
-	damping_type.outer_damping_function =
-	    &boundary_conditions::damping_single_outer_mean;
-	description_outer =
-	    "Damping " + description + " to mean value at outer boundary.";
-	break;
-    case damping_reference:
-	damping_type.outer_damping_function =
-	    &boundary_conditions::damping_single_outer;
-	description_outer =
-	    "Damping " + description + " to reference value at outer boundary.";
-	break;
-    case damping_zero:
-	damping_type.outer_damping_function =
-	    &boundary_conditions::damping_single_outer_zero;
-	description_outer =
-	    "Damping " + description + " to zero at outer boundary.";
-	break;
-    case damping_visc:
-	die(("Damping " + description +
-	     " to viscous radial speed at outer boundary not implemented!\n")
-		.c_str());
-	break;
-    }
-
-    logging::print_master(LOG_INFO "%s\n", description_inner.c_str());
-    logging::print_master(LOG_INFO "%s\n", description_outer.c_str());
-
-    return damping_type;
-}
-
-/**
-	Get a value as t_boundary_condition to a corresponding key  if
-   available, else set to default
-
-	\param key key
-	\param defvalue default value
-	\returns t_boundary_condition
-*/
-static t_damping_type value_as_boudary_damping_default(const char *key,
-						const char *defvalue)
-{
-    const std::string ret = config::cfg.get<std::string>(key, defvalue);
-
-    t_damping_type boundary_condition;
-    switch (tolower(ret[0])) {
-    case 'n':
-	boundary_condition = parameters::t_damping_type::damping_none;
-	break;
-    case 'i':
-	boundary_condition = parameters::t_damping_type::damping_reference;
-	break;
-    case 'y': // for legacy compatibility
-	boundary_condition = parameters::t_damping_type::damping_reference;
-	break;
-    case 'm':
-	boundary_condition = parameters::t_damping_type::damping_mean;
-	break;
-    case 'z':
-	boundary_condition = parameters::t_damping_type::damping_zero;
-	break;
-    case 'v':
-	boundary_condition = parameters::t_damping_type::damping_visc;
-	break;
-    default:
-	boundary_condition = parameters::t_damping_type::damping_none;
-    }
-    return boundary_condition;
-
 }
 
 static void read_output_config(t_data &data) {
@@ -626,190 +485,7 @@ static void read_radiation_config() {
 	fld::config();
 }
 
-static void read_boundary_config_legacy() {
-
-    switch (
-	config::cfg.get_first_letter_lowercase("InnerBoundary", "Open")) {
-    case 'i':
-	boundary_inner = boundary_condition_reference;
-	break;
-	case 'o':
-	boundary_inner = boundary_condition_open;
-	break;
-    case 'n':
-	boundary_inner = boundary_condition_nonreflecting;
-	break;
-    case 'c':
-	boundary_inner = boundary_condition_center_of_mass_initial;
-	break;
-    case 'e':
-	boundary_inner = boundary_condition_evanescent;
-	break;
-    case 'r':
-	boundary_inner = boundary_condition_reflecting;
-	break;
-    case 'v':
-	boundary_inner = boundary_condition_viscous_outflow;
-	break;
-    case 'b':
-	boundary_inner = boundary_condition_boundary_layer;
-	break;
-    case 'k':
-	boundary_inner = boundary_condition_keplerian;
-	break;
-    case 'p':
-	boundary_inner = boundary_condition_precribed_time_variable;
-	break;
-    case 'z':
-	boundary_inner = boundary_condition_zero_gradient;
-	break;
-    default:
-	die("Invalid setting for InnerBoundary: %s",
-	    config::cfg.get<std::string>("InnerBoundary", "Open").c_str());
-    }
-
-    switch (
-		config::cfg.get_first_letter_lowercase("OuterBoundary", "Open")) {
-    case 'i':
-	boundary_outer = boundary_condition_reference;
-	break;
-	case 'o':
-	boundary_outer = boundary_condition_open;
-	break;
-    case 'n':
-	boundary_outer = boundary_condition_nonreflecting;
-	break;
-    case 'c':
-	boundary_outer = boundary_condition_center_of_mass_initial;
-	break;
-    case 'e':
-	boundary_outer = boundary_condition_evanescent;
-	break;
-    case 'r':
-	boundary_outer = boundary_condition_reflecting;
-	break;
-    case 'v':
-	boundary_outer = boundary_condition_viscous_outflow;
-	break;
-    case 'b':
-	boundary_outer = boundary_condition_boundary_layer;
-	break;
-    case 'k':
-	boundary_outer = boundary_condition_keplerian;
-	break;
-    case 'p':
-	boundary_outer = boundary_condition_precribed_time_variable;
-	break;
-    case 'z':
-	boundary_outer = boundary_condition_zero_gradient;
-	break;
-    default:
-	die("Invalid setting for OuterBoundary: %s",
-	    config::cfg.get<std::string>("OuterBoundary", "Open").c_str());
-    }
-
-    // check if file for prescribed time variable boundary exists
-    if (config::cfg.contains("PRESCRIBEDBOUNDARYFILEOUTER")) {
-	if (config::cfg.get<std::string>("PRESCRIBEDBOUNDARYFILEOUTER").length() >
-	    0) {
-			PRESCRIBED_BOUNDARY_OUTER_FILE = config::cfg.get<std::string>("PRESCRIBEDBOUNDARYFILEOUTER") ;
-	} else {
-	    die("Error looking for data for the prescribed time variable boundary condition. Path could not be read!\n");
-	}
-    } else {
-	PRESCRIBED_BOUNDARY_OUTER_FILE = "";
-    }
-
-    domegadr_zero = config::cfg.get_flag("DomegaDrZero", false);
-
-    if (domegadr_zero)
-	logging::print_master(
-	    LOG_INFO "Using zero torque condition at outer boundary\n");
-
-    viscous_outflow_speed =
-	config::cfg.get<double>("ViscousOutflowSpeed", 1.0);
-
-    damping = config::cfg.get_flag("Damping", false);
-
-    damping_inner_limit =
-	config::cfg.get<double>("DampingInnerLimit", 1.05);
-    if (damping_inner_limit < 1) {
-	die("DampingInnerLimit must not be <1\n");
-    }
-    damping_outer_limit =
-	config::cfg.get<double>("DampingOuterLimit", 0.95);
-    if (damping_outer_limit > 1) {
-	die("DampingOuterLimit must not be >1\n");
-    }
-	damping_time_factor =
-	config::cfg.get<double>("DampingTimeFactor", 1.0);
-
-	damping_time_radius_outer =
-	config::cfg.get<double>("DampingTimeRadiusOuter", RMAX);
-
-	logging::print_master("DampingTimeFactor: %.5e Outer damping time is computed at radius of %.5e\n", damping_time_factor,
-						  damping_time_radius_outer);
-
-    t_damping_type tmp_damping_inner;
-    t_damping_type tmp_damping_outer;
-
-    if (config::cfg.contains("DampingVRadial"))
-	die("DampingVRadial flag is decrepated used DampingVRadialInner and DampingVRadialOuter instead!");
-
-    tmp_damping_inner =
-	value_as_boudary_damping_default("DampingVRadialInner", "None");
-    tmp_damping_outer =
-	value_as_boudary_damping_default("DampingVRadialOuter", "None");
-
-    if (tmp_damping_inner == parameters::t_damping_type::damping_visc) {
-	damping_vector.push_back(
-	    write_damping_type(tmp_damping_inner, tmp_damping_outer,
-			       t_data::V_RADIAL, t_data::VISCOSITY, "VRadial"));
-    } else {
-	damping_vector.push_back(
-	    write_damping_type(tmp_damping_inner, tmp_damping_outer,
-			       t_data::V_RADIAL, t_data::V_RADIAL0, "VRadial"));
-    }
-
-    if (config::cfg.contains("DampingVAzimuthal"))
-	die("DampingVRadial flag is decrepated used DampingVAzimuthalInner and DampingVAzimuthalOuter instead!");
-
-    tmp_damping_inner = value_as_boudary_damping_default(
-	"DampingVAzimuthalInner", "None");
-    tmp_damping_outer = value_as_boudary_damping_default(
-	"DampingVAzimuthalOuter", "None");
-
-    damping_vector.push_back(write_damping_type(
-	tmp_damping_inner, tmp_damping_outer, t_data::V_AZIMUTHAL,
-	t_data::V_AZIMUTHAL0, "VAzimuthal"));
-
-    if (config::cfg.contains("DampingSurfaceDensity"))
-	die("DampingSurfaceDensity flag is decrepated used DampingSurfaceDensityInner and DampingSurfaceDensityOuter instead!");
-
-    tmp_damping_inner = value_as_boudary_damping_default(
-	"DampingSurfaceDensityInner", "None");
-    tmp_damping_outer = value_as_boudary_damping_default(
-	"DampingSurfaceDensityOuter", "None");
-
-    damping_vector.push_back(
-	write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::SIGMA,
-			   t_data::SIGMA0, "SurfaceDensity"));
-
-    if (config::cfg.contains("DampingEnergy"))
-	die("DampingEnergy flag is decrepated used DampingEnergyInner and DampingEnergyOuter instead!");
-
-    tmp_damping_inner =
-	value_as_boudary_damping_default("DampingEnergyInner", "None");
-    tmp_damping_outer =
-	value_as_boudary_damping_default("DampingEnergyOuter", "None");
-
-    damping_vector.push_back(
-	write_damping_type(tmp_damping_inner, tmp_damping_outer, t_data::ENERGY,
-			   t_data::ENERGY0, "Energy"));
-    damping_energy_id = (int)damping_vector.size() - 1;
-
-}
-
+    
 
 void read(const std::string &filename, t_data &data)
 {
@@ -881,8 +557,6 @@ void read(const std::string &filename, t_data &data)
 
     // boundary conditions
 	boundary_conditions::parse_config();
-	read_boundary_config_legacy();
-
 
     calculate_disk = config::cfg.get_flag("DISK", "yes");
 	
@@ -1046,16 +720,6 @@ void read(const std::string &filename, t_data &data)
     integrate_planets = config::cfg.get_flag("IntegratePlanets", "yes");
     do_init_secondary_disk =
 	config::cfg.get_flag("SecondaryDisk", "no");
-
-    // mass overflow
-    massoverflow = config::cfg.get_flag("massoverflow", "no");
-	variableTransfer = config::cfg.get_flag("variableTransfer", "no");
-    mof_planet = config::cfg.get<int>("mofplanet", 1);
-    mof_temperature = config::cfg.get<double>("moftemperature", "1000.0 K", Temp0);
-    mof_value = config::cfg.get<double>("mofvalue", 10E-9, M0/T0);
-    mof_rampingtime = config::cfg.get<double>("moframpingtime", 30.0);
-	mof_averaging_time = config::cfg.get<double>("mofaveragingtime", 10.0);
-	mof_gamma = config::cfg.get<double>("mofgamma", 0.5);
 
 
 	//local alpha
@@ -1293,177 +957,20 @@ void summarize_parameters()
 	break;
     }
 
-    // boundary conditions
-    switch (boundary_inner) {
-    case boundary_condition_reference:
-	logging::print_master(
-	    LOG_INFO "Using 'initial boundary condition' at inner boundary.\n");
-	break;
-	case boundary_condition_open:
-	logging::print_master(
-	    LOG_INFO "Using 'open boundary condition' at inner boundary.\n");
-	break;
-    case boundary_condition_reflecting:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'reflecting boundary condition' at inner boundary.\n");
-	break;
-    case boundary_condition_zero_gradient:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'zero gradient boundary condition' at inner boundary.\n");
-	break;
-    case boundary_condition_nonreflecting:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'nonreflecting boundary condition' at inner boundary.\n");
-	break;
-    case boundary_condition_evanescent:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'evanescent boundary condition' at inner boundary.\n");
-	break;
-    case boundary_condition_viscous_outflow:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'viscous outflow boundary condition' at inner boundary.\n");
-	break;
-    case boundary_condition_boundary_layer:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'boundary layer boundary conditions' at inner boundary.\n");
-	break;
-    case boundary_condition_keplerian:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'keplarian boundary conditions' at inner boundary.\n");
-	break;
-    case boundary_condition_precribed_time_variable:
-	die("Inner precribed time variable boundary condition is not implemented yet!\n");
-	break;
-    case boundary_condition_center_of_mass_initial:
-	logging::print_master(
-		LOG_INFO
-		"Using 'initial boundary in center of mass frame' at inner boundary.\n");
-	break;
-    }
-
-	switch (boundary_outer) {
-    case boundary_condition_reference:
-	logging::print_master(
-	    LOG_INFO "Using 'reference boundary condition' at outer boundary.\n");
-	break;
-	case boundary_condition_open:
-	logging::print_master(
-	    LOG_INFO "Using 'open boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_reflecting:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'reflecting boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_zero_gradient:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'zero gradient boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_nonreflecting:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'nonreflecting boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_evanescent:
-	if (domegadr_zero) {
-	    die("domegadr_zero = true and evanescent outer boundary condition is not allowed!\n");
-	}
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'evanescent boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_viscous_outflow:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'viscous outflow boundary condition' at outer boundary.\n");
-	break;
-    case boundary_condition_boundary_layer:
-	if (domegadr_zero) {
-	    die("domegadr_zero = true and boundary layer outer boundary condition is not allowed!\n");
-	}
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'boundary layer boundary conditions' at outer boundary.\n");
-	break;
-    case boundary_condition_keplerian:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'keplarian boundary conditions' at inner boundary.\n");
-	break;
-    case boundary_condition_precribed_time_variable:
-	if (domegadr_zero) {
-	    die("domegadr_zero = true and prescribed time variable outer boundary condition is not allowed!\n");
-	}
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'time variable boundary conditions' at inner boundary.\n");
-	break;
-    case boundary_condition_center_of_mass_initial:
-	logging::print_master(
-	    LOG_INFO
-	    "Using 'initial boundary in center of mass frame' at outer boundary.\n");
-	break;
-    }
-
     // Mass Transfer
-    if (parameters::massoverflow) {
+    if (boundary_conditions::massoverflow) {
 	logging::print_master(
 	    LOG_INFO
 	    "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K and ramping time t_ramp = %g P_orb.\n",
 	    mof_planet, mof_value, mof_temperature, mof_rampingtime);
     }
-	if (parameters::variableTransfer){
+	if (boundary_conditions::mof_variableTransfer){
 	logging::print_master(LOG_INFO
 	"Mass Transfer is variable with gamma= %g and an averaging time of t_avg = %g P_orb. \n", mof_gamma, mof_averaging_time);
 	}
 
+	boundary_conditions::describe_damping();
 
-    // Boundary layer
-    if (boundary_inner == boundary_condition_boundary_layer) {
-	logging::print_master(
-	    LOG_INFO
-	    "Boundary Layer: Radial velocity at inner boundary is %e * V_Kepler.\n",
-	    vrad_fraction_of_kepler);
-	logging::print_master(
-	    LOG_INFO
-	    "Boundary Layer: Stellar rotation rate is %f * Om_Kepler.\n",
-	    stellar_rotation_rate);
-    }
-    if (boundary_outer == boundary_condition_boundary_layer) {
-	logging::print_master(
-	    LOG_INFO
-	    "Boundary Layer: Mass Accretion Rate is %g Solar Masses per Year.\n",
-	    mass_accretion_rate * units::mass.get_cgs_factor() /
-		units::time.get_cgs_factor() * units::cgs_Year /
-		units::cgs_Msol);
-    }
-    logging::print_master(
-	LOG_INFO
-	"Boundary Layer: Radial Viscosity is multiplied by a factor of %f.\n",
-	radial_viscosity_factor);
-
-    if (!damping) {
-	logging::print_master(LOG_INFO "Damping at boundaries is disabled.\n");
-	is_damping_reference = false;
-    } else {
-	is_damping_reference = false;
-	for (unsigned int i = 0; i < damping_vector.size(); ++i) {
-	    is_damping_reference =
-		is_damping_reference ||
-		(damping_vector[i].type_inner == damping_reference);
-	    is_damping_reference =
-		is_damping_reference ||
-		(damping_vector[i].type_outer == damping_reference);
-	}
-    }
 
     logging::print_master(LOG_INFO "Surface density factor: %g\n",
 			  density_factor);

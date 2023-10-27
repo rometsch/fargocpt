@@ -22,7 +22,7 @@ void viscous_outflow_inner(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy,
     }
 
     const unsigned int Iaz = vr.get_max_azimuthal();
-    const double s = parameters::viscous_outflow_speed;
+    const double s = viscous_outflow_speed;
 
     const t_polargrid &visc = data[t_data::VISCOSITY];
 
@@ -48,7 +48,7 @@ void viscous_inflow_outer(t_polargrid &vr, [[maybe_unused]] t_polargrid &dummy,
 
     const unsigned int Iaz = vr.get_max_azimuthal();
     const unsigned int Irad = vr.get_max_radial();
-    const double s = parameters::viscous_outflow_speed;
+    const double s = viscous_outflow_speed;
 
     const t_polargrid &visc = data[t_data::VISCOSITY];
 

@@ -20,6 +20,31 @@
 namespace boundary_conditions
 {
 
+void initial_center_of_mass_boundary_inner(t_data &data);
+void damping_initial_center_of_mass_inner(t_data &data, double dt);
+void initial_center_of_mass_boundary_outer(t_data &data);
+void damping_initial_center_of_mass_outer(t_data &data, double dt);
+
+
+
+void initial_center_of_mass_inner(t_data &data, const double dt, const bool final) {
+	if (final) {
+		damping_initial_center_of_mass_inner(data, dt);
+	}
+	initial_center_of_mass_boundary_inner(data);
+}
+
+void initial_center_of_mass_outer(t_data &data, const double dt, const bool final) {
+	if (final) {
+		damping_initial_center_of_mass_outer(data, dt);
+	}
+	initial_center_of_mass_boundary_outer(data);
+}
+
+void init_center_of_mass(t_data& data) {
+	viscous_speed::init_vr_table_boundary(data);
+}
+
 
 /**
  * @brief initial_center_of_mass_boundary: sets the outer boundary
@@ -411,22 +436,22 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
     const double com_mass = data.get_planetary_system().get_mass(np);
 
     // is this CPU in the outer damping domain?
-    if ((parameters::damping_outer_limit < 1.0) &&
+    if ((damping_outer_limit < 1.0) &&
 	(Rinf[vrad_arr.get_max_radial()] >
-	 RMAX * parameters::damping_outer_limit)) {
+	 RMAX * damping_outer_limit)) {
 
 	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
-		get_rinf_id(RMAX * parameters::damping_outer_limit), vrad_arr.is_vector())+1;
+		get_rinf_id(RMAX * damping_outer_limit), vrad_arr.is_vector())+1;
 
-    const double tau = parameters::damping_time_factor * 2.0 * M_PI /
-			 calculate_omega_kepler(parameters::damping_time_radius_outer);
+    const double tau = damping_time_factor * 2.0 * M_PI /
+			 calculate_omega_kepler(damping_time_radius_outer);
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vrad_id;
 		 n_radial < MaxMo_no_ghost_vr; ++n_radial) {
 	    double factor = std::pow(
-		(Rinf[n_radial] - RMAX * parameters::damping_outer_limit) /
-		    (RMAX - RMAX * parameters::damping_outer_limit),
+		(Rinf[n_radial] - RMAX * damping_outer_limit) /
+		    (RMAX - RMAX * damping_outer_limit),
 		2);
         const double exp_factor = std::exp(-dt * factor / tau);
 
@@ -485,15 +510,15 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	}
 
 	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
-		get_rmed_id(RMAX * parameters::damping_outer_limit),
+		get_rmed_id(RMAX * damping_outer_limit),
 		vphi_arr.is_vector()) + 1;
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = clamped_vphi_id;
 		 n_radial < Max_no_ghost; ++n_radial) {
 	    double factor = std::pow(
-		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
-		    (RMAX - RMAX * parameters::damping_outer_limit),
+		(Rmed[n_radial] - RMAX * damping_outer_limit) /
+		    (RMAX - RMAX * damping_outer_limit),
 		2);
         const double exp_factor = std::exp(-dt * factor / tau);
 
@@ -559,8 +584,8 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
 	for (unsigned int nr = clamped_vphi_id;
 		 nr < Max_no_ghost; ++nr) {
 		double factor = std::pow(
-		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
+		(Rmed[nr] - RMAX * damping_outer_limit) /
+			(RMAX - RMAX * damping_outer_limit),
 		2);
 		double exp_factor = std::exp(-dt * factor / tau);
 
@@ -602,22 +627,22 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 	const double com_mass = data.get_planetary_system().get_mass(np);
 
 	// is this CPU in the inner damping domain?
-	if ((parameters::damping_inner_limit > 1.0) &&
-	(Rmed[0] < RMIN * parameters::damping_inner_limit)) {
+	if ((damping_inner_limit > 1.0) &&
+	(Rmed[0] < RMIN * damping_inner_limit)) {
 
 	const unsigned int clamped_vrad_id = clamp_r_id_to_radii_grid(
-		get_rinf_id(RMIN * parameters::damping_inner_limit),
+		get_rinf_id(RMIN * damping_inner_limit),
 		vrad_arr.is_vector());
 
-	double tau = parameters::damping_time_factor * 2.0 * M_PI /
+	double tau = damping_time_factor * 2.0 * M_PI /
 			 calculate_omega_kepler(RMIN);
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = One_no_ghost_vr;
 		 n_radial <= clamped_vrad_id; ++n_radial) {
 		double factor = std::pow(
-		(Rinf[n_radial] - RMIN * parameters::damping_inner_limit) /
-			(RMIN - RMIN * parameters::damping_inner_limit),
+		(Rinf[n_radial] - RMIN * damping_inner_limit) /
+			(RMIN - RMIN * damping_inner_limit),
 		2);
 		const double exp_factor = std::exp(-dt * factor / tau);
 
@@ -672,15 +697,15 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 	}
 
 	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
-		get_rmed_id(RMIN * parameters::damping_inner_limit),
+		get_rmed_id(RMIN * damping_inner_limit),
 		vphi_arr.is_vector());
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = Zero_no_ghost;
 		 n_radial <= clamped_vphi_id; ++n_radial) {
 		double factor = std::pow(
-		(Rmed[n_radial] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
+		(Rmed[n_radial] - RMAX * damping_outer_limit) /
+			(RMAX - RMAX * damping_outer_limit),
 		2);
 		const double exp_factor = std::exp(-dt * factor / tau);
 
@@ -742,8 +767,8 @@ void damping_initial_center_of_mass_inner(t_data &data, double dt)
 	for (unsigned int nr = Zero_no_ghost;
 		 nr <= clamped_vphi_id; ++nr) {
 		double factor = std::pow(
-		(Rmed[nr] - RMAX * parameters::damping_outer_limit) /
-			(RMAX - RMAX * parameters::damping_outer_limit),
+		(Rmed[nr] - RMAX * damping_outer_limit) /
+			(RMAX - RMAX * damping_outer_limit),
 		2);
 		const double exp_factor = std::exp(-dt * factor / tau);
 
