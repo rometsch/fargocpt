@@ -18,8 +18,6 @@ extern double FLARINGINDEX;
 extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
-extern std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
-
 extern bool CartesianParticles;
 extern bool ParticlesInCartesian;
 
