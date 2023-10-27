@@ -293,9 +293,7 @@ void init_euler(t_data &data, const double current_time)
 	compute_heating_cooling_for_CFL(data, current_time);
 }
 
-/**
 
-*/
 void FreeEuler()
 {
     FreeTransport();
@@ -1151,9 +1149,6 @@ void compute_sound_speed(t_data &data, const double current_time)
     }
 }
 
-/**
-	computes aspect ratio
-*/
 void compute_scale_height_old(t_data &data)
 {
 
@@ -1189,9 +1184,6 @@ void compute_scale_height_old(t_data &data)
     }
 }
 
-/**
-	computes aspect ratio for an entire Nbody system
-*/
 void compute_scale_height_nbody(t_data &data, const double current_time)
 {
 
@@ -1283,9 +1275,6 @@ void compute_scale_height_nbody(t_data &data, const double current_time)
     }
 }
 
-/**
-	computes aspect ratio with respect to the center of mass
-*/
 void compute_scale_height_center_of_mass(t_data &data)
 {
 
@@ -1359,9 +1348,6 @@ void compute_scale_height(t_data &data, const double current_time)
     }
 }
 
-/**
-	computes pressure
-*/
 void compute_pressure(t_data &data)
 {
 
@@ -1395,9 +1381,6 @@ void compute_pressure(t_data &data)
     }
 }
 
-/**
-	computes temperature
-*/
 void compute_temperature(t_data &data)
 {
 	auto &T = data[t_data::TEMPERATURE];
