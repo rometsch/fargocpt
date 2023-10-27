@@ -20,30 +20,32 @@
 // file version 2.5
 const static std::map<const std::string, const int> planet_file_column_v2_5 = {
     {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"physical time", 6},
-    {"omega frame", 7},
-    {"mdcp", 8},
-    {"eccentricity", 9},
-    {"angular momentum", 10},
-    {"semi-major axis", 11},
-    {"omega kepler", 12},
-    {"mean anomaly", 13},
-    {"eccentric anomaly", 14},
-    {"true anomaly", 15},
-    {"pericenter angle", 16},
-    {"torque", 17},
-    {"accreted mass", 18},
-    {"accretion rate", 19}};
+    {"analysis time step", 1},
+    {"x", 2},
+    {"y", 3},
+    {"vx", 4},
+    {"vy", 5},
+    {"mass", 6},
+    {"physical time", 7},
+    {"omega frame", 8},
+    {"mdcp", 9},
+    {"eccentricity", 10},
+    {"angular momentum", 11},
+    {"semi-major axis", 12},
+    {"omega kepler", 13},
+    {"mean anomaly", 14},
+    {"eccentric anomaly", 15},
+    {"true anomaly", 16},
+    {"pericenter angle", 17},
+    {"torque", 18},
+    {"accreted mass", 19},
+    {"accretion rate", 20}};
 
 const static auto planet_files_column = planet_file_column_v2_5;
 
 const static std::map<const std::string, const std::string> variable_units = {
     {"time step", "1"},
+    {"analysis time step", "1"},
     {"x", "length"},
     {"y", "length"},
     {"vx", "velocity"},
@@ -342,8 +344,8 @@ void t_planet::write_ascii(const std::string &filename) const
 
     fprintf(
 	fd,
-	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
-	sim::N_snapshot, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
+	"%u\t%u\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	sim::N_snapshot, sim::N_monitor, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
 	sim::PhysicalTime, refframe::OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
