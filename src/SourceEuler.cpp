@@ -572,7 +572,8 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 
 	const unsigned int Nrad = data[t_data::QPLUS].get_max_radial();
 	const unsigned int Naz = data[t_data::QPLUS].get_max_azimuthal();
-	// Star heating following D'Angelo & Marzari 2012 (doi:10.1088/0004-637X/757/1/50)
+	// Star heating from Menou & Goodman 2004
+	// Implementation follows D'Angelo & Marzari 2012 (doi:10.1088/0004-637X/757/1/50)
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nrad = 1; nrad < Nrad; ++nrad) {
@@ -594,9 +595,9 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		// irradiation contribution near and far from the star
 		const double W_G = 0.4 * roverd + HoverR * (dlogH_dlogr - 1.0);
 
-		const double T_irrad = (1.0 - eps) * std::pow(T_star, 4) * std::pow(roverd, 2) * W_G;
+		const double T_irrad_pow4 = (1.0 - eps) * std::pow(T_star, 4) * std::pow(roverd, 2) * W_G;
 
-		const double qplus = 2.0 * sigma * std::pow(T_irrad, 4) / tau_eff;
+		const double qplus = 2.0 * sigma * T_irrad_pow4 / tau_eff;
 
 		data[t_data::QPLUS](nrad, naz) += ramping * qplus;
 	}
