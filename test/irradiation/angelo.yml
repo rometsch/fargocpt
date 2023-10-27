@@ -145,5 +145,5 @@ nbody:
   semi-major axis: 0.0 au
   mass: '1.0'
   eccentricity: '0.0'
-  radius: 0.01 solRadius
-  temperature: 100000 K
+  radius: 1 solRadius
+  temperature: 10000 K

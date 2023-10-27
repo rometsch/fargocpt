@@ -121,7 +121,6 @@ def test(out1, dt):
     #plt.savefig('TemperatureTest.pdf', dpi=300, bbox_inches='tight')
     plt.show()
 
-#compile_fargo('../../')
-#run('../../', 'test/TemperatureTest/angelo.yml')
-#test('../../angelo/', 5)
+compile_fargo('../../')
+run('../../', 'test/TemperatureTest/angelo.yml')
 test('../../angelo/', 10)
