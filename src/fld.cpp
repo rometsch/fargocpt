@@ -102,7 +102,7 @@ void config() {
     radiative_diffusion_omega = config::cfg.get<double>("RadiativeDiffusionOmega", 1.5);
     radiative_diffusion_omega_auto_enabled = config::cfg.get_flag("RadiativeDiffusionAutoOmega", "no");
     radiative_diffusion_max_iterations = config::cfg.get<unsigned int>("RadiativeDiffusionMaxIterations", 50000);
-    radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1.5);
+    radiative_diffusion_tolerance = config::cfg.get<double>("RadiativeDiffusionTolerance", 1e-10, units::Temp0);
 
 	// test parameters
     radiative_diffusion_test_2d_K = config::cfg.get<double>("RadiativeDiffusionTest2DK", 1.0);
