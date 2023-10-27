@@ -78,6 +78,7 @@ extern llnlunits::precise_unit solMass;
 extern llnlunits::precise_unit au;
 
 extern t_unit not_yet_defined;
+extern t_unit unitless;
 extern t_unit length;
 extern t_unit mass;
 extern t_unit time;
