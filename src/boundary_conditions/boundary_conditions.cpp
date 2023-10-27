@@ -20,7 +20,12 @@ namespace boundary_conditions
 {
 
 void init(t_data &data) {
-	// TODO: init center of mass here
+	init_custom(data);
+	
+	if (composite_inner_name == "prescribedtime" || composite_outer_name == "prescribedtime") {
+		init_prescribed_time_variable_boundaries(data);
+	}
+
 	if (composite_inner_name == "centerofmass" || composite_outer_name == "centerofmass") {
 		init_center_of_mass(data);
 	}

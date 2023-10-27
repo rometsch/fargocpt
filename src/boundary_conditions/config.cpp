@@ -324,6 +324,8 @@ static void composite_inner()
 	vrad_inner_name = "reference";
 	} else if (str == "centerofmass") {
 		throw std::logic_error("TODO: Selection of centerofmass not yet implemented.");
+	} else if (str == "prescribedtime") {
+		throw std::logic_error("TODO: Selection of prescribedtime not yet implemented.");
     } else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for inner boundary: " + str);
@@ -361,6 +363,8 @@ static void composite_outer()
 		throw std::logic_error("TODO: Selection of massoverflow not yet implemented.");
 	} else if (str == "centerofmass") {
 		throw std::logic_error("TODO: Selection of centerofmass not yet implemented.");
+	} else if (str == "prescribedtime") {
+		throw std::logic_error("TODO: Selection of prescribedtime not yet implemented.");
     } else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for outer boundary: " + str);

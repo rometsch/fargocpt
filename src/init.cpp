@@ -341,7 +341,6 @@ void init_physics(t_data &data)
     }
 
 	cfl::init(data);
-	boundary_conditions::init(data);
 
     // only gas velocities remain to be initialized
 
