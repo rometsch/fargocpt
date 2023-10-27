@@ -107,7 +107,6 @@ WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advectio
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: 'Yes'
-IntegratePlanets: 'Yes'   # [default = yes]
 
 # Star Parameters
 

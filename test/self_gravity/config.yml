@@ -9,9 +9,6 @@ SelfGravity: yes   # choose: Yes, Z or No
 # SelfGravityMode: BesselKernel
 SelfGravityMode: BesselKernel
 
-## Nbody
-IntegratePlanets: Yes   # [default = yes]
-
 ## Particles
 IntegrateParticles: no   # enable particle integrator [default = no]
 

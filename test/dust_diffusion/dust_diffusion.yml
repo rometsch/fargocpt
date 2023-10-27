@@ -31,7 +31,6 @@ InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
 
 # Planet parameters
 
-IntegratePlanets: 'Yes'   # [default = yes]
 HydroFrameCenter: all   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
