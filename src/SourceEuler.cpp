@@ -558,8 +558,8 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 
 	const double x = planet.get_x();
 	const double y = planet.get_y();
-	const double radius = planet.get_planet_radial_extend();
-	const double temperature = planet.get_temperature();
+	const double R_star = planet.get_planet_radial_extend();
+	const double T_star = planet.get_temperature();
 
 	const double l1 = planet.get_dimensionless_roche_radius() *
 			planet.get_distance_to_primary();
@@ -567,12 +567,12 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 	if(x*x + y*y > 1e-10){
 		min_dist = l1 * parameters::klahr_smoothing_radius;
 	} else {
-		min_dist = radius;
+		min_dist = R_star;
 	}
 
 	const unsigned int Nrad = data[t_data::QPLUS].get_max_radial();
 	const unsigned int Naz = data[t_data::QPLUS].get_max_azimuthal();
-	// Simple star heating (see Masterthesis Alexandros Ziampras)
+	// Star heating following D'Angelo & Marzari 2012 (doi:10.1088/0004-637X/757/1/50)
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nrad = 1; nrad < Nrad; ++nrad) {
@@ -582,6 +582,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		const double yc = CellCenterY->Field[ncell];
 		const double distance_measured = std::sqrt(std::pow(x - xc, 2) + std::pow(y - yc, 2));
 		const double distance = std::max(distance_measured, min_dist);
+		const double roverd = distance < R_star ? 1.0 : R_star/distance;
 
 		const double HoverR = data[t_data::ASPECTRATIO](nrad, naz);
 		const double sigma = constants::sigma.get_code_value();
@@ -591,21 +592,12 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		const double dlogH_dlogr = 9.0 / 7.0;
 		
 		// irradiation contribution near and far from the star
-		// see D'Angelo & Marzari 2012 (doi:10.1088/0004-637X/757/1/50),
-		const double roverd = distance < radius ? 1.0 : radius/distance;
 		const double W_G = 0.4 * roverd + HoverR * (dlogH_dlogr - 1.0);
 
-		// use eq. 7 from Menou & Goodman (2004) (rearranged), Qirr
-		// = 2*(1-eps)*L_star/(4 pi r^2)*(dlogH/dlogr - 1) * H/r *
-		// 1/Tau_eff here we use (1-eps) =
-		// parameters::heating_star_factor L_star = 4 pi R_star^2
-		// sigma_sb T_star^4
-		// with modifications from D'Angelo & Marzari 2012
-		// for near and far field
-		double qplus = 2.0 * (1.0 - eps);
-		qplus *= sigma * std::pow(temperature, 4) * std::pow(roverd, 2); // *L_star/(4 pi r^2)
-		qplus *= W_G;
-		qplus /= tau_eff;			// * 1/Tau_eff
+		const double T_irrad = (1.0 - eps) * std::pow(T_star, 4) * std::pow(roverd, 2) * W_G;
+
+		const double qplus = 2.0 * sigma * std::pow(T_irrad, 4) / tau_eff;
+
 		data[t_data::QPLUS](nrad, naz) += ramping * qplus;
 	}
 	}
