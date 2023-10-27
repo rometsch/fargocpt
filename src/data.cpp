@@ -291,23 +291,6 @@ t_data::t_data()
     m_radialgrids[TORQUE_1D].set_name("1D_torque");
     m_radialgrids[TORQUE_1D].set_unit(units::torque);
 
-    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_name("prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_unit(units::energy_density);
-
-    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_name("prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_unit(units::surface_density);
-
-    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_name(
-	"prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_unit(units::velocity);
-
-    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
-
     m_radialgrids[SIGMA_1D].set_scalar(true);
     m_radialgrids[SIGMA_1D].set_name("Sigma");
     m_radialgrids[SIGMA_1D].set_unit(units::surface_density);

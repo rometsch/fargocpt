@@ -164,13 +164,6 @@ void initial_center_of_mass_inner(t_data &data, const double dt, const bool fina
 void initial_center_of_mass_outer(t_data &data, const double dt, const bool final);
 
 /****************************************
-/// Prescribed value boundaries
-****************************************/
-void init_prescribed_time_variable_boundaries(t_data &data);
-void boundary_condition_precribed_time_variable_outer(t_data &data,
-							  t_polargrid *densitystar, const double current_time);
-
-/****************************************
 /// Damping
 ****************************************/
 void damping(t_data &data, const double dt);

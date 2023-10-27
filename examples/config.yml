@@ -172,7 +172,7 @@ MaximumTemperature: 1e100 K   # maximum Temperature in K
 HeatingCoolingCFLlimit: 1.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
 # Boundary conditions
-
+# TODO: complete boundary config with comments
 InnerBoundary: Reflecting
 OuterBoundary: Reflecting
 
