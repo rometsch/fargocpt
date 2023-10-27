@@ -26,7 +26,7 @@ namespace boundary_conditions
 /* In this function, you can initialize custom variables for your boundary condition.
 // E.g., you might precalculate values or load files.
 */
-void init_custom(t_data& data) {
+void init_custom([[maybe_unused]] t_data& data) {
 
 }
 
