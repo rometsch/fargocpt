@@ -50,8 +50,6 @@ double keplerian_radial_outer_factor = 1.0;
 double keplerian_radial_inner_factor = 1.0;
 
 
-std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
-
 bool domegadr_zero;
 
 double viscous_outflow_speed;
@@ -321,9 +319,7 @@ static void composite_inner()
 	vrad_inner_name = "reference";
 	} else if (str == "centerofmass") {
 		throw std::logic_error("TODO: Selection of centerofmass not yet implemented.");
-	} else if (str == "prescribedtime") {
-		throw std::logic_error("TODO: Selection of prescribedtime not yet implemented.");
-    } else {
+	} else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for inner boundary: " + str);
     }
@@ -360,9 +356,7 @@ static void composite_outer()
 		throw std::logic_error("TODO: Selection of massoverflow not yet implemented.");
 	} else if (str == "centerofmass") {
 		throw std::logic_error("TODO: Selection of centerofmass not yet implemented.");
-	} else if (str == "prescribedtime") {
-		throw std::logic_error("TODO: Selection of prescribedtime not yet implemented.");
-    } else {
+	} else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for outer boundary: " + str);
     }
@@ -391,19 +385,6 @@ void parse_config()
     vaz_outer();
 
     special();
-
-    // check if file for prescribed time variable boundary exists
-    if (config::cfg.contains("PRESCRIBEDBOUNDARYFILEOUTER")) {
-	if (config::cfg.get<std::string>("PRESCRIBEDBOUNDARYFILEOUTER")
-		.length() > 0) {
-	    PRESCRIBED_BOUNDARY_OUTER_FILE =
-		config::cfg.get<std::string>("PRESCRIBEDBOUNDARYFILEOUTER");
-	} else {
-	    die("Error looking for data for the prescribed time variable boundary condition. Path could not be read!\n");
-	}
-    } else {
-	PRESCRIBED_BOUNDARY_OUTER_FILE = "";
-    }
 
     domegadr_zero = config::cfg.get_flag("DomegaDrZero", false);
 
