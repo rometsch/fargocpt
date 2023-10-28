@@ -30,7 +30,7 @@ double opacity(double density, double temperature)
 
     case parameters::opacity_simple:
 	// this is only used for the temperature test
-	rv = parameters::kappa_const * std::pow(temperature * units::temperature.get_code_to_cgs_factor(), 2);
+	rv = parameters::kappa_const * std::pow(temperatureCGS, 2);
 	break;
 
     default:
