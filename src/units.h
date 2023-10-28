@@ -43,11 +43,15 @@ class t_unit
     /// cgs unit symbol
     char *m_cgs_symbol;
 
+    /// name of the unit
+    char *m_name;
+
   public:
     t_unit();
     ~t_unit();
 
     // setter
+    void set_name(const char *);
     void set_cgs_factor(double);
     void set_cgs_symbol(const char *);
 
@@ -60,6 +64,8 @@ class t_unit
     {
 	return m_inverse_cgs_factor;
     }
+    /// get name of the unit
+    const char *get_name(void) const;
 
     // operator
     inline operator const double &() const { return m_cgs_factor; }
@@ -115,6 +121,6 @@ template <typename T> T parse_units(const std::string &val, const precise_unit &
 
 void calculate_unit_factors();
 void print_code_units();
-void write_code_unit_file();
+void write_code_units_file();
 
 } // namespace units

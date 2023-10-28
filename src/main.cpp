@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     parameters::write_grid_data_to_file();
 
     units::print_code_units();
-    units::write_code_unit_file();
+    units::write_code_units_file();
     constants::print_constants();
     constants::write_code_constants_file();
     output::write_output_version();
