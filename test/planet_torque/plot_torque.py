@@ -46,7 +46,7 @@ def main():
         fname = f"{outdir}/monitor/planet2.dat"
         name = outdir.rstrip("/").split("/")[-1]
         try:
-            time, torque, a = np.genfromtxt(fname, usecols=(6,17,11), unpack=True)
+            time, torque, a = np.genfromtxt(fname, usecols=(7,18,12), unpack=True)
         except OSError:
             print(f"{fname} not found")
             continue
