@@ -3,6 +3,7 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
 from subprocess import Popen, PIPE
 import signal
+import sys
 from sys import platform
 from time import sleep
 import os
@@ -170,23 +171,22 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     cmd += [executable_path] + fargo_args
     if fallback_openmp:
         cmd += ["--pidfile", pidfilepath]
+    
+    if stdout is None:
+        stdout = sys.stdout
+
+    if stderr is None:
+        stderr = sys.stderr
 
     cmd_desc = f"Running command: {' '.join(cmd)}"
     if len(env_update) > 0:
         cmd_desc += f" with env updated with {env_update}"
-    print(cmd_desc, flush=True)
-
+    print_wrapper(stdout, cmd_desc, flush=True)
+    
     if envfile is not None:
         cmd = f"source {envfile}; " + " ".join(cmd)
     else:
         cmd = " ".join(cmd)
-    
-    if stdout is None:
-        if detach:
-            from sys import stdout
-            stdout = stdout
-        else:
-            stdout = PIPE
 
     p = Popen(cmd,
               stdout=stdout,
@@ -205,7 +205,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
             break
     
     if not detach:
-        print("fargo process pid", pid)
+        print_wrapper(stdout, "fargo process pid", pid)
 
         def handle_termination_request(signum, frame):
             pfargo = psutil.Process(int(pid))
@@ -214,14 +214,25 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         signal.signal(signal.SIGINT, handle_termination_request)
         signal.signal(signal.SIGTERM, handle_termination_request)
 
-
-        for line in iter(p.stdout.readline, b''):
-            line = line.decode("utf8")
-            print(line.rstrip())
+        if hasattr(p.stdout, "readline"):
+            print("reading lines")
+            for line in iter(p.stdout.readline, b''):
+                line = line.decode("utf8")
+                if stdout is not None and stdout != PIPE:
+                    print_wrapper(stdout, line.rstrip())
+                
+        else:
+            p.wait()
 
     else:
-        print("fargo process pid", pid)
-        print("detaching...")
+        print_wrapper(stdout, "fargo process pid", pid)
+        print_wrapper(stdout, "detaching...")
+
+def print_wrapper(stdout, *args, **kwargs):
+    if stdout != PIPE:
+        print(*args, file=stdout, **kwargs)
+    else:
+        print(*args, **kwargs)
 
 def get_num_cores():
     rv = None
