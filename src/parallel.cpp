@@ -49,8 +49,6 @@ void init_parallel(int argc, char *argv[]) {
 			pidfile.open(options::pidfile);
 			pidfile << pid;
 			pidfile.close();
-		} else {
-			printf("%ld\n",(long) pid);
 		}
     }
 

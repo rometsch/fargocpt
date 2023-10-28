@@ -4,9 +4,11 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 from subprocess import Popen, PIPE
 import signal
 from sys import platform
+from time import sleep
 import os
 import re
 import psutil
+import tempfile
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
 executable_path = os.path.join(file_dir, "fargocpt")
@@ -115,12 +117,17 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         envfile (str, optional): Before running fargo, source this file first. Use for loading modules on clusters.
     """
 
+    pidfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    pidfilepath = pidfile.name
+    pidfile.close()
+
+
     if not fallback_mpi and not fallback_openmp:
         cmd = ["mpirun"]
         cmd += ["-np", f"{N_procs}"]
         # write out pid of mpirun to correctly terminate multiprocess sims
-        if N_procs > 1:
-            cmd += ["--report-pid", "-"]
+        # if N_procs > 1:
+        cmd += ["--report-pid", pidfilepath]
         if mpi_verbose:
             cmd += ["--display-map"]
             cmd += ["--display-allocation"]
@@ -148,6 +155,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         N_procs = N_procs * N_OMP_threads
         N_OMP_threads = 1
         cmd = ["mpirun"]
+        cmd += ["--report-pid", pidfilepath]
         cmd += ["-np", f"{N_procs}"]
         env = os.environ.copy()
         env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
@@ -160,6 +168,8 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         env.update(env_update)
         cmd = []
     cmd += [executable_path] + fargo_args
+    if fallback_openmp:
+        cmd += ["--pidfile", pidfilepath]
 
     cmd_desc = f"Running command: {' '.join(cmd)}"
     if len(env_update) > 0:
@@ -171,11 +181,13 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     else:
         cmd = " ".join(cmd)
     
-    if detach:
-        from sys import stdout
-        stdout = stdout
-    else:
-        stdout = PIPE
+    if stdout is None:
+        if detach:
+            from sys import stdout
+            stdout = stdout
+        else:
+            stdout = PIPE
+
     p = Popen(cmd,
               stdout=stdout,
               stderr=stderr,
@@ -183,9 +195,16 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
               preexec_fn=detach_processGroup,
               shell=True, executable="/bin/bash")
 
+    # Read the pid from file
+    for i in range(10):
+        with open(pidfilepath, "r") as pidfile:
+            pid = pidfile.read()
+        if pid == "":
+            sleep(0.1)
+        else:
+            break
     
     if not detach:
-        pid = p.stdout.readline().strip().decode("utf8")
         print("fargo process pid", pid)
 
         def handle_termination_request(signum, frame):
@@ -201,6 +220,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
             print(line.rstrip())
 
     else:
+        print("fargo process pid", pid)
         print("detaching...")
 
 def get_num_cores():
