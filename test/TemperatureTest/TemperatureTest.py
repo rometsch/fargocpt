@@ -1,47 +1,69 @@
 #!/usr/bin/env python3
 import subprocess
 import os
+from argparse import ArgumentParser
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 
-def compile_fargo(fargo_path):
-    wd = os.getcwd()
-    os.chdir(fargo_path)
+def compile_fargo(fargo_path, Nthreads, silent=False):
 
-    subprocess.run(['make', '-j 2', '-C' 'src/'])
-    os.chdir(wd)
+    if silent:
+        out = open("make.log", "w")
+        err = out
+    else:
+        out = subprocess.PIPE
+        err = subprocess.PIPE
 
+    subprocess.run(['make', '-j', str(Nthreads), '-C' 'src/'], cwd=fargo_path, stdout=out, stderr=err)
 
-def run(fargo_path, par_file):
-    wd = os.getcwd()
-    os.chdir(fargo_path)
+    if silent: 
+        out.close()
 
-    subprocess.call('./run_fargo start ' + par_file, shell=True)
-    os.chdir(wd)
+def run(fargo_path, par_file, Nthreads, Nprocs, silent=False):
+    import sys
+    fargo_path = os.path.abspath(fargo_path)
+    bindir = os.path.join(fargo_path, 'bin')
+    sys.path.append(bindir)
+    from fargocpt import run_fargo
 
-def test(out1, dt):
+    if silent:
+        out = open("sim.log", "w")
+        err = open("sim.err", "w")
+    else:
+        out = subprocess.PIPE
+        err = subprocess.PIPE
+
+    run_fargo(Nprocs, Nthreads, fargo_args=["start", par_file], stdout=out, stderr=err)
+
+    if silent:
+        out.close()
+        err.close()
+
+def test(out1, dt, interactive=False, log=True):
 
 
     file_name1 = out1 + f"snapshots/{dt}/Temperature1D.dat"
     data1 = np.fromfile(file_name1)
-    print(file_name1)
-    r1 = data1[::4]
-    quant1 = data1[1::4]
+    quant1 = data1[1::4].flatten()
 
-    fig = plt.figure()
-    ax = fig.add_subplot(121)
-    ax2 = fig.add_subplot(122)
+    fig, axs = plt.subplots(2,2, gridspec_kw={'height_ratios': [1, 1]})
+    ax = axs[0,0]
+    ax1diff = axs[1,0]
+    ax2 = axs[0,1]
+    ax2diff = axs[1,1]
 
-    rmax = np.max(r1)
-    rmin = np.min(r1)
+    r = data1[::4]
+    r = r.flatten()
+
+    rmax = np.max(r)
+    rmin = np.min(r)
     vmin = np.min(quant1)/1.01
     vmax = np.max(quant1)*1.01
 
 
-    r = data1[::4]
-    r = r.flatten()
+
     dens = 300*np.sqrt(5/r)
 
     kappa = 2e-6
@@ -53,31 +75,43 @@ def test(out1, dt):
     T0 = 1.0756431684186062e+05
     G = 6.674e-8 # dyne cm^2/g^2
     omega_k = np.sqrt(G*m0*(r*l0)**(-3))
+    Ttheo = np.sqrt(27/128*kappa*nu/sigma) * dens * omega_k
+    Tnum = quant1 * T0
+
+    ### Plot temperature
+
     ax.axis('auto')
     ax.set_title('Temperature', color='black', y = 1.06)
-    T = np.sqrt(27/128*kappa*nu/sigma) * dens * omega_k
-    ax.plot(r, T, '--k', label='Theory', lw=2.5)
+    ax.plot(r, Tnum, '.r', label='Code', lw=2.5)
+    ax.plot(r, Ttheo, '--k', label='Theory', lw=2.5)
 
-    vmin = min(vmin, np.min(T))
-    vmax = max(vmax, np.max(T))
+    vmin = min(vmin, np.min(Ttheo))
+    vmax = max(vmax, np.max(Ttheo))
 
-    ax.plot(r1.flatten(), quant1.flatten() * T0, '.r', label='Code', lw=2.5)
+    Tdiff = np.abs(Tnum - Ttheo) / Ttheo
+    ax1diff.plot(r, Tdiff)
+    ax1diff.set_ylabel('Relative difference')
+
+    ### Plot density
 
     file_name = out1 + f"snapshots/{dt}/Sigma1D.dat"
     data_dens = np.fromfile(file_name)
-    quant2 = data_dens[1::4] * Sigma0
+    densnum = data_dens[1::4].flatten() * Sigma0
+
+
 
     ax2.axis('auto')
     ax2.set_title('Density', color='black', y = 1.06)
-    dens = 300*np.sqrt(5/r1.flatten())
-    ax2.plot(r1.flatten(), dens, '--k', label='Theory', lw=2.5)
-    ax2.plot(r1.flatten(), quant2, '.r', label='Code', lw=2.5)
+    denstheo = 300*np.sqrt(5/r)
+    ax2.plot(r, densnum, '.r', label='Code', lw=2.5)
+    ax2.plot(r, denstheo, '--k', label='Theory', lw=2.5)
 
-    vmin2 = np.min(quant2)
-    vmax2 = np.max(quant2)
+    vmin2 = np.min(densnum)
+    vmax2 = np.max(densnum)
 
-
-    # ax.plot(r2.flatten(), quant2.flatten(), '--b', label='Expl', lw=2)
+    densdiff = np.abs(densnum - denstheo) / denstheo
+    ax2diff.plot(r, densdiff)
+    ax2diff.set_ylabel('Relative difference')
 
 
 
@@ -85,23 +119,73 @@ def test(out1, dt):
     ax2.legend(loc='upper right')
 
 
-    log = True
-    ax.set_xlim(rmin,rmax)
-    ax.set_ylim(vmin,vmax)
+    # ax.set_xlim(rmin,rmax)
+    # ax.set_ylim(vmin,vmax)
     if log:
         ax.set_yscale("log", nonpositive='clip')
         ax.set_xscale("log")
 
-    ax2.set_xlim(rmin,rmax)
-    ax2.set_ylim(vmin2,vmax2)
+    if log:
+        ax1diff.set_yscale("log", nonpositive='clip')
+        ax1diff.set_xscale("log")
+
+    # ax2.set_xlim(rmin,rmax)
+    # ax2.set_ylim(vmin2,vmax2)
     if log:
         ax2.set_yscale("log", nonpositive='clip')
         ax2.set_xscale("log")
 
+    if log:
+        ax2diff.set_yscale("log", nonpositive='clip')
+        ax2diff.set_xscale("log")
 
 
-    plt.show()
+    # ax.set_ylim(bottom=5)
+    # ax2.set_ylim(top=700)
 
-compile_fargo('../../')
-run('../../', 'test/TemperatureTest/angelo.yml')
-test('../../angelo/', 10)
+    fig.savefig("plot.jpg", dpi=150)
+    if interactive:
+        plt.show()
+
+    # check temperature deviation
+    threshold = 0.01
+    rmin = 2
+    rmax = 15
+    radial_range = np.logical_and(r > rmin, r < rmax)
+    max_diff = np.max(Tdiff[radial_range])
+    pass_test = max_diff < threshold
+    with open("test.log", "w") as f:
+        print(f"Test name: TemperatureTest", file=f)
+        print(f"Max temperature deviation: {max_diff}", file=f)
+        print(f"Threshold: {threshold}", file=f)
+        print(f"Radial range: {rmin} - {rmax}", file=f)
+        print(f"Pass test: {pass_test}", file=f)
+
+
+    if pass_test:
+        print("SUCCESS: TemperatureTest")
+    else:
+        print("FAIL: TemperatureTest")
+
+def main():
+
+    parser = ArgumentParser()
+    parser.add_argument('-nt', type=int, default=2, help='Number of threads per process.')
+    parser.add_argument('-np', type=int, default=1, help='Number of MPI processes.')
+    parser.add_argument('-i', '--interactive', action='store_true', help='Interactive mode. Show the plot in a window.')
+    parser.add_argument('-p', '--plot', action='store_true', help='Only plot the results.')
+    parser.add_argument('-l', '--linear', action='store_true', help='Linear y scaling in plot.')
+    parser.add_argument('-s', '--silent', action='store_true', help="Don't print anything.")
+
+    opts = parser.parse_args()
+
+    Nthreads = opts.nt
+    Nprocs = opts.np
+
+    if not opts.plot:
+        compile_fargo('../../', Nprocs*Nthreads, silent=opts.silent)
+        run('../../', 'angelo.yml', Nthreads, Nprocs, silent=opts.silent)   
+    test('../../output/tests/TemperatureTest/out/', 10, interactive=opts.interactive, log=not opts.linear)
+
+if __name__=='__main__':
+    main()
