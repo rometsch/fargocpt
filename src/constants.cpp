@@ -103,6 +103,7 @@ t_constant &R = _R;
 
 t_constant::t_constant()
 {
+	m_name = NULL;
     m_symbol = NULL;
     m_code_value = 1.0;
     m_cgs_value = 1.0;
@@ -111,8 +112,22 @@ t_constant::t_constant()
 
 t_constant::~t_constant()
 {
+	delete[] m_name;
     delete[] m_symbol;
     delete[] m_cgs_unit_symbol;
+}
+
+void t_constant::set_name(const char *name)
+{
+    // delete old name
+    delete[] m_name;
+
+    // aquire memory for name
+    const unsigned int length = strlen(name) + 1;
+    m_name = new char[length];
+
+    // copy symbol
+    strncpy(m_name, name, length);
 }
 
 void t_constant::set_symbol(const char *symbol)
@@ -145,6 +160,8 @@ void t_constant::set_cgs_unit_symbol(const char *symbol)
     strncpy(m_cgs_unit_symbol, symbol, length);
 }
 
+const char *t_constant::get_name(void) const {return m_name;}
+
 const char *t_constant::get_symbol(void) const { return m_symbol; }
 
 double t_constant::get_code_value() const { return m_code_value; }
@@ -161,43 +178,52 @@ const char *t_constant::get_cgs_unit_symbol(void) const
 */
 void initialize_constants()
 {
+	_G.set_name("gravitational constant");
     _G.set_symbol("G");
     _G.set_cgs_value(cgs_G);
     _G.set_cgs_unit_symbol("cm^3 g^-1 s^-2");
 
+	k_B.set_name("Boltzmann constant");
     k_B.set_symbol("k_B");
     k_B.set_cgs_value(cgs_k_B);
     k_B.set_cgs_unit_symbol("erg K^-1");
 
+	m_u.set_name("molecular mass");
     m_u.set_symbol("m_u");
     m_u.set_cgs_value(cgs_m_u);
     m_u.set_cgs_unit_symbol("g");
 
+	h.set_name("Planck constant");
     h.set_symbol("h");
     h.set_cgs_value(cgs_h);
     h.set_cgs_unit_symbol("erg s");
 
+	c.set_name("speed of light");
     c.set_symbol("c");
     c.set_cgs_value(cgs_c);
     c.set_cgs_unit_symbol("cm s^-1");
 
+	_R.set_name("specific gas constant");
     _R.set_symbol("R");
     _R.set_cgs_value(k_B.get_cgs_value() / (m_u.get_cgs_value()));
     _R.set_cgs_unit_symbol("erg K^-1 g^-1");
 
+	eV.set_name("electron volt");
     eV.set_symbol("eV");
     eV.set_cgs_value(cgs_eV);
     eV.set_cgs_unit_symbol("erg");
 
+	m_e.set_name("electron mass");
     m_e.set_symbol("m_e");
     m_e.set_cgs_value(cgs_m_e);
     m_e.set_cgs_unit_symbol("g");
 
+	m_H.set_name("hydrogen atom mass");
     m_H.set_symbol("m_H");
     m_H.set_cgs_value(cgs_m_H);
     m_H.set_cgs_unit_symbol("g");
 
-
+	sigma.set_name("Stefan-Boltzmann constant");
     sigma.set_symbol("sigma");
 #ifdef DO_USE_PLUTO_UNITS
 	sigma.set_cgs_value(5.67051e-5);
@@ -312,7 +338,6 @@ void write_code_constants_file()
 		return;
 	}
 
-
 	const std::string filename = output::outdir + "constants.yml";
 
 	std::ofstream of(filename);
@@ -323,79 +348,16 @@ void write_code_constants_file()
 
 	const std::string indent = "  ";
 
-	of << "gravitational constant: " << std::endl;
-	of << indent << "symbol: " << G.get_symbol() << std::endl;
-	of << indent << "code value: " << G.get_code_value() << std::endl;
-	of << indent << "cgs value: " << G.get_cgs_value() << std::endl;
-	of << indent << "cgs unit symbol: " << G.get_cgs_unit_symbol() << std::endl;
-	of << std::endl;
-
-	of << "Boltzmann constant: " << std::endl;
-	of << indent << "symbol: " << k_B.get_symbol() << std::endl;
-	of << indent << "code value: " << k_B.get_code_value() << std::endl;
-	of << indent << "cgs value: " << k_B.get_cgs_value() << std::endl;
-	of << indent << "cgs unit symbol: " << k_B.get_cgs_unit_symbol() << std::endl;
-	of << std::endl;
-
-	of << "molecular mass: " << std::endl;
-	of << indent << "symbol: " << m_u.get_symbol() << std::endl;
-	of << indent << "code value: " << m_u.get_code_value() << std::endl;
-	of << indent << "cgs value: " << m_u.get_cgs_value() << std::endl;
-	of << indent << "cgs unit symbol: " << m_u.get_cgs_unit_symbol() << std::endl;
-	of << std::endl;
-
-	of << "Planck constant: " << std::endl;
-	of << indent << "symbol: " << h.get_symbol() << std::endl;
-	of << indent << "code value: " << h.get_code_value() << std::endl;
-	of << indent << "cgs value: " << h.get_cgs_value() << std::endl;
-	of << indent << "cgs unit symbol: " << h.get_cgs_unit_symbol() << std::endl;
-	of << std::endl;
-
-	of << "speed of light: " << std::endl;
-	of << indent << "symbol: " << c.get_symbol() << std::endl;
-	of << indent << "code value: " << c.get_code_value() << std::endl;
-	of << indent << "cgs value: " << c.get_cgs_value() << std::endl;
-	of << indent << "cgs unit symbol: " << c.get_cgs_unit_symbol() << std::endl;
-	of << std::endl;
-
-	of << "specific gas constant: " << std::endl;
-	of << indent << "symbol: " << R.get_symbol() << std::endl;
-	of << indent << "code value: " << R.get_code_value() << std::endl;
-	of << indent << "cgs value: " << R.get_cgs_value() << std::endl;
-	of << indent << "cgs unit symbol: " << R.get_cgs_unit_symbol() << std::endl;
-	of << std::endl;
-
-	of << "Stefan-Boltzmann constant: " << std::endl;
-	of << indent << "symbol: " << sigma.get_symbol() << std::endl;
-	of << indent << "code value: " << sigma.get_code_value() << std::endl;
-	of << indent << "cgs value: " << sigma.get_cgs_value() << std::endl;
-	of << indent << "cgs unit symbol: " << sigma.get_cgs_unit_symbol() << std::endl;
-	of << std::endl;
-
-
-	if(parameters::variableGamma){
-
-		of << "hydrogen atom mass: " << std::endl;
-		of << indent << "symbol: " << m_H.get_symbol() << std::endl;
-		of << indent << "code value: " << m_H.get_code_value() << std::endl;
-		of << indent << "cgs value: " << m_H.get_cgs_value() << std::endl;
-		of << indent << "cgs unit symbol: " << m_H.get_cgs_unit_symbol() << std::endl;
+	std::vector<t_constant*> constants = {&G, &k_B, &m_u, &h, &c, &R, &sigma, &m_H, &m_e, &eV};
+	
+	for (auto constant : constants) {
+		of << constant->get_name() << ":" << std::endl;
+		of << indent << "symbol: " << constant->get_symbol() << std::endl;
+		of << indent << "code value: " << constant->get_code_value() << std::endl;
+		of << indent << "cgs value: " << constant->get_cgs_value() << std::endl;
+		of << indent << "cgs unit symbol: " << constant->get_cgs_unit_symbol() << std::endl;
 		of << std::endl;
-		
-		of << "electron mass: " << std::endl;
-		of << indent << "symbol: " << m_e.get_symbol() << std::endl;
-		of << indent << "code value: " << m_e.get_code_value() << std::endl;
-		of << indent << "cgs value: " << m_e.get_cgs_value() << std::endl;
-		of << indent << "cgs unit symbol: " << m_e.get_cgs_unit_symbol() << std::endl;
-		of << std::endl;
-
-		of << "electron volt: " << std::endl;
-		of << indent << "symbol: " << eV.get_symbol() << std::endl;
-		of << indent << "code value: " << eV.get_code_value() << std::endl;
-		of << indent << "cgs value: " << eV.get_cgs_value() << std::endl;
-		of << indent << "cgs unit symbol: " << eV.get_cgs_unit_symbol() << std::endl;
-		of << std::endl;
-    }
+	}
 
 	of.close();
     MPI_Barrier(MPI_COMM_WORLD);
