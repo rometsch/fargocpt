@@ -707,23 +707,11 @@ void calculate_qminus(t_data &data, const double current_time)
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// calculate Rosseland mean opacity kappa. opaclin needs values
 		// in cgs units
-		const double temperatureCGS =
-			data[t_data::TEMPERATURE](nr, naz) *
-		    units::temperature;
+		const double temperature = data[t_data::TEMPERATURE](nr, naz);
+		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
+		const double density = data[t_data::SIGMA](nr, naz) / (parameters::density_factor * H);
 
-		const double H =
-			data[t_data::SCALE_HEIGHT](nr, naz);
-
-		const double densityCGS =
-			data[t_data::SIGMA](nr, naz) /
-		    (parameters::density_factor * H) * units::density;
-
-		const double kappaCGS =
-		    opacity::opacity(densityCGS, temperatureCGS);
-
-		data[t_data::KAPPA](nr, naz) =
-		    parameters::kappa_factor * kappaCGS *
-		    units::opacity.get_inverse_cgs_factor();
+		data[t_data::KAPPA](nr, naz) = opacity::opacity(density, temperature);
 
 		// mean vertical optical depth: tau = 1/2 kappa Sigma
 		data[t_data::TAU](nr, naz) =

@@ -442,12 +442,7 @@ static void read_opacity_config(){
     units::precise_unit L0 = units::L0;
     units::precise_unit M0 = units::M0;
 
-    if(opacity == opacity_simple){
-	// Temperature test does not work with cgs kappa
 	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0);
-    } else {
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
-    }
 }
 
 

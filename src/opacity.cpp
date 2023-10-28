@@ -10,29 +10,36 @@ namespace opacity
 
 double opacity(double density, double temperature)
 {
+	const double temperatureCGS = temperature * units::temperature;
+	const double densityCGS = density * units::density;
+
+	double rv;
+
     switch (parameters::opacity) {
     case parameters::opacity_lin:
-	return lin(density, temperature);
+	rv = lin(densityCGS, temperatureCGS) * units::opacity.get_inverse_cgs_factor();
 	break;
 
     case parameters::opacity_bell:
-	return bell(density, temperature);
+	rv = bell(densityCGS, temperatureCGS) * units::opacity.get_inverse_cgs_factor();
 	break;
 
     case parameters::opacity_const_op:
-	return parameters::kappa_const;
+	rv = parameters::kappa_const;
 	break;
 
     case parameters::opacity_simple:
 	// this is only used for the temperature test
-	return parameters::kappa_const * std::pow(temperature, 2);
+	rv = parameters::kappa_const * std::pow(temperature, 2);
 	break;
 
     default:
 	die("Invalid opacity!");
-	return 0;
+	rv = 0;
 	break;
     }
+
+	return parameters::kappa_factor * rv;
 }
 
 /**
