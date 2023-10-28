@@ -290,6 +290,16 @@ void init(t_data &data)
 	update_sg_constants();
 	compute_FFT_kernel();
     compute(data, 0, false);
+
+	// check that the ratio of outer and inner boundary radius
+	// is compatible with the coefficients for the smoothing length
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
+		const double radius_ratio = RMAX/RMIN;
+		if (std::abs(radius_ratio - 12.5) > 2) {
+			logging::print_master(LOG_WARNING "WARNING: The ratio of outer to inner boundary radius (%f) is substaintially different than 12.5. Consider recomputing the factors for the polynomials to calculate the smoothing length. Refer to section 2.2 page 24 of Tobias Moldenhauer's Master thesis.\n", radius_ratio);
+		}
+	}
+
 }
 
 void compute(t_data &data, double dt, bool update)
