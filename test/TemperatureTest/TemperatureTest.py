@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import subprocess
+import sys
 import os
 from argparse import ArgumentParser
 
@@ -13,8 +14,8 @@ def compile_fargo(fargo_path, Nthreads, silent=False):
         out = open("make.log", "w")
         err = out
     else:
-        out = subprocess.PIPE
-        err = subprocess.PIPE
+        out = sys.stdout
+        err = sys.stderr
 
     subprocess.run(['make', '-j', str(Nthreads), '-C' 'src/'], cwd=fargo_path, stdout=out, stderr=err)
 
@@ -32,8 +33,8 @@ def run(fargo_path, par_file, Nthreads, Nprocs, silent=False):
         out = open("sim.log", "w")
         err = open("sim.err", "w")
     else:
-        out = subprocess.PIPE
-        err = subprocess.PIPE
+        out = sys.stdout
+        err = sys.stderr
 
     run_fargo(Nprocs, Nthreads, fargo_args=["start", par_file], stdout=out, stderr=err)
 
@@ -61,8 +62,6 @@ def test(out1, dt, interactive=False, log=True):
     rmin = np.min(r)
     vmin = np.min(quant1)/1.01
     vmax = np.max(quant1)*1.01
-
-
 
     dens = 300*np.sqrt(5/r)
 
@@ -98,8 +97,6 @@ def test(out1, dt, interactive=False, log=True):
     data_dens = np.fromfile(file_name)
     densnum = data_dens[1::4].flatten() * Sigma0
 
-
-
     ax2.axis('auto')
     ax2.set_title('Density', color='black', y = 1.06)
     denstheo = 300*np.sqrt(5/r)
@@ -113,11 +110,8 @@ def test(out1, dt, interactive=False, log=True):
     ax2diff.plot(r, densdiff)
     ax2diff.set_ylabel('Relative difference')
 
-
-
     ax.legend(loc='upper right')
     ax2.legend(loc='upper right')
-
 
     # ax.set_xlim(rmin,rmax)
     # ax.set_ylim(vmin,vmax)
@@ -139,7 +133,6 @@ def test(out1, dt, interactive=False, log=True):
         ax2diff.set_yscale("log", nonpositive='clip')
         ax2diff.set_xscale("log")
 
-
     # ax.set_ylim(bottom=5)
     # ax2.set_ylim(top=700)
 
@@ -160,7 +153,6 @@ def test(out1, dt, interactive=False, log=True):
         print(f"Threshold: {threshold}", file=f)
         print(f"Radial range: {rmin} - {rmax}", file=f)
         print(f"Pass test: {pass_test}", file=f)
-
 
     if pass_test:
         print("SUCCESS: TemperatureTest")
