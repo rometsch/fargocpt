@@ -496,11 +496,11 @@ static void step(t_data &data, const double step_dt) {
 	}
 }
 
-static void handle_signals(t_data &data) {
-	if (SIGTERM_RECEIVED) {
-		output::write_full_output(data, "autosave");
-		PersonalExit(0);
+static bool exit_on_signal() {
+	if (!SIGTERM_RECEIVED) {
+		return false;
 	}
+	return true;
 }
 
 void run(t_data &data) {
@@ -519,7 +519,10 @@ void run(t_data &data) {
 			break;
 		}
 
-		handle_signals(data);
+		if (exit_on_signal()) {
+			output::write_full_output(data, "autosave");
+			break;
+		}
 
 		cfl_dt = CalculateTimeStep(data);
 
