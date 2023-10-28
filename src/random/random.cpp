@@ -1,5 +1,6 @@
 #include "random.h"
 #include "../logging.h"
+#include "../global.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -39,7 +40,7 @@ void init() {
     logging::print_master(LOG_INFO "Initializing %d RNGs per MPI process.\n", Nrngs);
 
     for (unsigned int n=0; n<Nrngs; n++) {
-        seed(n);
+        seed(n + CPU_Rank * 421);
 	gen_jsfs.emplace_back(jsf64(a_seed[0]));
         uniform_dists.emplace_back(std::uniform_real_distribution<double>(0.0, 1.0));
         std_normal_dists.emplace_back(cxx::ziggurat_normal_distribution<double>());
