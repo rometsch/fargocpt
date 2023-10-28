@@ -53,7 +53,6 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'Yes'   # Initialize VRadial=0  [default = no]
-# PlanetConfig		setups/old/Jup-res.cfg
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
@@ -101,6 +100,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
+OutputDir: ../../output/tests/irradiation/out
 Ntot: '10'   # Total number of time steps
 Ninterm: '10'   # Time steps between outputs
 DT: '6.28e2'   # Time step length. 2PI = 1 orbit

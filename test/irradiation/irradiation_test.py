@@ -1,44 +1,26 @@
-#!/usr/bin/env python3
-# %%
-import subprocess
-import os
-
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def compile_fargo(fargo_path):
-    wd = os.getcwd()
-    os.chdir(fargo_path)
-
-    subprocess.run(['make', '-j 2', '-C' 'src/'])
-    os.chdir(wd)
+def test(outputdir, Nsnapshot, interactive=False, log=True):
 
 
-def run(fargo_path, par_file):
-    wd = os.getcwd()
-    os.chdir(fargo_path)
-
-    subprocess.call('./run_fargo start ' + par_file, shell=True)
-    os.chdir(wd)
-
-def test(out1, dt):
-
-
-    file_name1 = out1 + f"snapshots/{dt}/Temperature1D.dat"
+    file_name1 = outputdir + f"snapshots/{Nsnapshot}/Temperature1D.dat"
     data1 = np.fromfile(file_name1)
-    print(file_name1)
     r1 = data1[::4]
-    quant1 = data1[1::4]
+    T0 = 106700.1843026118
+    Tnum = data1[1::4].flatten() * T0
 
-    fig, axs = plt.subplots(1,1, figsize=(6,4.5))
-    ax2 = axs
-    ax = ax2.twinx()
+
+    fig, axs = plt.subplots(2,2, gridspec_kw={'height_ratios': [1, 1]})
+    ax = axs[0,0]
+    ax1diff = axs[1,0]
+    ax2 = axs[0,1]
+    ax2diff = axs[1,1]
 
     rmax = np.max(r1)
     rmin = np.min(r1)
-    vmin = np.min(quant1)/1.01
-    vmax = np.max(quant1)*1.01
+    vmin = np.min(Tnum)/1.01
+    vmax = np.max(Tnum)*1.01
 
 
     r = data1[::4]
@@ -51,7 +33,6 @@ def test(out1, dt):
     l0 = 14959787070000
     rcgs = r * l0
     m0 = 1.98847e+33
-    T0 = 106700.1843026118
     G = 6.6743e-08 # dyne cm^2/g^2
 
     eta = 2/7
@@ -63,64 +44,89 @@ def test(out1, dt):
     # note missing factor gamma from eq.(16) fron D'Angelo & Marzari 2012
     # difference comes from them using the adiabatic sound speed for their scaleheight and our code
     # uses the locally isothermal soundspeed for h
-    h = (eta * (1 - eps) * (k_B * Ts / (mu * m_H))**4 * (Rs / (G * m0))**4 * (rcgs / Rs)**2)**(1/7)
-    WG = 0.4 * (Rs / rcgs) + h * eta
+    htheo = (eta * (1 - eps) * (k_B * Ts / (mu * m_H))**4 * (Rs / (G * m0))**4 * (rcgs / Rs)**2)**(1/7)
+    WG = 0.4 * (Rs / rcgs) + htheo * eta
 
-    T = Ts * np.sqrt(Rs /rcgs) * ((1-eps)*WG)**(1/4)
+    Ttheo = Ts * np.sqrt(Rs /rcgs) * ((1-eps)*WG)**(1/4)
 
     ax.axis('auto')
     # ax.set_title('Temperature', color='black', y = 1.06)
 
-    ax.plot(r, T, '-b', label='T theory', lw=5)
+    ax.plot(r, Tnum, '.', color='C0', label='T code', lw=2.5)
+    ax.plot(r, Ttheo, '-b', label='T theory', lw=1)
     ax.set_ylabel('log10 T [K]')
 
-    vmin = min(vmin, np.min(T))
-    vmax = max(vmax, np.max(T))
+    Tdiff = np.abs(Tnum - Ttheo) / Ttheo
+    ax1diff.plot(r, Tdiff)
+    ax1diff.set_ylabel('Relative difference')
 
-    ax.plot(r1.flatten(), quant1.flatten() * T0, '.', color='C0', label='T code', lw=2.5)
+    vmin = min(vmin, np.min(Ttheo))
+    vmax = max(vmax, np.max(Ttheo))
 
-    file_name = out1 + f"snapshots/{dt}/aspectratio1D.dat"
+
+    file_name = outputdir + f"snapshots/{Nsnapshot}/aspectratio1D.dat"
     data_dens = np.fromfile(file_name)
-    quant2 = data_dens[1::4]
-
-    print(quant2 / h)
+    hnum = data_dens[1::4]
 
     ax2.axis('auto')
-    # ax2.set_title('Density', color='black', y = 1.06)
-    ax2.plot(r, h, '-r', label='$h$ theory', lw=5)
-    ax2.plot(r, quant2, '.', color='C1', label='$h$', lw=2.5)
+    ax2.plot(r, hnum, '.', color='C1', label='$h$', lw=2.5)
+    ax2.plot(r, htheo, '-r', label='$h$ theory', lw=1)
     ax2.set_ylabel('h')
     ax.set_xlabel('log10 R [au]')
 
-    vmin2 = np.min(quant2)
-    vmax2 = np.max(quant2)
+    vmin2 = np.min(hnum)
+    vmax2 = np.max(hnum)
+
+    hdiff = np.abs(hnum - htheo) / htheo
+    ax2diff.plot(r, hdiff)
+    ax2diff.set_ylabel('Relative difference')
 
 
-    # ax.plot(r2.flatten(), quant2.flatten(), '--b', label='Expl', lw=2)
 
 
+    ax2.legend(loc='best')
+    ax.legend(loc='best')
 
-    ax2.legend(loc='center left')
-    ax.legend(loc='center right')
-
-
-    log = True
-    ax.set_xlim(rmin*0.95,rmax*1.05)
-    ax.set_ylim(vmin*800,vmax*1.2)
     if log:
         ax.set_yscale("log", nonpositive='clip')
         ax.set_xscale("log")
 
-    ax2.set_ylim(vmin2*0.95,vmax2*1.2)
+    if log:
+        ax1diff.set_yscale("log", nonpositive='clip')
+        ax1diff.set_xscale("log")
+
     if log:
         ax2.set_yscale("log", nonpositive='clip')
         ax2.set_xscale("log")
 
+    if log:
+        ax2diff.set_yscale("log", nonpositive='clip')
+        ax2diff.set_xscale("log")
 
 
-    #plt.savefig('TemperatureTest.pdf', dpi=300, bbox_inches='tight')
-    plt.show()
+    fig.savefig("plot.jpg", dpi=150)
+    if interactive:
+        plt.show()
 
-compile_fargo('../../')
-run('../../', 'test/TemperatureTest/angelo.yml')
-test('../../angelo/', 10)
+    Tdiff = np.abs(Tnum - Ttheo) / Ttheo
+
+    # check temperature deviation
+    testname = "irradiation"
+    threshold = 0.03
+    rmin = 2
+    rmax = 15
+    radial_range = np.logical_and(r > rmin, r < rmax)
+    max_diff = np.max(Tdiff[radial_range])
+    pass_test = max_diff < threshold
+    with open("test.log", "w") as f:
+        print(f"Test name: {testname}", file=f)
+        print(f"Max temperature deviation: {max_diff}", file=f)
+        print(f"Threshold: {threshold}", file=f)
+        print(f"Radial range: {rmin} - {rmax}", file=f)
+        print(f"Pass test: {pass_test}", file=f)
+
+    if pass_test:
+        print(f"SUCCESS: {testname}")
+    else:
+        print(f"FAIL: {testname}")
+

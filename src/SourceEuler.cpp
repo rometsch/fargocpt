@@ -177,10 +177,10 @@ bool assure_temperature_range(t_data &data)
 		    LOG_DEBUG "assure_minimum_temperature: (%u,%u)=%g<%g\n",
 			nr, naz,
 			energy(nr, naz) *
-			units::temperature.get_cgs_factor() /
+			units::temperature.get_code_to_cgs_factor() /
 			density(nr, naz) * mu / constants::R *
 			(gamma_eff - 1.0),
-		    Tmin * units::temperature.get_cgs_factor(), Tmin);
+		    Tmin * units::temperature.get_code_to_cgs_factor(), Tmin);
 #endif
 		energy(nr, naz) =
 			Tmin * density(nr, naz) / mu * constants::R /
@@ -194,10 +194,10 @@ bool assure_temperature_range(t_data &data)
 		    LOG_DEBUG "assure_maximum_temperature: (%u,%u)=%g>%g\n",
 			nr, naz,
 			energy(nr, naz) *
-			units::temperature.get_cgs_factor() /
+			units::temperature.get_code_to_cgs_factor() /
 			density(nr, naz) * mu / constants::R *
 			(gamma_eff - 1.0),
-		    Tmax * units::temperature.get_cgs_factor(), Tmax);
+		    Tmax * units::temperature.get_code_to_cgs_factor(), Tmax);
 #endif
 		energy(nr, naz) =
 			Tmax * density(nr, naz) / mu * constants::R /
@@ -620,7 +620,6 @@ static void irradiation(t_data &data) {
 
 void calculate_qplus(t_data &data)
 {
-
     data[t_data::QPLUS].clear();
 
     if (parameters::heating_viscous_enabled) {
@@ -635,16 +634,13 @@ void calculate_qplus(t_data &data)
 	}    
 }
 
-void calculate_qminus(t_data &data, const double current_time)
-{
-    // clear up all Qminus terms
-    data[t_data::QMINUS].clear();
+/* Perform thermal relaxation also called beta cooling.
+*/
+static void thermal_relaxation(t_data &data, const double current_time) {
 
-	const unsigned int Nr = data[t_data::QMINUS].get_max_radial(); // = Size - 1
-	const unsigned int Nphi = data[t_data::QMINUS].get_size_azimuthal();
-
-    // beta cooling
-    if (parameters::cooling_beta_enabled) {
+	t_polargrid &Qminus = data[t_data::QMINUS];
+	const unsigned int Nr = Qminus.get_max_radial(); // = Size - 1
+	const unsigned int Nphi = Qminus.get_size_azimuthal();
 
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
@@ -695,35 +691,28 @@ void calculate_qminus(t_data &data, const double current_time)
 		const double qminus = delta_E * omega_k * beta_inv;
 
 
-		data[t_data::QMINUS](nr, naz) += qminus;
+		Qminus(nr, naz) += qminus;
 	    }
 	}
-    }
+}
 
-    // local radiative cooling
-    if (parameters::cooling_surface_enabled) {
+
+static void thermal_cooling(t_data &data) {
+
+	t_polargrid & Qminus = data[t_data::QMINUS];
+	const unsigned int Nr = Qminus.get_max_radial(); // = Size - 1
+	const unsigned int Nphi = Qminus.get_size_azimuthal();
+
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
 		// calculate Rosseland mean opacity kappa. opaclin needs values
 		// in cgs units
-		const double temperatureCGS =
-			data[t_data::TEMPERATURE](nr, naz) *
-		    units::temperature;
+		const double temperature = data[t_data::TEMPERATURE](nr, naz);
+		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
+		const double density = data[t_data::SIGMA](nr, naz) / (parameters::density_factor * H);
 
-		const double H =
-			data[t_data::SCALE_HEIGHT](nr, naz);
-
-		const double densityCGS =
-			data[t_data::SIGMA](nr, naz) /
-		    (parameters::density_factor * H) * units::density;
-
-		const double kappaCGS =
-		    opacity::opacity(densityCGS, temperatureCGS);
-
-		data[t_data::KAPPA](nr, naz) =
-		    parameters::kappa_factor * kappaCGS *
-		    units::opacity.get_inverse_cgs_factor();
+		data[t_data::KAPPA](nr, naz) = opacity::opacity(density, temperature);
 
 		// mean vertical optical depth: tau = 1/2 kappa Sigma
 		data[t_data::TAU](nr, naz) =
@@ -770,14 +759,13 @@ void calculate_qminus(t_data &data, const double current_time)
 		const double qminus =
 		    factor * 2 * sigma_sb * (T4 - Tmin4) / tau_eff;
 
-		data[t_data::QMINUS](nr, naz) += qminus;
+		Qminus(nr, naz) += qminus;
 	    }
 	}
-    }
+}
 
 
-    //S-curve cooling
-    if(parameters::cooling_scurve_enabled){
+static void scurve_cooling(t_data &data) {
 
 	const double SigmaCGS_threshold = 2.0;
 	const double temperatureCGS_threshold = 1200;
@@ -789,6 +777,9 @@ void calculate_qminus(t_data &data, const double current_time)
 	    F_hot_const = 25.49; // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
 	}
 
+	t_polargrid & Qminus = data[t_data::QMINUS];
+	const unsigned int Nr = Qminus.get_max_radial(); // = Size - 1
+	const unsigned int Nphi = Qminus.get_size_azimuthal();
 
     /// Scruve cooling according to Ichikawa & Osaki (1992)
     /// See page 21 & 22 in https://articles.adsabs.harvard.edu/full/1992PASJ...44...15I
@@ -796,28 +787,25 @@ void calculate_qminus(t_data &data, const double current_time)
     for (unsigned int nr = 1; nr < Nr; ++nr) {
         for (unsigned int naz = 0; naz < Nphi; ++naz) {
 
-        const double Sigma =
-            data[t_data::SIGMA](nr, naz);
+	const double Sigma = data[t_data::SIGMA](nr, naz);
 
-	const double SigmaCGS = Sigma*units::surface_density.get_cgs_factor();
+	const double SigmaCGS = Sigma*units::surface_density.get_code_to_cgs_factor();
 	const double SigmaCGS_tmp = std::max(SigmaCGS, SigmaCGS_threshold);
 
-	const double temperatureCGS =
-            data[t_data::TEMPERATURE](nr, naz) *
-            units::temperature.get_cgs_factor();
+	const double temperatureCGS = data[t_data::TEMPERATURE](nr, naz) * units::temperature.get_code_to_cgs_factor();
 	const double temperatureCGS_tmp = std::max(temperatureCGS, temperatureCGS_threshold);
 
-        const double rCGS = Rmed[nr] * units::length.get_cgs_factor();
+	const double rCGS = Rmed[nr] * units::length.get_code_to_cgs_factor();
 
 	const double mu = pvte::get_mu(data, nr, naz);
 
-        const double M = hydro_center_mass*units::mass.get_cgs_factor();
+	const double M = hydro_center_mass*units::mass.get_code_to_cgs_factor();
 
-        const double cgs_G = constants::global_cgs_G;
+	const double cgs_G = constants::global_cgs_G;
 
-        const double omega_keplerCGS = std::sqrt(cgs_G * M / (rCGS * rCGS * rCGS));
+	const double omega_keplerCGS = std::sqrt(cgs_G * M / (rCGS * rCGS * rCGS));
 
-        const double sigma_sb_cgs = constants::sigma.get_cgs_value();
+	const double sigma_sb_cgs = constants::sigma.get_cgs_value();
 
 	// Solve sigma T^4 = F_cool(T) for T
 	const double logTA = -1.0/5.49 * (0.62 * std::log10(omega_keplerCGS)
@@ -838,49 +826,62 @@ void calculate_qminus(t_data &data, const double current_time)
 	const double logTB = (logFB + logTB_aux) / 8.0;
 	const double TB = std::pow(10.0, logTB);
 
-        double logFtot;
+	double logFtot;
 
-	if (temperatureCGS_tmp < TA)
-	{
+	if (temperatureCGS_tmp < TA) {
 	// F_cold
 	    logFtot = 9.49 * std::log10(temperatureCGS_tmp) + 0.62 *
 							      std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS_tmp) -
                       0.31 * std::log10(mu) - 25.48;
-        }
-	else if (temperatureCGS_tmp > TB)
-	{
+	} else if (temperatureCGS_tmp > TB) {
 	// F_hot
 	    logFtot = 8.0 * std::log10(temperatureCGS_tmp) -
 		      std::log10(omega_keplerCGS) - 2.0 * std::log10(SigmaCGS_tmp) -
 		      0.5 * std::log10(mu) - F_hot_const;
-        }
-        else
-        {
+	} else {
 	// F_intermediate
 	    logFtot = (logFA - logFB) * std::log10(temperatureCGS_tmp / TB)
 			  / std::log10(TA / TB) + logFB;
-        }
+    }
 
-        double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_inverse_cgs_factor();
+	double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_cgs_to_code_factor();
 
 	// Scale with power law below theshold Temperature or Surface density
 	qminus_scurve *= std::pow((SigmaCGS / SigmaCGS_tmp), 0.5);
 	qminus_scurve *= std::pow(temperatureCGS / temperatureCGS_tmp, 2);
 
-        data[t_data::QMINUS](nr, naz) += qminus_scurve;
+	Qminus(nr, naz) += qminus_scurve;
 
 	const double factor = parameters::surface_cooling_factor;
 	const double sigma_sb = constants::sigma.get_code_value();
-	const double T4 = std::pow(
-	data[t_data::TEMPERATURE](nr, naz), 4);
+	const double T4 = std::pow(data[t_data::TEMPERATURE](nr, naz), 4);
 
-	const double tau_eff = 
-		factor * 2 * sigma_sb * T4 / qminus_scurve;
+	const double tau_eff =  factor * 2 * sigma_sb * T4 / qminus_scurve;
 	data[t_data::TAU_EFF](nr, naz) = tau_eff;
-        }
-    }
+	} // azimuthal loop
+    } // radial loop
+}
+
+
+void calculate_qminus(t_data &data, const double current_time)
+{
+    // clear up all Qminus terms
+    data[t_data::QMINUS].clear();
+
+    // beta cooling
+    if (parameters::cooling_beta_enabled) {
+		thermal_relaxation(data, current_time);
     }
 
+    // local radiative cooling
+    if (parameters::cooling_surface_enabled) {
+		thermal_cooling(data);
+    }
+
+    //S-curve cooling
+    if(parameters::cooling_scurve_enabled){
+		scurve_cooling(data);
+    }
 }
 
 /**

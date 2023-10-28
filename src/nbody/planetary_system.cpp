@@ -325,7 +325,7 @@ void t_planetary_system::list_planets()
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(),
 	    get_planet(i).get_orbital_period(),
-	    get_planet(i).get_orbital_period() * units::time.get_cgs_factor() /
+	    get_planet(i).get_orbital_period() * units::time.get_code_to_cgs_factor() /
 		units::cgs_Year,
 	    get_planet(i).get_accretion_efficiency(), accretion_method.c_str());
     }
