@@ -41,7 +41,7 @@ MinimumTemperature: 3.0 K   # minimum Temperature in K
 MaximumTemperature: 1.0e7 K   # default [NaN = disabled]
 TauFactor: '1.0'   # correction factor for tau [default = 1.0]
 Opacity: Simple   # opacity table to use (Lin, Bell, Zhu, Kramers, Const, Simple) [default = Lin]
-KappaConst: '2.0e-6'
+KappaConst: '17.770441374359926' # adapted to code units from the previous 2e-6
 CFL: '0.5'
 HeatingCoolingCFLlimit: 1000.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
