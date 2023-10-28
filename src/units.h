@@ -54,9 +54,9 @@ class t_unit
     // getter
     const char *get_cgs_symbol(void) const;
     /// get conversion factor to cgs system
-    inline double get_cgs_factor(void) const { return m_cgs_factor; }
+    inline double get_code_to_cgs_factor(void) const { return m_cgs_factor; }
     /// get conversion factor from cgs systems
-    inline double get_inverse_cgs_factor(void) const
+    inline double get_cgs_to_code_factor(void) const
     {
 	return m_inverse_cgs_factor;
     }

@@ -98,7 +98,7 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 						"#variable: 7 | mean dt | %s\n"
 						"#variable: 8 | min dt | %s\n"
 						"#variable: 9 | std dev dt | %s\n",
-						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor(),
+						parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor(), units::time.get_code_to_cgs_factor(),
 						units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str());
 			fd_created = true;
 		}

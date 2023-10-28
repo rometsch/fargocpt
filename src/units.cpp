@@ -330,73 +330,73 @@ void print_code_units()
     logging::print_master(LOG_VERBOSE "Code units:\n");
     logging::print_master(LOG_VERBOSE
 			  "                     length:       l0 = %.16g %s\n",
-			  length.get_cgs_factor(), length.get_cgs_symbol());
+			  length.get_code_to_cgs_factor(), length.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                       mass:       m0 = %.16g %s\n",
-			  mass.get_cgs_factor(), mass.get_cgs_symbol());
+			  mass.get_code_to_cgs_factor(), mass.get_cgs_symbol());
     logging::print_master(
 	LOG_VERBOSE
 	"                       time:       t0 = %.16g %s\t\t= %15.10g a\n",
-	time.get_cgs_factor(), time.get_cgs_symbol(),
-	time.get_cgs_factor() / (24 * 60 * 60 * 365.2425));
+	time.get_code_to_cgs_factor(), time.get_cgs_symbol(),
+	time.get_code_to_cgs_factor() / (24 * 60 * 60 * 365.2425));
     logging::print_master(
 	LOG_VERBOSE "                temperature:       T0 = %.16g %s\n",
-	temperature.get_cgs_factor(), temperature.get_cgs_symbol());
+	temperature.get_code_to_cgs_factor(), temperature.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                     energy:       E0 = %.16g %s\n",
-			  energy.get_cgs_factor(), energy.get_cgs_symbol());
+			  energy.get_code_to_cgs_factor(), energy.get_cgs_symbol());
     logging::print_master(
 	LOG_VERBOSE "             energy density:       e0 = %.16g %s\n",
-	energy_density.get_cgs_factor(), energy_density.get_cgs_symbol());
+	energy_density.get_code_to_cgs_factor(), energy_density.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                    density:     rho0 = %.16g %s\n",
-			  density.get_cgs_factor(), density.get_cgs_symbol());
+			  density.get_code_to_cgs_factor(), density.get_cgs_symbol());
     logging::print_master(
 	LOG_VERBOSE "            surface density:   Sigma0 = %.16g %s\n",
-	surface_density.get_cgs_factor(), surface_density.get_cgs_symbol());
+	surface_density.get_code_to_cgs_factor(), surface_density.get_cgs_symbol());
     logging::print_master(
 	LOG_VERBOSE "                energy flux:       S0 = %.16g %s\n",
-	energy_flux.get_cgs_factor(), energy_flux.get_cgs_symbol());
+	energy_flux.get_code_to_cgs_factor(), energy_flux.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                   velocity:       v0 = %.16g %s\n",
-			  velocity.get_cgs_factor(), velocity.get_cgs_symbol());
+			  velocity.get_code_to_cgs_factor(), velocity.get_cgs_symbol());
     logging::print_master(
 	LOG_VERBOSE "               acceleration:       a0 = %.16g %s\n",
-	acceleration.get_cgs_factor(), acceleration.get_cgs_symbol());
+	acceleration.get_code_to_cgs_factor(), acceleration.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "        kinematic viscosity:      nu0 = %.16g %s\n",
-			  kinematic_viscosity.get_cgs_factor(),
+			  kinematic_viscosity.get_code_to_cgs_factor(),
 			  kinematic_viscosity.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                     stress:   sigma0 = %.16g %s\n",
-			  stress.get_cgs_factor(), stress.get_cgs_symbol());
+			  stress.get_code_to_cgs_factor(), stress.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                   pressure:       p0 = %.16g %s\n",
-			  pressure.get_cgs_factor(), pressure.get_cgs_symbol());
+			  pressure.get_code_to_cgs_factor(), pressure.get_cgs_symbol());
     logging::print_master(
 	LOG_VERBOSE "           angular momentum:      L0 = %.16g %s\n",
-	angular_momentum.get_cgs_factor(), angular_momentum.get_cgs_symbol());
+	angular_momentum.get_code_to_cgs_factor(), angular_momentum.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                      power:       P0 = %.16g %s\n",
-			  power.get_cgs_factor(), power.get_cgs_symbol());
+			  power.get_code_to_cgs_factor(), power.get_cgs_symbol());
 
     logging::print_master(
 	LOG_VERBOSE "                      potential:       V0 = %.16g %s\n",
-	potential.get_cgs_factor(), potential.get_cgs_symbol());
+	potential.get_code_to_cgs_factor(), potential.get_cgs_symbol());
 
     logging::print_master(LOG_VERBOSE
 			  "                     torque:     tau0 = %.16g %s\n",
-			  torque.get_cgs_factor(), torque.get_cgs_symbol());
+			  torque.get_code_to_cgs_factor(), torque.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                      force:       F0 = %.16g %s\n",
-			  force.get_cgs_factor(), force.get_cgs_symbol());
+			  force.get_code_to_cgs_factor(), force.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "        mass accretion rate:    Mdot0 = %.16g %s\n",
-			  mass_accretion_rate.get_cgs_factor(),
+			  mass_accretion_rate.get_code_to_cgs_factor(),
 			  mass_accretion_rate.get_cgs_symbol());
     logging::print_master(LOG_VERBOSE
 			  "                    opacity:   kappa0 = %.16g %s\n",
-			  opacity.get_cgs_factor(), opacity.get_cgs_symbol());
+			  opacity.get_code_to_cgs_factor(), opacity.get_cgs_symbol());
 }
 
 void write_code_unit_file()
@@ -418,66 +418,66 @@ void write_code_unit_file()
 	fprintf(fd, "# units-file : 1.0\n");
 	fprintf(fd, "# log output of units:\n");
 	fprintf(fd, "#                    length:       l0 = %.16g %s\n",
-		length.get_cgs_factor(), length.get_cgs_symbol());
+		length.get_code_to_cgs_factor(), length.get_cgs_symbol());
 	fprintf(fd, "#                      mass:       m0 = %.16g %s\n",
-		mass.get_cgs_factor(), mass.get_cgs_symbol());
+		mass.get_code_to_cgs_factor(), mass.get_cgs_symbol());
 	fprintf(
 	    fd,
 	    "#                      time:       t0 = %.16g %s\t\t= %15.10g a\n",
-	    time.get_cgs_factor(), time.get_cgs_symbol(),
-	    time.get_cgs_factor() / (24 * 60 * 60 * 365.2425));
+	    time.get_code_to_cgs_factor(), time.get_cgs_symbol(),
+	    time.get_code_to_cgs_factor() / (24 * 60 * 60 * 365.2425));
 	fprintf(fd, "#               temperature:       T0 = %.16g %s\n",
-		temperature.get_cgs_factor(), temperature.get_cgs_symbol());
+		temperature.get_code_to_cgs_factor(), temperature.get_cgs_symbol());
 	fprintf(fd, "#                    energy:       E0 = %.16g %s\n",
-		energy.get_cgs_factor(), energy.get_cgs_symbol());
+		energy.get_code_to_cgs_factor(), energy.get_cgs_symbol());
 	fprintf(fd, "#            energy density:       e0 = %.16g %s\n",
-		energy_density.get_cgs_factor(),
+		energy_density.get_code_to_cgs_factor(),
 		energy_density.get_cgs_symbol());
 	fprintf(fd, "#                   density:     rho0 = %.16g %s\n",
-		density.get_cgs_factor(), density.get_cgs_symbol());
+		density.get_code_to_cgs_factor(), density.get_cgs_symbol());
 	fprintf(fd, "#           surface density:   Sigma0 = %.16g %s\n",
-		surface_density.get_cgs_factor(),
+		surface_density.get_code_to_cgs_factor(),
 		surface_density.get_cgs_symbol());
 	fprintf(fd, "#               energy flux:       S0 = %.16g %s\n",
-		energy_flux.get_cgs_factor(), energy_flux.get_cgs_symbol());
+		energy_flux.get_code_to_cgs_factor(), energy_flux.get_cgs_symbol());
 	fprintf(fd, "#                  velocity:       v0 = %.16g %s\n",
-		velocity.get_cgs_factor(), velocity.get_cgs_symbol());
+		velocity.get_code_to_cgs_factor(), velocity.get_cgs_symbol());
 	fprintf(fd, "#              acceleration:       a0 = %.16g %s\n",
-		acceleration.get_cgs_factor(), acceleration.get_cgs_symbol());
+		acceleration.get_code_to_cgs_factor(), acceleration.get_cgs_symbol());
 	fprintf(fd, "#       kinematic viscosity:      nu0 = %.16g %s\n",
-		kinematic_viscosity.get_cgs_factor(),
+		kinematic_viscosity.get_code_to_cgs_factor(),
 		kinematic_viscosity.get_cgs_symbol());
 	fprintf(fd, "#                    stress:   sigma0 = %.16g %s\n",
-		stress.get_cgs_factor(), stress.get_cgs_symbol());
+		stress.get_code_to_cgs_factor(), stress.get_cgs_symbol());
 	fprintf(fd, "#                  pressure:       p0 = %.16g %s\n",
-		pressure.get_cgs_factor(), pressure.get_cgs_symbol());
+		pressure.get_code_to_cgs_factor(), pressure.get_cgs_symbol());
 
 	fprintf(fd, "#          angular momentum:       L0 = %.16g %s\n",
-		angular_momentum.get_cgs_factor(),
+		angular_momentum.get_code_to_cgs_factor(),
 		angular_momentum.get_cgs_symbol());
 	fprintf(fd, "#                     power:       P0 = %.16g %s\n",
-		power.get_cgs_factor(), power.get_cgs_symbol());
+		power.get_code_to_cgs_factor(), power.get_cgs_symbol());
 	fprintf(fd, "#                     potential:	V0 = %.16g %s\n",
-		potential.get_cgs_factor(), potential.get_cgs_symbol());
+		potential.get_code_to_cgs_factor(), potential.get_cgs_symbol());
 	fprintf(fd, "#                    torque:     tau0 = %.16g %s\n",
-		torque.get_cgs_factor(), torque.get_cgs_symbol());
+		torque.get_code_to_cgs_factor(), torque.get_cgs_symbol());
 	fprintf(fd, "#                     force:       F0 = %.16g %s\n",
-		force.get_cgs_factor(), force.get_cgs_symbol());
+		force.get_code_to_cgs_factor(), force.get_cgs_symbol());
 	fprintf(fd, "#       mass_accretion_rate:    Mdot0 = %.16g %s\n",
-		mass_accretion_rate.get_cgs_factor(),
+		mass_accretion_rate.get_code_to_cgs_factor(),
 		mass_accretion_rate.get_cgs_symbol());
 	fprintf(fd, "#                   opacity:   kappa0 = %.16g %s\n",
-		opacity.get_cgs_factor(), opacity.get_cgs_symbol());
+		opacity.get_code_to_cgs_factor(), opacity.get_cgs_symbol());
 
 	fprintf(fd, "# Syntax: base unit <tab> value <tab> unit name\n");
-	fprintf(fd, "length\t%.16e\t%s\n", length.get_cgs_factor(),
+	fprintf(fd, "length\t%.16e\t%s\n", length.get_code_to_cgs_factor(),
 		length.get_cgs_symbol());
-	fprintf(fd, "mass\t%.16e\t%s\n", mass.get_cgs_factor(),
+	fprintf(fd, "mass\t%.16e\t%s\n", mass.get_code_to_cgs_factor(),
 		mass.get_cgs_symbol());
-	fprintf(fd, "time\t%.16e\t%s\n", time.get_cgs_factor(),
+	fprintf(fd, "time\t%.16e\t%s\n", time.get_code_to_cgs_factor(),
 		time.get_cgs_symbol());
 	fprintf(fd, "current\t \t \n");
-	fprintf(fd, "temperature\t%.16e\t%s\n", temperature.get_cgs_factor(),
+	fprintf(fd, "temperature\t%.16e\t%s\n", temperature.get_code_to_cgs_factor(),
 		temperature.get_cgs_symbol());
 	fprintf(fd, "amount\t \t \n");
 	fprintf(fd, "intensity\t \t ");

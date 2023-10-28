@@ -229,7 +229,7 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 
 	const double temperature_floor =
 	    parameters::minimum_temperature *
-	    units::temperature.get_inverse_cgs_factor();
+	    units::temperature.get_cgs_to_code_factor();
 
 	const double energy_floor = temperature_floor * cell_sigma /
 				    parameters::MU * constants::R /
@@ -407,7 +407,7 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 
 	const double temperature_floor =
 		parameters::minimum_temperature *
-		units::temperature.get_inverse_cgs_factor();
+		units::temperature.get_cgs_to_code_factor();
 
 	const double energy_floor = temperature_floor * cell_sigma /
 					parameters::MU * constants::R /

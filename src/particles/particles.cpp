@@ -986,7 +986,7 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 				      temperature / (M_PI * m0));
 
 	// from HB03 Eq. (20) below for value of molecular hydrogen.
-	const double a0 = 1.5e-8 * units::length.get_inverse_cgs_factor();
+	const double a0 = 1.5e-8 * units::length.get_cgs_to_code_factor();
     double cross_section = M_PI * std::pow(a0, 2); // units of L^2
 
 	// gas molecular viscosity HB03 (6)

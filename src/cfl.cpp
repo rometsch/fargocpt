@@ -146,7 +146,7 @@ static void timestep_debug_report(t_data &data,
 				mu / constants::R * (gamma_eff - 1.0) *
 				data[t_data::ENERGY](n_radial_debug, n_azimuthal_debug) /
 				data[t_data::SIGMA](n_radial_debug, n_azimuthal_debug) *
-				units::temperature.get_cgs_factor();
+				units::temperature.get_code_to_cgs_factor();
 		logging::print(LOG_INFO "Cell has a Temperature of      : %g K\n",
 					   cell_temperature);
 	}

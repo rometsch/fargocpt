@@ -371,8 +371,8 @@ void init_physics(t_data &data)
 void init_shakura_sunyaev(t_data &data)
 {
 	const double M0_in_solMass = (1*units::M0).value_as(units::solMass);
-	const double Mdot_cgs = parameters::mass_accretion_rate * units::mass_accretion_rate.get_cgs_factor();
-	const double L0_cgs = units::length.get_cgs_factor();
+	const double Mdot_cgs = parameters::mass_accretion_rate * units::mass_accretion_rate.get_code_to_cgs_factor();
+	const double L0_cgs = units::length.get_code_to_cgs_factor();
 
 	const auto& star = data.get_planetary_system().get_planet(0);
 	const double star_radius = star.get_planet_radial_extend();
@@ -405,7 +405,7 @@ void init_shakura_sunyaev(t_data &data)
 		 std::pow(M0_in_solMass, 0.25) *
 		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
 		 std::pow(factor, 14. / 5.)) /
-		units::surface_density.get_cgs_factor();
+		units::surface_density.get_code_to_cgs_factor();
 
 	    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
 		(1.7e8 * std::pow(parameters::ALPHAVISCOSITY, -1. / 10.) *
@@ -421,7 +421,7 @@ void init_shakura_sunyaev(t_data &data)
 		 std::pow(M0_in_solMass, 0.25) *
 		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
 		 std::pow(factor, 6. / 5.)) /
-		units::temperature.get_cgs_factor();
+		units::temperature.get_code_to_cgs_factor();
 
 	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
 		-(2.7e4 * std::pow(parameters::ALPHAVISCOSITY, 4. / 5.) *
@@ -429,7 +429,7 @@ void init_shakura_sunyaev(t_data &data)
 		  std::pow(M0_in_solMass, -0.25) *
 		  std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.25) *
 		  std::pow(factor, -14. / 5.)) /
-		units::velocity.get_cgs_factor();
+		units::velocity.get_code_to_cgs_factor();
 
 	    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
 		std::sqrt(constants::R / parameters::MU * parameters::ADIABATICINDEX *
@@ -508,7 +508,7 @@ void init_spreading_ring_test(t_data &data)
 
     logging::print_master(
         LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", Sigma0,
-        Sigma0 * units::surface_density.get_cgs_factor());
+        Sigma0 * units::surface_density.get_code_to_cgs_factor());
 
     for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
@@ -1064,9 +1064,9 @@ void init_gas_density(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Initializing Sigma(r) = %g = %g %s * [r/(%g AU)]^(%g)\n",
 	    parameters::sigma0,
-	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
+	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
 
 	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	     ++n_radial) {
@@ -1087,9 +1087,9 @@ void init_gas_density(t_data &data)
 	    LOG_INFO
 	    "Initializing from CMS Sigma(r) = %g = %g %s * [r/(%g AU)]^(%g)\n",
 	    parameters::sigma0,
-	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
+	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
 
 	Pair cms = data.get_planetary_system().get_center_of_mass();
 	const double cms_x = cms.x;
@@ -1209,10 +1209,10 @@ void init_gas_density(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Cutoff Sigma for r > %g %s over a range from %g %s\n",
 	    parameters::profile_cutoff_point_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
@@ -1252,10 +1252,10 @@ void init_gas_density(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Cutoff Sigma for r < %g %s over a range from %g %s\n",
 	    parameters::profile_cutoff_point_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
@@ -1299,7 +1299,7 @@ void renormalize_sigma_and_report(t_data &data)
 	parameters::sigma0 *= parameters::sigma_discmass / total_mass;
 	logging::print_master(
 	    LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
-	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
+	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(), total_mass,
 	    parameters::sigma_discmass);
 
@@ -1323,7 +1323,7 @@ void renormalize_sigma_and_report(t_data &data)
 	double total_mass = quantities::gas_total_mass(data, 2.0 * RMAX);
 	logging::print_master(LOG_INFO "Total disk is mass is %g = %g %s.\n",
 			      total_mass,
-			      total_mass * units::mass.get_cgs_factor(),
+			      total_mass * units::mass.get_code_to_cgs_factor(),
 			      units::mass.get_cgs_symbol());
     }
 
@@ -1413,15 +1413,15 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing Energy = %g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
+		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_code_to_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    (1*units::L0).value_as(units::au),
 	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
 	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
 		constants::G * hydro_center_mass *
-		units::temperature.get_cgs_factor(),
+		units::temperature.get_code_to_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU,
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
 	    -1.0 + 2.0 * parameters::FLARINGINDEX);
 
 	{
@@ -1449,14 +1449,14 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing CMS Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
+		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_code_to_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU,
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
 	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
 	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
-		constants::G * mass * units::temperature.get_cgs_factor(),
+		constants::G * mass * units::temperature.get_code_to_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU,
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
 	    -1.0 + 2.0 * parameters::FLARINGINDEX);
 
 	for (unsigned int n_radial = 0;
@@ -1513,10 +1513,10 @@ void init_gas_energy(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Damping Energy for r > %g %s over a range of %g %s\n",
 	    parameters::profile_cutoff_point_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
@@ -1561,10 +1561,10 @@ void init_gas_energy(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Damping Energy for r < %g %s over a range of %g %s\n",
 	    parameters::profile_cutoff_point_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
@@ -2000,7 +2000,7 @@ void init_blobb_for_star_disk_binary_test(t_data &data)
 	parameters::sigma0 *= planet.get_mass() / total_mass;
 	logging::print_master(
 		LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
-		parameters::sigma0 * units::surface_density.get_cgs_factor(),
+		parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 		units::surface_density.get_cgs_symbol(), total_mass,
 		planet.get_mass());
 
