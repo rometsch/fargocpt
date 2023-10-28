@@ -34,6 +34,7 @@ static int strcicmp(char const *a, char const *b)
 namespace options
 {
 std::string parameter_file = "";
+std::string pidfile = "";
 bool memory_usage = false;
 bool disable = false;
 int max_iteration_number = -1;
@@ -48,6 +49,7 @@ static const struct option long_options[] = {
     {"start", no_argument, NULL, 's'},
     {"restart", optional_argument, NULL, 'r'},
     {"auto", no_argument, NULL, 'a'},
+	{"pidfile", required_argument, NULL, 'P'},
     {0, 0, 0, 0}};
 
 void usage(int argc, char **argv)
@@ -67,6 +69,7 @@ void usage(int argc, char **argv)
 	"-n     |                   Disable simulation. The program just reads parameters file\n"
 	"-m     |                   estimate memory usage and print out\n"
 	"-N <N> |                   Perform N hydro steps.\n"
+	"-P <path> | --pidfile <path>    Path to the file to store the pid in.\n"
 	"",
 	argv[0]);
 }
@@ -155,6 +158,10 @@ void parse(int argc, char **argv)
 			die("Input Error: Max number of iterations can not be negative.\n");
 		}
 	    break;
+
+	case 'P':
+		pidfile = std::string(optarg);
+		break;
 	
 	case 'h':
 	    usage(argc, argv);

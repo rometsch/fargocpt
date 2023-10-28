@@ -10,6 +10,7 @@ void parse(int argc, char **argv);
 
 extern bool memory_usage;
 extern std::string parameter_file;
+extern std::string pidfile;
 extern bool disable;
 extern int max_iteration_number;
 } // namespace options

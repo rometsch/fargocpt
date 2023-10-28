@@ -8,6 +8,8 @@
 #include "LowTasks.h"
 #include "logging.h"
 #include "fld.h"
+#include "options.h"
+#include <iostream>
 
 // copy paste from https://github.com/jeffhammond/HPCInfo/blob/master/mpi/with-threads/mpi-openmp.c
 #define MPI_THREAD_STRING(level)  \
@@ -42,7 +44,14 @@ void init_parallel(int argc, char *argv[]) {
 
 	pid_t pid = getpid();
     if (CPU_Master) {
-        printf("%ld\n",(long) pid);
+		if (options::pidfile != "") {
+			std::ofstream pidfile;
+			pidfile.open(options::pidfile);
+			pidfile << pid;
+			pidfile.close();
+		} else {
+			printf("%ld\n",(long) pid);
+		}
     }
 
 	// make sure the pid of the master is printed before additional info
