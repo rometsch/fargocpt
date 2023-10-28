@@ -688,7 +688,7 @@ void read(const std::string &filename, t_data &data)
     self_gravity = config::cfg.get_flag("SelfGravity", "no");
 
 	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "symmetric");
-	if (sgmode == "b") {
+	if (sgmode == "basic") {
 		self_gravity_mode = t_sg::sg_B;
 	} else if (sgmode == "symmetric") {
 		self_gravity_mode = t_sg::sg_S;
