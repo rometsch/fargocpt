@@ -20,3 +20,5 @@
 - self gravity acceleration can now be written out to the snapshots using `WriteSGAccelRad` and `WriteSGAccelAzi` parameters
 - there is a file `info2D.yml` which describes the 2D output variables including their array size and units
 - Radiative Diffusion Tolerance parameter is now an absolute quantity, if only a number is supplied, its multiplied by the Temperature unit, otherwise its parsed.
+- units file in yaml containing all units in the code including code unit value in cgs and the cgs unit symbols
+- constants file in yaml containing all physical constants in the code
