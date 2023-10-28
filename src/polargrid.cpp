@@ -28,7 +28,7 @@ t_polargrid::t_polargrid()
     Nrad = 0;
     Nsec = 0;
     m_name = NULL;
-    m_unit = NULL;
+    m_unit = &units::not_yet_defined;
     Field = NULL;
     m_scalar = true;
     m_write_1D = false;

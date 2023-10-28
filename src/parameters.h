@@ -121,9 +121,6 @@ extern double sigma_discmass;
 /// Sigma0
 extern double sigma0;
 
-/// whether to interpret par file value for Sigma0 in cgs or code units
-extern bool sigma0_in_code_units;
-
 /// initiliaze condition for energy
 extern t_initialize_condition energy_initialize_condition;
 /// filename to read energy profile from
@@ -267,9 +264,8 @@ extern bool initialize_vradial_zero;
 
 /// boundary layer parameters
 extern double radial_viscosity_factor;
-extern double vrad_fraction_of_kepler;
-extern double stellar_rotation_rate;
 extern double mass_accretion_rate;
+
 extern double accretion_radius_fraction;
 extern double klahr_smoothing_radius;
 

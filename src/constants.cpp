@@ -10,6 +10,9 @@
 #include "logging.h"
 #include "units.h"
 #include "parameters.h"
+#include "mpi.h"
+#include "output.h"
+#include "global.h"
 
 
 #include <cstring>
@@ -100,6 +103,7 @@ t_constant &R = _R;
 
 t_constant::t_constant()
 {
+	m_name = NULL;
     m_symbol = NULL;
     m_code_value = 1.0;
     m_cgs_value = 1.0;
@@ -108,8 +112,22 @@ t_constant::t_constant()
 
 t_constant::~t_constant()
 {
+	delete[] m_name;
     delete[] m_symbol;
     delete[] m_cgs_unit_symbol;
+}
+
+void t_constant::set_name(const char *name)
+{
+    // delete old name
+    delete[] m_name;
+
+    // aquire memory for name
+    const unsigned int length = strlen(name) + 1;
+    m_name = new char[length];
+
+    // copy symbol
+    strncpy(m_name, name, length);
 }
 
 void t_constant::set_symbol(const char *symbol)
@@ -142,6 +160,8 @@ void t_constant::set_cgs_unit_symbol(const char *symbol)
     strncpy(m_cgs_unit_symbol, symbol, length);
 }
 
+const char *t_constant::get_name(void) const {return m_name;}
+
 const char *t_constant::get_symbol(void) const { return m_symbol; }
 
 double t_constant::get_code_value() const { return m_code_value; }
@@ -158,43 +178,52 @@ const char *t_constant::get_cgs_unit_symbol(void) const
 */
 void initialize_constants()
 {
+	_G.set_name("gravitational constant");
     _G.set_symbol("G");
     _G.set_cgs_value(cgs_G);
     _G.set_cgs_unit_symbol("cm^3 g^-1 s^-2");
 
+	k_B.set_name("Boltzmann constant");
     k_B.set_symbol("k_B");
     k_B.set_cgs_value(cgs_k_B);
     k_B.set_cgs_unit_symbol("erg K^-1");
 
+	m_u.set_name("molecular mass");
     m_u.set_symbol("m_u");
     m_u.set_cgs_value(cgs_m_u);
     m_u.set_cgs_unit_symbol("g");
 
+	h.set_name("Planck constant");
     h.set_symbol("h");
     h.set_cgs_value(cgs_h);
     h.set_cgs_unit_symbol("erg s");
 
+	c.set_name("speed of light");
     c.set_symbol("c");
     c.set_cgs_value(cgs_c);
     c.set_cgs_unit_symbol("cm s^-1");
 
+	_R.set_name("specific gas constant");
     _R.set_symbol("R");
     _R.set_cgs_value(k_B.get_cgs_value() / (m_u.get_cgs_value()));
     _R.set_cgs_unit_symbol("erg K^-1 g^-1");
 
+	eV.set_name("electron volt");
     eV.set_symbol("eV");
     eV.set_cgs_value(cgs_eV);
     eV.set_cgs_unit_symbol("erg");
 
+	m_e.set_name("electron mass");
     m_e.set_symbol("m_e");
     m_e.set_cgs_value(cgs_m_e);
     m_e.set_cgs_unit_symbol("g");
 
+	m_H.set_name("hydrogen atom mass");
     m_H.set_symbol("m_H");
     m_H.set_cgs_value(cgs_m_H);
     m_H.set_cgs_unit_symbol("g");
 
-
+	sigma.set_name("Stefan-Boltzmann constant");
     sigma.set_symbol("sigma");
 #ifdef DO_USE_PLUTO_UNITS
 	sigma.set_cgs_value(5.67051e-5);
@@ -298,6 +327,40 @@ logging::print_master(LOG_INFO "Using PLUTO like units\n");
 			      eV.get_symbol(), eV.get_code_value(), eV.get_cgs_value(),
 			      eV.get_cgs_unit_symbol());
     }
+}
+
+
+void write_code_constants_file()
+{
+    /* Write a file containing the base constants to the output folder. */
+
+    if (!CPU_Master) {
+		return;
+	}
+
+	const std::string filename = output::outdir + "constants.yml";
+
+	std::ofstream of(filename);
+
+	of.precision(std::numeric_limits<double>::max_digits10);
+	of << "# log output of physical constants file" << std::endl;
+	of << "# version 0.1" << std::endl << std::endl;
+
+	const std::string indent = "  ";
+
+	std::vector<t_constant*> constants = {&G, &k_B, &m_u, &h, &c, &R, &sigma, &m_H, &m_e, &eV};
+	
+	for (auto constant : constants) {
+		of << constant->get_name() << ":" << std::endl;
+		of << indent << "symbol: " << constant->get_symbol() << std::endl;
+		of << indent << "code value: " << constant->get_code_value() << std::endl;
+		of << indent << "cgs value: " << constant->get_cgs_value() << std::endl;
+		of << indent << "cgs unit symbol: " << constant->get_cgs_unit_symbol() << std::endl;
+		of << std::endl;
+	}
+
+	of.close();
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 } // namespace constants

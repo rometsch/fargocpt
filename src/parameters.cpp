@@ -98,7 +98,6 @@ double sigma_random_factor;
 double sigma_floor;
 double sigma_feature_size;
 bool sigma_adjust;
-bool sigma0_in_code_units;
 double sigma_discmass;
 double sigma0;
 t_initialize_condition energy_initialize_condition;
@@ -198,8 +197,6 @@ double star_radius;
 double star_temperature;
 
 double radial_viscosity_factor;
-double vrad_fraction_of_kepler;
-double stellar_rotation_rate;
 double mass_accretion_rate;
 double accretion_radius_fraction;
 double klahr_smoothing_radius;
@@ -444,7 +441,8 @@ static void read_opacity_config(){
 	// Get this always for setting default value.
     units::precise_unit L0 = units::L0;
     units::precise_unit M0 = units::M0;
-	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0) * units::opacity.get_cgs_factor();
+
+	kappa_const = config::cfg.get<double>("KappaConst", 1.0, (L0*L0)/M0);
 }
 
 
@@ -807,9 +805,7 @@ void read(const std::string &filename, t_data &data)
     // boundary layer parameters
     radial_viscosity_factor =
 	config::cfg.get<double>("RadialViscosityFactor", 1.);
-    vrad_fraction_of_kepler = config::cfg.get<double>("VRadIn", 1.6e-3);
-    stellar_rotation_rate =
-	config::cfg.get<double>("StellarRotation", 0.1);
+
     mass_accretion_rate =
 	config::cfg.get<double>("MassAccretionRate", 1.e-9, M0/T0);
     accretion_radius_fraction =

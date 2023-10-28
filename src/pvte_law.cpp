@@ -519,12 +519,12 @@ void compute_gamma_mu(t_data &data)
 	    double densityCGS, energyCGS;
 
 	    if (parameters::ShockTube > 0) {
-		densityCGS = sigma * units::density.get_cgs_factor();
+		densityCGS = sigma * units::density.get_code_to_cgs_factor();
 		energyCGS = data[t_data::ENERGY](nr, naz) *
-			    units::energy_density.get_cgs_factor() / densityCGS;
+			    units::energy_density.get_code_to_cgs_factor() / densityCGS;
 	    } else {
 		densityCGS =
-		    sigma / (parameters::density_factor * H) * units::density.get_cgs_factor();
+		    sigma / (parameters::density_factor * H) * units::density.get_code_to_cgs_factor();
 
 		energyCGS = data[t_data::ENERGY](nr, naz) *
 			    units::energy_density /

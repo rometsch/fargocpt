@@ -405,22 +405,6 @@ static void radial_boundary_diffusion_coeff() {
 	outer_boundary_func();
 }
 
-/*
-Get opacity in code units.
-
-First convert temperature and density to cgs and then convert opacity from cgs to code units.
-Convert to cgs units and call the opacity routine.
-*/
-static inline double get_opacity(const double temperature, const double density) {
-
-	const double temperatureCGS = temperature * units::temperature;
-	const double densityCGS = density * units::density;
-
-	const double kappaCGS = opacity::opacity(densityCGS, temperatureCGS);
-	const double kappa = parameters::kappa_factor * kappaCGS * units::opacity.get_inverse_cgs_factor();
-
-	return kappa;
-}
 
 /*
 FLD diffusion coefficient for diffusion equation of temperature
@@ -430,7 +414,7 @@ static inline double diffusion_coeff(const double rho, const double T, const dou
 	// Levermore & Pomraning 1981
 	// R = |nabla E|/E * lrad = 4 |nabla T|/T * lrad
 	// lrad = 1/(rho * kappa), photon mean free path
-	const double kappa = get_opacity(T, rho);
+	const double kappa = opacity::opacity(rho, T);
 	const double lrad = 1 / (rho * kappa);
 
 	const double R = 4.0 * nabla_T / T * lrad;

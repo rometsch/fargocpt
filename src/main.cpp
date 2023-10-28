@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <string.h>
+#include <filesystem>
 
 #include "Force.h"
 #include "Interpret.h"
@@ -44,11 +45,17 @@ static void finalize() {
 	FreeEuler();
 	finalize_parallel();
     boundary_conditions::cleanup_custom();
+
+    if (options::pidfile != "" && std::filesystem::exists(options::pidfile)) {
+        std::filesystem::remove(options::pidfile);
+    }
 }
 
 
 int main(int argc, char *argv[])
 {
+    // handle command line parameters
+    options::parse(argc, argv);
 
     register_signal_handlers();
 
@@ -65,8 +72,6 @@ int main(int argc, char *argv[])
     // to do anything)
     // setfpe();
 
-    // handle command line parameters
-    options::parse(argc, argv);
 
     ReadVariables(options::parameter_file, data, argc, argv);
 
@@ -82,8 +87,9 @@ int main(int argc, char *argv[])
     parameters::write_grid_data_to_file();
 
     units::print_code_units();
-    units::write_code_unit_file();
+    units::write_code_units_file();
     constants::print_constants();
+    constants::write_code_constants_file();
     output::write_output_version();
 
     TellEverything();

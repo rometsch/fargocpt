@@ -253,6 +253,7 @@ t_data::t_data()
 
     m_polargrids[ASPECTRATIO].set_scalar(true);
     m_polargrids[ASPECTRATIO].set_name("aspectratio");
+    m_polargrids[ASPECTRATIO].set_unit(units::unitless);
     m_polargrids[ASPECTRATIO].set_do_before_write(
 	&quantities::compute_aspectratio);
 

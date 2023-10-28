@@ -602,15 +602,15 @@ std::string text_file_variable_description(
 	{"velocity", units::velocity.get_cgs_factor_symbol()},
 	{"acceleration", units::acceleration.get_cgs_factor_symbol()},
 	{"power", units::power.get_cgs_factor_symbol()},
-	{"specific power", unit_descriptor(units::power.get_cgs_factor() /
-					       units::length.get_cgs_factor() /
-					       units::length.get_cgs_factor(),
+	{"specific power", unit_descriptor(units::power.get_code_to_cgs_factor() /
+					       units::length.get_code_to_cgs_factor() /
+					       units::length.get_code_to_cgs_factor(),
 					   "erg cm2/s/g")},
 	{"potential", units::potential.get_cgs_factor_symbol()},
-	{"pressure per time", unit_descriptor(units::pressure.get_cgs_factor() /
-						  units::time.get_cgs_factor(),
+	{"pressure per time", unit_descriptor(units::pressure.get_code_to_cgs_factor() /
+						  units::time.get_code_to_cgs_factor(),
 					      "dyn/cm/s")},
-	{"torque", unit_descriptor(units::torque.get_cgs_factor(),
+	{"torque", unit_descriptor(units::torque.get_code_to_cgs_factor(),
 				   units::torque.get_cgs_symbol())}};
 
     std::string var_descriptor;
@@ -755,11 +755,11 @@ void write_1D_info(t_data &data)
 	    }
 	    info_ofs << "unit = " << unit << std::endl;
 	    if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
-		info_ofs << "code_units_to_cgs_factor = "
-			 << data[t_data::t_polargrid_type(i)].get_unit()->get_cgs_factor()
+		info_ofs << "code_to_cgs_factor = "
+			 << data[t_data::t_polargrid_type(i)].get_unit()->get_code_to_cgs_factor()
 			 << std::endl;
 	    } else {
-		info_ofs << "code_units_to_cgs_factor = " << 1.0 << std::endl;
+		info_ofs << "code_to_cgs_factor = " << 1.0 << std::endl;
 	    }
 	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
 	    info_ofs.close();
@@ -794,13 +794,13 @@ void write_2D_info(t_data &data)
 		double factor = 1.0;
 	    if (g.get_unit() != NULL) {
 			unit = std::string(g.get_unit()->get_cgs_symbol());
-			factor = g.get_unit()->get_cgs_factor();
+			factor = g.get_unit()->get_code_to_cgs_factor();
 		}
 		
 		info_ofs << name << ":" << std::endl;
 	    info_ofs << indent << "unit: " << unit << std::endl;
-		info_ofs << indent << "code_units_to_cgs_factor: "
-			 << g.get_unit()->get_cgs_factor()
+		info_ofs << indent << "code_to_cgs_factor: "
+			 << g.get_unit()->get_code_to_cgs_factor()
 			 << std::endl;
 
 		if (g.get_unit() != NULL) {
@@ -828,6 +828,7 @@ void write_2D_info(t_data &data)
 	}
     }
 	info_ofs.close();
+	MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
@@ -1035,7 +1036,7 @@ void write_snapshot_time()
 		fd,
 		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
-		parameters::DT, parameters::DT * units::time.get_cgs_factor());
+		parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
     }
@@ -1095,7 +1096,7 @@ void write_monitor_time()
 		fd,
 		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
-		parameters::DT, parameters::DT * units::time.get_cgs_factor());
+		parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
     }
@@ -1313,8 +1314,8 @@ void write_ecc_peri_changes(const unsigned int snapshot_number, const unsigned m
 		"# 10: Periastron change from from viscosity\n"
 		"# 11: Periastron change from transport\n"
 		"# 12: Periastron change from damping\n",
-		units::time.get_cgs_factor(),
-		units::torque.get_cgs_factor());
+		units::time.get_code_to_cgs_factor(),
+		units::torque.get_code_to_cgs_factor());
 		fd_created = true;
 	}
 	}

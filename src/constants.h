@@ -25,6 +25,7 @@ class t_constant
 {
   private:
     char *m_symbol;
+    char *m_name;
     double m_code_value;
     double m_cgs_value;
     char *m_cgs_unit_symbol;
@@ -34,12 +35,14 @@ class t_constant
     ~t_constant();
 
     // setter
+    void set_name(const char *);
     void set_symbol(const char *);
     void set_code_value(double);
     void set_cgs_value(double);
     void set_cgs_unit_symbol(const char *);
 
     // getter
+    const char *get_name(void) const;
     const char *get_symbol(void) const;
     double get_code_value(void) const;
     double get_cgs_value(void) const;
@@ -87,5 +90,6 @@ extern t_constant &R;
 void initialize_constants();
 void calculate_constants_in_code_units();
 void print_constants();
+void write_code_constants_file();
 
 } // namespace constants
