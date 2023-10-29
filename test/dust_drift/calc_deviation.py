@@ -12,7 +12,7 @@ Syntax: Stokesnumber\tdeviation"""
 
 
 def main():
-    success, res = calc_deviation("output/dust_drift")
+    success, res = calc_deviation("../../output/tests/dust_drift/out")
     np.savetxt("deviations.txt", res, header=header)
     
     

@@ -57,9 +57,8 @@ Transport: FARGO
 Integrator: Euler  # Integrator type: Euler or LeapFrog or KickDriftKick(Leapfrog)
 IndirectTermMode: 0   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
 
-InnerBoundary: Reflective
-OuterBoundary: Reflective
-DomegaDrZero: Yes     # Set dOmega/dr = 0 at outer boundary
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 Damping: Yes   # NO, YES [default = no]
 DampingInnerLimit: 1.311   # Rmin*Limit
 DampingOuterLimit: 0.763   # Rmax*Limit
@@ -92,7 +91,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 
 
-OutputDir: output/
+OutputDir: ../../output/tests/cold_disk_planet/out
 LogAfterRealSeconds: 300
 LogAfterSteps: '0'
 DebugOutputs: No
