@@ -12,7 +12,7 @@ from drift_theo import vdrift_theo
 from load_dust import construct_dust_trajectories
 
 def main():
-    fig = plot_drift("output/dust_drift")
+    fig = plot_drift("../../output/tests/dust_drift/out")
     fig.savefig("drift.jpg")
 
 

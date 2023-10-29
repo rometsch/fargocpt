@@ -771,9 +771,8 @@ void write_1D_info(t_data &data)
 
 void write_2D_info(t_data &data)
 {
-	if (!CPU_Master) {
-		return;
-	}
+	if (CPU_Master) {
+
 
 	const std::string filename_info = outdir + "info2D.yml";
 	std::ofstream info_ofs(filename_info);
@@ -828,6 +827,7 @@ void write_2D_info(t_data &data)
 	}
     }
 	info_ofs.close();
+	}
 	MPI_Barrier(MPI_COMM_WORLD);
 }
 

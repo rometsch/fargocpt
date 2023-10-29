@@ -108,6 +108,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     ensure_directory_exists(output::outdir + "parameters/");
 	ensure_directory_exists(output::outdir + "monitor/");
     MPI_Barrier(MPI_COMM_WORLD);
+	logging::init_logfiles(output::outdir);
+	// set up logfiles
+
 
     if (CPU_Master) {
 

@@ -2,6 +2,7 @@
 
 #include <stdarg.h>
 #include <chrono>
+#include <string>
 
 
 #define LOG_ERROR "<0>"	  /* error conditions                     */
@@ -28,5 +29,8 @@ int print_master(const char *fmt, ...);
 void print_runtime_info();
 void print_runtime_final();
 void start_timer();
+
+void init_logfiles(const std::string outdir);
+void finalize();
 
 } // namespace logging

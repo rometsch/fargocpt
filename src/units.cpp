@@ -453,9 +453,7 @@ void write_code_units_file()
 {
     /* Write a file containing the base constants to the output folder. */
 
-    if (!CPU_Master) {
-		return;
-	}
+    if (CPU_Master) {
 
 	const std::string filename = output::outdir + "units.yml";
 
@@ -500,6 +498,7 @@ void write_code_units_file()
 	}
 
 	of.close();
+	}
     MPI_Barrier(MPI_COMM_WORLD);
 }
 

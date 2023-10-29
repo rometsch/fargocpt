@@ -85,8 +85,8 @@ void t_planetary_system::init_system(const std::string &filename)
 
 	derive_config();
 
-    logging::print_master(LOG_INFO "%d planet(s) initialized.\n",
-			 get_number_of_planets());
+	unsigned int n = get_number_of_planets();
+    logging::print_master(LOG_INFO "%u planet(s) initialized.\n", n);
 
 		// activate irradiation if its enable for any of the planets
 

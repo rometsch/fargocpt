@@ -52,6 +52,8 @@ void init_parallel(int argc, char *argv[]) {
 		}
     }
 
+	logging::print(LOG_INFO "MPI rank # %2d runs as process %d\n", CPU_Rank, pid);
+
 	// make sure the pid of the master is printed before additional info
 	MPI_Barrier(MPI_COMM_WORLD);
 
