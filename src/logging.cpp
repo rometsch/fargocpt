@@ -56,10 +56,7 @@ static void log_to_file(const std::string output, const bool is_err) {
 }
 
 void init_logfiles(const std::string outdir) {
-	if (CPU_Master) {
-		ensure_directory_exists(outdir + "logs");
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
+	ensure_directory_exists(outdir + "logs");
 
 	std::string logfilename = outdir + "logs/log_" + std::to_string(CPU_Rank) + ".txt";
 	std::string errfilename = outdir + "logs/err_" + std::to_string(CPU_Rank) + ".txt";
@@ -148,9 +145,6 @@ int vprint(const char *fmt, va_list args)
 	}
 	return res;
     }
-
-
-
 
     return 0;
 }
