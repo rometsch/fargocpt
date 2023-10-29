@@ -46,7 +46,7 @@ static void finalize() {
 	finalize_parallel();
     boundary_conditions::cleanup_custom();
 
-    if (options::pidfile != "" && std::filesystem::exists(options::pidfile)) {
+    if (CPU_Master && options::pidfile != "" && std::filesystem::exists(options::pidfile)) {
         std::filesystem::remove(options::pidfile);
     }
     logging::finalize();
@@ -61,11 +61,12 @@ int main(int argc, char *argv[])
     register_signal_handlers();
 
     t_data data;
+    
+	init_parallel(argc, argv);
 
 	// TODO: discuss why this needs to be done explicitly
     resize_radialarrays(MAX1D);
 
-	init_parallel(argc, argv);
     
 	print_buildtimeinfo();
 
@@ -106,7 +107,6 @@ int main(int argc, char *argv[])
     if (fld::radiative_diffusion_enabled) {
 		fld::init(data.get_n_radial(), data.get_n_azimuthal());
 	}
-
 
     init_radialarrays();
 
@@ -156,9 +156,6 @@ int main(int argc, char *argv[])
 	if (start_mode::mode != start_mode::mode_restart) {
 		sim::handle_outputs(data);
 	}
-
-    // set up logfiles
-	logging::init_logfiles(output::outdir);
 
 	sim::run(data);	
     
