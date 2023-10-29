@@ -49,6 +49,7 @@ static void finalize() {
     if (options::pidfile != "" && std::filesystem::exists(options::pidfile)) {
         std::filesystem::remove(options::pidfile);
     }
+    logging::finalize();
 }
 
 
@@ -155,6 +156,9 @@ int main(int argc, char *argv[])
 	if (start_mode::mode != start_mode::mode_restart) {
 		sim::handle_outputs(data);
 	}
+
+    // set up logfiles
+	logging::init_logfiles(output::outdir);
 
 	sim::run(data);	
     

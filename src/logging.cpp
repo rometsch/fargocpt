@@ -11,9 +11,12 @@
 #include "simulation.h"
 #include <chrono>
 #include <cmath>
+#include <list>
+#include <fstream>
 
 namespace logging
 {
+
 
 /// print timestamps?
 char time_format = 0;
@@ -29,6 +32,59 @@ char error_level = 0;
 std::chrono::steady_clock::time_point realtime_start;
 std::chrono::steady_clock::time_point realtime_last_log;
 unsigned int n_last_log;
+std::ofstream logfile;
+std::ofstream errfile;
+
+std::list <std::string> header_buffer;
+bool header_buffer_enabled = true;
+
+static void log_to_file(const std::string output, const bool is_err) {
+	if (header_buffer_enabled) {
+		header_buffer.push_back(output);
+		return;
+	}
+	if (is_err) {
+		if (errfile.is_open()) {
+			errfile << output << std::flush;
+		}
+	} else {
+		if (logfile.is_open()) {
+			logfile << output << std::flush;
+		}
+	}
+
+}
+
+void init_logfiles(const std::string outdir) {
+	if (CPU_Master) {
+		ensure_directory_exists(outdir + "logs");
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	std::string logfilename = outdir + "logs/log_" + std::to_string(CPU_Rank) + ".txt";
+	std::string errfilename = outdir + "logs/err_" + std::to_string(CPU_Rank) + ".txt";
+
+	logfile.open(logfilename, std::ios_base::app);
+	errfile.open(errfilename, std::ios_base::app);
+
+	for (auto &line : header_buffer) {
+		logfile << line;
+	}
+	logfile << std::flush;
+	header_buffer.clear();
+	header_buffer_enabled = false;
+
+	MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void finalize() {
+	if (logfile.is_open()) {
+		logfile.close();
+	}
+	if (errfile.is_open()) {
+		errfile.close();
+	}
+}
 
 int vprint(const char *fmt, va_list args)
 {
@@ -56,7 +112,7 @@ int vprint(const char *fmt, va_list args)
 	    time(&ti);
 	    switch (time_format) {
 	    case 1: // print timestamp
-		    std::snprintf(time_buf, 80, "%i", (int)ti);
+		std::snprintf(time_buf, 80, "%i", (int)ti);
 		break;
 	    case 2: // print UTC time
 		ts = gmtime(&ti);
@@ -70,18 +126,31 @@ int vprint(const char *fmt, va_list args)
 	    }
 	}
 
+	const bool is_err = current_level <= error_level;
+
+	// print the passed args to a buffer
 	char buf[1028];
 	int res = std::vsnprintf(buf, 1028, fmt, args);
+
+	const std::string cpu_id = "[" + std::string((int)(std::log(CPU_Number) / std::log(10)), '0') + std::to_string(CPU_Rank) + "]";
+	std::string output = cpu_id + " ";
+	if (time_format) {
+		output += std::string(time_buf) + " ";
+	}
+	output += std::string(buf);
+
+	log_to_file(output, is_err);
+
 	if (!time_format) {
-	    fprintf(current_level <= error_level ? stderr : stdout, "[%0*i] %s",
-			(int)(std::log(CPU_Number) / std::log(10) + 1), CPU_Rank, buf);
+	    fprintf(is_err ? stderr : stdout, "%s", output.c_str());
 	} else {
-	    fprintf(current_level <= error_level ? stderr : stdout,
-			"[%0*i %s] %s", (int)(std::log(CPU_Number) / std::log(10) + 1),
-		    CPU_Rank, time_buf, buf);
+	    fprintf(is_err ? stderr : stdout, "%s", output.c_str());
 	}
 	return res;
     }
+
+
+
 
     return 0;
 }
