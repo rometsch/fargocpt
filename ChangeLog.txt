@@ -22,3 +22,5 @@
 - Radiative Diffusion Tolerance parameter is now an absolute quantity, if only a number is supplied, its multiplied by the Temperature unit, otherwise its parsed.
 - units file in yaml containing all units in the code including code unit value in cgs and the cgs unit symbols
 - constants file in yaml containing all physical constants in the code
+- backtraces are written to a separate file for each process
+- copies of log written to stdout are written to a output and error file in the log directory in the output directory
