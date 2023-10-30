@@ -205,7 +205,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
             break
     
     if not detach:
-        print_wrapper(stdout, "fargo process pid", pid)
+        print_wrapper(stdout, "fargo process pid", pid, flush=True)
 
         def handle_termination_request(signum, frame):
             pfargo = psutil.Process(int(pid))
