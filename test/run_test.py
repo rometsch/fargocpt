@@ -73,7 +73,7 @@ def main():
             run('../../', setupfile, Nthreads, Nprocs, silent=opts.silent)
 
     sys.path = [os.getcwd()] + sys.path
-    from criterion import test
+    from check_results import test
     test(f'../../output/tests/{testname}/out/')
 
 if __name__=='__main__':

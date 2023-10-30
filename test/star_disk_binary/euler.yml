@@ -5,12 +5,12 @@ SecondaryDisk: no
 Sigma0: 2.52103e+08 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: 0.0   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 
-SetSigma0:		No		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass:		0.0		# only used when SetSigma0 = true [default = 0.01]
+SetSigma0:  No  # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
+DiscMass:  0.0  # only used when SetSigma0 = true [default = 0.01]
 
 SigmaFloor: 1.0e-8   # floor surface density in multiples of sigma0 [default = 1e-9]
 DensityFactor: '2.5'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
-AspectRatio: 0.0   # Thickness over Radius in the disk
+AspectRatio: 1e-5   # Thickness over Radius in the disk
 AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 FlaringIndex: 0.00   # Slope of Temperature/radius profile
 
@@ -47,8 +47,8 @@ KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-InnerBoundary: open
-OuterBoundary: open
+InnerBoundary: outflow
+OuterBoundary: outflow
 
 Damping: No     # NO, YES [default = no]
 DampingInnerLimit: 1.0     # Rmin*Limit
@@ -69,7 +69,7 @@ Disk: yes
 Transport: FARGO
 Integrator: Euler  # Integrator type: Euler or LeapFrog
 
-OmegaFrame: 0.0
+OmegaFrame: 0.0 # omega is set withing the special code for the test initialization inside init_blobb_for_star_disk_binary_test in init.cpp
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: Yes   # Calculate incfluence of the disk on the star
 StarDiskBinaryTest: Yes
@@ -79,13 +79,8 @@ InitializeVradialZero: 'Yes'   # Initialize VRadial=0  [default = no]
 
 # Mesh parameters
 
-  #Nrad: '168'   # 512 128		# Radial number of zones
-  #Nsec: '840'   # 1536 384		# Azimuthal number of
-
-  #Nrad: '168'   # 512 128		# Radial number of zones
-  #Nsec: '2320'   # 1536 384		# Azimuthal number of
-Nrad: '84'   # 512 128		# Radial number of zones
-Nsec: '1182'   # 1536 384		# Azimuthal number of
+Nrad: '84'   # 512 128  # Radial number of zones
+Nsec: '1182'   # 1536 384  # Azimuthal number of
 
   #cps: 1
 
@@ -98,11 +93,11 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 # Output control parameters
 
 Ntot: 10     # Total number of time steps
-Ninterm: 10     # Time steps between outputs
+Ninterm: 1     # Time steps between outputs
 DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '1.0e-3'
 CFLmaxVar: '1.1'
-OutputDir: out_euler/
+OutputDir: ../../output/tests/star_disk_binary/euler/
 
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
