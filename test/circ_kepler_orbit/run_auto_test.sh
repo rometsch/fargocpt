@@ -2,5 +2,6 @@
 
 FILEDIR="$(dirname $(realpath $0))"
 cd $FILEDIR
-OMP_NUM_THREADS=1 ../../fargo start nbody_test.yml 1> out.log 2>err.log
+../../run_fargo -nt 1 start nbody_test.yml 1> sim.log 2> sim.err
+./plot_nbody.py
 ./calc_deviation.py

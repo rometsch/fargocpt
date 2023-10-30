@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 def main():
-    t, x, y = np.genfromtxt("output/monitor/bigplanet2.dat", usecols=(6,1,2), unpack=True)
+    t, x, y = np.genfromtxt("../../output/tests/circ_kepler_orbit/out/monitor/planet2.dat", usecols=(7,2,3), unpack=True)
     t = t
 
     OmegaP = np.sqrt(1 + 1e-3)

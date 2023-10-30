@@ -1,3 +1,6 @@
-output*
-out.log
-err.log
+plot.jpg
+backtrace.txt
+make.log
+sim.err
+sim.log
+test.log

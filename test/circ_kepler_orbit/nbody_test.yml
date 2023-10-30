@@ -43,8 +43,8 @@ KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-InnerBoundary: Reflective
-OuterBoundary: Reflective
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 
 Damping: Yes     # NO, YES [default = no]
 DampingInnerLimit: 1.25     # Rmin*Limit
@@ -87,7 +87,7 @@ Ninterm: 2000     # Time steps between outputs
 DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'
 CFLmaxVar: '1.1'
-OutputDir: output/
+OutputDir: ../../output/tests/circ_kepler_orbit/out
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
