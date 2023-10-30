@@ -45,8 +45,8 @@ KlahrSmoothingRadius: '0.4'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-InnerBoundary: Reflective
-OuterBoundary: Reflective
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 
 Damping: No     # NO, YES [default = no]
 DampingInnerLimit: 1.25     # Rmin*Limit
@@ -86,11 +86,11 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 # Output control parameters
 
 Ntot: 1     # Total number of time steps
-Ninterm: 2000     # Time steps between outputs
+Ninterm: 400     # Time steps between outputs
 DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'
 CFLmaxVar: '1.1'
-OutputDir: star_at_center/
+OutputDir: ../../output/tests/planet_orbiting_disk/star_at_center/
 
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
@@ -127,7 +127,7 @@ nbody:
   semi-major axis: 1 au
   mass: 0.0
   accretion efficiency: '0.0'
-  eccentricity: '0.5'
+  eccentricity: 0.0
   radius: 1.0 solRadius
   temperature: 0 K
   phi: 0
