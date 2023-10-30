@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import numpy as np
 import os
+import yaml
 
-def main():
-    t, x, y = np.genfromtxt("../../output/tests/circ_kepler_orbit/out/monitor/planet2.dat", usecols=(7,2,3), unpack=True)
+def test(outdir):
+
+    t, x, y = np.genfromtxt(outdir + "/monitor/planet2.dat", usecols=(7,2,3), unpack=True)
     t = t
 
     OmegaP = np.sqrt(1 + 1e-3)
@@ -27,6 +29,9 @@ def main():
         print(f"SUCCESS: {test_name}")
 
 
-
 if __name__=="__main__":
-    main()
+    with open("testconfig.yml", "r") as f:
+        testconfig = yaml.safe_load(f)
+    testname = testconfig["testname"]
+    outputdir = f"../../output/tests/{testname}/out"
+    test(outputdir)
