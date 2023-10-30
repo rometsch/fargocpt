@@ -62,8 +62,6 @@ MOFPLANET: '0'   # Number of Planet in Planetary System where the massoverflow c
 MOFSIGMA: '0.05'   # Sigma value for normal distribution
 MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
-# PlanetConfig		setups/old/Jup-res.cfg
-
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
@@ -81,21 +79,13 @@ Transport: FARGO
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
-InnerBoundary: RIGID
-OuterBoundary: RIGID
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 
-BoundarySigmainner: zerogradient
-BoundarySigmaouter: zerogradient
-BoundaryEnergyinner: zerogradient
-BoundaryEnergyouter: zerogradient
-BoundaryVradinner: reflective
-BoundaryVradouter: reflective
 BoundaryVazinner: keplerian
 BoundaryVazouter: keplerian
 
 
-DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
-Damping: 'No'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
 DampingTimeFactor: '1.0e-3'
@@ -127,7 +117,7 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 # Output control parameters
 
-OutputDir: output/shocktube_varGamm
+OutputDir: ../../output/tests/shocktube_PVTE/shocktube_varGamm
 Ntot: '1'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 DT: '0.228'   # Time step length. 2PI = 1 orbit
