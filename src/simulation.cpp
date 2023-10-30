@@ -150,9 +150,6 @@ static void step_Euler(t_data &data, const double dt) {
 
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
-	}
-
-	if (parameters::disk_feedback) {
 	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
 
