@@ -6,6 +6,8 @@ from types import SimpleNamespace
 from argparse import ArgumentParser
 from matplotlib import colormaps
 
+import yaml
+
 def main():
 
     test_name = "FLD1D"
@@ -93,14 +95,9 @@ def load_data(outdir):
     data.Ns = np.genfromtxt(f"{outdir}/snapshots/list.txt", dtype=int)
 
     tempunit = 1
-    with open(f"{outdir}/units.dat", "r") as infile:
-        for line in infile:
-            if len(line) > 0 and line[0] == "#":
-                continue
-            line = line.strip().replace("\t", " ")
-            parts = line.split(" ")
-            if parts[0] == "temperature":
-                tempunit = float(parts[1])
+    with open(f"{outdir}/units.yml", "r") as infile:
+        units = yaml.safe_load(infile)
+        tempunit = units["temperature"]["cgs value"]
 
     data.Ts = {n: tempunit*np.fromfile(f"{outdir}/snapshots/{n}/Temperature.dat",
                                        dtype=np.float64).reshape(data.Nr, data.Naz) for n in data.Ns}
