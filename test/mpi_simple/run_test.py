@@ -46,7 +46,6 @@ def run(fargo_path, par_file, Nthreads, Nprocs, silent=False):
 
 def test(outdir):
     identifier = os.path.join(outdir, "snapshots/1/misc.bin")
-    print(identifier)
     if os.path.exists(identifier):
         print(f"SUCCESS: {testname}")
     else:
