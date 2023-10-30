@@ -19,9 +19,13 @@ def test(outdir):
     delta_y = y - y_theo
     diff_y = np.max(np.abs(delta_y))
 
-    test_name = "Circular Kepler Problem"
 
-    threshold = 1e-11
+    with open("testconfig.yml", "r") as f:
+        testconfig = yaml.safe_load(f)
+
+    test_name = testconfig["testname"]
+    threshold = float(testconfig["threshold"])
+
     if max(diff_x, diff_y) > threshold:
         print(f"FAIL: {test_name} at {os.getcwd()}")
         print(f"Diff x = {diff_x}, Diff y = {diff_y}, threshold = {threshold}")
