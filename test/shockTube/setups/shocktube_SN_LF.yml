@@ -81,11 +81,9 @@ RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with 
 Transport: FARGO
 Integrator: Leapfrog
 
-# InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
-InnerBoundary: RIGID
-OuterBoundary: RIGID
-DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 Damping: 'No'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -117,7 +115,7 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 # Output control parameters
 
-OutputDir: output/SN_LF/
+OutputDir: ../../output/tests/shocktube/SN_LF/
 Ntot: '1'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 DT: '0.228'   # Time step length. 2PI = 1 orbit
