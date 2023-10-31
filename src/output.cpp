@@ -797,15 +797,15 @@ void write_2D_info(t_data &data)
 		}
 		
 		info_ofs << name << ":" << std::endl;
-	    info_ofs << indent << "unit: " << unit << std::endl;
+	    info_ofs << indent << "cgs symbols: " << unit << std::endl;
 		info_ofs << indent << "code_to_cgs_factor: "
 			 << g.get_unit()->get_code_to_cgs_factor()
 			 << std::endl;
 
-		if (g.get_unit() != NULL) {
-			info_ofs << indent << "unit_str: " << factor << " " << unit << std::endl;
+		if ((g.get_unit() != NULL) && (unit != "1")) {
+			info_ofs << indent << "unit: " << factor << " " << unit << std::endl;
 		} else {
-			info_ofs << indent << "unit_str: 1" << std::endl;
+			info_ofs << indent << "unit: 1" << std::endl;
 		}
 
 		const bool vec = g.is_vector();
