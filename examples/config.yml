@@ -205,9 +205,9 @@ WriteAtEveryTimestep: Yes   # Write some quantities (planet positions, disk quan
 ## Select variables to write
 
 WriteDensity: Yes   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteVelocity: Yes   # Write velocites. This is needed for restart of simulations. [default = yes]
 WriteEnergy: Yes   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
 WriteTemperature: No   # Write temperature. [default = no]
-WriteVelocity: Yes   # Write velocites. This is needed for restart of simulations. [default = yes]
 WriteSoundspeed: No   # Write sound speed [default = no]
 WriteEccentricityChange: No # Eccentricity change monitor
 WriteEffectiveGamma: No   # 
@@ -216,8 +216,9 @@ WriteMeanMolecularWeight: No   #
 WriteToomre: No   # Write Toomre parameter Q. [default = no]
 WriteQMinus: No   # Write QMinus. [default = no]
 WriteQPlus: No   # Write QPlus. [default = no]
-WriteViscosity: No   # Write Viscosity. [default = no]
 WriteTauCool: No   # Write TauCool. [default = no]
+WriteViscosity: No   # Write Viscosity. [default = no]
+WriteAlpha: No # Alpha viscosity parameter
 WriteKappa: No   # Write Kappa. [default = no]
 WriteAlphaGrav: No   # Write AlphaGrav. [default = no]
 WriteAlphaGravMean: No   # Write AlphaGrav time average. [default = no]
