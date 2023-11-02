@@ -272,6 +272,10 @@ static void read_output_config(t_data &data) {
 	config::cfg.get_flag("WritePressure", false), do_write_1D);
     data[t_data::TOOMRE].set_write(
 	config::cfg.get_flag("WriteToomre", false), do_write_1D);
+    data[t_data::ECCENTRICITY_X].set_write(
+	config::cfg.get_flag("WriteEccentricity", false), do_write_1D);
+    data[t_data::ECCENTRICITY_Y].set_write(
+	config::cfg.get_flag("WriteEccentricity", false), do_write_1D);
     data[t_data::POTENTIAL].set_write(
 	config::cfg.get_flag("WritePotential", false), do_write_1D);
     data[t_data::QPLUS].set_write(
