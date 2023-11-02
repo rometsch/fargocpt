@@ -1,0 +1,4 @@
+testname: shocktube_PVTE
+setupfiles:
+  - shocktube_varGamm.yml
+  - shocktube.yml
