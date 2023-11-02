@@ -1,9 +1,9 @@
 #########
 # Tested with following modules on the BINAC cluster
 #
-# module load numlib/gsl/2.1
-# module load mpi/openmpi/3.1-gnu-7.3
-# module load numlib/fftw/3.3.8-openmpi-3.1-gnu-7.3
+# module load numlib/gsl/2.5-gnu-9.2
+# module load mpi/openmpi/3.1-gnu-9.2
+# module load numlib/fftw/3.3.8-openmpi-3-gnu-9.2
 #
 #########
 cmake_minimum_required(VERSION 3.9)
@@ -22,15 +22,15 @@ FIND_PATH( MPI_INCLUDE_DIR
         mpi.h
         PATHS
         ${MPI_INCLUDE_DIRS}
-        /opt/bwhpc/common/mpi/openmpi/3.1.2-gnu-7.3/include/
+        /opt/bwhpc/common/mpi/openmpi/3.1-gnu-9.2/include/
         DOC "The directory where mpi.h resides")
         set(MPI_INCLUDE_DIRS ${MPI_INCLUDE_DIR})
 # MPI dir to check if we are on BINAC
 string(SUBSTRING ${MPI_INCLUDE_DIR} 0 11 MPI_SUBSTR)
 
 if("${MPI_SUBSTR}" STREQUAL "/opt/bwhpc/")
-        set(BINAC_FFTW_PATH "/opt/bwhpc/common/numlib/fftw/3.3.8-openmpi-3.1-gnu-7.3")
-        set(BINAC_GASL_PATH  "/opt/bwhpc/common/numlib/gsl/2.1")
+        set(BINAC_FFTW_PATH "/opt/bwhpc/common/numlib/fftw/3.3.8-openmpi-3.1-gnu-9.2")
+        set(BINAC_GASL_PATH "/opt/bwhpc/common/numlib/gsl/2.5-gnu-9.2")
         include_directories("${BINAC_FFTW_PATH}/include/" "${BINAC_GSL_PATH}/include/")
         #link_directories("${BINAC_GSL_PATH}/lib/" "${BINAC_FFTW_PATH}/lib/")
 	
