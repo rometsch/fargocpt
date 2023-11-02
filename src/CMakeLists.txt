@@ -57,8 +57,6 @@ find_package(MPI REQUIRED)
 # Include OpenMP
 find_package(OpenMP REQUIRED)
 
-set(CMAKE_CXX_STANDARD 17)
-
 FILE(GLOB UNITS_CPP_SOURCES "units/*.cpp"            )
 FILE(GLOB UNITS_H_SOURCES   "units/*.h" "units/*.hpp")
 ADD_LIBRARY(LocalUnitsLib STATIC ${UNITS_CPP_SOURCES} ${UNITS_H_SOURCES})
