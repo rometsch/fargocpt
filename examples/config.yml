@@ -106,6 +106,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 ThicknessSmoothing: 0.6   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmoothing]
+KlahrSmoothingRadius: 0.3 # Numerical potential smoothing in hill radii
+
+MassAccretionRadius: 0.3 # Radius from which planets accrete mass in hill radii
 
 ## Disk initial conditions
 
@@ -160,6 +163,8 @@ RadiativeDiffusionOmega: 1.5 # SOR omega
 RadiativeDiffusionAutoOmega: NO # use adaptive omega for SOR
 RadiativeDiffusionMaxIterations: 50000
 RadiativeDiffusionTolerance: 1.5
+RadiativeDiffusionInnerBoundary: zerogradient
+RadiativeDiffusionOuterBoundary: zerogradient
 
 Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers, Constant) [default = Lin]
 KappaConst: 2.0e-6   # used for const (kappa = kappa0) and simple opacity (kappa = kappa0 * T**2)
