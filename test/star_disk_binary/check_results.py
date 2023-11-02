@@ -74,4 +74,4 @@ if __name__=="__main__":
     parser.add_argument('Nsnap', type=int, help='Snapshot number.')
     opts = parser.parse_args()
 
-    main("dummy", Nsnap=opts.Nsnap)
+    test("dummy", Nsnap=opts.Nsnap)
