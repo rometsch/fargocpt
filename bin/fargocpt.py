@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, RawTextHelpFormatter
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 import signal
 import sys
 from sys import platform
 from time import sleep
 import os
 import re
-import psutil
 import tempfile
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
@@ -208,8 +207,12 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         print_wrapper(stdout, "fargo process pid", pid, flush=True)
 
         def handle_termination_request(signum, frame):
-            pfargo = psutil.Process(int(pid))
-            pfargo.send_signal(signal.SIGTERM)
+            try:
+                import psutil
+                pfargo = psutil.Process(int(pid))
+                pfargo.send_signal(signal.SIGTERM)
+            except ImportError:
+                run(["kill", "-SIGTERM", f"{int(pid)}"])
 
         signal.signal(signal.SIGINT, handle_termination_request)
         signal.signal(signal.SIGTERM, handle_termination_request)
@@ -259,8 +262,11 @@ def get_num_cores():
         except KeyError:
             pass
     if rv is None:
-        import psutil
-        rv = psutil.cpu_count(logical=False)
+        try:
+            import psutil
+            rv = psutil.cpu_count(logical=False)
+        except ImportError:
+            raise ImportError("Could not load psutil module to automatically determine the number of cpus available. Please specify manually.")
     return rv
 
 def get_numa_nodes_linux():
