@@ -75,9 +75,11 @@ void t_planetary_system::init_system(const std::string &filename)
 		init_planet(planet_cfg);
     }
 
-	for (auto &planet_cfg : planet_configs) {
-		planet_cfg.exit_on_unknown_key();
-    }
+	if (CPU_Master) {
+		for (auto &planet_cfg : planet_configs) {
+			planet_cfg.exit_on_unknown_key();
+		}
+	}
 
     config_consistency_checks();
 
