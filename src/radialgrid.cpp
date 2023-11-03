@@ -142,7 +142,7 @@ void t_radialgrid::write1D() const
 
 	    \param number file number
     */
-    const std::string filename = output::snapshot_dir +  get_name() + ".dat";
+    const std::string filename = output::snapshot_dir + "/" +  get_name() + ".dat";
     write1D(filename, false);
 }
 

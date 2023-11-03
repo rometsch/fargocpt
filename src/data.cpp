@@ -277,19 +277,20 @@ t_data::t_data()
 
     // -- radial grids --
     m_radialgrids[LUMINOSITY_1D].set_scalar(true);
-    m_radialgrids[LUMINOSITY_1D].set_name("1D_Luminosity");
+    m_radialgrids[LUMINOSITY_1D].set_name("Luminosity1D");
     m_radialgrids[LUMINOSITY_1D].set_unit(units::power);
     m_radialgrids[LUMINOSITY_1D].set_do_before_write(
 	&quantities::calculate_radial_luminosity);
 
     m_radialgrids[DISSIPATION_1D].set_scalar(true);
-    m_radialgrids[DISSIPATION_1D].set_name("1D_Dissipation");
+    m_radialgrids[DISSIPATION_1D].set_name("Dissipation1D");
     m_radialgrids[DISSIPATION_1D].set_unit(units::power);
     m_radialgrids[DISSIPATION_1D].set_do_before_write(
 	&quantities::calculate_radial_dissipation);
 
     m_radialgrids[TORQUE_1D].set_scalar(true);
-    m_radialgrids[TORQUE_1D].set_name("1D_torque");
+    /// Name does not matter, is overwritten for each planet at each outbut
+    m_radialgrids[TORQUE_1D].set_name("torque1D");
     m_radialgrids[TORQUE_1D].set_unit(units::torque);
 
     m_radialgrids[SIGMA_1D].set_scalar(true);

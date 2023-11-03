@@ -59,13 +59,18 @@ void handle_outputs(t_data &data) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
-	if (to_write_snapshot && parameters::write_torques) {
-	    output::write_torques(data, need_update_for_output);
-	}
-
 	if (to_write_snapshot) {
 	    need_update_for_output = false;
 		write_snapshot(data);
+	}
+
+	if (to_write_snapshot && parameters::write_torques) {
+		/// Write torques needs to be called after write_snapshots
+		/// because it depends on output::last_snapshot_dir
+		/// which is set inside write_snapshots
+		need_update_for_output = true;
+		output::write_torques(data, need_update_for_output);
+		need_update_for_output = false;
 	}
 
 	if (to_write_monitor) {
