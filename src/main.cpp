@@ -117,6 +117,9 @@ int main(int argc, char *argv[])
 
 
     parameters::summarize_parameters();
+    if (CPU_Master) {
+        config::cfg.exit_on_unknown_key();
+    }
 
     boundary_conditions::init(data);
     init_physics(data);
