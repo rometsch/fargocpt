@@ -59,13 +59,15 @@ void handle_outputs(t_data &data) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
-	if (to_write_snapshot && parameters::write_torques) {
-	    output::write_torques(data, need_update_for_output);
-	}
-
 	if (to_write_snapshot) {
 	    need_update_for_output = false;
 		write_snapshot(data);
+	}
+
+	if (to_write_snapshot && parameters::write_torques) {
+		need_update_for_output = true;
+		output::write_torques(data, need_update_for_output);
+		need_update_for_output = false;
 	}
 
 	if (to_write_monitor) {
