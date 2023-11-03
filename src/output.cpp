@@ -712,7 +712,7 @@ void write_torques(t_data &data, bool force_update)
 	const std::string name =  "torque_planet_1D_" + std::to_string(n_planet);
 	data[t_data::TORQUE_1D].set_name(name.c_str());
 
-	if (force_update == false) {
+	if (force_update) {
 	    data[t_data::TORQUE_1D].write1D();
 	}
     }
