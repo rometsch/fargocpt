@@ -94,8 +94,6 @@ examples/*/
 
 docs/
 
-testconfig.yml
-
 python-venv
 
 Overview.ipynb
