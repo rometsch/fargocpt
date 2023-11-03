@@ -22,4 +22,3 @@ void init_secondary_disk_densities(t_data &data);
 void init_secondary_disk_energies(t_data &data);
 void init_secondary_disk_velocities(t_data &data);
 void renormalize_sigma_and_report(t_data &data);
-void init_blobb_for_star_disk_binary_test(t_data &data);

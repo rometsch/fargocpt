@@ -574,10 +574,6 @@ PlanetOrbitDiskTest:
   default: no
   description: 'Enable test mode for a planet orbiting around just a disk.'
   choices: ''
-StarDiskBinaryTest:
-  default: no
-  description: 'Enable test mode for a star and disk/clump binary system.'
-  choices: ''
 IndirectTermMode:
   default: 0
   description: 'Select the way the indirect term is calculated. You likely want 0. 0: indirect term from rebound with shift; 1: euler with shift (original)'

@@ -1,4 +1,0 @@
-testname: star_disk_binary
-setupfiles:
-  - leapfrog.yml
-  - euler.yml

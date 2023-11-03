@@ -284,8 +284,6 @@ void init_physics(t_data &data)
     } else if (parameters::ShockTube == 2) {
 	init_PVTE_shock_tube_test(data);
 	init_eos_arrays(data);
-	} else if (parameters::star_gasblobb_binary_test) {
-		init_blobb_for_star_disk_binary_test(data);
 	} else {
 	// gas density initialization
 	init_gas_density(data);
@@ -353,11 +351,6 @@ void init_physics(t_data &data)
 	boundary_conditions::copy_initial_values(data);
 
 	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
-	
-	if(parameters::star_gasblobb_binary_test){
-		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
-		data.get_planetary_system().delete_planet(Np-1);
-	}
 
 	boundary_conditions::copy_initial_values(data);
 
@@ -1625,30 +1618,6 @@ void init_gas_velocities(t_data &data)
 	Pair position_of_center = data.get_planetary_system().get_center_of_mass();
 	Pair velocity_of_center = data.get_planetary_system().get_center_of_mass_velocity();
 
-	if(parameters::star_gasblobb_binary_test){
-		// Equations assume m1 + m2 = 1
-		// a=1, e=0 to make everything simpler
-		assert(std::fabs(mass_of_center - 1.0) < 1.0e-12);
-		assert(std::fabs(data.get_planetary_system().get_planet(1).get_semi_major_axis() - 1.0) < 1.0e-12);
-		assert(std::fabs(data.get_planetary_system().get_planet(1).get_eccentricity()) < 1.0e-12);
-
-		// M = m1 + m2
-		// µ = m1 m2 / (m1 + m2)
-		// v1 = L / (a * m1)
-		// L = µ sqrt(G M a)
-		// v1 = (m1 m2 / M) /m1 sqrt(GM/a)
-		// G = 1
-		// M = 1
-		// v1 = m2 sqrt(1/a)
-		// thus we need to square the mass such that v_kepler produces the correct velocities
-
-		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
-		const double M = data.get_planetary_system().get_mass(Np-1);
-
-		mass_of_center = std::pow(M, 2);
-		position_of_center = Pair{0.0, 0.0};
-	}
-
 	const double mass = mass_of_center;
 	const Pair cms = position_of_center;
 	const Pair v_cms = velocity_of_center;
@@ -1941,79 +1910,5 @@ void init_gas_velocities(t_data &data)
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
 		}
 	}
-	}
-}
-
-
-
-void init_blobb_for_star_disk_binary_test(t_data &data)
-{
-
-	logging::print_master(LOG_INFO "Initializing Star-Blobb binary\n");
-
-	// set densities to floor
-	for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-		 ++n_azimuthal) {
-		data[t_data::SIGMA](n_radial, n_azimuthal) = parameters::sigma0 * parameters::sigma_floor;
-	}
-	}
-
-	if (data.get_planetary_system().get_number_of_planets() < 2) {
-	die("Error: cannot initialize secondary disk with only %d nbody objects!\n",
-		data.get_planetary_system().get_number_of_planets());
-	}
-
-	const unsigned int Np = data.get_planetary_system().get_number_of_planets();
-	const auto &planet = data.get_planetary_system().get_planet(Np-1);
-
-	refframe::OmegaFrame = planet.get_omega();
-
-	unsigned int min_nr = 0;
-	unsigned int min_np = 0;
-	double min_dist = RMAX;
-
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
-		const double phi = (double)n_azimuthal * dphi;
-		const double rmed = Rmed[n_radial];
-		const double x = rmed * std::cos(phi) - planet.get_x();
-		const double y = rmed * std::sin(phi) - planet.get_y();
-		const double r = std::sqrt(x * x + y * y);
-
-		if(r < min_dist){
-			min_nr = n_radial;
-			min_np = n_azimuthal;
-			min_dist = r;
-		}
-	}
-	}
-
-	data[t_data::SIGMA](min_nr, min_np) = planet.get_mass() / Surf(min_nr);
-
-	// renormalize sigma
-	double total_mass = quantities::gas_total_mass(data, 2.0 * RMAX);
-	parameters::sigma0 *= planet.get_mass() / total_mass;
-	logging::print_master(
-		LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
-		parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
-		units::surface_density.get_cgs_symbol(), total_mass,
-		planet.get_mass());
-
-	// update density grid
-	for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
-		for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-		 ++n_azimuthal) {
-		const double density = 	data[t_data::SIGMA](n_radial, n_azimuthal) *
-				planet.get_mass() / total_mass;
-		const double density_new = std::max(density, parameters::sigma0 * parameters::sigma_floor);
-		data[t_data::SIGMA](n_radial, n_azimuthal) = density_new;
-		}
 	}
 }

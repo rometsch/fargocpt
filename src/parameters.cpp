@@ -153,7 +153,6 @@ int hydro_integrator;
 int indirect_term_mode;
 
 bool planet_orbit_disk_test;
-bool star_gasblobb_binary_test;
 
 bool do_init_secondary_disk;
 
@@ -777,8 +776,6 @@ void read(const std::string &filename, t_data &data)
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
 	accrete_without_disk_feedback = config::cfg.get_flag("AccreteWithoutDiskFeedback", "no");
 	planet_orbit_disk_test = config::cfg.get_flag("PlanetOrbitDiskTest", "no");
-	star_gasblobb_binary_test = config::cfg.get_flag("StarDiskBinaryTest", "no");
-
 
 	indirect_term_mode = config::cfg.get<int>("IndirectTermMode", INDIRECT_TERM_REBOUND);
 
