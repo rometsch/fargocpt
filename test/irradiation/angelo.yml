@@ -9,14 +9,10 @@ SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
 DensityFactor: '2.0'   # Factor for convertion from surface density to density [default = 2.0]
-ProfileDamping: 'No'   # enable profile damping [default = no]
-ProfileDampingPoint: '40.0'
-ProfileDampingWidth: '0.5'
 EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '0.03'   # Thickness over Radius in the disk
 Temperature0: 352 K
-ExplicitViscosity: 'Yes'
 Viscosity: 5.0e14 cm2/s   # Uniform kinematic viscosity
 AlphaViscosity: '0.0'   # 
 ArtificialViscosity: NONE   # Type of artificial viscosity (none, TW, SN) [default = SN]
@@ -27,7 +23,6 @@ FlaringIndex: '0.3'   # Slope of Temperature/radius profile
 SelfGravity: 'No'   # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 SurfaceCooling: 'thermal'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
@@ -57,7 +52,6 @@ InitializeVradialZero: 'Yes'   # Initialize VRadial=0  [default = no]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
-ThicknessSmoothingAtPlanet: 'No'   # use the scale height at the radius of the planet for thickness smoothing. This flag should always be NO to use the scale height at the gas cell location expect for comparison reasons.
 
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
@@ -69,7 +63,6 @@ Transport: FARGO
 
 InnerBoundary: Reflecting
 OuterBoundary: Reflecting
-DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -111,20 +104,15 @@ WriteTemperature: 'Yes'   # Write temperature. [default = no]
 WriteVelocity: 'Yes'   # Write velocites. This is needed for restart of simulations. [default = yes]
 WriteSoundspeed: 'No'   # Write sound speed [default = no]
 WriteToomre: 'No'   # Write Toomre parameter Q. [default = no]
-WriteRadialToomre: 'No'   # Write Toomre azimthally averaged [default = no]
 WriteQMinus: 'No'   # Write QMinus. [default = no]
 WriteQPlus: 'No'   # Write QPlus. [default = no]
 WriteViscosity: 'No'   # Write Viscosity. [default = no]
 WriteTauCool: 'No'   # Write TauCool. [default = no]
 WriteKappa: 'No'   # Write Kappa. [default = no]
 WriteAlphaGrav: 'No'   # Write AlphaGrav. [default = no]
-WriteRadialAlphaGrav: 'No'   # Write AlphaGrav azimthally averaged . [default = no]
 WriteAlphaGravMean: 'No'   # Write AlphaGrav time average. [default = no]
-WriteRadialAlphaGravMean: 'No'   # Write AlphaGrav time average azimthally averaged . [default = no]
 WriteAlphaReynolds: 'No'   # Write AlphaReynolds [default = no]
-WriteRadialAlphaReynolds: 'No'   # Write AlphaReynolds azimthally averaged  [default = no]
 WriteAlphaReynoldsMean: 'No'   # Write AlphaReynolds time average [default = no]
-WriteRadialAlphaReynoldsMean: 'No'   # Write AlphaReynolds time average azimthally averaged [default = no]
 WriteEccentricity: 'No'   # Write eccentricity. [default = no]
 WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
 WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]

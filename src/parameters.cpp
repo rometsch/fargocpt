@@ -494,7 +494,7 @@ void read(const std::string &filename, t_data &data)
 		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!", filename.c_str());
 	}
 	config::cfg.load_file(filename);
-
+	logging::print_master(LOG_INFO "Using parameter file %s\n", filename.c_str());
     // units
 	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
 	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");

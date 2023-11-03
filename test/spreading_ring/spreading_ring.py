@@ -167,7 +167,7 @@ for i in range(len(dts)):
         axs[i].get_shared_y_axes().join(axs[i],axs[i-1])
     dt = dts[i]
     ax = axs[i]
-    data = test_1D("../../" + parfile[:-4], ax, dt)
+    data = test_1D("../../output/spreading_ring" + parfile[:-4], ax, dt)
 
 
 

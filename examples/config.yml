@@ -49,7 +49,6 @@ nbody:
   accretion method: kley # can also be sinkhole, viscous, kley, or none
   eccentricity: 0
   radius: 0.01 solRadius
-  phi: 0.0
   ramp-up time: 0.0
 
 #

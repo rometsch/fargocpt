@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 
 #include "LowTasks.h"
 
@@ -18,9 +19,11 @@ class Config
   private:
     std::shared_ptr<YAML::Node> m_root;
     std::shared_ptr<YAML::Node> m_default;
+    std::set<std::string> m_visited_keys;
+    std::set<std::string> m_unknown_keys;
 
   public:
-    Config(){};
+    Config();
     Config(const std::string& filename);
     Config(const YAML::Node &n);
     ~Config(){};
@@ -59,6 +62,11 @@ class Config
     void print();
     void print_default();
     void write_default(const std::string &filename);
+
+    void exit_on_unknown_key();
+    std::string visited_keys();
+    std::string unknown_keys();
+    bool are_all_keys_visited();
 };
 
 extern Config cfg;

@@ -61,7 +61,7 @@ class t_planetary_system
     Pair get_center_of_mass_velocity() const;
 
     void init_rebound();
-    void init_system(const std::string &filename);
+    void init_system();
     void config_consistency_checks();
     void init_corotation_body();
     void init_hydro_frame_center();

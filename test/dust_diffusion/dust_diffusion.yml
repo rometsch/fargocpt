@@ -39,8 +39,8 @@ ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessS
 
 Transport: FARGO
 
-InnerBoundary: OPEN	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
-OuterBoundary: OPEN
+InnerBoundary: OUTFLOW	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
+OuterBoundary: OUTFLOW
 Disk: 'No'
 OmegaFrame: '0.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
