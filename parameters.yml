@@ -450,7 +450,7 @@ ThicknessSmoothingSG:
   default: 1.2
   description: 'Smoothing/softening parameter for SG [default = ThicknessSmoothing] TODO: change the default to thickness smoothing'
   choices: ''
-NaiveSmoothing:
+CompatibilitySmoothingPlanetLoc:
   default: no
   description: 'Use the scale height at the planet position for the smoothing length calculation instead of the scaleheight at the cell.'
   choices: 'yes, no'

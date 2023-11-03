@@ -684,7 +684,7 @@ void write_torques(t_data &data, bool force_update)
 		// location
 
 		const double smooth =
-		    compute_smoothing(data, n_radial, n_azimuthal);
+		    compute_smoothing(data, n_radial, n_azimuthal, n_planet);
 		const int cell_id = n_azimuthal + n_radial * ns;
 		const double xc = cell_center_x[cell_id];
 		const double yc = cell_center_y[cell_id];
