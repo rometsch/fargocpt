@@ -435,7 +435,6 @@ static void read_opacity_config(){
 		opacity = opacity_bell;
 	} else if (str == "constant") {
 		opacity = opacity_const_op;
-		// TODO: analyze situation that opacities are in cgs
 	} else if (str == "simple") {
 		opacity = opacity_simple; // see Gennaro D'Angelo et al. 2003
 	} else {
