@@ -630,6 +630,19 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    "A non-vanishing potential smoothing length is required.\n");
     }
 
+	if (parameters::compatibility_no_star_smoothing) {
+		logging::print_master(
+			LOG_WARNING
+			"Compatibility mode: No smoothing of star gravity.\n");
+	}
+	if (parameters::compatibility_smoothing_planetloc) {
+		logging::print_master(
+			LOG_WARNING
+			"Compatibility mode: Smoothing of gravity at planet location instead of cell location.\n");
+	}
+	
+
+
 
 	{
 	/// Read Flux Limiter
