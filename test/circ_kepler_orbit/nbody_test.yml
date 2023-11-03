@@ -12,7 +12,6 @@ AspectRatio: 0.05   # Thickness over Radius in the disk
 AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 FlaringIndex: 0.05   # Slope of Temperature/radius profile
 
-ExplicitViscosity: 'YES'
 Viscosity: '0'   # Uniform kinematic viscosity
 AlphaViscosity: 1e-3
 
@@ -116,7 +115,6 @@ nbody:
   eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
-  phi: 0
   ramp-up time: 0
 
 - name: planet
@@ -126,5 +124,4 @@ nbody:
   eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
-  phi: 0
   ramp-up time: 0

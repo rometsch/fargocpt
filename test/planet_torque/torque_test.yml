@@ -8,7 +8,6 @@ AspectRatio: 0.05   # Thickness over Radius in the disk
 AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 FlaringIndex: 0   # Slope of Temperature/radius profile
 
-ExplicitViscosity: 'YES'
 Viscosity: '0'   # Uniform kinematic viscosity
 AlphaViscosity: 0e-3
 
@@ -36,7 +35,6 @@ ThicknessSmoothing: 0.4   # Softening parameters in disk thickness [default = 0.
 ThicknessSmoothingSG: 0.0   # Softening parameter for SG [default = ThicknessSmoothing]
 CompatibilitySmoothingPlanetLoc : yes
 CompatibilityNoStarSmoothing: yes
-Compatibility : yes
 CorrectDiskSelfgravity: yes
 
 # Boundary layer parameters
@@ -46,14 +44,12 @@ RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with 
 # Boundaries
 OuterBoundary: Reflecting
 InnerBoundary: Reflecting
-BoundaryVAzInner: Balanced
-BoundaryVAzOuter: Balanced
+InnerBoundaryVAzi: Balanced
+OuterBoundaryVAzi: Balanced
 
 Damping: Yes     # NO, YES [default = no]
 DampingInnerLimit: 1.24     # Rmin*Limit
 DampingOuterLimit: 0.84     # Rmax*Limit
-DampingTimeFactorInner: 0.1
-DampingTimeFactorOuter: 0.1
 DampingEnergyInner: none   # Damping of energy at inner boundary, values: none, mean, zero, none [default = none]
 DampingVRadialInner: initial   # Damping of radial velocity at inner boundary, values: none, mean, zero, none [default = none]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity at inner boundary, values: none, mean, zero, none [default = none]
@@ -121,8 +117,6 @@ nbody:
   eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
-  irradiate: n
-  phi: '0.0'
   ramp-up time: 0.0
 - name: planet
   semi-major axis: 1
@@ -131,6 +125,4 @@ nbody:
   eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
-  irradiate: n
-  phi: '0.0'
   ramp-up time: 10

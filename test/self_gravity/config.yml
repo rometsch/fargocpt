@@ -127,7 +127,6 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 ## Viscosity
 
-ExplicitViscosity: yes
 AlphaViscosity: 1.0e-3   # Alpha value for AlphaMode == 0
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]
@@ -139,7 +138,7 @@ EquationOfState: isothermal   # Isothermal Ideal PVTE Polytropic [default = Isot
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 
 ## Radiation transport
-CoolingRadiativeLocal: Yes   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+
 CoolingBetaLocal: No   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: 10
 RadiativeDiffusion: No   # 
