@@ -26,3 +26,4 @@
 - copies of log written to stdout are written to a output and error file in the log directory in the output directory
 - info about 1D output is now in the `info1D.yml` file
 - info about particle data is now in the `infoParticles.yml` file
+- code now exits in case of unknown parameters in the setup file. This help spotting typos.
