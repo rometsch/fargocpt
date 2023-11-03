@@ -724,48 +724,67 @@ void write_1D_info(t_data &data)
 		return;
 	}
 
+	const std::string filename_info = outdir + "info1D.yml";
+	std::ofstream info_ofs(filename_info);
+	info_ofs.precision(std::numeric_limits<double>::max_digits10);
+	info_ofs << "# 1D output variable descriptions" << std::endl;
+	info_ofs << "# version 0.1" << std::endl;
+	info_ofs << "# " << std::endl;
+	info_ofs << "# data is stored in 4 columns: radii | azimuthal average quantity | minimum quantity | maximum quantity" << std::endl;
+	info_ofs << "# to load the azimuthal average, read only every forth double value" << std::endl;
+	info_ofs << "# In python, use: s = avg_slice; data[slice(*[int(i) if len(i) > 0 else None for i in s.split(':')])] to get the data" << std::endl;
+	info_ofs << "# " << std::endl;
+	info_ofs << "# The paths of the files are: snapshots/{Nsnapshot}/{filename}" << std::endl;
+	info_ofs << std::endl;
+
+	const std::string indent = "  ";
+
     for (int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
-	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
+	t_polargrid &g = data[t_data::t_polargrid_type(i)];
 
-	    int Nr = GlobalNRadial;
+	if (g.get_write_1D()) {
 
-	    if (data[t_data::t_polargrid_type(i)].is_vector()) {
-			Nr += 1;
+	    int Nrad = GlobalNRadial;
+	    if (g.is_vector()) {
+			Nrad += 1;
 		}
 
-		const std::string name = std::string(data[t_data::t_polargrid_type(i)].get_name());
-	    const std::string filename_info = outdir + name + "1D.info";
+		const std::string name = g.get_name();
 
-	    std::ofstream info_ofs(filename_info);
-		info_ofs.precision(std::numeric_limits<double>::max_digits10);
-	    info_ofs << "# version 0.1" << std::endl;
-	    info_ofs
-		<< "# " << data[t_data::t_polargrid_type(i)].get_name()
-		<< " 1d radial, in first line alternating: radii | quantity | minimum quantity | maximum quantity"
-		<< std::endl;
-	    info_ofs << "# values at time in timestepCoarse.dat" << std::endl;
-	    info_ofs << "Nr = " << Nr << std::endl;
-	    std::string unit;
-	    if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
-		unit = std::string(data[t_data::t_polargrid_type(i)]
-				       .get_unit()
-				       ->get_cgs_symbol());
-	    } else {
-		unit = "1";
-	    }
-	    info_ofs << "unit = " << unit << std::endl;
-	    if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
-		info_ofs << "code_to_cgs_factor = "
-			 << data[t_data::t_polargrid_type(i)].get_unit()->get_code_to_cgs_factor()
+		std::string unit;
+		double factor = 1.0;
+	    if (g.get_unit() != NULL) {
+			unit = std::string(g.get_unit()->get_cgs_symbol());
+			factor = g.get_unit()->get_code_to_cgs_factor();
+		}
+		
+		info_ofs << name << ":" << std::endl;
+	    info_ofs << indent << "cgs symbols: " << unit << std::endl;
+		info_ofs << indent << "code_to_cgs_factor: "
+			 << g.get_unit()->get_code_to_cgs_factor()
 			 << std::endl;
-	    } else {
-		info_ofs << "code_to_cgs_factor = " << 1.0 << std::endl;
-	    }
-	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
-	    info_ofs.close();
+
+		if ((g.get_unit() != NULL) && (unit != "1")) {
+			info_ofs << indent << "unit: " << factor << " " << unit << std::endl;
+		} else {
+			info_ofs << indent << "unit: 1" << std::endl;
+		}
+
+		info_ofs << indent << "Nrad: " << Nrad << std::endl;
+
+		const std::string filename_pattern = name + "1D.dat";
+		info_ofs << indent << "filename: " << filename_pattern << std::endl;
+		info_ofs << indent << "radii_slice: ::4" << std::endl;
+		info_ofs << indent << "avg_slice: 1::4" << std::endl;
+		info_ofs << indent << "min_slice: 2::4" << std::endl;
+		info_ofs << indent << "max_slice: 3::4" << std::endl;
+		
+	    info_ofs << indent << "bigendian: " << is_big_endian() << std::endl;
+		info_ofs << std::endl;
 
 	}
     }
+	info_ofs.close();
 }
 
 
