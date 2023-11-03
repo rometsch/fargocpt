@@ -23,11 +23,11 @@
 #include "../parameters.h"
 #include "../units.h"
 #include "../util.h"
+#include "../pvte_law.h"
+#include "../quantities.h"
 #include "viscosity.h"
-#include "pvte_law.h"
 #include <cassert>
 #include <cmath>
-#include "../quantities.h"
 
 namespace viscosity
 {

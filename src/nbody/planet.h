@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "../types.h"
 #include <string>
 
 #define ACCRETION_TYPE_KLEY 0
