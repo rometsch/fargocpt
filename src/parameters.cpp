@@ -42,7 +42,7 @@ double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
 bool CartesianParticles;
-bool ParticlesInCartesian;
+bool ParticleGravityCalcInCartesian;
 
 
 double DT;
@@ -891,7 +891,7 @@ void read(const std::string &filename, t_data &data)
 	// exponential midpoint integrator only implemented in polar
 	// coordiantes, but forces can be calculated in cartesian coordinates
 	CartesianParticles = false;
-	ParticlesInCartesian = true;
+	ParticleGravityCalcInCartesian = true;
     }
 
     if (particle_disk_gravity_enabled && (!self_gravity)) {

@@ -53,7 +53,33 @@ def construct_dust_trajectories(datadir):
     return particles
 
 
+
+
 def get_particles(datadir, N):
+
+    # import yaml
+    # outdir = 'output/out'
+    # with open(outdir + '/infoParticles.yml', 'r') as infile:
+    #     infoParticles = yaml.safe_load(infile)
+
+    # N = 0
+    # filename = f'output/out/snapshots/{N}/particles.dat'
+
+    # keys = [k for k in infoParticles['variables'].keys()]
+    # types = []
+    # for key, info in infoParticles['variables'].items():
+    #     dtype = info['type']
+    #     if dtype == 'double':
+    #         types.append((key, np.dtype(np.dtype('f8'))))
+    #     elif dtype == 'unsigned long':
+    #         types.append((key, 'u8'))
+    #     else:
+    #         raise ValueError(f'Unknown type {dtype}')
+
+    # res = np.fromfile(filename, dtype=types)
+
+
+
     filename = os.path.join(datadir, f"snapshots/{N}/particles.dat")
     res = np.fromfile(
         filename, dtype=[('Id', np.dtype(int)), ('Values', np.dtype(float), 11)])

@@ -376,7 +376,7 @@ static void init_particle_timestep(t_data &data)
     }
 }
 
-static void correct_for_self_gravity(const unsigned int i)
+static void correct_for_self_gravity(const unsigned long i)
 {
 
     const double r = particles[i].get_distance_to_star();
@@ -426,12 +426,12 @@ static void correct_for_self_gravity(const unsigned int i)
     particles[i].phi_ddot = 0.0;
 }
 
-static void insert_particle(const unsigned int i, const unsigned int id_offset, const double semi_major_axis, 
+static void insert_particle(const unsigned long i, const unsigned int id_offset, const double semi_major_axis, 
 	const double phi, const double eccentricity) {
 
     particles[i].radius = parameters::particle_radius;
 
-    const unsigned int particle_type = i % parameters::particle_species_number;
+    const unsigned long particle_type = i % parameters::particle_species_number;
     particles[i].radius *=
 	std::pow(parameters::particle_radius_increase_factor, particle_type);
 
@@ -478,7 +478,7 @@ static void insert_particle(const unsigned int i, const unsigned int id_offset, 
 }
 
 static void
-init_particle(const unsigned int &i, const unsigned int &id_offset,
+init_particle(const unsigned long &i, const unsigned int &id_offset,
 	      std::mt19937 &generator,
 	      std::uniform_real_distribution<double> &dis_one,
 	      std::uniform_real_distribution<double> &dis_twoPi,
@@ -579,7 +579,7 @@ void init(t_data &data)
 	const int mpi_particle_count = 12;
     int mpi_particle_lengths[mpi_particle_count] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     MPI_Aint mpi_particle_offsets[mpi_particle_count];
-    MPI_Datatype mpi_particle_types[mpi_particle_count] = {MPI_UNSIGNED, MPI_DOUBLE, MPI_DOUBLE,
+    MPI_Datatype mpi_particle_types[mpi_particle_count] = {MPI_UNSIGNED_LONG, MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE};
@@ -634,6 +634,8 @@ void init(t_data &data)
 	if (parameters::particle_dust_diffusion) {
 		dust_diffusion::init(data);
 	}
+
+	write_info();
 
 }
 
@@ -1467,7 +1469,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 	double grav_r_ddot;
 	double minus_grav_l_dot;
-	if (parameters::ParticlesInCartesian) {
+	if (parameters::ParticleGravityCalcInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
 		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
 	} else {
@@ -1520,7 +1522,6 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 {
 
     if (parameters::CartesianParticles) {
-		die("Somethings wrong with integrating particles with the explicit method and cartesian calculation of forces, no clue what. Find it out!\n");
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
@@ -2037,6 +2038,164 @@ void write()
     // close file
     MPI_File_close(&fh);
 }
+
+
+void write_info()
+{
+	if (!CPU_Master) {
+		return;
+	}
+
+	const std::string filename_info = output::outdir + "infoParticles.yml";
+	std::ofstream of(filename_info);
+
+	of.precision(std::numeric_limits<double>::max_digits10);
+	of << "# particle output description" << std::endl;
+	of << "# version 0.1" << std::endl << std::endl;
+	of << std::endl;
+
+	const std::string indent = "  ";
+
+	of << "coordinate system: " << (parameters::CartesianParticles ? "cartesian" : "polar") << std::endl;
+	of << std::endl;
+
+	of << "variables:" << std::endl;
+	of << indent << "id:" << std::endl;
+	of << indent << indent << "description: particle id" << std::endl;
+	of << indent << indent << "unit: 1" << std::endl;
+	of << indent << indent << "type: unsigned long" << std::endl;
+	of << indent << indent << "offset bytes: 0" << std::endl; 
+	of << indent << indent << "size bytes: " << sizeof(unsigned long) << std::endl;
+	of << std::endl;
+
+
+
+	if (parameters::CartesianParticles) {
+		of << indent << "x:" << std::endl;
+		of << indent << indent << "description: x coordinate" << std::endl;
+		of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "y:" << std::endl;
+		of << indent << indent << "description: y coordinate" << std::endl;
+		of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "vx:" << std::endl;
+		of << indent << indent << "description: x velocity" << std::endl;
+		of << indent << indent << "unit: " << units::velocity.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 2 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "vy:" << std::endl;
+		of << indent << indent << "description: y velocity" << std::endl;
+		of << indent << indent << "unit: " << units::velocity.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 3 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+	} else {
+		of << indent << "r:" << std::endl;
+		of << indent << indent << "description: radius" << std::endl;
+		of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "phi:" << std::endl;
+		of << indent << indent << "description: azimuthal angle" << std::endl;
+		of << indent << indent << "unit: rad" << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "r_dot:" << std::endl;
+		of << indent << indent << "description: radial velocity" << std::endl;
+		of << indent << indent << "unit: " << units::velocity.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 2 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "phi_dot:" << std::endl;
+		of << indent << indent << "description: angular velocity" << std::endl;
+		of << indent << indent << "unit: rad/s" << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 3 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+	}
+
+
+	of << indent << "r_ddot:" << std::endl;
+	of << indent << indent << "description: radial acceleration" << std::endl;
+	of << indent << indent << "unit: " << units::acceleration.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 4 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "phi_ddot:" << std::endl;
+	of << indent << indent << "description: angular acceleration" << std::endl;
+	of << indent << indent << "unit: rad/s^2" << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 5 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+	
+	of << indent << "mass:" << std::endl;
+	of << indent << indent << "description: mass" << std::endl;
+	of << indent << indent << "unit: " << units::mass.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 6 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "size:" << std::endl;
+	of << indent << indent << "description: radius of particle" << std::endl;
+	of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 7 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "timestep:" << std::endl;
+	of << indent << indent << "description: timestep for adaptive integrator" << std::endl;
+	of << indent << indent << "unit: " << units::time.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 8 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "facold:" << std::endl;
+	of << indent << indent << "description: last error for timestep estimaton" << std::endl;
+	of << indent << indent << "unit: 1" << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 9 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "stokes:" << std::endl;
+	of << indent << indent << "description: stokes number" << std::endl;
+	of << indent << indent << "unit: 1" << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 10 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of.close();
+}
+
 
 void rotate(const double angle)
 {

@@ -8,16 +8,10 @@
 namespace dust_diffusion
 {
 
-const bool save_state = false;
-const bool print_particle_info = false;
-
 void init(t_data &data)
-{ /* Do nothing for the moment. */
+{
     compute_gas_diffusion_coefficient(data);
     compute_gas_density_radial_derivative(data);
-    if (save_state) {
-    std::filesystem::create_directory(output::outdir + "/" + "particles" + "/");
-    }
 }
 
 /* Apply dust diffusion by modelling it as a Brownian motion.
@@ -96,47 +90,7 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     const double corr_2d = r * ( std::sqrt(1 + std::pow(sigma*snv/r,2)) - 1 );
     const double deltar = mean + snv * sigma + corr_2d;
 
-    if (print_particle_info) {
-	printf("\n[%d] r = %.3e", CPU_Rank, r);
-	printf("\n[%d] phi = %.3e", CPU_Rank, phi);
-	printf("\n[%d] rho = %.3e", CPU_Rank, rho);
-	printf("\n[%d] Dg = %.3e", CPU_Rank, Dg);
-	printf("\n[%d] Dd = %.3e", CPU_Rank, Dd);
-	printf("\n[%d] Sc = %.3e", CPU_Rank, Sc);
-	printf("\n[%d] St = %.3e", CPU_Rank, St);
-	printf("\n[%d] mean = %.3e", CPU_Rank, mean);
-	printf("\n[%d] sigma = %.3e", CPU_Rank, sigma);
-	printf("\n[%d] dt = %.3e", CPU_Rank, dt);
-    printf("\n[%d] deltar = %.3e", CPU_Rank, deltar);
-    printf("\n[%d] drho_dr = %.3e", CPU_Rank, drho_dr);
-    printf("\n[%d] n_rad = %d", CPU_Rank, n_rad);
-    printf("\n[%d] n_az = %d", CPU_Rank, n_az);
-    printf("\n[%d] cell_size = %.3e", CPU_Rank, Rsup[n_rad] - Rinf[n_rad]);
-    printf("\n[%d] cartesian particles = %d", CPU_Rank, parameters::CartesianParticles);
-    }
 
-
-    if (save_state) {
-    std::ofstream out(output::outdir + "/" + "particles" + "/" + std::to_string(particle.id));
-	out << "r : " << r << std::endl;
-	out << "phi : " << phi << std::endl;
-	out << "rho : " << rho << std::endl;
-	out << "Dg : " << Dg << std::endl;
-	out << "Dd : " << Dd << std::endl;
-	out << "Sc : " << Sc << std::endl;
-	out << "St : " << St << std::endl;
-	out << "mean : " << mean << std::endl;
-	out << "sigma : " << sigma << std::endl;
-    out << "snv : " << snv << std::endl;
-    out << "OmegaK : " << OmegaK << std::endl;
-    out << "corr_2d : " << corr_2d << std::endl;
-	out << "dt : " << dt << std::endl;
-    out << "deltar : " << deltar << std::endl;
-    out << "drho_dr : " << drho_dr << std::endl;
-    out << "n_rad : " << n_rad << std::endl;
-    out << "n_az : " << n_az << std::endl;
-    out << "cell_size : " << Rsup[n_rad] - Rinf[n_rad] << std::endl;
-    }
 
     return deltar;
 }

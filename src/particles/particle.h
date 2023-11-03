@@ -8,7 +8,7 @@ class t_particle
 {
   public:
     /// id (e.g. for tracking)
-    unsigned int id;
+    unsigned long id;
     /// r position
     double r;
     /// phi position
