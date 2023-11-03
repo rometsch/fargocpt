@@ -35,6 +35,8 @@ SecondaryDisk: 'No'
 ThicknessSmoothing: 0.4   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: 0.0   # Softening parameter for SG [default = ThicknessSmoothing]
 CompatibilitySmoothingPlanetLoc : yes
+CompatibilityNoStarSmoothing: yes
+Compatibility : yes
 CorrectDiskSelfgravity: yes
 
 # Boundary layer parameters
