@@ -139,35 +139,4 @@ double compute_smoothing_iso_planet(const double Rp)
     return smooth;
 }
 
-///
-/// \brief compute_smoothing_r
-/// compute smoothing length at the bottom interface of the cell where v_radial
-/// is defined
-///
-double compute_smoothing_r(t_data &data, const int n_radial,
-			   const int n_azimuthal)
-{
-    const double scale_height =
-	0.5 * (data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
-	       data[t_data::SCALE_HEIGHT](n_radial - 1, n_azimuthal));
-    const double smooth = parameters::thickness_smoothing * scale_height;
-    return smooth;
-}
 
-///
-/// \brief compute_smoothing_az
-/// compute smoothing length at the left interface of the cell where v_azimuthal
-/// is defined
-///
-double compute_smoothing_az(t_data &data, const int n_radial,
-			    const int n_azimuthal)
-{
-    int prev_n_az = n_azimuthal == 0
-			? data[t_data::SCALE_HEIGHT].get_max_azimuthal()
-			: n_azimuthal - 1;
-    const double scale_height =
-	0.5 * (data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) +
-	       data[t_data::SCALE_HEIGHT](n_radial, prev_n_az));
-    const double smooth = parameters::thickness_smoothing * scale_height;
-    return smooth;
-}
