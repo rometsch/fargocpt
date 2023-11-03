@@ -1467,7 +1467,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 	double grav_r_ddot;
 	double minus_grav_l_dot;
-	if (parameters::ParticlesInCartesian) {
+	if (parameters::ParticleGravityCalcInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
 		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
 	} else {

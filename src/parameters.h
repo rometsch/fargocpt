@@ -19,7 +19,8 @@ extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
 extern bool CartesianParticles;
-extern bool ParticlesInCartesian;
+// Compute the gravity acceleration acting on the particles in Cartesian coordinates.
+extern bool ParticleGravityCalcInCartesian;
 
 extern double DT;
 extern unsigned int NINTERM;
