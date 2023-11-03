@@ -193,7 +193,6 @@ extern double alphaHot;
 extern bool disk_feedback;
 extern bool accrete_without_disk_feedback;
 extern bool planet_orbit_disk_test;
-extern bool star_gasblobb_binary_test;
 
 extern bool fast_transport;
 extern int hydro_integrator;
