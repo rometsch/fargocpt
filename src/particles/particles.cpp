@@ -376,7 +376,7 @@ static void init_particle_timestep(t_data &data)
     }
 }
 
-static void correct_for_self_gravity(const unsigned int i)
+static void correct_for_self_gravity(const unsigned long i)
 {
 
     const double r = particles[i].get_distance_to_star();
@@ -426,12 +426,12 @@ static void correct_for_self_gravity(const unsigned int i)
     particles[i].phi_ddot = 0.0;
 }
 
-static void insert_particle(const unsigned int i, const unsigned int id_offset, const double semi_major_axis, 
+static void insert_particle(const unsigned long i, const unsigned int id_offset, const double semi_major_axis, 
 	const double phi, const double eccentricity) {
 
     particles[i].radius = parameters::particle_radius;
 
-    const unsigned int particle_type = i % parameters::particle_species_number;
+    const unsigned long particle_type = i % parameters::particle_species_number;
     particles[i].radius *=
 	std::pow(parameters::particle_radius_increase_factor, particle_type);
 
@@ -478,7 +478,7 @@ static void insert_particle(const unsigned int i, const unsigned int id_offset, 
 }
 
 static void
-init_particle(const unsigned int &i, const unsigned int &id_offset,
+init_particle(const unsigned long &i, const unsigned int &id_offset,
 	      std::mt19937 &generator,
 	      std::uniform_real_distribution<double> &dis_one,
 	      std::uniform_real_distribution<double> &dis_twoPi,
@@ -579,7 +579,7 @@ void init(t_data &data)
 	const int mpi_particle_count = 12;
     int mpi_particle_lengths[mpi_particle_count] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     MPI_Aint mpi_particle_offsets[mpi_particle_count];
-    MPI_Datatype mpi_particle_types[mpi_particle_count] = {MPI_UNSIGNED, MPI_DOUBLE, MPI_DOUBLE,
+    MPI_Datatype mpi_particle_types[mpi_particle_count] = {MPI_UNSIGNED_LONG, MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE};
