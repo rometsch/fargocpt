@@ -47,7 +47,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
 		double smooth;
-		if (parameters::naive_smoothing) {
+		if (parameters::compatibility_smoothing_planetloc) {
 			smooth = compute_smoothing_iso_planet(a);
 		} else {
 			smooth = compute_smoothing(data, n_rad, n_az);

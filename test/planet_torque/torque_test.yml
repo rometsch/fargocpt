@@ -34,7 +34,7 @@ mu: 2.35   # mean molecular weight [default=1.0]
 SecondaryDisk: 'No'
 ThicknessSmoothing: 0.4   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: 0.0   # Softening parameter for SG [default = ThicknessSmoothing]
-NaiveSmoothing : yes
+CompatibilitySmoothingPlanetLoc : yes
 CorrectDiskSelfgravity: yes
 
 # Boundary layer parameters

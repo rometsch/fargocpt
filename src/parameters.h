@@ -172,7 +172,7 @@ extern bool artificial_viscosity_dissipation;
 
 extern double thickness_smoothing;
 extern double thickness_smoothing_sg;
-extern bool naive_smoothing;
+extern bool compatibility_smoothing_planetloc;
 extern bool correct_disk_selfgravity;
 
 
