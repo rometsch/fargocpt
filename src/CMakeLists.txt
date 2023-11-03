@@ -73,17 +73,17 @@ endif()
 ############ Build Units ################################################################################################################
 FILE(GLOB UNITS_CPP_SOURCES "units/*.cpp"            )
 FILE(GLOB UNITS_H_SOURCES   "units/*.h" "units/*.hpp")
-ADD_LIBRARY(LocalUnitsLib STATIC ${UNITS_CPP_SOURCES} ${UNITS_H_SOURCES})
-target_compile_options(LocalUnitsLib PRIVATE -fPIC -O3 -Wall -Wextra -Wshadow -Wno-long-long -pedantic -pedantic-errors -std=gnu++17)
+ADD_LIBRARY(Units STATIC ${UNITS_CPP_SOURCES} ${UNITS_H_SOURCES})
+target_compile_options(Units PRIVATE -fPIC -O3 -Wall -Wextra -Wshadow -Wno-long-long -pedantic -pedantic-errors -std=gnu++17)
 ############ END Buld Units #############################################################################################################
 
 ############ Build Rebound ################################################################################################################
 FILE(GLOB REB_CPP_SOURCES "rebound/*.c")
 FILE(GLOB REB_H_SOURCES   "rebound/*.h")
-ADD_LIBRARY(LocalReboundLib STATIC ${REB_CPP_SOURCES} ${REB_H_SOURCES})
-target_compile_options(LocalReboundLib PRIVATE -std=c99 -fPIC -Wpointer-arith -O3 -Wall -Wno-unused-result -lfftw3 -fopenmp)
-target_compile_definitions(LocalReboundLib PRIVATE _GNU_SOURCE OPENMP FFTW)
-target_link_libraries(LocalReboundLib -lm -lrt)
+ADD_LIBRARY(Rebound STATIC ${REB_CPP_SOURCES} ${REB_H_SOURCES})
+target_compile_options(Rebound PRIVATE -std=c99 -fPIC -Wpointer-arith -O3 -Wall -Wno-unused-result -lfftw3 -fopenmp)
+target_compile_definitions(Rebound PRIVATE _GNU_SOURCE OPENMP FFTW)
+target_link_libraries(Rebound -lm -lrt)
 ############ End Build Rebound ############################################################################################################
 
 
@@ -91,10 +91,10 @@ target_link_libraries(LocalReboundLib -lm -lrt)
 FILE(GLOB YAML_CPP_SOURCES "yaml-cpp/*.cpp" "yaml-cpp/contrib/*.cpp" "yaml-cpp/node/*.cpp" "yaml-cpp/node/detail/*.cpp")
 FILE(GLOB YAML_H_SOURCES   "yaml-cpp/*.h" "yaml-cpp/contrib/*.h" "yaml-cpp/node/*.h" "yaml-cpp/node/detail/*.h")
 
-ADD_LIBRARY(LocalYamlLib STATIC ${YAML_CPP_SOURCES} ${YAML_H_SOURCES})
-target_compile_options(LocalYamlLib PRIVATE -fPIC -O3 -Wall -Wextra -Wshadow -Weffc++ -Wno-long-long -pedantic -pedantic-errors -std=gnu++11)
-target_compile_definitions(LocalYamlLib PRIVATE YAML_CPP_STATIC_DEFINE)
-target_include_directories(LocalYamlLib PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+ADD_LIBRARY(YamlCpp STATIC ${YAML_CPP_SOURCES} ${YAML_H_SOURCES})
+target_compile_options(YamlCpp PRIVATE -fPIC -O3 -Wall -Wextra -Wshadow -Weffc++ -Wno-long-long -pedantic -pedantic-errors -std=gnu++11)
+target_compile_definitions(YamlCpp PRIVATE YAML_CPP_STATIC_DEFINE)
+target_include_directories(YamlCpp PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 FILE(GLOB CPP_SOURCES "./*.cpp" "boundary_conditions/*.cpp" "nbody/*.cpp" "particles/*.cpp" "random/*.cpp"            "viscosity/*.cpp")
 FILE(GLOB H_SOURCES   "./*.h"   "boundary_conditions/*.h"   "nbody/*.h"   "particles/*.h"   "random/.h" "random/.hpp" "viscosity/*.h"  )
 ############ END Build Yaml-cpp ###########################################################################################################
@@ -114,5 +114,5 @@ if (UNIX)
 endif (UNIX)
 target_compile_definitions(${PROJECT_NAME} PRIVATE OMPI_SKIP_MPICXX NDEBUG _TRAP_FPE _GNU_SOURCE OPENMP)
 
-target_link_libraries(${PROJECT_NAME} -lm ${MPI_CXX_LIBRARIES} ${FFTW3_LIBRARY} ${FFTW3_MPI_LIBRARY} ${FFTW3_OMP_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY} OpenMP::OpenMP_CXX LocalReboundLib LocalUnitsLib LocalYamlLib)
+target_link_libraries(${PROJECT_NAME} -lm ${MPI_CXX_LIBRARIES} ${FFTW3_LIBRARY} ${FFTW3_MPI_LIBRARY} ${FFTW3_OMP_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY} OpenMP::OpenMP_CXX Rebound Units YamlCpp)
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
