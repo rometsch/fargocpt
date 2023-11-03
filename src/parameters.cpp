@@ -187,6 +187,7 @@ t_opacity opacity;
 double thickness_smoothing;
 double thickness_smoothing_sg;
 bool compatibility_smoothing_planetloc;
+bool compatibility_no_star_smoothing;
 bool correct_disk_selfgravity;
 
 bool initialize_pure_keplerian;
@@ -715,6 +716,7 @@ void read(const std::string &filename, t_data &data)
     thickness_smoothing_sg = config::cfg.get<double>(
 	"ThicknessSmoothingSG", 1.2); // recommended value from Müller, Kley & Meru 2012
 	compatibility_smoothing_planetloc = config::cfg.get_flag("CompatibilitySmoothingPlanetLoc", "no");
+	compatibility_no_star_smoothing = config::cfg.get_flag("CompatibilityNoStarSmoothing", "no");
 
 	correct_disk_selfgravity = config::cfg.get_flag("CorrectDiskSelfgravity", self_gravity ? "no" : "yes");
     do_init_secondary_disk =

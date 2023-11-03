@@ -172,7 +172,11 @@ extern bool artificial_viscosity_dissipation;
 
 extern double thickness_smoothing;
 extern double thickness_smoothing_sg;
+// evalutate the smoothing length at the planet location for compatibility with literature results
 extern bool compatibility_smoothing_planetloc;
+// do not smooth the gravity from the central star for compatibility with literature results
+extern bool compatibility_no_star_smoothing;
+// substract the azimuthal average of the density in the calculation of torques on the planets to be consistent with no self-gravity of the disk
 extern bool correct_disk_selfgravity;
 
 
