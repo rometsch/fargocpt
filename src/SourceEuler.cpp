@@ -586,7 +586,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 		const double HoverR = data[t_data::ASPECTRATIO](nrad, naz);
 		const double sigma = constants::sigma.get_code_value();
 		const double tau_eff = data[t_data::TAU_EFF](nrad, naz);
-		const double eps = 0.5; // TODO: add a parameter
+		const double eps = 0.5;
 		// choose according to Chiang & Goldreich (1997)
 		const double dlogH_dlogr = 9.0 / 7.0;
 		
