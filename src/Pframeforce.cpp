@@ -62,7 +62,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double smooth = compute_smoothing(data, n_rad, n_az);
+		const double smooth = compute_smoothing(data, n_rad, n_az, k);
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
@@ -136,11 +136,11 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
 	    const double x = r * std::cos(phi);
 	    const double y = r * std::sin(phi);
-	    const double smooth = compute_smoothing_r(data, n_rad, n_az);
 
 	    pair ar = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
-
+		
+	    const double smooth = compute_smoothing_r(data, n_rad, n_az, k);
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
@@ -224,11 +224,11 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
 	    const double x = r * std::cos(phi);
 	    const double y = r * std::sin(phi);
-	    const double smooth = compute_smoothing_az(data, n_rad, n_az);
 
 	    pair aphi = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
+	    const double smooth = compute_smoothing_az(data, n_rad, n_az, k);
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
@@ -335,8 +335,7 @@ void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	const double l1 = planet.get_dimensionless_roche_radius() *
-		 planet.get_distance_to_primary();
+
 
 	if(parameters::planet_orbit_disk_test && k == 0){
 		planet.set_disk_on_planet_acceleration(Pair{0.0, 0.0});
@@ -347,8 +346,7 @@ void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
 		ComputeAverageDensity(data);
 	}
 
-	accel =
-	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
+	accel = ComputeDiskOnPlanetAccel(data, k);
 	planet.set_disk_on_planet_acceleration(accel);
 
 	const double torque =
