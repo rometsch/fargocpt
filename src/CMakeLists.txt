@@ -75,6 +75,7 @@ FILE(GLOB UNITS_CPP_SOURCES "units/*.cpp"            )
 FILE(GLOB UNITS_H_SOURCES   "units/*.h" "units/*.hpp")
 ADD_LIBRARY(Units STATIC ${UNITS_CPP_SOURCES} ${UNITS_H_SOURCES})
 target_compile_options(Units PRIVATE -fPIC -O3 -Wall -Wextra -Wshadow -Wno-long-long -pedantic -pedantic-errors -std=gnu++17)
+target_compile_definitions(Units PRIVATE YAML_CPP_STATIC_DEFINE)
 ############ END Buld Units #############################################################################################################
 
 ############ Build Rebound ################################################################################################################
