@@ -357,7 +357,8 @@ static void momentum_update_radial(t_data &data, const double dt) {
 	    if (parameters::body_force_from_potential) {
 			gradphi = (Phi(nr, naz) - Phi(nr-1, naz)) * InvDiffRmed[nr];
 	    } else {
-			gradphi = -data[t_data::ACCEL_RADIAL](nr, naz);
+			gradphi = - (data[t_data::ACCEL_RADIAL](nr, naz)
+				    + data[t_data::ACCEL_RADIAL](nr-1, naz)) * 0.5;
 	    }
 
 		const unsigned int naz_next = (naz == Nphi-1 ? 0 : naz + 1);
@@ -416,7 +417,8 @@ static void momentum_update_azimuthal(t_data &data, const double dt) {
 			   data[t_data::POTENTIAL](nr, naz_prev)) *
 			  invdxtheta;
 	    } else {
-		gradphi = -data[t_data::ACCEL_AZIMUTHAL](nr, naz);
+		gradphi = -(data[t_data::ACCEL_AZIMUTHAL](nr, naz) +
+			   data[t_data::ACCEL_AZIMUTHAL](nr, naz_prev)) * 0.5;
 	    }
 
 	    // add all terms to new v_azimuthal: v_azimuthal_new = v_azimuthal +
