@@ -183,33 +183,10 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 			smooth_factor_klahr;
 	    }
 
+	    //  x/r = cos(phi)
+	    //  y/r = sin(phi)
 	    const double accel_r  = (x * accel_cart.x + y * accel_cart.y)/r;
 	    const double accel_az = (x * accel_cart.y - y * accel_cart.x)/r;
-
-	    /*
-	    /// DEBUG, by comparing with accel_r from potential
-	    const double gradphi = (data[t_data::POTENTIAL](n_rad, n_az) -
-		       data[t_data::POTENTIAL](n_rad - 1, n_az)) *
-		      InvDiffRmed[n_rad];
-
-	    if(accel_r != 0.0){
-	    const double rel_err = std::fabs((gradphi + accel_r)/accel_r);
-
-	    const double dx = x - xpl[1];
-	    const double dy = y - ypl[1];
-	    const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-
-	    double diff_phi = phi -
-	    data.get_planetary_system().get_planet(1).get_phi(); const double
-	    diff_r = r - data.get_planetary_system().get_planet(1).get_r();
-	    diff_phi = std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI));
-
-	    if(rel_err > 1.e-1){
-	    printf("(%d %d)	accel_r r	= (%.5e	%.5e)	%.5e	(%.5e
-	    %.5e)\n", n_rad, n_az, gradphi, -accel_r, rel_err, diff_r, diff_phi);
-	    }}
-	    /// END DEBUG
-	    */
 
 	    acc_r[cell_id] = accel_r;
 	    acc_az[cell_id] = accel_az;
