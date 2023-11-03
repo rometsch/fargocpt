@@ -8,9 +8,6 @@
 #
 #########
 cmake_minimum_required(VERSION 3.1)
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release)
-endif()
 
 PROJECT(fargocpt)
 
@@ -109,15 +106,13 @@ add_executable(${PROJECT_NAME} ./main.cpp ${CPP_SOURCES} ${H_SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${MPI_CXX_INCLUDE_PATH})
 
 
-
-
-target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wmissing-declarations -Werror=redundant-decls -Werror=format-security -Wno-unknown-pragmas)
-target_compile_options(${PROJECT_NAME} PUBLIC -std=c++17 -Ofast -march=native -flto=auto -fopenmp)
+target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wmissing-declarations -Werror=redundant-decls -Werror=format-security -Wno-unknown-pragmas)
+target_compile_options(${PROJECT_NAME} PRIVATE -std=c++17 -Ofast -march=native -flto=auto -fopenmp)
 # add symbols for backtrace
 if (UNIX)
-    target_compile_options(${PROJECT_NAME} PUBLIC -rdynamic)
+    target_compile_options(${PROJECT_NAME} PRIVATE -rdynamic)
 endif (UNIX)
-target_compile_definitions(${PROJECT_NAME} PUBLIC OMPI_SKIP_MPICXX NDEBUG _TRAP_FPE _GNU_SOURCE OPENMP)
+target_compile_definitions(${PROJECT_NAME} PRIVATE OMPI_SKIP_MPICXX NDEBUG _TRAP_FPE _GNU_SOURCE OPENMP)
 
 target_link_libraries(${PROJECT_NAME} -lm ${MPI_CXX_LIBRARIES} ${FFTW3_LIBRARY} ${FFTW3_MPI_LIBRARY} ${FFTW3_OMP_LIBRARY} ${GSL_LIBRARY} ${GSLCBLAS_LIBRARY} OpenMP::OpenMP_CXX LocalReboundLib LocalUnitsLib LocalYamlLib)
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
