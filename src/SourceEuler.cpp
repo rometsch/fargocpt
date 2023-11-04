@@ -710,9 +710,9 @@ static void thermal_cooling(t_data &data) {
 		// in cgs units
 		const double temperature = data[t_data::TEMPERATURE](nr, naz);
 		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
-		const double density = data[t_data::SIGMA](nr, naz) / (parameters::density_factor * H);
+		const double midplane_density = data[t_data::SIGMA](nr, naz) / (parameters::density_factor * H);
 
-		data[t_data::KAPPA](nr, naz) = opacity::opacity(density, temperature);
+		data[t_data::KAPPA](nr, naz) = opacity::opacity(midplane_density, temperature);
 
 		// mean vertical optical depth: tau = 1/2 kappa Sigma
 		data[t_data::TAU](nr, naz) =
