@@ -709,8 +709,7 @@ static void thermal_cooling(t_data &data) {
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		// calculate Rosseland mean opacity kappa. opaclin needs values
-		// in cgs units
+
 		const double temperature = data[t_data::TEMPERATURE](nr, naz);
 
 		// Q = factor 2 sigma_sb T^4 / tau_eff
