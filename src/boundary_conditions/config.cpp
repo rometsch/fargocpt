@@ -10,9 +10,9 @@
 #include "boundary_conditions.h"
 
 #include "../config.h"
-#include "../global.h"
 #include "../logging.h"
 #include "../units.h"
+#include "../LowTasks.h"
 
 #include <string>
 

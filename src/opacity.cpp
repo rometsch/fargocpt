@@ -1,7 +1,6 @@
 #include "opacity.h"
 #include "LowTasks.h"
 #include "parameters.h"
-#include "util.h"
 #include <cassert>
 #include <cmath>
 

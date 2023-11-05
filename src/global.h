@@ -6,6 +6,7 @@
 #include <csignal>
 #include <vector>
 #include "hydro_dt_logger.h"
+#include "polargrid.h"
 
 extern int CPU_Rank;
 extern int CPU_Number;

@@ -32,7 +32,6 @@ int OuterSourceMass, CICPlanet;
 #include <stdexcept>
 #include <string>
 
-#include "options.h"
 #include <sys/stat.h>
 #include <filesystem>
 

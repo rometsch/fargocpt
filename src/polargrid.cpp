@@ -10,7 +10,6 @@
 #include "logging.h"
 #include "mpi_utils.h"
 #include "output.h"
-#include "util.h"
 #include <cfloat>
 #include <cstdio>
 #include <cstdlib>

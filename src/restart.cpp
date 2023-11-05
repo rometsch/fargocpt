@@ -1,5 +1,4 @@
 #include "restart.h"
-#include "parallel.h"
 #include "viscosity/viscosity.h"
 #include "output.h"
 #include "logging.h"
@@ -13,6 +12,8 @@
 #include "SourceEuler.h"
 #include "particles/particles.h"
 #include "circumplanetary_mass.h"
+#include "LowTasks.h"
+#include "mpi.h"
 
 
 void restart_load(t_data &data) {

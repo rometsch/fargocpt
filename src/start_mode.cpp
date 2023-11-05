@@ -4,7 +4,6 @@
 #include "logging.h"
 #include "output.h"
 
-#include "util.h"
 #include <cstdint>
 #include <filesystem>
 #include <fstream>

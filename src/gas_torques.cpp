@@ -1,5 +1,4 @@
 #include "gas_torques.h"
-#include "constants.h"
 #include "data.h"
 #include "global.h"
 #include "parameters.h"

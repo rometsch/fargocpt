@@ -8,7 +8,6 @@
 #endif
 
 #include "../global.h"
-#include "../simulation.h"
 #include "boundary_conditions.h"
 
 namespace boundary_conditions

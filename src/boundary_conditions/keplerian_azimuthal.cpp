@@ -12,7 +12,6 @@
 #include "../Theo.h"
 #include "../frame_of_reference.h"
 #include "../global.h"
-#include "../parameters.h"
 
 namespace boundary_conditions
 {

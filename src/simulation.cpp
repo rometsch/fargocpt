@@ -19,6 +19,7 @@
 #include "pvte_law.h"
 #include "fld.h"
 #include "options.h"
+#include "global.h"
 
 namespace sim {
 

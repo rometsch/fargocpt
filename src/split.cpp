@@ -4,8 +4,6 @@
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
-#include "selfgravity.h"
-#include "time.h"
 #include <vector>
 
 #ifndef DISABLE_FFTW

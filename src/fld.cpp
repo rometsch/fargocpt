@@ -12,12 +12,13 @@
 #include "config.h"
 #include "units.h"
 #include "opacity.h"
-#include "pvte_law.h"
 #include "SourceEuler.h"
 #include "logging.h"
 #include "compute.h"
 #include "output.h"
 #include "simulation.h"
+#include "LowTasks.h"
+#include "global.h"
 
 namespace fld {
 

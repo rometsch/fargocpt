@@ -10,8 +10,6 @@
 #include "boundary_conditions.h"
 
 #include "../global.h"
-#include "../logging.h"
-#include "../parameters.h"
 #include "../quantities.h"
 
 extern boolean OuterSourceMass;

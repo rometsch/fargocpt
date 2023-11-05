@@ -1,7 +1,6 @@
 #pragma once
 
 #include "data.h"
-#include "types.h"
 
 void init_radialarrays(void);
 void resize_radialarrays(unsigned int size);

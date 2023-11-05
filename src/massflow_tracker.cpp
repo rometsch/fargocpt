@@ -4,7 +4,6 @@
 #include "massflow_tracker.h"
 #include "boundary_conditions/boundary_conditions.h"
 #include "global.h"
-#include "parameters.h"
 #include "output.h"
 
 t_massflow_tracker::t_massflow_tracker()

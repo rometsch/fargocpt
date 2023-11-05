@@ -12,7 +12,6 @@
 #include "config.h"
 
 #include "units.h"
-#include "yaml-cpp/yaml.h"
 
 namespace config {
 

@@ -2,9 +2,10 @@
 #include "../find_cell_id.h"
 #include "../global.h"
 #include "../random/random.h"
-#include "../output.h"
 #include "../Theo.h"
+#include "../parameters.h"
 #include <filesystem>
+
 namespace dust_diffusion
 {
 

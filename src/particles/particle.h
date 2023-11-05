@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../constants.h"
-#include "../util.h"
 #include <cmath>
 
 class t_particle

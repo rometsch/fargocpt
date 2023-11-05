@@ -14,17 +14,13 @@
 #endif
 #include <math.h>
 
-#include "../LowTasks.h"
-#include "../Theo.h"
-#include "../axilib.h"
-#include "../constants.h"
 #include "../global.h"
-#include "../output.h"
 #include "../parameters.h"
 #include "../units.h"
 #include "../util.h"
 #include "../pvte_law.h"
 #include "../quantities.h"
+#include "../constants.h"
 #include "viscosity.h"
 #include <cassert>
 #include <cmath>

@@ -14,7 +14,6 @@
 #include <cstdio>
 #include <cassert>
 #include <iostream>
-#include "../quantities.h"
 #include <filesystem>
 
 extern boolean CICPlanet;
