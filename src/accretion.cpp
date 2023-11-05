@@ -9,14 +9,11 @@
 #include <tuple>
 #include <iostream>
 
-#include "Theo.h"
 #include "accretion.h"
-#include "constants.h"
 #include "find_cell_id.h"
 #include "global.h"
 #include "parameters.h"
 #include "nbody/planet.h"
-#include "viscosity/viscosity.h"
 #include "frame_of_reference.h"
 
 namespace accretion

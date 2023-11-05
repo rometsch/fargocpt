@@ -25,8 +25,6 @@
 #include "parameters.h"
 #include "quantities.h"
 #include "selfgravity.h"
-#include "time.h"
-#include "util.h"
 
 #ifdef DISABLE_FFTW
 

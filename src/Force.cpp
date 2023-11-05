@@ -13,13 +13,9 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 #include <stdio.h>
 
 #include "Force.h"
-#include "LowTasks.h"
 #include "constants.h"
 #include "global.h"
-#include "logging.h"
 #include "parameters.h"
-#include "util.h"
-#include "viscosity/viscosity.h"
 
 /**
 	Computes the acceleration due to the disk on an object at position (x,y)

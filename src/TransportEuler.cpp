@@ -22,13 +22,11 @@ velocity in each zone by a proper averaging).
 #include "SourceEuler.h"
 #include "TransportEuler.h"
 #include "boundary_conditions/boundary_conditions.h"
-#include "constants.h"
 #include "global.h"
 #include "parameters.h"
 #include "util.h"
 #include "frame_of_reference.h"
 #include "quantities.h"
-#include "simulation.h"
 
 // radial momentum is split to be cell centered
 static t_polargrid radial_momentum_plus;

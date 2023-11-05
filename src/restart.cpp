@@ -1,5 +1,4 @@
 #include "restart.h"
-#include "parallel.h"
 #include "viscosity/viscosity.h"
 #include "output.h"
 #include "logging.h"

@@ -6,7 +6,6 @@
 #include "logging.h"
 
 #include "global.h"
-#include "output.h"
 #include "parameters.h"
 #include "simulation.h"
 #include <chrono>

@@ -13,8 +13,6 @@
 #include "backtrace.h"
 #include "global.h"
 #include "logging.h"
-#include "output.h"
-#include "parameters.h"
 
 static void _mkdir(const char *dir, mode_t mode)
 {

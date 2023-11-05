@@ -1,9 +1,7 @@
 #include "stress.h"
 #include "constants.h"
 #include "global.h"
-#include "output.h"
 #include "selfgravity.h"
-#include "units.h"
 #include "parameters.h"
 #include "logging.h"
 

@@ -11,10 +11,7 @@
 #include "constants.h"
 #include "global.h"
 #include "logging.h"
-#include "options.h"
-#include "parameters.h"
 #include "units/units.hpp"
-#include "config.h"
 #include "output.h"
 #include <math.h>
 #include <sstream>

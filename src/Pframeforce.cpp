@@ -6,22 +6,11 @@
 #include <vector>
 
 #include "Force.h"
-#include "LowTasks.h"
 #include "Pframeforce.h"
-#include "RungeKutta.h"
-#include "SideEuler.h"
-#include "Theo.h"
-#include "axilib.h"
 #include "constants.h"
-#include "find_cell_id.h"
 #include "global.h"
-#include "logging.h"
 #include "parameters.h"
-#include "selfgravity.h"
-#include "units.h"
 #include "util.h"
-#include "viscosity/viscosity.h"
-#include "quantities.h"
 #include "frame_of_reference.h"
 
 /* Below : work in non-rotating frame */
