@@ -10,12 +10,9 @@
 #include "boundary_conditions.h"
 
 #include "../Theo.h"
-#include "../axilib.h"
-#include "../constants.h"
 #include "../frame_of_reference.h"
 #include "../global.h"
 #include "../parameters.h"
-#include "../selfgravity.h"
 
 namespace boundary_conditions
 {

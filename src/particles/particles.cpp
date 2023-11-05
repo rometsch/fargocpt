@@ -5,11 +5,8 @@
 
 #include "particles.h"
 #include "dust_diffusion.h"
-#include "../Force.h"
 #include "../LowTasks.h"
-#include "../Pframeforce.h"
 #include "../SourceEuler.h"
-#include "../commbound.h"
 #include "../constants.h"
 #include "../find_cell_id.h"
 #include "../global.h"
@@ -21,7 +18,6 @@
 #include "../output.h"
 #include "../Theo.h"
 #include "../frame_of_reference.h"
-#include "../cfl.h"
 #include "../simulation.h"
 #include "../compute.h"
 #include <cstring>
