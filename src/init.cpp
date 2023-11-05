@@ -27,6 +27,7 @@
 #include "simulation.h"
 #include "cfl.h"
 #include "fld.h"
+#include "constants.h"
 
 #include "open-simplex-noise.h"
 

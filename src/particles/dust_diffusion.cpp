@@ -3,7 +3,9 @@
 #include "../global.h"
 #include "../random/random.h"
 #include "../Theo.h"
+#include "../parameters.h"
 #include <filesystem>
+
 namespace dust_diffusion
 {
 

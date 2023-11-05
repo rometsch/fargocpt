@@ -1,7 +1,6 @@
 #pragma once
 
 #include "polargrid.h"
-#include "types.h"
 
 namespace selfgravity
 {

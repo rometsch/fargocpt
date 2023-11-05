@@ -12,6 +12,7 @@
 #include <cmath>
 #include <list>
 #include <fstream>
+#include "LowTasks.h"
 
 namespace logging
 {

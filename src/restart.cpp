@@ -12,6 +12,8 @@
 #include "SourceEuler.h"
 #include "particles/particles.h"
 #include "circumplanetary_mass.h"
+#include "LowTasks.h"
+#include "mpi.h"
 
 
 void restart_load(t_data &data) {

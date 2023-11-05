@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <vector>
 #include "hydro_dt_logger.h"
+#include "polargrid.h"
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */

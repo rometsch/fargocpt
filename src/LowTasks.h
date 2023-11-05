@@ -1,7 +1,9 @@
 #pragma once
 
-#include "types.h"
 #include <stdlib.h>
+#include <string>
+#include "polargrid.h"
+#include "data.h"
 
 void PersonalExit(int returncode);
 

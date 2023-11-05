@@ -17,6 +17,8 @@
 #include "compute.h"
 #include "output.h"
 #include "simulation.h"
+#include "LowTasks.h"
+#include "global.h"
 
 namespace fld {
 

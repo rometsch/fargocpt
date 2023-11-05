@@ -7,6 +7,8 @@
 #include "../find_cell_id.h"
 #include "../parameters.h"
 #include "../boundary_conditions/boundary_conditions.h"
+#include "../constants.h"
+
 
 ///
 /// \brief get_nu, compute initial viscosity for the locally isothermal model

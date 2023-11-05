@@ -1,9 +1,6 @@
 #pragma once
 
 #include "data.h"
-#include "nbody/planet.h"
-#include "types.h"
-#include "global.h"
 
 namespace sim {
 
