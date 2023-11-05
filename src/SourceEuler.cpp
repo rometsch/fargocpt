@@ -46,6 +46,7 @@
 #include "cfl.h"
 #include "simulation.h"
 #include "fld.h"
+#include "compute.h"
 
 #include <cstring>
 
@@ -627,8 +628,7 @@ void calculate_qplus(t_data &data)
     }
     if (parameters::heating_star_enabled) {
 		if (!parameters::cooling_surface_enabled) {
-			// TODO: make it properly!
-			die("Need to calulate Tau_eff first!\n"); 
+		    compute::kappa_eff(data);
 		}
 		irradiation(data);
 	}    
@@ -703,54 +703,19 @@ static void thermal_cooling(t_data &data) {
 	const unsigned int Nr = Qminus.get_max_radial(); // = Size - 1
 	const unsigned int Nphi = Qminus.get_size_azimuthal();
 
+	compute::midplane_density(data, sim::PhysicalTime);
+	compute::kappa_eff(data);
+
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		// calculate Rosseland mean opacity kappa. opaclin needs values
-		// in cgs units
+
 		const double temperature = data[t_data::TEMPERATURE](nr, naz);
-		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
-		const double density = data[t_data::SIGMA](nr, naz) / (parameters::density_factor * H);
 
-		data[t_data::KAPPA](nr, naz) = opacity::opacity(density, temperature);
-
-		// mean vertical optical depth: tau = 1/2 kappa Sigma
-		data[t_data::TAU](nr, naz) =
-		    parameters::tau_factor *
-		    (1.0 / parameters::density_factor) *
-			data[t_data::KAPPA](nr, naz) *
-			data[t_data::SIGMA](nr, naz);
-
-
-		if(parameters::heating_star_enabled){
-		//  irradiated disk tau_eff = 3/8 tau + 1/2 + 1/(4*tau+tau_min)
-		//  compare D'Angelo & Marzari 2012
-		data[t_data::TAU_EFF](nr, naz) =
-			3.0 / 8.0 * data[t_data::TAU](nr, naz) +
-			0.5 +
-		    1.0 /
-			(4.0 * data[t_data::TAU](nr, naz) + parameters::tau_min);
-		} else {
-			//  non irradiated disk tau_eff = 3/8 tau + sqrt(3)/4 + 1/(4*tau+tau_min)
-			data[t_data::TAU_EFF](nr, naz) =
-				3.0 / 8.0 * data[t_data::TAU](nr, naz) +
-				std::sqrt(3.0) / 4.0 +
-				1.0 /
-				(4.0 * data[t_data::TAU](nr, naz) + parameters::tau_min);
-		}
-
-		if (parameters::opacity ==
-		    parameters::opacity_simple) { // Compare D'Angelo et. al
-						  // 2003 eq.(28)
-			data[t_data::TAU_EFF](nr, naz) =
-			3.0 / 8.0 * data[t_data::TAU](nr, naz);
-		}
 		// Q = factor 2 sigma_sb T^4 / tau_eff
-
 		const double factor = parameters::surface_cooling_factor;
 		const double sigma_sb = constants::sigma.get_code_value();
-		const double T4 = std::pow(
-			data[t_data::TEMPERATURE](nr, naz), 4);
+		const double T4 = std::pow(temperature, 4);
 		const double tau_eff =
 			data[t_data::TAU_EFF](nr, naz);
 		const double Tmin4 =
