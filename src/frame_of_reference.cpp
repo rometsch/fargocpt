@@ -1,11 +1,9 @@
 #include "frame_of_reference.h"
 #include "parameters.h"
 #include "SideEuler.h"
-#include "global.h"
 #include "particles/particles.h"
 #include "types.h"
 #include "Pframeforce.h"
-#include "simulation.h"
 
 namespace refframe {
 

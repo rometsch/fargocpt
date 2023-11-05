@@ -2,6 +2,8 @@
 #include <cassert>
 #include <cmath>
 #include "parameters.h"
+#include "constants.h"
+#include "global.h"
 
 
 static void compute_azimuthal_avg(t_polargrid &X, t_radialarray &Xavg) {

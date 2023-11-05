@@ -9,7 +9,6 @@
 
 #include "boundary_conditions.h"
 #include "../global.h"
-#include "../simulation.h"
 #include "../Theo.h"
 #include "../frame_of_reference.h"
 

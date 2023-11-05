@@ -1,5 +1,4 @@
 #include "particle.h"
-#include "../global.h"
 #include <cmath>
 #include "../parameters.h"
 

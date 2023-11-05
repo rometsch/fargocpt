@@ -27,9 +27,9 @@
 #include "simulation.h"
 #include "cfl.h"
 #include "fld.h"
+#include "constants.h"
 
 #include "open-simplex-noise.h"
-#include "options.h"
 
 #ifndef DISABLE_GSL
 #include <gsl/gsl_sf_bessel.h>

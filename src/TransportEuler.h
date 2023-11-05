@@ -1,7 +1,6 @@
 #pragma once
 
 #include "data.h"
-#include "types.h"
 
 void Transport(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 		   PolarGrid *VAzimuthal, PolarGrid *Energy, const double dt);

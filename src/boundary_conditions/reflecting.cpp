@@ -7,7 +7,6 @@
 #include <omp.h>
 #endif
 
-#include "../global.h"
 #include "boundary_conditions.h"
 
 namespace boundary_conditions

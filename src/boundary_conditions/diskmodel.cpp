@@ -10,7 +10,6 @@
 #include "boundary_conditions.h"
 #include "../global.h"
 #include "../parameters.h"
-#include "../constants.h"
 
 
 namespace boundary_conditions

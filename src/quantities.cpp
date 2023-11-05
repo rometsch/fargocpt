@@ -1,9 +1,7 @@
 #include "quantities.h"
 
-#include "Theo.h"
 #include "constants.h"
 #include "global.h"
-#include "logging.h"
 #include "parameters.h"
 #include "stress.h"
 #include "util.h"
@@ -11,7 +9,6 @@
 #include <math.h>
 #include <mpi.h>
 #include <vector>
-#include "SourceEuler.h"
 #include "pvte_law.h"
 #include "simulation.h"
 #include "gas_torques.h"

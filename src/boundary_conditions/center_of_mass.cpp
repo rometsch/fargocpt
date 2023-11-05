@@ -15,6 +15,8 @@
 #include "../viscosity/viscous_radial_speed.h"
 #include "../frame_of_reference.h"
 #include "../find_cell_id.h"
+#include "../constants.h"
+
 
 
 namespace boundary_conditions

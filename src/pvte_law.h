@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "data.h"
-#include "global.h"
 
 namespace pvte
 {

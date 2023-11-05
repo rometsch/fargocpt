@@ -1,6 +1,5 @@
 #pragma once
 
-#include "parameters.h"
 #include <cstdio>
 
 void init_cell_finder(const double cell_growth_factor,

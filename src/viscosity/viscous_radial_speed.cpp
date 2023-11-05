@@ -3,12 +3,12 @@
 #include "../parameters.h"
 #include "../Theo.h"
 #include "../global.h"
-#include "../types.h"
 #include "../util.h"
-#include "../polargrid.h"
 #include "../find_cell_id.h"
 #include "../parameters.h"
 #include "../boundary_conditions/boundary_conditions.h"
+#include "../constants.h"
+
 
 ///
 /// \brief get_nu, compute initial viscosity for the locally isothermal model

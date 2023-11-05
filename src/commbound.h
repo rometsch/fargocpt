@@ -1,6 +1,5 @@
 #pragma once
 
-#include "types.h"
 #include "data.h"
 
 void DeallocateBoundaryCommunicationBuffers();
