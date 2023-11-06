@@ -1,4 +1,5 @@
 # Disk parameters
+Integrator: Euler
 
 ShockTube: '0'
 SpreadingRing: 'Yes'
@@ -78,7 +79,7 @@ Transport: FARGO
 
 InnerBoundary: outflow
 OuterBoundary: outflow
-Damping: 'yes'   # NO, YES [default = no]
+Damping: 'No'   # NO, YES [default = no]
 DampingInnerLimit: '1.25'   # Rmin*Limit
 DampingOuterLimit: '0.84'   # Rmax*Limit
 DampingTimeFactor: '1.0'
@@ -98,7 +99,7 @@ DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
 # Mesh parameters
 
 Nrad: '256'   # 512 128		# Radial number of zones
-Nsec: '256'   # 1536 384		# Azimuthal number of
+Nsec: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -112,10 +113,10 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 # Output control parameters
 
-OutputDir: ../../output/tests/spreading_ring/speth2003_log_grid   # Output directory
-Ntot: '240'   # Total number of time steps
-Ninterm: '10'   # Time steps between outputs
-DT: '0.314159265359'   # Time step length. 2PI = 1 orbit
+OutputDir: ../../output/tests/spreading_ring/out   # Output directory
+Ntot: '1'   # Total number of time steps
+Ninterm: '1'   # Time steps between outputs
+DT: '314.159265359'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
@@ -151,7 +152,6 @@ RandomSeed: '1337'   # random seed integer value
 RandomSigma: 'No'   # randomize sigma start values?
 RandomFactor: '0.001'   # randomize by +- 1%
 FeatureSize: '0.01'   # Feature size of the open somplex algorithm
-
 
 nbody:
 - name: DefaultStar

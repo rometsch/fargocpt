@@ -78,7 +78,7 @@ Transport: FARGO
 
 InnerBoundary: outflow
 OuterBoundary: outflow
-Damping: 'yes'   # NO, YES [default = no]
+Damping: 'No'   # NO, YES [default = no]
 DampingInnerLimit: '1.25'   # Rmin*Limit
 DampingOuterLimit: '0.84'   # Rmax*Limit
 DampingTimeFactor: '1.0'
