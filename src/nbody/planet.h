@@ -82,14 +82,21 @@ class t_planet
 
     double m_torque;
 
+    // variables not written to disk.
+
+    double m_r;
+    double m_phi;
+
+    void update_rphi();
+
   public:
     void print();
     inline void add_accreted_mass(double value) { m_accreted_mass += value; }
     inline void reset_accreted_mass() { m_accreted_mass = 0.0; }
     // setter
     inline void set_mass(const double value) { m_mass = value; }
-    inline void set_x(const double value) { m_x = value; }
-    inline void set_y(const double value) { m_y = value; }
+    inline void set_x(const double value) { m_x = value; update_rphi(); }
+    inline void set_y(const double value) { m_y = value; update_rphi(); }
     inline void set_vx(const double value) { m_vx = value; }
     inline void set_vy(const double value) { m_vy = value; }
     inline void set_accretion_efficiency(const double value) { m_accretion_efficiency = value; }
@@ -187,8 +194,8 @@ class t_planet
     inline double get_torque() const { return m_torque; }
     inline double get_accreted_mass() const { return m_accreted_mass; }
 
-    double get_r(void) const;
-    double get_phi(void) const;
+    double get_r(void) const { return m_r; };
+    double get_phi(void) const { return m_phi; };
     double get_angular_momentum() const;
     double get_orbital_period() const;
     double get_omega() const;

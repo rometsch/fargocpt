@@ -4,11 +4,9 @@
 #include <string.h>
 #include <filesystem>
 
-#include "Force.h"
 #include "Interpret.h"
 #include "LowTasks.h"
 #include "Pframeforce.h"
-#include "SideEuler.h"
 #include "SourceEuler.h"
 #include "Theo.h"
 #include "boundary_conditions/boundary_conditions.h"
@@ -23,18 +21,12 @@
 #include "options.h"
 #include "output.h"
 #include "parameters.h"
-#include "quantities.h"
-#include "selfgravity.h"
 #include "split.h"
 #include "start_mode.h"
-#include "time.h"
 #include "units.h"
-#include "util.h"
-#include "viscosity/viscosity.h"
 #include "particles/particles.h"
 #include "random/random.h"
 #include "simulation.h"
-#include "circumplanetary_mass.h"
 #include "buildtime_info.h"
 #include "restart.h"
 #include "fld.h"
@@ -111,12 +103,15 @@ int main(int argc, char *argv[])
     init_radialarrays();
 
     // Here planets are initialized feeling star potential
-    data.get_planetary_system().init_system(options::parameter_file);
+    data.get_planetary_system().init_system();
 	data.get_massflow_tracker().init(data.get_planetary_system());
     init_binary_quadropole_moment(data.get_planetary_system());
 
 
     parameters::summarize_parameters();
+    if (CPU_Master) {
+        config::cfg.exit_on_unknown_key();
+    }
 
     boundary_conditions::init(data);
     init_physics(data);

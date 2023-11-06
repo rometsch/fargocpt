@@ -10,12 +10,9 @@
 #include "boundary_conditions.h"
 
 #include "../Theo.h"
-#include "../axilib.h"
-#include "../constants.h"
 #include "../frame_of_reference.h"
 #include "../global.h"
 #include "../parameters.h"
-#include "../selfgravity.h"
 
 namespace boundary_conditions
 {
@@ -34,13 +31,12 @@ static void balanced_boundary(t_polargrid &vaz, const unsigned int nr)
 
     double support = 0.0;
 
-    // if (!parameters::profile_cutoff_outer) {
+    if (!parameters::profile_cutoff_outer) {
     // if we have a cutoff, we assume the pressure is low enough that kepler
-    // velocity is appropriate
-    // TODO: why do we do this?
+    // velocity is appropriate, with profile cutoff the powerlaw is incorrect anyways
     support += support_azi_pressure(R);
     support += support_azi_smoothing_derivative(R);
-    // }
+    }
 
     if (parameters::v_azimuthal_with_quadropole_support) {
 	/* (3.4) on page 44 */

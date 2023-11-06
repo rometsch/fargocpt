@@ -6,7 +6,6 @@
 	Definition of the structures used in the FARGO code.
 */
 
-#include "polargrid.h"
 #include <sys/times.h>
 
 /**

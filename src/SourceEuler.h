@@ -1,8 +1,6 @@
 #pragma once
 
 #include "data.h"
-#include "nbody/planet.h"
-#include "types.h"
 
 bool assure_minimum_value(t_polargrid &dst, double minimum_value);
 bool assure_temperature_range(t_data &data);

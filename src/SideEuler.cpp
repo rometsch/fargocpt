@@ -11,22 +11,9 @@
 #endif
 #include <mpi.h>
 
-#include "Force.h"
-#include "Interpret.h"
 #include "LowTasks.h"
 #include "SideEuler.h"
-#include "SourceEuler.h"
-#include "Theo.h"
-#include "axilib.h"
-#include "constants.h"
 #include "global.h"
-#include "logging.h"
-#include "parameters.h"
-#include "quantities.h"
-#include "selfgravity.h"
-#include "util.h"
-#include "viscosity/viscosity.h"
-#include "frame_of_reference.h"
 #include <cassert>
 
 extern boolean Damping;

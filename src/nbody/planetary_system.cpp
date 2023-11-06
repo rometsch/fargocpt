@@ -14,7 +14,6 @@
 #include <cstdio>
 #include <cassert>
 #include <iostream>
-#include "../quantities.h"
 #include <filesystem>
 
 extern boolean CICPlanet;
@@ -65,15 +64,21 @@ void t_planetary_system::init_rebound()
     }
 }
 
-void t_planetary_system::init_system(const std::string &filename)
+void t_planetary_system::init_system()
 {
 
-    config::Config cfg(filename);
+	config::Config &cfg = config::cfg;
 
     std::vector<config::Config> planet_configs = cfg.get_nbody_config();
     for (auto &planet_cfg : planet_configs) {
 		init_planet(planet_cfg);
     }
+
+	if (CPU_Master) {
+		for (auto &planet_cfg : planet_configs) {
+			planet_cfg.exit_on_unknown_key();
+		}
+	}
 
     config_consistency_checks();
 

@@ -1,14 +1,12 @@
 #pragma once
 
-#include "../constants.h"
-#include "../util.h"
 #include <cmath>
 
 class t_particle
 {
   public:
     /// id (e.g. for tracking)
-    unsigned int id;
+    unsigned long id;
     /// r position
     double r;
     /// phi position

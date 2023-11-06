@@ -50,7 +50,6 @@ SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-
 AspectRatio: 0.05   # Thickness over Radius in the disk
 FlaringIndex: 0
 
-ExplicitViscosity: No
 AlphaViscosity: 0
 HeatingViscous: no   # enable viscous heating
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
@@ -59,7 +58,6 @@ ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Ne
 SelfGravity: No     # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-CoolingRadiativeLocal: No   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
 CoolingBetaLocal: No    # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBetaReference: reference
 CoolingBeta: 100
@@ -105,7 +103,6 @@ RadialSpacing: Arithmetic # Logarithmic or ARITHMETIC or Exponential
 
 LogAfterRealSeconds: 300
 LogAfterSteps: '0'
-DebugOutputs: No
 DoWrite1DFiles: No
 WriteAtEveryTimestep: Yes     # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: Yes     # Write surface density. This is needed for restart of simulations. [default = yes]

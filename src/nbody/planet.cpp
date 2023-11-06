@@ -148,18 +148,9 @@ void t_planet::print()
 */
 void t_planet::set_name(std::string name) { m_name = name; }
 
-/**
- * @brief t_planet::get_angle get phi coordinate
- * @return
- */
-double t_planet::get_phi() const { return std::atan2(m_y, m_x); }
-
-/**
-	get planet distance to coordinate center
-*/
-double t_planet::get_r() const
-{
-    return std::sqrt(std::pow(m_x, 2) + std::pow(m_y, 2));
+void t_planet::update_rphi() {
+    m_r = std::hypot(m_x, m_y); 
+    m_phi = std::atan2(m_y, m_x);
 }
 
 /**
@@ -264,6 +255,8 @@ void t_planet::copy(const planet_member_variables &other)
     m_pericenter_angle = other.m_pericenter_angle;
 
     m_torque = other.m_torque;
+
+    update_rphi();
 }
 
 std::string t_planet::get_monitor_filename() const {

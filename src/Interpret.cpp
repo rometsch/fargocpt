@@ -32,7 +32,6 @@ int OuterSourceMass, CICPlanet;
 #include <stdexcept>
 #include <string>
 
-#include "options.h"
 #include <sys/stat.h>
 #include <filesystem>
 
@@ -458,6 +457,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		parameters::ADIABATICINDEX);
 	}
 
+	parameters::hydrogenMassFraction = cfg.get<double>("HydrogenMassFraction", 0.75);
 	if (strcmp(eos_string, "pvtelaw") == 0 ||
 	    strcmp(eos_string, "pvte") == 0) {
 	    could_read_eos = true;
@@ -465,9 +465,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    // Energy equation / Adiabatic
 	    parameters::Adiabatic = true;
 	    parameters::variableGamma = true;
-
-	    parameters::hydrogenMassFraction = cfg.get<double>("HydrogenMassFraction", 0.75);
-
 
 	    char ADIABATICINDEX_string[512];
 	    strncpy(
@@ -629,6 +626,19 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    LOG_ERROR
 	    "A non-vanishing potential smoothing length is required.\n");
     }
+
+	if (parameters::compatibility_no_star_smoothing) {
+		logging::print_master(
+			LOG_WARNING
+			"Compatibility mode: No smoothing of star gravity.\n");
+	}
+	if (parameters::compatibility_smoothing_planetloc) {
+		logging::print_master(
+			LOG_WARNING
+			"Compatibility mode: Smoothing of gravity at planet location instead of cell location.\n");
+	}
+	
+
 
 
 	{

@@ -1,11 +1,9 @@
 #include "artificial_viscosity.h"
 
 #include "../parameters.h"
-#include "../SideEuler.h"
 #include "../global.h"
 #include "../SourceEuler.h"
 #include "../quantities.h"
-#include "../boundary_conditions/boundary_conditions.h"
 #include <cassert>
 
 namespace art_visc{

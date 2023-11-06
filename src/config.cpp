@@ -6,12 +6,12 @@
 #include <string>
 #include <type_traits>
 #include <cmath>
+#include <numeric>
 
 #include "LowTasks.h"
 #include "config.h"
 
 #include "units.h"
-#include "yaml-cpp/yaml.h"
 
 namespace config {
 
@@ -31,8 +31,12 @@ static YAML::Node lowercased_node(const YAML::Node &node) {
     return lnode;
 }
 
+Config::Config() {
+}
+
 Config::Config(const std::string &filename) { 
-    load_file(filename); }
+    load_file(filename); 
+}
 
 Config::Config(const YAML::Node &n)
 {
@@ -42,6 +46,7 @@ Config::Config(const YAML::Node &n)
 
 Config Config::get_subconfig(const std::string &key)
 {
+    m_visited_keys.insert(lowercase(key));
     const auto &n = *m_root;
     return Config((n[lowercase(key)]));
 }
@@ -49,6 +54,7 @@ Config Config::get_subconfig(const std::string &key)
 
 std::vector<Config> Config::get_nbody_config()
 {
+    m_visited_keys.insert("nbody");
     const auto &n = *m_root;
     std::vector<Config> bodies;
     if (contains("nbody")) {
@@ -65,6 +71,40 @@ void Config::print() {
 
 void Config::print_default() {
     std::cout << *m_default << std::endl;
+}
+
+std::string Config::visited_keys() {
+    std::string rv;
+    for (auto &key : m_visited_keys) {
+        rv += key + ", ";
+    }
+    return rv;
+}
+
+std::string Config::unknown_keys() {
+    std::string rv = std::accumulate(std::next(m_unknown_keys.begin()), m_unknown_keys.end(), *m_unknown_keys.begin(), 
+        [](std::string a, std::string b) {
+            return a + ", " + b; // append ", " between words
+        }
+    );
+    return rv;
+}
+
+bool Config::are_all_keys_visited() {
+    const auto &n = *m_root;
+    for (auto it=n.begin(); it!=n.end(); ++it) {
+        std::string key = it->first.as<std::string>();
+        if (m_visited_keys.find(key) == m_visited_keys.end()) {
+            m_unknown_keys.insert(key);
+        }
+    }
+    return m_unknown_keys.size() == 0;
+}
+
+void Config::exit_on_unknown_key() {
+    if (!are_all_keys_visited()) {
+        die("Unknown key(s) found in config file: '%s'\nMaybe there is a typo?\n", unknown_keys().c_str());
+    }
 }
 
 void Config::write_default(const std::string &filename) {
@@ -124,6 +164,7 @@ bool Config::get_flag(const std::string &key)
 
 bool Config::get_flag(const std::string &key, const bool default_value)
 {
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     if (contains(key)) {
 	return get_flag(key);
@@ -134,6 +175,7 @@ bool Config::get_flag(const std::string &key, const bool default_value)
 
 bool Config::get_flag(const std::string &key, const std::string &default_value)
 {
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     if (contains(key)) {
 	return get_flag(key);
@@ -144,12 +186,14 @@ bool Config::get_flag(const std::string &key, const std::string &default_value)
 
 bool Config::get_flag(const std::string &key, const char *default_value)
 {
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     return get_flag(key, std::string(default_value));
 }
 
 char Config::get_first_letter_lowercase(const std::string &key, const std::string &default_value)
 {
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     std::string value = get<std::string>(key, default_value);
     if (value.length() == 0) {
@@ -160,6 +204,7 @@ char Config::get_first_letter_lowercase(const std::string &key, const std::strin
 
 char Config::get_first_letter_lowercase(const std::string &key)
 {
+    m_visited_keys.insert(lowercase(key));
     std::string value = get<std::string>(key);
     return (char)tolower(value[0]);
 }
@@ -176,6 +221,7 @@ bool Config::contains(const std::string &key)
 
 template <typename T> T Config::get(const std::string &key)
 {
+    m_visited_keys.insert(lowercase(key));
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key.c_str());
     }
@@ -196,6 +242,7 @@ template <typename T> T Config::get(const std::string &key)
 
 template <typename T> T Config::get(const std::string &key, const units::precise_unit& unit)
 {
+    m_visited_keys.insert(lowercase(key));
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key.c_str());
     }
@@ -221,6 +268,7 @@ template <typename T> T Config::get(const std::string &key, const units::precise
 
 template <typename T> T Config::get(const std::string &key, const T &default_value)
 {
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     T rv;
     const std::string lkey = lowercase(key);
@@ -253,6 +301,7 @@ template <typename T> T Config::get(const std::string &key,
                             const T &default_value, 
                             const units::precise_unit& unit) 
 {    
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     T rv;
     const std::string lkey = lowercase(key);
@@ -278,6 +327,7 @@ template <typename T> T Config::get(const std::string &key,
                             const std::string &default_value, 
                             const units::precise_unit& unit) 
 {
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     T rv;
     const std::string lkey = lowercase(key);
@@ -300,6 +350,7 @@ template <typename T> T Config::get(const std::string &key,
 }
 
 std::string Config::get_lowercase(const std::string &key, const std::string &default_value) {
+    m_visited_keys.insert(lowercase(key));
     (*m_default)[key] = default_value;
     std::string rv;
     const std::string lkey = lowercase(key);

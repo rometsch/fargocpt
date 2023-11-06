@@ -6,22 +6,11 @@
 #include <vector>
 
 #include "Force.h"
-#include "LowTasks.h"
 #include "Pframeforce.h"
-#include "RungeKutta.h"
-#include "SideEuler.h"
-#include "Theo.h"
-#include "axilib.h"
 #include "constants.h"
-#include "find_cell_id.h"
 #include "global.h"
-#include "logging.h"
 #include "parameters.h"
-#include "selfgravity.h"
-#include "units.h"
 #include "util.h"
-#include "viscosity/viscosity.h"
-#include "quantities.h"
 #include "frame_of_reference.h"
 
 /* Below : work in non-rotating frame */
@@ -62,7 +51,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double smooth = compute_smoothing(data, n_rad, n_az);
+		const double smooth = compute_smoothing(data, n_rad, n_az, k);
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
@@ -139,10 +128,11 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	    const double x = CellCenterX->Field[cell_id];
 	    const double y = CellCenterY->Field[cell_id];
 
-	    const double smooth = compute_smoothing(data, n_rad, n_az);
 
 	    pair accel_cart = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
+
+		const double smooth = compute_smoothing(data, n_rad, n_az, k);
 
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
@@ -221,8 +211,7 @@ void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	const double l1 = planet.get_dimensionless_roche_radius() *
-		 planet.get_distance_to_primary();
+
 
 	if(parameters::planet_orbit_disk_test && k == 0){
 		planet.set_disk_on_planet_acceleration(Pair{0.0, 0.0});
@@ -233,8 +222,7 @@ void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
 		ComputeAverageDensity(data);
 	}
 
-	accel =
-	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
+	accel = ComputeDiskOnPlanetAccel(data, k);
 	planet.set_disk_on_planet_acceleration(accel);
 
 	const double torque =

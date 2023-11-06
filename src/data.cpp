@@ -1,7 +1,6 @@
 
 #include "data.h"
 #include "logging.h"
-#include "output.h"
 #include "quantities.h"
 #include "units.h"
 #include <mpi.h>

@@ -160,7 +160,7 @@ for i in range(len(dts)):
         axs[i].get_shared_y_axes().join(axs[i],axs[i-1])
     dt = dts[i]
     ax = axs[i]
-    data = test_2D_R_PHI('../../speith2003/', ax, dt)
+    data = test_2D_R_PHI('../../output/spreading_ring/speith2003/', ax, dt)
 
 
 

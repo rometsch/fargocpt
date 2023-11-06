@@ -6,7 +6,6 @@
 */
 
 #include "constants.h"
-#include "LowTasks.h"
 #include "logging.h"
 #include "units.h"
 #include "parameters.h"

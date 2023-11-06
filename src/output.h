@@ -1,7 +1,6 @@
 #pragma once
 
 #include "data.h"
-#include "types.h"
 #include <map>
 #include <string>
 #include <vector>

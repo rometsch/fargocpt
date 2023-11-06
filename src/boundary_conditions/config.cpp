@@ -10,9 +10,9 @@
 #include "boundary_conditions.h"
 
 #include "../config.h"
-#include "../global.h"
 #include "../logging.h"
 #include "../units.h"
+#include "../LowTasks.h"
 
 #include <string>
 
@@ -254,7 +254,7 @@ static void vaz_inner()
 static void vaz_outer()
 {
     const std::string str =
-	config::cfg.get_lowercase("BoundaryOuterVazi", "keplerian");
+	config::cfg.get_lowercase("OuterBoundaryVazi", "keplerian");
     vaz_outer_name = str;
     if (str == "zerogradient") {
 	vaz_outer_func = zero_gradient_outer;

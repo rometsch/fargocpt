@@ -15,6 +15,7 @@
 #include "../util.h"
 #include "../SourceEuler.h"
 #include "../logging.h"
+#include "../LowTasks.h"
 
 #include <vector>
 #include <cassert>

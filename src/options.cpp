@@ -9,7 +9,6 @@
 #include "LowTasks.h"
 #include "global.h"
 #include "logging.h"
-#include "parameters.h"
 #include "start_mode.h"
 #include "util.h"
 

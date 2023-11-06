@@ -13,20 +13,23 @@ specific force. It has therefore the dimension of an acceleration (LT^-2).
 #include <stdio.h>
 
 #include "Force.h"
-#include "LowTasks.h"
 #include "constants.h"
 #include "global.h"
-#include "logging.h"
 #include "parameters.h"
-#include "util.h"
-#include "viscosity/viscosity.h"
 
 /**
 	Computes the acceleration due to the disk on an object at position (x,y)
 */
-Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
-			      const double l1)
+Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 {
+
+	t_planetary_system & psys = data.get_planetary_system();
+	t_planet & planet = psys.get_planet(nb);
+	const double x = planet.get_x();
+	const double y = planet.get_y();
+	const double a = planet.get_r();
+
+
     Pair acceleration;
     double localaccel[4] = {0., 0., 0., 0.};
     double globalaccel[4] = {0., 0., 0., 0.};
@@ -38,7 +41,6 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     axi = ayi = axo = ayo = 0.0;
-    const double a = sqrt(x * x + y * y);
 
 	#pragma omp parallel for collapse(2) reduction(+ : axi, ayi, axo, ayo)
     for (unsigned int n_rad = radial_first_active; n_rad < radial_active_size;
@@ -46,12 +48,8 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 	for (unsigned int n_az = 0; n_az < ns; ++n_az) {
 	    // calculate smoothing length if dependend on radius
 	    // i.e. for thickness smoothing with scale height at cell location
-		double smooth;
-		if (parameters::naive_smoothing) {
-			smooth = compute_smoothing_iso_planet(a);
-		} else {
-			smooth = compute_smoothing(data, n_rad, n_az);
-		}
+		double smooth = compute_smoothing(data, n_rad, n_az, nb);
+
 
 		// Phi = GMm / r_sm
 		// r_sm = sqrt(r**2 + (eps * H)**2)
@@ -84,6 +82,8 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
 		/// by Klahr & Kley 2005; but the derivative of it, since we
 		/// apply it directly on the force
 		if (std::sqrt(x*x + y*y) > 10.e-10) {
+			const double l1 = planet.get_dimensionless_roche_radius() *
+				planet.get_distance_to_primary();
 			const double r_sm = l1 * parameters::klahr_smoothing_radius;
 
 			if (dist_sm < r_sm) {
@@ -121,7 +121,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const double x, const double y,
     return acceleration;
 }
 
-double compute_smoothing(t_data &data, const int n_radial,
+inline static double compute_smoothing_scaleheight(t_data &data, const int n_radial,
 			 const int n_azimuthal)
 {
     const double scale_height =
@@ -130,13 +130,30 @@ double compute_smoothing(t_data &data, const int n_radial,
     return smooth;
 }
 
-double compute_smoothing_iso_planet(const double Rp)
+inline static double compute_smoothing_iso_planet(t_data &data, const double nb)
 {
+	t_planetary_system & psys = data.get_planetary_system();
+	t_planet & planet = psys.get_planet(nb);
+	const double a = planet.get_r();
 	const double h0 = parameters::ASPECTRATIO_REF;
 	const double beta = parameters::FLARINGINDEX;
-    const double scale_height = h0*std::pow(Rp, 1+beta);
+    const double scale_height = h0*std::pow(a, 1+beta);
     const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;
 }
 
+double compute_smoothing(t_data &data, const int n_radial,
+			 const int n_azimuthal, const unsigned int nb)
+{
+	double rv;
+	if (parameters::compatibility_no_star_smoothing && nb == 0) {
+		return 0;
+	}
 
+	if (parameters::compatibility_smoothing_planetloc) {
+		rv = compute_smoothing_iso_planet(data, nb);
+	} else {
+		rv = compute_smoothing_scaleheight(data, n_radial, n_azimuthal);
+	}
+	return rv;
+}

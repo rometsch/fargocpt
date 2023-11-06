@@ -1,8 +1,6 @@
 #include "find_cell_id.h"
 #include "LowTasks.h"
-#include "constants.h"
 #include "global.h"
-#include "logging.h"
 #include "parameters.h"
 #include <cmath>
 

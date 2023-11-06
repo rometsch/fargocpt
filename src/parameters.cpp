@@ -15,9 +15,6 @@
 #include "logging.h"
 #include "output.h"
 #include "parameters.h"
-#include "string.h"
-#include "util.h"
-#include "viscosity/viscosity.h"
 #include "config.h"
 #include "units.h"
 #include "config.h"
@@ -42,7 +39,7 @@ double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
 bool CartesianParticles;
-bool ParticlesInCartesian;
+bool ParticleGravityCalcInCartesian;
 
 
 double DT;
@@ -186,7 +183,8 @@ t_opacity opacity;
 
 double thickness_smoothing;
 double thickness_smoothing_sg;
-bool naive_smoothing;
+bool compatibility_smoothing_planetloc;
+bool compatibility_no_star_smoothing;
 bool correct_disk_selfgravity;
 
 bool initialize_pure_keplerian;
@@ -434,7 +432,6 @@ static void read_opacity_config(){
 		opacity = opacity_bell;
 	} else if (str == "constant") {
 		opacity = opacity_const_op;
-		// TODO: analyze situation that opacities are in cgs
 	} else if (str == "simple") {
 		opacity = opacity_simple; // see Gennaro D'Angelo et al. 2003
 	} else {
@@ -493,7 +490,7 @@ void read(const std::string &filename, t_data &data)
 		die("This version of fargo uses the new yaml config files.\n%s looks like a par file.\nUse Tools/ini2yml.py to convert your config file!", filename.c_str());
 	}
 	config::cfg.load_file(filename);
-
+	logging::print_master(LOG_INFO "Using parameter file %s\n", filename.c_str());
     // units
 	const std::string l0s = config::cfg.get<std::string>("l0", "1.0");
 	const std::string m0s = config::cfg.get<std::string>("m0", "1.0");
@@ -714,7 +711,8 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("ThicknessSmoothing", 0.6);
     thickness_smoothing_sg = config::cfg.get<double>(
 	"ThicknessSmoothingSG", 1.2); // recommended value from Müller, Kley & Meru 2012
-	naive_smoothing = config::cfg.get_flag("NaiveSmoothing", "no");
+	compatibility_smoothing_planetloc = config::cfg.get_flag("CompatibilitySmoothingPlanetLoc", "no");
+	compatibility_no_star_smoothing = config::cfg.get_flag("CompatibilityNoStarSmoothing", "no");
 
 	correct_disk_selfgravity = config::cfg.get_flag("CorrectDiskSelfgravity", self_gravity ? "no" : "yes");
     do_init_secondary_disk =
@@ -891,7 +889,7 @@ void read(const std::string &filename, t_data &data)
 	// exponential midpoint integrator only implemented in polar
 	// coordiantes, but forces can be calculated in cartesian coordinates
 	CartesianParticles = false;
-	ParticlesInCartesian = true;
+	ParticleGravityCalcInCartesian = true;
     }
 
     if (particle_disk_gravity_enabled && (!self_gravity)) {

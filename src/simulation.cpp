@@ -19,6 +19,7 @@
 #include "pvte_law.h"
 #include "fld.h"
 #include "options.h"
+#include "global.h"
 
 namespace sim {
 
@@ -211,7 +212,6 @@ static void step_Euler(t_data &data, const double dt) {
 	    
 	/* Continue with hydro simulation */
 	if (parameters::calculate_disk) {
-		/// TODO moved apply boundaries here
 		boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
@@ -225,7 +225,6 @@ static void step_Euler(t_data &data, const double dt) {
 	data.get_planetary_system().copy_data_from_rebound();
 	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 
-	// TODO: move outside step
 	PhysicalTime += dt;
 	N_hydro_iter = N_hydro_iter + 1;
 	logging::print_runtime_info();
@@ -463,8 +462,8 @@ static void step_Euler(t_data &data, const double dt) {
 
 
 void init(t_data &data) {
-	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false); // TODO: move to init
-	refframe::init_corotation(data); // TODO: move to init
+	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false);
+	refframe::init_corotation(data);
 
 	if (start_mode::mode != start_mode::mode_restart) {
 		CalculateTimeStep(data);

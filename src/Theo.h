@@ -1,9 +1,7 @@
 #pragma once
 
-#include "constants.h"
-#include "global.h"
-#include "types.h"
 #include "nbody/planetary_system.h"
+#include "polargrid.h"
 
 double initial_energy(const double R, const double M);
 double initial_viscous_radial_speed(const double R, const double M);

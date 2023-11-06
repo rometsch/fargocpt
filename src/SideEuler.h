@@ -1,7 +1,6 @@
 #pragma once
 
 #include "data.h"
-#include "types.h"
 
 void CheckAngularMomentumConservation(t_data &data);
 void divise_polargrid(const t_polargrid& num, const t_polargrid& denom,

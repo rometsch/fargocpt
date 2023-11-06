@@ -6,13 +6,13 @@
 #include "logging.h"
 
 #include "global.h"
-#include "output.h"
 #include "parameters.h"
 #include "simulation.h"
 #include <chrono>
 #include <cmath>
 #include <list>
 #include <fstream>
+#include "LowTasks.h"
 
 namespace logging
 {

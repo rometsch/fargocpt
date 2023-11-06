@@ -1,8 +1,5 @@
 #pragma once
 
-#include "../types.h"
-#include "../polargrid.h"
-#include "../radialarray.h"
 #include "../data.h"
 
 namespace viscous_speed

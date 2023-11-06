@@ -49,7 +49,6 @@ nbody:
   accretion method: kley # can also be sinkhole, viscous, kley, or none
   eccentricity: 0
   radius: 0.01 solRadius
-  phi: 0.0
   ramp-up time: 0.0
 
 #
@@ -126,7 +125,6 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 ## Viscosity
 
-ExplicitViscosity: yes
 AlphaViscosity: 1.0e-3   # Alpha value for AlphaMode == 0
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]
