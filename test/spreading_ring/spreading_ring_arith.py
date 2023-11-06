@@ -43,8 +43,6 @@ def test_1D(out, ax, dt):
     tau0 = 0.016
     tau = 12 * nu * t / R0**2 + tau0
 
-    # print(tau, tau-tau0)
-
     I = iv(0.25, 2.0*x/tau)
     Sigma = M / (np.pi * R0**2) / tau / x**(1/4) * I * np.exp(-(1+x**2)/tau)
     I0 = iv(0.25, 2.0*x/tau0)
@@ -64,13 +62,9 @@ def test_1D(out, ax, dt):
 
     data = np.mean(data, 1)
 
-
-    # ax.vlines(1, ymin=0, ymax=1.1*np.max(Sigma))
     ax.vlines(Rmed[R0_id], ls='--', ymin=0, ymax=1.1*np.max(Sigma0))
     ax.plot(Rmed, data_slice, ls='-', color='m', lw=1.5, label='Simulation slice')
     ax.plot(Rmed, data, ls='--', color='blue', lw=1.5, label='Simulation mean')
-    # ax.axis('auto')
-    # ax.set_xlim(0.6, 1.4)
     ax.legend(loc='upper right')
     return data
 
