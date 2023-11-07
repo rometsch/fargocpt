@@ -5,4 +5,4 @@ cd $FILEDIR
 
 ../../run_fargo -nt 2 -np 1 start setup.yml 1> out.log 2>err.log
 ./calc_deviation.py
-./plot_overview.py ../../output/tests/spreading_ring/out overview.jpg
+./plot_overview.py ../../output/tests/spreading_ring/out plot.jpg

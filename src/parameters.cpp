@@ -598,9 +598,6 @@ void read(const std::string &filename, t_data &data)
     case '2': // 2D
 	sigma_initialize_condition = initialize_condition_read2D;
 	break;
-    case 's': // Boundary Layer: initialize w/ SS-73-Standard-Solution
-	sigma_initialize_condition = initialize_condition_shakura_sunyaev;
-	break;
     default:
 	die("Invalid setting for SigmaCondition: %s",
 	    config::cfg.get<std::string>("SigmaCondition", "Profile").c_str());
@@ -623,9 +620,6 @@ void read(const std::string &filename, t_data &data)
 	break;
     case '2': // 2D
 	energy_initialize_condition = initialize_condition_read2D;
-	break;
-    case 's': // Boundary Layer: initialize w/ SS-73-Standard-Solution
-	energy_initialize_condition = initialize_condition_shakura_sunyaev;
 	break;
     default:
 	die("Invalid setting for EnergyCondition: %s",
