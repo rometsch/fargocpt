@@ -99,7 +99,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 OutputDir: ../../output/tests/gasMassFlow1D/outflow
 Ntot: '100'   # Total number of time steps
-Ninterm: '1'   # Time steps between outputs
+Ninterm: '100'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
