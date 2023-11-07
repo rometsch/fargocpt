@@ -261,11 +261,15 @@ static void vrad_outer()
 
 static void vaz_inner()
 {
-    const std::string str =
-	config::cfg.get_lowercase("InnerBoundaryVazi", "keplerian");
+    std::string defval = "keplerian";
+    if (vaz_inner_name == "none") { 
+        defval = "none";
+    }
+
+    const std::string str = config::cfg.get_lowercase("InnerBoundaryVazi", defval);
     if (vaz_inner_name == "none" && str != "none") {
-        throw std::runtime_error(
-            "Can not set InnerBoundaryVazi while selecting special boundary (e.g. 'custom'). Either remove from config file or set to 'none'.");
+        logging::print_master(LOG_WARNING "Your choice '%s' for InnerBoundaryVazi might have no effect because it might be overwritten by a composite boundary condition.\n", str.c_str());
+
     }
 
     vaz_inner_name = str;
@@ -299,10 +303,14 @@ static void vaz_inner()
 
 static void vaz_outer()
 {
-    const std::string str = config::cfg.get_lowercase("OuterBoundaryVazi", "keplerian");
+    std::string defval = "keplerian";
+    if (vaz_outer_name == "none") { 
+        defval = "none";
+    }
+    const std::string str = config::cfg.get_lowercase("OuterBoundaryVazi", defval);
     if (vaz_outer_name == "none" && str != "none") {
-        throw std::runtime_error(
-            "Can not set OuterBoundaryVazi while selecting special boundary (e.g. 'custom'). Either remove from config file or set to 'none'.");
+        logging::print_master(LOG_WARNING "Your choice '%s' for OuterBoundaryVazi might have no effect because it might be overwritten by a composite boundary condition.\n", str.c_str());
+
     }
 
     vaz_outer_name = str;
@@ -443,7 +451,6 @@ void parse_config()
     vaz_outer();
 
     domegadr_zero = config::cfg.get_flag("DomegaDrZero", false);
-
     if (domegadr_zero)
 	die("DomegaDrZero is deprecated!");
 
