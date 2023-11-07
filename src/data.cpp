@@ -50,7 +50,10 @@ t_data::t_data()
     m_polargrids[ACCEL_RADIAL].set_name("a_rad");
     m_polargrids[ACCEL_RADIAL].set_unit(units::acceleration);
 
-    m_polargrids[ACCEL_AZIMUTHAL].set_vector(false);
+    /// Azimuthal acceleration is not a vector, but we
+    /// make it a vector for covenience to compute it
+    /// alongside radial acceleration
+    m_polargrids[ACCEL_AZIMUTHAL].set_vector(true);
     m_polargrids[ACCEL_AZIMUTHAL].set_name("a_azi");
     m_polargrids[ACCEL_AZIMUTHAL].set_unit(units::acceleration);
 
