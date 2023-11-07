@@ -263,6 +263,11 @@ static void vaz_inner()
 {
     const std::string str =
 	config::cfg.get_lowercase("InnerBoundaryVazi", "keplerian");
+    if (vaz_inner_name == "none" && str != "none") {
+        throw std::runtime_error(
+            "Can not set InnerBoundaryVazi while selecting special boundary (e.g. 'custom'). Either remove from config file or set to 'none'.");
+    }
+
     vaz_inner_name = str;
     if (str == "zerogradient") {
 	vaz_inner_func = zero_gradient_inner;
@@ -294,8 +299,12 @@ static void vaz_inner()
 
 static void vaz_outer()
 {
-    const std::string str =
-	config::cfg.get_lowercase("OuterBoundaryVazi", "keplerian");
+    const std::string str = config::cfg.get_lowercase("OuterBoundaryVazi", "keplerian");
+    if (vaz_outer_name == "none" && str != "none") {
+        throw std::runtime_error(
+            "Can not set OuterBoundaryVazi while selecting special boundary (e.g. 'custom'). Either remove from config file or set to 'none'.");
+    }
+
     vaz_outer_name = str;
     if (str == "zerogradient") {
 	vaz_outer_func = zero_gradient_outer;
@@ -330,6 +339,7 @@ static void composite_inner()
 {
     const std::string str =
 	config::cfg.get_lowercase("InnerBoundary", "individual");
+
     composite_inner_name = str;
     if (str == "individual") {
 	return;
