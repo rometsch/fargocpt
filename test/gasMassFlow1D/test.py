@@ -13,7 +13,7 @@ if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)
 
 # Use this if you want to include modules from a subfolder
-cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"../../read_data")))
+cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(cmd_folder,"../../Tools/read_data")))
 if cmd_subfolder not in sys.path:
     sys.path.insert(0, cmd_subfolder)
 
@@ -23,12 +23,12 @@ if cmd_subfolder not in sys.path:
 # __file__ fails if someone does os.chdir() before.
 # sys.argv[0] also fails, because it doesn't not always contains the path.
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'Tools', 'read_data'))
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'Tools', 'read_data'))
 from read_gasMassFlow1D import gasMassFlow1D
 from read_par_file import read_unit_file
 from read1D import read1D
 
-out_folder = "./out/"
+out_folder = "../../output/tests/gasMassFlow1D/outflow/"
 
 units = read_unit_file(out_folder)
 def M_dot(radius, surface_density, vis):
@@ -77,6 +77,7 @@ for n in N_output:
     r___, vis_ = vis1D_reader.read(n)
 
     x_, y_ = M_dot(r_, sigma_, vis_)
+    print(f"{r__[0]=}, {sigma_[0]=}, {vrad_[0]=}")
     x2_, y2_ = M_dot2(r__, sigma_, vrad_)
 
     rs, data = mass_flow_reader.read(n)
@@ -104,5 +105,6 @@ axs[1].legend()
 
 
 # plt.savefig('mass_flow.png')
-plt.show()
+# plt.show()
+plt.savefig("plot.jpg", dpi=150)
 

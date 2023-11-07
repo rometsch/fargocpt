@@ -97,6 +97,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
+OutputDir: ../../output/tests/gasMassFlow1D/fargo
 Ntot: '10000'   # Total number of time steps
 Ninterm: '30'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit
