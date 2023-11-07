@@ -266,18 +266,6 @@ void init_physics(t_data &data)
 
 	refframe::FrameAngle = 0;
 
-    if ((parameters::sigma_initialize_condition ==
-	 parameters::initialize_condition_shakura_sunyaev) &&
-	(parameters::energy_initialize_condition ==
-	 parameters::initialize_condition_shakura_sunyaev)) {
-	init_shakura_sunyaev(data);
-	return;
-    } else if ((parameters::sigma_initialize_condition ==
-		parameters::initialize_condition_shakura_sunyaev) ||
-	       (parameters::energy_initialize_condition ==
-		parameters::initialize_condition_shakura_sunyaev)) {
-	die("Both Sigma and Energy have to be initialised by Shakura & Sunyaev Standard-Solution. Other initialisation not yet implemented!");
-    }
 
     if (parameters::ShockTube == 1) {
 	init_shock_tube_test(data);
@@ -354,108 +342,6 @@ void init_physics(t_data &data)
 
 	boundary_conditions::copy_initial_values(data);
 
-}
-
-/**
-	Wrapper for initialisation of physics according to Shakura & Sunyaev
-   1974
-*/
-
-void init_shakura_sunyaev(t_data &data)
-{
-	const double M0_in_solMass = (1*units::M0).value_as(units::solMass);
-	const double Mdot_cgs = parameters::mass_accretion_rate * units::mass_accretion_rate.get_code_to_cgs_factor();
-	const double L0_cgs = units::length.get_code_to_cgs_factor();
-
-	const auto& star = data.get_planetary_system().get_planet(0);
-	const double star_radius = star.get_planet_radial_extend();
-
-    double factor;
-
-    if (!parameters::Adiabatic) {
-	die("Isothermal equation of state and Shakura & Sunyaev starting conditions has not yet been implemented!");
-    }
-
-    if (parameters::ASPECTRATIO_MODE > 0) {
-	die("ASPECTRATIO_NBODY and Shakura & Sunyaev starting conditions has not yet been implemented!");
-    }
-
-
-    for (unsigned int n_radial = 0; n_radial < data[t_data::TEMPERATURE].Nrad;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::TEMPERATURE].Nsec; ++n_azimuthal) {
-
-	    factor =
-		std::pow(1. - std::sqrt(star_radius /
-					(Rb[n_radial] +
-					 2. * (RMAX - RMIN) / GlobalNRadial)),
-			 0.25);
-
-	    data[t_data::SIGMA](n_radial, n_azimuthal) =
-		(5.2 * std::pow(parameters::ALPHAVISCOSITY, -4. / 5.) *
-		 std::pow(Mdot_cgs / 1.e16, 7. / 10.) *
-		 std::pow(M0_in_solMass, 0.25) *
-		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
-		 std::pow(factor, 14. / 5.)) /
-		units::surface_density.get_code_to_cgs_factor();
-
-	    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
-		(1.7e8 * std::pow(parameters::ALPHAVISCOSITY, -1. / 10.) *
-		 std::pow(Mdot_cgs / 1.e16, 3. / 20.) *
-		 std::pow(M0_in_solMass, -3. / 8.) *
-		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, 9. / 8.) *
-		 std::pow(factor, 3. / 5.)) /
-		(Rb[n_radial] * L0_cgs) * Rb[n_radial];
-
-	    data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-		(1.4e4 * std::pow(parameters::ALPHAVISCOSITY, -1. / 5.) *
-		 std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
-		 std::pow(M0_in_solMass, 0.25) *
-		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
-		 std::pow(factor, 6. / 5.)) /
-		units::temperature.get_code_to_cgs_factor();
-
-	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		-(2.7e4 * std::pow(parameters::ALPHAVISCOSITY, 4. / 5.) *
-		  std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
-		  std::pow(M0_in_solMass, -0.25) *
-		  std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.25) *
-		  std::pow(factor, -14. / 5.)) /
-		units::velocity.get_code_to_cgs_factor();
-
-	    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		std::sqrt(constants::R / parameters::MU * parameters::ADIABATICINDEX *
-			  data[t_data::TEMPERATURE](n_radial, n_azimuthal));
-	    data[t_data::ENERGY](n_radial, n_azimuthal) =
-		constants::R / parameters::MU * 1. / (parameters::ADIABATICINDEX - 1.) *
-		data[t_data::SIGMA](n_radial, n_azimuthal) *
-		data[t_data::TEMPERATURE](n_radial, n_azimuthal);
-	    data[t_data::PRESSURE](n_radial, n_azimuthal) =
-		(parameters::ADIABATICINDEX - 1.) *
-		data[t_data::ENERGY](n_radial, n_azimuthal);
-	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial];
-	}
-    }
-
-    compute_azi_avg_Sigma(data[t_data::SIGMA]);
-    compute_azi_avg_Energy(data[t_data::ENERGY]);
-
-    if (parameters::self_gravity) {
-	die("Self-gravity and Shakura-Sunyaev starting values has not yet been implemented!");
-    }
-
-    InitCellCenterCoordinates();
-
-    /** init_euler w/o updates that have already been done above **/
-    InitTransport();
-
-    viscosity::update_viscosity(data);
-    /** end init_euler **/
-
-    if (CentrifugalBalance)
-	die("CentrifugalBalance and Shakura-Sunyaev starting values has not yet been implemented!");
 }
 
 
@@ -1123,25 +1009,6 @@ void init_gas_density(t_data &data)
 			      parameters::sigma_filename.c_str());
 	data[t_data::SIGMA].read2D(parameters::sigma_filename.c_str());
 	break;
-
-    case parameters::initialize_condition_shakura_sunyaev:
-	die("Bad choice!"); // TODO: better explanation!
-	break;
-	// 		case parameters::initialize_condition_shakura_sunyaev:
-	// 			logging::print_master(LOG_INFO "Initializing
-	// Sigma from Shakura and Sunyaev 1973 standard solution (cf. A&A, 24,
-	// 337)");
-	//
-	// 			for (unsigned int n_radial = 0; n_radial <
-	// data[t_data::DENSITY].Nrad; ++n_radial) { for (unsigned int
-	// n_azimuthal = 0; n_azimuthal < data[t_data::DENSITY].Nsec;
-	// ++n_azimuthal) {
-	// data[t_data::DENSITY](n_radial, n_azimuthal) =
-	// 					data[t_data::DENSITY](n_radial,
-	// n_azimuthal) = parameters::sigma0*pow(Rmed[n_radial],-parameters::SIGMASLOPE);
-	// 				}
-	// 			}
-	// 			break;
     }
 
     if (parameters::SpreadingRing) {
@@ -1494,10 +1361,6 @@ void init_gas_energy(t_data &data)
 	logging::print_master(LOG_INFO "Loading Energy from '%s' (2D).\n",
 			      parameters::energy_filename.c_str());
 	data[t_data::ENERGY].read2D(parameters::energy_filename.c_str());
-	break;
-
-    case parameters::initialize_condition_shakura_sunyaev:
-	die("Bad choice!"); // TODO: better explanation!
 	break;
     }
 

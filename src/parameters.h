@@ -97,8 +97,7 @@ enum t_initialize_condition {
     initialize_condition_profile,
     initialize_condition_profile_Nbody_centered,
     initialize_condition_read1D,
-    initialize_condition_read2D,
-    initialize_condition_shakura_sunyaev
+    initialize_condition_read2D
 };
 
 /// initialize condition for sigma
