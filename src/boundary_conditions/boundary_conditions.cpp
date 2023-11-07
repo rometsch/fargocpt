@@ -17,6 +17,9 @@ extern boolean OuterSourceMass;
 namespace boundary_conditions
 {
 
+void no_operation([[maybe_unused]] t_polargrid&, [[maybe_unused]] t_polargrid&, [[maybe_unused]] t_data&) {};
+
+
 void init(t_data &data) {
 	init_custom(data);
 
@@ -82,9 +85,18 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 		vaz_outer_func(x, x0, data);
 	}
 
-	if (special_name == "custom") {
-		custom(data, current_time, dt);
+	if (composite_inner_name == "custom") {
+		custom_inner(data, current_time, dt);
+	} else if (composite_inner_name == "centerofmass") {
+		initial_center_of_mass_inner(data, dt, final);
 	}
+
+	if (composite_outer_name == "custom") {
+		custom_outer(data, current_time, dt);
+	} else if (composite_outer_name == "centerofmass") {
+		initial_center_of_mass_outer(data, dt, final);
+	}
+	
 
 }
 

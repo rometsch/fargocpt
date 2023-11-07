@@ -30,7 +30,6 @@ extern std::string vrad_inner_name;
 extern std::string vrad_outer_name;
 extern std::string vaz_inner_name;
 extern std::string vaz_outer_name;
-extern std::string special_name;
 extern std::string composite_inner_name;
 extern std::string composite_outer_name;
 
@@ -139,11 +138,18 @@ void diskmodel_outer_energy(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 
 
 /****************************************
+/// No operation for using custom 
+/// or special boundaries
+****************************************/
+void no_operation(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+
+/****************************************
 /// Custom boundary conditions
 ****************************************/
 // Modify these to implement you own custom boundary conditions.
 
-void custom(t_data &data, const double t, const double dt);
+void custom_inner(t_data &data, const double t, const double dt);
+void custom_outer(t_data &data, const double t, const double dt);
 void init_custom(t_data& data);
 void cleanup_custom();
 
