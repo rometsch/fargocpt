@@ -3,7 +3,7 @@ Integrator: Euler
 
 BodyForceFromPotential: 'Yes'
 
-Sigma0: 600.547 g/cm2   # surface density at r=1 in g/cm^2
+Sigma0: 600.187 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.5'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
 DiscMass: '0.01'   # only used when SetSigma0 = true [default = 0.01]
@@ -63,7 +63,7 @@ OuterBoundary: outflow
 Damping: 'Yes'
 DampingInnerLimit: 2   # Rmin*Limit
 DampingOuterLimit: 0.64   # Rmax*Limit
-DampingTimeFactor: 1e-1
+DampingTimeFactor: 1e-2
 DampingEnergyInner: None   # Damping of energy [default = no]
 DampingVRadialInner: initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity [default = no]
@@ -73,7 +73,7 @@ DampingVRadialOuter: initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalOuter: none   # Damping of azimuthal velocity [default = no]
 DampingSurfaceDensityOuter: initial   # Damping of surface density [default = no]
 Disk: 'YES'
-OmegaFrame: 1
+OmegaFrame: 0
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: 'NO'   # star feels the disk
 
@@ -125,9 +125,6 @@ WriteAspectRatio: 'No'   # Write aspect ratio [default = no]
 WriteTorques: 'No'   # Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth: 'No'   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
 
-ViscAccretMassflowTest: Yes
-ViscousOutflowSpeed: '5'     # Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed
-MassAccretionRadius: '0.05'   # Mass accretion radius in unints of R_hill / 2
 nbody:
 - name: DefaultStar
   semi-major axis: 0.0 au
@@ -135,4 +132,3 @@ nbody:
   eccentricity: '0.0'
   radius: 0.009304813 solRadius
   temperature: 0 K
-  accretion efficiency: '-1.0'

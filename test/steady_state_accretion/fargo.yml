@@ -63,7 +63,7 @@ Transport: FARGO
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
 InnerBoundary: outflow
-OuterBoundary: CENTER
+OuterBoundary: outflow
 Damping: 'Yes'
 DampingInnerLimit: '2.00'   # Rmin*Limit
 DampingOuterLimit: '0.64'   # Rmax*Limit
@@ -74,9 +74,9 @@ DampingVRadialInner: Initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity [default = no]
 DampingSurfaceDensityInner: Initial   # Damping of surface density [default = no]
 DampingEnergyOuter: None   # Damping of energy [default = no]
-DampingVRadialOuter: none   # Damping of radial velocity [default = no]
+DampingVRadialOuter: Initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalOuter: none   # Damping of azimuthal velocity [default = no]
-DampingSurfaceDensityOuter: none   # Damping of surface density [default = no]
+DampingSurfaceDensityOuter: Initial   # Damping of surface density [default = no]
 Disk: 'YES'
 OmegaFrame: '0.0'
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
@@ -97,9 +97,8 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-OutputDir: ../../output/tests/gasMassFlow1D/fargo
-Ntot: '10000'   # Total number of time steps
-Ninterm: '30'   # Time steps between outputs
+Ntot: '100'   # Total number of time steps
+Ninterm: '100'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit
 OutputDir: out/
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
