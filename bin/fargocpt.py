@@ -266,7 +266,14 @@ def get_num_cores():
             import psutil
             rv = psutil.cpu_count(logical=False)
         except ImportError:
-            raise ImportError("Could not load psutil module to automatically determine the number of cpus available. Please specify manually.")
+            # Try to infer the number of cpus from the numa topology
+            try:
+                numa_nodes = get_numa_nodes_linux()
+                rv = sum([len(v) for v in numa_nodes.values()])
+                if rv == 0:
+                    raise RuntimeError("Something went wrong while infering the number of available cpus. It shoud be > 0. Set it manually or install the 'psutil' python package!")
+            except (FileNotFoundError):
+                raise NotImplementedError("Infering number of available cpus from numa topology only works on linux systems. Set the number manually or install the 'psutil' python package.")
     return rv
 
 def get_numa_nodes_linux():
