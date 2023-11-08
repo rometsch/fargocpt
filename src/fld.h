@@ -4,7 +4,7 @@
 
 namespace fld {
 
-extern t_polargrid Ka, Kb, A, B, C, D, E, Trad, Told;
+extern t_polargrid Ka, Kb, A, B, C, D, E, Told;
 
 // Parameters
 /// enable radiative diffusion
