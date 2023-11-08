@@ -1,5 +1,4 @@
-#ifndef POLARGRID_H
-#define POLARGRID_H
+#pragma once
 
 #include "units.h"
 #include <stddef.h>
@@ -93,6 +92,7 @@ class t_polargrid
     void write_polargrid(t_data &data);
     // 2D read/write
     void write2D() const;
+    void write2D(const std::string filename) const;
     void read2D(const char *filename);
     void read2D();
     bool file_exists();
@@ -139,4 +139,3 @@ class t_polargrid
 
 // for compatibility
 typedef t_polargrid PolarGrid;
-#endif // POLARGRID_H

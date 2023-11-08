@@ -1,7 +1,5 @@
-#ifndef FIND_CELL_ID_H
-#define FIND_CELL_ID_H
+#pragma once
 
-#include "parameters.h"
 #include <cstdio>
 
 void init_cell_finder(const double cell_growth_factor,
@@ -16,5 +14,3 @@ unsigned int clamp_r_id_to_rmed_grid(const int cell_id, const bool is_vector);
 unsigned int clamp_r_id_to_radii_grid(int cell_id, const bool is_vector);
 
 unsigned int clamp_phi_id_to_grid(int cell_id);
-
-#endif // FIND_CELL_ID_H

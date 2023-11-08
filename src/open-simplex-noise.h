@@ -1,5 +1,4 @@
-#ifndef OPEN_SIMPLEX_NOISE_H
-#define OPEN_SIMPLEX_NOISE_H
+#pragma once
 
 /*
  * OpenSimplex (Simplectic) Noise in C.
@@ -50,5 +49,3 @@ double open_simplex_noise4(struct osn_context *ctx, double x, double y,
 #ifdef __cplusplus
 }
 #endif
-
-#endif // OPEN_SIMPLEX_NOISE_H

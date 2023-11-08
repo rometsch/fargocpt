@@ -11,7 +11,9 @@
 #include <omp.h>
 #endif
 
-#include <fftw3-mpi.h>
+#ifndef DISABLE_FFTW
+#endif
+
 #include <math.h>
 
 #include "LowTasks.h"
@@ -23,8 +25,31 @@
 #include "parameters.h"
 #include "quantities.h"
 #include "selfgravity.h"
-#include "time.h"
-#include "util.h"
+
+#ifdef DISABLE_FFTW
+
+namespace selfgravity {
+
+	static void die_not_compiled() {
+		logging::print_master(LOG_ERROR
+			"Self-gravity is not compiled in. Please recompile with FFTW enabled.\n");
+		PersonalExit(1);
+	}
+
+	void init([[maybe_unused]] t_data &data) { die_not_compiled(); }
+	void compute([[maybe_unused]] t_data &data, [[maybe_unused]] double dt, [[maybe_unused]] bool update) { die_not_compiled(); }
+	void init_azimuthal_velocity([[maybe_unused]] t_polargrid&) { die_not_compiled(); }
+	void mpi_init(void) {}
+	void mpi_finalize(void) {}
+
+	double *g_radial;
+	double *g_azimuthal;
+}
+
+
+#else // DISABLE_FFTW
+
+#include <fftw3-mpi.h>
 
 #ifndef NDEBUG
 #undef FFTW_MEASURE
@@ -33,16 +58,16 @@
 
 namespace selfgravity
 {
-
-//#define EPSILON_SMOOTHING_SG
-#ifdef EPSILON_SMOOTHING_SG
+/// Parameters for selfgravity mode == Baruteau
 /// smoothing parameter of potential (introduced as B on page 53)
 double epsilon;
-#else
+/// Parameters for selfgravity mode == Moldenhauer
 /// smoothing parameters of potential as introduced by Tobi (to be published)
 double lambda_sq;
 double chi_sq;
-#endif
+/// Parameters for selfgravity mode == bessel kernel
+double aspect_ratio;
+
 /// mesh size in radial direction (introduced as Δu on page 53)
 double r_step;
 /// mesh size in azimuthal direction (introduced as Δphi on page 53)
@@ -74,8 +99,13 @@ double *acc_azimuthal;
 fftw_complex *FFT_acc_radial;
 fftw_complex *FFT_acc_azimuthal;
 
+// Arrays for use outside the sg module.
+// Memory is allocated in the data construct.
+// These variables only point to the respective Field array.
 double *g_radial;
 double *g_azimuthal;
+
+
 
 void mpi_init(void)
 {
@@ -107,15 +137,29 @@ void mpi_finalize(void)
     fftw_free(FFT_acc_radial);
     fftw_free(FFT_acc_azimuthal);
 
-    free(g_radial);
-    free(g_azimuthal);
-
     // cleanup MPI
 #ifdef _OPENMP
 	fftw_cleanup_threads();
 #else
 	fftw_mpi_cleanup();
-#endif
+#endif // _OPENMP
+}
+
+/**
+ * @brief Obtain the aspect ratio of the disk and recalculate the average if needed.
+ */
+static double get_aspect_ratio(t_data &data) {
+	double rv;
+	if (parameters::Locally_Isothermal) {
+		rv = parameters::ASPECTRATIO_REF;
+	} else {
+		rv = quantities::gas_allreduce_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
+	}
+	// safety net
+	if (rv == 0.0) {
+		rv = parameters::ASPECTRATIO_REF;
+	}
+	return rv;
 }
 
 /**
@@ -124,35 +168,49 @@ void mpi_finalize(void)
  * constants or Baruteau, 2008 for info on the self gravity module.
  * @param data
  */
+void update_sg_constants() {
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
+		lambda_sq = std::pow(
+			0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
+		chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
+	} else {
+		epsilon = parameters::thickness_smoothing_sg*aspect_ratio;
+	}
+}
+
+
+/**
+ * @brief upate_kernel, update the self-gravity kernel if needed.
+ * @param data
+ */
 static void update_kernel(t_data &data)
 {
-    // only update every 10th timestep
-    constexpr int update_every_nth_step = 10;
-
-    static int since_last_calculated = update_every_nth_step;
-
-    if (since_last_calculated >= (update_every_nth_step - 1)) {
-	double aspect_ratio = quantities::gas_allreduce_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
-
-	if (aspect_ratio == 0.0) {
-	    aspect_ratio = parameters::ASPECTRATIO_REF;
+	if (parameters::Locally_Isothermal) {
+		return;
 	}
 
-	#ifdef EPSILON_SMOOTHING_SG
-	epsilon = parameters::thickness_smoothing_sg*aspect_ratio;
-	#else
-	lambda_sq = std::pow(
-	    0.4571 * aspect_ratio + 0.6737 * std::sqrt(aspect_ratio), 2);
-	chi_sq = std::pow((-0.7543 * aspect_ratio + 0.6472) * aspect_ratio, 2);
-	#endif
+	// only update every Nth timestep
+    const int update_every_nth_step = parameters::self_gravity_steps_between_kernel_update;
+    static int since_last_calculated = update_every_nth_step;
+
+	if (since_last_calculated >= (update_every_nth_step - 1)) {
+		since_last_calculated = 0;
+	} else {
+		since_last_calculated++;
+		return;
+	}
+
+	// only update if the aspect ratio changed enough
+	static double last_aspect_ratio = 0;
+	aspect_ratio = get_aspect_ratio(data);
+
+	if (std::abs(last_aspect_ratio - aspect_ratio) < parameters::self_gravity_aspectratio_change_threshold) {
+		return;
+	}
+	last_aspect_ratio = aspect_ratio;
+
+	update_sg_constants();
 	compute_FFT_kernel();
-
-	since_last_calculated = 0;
-    } else {
-	since_last_calculated++;
-    }
-
-    return;
 }
 
 /**
@@ -202,8 +260,8 @@ void init(t_data &data)
     FFT_acc_radial = fftw_alloc_complex(total_local_size);
     FFT_acc_azimuthal = fftw_alloc_complex(total_local_size);
 
-    g_radial = (double *)malloc(sizeof(double) * hydro_totalsize);
-    g_azimuthal = (double *)malloc(sizeof(double) * hydro_totalsize);
+    g_radial = data[t_data::SG_ACCEL_RAD].Field;
+    g_azimuthal = data[t_data::SG_ACCEL_AZI].Field;
 
     // create FFT plans
     fftplan_forward_K_radial = fftw_mpi_plan_dft_r2c_2d(
@@ -226,7 +284,20 @@ void init(t_data &data)
 	2 * GlobalNRadial, NAzimuthal, FFT_acc_azimuthal, acc_azimuthal,
 	MPI_COMM_WORLD, FFTW_MEASURE | FFTW_MPI_TRANSPOSED_IN);
 
+	aspect_ratio = get_aspect_ratio(data);
+	update_sg_constants();
+	compute_FFT_kernel();
     compute(data, 0, false);
+
+	// check that the ratio of outer and inner boundary radius
+	// is compatible with the coefficients for the smoothing length
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
+		const double radius_ratio = RMAX/RMIN;
+		if (std::abs(radius_ratio - 12.5) > 2) {
+			logging::print_master(LOG_WARNING "WARNING: The ratio of outer to inner boundary radius (%f) is substaintially different than 12.5. Consider recomputing the factors for the polynomials to calculate the smoothing length. Refer to section 2.2 page 24 of Tobias Moldenhauer's Master thesis.\n", radius_ratio);
+		}
+	}
+
 }
 
 void compute(t_data &data, double dt, bool update)
@@ -362,7 +433,7 @@ void compute_FFT_kernel()
 	    const unsigned int l = i * stride + j;
 		const double theta = dphi * (double)j;
 
-#ifdef EPSILON_SMOOTHING_SG
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_B) {
 		const double denominator = std::pow(epsilon*epsilon*std::exp(u)
 									+ 2.0 * (std::cosh(u) - std::cos(theta)),-1.5);
 
@@ -370,17 +441,66 @@ void compute_FFT_kernel()
 		K_radial[l] *= denominator;
 		K_azimuthal[l] = std::sin(theta);
 		K_azimuthal[l] *= denominator;
-#else /// Correct SG smoothing
+	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_BK) {
+
+		/* This Kernel is an anlytical solution in the limit Q->oo
+		* and can be faithfully used for Q>=20.
+		* A further correction accounting for all Q values is coming 
+		* at end 2023.
+		*/
+		if (u==0. && theta==0.) {
+			/* At the singularity we must cancel the Kernels or 
+			* use tapering functions (see Sect. 4.1 of 
+			* https://doi.org/10.1051/0004-6361/202346178).
+			*/
+			K_radial[l] = 0.;
+			K_azimuthal[l]  = 0.;
+
+		} else {
+			const double distance_squared = 2. * std::pow(aspect_ratio, -2.) 
+												* (std::cosh(u) - std::cos(theta)) 
+												/  std::cosh(u);
+
+			/* The modified Bessel functions of the second kind are also 
+			* known as "Irregular modified cylindrical Bessel functions".
+			* This last naming is the one used in the cmath library
+			*/
+
+			/* L_sg would be defined in Rendon Restrepo et al. 2023 (not yet published) */
+			const double L_sg = std::pow(M_PI, 0.5) 
+								* (distance_squared / 8.)
+								* std::exp(distance_squared / 8.) 
+								* ( std::cyl_bessel_kl(1., distance_squared /8.) 
+								- std::cyl_bessel_kl(0., distance_squared /8.) );
+
+			K_radial[l] = std::exp(1./2.*u)    // this term is specific to how SG
+												// is written in Fargo (see C. Baruteau thesis p. 53)
+						* (L_sg / 2. / M_PI / aspect_ratio) 
+						* std::exp(-3./2.*u) 
+						* std::pow(std::cosh(u), -0.5) 
+						* std::pow(std::cosh(u)-std::cos(theta), -1.)
+						* (std::exp(u)-std::cos(theta));
+
+			K_azimuthal[l] = std::exp(3./2.*u) // this term is specific to how SG
+												// is written in Fargo (see C. Baruteau thesis p. 55)
+							* (L_sg / 2. / M_PI / aspect_ratio) 
+							* std::exp(-3./2.*u) 
+							* std::pow(std::cosh(u), -0.5) 
+							* std::pow(std::cosh(u)-std::cos(theta), -1.)
+							* std::sin(theta);
+		}
+
+
+	} else if (parameters::self_gravity_mode == parameters::t_sg::sg_S) {
 		const double denominator = std::pow(
 		2 * (std::cosh(u) - std::cos(theta)) +
-		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq,
-		-1.5);
+		    lambda_sq * (std::exp(u) + std::exp(-u) - 2) + chi_sq, -1.5);
 
 		K_radial[l] = 1.0 - std::cos(theta) * std::exp(-u);
 		K_radial[l] *= denominator;
 		K_azimuthal[l] = std::sin(theta);
 		K_azimuthal[l] *= denominator;
-#endif
+	}
 	}
     }
 
@@ -652,3 +772,6 @@ void init_azimuthal_velocity(t_polargrid &v_azimuthal)
 }
 
 } // namespace selfgravity
+
+
+#endif // DISABLE_FFTW

@@ -22,16 +22,16 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 # Planet parameters
 
 HydroFrameCenter: primary
-ForcedCircular: 'No'
 # Need to set thickness smoothing to zero in order to compare to the theoretical drift rates.
 ThicknessSmoothing: 0.0   # Softening parameters in disk thickness
 
 # Numerical method parameters
 
 Transport: Fargo
-InnerBoundary: Viscous
+InnerBoundary: zerogradient
+InnerBoundaryVrad: viscous
 ViscousOutflowSpeed: '5.0'
-OuterBoundary: OPEN
+OuterBoundary: outflow
 Damping: 'No'
 Disk: 'No'
 OmegaFrame: '0.0'
@@ -54,7 +54,7 @@ Ntot: '1000'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 DT: '0.628318531'   # 1/10th of a jupiter orbit
 FirstDt: 1e-1
-OutputDir: output/dust_drift
+OutputDir: ../../output/tests/dust_drift/out
 
 
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
@@ -100,7 +100,7 @@ ParticleSpeciesNumber: '12'
 NumberOfParticles: '12'   # number of particles [default = 0]
 ParticleEccentricity: '0.00'   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
-ParticleSlope: '0'   # [default = 0]
+ParticleSurfaceDensitySlope: 0
 ParticleMinimumRadius: '1.0 au'   # [default = RMIN]
 ParticleMaximumRadius: '1.0 au'   # [default = RMAX]
 ParticleMinimumEscapeRadius: '0.5 au'   # [default = ParticleMinimumRadius]
@@ -118,6 +118,4 @@ nbody:
   eccentricity: '0.0'
   radius: 0.009304813 solRadius
   temperature: 0 K
-  irradiate: 'NO'
-  phi: '0'
   ramp-up time: '0'

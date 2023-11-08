@@ -6,7 +6,7 @@
 #include "Pframeforce.h"
 #include "start_mode.h"
 #include "SourceEuler.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "commbound.h"
 #include "frame_of_reference.h"
 #include "particles/particles.h"
@@ -17,6 +17,9 @@
 #include "cfl.h"
 #include "quantities.h"
 #include "pvte_law.h"
+#include "fld.h"
+#include "options.h"
+#include "global.h"
 
 namespace sim {
 
@@ -36,10 +39,10 @@ static void write_snapshot(t_data &data) {
 	output::write_full_output(data, std::to_string(N_snapshot));
 	output::cleanup_autosave();
 
-	if (N_snapshot == 0 && parameters::damping) {
+	if (N_snapshot == 0 && boundary_conditions::initial_values_needed()) {
 	// Write damping data as a reference.
 	const std::string snapshot_dir_old = output::snapshot_dir;
-	output::write_full_output(data, "damping", false);
+	output::write_full_output(data, "reference", false);
 	output::snapshot_dir = snapshot_dir_old;
 	}
 }
@@ -63,7 +66,12 @@ void handle_outputs(t_data &data) {
 	}
 
 	if (to_write_snapshot && parameters::write_torques) {
-	    output::write_torques(data, need_update_for_output);
+		/// Write torques needs to be called after write_snapshots
+		/// because it depends on output::last_snapshot_dir
+		/// which is set inside write_snapshots
+		need_update_for_output = true;
+		output::write_torques(data, need_update_for_output);
+		need_update_for_output = false;
 	}
 
 	if (to_write_monitor) {
@@ -78,6 +86,8 @@ void handle_outputs(t_data &data) {
 		if (parameters::write_lightcurves) {
 			output::write_lightcurves(data, N_snapshot, need_update_for_output);
 		}
+
+		fld::write_logfile(output::outdir + "/monitor/fld.log");
 	}
 
 	// write disk quantities like eccentricity, ...
@@ -146,9 +156,6 @@ static void step_Euler(t_data &data, const double dt) {
 
 	if (parameters::disk_feedback) {
 	    ComputeDiskOnNbodyAccel(data);
-	}
-
-	if (parameters::disk_feedback) {
 	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
 
@@ -194,29 +201,30 @@ static void step_Euler(t_data &data, const double dt) {
 
 
 	    if (parameters::Adiabatic) {
-		SubStep3(data, time, dt);
-		if (parameters::radiative_diffusion_enabled) {
-		    radiative_diffusion(data, time, dt);
+			SubStep3(data, time, dt);
 		}
-	    }
+	}
 
-	    /// TODO moved apply boundaries here
+	/* Do radiative transport. This can be done independent of the hydro simulation. */
+	if (parameters::Adiabatic && fld::radiative_diffusion_enabled) {
+		    fld::radiative_diffusion(data, time, dt);
+	}
+	    
+	/* Continue with hydro simulation */
+	if (parameters::calculate_disk) {
 		boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 
 		Transport(data, &data[t_data::SIGMA], &data[t_data::V_RADIAL],
-			  &data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
-			  dt);
+				&data[t_data::V_AZIMUTHAL], &data[t_data::ENERGY],
+				dt);
 	}
 
 	/** Planets' positions and velocities are updated from gravitational
 	 * interaction with star and other planets */
-	if (parameters::integrate_planets) {
-		data.get_planetary_system().integrate(time, dt);
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
-	}
+	data.get_planetary_system().integrate(time, dt);
+	data.get_planetary_system().copy_data_from_rebound();
+	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 
-	// TODO: move outside step
 	PhysicalTime += dt;
 	N_hydro_iter = N_hydro_iter + 1;
 	logging::print_runtime_info();
@@ -237,11 +245,12 @@ static void step_Euler(t_data &data, const double dt) {
 
 	    boundary_conditions::apply_boundary_condition(data, time, dt, true);
 
-	    // const double total_disk_mass_new =
-	    //  quantities::gas_total_mass(data, 2.0*RMAX);
-
-	    // data[t_data::DENSITY] *=
-	    //(total_disk_mass_old / total_disk_mass_new);
+	    if(parameters::keep_mass_constant){
+		const double total_disk_mass_new =
+		    quantities::gas_total_mass(data, RMAX);
+		data[t_data::SIGMA] *=
+		    (total_disk_mass_old / total_disk_mass_new);
+	    }
 
 	    quantities::CalculateMonitorQuantitiesAfterHydroStep(data, N_monitor,
 						     dt);
@@ -278,12 +287,11 @@ static void step_Euler(t_data &data, const double dt) {
 	/// Compute indirect Term is forward looking (computes acceleration from 'dt' to 'dt + frog_dt'
 	/// so it must be done while Nbody is still at 'dt'
 	refframe::ComputeIndirectTermNbody(data, start_time, frog_dt);
-	if (parameters::integrate_planets) { //// Nbody drift / 2
+	//// Nbody drift / 2
 	refframe::init_corotation(data);
 	data.get_planetary_system().integrate(start_time, frog_dt);
 	data.get_planetary_system().copy_data_from_rebound();
 	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
-	}
 
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(data);
@@ -292,15 +300,13 @@ static void step_Euler(t_data &data, const double dt) {
 
 	refframe::ComputeIndirectTermFully();
 
-	if (parameters::integrate_planets) { /// Nbody Kick 1 / 2
-		// minimum density is assured inside AccreteOntoPlanets
-		accretion::AccreteOntoPlanets(data, frog_dt);
-
-		if (parameters::disk_feedback) {
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
-		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
+	/// Nbody Kick 1 / 2
+	// minimum density is assured inside AccreteOntoPlanets
+	accretion::AccreteOntoPlanets(data, frog_dt);
+	if (parameters::disk_feedback) {
+		UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 	}
+	data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
 
 	if (parameters::integrate_particles) {
 		particles::integrate(data, start_time, frog_dt);
@@ -327,8 +333,8 @@ static void step_Euler(t_data &data, const double dt) {
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, start_time, frog_dt);
-		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, start_time, frog_dt);
+		if (fld::radiative_diffusion_enabled) {
+			fld::radiative_diffusion(data, start_time, frog_dt);
 		}
 		}
 		//////////////// END /// Gas Kick 1/2 /////////////////////
@@ -382,8 +388,8 @@ static void step_Euler(t_data &data, const double dt) {
 
 		if (parameters::Adiabatic) {
 		SubStep3(data, midstep_time, frog_dt);
-		if (parameters::radiative_diffusion_enabled) {
-			radiative_diffusion(data, midstep_time, frog_dt);
+		if (fld::radiative_diffusion_enabled) {
+			fld::radiative_diffusion(data, midstep_time, frog_dt);
 		}
 		}
 	}
@@ -395,24 +401,21 @@ static void step_Euler(t_data &data, const double dt) {
 	particles::integrate(data, midstep_time, frog_dt);
 	}
 
-	// Finish timestep of the planets but do not update Nbody system yet //
-	if (parameters::integrate_planets) {
-		
-		// minimum density is assured inside AccreteOntoPlanets
-		accretion::AccreteOntoPlanets(data, frog_dt);
+	/// Finish timestep of the planets but do not update Nbody system yet
+	// minimum density is assured inside AccreteOntoPlanets
+	accretion::AccreteOntoPlanets(data, frog_dt);
 
-		/// Nbody kick 2/2
-		if (parameters::disk_feedback) {
-			UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
-		}
-		data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
-
-		/// Nbody drift 2/2
-		refframe::init_corotation(data);
-		data.get_planetary_system().integrate(midstep_time, frog_dt);
-		data.get_planetary_system().copy_data_from_rebound();
-		data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
+	       /// Nbody kick 2/2
+	if (parameters::disk_feedback) {
+	UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 	}
+	data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
+
+	       /// Nbody drift 2/2
+	refframe::init_corotation(data);
+	data.get_planetary_system().integrate(midstep_time, frog_dt);
+	data.get_planetary_system().copy_data_from_rebound();
+	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 
 	/* Below we correct v_azimuthal, planet's position and velocities if we
 	 * work in a frame non-centered on the star. Same for dust particles. */
@@ -459,8 +462,8 @@ static void step_Euler(t_data &data, const double dt) {
 
 
 void init(t_data &data) {
-	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false); // TODO: move to init
-	refframe::init_corotation(data); // TODO: move to init
+	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false);
+	refframe::init_corotation(data);
 
 	if (start_mode::mode != start_mode::mode_restart) {
 		CalculateTimeStep(data);
@@ -494,11 +497,11 @@ static void step(t_data &data, const double step_dt) {
 	}
 }
 
-static void handle_signals(t_data &data) {
-	if (SIGTERM_RECEIVED) {
-		output::write_full_output(data, "autosave");
-		PersonalExit(0);
+static bool exit_on_signal() {
+	if (!SIGTERM_RECEIVED) {
+		return false;
 	}
+	return true;
 }
 
 void run(t_data &data) {
@@ -509,10 +512,18 @@ void run(t_data &data) {
 	init(data);
 
 	const double t_final = parameters::NTOT * parameters::NINTERM * parameters::DT;
+	const bool iteration_restriction = options::max_iteration_number >= 0;
 
     for (; PhysicalTime < t_final;) {
-		
-		handle_signals(data);
+
+		if (iteration_restriction &&  N_hydro_iter >= (long unsigned int) options::max_iteration_number) {
+			break;
+		}
+
+		if (exit_on_signal()) {
+			output::write_full_output(data, "autosave");
+			break;
+		}
 
 		cfl_dt = CalculateTimeStep(data);
 
@@ -539,6 +550,8 @@ void run(t_data &data) {
 			handle_outputs(data);
 			logging::print_runtime_info();
 		}
+
+
     }
 
 

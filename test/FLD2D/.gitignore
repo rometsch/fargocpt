@@ -1,0 +1,5 @@
+matexact_*
+out.log
+err.log
+simulation.log
+plot.jpg

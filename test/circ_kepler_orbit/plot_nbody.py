@@ -6,7 +6,7 @@ import astropy.units as units
 import disgrid
 
 def main():
-    d = disgrid.Data("output")
+    d = disgrid.Data("../../output/tests/circ_kepler_orbit/out")
 
     fig, axes = plt.subplots(nrows=2, ncols=2)
 
@@ -16,7 +16,7 @@ def main():
         t = q.time.to_value("kyr")
         a = q.data.to_value("au")
         ax = axes[0,0]
-        ax.plot(t, a, label=f"{n}")
+        ax.plot(t, np.abs(a-1), label=f"{n}")
 
         q = d.get("eccentricity", planet=n)
         t = q.time.to_value("kyr")
@@ -26,7 +26,8 @@ def main():
 
     ax = axes[0,0]
     ax.legend()
-    ax.set_ylabel(r"$a$ [au]")
+    ax.set_yscale("log")
+    ax.set_ylabel(r"|$a$-1au| / 1au")
 
     ax = axes[0,1]
     ax.set_ylabel(r"$e$")
@@ -56,7 +57,7 @@ def main():
 
 
 
-    fig.savefig("orbital_elements.jpg")
+    fig.savefig("plot.jpg")
 
     plt.show()
 

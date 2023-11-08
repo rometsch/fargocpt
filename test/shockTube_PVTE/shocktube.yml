@@ -27,8 +27,7 @@ FlaringIndex: '0.5'   # Slope of Temperature/radius profile
 SelfGravity: 'No'   # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-CoolingRadiativeLocal: 'No'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
 RadiativeDiffusion: 'No'   # 
@@ -46,8 +45,6 @@ CFL: '0.5'
 
 # Star Parameters
 
-zbufferSize: '100'
-zbufferMaxAngle: '0.174'
 
 # Units
 
@@ -59,20 +56,14 @@ InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
 MassOverflow: 'No'   # [default = No]
 MOFPLANET: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
-MOFSIGMA: '0.05'   # Sigma value for normal distribution
 MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
-# PlanetConfig		setups/old/Jup-res.cfg
-
-IntegratePlanets: 'Yes'   # [default = yes]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Boundary layer parameters
 
-VRadIn: '0.0e-3'   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
-StellarRotation: '0.0'   # Stellar rotation rate in terms of Keplerian angular velocity Om_kepler [default = 0.1]
 MassAccretionRate: '0'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
@@ -82,9 +73,12 @@ Transport: FARGO
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
-InnerBoundary: RIGID
-OuterBoundary: RIGID
-DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
+
+InnerBoundaryVazi: keplerian
+OuterBoundaryVazi: keplerian
+
 Damping: 'No'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -117,6 +111,7 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 # Output control parameters
 
+OutputDir: ../../output/tests/shocktube_PVTE/shocktube
 Ntot: '1'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 DT: '0.228'   # Time step length. 2PI = 1 orbit
@@ -147,8 +142,6 @@ WriteLightCurves: 'No'   # Write light curves [default = no]
 WriteLightcurvesRadii: 0.4,5.2
 WriteMassFlow: 'No'   # Write a 1d radial file with mass flow at each interface [default = no]
 WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
-WriteAdiabaticIndices: 'Yes'
-WriteMeanMolecularWeights: 'Yes'
 WritePressure: 'Yes'   # Write pressure [default = no]
 WriteAspectRatio: 'No'   # Write aspect ratio [default = no]
 WriteTorques: 'No'   # Calculate and write torques acting in planet/star
@@ -158,22 +151,6 @@ RandomSigma: 'No'   # randomize sigma start values?
 RandomFactor: '0.1'   # randomize by +- 10%
 FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
-# particles
-
-IntegrateParticles: 'No'   # enable particle integrator [default = no]
-CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Adaptive   # Explicit, Adaptive, Semiimplicit and Implicit
-NumberOfParticles: '400002'   # number of particles [default = 0]
-ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]
-ParticleEccentricity: '0.03'   # particle maximum Eccentricity
-ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
-ParticleSurfaceDensitySlope: '0.5'   # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
-ParticleMinimumRadius: '0.4'   # [default = RMIN]
-ParticleMaximumRadius: '2.5'   # [default = RMAX]
-ParticleMinimumEscapeRadius: '0.4'   # [default = ParticleMinimumRadius]
-ParticleMaximumEscapeRadius: '2.5'   # [default = ParticleMaximumRadius]
-ParticleGasDragEnabled: 'yes'   # [default = YES]
-ParticleDiskGravityEnabled: 'no'   # [default = no]
 nbody:
 - name: DefaultStar
   semi-major axis: 0.0 au

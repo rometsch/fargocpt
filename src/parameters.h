@@ -1,5 +1,4 @@
-#ifndef PARAMETERS_H
-#define PARAMETERS_H
+#pragma once
 
 #include "data.h"
 
@@ -10,7 +9,8 @@ extern double ASPECTRATIO_REF;
 extern int ASPECTRATIO_MODE;
 extern double VISCOSITY;
 extern double ALPHAVISCOSITY;
-extern int VISCOUS_ACCRETION;
+// Is viscous accretion turned on at at either boundary or Nbodies?
+extern bool VISCOUS_ACCRETION;
 extern double SIGMASLOPE;
 extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;
@@ -18,10 +18,9 @@ extern double FLARINGINDEX;
 extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
-extern std::string PRESCRIBED_BOUNDARY_OUTER_FILE;
-
 extern bool CartesianParticles;
-extern bool ParticlesInCartesian;
+// Compute the gravity acceleration acting on the particles in Cartesian coordinates.
+extern bool ParticleGravityCalcInCartesian;
 
 extern double DT;
 extern unsigned int NINTERM;
@@ -41,6 +40,7 @@ extern bool Polytropic;
 extern bool Locally_Isothermal;
 
 extern bool variableGamma;
+extern double hydrogenMassFraction;
 
 /// Type of radial Grid
 enum t_radial_grid {
@@ -52,64 +52,6 @@ enum t_radial_grid {
 extern t_radial_grid radial_grid_type;
 extern const char *radial_grid_names[];
 extern double exponential_cell_size_factor;
-
-// boundary conditions
-enum t_boundary_condition {
-    boundary_condition_open,
-    boundary_condition_reflecting,
-    boundary_condition_center_of_mass_initial,
-    boundary_condition_zero_gradient,
-    boundary_condition_nonreflecting,
-    boundary_condition_viscous_outflow,
-    boundary_condition_jibin_spreading_ring,
-    boundary_condition_boundary_layer,
-    boundary_condition_precribed_time_variable,
-    boundary_condition_keplerian,
-    boundary_condition_evanescent
-};
-
-/// type of inner boundary
-extern t_boundary_condition boundary_inner;
-/// type of outer boundary
-extern t_boundary_condition boundary_outer;
-/// set dr/dOmega zero at outer boundary
-extern bool domegadr_zero;
-
-// speed of the viscous boundary inflow
-extern double viscous_outflow_speed;
-
-/// enable different damping types
-enum t_damping_type {
-    damping_none,
-    damping_initial,
-    damping_mean,
-    damping_zero,
-    damping_visc
-};
-
-/// Struct for handling damping at boundaries
-struct t_DampingType {
-    void (*inner_damping_function)(t_polargrid &, t_polargrid &, double);
-    void (*outer_damping_function)(t_polargrid &, t_polargrid &, double);
-    t_data::t_polargrid_type array_to_damp;
-    t_data::t_polargrid_type array_with_damping_values;
-    t_damping_type type_inner;
-    t_damping_type type_outer;
-};
-extern int damping_energy_id;
-
-extern bool damping;
-/// is at least one variable damped to initial values
-extern bool is_damping_initial;
-/// inner damping limit
-extern double damping_inner_limit;
-/// outer damping limit
-extern double damping_outer_limit;
-/// damping time factor
-extern double damping_time_factor;
-extern double damping_time_radius_outer;
-/// vector to handle damping structs
-extern std::vector<t_DampingType> damping_vector;
 
 // energy equation
 /// mean molecular mass
@@ -126,9 +68,9 @@ extern double heating_viscous_factor;
 extern bool heating_star_enabled;
 
 /// local radiative cooling enabled
-extern bool cooling_radiative_enabled;
+extern bool cooling_surface_enabled;
 /// local radiative cooling factor
-extern double cooling_radiative_factor;
+extern double surface_cooling_factor;
 /// beta cooling enabled
 extern bool cooling_beta_enabled;
 /// beta cooling ramp up time
@@ -136,30 +78,26 @@ extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
 /// beta cooling to aspect ratio profile
-extern bool cooling_beta_initial;
+extern bool cooling_beta_reference;
 /// beta cooling to initial profile
-extern bool cooling_beta_aspect_ratio;
+extern bool cooling_beta_model;
+/// beta cooling to minimum temperature
+extern bool cooling_beta_floor;
 /// local Scurve cooling enabled
 extern bool cooling_scurve_enabled;
+extern bool cooling_scurve_type;
 
 
 
-/// enable radiative diffusion
-extern bool radiative_diffusion_enabled;
-/// omega for SOR in radiative diffusion
-extern double radiative_diffusion_omega;
-/// enable automatic omega in SOR in radiative diffusion
-extern bool radiative_diffusion_omega_auto_enabled;
-/// maximum iterations in SOR in radiative diffusion
-extern unsigned int radiative_diffusion_max_iterations;
+
+
 
 // initialisation
 enum t_initialize_condition {
     initialize_condition_profile,
     initialize_condition_profile_Nbody_centered,
     initialize_condition_read1D,
-    initialize_condition_read2D,
-    initialize_condition_shakura_sunyaev
+    initialize_condition_read2D
 };
 
 /// initialize condition for sigma
@@ -182,9 +120,6 @@ extern bool sigma_adjust;
 extern double sigma_discmass;
 /// Sigma0
 extern double sigma0;
-
-/// whether to interpret par file value for Sigma0 in cgs or code units
-extern bool sigma0_in_code_units;
 
 /// initiliaze condition for energy
 extern t_initialize_condition energy_initialize_condition;
@@ -236,7 +171,11 @@ extern bool artificial_viscosity_dissipation;
 
 extern double thickness_smoothing;
 extern double thickness_smoothing_sg;
-extern bool naive_smoothing;
+// evalutate the smoothing length at the planet location for compatibility with literature results
+extern bool compatibility_smoothing_planetloc;
+// do not smooth the gravity from the central star for compatibility with literature results
+extern bool compatibility_no_star_smoothing;
+// substract the azimuthal average of the density in the calculation of torques on the planets to be consistent with no self-gravity of the disk
 extern bool correct_disk_selfgravity;
 
 
@@ -248,15 +187,6 @@ extern unsigned int n_bodies_for_hydroframe_center;
 extern unsigned int corotation_reference_body;
 extern bool corotating;
 
-extern bool massoverflow;
-extern bool variableTransfer;
-extern unsigned int mof_planet;
-extern double mof_temperature;
-extern double mof_value;
-extern double mof_rampingtime;
-extern double mof_averaging_time;
-extern double mof_gamma;
-
 extern int AlphaMode;
 extern double alphaCold;
 extern double alphaHot;
@@ -267,7 +197,6 @@ extern double alphaHot;
 extern bool disk_feedback;
 extern bool accrete_without_disk_feedback;
 extern bool planet_orbit_disk_test;
-extern bool star_gasblobb_binary_test;
 
 extern bool fast_transport;
 extern int hydro_integrator;
@@ -286,12 +215,19 @@ extern bool v_azimuthal_with_quadropole_support;
 /// factor for kappa calculation
 extern double kappa_factor;
 
-///
-extern bool integrate_planets;
 extern bool do_init_secondary_disk;
 
 // self gravity
 extern bool self_gravity;
+// type of opacity
+enum t_sg {
+    sg_B,      // fourier trafo based on Baruteau PhD thesis with first order smoothing length
+    sg_S,     // symmetric smoothing length based on masterthesis by Tobias Moldenhauer
+    sg_BK       // exact solution for the kernel using bessel functions by Steven Rendon Restrepo
+};
+extern t_sg self_gravity_mode;
+extern unsigned int self_gravity_steps_between_kernel_update;
+extern double self_gravity_aspectratio_change_threshold;
 
 extern bool body_force_from_potential;
 
@@ -329,14 +265,10 @@ extern double kappa_const;
 extern bool initialize_pure_keplerian;
 extern bool initialize_vradial_zero;
 
-extern unsigned int zbuffer_size;
-extern double zbuffer_maxangle;
-
 /// boundary layer parameters
 extern double radial_viscosity_factor;
-extern double vrad_fraction_of_kepler;
-extern double stellar_rotation_rate;
 extern double mass_accretion_rate;
+
 extern double accretion_radius_fraction;
 extern double klahr_smoothing_radius;
 
@@ -392,5 +324,3 @@ void write_grid_data_to_file();
 void exitOnDeprecatedSetting(std::string setting_name, std::string reason,
 			     std::string instruction);
 } // namespace parameters
-
-#endif // PARAMETERS_H

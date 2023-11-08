@@ -1,5 +1,4 @@
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
 #include <string>
 
@@ -16,5 +15,3 @@ double cutoff_outer(double point, double width, double x);
 double cutoff_inner(double point, double width, double x);
 bool is_big_endian(void);
 bool is_distance_zero(double x);
-
-#endif // UTIL_H

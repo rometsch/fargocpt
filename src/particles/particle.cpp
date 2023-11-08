@@ -1,7 +1,6 @@
 #include "particle.h"
-#include "global.h"
 #include <cmath>
-#include "parameters.h"
+#include "../parameters.h"
 
 double t_particle::get_squared_distance_to_star()
 {

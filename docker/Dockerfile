@@ -11,23 +11,19 @@ RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 git
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libopenmpi-dev 
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libgsl-dev 
 RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 libfftw3-mpi-dev libfftw3-dev
-RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3
-RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 gosu
+RUN apt-get install -qq -y -o=Dpkg::Use-Pty=0 python3 python3-pip
+RUN pip install psutil
 
 COPY .git .git
 COPY src src
-COPY bin/fargocpt.py bin/
-COPY run_fargo .
 
 RUN make -C /app/src -j 4
 
+COPY bin/fargocpt.py bin/
+COPY run_fargo .
+
 RUN cd /usr/local/bin && ln -s /app/run_fargo fargocpt
 
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
 WORKDIR /project
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 CMD ["bash"]

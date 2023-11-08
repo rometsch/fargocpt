@@ -1,9 +1,8 @@
-#ifndef PLANETARY_SYSTEM_H
-#define PLANETARY_SYSTEM_H
+#pragma once
 
 #include "planet.h"
-#include "config.h"
-#include "rebound/rebound.h"
+#include "../config.h"
+#include "../rebound/rebound.h"
 #include <vector>
 
 class t_planetary_system
@@ -11,8 +10,6 @@ class t_planetary_system
   private:
     // list of all planets
     std::vector<t_planet *> m_planets;
-	pair m_shift_pos;
-	pair m_shift_vel;
 
   public:
     struct reb_simulation *m_rebound;
@@ -52,7 +49,6 @@ class t_planetary_system
 	double compute_hydro_frame_center_mass() const;
 	void apply_indirect_term_on_Nbody(const pair accel, const double dt);
 	void move_to_hydro_frame_center();
-	void move_to_hydro_frame_center_from_last_dt();
 
     void update_global_hydro_frame_center_mass();
     void calculate_orbital_elements();
@@ -65,7 +61,7 @@ class t_planetary_system
     Pair get_center_of_mass_velocity() const;
 
     void init_rebound();
-    void init_system(const std::string &filename);
+    void init_system();
     void config_consistency_checks();
     void init_corotation_body();
     void init_hydro_frame_center();
@@ -92,5 +88,3 @@ class t_planetary_system
     void init_roche_radii();
     void update_roche_radii();
 };
-
-#endif // PLANETARY_SYSTEM_H

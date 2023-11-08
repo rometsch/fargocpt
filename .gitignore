@@ -4,7 +4,7 @@ build
 build/*
 src/build/
 
-docs/.venv
+docs_source/.venv
 docs/build
 
 # Prerequisites
@@ -85,8 +85,15 @@ dkms.conf
 .vscode
 
 # Output files
-out*
+out*/
 
 notebook/
 
 examples/*/
+
+
+docs/
+
+python-venv
+
+Overview.ipynb

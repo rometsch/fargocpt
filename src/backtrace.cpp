@@ -6,13 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ucontext.h>
+#include <sys/ucontext.h>
 #include <unistd.h>
 
-#include "LowTasks.h"
 #include "backtrace.h"
 #include "global.h"
-#include "logging.h"
 #include "output.h"
 
 void Backtrace(std::ostream &);
@@ -78,7 +76,7 @@ void Backtrace(std::ostream &out) {
 void PrintTrace(bool tofile)
 {
 	if (tofile) {
-		const std::string filename = output::outdir + "backtrace.txt";
+		const std::string filename = output::outdir + "backtrace-" + std::to_string(CPU_Rank) + ".txt";
 		std::ofstream out(filename);
 		Backtrace(out);
 		std::cerr << "[" << CPU_Rank << "] [bt]: backtrace written to " << filename << std::endl;

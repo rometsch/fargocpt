@@ -1,7 +1,7 @@
 #include <cfloat>
 #include <cstdlib>
 #include <cstring>
-#include <gsl/gsl_spline.h>
+
 #include <mpi.h>
 #include <sstream>
 
@@ -14,6 +14,10 @@
 #include "polargrid.h"
 #include "radialarray.h"
 #include "radialgrid.h"
+
+#ifndef DISABLE_GSL
+#include <gsl/gsl_spline.h>
+#endif // DISABLE_GSL
 
 t_radialgrid::t_radialgrid()
 {
@@ -138,7 +142,7 @@ void t_radialgrid::write1D() const
 
 	    \param number file number
     */
-    const std::string filename = output::snapshot_dir +  get_name() + ".dat";
+    const std::string filename = output::snapshot_dir + "/" +  get_name() + ".dat";
     write1D(filename, false);
 }
 
@@ -244,6 +248,11 @@ void t_radialgrid::read1D()
     read1D(filename.c_str());
 }
 
+#ifdef DISABLE_GSL
+void t_radialgrid::read1D([[maybe_unused]] const char *_filename) {
+    die("Trying to read 1D file '%s' but GSL is not compiled in!\n", _filename);
+}
+#else // DISABLE_GSL
 void t_radialgrid::read1D(const char *_filename)
 {
     MPI_File fh;
@@ -327,6 +336,7 @@ void t_radialgrid::read1D(const char *_filename)
     gsl_spline_free(spline);
     gsl_interp_accel_free(acc);
 }
+#endif //DISABLE_GSL
 
 /**
 	calculate how much bytes are need for one 1D output

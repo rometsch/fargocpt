@@ -20,30 +20,32 @@
 // file version 2.5
 const static std::map<const std::string, const int> planet_file_column_v2_5 = {
     {"time step", 0},
-    {"x", 1},
-    {"y", 2},
-    {"vx", 3},
-    {"vy", 4},
-    {"mass", 5},
-    {"physical time", 6},
-    {"omega frame", 7},
-    {"mdcp", 8},
-    {"eccentricity", 9},
-    {"angular momentum", 10},
-    {"semi-major axis", 11},
-    {"omega kepler", 12},
-    {"mean anomaly", 13},
-    {"eccentric anomaly", 14},
-    {"true anomaly", 15},
-    {"pericenter angle", 16},
-    {"torque", 17},
-    {"accreted mass", 18},
-    {"accretion rate", 19}};
+    {"analysis time step", 1},
+    {"x", 2},
+    {"y", 3},
+    {"vx", 4},
+    {"vy", 5},
+    {"mass", 6},
+    {"physical time", 7},
+    {"omega frame", 8},
+    {"mdcp", 9},
+    {"eccentricity", 10},
+    {"angular momentum", 11},
+    {"semi-major axis", 12},
+    {"omega kepler", 13},
+    {"mean anomaly", 14},
+    {"eccentric anomaly", 15},
+    {"true anomaly", 16},
+    {"pericenter angle", 17},
+    {"torque", 18},
+    {"accreted mass", 19},
+    {"accretion rate", 20}};
 
 const static auto planet_files_column = planet_file_column_v2_5;
 
 const static std::map<const std::string, const std::string> variable_units = {
     {"time step", "1"},
+    {"analysis time step", "1"},
     {"x", "length"},
     {"y", "length"},
     {"vx", "velocity"},
@@ -77,7 +79,8 @@ t_planet::t_planet()
     m_vx = 0.0;
     m_vy = 0.0;
 
-    m_acc = 0.0;
+    m_accretion_efficiency = 0.0;
+    m_accretion_type = 0;
     m_accreted_mass = 0.0;
     m_name = "";
 
@@ -109,7 +112,7 @@ void t_planet::print()
     std::cout << "Name: " << m_name << "\n";
     std::cout << "(x, y): (" << m_x << ", " << m_y << "\n";
     std::cout << "(vx, vy): (" << m_vx << ", " << m_vy << "\n";
-    std::cout << "Accretion: " << m_acc << "\n";
+    std::cout << "Accretion: " << m_accretion_efficiency << "\n";
     std::cout << "Accreted mass: " << m_accreted_mass << "\n";
 
     std::cout << "Temperature: " << m_temperature << "\n";
@@ -145,18 +148,9 @@ void t_planet::print()
 */
 void t_planet::set_name(std::string name) { m_name = name; }
 
-/**
- * @brief t_planet::get_angle get phi coordinate
- * @return
- */
-double t_planet::get_phi() const { return std::atan2(m_y, m_x); }
-
-/**
-	get planet distance to coordinate center
-*/
-double t_planet::get_r() const
-{
-    return std::sqrt(std::pow(m_x, 2) + std::pow(m_y, 2));
+void t_planet::update_rphi() {
+    m_r = std::hypot(m_x, m_y); 
+    m_phi = std::atan2(m_y, m_x);
 }
 
 /**
@@ -261,6 +255,8 @@ void t_planet::copy(const planet_member_variables &other)
     m_pericenter_angle = other.m_pericenter_angle;
 
     m_torque = other.m_torque;
+
+    update_rphi();
 }
 
 std::string t_planet::get_monitor_filename() const {
@@ -324,7 +320,7 @@ void t_planet::write_ascii(const std::string &filename) const
     // open file
     FILE *fd = fopen(filename.c_str(), "a");
     if (fd == NULL) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.c_str());
 	PersonalExit(1);
     }
 
@@ -341,8 +337,8 @@ void t_planet::write_ascii(const std::string &filename) const
 
     fprintf(
 	fd,
-	"%d\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
-	sim::N_snapshot, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
+	"%u\t%u\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	sim::N_snapshot, sim::N_monitor, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
 	sim::PhysicalTime, refframe::OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
@@ -361,7 +357,7 @@ void t_planet::write_binary(const std::string &filename) const
 
     wf = std::ofstream(filename, std::ios::out | std::ios::binary);
     if (!wf) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.c_str());
 	die("End\n");
     }
 
@@ -375,7 +371,7 @@ void t_planet::write_binary(const std::string &filename) const
     pl.m_vx = m_vx;
     pl.m_vy = m_vy;
 
-    pl.m_acc = m_acc;
+    pl.m_acc = m_accretion_efficiency;
     pl.m_accreted_mass = m_accreted_mass;
     pl.m_planet_number = m_planet_number;
     pl.m_temperature = m_temperature;

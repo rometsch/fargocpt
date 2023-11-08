@@ -1,13 +1,12 @@
 #include "planetary_system.h"
-#include "LowTasks.h"
-#include "Theo.h"
-#include "constants.h"
-#include "fpe.h"
-#include "global.h"
-#include "logging.h"
-#include "parameters.h"
-#include "types.h"
-#include "output.h"
+#include "../LowTasks.h"
+#include "../Theo.h"
+#include "../constants.h"
+#include "../global.h"
+#include "../logging.h"
+#include "../parameters.h"
+#include "../types.h"
+#include "../output.h"
 #include <cstring>
 #include <ctype.h>
 #include <fstream>
@@ -15,14 +14,11 @@
 #include <cstdio>
 #include <cassert>
 #include <iostream>
-#include "quantities.h"
-#include <experimental/filesystem>
+#include <filesystem>
 
 extern boolean CICPlanet;
 
 t_planetary_system::t_planetary_system() {
-	m_shift_pos = pair{0.0, 0.0};
-	m_shift_vel = pair{0.0, 0.0};
 }
 
 t_planetary_system::~t_planetary_system()
@@ -68,15 +64,21 @@ void t_planetary_system::init_rebound()
     }
 }
 
-void t_planetary_system::init_system(const std::string &filename)
+void t_planetary_system::init_system()
 {
 
-    config::Config cfg(filename);
+	config::Config &cfg = config::cfg;
 
     std::vector<config::Config> planet_configs = cfg.get_nbody_config();
     for (auto &planet_cfg : planet_configs) {
 		init_planet(planet_cfg);
     }
+
+	if (CPU_Master) {
+		for (auto &planet_cfg : planet_configs) {
+			planet_cfg.exit_on_unknown_key();
+		}
+	}
 
     config_consistency_checks();
 
@@ -88,8 +90,8 @@ void t_planetary_system::init_system(const std::string &filename)
 
 	derive_config();
 
-    logging::print_master(LOG_INFO "%d planet(s) initialized.\n",
-			 get_number_of_planets());
+	unsigned int n = get_number_of_planets();
+    logging::print_master(LOG_INFO "%u planet(s) initialized.\n", n);
 
 		// activate irradiation if its enable for any of the planets
 
@@ -144,7 +146,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     const double radius = cfg.get<double>("radius", "0.009304813 au", units::L0);
 
-    const double temperature = cfg.get<double>("temperature", "5778.0 K", units::Temp0);
+    const double temperature = cfg.get<double>("temperature", "0.0 K", units::Temp0);
 
 	const double irrad_rampup = cfg.get<double>("irradiation ramp-up time", 0.0, units::T0);
 
@@ -181,8 +183,30 @@ void t_planetary_system::init_planet(config::Config &cfg)
 				     eccentricity, argument_of_pericenter, nu);
 	}
 
+
+	if(cfg.contains("accretion method")){
+	    std::string acc_method = cfg.get<std::string>("accretion method", "kley");
+
+		if (acc_method == "sinkhole") {
+			planet->set_accretion_type(ACCRETION_TYPE_SINKHOLE);
+		} else if (acc_method == "viscous") {
+			planet->set_accretion_type(ACCRETION_TYPE_VISCOUS);
+		} else if (acc_method == "kley") {
+			planet->set_accretion_type(ACCRETION_TYPE_KLEY);
+		} else if (acc_method == "no" || acc_method == "none") {
+			planet->set_accretion_type(ACCRETION_TYPE_NONE);
+		} else {
+			throw std::runtime_error("Unknown Nbody accretion mode: " + acc_method);
+		}
+
+	}
+
     planet->set_name(name.c_str());
-    planet->set_acc(accretion_efficiency);
+	planet->set_accretion_efficiency(accretion_efficiency);
+
+    if(planet->get_accretion_efficiency() <= 0.0){
+	planet->set_accretion_type(ACCRETION_TYPE_NONE);
+    }
 
     planet->set_planet_radial_extend(radius);
     planet->set_temperature(temperature);
@@ -194,7 +218,7 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     add_planet(planet);
 
-	if (accretion_efficiency < 0.0) {
+	if (planet->get_accretion_type() == ACCRETION_TYPE_VISCOUS) {
 		parameters::VISCOUS_ACCRETION = true;
 	}
 }
@@ -279,21 +303,36 @@ void t_planetary_system::list_planets()
     logging::print(LOG_INFO "\n");
     logging::print(
 	LOG_INFO
-	" #   | e          | a          | T [t0]     | T [a]      | accreting  |\n");
+	" #   | e          | a          | T [t0]     | T [a]      | accreting  | Accretion Type |\n");
     logging::print(
 	LOG_INFO
-	"-----+------------+------------+------------+------------+------------+\n");
+	"-----+------------+------------+------------+------------+------------+----------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+	std::string accretion_method;
+	switch (get_planet(i).get_accretion_type()){
+	case ACCRETION_TYPE_KLEY:
+	accretion_method = "Kley Accret.";
+	break;
+	case ACCRETION_TYPE_SINKHOLE:
+	accretion_method = "Sinkhole Accret.";
+	break;
+	case ACCRETION_TYPE_VISCOUS:
+	accretion_method = "Viscous Accret.";
+	break;
+	default:
+	accretion_method = "No Accretion";
+	}
+
 	logging::print(
 	    LOG_INFO
-	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g |\n",
+	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g | %14.14s |\n",
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(),
 	    get_planet(i).get_orbital_period(),
-	    get_planet(i).get_orbital_period() * units::time.get_cgs_factor() /
+	    get_planet(i).get_orbital_period() * units::time.get_code_to_cgs_factor() /
 		units::cgs_Year,
-	    get_planet(i).get_acc());
+	    get_planet(i).get_accretion_efficiency(), accretion_method.c_str());
     }
 
     logging::print(LOG_INFO "\n");
@@ -311,6 +350,14 @@ void t_planetary_system::list_planets()
 		       get_planet(i).get_planet_radial_extend(),
 		       (get_planet(i).get_irradiate()) ? "yes" : " no",
 		       get_planet(i).get_rampuptime());
+    }
+
+    for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
+	if(get_planet(i).get_accretion_efficiency() > 0.0){
+	if(get_planet(i).get_orbital_period() <= 0.0){
+	    die("Planet %d: %s cannot accret without an orbital period!", i, get_planet(i).get_name().c_str());
+	}
+	}
     }
 
     logging::print(LOG_INFO "\n");
@@ -365,7 +412,7 @@ void t_planetary_system::create_planet_files()
 {
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 		auto & p = get_planet(i);
-		if (!std::experimental::filesystem::exists(p.get_monitor_filename())) {
+		if (!std::filesystem::exists(p.get_monitor_filename())) {
 			p.create_planet_file();
 		}
     }
@@ -662,9 +709,6 @@ void t_planetary_system::move_to_hydro_frame_center()
 	const Pair center = get_hydro_frame_center_position();
 	const Pair vcenter = get_hydro_frame_center_velocity();
 
-	m_shift_pos = center;
-	m_shift_vel = vcenter;
-
     for (unsigned int i = 0; i < get_number_of_planets(); i++) {
 	t_planet &planet = get_planet(i);
 	const double x = planet.get_x();
@@ -679,25 +723,6 @@ void t_planetary_system::move_to_hydro_frame_center()
     }
 }
 
-/**
- * @brief t_planetary_system::shift_to_hydro_frame_center
- * this improved the accuracy in python tests
- */
-void t_planetary_system::move_to_hydro_frame_center_from_last_dt()
-{
-	for (unsigned int i = 0; i < get_number_of_planets(); i++) {
-	t_planet &planet = get_planet(i);
-	const double x = planet.get_x();
-	const double y = planet.get_y();
-	const double vx = planet.get_vx();
-	const double vy = planet.get_vy();
-
-	planet.set_x(x - m_shift_pos.x * 0.5);
-	planet.set_y(y - m_shift_pos.y * 0.5);
-	planet.set_vx(vx - m_shift_vel.x * 0.5);
-	planet.set_vy(vy - m_shift_vel.y * 0.5);
-	}
-}
 
 /**
    Calculate orbital elements of all planets.
@@ -817,9 +842,7 @@ void t_planetary_system::integrate(const double time, const double dt)
 	copy_data_to_rebound();
 	m_rebound->t = time;
 
-    disable_trap_fpe_gnu();
     reb_integrate(m_rebound, time + dt);
-    enable_trap_fpe_gnu();
 }
 
 /**
@@ -952,11 +975,11 @@ void t_planetary_system::update_roche_radii()
 	double x = planet.get_dimensionless_roche_radius();
 
 	if (M > m) {
-	    update_l1(M, m, x);
+	    x = update_l1(M, m, x);
 	    planet.set_dimensionless_roche_radius(x);
 	} else {
 	    x = 1.0 - x;
-	    update_l1(m, M, x);
+	    x = update_l1(m, M, x);
 	    x = 1.0 - x;
 	}
 

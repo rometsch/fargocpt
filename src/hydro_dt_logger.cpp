@@ -15,6 +15,7 @@
 hydro_dt_logger::hydro_dt_logger()
 {
 	m_N_hydro_iter_DT = 0;
+	m_N_hydro_in_last_interval = 0;
 	m_sum_hydro_dt = 0.0;
 	m_sum_hydro_dt_sq = 0.0;
 	m_min_hydro_dt = 1.0e300; // Infinity
@@ -36,6 +37,7 @@ void hydro_dt_logger::update(const double hydro_dt)
 
 void hydro_dt_logger::reset()
 {
+	m_N_hydro_in_last_interval= m_N_hydro_iter_DT;
 	m_N_hydro_iter_DT = 0;
 	m_sum_hydro_dt = 0.0;
 	m_sum_hydro_dt_sq = 0.0;
@@ -96,7 +98,7 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 						"#variable: 7 | mean dt | %s\n"
 						"#variable: 8 | min dt | %s\n"
 						"#variable: 9 | std dev dt | %s\n",
-						parameters::DT, parameters::DT * units::time.get_cgs_factor(), units::time.get_cgs_factor(),
+						parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor(), units::time.get_code_to_cgs_factor(),
 						units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str(),units::time.get_cgs_factor_symbol().c_str());
 			fd_created = true;
 		}
@@ -156,7 +158,7 @@ void hydro_dt_logger::dump()
 	wf = std::ofstream(filename, std::ios::out | std::ios::binary);
 
 	if (!wf) {
-	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't write %s file. Aborting.\n", filename.c_str());
 	die("End\n");
 	}
 
@@ -175,7 +177,7 @@ void hydro_dt_logger::read()
 	std::ifstream rf(filename, std::ofstream::binary | std::ios::in);
 
 	if (!rf) {
-	logging::print(LOG_ERROR "Can't read %s file. Aborting.\n", filename);
+	logging::print(LOG_ERROR "Can't read %s file. Aborting.\n", filename.c_str());
 	die("End\n");
 	}
 
@@ -190,3 +192,10 @@ void hydro_dt_logger::read()
 	m_max_hydro_dt = vars.max_hydro_dt;
 
 }
+
+
+unsigned int hydro_dt_logger::get_N_hydro_in_last_interval() const {
+	unsigned int rv = std::max(m_N_hydro_iter_DT, m_N_hydro_in_last_interval);
+	return rv;
+}
+

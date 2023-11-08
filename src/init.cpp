@@ -10,12 +10,11 @@
 #include "Theo.h"
 #include "TransportEuler.h"
 #include "axilib.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "find_cell_id.h"
 #include "global.h"
 #include "init.h"
 #include "logging.h"
-#include "nongnu.h"
 #include "output.h"
 #include "parameters.h"
 #include "pvte_law.h"
@@ -25,12 +24,16 @@
 #include "viscosity/viscosity.h"
 #include "viscosity/viscous_radial_speed.h"
 #include "frame_of_reference.h"
-#include <gsl/gsl_sf_bessel.h>
 #include "simulation.h"
 #include "cfl.h"
+#include "fld.h"
+#include "constants.h"
 
 #include "open-simplex-noise.h"
-#include "options.h"
+
+#ifndef DISABLE_GSL
+#include <gsl/gsl_sf_bessel.h>
+#endif // DISABLE_GSL
 
 
 // Radial arrays have size MAX1D so we can write to N+search_buffer safely
@@ -163,17 +166,17 @@ void init_radialarrays()
     }
 
 
-    for (nRadial = 0; nRadial < GlobalNRadial + search_buffer; ++nRadial) {
+    for (unsigned int nr = 0; nr < GlobalNRadial + search_buffer; ++nr) {
 	// Rmed is in the center of the cell where the center of mass is
 	// Rmed = 1/2 * [ (4/3 Pi r_sup^3) - (4/3 Pi r_inf^3) ] / [ (Pi r_sup^2)
 	// - (Pi r_inf^2) ]
-	GlobalRmed[nRadial] =
-	    2.0 / 3.0 *
-	    (Radii[nRadial + 1] * Radii[nRadial + 1] * Radii[nRadial + 1] -
-	     Radii[nRadial] * Radii[nRadial] * Radii[nRadial]);
-	GlobalRmed[nRadial] =
-	    GlobalRmed[nRadial] / (Radii[nRadial + 1] * Radii[nRadial + 1] -
-				   Radii[nRadial] * Radii[nRadial]);
+	// Note that this is different from the center of mass of the cell which is
+	// Rmed = 4/3(r2^3-r1^3)/(r2^2-r1^2)*(1-cos(dphi))/dphi
+	// However, the latter does not lie in the cell for large phi2-phi1
+	// and converges to the former for small dphi with differences as dphi^3
+	// around x=0: (1-cos(x))/x = x/2 + x^3/24 + x^5/720 + O(x^7)
+	GlobalRmed[nr] = 2.0 / 3.0 * (std::pow(Radii[nr + 1],3) - std::pow(Radii[nr],3));
+	GlobalRmed[nr] = GlobalRmed[nr] / (std::pow(Radii[nr + 1],2) - std::pow(Radii[nr],2));
     }
 
     logging::print_master(
@@ -187,10 +190,10 @@ void init_radialarrays()
 	Rsup[nRadial] = Radii[nRadial + IMIN + 1];
 
 	Rmed[nRadial] = 2.0 / 3.0 *
-			(Rsup[nRadial] * Rsup[nRadial] * Rsup[nRadial] -
-			 Rinf[nRadial] * Rinf[nRadial] * Rinf[nRadial]);
-	Rmed[nRadial] = Rmed[nRadial] / (Rsup[nRadial] * Rsup[nRadial] -
-					 Rinf[nRadial] * Rinf[nRadial]);
+			(std::pow(Rsup[nRadial], 3) -
+			 std::pow(Rinf[nRadial], 3));
+	Rmed[nRadial] = Rmed[nRadial] / (std::pow(Rsup[nRadial], 2) -
+					 std::pow(Rinf[nRadial], 2));
 
 	// TODO: Is already calculated a few lines above. assert should check
 	// this
@@ -263,26 +266,12 @@ void init_physics(t_data &data)
 
 	refframe::FrameAngle = 0;
 
-    if ((parameters::sigma_initialize_condition ==
-	 parameters::initialize_condition_shakura_sunyaev) &&
-	(parameters::energy_initialize_condition ==
-	 parameters::initialize_condition_shakura_sunyaev)) {
-	init_shakura_sunyaev(data);
-	return;
-    } else if ((parameters::sigma_initialize_condition ==
-		parameters::initialize_condition_shakura_sunyaev) ||
-	       (parameters::energy_initialize_condition ==
-		parameters::initialize_condition_shakura_sunyaev)) {
-	die("Both Sigma and Energy have to be initialised by Shakura & Sunyaev Standard-Solution. Other initialisation not yet implemented!");
-    }
 
     if (parameters::ShockTube == 1) {
 	init_shock_tube_test(data);
     } else if (parameters::ShockTube == 2) {
 	init_PVTE_shock_tube_test(data);
 	init_eos_arrays(data);
-	} else if (parameters::star_gasblobb_binary_test) {
-		init_blobb_for_star_disk_binary_test(data);
 	} else {
 	// gas density initialization
 	init_gas_density(data);
@@ -318,9 +307,13 @@ void init_physics(t_data &data)
 	// potential. Only the surface density is required to calculate the
 	// radial self-gravity acceleration. The disk radial and azimutal
 	// velocities are not updated
-	selfgravity::init(data);
-	logging::print_master(LOG_INFO "sg initialised\n");
+		selfgravity::init(data);
+		logging::print_master(LOG_INFO "sg initialised\n");
     }
+
+	if (fld::radiative_diffusion_enabled) {
+		fld::init(data.get_n_radial(), data.get_n_azimuthal());
+	}
 
 	if (data.get_planetary_system().get_number_of_planets() < 2) {
 	/*if (parameters::boundary_outer ==
@@ -336,121 +329,28 @@ void init_physics(t_data &data)
 	cfl::init(data);
 
     // only gas velocities remain to be initialized
-	viscous_speed::init_vr_table_boundary(data);
+
 	init_euler(data, sim::PhysicalTime);
     init_gas_velocities(data);
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);
     }
+	
+	boundary_conditions::copy_initial_values(data);
+
 	boundary_conditions::apply_boundary_condition(data, 0.0, 0.0, false);
-	if(parameters::star_gasblobb_binary_test){
-		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
-		data.get_planetary_system().delete_planet(Np-1);
-	}
+
+	boundary_conditions::copy_initial_values(data);
+
 }
 
-/**
-	Wrapper for initialisation of physics according to Shakura & Sunyaev
-   1974
-*/
 
-void init_shakura_sunyaev(t_data &data)
-{
-	const double M0_in_solMass = (1*units::M0).value_as(units::solMass);
-	const double Mdot_cgs = parameters::mass_accretion_rate * units::mass_accretion_rate.get_cgs_factor();
-	const double L0_cgs = units::length.get_cgs_factor();
-
-	const auto& star = data.get_planetary_system().get_planet(0);
-	const double star_radius = star.get_planet_radial_extend();
-
-    double factor;
-
-    if (!parameters::Adiabatic) {
-	die("Isothermal equation of state and Shakura & Sunyaev starting conditions has not yet been implemented!");
-    }
-
-    if (parameters::ASPECTRATIO_MODE > 0) {
-	die("ASPECTRATIO_NBODY and Shakura & Sunyaev starting conditions has not yet been implemented!");
-    }
-
-
-    for (unsigned int n_radial = 0; n_radial < data[t_data::TEMPERATURE].Nrad;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::TEMPERATURE].Nsec; ++n_azimuthal) {
-
-	    factor =
-		std::pow(1. - std::sqrt(star_radius /
-					(Rb[n_radial] +
-					 2. * (RMAX - RMIN) / GlobalNRadial)),
-			 0.25);
-
-	    data[t_data::SIGMA](n_radial, n_azimuthal) =
-		(5.2 * std::pow(parameters::ALPHAVISCOSITY, -4. / 5.) *
-		 std::pow(Mdot_cgs / 1.e16, 7. / 10.) *
-		 std::pow(M0_in_solMass, 0.25) *
-		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
-		 std::pow(factor, 14. / 5.)) /
-		units::surface_density.get_cgs_factor();
-
-	    data[t_data::SCALE_HEIGHT](n_radial, n_azimuthal) =
-		(1.7e8 * std::pow(parameters::ALPHAVISCOSITY, -1. / 10.) *
-		 std::pow(Mdot_cgs / 1.e16, 3. / 20.) *
-		 std::pow(M0_in_solMass, -3. / 8.) *
-		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, 9. / 8.) *
-		 std::pow(factor, 3. / 5.)) /
-		(Rb[n_radial] * L0_cgs) * Rb[n_radial];
-
-	    data[t_data::TEMPERATURE](n_radial, n_azimuthal) =
-		(1.4e4 * std::pow(parameters::ALPHAVISCOSITY, -1. / 5.) *
-		 std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
-		 std::pow(M0_in_solMass, 0.25) *
-		 std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.75) *
-		 std::pow(factor, 6. / 5.)) /
-		units::temperature.get_cgs_factor();
-
-	    data[t_data::V_RADIAL](n_radial, n_azimuthal) =
-		-(2.7e4 * std::pow(parameters::ALPHAVISCOSITY, 4. / 5.) *
-		  std::pow(Mdot_cgs / 1.e16, 3. / 10.) *
-		  std::pow(M0_in_solMass, -0.25) *
-		  std::pow(Rb[n_radial] * L0_cgs / 1.e10, -0.25) *
-		  std::pow(factor, -14. / 5.)) /
-		units::velocity.get_cgs_factor();
-
-	    data[t_data::SOUNDSPEED](n_radial, n_azimuthal) =
-		std::sqrt(constants::R / parameters::MU * parameters::ADIABATICINDEX *
-			  data[t_data::TEMPERATURE](n_radial, n_azimuthal));
-	    data[t_data::ENERGY](n_radial, n_azimuthal) =
-		constants::R / parameters::MU * 1. / (parameters::ADIABATICINDEX - 1.) *
-		data[t_data::SIGMA](n_radial, n_azimuthal) *
-		data[t_data::TEMPERATURE](n_radial, n_azimuthal);
-	    data[t_data::PRESSURE](n_radial, n_azimuthal) =
-		(parameters::ADIABATICINDEX - 1.) *
-		data[t_data::ENERGY](n_radial, n_azimuthal);
-	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) =
-		calculate_omega_kepler(Rb[n_radial]) * Rb[n_radial];
-	}
-    }
-
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
-
-    if (parameters::self_gravity) {
-	die("Self-gravity and Shakura-Sunyaev starting values has not yet been implemented!");
-    }
-
-    InitCellCenterCoordinates();
-
-    /** init_euler w/o updates that have already been done above **/
-    InitTransport();
-
-    viscosity::update_viscosity(data);
-    /** end init_euler **/
-
-    if (CentrifugalBalance)
-	die("CentrifugalBalance and Shakura-Sunyaev starting values has not yet been implemented!");
+#ifdef DISABLE_GSL
+void init_spreading_ring_test([[maybe_unused]] t_data &data) {
+	logging::print_master(LOG_ERROR "GSL is not compiled in. Cannot initialize spreading ring test.\n");
+	PersonalExit(1);
 }
-
+#else // DISABLE_GSL
 /**
 	Initializes density and energy for the spreading ring test.
 	Intented to be used with spreading_ring.par
@@ -487,7 +387,7 @@ void init_spreading_ring_test(t_data &data)
 
     logging::print_master(
         LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", Sigma0,
-        Sigma0 * units::surface_density.get_cgs_factor());
+        Sigma0 * units::surface_density.get_code_to_cgs_factor());
 
     for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	 ++n_radial) {
@@ -510,84 +410,13 @@ void init_spreading_ring_test(t_data &data)
     }
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
+#endif // DISABLE_GSL
 
-/**
-	Initializes density and energy for the spreading ring test.
-	Intented to be used with spreading_ring.par
-	See R. Speith and W. Kley 2003: Stability of the viscously spreading
-   ring
-   Init function copied to be equal to Jibin's pluto simulations
-*/
-void init_spreading_ring_test_jibin(t_data &data)
-{
 
-    const double Disk_Mass = parameters::sigma_discmass;
-    const double Ring_Mass = 1.0e-4;
-    // const double h = parameters::ASPECTRATIO_REF;
-    const double p = parameters::SIGMASLOPE;
-    // const double q = 2.0 * parameters::FLARINGINDEX - 1.0;
-    const double tau0 = 0.018;
-    const double Rmin = RMIN;
-    const double Rmax = RMAX;
 
-    const double sig0 = Disk_Mass / (2.0 * M_PI) * (p + 2.0) /
-			(std::pow(Rmax, p + 2.0) - std::pow(Rmin, p + 2.0));
-    parameters::sigma0 = sig0;
-
-    logging::print_master(LOG_INFO "Initializing viscous spreading ring\n");
-
-    logging::print_master(
-	LOG_INFO "spreading ring sig0code = %.5e	sig0cgs = %.5e\n", sig0,
-	sig0 * units::surface_density.get_cgs_factor());
-
-	srand(parameters::random_seed);
-
-    for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-	     n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
-
-	    const double R = Rmed[n_radial];
-	    // const double OmegaK = 1.0 / (R * std::sqrt(R));
-	    const double arg = 2.0 * R / tau0;
-	    const double bessel = gsl_sf_bessel_Inu(0.25, arg);
-
-	    const double sig_ring = Ring_Mass * bessel *
-				    std::exp((-1.0 - R * R) / tau0) /
-				    (M_PI * tau0 * std::pow(R, 0.25));
-	    const double sig_disk = sig0 * std::pow(R, p);
-	    const double energy = 0.0;
-
-	    const double sig_noise =
-		0.05 * sig_disk * (1.0 - 2.0 * (rand() / (double)RAND_MAX));
-		/*const double vr = 0.0;
-	    const double corr = std::sqrt(1.0 + (p + q) * h * h);
-		const double vaz = R * OmegaK * corr - R * refframe::OmegaFrame;*/
-		const double vr = viscous_speed::get_vr_with_numerical_viscous_speed(R, 1.0);
-		const double vaz = initial_locally_isothermal_smoothed_v_az(R, 1.0) - R * refframe::OmegaFrame;
-
-	    const double sig = sig_ring + sig_disk + sig_noise;
-
-	    data[t_data::SIGMA](n_radial, n_azimuthal) = sig;
-	    data[t_data::ENERGY](n_radial, n_azimuthal) = energy;
-	    data[t_data::V_RADIAL](n_radial, n_azimuthal) = vr;
-	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vaz;
-	}
-    }
-
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal < data[t_data::V_RADIAL].Nsec; ++n_azimuthal) {
-	data[t_data::V_RADIAL](data[t_data::V_RADIAL].get_max_radial(),
-			       n_azimuthal) = 0.0;
-    }
-
-    // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
-}
 
 /**
 	Initializes density and energy for Shock Tube test.
@@ -682,10 +511,16 @@ void init_shock_tube_test(t_data &data)
 
     // after all units have calculated, calculate constants in code units
     constants::calculate_constants_in_code_units();
+	constants::R.set_code_value(1.0);
+    constants::R.set_cgs_value(1.0);
+	constants::R.set_cgs_unit_symbol("1");
+	constants::G.set_code_value(1.0);
+    constants::G.set_cgs_value(1.0);
+	constants::G.set_cgs_unit_symbol("1");
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 
 void init_PVTE_shock_tube_test(t_data &data)
@@ -774,12 +609,18 @@ void init_PVTE_shock_tube_test(t_data &data)
 
     // after all units have calculated, calculate constants in code units
     constants::calculate_constants_in_code_units();
+	constants::R.set_code_value(1.0);
+    constants::R.set_cgs_value(1.0);
+	constants::R.set_cgs_unit_symbol("1");
+	constants::G.set_code_value(1.0);
+    constants::G.set_cgs_value(1.0);
+	constants::G.set_cgs_unit_symbol("1");
 
 	compute_pressure(data);
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 
 void init_secondary_disk_densities(t_data &data)
@@ -1102,9 +943,9 @@ void init_gas_density(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Initializing Sigma(r) = %g = %g %s * [r/(%g AU)]^(%g)\n",
 	    parameters::sigma0,
-	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
+	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
 
 	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	     ++n_radial) {
@@ -1125,9 +966,9 @@ void init_gas_density(t_data &data)
 	    LOG_INFO
 	    "Initializing from CMS Sigma(r) = %g = %g %s * [r/(%g AU)]^(%g)\n",
 	    parameters::sigma0,
-	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
+	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
 
 	Pair cms = data.get_planetary_system().get_center_of_mass();
 	const double cms_x = cms.x;
@@ -1168,25 +1009,6 @@ void init_gas_density(t_data &data)
 			      parameters::sigma_filename.c_str());
 	data[t_data::SIGMA].read2D(parameters::sigma_filename.c_str());
 	break;
-
-    case parameters::initialize_condition_shakura_sunyaev:
-	die("Bad choice!"); // TODO: better explanation!
-	break;
-	// 		case parameters::initialize_condition_shakura_sunyaev:
-	// 			logging::print_master(LOG_INFO "Initializing
-	// Sigma from Shakura and Sunyaev 1973 standard solution (cf. A&A, 24,
-	// 337)");
-	//
-	// 			for (unsigned int n_radial = 0; n_radial <
-	// data[t_data::DENSITY].Nrad; ++n_radial) { for (unsigned int
-	// n_azimuthal = 0; n_azimuthal < data[t_data::DENSITY].Nsec;
-	// ++n_azimuthal) {
-	// data[t_data::DENSITY](n_radial, n_azimuthal) =
-	// 					data[t_data::DENSITY](n_radial,
-	// n_azimuthal) = parameters::sigma0*pow(Rmed[n_radial],-parameters::SIGMASLOPE);
-	// 				}
-	// 			}
-	// 			break;
     }
 
     if (parameters::SpreadingRing) {
@@ -1247,10 +1069,10 @@ void init_gas_density(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Cutoff Sigma for r > %g %s over a range from %g %s\n",
 	    parameters::profile_cutoff_point_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
@@ -1290,10 +1112,10 @@ void init_gas_density(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Cutoff Sigma for r < %g %s over a range from %g %s\n",
 	    parameters::profile_cutoff_point_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
@@ -1337,7 +1159,7 @@ void renormalize_sigma_and_report(t_data &data)
 	parameters::sigma0 *= parameters::sigma_discmass / total_mass;
 	logging::print_master(
 	    LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
-	    parameters::sigma0 * units::surface_density.get_cgs_factor(),
+	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(), total_mass,
 	    parameters::sigma_discmass);
 
@@ -1361,12 +1183,12 @@ void renormalize_sigma_and_report(t_data &data)
 	double total_mass = quantities::gas_total_mass(data, 2.0 * RMAX);
 	logging::print_master(LOG_INFO "Total disk is mass is %g = %g %s.\n",
 			      total_mass,
-			      total_mass * units::mass.get_cgs_factor(),
+			      total_mass * units::mass.get_code_to_cgs_factor(),
 			      units::mass.get_cgs_symbol());
     }
 
     // set SigmaMed/SigmaInf
-    RefillSigma(&data[t_data::SIGMA]);
+    compute_azi_avg_Sigma(data[t_data::SIGMA]);
 }
 
 void init_eos_arrays(t_data &data)
@@ -1451,33 +1273,33 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing Energy = %g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
+		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_code_to_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    (1*units::L0).value_as(units::au),
 	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
 	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
 		constants::G * hydro_center_mass *
-		units::temperature.get_cgs_factor(),
+		units::temperature.get_code_to_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU,
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
 	    -1.0 + 2.0 * parameters::FLARINGINDEX);
 
-	for (unsigned int n_radial = 0;
-	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
-	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::ENERGY].get_max_azimuthal();
-		 ++n_azimuthal) {
-		const double energy =  initial_energy(Rmed[n_radial], hydro_center_mass);
-		const double temperature_floor =
-		    parameters::minimum_temperature;
-		const double energy_floor =
-		    temperature_floor *
-		    data[t_data::SIGMA](n_radial, n_azimuthal) /
+	{
+	t_polargrid &Energy = data[t_data::ENERGY];
+	t_polargrid &Sigma = data[t_data::SIGMA];
+
+	const unsigned int Irad = Energy.get_max_radial();
+	const unsigned int Iazi = Energy.get_max_azimuthal();
+	for (unsigned int nr = 0; nr <= Irad; ++nr) {
+	    for (unsigned int naz = 0; naz <= Iazi; ++naz) {
+		const double energy =  initial_energy(Rmed[nr], hydro_center_mass);
+		const double Tfloor = parameters::minimum_temperature;
+		const double energy_floor = Tfloor * Sigma(nr, naz) /
 		    parameters::MU * constants::R / (parameters::ADIABATICINDEX - 1.0);
 
-		data[t_data::ENERGY](n_radial, n_azimuthal) =
-		    std::max(energy, energy_floor);
+		Energy(nr, naz) = std::max(energy, energy_floor);
 	    }
+	}
 	}
 	break;
 
@@ -1487,14 +1309,14 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing CMS Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_cgs_factor(),
+		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_code_to_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU,
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
 	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
 	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
-		constants::G * mass * units::temperature.get_cgs_factor(),
+		constants::G * mass * units::temperature.get_code_to_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
-	    units::length.get_cgs_factor() / units::cgs_AU,
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
 	    -1.0 + 2.0 * parameters::FLARINGINDEX);
 
 	for (unsigned int n_radial = 0;
@@ -1540,10 +1362,6 @@ void init_gas_energy(t_data &data)
 			      parameters::energy_filename.c_str());
 	data[t_data::ENERGY].read2D(parameters::energy_filename.c_str());
 	break;
-
-    case parameters::initialize_condition_shakura_sunyaev:
-	die("Bad choice!"); // TODO: better explanation!
-	break;
     }
 
     // profile damping outer?
@@ -1551,10 +1369,10 @@ void init_gas_energy(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Damping Energy for r > %g %s over a range of %g %s\n",
 	    parameters::profile_cutoff_point_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_outer *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {
@@ -1599,10 +1417,10 @@ void init_gas_energy(t_data &data)
 	logging::print_master(
 	    LOG_INFO "Damping Energy for r < %g %s over a range of %g %s\n",
 	    parameters::profile_cutoff_point_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol(),
 	    parameters::profile_cutoff_width_inner *
-		units::length.get_cgs_factor(),
+		units::length.get_code_to_cgs_factor(),
 	    units::length.get_cgs_symbol());
 	for (unsigned int n_radial = 0;
 	     n_radial < data[t_data::ENERGY].get_size_radial(); ++n_radial) {
@@ -1643,7 +1461,7 @@ void init_gas_energy(t_data &data)
     }
 
     // set EnergyMed
-    RefillEnergy(&data[t_data::ENERGY]);
+    compute_azi_avg_Energy(data[t_data::ENERGY]);
 }
 
 /**
@@ -1662,30 +1480,6 @@ void init_gas_velocities(t_data &data)
 	double mass_of_center = data.get_planetary_system().get_mass();
 	Pair position_of_center = data.get_planetary_system().get_center_of_mass();
 	Pair velocity_of_center = data.get_planetary_system().get_center_of_mass_velocity();
-
-	if(parameters::star_gasblobb_binary_test){
-		// Equations assume m1 + m2 = 1
-		// a=1, e=0 to make everything simpler
-		assert(std::fabs(mass_of_center - 1.0) < 1.0e-12);
-		assert(std::fabs(data.get_planetary_system().get_planet(1).get_semi_major_axis() - 1.0) < 1.0e-12);
-		assert(std::fabs(data.get_planetary_system().get_planet(1).get_eccentricity()) < 1.0e-12);
-
-		// M = m1 + m2
-		// µ = m1 m2 / (m1 + m2)
-		// v1 = L / (a * m1)
-		// L = µ sqrt(G M a)
-		// v1 = (m1 m2 / M) /m1 sqrt(GM/a)
-		// G = 1
-		// M = 1
-		// v1 = m2 sqrt(1/a)
-		// thus we need to square the mass such that v_kepler produces the correct velocities
-
-		const unsigned int Np = data.get_planetary_system().get_number_of_planets();
-		const double M = data.get_planetary_system().get_mass(Np-1);
-
-		mass_of_center = std::pow(M, 2);
-		position_of_center = Pair{0.0, 0.0};
-	}
 
 	const double mass = mass_of_center;
 	const Pair cms = position_of_center;
@@ -1979,79 +1773,5 @@ void init_gas_velocities(t_data &data)
 			data[t_data::V_RADIAL](n_radial, n_azimuthal) = 0.0;
 		}
 	}
-	}
-}
-
-
-
-void init_blobb_for_star_disk_binary_test(t_data &data)
-{
-
-	logging::print_master(LOG_INFO "Initializing Star-Blobb binary\n");
-
-	// set densities to floor
-	for (unsigned int n_radial = 0;
-	 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-		 ++n_azimuthal) {
-		data[t_data::SIGMA](n_radial, n_azimuthal) = parameters::sigma0 * parameters::sigma_floor;
-	}
-	}
-
-	if (data.get_planetary_system().get_number_of_planets() < 2) {
-	die("Error: cannot initialize secondary disk with only %d nbody objects!\n",
-		data.get_planetary_system().get_number_of_planets());
-	}
-
-	const unsigned int Np = data.get_planetary_system().get_number_of_planets();
-	const auto &planet = data.get_planetary_system().get_planet(Np-1);
-
-	refframe::OmegaFrame = planet.get_omega();
-
-	unsigned int min_nr = 0;
-	unsigned int min_np = 0;
-	double min_dist = RMAX;
-
-	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
-		const double phi = (double)n_azimuthal * dphi;
-		const double rmed = Rmed[n_radial];
-		const double x = rmed * std::cos(phi) - planet.get_x();
-		const double y = rmed * std::sin(phi) - planet.get_y();
-		const double r = std::sqrt(x * x + y * y);
-
-		if(r < min_dist){
-			min_nr = n_radial;
-			min_np = n_azimuthal;
-			min_dist = r;
-		}
-	}
-	}
-
-	data[t_data::SIGMA](min_nr, min_np) = planet.get_mass() / Surf(min_nr);
-
-	// renormalize sigma
-	double total_mass = quantities::gas_total_mass(data, 2.0 * RMAX);
-	parameters::sigma0 *= planet.get_mass() / total_mass;
-	logging::print_master(
-		LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
-		parameters::sigma0 * units::surface_density.get_cgs_factor(),
-		units::surface_density.get_cgs_symbol(), total_mass,
-		planet.get_mass());
-
-	// update density grid
-	for (unsigned int n_radial = 0;
-		 n_radial <= data[t_data::SIGMA].get_max_radial(); ++n_radial) {
-		for (unsigned int n_azimuthal = 0;
-		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
-		 ++n_azimuthal) {
-		const double density = 	data[t_data::SIGMA](n_radial, n_azimuthal) *
-				planet.get_mass() / total_mass;
-		const double density_new = std::max(density, parameters::sigma0 * parameters::sigma_floor);
-		data[t_data::SIGMA](n_radial, n_azimuthal) = density_new;
-		}
 	}
 }

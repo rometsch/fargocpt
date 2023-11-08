@@ -1,5 +1,4 @@
 #include "restart.h"
-#include "parallel.h"
 #include "viscosity/viscosity.h"
 #include "output.h"
 #include "logging.h"
@@ -7,12 +6,14 @@
 #include "simulation.h"
 #include "parameters.h"
 #include "start_mode.h"
-#include "boundary_conditions.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "Theo.h"
-#include <experimental/filesystem>
+#include <filesystem>
 #include "SourceEuler.h"
 #include "particles/particles.h"
 #include "circumplanetary_mass.h"
+#include "LowTasks.h"
+#include "mpi.h"
 
 
 void restart_load(t_data &data) {
@@ -20,14 +21,14 @@ void restart_load(t_data &data) {
 	sim::N_monitor = 0;
 	start_mode::restart_from = output::load_misc();
 
-	if (parameters::is_damping_initial) {
+	if (boundary_conditions::initial_values_needed()) {
 	    // load grids at t = 0
 	    const std::string snapshot_dir_old = output::snapshot_dir;
-	    output::snapshot_dir = output::outdir + "snapshots/damping";
-	    if (!std::experimental::filesystem::exists(output::snapshot_dir)) {
+	    output::snapshot_dir = output::outdir + "snapshots/reference";
+	    if (!std::filesystem::exists(output::snapshot_dir)) {
 		logging::print_master(
 		    LOG_ERROR
-		    "Damping zone activated but no snapshot with damping data found. Make sure to copy the 'damping' snapshot!\n");
+		    "Damping zone activated but no snapshot with reference data found. Make sure to copy the 'reference' snapshot! Maybe it's called 'damping'\n");
 		PersonalExit(1);
 	    }
 
@@ -42,13 +43,13 @@ void restart_load(t_data &data) {
 	    output::snapshot_dir = snapshot_dir_old;
 
 	    // save starting values (needed for damping)
-		boundary_conditions::init_damping(data);
+		boundary_conditions::copy_initial_values(data);
 	}
 
 	// recalculate SigmaMed/EnergyMed
-	RefillSigma(&data[t_data::SIGMA]);
+	compute_azi_avg_Sigma(data[t_data::SIGMA]);
 	if (parameters::Adiabatic)
-	    RefillEnergy(&data[t_data::ENERGY]);
+	    compute_azi_avg_Energy(data[t_data::ENERGY]);
 
 	// load grids at t = restart_from
 	logging::print_master(LOG_INFO "Loading polargrinds at t = %u...\n",
@@ -80,7 +81,7 @@ void restart_load(t_data &data) {
 	    particles::restart();
 	}
 
-	if(parameters::massoverflow){
+	if(boundary_conditions::rochlobe_overflow){
 	data.get_massflow_tracker().read_from_file();
 	}
 

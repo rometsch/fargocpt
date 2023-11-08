@@ -2,33 +2,30 @@
 #include "Force.h"
 #include "LowTasks.h"
 #include "Pframeforce.h"
-#include "SideEuler.h"
-#include "Theo.h"
 #include "constants.h"
 #include "global.h"
 #include "logging.h"
-#include "nongnu.h"
 #include "options.h"
 #include "parameters.h"
 #include "particles/particles.h"
 #include "quantities.h"
 #include "start_mode.h"
-#include "stress.h"
 #include "util.h"
-#include "viscosity/viscosity.h"
 #include "frame_of_reference.h"
 #include "simulation.h"
+#include "fld.h"
 
 #include <dirent.h>
 
 #include "unistd.h" // for access()
 #include <cfloat>
 #include <cstdio>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <sstream>
+#include <string>
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 
@@ -39,7 +36,7 @@ std::string snapshot_dir = "";
 std::string last_snapshot_dir = "";
 std::string outdir = "";
 
-const std::map<const std::string, const int> quantities_file_column_v2_4 = {
+const std::map<const std::string, const int> quantities_file_column_v2_5 = {
     {"time step", 0},
     {"analysis time step", 1},
     {"physical time", 2},
@@ -70,9 +67,13 @@ const std::map<const std::string, const int> quantities_file_column_v2_4 = {
 	{"indirect term nbody x", 27},
 	{"indirect term nbody y", 28},
 	{"indirect term disk x", 29},
-	{"indirect term disk y", 30}
+	{"indirect term disk y", 30},
+	{"frame angle", 31},
+	{"advection torque", 32},
+	{"viscous torque", 33},
+	{"gravitational torque", 34}
 	};
-static const auto quantities_file_column = quantities_file_column_v2_4;
+static const auto quantities_file_column = quantities_file_column_v2_5;
 
 const std::map<const std::string, const std::string> quantities_file_variables =
 	{{"physical time", "time"},
@@ -110,7 +111,10 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 	{"indirect term nbody x", "acceleration"},
 	{"indirect term nbody y", "acceleration"},
 	{"indirect term disk x", "acceleration"},
-	{"indirect term disk y", "acceleration"}};
+	{"indirect term disk y", "acceleration"},
+	{"advection torque", "torque"},
+	{"viscous torque", "torque"},
+	{"gravitational torque", "torque"}};
 
 
 void check_free_space(t_data &data)
@@ -191,29 +195,55 @@ static void copy_parameters_to_snapshot_dir()
     if (CPU_Master) {
 	const std::string src_file = options::parameter_file;
 	const std::string dst_file = snapshot_dir + "/config.yml";
-	std::experimental::filesystem::copy_file(src_file, dst_file);
+	std::filesystem::copy_file(src_file, dst_file);
     }
 }
 
 void write_output_version()
 {
     if (CPU_Master) {
-	const std::string filename = outdir + "/fargocpt_output_v1_2";
+	const std::string filename = outdir + "/fargocpt_output_v1_3";
 	std::ofstream versionfile(filename, std::ios_base::app);
 	versionfile.close();
     }
 }
 
+static void cleanup_autosave_listentry() {
+	// remove the last line from the list.txt file
+	std::ifstream input(outdir + "snapshots/list.txt");
+	std::ofstream output(outdir + "snapshots/list.txt.tmp");
+	for (std::string line; std::getline(input, line); ) {
+		if (line.length() > 0 && !line.compare("autosave") == 0) {
+			output << line << std::endl;
+		}
+	}
+	input.close();
+	output.close();
+	std::filesystem::rename(outdir + "snapshots/list.txt.tmp", outdir + "snapshots/list.txt");
+}
+
+bool is_autosave_dir(const std::string &snapshot_id) {
+	const auto s = snapshot_id;
+	const auto l = std::string("autosave").length();
+	if (s.length() > l) {
+		const auto ts = s.substr(s.length() - l);
+		if (ts.compare("autosave") == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void cleanup_autosave()
 {
-    const auto s = last_snapshot_dir;
-    const auto l = std::string("autosave").length();
-    if (s.length() > l) {
-	const auto ts = s.substr(s.length() - l);
-	if (ts.compare("autosave") == 0) {
-	    std::experimental::filesystem::remove_all(s);
+	if (!CPU_Master) {
+		return;
 	}
-    }
+	// remove the autosave directory if it exists
+	if (is_autosave_dir(last_snapshot_dir)) {
+		std::filesystem::remove_all(last_snapshot_dir);
+		cleanup_autosave_listentry();
+	}
 }
 
 void write_full_output(t_data &data, const std::string &snapshot_id,
@@ -243,6 +273,10 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 	}
     }
 
+	if (fld::radiative_diffusion_enabled) {
+		fld::handle_output();
+	}
+		
     // write polar grids
     output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::PhysicalTime);
     // write planet data
@@ -258,7 +292,9 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 
     if (register_snapshot) {
     // write time info for coarse output
-    output::write_snapshot_time();
+	if (snapshot_id.compare("autosave") != 0) {
+		output::write_snapshot_time();
+	}
 	register_output(snapshot_id);
     }
 
@@ -337,20 +373,15 @@ void write_quantities(t_data &data, bool force_update)
 	quantities_limit_radius = parameters::quantities_radius_limit;
     }
 
-    const auto disk_quantities = reduce_disk_quantities(
-	data, sim::N_snapshot, force_update, quantities_limit_radius);
-    const double disk_eccentricity = disk_quantities[0];
-    const double disk_periastron = disk_quantities[1];
+    double average_eccentricity;
+    double average_periastron;
+    quantities::calculate_disk_ecc_peri(data, average_eccentricity, average_periastron, force_update);
 
     // computate absolute deviation from start values (this has to be done on
     // all nodes!)
 
     const double totalMass =
 	quantities::gas_total_mass(data, quantities_limit_radius);
-
-    if (totalMass <= 0.0) { // If roche lobe is smaller than RMIN
-	quantities::gas_total_mass(data, RMAX);
-    }
 
     const double diskRadius = quantities::gas_disk_radius(data, totalMass);
     const double totalAngularMomentum =
@@ -368,6 +399,12 @@ void write_quantities(t_data &data, bool force_update)
     const double azimuthalKinematicEnergy =
 	quantities::gas_azimuthal_kinematic_energy(data,
 						   quantities_limit_radius);
+
+    double tadv;
+    double tvisc;
+    double tgrav;
+    quantities::CalculateMonitorQuantitiesForOutput(data, tadv, tvisc, tgrav,
+						    quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
 	CalculateNbodyPotential(data, sim::PhysicalTime);
@@ -421,11 +458,11 @@ void write_quantities(t_data &data, bool force_update)
 	// print to logfile
 	fprintf(
 	    fd,
-		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
+		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 	    sim::N_snapshot, sim::N_monitor, sim::PhysicalTime, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
-	    azimuthalKinematicEnergy, disk_eccentricity, disk_periastron, qplus,
+	    azimuthalKinematicEnergy, average_eccentricity, average_periastron, qplus,
 	    qminus, pdivv_total, 
 		InnerBoundaryInflow, InnerBoundaryOutflow, 
 		OuterBoundaryInflow, OuterBoundaryOutflow, 
@@ -436,7 +473,11 @@ void write_quantities(t_data &data, bool force_update)
 		refframe::IndirectTermPlanets.x,
 		refframe::IndirectTermPlanets.y,
 		refframe::IndirectTermDisk.x,
-		refframe::IndirectTermDisk.y
+		refframe::IndirectTermDisk.y,
+		refframe::FrameAngle,
+		tadv,
+		tvisc,
+		tgrav
 		);
 
 	// close file
@@ -557,15 +598,15 @@ std::string text_file_variable_description(
 	{"velocity", units::velocity.get_cgs_factor_symbol()},
 	{"acceleration", units::acceleration.get_cgs_factor_symbol()},
 	{"power", units::power.get_cgs_factor_symbol()},
-	{"specific power", unit_descriptor(units::power.get_cgs_factor() /
-					       units::length.get_cgs_factor() /
-					       units::length.get_cgs_factor(),
+	{"specific power", unit_descriptor(units::power.get_code_to_cgs_factor() /
+					       units::length.get_code_to_cgs_factor() /
+					       units::length.get_code_to_cgs_factor(),
 					   "erg cm2/s/g")},
 	{"potential", units::potential.get_cgs_factor_symbol()},
-	{"pressure per time", unit_descriptor(units::pressure.get_cgs_factor() /
-						  units::time.get_cgs_factor(),
+	{"pressure per time", unit_descriptor(units::pressure.get_code_to_cgs_factor() /
+						  units::time.get_code_to_cgs_factor(),
 					      "dyn/cm/s")},
-	{"torque", unit_descriptor(units::torque.get_cgs_factor(),
+	{"torque", unit_descriptor(units::torque.get_code_to_cgs_factor(),
 				   units::torque.get_cgs_symbol())}};
 
     std::string var_descriptor;
@@ -639,7 +680,7 @@ void write_torques(t_data &data, bool force_update)
 		// location
 
 		const double smooth =
-		    compute_smoothing(data, n_radial, n_azimuthal);
+		    compute_smoothing(data, n_radial, n_azimuthal, n_planet);
 		const int cell_id = n_azimuthal + n_radial * ns;
 		const double xc = cell_center_x[cell_id];
 		const double yc = cell_center_y[cell_id];
@@ -667,7 +708,7 @@ void write_torques(t_data &data, bool force_update)
 	const std::string name =  "torque_planet_1D_" + std::to_string(n_planet);
 	data[t_data::TORQUE_1D].set_name(name.c_str());
 
-	if (force_update == false) {
+	if (force_update) {
 	    data[t_data::TORQUE_1D].write1D();
 	}
     }
@@ -679,116 +720,130 @@ void write_1D_info(t_data &data)
 		return;
 	}
 
+	const std::string filename_info = outdir + "info1D.yml";
+	std::ofstream info_ofs(filename_info);
+	info_ofs.precision(std::numeric_limits<double>::max_digits10);
+	info_ofs << "# 1D output variable descriptions" << std::endl;
+	info_ofs << "# version 0.1" << std::endl;
+	info_ofs << "# " << std::endl;
+	info_ofs << "# data is stored in 4 columns: radii | azimuthal average quantity | minimum quantity | maximum quantity" << std::endl;
+	info_ofs << "# to load the azimuthal average, read only every forth double value" << std::endl;
+	info_ofs << "# In python, use: s = avg_slice; data[slice(*[int(i) if len(i) > 0 else None for i in s.split(':')])] to get the data" << std::endl;
+	info_ofs << "# " << std::endl;
+	info_ofs << "# The paths of the files are: snapshots/{Nsnapshot}/{filename}" << std::endl;
+	info_ofs << std::endl;
+
+	const std::string indent = "  ";
+
     for (int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
-	if (data[t_data::t_polargrid_type(i)].get_write_1D()) {
+	t_polargrid &g = data[t_data::t_polargrid_type(i)];
 
-	    int Nr = GlobalNRadial;
+	if (g.get_write_1D()) {
 
-	    if (data[t_data::t_polargrid_type(i)].is_vector()) {
-			Nr += 1;
+	    int Nrad = GlobalNRadial;
+	    if (g.is_vector()) {
+			Nrad += 1;
 		}
 
-		const std::string name = std::string(data[t_data::t_polargrid_type(i)].get_name());
-	    const std::string filename_info = outdir + name + "1D.info";
+		const std::string name = g.get_name();
 
-	    std::ofstream info_ofs(filename_info);
-		info_ofs.precision(std::numeric_limits<double>::max_digits10);
-	    info_ofs << "# version 0.1" << std::endl;
-	    info_ofs
-		<< "# " << data[t_data::t_polargrid_type(i)].get_name()
-		<< " 1d radial, in first line alternating: radii | quantity | minimum quantity | maximum quantity"
-		<< std::endl;
-	    info_ofs << "# values at time in timestepCoarse.dat" << std::endl;
-	    info_ofs << "Nr = " << Nr << std::endl;
-	    std::string unit;
-	    if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
-		unit = std::string(data[t_data::t_polargrid_type(i)]
-				       .get_unit()
-				       ->get_cgs_symbol());
-	    } else {
-		unit = "1";
-	    }
-	    info_ofs << "unit = " << unit << std::endl;
-	    if (data[t_data::t_polargrid_type(i)].get_unit() != NULL) {
-		info_ofs << "code_units_to_cgs_factor = "
-			 << data[t_data::t_polargrid_type(i)].get_unit()->get_cgs_factor()
+		std::string unit;
+		double factor = 1.0;
+	    if (g.get_unit() != NULL) {
+			unit = std::string(g.get_unit()->get_cgs_symbol());
+			factor = g.get_unit()->get_code_to_cgs_factor();
+		}
+		
+		info_ofs << name << ":" << std::endl;
+	    info_ofs << indent << "cgs symbols: " << unit << std::endl;
+		info_ofs << indent << "code_to_cgs_factor: "
+			 << g.get_unit()->get_code_to_cgs_factor()
 			 << std::endl;
-	    } else {
-		info_ofs << "code_units_to_cgs_factor = " << 1.0 << std::endl;
-	    }
-	    info_ofs << "bigendian = " << is_big_endian() << std::endl;
-	    info_ofs.close();
+
+		if ((g.get_unit() != NULL) && (unit != "1")) {
+			info_ofs << indent << "unit: " << factor << " " << unit << std::endl;
+		} else {
+			info_ofs << indent << "unit: 1" << std::endl;
+		}
+
+		info_ofs << indent << "Nrad: " << Nrad << std::endl;
+
+		const std::string filename_pattern = name + "1D.dat";
+		info_ofs << indent << "filename: " << filename_pattern << std::endl;
+		info_ofs << indent << "radii_slice: ::4" << std::endl;
+		info_ofs << indent << "avg_slice: 1::4" << std::endl;
+		info_ofs << indent << "min_slice: 2::4" << std::endl;
+		info_ofs << indent << "max_slice: 3::4" << std::endl;
+		
+	    info_ofs << indent << "bigendian: " << is_big_endian() << std::endl;
+		info_ofs << std::endl;
 
 	}
     }
+	info_ofs.close();
 }
 
-/**
-	Calculates eccentricity, semi major axis and periastron averaged with
-   the radial cells
-*/
-std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update,
-					   const double quantitiy_radius)
+
+void write_2D_info(t_data &data)
 {
-    double local_eccentricity = 0.0;
-    double disk_eccentricity = 0.0;
-	double local_mass = 0.0;
-	double global_mass = 0.0;
-    // double semi_major_axis = 0.0;
-    // double local_semi_major_axis = 0.0;
-    double periastron = 0.0;
-    double local_periastron = 0.0;
+	if (CPU_Master) {
 
-    // calculate eccentricity, semi_major_axis and periastron grid
-	quantities::calculate_disk_ecc_peri(data, timestep, force_update);
 
-    // Loop thru all cells excluding GHOSTCELLS & CPUOVERLAP cells (otherwise
-    // they would be included twice!)
-	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
-	#pragma omp parallel for collapse(2) reduction(+ : local_eccentricity, local_periastron, local_mass)
-	for (unsigned int nr = radial_first_active; nr < radial_active_size; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		if (Rmed[nr] <= quantitiy_radius) {
-		// eccentricity and semi major axis weighted with cellmass
-		const double cell_mass = data[t_data::SIGMA](nr, naz) * Surf[nr];
-		local_mass += cell_mass;
-		local_eccentricity +=
-			data[t_data::ECCENTRICITY](nr, naz) *
-			cell_mass;
+	const std::string filename_info = outdir + "info2D.yml";
+	std::ofstream info_ofs(filename_info);
 
-		// local_semi_major_axis +=
-		// data[t_data::SEMI_MAJOR_AXIS](n_radial, n_azimuthal) *
-		// local_mass;
-		local_periastron +=
-			data[t_data::PERIASTRON](nr, naz) *
-			cell_mass;
-	    }
+	info_ofs.precision(std::numeric_limits<double>::max_digits10);
+	info_ofs << "# 2D output variable descriptions" << std::endl;
+	info_ofs << "# version 0.1" << std::endl << std::endl;
+
+	const std::string indent = "  ";
+
+    for (int i = 0; i < t_data::N_POLARGRID_TYPES; ++i) {
+	t_polargrid &g = data[t_data::t_polargrid_type(i)];
+	if (g.get_write_2D()) {
+
+		const std::string name = std::string(g.get_name());
+
+	    std::string unit;
+		double factor = 1.0;
+	    if (g.get_unit() != NULL) {
+			unit = std::string(g.get_unit()->get_cgs_symbol());
+			factor = g.get_unit()->get_code_to_cgs_factor();
+		}
+		
+		info_ofs << name << ":" << std::endl;
+	    info_ofs << indent << "cgs symbols: " << unit << std::endl;
+		info_ofs << indent << "code_to_cgs_factor: "
+			 << g.get_unit()->get_code_to_cgs_factor()
+			 << std::endl;
+
+		if ((g.get_unit() != NULL) && (unit != "1")) {
+			info_ofs << indent << "unit: " << factor << " " << unit << std::endl;
+		} else {
+			info_ofs << indent << "unit: 1" << std::endl;
+		}
+
+		const bool vec = g.is_vector();
+		const unsigned int Nrad = vec ? GlobalNRadial + 1 : GlobalNRadial;
+		const unsigned int Nazi = NAzimuthal;
+
+		info_ofs << indent << "Nrad: " << Nrad << std::endl;
+		info_ofs << indent << "Nazi: " << Nazi << std::endl;
+		
+	    info_ofs << indent << "bigendian: " << is_big_endian() << std::endl;
+		info_ofs << indent << "vector: " << vec << std::endl;
+
+		const std::string filename_pattern = name + ".dat";
+		info_ofs << indent << "filename: " << filename_pattern << std::endl;
+
+		info_ofs << std::endl;
+
+
 	}
     }
-
-    // synchronize threads
-    MPI_Reduce(&local_eccentricity, &disk_eccentricity, 1, MPI_DOUBLE, MPI_SUM,
-	       0, MPI_COMM_WORLD);
-    // MPI_Allreduce(&local_semi_major_axis, &semi_major_axis, 1, MPI_DOUBLE,
-    // MPI_SUM, MPI_COMM_WORLD);
-    MPI_Reduce(&local_periastron, &periastron, 1, MPI_DOUBLE, MPI_SUM, 0,
-	       MPI_COMM_WORLD);
-
-	MPI_Reduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM, 0,
-		  MPI_COMM_WORLD);
-
-	if (global_mass > 0.0) {
-	disk_eccentricity /= global_mass;
-	periastron /= global_mass;
-    } else {
-	disk_eccentricity = 0.0;
-	periastron = 0.0;
-    }
-
-    std::vector<double> rv = {disk_eccentricity, periastron};
-
-    return rv;
+	info_ofs.close();
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
@@ -996,7 +1051,7 @@ void write_snapshot_time()
 		fd,
 		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
-		parameters::DT, parameters::DT * units::time.get_cgs_factor());
+		parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
     }
@@ -1056,7 +1111,7 @@ void write_monitor_time()
 		fd,
 		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
-		parameters::DT, parameters::DT * units::time.get_cgs_factor());
+		parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
     }
@@ -1274,8 +1329,8 @@ void write_ecc_peri_changes(const unsigned int snapshot_number, const unsigned m
 		"# 10: Periastron change from from viscosity\n"
 		"# 11: Periastron change from transport\n"
 		"# 12: Periastron change from damping\n",
-		units::time.get_cgs_factor(),
-		units::torque.get_cgs_factor());
+		units::time.get_code_to_cgs_factor(),
+		units::torque.get_code_to_cgs_factor());
 		fd_created = true;
 	}
 	}

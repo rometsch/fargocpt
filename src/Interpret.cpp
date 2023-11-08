@@ -16,12 +16,10 @@
 #include "config.h"
 #include "output.h"
 #include "simulation.h"
+#include "boundary_conditions/boundary_conditions.h"
 
 extern int damping_energy_id;
-extern std::vector<parameters::t_DampingType> damping_vector;
-
-// frame
-int GuidingCenter;
+extern std::vector<boundary_conditions::t_DampingType> damping_vector;
 
 int OuterSourceMass, CICPlanet;
 
@@ -34,7 +32,6 @@ int OuterSourceMass, CICPlanet;
 #include <stdexcept>
 #include <string>
 
-#include "options.h"
 #include <sys/stat.h>
 #include <filesystem>
 
@@ -110,6 +107,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     ensure_directory_exists(output::outdir + "parameters/");
 	ensure_directory_exists(output::outdir + "monitor/");
     MPI_Barrier(MPI_COMM_WORLD);
+	logging::init_logfiles(output::outdir);
+	// set up logfiles
+
 
     if (CPU_Master) {
 
@@ -123,7 +123,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
 	if (start_mode::mode == start_mode::mode_restart) {
 	    char str[12];
-	    sprintf(str, "%d", start_mode::restart_from);
+	    std::snprintf(str, 12, "%d", start_mode::restart_from);
 
 	    par_filename += "_restart_";
 	    par_filename += str;
@@ -318,16 +318,12 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     // Frame settings
     parameters::corotating = false;
-    GuidingCenter = false;
     switch (cfg.get_first_letter_lowercase("Frame", "Fixed")) {
     case 'f': // Fixed
+	parameters::corotating = false;
 	break;
     case 'c': // Corotating
 	parameters::corotating = true;
-	break;
-    case 'g': // Guiding-Center
-	parameters::corotating = false;
-	GuidingCenter = false;
 	break;
     default:
 	die("Invalid setting for Frame");
@@ -354,7 +350,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	break;
     default:
 	die("Invalid setting for HydroFrameCenter: %s",
-	    cfg.get<std::string>("HydroFrameCenter", "primary"));
+	    cfg.get<std::string>("HydroFrameCenter", "primary").c_str());
     }
 
     if (parameters::n_bodies_for_hydroframe_center != 1 &&
@@ -461,6 +457,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		parameters::ADIABATICINDEX);
 	}
 
+	parameters::hydrogenMassFraction = cfg.get<double>("HydrogenMassFraction", 0.75);
 	if (strcmp(eos_string, "pvtelaw") == 0 ||
 	    strcmp(eos_string, "pvte") == 0) {
 	    could_read_eos = true;
@@ -497,8 +494,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    }
 	    logging::print_master(
 		LOG_INFO
-		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g!\n",
-		parameters::ADIABATICINDEX);
+		"PVTE EoS: Using ideal equation of state with a variable AdiabaticIndex. Init Gamma = %g, HydrogenMassFraction = %g!\n",
+		parameters::ADIABATICINDEX, parameters::hydrogenMassFraction);
 	}
 
 	if (strcmp(eos_string, "polytropic") == 0 ||
@@ -569,25 +566,25 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     if (!parameters::Adiabatic) // if energy is not needed, delete the energy
 				// damping boundary conditions
     {
-	parameters::damping_vector.erase(parameters::damping_vector.begin() +
-					 parameters::damping_energy_id);
+	boundary_conditions::damping_vector.erase(boundary_conditions::damping_vector.begin() +
+					 boundary_conditions::damping_energy_id);
     }
 
     // delete unneeded calls to damping functions
     // this must be performed after deleting the energy damping boundary,
     // otherwise damping_energy_id would be incorrect.
     auto delete_damping_condition =
-	[&](const parameters::t_DampingType damper) {
+	[&](const boundary_conditions::t_DampingType damper) {
 	    return damper.inner_damping_function == nullptr &&
 			   damper.outer_damping_function == nullptr
 		       ? true
 		       : false;
 	};
-    parameters::damping_vector.erase(
-	std::remove_if(parameters::damping_vector.begin(),
-		       parameters::damping_vector.end(),
+    boundary_conditions::damping_vector.erase(
+	std::remove_if(boundary_conditions::damping_vector.begin(),
+		       boundary_conditions::damping_vector.end(),
 		       delete_damping_condition),
-	parameters::damping_vector.end());
+	boundary_conditions::damping_vector.end());
 
     CICPlanet = cfg.get_flag("CICPLANET", "no");
 
@@ -613,7 +610,11 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
         {
 			logging::print_master(LOG_INFO
 				  "Using star dist alpha, scaling from %.3e to %.3e\n", parameters::alphaCold, parameters::alphaHot);
-        } else {
+	}  else if (parameters::AlphaMode == SCURVE_IONFRACTION)
+	{
+			logging::print_master(LOG_INFO
+			"Using interpolate alpha from %.3e to %.3e with 1000 * H2 ionisation fraction\n", parameters::alphaCold, parameters::alphaHot);
+	} else {
 			logging::print_master(LOG_INFO
 			      "Viscosity is of alpha type with alpha = %.3e\n",
 			      parameters::ALPHAVISCOSITY);
@@ -625,6 +626,19 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    LOG_ERROR
 	    "A non-vanishing potential smoothing length is required.\n");
     }
+
+	if (parameters::compatibility_no_star_smoothing) {
+		logging::print_master(
+			LOG_WARNING
+			"Compatibility mode: No smoothing of star gravity.\n");
+	}
+	if (parameters::compatibility_smoothing_planetloc) {
+		logging::print_master(
+			LOG_WARNING
+			"Compatibility mode: Smoothing of gravity at planet location instead of cell location.\n");
+	}
+	
+
 
 
 	{
@@ -709,7 +723,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	}
 
     parameters::VISCOUS_ACCRETION = false;
-    if (parameters::boundary_inner == parameters::boundary_condition_viscous_outflow) {
+    if (boundary_conditions::vrad_inner_func == boundary_conditions::viscous_outflow_inner || boundary_conditions::vrad_outer_func == boundary_conditions::viscous_inflow_outer) {
 		parameters::VISCOUS_ACCRETION = true;
     }
 

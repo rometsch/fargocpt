@@ -4,11 +4,15 @@ import os
 import numpy as np
 from types import SimpleNamespace
 
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+import yaml
 
 def main():
 
     test_name = "cold disk planet"
-    success = calc_deviation(os.getcwd()+"/output")
+    success = calc_deviation("../../output/tests/cold_disk_planet/out")
 
     if success:
         print(f"SUCCESS: {test_name}")
@@ -27,6 +31,12 @@ def calc_deviation(outdir):
     dev = np.max(np.abs(deltaT))
 
     success = dev < 0.1
+
+    with open("test.log", "w") as f:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=f)
+        print(f"max deviation = {dev}, theshold = 0.1", file=f)
 
     make_plot_temperature(data)
     make_plot_surface_density(data)
@@ -47,14 +57,9 @@ def load_data(outdir):
     data.Ns = np.genfromtxt(f"{outdir}/snapshots/list.txt", dtype=int)
 
     tempunit = 1
-    with open(f"{outdir}/units.dat", "r") as infile:
-        for line in infile:
-            if len(line) > 0 and line[0] == "#":
-                continue
-            line = line.strip().replace("\t", " ")
-            parts = line.split(" ")
-            if parts[0] == "temperature":
-                tempunit = float(parts[1])
+    with open(f"{outdir}/units.yml", "r") as infile:
+        units = yaml.safe_load(infile)
+        tempunit = units["temperature"]["cgs value"]
 
     data.Ts = {n: tempunit*np.fromfile(f"{outdir}/snapshots/{n}/Temperature.dat",
                                        dtype=np.float64).reshape(data.Nr, data.Naz) for n in data.Ns}
@@ -69,11 +74,10 @@ def load_data(outdir):
 
 
 def make_plot_surface_density(data):
-    import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(nrows=2, dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = mpl.colormaps.get_cmap("viridis")
 
     Nfirst = data.Ns[0]
     Nlast = data.Ns[-1]
@@ -87,8 +91,8 @@ def make_plot_surface_density(data):
 
         y = data.Sigmaprofiles[n]
 
-        t = n*10 # TODO: remove hardcoded time
-        
+        t = n*10  # TODO: remove hardcoded time
+
         # ax.plot(r, (profile-profile0)/profile0, label=f"t={t:.3f}yr")
         axes[0].plot(r[1:-1], y[1:-1], label=f"t={t:.0f} orb", color=color)
         y = y/profile0 - 1
@@ -103,11 +107,10 @@ def make_plot_surface_density(data):
 
 
 def make_plot_surface_density_2d(data):
-    import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = mpl.colormaps.get_cmap("viridis")
 
     Nlast = data.Ns[-1]
 
@@ -126,11 +129,9 @@ def make_plot_surface_density_2d(data):
 
 def make_plot_temperature(data):
 
-    import matplotlib.pyplot as plt
-
     fig, axes = plt.subplots(nrows=2, dpi=150, layout="constrained")
 
-    cmap = plt.cm.get_cmap("viridis")
+    cmap = mpl.colormaps.get_cmap("viridis")
 
     Nfirst = data.Ns[0]
     Nlast = data.Ns[-1]
@@ -144,7 +145,7 @@ def make_plot_temperature(data):
 
         y = data.Tprofiles[n]
 
-        t = n*10 # TODO: remove hardcoded time
+        t = n*10  # TODO: remove hardcoded time
 
         # ax.plot(r, (profile-profile0)/profile0, label=f"t={t:.3f}yr")
         axes[0].plot(r[1:-1], y[1:-1], label=f"t={t:.0f} orb", color=color)

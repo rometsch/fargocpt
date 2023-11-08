@@ -12,7 +12,6 @@ AspectRatio: 0.05   # Thickness over Radius in the disk
 AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 FlaringIndex: 0.05   # Slope of Temperature/radius profile
 
-ExplicitViscosity: 'YES'
 Viscosity: '0'   # Uniform kinematic viscosity
 AlphaViscosity: 1e-3
 
@@ -43,8 +42,8 @@ KlahrSmoothingRadius: '0.0'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-InnerBoundary: Reflective
-OuterBoundary: Reflective
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 
 Damping: Yes     # NO, YES [default = no]
 DampingInnerLimit: 1.25     # Rmin*Limit
@@ -87,7 +86,7 @@ Ninterm: 2000     # Time steps between outputs
 DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'
 CFLmaxVar: '1.1'
-OutputDir: output/
+OutputDir: ../../output/tests/circ_kepler_orbit/out
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
@@ -103,7 +102,6 @@ WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advectio
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: 'Yes'
-IntegratePlanets: 'Yes'   # [default = yes]
 
 # Star Parameters
 
@@ -117,7 +115,6 @@ nbody:
   eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
-  phi: 0
   ramp-up time: 0
 
 - name: planet
@@ -127,5 +124,4 @@ nbody:
   eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
-  phi: 0
   ramp-up time: 0

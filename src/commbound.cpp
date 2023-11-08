@@ -12,7 +12,6 @@
 #include "global.h"
 #include "logging.h"
 #include "parameters.h"
-#include "time.h"
 
 /// pointer to inner boundary send puffer
 static double *SendInnerBoundary;

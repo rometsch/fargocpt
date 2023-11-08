@@ -1,0 +1,156 @@
+DiskFeedback: no   # Calculate incfluence of the disk on the star
+Ninterm: 1
+Ntot: 1
+DT: 0.0001                 #1e-11
+FirstDT: 0.0001                 #1e-11 # initial hydro dt / dt in case of no disk
+
+RadiativeDiffusion: Yes
+RadiativeDiffusionDumpData: yes
+RadiativeDiffusionOmega: 1.5  # [default = 1.5]
+RadiativeDiffusionAutoOmega: No     # [default = no]
+RadiativeDiffusionMaxIterations: 1000   # [default = 50000]
+RadiativeDiffusionTolerance: 1e-5
+RadiativeDiffusionTest2D: yes
+RadiativeDiffusionTest2DDensity: 1 g/cm3
+RadiativeDiffusionTest2DK: 1.0 # diffusion coefficient for the 2D test
+RadiativeDiffusionTest2DSteps: 10  # diffusion coefficient for the 2D test
+RadiativeDiffusionInnerBoundary: zerogradient
+RadiativeDiffusionOuterBoundary: zerogradient
+
+# Mesh parameters
+
+# Works well with this number of cells
+# Nrad: 300   # Radial number of zones
+# Nsec: 600   # Azimuthal number of
+
+
+Nrad: 100
+Nsec: 150
+# Nrad: 60
+# Nsec: 120
+# Nrad: 1000
+# Nsec: 1500
+# cps: 3
+
+
+MinimumTemperature: 1e-5 K   # minimum Temperature in K
+MaximumTemperature: 1e100 K   # maximum Temperature in K
+Opacity: constant   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
+KappaConst: 1.0 cm2/g
+
+OutputDir: ../../output/tests/FLD2D/out/
+
+# Disk parameters
+
+Disk: no # this turns of hydro evolution when set to no
+Sigma0: 1 g/cm2   # surface density at r=1 in g/cm^2
+SigmaSlope: 0.0   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-9]
+
+AspectRatio: 0.05   # Thickness over Radius in the disk
+FlaringIndex: 0
+
+AlphaViscosity: 0
+HeatingViscous: no   # enable viscous heating
+ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
+ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]
+ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
+SelfGravity: No     # choose: Yes, Z or No
+EquationOfState: Ideal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
+AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+CoolingBetaLocal: No    # enable beta cooling Q- = T * Omega/beta [default = no]
+CoolingBetaReference: reference
+CoolingBeta: 100
+
+
+CFL: '0.5'
+HeatingCoolingCFLlimit: '1.0'   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
+
+# Units
+
+l0: 1.0 cm   # Base length unit of the simulation [default: 1.0 au]
+m0: 1.0 g   # Base mass unit of the simulation [default: 1.0 solMass]
+t0: 1 s
+temp0: 1 K
+mu: 2.35   # mean molecular weight [default=1.0]
+
+# smoothing parameters
+
+ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
+ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
+
+# Numerical method parameters
+
+Transport: FARGO
+Integrator: Euler  # Integrator type: Euler or LeapFrog or KickDriftKick(Leapfrog)
+IndirectTermMode: 0   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
+
+InnerBoundary: reference
+OuterBoundary: reference
+OmegaFrame: 0
+Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
+
+
+
+
+# zones (sectors)
+
+Rmin: 0.01   # Inner boundary radius
+Rmax: 2   # Outer boundary radius
+RadialSpacing: Arithmetic # Logarithmic or ARITHMETIC or Exponential
+
+# Output control parameters
+
+LogAfterRealSeconds: 300
+LogAfterSteps: '0'
+DoWrite1DFiles: No
+WriteAtEveryTimestep: Yes     # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+WriteDensity: Yes     # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy: Yes     # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteTemperature: Yes     # Write temperature. [default = no]
+WriteVelocity: Yes     # Write velocites. This is needed for restart of simulations. [default = yes]
+WriteSoundspeed: No     # Write sound speed [default = no]
+WriteEccentricityChange: No   # Eccentricity change monitor
+WriteEffectiveGamma: No     # 
+WriteFirstAdiabaticIndex: No     # Usefull for PVTE EoS
+WriteMeanMolecularWeight: No     # 
+WriteToomre: No     # Write Toomre parameter Q. [default = no]
+WriteQMinus: YES     # Write QMinus. [default = no]
+WriteQPlus: YES     # Write QPlus. [default = no]
+WriteViscosity: No     # Write Viscosity. [default = no]
+WriteTauCool: No     # Write TauCool. [default = no]
+WriteKappa: No     # Write Kappa. [default = no]
+WriteAlphaGrav: No     # Write AlphaGrav. [default = no]
+WriteAlphaGravMean: No     # Write AlphaGrav time average. [default = no]
+WriteAlphaReynolds: No     # Write AlphaReynolds [default = no]
+WriteAlphaReynoldsMean: No     # Write AlphaReynolds time average [default = no]
+WriteEccentricity: No     # Write eccentricity. [default = no]
+WriteTReynolds: No     # Write Reynolds stress tensor. [default = no]
+WriteTGravitational: No     # Write gravitational stress tensor. [default = no]
+WritepdV: No     # Write pdV. [default = no]
+WriteDiskQuantities: Yes     # Write disk quantities (eccentricity, periastron, semi_major_axis) [default = no]
+WriteRadialLuminosity: No     # Write radial luminosity [default = no]
+WriteRadialDissipation: No     # Write radial dissipation [default = no]
+WriteLightCurves: No     # Write light curves [default = no]
+WriteLightcurvesRadii: 0.4,5.2
+WriteMassFlow: No     # Write a 1d radial file with mass flow at each interface [default = no]
+WriteGasTorques: No     # Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
+WritePressure: No     # Write pressure [default = no]
+WriteScaleHeight: No     # Write scale height H [default = no]
+WriteAspectratio: No     # Write aspectratio h = H/r [default = no]
+WriteTorques: No     # Calculate and write torques acting in planet/star
+WriteVerticalOpticalDepth: No     # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
+
+
+# Planets
+
+HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+BodyForceFromPotential: Yes
+
+nbody:
+- name: Star
+  semi-major axis: 0.0
+  mass: 0
+  eccentricity: 0
+  radius: 1 solRadius
+  temperature: 0

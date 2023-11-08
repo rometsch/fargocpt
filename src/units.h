@@ -1,5 +1,4 @@
-#ifndef UNITS_H
-#define UNITS_H
+#pragma once
 
 #include <string>
 #include <type_traits>
@@ -44,23 +43,29 @@ class t_unit
     /// cgs unit symbol
     char *m_cgs_symbol;
 
+    /// name of the unit
+    char *m_name;
+
   public:
     t_unit();
     ~t_unit();
 
     // setter
+    void set_name(const char *);
     void set_cgs_factor(double);
     void set_cgs_symbol(const char *);
 
     // getter
     const char *get_cgs_symbol(void) const;
     /// get conversion factor to cgs system
-    inline double get_cgs_factor(void) const { return m_cgs_factor; }
+    inline double get_code_to_cgs_factor(void) const { return m_cgs_factor; }
     /// get conversion factor from cgs systems
-    inline double get_inverse_cgs_factor(void) const
+    inline double get_cgs_to_code_factor(void) const
     {
 	return m_inverse_cgs_factor;
     }
+    /// get name of the unit
+    const char *get_name(void) const;
 
     // operator
     inline operator const double &() const { return m_cgs_factor; }
@@ -78,6 +83,8 @@ extern llnlunits::precise_unit Temp0;
 extern llnlunits::precise_unit solMass;
 extern llnlunits::precise_unit au;
 
+extern t_unit not_yet_defined;
+extern t_unit unitless;
 extern t_unit length;
 extern t_unit mass;
 extern t_unit time;
@@ -103,16 +110,17 @@ extern t_unit mass_accretion_rate;
 
 bool has_unit(const std::string &val);
 
-void set_baseunits( const std::string &l0, 
-                    const std::string &m0);
+void set_baseunits(
+  const std::string &l0, 
+  const std::string &m0,
+  const std::string &t0,
+  const std::string &temp0);
 
 template <typename T> T parse_units(const std::string &val);
 template <typename T> T parse_units(const std::string &val, const precise_unit &baseunit);
 
 void calculate_unit_factors();
 void print_code_units();
-void write_code_unit_file();
+void write_code_units_file();
 
 } // namespace units
-
-#endif // UNITS_H

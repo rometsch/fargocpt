@@ -9,7 +9,6 @@
 #include "LowTasks.h"
 #include "global.h"
 #include "logging.h"
-#include "parameters.h"
 #include "start_mode.h"
 #include "util.h"
 
@@ -34,10 +33,12 @@ static int strcicmp(char const *a, char const *b)
 namespace options
 {
 std::string parameter_file = "";
+std::string pidfile = "";
 bool memory_usage = false;
 bool disable = false;
+int max_iteration_number = -1;
 
-static const char short_options[] = "-dvqbcnmht";
+static const char short_options[] = "-dvqbcnmhtN:";
 
 static const struct option long_options[] = {
     {"help", no_argument, NULL, 'h'},
@@ -47,6 +48,7 @@ static const struct option long_options[] = {
     {"start", no_argument, NULL, 's'},
     {"restart", optional_argument, NULL, 'r'},
     {"auto", no_argument, NULL, 'a'},
+	{"pidfile", required_argument, NULL, 'P'},
     {0, 0, 0, 0}};
 
 void usage(int argc, char **argv)
@@ -58,13 +60,15 @@ void usage(int argc, char **argv)
 	"start                  Start a new simulation from scratch\n"
 	"restart <N>            Restart from an old simulation output, latest if no N specified\n"
 	"auto                   Same as restart if output files are present, otherwise same as start\n"
-	"-d | --debug           Print some debugging information on 'stdout' at each timestep\n"
-	"-v | --verbose         Verbose mode. Tells everything about parameters file\n"
-	"-q | --quiet           Only print errors and warnings\n"
-	"-b |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
-	"-c |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
-	"-n |                   Disable simulation. The program just reads parameters file\n"
-	"-m |                   estimate memory usage and print out\n"
+	"-d     | --debug           Print some debugging information on 'stdout' at each timestep\n"
+	"-v     | --verbose         Verbose mode. Tells everything about parameters file\n"
+	"-q     | --quiet           Only print errors and warnings\n"
+	"-b     |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
+	"-c     |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
+	"-n     |                   Disable simulation. The program just reads parameters file\n"
+	"-m     |                   estimate memory usage and print out\n"
+	"-N <N> |                   Perform N hydro steps.\n"
+	"-P <path> | --pidfile <path>    Path to the file to store the pid in.\n"
 	"",
 	argv[0]);
 }
@@ -144,6 +148,20 @@ void parse(int argc, char **argv)
 	case 'm':
 	    memory_usage = true;
 	    break;
+
+	case 'N':
+	    if (is_number(optarg)) {
+			max_iteration_number = std::atoi(optarg);
+		}
+		if (max_iteration_number < 0) {
+			die("Input Error: Max number of iterations can not be negative.\n");
+		}
+	    break;
+
+	case 'P':
+		pidfile = std::string(optarg);
+		break;
+	
 	case 'h':
 	    usage(argc, argv);
 	    PersonalExit(EXIT_SUCCESS);

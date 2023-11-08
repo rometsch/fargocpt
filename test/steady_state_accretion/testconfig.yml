@@ -1,0 +1,4 @@
+testname: steady_state_accretion
+threshold: 2.2e-4
+setupfiles:
+  - setup.yml

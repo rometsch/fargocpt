@@ -1,0 +1,2 @@
+Euler position difference: |x - x_ref| = 0.06745891385291064, |y - y_ref| = 0.11680978897272219| (threshold = 0.12)
+LF position difference: |x - x_ref| = 0.03193233840334381, |y - y_ref| = 0.032982251711940705| (threshold = 0.04)

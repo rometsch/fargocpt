@@ -1,5 +1,5 @@
 #include <errno.h>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <iostream>
 #include <mpi.h>
 #include <stdarg.h>
@@ -13,8 +13,6 @@
 #include "backtrace.h"
 #include "global.h"
 #include "logging.h"
-#include "output.h"
-#include "parameters.h"
 
 static void _mkdir(const char *dir, mode_t mode)
 {
@@ -55,8 +53,8 @@ void ensure_directory_exists(const std::string &dirname)
 void delete_directory_if_exists(const std::string &dirname)
 {
     if (CPU_Master) {
-	if (std::experimental::filesystem::exists(dirname)) {
-	    std::experimental::filesystem::remove_all(dirname);
+	if (std::filesystem::exists(dirname)) {
+	    std::filesystem::remove_all(dirname);
 	}
     }
 }

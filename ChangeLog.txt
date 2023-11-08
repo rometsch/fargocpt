@@ -13,3 +13,17 @@
 - replaced the default executable to run, now run_fargo starts the simulations and calls bin/fargocpt and handles the parallel config
 - restructured the output directory into snapshots and monitor directories. Each snapshot dir contains all information to restart the simulation.
 - bigplanet.dat files are now called planet.dat files, now fargocpt output v1.2
+- self gravity acceleration can now be written out to the snapshots using `WriteSGAccelRad` and `WriteSGAccelAzi` parameter
+- there is a file `info2D.yml` which describes the 2D output variables including their array size and units
+- Cooling from the disk surface: the config parameter `CoolingRadiativeLocal` has been replaced by `SurfaceCooling` which can take the value `no|false|off`, `thermal` (the existing mode), or `scurve` (new mode).
+- Beta cooling includes a new `floor` mode in which the temperature is relaxed to the floor value. Can be configured using the `CoolingBetaReference` parameter which can be `zero` (to zero Kelvin), `reference` (to the reference/damping values), `model` (to the temperature from aspect ratio). This will break your old config.
+- self gravity acceleration can now be written out to the snapshots using `WriteSGAccelRad` and `WriteSGAccelAzi` parameters
+- there is a file `info2D.yml` which describes the 2D output variables including their array size and units
+- Radiative Diffusion Tolerance parameter is now an absolute quantity, if only a number is supplied, its multiplied by the Temperature unit, otherwise its parsed.
+- units file in yaml containing all units in the code including code unit value in cgs and the cgs unit symbols
+- constants file in yaml containing all physical constants in the code
+- backtraces are written to a separate file for each process
+- copies of log written to stdout are written to a output and error file in the log directory in the output directory
+- info about 1D output is now in the `info1D.yml` file
+- info about particle data is now in the `infoParticles.yml` file
+- code now exits in case of unknown parameters in the setup file. This help spotting typos.

@@ -1,7 +1,6 @@
 #include "opacity.h"
 #include "LowTasks.h"
 #include "parameters.h"
-#include "util.h"
 #include <cassert>
 #include <cmath>
 
@@ -10,29 +9,36 @@ namespace opacity
 
 double opacity(double density, double temperature)
 {
+	const double temperatureCGS = temperature * units::temperature.get_code_to_cgs_factor();
+	const double densityCGS = density * units::density.get_code_to_cgs_factor();
+
+	double rv;
+
     switch (parameters::opacity) {
     case parameters::opacity_lin:
-	return lin(density, temperature);
+	rv = lin(densityCGS, temperatureCGS) * units::opacity.get_cgs_to_code_factor();
 	break;
 
     case parameters::opacity_bell:
-	return bell(density, temperature);
+	rv = bell(densityCGS, temperatureCGS) * units::opacity.get_cgs_to_code_factor();
 	break;
 
     case parameters::opacity_const_op:
-	return parameters::kappa_const;
+	rv = parameters::kappa_const;
 	break;
 
     case parameters::opacity_simple:
 	// this is only used for the temperature test
-	return parameters::kappa_const * std::pow(temperature, 2);
+	rv = parameters::kappa_const * std::pow(temperatureCGS, 2);
 	break;
 
     default:
 	die("Invalid opacity!");
-	return 0;
+	rv = 0;
 	break;
     }
+
+	return parameters::kappa_factor * rv;
 }
 
 /**

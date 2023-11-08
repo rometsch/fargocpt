@@ -5,11 +5,8 @@
 
 #include "particles.h"
 #include "dust_diffusion.h"
-#include "../Force.h"
 #include "../LowTasks.h"
-#include "../Pframeforce.h"
 #include "../SourceEuler.h"
-#include "../commbound.h"
 #include "../constants.h"
 #include "../find_cell_id.h"
 #include "../global.h"
@@ -21,8 +18,8 @@
 #include "../output.h"
 #include "../Theo.h"
 #include "../frame_of_reference.h"
-#include "../cfl.h"
 #include "../simulation.h"
+#include "../compute.h"
 #include <cstring>
 #include <cmath>
 #include <mpi.h>
@@ -134,7 +131,7 @@ find_nearest(unsigned int &n_radial_a_minus, unsigned int &n_radial_a_plus,
     n_azimuthal_b_plus = get_next_azimuthal_id(n_azimuthal_b_minus);
 }
 
-static double interpolate_bilinear_sg(const double *array1D,
+static double interpolate_bilinear_sg(const double *flattened2Darray,
 				      const unsigned int n_radial_minus,
 				      const unsigned int n_radial_plus,
 				      const unsigned int n_azimuthal_minus,
@@ -146,10 +143,10 @@ static double interpolate_bilinear_sg(const double *array1D,
     double dphi = 2.0 * M_PI / (double)NAzimuthal;
 
     // values at corners
-    double Qmm = array1D[n_radial_minus * NAzimuthal + n_azimuthal_minus];
-    double Qpm = array1D[n_radial_plus * NAzimuthal + n_azimuthal_minus];
-    double Qmp = array1D[n_radial_minus * NAzimuthal + n_azimuthal_plus];
-    double Qpp = array1D[n_radial_plus * NAzimuthal + n_azimuthal_plus];
+    double Qmm = flattened2Darray[n_radial_minus * NAzimuthal + n_azimuthal_minus];
+    double Qpm = flattened2Darray[n_radial_plus * NAzimuthal + n_azimuthal_minus];
+    double Qmp = flattened2Darray[n_radial_minus * NAzimuthal + n_azimuthal_plus];
+    double Qpp = flattened2Darray[n_radial_plus * NAzimuthal + n_azimuthal_plus];
 
     double rm = Rb[n_radial_minus];
     double rp = Rb[n_radial_plus];
@@ -375,7 +372,7 @@ static void init_particle_timestep(t_data &data)
     }
 }
 
-static void correct_for_self_gravity(const unsigned int i)
+static void correct_for_self_gravity(const unsigned long i)
 {
 
     const double r = particles[i].get_distance_to_star();
@@ -425,12 +422,12 @@ static void correct_for_self_gravity(const unsigned int i)
     particles[i].phi_ddot = 0.0;
 }
 
-static void insert_particle(const unsigned int i, const unsigned int id_offset, const double semi_major_axis, 
+static void insert_particle(const unsigned long i, const unsigned int id_offset, const double semi_major_axis, 
 	const double phi, const double eccentricity) {
 
     particles[i].radius = parameters::particle_radius;
 
-    const unsigned int particle_type = i % parameters::particle_species_number;
+    const unsigned long particle_type = i % parameters::particle_species_number;
     particles[i].radius *=
 	std::pow(parameters::particle_radius_increase_factor, particle_type);
 
@@ -477,7 +474,7 @@ static void insert_particle(const unsigned int i, const unsigned int id_offset, 
 }
 
 static void
-init_particle(const unsigned int &i, const unsigned int &id_offset,
+init_particle(const unsigned long &i, const unsigned int &id_offset,
 	      std::mt19937 &generator,
 	      std::uniform_real_distribution<double> &dis_one,
 	      std::uniform_real_distribution<double> &dis_twoPi,
@@ -518,28 +515,6 @@ double(global_id%num_particles_per_ring)/double(num_particles_per_ring) +
     */
    insert_particle(i, id_offset, semi_major_axis, phi, eccentricity);
 }
-
-/**
-	computes density rho
-*/
-void compute_rho(t_data &data, const double current_time)
-{
-	compute_scale_height(data, current_time);
-
-	const unsigned int Nr = data[t_data::RHO].get_size_radial();
-	const unsigned int Nphi = data[t_data::RHO].get_size_azimuthal();
-
-	#pragma omp parallel for collapse(2)
-	for (unsigned int nr = 0; nr < Nr; ++nr) {
-	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double H = data[t_data::SCALE_HEIGHT](nr, naz);
-		data[t_data::RHO](nr, naz) =
-		data[t_data::SIGMA](nr, naz) /
-		(parameters::density_factor * H);
-	}
-    }
-}
-
 
 void init(t_data &data)
 {
@@ -600,7 +575,7 @@ void init(t_data &data)
 	const int mpi_particle_count = 12;
     int mpi_particle_lengths[mpi_particle_count] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
     MPI_Aint mpi_particle_offsets[mpi_particle_count];
-    MPI_Datatype mpi_particle_types[mpi_particle_count] = {MPI_UNSIGNED, MPI_DOUBLE, MPI_DOUBLE,
+    MPI_Datatype mpi_particle_types[mpi_particle_count] = {MPI_UNSIGNED_LONG, MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,	 MPI_DOUBLE, MPI_DOUBLE,
 					   MPI_DOUBLE,   MPI_DOUBLE, MPI_DOUBLE};
@@ -644,7 +619,7 @@ void init(t_data &data)
 	}
     }
 
-	compute_rho(data, sim::PhysicalTime);
+	compute::midplane_density(data, sim::PhysicalTime);
 	compute_temperature(data);
     check_tstop(data);
 
@@ -655,6 +630,8 @@ void init(t_data &data)
 	if (parameters::particle_dust_diffusion) {
 		dust_diffusion::init(data);
 	}
+
+	write_info();
 
 }
 
@@ -796,9 +773,8 @@ void calculate_accelerations_from_star_and_planets(
 	const double phi_planet = planet.get_phi();
 
 	const double delta_phi = phi - phi_planet;
-	double sin_delta_phi;
-	double cos_delta_phi;
-	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
+	double sin_delta_phi = std::sin(delta_phi);
+	double cos_delta_phi = std::cos(delta_phi);
 
 	const double distance_to_planet =
 	    std::sqrt(r * r + r_planet * r_planet -
@@ -863,9 +839,8 @@ void calculate_derivitives_from_star_and_planets(double &grav_r_ddot,
 	const double planet_mass = planet.get_mass();
 
 	const double delta_phi = phi - phi_planet;
-	double sin_delta_phi;
-	double cos_delta_phi;
-	sincos(delta_phi, &sin_delta_phi, &cos_delta_phi);
+	double sin_delta_phi = std::sin(delta_phi);
+	double cos_delta_phi = std::cos(delta_phi);
 
 	const double distance_to_planet = std::sqrt(
 	    r * r + r_planet * r_planet - 2.0 * r * r_planet * cos_delta_phi);
@@ -1009,7 +984,7 @@ static double calc_tstop(const double size, const double rho, const double vrel,
 				      temperature / (M_PI * m0));
 
 	// from HB03 Eq. (20) below for value of molecular hydrogen.
-	const double a0 = 1.5e-8 * units::length.get_inverse_cgs_factor();
+	const double a0 = 1.5e-8 * units::length.get_cgs_to_code_factor();
     double cross_section = M_PI * std::pow(a0, 2); // units of L^2
 
 	// gas molecular viscosity HB03 (6)
@@ -1394,7 +1369,7 @@ void integrate(t_data &data, const double current_time, const double dt)
 	// const double stokes = particles[0].stokes;
 	// printf("t = %.3e, q1 = %.3e, q2 = %.3e, |q| = %.3e, St = %.3e\n", current_time, q1, q2, std::sqrt(q1*q1 + q2*q2), stokes);
 	if (parameters::particle_gas_drag_enabled){
-		compute_rho(data, current_time);
+		compute::midplane_density(data, current_time);
 	}
 
 	switch (parameters::particle_integrator) {
@@ -1490,7 +1465,7 @@ void integrate_exponential_midpoint(t_data &data, const double dt)
 
 	double grav_r_ddot;
 	double minus_grav_l_dot;
-	if (parameters::ParticlesInCartesian) {
+	if (parameters::ParticleGravityCalcInCartesian) {
 	    calculate_derivitives_from_star_and_planets_in_cart(
 		grav_r_ddot, minus_grav_l_dot, r1, phi1, rsmooth, data);
 	} else {
@@ -1543,7 +1518,6 @@ void integrate_explicit_adaptive(t_data &data, const double dt)
 {
 
     if (parameters::CartesianParticles) {
-		die("Somethings wrong with integrating particles with the explicit method and cartesian calculation of forces, no clue what. Find it out!\n");
 	// disk gravity on particles is inside gas_drag function
 	if (parameters::particle_gas_drag_enabled)
 	    update_velocities_from_gas_drag_cart(data, dt);
@@ -2060,6 +2034,164 @@ void write()
     // close file
     MPI_File_close(&fh);
 }
+
+
+void write_info()
+{
+	if (!CPU_Master) {
+		return;
+	}
+
+	const std::string filename_info = output::outdir + "infoParticles.yml";
+	std::ofstream of(filename_info);
+
+	of.precision(std::numeric_limits<double>::max_digits10);
+	of << "# particle output description" << std::endl;
+	of << "# version 0.1" << std::endl << std::endl;
+	of << std::endl;
+
+	const std::string indent = "  ";
+
+	of << "coordinate system: " << (parameters::CartesianParticles ? "cartesian" : "polar") << std::endl;
+	of << std::endl;
+
+	of << "variables:" << std::endl;
+	of << indent << "id:" << std::endl;
+	of << indent << indent << "description: particle id" << std::endl;
+	of << indent << indent << "unit: 1" << std::endl;
+	of << indent << indent << "type: unsigned long" << std::endl;
+	of << indent << indent << "offset bytes: 0" << std::endl; 
+	of << indent << indent << "size bytes: " << sizeof(unsigned long) << std::endl;
+	of << std::endl;
+
+
+
+	if (parameters::CartesianParticles) {
+		of << indent << "x:" << std::endl;
+		of << indent << indent << "description: x coordinate" << std::endl;
+		of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "y:" << std::endl;
+		of << indent << indent << "description: y coordinate" << std::endl;
+		of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "vx:" << std::endl;
+		of << indent << indent << "description: x velocity" << std::endl;
+		of << indent << indent << "unit: " << units::velocity.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 2 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "vy:" << std::endl;
+		of << indent << indent << "description: y velocity" << std::endl;
+		of << indent << indent << "unit: " << units::velocity.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 3 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+	} else {
+		of << indent << "r:" << std::endl;
+		of << indent << indent << "description: radius" << std::endl;
+		of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "phi:" << std::endl;
+		of << indent << indent << "description: azimuthal angle" << std::endl;
+		of << indent << indent << "unit: rad" << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "r_dot:" << std::endl;
+		of << indent << indent << "description: radial velocity" << std::endl;
+		of << indent << indent << "unit: " << units::velocity.get_cgs_factor_symbol() << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 2 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+
+		of << indent << "phi_dot:" << std::endl;
+		of << indent << indent << "description: angular velocity" << std::endl;
+		of << indent << indent << "unit: rad/s" << std::endl;
+		of << indent << indent << "type: double" << std::endl;
+		of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 3 * sizeof(double) << std::endl;
+		of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+		of << std::endl;
+	}
+
+
+	of << indent << "r_ddot:" << std::endl;
+	of << indent << indent << "description: radial acceleration" << std::endl;
+	of << indent << indent << "unit: " << units::acceleration.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 4 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "phi_ddot:" << std::endl;
+	of << indent << indent << "description: angular acceleration" << std::endl;
+	of << indent << indent << "unit: rad/s^2" << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 5 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+	
+	of << indent << "mass:" << std::endl;
+	of << indent << indent << "description: mass" << std::endl;
+	of << indent << indent << "unit: " << units::mass.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 6 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "size:" << std::endl;
+	of << indent << indent << "description: radius of particle" << std::endl;
+	of << indent << indent << "unit: " << units::length.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 7 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "timestep:" << std::endl;
+	of << indent << indent << "description: timestep for adaptive integrator" << std::endl;
+	of << indent << indent << "unit: " << units::time.get_cgs_factor_symbol() << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 8 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "facold:" << std::endl;
+	of << indent << indent << "description: last error for timestep estimaton" << std::endl;
+	of << indent << indent << "unit: 1" << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 9 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of << indent << "stokes:" << std::endl;
+	of << indent << indent << "description: stokes number" << std::endl;
+	of << indent << indent << "unit: 1" << std::endl;
+	of << indent << indent << "type: double" << std::endl;
+	of << indent << indent << "offset bytes: " << sizeof(unsigned int) + 10 * sizeof(double) << std::endl;
+	of << indent << indent << "size bytes: " << sizeof(double) << std::endl;
+	of << std::endl;
+
+	of.close();
+}
+
 
 void rotate(const double angle)
 {

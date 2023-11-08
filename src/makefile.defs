@@ -8,7 +8,9 @@ OPTIONS += -Wall -Wextra -Wmissing-declarations -Werror=redundant-decls -DOMPI_S
 # architechture
 OPTIONS += -march=native
 # add symbols for backtrace
-OPTIONS += -rdynamic
+ifeq ($(shell uname -s),Linux)
+	OPTIONS += -rdynamic
+endif
 # linker inline
 OPTIONS += -flto=auto 
 # use openmp
@@ -19,11 +21,11 @@ OPTIMIZATION := -Ofast
 
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"
-GIT_CHANGED = "$(shell git diff-index --name-only HEAD | sed -e '{:q;N;s/\n/, /g;t q}')"
+GIT_CHANGED = "$(shell git diff-index --name-only HEAD | awk 1 ORS=' ')"
 GIT_INFO = -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
 
 # options to compile
-OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE
+#OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE
 
 # handle debug ENV variable
 ifeq "$(FARGO_DEBUG)" "1"
@@ -34,20 +36,30 @@ else
 	CFLAGS += $(OPTIMIZATION) -DNDEBUG
 endif
 
+# add options passed via the command line
+ifdef CLI_OPTIONS
+	OPTIONS += $(CLI_OPTIONS)
+endif
+
+# uncomment to disable gsl or fftw
+# OPTIONS += -DDISABLE_GSL 
+# OPTIONS += -DDISABLE_FFTW
+
 CFLAGS += -std=c++17
 
 INCLUDE_MPI = -I$(MPI_PREFIX)/include
 INCLUDE_FFTW = -I$(FFTW_PREFIX)/include
 INCLUDE_GSL = -I$(GSL_PREFIX)/include
+INCLUDE_OMP = -I$(OMP_PREFIX)/include
 INCLUDES = $(INCLUDE_MPI) $(INCLUDE_FFTW) $(INCLUDE_GSL)
 INCLUDES += -I.
 
 # dynamically linked libs
 LIBS = -lm 
-LIBS += -lstdc++fs
 LIBS += -L$(MPI_PREFIX)/lib -lmpi 
 LIBS += -L$(FFTW_PREFIX)/lib -lfftw3_omp -lfftw3_mpi -lfftw3
-LIBS += -L$(GSL_PREFIX)/lib64 -lgsl -lgslcblas
+LIBS += -L$(GSL_PREFIX)/lib -lgsl -lgslcblas
+LIBS += -L$(OMP_PREFIX)/lib
 # statically linked libs
 LIBS += -Lrebound -lrebound
 LIBS += -Lyaml-cpp -lyamlcpp

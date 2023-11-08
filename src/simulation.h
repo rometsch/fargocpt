@@ -1,10 +1,6 @@
-#ifndef SIMULATION_H
-#define SIMULATION_H
+#pragma once
 
 #include "data.h"
-#include "nbody/planet.h"
-#include "types.h"
-#include "global.h"
 
 namespace sim {
 
@@ -23,5 +19,3 @@ void handle_outputs(t_data &data);
 double CalculateTimeStep(t_data &data);
 
 }
-
-#endif // SIMULATION_H

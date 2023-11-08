@@ -1,8 +1,6 @@
-#ifndef OUTPUT_H
-#define OUTPUT_H
+#pragma once
 
 #include "data.h"
-#include "types.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -26,6 +24,7 @@ struct misc_entry {
 };
 
 void check_free_space(t_data &data);
+bool is_autosave_dir(const std::string &path);
 void cleanup_autosave();
 
 // void write_full_output(t_data &data, const std::string &snapshot_id);
@@ -38,15 +37,12 @@ void write_misc();
 void write_torques(t_data &data, bool force_update);
 void write_massflow_info(t_data &data);
 void write_1D_info(t_data &data);
+void write_2D_info(t_data &data);
 void write_massflow(t_data &data, unsigned int timestep);
 void write_lightcurves(t_data &data, unsigned int timestep, bool force_update);
 void write_snapshot_time();
 void write_monitor_time();
 
-
-std::vector<double> reduce_disk_quantities(t_data &data, unsigned int timestep,
-					   bool force_update,
-					   const double quantitiy_radius);
 
 int load_misc();
 std::string get_version(std::string filename);
@@ -62,5 +58,3 @@ std::int32_t get_latest_output_num(const std::string &snapshot_id);
 void CheckAngularMomentumConservation(t_data &data);
 
 } // namespace output
-
-#endif // OUTPUT_H

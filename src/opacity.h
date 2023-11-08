@@ -1,5 +1,4 @@
-#ifndef OPAC_H
-#define OPAC_H
+#pragma once
 
 namespace opacity
 {
@@ -9,5 +8,3 @@ double lin(double density, double temperature);
 double bell(double density, double temperature);
 
 } // namespace opacity
-
-#endif // OPAC_H

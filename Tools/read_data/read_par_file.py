@@ -4,6 +4,8 @@ import os
 import numpy as np
 import astropy.units as u
 
+import yaml
+
 def read_par_file(path_to_file):
     """
     input:  path the the *.par file
@@ -50,34 +52,17 @@ def read_par_file(path_to_file):
 
 def read_unit_file(path_to_folder):
 
-    units_file_name = path_to_folder + "/units.dat"
+    units_file_name = path_to_folder + "/units.yml"
 
     unit_dict = {}
     if os.path.isfile(units_file_name):
         with open(units_file_name) as f:
-            units = f.readlines()
-
-        for line in units:
-            l = line.replace('\t', ' ')
-            l = l.replace('\n', '')
-            l = l.split(':')[1:]
-            l = ''.join(l)
-            l = l.split('=')[:2]
-            l = ''.join(l)
-            l = list(filter(None, l))
-            l = ''.join(l)
-            l = l.split(' ')
-            l = list(filter(None, l))
-            if len(l) > 2 and '<' not in l:
-                l2 = np.array([l[0], l[1],''.join(l[2:])])
-            else:
-                l2 = ''
-
-            if len(l2) > 1:
-                if l2[1][0].isdigit():
-                    unit_dict[l2[0]] = float(l2[1])*u.Unit(l[2])
+            data = yaml.safe_load(f)
+        unit_dict = {}
+        for key, val in data.items():
+            unit_dict[key] = u.Unit(val["unit"])
     else:
-        raise ValueError("Error in read_par_file.py, could not find : " + units_file_name  + "!\n")
+        raise ValueError("Error in read_units, could not find : " + units_file_name  + "!\n")
 
     return unit_dict
 
