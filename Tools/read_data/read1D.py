@@ -18,35 +18,35 @@ class read1D:
             info = data[quantity]            
             self.Nr = int(info["Nrad"])
             self.unit = u.Unit(info["unit"])
-            self.code_to_cgs_factor = float(info["code_to_cgs_factor"])
-            print(quantity, self.unit, self.code_to_cgs_factor)
+            # self.code_to_cgs_factor = float(info["code_to_cgs_factor"])
+            # print(quantity, self.unit, self.code_to_cgs_factor)
 
     def read(self, dt, return_min_max=False):
         with open(self.output_folder_path + f"/snapshots/{dt}/" + str(self.quantity) + "1D.dat", "rb") as f:
             Nr = self.Nr
             data = np.fromfile(f)
             rs = data[::4]
-            density = data[1::4]
+            avg_values = data[1::4]
 
             if return_min_max:
-                min_density = data[2::4]
-                max_density = data[3::4]
+                min_value = data[2::4]
+                max_value = data[3::4]
 
-            if len(density) != Nr:
-                raise ValueError("read1D.py: Output data length ({}) is not a multiple of Nr = {}".format(len(density), Nr))
+            if len(avg_values) != Nr:
+                raise ValueError("read1D.py: Output data length ({}) is not a multiple of Nr = {}".format(len(avg_values), Nr))
 
-            density = density*u.Unit(self.unit)*self.code_to_cgs_factor
-            rs = rs*self.l0_to_cm
-
-            if return_min_max:
-                min_density *= u.Unit(self.unit)*self.code_to_cgs_factor
-                max_density *= u.Unit(self.unit)*self.code_to_cgs_factor
-
+            avg_values = avg_values*u.Unit(self.unit)
+            rs = rs*u.Unit(self.units["length"])
 
             if return_min_max:
-                return rs, density, min_density, max_density
+                min_value *= u.Unit(self.unit)
+                max_value *= u.Unit(self.unit)
+
+
+            if return_min_max:
+                return rs, avg_values, min_value, max_value
             else:
-                return rs, density
+                return rs, avg_values
 
 
 if __name__ == "__main__":

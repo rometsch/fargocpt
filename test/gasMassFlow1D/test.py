@@ -28,17 +28,41 @@ from read_gasMassFlow1D import gasMassFlow1D
 from read_par_file import read_unit_file
 from read1D import read1D
 
-out_folder = "../../output/tests/gasMassFlow1D/outflow/"
+out_folder = "../../output/tests/gasMassFlow1D/reflecting_damping/"
 
 units = read_unit_file(out_folder)
-def M_dot(radius, surface_density, vis):
 
-    M_dot = 3*np.pi*surface_density * vis
+def M_dot_by_visc(radius, surface_density, visc):
+    """ Compute the mass flow rate using the viscosity
+
+    Parameters
+    ----------
+    radius : array
+        Radius of the cells
+    surface_density : array
+        Surface density of the cells
+    vis : array
+        Viscosity of the cells
+    """
+
+    M_dot = 3*np.pi*surface_density * visc
     M_dot = M_dot.decompose().to("solMass/yr")
 
     return radius, M_dot
 
-def M_dot2(radius, surface_density, vr):
+
+def M_dot_by_vel(radius, surface_density, vr):
+    """ Compute the mass flow rate using the radial velocity
+
+    Parameters
+    ----------
+    radius : array
+        Radius of the cells
+    surface_density : array
+        Surface density of the cells
+    vr : array
+        Radial velocity of the cells
+    """
 
     radius = (radius[1:] + radius[:-1])/2
     M_dot = -2*radius*np.pi*surface_density*(vr[1:]+ vr[:-1])/2
@@ -76,9 +100,13 @@ for n in N_output:
     r__, vrad_ = vrad1D_reader.read(n)
     r___, vis_ = vis1D_reader.read(n)
 
-    x_, y_ = M_dot(r_, sigma_, vis_)
-    print(f"{r__[0]=}, {sigma_[0]=}, {vrad_[0]=}")
-    x2_, y2_ = M_dot2(r__, sigma_, vrad_)
+    print()
+    N = 100
+
+    x_, y_ = M_dot_by_visc(r_, sigma_, vis_)
+    print(f"{r__[N]=}, {sigma_[N]=}, {vis_[N]=}")
+    x2_, y2_ = M_dot_by_vel(r__, sigma_, vrad_)
+    print(f"{r__[N]=}, {sigma_[N]=}, {vrad_[N]=}")
 
     rs, data = mass_flow_reader.read(n)
     if n == 0:

@@ -62,8 +62,8 @@ Transport: FARGO
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
-InnerBoundary: reflective
-OuterBoundary: centerofmass
+InnerBoundary: reflecting
+OuterBoundary: reflecting
 Damping: 'Yes'
 DampingInnerLimit: '1.00'   # Rmin*Limit
 DampingOuterLimit: '0.64'   # Rmax*Limit
@@ -87,7 +87,7 @@ DiskFeedback: 'NO'   # star feels the disk
 Nrad: '198'   # 512 128		# Radial number of zones
   # Nrad: '386'   # 512 128		# Radial number of zones
   # Nrad: '770'   # 512 128		# Radial number of zones
-Nsec: '270'   # 1536 384		# Azimuthal number of
+Nsec: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -97,7 +97,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-OutputDir: ../../output/tests/gasMassFlow1D/viscous_accretion
+OutputDir: ../../output/tests/gasMassFlow1D/reflecting_damping
 Ntot: '100'   # Total number of time steps
 Ninterm: '100'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit
