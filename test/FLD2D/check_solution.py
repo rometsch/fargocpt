@@ -120,6 +120,12 @@ if __name__ == "__main__":
     if opts.test:
         threshold = float(params["threshold"])
         test_name = "FLD2D"
+        with open("test.log", "w") as f:
+            from datetime import datetime
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(f"{current_time}", file=f)
+            print(f"integral diff = {integral_diff}, theshold = {threshold}", file=f)
+
         if integral_absdiff < threshold:
             print(f"SUCCESS: {test_name}")
             exit(0)

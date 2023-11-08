@@ -180,6 +180,10 @@ def test(_):
     
     success = True
     with open("diffs.log", "w") as logfile:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=logfile)
+
         for key, val in test_cases.items():
             outdir = val["outdir"]
             if not os.path.exists(outdir):

@@ -38,6 +38,12 @@ def calc_deviation(outdir):
 
     success = dev < 0.1
 
+    with open("test.log", "w") as f:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=f)
+        print(f"max deviation = {dev}, theshold = 0.1", file=f)
+
     return success
 
 

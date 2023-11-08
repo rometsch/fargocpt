@@ -119,6 +119,9 @@ def test(outputdir, Nsnapshot, interactive=False, log=True):
     max_diff = np.max(Tdiff[radial_range])
     pass_test = max_diff < threshold
     with open("test.log", "w") as f:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=f)
         print(f"Test name: {testname}", file=f)
         print(f"Max temperature deviation: {max_diff}", file=f)
         print(f"Threshold: {threshold}", file=f)
