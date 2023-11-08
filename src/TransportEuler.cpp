@@ -142,8 +142,8 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 
     if (CPU_Rank == CPU_Highest) {
 
-	if (boundary_conditions::massoverflow) {
-	    boundary_conditions::mass_overflow_willy(data, DensityStar, true);
+	if (boundary_conditions::rochlobe_overflow) {
+	    boundary_conditions::rochelobe_overflow_boundary(data, DensityStar, true);
 	}
     }
 
@@ -160,7 +160,7 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 
     VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
 
-	if(boundary_conditions::massoverflow){
+	if(boundary_conditions::rochlobe_overflow){
 	data.get_massflow_tracker().update_mass_accretion(dt);
 	}
 
