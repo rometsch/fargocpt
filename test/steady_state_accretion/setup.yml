@@ -59,11 +59,11 @@ ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessS
 Transport: FARGO
 
 InnerBoundary: outflow
-OuterBoundary: centerofmass
+OuterBoundary: outflow
 Damping: 'Yes'
 DampingInnerLimit: 2   # Rmin*Limit
 DampingOuterLimit: 0.64   # Rmax*Limit
-DampingTimeFactor: 1e-2
+DampingTimeFactor: 1e-1
 DampingEnergyInner: None   # Damping of energy [default = no]
 DampingVRadialInner: initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity [default = no]
@@ -90,9 +90,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-OutputDir: ../../output/tests/gasMassFlow1D/reflecting_damping
-Ntot: '100'   # Total number of time steps
-Ninterm: '100'   # Time steps between outputs
+OutputDir: ../../output/tests/steady_state_accretion/out
+Ntot: '10'   # Total number of time steps
+Ninterm: '1000'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]

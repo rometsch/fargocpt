@@ -28,7 +28,7 @@ from read_gasMassFlow1D import gasMassFlow1D
 from read_par_file import read_unit_file
 from read1D import read1D
 
-out_folder = "../../output/tests/gasMassFlow1D/reflecting_damping/"
+out_folder = "../../output/tests/steady_state_accretion/out/"
 
 units = read_unit_file(out_folder)
 
@@ -91,37 +91,37 @@ for ax in axs[:-0]:
 
 
 ind = 0
-for n in N_output:
+n = N_max
 
-    _, sigma0 = dens1D_reader.read(0)
-    _, vrad0 = vrad1D_reader.read(0)
-    vrad0[vrad0 == 0] = np.max(vrad0[vrad0 != 0])
-    r_, sigma_ = dens1D_reader.read(n)
-    r__, vrad_ = vrad1D_reader.read(n)
-    r___, vis_ = vis1D_reader.read(n)
+_, sigma0 = dens1D_reader.read(0)
+_, vrad0 = vrad1D_reader.read(0)
+vrad0[vrad0 == 0] = np.max(vrad0[vrad0 != 0])
+r_, sigma_ = dens1D_reader.read(n)
+r__, vrad_ = vrad1D_reader.read(n)
+r___, vis_ = vis1D_reader.read(n)
 
-    print()
-    N = 100
 
-    x_, y_ = M_dot_by_visc(r_, sigma_, vis_)
-    print(f"{r__[N]=}, {sigma_[N]=}, {vis_[N]=}")
-    x2_, y2_ = M_dot_by_vel(r__, sigma_, vrad_)
-    print(f"{r__[N]=}, {sigma_[N]=}, {vrad_[N]=}")
+x_, y_ = M_dot_by_visc(r_, sigma_, vis_)
+x2_, y2_ = M_dot_by_vel(r__, sigma_, vrad_)
 
-    rs, data = mass_flow_reader.read(n)
-    if n == 0:
-        data[data == 0] = np.mean(y_)
-    data = data.to("solMass/yr")
-    axs[0].plot(rs[1:-1], np.abs(data[1:-1]), label="Simulation " + str(n), color='C' + str(ind))
-    axs[0].plot(x_, np.abs(y_), 's', color='C' + str(ind), label='From Viscosity')
-    #ax.plot(r_, np.abs(sigma_), 's',label="density" + str(n))
-    #ax.plot(r__, np.abs(vrad_), '.',label="vr" + str(n))
-    axs[0].plot(x2_, np.abs(y2_), '.', color='C' + str(ind), label='From Velocity')
+rs, data = mass_flow_reader.read(n)
 
-    axs[1].plot(r_, (sigma_/sigma0), '-', label="density" + str(n))
-    axs[1].plot(r__, (vrad_/vrad0), '.', label="vr" + str(n), color='C' + str(ind))
+data = data.to("solMass/yr")
 
-    ind += 1
+Mdot_theo = 1e-8 * u.solMass/u.yr
+
+diffval_ = np.abs(data[1:-1]) / Mdot_theo - 1
+diff_ = np.abs(y_) / Mdot_theo - 1
+diff2_ = np.abs(y2_) / Mdot_theo - 1
+
+axs[0].plot(rs[1:-1], diffval_, label="Simulation " + str(n), color='C' + str(ind))
+axs[0].plot(x_, diff_, 's', color='C' + str(ind+1), label='From Viscosity')
+axs[0].plot(x2_, diff2_, '.', color='C' + str(ind+2), label='From Velocity')
+
+axs[1].plot(r_, (sigma_/sigma0) - 1, '-', label="density" + str(n))
+axs[1].plot(r__, (vrad_/vrad0) - 1, '.', label="vr" + str(n), color='C' + str(ind+2))
+
+ind += 1
 
 # axs[1].set_ylim(0.01, 100)
 
@@ -130,6 +130,14 @@ axs[0].set_ylabel("M_sol/yr")
 axs[0].set_xlabel("au")
 axs[0].legend()
 axs[1].legend()
+
+for ax in axs:
+    ax.set_xlim(20,60)
+    ax.set_xscale('log')
+
+eps = 1
+for ax in axs:
+    ax.set_ylim(-eps, eps)
 
 
 # plt.savefig('mass_flow.png')
