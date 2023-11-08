@@ -35,7 +35,7 @@ namespace fld {
 t_polargrid Ka; // diffusion coefficient on radial boundaries
 t_polargrid Kb; // diffusion coefficient on azimuthal boundaries
 t_polargrid A, B, C, D, E; // Matrix elements of linear equation
-t_polargrid Trad, Told; // Intermediate store for old values.
+t_polargrid Told; // Intermediate store for old values.
 
 bool constant_fluxlimiter;
 
@@ -88,20 +88,27 @@ bool radiative_diffusion_dump_data;
 bool radiative_diffusion_check_solution;
 // inner boundary
 std::string inner_boundary_name;
-void (*inner_boundary_func)();
+void (*inner_boundary_coefficient_func)();
+void (*inner_boundary_temperature_func)(t_polargrid &);
 // outer boundary
 std::string outer_boundary_name;
-void (*outer_boundary_func)();
+void (*outer_boundary_coefficient_func)();
+void (*outer_boundary_temperature_func)(t_polargrid &);
+
 
 // track number of SOR iterations
 unsigned int SOR_iterations_over_timestep = 0;
 
 
 // declarations of boundary functions
-void boundary_inner_zeroflux();
-void boundary_outer_zeroflux();
-void boundary_inner_zerogradient();
-void boundary_outer_zerogradient();
+void boundary_inner_coefficient_zeroflux();
+void boundary_outer_coefficient_zeroflux();
+void boundary_inner_coefficient_zerogradient();
+void boundary_outer_coefficient_zerogradient();
+void boundary_inner_temperature_outflow(t_polargrid &);
+void boundary_outer_temperature_outflow(t_polargrid &);
+static void no_operation() {};
+static void no_operation(t_polargrid &) {};
 
 void config() {
 
@@ -142,17 +149,27 @@ void config() {
 		}
 
 		if (inner_boundary_name == "zeroflux") {
-			inner_boundary_func = boundary_inner_zeroflux;
+			inner_boundary_coefficient_func = boundary_inner_coefficient_zeroflux;
+			inner_boundary_temperature_func = no_operation;
 		} else if (inner_boundary_name == "zerogradient") {
-			inner_boundary_func = boundary_inner_zerogradient;
+			inner_boundary_coefficient_func = boundary_inner_coefficient_zerogradient;
+			inner_boundary_temperature_func = no_operation;
+		} else if (inner_boundary_name == "outflow") {
+			inner_boundary_coefficient_func = no_operation;
+			inner_boundary_temperature_func = boundary_inner_temperature_outflow;
 		} else {
 			throw std::runtime_error("Unknown inner boundary for radiative diffusion.");
 		}
 
 		if (outer_boundary_name == "zeroflux") {
-			outer_boundary_func = boundary_outer_zeroflux;
+			outer_boundary_coefficient_func = boundary_outer_coefficient_zeroflux;
+			outer_boundary_temperature_func = no_operation;
 		} else if (outer_boundary_name == "zerogradient") {
-			outer_boundary_func = boundary_outer_zerogradient;
+			outer_boundary_coefficient_func = boundary_outer_coefficient_zerogradient;
+			outer_boundary_temperature_func = no_operation;
+		} else if (outer_boundary_name == "outflow") {
+			outer_boundary_coefficient_func = no_operation;
+			outer_boundary_temperature_func = boundary_outer_temperature_outflow;
 		} else {
 			throw std::runtime_error("Unknown outer boundary for radiative diffusion.");
 		}
@@ -197,9 +214,6 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	E.set_scalar(true);
 	E.set_size(Nrad, Naz);
 
-	Trad.set_scalar(true);
-	Trad.set_size(Nrad, Naz);
-
 	Told.set_scalar(true);
 	Told.set_size(Nrad, Naz);
 
@@ -210,7 +224,6 @@ void init(const unsigned int Nrad, const unsigned int Naz) {
 	C.set_name("C");
 	D.set_name("D");
 	E.set_name("E");
-	Trad.set_name("Trad");
 	Told.set_name("Told");
 
     SendInnerBoundary = (double *)malloc(Naz * cpuoverlap * sizeof(double));
@@ -325,7 +338,6 @@ void handle_output() {
 	C.write2D();
 	D.write2D();
 	E.write2D();
-	Trad.write2D();
 	Told.write2D();
 }
 
@@ -342,7 +354,7 @@ Boundary conditions for the diffusion coefficient.
 */
 
 
-void boundary_inner_zeroflux() {
+void boundary_inner_coefficient_zeroflux() {
 	if (CPU_Rank != 0) {
 		return;
 	}
@@ -355,7 +367,7 @@ void boundary_inner_zeroflux() {
 	}
 }
 
-void boundary_outer_zeroflux() {
+void boundary_outer_coefficient_zeroflux() {
 	if (CPU_Rank != CPU_Highest) {
 		return;
 	}
@@ -372,7 +384,7 @@ void boundary_outer_zeroflux() {
 
 }	
 
-void boundary_inner_zerogradient() {
+void boundary_inner_coefficient_zerogradient() {
 	if (CPU_Rank != 0) {
 		return;
 	}
@@ -386,7 +398,7 @@ void boundary_inner_zerogradient() {
 	}
 }
 
-void boundary_outer_zerogradient() {
+void boundary_outer_coefficient_zerogradient() {
 	if (CPU_Rank != CPU_Highest) {
 		return;
 	}
@@ -401,10 +413,45 @@ void boundary_outer_zerogradient() {
 	}
 }
 
-static void radial_boundary_diffusion_coeff() {
-	inner_boundary_func();
-	outer_boundary_func();
+static void apply_temperature_boundary(t_polargrid &T) {
+	inner_boundary_temperature_func(T);
+	outer_boundary_temperature_func(T);
 }
+
+static void apply_coefficient_boundary() {
+	inner_boundary_coefficient_func();
+	outer_boundary_coefficient_func();
+}
+
+// temperature boundary
+
+void boundary_inner_temperature_outflow(t_polargrid &T) {
+	if (CPU_Rank != 0) {
+		return;
+	}
+
+    const unsigned int Naz = Ka.get_size_azimuthal();
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
+		T(0, naz) = parameters::minimum_temperature;
+	}
+}
+
+void boundary_outer_temperature_outflow(t_polargrid &T) {
+	if (CPU_Rank != CPU_Highest) {
+		return;
+	}
+
+    const unsigned int Naz = Ka.get_size_azimuthal();
+	const unsigned int nr_max = Ka.get_max_radial();
+
+	#pragma omp parallel for
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
+		T(nr_max, naz) = parameters::minimum_temperature;
+	}
+}
+
 
 
 /*
@@ -849,7 +896,7 @@ static void check_solution(t_polargrid &T) {
 This test checks the implementation of the diffusion process
 and the linear system solver.
 
-Instead of the radiative temperature, Trad is the radiative energy in this case
+Instead of the radiative temperature, T is the radiative energy in this case
 and this quantity is diffused with a constant diffusion coefficient.
 
 The equation solved is de/dt = nabla * K nabla e
@@ -915,19 +962,20 @@ Then, the variable that is evolved is the temperature directly.
 It sould be noted that this is only a valid assumption in the optically thick case because 
 in the optically thin case the radiation energy is not negligible anymore.
 */
-static void one_fluid_fld(t_data &data, const double dt) {
+static void one_fluid_fld(t_data &data, t_polargrid &T, const double dt) {
 	auto &Density = data[t_data::RHO];
 
+	apply_temperature_boundary(T);
 	// calculate diffusion coefficient
-	compute_diffusion_coeff_radial(Density, Trad);
-    radial_boundary_diffusion_coeff();
-    compute_diffusion_coeff_azimuthal(Density, Trad);
+	compute_diffusion_coeff_radial(Density, T);
+    compute_diffusion_coeff_azimuthal(Density, T);
+    apply_coefficient_boundary();
 
 	// setup linear equation and solve the diffusion equation
     calculate_matrix_elements(Density, dt);
-	copy_polargrid(Told, Trad);
+	copy_polargrid(Told, T);
 
-	SOR(Trad);
+	SOR(T);
 }
 
 
@@ -957,16 +1005,13 @@ void radiative_diffusion(t_data &data, const double current_time, const double d
 	}
 
 	// instantaneously equilibrate photon gas temperature to ideal gas temperature
-	copy_polargrid(Trad, Tgas);
+	// This is done by using Tgas directly
 
-	one_fluid_fld(data, dt);
+	one_fluid_fld(data, Tgas, dt);
 
 	if (radiative_diffusion_check_solution) {
-		check_solution(Trad);
+		check_solution(Tgas);
 	}
-
-	// instantaneously equilibrate ideal gas temperature to photon gas temperature
-	copy_polargrid(Tgas, Trad);
 
 	update_energy(Energy, Sigma, Tgas);
 	// ensure energy is consistent with min/max temperature
