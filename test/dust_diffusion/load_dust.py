@@ -2,6 +2,7 @@
 
 import os
 import re
+import yaml
 
 import numpy as np
 import astropy.units as u
@@ -224,15 +225,16 @@ def get_time(datadir, N):
     return times[N]
 
 def get_units(datadir):
-    filename = os.path.join(datadir, "units.dat")
-    units = {}
-    with open(filename, "r") as infile:
-        for line in infile:
-            line = line.strip()
-            if line == "" or line[0] == "#":
-                continue
-            else:
-                parts = line.split()
-                if len(parts) == 3:
-                    units[parts[0]] = parts[1] * u.Unit(parts[2])
-    return units
+    filename = os.path.join(datadir, "units.yml")
+
+    unit_dict = {}
+    if os.path.isfile(filename):
+        with open(filename) as f:
+            data = yaml.safe_load(f)
+        unit_dict = {}
+        for key, val in data.items():
+            unit_dict[key] = u.Unit(val["unit"])
+    else:
+        raise ValueError("Error in read_units, could not find : " + filename  + "!\n")
+
+    return unit_dict

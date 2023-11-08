@@ -4,7 +4,7 @@
 
 # Time settings
 
-Ntot: '1'   # Total number of time steps
+Ntot: '24'   # Total number of time steps
 Ninterm: '1000'   # Time steps between outputs
 DT: '0.8885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
 OutputDir: output/dust_diffusion
@@ -64,8 +64,7 @@ RadialSpacing: Logarithmic # ARITHMETIC   # Logarithmic or ARITHMETIC or Exponen
 IntegrateParticles: 'YES'   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
 ParticleIntegrator: midpoint   # Explicit, Adaptive, Semiimplicit and Implicit
-NumberOfParticles: 20500   # number of particles [default = 0]
-ParticleSpeciesNumber: 1
+NumberOfParticles: 10000   # number of particles [default = 0]
 ParticleRadius: 1.0e-5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.00'   # particle maximum Eccentricity
 ParticleDensity: 2.65 g/cm3   # particle density in g/cm^3 [default = 2.65, Siliciumdioxid]
