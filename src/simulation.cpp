@@ -42,7 +42,7 @@ static void write_snapshot(t_data &data) {
 	if (N_snapshot == 0 && boundary_conditions::initial_values_needed()) {
 	// Write damping data as a reference.
 	const std::string snapshot_dir_old = output::snapshot_dir;
-	output::write_full_output(data, "damping", false);
+	output::write_full_output(data, "reference", false);
 	output::snapshot_dir = snapshot_dir_old;
 	}
 }

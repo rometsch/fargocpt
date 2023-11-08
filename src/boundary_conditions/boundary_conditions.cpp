@@ -17,6 +17,9 @@ extern boolean OuterSourceMass;
 namespace boundary_conditions
 {
 
+void no_operation([[maybe_unused]] t_polargrid&, [[maybe_unused]] t_polargrid&, [[maybe_unused]] t_data&) {};
+
+
 void init(t_data &data) {
 	init_custom(data);
 
@@ -43,6 +46,14 @@ static void handle_damping(t_data &data, const double dt, const bool final) {
 	// if this is the final call of the boundary condition function during one timestep and damping is enable, do it
     if (final && damping_enabled) {
 		damping(data, dt);
+
+		if (composite_inner_name == "centerofmass") {
+			damping_diskmodel_center_of_mass_inner(data, dt);
+		}
+
+		if (composite_outer_name == "centerofmass") {
+			damping_diskmodel_center_of_mass_outer(data, dt);
+		}
 
 		if(ECC_GROWTH_MONITOR){
 			quantities::calculate_disk_delta_ecc_peri(data, delta_ecc_damp, delta_peri_damp);
@@ -82,8 +93,21 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 		vaz_outer_func(x, x0, data);
 	}
 
-	if (special_name == "custom") {
-		custom(data, current_time, dt);
+	if (composite_inner_name == "custom") {
+		custom_inner(data, current_time, dt);
+	} else if (composite_inner_name == "centerofmass") {
+		diskmodel_center_of_mass_boundary_inner(data);
+	}
+
+	if (composite_outer_name == "custom") {
+		custom_outer(data, current_time, dt);
+	} else if (composite_outer_name == "centerofmass") {
+		diskmodel_center_of_mass_boundary_outer(data);
+	}
+	
+
+	if (rochlobe_overflow) {
+		rochelobe_overflow_boundary(data, nullptr, false);
 	}
 
 }

@@ -30,7 +30,6 @@ extern std::string vrad_inner_name;
 extern std::string vrad_outer_name;
 extern std::string vaz_inner_name;
 extern std::string vaz_outer_name;
-extern std::string special_name;
 extern std::string composite_inner_name;
 extern std::string composite_outer_name;
 
@@ -47,14 +46,21 @@ extern double keplerian_radial_inner_factor;
 // speed of the viscous boundary inflow
 extern double viscous_outflow_speed;
 
-extern bool massoverflow;
-extern bool mof_variableTransfer;
-extern unsigned int mof_planet;
-extern double mof_temperature;
-extern double mof_value;
-extern double mof_rampingtime;
-extern double mof_averaging_time;
-extern double mof_gamma;
+extern bool rochlobe_overflow;
+// Rochlobe overflow: number of Nbody object from which the stream originates
+extern unsigned int rof_planet;
+// Rochlobe overflow, sets initial temperature and width of stream
+extern double rof_temperature;
+// Rochlobe overflow accretion rate through stream
+extern double rof_mdot;
+// Rochlobe overflow ramping time
+extern double rof_rampingtime;
+// Rochlobe overflow variable transfer
+extern bool rof_variableTransfer;
+// Rochlobe overflow variable transfer averaging time
+extern double rof_averaging_time;
+// Rochlobe overflow variable transfer gamma
+extern double rof_gamma;
 
 /// enable different damping types
 enum t_damping_type {
@@ -139,19 +145,25 @@ void diskmodel_outer_energy(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
 
 
 /****************************************
+/// No operation for using custom 
+/// or special boundaries
+****************************************/
+void no_operation(t_polargrid &x, t_polargrid &dummy, t_data &ddummy);
+
+/****************************************
 /// Custom boundary conditions
 ****************************************/
 // Modify these to implement you own custom boundary conditions.
 
-void custom(t_data &data, const double t, const double dt);
+void custom_inner(t_data &data, const double t, const double dt);
+void custom_outer(t_data &data, const double t, const double dt);
 void init_custom(t_data& data);
 void cleanup_custom();
 
 /****************************************
 /// Inflow boundaries
 ****************************************/
-void mass_overflow(t_data &data, const double current_time);
-void mass_overflow_willy(t_data &data, t_polargrid *densitystar,
+void rochelobe_overflow_boundary(t_data &data, t_polargrid *densitystar,
 			 bool transport);
 
 /****************************************
@@ -159,8 +171,13 @@ void mass_overflow_willy(t_data &data, t_polargrid *densitystar,
 ****************************************/
 
 void init_center_of_mass(t_data &data);
-void initial_center_of_mass_inner(t_data &data, const double dt, const bool final);
-void initial_center_of_mass_outer(t_data &data, const double dt, const bool final);
+// void diskmodel_center_of_mass_inner(t_data &data, const double dt, const bool final);
+// void diskmodel_center_of_mass_outer(t_data &data, const double dt, const bool final);
+
+void diskmodel_center_of_mass_boundary_inner(t_data &data);
+void damping_diskmodel_center_of_mass_inner(t_data &data, double dt);
+void diskmodel_center_of_mass_boundary_outer(t_data &data);
+void damping_diskmodel_center_of_mass_outer(t_data &data, double dt);
 
 /****************************************
 /// Damping

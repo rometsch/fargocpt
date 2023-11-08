@@ -40,7 +40,6 @@ std::string vrad_inner_name = "";
 std::string vrad_outer_name = "";
 std::string vaz_inner_name = "";
 std::string vaz_outer_name = "";
-std::string special_name = "";
 std::string composite_inner_name = "";
 std::string composite_outer_name = "";
 
@@ -53,14 +52,14 @@ double keplerian_radial_inner_factor = 1.0;
 bool domegadr_zero;
 
 double viscous_outflow_speed;
-bool massoverflow;
-bool mof_variableTransfer;
-unsigned int mof_planet;
-double mof_temperature;
-double mof_value;
-double mof_rampingtime;
-double mof_averaging_time;
-double mof_gamma;
+bool rochlobe_overflow;
+unsigned int rof_planet;
+double rof_temperature;
+double rof_mdot;
+double rof_rampingtime;
+bool rof_variableTransfer;
+double rof_averaging_time;
+double rof_gamma;
 
 
 /* 
@@ -70,7 +69,7 @@ double mof_gamma;
 
 
 /*
- * Get the type of an individual variabl;es boundary condition for a given key.
+ * Get the type of an individual variable's boundary condition for a given key.
  * This function takes into account types set by a composite boundary condition.
  * See function for composites below.
  */
@@ -105,6 +104,12 @@ static void sigma_inner()
 	sigma_inner_func = diskmodel_inner_sigma;
     } else if (str == "reference") {
 	sigma_inner_func = reference_inner;
+    } else if (str == "none") {
+	sigma_inner_func = no_operation;
+    if (composite_inner_name == "") {
+        throw std::runtime_error(
+            "Can not set InnerBoundarySigma to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for sigma inner: " + str);
@@ -124,6 +129,12 @@ static void sigma_outer()
 	sigma_outer_func = diskmodel_outer_sigma;
     } else if (str == "reference") {
 	sigma_outer_func = reference_outer;
+    } else if (str == "none") {
+    sigma_outer_func = no_operation;
+    if (composite_outer_name == "") {
+        throw std::runtime_error(
+            "Can not set OuterBoundarySigma to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for sigma outer: " + str);
@@ -142,6 +153,12 @@ static void energy_inner()
 	energy_inner_func = diskmodel_inner_energy;
     } else if (str == "reference") {
 	energy_inner_func = reference_inner;
+    } else if (str == "none") {
+    energy_inner_func = no_operation;
+    if (composite_inner_name == "") {
+        throw std::runtime_error(
+            "Can not set InnerBoundaryEnergy to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for energy inner: " + str);
@@ -160,6 +177,12 @@ static void energy_outer()
 	energy_outer_func = diskmodel_outer_energy;
     } else if (str == "reference") {
 	energy_outer_func = reference_outer;
+    } else if (str == "none") {
+    energy_outer_func = no_operation;
+    if (composite_outer_name == "") {
+        throw std::runtime_error(
+            "Can not set OuterBoundaryEnergy to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for energy outer: " + str);
@@ -184,6 +207,12 @@ static void vrad_inner()
 	vrad_inner_func = viscous_outflow_inner;
     } else if (str == "keplerian") {
 	vrad_inner_func = keplerian_radial_inner;
+    } else if (str == "none") {
+    vrad_inner_func = no_operation;
+    if (composite_inner_name == "") {
+        throw std::runtime_error(
+            "Can not set InnerBoundaryVrad to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error("Unknown boundary condition for vrad inner: " +
 				 str);
@@ -212,6 +241,12 @@ static void vrad_outer()
 	vrad_outer_func = viscous_inflow_outer;
     } else if (str == "keplerian") {
 	vrad_outer_func = keplerian_radial_outer;
+    } else if (str == "none") {
+    vrad_outer_func = no_operation;
+    if (composite_outer_name == "") {
+        throw std::runtime_error(
+            "Can not set OuterBoundaryVrad to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error("Unknown boundary condition for vrad outer: " +
 				 str);
@@ -226,8 +261,17 @@ static void vrad_outer()
 
 static void vaz_inner()
 {
-    const std::string str =
-	config::cfg.get_lowercase("InnerBoundaryVazi", "keplerian");
+    std::string defval = "keplerian";
+    if (vaz_inner_name == "none") { 
+        defval = "none";
+    }
+
+    const std::string str = config::cfg.get_lowercase("InnerBoundaryVazi", defval);
+    if (vaz_inner_name == "none" && str != "none") {
+        logging::print_master(LOG_WARNING "Your choice '%s' for InnerBoundaryVazi might have no effect because it might be overwritten by a composite boundary condition.\n", str.c_str());
+
+    }
+
     vaz_inner_name = str;
     if (str == "zerogradient") {
 	vaz_inner_func = zero_gradient_inner;
@@ -239,6 +283,12 @@ static void vaz_inner()
 	vaz_inner_func = balanced_inner;
     } else if (str == "keplerian") {
 	vaz_inner_func = keplerian_azimuthal_inner;
+    } else if (str == "none") {
+    vaz_inner_func = no_operation;
+    if (composite_inner_name == "") {
+        throw std::runtime_error(
+            "Can not set InnerBoundaryVazi to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error("Unknown boundary condition for vaz inner: " +
 				 str);
@@ -253,8 +303,16 @@ static void vaz_inner()
 
 static void vaz_outer()
 {
-    const std::string str =
-	config::cfg.get_lowercase("OuterBoundaryVazi", "keplerian");
+    std::string defval = "keplerian";
+    if (vaz_outer_name == "none") { 
+        defval = "none";
+    }
+    const std::string str = config::cfg.get_lowercase("OuterBoundaryVazi", defval);
+    if (vaz_outer_name == "none" && str != "none") {
+        logging::print_master(LOG_WARNING "Your choice '%s' for OuterBoundaryVazi might have no effect because it might be overwritten by a composite boundary condition.\n", str.c_str());
+
+    }
+
     vaz_outer_name = str;
     if (str == "zerogradient") {
 	vaz_outer_func = zero_gradient_outer;
@@ -266,6 +324,12 @@ static void vaz_outer()
 	vaz_outer_func = balanced_outer;
     } else if (str == "keplerian") {
 	vaz_outer_func = keplerian_azimuthal_outer;
+    } else if (str == "none") {
+    vaz_outer_func = no_operation;
+    if (composite_outer_name == "") {
+        throw std::runtime_error(
+            "Can not set OuterBoundaryVazi to 'none' without selecting special boundary (e.g. 'custom').");
+    }
     } else {
 	throw std::runtime_error("Unknown boundary condition for vaz outer: " +
 				 str);
@@ -278,26 +342,12 @@ static void vaz_outer()
 			  vaz_outer_name.c_str());
 }
 
-static void special()
-{
-    const std::string str =
-	config::cfg.get_lowercase("BoundarySpecial", "none");
-    special_name = str;
-    if (str == "com") {
-    } else if (str == "massoverflow") {
-    } else if (str == "custom") {
-    } else if (str == "none") {
-    } else {
-	throw std::runtime_error("Unknown boundary condition for special: " +
-				 str);
-    }
-    logging::print_master(LOG_INFO "BC: Special = %s\n", str.c_str());
-}
 
 static void composite_inner()
 {
     const std::string str =
 	config::cfg.get_lowercase("InnerBoundary", "individual");
+
     composite_inner_name = str;
     if (str == "individual") {
 	return;
@@ -318,7 +368,15 @@ static void composite_inner()
 	energy_inner_name = "reference";
 	vrad_inner_name = "reference";
 	} else if (str == "centerofmass") {
-		throw std::logic_error("TODO: Selection of centerofmass not yet implemented.");
+	sigma_inner_name = "none";
+    energy_inner_name = "none";
+    vrad_inner_name = "none";
+    vaz_inner_name = "none";
+    } else if (str == "custom") {
+	sigma_inner_name = "none";
+    energy_inner_name = "none";
+    vrad_inner_name = "none";
+    vaz_inner_name = "none";
 	} else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for inner boundary: " + str);
@@ -355,7 +413,15 @@ static void composite_outer()
 	} else if (str == "massoverflow") {
 		throw std::logic_error("TODO: Selection of massoverflow not yet implemented.");
 	} else if (str == "centerofmass") {
-		throw std::logic_error("TODO: Selection of centerofmass not yet implemented.");
+	sigma_outer_name = "none";
+    energy_outer_name = "none";
+    vrad_outer_name = "none";
+    vaz_outer_name = "none";
+    } else if (str == "custom") {
+	sigma_outer_name = "none";
+    energy_outer_name = "none";
+    vrad_outer_name = "none";
+    vaz_outer_name = "none";
 	} else {
 	throw std::runtime_error(
 	    "Unknown boundary condition for outer boundary: " + str);
@@ -384,10 +450,7 @@ void parse_config()
     vaz_inner();
     vaz_outer();
 
-    special();
-
     domegadr_zero = config::cfg.get_flag("DomegaDrZero", false);
-
     if (domegadr_zero)
 	die("DomegaDrZero is deprecated!");
 
@@ -395,16 +458,34 @@ void parse_config()
 
 
     // mass overflow
-    massoverflow = config::cfg.get_flag("massoverflow", "no");
-	mof_variableTransfer = config::cfg.get_flag("variableTransfer", "no");
-    mof_planet = config::cfg.get<int>("mofplanet", 1);
-    mof_temperature = config::cfg.get<double>("moftemperature", "1000.0 K", units::Temp0);
-    mof_value = config::cfg.get<double>("mofvalue", 10E-9, units::M0/units::T0);
-    mof_rampingtime = config::cfg.get<double>("moframpingtime", 30.0);
-	mof_averaging_time = config::cfg.get<double>("mofaveragingtime", 10.0);
-	mof_gamma = config::cfg.get<double>("mofgamma", 0.5);
+    rochlobe_overflow = config::cfg.get_flag("massoverflow", "no");
+	rof_variableTransfer = config::cfg.get_flag("variableTransfer", "no");
+    rof_planet = config::cfg.get<int>("mofplanet", 1);
+    rof_temperature = config::cfg.get<double>("moftemperature", "1000.0 K", units::Temp0);
+    rof_mdot = config::cfg.get<double>("mofvalue", 10E-9, units::M0/units::T0);
+    rof_rampingtime = config::cfg.get<double>("moframpingtime", 30.0);
+	rof_averaging_time = config::cfg.get<double>("mofaveragingtime", 10.0);
+	rof_gamma = config::cfg.get<double>("mofgamma", 0.5);
 
 	damping_config();
+
+
+    // check that damping in center of mass boundary does not conflict with regular damping
+    if (composite_inner_name == "centerofmass") {
+        for (unsigned int i = 0; i < damping_vector.size(); ++i) {
+			if (damping_vector[i].type_inner != damping_none) {
+                die("Damping is enabled twice. Here and through center of mass boundary. Set all inner damping variables to 'none'");
+            }
+		}
+    }
+
+    if (composite_outer_name == "centerofmass") {
+        for (unsigned int i = 0; i < damping_vector.size(); ++i) {
+            if (damping_vector[i].type_outer != damping_none) {
+                die("Damping is enabled twice. Here and through center of mass boundary. Set all outer damping variables to 'none'");
+            }
+        }
+    }
 
 }
 

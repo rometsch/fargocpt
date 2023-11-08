@@ -63,16 +63,16 @@ Transport: FARGO
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
 InnerBoundary: outflow
-OuterBoundary: CENTER
-Damping: 'No'
-DampingInnerLimit: '1.00'   # Rmin*Limit
+OuterBoundary: centerofmass
+Damping: 'Yes'
+DampingInnerLimit: '2.00'   # Rmin*Limit
 DampingOuterLimit: '0.64'   # Rmax*Limit
   #DampingOuterLimit: '1.0'   # Rmax*Limit
 DampingTimeFactor: '3.0'
 DampingEnergyInner: None   # Damping of energy [default = no]
-DampingVRadialInner: None   # Damping of radial velocity [default = no]
+DampingVRadialInner: Initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity [default = no]
-DampingSurfaceDensityInner: None   # Damping of surface density [default = no]
+DampingSurfaceDensityInner: Initial   # Damping of surface density [default = no]
 DampingEnergyOuter: None   # Damping of energy [default = no]
 DampingVRadialOuter: None   # Damping of radial velocity [default = no]
 DampingVAzimuthalOuter: none   # Damping of azimuthal velocity [default = no]
@@ -97,6 +97,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
+OutputDir: ../../output/tests/gasMassFlow1D/outflow_damping
 Ntot: '100'   # Total number of time steps
 Ninterm: '100'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit

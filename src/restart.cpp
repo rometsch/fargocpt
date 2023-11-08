@@ -24,11 +24,11 @@ void restart_load(t_data &data) {
 	if (boundary_conditions::initial_values_needed()) {
 	    // load grids at t = 0
 	    const std::string snapshot_dir_old = output::snapshot_dir;
-	    output::snapshot_dir = output::outdir + "snapshots/damping";
+	    output::snapshot_dir = output::outdir + "snapshots/reference";
 	    if (!std::filesystem::exists(output::snapshot_dir)) {
 		logging::print_master(
 		    LOG_ERROR
-		    "Damping zone activated but no snapshot with damping data found. Make sure to copy the 'damping' snapshot!\n");
+		    "Damping zone activated but no snapshot with reference data found. Make sure to copy the 'reference' snapshot! Maybe it's called 'damping'\n");
 		PersonalExit(1);
 	    }
 
@@ -81,7 +81,7 @@ void restart_load(t_data &data) {
 	    particles::restart();
 	}
 
-	if(boundary_conditions::massoverflow){
+	if(boundary_conditions::rochlobe_overflow){
 	data.get_massflow_tracker().read_from_file();
 	}
 

@@ -46,7 +46,7 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
-ViscousOutflowSpeed: '5.0'
+ViscousOutflowSpeed: '1.0'
 MassOverflow: 'No'   # [default = No]
 MOFPLANET: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
 MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
@@ -62,9 +62,9 @@ Transport: FARGO
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
-InnerBoundary: VISC
+InnerBoundary: outflow
 OuterBoundary: CENTER
-Damping: 'Yes'
+Damping: 'No'
 DampingInnerLimit: '1.00'   # Rmin*Limit
 DampingOuterLimit: '0.64'   # Rmax*Limit
   #DampingOuterLimit: '1.0'   # Rmax*Limit
@@ -97,6 +97,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
+OutputDir: ../../output/tests/gasMassFlow1D/outflow_zerotorque
 Ntot: '100'   # Total number of time steps
 Ninterm: '100'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit

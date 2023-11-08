@@ -62,9 +62,9 @@ Transport: FARGO
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
 
-InnerBoundary: RIGID
-OuterBoundary: CENTER
-Damping: 'Yes'
+InnerBoundary: outflow
+OuterBoundary: centerofmass
+Damping: 'No'
 DampingInnerLimit: '1.00'   # Rmin*Limit
 DampingOuterLimit: '0.64'   # Rmax*Limit
   #DampingOuterLimit: '1.0'   # Rmax*Limit
@@ -97,6 +97,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
+OutputDir: ../../output/tests/gasMassFlow1D/outflow
 Ntot: '100'   # Total number of time steps
 Ninterm: '100'   # Time steps between outputs
 DT: 31.41526e1   # Time step length. 2PI = 1 orbit
@@ -131,9 +132,6 @@ WriteAspectRatio: 'No'   # Write aspect ratio [default = no]
 WriteTorques: 'No'   # Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth: 'No'   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
 
-ViscAccretMassflowTest: Yes
-ViscousOutflowSpeed: '5'     # Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed
-MassAccretionRadius: '0.05'   # Mass accretion radius in unints of R_hill / 2
 nbody:
 - name: DefaultStar
   semi-major axis: 0.0 au
@@ -141,4 +139,3 @@ nbody:
   eccentricity: '0.0'
   radius: 0.009304813 solRadius
   temperature: 0 K
-  accretion efficiency: '-1.0'

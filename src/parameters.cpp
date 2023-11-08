@@ -113,15 +113,6 @@ unsigned int n_bodies_for_hydroframe_center;
 unsigned int corotation_reference_body;
 bool corotating;
 
-bool massoverflow;
-bool variableTransfer;
-unsigned int mof_planet;
-double mof_temperature;
-double mof_value;
-double mof_rampingtime;
-double mof_averaging_time;
-double mof_gamma;
-
 
 int AlphaMode;
 double alphaCold;
@@ -945,15 +936,15 @@ void summarize_parameters()
     }
 
     // Mass Transfer
-    if (boundary_conditions::massoverflow) {
+    if (boundary_conditions::rochlobe_overflow) {
 	logging::print_master(
 	    LOG_INFO
 	    "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K and ramping time t_ramp = %g P_orb.\n",
-	    mof_planet, mof_value, mof_temperature, mof_rampingtime);
+	    boundary_conditions::rof_planet, boundary_conditions::rof_mdot, boundary_conditions::rof_temperature, boundary_conditions::rof_rampingtime);
     }
-	if (boundary_conditions::mof_variableTransfer){
+	if (boundary_conditions::rof_variableTransfer){
 	logging::print_master(LOG_INFO
-	"Mass Transfer is variable with gamma= %g and an averaging time of t_avg = %g P_orb. \n", mof_gamma, mof_averaging_time);
+	"Mass Transfer is variable with gamma= %g and an averaging time of t_avg = %g P_orb. \n", boundary_conditions::rof_gamma, boundary_conditions::rof_averaging_time);
 	}
 
 	boundary_conditions::describe_damping();
