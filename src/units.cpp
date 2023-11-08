@@ -491,7 +491,7 @@ void write_code_units_file()
 		of << unit->get_name() << ":" << std::endl;
 		of << indent << "cgs symbol: " << unit->get_cgs_symbol() << std::endl;
 		of << indent << "cgs value: " << unit->get_code_to_cgs_factor() << std::endl;
-		of << indent << "unit: " << unit->get_cgs_to_code_factor() << " " << unit->get_cgs_symbol() << std::endl;
+		of << indent << "unit: " << unit->get_code_to_cgs_factor() << " " << unit->get_cgs_symbol() << std::endl;
 		of << std::endl;
 	}
 
