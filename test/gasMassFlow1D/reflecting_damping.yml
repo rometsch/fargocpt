@@ -51,8 +51,6 @@ MassOverflow: 'No'   # [default = No]
 MOFPLANET: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
 MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
-# PlanetConfig		setups/old/Jup-res.cfg
-
 ThicknessSmoothing: '0.0'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
@@ -60,39 +58,34 @@ ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessS
 
 Transport: FARGO
 
-# InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
-
-InnerBoundary: reflecting
-OuterBoundary: reflecting
+InnerBoundary: outflow
+OuterBoundary: outflow
 Damping: 'Yes'
-DampingInnerLimit: '1.00'   # Rmin*Limit
-DampingOuterLimit: '0.64'   # Rmax*Limit
-  #DampingOuterLimit: '1.0'   # Rmax*Limit
+DampingInnerLimit: 2   # Rmin*Limit
+DampingOuterLimit: 0.64   # Rmax*Limit
 DampingTimeFactor: '3.0'
 DampingEnergyInner: None   # Damping of energy [default = no]
-DampingVRadialInner: None   # Damping of radial velocity [default = no]
+DampingVRadialInner: initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity [default = no]
-DampingSurfaceDensityInner: None   # Damping of surface density [default = no]
+DampingSurfaceDensityInner: initial   # Damping of surface density [default = no]
 DampingEnergyOuter: None   # Damping of energy [default = no]
-DampingVRadialOuter: None   # Damping of radial velocity [default = no]
+DampingVRadialOuter: initial   # Damping of radial velocity [default = no]
 DampingVAzimuthalOuter: none   # Damping of azimuthal velocity [default = no]
-DampingSurfaceDensityOuter: None   # Damping of surface density [default = no]
+DampingSurfaceDensityOuter: initial   # Damping of surface density [default = no]
 Disk: 'YES'
-OmegaFrame: '0.0'
+OmegaFrame: 1
 Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 DiskFeedback: 'NO'   # star feels the disk
 
 # Mesh parameters
 
-Nrad: '198'   # 512 128		# Radial number of zones
-  # Nrad: '386'   # 512 128		# Radial number of zones
-  # Nrad: '770'   # 512 128		# Radial number of zones
-Nsec: '2'   # 1536 384		# Azimuthal number of
+Nrad: 198   # 512 128		# Radial number of zones
+Nsec: 2   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
-Rmin: '1'   # Inner boundary radius
-Rmax: '100'   # Outer boundary radius
+Rmin: 10   # Inner boundary radius
+Rmax: 100   # Outer boundary radius
 RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
