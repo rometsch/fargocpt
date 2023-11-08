@@ -22,27 +22,6 @@
 namespace boundary_conditions
 {
 
-void initial_center_of_mass_boundary_inner(t_data &data);
-void damping_initial_center_of_mass_inner(t_data &data, double dt);
-void initial_center_of_mass_boundary_outer(t_data &data);
-void damping_initial_center_of_mass_outer(t_data &data, double dt);
-
-
-
-void initial_center_of_mass_inner(t_data &data, const double dt, const bool final) {
-	if (final) {
-		damping_initial_center_of_mass_inner(data, dt);
-	}
-	initial_center_of_mass_boundary_inner(data);
-}
-
-void initial_center_of_mass_outer(t_data &data, const double dt, const bool final) {
-	if (final) {
-		damping_initial_center_of_mass_outer(data, dt);
-	}
-	initial_center_of_mass_boundary_outer(data);
-}
-
 void init_center_of_mass(t_data& data) {
 	viscous_speed::init_vr_table_boundary(data);
 }
@@ -55,7 +34,7 @@ void init_center_of_mass(t_data& data) {
  * disk when the coordination system is centered on the primary.
  * @param data
  */
-void initial_center_of_mass_boundary_outer(t_data &data)
+void diskmodel_center_of_mass_boundary_outer(t_data &data)
 {
 
     if (CPU_Rank != CPU_Highest) {
@@ -246,7 +225,7 @@ void initial_center_of_mass_boundary_outer(t_data &data)
 }
 
 
-void initial_center_of_mass_boundary_inner(t_data &data)
+void diskmodel_center_of_mass_boundary_inner(t_data &data)
 {
 
 	if (CPU_Rank != 0)
@@ -424,7 +403,7 @@ void initial_center_of_mass_boundary_inner(t_data &data)
 }
 
 
-void damping_initial_center_of_mass_outer(t_data &data, double dt)
+void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 {
 
 	// use the correct radius array corresponding to quantity
@@ -616,7 +595,7 @@ void damping_initial_center_of_mass_outer(t_data &data, double dt)
     }
 }
 
-void damping_initial_center_of_mass_inner(t_data &data, double dt)
+void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 {
 
 	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
