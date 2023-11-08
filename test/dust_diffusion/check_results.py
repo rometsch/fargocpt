@@ -6,7 +6,7 @@ from datetime import datetime
 from load_dust import get_time, get_sigma_dust
 
 def test(_):
-    datadir = "output/dust_diffusion/"
+    datadir = "../../output/tests/dust_diffusion/out"
 
 
     fig, axs = plt.subplots(2, 1, dpi=150)
