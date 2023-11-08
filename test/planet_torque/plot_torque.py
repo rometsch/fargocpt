@@ -80,6 +80,12 @@ def main():
     else:
         print(f"FAIL: {test_name}")
 
+    with open("test.log", "w") as f:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=f)
+        print(f"Deviation over last 10 percent of time is {average-1} and threshold is {threshold}.", file=f)
+
 
 if __name__=="__main__":
     main()

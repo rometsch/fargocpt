@@ -62,7 +62,7 @@ def read_unit_file(path_to_folder):
         for key, val in data.items():
             unit_dict[key] = u.Unit(val["unit"])
     else:
-        raise ValueError("Error in read_par_file.py, could not find : " + units_file_name  + "!\n")
+        raise ValueError("Error in read_units, could not find : " + units_file_name  + "!\n")
 
     return unit_dict
 

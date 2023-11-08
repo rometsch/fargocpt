@@ -26,6 +26,12 @@ def test(outdir):
     test_name = testconfig["testname"]
     threshold = float(testconfig["threshold"])
 
+    with open("test.log", "w") as f:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=f)
+        print(f"max diff x = {diff_x}, max diff y = {diff_y}, theshold = {threshold}", file=f)
+
     if max(diff_x, diff_y) > threshold:
         print(f"FAIL: {test_name} at {os.getcwd()}")
         print(f"Diff x = {diff_x}, Diff y = {diff_y}, threshold = {threshold}")

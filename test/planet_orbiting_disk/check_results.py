@@ -78,6 +78,16 @@ def test(_):
 
     euler_pass = diff_e_x < threshold_euler and diff_e_y < threshold_euler
     LF_pass = diff_LF_x < threshold_LF and diff_LF_y < threshold_LF
+
+    with open("test.log", "w") as f:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=f)
+        print(f"Euler position difference: |x - x_ref| = {diff_e_x}, |y - y_ref| = {diff_e_y}| (threshold = {threshold_euler})", file=f)
+        print(f"LF position difference: |x - x_ref| = {diff_LF_x}, |y - y_ref| = {diff_LF_y}| (threshold = {threshold_LF})", file=f)
+
+
+
     if euler_pass and LF_pass:
         print(f"SUCCESS: {testname}")
     else:

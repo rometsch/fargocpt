@@ -1,0 +1,4 @@
+testname: dust_diffusion
+threshold: 1e-1
+setupfiles:
+  - dust_diffusion.yml

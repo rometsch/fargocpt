@@ -22,22 +22,22 @@ acceptable_diff = {
 
 test_cases = {
     "SN" : {
-        "outdir" : 'output/SN/',
+        "outdir" : '../../output/tests/shocktube/SN/',
         "color" : "red",
         "ls" : "--"
     },
     "TW" : {
-        "outdir" : 'output/TW/',
+        "outdir" : '../../output/tests/shocktube/TW/',
         "color" : "blue",
         "ls" : "--"
     },
     "TW LF" : {
-        "outdir" : 'output/TW_LF/',
+        "outdir" : '../../output/tests/shocktube/TW_LF/',
         "color" : "green",
         "ls" : "-."
     },
     "SN LF" : {
-        "outdir" : 'output/SN_LF/',
+        "outdir" : '../../output/tests/shocktube/SN_LF/',
         "color" : "orange",
         "ls" : ":"
     }
@@ -177,9 +177,12 @@ def visualize(Nsnapshot):
 
 def test(_):
     
-    
     success = True
     with open("diffs.log", "w") as logfile:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=logfile)
+
         for key, val in test_cases.items():
             outdir = val["outdir"]
             if not os.path.exists(outdir):
