@@ -8,8 +8,8 @@ AspectRatio: 0.05   # Thickness over Radius in the disk
 AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 FlaringIndex: 0   # Slope of Temperature/radius profile
 
-Viscosity: '0'   # Uniform kinematic viscosity
-AlphaViscosity: 0e-3
+ConstantViscosity: '0'   # Uniform kinematic viscosity
+ViscousAlpha: 0e-3
 
 StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
@@ -83,9 +83,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Ntot: 20     # Total number of time steps
+Nsnap: 20     # Total number of time steps
 Ninterm: 10     # Time steps between outputs
-DT: 0.6283185307179586     # Time step length. 2PI = 1 orbit
+MonitorTimestep: 0.6283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'
 CFLmaxVar: '1.1'
 OutputDir: ../../output/tests/planet_torque/out

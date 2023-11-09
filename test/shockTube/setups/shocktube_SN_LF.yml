@@ -5,7 +5,7 @@ ShockTube: '1'
 Sigma0: 8887231.453904748 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass: '0.1'   # only used when SetSigma0 = true [default = 0.01]
+DiskMass: '0.1'   # only used when SetSigma0 = true [default = 0.01]
 SigmaFloor: '1.e-100'   # floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
@@ -19,8 +19,8 @@ ProfileCutoffWidthOuter: '0.000001'   # in [au], [default = 1]
 EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '1.0'   # Thickness over Radius in the disk
-Viscosity: '0.0'   # Uniform kinematic viscosity
-AlphaViscosity: '0.0'   # 
+ConstantViscosity: '0.0'   # Uniform kinematic viscosity
+ViscousAlpha: '0.0'   # 
 ArtificialViscosity: SN   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
@@ -55,9 +55,9 @@ mu: '1.0'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
-MassOverflow: 'No'   # [default = No]
-MOFPLANET: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
-MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
+RocheLobeOverflow: 'No'   # [default = No]
+ROFPlanet: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
+ROFValue: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
 # PlanetConfig		setups/old/Jup-res.cfg
 
@@ -98,7 +98,7 @@ DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
 # Mesh parameters
 
 Nrad: '100'   # 512 128		# Radial number of zones
-Nsec: '2'   # 1536 384		# Azimuthal number of
+Naz: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -110,9 +110,9 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 # Output control parameters
 
 OutputDir: ../../output/tests/shocktube/SN_LF/
-Ntot: '1'   # Total number of time steps
+Nsnap: '1'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
-DT: '0.228'   # Time step length. 2PI = 1 orbit
+MonitorTimestep: '0.228'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
