@@ -214,6 +214,9 @@ char Config::get_first_letter_lowercase(const std::string &key, const std::strin
 char Config::get_first_letter_lowercase(const std::string &key)
 {
     m_visited_keys.insert(lowercase(key));
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = "none";
+    (*m_default)[key]["type"] = typeid(std::string).name();
     std::string value = get<std::string>(key);
     return (char)tolower(value[0]);
 }
@@ -231,6 +234,9 @@ bool Config::contains(const std::string &key)
 template <typename T> T Config::get(const std::string &key)
 {
     m_visited_keys.insert(lowercase(key));
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = "none";
+    (*m_default)[key]["type"] = typeid(T).name();
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key.c_str());
     }
@@ -252,6 +258,10 @@ template <typename T> T Config::get(const std::string &key)
 template <typename T> T Config::get(const std::string &key, const units::precise_unit& unit)
 {
     m_visited_keys.insert(lowercase(key));
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = "none";
+    (*m_default)[key]["type"] = typeid(T).name();
+    (*m_default)[key]["unitsupport"] = "yes";
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key.c_str());
     }
@@ -316,6 +326,7 @@ template <typename T> T Config::get(const std::string &key,
     (*m_default)[key] = YAML::Node();
     (*m_default)[key]["default"] = default_value;
     (*m_default)[key]["type"] = typeid(T).name();
+    (*m_default)[key]["unitsupport"] = "yes";
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;
@@ -344,6 +355,7 @@ template <typename T> T Config::get(const std::string &key,
     (*m_default)[key] = YAML::Node();
     (*m_default)[key]["default"] = default_value;
     (*m_default)[key]["type"] = typeid(T).name();
+    (*m_default)[key]["unitsupport"] = "yes";
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;
