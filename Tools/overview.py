@@ -87,7 +87,10 @@ class Plot2D:
         Z = field.data.cgs.value
 
         if self.plot_relative or self.plot_diff:
-            field0 = self.simd.get(var=self.var, dim="2d", N="damping")
+            try:
+                field0 = self.simd.get(var=self.var, dim="2d", N="reference")
+            except KeyError:
+                field0 = self.simd.get(var=self.var, dim="2d", N=0)
             self.Z0 = field0.data.cgs.value
         if self.plot_relative:
             Z = Z/self.Z0 -1
