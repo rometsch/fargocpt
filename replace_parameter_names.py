@@ -39,7 +39,36 @@ old_keys = {k.lower(): k for k in old_to_new.keys()}
 def replace_word(word, replacement, string):
     pattern = r"(^|\s)" + re.escape(word) + r"\s*:"
     return re.sub(pattern, replacement + ":", string)
-    
+
+def get_new_lines(line, old, new, verbose=False):
+    new_lines = []
+    if new["newname"] == "none":
+        text = "# " + line
+        new_lines.append(text)
+        if verbose:
+            print(text.strip())
+        if "hint" in new:
+            text = "# hint: " + new["hint"]
+            if verbose:
+                print(text.strip())                        
+            new_lines.append(text + "\n")
+        else:
+            text = "# has beed removed without replacement"
+            new_lines.append(text + "\n")
+            if verbose:
+                print(text.strip())
+    else:
+        text = replace_word(old, new["newname"], line)
+        new_lines.append(text)
+        if verbose:
+            print("<"*3)
+            print(line.strip())
+            print("-"*len(line))
+            print(text.strip())
+            print(">"*3)
+            print()
+    return new_lines
+
 def replace_parameter_names(yaml_file, dry=False, verbose=False):
     yaml = ruamel.yaml.YAML()
     with open(yaml_file, "r") as infile:
@@ -63,38 +92,18 @@ def replace_parameter_names(yaml_file, dry=False, verbose=False):
 
     new_lines = []
     for i, line in enumerate(lines):
+        found_line = False
         for old, new in keys_update.items():
             if old in line:
-                if new["newname"] == "none":
-                    text = "# " + line
-                    new_lines.append(text)
-                    if verbose:
-                        print(text.strip())
-                    if "hint" in new:
-                        text = "# hint: " + new["hint"]
-                        if verbose:
-                            print(text.strip())                        
-                        new_lines.append(text + "\n")
-                    else:
-                        text = "# has beed removed without replacement"
-                        new_lines.append(text + "\n")
-                        if verbose:
-                            print(text.strip())
-                else:
-                    lines[i] = replace_word(old, new["newname"], line)
-                    if verbose:
-                        print("<"*3)
-                        print(line.strip())
-                        print("-"*len(line))
-                        print(lines[i].strip())
-                        print(">"*3)
-                        print()
-            else:
-                new_lines.append(line)
+                found_line = True
+                new_lines += get_new_lines(line, old, new, verbose=verbose)
+                break
+        if not found_line:
+            new_lines.append(line)
 
     if not dry:
         with open(yaml_file, "w") as outfile:
-            outfile.writelines(lines)
+            outfile.writelines(new_lines)
 
 def main():
     parser = argparse.ArgumentParser(description='Replace parameter names in a yaml file.')
