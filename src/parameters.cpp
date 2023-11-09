@@ -670,7 +670,7 @@ void read(const std::string &filename, t_data &data)
     // self gravity
     self_gravity = config::cfg.get_flag("SelfGravity", "no");
 
-	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "symmetric");
+	const std::string sgmode = config::cfg.get_lowercase("SelfGravityMode", "besselkernel");
 	if (sgmode == "basic") {
 		self_gravity_mode = t_sg::sg_B;
 	} else if (sgmode == "symmetric") {
@@ -700,8 +700,7 @@ void read(const std::string &filename, t_data &data)
 	compatibility_no_star_smoothing = config::cfg.get_flag("CompatibilityNoStarSmoothing", "no");
 
 	correct_disk_selfgravity = config::cfg.get_flag("CorrectDiskSelfgravity", self_gravity ? "no" : "yes");
-    do_init_secondary_disk =
-	config::cfg.get_flag("SecondaryDisk", "no");
+    do_init_secondary_disk = config::cfg.get_flag("SecondaryDisk", "no");
 
 
 	//local alpha
