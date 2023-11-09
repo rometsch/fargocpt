@@ -1,3 +1,4 @@
 *.hdf5
 __pychache__
 output
+plot.jpg
