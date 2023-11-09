@@ -1,3 +1,9 @@
+ALPHAVISCOSITY:
+  choices: ''
+  default: 0
+  deprecated: true
+  description: Specify the value of alpha for the alpha viscosity model.
+  newname: ViscousAlpha
 AccreteWithoutDiskFeedback:
   choices: ''
   default: false
@@ -198,6 +204,20 @@ CoolingRadiativeFactor:
   description: Fudge factor for radiative cooling. Leave this at 1.
   type: double
   unitsupport: false
+CoolingRadiativeLocal:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable local radiative cooling Q- = 2 * sigma_R * T_eff^4.
+  hint: 'SurfaceCooling: thermal'
+  newname: none
+CoolingScurve:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable Scurve Cooling
+  hint: 'SurfaceCooling: scurve'
+  newname: none
 CorotationReferenceBody:
   choices: positive integers
   default: 1
@@ -214,6 +234,13 @@ CorrectDiskSelfgravity:
     turned on]
   type: bool
   unitsupport: false
+DT:
+  choices: ''
+  default: 1
+  deprecated: true
+  description: Time between two analysis outputs. For default units, 2PI = 1 orbit
+    at r=1.
+  newname: MonitorTimestep
 Damping:
   choices: yes, no
   default: false
@@ -336,6 +363,13 @@ DoWrite1DFiles:
   description: Write out 1D files additional to the 2D output.
   type: bool
   unitsupport: false
+DomegaDrZero:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Set dOmega/dr = 0 at outer boundary
+  hint: OuterBoundaryAzi = zeroshear
+  newname: none
 EnergyCondition:
   choices: Profile, 1D, 2D
   default: Profile
@@ -500,6 +534,12 @@ IntegrateParticles:
   description: Enable the particle module.
   type: bool
   unitsupport: false
+IntegratePlanets:
+  choices: yes, no
+  default: true
+  deprecated: true
+  description: Evolve the Nbody system.
+  newname: none
 Integrator:
   choices: Euler, LeapFrog
   default: none
@@ -579,6 +619,18 @@ MonitorTimestep:
     default units 2PI = 1 orbit at r=1
   type: double
   unitsupport: false
+NSEC:
+  choices: ''
+  default: 64
+  deprecated: true
+  description: Number of azimuthal cells
+  newname: Naz
+NTOT:
+  choices: ''
+  default: 1000
+  deprecated: true
+  description: Number of snapshots to be written.
+  newname: Nsnap
 Naz:
   choices: ''
   default: none
@@ -985,7 +1037,7 @@ Rmin:
   description: ''
   type: double
   unitsupport: false
-RochLobeOverflow:
+RocheLobeOverflow:
   choices: ''
   default: false
   description: ''
@@ -1092,6 +1144,14 @@ StabilizeViscosity:
   description: Artificially stabalize viscosity to avoid numerical issues.
   type: int
   unitsupport: false
+StellarRotation:
+  choices: ''
+  default: 0.1
+  deprecated: true
+  description: 'For inner boundary = boundary layer: Stellar rotation rate (azimuthal
+    velocity of the surface) in terms of Keplerian angular velocity at the inner boundary.'
+  hint: InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian
+  newname: none
 SurfaceCooling:
   choices: ''
   default: none
@@ -1139,6 +1199,20 @@ Transport:
     method (slow).
   type: string
   unitsupport: false
+VISCOSITY:
+  choices: ''
+  default: 0
+  deprecated: true
+  description: Set a constant kinetic viscosity.
+  newname: ConstantViscosity
+VRadIn:
+  choices: ''
+  default: 0.0016
+  deprecated: true
+  description: 'For inner boundary = boundary layer: value of v_rad at inner boundary
+    in terms of Keplerian velocity v_kepler at the inner boundary.'
+  hint: InnerBoundaryVradKeplerianFactor, InnerBoundaryVrad = keplerian
+  newname: none
 VazimuthalConsidersQuadropoleMoment:
   choices: yes, no
   default: false
@@ -1445,6 +1519,12 @@ cps:
     AspectRatio.'
   type: double
   unitsupport: false
+discmass:
+  choices: ''
+  default: 0.01
+  deprecated: true
+  description: In case of SetSigma0=yes, use this mass as diskmass.
+  newname: DiskMass
 l0:
   choices: ''
   default: none
@@ -1457,6 +1537,48 @@ m0:
   description: 'Base mass unit of the simulation [default: 1.0 solMass]'
   type: string
   unitsupport: false
+massoverflow:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable a constant massflow coming though the outer boundary.
+  newname: RocheLobeOverflow
+mofaveragingtime:
+  choices: ''
+  default: 10
+  deprecated: true
+  description: '?'
+  newname: ROFAveragingTime
+mofgamma:
+  choices: ''
+  default: 0.5
+  deprecated: true
+  description: '?'
+  newname: ROFGamma
+mofplanet:
+  choices: ''
+  default: 1
+  deprecated: true
+  description: '?'
+  newname: ROFPlanet
+moframpingtime:
+  choices: ''
+  default: 30
+  deprecated: true
+  description: Gradual increase for the mass overflow.
+  newname: ROFRampingTime
+moftemperature:
+  choices: ''
+  default: 1000.0 K
+  deprecated: true
+  description: '?'
+  newname: ROFTemperature
+mofvalue:
+  choices: ''
+  default: 1e-08
+  deprecated: true
+  description: '?'
+  newname: ROFValue
 mu:
   choices: positive float
   default: none
@@ -1475,3 +1597,21 @@ temp0:
   description: ''
   type: string
   unitsupport: false
+variableTransfer:
+  choices: ''
+  default: false
+  deprecated: true
+  description: '?'
+  newname: ROFVariableTransfer
+zbufferMaxAngle:
+  choices: ''
+  default: 0.17453292519943295
+  deprecated: true
+  description: ''
+  newname: none
+zbufferSize:
+  choices: ''
+  default: 100
+  deprecated: true
+  description: ''
+  newname: none
