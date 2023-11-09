@@ -3,7 +3,7 @@
 import sys
 import os
 import argparse
-import ruamel.yaml # for handling comments
+import yaml
 import copy
 import re
 
@@ -70,9 +70,8 @@ def get_new_lines(line, old, new, verbose=False):
     return new_lines
 
 def replace_parameter_names(yaml_file, dry=False, verbose=False):
-    yaml = ruamel.yaml.YAML()
     with open(yaml_file, "r") as infile:
-        config = yaml.load(infile)
+        config = yaml.safe_load(infile)
 
     # Replace parameter names
     lkeys = {k.lower(): k for k in config.keys()}
