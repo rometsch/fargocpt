@@ -44,9 +44,9 @@ static void get_polytropic_constants(double &K, double &gamma)
     // P_iso = Sigma0 * h**2 * G*M * r**(-1) * r**(2*F)
     // P_iso = Sigma0 * h**2 * G*M * r**(-1 - p + 2*F)
     // through comparisson of coefficients, we find the following relations:
-    const double p = parameters::SIGMASLOPE;
-    const double F = parameters::FLARINGINDEX;
-    const double h = parameters::ASPECTRATIO_REF;
+    const double p = parameters::sigma_slope;
+    const double F = parameters::flaring_index;
+    const double h = parameters::aspectratio_ref;
     gamma = (-1.0 - p + 2.0 * F) / (-p);
     K = std::pow(h, 2) * std::pow(parameters::sigma0, 1.0 - gamma);
 }
@@ -85,15 +85,15 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     sim::last_dt = cfg.get<double>("FirstDT", 1e-9, units::T0);
 
-    parameters::SIGMASLOPE = cfg.get<double>("SIGMASLOPE", 0.0);
-    parameters::IMPOSEDDISKDRIFT = cfg.get<double>("IMPOSEDDISKDRIFT", 0.0);
+    parameters::sigma_slope = cfg.get<double>("SigmaSlope", 0.0);
+    parameters::IMPOSEDDISKDRIFT = cfg.get<double>("ImposedDiskDrift", 0.0);
 
-    parameters::FLARINGINDEX = cfg.get<double>("FLARINGINDEX", 0.0);
+    parameters::flaring_index = cfg.get<double>("FlaringIndex", 0.0);
 
     std::string setup_name = getFileName(filename);
     setup_name = setup_name.substr(0, setup_name.size() - 4) + "/";
 
-	output::outdir = cfg.get<std::string>("OUTPUTDIR", setup_name);
+	output::outdir = cfg.get<std::string>("OutputDir", setup_name);
 	if (output::outdir[output::outdir.length()-1] != '/') {
 		output::outdir += "/";
 	}
@@ -154,9 +154,9 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    OuterSourceMass = cfg.get_flag("OUTERSOURCEMASS", "no");
+    OuterSourceMass = cfg.get_flag("OuterSourceMass", "no");
 
-    switch (cfg.get_first_letter_lowercase("TRANSPORT", "Fast")) {
+    switch (cfg.get_first_letter_lowercase("Transport", "Fast")) {
     case 'f':
 	parameters::fast_transport = true;
 	logging::print_master(LOG_INFO
@@ -188,28 +188,28 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     
 
 
-    // disc
-    parameters::ASPECTRATIO_REF = cfg.get<double>("ASPECTRATIO", 0.05);
-    parameters::ASPECTRATIO_MODE = cfg.get<int>("AspectRatioMode", 0);
+    // disk
+    parameters::aspectratio_ref = cfg.get<double>("AspectRatio", 0.05);
+    parameters::aspectratio_mode = cfg.get<int>("AspectRatioMode", 0);
 
     const double T0 = cfg.get<double>("Temperature0", "-1", units::Temp0);
-	if (T0 > 0.0){ // rescale parameters::ASPECTRATIO_REF according to Temperature
-	parameters::ASPECTRATIO_REF = sqrt(T0 * constants::R / parameters::MU);
+	if (T0 > 0.0){ // rescale parameters::aspectratio_ref according to Temperature
+	parameters::aspectratio_ref = sqrt(T0 * constants::R / parameters::MU);
 	}
 
     // time settings
-    parameters::NTOT = cfg.get<unsigned int>("NTOT", 1000);
-    parameters::NINTERM = cfg.get<unsigned int>("NINTERM", 10);
-    parameters::DT = cfg.get<double>("DT", 1.0);
+    parameters::Nsnap = cfg.get<unsigned int>("Nsnap", 1000);
+    parameters::Ninterm = cfg.get<unsigned int>("Ninterm", 10);
+    parameters::monitor_timestep = cfg.get<double>("MonitorTimestep", 1.0);
 
 
 
 	parameters::cps = config::cfg.get<double>("cps", -1.0);
 	
-	const double H = parameters::ASPECTRATIO_REF; // H(r=1)
+	const double H = parameters::aspectratio_ref; // H(r=1)
 	if (parameters::cps > 0) {
-		if (config::cfg.contains("Nrad") || config::cfg.contains("Nsec")) {
-			logging::print_master(LOG_INFO "Cps is set, overwriting Nrad and Nsec!\n");
+		if (config::cfg.contains("Nrad") || config::cfg.contains("Naz")) {
+			logging::print_master(LOG_INFO "Cps is set, overwriting Nrad and Naz!\n");
 		}
 		const double cps = parameters::cps;
 		switch (parameters::radial_grid_type) {
@@ -274,7 +274,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	}
     }
 
-    switch (parameters::ASPECTRATIO_MODE) {
+    switch (parameters::aspectratio_mode) {
     case 0:
 	logging::print_master(
 	    LOG_INFO
@@ -328,7 +328,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     default:
 	die("Invalid setting for Frame");
     }
-    parameters::OMEGAFRAME = cfg.get<double>("OMEGAFRAME", 0);
+    parameters::OMEGAFRAME = cfg.get<double>("OmegaFrame", 0);
 
     // Barycenter mode
     switch (cfg.get_first_letter_lowercase("HydroFrameCenter", "primary")) {
@@ -354,7 +354,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     }
 
     if (parameters::n_bodies_for_hydroframe_center != 1 &&
-	parameters::ASPECTRATIO_MODE == 1) {
+	parameters::aspectratio_mode == 1) {
 	logging::print_master(
 	    LOG_INFO
 	    "WARNING: MORE THAN 1 CENTRAL OBJECT AND NBODY ASPECTRATIO IS NOT TESTED OR DEBUGGED!\n");
@@ -588,13 +588,13 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     CICPlanet = cfg.get_flag("CICPLANET", "no");
 
-    parameters::ALPHAVISCOSITY = cfg.get<double>("ALPHAVISCOSITY", 0.0);
-	parameters::VISCOSITY = cfg.get<double>("VISCOSITY", 0.0, units::L0*units::L0/units::T0);
+    parameters::viscous_alpha = cfg.get<double>("ViscousAlpha", 0.0);
+	parameters::constant_viscosity = cfg.get<double>("ConstantViscosity", 0.0, units::L0*units::L0/units::T0);
 
 
-    if ((parameters::ALPHAVISCOSITY != 0.0) && (parameters::VISCOSITY != 0.0)) {
+    if ((parameters::viscous_alpha != 0.0) && (parameters::constant_viscosity != 0.0)) {
 	logging::print_master(LOG_ERROR "You cannot use at the same time\n");
-	logging::print_master(LOG_ERROR "VISCOSITY and ALPHAVISCOSITY.\n");
+	logging::print_master(LOG_ERROR "ConstantViscosity and ViscousAlpha.\n");
 	logging::print_master(LOG_ERROR
 			      "Edit the parameter file so as to remove\n");
 	logging::print_master(LOG_ERROR
@@ -602,7 +602,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	PersonalExit(1);
     }
 
-    if (parameters::ALPHAVISCOSITY > 0.0 || parameters::AlphaMode > 0) {
+    if (parameters::viscous_alpha > 0.0 || parameters::AlphaMode > 0) {
         if (parameters::AlphaMode == SCURVE_ALPHA){
             logging::print_master(LOG_INFO
                                   "Using scurve alpha after Ichikawa & Osaki (1992). \n");
@@ -617,7 +617,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	} else {
 			logging::print_master(LOG_INFO
 			      "Viscosity is of alpha type with alpha = %.3e\n",
-			      parameters::ALPHAVISCOSITY);
+			      parameters::viscous_alpha);
 		}
     }
 
@@ -672,7 +672,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	}
 
 	/// Read Viscosity Stuff
-    StabilizeViscosity = cfg.get<int>("STABILIZEVISCOSITY", 0);
+    StabilizeViscosity = cfg.get<int>("StabilizeViscosity", 0);
 
     if (StabilizeViscosity == 1) {
 	logging::print_master(
@@ -686,7 +686,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     }
 
 	/// Read Viscosity Stuff
-	StabilizeArtViscosity = config::cfg.get<double>("STABILIZEARTVISCOSITY", 0);
+	StabilizeArtViscosity = config::cfg.get<double>("StabilizeArtViscosity", 0);
 
 	if (StabilizeArtViscosity == 1) {
 	logging::print_master(
@@ -700,10 +700,10 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	}
 
 
-    if (parameters::VISCOSITY != 0.0) {
+    if (parameters::constant_viscosity != 0.0) {
 	logging::print_master(
 	    LOG_INFO "Viscosity is kinematic viscosity with nu = %.3e\n",
-	    parameters::VISCOSITY);
+	    parameters::constant_viscosity);
     }
 
 
@@ -786,7 +786,7 @@ double TellNbOrbits(double time)
     return time / 2.0 / M_PI * sqrt(constants::G * 1.0 / 1.0 / 1.0 / 1.0);
 }
 
-double TellNbOutputs(double time) { return (time / parameters::DT / parameters::NINTERM); }
+double TellNbOutputs(double time) { return (time / parameters::monitor_timestep / parameters::Ninterm); }
 
 void TellEverything()
 {
@@ -795,12 +795,12 @@ void TellEverything()
     if (!CPU_Master)
 	return;
 
-    logging::print_master(LOG_VERBOSE "Disc properties:\n");
+    logging::print_master(LOG_VERBOSE "Disk properties:\n");
     logging::print_master(LOG_VERBOSE "----------------\n");
     logging::print_master(LOG_VERBOSE "Inner Radius          : %g\n", RMIN);
     logging::print_master(LOG_VERBOSE "Outer Radius          : %g\n", RMAX);
     logging::print_master(LOG_VERBOSE "Aspect Ratio          : %g\n",
-			  parameters::ASPECTRATIO_REF);
+			  parameters::aspectratio_ref);
     logging::print_master(LOG_VERBOSE "VKep at inner edge    : %.3g\n",
 			  std::sqrt(constants::G * 1.0 * (1. - 0.0) / RMIN));
     logging::print_master(LOG_VERBOSE "VKep at outer edge    : %.3g\n",
@@ -810,28 +810,28 @@ void TellEverything()
     parameters::boundary_inner); logging::print_master(LOG_VERBOSE
     "boundary_outer        : %i\n", parameters::boundary_outer);
     */
-    // temp=2.0*PI*parameters::sigma0/(2.0-parameters::SIGMASLOPE)*(pow(RMAX,2.0-parameters::SIGMASLOPE)
-    // - pow(RMIN,2.0-parameters::SIGMASLOPE));	/* correct this and what follows... */
+    // temp=2.0*PI*parameters::sigma0/(2.0-parameters::sigma_slope)*(pow(RMAX,2.0-parameters::sigma_slope)
+    // - pow(RMIN,2.0-parameters::sigma_slope));	/* correct this and what follows... */
     // logging::print_master(LOG_VERBOSE "Initial Disk Mass             : %g\n",
-    // temp); temp=2.0*PI*parameters::sigma0/(2.0-parameters::SIGMASLOPE)*(1.0 -
-    // pow(RMIN,2.0-parameters::SIGMASLOPE)); logging::print_master(LOG_VERBOSE "Initial
+    // temp); temp=2.0*PI*parameters::sigma0/(2.0-parameters::sigma_slope)*(1.0 -
+    // pow(RMIN,2.0-parameters::sigma_slope)); logging::print_master(LOG_VERBOSE "Initial
     // Mass inner to r=1.0  : %g \n", temp);
-    // temp=2.0*PI*parameters::sigma0/(2.0-parameters::SIGMASLOPE)*(pow(RMAX,2.0-parameters::SIGMASLOPE)
+    // temp=2.0*PI*parameters::sigma0/(2.0-parameters::sigma_slope)*(pow(RMAX,2.0-parameters::sigma_slope)
     // - 1.0); logging::print_master(LOG_VERBOSE "Initial Mass outer to r=1.0  :
     // %g \n", temp);
     logging::print_master(LOG_VERBOSE
 			  "Travelling time for acoustic density waves :\n");
-    temp = 2.0 / 3.0 / parameters::ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
+    temp = 2.0 / 3.0 / parameters::aspectratio_ref * (pow(RMAX, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
 	LOG_VERBOSE
 	" * From Rmin to Rmax  : %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
-    temp = 2.0 / 3.0 / parameters::ASPECTRATIO_REF * (pow(RMAX, 1.5) - pow(1.0, 1.5));
+    temp = 2.0 / 3.0 / parameters::aspectratio_ref * (pow(RMAX, 1.5) - pow(1.0, 1.5));
     logging::print_master(
 	LOG_VERBOSE
 	" * From r=1.0 to Rmax: %.2g = %.2f orbits ~ %.1f outputs\n",
 	temp, TellNbOrbits(temp), TellNbOutputs(temp));
-    temp = 2.0 / 3.0 / parameters::ASPECTRATIO_REF * (pow(1.0, 1.5) - pow(RMIN, 1.5));
+    temp = 2.0 / 3.0 / parameters::aspectratio_ref * (pow(1.0, 1.5) - pow(RMIN, 1.5));
     logging::print_master(
 	LOG_VERBOSE
 	" * From r=1.0 to Rmin: %.2g = %.2f orbits ~ %.1f outputs\n",
@@ -846,11 +846,11 @@ void TellEverything()
 			  temp, TellNbOutputs(temp));
     logging::print_master(LOG_VERBOSE "Sound speed :\n");
     logging::print_master(LOG_VERBOSE " * At unit radius     : %.3g\n",
-			  parameters::ASPECTRATIO_REF * sqrt(constants::G * 1.0));
+			  parameters::aspectratio_ref * sqrt(constants::G * 1.0));
     logging::print_master(LOG_VERBOSE " * At outer edge      : %.3g\n",
-			  parameters::ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMAX));
+			  parameters::aspectratio_ref * sqrt(constants::G * 1.0 / RMAX));
     logging::print_master(LOG_VERBOSE " * At inner edge      : %.3g\n",
-			  parameters::ASPECTRATIO_REF * sqrt(constants::G * 1.0 / RMIN));
+			  parameters::aspectratio_ref * sqrt(constants::G * 1.0 / RMIN));
     logging::print_master(LOG_VERBOSE "Grid properties:\n");
     logging::print_master(LOG_VERBOSE "----------------\n");
     logging::print_master(LOG_VERBOSE "Number of (local) rings  : %d\n",
@@ -867,5 +867,5 @@ void TellEverything()
     logging::print_master(LOG_VERBOSE "-------------------\n");
     logging::print_master(
 	LOG_VERBOSE "Time increment between outputs : %.3f = %.3f orbits\n",
-	parameters::NINTERM * parameters::DT, TellNbOrbits(parameters::NINTERM * parameters::DT));
+	parameters::Ninterm * parameters::monitor_timestep, TellNbOrbits(parameters::Ninterm * parameters::monitor_timestep));
 }

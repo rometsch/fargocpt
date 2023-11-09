@@ -75,7 +75,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 	    // just to be consistent with the force the gas feels from the
 	    // planets
 	    double smooth_factor_klahr = 1.0;
-	    if (parameters::ASPECTRATIO_MODE == 1) {
+	    if (parameters::aspectratio_mode == 1) {
 		/// scale height is reduced by the planets and can cause the
 		/// epsilon smoothing be not sufficient for numerical stability.
 		/// Thus we add the gravitational potential smoothing proposed
@@ -135,8 +135,8 @@ inline static double compute_smoothing_iso_planet(t_data &data, const double nb)
 	t_planetary_system & psys = data.get_planetary_system();
 	t_planet & planet = psys.get_planet(nb);
 	const double a = planet.get_r();
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double beta = parameters::FLARINGINDEX;
+	const double h0 = parameters::aspectratio_ref;
+	const double beta = parameters::flaring_index;
     const double scale_height = h0*std::pow(a, 1+beta);
     const double smooth = parameters::thickness_smoothing * scale_height;
     return smooth;

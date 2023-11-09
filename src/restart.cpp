@@ -81,7 +81,7 @@ void restart_load(t_data &data) {
 	    particles::restart();
 	}
 
-	if(boundary_conditions::rochlobe_overflow){
+	if(boundary_conditions::rochelobe_overflow){
 	data.get_massflow_tracker().read_from_file();
 	}
 

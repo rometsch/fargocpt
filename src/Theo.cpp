@@ -85,9 +85,9 @@ void init_binary_quadropole_moment(const t_planetary_system &psys){
 ///
 double initial_energy(const double R, const double M){
 
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
-	const double S = parameters::SIGMASLOPE;
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
+	const double S = parameters::sigma_slope;
 
 	// energy = 1/(gamma - 1) * Sigma * (C_s,iso)^2
 	// C_s,iso = h * v_k = h0 * r^F * sqrt(G M / r)
@@ -111,9 +111,9 @@ double initial_locally_isothermal_v_az(const double R, const double M){
 
 	// Phi = GMm / r_sm
 	// vkep^2 / r = 1/Simga dP/dr + dPhi / dr
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
-	const double S = parameters::SIGMASLOPE;
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
+	const double S = parameters::sigma_slope;
 	const double h = h0 * std::pow(R, F);
 	// const double eps = parameters::thickness_smoothing;
 	const double vk_2 = constants::G * M / R;
@@ -129,17 +129,17 @@ double initial_locally_isothermal_v_az(const double R, const double M){
 
 
 double support_azi_pressure(const double R){
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
-	const double S = parameters::SIGMASLOPE;
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
+	const double S = parameters::sigma_slope;
 	const double h = h0 * std::pow(R, F);
 	const double rv = (2.0 * F - 1.0 - S) * std::pow(h, 2);
 	return rv;
 }
 
 double support_azi_smoothing_derivative(const double R) {
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
 	const double h = h0 * std::pow(R, F);
 	const double eps = parameters::thickness_smoothing;
 	const double rv = (1.0 + (F+1.0) * std::pow(h * eps, 2))
@@ -219,7 +219,7 @@ double compute_v_kepler(const double R, const double M){
 ///
 double initial_viscous_radial_speed(const double R, const double M){
 
-	if (parameters::ALPHAVISCOSITY > 0){
+	if (parameters::viscous_alpha > 0){
 	double sqrt_gamma;
 	if(parameters::Adiabatic){
 		sqrt_gamma = std::sqrt(parameters::ADIABATICINDEX);
@@ -228,17 +228,17 @@ double initial_viscous_radial_speed(const double R, const double M){
 	}
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
-	parameters::ASPECTRATIO_REF * std::pow(R, parameters::FLARINGINDEX);
+	parameters::aspectratio_ref * std::pow(R, parameters::flaring_index);
 	const double cs = sqrt_gamma * h * v_k;
 	const double H = h * R;
-	const double nu = parameters::ALPHAVISCOSITY * cs * H;
+	const double nu = parameters::viscous_alpha * cs * H;
 	const double vr = -3.0 * nu / R *
-		  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+		  (-parameters::sigma_slope + 2.0 * parameters::flaring_index + 1.0);
 
 	return vr;
 	} else {
-		const double nu = parameters::VISCOSITY;
-		const double vr = -3.0 * nu / R * (-parameters::SIGMASLOPE + .5);
+		const double nu = parameters::constant_viscosity;
+		const double vr = -3.0 * nu / R * (-parameters::sigma_slope + .5);
 		return vr;
 	}
 }

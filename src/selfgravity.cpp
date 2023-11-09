@@ -151,13 +151,13 @@ void mpi_finalize(void)
 static double get_aspect_ratio(t_data &data) {
 	double rv;
 	if (parameters::Locally_Isothermal) {
-		rv = parameters::ASPECTRATIO_REF;
+		rv = parameters::aspectratio_ref;
 	} else {
 		rv = quantities::gas_allreduce_mass_average(data, data[t_data::ASPECTRATIO], RMAX);
 	}
 	// safety net
 	if (rv == 0.0) {
-		rv = parameters::ASPECTRATIO_REF;
+		rv = parameters::aspectratio_ref;
 	}
 	return rv;
 }

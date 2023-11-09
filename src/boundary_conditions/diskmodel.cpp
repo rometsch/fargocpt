@@ -17,16 +17,16 @@ namespace boundary_conditions
 
 static double calc_sig(const double R) {
 	const double sig0 = parameters::sigma0;
-	const double sigexp = -parameters::SIGMASLOPE;
+	const double sigexp = -parameters::sigma_slope;
 	return sig0 * std::pow(R, sigexp);
 }
 
 static double calc_eng(const double R) {
 	const double gamma = parameters::ADIABATICINDEX;
 	const double sig0 = parameters::sigma0;
-	const double sigexp = -parameters::SIGMASLOPE;
-	const double f = parameters::FLARINGINDEX;
-	const double h0 = parameters::ASPECTRATIO_REF;
+	const double sigexp = -parameters::sigma_slope;
+	const double f = parameters::flaring_index;
+	const double h0 = parameters::aspectratio_ref;
 	return 1.0 / (gamma - 1.0) * sig0 * std::pow(h0, 2) * std::pow(R, sigexp - 1.0 + 2.0 * f);
 }
 

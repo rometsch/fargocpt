@@ -106,7 +106,7 @@ void apply_boundary_condition(t_data &data, const double current_time, const dou
 	}
 	
 
-	if (rochlobe_overflow) {
+	if (rochelobe_overflow) {
 		rochelobe_overflow_boundary(data, nullptr, false);
 	}
 

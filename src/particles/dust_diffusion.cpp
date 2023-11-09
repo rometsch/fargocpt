@@ -109,7 +109,7 @@ void compute_gas_diffusion_coefficient(t_data &data)
     #pragma omp parallel for collapse (2)
     for (unsigned int n_rad = 0; n_rad <= N_rad_max; ++n_rad) {
 	for (unsigned int n_az = 0; n_az <= N_az_max; ++n_az) {
-	    const double alpha = parameters::ALPHAVISCOSITY;
+	    const double alpha = parameters::viscous_alpha;
 	    const double cs = data[t_data::SOUNDSPEED](n_rad, n_az);
 	    const double h = data[t_data::ASPECTRATIO](n_rad, n_az);
 	    const double r = Rmed(n_rad);

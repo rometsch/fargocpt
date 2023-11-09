@@ -27,10 +27,10 @@
 
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
-	parameters::ASPECTRATIO_REF * std::pow(R, parameters::FLARINGINDEX);
+	parameters::aspectratio_ref * std::pow(R, parameters::flaring_index);
 	const double cs = sqrt_gamma * h * v_k;
 	const double H = h * R;
-	const double nu = parameters::ALPHAVISCOSITY * cs * H;
+	const double nu = parameters::viscous_alpha * cs * H;
 	return nu;
 }
 
@@ -40,7 +40,7 @@
 
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
-	parameters::ASPECTRATIO_REF * std::pow(R, parameters::FLARINGINDEX);
+	parameters::aspectratio_ref * std::pow(R, parameters::flaring_index);
 
 	double cutoff = 1.0;
 	if (parameters::profile_cutoff_outer) {
@@ -85,12 +85,12 @@
 		H = h*R;
 	}
 
-	const double nu = parameters::ALPHAVISCOSITY * cs_adb * H;
+	const double nu = parameters::viscous_alpha * cs_adb * H;
 	return nu;
 }
 
 static double get_sigma(const double R){
-	const double S = parameters::SIGMASLOPE;
+	const double S = parameters::sigma_slope;
 	double density =
 		parameters::sigma0 * std::pow(R, -S);
 

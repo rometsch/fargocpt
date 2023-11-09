@@ -150,8 +150,8 @@ void check_free_space(t_data &data)
 	}
     }
 
-    space_needed *= parameters::NTOT / parameters::NINTERM;
-    number_of_files *= parameters::NTOT / parameters::NINTERM;
+    space_needed *= parameters::Nsnap / parameters::Ninterm;
+    number_of_files *= parameters::Nsnap / parameters::Ninterm;
 
     logging::print_master(LOG_INFO "Output information:\n");
     logging::print_master(LOG_INFO "   Output directory: %s\n", outdir.c_str());
@@ -1049,9 +1049,9 @@ void write_snapshot_time()
 	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
 	    fprintf(
 		fd,
-		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
+		"\n# One monitor_timestep is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
-		parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor());
+		parameters::monitor_timestep, parameters::monitor_timestep * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
     }
@@ -1109,9 +1109,9 @@ void write_monitor_time()
 	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
 	    fprintf(
 		fd,
-		"\n# One DT is %.18g (code) and %.18g (cgs).\n"
+		"\n# One monitor_timestep is %.18g (code) and %.18g (cgs).\n"
 		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
-		parameters::DT, parameters::DT * units::time.get_code_to_cgs_factor());
+		parameters::monitor_timestep, parameters::monitor_timestep * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
     }

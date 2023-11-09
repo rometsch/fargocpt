@@ -26,15 +26,15 @@ constexpr double DBL_EPSILON = std::numeric_limits<double>::epsilon();
 namespace parameters
 {
 
-double ASPECTRATIO_REF;
-int ASPECTRATIO_MODE;
-double VISCOSITY;
-double ALPHAVISCOSITY;
+double aspectratio_ref;
+int aspectratio_mode;
+double constant_viscosity;
+double viscous_alpha;
 bool VISCOUS_ACCRETION;
-double SIGMASLOPE;
+double sigma_slope;
 double OMEGAFRAME;
 double IMPOSEDDISKDRIFT;
-double FLARINGINDEX;
+double flaring_index;
 double ADIABATICINDEX; // Also used for polytropic energy equation
 double POLYTROPIC_CONSTANT;
 
@@ -42,9 +42,9 @@ bool CartesianParticles;
 bool ParticleGravityCalcInCartesian;
 
 
-double DT;
-unsigned int NINTERM;
-unsigned int NTOT;
+double monitor_timestep;
+unsigned int Ninterm;
+unsigned int Nsnap;
 double quantities_radius_limit;
 double disk_radius_mass_fraction;
 
@@ -95,7 +95,7 @@ double sigma_random_factor;
 double sigma_floor;
 double sigma_feature_size;
 bool sigma_adjust;
-double sigma_discmass;
+double sigma_diskmass;
 double sigma0;
 t_initialize_condition energy_initialize_condition;
 std::string energy_filename;
@@ -503,11 +503,11 @@ void read(const std::string &filename, t_data &data)
     units::calculate_unit_factors();
 
     /* grid */
-    RMIN = config::cfg.get<double>("RMIN", L0);
-    RMAX = config::cfg.get<double>("RMAX", L0);
+    RMIN = config::cfg.get<double>("Rmin", L0);
+    RMAX = config::cfg.get<double>("Rmax", L0);
 
-    NRadial = config::cfg.get<unsigned int>("NRAD", 64);
-    NAzimuthal = config::cfg.get<unsigned int>("NSEC", 64);
+    NRadial = config::cfg.get<unsigned int>("Nrad", 64);
+    NAzimuthal = config::cfg.get<unsigned int>("Naz", 64);
 
 
     // Disk radius = radius at which disk_radius_mass_fraction percent
@@ -517,10 +517,10 @@ void read(const std::string &filename, t_data &data)
     config::cfg.get<double>("DiskRadiusMassFraction", 0.99);
 
     quantities_radius_limit =
-	config::cfg.get<double>("QUANTITIESRADIUSLIMIT", 2.0 * RMAX, L0);
+	config::cfg.get<double>("QuantitiesRadiusLimit", 2.0 * RMAX, L0);
 
     if (quantities_radius_limit <= RMIN) {
-	logging::print_master(LOG_INFO "QUANTITIESRADIUSLIMIT %.5e < %.5e (RMIN) too small, setting it to %.5e\n", quantities_radius_limit, RMIN, 2.0*RMAX);
+	logging::print_master(LOG_INFO "QuantitiesRadiusLimit %.5e < %.5e (Rmin) too small, setting it to %.5e\n", quantities_radius_limit, RMIN, 2.0*RMAX);
 	quantities_radius_limit = 2.0 * RMAX;
     }
 	logging::print_master(LOG_INFO "Computing disk quantities within %.5e L0 from coordinate center\n", quantities_radius_limit);
@@ -546,7 +546,7 @@ void read(const std::string &filename, t_data &data)
     // boundary conditions
 	boundary_conditions::parse_config();
 
-    calculate_disk = config::cfg.get_flag("DISK", "yes");
+    calculate_disk = config::cfg.get_flag("Disk", "yes");
 	
     corotation_reference_body =
 	config::cfg.get<unsigned int>("CorotationReferenceBody", 1);
@@ -625,9 +625,9 @@ void read(const std::string &filename, t_data &data)
     sigma_feature_size =
 	config::cfg.get<double>("FeatureSize", (RMAX - RMIN) / 150, L0);
     sigma_floor = config::cfg.get<double>("SigmaFloor", 1e-9);
-    sigma0 = config::cfg.get<double>("SIGMA0", 173., M0/(L0*L0));
+    sigma0 = config::cfg.get<double>("Sigma0", "173 g/cm2", M0/(L0*L0));
     sigma_adjust = config::cfg.get_flag("SetSigma0", "no");
-    sigma_discmass = config::cfg.get<double>("discmass", 0.01, M0);
+    sigma_diskmass = config::cfg.get<double>("DiskMass", 0.01, M0);
     density_factor = config::cfg.get<double>("DensityFactor", std::sqrt(2.0 * M_PI));
 
     tau_factor = config::cfg.get<double>("TauFactor", 0.5);
@@ -705,8 +705,8 @@ void read(const std::string &filename, t_data &data)
 
 	//local alpha
 	AlphaMode = config::cfg.get<int>("AlphaMode", 0);
-	alphaCold = config::cfg.get<double>("alphaCold", 0.01);
-	alphaHot = config::cfg.get<double>("alphaHot", 0.1);
+	alphaCold = config::cfg.get<double>("AlphaCold", 0.01);
+	alphaHot = config::cfg.get<double>("AlphaHot", 0.1);
 
 	if(parameters::AlphaMode == SCURVE_ALPHA || parameters::AlphaMode == SCURVE_IONFRACTION){
         // already continously writes alpha
@@ -822,7 +822,7 @@ void read(const std::string &filename, t_data &data)
 	config::cfg.get<double>("ParticleEccentricity", 0.0);
     particle_density = config::cfg.get<double>("ParticleDensity", "2.65 g/cm3", M0/(L0*L0*L0));
     particle_slope = config::cfg.get<double>(
-	"ParticleSurfaceDensitySlope", SIGMASLOPE);
+	"ParticleSurfaceDensitySlope", sigma_slope);
     particle_slope =
 	-particle_slope; // particle distribution scales with  r^slope, so we
 			 // introduces the minus here to make it r^-slope (same
@@ -935,7 +935,7 @@ void summarize_parameters()
     }
 
     // Mass Transfer
-    if (boundary_conditions::rochlobe_overflow) {
+    if (boundary_conditions::rochelobe_overflow) {
 	logging::print_master(
 	    LOG_INFO
 	    "Mass Transfer from planet #%d of %g M_sun/orbit with Ts = %g K and ramping time t_ramp = %g P_orb.\n",

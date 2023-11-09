@@ -202,7 +202,7 @@ void diskmodel_center_of_mass_boundary_outer(t_data &data)
 	    const double cell_sigma =
 		parameters::sigma0 *
 		std::pow(r_com,
-			 -parameters::SIGMASLOPE); // we assume the floor is not reached.
+			 -parameters::sigma_slope); // we assume the floor is not reached.
 	    sigma(nr, naz) = cell_sigma;
 
 	    /// Initial profile temperature
@@ -380,7 +380,7 @@ void diskmodel_center_of_mass_boundary_inner(t_data &data)
 		const double cell_sigma =
 		parameters::sigma0 *
 		std::pow(r_com,
-			 -parameters::SIGMASLOPE); // we assume the floor is not reached.
+			 -parameters::sigma_slope); // we assume the floor is not reached.
 		sigma(nr, naz) = cell_sigma;
 
 		/// Initial profile temperature

@@ -64,7 +64,7 @@ void usage(int argc, char **argv)
 	"-v     | --verbose         Verbose mode. Tells everything about parameters file\n"
 	"-q     | --quiet           Only print errors and warnings\n"
 	"-b     |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
-	"-c     |                   Sloppy CFL condition (checked at each DT, not at each timestep)\n"
+	"-c     |                   Sloppy CFL condition (checked at each monitor_timestep, not at each timestep)\n"
 	"-n     |                   Disable simulation. The program just reads parameters file\n"
 	"-m     |                   estimate memory usage and print out\n"
 	"-N <N> |                   Perform N hydro steps.\n"
