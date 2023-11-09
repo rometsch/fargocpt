@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <cmath>
 #include <numeric>
+#include <typeinfo>
 
 #include "LowTasks.h"
 #include "config.h"
@@ -165,7 +166,9 @@ bool Config::get_flag(const std::string &key)
 bool Config::get_flag(const std::string &key, const bool default_value)
 {
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(bool).name();
     if (contains(key)) {
 	return get_flag(key);
     } else {
@@ -176,7 +179,9 @@ bool Config::get_flag(const std::string &key, const bool default_value)
 bool Config::get_flag(const std::string &key, const std::string &default_value)
 {
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(bool).name();
     if (contains(key)) {
 	return get_flag(key);
     } else {
@@ -187,14 +192,18 @@ bool Config::get_flag(const std::string &key, const std::string &default_value)
 bool Config::get_flag(const std::string &key, const char *default_value)
 {
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(bool).name();
     return get_flag(key, std::string(default_value));
 }
 
 char Config::get_first_letter_lowercase(const std::string &key, const std::string &default_value)
 {
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(std::string).name();
     std::string value = get<std::string>(key, default_value);
     if (value.length() == 0) {
         value = std::string(default_value);
@@ -269,7 +278,9 @@ template <typename T> T Config::get(const std::string &key, const units::precise
 template <typename T> T Config::get(const std::string &key, const T &default_value)
 {
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(T).name();
     T rv;
     const std::string lkey = lowercase(key);
     if (contains(key)) {
@@ -302,7 +313,9 @@ template <typename T> T Config::get(const std::string &key,
                             const units::precise_unit& unit) 
 {    
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(T).name();
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;
@@ -328,7 +341,9 @@ template <typename T> T Config::get(const std::string &key,
                             const units::precise_unit& unit) 
 {
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(T).name();
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;
@@ -351,7 +366,9 @@ template <typename T> T Config::get(const std::string &key,
 
 std::string Config::get_lowercase(const std::string &key, const std::string &default_value) {
     m_visited_keys.insert(lowercase(key));
-    (*m_default)[key] = default_value;
+    (*m_default)[key] = YAML::Node();
+    (*m_default)[key]["default"] = default_value;
+    (*m_default)[key]["type"] = typeid(std::string).name();
     std::string rv;
     const std::string lkey = lowercase(key);
     if (contains(key)) {
