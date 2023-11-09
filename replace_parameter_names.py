@@ -8,8 +8,31 @@ import copy
 import re
 
 old_to_new = {
-    "Viscosity" : "ConstantViscosity",
-    "AlphaViscosity" : "ViscousAlpha"
+ 'ALPHAVISCOSITY': {'newname': 'ViscousAlpha'},
+ 'CoolingRadiativeLocal': {'newname': 'none',
+  'hint': 'SurfaceCooling: thermal'},
+ 'CoolingScurve': {'newname': 'none', 'hint': 'SurfaceCooling: scurve'},
+ 'DT': {'newname': 'MonitorTimestep'},
+ 'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi = zeroshear'},
+ 'IntegratePlanets': {'newname': 'none'},
+ 'NSEC': {'newname': 'Naz'},
+ 'NTOT': {'newname': 'Nsnap'},
+ 'StellarRotation': {'newname': 'none',
+  'hint': 'InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian'},
+ 'VISCOSITY': {'newname': 'ConstantViscosity'},
+ 'VRadIn': {'newname': 'none',
+  'hint': 'InnerBoundaryVradKeplerianFactor, InnerBoundaryVrad = keplerian'},
+ 'discmass': {'newname': 'DiskMass'},
+ 'massoverflow': {'newname': 'RocheLobeOverflow'},
+ 'mofaveragingtime': {'newname': 'ROFAveragingTime'},
+ 'mofgamma': {'newname': 'ROFGamma'},
+ 'mofplanet': {'newname': 'ROFPlanet'},
+ 'moframpingtime': {'newname': 'ROFRampingTime'},
+ 'moftemperature': {'newname': 'ROFTemperature'},
+ 'mofvalue': {'newname': 'ROFValue'},
+ 'variableTransfer': {'newname': 'ROFVariableTransfer'},
+ 'zbufferMaxAngle': {'newname': 'none'},
+ 'zbufferSize': {'newname': 'none'}
 }
 old_keys = {k.lower(): k for k in old_to_new.keys()}
 
@@ -38,17 +61,36 @@ def replace_parameter_names(yaml_file, dry=False, verbose=False):
     with open(yaml_file, "r") as infile:
         lines = infile.readlines()
 
+    new_lines = []
     for i, line in enumerate(lines):
         for old, new in keys_update.items():
             if old in line:
-                lines[i] = replace_word(old, new, line)
-                if verbose:
-                    print("<"*3)
-                    print(line.strip())
-                    print("-"*len(line))
-                    print(lines[i].strip())
-                    print(">"*3)
-                    print()
+                if new["newname"] == "none":
+                    text = "# " + line
+                    new_lines.append(text)
+                    if verbose:
+                        print(text.strip())
+                    if "hint" in new:
+                        text = "# hint: " + new["hint"]
+                        if verbose:
+                            print(text.strip())                        
+                        new_lines.append(text + "\n")
+                    else:
+                        text = "# has beed removed without replacement"
+                        new_lines.append(text + "\n")
+                        if verbose:
+                            print(text.strip())
+                else:
+                    lines[i] = replace_word(old, new["newname"], line)
+                    if verbose:
+                        print("<"*3)
+                        print(line.strip())
+                        print("-"*len(line))
+                        print(lines[i].strip())
+                        print(">"*3)
+                        print()
+            else:
+                new_lines.append(line)
 
     if not dry:
         with open(yaml_file, "w") as outfile:
