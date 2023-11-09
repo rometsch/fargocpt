@@ -28,7 +28,7 @@ Frame: F   # F: Fixed, C: Corotating
 
 MonitorTimestep: 0.628   # Calculate scalar quatities every DT in code units. For default units 2PI = 1 orbit at r=1
 Ninterm: 1   # Number of DTs before writing a snapshot
-Ntot: 1   # Total number snapshots. The final time will be tfinal = Ntot*Ninterm*DT. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
+Nsnap: 1   # Total number snapshots. The final time will be tfinal = Ntot*Ninterm*DT. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 
 #

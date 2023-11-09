@@ -14,7 +14,7 @@ def get_fargo_grid(setupfile):
     with open(setupfile, "r") as infile:
         params = yaml.safe_load(infile)
         Nrad = params["Nrad"]
-        Naz = params["Nsec"]
+        Naz = params["Naz"]
 
     ri = np.genfromtxt(f"{basedir}/out/used_rad.dat")
     phii = np.linspace(0, 2*np.pi, Naz+1)
