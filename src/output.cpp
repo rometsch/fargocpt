@@ -150,8 +150,8 @@ void check_free_space(t_data &data)
 	}
     }
 
-    space_needed *= parameters::Nsnap / parameters::Nmonitor;
-    number_of_files *= parameters::Nsnap / parameters::Nmonitor;
+    space_needed *= parameters::Nsnap;
+    number_of_files *= parameters::Nsnap;
 
     logging::print_master(LOG_INFO "Output information:\n");
     logging::print_master(LOG_INFO "   Output directory: %s\n", outdir.c_str());
