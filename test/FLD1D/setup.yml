@@ -1,7 +1,7 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
-DT: 3.14159265359 # half of an orbit
+MonitorTimestep: 3.14159265359 # half of an orbit
 Ninterm: 2 # snapshot every 1 orbits
-Ntot : 20 # do 20 snapshots for a total of 20 orbits
+Nsnapshots: 20 # do 20 snapshots for a total of 20 orbits
 FirstDT: 3.14159265359e-1 # initial hydro dt / dt in case of no disk
 CFLmaxVar: 1.1
 
@@ -16,7 +16,7 @@ SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-
 AspectRatio: 0.05   # Thickness over Radius in the disk
 FlaringIndex: 0
 
-AlphaViscosity: 0  
+ViscousAlpha: 0  
 HeatingViscous: no   # enable viscous heating
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]
@@ -88,7 +88,7 @@ Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
 # Mesh parameters
 
 Nrad: 512   # Radial number of zones
-Nsec: 2   # Azimuthal number of
+Naz: 2   # Azimuthal number of
 # cps: 3
 
 

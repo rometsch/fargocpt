@@ -26,9 +26,9 @@ Frame: F   # F: Fixed, C: Corotating
 # Simulation time
 #
 
-DT: 0.628   # Calculate scalar quatities every DT in code units. For default units 2PI = 1 orbit at r=1
+MonitorTimestep: 0.628   # Calculate scalar quatities every DT in code units. For default units 2PI = 1 orbit at r=1
 Ninterm: 1   # Number of DTs before writing a snapshot
-Ntot: 1   # Total number snapshots. The final time will be tfinal = Ntot*Ninterm*DT. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
+Nsnapshots: 1   # Total number snapshots. The final time will be tfinal = Ntot*Ninterm*DT. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 
 #
@@ -95,7 +95,7 @@ CFLmaxVar: 1.1 # maximum factor the timestep can increase in one hydro step
 
 cps:  -1.0  # Set cells per scaleheight: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio
 Nrad: 128   # Radial number of zones
-Nsec: 384   # Azimuthal number of
+Naz: 384   # Azimuthal number of
 
 Rmin: 0.4   # Inner boundary radius
 Rmax: 2.5   # Outer boundary radius
@@ -125,7 +125,7 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 ## Viscosity
 
-AlphaViscosity: 1.0e-3   # Alpha value for AlphaMode == 0
+ViscousAlpha: 1.0e-3   # Alpha value for AlphaMode == 0
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]

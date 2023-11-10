@@ -1,7 +1,7 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
-DT: 0.6283185307179586 # 10th of an orbit
+MonitorTimestep: 0.6283185307179586 # 10th of an orbit
 Ninterm: 10 # snapshot every orbit
-Ntot : 20 # do 20 snapshots for a total of 20 orbits
+Nsnapshots: 20 # do 20 snapshots for a total of 20 orbits
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 CFLmaxVar: 1.1
 
@@ -16,7 +16,7 @@ SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-
 AspectRatio: 0.05   # Thickness over Radius in the disk
 FlaringIndex: 0.2857142857142857
 
-AlphaViscosity: 0.0  # 
+ViscousAlpha: 0.0  # 
 ArtificialViscosity: No   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: No   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]

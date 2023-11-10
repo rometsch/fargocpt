@@ -793,9 +793,9 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     (void)timestep;
     (void)force_update;
 
-	const double denom = parameters::NINTERM * parameters::DT;
+	const double denom = parameters::Nmonitor * parameters::monitor_timestep;
 
-    // divide the data in massflow by the large timestep DT before writing out
+    // divide the data in massflow by the large timestep monitor_timestep before writing out
     // to obtain the massflow from the mass difference
 	 data[t_data::MASSFLOW] /= denom;
 }
@@ -812,7 +812,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 	const unsigned int Nr = data[t_data::SCALE_HEIGHT].get_size_radial();
 	const unsigned int Nphi = data[t_data::SCALE_HEIGHT].get_size_azimuthal();
 
-    switch (parameters::ASPECTRATIO_MODE) {
+    switch (parameters::aspectratio_mode) {
     case 0: {
 			#pragma omp parallel for collapse(2)
 			for (unsigned int nr = 0; nr < Nr; ++nr) {
@@ -966,7 +966,7 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    const double denom = (double)parameters::NINTERM;
+    const double denom = (double)parameters::Nmonitor;
     data[t_data::VISCOUS_TORQUE] /= denom;
 }
 
@@ -976,7 +976,7 @@ void calculate_gravitational_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    const double denom = (double)parameters::NINTERM;
+    const double denom = (double)parameters::Nmonitor;
     data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED] /= denom;
 }
 
@@ -986,7 +986,7 @@ void calculate_advection_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    const double denom = (double)parameters::NINTERM;
+    const double denom = (double)parameters::Nmonitor;
     data[t_data::ADVECTION_TORQUE] /= denom;
 }
 
@@ -997,23 +997,23 @@ void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 {
     if (data[t_data::ADVECTION_TORQUE].get_write()) {
 	t_polargrid &t_adv = data[t_data::ADVECTION_TORQUE];
-	gas_torques::calculate_advection_torque(data, t_adv, dt / parameters::DT);
+	gas_torques::calculate_advection_torque(data, t_adv, dt / parameters::monitor_timestep);
     }
     if (data[t_data::VISCOUS_TORQUE].get_write()) {
 	t_polargrid &t_visc = data[t_data::VISCOUS_TORQUE];
-	gas_torques::calculate_viscous_torque(data, t_visc, dt / parameters::DT);
+	gas_torques::calculate_viscous_torque(data, t_visc, dt / parameters::monitor_timestep);
     }
     if (data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED].get_write()) {
 	t_polargrid &t_grav = data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED];
-	gas_torques::calculate_gravitational_torque(data, t_grav, dt / parameters::DT);
+	gas_torques::calculate_gravitational_torque(data, t_grav, dt / parameters::monitor_timestep);
     }
 
     if (data[t_data::ALPHA_GRAV_MEAN].get_write()) {
-	calculate_alpha_grav_mean_sumup(data, nTimeStep, dt / parameters::DT);
+	calculate_alpha_grav_mean_sumup(data, nTimeStep, dt / parameters::monitor_timestep);
     }
     if (data[t_data::ALPHA_REYNOLDS_MEAN].get_write()) {
 	calculate_alpha_reynolds_mean_sumup(data, nTimeStep,
-							dt / parameters::DT);
+							dt / parameters::monitor_timestep);
     }
 }
 

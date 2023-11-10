@@ -33,7 +33,7 @@ double get_alpha(const int nr, const int naz, t_data &data)
 	switch (parameters::AlphaMode){
 	case CONST_ALPHA:
 	{
-	return parameters::ALPHAVISCOSITY;
+	return parameters::viscous_alpha;
 	}
         case SCURVE_ALPHA:
         {
@@ -99,7 +99,7 @@ void update_viscosity(t_data &data)
 {
     static bool calculated = false;
     // if alpha-viscosity
-    if (parameters::ALPHAVISCOSITY > 0) {
+    if (parameters::viscous_alpha > 0) {
 	const unsigned int Nr = data[t_data::VISCOSITY].get_size_radial();
 	const unsigned int Nphi = data[t_data::VISCOSITY].get_size_azimuthal();
 
@@ -127,7 +127,7 @@ void update_viscosity(t_data &data)
 		#pragma omp parallel for collapse(2)
 		for (unsigned int nr = 0;	 nr < Nr; ++nr) {
 		for (unsigned int naz = 0; naz < Nphi; ++naz) {
-			data[t_data::VISCOSITY](nr, naz) = parameters::VISCOSITY;
+			data[t_data::VISCOSITY](nr, naz) = parameters::constant_viscosity;
 		}
 	    }
 	}

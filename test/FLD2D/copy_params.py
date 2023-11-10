@@ -33,7 +33,7 @@ if __name__ == "__main__":
     dt = (tfinal - t0)/steps
 
     new_params = {
-        "DT": dt,
+        "MonitorTimestep": dt,
         "FirstDT": dt,
         "RadiativeDiffusionTest2DSteps": params["Nsteps"],
         "RadiativeDiffusionMaxIterations": params["Niter"],

@@ -6,7 +6,7 @@ SigmaSlope: 1   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-Sigm
 SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-9]
 AspectRatio: '0.05'   # Thickness over Radius in the disk
 FlaringIndex: '0.0'   # Slope of Temperature/radius profile
-AlphaViscosity: '0.0'
+ViscousAlpha: '0.0'
 
 # Equation of State
 
@@ -41,7 +41,7 @@ DiskFeedback: 'No'
 # Mesh parameters
 
 Nrad: '400'   # 512 128		# Radial number of zones
-Nsec: '1403'   # 1536 384		# Azimuthal number of zones
+Naz: '1403'   # 1536 384		# Azimuthal number of zones
 # cps: 1
 
 Rmin: '0.5au'   # Inner boundary radius
@@ -50,9 +50,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 
 # Output control parameters
 
-Ntot: '1000'   # Total number of time steps
+Nsnapshots: '1000'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
-DT: '0.628318531'   # 1/10th of a jupiter orbit
+MonitorTimestep: '0.628318531'   # 1/10th of a jupiter orbit
 FirstDt: 1e-1
 OutputDir: ../../output/tests/dust_drift/out
 

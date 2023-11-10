@@ -52,7 +52,7 @@ double keplerian_radial_inner_factor = 1.0;
 bool domegadr_zero;
 
 double viscous_outflow_speed;
-bool rochlobe_overflow;
+bool rochelobe_overflow;
 unsigned int rof_planet;
 double rof_temperature;
 double rof_mdot;
@@ -450,22 +450,18 @@ void parse_config()
     vaz_inner();
     vaz_outer();
 
-    domegadr_zero = config::cfg.get_flag("DomegaDrZero", false);
-    if (domegadr_zero)
-	die("DomegaDrZero is deprecated!");
-
     viscous_outflow_speed = config::cfg.get<double>("ViscousOutflowSpeed", 1.0);
 
 
     // mass overflow
-    rochlobe_overflow = config::cfg.get_flag("massoverflow", "no");
-	rof_variableTransfer = config::cfg.get_flag("variableTransfer", "no");
-    rof_planet = config::cfg.get<int>("mofplanet", 1);
-    rof_temperature = config::cfg.get<double>("moftemperature", "1000.0 K", units::Temp0);
-    rof_mdot = config::cfg.get<double>("mofvalue", 10E-9, units::M0/units::T0);
-    rof_rampingtime = config::cfg.get<double>("moframpingtime", 30.0);
-	rof_averaging_time = config::cfg.get<double>("mofaveragingtime", 10.0);
-	rof_gamma = config::cfg.get<double>("mofgamma", 0.5);
+    rochelobe_overflow = config::cfg.get_flag("RocheLobeOverflow", "no");
+	rof_variableTransfer = config::cfg.get_flag("ROFVariableTransfer", "no");
+    rof_planet = config::cfg.get<int>("ROFplanet", 1);
+    rof_temperature = config::cfg.get<double>("ROFtemperature", "1000.0 K", units::Temp0);
+    rof_mdot = config::cfg.get<double>("ROFvalue", 10E-9, units::M0/units::T0);
+    rof_rampingtime = config::cfg.get<double>("ROFrampingtime", 30.0);
+	rof_averaging_time = config::cfg.get<double>("ROFaveragingtime", 10.0);
+	rof_gamma = config::cfg.get<double>("ROFgamma", 0.5);
 
 	damping_config();
 

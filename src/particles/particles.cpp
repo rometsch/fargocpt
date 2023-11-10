@@ -742,7 +742,7 @@ double calculate_dust_smoothing(const double r, const double phi,
     const unsigned int n_azi = clamp_phi_id_to_grid(get_inf_azimuthal_id(phi));
     // get gas scale height
     const double H_gas = data[t_data::SCALE_HEIGHT](n_rad, n_azi);
-    const double alpha = parameters::ALPHAVISCOSITY;
+    const double alpha = parameters::viscous_alpha;
     // compute dust scale height
     const double H_dust = H_gas * std::sqrt(alpha / (alpha + stokes));
 
@@ -1190,7 +1190,7 @@ void update_velocities_from_gas_drag_cart(t_data &data, double dt)
 	const double r = particles[i].get_distance_to_star();
 	const double phi = particles[i].get_angle();
 
-	// check if particle has left disc
+	// check if particle has left disk
 	if ((r < RMIN) || (r > RMAX)) {
 	    continue;
 	}
@@ -1273,7 +1273,7 @@ void update_velocities_from_gas_drag(t_data &data, double dt)
 	double r = particles[i].get_distance_to_star();
 	double phi = particles[i].get_angle();
 
-	// check if particle has left disc
+	// check if particle has left disk
 	if ((r < RMIN) || (r > RMAX)) {
 	    continue;
 	}

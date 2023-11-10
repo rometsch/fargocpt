@@ -5,16 +5,16 @@
 namespace parameters
 {
 
-extern double ASPECTRATIO_REF;
-extern int ASPECTRATIO_MODE;
-extern double VISCOSITY;
-extern double ALPHAVISCOSITY;
+extern double aspectratio_ref;
+extern int aspectratio_mode;
+extern double constant_viscosity;
+extern double viscous_alpha;
 // Is viscous accretion turned on at at either boundary or Nbodies?
 extern bool VISCOUS_ACCRETION;
-extern double SIGMASLOPE;
+extern double sigma_slope;
 extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;
-extern double FLARINGINDEX;
+extern double flaring_index;
 extern double ADIABATICINDEX;
 extern double POLYTROPIC_CONSTANT;
 
@@ -22,9 +22,9 @@ extern bool CartesianParticles;
 // Compute the gravity acceleration acting on the particles in Cartesian coordinates.
 extern bool ParticleGravityCalcInCartesian;
 
-extern double DT;
-extern unsigned int NINTERM;
-extern unsigned int NTOT;
+extern double monitor_timestep;
+extern unsigned int Nmonitor;
+extern unsigned int Nsnap;
 extern double quantities_radius_limit;
 extern double disk_radius_mass_fraction;
 
@@ -114,10 +114,10 @@ extern double sigma_random_factor;
 extern double sigma_feature_size;
 /// sigma floor (in multiples of Sigma0)
 extern double sigma_floor;
-/// adjust sigma0 to have total discmass = sigma_discmass
+/// adjust sigma0 to have total diskmass = sigma_diskmass
 extern bool sigma_adjust;
-/// total discmass
-extern double sigma_discmass;
+/// total diskmass
+extern double sigma_diskmass;
 /// Sigma0
 extern double sigma0;
 

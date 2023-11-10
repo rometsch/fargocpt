@@ -206,7 +206,7 @@ void recalculate_viscosity(t_data &data, const double current_time)
 {
 
 	if (parameters::Locally_Isothermal) {
-	if (parameters::ASPECTRATIO_MODE > 0) {
+	if (parameters::aspectratio_mode > 0) {
 		compute_sound_speed(data, current_time);
 		compute_scale_height(data, current_time);
 	}
@@ -226,7 +226,7 @@ void recalculate_derived_disk_quantities(t_data &data, const double current_time
 {
 
     if (parameters::Locally_Isothermal) {
-	if (parameters::ASPECTRATIO_MODE > 0) {
+	if (parameters::aspectratio_mode > 0) {
 		compute_sound_speed(data, current_time);
 		compute_pressure(data);
 		compute_temperature(data);
@@ -384,7 +384,7 @@ static void momentum_update_azimuthal(t_data &data, const double dt) {
 
 	if (parameters::IMPOSEDDISKDRIFT != 0.0) {
 		supp_torque = parameters::IMPOSEDDISKDRIFT * 0.5 *
-			  std::pow(Rmed[nr], -2.5 + parameters::SIGMASLOPE);
+			  std::pow(Rmed[nr], -2.5 + parameters::sigma_slope);
 	}
 	//const double invdxtheta = 1.0 / (dphi * Rmed[n_radial]);
 	const double invdxtheta = 2.0 / (dphi * (Rsup[nr]+Rinf[nr]));
@@ -666,8 +666,8 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 			data[t_data::SIGMA](nr, naz);
 		    const double E0 =
 			1.0 / (parameters::ADIABATICINDEX - 1.0) *
-			std::pow(parameters::ASPECTRATIO_REF, 2) *
-			std::pow(Rmed[nr], 2.0 * parameters::FLARINGINDEX - 1.0) *
+			std::pow(parameters::aspectratio_ref, 2) *
+			std::pow(Rmed[nr], 2.0 * parameters::flaring_index - 1.0) *
 			constants::G * hydro_center_mass * sigma;
 		    delta_E -= E0;
 		}
@@ -970,8 +970,8 @@ static void compute_sound_speed_normal(t_data &data)
 		    std::sqrt(gamma_eff * constants::R / parameters::MU *
 				  data[t_data::TEMPERATURE](nr, naz));
 	    } else { // isothermal
-		const double h0 = parameters::ASPECTRATIO_REF;
-		const double beta = parameters::FLARINGINDEX;
+		const double h0 = parameters::aspectratio_ref;
+		const double beta = parameters::flaring_index;
 		const double G = constants::G;
 		const double vK = std::sqrt(G * hydro_center_mass / Rb[nr]);
 		const double h = h0 * std::pow(Rb[nr], beta);
@@ -1018,7 +1018,7 @@ static void compute_iso_sound_speed_center_of_mass(t_data &data)
 	    const double Cs2 = constants::G * m_cm / dist;
 
 	    const double Cs =
-		parameters::ASPECTRATIO_REF * std::pow(dist, parameters::FLARINGINDEX) * std::sqrt(Cs2);
+		parameters::aspectratio_ref * std::pow(dist, parameters::flaring_index) * std::sqrt(Cs2);
 	    data[t_data::SOUNDSPEED](n_rad, n_az) = Cs;
 	}
     }
@@ -1073,8 +1073,8 @@ static void compute_iso_sound_speed_nbody(t_data &data, const double current_tim
 			const double dist = std::max(
 				std::sqrt(std::pow(dx, 2) + std::pow(dy, 2)), min_dist);
 
-		Cs2 += (parameters::ASPECTRATIO_REF * parameters::ASPECTRATIO_REF * 
-				std::pow(dist, 2.0*parameters::FLARINGINDEX)
+		Cs2 += (parameters::aspectratio_ref * parameters::aspectratio_ref * 
+				std::pow(dist, 2.0*parameters::flaring_index)
 				* constants::G * g_mpl[k]) / dist;
 	    }
 
@@ -1091,7 +1091,7 @@ void compute_sound_speed(t_data &data, const double current_time)
     }
 
     if (parameters::Locally_Isothermal) {
-	switch (parameters::ASPECTRATIO_MODE) {
+	switch (parameters::aspectratio_mode) {
 	case 0:
 		compute_sound_speed_normal(data);
 	    break;
@@ -1291,7 +1291,7 @@ void compute_scale_height_center_of_mass(t_data &data)
 
 void compute_scale_height(t_data &data, const double current_time)
 {
-    switch (parameters::ASPECTRATIO_MODE) {
+    switch (parameters::aspectratio_mode) {
     case 0:
 	compute_scale_height_old(data);
 	break;

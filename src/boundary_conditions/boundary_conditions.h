@@ -46,7 +46,7 @@ extern double keplerian_radial_inner_factor;
 // speed of the viscous boundary inflow
 extern double viscous_outflow_speed;
 
-extern bool rochlobe_overflow;
+extern bool rochelobe_overflow;
 // Rochlobe overflow: number of Nbody object from which the stream originates
 extern unsigned int rof_planet;
 // Rochlobe overflow, sets initial temperature and width of stream

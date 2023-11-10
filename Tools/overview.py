@@ -188,7 +188,10 @@ class Plot1D:
         if self.plot_rel or self.plot_diff:
             self.y0s = {}
             for var in self.vars:
-                field = self.simd.get(var, dim="2d", N="damping")
+                try:
+                    field = self.simd.get(var, dim="2d", N="reference")
+                except KeyError:
+                    field = self.simd.get(var, dim="2d", N=0)
                 self.y0s[var] = field.data.cgs.value
 
         for var in self.vars:

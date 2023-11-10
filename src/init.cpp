@@ -321,7 +321,7 @@ void init_physics(t_data &data)
 	    die("Do not use 'Nbody center of mass outer boundary' with only one body!\n");
 	}*/
 
-	if (parameters::ASPECTRATIO_MODE > 0) {
+	if (parameters::aspectratio_mode > 0) {
 	    die("Do not use Nbody aspectratio mode with only 1 body!\n");
 	}
     }
@@ -376,7 +376,7 @@ void init_spreading_ring_test(t_data &data)
 	logging::print(
 	    LOG_INFO "Initializing Spreading Ring at radius = %.5e\n", R0_);
 
-    const double Disk_Mass = parameters::sigma_discmass;
+    const double Disk_Mass = parameters::sigma_diskmass;
     const double tau0 = 0.016;
 
     const double x = Rmed[R0_id] / R0;
@@ -661,7 +661,7 @@ void init_secondary_disk_densities(t_data &data)
 
 	    if (r < compute_radius) {
 		const double density = parameters::sigma0 * scaling_factor *
-				       std::pow(r, -parameters::SIGMASLOPE) *
+				       std::pow(r, -parameters::sigma_slope) *
 				       cutoff_outer(disk_size, cutoff_width, r);
 
 		const double density_old =
@@ -915,7 +915,7 @@ void add_gaussian_density_ring(t_data & data){
 				}
 
 		const double sigma_ring =
-				parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE);
+				parameters::sigma0 * std::pow(r, -parameters::sigma_slope);
 
 		assert(factor_ring >= 1.0);
 
@@ -945,14 +945,14 @@ void init_gas_density(t_data &data)
 	    parameters::sigma0,
 	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::sigma_slope);
 
 	for (unsigned int n_radial = 0; n_radial < data[t_data::SIGMA].Nrad;
 	     ++n_radial) {
 	    for (unsigned int n_azimuthal = 0;
 		 n_azimuthal < data[t_data::SIGMA].Nsec; ++n_azimuthal) {
 		const double density =
-		    parameters::sigma0 * std::pow(Rmed[n_radial], -parameters::SIGMASLOPE);
+		    parameters::sigma0 * std::pow(Rmed[n_radial], -parameters::sigma_slope);
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
 		data[t_data::SIGMA](n_radial, n_azimuthal) =
@@ -968,7 +968,7 @@ void init_gas_density(t_data &data)
 	    parameters::sigma0,
 	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(),
-	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::SIGMASLOPE);
+	    units::length.get_code_to_cgs_factor() / units::cgs_AU, -parameters::sigma_slope);
 
 	Pair cms = data.get_planetary_system().get_center_of_mass();
 	const double cms_x = cms.x;
@@ -988,7 +988,7 @@ void init_gas_density(t_data &data)
 		const double r = std::sqrt(x * x + y * y);
 
 		const double density =
-			parameters::sigma0 * std::pow(r, -parameters::SIGMASLOPE)
+			parameters::sigma0 * std::pow(r, -parameters::sigma_slope)
 				*parameters::center_mass_density_correction_factor;
 		const double density_floor =
 		    parameters::sigma_floor * parameters::sigma0;
@@ -1156,12 +1156,12 @@ void renormalize_sigma_and_report(t_data &data)
     // renormalize sigma0?
     if (parameters::sigma_adjust) {
 	double total_mass = quantities::gas_total_mass(data, 2.0 * RMAX);
-	parameters::sigma0 *= parameters::sigma_discmass / total_mass;
+	parameters::sigma0 *= parameters::sigma_diskmass / total_mass;
 	logging::print_master(
-	    LOG_INFO "Setting Sigma0=%g %s to set disc mass of %g to %g.\n",
+	    LOG_INFO "Setting Sigma0=%g %s to set disk mass of %g to %g.\n",
 	    parameters::sigma0 * units::surface_density.get_code_to_cgs_factor(),
 	    units::surface_density.get_cgs_symbol(), total_mass,
-	    parameters::sigma_discmass);
+	    parameters::sigma_diskmass);
 
 	// update density grid
 	for (unsigned int n_radial = 0;
@@ -1170,12 +1170,12 @@ void renormalize_sigma_and_report(t_data &data)
 		 n_azimuthal <= data[t_data::SIGMA].get_max_azimuthal();
 		 ++n_azimuthal) {
 		data[t_data::SIGMA](n_radial, n_azimuthal) *=
-		    parameters::sigma_discmass / total_mass;
+		    parameters::sigma_diskmass / total_mass;
 
 		if(parameters::Adiabatic){
 			// We reduce energy by the same amount to keep Temperature constant
 			data[t_data::ENERGY](n_radial, n_azimuthal) *=
-					parameters::sigma_discmass / total_mass;
+					parameters::sigma_diskmass / total_mass;
 		}
 	    }
 	}
@@ -1273,16 +1273,16 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing Energy = %g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_code_to_cgs_factor(),
+		std::pow(parameters::aspectratio_ref, 2) * units::energy.get_code_to_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    (1*units::L0).value_as(units::au),
-	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
-	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
+	    -parameters::sigma_slope - 1.0 + 2.0 * parameters::flaring_index, parameters::flaring_index,
+	    parameters::MU / constants::R * std::pow(parameters::aspectratio_ref, 2) *
 		constants::G * hydro_center_mass *
 		units::temperature.get_code_to_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
 	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
-	    -1.0 + 2.0 * parameters::FLARINGINDEX);
+	    -1.0 + 2.0 * parameters::flaring_index);
 
 	{
 	t_polargrid &Energy = data[t_data::ENERGY];
@@ -1309,15 +1309,15 @@ void init_gas_energy(t_data &data)
 	    LOG_INFO
 	    "Initializing CMS Energy=%g %s * [r/(%.1f AU)]^(%g). Flaring index is %g. T=%g %s * [r/(%.1f AU)]^(%g).\n",
 	    1.0 / ((parameters::ADIABATICINDEX - 1.0)) * parameters::sigma0 *
-		std::pow(parameters::ASPECTRATIO_REF, 2) * units::energy.get_code_to_cgs_factor(),
+		std::pow(parameters::aspectratio_ref, 2) * units::energy.get_code_to_cgs_factor(),
 	    units::energy.get_cgs_symbol(),
 	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
-	    -parameters::SIGMASLOPE - 1.0 + 2.0 * parameters::FLARINGINDEX, parameters::FLARINGINDEX,
-	    parameters::MU / constants::R * std::pow(parameters::ASPECTRATIO_REF, 2) *
+	    -parameters::sigma_slope - 1.0 + 2.0 * parameters::flaring_index, parameters::flaring_index,
+	    parameters::MU / constants::R * std::pow(parameters::aspectratio_ref, 2) *
 		constants::G * mass * units::temperature.get_code_to_cgs_factor(),
 	    units::temperature.get_cgs_symbol(),
 	    units::length.get_code_to_cgs_factor() / units::cgs_AU,
-	    -1.0 + 2.0 * parameters::FLARINGINDEX);
+	    -1.0 + 2.0 * parameters::flaring_index);
 
 	for (unsigned int n_radial = 0;
 	     n_radial <= data[t_data::ENERGY].get_max_radial(); ++n_radial) {

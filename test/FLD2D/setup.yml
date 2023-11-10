@@ -1,7 +1,7 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
 Ninterm: 1
-Ntot: 1
-DT: 0.0001                 #1e-11
+Nsnapshots: 1
+MonitorTimestep: 0.0001                 #1e-11
 FirstDT: 0.0001                 #1e-11 # initial hydro dt / dt in case of no disk
 
 RadiativeDiffusion: Yes
@@ -21,15 +21,15 @@ RadiativeDiffusionOuterBoundary: zerogradient
 
 # Works well with this number of cells
 # Nrad: 300   # Radial number of zones
-# Nsec: 600   # Azimuthal number of
+#Naz: 600   # Azimuthal number of
 
 
 Nrad: 100
-Nsec: 150
+Naz: 150
 # Nrad: 60
-# Nsec: 120
+#Naz: 120
 # Nrad: 1000
-# Nsec: 1500
+#Naz: 1500
 # cps: 3
 
 
@@ -50,7 +50,7 @@ SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-
 AspectRatio: 0.05   # Thickness over Radius in the disk
 FlaringIndex: 0
 
-AlphaViscosity: 0
+ViscousAlpha: 0
 HeatingViscous: no   # enable viscous heating
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]

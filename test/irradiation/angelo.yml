@@ -4,7 +4,7 @@ Integrator: Leapfrog
 Sigma0: 10 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '1.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'NO'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass: '0.03'   # only used when SetSigma0 = true [default = 0.01]
+DiskMass: '0.03'   # only used when SetSigma0 = true [default = 0.01]
 SigmaFloor: 1e-7   # floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
@@ -13,8 +13,8 @@ EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = P
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '0.03'   # Thickness over Radius in the disk
 Temperature0: 352 K
-Viscosity: 5.0e14 cm2/s   # Uniform kinematic viscosity
-AlphaViscosity: '0.0'   # 
+ConstantViscosity: 5.0e14 cm2/s   # Uniform kinematic viscosity
+ViscousAlpha: '0.0'   # 
 ArtificialViscosity: NONE   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'No'   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: '1.00'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
@@ -83,7 +83,7 @@ DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
 # Mesh parameters
 
 Nrad: '200'   # 512 128		# Radial number of zones
-Nsec: '2'   # 1536 384		# Azimuthal number of
+Naz: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -94,9 +94,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 # Output control parameters
 
 OutputDir: ../../output/tests/irradiation/out
-Ntot: '10'   # Total number of time steps
+Nsnapshots: '10'   # Total number of time steps
 Ninterm: '10'   # Time steps between outputs
-DT: '6.28e2'   # Time step length. 2PI = 1 orbit
+MonitorTimestep: '6.28e2'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]

@@ -26,7 +26,7 @@ void calculate_gravitational_stress(t_data &data)
 		1.0 / (4.0 * M_PI * constants::G) *
 		selfgravity::g_radial[nr * NAzimuthal + naz] *
 		selfgravity::g_azimuthal[nr * NAzimuthal + naz] *
-		(2 * parameters::ASPECTRATIO_REF * Rmed[nr]);
+		(2 * parameters::aspectratio_ref * Rmed[nr]);
 	}
     }
 }
