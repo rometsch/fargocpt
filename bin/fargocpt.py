@@ -171,11 +171,12 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     if fallback_openmp:
         cmd += ["--pidfile", pidfilepath]
     
-    if stdout is None:
-        stdout = sys.stdout
+    if detach:
+        if stdout is None:
+            stdout = sys.stdout
 
-    if stderr is None:
-        stderr = sys.stderr
+        if stderr is None:
+            stderr = sys.stderr
 
     cmd_desc = f"Running command: {' '.join(cmd)}"
     if len(env_update) > 0:
@@ -229,7 +230,7 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
 
     else:
         print_wrapper(stdout, "fargo process pid", pid)
-        print_wrapper(stdout, "detaching...")
+        print_wrapper(stdout, "detaching... check output dir for logs")
 
 def print_wrapper(stdout, *args, **kwargs):
     if stdout != PIPE:
