@@ -17,7 +17,7 @@ Adiabatic:
   type: string
   unitsupport: false
   deprecated: true
-  hint: EquationOfState: Ideal
+  hint: 'EquationOfState: Ideal'
 AdiabaticIndex:
   choices: ''
   default: none
@@ -51,7 +51,7 @@ ArtificialViscosity:
 ArtificialViscosityDissipation:
   choices: yes, no
   default: true
-  description: '# Use artificial viscosity in dissipation function.'
+  description: 'Use artificial viscosity in dissipation function.'
   type: bool
   unitsupport: false
 ArtificialViscosityFactor:
@@ -1066,7 +1066,7 @@ Sigma0:
 SigmaCondition:
   choices: Profile, 1D, 2D
   default: Profile
-  description: '# Initialize surface density by Profile, 1D data file or 2D data file.'
+  description: 'Initialize surface density by Profile, 1D data file or 2D data file.'
   type: string
   unitsupport: false
 SigmaFilename:
