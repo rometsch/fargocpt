@@ -21,6 +21,8 @@ This notebook will guide you through
 - how to plot some results.
 After completing this notebook, you likely know enough to run and analyze your own experiments.
 
+To learn what the parameters do while the documentation is being written, check out [parameters.md](https://github.com/rometsch/fargocpt/blob/devel/parameters.md) or open an issue here on github.
+
 ## Running locally
 
 To run locally on your computer, clone the last commit of the repository
