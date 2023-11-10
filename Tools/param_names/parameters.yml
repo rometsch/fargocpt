@@ -21,8 +21,7 @@ Adiabatic:
 AdiabaticIndex:
   choices: ''
   default: none
-  description: Numerical value or FIT_ISOTHERMAL (only for polytropic equation of
-    state)
+  description: Numerical value or FIT_ISOTHERMAL (only for polytropic equation of state)
   type: double
   unitsupport: false
 AlphaCold:
@@ -40,15 +39,13 @@ AlphaHot:
 AlphaMode:
   choices: 0, 1, 2
   default: 0
-  description: 'Select how the viscosity is calculated. 0: Const alpha  1: Scurve
-    Alpha  2: Nbody distance dependend'
+  description: 'Select how the viscosity is calculated. 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend'
   type: int
   unitsupport: false
 ArtificialViscosity:
   choices: none, TW, SN
   default: none
-  description: 'Type of artificial viscosity [default = SN] TODO: change default to
-    TW'
+  description: 'Type of artificial viscosity [default = SN] TODO: change default to TW'
   type: string
   unitsupport: false
 ArtificialViscosityDissipation:
@@ -72,22 +69,19 @@ AspectRatio:
 AspectRatioMode:
   choices: 0, 1, 2
   default: none
-  description: 'Compute aspectratio with respect to: 0: Primary object, 1: Nbody system,
-    2: Nbody center of mass'
+  description: 'Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass'
   type: int
   unitsupport: false
 BitwiseExactRestarting:
   choices: yes, no
   default: false
-  description: Write out Qplus and Qminus 2D arrays to snapshot for bitwise exact
-    restarting. This is really usefull to test development changes in the code.
+  description: Write out Qplus and Qminus 2D arrays to snapshot for bitwise exact restarting. This is really usefull to test development changes in the code.
   type: bool
   unitsupport: false
 BodyForceFromPotential:
   choices: ''
   default: true
-  description: Consider the gravitational force from the Nbody onto the disk via the
-    potential.
+  description: Consider the gravitational force from the Nbody onto the disk via the potential.
   type: bool
   unitsupport: false
 CFL:
@@ -165,8 +159,7 @@ CompatibilityNoStarSmoothing:
 CompatibilitySmoothingPlanetLoc:
   choices: yes, no
   default: false
-  description: Use the scale height at the planet position for the smoothing length
-    calculation instead of the scaleheight at the cell.
+  description: Use the scale height at the planet position for the smoothing length calculation instead of the scaleheight at the cell.
   type: bool
   unitsupport: false
 ConstantViscosity:
@@ -223,25 +216,20 @@ CoolingScurve:
 CorotationReferenceBody:
   choices: positive integers
   default: 1
-  description: Select the Nbody object which is the reference object for the automatic
-    calculation of the corotation angular velocity for a rotating frame.
+  description: Select the Nbody object which is the reference object for the automatic calculation of the corotation angular velocity for a rotating frame.
   type: unsigned int
   unitsupport: false
 CorrectDiskSelfgravity:
   choices: yes, no
   default: true
-  description: Substract the azimuthal average of the surface density in the calculation
-    of torques on Nbody object to make the disk and Nbody have the same central mass
-    around which they orbit. See Baruteau & Masset (2008). [default=not selfgravity
-    turned on]
+  description: Substract the azimuthal average of the surface density in the calculation of torques on Nbody object to make the disk and Nbody have the same central mass around which they orbit. See Baruteau & Masset (2008). [default=not selfgravity turned on]
   type: bool
   unitsupport: false
 DT:
   choices: ''
   default: 1
   deprecated: true
-  description: Time between two analysis outputs. For default units, 2PI = 1 orbit
-    at r=1.
+  description: Time between two analysis outputs. For default units, 2PI = 1 orbit at r=1.
   newname: MonitorTimestep
 Damping:
   choices: yes, no
@@ -264,15 +252,13 @@ DampingEnergyOuter:
 DampingInnerLimit:
   choices: positive floats
   default: none
-  description: 'Set the outer limit of the inner wave damping zone: Rmin*Limit. Zone
-    is diabled for limit < 1. Rmin is the radius of the inner boundary.'
+  description: 'Set the outer limit of the inner wave damping zone: Rmin*Limit. Zone is diabled for limit < 1. Rmin is the radius of the inner boundary.'
   type: double
   unitsupport: false
 DampingOuterLimit:
   choices: positive floats
   default: none
-  description: 'Set the inner limit of the outer wave damping zone: Rmax*Limit. Zone
-    is diabled for limit > 1. Rmax is the radius of the outer boundary.'
+  description: 'Set the inner limit of the outer wave damping zone: Rmax*Limit. Zone is diabled for limit > 1. Rmax is the radius of the outer boundary.'
   type: double
   unitsupport: false
 DampingSurfaceDensityInner:
@@ -290,15 +276,13 @@ DampingSurfaceDensityOuter:
 DampingTimeFactor:
   choices: ''
   default: none
-  description: Damping time factor. Values will be exponentially damped on a timescale
-    of factor*Keplerian Period at boundary radius.
+  description: Damping time factor. Values will be exponentially damped on a timescale of factor*Keplerian Period at boundary radius.
   type: double
   unitsupport: false
 DampingTimeRadiusOuter:
   choices: positive floats
   default: none
-  description: 'Reference radius for the outer damping time. default: Outer domain
-    radius RMAX'
+  description: 'Reference radius for the outer damping time. default: Outer domain radius RMAX'
   type: double
   unitsupport: false
 DampingVAzimuthalInner:
@@ -328,22 +312,19 @@ DampingVRadialOuter:
 DensityFactor:
   choices: ''
   default: 2.5066282746310002
-  description: Factor for convertion from surface density to density. Leave this as
-    it is! [default = sqrt(2.0*pi)]
+  description: Factor for convertion from surface density to density. Leave this as it is! [default = sqrt(2.0*pi)]
   type: double
   unitsupport: false
 Disk:
   choices: yes, no
   default: true
-  description: Turn on hydro part of the simulation. Set this to no to, e.g., test
-    the dust module.
+  description: Turn on hydro part of the simulation. Set this to no to, e.g., test the dust module.
   type: bool
   unitsupport: false
 DiskFeedback:
   choices: yes, no
   default: true
-  description: Enable gravitational forces from the disk onto the planets. Enable
-    migration.
+  description: Enable gravitational forces from the disk onto the planets. Enable migration.
   type: bool
   unitsupport: false
 DiskMass:
@@ -355,8 +336,7 @@ DiskMass:
 DiskRadiusMassFraction:
   choices: ''
   default: 0.99
-  description: 'Calculation of the disk radius: this fraction of the total mass is
-    contained within the disk radius.'
+  description: 'Calculation of the disk radius: this fraction of the total mass is contained within the disk radius.'
   type: double
   unitsupport: false
 DoWrite1DFiles:
@@ -393,8 +373,7 @@ EquationOfState:
 ExponentialCellSizeFactor:
   choices: ''
   default: 1.41
-  description: Cell size increase factor to build an exponential grid. Only relevant
-    for exponential grid type.
+  description: Cell size increase factor to build an exponential grid. Only relevant for exponential grid type.
   type: double
   unitsupport: false
 FeatureSize:
@@ -406,8 +385,7 @@ FeatureSize:
 FirstDT:
   choices: ''
   default: 1.0e-09
-  description: Initialization value for the hydro dt in case of hydro simulations
-    turned off. Otherwise CFL dt is used.
+  description: Initialization value for the hydro dt in case of hydro simulations turned off. Otherwise CFL dt is used.
   type: double
   unitsupport: false
 FlaringIndex:
@@ -425,15 +403,13 @@ FluxLimiter:
 Frame:
   choices: F, C
   default: none
-  description: 'Select whether the rotating frame has a fixed angular velocity (F)
-    or if it is updated (C).  F: Fixed, C: Corotating'
+  description: 'Select whether the rotating frame has a fixed angular velocity (F) or if it is updated (C).  F: Fixed, C: Corotating'
   type: string
   unitsupport: false
 HeatingCoolingCFLlimit:
   choices: ''
   default: none
-  description: Energy change dT/T in substep3 only allowed to change by this fraction
-    times CFL.
+  description: Energy change dT/T in substep3 only allowed to change by this fraction times CFL.
   type: double
   unitsupport: false
 HeatingViscous:
@@ -451,9 +427,7 @@ HeatingViscousFactor:
 HydroFrameCenter:
   choices: primary, binary, tertiary, quatirary, all
   default: none
-  description: Specify the origin of the simulation grid. Primary uses the central
-    object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all
-    nbody objects
+  description: Specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
   type: string
   unitsupport: false
 HydrogenMassFraction:
@@ -471,8 +445,7 @@ ImposedDiskDrift:
 IndirectTermMode:
   choices: 0, 1
   default: none
-  description: 'Select the way the indirect term is calculated. You likely want 0.
-    0: indirect term from rebound with shift; 1: euler with shift (original)'
+  description: 'Select the way the indirect term is calculated. You likely want 0. 0: indirect term from rebound with shift; 1: euler with shift (original)'
   type: int
   unitsupport: false
 InitializePureKeplerian:
@@ -488,8 +461,7 @@ InitializeVradialZero:
   type: bool
   unitsupport: false
 InnerBoundary:
-  choices: Open, Reflective/Rigid, Viscous, ZeroGradient, PrescribedTimeVariable,
-    BoundaryLayer
+  choices: Open, Reflective/Rigid, Viscous, ZeroGradient, PrescribedTimeVariable, BoundaryLayer
   default: none
   description: Boundary condition at the inner boundary.
   type: string
@@ -563,43 +535,37 @@ KappaFactor:
 KeepDiskMassConstant:
   choices: yes, no
   default: false
-  description: Rescale the mass of the disk periodically. You likely want to keep
-    this turned off.
+  description: Rescale the mass of the disk periodically. You likely want to keep this turned off.
   type: bool
   unitsupport: false
 KlahrSmoothingRadius:
   choices: ''
   default: none
-  description: Smoothing radius for Klahr & Kley smoothing around the secondary if
-    H is calculated using all Nbody objects.
+  description: Smoothing radius for Klahr & Kley smoothing around the secondary if H is calculated using all Nbody objects.
   type: double
   unitsupport: false
 LogAfterRealSeconds:
   choices: positive integers
   default: none
-  description: Write a log message to console after this number of real seconds. Setting
-    to 0 disables this feature.
+  description: Write a log message to console after this number of real seconds. Setting to 0 disables this feature.
   type: double
   unitsupport: false
 LogAfterSteps:
   choices: positive integers
   default: none
-  description: Write a log message to console after this number hydro steps. Setting
-    to 0 disables this feature.
+  description: Write a log message to console after this number hydro steps. Setting to 0 disables this feature.
   type: unsigned int
   unitsupport: false
 MassAccretionRadius:
   choices: ''
   default: none
-  description: 'For inner boundary = boundary layer: Mass accretion radius in unints
-    of R_hill / 2.'
+  description: 'For inner boundary = boundary layer: Mass accretion radius in unints of R_hill / 2.'
   type: double
   unitsupport: false
 MassAccretionRate:
   choices: ''
   default: 1.0e-09
-  description: 'For inner boundary = boundary layer: Mass accretion rate (from secondary,
-    young stellar cloud, etc.).'
+  description: 'For inner boundary = boundary layer: Mass accretion rate (from secondary, young stellar cloud, etc.).'
   type: double
   unitsupport: false
 MaximumTemperature:
@@ -617,8 +583,7 @@ MinimumTemperature:
 MonitorTimestep:
   choices: ''
   default: none
-  description: Calculate scalar quatities every MonitorTimestep in code units. For
-    default units 2PI = 1 orbit at r=1
+  description: Calculate scalar quatities every MonitorTimestep in code units. For default units 2PI = 1 orbit at r=1
   type: double
   unitsupport: false
 NSEC:
@@ -663,8 +628,7 @@ Nrad:
 Nsnapshots:
   choices: ''
   default: none
-  description: Number of snapshots. The final time will be tfinal = Nsnapshots*Ninterm*MonitorTimestep.
-    Please note that this is a different from FARGO3D!
+  description: Number of snapshots. The final time will be tfinal = Nsnapshots*Ninterm*MonitorTimestep. Please note that this is a different from FARGO3D!
   type: unsigned int
   unitsupport: false
 NumberOfParticles:
@@ -748,8 +712,7 @@ ParticleDensity:
 ParticleDiskGravityEnabled:
   choices: ''
   default: false
-  description: 'Enable disk self-gravity acting on particles. TODO: this should be
-    set to default to reflect the self-gravity flag.'
+  description: 'Enable disk self-gravity acting on particles. TODO: this should be set to default to reflect the self-gravity flag.'
   type: bool
   unitsupport: false
 ParticleDustDiffusion:
@@ -761,8 +724,7 @@ ParticleDustDiffusion:
 ParticleEccentricity:
   choices: ''
   default: none
-  description: Initialize the particles with eccentricities drawn from a uniform random
-    distribution between 0 and this number.
+  description: Initialize the particles with eccentricities drawn from a uniform random distribution between 0 and this number.
   type: double
   unitsupport: false
 ParticleGasDragEnabled:
@@ -774,8 +736,7 @@ ParticleGasDragEnabled:
 ParticleIntegrator:
   choices: e, m
   default: none
-  description: Select the particle integrator. Explicit (Cash-Carp with adaptive timesteping),
-    Midpoint (Mignone 2019)
+  description: Select the particle integrator. Explicit (Cash-Carp with adaptive timesteping), Midpoint (Mignone 2019)
   type: string
   unitsupport: false
 ParticleMaximumEscapeRadius:
@@ -805,15 +766,13 @@ ParticleMinimumRadius:
 ParticleRadius:
   choices: ''
   default: 100.0 cm
-  description: 'Particle radius in cm [default = 100] TODO: change default radius
-    to 1cm'
+  description: 'Particle radius in cm [default = 100] TODO: change default radius to 1cm'
   type: double
   unitsupport: false
 ParticleRadiusIncreaseFactor:
   choices: ''
   default: none
-  description: Increase the size of each particle species by this factor. The size
-    of the nth particle species is then ParticleRadius*IncreaseFactor^{n-1}.
+  description: Increase the size of each particle species by this factor. The size of the nth particle species is then ParticleRadius*IncreaseFactor^{n-1}.
   type: double
   unitsupport: false
 ParticleSpeciesNumber:
@@ -825,8 +784,7 @@ ParticleSpeciesNumber:
 ParticleSurfaceDensitySlope:
   choices: ''
   default: none
-  description: 'Slope of particle surface density distribution: Sigma(r) = Sigma0
-    * r^(-ParticleSurfaceDensitySlope). [default = SigmaSlope]'
+  description: 'Slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope). [default = SigmaSlope]'
   type: double
   unitsupport: false
 PlanetOrbitDiskTest:
@@ -874,8 +832,7 @@ ProfileCutoffWidthOuter:
 QuantitiesRadiusLimit:
   choices: ''
   default: 5
-  description: 'Limit the calculation of disk quantities to inside this radius. TODO:
-    enlarge radius'
+  description: 'Limit the calculation of disk quantities to inside this radius. TODO: enlarge radius'
   type: double
   unitsupport: false
 ROFVariableTransfer:
@@ -929,8 +886,7 @@ RadialSpacing:
 RadialViscosityFactor:
   choices: ''
   default: 1
-  description: Viscosity in radial direction is mutliplied with this factor to avoid
-    oscillations.
+  description: Viscosity in radial direction is mutliplied with this factor to avoid oscillations.
   type: double
   unitsupport: false
 RadiativeDiffusion:
@@ -972,8 +928,7 @@ RadiativeDiffusionMaxIterations:
 RadiativeDiffusionOmega:
   choices: ''
   default: none
-  description: Parameter for the succesive-overrelaxation (SOR) solver for the linear
-    system of the FLD radiative transport.
+  description: Parameter for the succesive-overrelaxation (SOR) solver for the linear system of the FLD radiative transport.
   type: double
   unitsupport: false
 RadiativeDiffusionOuterBoundary:
@@ -1069,9 +1024,7 @@ SecondaryDisk:
 SelfGravity:
   choices: Yes, Z, No
   default: false
-  description: Enable self-gravity. This uses the Fourier-Convolution technique from
-    Clement Baruteau with a modification for the scale height by Tobias Modlenhauer
-    to make the accelerations symmetric.
+  description: Enable self-gravity. This uses the Fourier-Convolution technique from Clement Baruteau with a modification for the scale height by Tobias Modlenhauer to make the accelerations symmetric.
   type: bool
   unitsupport: false
 SelfGravityAspectRatioChangeThreshold:
@@ -1101,15 +1054,13 @@ SetSigma0:
 ShockTube:
   choices: 0, 1, 2
   default: 0
-  description: 'Initialize shocktube problem with 0:no shocktube 1:Ideal EOS (perfect
-    gas) 2: PVTE EOS (variableGamma)'
+  description: 'Initialize shocktube problem with 0:no shocktube 1:Ideal EOS (perfect gas) 2: PVTE EOS (variableGamma)'
   type: int
   unitsupport: false
 Sigma0:
   choices: ''
   default: 173 g/cm2
-  description: 'Set the scale for the Surface density profile: Sigma = Sigma0 * r^-SigmaSlope.
-    TODO: change to value with unit.'
+  description: 'Set the scale for the Surface density profile: Sigma = Sigma0 * r^-SigmaSlope. TODO: change to value with unit.'
   type: double
   unitsupport: false
 SigmaCondition:
@@ -1133,8 +1084,7 @@ SigmaFloor:
 SigmaSlope:
   choices: float
   default: none
-  description: Powerlaw exponent (the nagative of it) of the initial surface density
-    profile. Sigma = Sigma0 * r^-SigmaSlope.
+  description: Powerlaw exponent (the nagative of it) of the initial surface density profile. Sigma = Sigma0 * r^-SigmaSlope.
   type: double
   unitsupport: false
 SpreadingRing:
@@ -1159,8 +1109,7 @@ StellarRotation:
   choices: ''
   default: 0.1
   deprecated: true
-  description: 'For inner boundary = boundary layer: Stellar rotation rate (azimuthal
-    velocity of the surface) in terms of Keplerian angular velocity at the inner boundary.'
+  description: 'For inner boundary = boundary layer: Stellar rotation rate (azimuthal velocity of the surface) in terms of Keplerian angular velocity at the inner boundary.'
   hint: InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian
   newname: none
 SurfaceCooling:
@@ -1172,15 +1121,13 @@ SurfaceCooling:
 TauFactor:
   choices: ''
   default: 0.5
-  description: 'Fudge factor for tau. Leave this as it is! [default = 1.0] TODO: change
-    default value.'
+  description: 'Fudge factor for tau. Leave this as it is! [default = 1.0] TODO: change default value.'
   type: double
   unitsupport: false
 TauMin:
   choices: ''
   default: 0.01
-  description: "Tau min for the effective optical depth calculateion. See Hubney (1990),\
-    \ M\xFCller & Kley (2012) and DAngelo & Marzari (2015)."
+  description: "Tau min for the effective optical depth calculation. See Hubney (1990), Müller & Kley (2012) and DAngelo & Marzari (2015)."
   type: double
   unitsupport: false
 Temperature0:
@@ -1192,22 +1139,19 @@ Temperature0:
 ThicknessSmoothing:
   choices: ''
   default: none
-  description: Smoothing/softening parameters for the Nbody-disk gravitional interaction
-    in multiples of the disk scaleheight.
+  description: Smoothing/softening parameters for the Nbody-disk gravitional interaction in multiples of the disk scaleheight.
   type: double
   unitsupport: false
 ThicknessSmoothingSG:
   choices: ''
   default: none
-  description: 'Smoothing/softening parameter for SG [default = ThicknessSmoothing]
-    TODO: change the default to thickness smoothing'
+  description: 'Smoothing/softening parameter for SG [default = ThicknessSmoothing] TODO: change the default to thickness smoothing'
   type: double
   unitsupport: false
 Transport:
   choices: fast, slow
   default: none
-  description: Specify whether or not to use the Fargo method (fast) or the standard
-    method (slow).
+  description: Specify whether or not to use the Fargo method (fast) or the standard method (slow).
   type: string
   unitsupport: false
 VISCOSITY:
@@ -1220,8 +1164,7 @@ VRadIn:
   choices: ''
   default: 0.0016
   deprecated: true
-  description: 'For inner boundary = boundary layer: value of v_rad at inner boundary
-    in terms of Keplerian velocity v_kepler at the inner boundary.'
+  description: 'For inner boundary = boundary layer: value of v_rad at inner boundary in terms of Keplerian velocity v_kepler at the inner boundary.'
   hint: InnerBoundaryVradKeplerianFactor, InnerBoundaryVrad = keplerian
   newname: none
 VazimuthalConsidersQuadropoleMoment:
@@ -1246,8 +1189,7 @@ ViscousAlpha:
 ViscousOutflowSpeed:
   choices: positive float
   default: 1
-  description: '# Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed
-    used for VISC boundary condition and inside viscous accretion.'
+  description: '# Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed used for VISC boundary condition and inside viscous accretion.'
   type: double
   unitsupport: false
 WriteAlpha:
@@ -1265,8 +1207,7 @@ WriteAlphaGrav:
 WriteAlphaGravMean:
   choices: yes, no
   default: false
-  description: Write 2D array of azimuthal mean of the alpha value of gravitational
-    stress.
+  description: Write 2D array of azimuthal mean of the alpha value of gravitational stress.
   type: bool
   unitsupport: false
 WriteAlphaReynolds:
@@ -1290,15 +1231,13 @@ WriteAspectratio:
 WriteAtEveryTimestep:
   choices: yes, no
   default: true
-  description: Write some quantities (planet positions, disk quantities, ...) at every
-    Timestep.
+  description: Write some quantities (planet positions, disk quantities, ...) at every Timestep.
   type: bool
   unitsupport: false
 WriteDefaultValues:
   choices: yes, no
   default: false
-  description: Write a yaml file to the output directory containing all default values
-    hardcoded in the code.
+  description: Write a yaml file to the output directory containing all default values hardcoded in the code.
   type: bool
   unitsupport: false
 WriteDensity:
@@ -1310,8 +1249,7 @@ WriteDensity:
 WriteDiskQuantities:
   choices: yes, no
   default: true
-  description: Write a collection of disk quantities (mass, eccentricity, periastron,
-    semi_major_axis, ...)
+  description: Write a collection of disk quantities (mass, eccentricity, periastron, semi_major_axis, ...)
   type: bool
   unitsupport: false
 WriteDivV:
@@ -1323,8 +1261,7 @@ WriteDivV:
 WriteEccentricity:
   choices: yes, no
   default: false
-  description: Write 2D array of eccentricity based on specific angular momentum of
-    the cell.
+  description: Write 2D array of eccentricity based on specific angular momentum of the cell.
   type: bool
   unitsupport: false
 WriteEccentricityChange:
@@ -1354,8 +1291,7 @@ WriteFirstAdiabaticIndex:
 WriteGasTorques:
   choices: yes, no
   default: false
-  description: Calculate and write gravitational/viscous and advection torques on
-    gas. See Miranda et al. 2017
+  description: Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
   type: bool
   unitsupport: false
 WriteKappa:
@@ -1379,8 +1315,7 @@ WriteLightCurvesRadii:
 WriteMassFlow:
   choices: yes, no
   default: false
-  description: Write a 1D radial file with mass flow at each interface. Track accretion
-    through the disk.
+  description: Write a 1D radial file with mass flow at each interface. Track accretion through the disk.
   type: bool
   unitsupport: false
 WriteMeanMolecularWeight:
@@ -1500,8 +1435,7 @@ WriteVelocity:
 WriteVerticalOpticalDepth:
   choices: ''
   default: false
-  description: Write 2D of optical depth in vertical direction (tau_eff by Hubeny
-    [1990]).
+  description: Write 2D of optical depth in vertical direction (tau_eff by Hubeny [1990]).
   type: bool
   unitsupport: false
 WriteViscosity:
@@ -1525,9 +1459,7 @@ WritepDV:
 cps:
   choices: ''
   default: none
-  description: 'Set the resolution in terms of cells per scaleheight ar r=1: if cps
-    > 0, overrides Nrad and Nsec and initializes them according to domain size and
-    AspectRatio.'
+  description: 'Set the resolution in terms of cells per scaleheight ar r=1: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio.'
   type: double
   unitsupport: false
 discmass:
