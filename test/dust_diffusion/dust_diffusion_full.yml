@@ -4,7 +4,7 @@
 
 # Time settings
 
-Nsnap: '24'   # Total number of time steps
+Nsnapshots: '24'   # Total number of time steps
 Ninterm: '1000'   # Time steps between outputs
 MonitorTimestep: '0.8885765876316732'   # Time of one orbit at 1 au for a 0.5 solMass star
 OutputDir: output/dust_diffusion

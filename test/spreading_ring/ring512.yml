@@ -113,7 +113,7 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 # Output control parameters
 
 OutputDir: ../../output/tests/spreading_ring/ring512   # Output directory
-Nsnap: '240'   # Total number of time steps
+Nsnapshots: '240'   # Total number of time steps
 Ninterm: '10'   # Time steps between outputs
 MonitorTimestep: '0.314159265359'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]

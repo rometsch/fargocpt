@@ -1,6 +1,6 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
 Ninterm: 1
-Nsnap: 1
+Nsnapshots: 1
 MonitorTimestep: 0.0001                 #1e-11
 FirstDT: 0.0001                 #1e-11 # initial hydro dt / dt in case of no disk
 

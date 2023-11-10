@@ -92,7 +92,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 # Output control parameters
 
 OutputDir: ../../output/tests/TemperatureTest/out
-Nsnap: '10'   # Total number of time steps
+Nsnapshots: '10'   # Total number of time steps
 Ninterm: '10'   # Time steps between outputs
 MonitorTimestep: '6.28e2'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]

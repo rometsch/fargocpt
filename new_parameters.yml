@@ -597,10 +597,10 @@ Nrad:
   description: Number of radial cells.
   type: unsigned int
   unitsupport: false
-Nsnap:
+Nsnapshots:
   choices: ''
   default: none
-  description: Number of snapshots. The final time will be tfinal = Nsnap*Ninterm*MonitorTimestep.
+  description: Number of snapshots. The final time will be tfinal = Nsnapshots*Ninterm*MonitorTimestep.
     Please note that this is a different from FARGO3D!
   type: unsigned int
   unitsupport: false

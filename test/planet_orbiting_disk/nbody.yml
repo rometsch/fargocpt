@@ -84,7 +84,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Nsnap: 1     # Total number of time steps
+Nsnapshots: 1     # Total number of time steps
 Ninterm: 400     # Time steps between outputs
 MonitorTimestep: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'

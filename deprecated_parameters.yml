@@ -48,7 +48,7 @@ NTOT:
   default: 1000
   deprecated: true
   description: Number of snapshots to be written.
-  newname: Nsnap
+  newname: Nsnapshots
 StellarRotation:
   choices: ''
   default: 0.1

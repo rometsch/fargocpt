@@ -16,7 +16,7 @@ old_to_new = {
  'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi = zeroshear'},
  'IntegratePlanets': {'newname': 'none'},
  'NSEC': {'newname': 'Naz'},
- 'NTOT': {'newname': 'Nsnap'},
+ 'NTOT': {'newname': 'Nsnapshots'},
  'StellarRotation': {'newname': 'none',
   'hint': 'InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian'},
  'VISCOSITY': {'newname': 'ConstantViscosity'},

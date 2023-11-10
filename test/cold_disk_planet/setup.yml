@@ -1,7 +1,7 @@
 DiskFeedback: no   # Calculate incfluence of the disk on the star
 MonitorTimestep: 0.6283185307179586 # 10th of an orbit
 Ninterm: 100 # snapshot every 10 orbits
-Nsnap: 10 # do 10 snapshots for a total of 100 orbits
+Nsnapshots: 10 # do 10 snapshots for a total of 100 orbits
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 CFLmaxVar: 1.1
 

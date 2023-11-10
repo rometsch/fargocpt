@@ -109,7 +109,7 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 # Output control parameters
 
 OutputDir: ../../output/tests/shocktube/SN/
-Nsnap: '1'   # Total number of time steps
+Nsnapshots: '1'   # Total number of time steps
 Ninterm: '1'   # Time steps between outputs
 MonitorTimestep: '0.228'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
