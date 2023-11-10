@@ -27,3 +27,4 @@
 - info about 1D output is now in the `info1D.yml` file
 - info about particle data is now in the `infoParticles.yml` file
 - code now exits in case of unknown parameters in the setup file. This help spotting typos.
+- changed the name of some parameters including Ntot->Nsnapshot, Ninterm->Nmonitor, DT->MonitorTimestep, run ./Tools/param_names/replace_parameter_names.py on a yml config file to update the names.
