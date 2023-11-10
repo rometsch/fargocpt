@@ -9,6 +9,7 @@ import re
 
 old_to_new = {
  'ALPHAVISCOSITY': {'newname': 'ViscousAlpha'},
+ 'Adiabatic': {'newname': 'none', 'hint': 'EquationOfState: Ideal'},
  'CoolingRadiativeLocal': {'newname': 'none',
   'hint': 'SurfaceCooling: thermal'},
  'CoolingScurve': {'newname': 'none', 'hint': 'SurfaceCooling: scurve'},
