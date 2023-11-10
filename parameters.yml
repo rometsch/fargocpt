@@ -18,6 +18,7 @@ Adiabatic:
   unitsupport: false
   deprecated: true
   hint: 'EquationOfState: Ideal'
+  newname: none
 AdiabaticIndex:
   choices: ''
   default: none
