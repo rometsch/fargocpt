@@ -16,6 +16,8 @@ Adiabatic:
   description: Deprecated. Dont use this anymore.
   type: string
   unitsupport: false
+  deprecated: true
+  hint: EquationOfState: Ideal
 AdiabaticIndex:
   choices: ''
   default: none
