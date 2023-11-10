@@ -49,9 +49,9 @@ static void write_snapshot(t_data &data) {
 
 void handle_outputs(t_data &data) {
 	bool need_update_for_output = true;
-	N_snapshot = (N_monitor / parameters::Ninterm); // note: integer division
+	N_snapshot = (N_monitor / parameters::Nmonitor); // note: integer division
 	
-	const bool to_write_snapshot = (parameters::Ninterm * N_snapshot == N_monitor);
+	const bool to_write_snapshot = (parameters::Nmonitor * N_snapshot == N_monitor);
 	const bool to_write_monitor = to_write_snapshot || parameters::write_at_every_timestep;
 
 
@@ -511,7 +511,7 @@ void run(t_data &data) {
 
 	init(data);
 
-	const double t_final = parameters::Nsnap * parameters::Ninterm * parameters::monitor_timestep;
+	const double t_final = parameters::Nsnap * parameters::Nmonitor * parameters::monitor_timestep;
 	const bool iteration_restriction = options::max_iteration_number >= 0;
 
     for (; PhysicalTime < t_final;) {

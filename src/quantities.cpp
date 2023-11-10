@@ -793,7 +793,7 @@ void calculate_massflow(t_data &data, unsigned int timestep, bool force_update)
     (void)timestep;
     (void)force_update;
 
-	const double denom = parameters::Ninterm * parameters::monitor_timestep;
+	const double denom = parameters::Nmonitor * parameters::monitor_timestep;
 
     // divide the data in massflow by the large timestep monitor_timestep before writing out
     // to obtain the massflow from the mass difference
@@ -966,7 +966,7 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    const double denom = (double)parameters::Ninterm;
+    const double denom = (double)parameters::Nmonitor;
     data[t_data::VISCOUS_TORQUE] /= denom;
 }
 
@@ -976,7 +976,7 @@ void calculate_gravitational_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    const double denom = (double)parameters::Ninterm;
+    const double denom = (double)parameters::Nmonitor;
     data[t_data::GRAVITATIONAL_TORQUE_NOT_INTEGRATED] /= denom;
 }
 
@@ -986,7 +986,7 @@ void calculate_advection_torque(t_data &data, unsigned int timestep,
     (void)timestep;
     (void)force_update;
 
-    const double denom = (double)parameters::Ninterm;
+    const double denom = (double)parameters::Nmonitor;
     data[t_data::ADVECTION_TORQUE] /= denom;
 }
 

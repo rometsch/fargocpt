@@ -17,6 +17,7 @@ old_to_new = {
  'IntegratePlanets': {'newname': 'none'},
  'NSEC': {'newname': 'Naz'},
  'NTOT': {'newname': 'Nsnapshots'},
+ 'Ninterm': {'newname': 'Nmonitor'},
  'StellarRotation': {'newname': 'none',
   'hint': 'InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian'},
  'VISCOSITY': {'newname': 'ConstantViscosity'},

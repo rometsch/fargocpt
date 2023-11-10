@@ -199,7 +199,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     // time settings
     parameters::Nsnap = cfg.get<unsigned int>("Nsnapshots", 1000);
-    parameters::Ninterm = cfg.get<unsigned int>("Ninterm", 10);
+    parameters::Nmonitor = cfg.get<unsigned int>("Nmonitor", 10);
     parameters::monitor_timestep = cfg.get<double>("MonitorTimestep", 1.0);
 
 
@@ -786,7 +786,7 @@ double TellNbOrbits(double time)
     return time / 2.0 / M_PI * sqrt(constants::G * 1.0 / 1.0 / 1.0 / 1.0);
 }
 
-double TellNbOutputs(double time) { return (time / parameters::monitor_timestep / parameters::Ninterm); }
+double TellNbOutputs(double time) { return (time / parameters::monitor_timestep / parameters::Nmonitor); }
 
 void TellEverything()
 {
@@ -867,5 +867,5 @@ void TellEverything()
     logging::print_master(LOG_VERBOSE "-------------------\n");
     logging::print_master(
 	LOG_VERBOSE "Time increment between outputs : %.3f = %.3f orbits\n",
-	parameters::Ninterm * parameters::monitor_timestep, TellNbOrbits(parameters::Ninterm * parameters::monitor_timestep));
+	parameters::Nmonitor * parameters::monitor_timestep, TellNbOrbits(parameters::Nmonitor * parameters::monitor_timestep));
 }

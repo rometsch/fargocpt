@@ -330,7 +330,7 @@ void t_planet::write_ascii(const std::string &filename) const
     if (parameters::write_at_every_timestep) {
 	div = parameters::monitor_timestep;
     } else {
-	div = parameters::monitor_timestep * parameters::Ninterm;
+	div = parameters::monitor_timestep * parameters::Nmonitor;
     }
 
     const double accretion_rate = accreted_mass / div;

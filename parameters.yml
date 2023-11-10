@@ -643,6 +643,15 @@ Ninterm:
   description: Number of analysis outputs between two snapshots.
   type: unsigned int
   unitsupport: false
+  deprecated: true
+  newname: Nmonitor
+Nmonitor:
+  choices: ''
+  default: none
+  description: Number of monitor outputs between two snapshots.
+  type: unsigned int
+  unitsupport: false
+  oldname: Ninterm
 Nrad:
   choices: ''
   default: none

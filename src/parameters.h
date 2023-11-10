@@ -23,7 +23,7 @@ extern bool CartesianParticles;
 extern bool ParticleGravityCalcInCartesian;
 
 extern double monitor_timestep;
-extern unsigned int Ninterm;
+extern unsigned int Nmonitor;
 extern unsigned int Nsnap;
 extern double quantities_radius_limit;
 extern double disk_radius_mass_fraction;

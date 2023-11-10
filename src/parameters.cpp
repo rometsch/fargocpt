@@ -43,7 +43,7 @@ bool ParticleGravityCalcInCartesian;
 
 
 double monitor_timestep;
-unsigned int Ninterm;
+unsigned int Nmonitor;
 unsigned int Nsnap;
 double quantities_radius_limit;
 double disk_radius_mass_fraction;
