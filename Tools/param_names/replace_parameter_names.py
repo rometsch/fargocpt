@@ -10,6 +10,7 @@ import re
 old_to_new = {
 'ALPHAVISCOSITY': {'newname': 'ViscousAlpha'},
  'Adiabatic': {'newname': 'none', 'hint': 'EquationOfState: Ideal'},
+ 'AlphaThreshold': {'newname': 'none'},
  'CoolingRadiativeLocal': {'newname': 'none',
   'hint': 'SurfaceCooling: thermal'},
  'CoolingScurve': {'newname': 'none', 'hint': 'SurfaceCooling: scurve'},
@@ -18,6 +19,7 @@ old_to_new = {
  'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi = zeroshear'},
  'ExplicitViscosity': {'newname': 'none',
   'hint': 'Set ViscousAlpha > 0 or ConstantViscosity > 0'},
+ 'ForcedCircular': {'newname': 'none'},
  'HeatingStar': {'newname': 'none',
   'hint': 'Set temperature of any Nbody object > 0 to enable irradiation from this object.'},
  'HeatingStarFactor': {'newname': 'none',

@@ -43,6 +43,14 @@ AlphaMode:
   description: 'Select how the viscosity is calculated. 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend'
   type: int
   unitsupport: false
+AlphaThreshold:
+  choices: positive values
+  default: 5000
+  deprecated: true
+  description: ?Threshold value for viscosity stabalized?
+  newname: none
+  type: double
+  unitsupport: false
 ArtificialViscosity:
   choices: none, TW, SN
   default: none
@@ -417,6 +425,14 @@ FluxLimiter:
   default: VanLeer
   description: Selec the flux limiter for the upwind scheme.
   type: string
+  unitsupport: false
+ForcedCircular:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Keep the eccentricity of the planet to zero. [default = no]
+  newname: none
+  type: bool
   unitsupport: false
 Frame:
   choices: F, C
@@ -1210,7 +1226,7 @@ TauFactor:
 TauMin:
   choices: ''
   default: 0.01
-  description: "Tau min for the effective optical depth calculation. See Hubney (1990), Mueller & Kley (2012) and DAngelo & Marzari (2015)."
+  description: Tau min for the effective optical depth calculation. See Hubney (1990), Mueller & Kley (2012) and DAngelo & Marzari (2015).
   type: double
   unitsupport: false
 Temperature0:
