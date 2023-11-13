@@ -203,7 +203,7 @@ CoolingBetaReference:
   type: string
   unitsupport: false
 CoolingRadiativeFactor:
-  choices: ''
+  choices: +
   default: 1
   description: Fudge factor for radiative cooling. Leave this at 1.
   type: double
@@ -223,7 +223,7 @@ CoolingScurve:
   hint: 'SurfaceCooling: scurve'
   newname: none
 CorotationReferenceBody:
-  choices: positive integers
+  choices: +
   default: 1
   description: Select the Nbody object which is the reference object for the automatic calculation of the corotation angular velocity for a rotating frame.
   type: unsigned int
@@ -247,73 +247,73 @@ Damping:
   type: bool
   unitsupport: false
 DampingEnergyInner:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, none
   default: None
   description: Target quantity of energy at inner boundary
   type: string
   unitsupport: false
 DampingEnergyOuter:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, none
   default: None
   description: Target quantity of energy at outer boundary
   type: string
   unitsupport: false
 DampingInnerLimit:
-  choices: positive floats
+  choices: +
   default: 1.05
   description: 'Set the outer limit of the inner wave damping zone: Rmin*Limit. Zone is diabled for limit < 1. Rmin is the radius of the inner boundary.'
   type: double
   unitsupport: false
 DampingOuterLimit:
-  choices: positive floats
+  choices: +
   default: 0.95
   description: 'Set the inner limit of the outer wave damping zone: Rmax*Limit. Zone is diabled for limit > 1. Rmax is the radius of the outer boundary.'
   type: double
   unitsupport: false
 DampingSurfaceDensityInner:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, none
   default: None
   description: Target quantity of surface density at inner boundary
   type: string
   unitsupport: false
 DampingSurfaceDensityOuter:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, none
   default: None
   description: Target quantity of surface density at outer boundary
   type: string
   unitsupport: false
 DampingTimeFactor:
-  choices: ''
+  choices: +
   default: 1
   description: Damping time factor. Values will be exponentially damped on a timescale of factor*Keplerian Period at boundary radius.
   type: double
   unitsupport: false
 DampingTimeRadiusOuter:
-  choices: positive floats
+  choices: +
   default: 2.5
   description: 'Reference radius for the outer damping time. default: Outer domain radius RMAX'
   type: double
   unitsupport: false
 DampingVAzimuthalInner:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, none
   default: None
   description: Target quantity of azimuthal velocity at inner boundary
   type: string
   unitsupport: false
 DampingVAzimuthalOuter:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, none
   default: None
   description: Target quantity of azimuthal velocity at outer boundary
   type: string
   unitsupport: false
 DampingVRadialInner:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, visc, none
   default: None
-  description: Target quantity of radial velocity at inner boundary.
+  description: Target quantity of radial velocity at inner boundary. For damping to viscous speed, use visc.
   type: string
   unitsupport: false
 DampingVRadialOuter:
-  choices: initial, mean, zero, none
+  choices: reference, mean, zero, none
   default: None
   description: Target quantity of radial velocity at outer boundary
   type: string
@@ -327,7 +327,7 @@ DebugOutputs:
   type: bool
   unitsupport: false
 DensityFactor:
-  choices: ''
+  choices: +
   default: 2.5066282746310002
   description: Factor for convertion from surface density to density. Leave this as it is! [default = sqrt(2.0*pi)]
   type: double
@@ -382,7 +382,7 @@ EnergyFilename:
   type: string
   unitsupport: false
 EquationOfState:
-  choices: 'Isothermal, Ideal/Adiabatic, PVTE, Polytropic '
+  choices: 'Isothermal, Ideal/Adiabatic, PVTE, Polytropic'
   default: Isothermal
   description: Select the equation of state.
   type: string
@@ -409,15 +409,15 @@ FeatureSize:
   type: double
   unitsupport: true
 FirstDT:
-  choices: ''
+  choices: +
   default: 1.0e-09
   description: Initialization value for the hydro dt in case of hydro simulations turned off. Otherwise CFL dt is used.
   type: double
   unitsupport: true
 FlaringIndex:
-  choices: ''
+  choices: 0+
   default: 0
-  description: Specify the flaring index. H = H0 * r^{1+flaringindex}.
+  description: Specify the flaring index. H = H0 * r^{1+FlaringIndex}.
   type: double
   unitsupport: false
 FluxLimiter:
@@ -441,7 +441,7 @@ Frame:
   type: string
   unitsupport: false
 HeatingCoolingCFLlimit:
-  choices: ''
+  choices: +
   default: 10
   description: Energy change dT/T in substep3 only allowed to change by this fraction times CFL.
   type: double
@@ -499,15 +499,16 @@ HydroFrameCenter:
   type: string
   unitsupport: false
 HydrogenMassFraction:
-  choices: ''
+  choices: +
   default: 0.75
-  description: ''
+  description: 'Mass fraction of hydrogen in the gas for the case of scurve cooling.'
   type: double
   unitsupport: false
 ImposedDiskDrift:
-  choices: ''
+  choices: 0+
   default: 0
-  description: Initialize with an imposed accretion through the disk. ?
+  description: 'Be careful and check the code! This is old code! Initialize vrad with an imposed accretion through the disk and add an additional torque during the simulation. vrad = ImposedDiskDrift * Sigma0 / Sigma_avg_azimuthal / R.'
+			ri;
   type: double
   unitsupport: false
 IndirectTermMode:
@@ -529,45 +530,45 @@ InitializeVradialZero:
   type: bool
   unitsupport: false
 InnerBoundary:
-  choices: Open, Reflective/Rigid, Viscous, ZeroGradient, PrescribedTimeVariable, BoundaryLayer
+  choices: Zerogradient, Outflow, Reflecting, Reference, CenterOfMass, Custom, Individual
   default: individual
   description: Boundary condition at the inner boundary.
   type: string
   unitsupport: false
 InnerBoundaryEnergy:
-  choices: ''
+  choices: Zerogradient, DiskModel, Reference, Infer
   default: infer
-  description: ''
+  description: Boundary condition for the energy at the inner boundary.
   type: string
   unitsupport: false
 InnerBoundarySigma:
-  choices: ''
+  choices: Zerogradient, DiskModel, Reference, Infer
   default: infer
-  description: ''
+  description: Boundary condition for the surface density at the inner boundary.
   type: string
   unitsupport: false
 InnerBoundaryVazi:
-  choices: ''
+  choices: ZeroGradient, Reference, ZeroShear, Balanced, Keplerian, Infer
   default: keplerian
-  description: ''
+  description: Boundary condition for the azimuthal velocity at the inner boundary.
   type: string
   unitsupport: false
 InnerBoundaryVaziKeplerianFactor:
-  choices: ''
+  choices: 0+
   default: 1
-  description: ''
+  description: 'For InnerBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.'
   type: double
   unitsupport: false
 InnerBoundaryVrad:
-  choices: ''
+  choices: ZeroGradient, Reference, Reflecting, Outflow, Viscous, Keplerian, Infer
   default: infer
-  description: ''
+  description: Boundary condition for the radial velocity at the inner boundary.
   type: string
   unitsupport: false
 InnerBoundaryVradKeplerianFactor:
-  choices: ''
+  choices: 0+
   default: 0.1
-  description: ''
+  description: 'For InnerBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.'
   type: double
   unitsupport: false
 IntegrateParticles:
@@ -589,25 +590,25 @@ Integrator:
   type: string
   unitsupport: false
 KappaConst:
-  choices: ''
+  choices: 0+
   default: 1
-  description: ''
+  description: Opacity value for the cases of Opacity = constant or Opacity = simple.
   type: double
   unitsupport: true
 KappaFactor:
-  choices: ''
+  choices: 0+
   default: 1
-  description: Fudge factor for kappa. Leave this as it is!
+  description: 'Danger zone: Fudge factor for kappa. Use this to increase/decrease to scale the restults of fixed opacity laws.'
   type: double
   unitsupport: false
 KeepDiskMassConstant:
   choices: yes, no
   default: false
-  description: Rescale the mass of the disk periodically. You likely want to keep this turned off.
+  description: 'Danger zone: Rescale the mass of the disk periodically. You likely want to keep this turned off.'
   type: bool
   unitsupport: false
 KlahrSmoothingRadius:
-  choices: ''
+  choices: 0+
   default: 0.3
   description: Smoothing radius for Klahr & Kley smoothing around the secondary if H is calculated using all Nbody objects.
   type: double
@@ -625,9 +626,9 @@ LogAfterSteps:
   type: unsigned int
   unitsupport: false
 MassAccretionRadius:
-  choices: ''
+  choices: 0+
   default: 1
-  description: 'For inner boundary = boundary layer: Mass accretion radius in unints of R_hill / 2.'
+  description: When accretion onto Nbody abjects is turned on, accrete from the disk within MassAccretionRadius*RRoche.
   type: double
   unitsupport: false
 MassAccretionRate:
@@ -635,25 +636,27 @@ MassAccretionRate:
   default: 1.0e-09
   description: 'For inner boundary = boundary layer: Mass accretion rate (from secondary, young stellar cloud, etc.).'
   type: double
+  deprecated: true
   unitsupport: true
 MaximumTemperature:
-  choices: positive float w/wo unit
+  choices: +
   default: 1.0e300 K
   description: Temperature ceiling.
   type: double
   unitsupport: true
 MinimumTemperature:
-  choices: positive float w/wo unit
+  choices: 0+
   default: 3 K
   description: Temperature floor.
   type: double
   unitsupport: true
 MonitorTimestep:
-  choices: ''
+  choices: +
   default: 1
-  description: Calculate scalar quatities every MonitorTimestep in code units. For default units 2PI = 1 orbit at r=1
+  description: Calculate scalar quatities every MonitorTimestep in code units. For default units 2PI = 1 orbit at r=1. This is analogous to the DT parameter in other FARGO versions.
   type: double
-  unitsupport: false
+  oldname: DT
+  unitsupport: yes
 NSEC:
   choices: ''
   default: 64
@@ -667,9 +670,9 @@ NTOT:
   description: Number of snapshots to be written.
   newname: Nsnapshots
 Naz:
-  choices: ''
+  choices: +
   default: 64
-  description: ''
+  description: Number of azimuthal cells in the hydro grid.
   type: unsigned int
   unitsupport: false
 Ninterm:
@@ -681,36 +684,36 @@ Ninterm:
   type: unsigned int
   unitsupport: false
 Nmonitor:
-  choices: ''
+  choices: +
   default: 10
   description: Number of monitor outputs between two snapshots.
   oldname: Ninterm
   type: unsigned int
   unitsupport: false
 Nrad:
-  choices: ''
+  choices: +
   default: 64
-  description: Number of radial cells.
+  description: Number of radial cells in the hydro grid.
   type: unsigned int
   unitsupport: false
 Nsnapshots:
-  choices: ''
+  choices: +
   default: 1000
-  description: Number of snapshots. The final time will be tfinal = Nsnapshots*Ninterm*MonitorTimestep. Please note that this is a different from FARGO3D!
+  description: Number of snapshots. The final time will be tfinal = Nsnapshots*Nmonitor*MonitorTimestep. Please note that this is a different from FARGO3D!
   type: unsigned int
   unitsupport: false
 NumberOfParticles:
-  choices: ''
+  choices: +
   default: 0
   description: Number of particles.
   type: unsigned int
   unitsupport: false
 OmegaFrame:
-  choices: ''
+  choices: 0+
   default: 0
-  description: Specify the angular velocity with which the frame rotates.
+  description: Specify the angular velocity with which the frame rotates. Units of 1/T0. Specifying 2pi is equivalent to a corotating frame at R=R0.
   type: double
-  unitsupport: false
+  unitsupport: true
 Opacity:
   choices: Lin, Bell, Zhu, Kramers
   default: Lin
