@@ -256,8 +256,6 @@ void init_physics(t_data &data)
 {
 
 
-	refframe::OmegaFrame = parameters::OMEGAFRAME;
-
 	if (parameters::corotating) {
 	refframe::OmegaFrame = data.get_planetary_system()
 			 .get_planet(parameters::corotation_reference_body)

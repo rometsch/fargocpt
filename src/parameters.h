@@ -12,7 +12,6 @@ extern double viscous_alpha;
 // Is viscous accretion turned on at at either boundary or Nbodies?
 extern bool VISCOUS_ACCRETION;
 extern double sigma_slope;
-extern double OMEGAFRAME;
 extern double IMPOSEDDISKDRIFT;
 extern double flaring_index;
 extern double ADIABATICINDEX;

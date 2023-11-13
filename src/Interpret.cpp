@@ -16,6 +16,7 @@
 #include "config.h"
 #include "output.h"
 #include "simulation.h"
+#include "frame_of_reference.h"
 #include "boundary_conditions/boundary_conditions.h"
 
 extern int damping_energy_id;
@@ -328,7 +329,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     default:
 	die("Invalid setting for Frame");
     }
-    parameters::OMEGAFRAME = cfg.get<double>("OmegaFrame", 0);
+    refframe::OmegaFrame = cfg.get<double>("OmegaFrame", 0, units::T0/units::T0/units::T0);
 
     // Barycenter mode
     switch (cfg.get_first_letter_lowercase("HydroFrameCenter", "primary")) {

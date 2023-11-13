@@ -32,7 +32,6 @@ double constant_viscosity;
 double viscous_alpha;
 bool VISCOUS_ACCRETION;
 double sigma_slope;
-double OMEGAFRAME;
 double IMPOSEDDISKDRIFT;
 double flaring_index;
 double ADIABATICINDEX; // Also used for polytropic energy equation
