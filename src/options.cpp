@@ -11,6 +11,7 @@
 #include "logging.h"
 #include "start_mode.h"
 #include "util.h"
+#include "version.h"
 
 #include <cstdint>
 #include <cstdlib>
@@ -49,28 +50,32 @@ static const struct option long_options[] = {
     {"restart", optional_argument, NULL, 'r'},
     {"auto", no_argument, NULL, 'a'},
 	{"pidfile", required_argument, NULL, 'P'},
+	{"version", no_argument, NULL, 'V'},
     {0, 0, 0, 0}};
 
 void usage(int argc, char **argv)
 {
     (void)argc;
-    logging::print_master(
-	LOG_ERROR
+    // logging::print_master(
+	// LOG_ERROR
+	printf(
 	"Usage: %s [options] start|restart <N>|auto configfile\n\n"
+	"FargoCPT version %s\n\n"
 	"start                  Start a new simulation from scratch\n"
 	"restart <N>            Restart from an old simulation output, latest if no N specified\n"
 	"auto                   Same as restart if output files are present, otherwise same as start\n"
-	"-d     | --debug           Print some debugging information on 'stdout' at each timestep\n"
-	"-v     | --verbose         Verbose mode. Tells everything about parameters file\n"
-	"-q     | --quiet           Only print errors and warnings\n"
-	"-b     |                   Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
-	"-c     |                   Sloppy CFL condition (checked at each monitor_timestep, not at each timestep)\n"
-	"-n     |                   Disable simulation. The program just reads parameters file\n"
-	"-m     |                   estimate memory usage and print out\n"
-	"-N <N> |                   Perform N hydro steps.\n"
-	"-P <path> | --pidfile <path>    Path to the file to store the pid in.\n"
+	"-d     | --debug       Print some debugging information on 'stdout' at each timestep\n"
+	"-v     | --verbose     Verbose mode. Tells everything about parameters file\n"
+	"-q     | --quiet       Only print errors and warnings\n"
+	"-b     |               Adjust azimuthal velocity to impose strict centrifugal balance at t=0\n"
+	"-c     |               Sloppy CFL condition (checked at each monitor_timestep, not at each timestep)\n"
+	"-n     |               Disable simulation. The program just reads parameters file\n"
+	"-m     |               Estimate memory usage and print out\n"
+	"-N <N> |               Perform N hydro steps.\n"
+	"--version              Print the version string in major.minor.revision syntax.\n"
+	"--pidfile <path>       Path to the file to store the pid in.\n"
 	"",
-	argv[0]);
+	argv[0], version::string);
 }
 
 void parse(int argc, char **argv)
@@ -166,6 +171,10 @@ void parse(int argc, char **argv)
 	    usage(argc, argv);
 	    PersonalExit(EXIT_SUCCESS);
 	    break;
+	case 'V':
+	    printf("%s\n", version::string);
+	    PersonalExit(EXIT_SUCCESS);
+		break;
 	default:
 	    usage(argc, argv);
 	    PersonalExit(EXIT_FAILURE);
