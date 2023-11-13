@@ -92,7 +92,7 @@ class Grid:
         return np.meshgrid(r, phi, indexing='ij')
 
     def meshgrid(self, intr = False, intf = False):
-        """ Return a meshgrid of the radial and azimuthal coordinates.
+        """ Return a meshgrid of the radial and azimuthal coordinates where the data is defined.
 
         Parameters
         ----------
@@ -240,7 +240,6 @@ class Nbody:
     def accretion_rate(self):
         return self._return_var('accretion rate')
 
-
 @dataclass
 class Scalars:
     id: int
@@ -304,7 +303,6 @@ class Timestepping(Scalars):
     @property
     def std_dev_dt(self):
         return self._return_var('std dev dt')
-
 
 class Quantities(Scalars):
     _varnames = ["snapshot number", "monitor number", "time", "mass", "radius", "angular momentum", "total energy", "internal energy", "kinematic energy", "potential energy", "radial kinetic energy", "azimuthal kinetic energy", "eccentricity", "periastron", "viscous dissipation", "luminosity", "pdivv", "inner boundary mass inflow", "inner boundary mass outflow", "outer boundary mass inflow", "outer boundary mass outflow", "wave damping inner mass creation", "wave damping inner mass removal", "wave damping outer mass creation", "wave damping outer mass removal", "density floor mass creation", "aspect", "indirect term nbody x", "indirect term nbody y", "indirect term disk x", "indirect term disk y", "frame angle", "advection torque", "viscous torque", "gravitational torque"]
@@ -444,23 +442,151 @@ class Quantities(Scalars):
 @dataclass
 class Vars1D:
     output_dir: str
-    units: Units
+    grid: Grid
     target_units: Units = None
 
     def __post_init__(self):
         self._load_info()
-        self._parse_info()
     
     def _load_info(self):
         info_file = joinpath(self.output_dir, 'info1D.yml')
         try:
-            with open(self.datadir_path(info_file), "r") as f:
+            with open(info_file, "r") as f:
+                self._info_dict = yaml.safe_load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError("Could not find 'info1D.yml' in simulatiuon output ('{}')".format(self.output_dir))
+
+    @property
+    def var_names(self):
+        return [k for k in self._info_dict.keys()]
+    
+    def __repr__(self) -> str:
+        rv = "FargoCPT data Vars1D\n"
+        rv += "====================\n"
+        rv += f"  output_dir: {self.output_dir}\n"
+        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"  grid: Grid\n"
+        rv += f"  var_names:\n"
+        for var_name in self.var_names:
+            rv += f"    {var_name}\n"
+        rv += "====================\n"
+        return rv
+    
+    def _return_radius(self, varname):
+        info = self._info_dict[varname]
+        rad_interface = info["on_radial_interface"]
+        if rad_interface:
+            r = self.grid.radi
+        else:
+            r = self.grid.radc
+        return r
+
+    def _return_data(self, varname, Nsnapshot, data_slice):
+
+        info = self._info_dict[varname]
+        unit = Unit(info['unit'])
+
+        filename = info["filename"]
+        datafile = joinpath(self.output_dir, 'snapshots', f'{Nsnapshot}', filename)
+        data = np.fromfile(datafile, dtype=np.float64)[data_slice]
+        data = data * unit
+
+        return data
+
+    def get(self, varname, Nsnapshot, include_grid=True):
+        return self.average(varname, Nsnapshot, include_grid=include_grid)
+
+    def average(self, varname, Nsnapshot, include_grid=True):
+        avg_slice = slice(1,None,4)
+        data = self._return_data(varname, Nsnapshot, avg_slice)
+        if include_grid:
+            r = self._return_radius(varname)
+            return r, data
+        else:
+            return data
+    
+    def min(self, varname, Nsnapshot, include_grid=True):
+        max_slice = slice(2,None,4)
+        data = self._return_data(varname, Nsnapshot, max_slice)
+        if include_grid:
+            r = self._return_radius(varname)
+            return r, data
+        else:
+            return data
+    
+    def max(self, varname, Nsnapshot, include_grid=True):
+        min_slice = slice(3,None,4)
+        data = self._return_data(varname, Nsnapshot, min_slice)
+        if include_grid:
+            r = self._return_radius(varname)
+            return r, data
+        else:
+            return data
+    
+@dataclass
+class Vars2D:
+    output_dir: str
+    grid: Grid
+    target_units: Units = None
+
+    def __post_init__(self):
+        self._load_info()
+    
+    def _load_info(self):
+        info_file = joinpath(self.output_dir, 'info2D.yml')
+        try:
+            with open(info_file, "r") as f:
                 self._info_dict = yaml.safe_load(f)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find 'info2D.yml' in simulatiuon output ('{}')".format(self.output_dir))
 
-    def _parse_info(self):
-        pass
+    @property
+    def var_names(self):
+        return [k for k in self._info_dict.keys()]
+    
+    def __repr__(self) -> str:
+        rv = "FargoCPT data Vars2D\n"
+        rv += "====================\n"
+        rv += f"  output_dir: {self.output_dir}\n"
+        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"  grid: Grid\n"
+        rv += f"  var_names:\n"
+        for var_name in self.var_names:
+            rv += f"    {var_name}\n"
+        rv += "====================\n"
+        return rv
+
+    def meshgrid(self, varname, Nsnapshot):
+        info = self._info_dict[varname]
+        rad_interface = info["on_radial_interface"]
+        azi_interface = info["on_azimuthal_interface"]
+        return self.grid.meshgrid(intr=rad_interface, intf=azi_interface)
+
+    def meshgrid_plot(self, varname, Nsnapshot):
+        info = self._info_dict[varname]
+        rad_interface = info["on_radial_interface"]
+        azi_interface = info["on_azimuthal_interface"]
+        return self.grid.meshgrid_plot(intr=rad_interface, intf=azi_interface)
+
+    def get(self, varname, Nsnapshot, include_grid=True, grid_for_plot=False):
+
+        info = self._info_dict[varname]
+        unit = Unit(info['unit'])
+
+        Nr = info["Nrad"]
+        Naz = info["Nazi"]
+        filepath = joinpath(self.output_dir, "snapshots", f"{Nsnapshot}", info["filename"])
+        rv = np.fromfile(filepath).reshape(Nr, Naz) * unit
+
+        if include_grid:
+            if grid_for_plot:
+                r, phi = self.meshgrid_plot(varname, Nsnapshot)
+            else:
+                r, phi = self.meshgrid(varname, Nsnapshot)
+            return r, phi, rv
+        else:
+            return rv
+
 
 @dataclass
 class Hydro:
@@ -470,12 +596,15 @@ class Hydro:
     grid: Grid = None
     timestepping: Timestepping = None
     scalars: Scalars = None
+    vars1D: Vars1D = None
 
     def __post_init__(self):
         self.timestepping = Timestepping(0, joinpath(self.output_dir, 'monitor', 'timestepLogging.dat'))
         self.scalars = Quantities(0, joinpath(self.output_dir, 'monitor', 'Quantities.dat'))
         self.grid = Grid()
         self.grid.load_files(self.output_dir, self.units, target_units=self.target_units)
+        self.vars1D = Vars1D(self.output_dir, self.grid, target_units=self.target_units)
+        self.vars2D = Vars2D(self.output_dir, self.grid, target_units=self.target_units)
 
     def __repr__(self) -> str:
         rv = "FargoCPT data Hydro\n"
@@ -486,6 +615,8 @@ class Hydro:
         rv += f"  grid: Grid\n"
         rv += f"  timestepping: Scalar\n"
         rv += f"  scalars: Scalar\n"
+        rv += f"  vars1D: Vars1D\n"
+        rv += f"  vars2D: Vars2D\n"
         rv += "====================\n"
         return rv
 
@@ -541,11 +672,12 @@ class Loader:
             self.units.load_file(joinpath(self.output_dir , 'units.yml'))
 
         self.hydro = Hydro(self.output_dir, self.units, target_units=self.target_units)
-        self.load_nbody()
+        self._load_nbody()
 
         self.params = Params(self.output_dir)
+        self._load_snapshots()
 
-    def load_nbody(self):
+    def _load_nbody(self):
         for n in range(1,100):
             path = joinpath(self.output_dir, 'monitor', f'planet{n}.dat')
             if os.path.exists(path):
@@ -554,10 +686,36 @@ class Loader:
             else:
                 break
 
+    def _load_snapshots(self):
+        filename = joinpath(self.output_dir, 'snapshots', 'list.txt')
+        self.snapshots = []
+        self.special_snapshots = []
+        with open(filename, 'r') as f:
+            for line in f:
+                try:
+                    self.snapshots.append(int(line))
+                except ValueError:
+                    self.special_snapshots.append(line.strip())
+        if os.path.exists(joinpath(self.output_dir, 'snapshots', 'reference')):
+            self.special_snapshots.append('reference')
+
+        self.snapshot_time = load_text_data_file(joinpath(self.output_dir, 'snapshots', 'timeSnapshot.dat'), 'time')
+        self.monitor_number = [int(n) for n in load_text_data_file(joinpath(self.output_dir, 'snapshots', 'timeSnapshot.dat'), 'monitor number')]
+
+    def snapshot_time(self, Nsnapshot):
+        filename = joinpath(self.output_dir, 'snapshots', f'{Nsnapshot}', 'time.dat')
+        return load_text_data_file(filename, 'time')
+
+
     def __repr__(self) -> str:
         rv = "FargoCPT data Loader\n"
         rv += "====================\n"
         rv += f"  output_dir: {self.output_dir}\n"
+        rv += f"  snapshots: {self.snapshots[0]} ... {self.snapshots[-1]}\n"
+        if len(self.special_snapshots) > 0:
+            rv += f"  special_snapshots: {self.special_snapshots}\n"
+        rv += f"  snapshot_time: {self.snapshot_time[0]} ... {self.snapshot_time[-1]}\n"
+        rv += f"  monitor_number: {self.monitor_number[0]} ... {self.monitor_number[-1]}\n"
         rv += f"  units: Units\n"
         rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
         rv += f"  hydro: Hydro\n"
