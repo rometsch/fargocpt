@@ -64,7 +64,7 @@ def main():
     axes[0].axhline(expected_torque, color="gray", label="theory")
     axes[0].legend()
 
-    fig.savefig("torque.jpg", dpi=150)
+    fig.savefig("plot.jpg", dpi=150)
 
     ratios = torque/Gamma0 / expected_torque
     average = np.average(ratios[-len(ratios)//10:])
