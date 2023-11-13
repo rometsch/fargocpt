@@ -1,7 +1,4 @@
-#ifndef SPLIT_H
-#define SPLIT_H
+#pragma once
 
 void SplitDomain();
 void FreeSplitDomain();
-
-#endif // SPLIT_H

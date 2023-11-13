@@ -1,8 +1,9 @@
-#ifndef LOWTASKS_H
-#define LOWTASKS_H
+#pragma once
 
-#include "types.h"
 #include <stdlib.h>
+#include <string>
+#include "polargrid.h"
+#include "data.h"
 
 void PersonalExit(int returncode);
 
@@ -19,5 +20,3 @@ void die(const char *err, ...);
 void die_errno(const char *fmt, ...);
 
 std::string lowercase(const std::string& s);
-
-#endif // LOWTASKS_H

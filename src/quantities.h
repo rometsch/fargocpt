@@ -1,5 +1,4 @@
-#ifndef QUANTITIES_H
-#define QUANTITIES_H
+#pragma once
 
 #include "data.h"
 
@@ -22,11 +21,9 @@ double gas_azimuthal_kinematic_energy(t_data &data,
 
 void fill_alpha_array(t_data &data, unsigned int timestep,
 				   bool force_update);
-void calculate_disk_ecc_peri(t_data &data, unsigned int timestep,
-				   bool force_update);
-void state_disk_ecc_peri_calculation_center(t_data &data);
 
-void calculate_disk_ecc_vector(t_data &data);
+void calculate_disk_ecc_peri(t_data &data, double &Ecc, double &Per, const bool force_update);
+void calculate_disk_ecc_vector(t_data &data, unsigned int timestep, bool force_update);
 void calculate_disk_delta_ecc_peri(t_data &data, double& dEcc, double& dPer);
 
 void calculate_alpha_grav(t_data &data, unsigned int timestep,
@@ -53,6 +50,5 @@ void calculate_viscous_torque(t_data &data, unsigned int timestep,
 			      bool force_update);
 void CalculateMonitorQuantitiesAfterHydroStep(t_data &data,
 				int nTimeStep, double dt);
+void CalculateMonitorQuantitiesForOutput(t_data &data, double &tadv, double &tvisc, double &tgrav, const double quantities_limit_radius);
 } // namespace quantities
-
-#endif // QUANTITIES_H

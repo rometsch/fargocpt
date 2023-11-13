@@ -6,22 +6,11 @@
 #include <vector>
 
 #include "Force.h"
-#include "LowTasks.h"
 #include "Pframeforce.h"
-#include "RungeKutta.h"
-#include "SideEuler.h"
-#include "Theo.h"
-#include "axilib.h"
 #include "constants.h"
-#include "find_cell_id.h"
 #include "global.h"
-#include "logging.h"
 #include "parameters.h"
-#include "selfgravity.h"
-#include "units.h"
 #include "util.h"
-#include "viscosity/viscosity.h"
-#include "quantities.h"
 #include "frame_of_reference.h"
 
 /* Below : work in non-rotating frame */
@@ -41,7 +30,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 	g_xpl[k] = planet.get_x();
 	g_ypl[k] = planet.get_y();
 
-	if (parameters::ASPECTRATIO_MODE == 1) {
+	if (parameters::aspectratio_mode == 1) {
 		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
@@ -62,7 +51,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
-		const double smooth = compute_smoothing(data, n_rad, n_az);
+		const double smooth = compute_smoothing(data, n_rad, n_az, k);
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
@@ -71,7 +60,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 
 		double smooth_factor_klahr = 1.0;
 
-		if (parameters::ASPECTRATIO_MODE == 1) {
+		if (parameters::aspectratio_mode == 1) {
 		    /// scale height is reduced by the planets and can cause the
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
@@ -115,13 +104,15 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	g_xpl[k] = planet.get_x();
 	g_ypl[k] = planet.get_y();
 
-	if (parameters::ASPECTRATIO_MODE == 1) {
+	if (parameters::aspectratio_mode == 1) {
 		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
 		      planet.get_distance_to_primary();
 	}
     }
 
     double *acc_r = data[t_data::ACCEL_RADIAL].Field;
+    double *acc_az = data[t_data::ACCEL_AZIMUTHAL].Field;
+
     const unsigned int N_az_max =
 	data[t_data::ACCEL_RADIAL].get_size_azimuthal();
 	const unsigned int Nr = data[t_data::ACCEL_RADIAL].get_size_radial() - 1;
@@ -131,127 +122,29 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	 n_rad < Nr; ++n_rad) { // No need to compute Vr at the top of the outer ghost cells
 	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
 
-	    const double phi = (double)n_az * dphi;
-	    const double r = Rinf[n_rad];
-
-		const double F = parameters::FLARINGINDEX;
-		// h should be centerd on interface 0.5 (h_(i-1,j) + h_(i,j))
-		const double h = data[t_data::ASPECTRATIO](n_rad, n_az);
-		const double eps = parameters::thickness_smoothing;
-		const double smoothing_derivative_factor = 1.0 + (F + 1.0) * std::pow(h * eps, 2);
-
-	    const double x = r * std::cos(phi);
-	    const double y = r * std::sin(phi);
-	    const double smooth = compute_smoothing_r(data, n_rad, n_az);
-
-	    pair ar = refframe::IndirectTerm;
-	    for (unsigned int k = 0; k < N_planets; k++) {
-
-		const double dx = x - g_xpl[k];
-		const double dy = y - g_ypl[k];
-		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
-		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-		const double dist_sm = std::sqrt(dist_2_sm);
-		const double dist_3_sm = dist_sm * dist_2_sm;
-		const double inv_dist_3_sm = 1.0 / dist_3_sm;
-
-		double smooth_factor_klahr = 1.0;
-
-		if (parameters::ASPECTRATIO_MODE == 1) {
-		    /// scale height is reduced by the planets and can cause the
-		    /// epsilon smoothing be not sufficient for numerical
-		    /// stability. Thus we add the gravitational potential
-		    /// smoothing proposed by Klahr & Kley 2005; but the
-		    /// derivative of it, since we apply it directly on the
-		    /// force
-			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
-			// position of the l1 point between planet and central
-			// star.
-			const double l1 = g_l1pl[k];
-			const double r_sm =
-			    l1 * parameters::klahr_smoothing_radius;
-
-			if (dist_sm < r_sm) {
-			    smooth_factor_klahr =
-				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
-				  4.0 * std::pow(dist_sm / r_sm, 3.0));
-			}
-		    }
-		}
-
-		// direct term from planet
-		ar.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
-			smooth_factor_klahr * smoothing_derivative_factor;
-		ar.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
-			smooth_factor_klahr * smoothing_derivative_factor;
-	    }
-
-	    const double accel = std::cos(phi) * ar.x + std::sin(phi) * ar.y;
-
-	    /*
-	    /// DEBUG, by comparing with accel from potential
-	    const double gradphi = (data[t_data::POTENTIAL](n_rad, n_az) -
-		       data[t_data::POTENTIAL](n_rad - 1, n_az)) *
-		      InvDiffRmed[n_rad];
-
-	    if(accel != 0.0){
-	    const double rel_err = std::fabs((gradphi + accel)/accel);
-
-	    const double dx = x - xpl[1];
-	    const double dy = y - ypl[1];
-	    const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-
-	    double diff_phi = phi -
-	    data.get_planetary_system().get_planet(1).get_phi(); const double
-	    diff_r = r - data.get_planetary_system().get_planet(1).get_r();
-	    diff_phi = std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI));
-
-	    if(rel_err > 1.e-1){
-	    printf("(%d %d)	accel r	= (%.5e	%.5e)	%.5e	(%.5e
-	    %.5e)\n", n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
-	    }}
-	    /// END DEBUG
-	    */
-
-	    const int cell_id = get_cell_id(n_rad, n_az);
-	    acc_r[cell_id] = accel;
-	}
-    }
-
-    double *accel_phi = data[t_data::ACCEL_AZIMUTHAL].Field;
-
-	#pragma omp parallel for collapse(2)
-    for (unsigned int n_rad = 0;
-	 n_rad < Nr; ++n_rad) {
-	for (unsigned int n_az = 0; n_az < N_az_max; ++n_az) {
-
-	    const double phi = ((double)n_az - 0.5) * dphi;
 	    const double r = Rmed[n_rad];
 
-		const double F = parameters::FLARINGINDEX;
-		// h should be centerd on interface 0.5 (h_(i,j) + h_(i,j+1))
-		const double h = data[t_data::ASPECTRATIO](n_rad, n_az);
-		const double eps = parameters::thickness_smoothing;
-		const double smoothing_derivative_factor = 1.0 + (F + 1.0) * std::pow(h * eps, 2);
+	    const int cell_id = get_cell_id(n_rad, n_az);
+	    const double x = CellCenterX->Field[cell_id];
+	    const double y = CellCenterY->Field[cell_id];
 
-	    const double x = r * std::cos(phi);
-	    const double y = r * std::sin(phi);
-	    const double smooth = compute_smoothing_az(data, n_rad, n_az);
 
-	    pair aphi = refframe::IndirectTerm;
+	    pair accel_cart = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
+
+		const double smooth = compute_smoothing(data, n_rad, n_az, k);
 
 		const double dx = x - g_xpl[k];
 		const double dy = y - g_ypl[k];
 		const double dist_2 = std::pow(dx, 2) + std::pow(dy, 2);
 		const double dist_2_sm = dist_2 + std::pow(smooth, 2);
-		const double dist_sm = std::sqrt(dist_2_sm);
+		volatile const double dist_sm = std::sqrt(dist_2_sm);
 		const double dist_3_sm = dist_sm * dist_2_sm;
 		const double inv_dist_3_sm = 1.0 / dist_3_sm;
 
 		double smooth_factor_klahr = 1.0;
 
-		if (parameters::ASPECTRATIO_MODE == 1) {
+		if (parameters::aspectratio_mode == 1) {
 		    /// scale height is reduced by the planets and can cause the
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
@@ -274,48 +167,19 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		}
 
 		// direct term from planet
-		aphi.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
-			  smooth_factor_klahr * smoothing_derivative_factor;
-		aphi.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
-			  smooth_factor_klahr * smoothing_derivative_factor;
+		accel_cart.x -= dx * constants::G * g_mpl[k] * inv_dist_3_sm *
+			smooth_factor_klahr;
+		accel_cart.y -= dy * constants::G * g_mpl[k] * inv_dist_3_sm *
+			smooth_factor_klahr;
 	    }
 
-	    const double accel =
-		std::cos(phi) * aphi.y - std::sin(phi) * aphi.x;
+	    //  x/r = cos(phi)
+	    //  y/r = sin(phi)
+	    const double accel_r  = (x * accel_cart.x + y * accel_cart.y)/r;
+	    const double accel_az = (x * accel_cart.y - y * accel_cart.x)/r;
 
-	    /*
-	    /// DEBUG, compare with accel from potential
-	    const double invdxtheta = 1.0 / (dphi * Rmed[n_rad]);
-
-	    // 1/r dPhi/dphi
-	    const double gradphi =
-	    (data[t_data::POTENTIAL](n_rad, n_az) -
-	     data[t_data::POTENTIAL](
-		     n_rad, n_az == 0
-			       ? data[t_data::POTENTIAL].get_max_azimuthal()
-			       : n_az - 1)) *
-	    invdxtheta;
-
-	    if(accel != 0.0){
-	    const double rel_err = std::fabs((gradphi + accel)/accel);
-
-	    const double dx = x - xpl[1];
-	    const double dy = y - ypl[1];
-	    const double dist = std::sqrt(std::pow(dx, 2) + std::pow(dy, 2));
-
-	    double diff_phi = phi -
-	    data.get_planetary_system().get_planet(1).get_phi(); diff_phi =
-	    std::min(diff_phi, std::fabs(diff_phi - 2 * M_PI)); const double
-	    diff_r = r - data.get_planetary_system().get_planet(1).get_r();
-	    if(rel_err < 1e-5){
-	    printf("(%d %d )	accel p	= (%.5e	%.5e)	%.5e	(%.5e %.5e)\n",
-	    n_rad, n_az, gradphi, -accel, rel_err, diff_r, diff_phi);
-	    }}
-	    /// END DEBUG
-	    */
-
-	    const int cell_id = get_cell_id(n_rad, n_az);
-	    accel_phi[cell_id] = accel;
+	    acc_r[cell_id] = accel_r;
+	    acc_az[cell_id] = accel_az;
 	}
     }
 }
@@ -347,8 +211,7 @@ void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
 	t_planet &planet = data.get_planetary_system().get_planet(k);
-	const double l1 = planet.get_dimensionless_roche_radius() *
-		 planet.get_distance_to_primary();
+
 
 	if(parameters::planet_orbit_disk_test && k == 0){
 		planet.set_disk_on_planet_acceleration(Pair{0.0, 0.0});
@@ -359,8 +222,7 @@ void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average)
 		ComputeAverageDensity(data);
 	}
 
-	accel =
-	    ComputeDiskOnPlanetAccel(data, planet.get_x(), planet.get_y(), l1);
+	accel = ComputeDiskOnPlanetAccel(data, k);
 	planet.set_disk_on_planet_acceleration(accel);
 
 	const double torque =

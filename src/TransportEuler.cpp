@@ -21,14 +21,12 @@ velocity in each zone by a proper averaging).
 #include "SideEuler.h"
 #include "SourceEuler.h"
 #include "TransportEuler.h"
-#include "boundary_conditions.h"
-#include "constants.h"
+#include "boundary_conditions/boundary_conditions.h"
 #include "global.h"
 #include "parameters.h"
 #include "util.h"
 #include "frame_of_reference.h"
 #include "quantities.h"
-#include "simulation.h"
 
 // radial momentum is split to be cell centered
 static t_polargrid radial_momentum_plus;
@@ -142,24 +140,10 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 {
     compute_star_radial(Density, VRadial, DensityStar, dt);
 
-    // boundary layer:
     if (CPU_Rank == CPU_Highest) {
 
-	if (parameters::boundary_outer ==
-	    parameters::boundary_condition_boundary_layer) {
-	    boundary_layer_mass_influx(DensityStar, VRadial);
-	}
-
-	// prescribed time variable boundary
-	if (parameters::boundary_outer ==
-	    parameters::boundary_condition_precribed_time_variable) {
-	    boundary_conditions::
-		boundary_condition_precribed_time_variable_outer(data,
-								 DensityStar, sim::PhysicalTime);
-	}
-
-	if (parameters::massoverflow) {
-	    boundary_conditions::mass_overflow_willy(data, DensityStar, true);
+	if (boundary_conditions::rochelobe_overflow) {
+	    boundary_conditions::rochelobe_overflow_boundary(data, DensityStar, true);
 	}
     }
 
@@ -176,7 +160,7 @@ void OneWindRad(t_data &data, PolarGrid *Density, PolarGrid *VRadial,
 
     VanLeerRadial(data, VRadial, Density, dt); /* MUST be the last line */
 
-	if(parameters::massoverflow){
+	if(boundary_conditions::rochelobe_overflow){
 	data.get_massflow_tracker().update_mass_accretion(dt);
 	}
 
@@ -406,18 +390,18 @@ void compute_star_radial(t_polargrid *Qbase, t_polargrid *VRadial,
 		}
 	}
     }
-    // TODO: check here
+    // TODO: adapt to new boundaries
 	#pragma omp parallel for
 	for (unsigned int nAzimuthal = 0; nAzimuthal < Nphi; ++nAzimuthal) {
 	(*QStar)(0, nAzimuthal) = 0.0;
-	if ((parameters::boundary_outer !=
-	     parameters::boundary_condition_evanescent) &&
-	    (parameters::boundary_outer !=
-	     parameters::boundary_condition_boundary_layer) &&
-	    (parameters::boundary_outer !=
-	     parameters::boundary_condition_precribed_time_variable)) {
-	    (*QStar)(QStar->get_max_radial(), nAzimuthal) = 0.0;
-	}
+	// if ((parameters::boundary_outer !=
+	//      parameters::boundary_condition_evanescent) &&
+	//     (parameters::boundary_outer !=
+	//      parameters::boundary_condition_boundary_layer) &&
+	//     (parameters::boundary_outer !=
+	//      parameters::boundary_condition_precribed_time_variable)) {
+	//     (*QStar)(QStar->get_max_radial(), nAzimuthal) = 0.0;
+	// }
     }
 }
 
@@ -484,38 +468,26 @@ void ComputeStarTheta(PolarGrid *Qbase, PolarGrid *VAzimuthal, PolarGrid *QStar,
 /**
 	Calculates radial/angular momenta from radial/azimuthal velocities
 */
-void compute_momenta_from_velocities(t_polargrid &density,
-				     t_polargrid &v_radial,
-				     t_polargrid &v_azimuthal)
+void compute_momenta_from_velocities(t_polargrid &Sig,
+				     t_polargrid &vrad,
+				     t_polargrid &vaz)
 {
 
-	const unsigned int Nr = density.get_size_radial();
-	const unsigned int Nphi = density.get_size_azimuthal();
+	const unsigned int Nr = Sig.get_size_radial();
+	const unsigned int Nphi = Sig.get_size_azimuthal();
+	const double OmegaF = refframe::OmegaFrame;
 
 	#pragma omp parallel for collapse(2)
-	for (unsigned int n_radial = 0; n_radial < Nr;
-	 ++n_radial) {
-	for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < Nphi; ++n_azimuthal) {
-	    radial_momentum_plus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		v_radial(n_radial + 1, n_azimuthal);
-	    radial_momentum_minus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		v_radial(n_radial, n_azimuthal);
-	    angular_momentum_plus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		(v_azimuthal(n_radial,
-				 n_azimuthal == (Nphi - 1)
-				 ? 0
-				 : n_azimuthal + 1) +
-		 Rb[n_radial] * refframe::OmegaFrame) *
-		Rb[n_radial];
-	    angular_momentum_minus(n_radial, n_azimuthal) =
-		density(n_radial, n_azimuthal) *
-		(v_azimuthal(n_radial, n_azimuthal) +
-		 Rb[n_radial] * refframe::OmegaFrame) *
-		Rb[n_radial];
+	for (unsigned int nr = 0; nr < Nr;
+	 ++nr) {
+	for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	    radial_momentum_plus(nr, naz) =	Sig(nr, naz) * vrad(nr + 1, naz);
+	    radial_momentum_minus(nr, naz) = Sig(nr, naz) *	vrad(nr, naz);
+		const unsigned int naz_ind = naz == (Nphi - 1) ? 0 : naz + 1;
+		const double vnext = vaz(nr, naz_ind);
+		const double r = Rb[nr];
+	    angular_momentum_plus(nr, naz) = Sig(nr, naz) *	(vnext + r * OmegaF) * r;
+	    angular_momentum_minus(nr, naz) = Sig(nr, naz) * (vaz(nr, naz) + r * OmegaF) * r;
 	}
     }
 }
@@ -696,18 +668,18 @@ void VanLeerTheta(t_data &data, PolarGrid *VAzimuthal, PolarGrid *Qbase,
    account for a constant mass accretion rate M_dot = -2\pi\Sigma v_rad r
 */
 
-void boundary_layer_mass_influx(PolarGrid *QStar, PolarGrid *VRadial)
-{
+// void boundary_layer_mass_influx(PolarGrid *QStar, PolarGrid *VRadial)
+// {
 
-    // printf("QStar->get_max_radial() = %d, VRadial->get_max_radial() = %d\n",
-    // QStar->get_max_radial(), VRadial->get_max_radial());
+//     // printf("QStar->get_max_radial() = %d, VRadial->get_max_radial() = %d\n",
+//     // QStar->get_max_radial(), VRadial->get_max_radial());
 
-	#pragma omp parallel for
-    for (unsigned int n_azimuthal = 0;
-	 n_azimuthal < QStar->get_size_azimuthal(); ++n_azimuthal) {
-	(*QStar)(QStar->get_max_radial() - 1, n_azimuthal) =
-	    -parameters::mass_accretion_rate /
-	    ((*VRadial)(VRadial->get_max_radial() - 1, n_azimuthal) *
-	     NAzimuthal);
-    }
-}
+// 	#pragma omp parallel for
+//     for (unsigned int n_azimuthal = 0;
+// 	 n_azimuthal < QStar->get_size_azimuthal(); ++n_azimuthal) {
+// 	(*QStar)(QStar->get_max_radial() - 1, n_azimuthal) =
+// 	    -parameters::mass_accretion_rate /
+// 	    ((*VRadial)(VRadial->get_max_radial() - 1, n_azimuthal) *
+// 	     NAzimuthal);
+//     }
+// }

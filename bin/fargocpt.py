@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, RawTextHelpFormatter
-from subprocess import Popen
+from subprocess import Popen, PIPE, run
 import signal
+import sys
 from sys import platform
+from time import sleep
 import os
 import re
+import tempfile
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
 executable_path = os.path.join(file_dir, "fargocpt")
@@ -26,6 +29,7 @@ Help string from the fargo executable:
 | -c |                   Sloppy CFL condition (checked at each DT, not at each timestep)
 | -n |                   Disable simulation. The program just reads parameters file
 | -m |                   estimate memory usage and print out
+|-N <N> |                Perform N hydro steps
 
 
 Following are the additional options available through this wrapper, refered to as [wrapper options] in the usage string:
@@ -64,8 +68,10 @@ def main():
     print(
         f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.", flush=True)
 
-    run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
-              fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp)
+    rv = run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
+              fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp,
+              detach=opts.detach)
+    sys.exit(rv)
 
 
 def detach_processGroup():
@@ -92,11 +98,12 @@ def parse_opts():
                         help="Fall back to a simpler call of mpi.")
     parser.add_argument("--fallback-openmp", action="store_true",
                         help="Fall back to calling openmp directly.")
+    parser.add_argument("-d", "--detach", action="store_true", help="Detach the launcher from the simulation and run in the background.")
     opts, remainder = parser.parse_known_args()
     return opts, remainder
 
 
-def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False):
+def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None, detach=False):
     """Run a fargo simulation.
 
     Args:
@@ -108,11 +115,20 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         stderr (file, optional): File to redirect stderr to. Defaults to None.
         fallback_mpi (bool, optional): If True, fall back to a simpler call of mpi. Defaults to False.
         fallback_openmp (bool, optional): If True, fall back to calling openmp directly. Defaults to False.
+        envfile (str, optional): Before running fargo, source this file first. Use for loading modules on clusters.
     """
+
+    pidfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    pidfilepath = pidfile.name
+    pidfile.close()
+
 
     if not fallback_mpi and not fallback_openmp:
         cmd = ["mpirun"]
-        cmd += ["--np", f"{N_procs}"]
+        cmd += ["-np", f"{N_procs}"]
+        # write out pid of mpirun to correctly terminate multiprocess sims
+        # if N_procs > 1:
+        cmd += ["--report-pid", pidfilepath]
         if mpi_verbose:
             cmd += ["--display-map"]
             cmd += ["--display-allocation"]
@@ -140,7 +156,8 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         N_procs = N_procs * N_OMP_threads
         N_OMP_threads = 1
         cmd = ["mpirun"]
-        cmd += ["--np", f"{N_procs}"]
+        cmd += ["--report-pid", pidfilepath]
+        cmd += ["-np", f"{N_procs}"]
         env = os.environ.copy()
         env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
         env.update(env_update)
@@ -152,27 +169,77 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         env.update(env_update)
         cmd = []
     cmd += [executable_path] + fargo_args
+    if fallback_openmp:
+        cmd += ["--pidfile", pidfilepath]
+    
+    if detach:
+        if stdout is None:
+            stdout = sys.stdout
+
+        if stderr is None:
+            stderr = sys.stderr
 
     cmd_desc = f"Running command: {' '.join(cmd)}"
     if len(env_update) > 0:
         cmd_desc += f" with env updated with {env_update}"
-    print(cmd_desc, flush=True)
+    print_wrapper(stdout, cmd_desc, flush=True)
+    
+    if envfile is not None:
+        cmd = f"source {envfile}; " + " ".join(cmd)
+    else:
+        cmd = " ".join(cmd)
 
     p = Popen(cmd,
               stdout=stdout,
               stderr=stderr,
               env=env,
-              preexec_fn=detach_processGroup)
+              preexec_fn=detach_processGroup,
+              shell=True, executable="/bin/bash")
 
-    def handle_termination_request(signum, frame):
-        p.send_signal(signal.SIGTERM)
+    # Read the pid from file
+    for i in range(10):
+        with open(pidfilepath, "r") as pidfile:
+            pid = pidfile.read()
+        if pid == "":
+            sleep(0.1)
+        else:
+            break
+    
+    if not detach:
+        print_wrapper(stdout, "fargo process pid", pid, flush=True)
 
-    print(f"Process pid {p.pid}")
-    signal.signal(signal.SIGINT, handle_termination_request)
-    signal.signal(signal.SIGTERM, handle_termination_request)
+        def handle_termination_request(signum, frame):
+            try:
+                import psutil
+                pfargo = psutil.Process(int(pid))
+                pfargo.send_signal(signal.SIGTERM)
+            except ImportError:
+                run(["kill", "-SIGTERM", f"{int(pid)}"])
 
-    p.wait()
+        signal.signal(signal.SIGINT, handle_termination_request)
+        signal.signal(signal.SIGTERM, handle_termination_request)
 
+        if hasattr(p.stdout, "readline"):
+            print("reading lines")
+            for line in iter(p.stdout.readline, b''):
+                line = line.decode("utf8")
+                if stdout is not None and stdout != PIPE:
+                    print_wrapper(stdout, line.rstrip())
+                
+        else:
+            p.wait()
+
+    else:
+        print_wrapper(stdout, "fargo process pid", pid)
+        print_wrapper(stdout, "detaching... check output dir for logs")
+
+    return p.returncode
+
+def print_wrapper(stdout, *args, **kwargs):
+    if stdout != PIPE:
+        print(*args, file=stdout, **kwargs)
+    else:
+        print(*args, **kwargs)
 
 def get_num_cores():
     rv = None
@@ -199,8 +266,18 @@ def get_num_cores():
         except KeyError:
             pass
     if rv is None:
-        import psutil
-        rv = psutil.cpu_count(logical=False)
+        try:
+            import psutil
+            rv = psutil.cpu_count(logical=False)
+        except ImportError:
+            # Try to infer the number of cpus from the numa topology
+            try:
+                numa_nodes = get_numa_nodes_linux()
+                rv = sum([len(v) for v in numa_nodes.values()])
+                if rv == 0:
+                    raise RuntimeError("Something went wrong while infering the number of available cpus. It shoud be > 0. Set it manually or install the 'psutil' python package!")
+            except (FileNotFoundError):
+                raise NotImplementedError("Infering number of available cpus from numa topology only works on linux systems. Set the number manually or install the 'psutil' python package.")
     return rv
 
 def get_numa_nodes_linux():

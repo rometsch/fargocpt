@@ -1,0 +1,6 @@
+testname: shocktube
+setupfiles:
+  - setups/shocktube_SN_LF.yml
+  - setups/shocktube_SN.yml
+  - setups/shocktube_TW_LF.yml
+  - setups/shocktube_TW.yml

@@ -1,5 +1,4 @@
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#pragma once
 
 #include "radialarray.h"
 #include "types.h"
@@ -7,9 +6,11 @@
 #include <csignal>
 #include <vector>
 #include "hydro_dt_logger.h"
+#include "polargrid.h"
 
 extern int CPU_Rank;
 extern int CPU_Number;
+extern int Thread_Number;
 extern int CPU_Master;
 extern int CPU_Next;
 extern int CPU_Prev;
@@ -123,5 +124,3 @@ extern std::vector<double> g_ypl;
 extern std::vector<double> g_mpl;
 extern std::vector<double> g_rpl;
 extern std::vector<double> g_l1pl;
-
-#endif // GLOBAL_H

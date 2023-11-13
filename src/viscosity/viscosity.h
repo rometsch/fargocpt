@@ -1,5 +1,4 @@
-#ifndef VISCOSITY_H
-#define VISCOSITY_H
+#pragma once
 
 #include "../data.h"
 
@@ -12,5 +11,3 @@ void compute_viscous_stress_tensor(t_data &data);
 void update_velocities_with_viscosity(t_data &data, const double dt);
 
 } // namespace viscosity
-
-#endif // VISCOSITY_H

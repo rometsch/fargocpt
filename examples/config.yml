@@ -7,9 +7,6 @@ Disk: yes   # enable disk [default = yes]
 DiskFeedback: yes   # Calculate incfluence of the disk on the star
 SelfGravity: no   # choose: Yes, Z or No
 
-## Nbody
-IntegratePlanets: Yes   # [default = yes]
-
 ## Particles
 IntegrateParticles: no   # enable particle integrator [default = no]
 
@@ -23,15 +20,15 @@ mu: 2.35   # mean molecular weight [default=1.0]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 IndirectTermMode: 0   # 0: indirect term from rebound with shift; 1: euler with shift (original);  Default 0
 OmegaFrame: 1.0
-Frame: F   # F: Fixed, C: Corotating, G: Guiding-Center
+Frame: F   # F: Fixed, C: Corotating
 
 #
 # Simulation time
 #
 
-DT: 0.628   # Calculate scalar quatities every DT in code units. For default units 2PI = 1 orbit at r=1
-Ninterm: 10   # Number of DTs before writing a snapshot
-Ntot: 50   # Total number snapshots. The final time will be tfinal = Ntot*Ninterm*DT. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
+MonitorTimestep: 0.628   # Calculate scalar quatities every DT in code units. For default units 2PI = 1 orbit at r=1
+Nmonitor: 10   # Number of DTs before writing a snapshot
+Nsnapshots: 50   # Total number snapshots. The final time will be tfinal = Ntot*Ninterm*DT. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 
 #
@@ -49,9 +46,9 @@ nbody:
   semi-major axis: 1.0 au
   mass: 1 jupiterMass
   accretion efficiency: 0.0
+  accretion method: kley # can also be sinkhole, viscous, kley, or none
   eccentricity: 0
   radius: 0.01 solRadius
-  phi: 0.0
   ramp-up time: 0.0
 
 #
@@ -98,7 +95,7 @@ CFLmaxVar: 1.1 # maximum factor the timestep can increase in one hydro step
 
 cps:  -1.0  # Set cells per scaleheight: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio
 Nrad: 128   # Radial number of zones
-Nsec: 384   # Azimuthal number of
+Naz: 384   # Azimuthal number of
 
 Rmin: 0.4   # Inner boundary radius
 Rmax: 2.5   # Outer boundary radius
@@ -108,6 +105,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 ThicknessSmoothing: 0.6   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmoothing]
+KlahrSmoothingRadius: 0.3 # Numerical potential smoothing in hill radii
+
+MassAccretionRadius: 0.3 # Radius from which planets accrete mass in hill radii
 
 ## Disk initial conditions
 
@@ -128,8 +128,7 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 ## Viscosity
 
-ExplicitViscosity: yes
-AlphaViscosity: 1.0e-3   # Alpha value for AlphaMode == 0
+ViscousAlpha: 1.0e-3   # Alpha value for AlphaMode == 0
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: Yes   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
@@ -138,24 +137,45 @@ ArtificialViscosityFactor: 1.41   # artificial viscosity factor/constant (von Ne
 
 EquationOfState: isothermal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: 1.4   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
+HydrogenMassFraction: 0.75 # needed for PVTE law, the rest of the mass is assumed to be helium
 
-## Radiation transport
-CoolingRadiativeLocal: Yes   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
-CoolingBetaLocal: No   # enable beta cooling Q- = T * Omega/beta [default = no]
-CoolingBeta: 10
-RadiativeDiffusion: No   # 
+## Radiation physics
+SurfaceCooling: thermal  # Type of surface cooling (no, thermal, scurve) [default = no]
+RadiativeDiffusion: No   # Enable radiation transport in the midplane with FLD (yes, no) [default = no]
+CoolingBetaLocal: no     # Enable thermal relaxation (yes, no) [default = no]
+
+
+## Radiative cooling config
+CoolingRadiativeFactor: 1.0 # apply factor to radiative cooling for thermal and scruve modes
+
+## Beta Cooling config
+CoolingBeta: 10 # cooling timescale in units of orbital timescales of the cell
+CoolingBetaRampUp: 0.0 # rampup time in code units
+CoolingBetaReference: floor # beta cooling target profile [floor, reference, model]
+
+## Scurve cooling config
+ScurveType: Kimura # Kimura, Ichikawa [default = Kimura]
+
+## Radiative diffusion config
+RadiativeDiffusionOmega: 1.5 # SOR omega
+RadiativeDiffusionAutoOmega: NO # use adaptive omega for SOR
+RadiativeDiffusionMaxIterations: 50000
+RadiativeDiffusionTolerance: 1.5
+RadiativeDiffusionInnerBoundary: zerogradient
+RadiativeDiffusionOuterBoundary: zerogradient
+
+Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers, Constant) [default = Lin]
+KappaConst: 2.0e-6   # used for const (kappa = kappa0) and simple opacity (kappa = kappa0 * T**2)
+
 HeatingViscous: Yes   # enable viscous heating
 
 MinimumTemperature: 3 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
 
-Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
-KappaConst: 2.0e-6   # used for const and simple opacity (kappa = kappa0 * T**2)
-
 HeatingCoolingCFLlimit: 1.0   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 
 # Boundary conditions
-
+# TODO: complete boundary config with comments
 InnerBoundary: Reflecting
 OuterBoundary: Reflecting
 
@@ -180,7 +200,7 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 OutputDir: output/out
 
 ## Logging messages
-LogAfterRealSeconds: 600 # write a log line to console every 'LogAfterRealSeconds' seconds
+LogAfterRealSeconds: 10 # write a log line to console every 'LogAfterRealSeconds' seconds
 LogAfterSteps: 0         # write a log line to console every 'LogAfterSteps' hydro steps
 
 WriteAtEveryTimestep: Yes   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
@@ -188,9 +208,9 @@ WriteAtEveryTimestep: Yes   # Write some quantities (planet positions, disk quan
 ## Select variables to write
 
 WriteDensity: Yes   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteVelocity: Yes   # Write velocites. This is needed for restart of simulations. [default = yes]
 WriteEnergy: Yes   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
 WriteTemperature: No   # Write temperature. [default = no]
-WriteVelocity: Yes   # Write velocites. This is needed for restart of simulations. [default = yes]
 WriteSoundspeed: No   # Write sound speed [default = no]
 WriteEccentricityChange: No # Eccentricity change monitor
 WriteEffectiveGamma: No   # 
@@ -199,8 +219,9 @@ WriteMeanMolecularWeight: No   #
 WriteToomre: No   # Write Toomre parameter Q. [default = no]
 WriteQMinus: No   # Write QMinus. [default = no]
 WriteQPlus: No   # Write QPlus. [default = no]
-WriteViscosity: No   # Write Viscosity. [default = no]
 WriteTauCool: No   # Write TauCool. [default = no]
+WriteViscosity: No   # Write Viscosity. [default = no]
+WriteAlpha: No # Alpha viscosity parameter
 WriteKappa: No   # Write Kappa. [default = no]
 WriteAlphaGrav: No   # Write AlphaGrav. [default = no]
 WriteAlphaGravMean: No   # Write AlphaGrav time average. [default = no]
@@ -222,4 +243,5 @@ WriteScaleHeight: No   # Write scale height H [default = no]
 WriteAspectratio: No   # Write aspectratio h = H/r [default = no]
 WriteTorques: No   # Calculate and write torques acting in planet/star
 WriteVerticalOpticalDepth: No   # Write optical depth in vertical direction (tau_eff by Hubeny [1990])
-
+WriteSGAccelRad: No # Write radial SG acceleration.
+WriteSGAccelAzi: No # Write azimuthal SG acceleration.

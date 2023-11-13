@@ -1,4 +1,3 @@
-#include "types.h"
 #include "mpi.h"
 #include "circumplanetary_mass.h"
 #include "global.h"

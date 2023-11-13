@@ -2,51 +2,59 @@
 #include <cassert>
 #include <cmath>
 #include "parameters.h"
+#include "constants.h"
+#include "global.h"
+
+
+static void compute_azimuthal_avg(t_polargrid &X, t_radialarray &Xavg) {
+	unsigned int Imax_az = X.get_max_azimuthal();
+	unsigned int Imax_rad = X.get_max_radial();
+
+	unsigned int Naz = X.Nsec;
+
+	// Compute the azimuthal mean of X
+	#pragma omp parallel for
+    for (unsigned int nr = 0; nr <= Imax_rad; ++nr) {
+		double mean = 0.0;
+		for (unsigned int naz = 0; naz <= Imax_az; ++naz) {
+			mean += X(nr, naz);
+		}
+		mean /= (double)(Naz);
+		Xavg[nr] = mean;
+    }
+}
 
 /**
 	\param Density
 */
-void RefillSigma(t_polargrid *Density)
+void compute_azi_avg_Sigma(t_polargrid &Density)
 {
 
-	#pragma omp parallel for
-    for (unsigned int nRadial = 0; nRadial < Density->Nrad; ++nRadial) {
-    double mean = 0.0;
-    for (unsigned int nAzimuthal = 0; nAzimuthal < Density->Nsec; ++nAzimuthal) {
-        unsigned int cell = nAzimuthal + nRadial * Density->Nsec;
-	    mean += Density->Field[cell];
-	}
-	mean /= (double)(Density->Nsec);
-	SigmaMed[nRadial] = mean;
-    }
+	compute_azimuthal_avg(Density, SigmaMed);
 
     SigmaInf[0] = SigmaMed[0];
 
-    for (unsigned int nRadial = 1; nRadial < Density->Nrad; ++nRadial) {
-	SigmaInf[nRadial] =
-	    (SigmaMed[nRadial - 1] * (Rmed[nRadial] - Rinf[nRadial]) +
-	     SigmaMed[nRadial] * (Rinf[nRadial] - Rmed[nRadial - 1])) /
-	    (Rmed[nRadial] - Rmed[nRadial - 1]);
+	unsigned int Imax_rad = Density.get_max_radial();
+	// Compute SigmaMean at the interface locations
+	#pragma omp parallel for
+    for (unsigned int nr = 1; nr <= Imax_rad; ++nr) {
+		const double sigm = SigmaMed[nr - 1];
+		const double sigp = SigmaMed[nr];
+		const double dr =  (Rmed[nr] - Rmed[nr - 1]);
+
+		SigmaInf[nr] = (sigm * (Rmed[nr] - Rinf[nr]) + sigp * (Rinf[nr] - Rmed[nr-1])) / dr;
     }
 }
 
 /**
 
 */
-void RefillEnergy(t_polargrid *Energy)
+void compute_azi_avg_Energy(t_polargrid &Energy)
 {
-
-	#pragma omp parallel for
-    for (unsigned int nRadial = 0; nRadial < Energy->Nrad; ++nRadial) {
-    double mean = 0.0;
-    for (unsigned int nAzimuthal = 0; nAzimuthal < Energy->Nsec; ++nAzimuthal) {
-        unsigned int cell = nAzimuthal + nRadial * Energy->Nsec;
-	    mean += Energy->Field[cell];
-	}
-	mean /= (double)Energy->Nsec;
-	EnergyMed[nRadial] = mean;
-    }
+	compute_azimuthal_avg(Energy, EnergyMed);
 }
+
+
 void init_binary_quadropole_moment(const t_planetary_system &psys){
 
     if(parameters::n_bodies_for_hydroframe_center == 2){ // binary
@@ -77,9 +85,9 @@ void init_binary_quadropole_moment(const t_planetary_system &psys){
 ///
 double initial_energy(const double R, const double M){
 
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
-	const double S = parameters::SIGMASLOPE;
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
+	const double S = parameters::sigma_slope;
 
 	// energy = 1/(gamma - 1) * Sigma * (C_s,iso)^2
 	// C_s,iso = h * v_k = h0 * r^F * sqrt(G M / r)
@@ -103,9 +111,9 @@ double initial_locally_isothermal_v_az(const double R, const double M){
 
 	// Phi = GMm / r_sm
 	// vkep^2 / r = 1/Simga dP/dr + dPhi / dr
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
-	const double S = parameters::SIGMASLOPE;
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
+	const double S = parameters::sigma_slope;
 	const double h = h0 * std::pow(R, F);
 	// const double eps = parameters::thickness_smoothing;
 	const double vk_2 = constants::G * M / R;
@@ -117,6 +125,35 @@ double initial_locally_isothermal_v_az(const double R, const double M){
 	const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
 
 	return v_az;
+}
+
+
+double support_azi_pressure(const double R){
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
+	const double S = parameters::sigma_slope;
+	const double h = h0 * std::pow(R, F);
+	const double rv = (2.0 * F - 1.0 - S) * std::pow(h, 2);
+	return rv;
+}
+
+double support_azi_smoothing_derivative(const double R) {
+	const double h0 = parameters::aspectratio_ref;
+	const double F = parameters::flaring_index;
+	const double h = h0 * std::pow(R, F);
+	const double eps = parameters::thickness_smoothing;
+	const double rv = (1.0 + (F+1.0) * std::pow(h * eps, 2))
+			/ std::pow(std::sqrt(1 + std::pow(h * eps, 2)), 3);
+	return rv;
+}
+
+double support_azi_quadrupole(const double R) {
+	const double Q = binary_quadropole_moment;
+	double rv = 0.0;
+	if (Q > 0.0) {
+		rv = 3.0 * Q / std::pow(R, 2);
+	}
+	return rv;
 }
 
 ///
@@ -133,22 +170,15 @@ double initial_locally_isothermal_smoothed_v_az(const double R, const double M){
 
 	// Phi = GMm / r_sm
 	// vkep^2 / r = 1/Simga dP/dr + dPhi / dr
-	const double h0 = parameters::ASPECTRATIO_REF;
-	const double F = parameters::FLARINGINDEX;
-	const double S = parameters::SIGMASLOPE;
-	const double h = h0 * std::pow(R, F);
-	const double eps = parameters::thickness_smoothing;
+	const double smoothing_derivative_2 = support_azi_smoothing_derivative(R);
+	const double pressure_support_2 = support_azi_pressure(R);
+
+    const double support = smoothing_derivative_2 + pressure_support_2;
+
 	const double vk_2 = constants::G * M / R;
-	const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
-
-	// for normal pressure support, the derivative should be 1
-	const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
-		/ std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
-
-    const double v_az = std::sqrt(vk_2 * (smoothing_derivative_2 + pressure_support_2));
-
-	return v_az;
+	return std::sqrt(vk_2 * support);
 }
+
 
 double initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(const double R, const double M){
 
@@ -157,24 +187,15 @@ double initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(const dou
 
     // Phi = GMm / r_sm
     // vkep^2 / r = 1/Simga dP/dr + dPhi / dr
-    const double h0 = parameters::ASPECTRATIO_REF;
-    const double F = parameters::FLARINGINDEX;
-    const double S = parameters::SIGMASLOPE;
-    const double h = h0 * std::pow(R, F);
-    const double eps = parameters::thickness_smoothing;
-    const double vk_2 = constants::G * M / R;
-    const double pressure_support_2 = (2.0 * F - 1.0 - S) * std::pow(h, 2);
-    const double Q = binary_quadropole_moment;
 
-    // for normal pressure support, the derivative should be 1
-    const double smoothing_derivative_2 = (1.0 + (F+1.0) * std::pow(h * eps, 2))
-                                          / std::pow(std::sqrt(1.0 + std::pow(h * eps, 2)), 3);
+    const double pressure_support_2 = support_azi_pressure(R);
+    const double quadropole_support = support_azi_quadrupole(R);
+	const double smoothing_derivative_2 = support_azi_smoothing_derivative(R);
 
-    const double quadropole_support = 3.0 * Q / std::pow(R, 2);
+    const double support = quadropole_support + smoothing_derivative_2 + pressure_support_2;
 
-    const double v_az = std::sqrt(vk_2 * (quadropole_support + smoothing_derivative_2 + pressure_support_2));
-
-    return v_az;
+	const double vk_2 = constants::G * M / R;
+	return std::sqrt(vk_2 * support);
 }
 
 ///
@@ -198,7 +219,7 @@ double compute_v_kepler(const double R, const double M){
 ///
 double initial_viscous_radial_speed(const double R, const double M){
 
-	if (parameters::ALPHAVISCOSITY > 0){
+	if (parameters::viscous_alpha > 0){
 	double sqrt_gamma;
 	if(parameters::Adiabatic){
 		sqrt_gamma = std::sqrt(parameters::ADIABATICINDEX);
@@ -207,17 +228,17 @@ double initial_viscous_radial_speed(const double R, const double M){
 	}
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
-	parameters::ASPECTRATIO_REF * std::pow(R, parameters::FLARINGINDEX);
+	parameters::aspectratio_ref * std::pow(R, parameters::flaring_index);
 	const double cs = sqrt_gamma * h * v_k;
 	const double H = h * R;
-	const double nu = parameters::ALPHAVISCOSITY * cs * H;
+	const double nu = parameters::viscous_alpha * cs * H;
 	const double vr = -3.0 * nu / R *
-		  (-parameters::SIGMASLOPE + 2.0 * parameters::FLARINGINDEX + 1.0);
+		  (-parameters::sigma_slope + 2.0 * parameters::flaring_index + 1.0);
 
 	return vr;
 	} else {
-		const double nu = parameters::VISCOSITY;
-		const double vr = -3.0 * nu / R * (-parameters::SIGMASLOPE + .5);
+		const double nu = parameters::constant_viscosity;
+		const double vr = -3.0 * nu / R * (-parameters::sigma_slope + .5);
 		return vr;
 	}
 }
@@ -255,11 +276,19 @@ double init_l1(const double central_star_mass, const double other_star_mass)
     return x;
 }
 
-void update_l1(const double central_star_mass, const double other_star_mass,
-	       double &l1)
+/*	Compute the Roche Radius of a point mass (other_star_mass) orbiting a star (central_star_mass)
+	using one Newton-Raphson iteration iteration.
+
+
+	@param central_star_mass
+	@param other_star_mass
+	@param old l1
+	@return roche radius
+*/ 
+double update_l1(const double central_star_mass, const double other_star_mass,
+	       double l1)
 {
     const double q = central_star_mass / (central_star_mass + other_star_mass);
-
     double x = l1;
 
     // Newton Raphson, one iteration
@@ -271,7 +300,7 @@ void update_l1(const double central_star_mass, const double other_star_mass,
 
     x = x - f / df;
 
-    l1 = x;
+    return x;
 }
 
 double eggleton_1983(const double q, const double r)

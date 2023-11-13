@@ -1,7 +1,0 @@
-[0] [bt]: (2) ../../fargo : PersonalExit(int)+0x2d [0x55d5fc23895d]
-[0] [bt]: (3) ../../fargo : +0x1699d6 [0x55d5fc2389d6]
-[0] [bt]: (4) ../../fargo : +0x169c27 [0x55d5fc238c27]
-[0] [bt]: (5) ../../fargo : ReadVariables(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, t_data&, int, char**)+0x8c2 [0x55d5fc210c42]
-[0] [bt]: (6) ../../fargo : main+0x187 [0x55d5fc1dd917]
-[0] [bt]: (7) /lib/x86_64-linux-gnu/libc.so.6 : __libc_start_main+0xf3 [0x7f4c36045083]
-[0] [bt]: (8) ../../fargo : _start+0x2e [0x55d5fc1de68e]

@@ -1,5 +1,4 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 
 /**
 	\file types.h
@@ -7,7 +6,6 @@
 	Definition of the structures used in the FARGO code.
 */
 
-#include "polargrid.h"
 #include <sys/times.h>
 
 /**
@@ -72,8 +70,7 @@ class BoundaryFlow
 #define CONST_ALPHA 0
 #define SCURVE_ALPHA 1
 #define ALPHA_STAR_DIST_DEPENDEND 2
+#define SCURVE_IONFRACTION 3
 
 // TODO: This could be problematic on large NR
 #define MAX1D 16384
-
-#endif // TYPES_H

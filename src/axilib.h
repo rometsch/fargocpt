@@ -1,6 +1,3 @@
-#ifndef AXILIB_H
-#define AXILIB_H
+#pragma once
 
 void mpi_make1Dprofile(double *grid, double *array);
-
-#endif // AXILIB_H

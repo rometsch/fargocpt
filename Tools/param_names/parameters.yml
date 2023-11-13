@@ -1,0 +1,1682 @@
+ALPHAVISCOSITY:
+  choices: ''
+  default: 0
+  deprecated: true
+  description: Specify the value of alpha for the alpha viscosity model.
+  newname: ViscousAlpha
+AccreteWithoutDiskFeedback:
+  choices: yes, no
+  default: false
+  description: Let planets accrete without disk feedback being enabled.
+  type: bool
+  unitsupport: false
+Adiabatic:
+  choices: ''
+  default: false
+  deprecated: true
+  description: Deprecated. Dont use this anymore.
+  hint: 'EquationOfState: Ideal'
+  newname: none
+  type: string
+  unitsupport: false
+AdiabaticIndex:
+  choices: +
+  default: 1.4
+  description: Numerical value or FIT_ISOTHERMAL (only for polytropic equation of state)
+  type: double
+  unitsupport: false
+AlphaCold:
+  choices: 0+
+  default: 0.01
+  description: Alpha value for the cold state in scurve alpha.
+  type: double
+  unitsupport: false
+AlphaHot:
+  choices: 0+
+  default: 0.1
+  description: Alpha value for the hot state in scurve alpha.
+  type: double
+  unitsupport: false
+AlphaMode:
+  choices: 0, 1, 2, 3
+  default: 0
+  description: 'Select how the viscosity is calculated. 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend  3: Scurve Alpha with ion fraction'
+  type: int
+  unitsupport: false
+AlphaThreshold:
+  choices: positive values
+  default: 5000
+  deprecated: true
+  description: ?Threshold value for viscosity stabalized?
+  newname: none
+  type: double
+  unitsupport: false
+ArtificialViscosity:
+  choices: none, TW, SN
+  default: SN
+  description: 'Type of artificial viscosity [default = SN] TODO: change default to TW'
+  type: string
+  unitsupport: false
+ArtificialViscosityDissipation:
+  choices: yes, no
+  default: true
+  description: Use artificial viscosity in dissipation function.
+  type: bool
+  unitsupport: false
+ArtificialViscosityFactor:
+  choices: +
+  default: 1.41
+  description: Artificial viscosity factor/constant (von Neumann-Richtmyer constant).
+  type: double
+  unitsupport: false
+AspectRatio:
+  choices: +
+  default: 0.05
+  description: 'Set the reference value for the aspect ratio: h = ASPECTRATIO * r^{1+flaringindex}'
+  type: double
+  unitsupport: false
+AspectRatioMode:
+  choices: 0, 1, 2
+  default: 0
+  description: 'Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass'
+  type: int
+  unitsupport: false
+BitwiseExactRestarting:
+  choices: yes, no
+  default: false
+  description: Write out Qplus and Qminus 2D arrays to snapshot for bitwise exact restarting. This is really usefull to test development changes in the code.
+  type: bool
+  unitsupport: false
+BodyForceFromPotential:
+  choices: yes, no
+  default: true
+  description: Consider the gravitational force from the Nbody onto the disk via the potential.
+  type: bool
+  unitsupport: false
+CFL:
+  choices: +
+  default: 0.5
+  description: CFL factor.
+  type: double
+  unitsupport: false
+CFLmaxVar:
+  choices: +
+  default: 1.1
+  description: Maximum variation of the CFL timestep over one iteration.
+  type: double
+  unitsupport: false
+CICPLANET:
+  choices: yes, no
+  default: false
+  description: Initialize planets in center of cell. Only works for zero eccentricity.
+  type: bool
+  unitsupport: false
+CartesianParticles:
+  choices: yes, no
+  default: false
+  description: Particle coordinates are stored in memory and in output files in cartesian coordinates.
+  type: bool
+  unitsupport: false
+CenterProfileDensityCorrectionFactor:
+  choices: ''
+  default: 1
+  description: '?'
+  type: double
+  unitsupport: false
+CircumBinaryDecayExponent:
+  choices: ''
+  default: 0.75
+  description: '?'
+  type: double
+  unitsupport: false
+CircumBinaryDecayWidth:
+  choices: ''
+  default: 0.84
+  description: '?'
+  type: double
+  unitsupport: true
+CircumBinaryRing:
+  choices: yes, no
+  default: false
+  description: Initialize a circumbinary ring.
+  type: bool
+  unitsupport: false
+CircumBinaryRingEnhancementFactor:
+  choices: ''
+  default: 2.5
+  description: '?'
+  type: double
+  unitsupport: false
+CircumBinaryRingPosition:
+  choices: ''
+  default: 4.5
+  description: Position of the circumbinary ring.
+  type: double
+  unitsupport: true
+CircumBinaryRingWidth:
+  choices: ''
+  default: 0.6
+  description: Width of the circumbinary ring.
+  type: double
+  unitsupport: true
+CompatibilityNoStarSmoothing:
+  choices: ''
+  default: false
+  description: Disable smoothing of the gravitational interaction for the central star. This is included for compatibility reasons to compare to simulations of other codes which do not smooth gravity from the central star. . See Mueller & Kley (2013) doi:10.1051/0004-6361/201322503 for why this is important.
+  type: bool
+  unitsupport: false
+CompatibilitySmoothingPlanetLoc:
+  choices: yes, no
+  default: false
+  description: Use the scale height at the planet position for the smoothing length calculation instead of the scaleheight at the cell. This is included for compatibility reasons to compare to simulations of other codes which do not use the scale height at the location of the cell. See Mueller & Kley (2013) doi:10.1051/0004-6361/201322503 for why this is important.
+  type: bool
+  unitsupport: false
+ConstantViscosity:
+  choices: 0+
+  default: 0
+  description: Set a constant kinetic viscosity.
+  oldname: Viscosity
+  type: double
+  unitsupport: true
+CoolingBeta:
+  choices: 0+
+  default: 1
+  description: Paramter value of beta for the beta cooling.
+  type: double
+  unitsupport: false
+CoolingBetaLocal:
+  choices: yes, no
+  default: false
+  description: Enable beta cooling Q- = T * Omega/beta
+  type: bool
+  unitsupport: false
+CoolingBetaRampUp:
+  choices: 0+
+  default: 0
+  description: Increase beta cooling on this timescale.
+  type: double
+  unitsupport: true
+CoolingBetaReference:
+  choices: reference, diskmodel, floor
+  default: Zero
+  description: Reference temperature/energy profile for beta cooling.
+  type: string
+  unitsupport: false
+CoolingRadiativeFactor:
+  choices: +
+  default: 1
+  description: Fudge factor for radiative cooling. Leave this at 1.
+  type: double
+  unitsupport: false
+CoolingRadiativeLocal:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable local radiative cooling Q- = 2 * sigma_R * T_eff^4.
+  hint: 'SurfaceCooling: thermal'
+  newname: none
+CoolingScurve:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable Scurve Cooling
+  hint: 'SurfaceCooling: scurve'
+  newname: none
+CorotationReferenceBody:
+  choices: +
+  default: 1
+  description: Select the Nbody object which is the reference object for the automatic calculation of the corotation angular velocity for a rotating frame.
+  type: unsigned int
+  unitsupport: false
+CorrectDiskSelfgravity:
+  choices: yes, no
+  default: true
+  description: Substract the azimuthal average of the surface density in the calculation of torques on Nbody object to make the disk and Nbody have the same central mass around which they orbit. See Baruteau & Masset (2008). [default=not selfgravity turned on]
+  type: bool
+  unitsupport: false
+DT:
+  choices: ''
+  default: 1
+  deprecated: true
+  description: Time between two analysis outputs. For default units, 2PI = 1 orbit at r=1.
+  newname: MonitorTimestep
+Damping:
+  choices: yes, no
+  default: false
+  description: Use a wave-damping zone. Exponentially damp to a profile.
+  type: bool
+  unitsupport: false
+DampingEnergyInner:
+  choices: reference, mean, zero, none
+  default: None
+  description: Target quantity of energy at inner boundary
+  type: string
+  unitsupport: false
+DampingEnergyOuter:
+  choices: reference, mean, zero, none
+  default: None
+  description: Target quantity of energy at outer boundary
+  type: string
+  unitsupport: false
+DampingInnerLimit:
+  choices: +
+  default: 1.05
+  description: 'Set the outer limit of the inner wave damping zone: Rmin*Limit. Zone is diabled for limit < 1. Rmin is the radius of the inner boundary.'
+  type: double
+  unitsupport: false
+DampingOuterLimit:
+  choices: +
+  default: 0.95
+  description: 'Set the inner limit of the outer wave damping zone: Rmax*Limit. Zone is diabled for limit > 1. Rmax is the radius of the outer boundary.'
+  type: double
+  unitsupport: false
+DampingSurfaceDensityInner:
+  choices: reference, mean, zero, none
+  default: None
+  description: Target quantity of surface density at inner boundary
+  type: string
+  unitsupport: false
+DampingSurfaceDensityOuter:
+  choices: reference, mean, zero, none
+  default: None
+  description: Target quantity of surface density at outer boundary
+  type: string
+  unitsupport: false
+DampingTimeFactor:
+  choices: +
+  default: 1
+  description: Damping time factor. Values will be exponentially damped on a timescale of factor*Keplerian Period at boundary radius.
+  type: double
+  unitsupport: false
+DampingTimeRadiusOuter:
+  choices: +
+  default: 2.5
+  description: 'Reference radius for the outer damping time. default: Outer domain radius RMAX'
+  type: double
+  unitsupport: false
+DampingVAzimuthalInner:
+  choices: reference, mean, zero, none
+  default: None
+  description: Target quantity of azimuthal velocity at inner boundary
+  type: string
+  unitsupport: false
+DampingVAzimuthalOuter:
+  choices: reference, mean, zero, none
+  default: None
+  description: Target quantity of azimuthal velocity at outer boundary
+  type: string
+  unitsupport: false
+DampingVRadialInner:
+  choices: reference, mean, zero, visc, none
+  default: None
+  description: Target quantity of radial velocity at inner boundary. For damping to viscous speed, use visc.
+  type: string
+  unitsupport: false
+DampingVRadialOuter:
+  choices: reference, mean, zero, none
+  default: None
+  description: Target quantity of radial velocity at outer boundary
+  type: string
+  unitsupport: false
+DebugOutputs:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Write out additional debug files.
+  newname: none
+  type: bool
+  unitsupport: false
+DensityFactor:
+  choices: +
+  default: 2.5066282746310002
+  description: Factor for convertion from surface density to density. Leave this as it is! [default = sqrt(2.0*pi)]
+  type: double
+  unitsupport: false
+Disk:
+  choices: yes, no
+  default: true
+  description: Turn on hydro part of the simulation. Set this to no to, e.g., test the dust module.
+  type: bool
+  unitsupport: false
+DiskFeedback:
+  choices: yes, no
+  default: true
+  description: Enable gravitational forces from the disk onto the planets. Enable migration.
+  type: bool
+  unitsupport: false
+DiskMass:
+  choices: +
+  default: 0.01
+  description: In case of SetSigma0=yes, use this mass as diskmass.
+  type: double
+  unitsupport: true
+DiskRadiusMassFraction:
+  choices: +
+  default: 0.99
+  description: 'Calculation of the disk radius: this fraction of the total mass is contained within the disk radius.'
+  type: double
+  unitsupport: false
+DoWrite1DFiles:
+  choices: yes, no
+  default: true
+  description: Write out 1D files additional to the 2D output.
+  type: bool
+  unitsupport: false
+DomegaDrZero:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Set dOmega/dr = 0 at outer boundary
+  hint: OuterBoundaryAzi = zeroshear
+  newname: none
+EnergyCondition:
+  choices: Profile, 1D, 2D, Nbody
+  default: Profile
+  description: Initialize energy by Profile, 1D data file or 2D data file, or by profile centered on nbody.
+  type: string
+  unitsupport: false
+EnergyFilename:
+  choices: ''
+  default: ''
+  description: File to read energy from (when Condition = 1D or 2D)
+  type: string
+  unitsupport: false
+EquationOfState:
+  choices: Isothermal, Ideal/Adiabatic, PVTE, Polytropic
+  default: Isothermal
+  description: Select the equation of state.
+  type: string
+  unitsupport: false
+ExplicitViscosity:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Consider explicit viscocsity.
+  hint: Set ViscousAlpha > 0 or ConstantViscosity > 0
+  newname: none
+  type: bool
+  unitsupport: false
+ExponentialCellSizeFactor:
+  choices: +
+  default: 1.41
+  description: Cell size increase factor to build an exponential grid. Only relevant for exponential grid type.
+  type: double
+  unitsupport: false
+FeatureSize:
+  choices: +
+  default: 0.014000000000000002
+  description: Feature size of the open somplex algorithm.
+  type: double
+  unitsupport: true
+FirstDT:
+  choices: +
+  default: 1.0e-09
+  description: Initialization value for the hydro dt in case of hydro simulations turned off. Otherwise CFL dt is used.
+  type: double
+  unitsupport: true
+FlaringIndex:
+  choices: 0+
+  default: 0
+  description: Specify the flaring index. H = H0 * r^{1+FlaringIndex}.
+  type: double
+  unitsupport: false
+FluxLimiter:
+  choices: VanLeer, MC
+  default: VanLeer
+  description: Selec the flux limiter for the upwind scheme.
+  type: string
+  unitsupport: false
+ForcedCircular:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Keep the eccentricity of the planet to zero. [default = no]
+  newname: none
+  type: bool
+  unitsupport: false
+Frame:
+  choices: F, C
+  default: Fixed
+  description: 'Select whether the rotating frame has a fixed angular velocity (F) or if it is updated (C).  F: Fixed, C: Corotating'
+  type: string
+  unitsupport: false
+HeatingCoolingCFLlimit:
+  choices: +
+  default: 10
+  description: Energy change dT/T in substep3 only allowed to change by this fraction times CFL.
+  type: double
+  unitsupport: false
+HeatingStar:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable irradiation heating by the star.
+  hint: Set temperature of any Nbody object > 0 to enable irradiation from this object.
+  newname: none
+  type: bool
+  unitsupport: false
+HeatingStarFactor:
+  choices: positive value
+  deprecated: true
+  description: Modulate the heating by this factor.
+  hint: Change the temperature of the Nbody object to modulate the heating.
+  newname: none
+  type: double
+  unitsupport: false
+HeatingStarRampingTime:
+  choices: positive value
+  deprecated: true
+  description: Ramp up the heating over this time.
+  hint: Use key 'irradiation ramp-up time' for Nbody objects.
+  newname: none
+  type: double
+  unitsupport: false
+HeatingStarSimple:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable simple irradiation heating by the star solely based on distance.
+  hint: This is now the only option.
+  newname: none
+  type: bool
+  unitsupport: false
+HeatingViscous:
+  choices: yes, no
+  default: true
+  description: 'Enable viscous heating. TODO: change default to yes'
+  type: bool
+  unitsupport: false
+HeatingViscousFactor:
+  choices: positive float.
+  default: 1
+  description: Fudge factor for viscous heating. Leave this at 1.
+  type: double
+  unitsupport: false
+HydroFrameCenter:
+  choices: primary, binary, tertiary, quatirary, all
+  default: primary
+  description: Specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+  type: string
+  unitsupport: false
+HydrogenMassFraction:
+  choices: +
+  default: 0.75
+  description: Mass fraction of hydrogen in the gas for the case of scurve cooling.
+  type: double
+  unitsupport: false
+ImposedDiskDrift:
+  choices: 0+
+  default: 0
+  description: Be careful and check the code! This is old code! Initialize vrad with an imposed accretion through the disk and add an additional torque during the simulation. vrad = ImposedDiskDrift * Sigma0 / Sigma_avg_azimuthal / R.
+  type: double
+  unitsupport: false
+IndirectTermMode:
+  choices: 0, 1
+  default: 0
+  description: 'Select the way the indirect term is calculated. You likely want 0. 0: indirect term from rebound with shift; 1: euler with shift (original)'
+  type: int
+  unitsupport: false
+InitializePureKeplerian:
+  choices: yes, no
+  default: false
+  description: Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2)
+  type: bool
+  unitsupport: false
+InitializeVradialZero:
+  choices: yes, no
+  default: false
+  description: Initialize VRadial=0  [default = no]
+  type: bool
+  unitsupport: false
+InnerBoundary:
+  choices: Zerogradient, Outflow, Reflecting, Reference, CenterOfMass, Custom, Individual
+  default: individual
+  description: Boundary condition at the inner boundary.
+  type: string
+  unitsupport: false
+InnerBoundaryEnergy:
+  choices: Zerogradient, DiskModel, Reference, Infer
+  default: infer
+  description: Boundary condition for the energy at the inner boundary.
+  type: string
+  unitsupport: false
+InnerBoundarySigma:
+  choices: Zerogradient, DiskModel, Reference, Infer
+  default: infer
+  description: Boundary condition for the surface density at the inner boundary.
+  type: string
+  unitsupport: false
+InnerBoundaryVazi:
+  choices: ZeroGradient, Reference, ZeroShear, Balanced, Keplerian, Infer
+  default: keplerian
+  description: Boundary condition for the azimuthal velocity at the inner boundary.
+  type: string
+  unitsupport: false
+InnerBoundaryVaziKeplerianFactor:
+  choices: 0+
+  default: 1
+  description: For InnerBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.
+  type: double
+  unitsupport: false
+InnerBoundaryVrad:
+  choices: ZeroGradient, Reference, Reflecting, Outflow, Viscous, Keplerian, Infer
+  default: infer
+  description: Boundary condition for the radial velocity at the inner boundary.
+  type: string
+  unitsupport: false
+InnerBoundaryVradKeplerianFactor:
+  choices: 0+
+  default: 0.1
+  description: For InnerBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.
+  type: double
+  unitsupport: false
+IntegrateParticles:
+  choices: yes, no
+  default: false
+  description: Enable the particle module.
+  type: bool
+  unitsupport: false
+IntegratePlanets:
+  choices: yes, no
+  default: true
+  deprecated: true
+  description: Evolve the Nbody system.
+  newname: none
+Integrator:
+  choices: Euler, LeapFrog
+  default: Euler
+  description: 'Select timestepping for hydro simulation: Euler or LeapFrog'
+  type: string
+  unitsupport: false
+KappaConst:
+  choices: 0+
+  default: 1
+  description: Opacity value for the cases of Opacity = constant or Opacity = simple.
+  type: double
+  unitsupport: true
+KappaFactor:
+  choices: 0+
+  default: 1
+  description: 'Danger zone: Fudge factor for kappa. Use this to increase/decrease to scale the restults of fixed opacity laws.'
+  type: double
+  unitsupport: false
+KeepDiskMassConstant:
+  choices: yes, no
+  default: false
+  description: 'Danger zone: Rescale the mass of the disk periodically. You likely want to keep this turned off.'
+  type: bool
+  unitsupport: false
+KlahrSmoothingRadius:
+  choices: 0+
+  default: 0.3
+  description: Smoothing radius for Klahr & Kley smoothing around the secondary if H is calculated using all Nbody objects.
+  type: double
+  unitsupport: false
+LogAfterRealSeconds:
+  choices: positive integers
+  default: 600
+  description: Write a log message to console after this number of real seconds. Setting to 0 disables this feature.
+  type: double
+  unitsupport: false
+LogAfterSteps:
+  choices: positive integers
+  default: 0
+  description: Write a log message to console after this number hydro steps. Setting to 0 disables this feature.
+  type: unsigned int
+  unitsupport: false
+MassAccretionRadius:
+  choices: 0+
+  default: 1
+  description: When accretion onto Nbody abjects is turned on, accrete from the disk within MassAccretionRadius*RRoche.
+  type: double
+  unitsupport: false
+MassAccretionRate:
+  choices: ''
+  default: 1.0e-09
+  deprecated: true
+  description: 'For inner boundary = boundary layer: Mass accretion rate (from secondary, young stellar cloud, etc.).'
+  newname: none
+  type: double
+  unitsupport: true
+MaximumTemperature:
+  choices: +
+  default: 1.0e300 K
+  description: Temperature ceiling.
+  type: double
+  unitsupport: true
+MinimumTemperature:
+  choices: 0+
+  default: 3 K
+  description: Temperature floor.
+  type: double
+  unitsupport: true
+MonitorTimestep:
+  choices: +
+  default: 1
+  description: Calculate scalar quatities every MonitorTimestep in code units. For default units 2PI = 1 orbit at r=1. This is analogous to the DT parameter in other FARGO versions.
+  oldname: DT
+  type: double
+  unitsupport: true
+NSEC:
+  choices: ''
+  default: 64
+  deprecated: true
+  description: Number of azimuthal cells
+  newname: Naz
+NTOT:
+  choices: ''
+  default: 1000
+  deprecated: true
+  description: Number of snapshots to be written.
+  newname: Nsnapshots
+Naz:
+  choices: +
+  default: 64
+  description: Number of azimuthal cells in the hydro grid.
+  type: unsigned int
+  unitsupport: false
+Ninterm:
+  choices: ''
+  default: none
+  deprecated: true
+  description: Number of analysis outputs between two snapshots.
+  newname: Nmonitor
+  type: unsigned int
+  unitsupport: false
+Nmonitor:
+  choices: +
+  default: 10
+  description: Number of monitor outputs between two snapshots.
+  oldname: Ninterm
+  type: unsigned int
+  unitsupport: false
+Nrad:
+  choices: +
+  default: 64
+  description: Number of radial cells in the hydro grid.
+  type: unsigned int
+  unitsupport: false
+Nsnapshots:
+  choices: +
+  default: 1000
+  description: Number of snapshots. The final time will be tfinal = Nsnapshots*Nmonitor*MonitorTimestep. Please note that this is a different from FARGO3D!
+  type: unsigned int
+  unitsupport: false
+NumberOfParticles:
+  choices: +
+  default: 0
+  description: Number of particles.
+  type: unsigned int
+  unitsupport: false
+OmegaFrame:
+  choices: 0+
+  default: 0
+  description: Specify the angular velocity with which the frame rotates. Units of 1/T0. Specifying 2pi is equivalent to a corotating frame at R=R0.
+  type: double
+  unitsupport: true
+Opacity:
+  choices: Lin, Bell, Constant, Simple
+  default: Lin
+  description: Opacity table to use.
+  type: string
+  unitsupport: false
+OuterBoundary:
+  choices: Zerogradient, Outflow, Reflecting, Reference, CenterOfMass, Custom, Individual
+  default: individual
+  description: Boundary condition at the outer boundary.
+  type: string
+  unitsupport: false
+OuterBoundaryEnergy:
+  choices: Zerogradient, DiskModel, Reference, Infer
+  default: infer
+  description: Boundary condition for the energy at the outer boundary.
+  type: string
+  unitsupport: false
+OuterBoundarySigma:
+  choices: Zerogradient, DiskModel, Reference, Infer
+  default: infer
+  description: Boundary condition for the surface density at the outer boundary.
+  type: string
+  unitsupport: false
+OuterBoundaryVazi:
+  choices: ZeroGradient, Reference, ZeroShear, Balanced, Keplerian, Infer
+  default: keplerian
+  description: Boundary condition for the azimuthal velocity at the outer boundary.
+  type: string
+  unitsupport: false
+OuterBoundaryVaziKeplerianFactor:
+  choices: 0+
+  default: 1
+  description: For OuterBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.
+  type: double
+  unitsupport: false
+OuterBoundaryVrad:
+  choices: ZeroGradient, Reference, Reflecting, Outflow, Viscous, Keplerian, Infer
+  default: infer
+  description: Boundary condition for the radial velocity at the outer boundary.
+  type: string
+  unitsupport: false
+OuterBoundaryVradKeplerianFactor:
+  choices: 0+
+  default: 0.1
+  description: For OuterBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.
+  type: double
+  unitsupport: false
+OuterSourceMass:
+  choices: ''
+  default: false
+  deprecated: true
+  description: '?'
+  newname: none
+  type: bool
+  unitsupport: false
+OutputDir:
+  choices: ''
+  default: setupfile name
+  description: Specify the output directory.
+  type: string
+  unitsupport: false
+ParticleDensity:
+  choices: +
+  default: 2.65 g/cm3
+  description: Particle material density. [default = 2.65 g/cm3, Siliciumdioxid].
+  type: double
+  unitsupport: true
+ParticleDiskGravityEnabled:
+  choices: yes, no
+  default: false
+  description: 'Enable disk self-gravity acting on particles. TODO: this should be set to default to reflect the self-gravity flag.'
+  type: bool
+  unitsupport: false
+ParticleDustDiffusion:
+  choices: yes, no
+  default: false
+  description: Enable dust diffusion.
+  type: bool
+  unitsupport: false
+ParticleEccentricity:
+  choices: 0+
+  default: 0
+  description: Initialize the particles with eccentricities drawn from a uniform random distribution between 0 and this number.
+  type: double
+  unitsupport: false
+ParticleGasDragEnabled:
+  choices: yes, no
+  default: true
+  description: Enable particle gas drag.
+  type: bool
+  unitsupport: false
+ParticleIntegrator:
+  choices: explicit, midpoint
+  default: m
+  description: Select the particle integrator. Explicit (Cash-Carp with adaptive timesteping), Midpoint (Mignone 2019)
+  type: string
+  unitsupport: false
+ParticleMaximumEscapeRadius:
+  choices: +
+  default: 2.5
+  description: Eject particles that move outside this radius. [default = ParticleMaximumRadius]
+  type: double
+  unitsupport: true
+ParticleMaximumRadius:
+  choices: +
+  default: 2.5
+  description: Initialize particles up to this radius. [default = RMAX]
+  type: double
+  unitsupport: true
+ParticleMinimumEscapeRadius:
+  choices: 0+
+  default: 0.4
+  description: Eject particles that move inside this radius. [default = ParticleMinimumRadius]
+  type: double
+  unitsupport: true
+ParticleMinimumRadius:
+  choices: 0+
+  default: 0.4
+  description: Initialize particles starting at this radius. [default = RMIN]
+  type: double
+  unitsupport: true
+ParticleRadius:
+  choices: +
+  default: 100.0 cm
+  description: Radius of a single particle (assumed to be spherical).
+  type: double
+  unitsupport: true
+ParticleRadiusIncreaseFactor:
+  choices: +
+  default: 10
+  description: Increase the size of each particle species by this factor. The size of the nth particle species is then ParticleRadius*IncreaseFactor^{n-1}.
+  type: double
+  unitsupport: false
+ParticleSpeciesNumber:
+  choices: +
+  default: 1
+  description: Number of particle species/sizes. This works in tandem with ParticleRadiusIncreaseFactor.
+  type: unsigned int
+  unitsupport: false
+ParticleSurfaceDensitySlope:
+  choices: -0+
+  default: 0
+  description: 'Slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope). [default = SigmaSlope]'
+  type: double
+  unitsupport: false
+PlanetOrbitDiskTest:
+  choices: yes, no
+  default: false
+  description: 'Danger zone: Enable test mode for a planet orbiting around just a disk. You likely never need this.'
+  type: bool
+  unitsupport: false
+PolytropicConstant:
+  choices: +
+  default: 12.753
+  description: Set the polytropic constant for the polytropic equation of state.
+  type: string
+  unitsupport: false
+ProfileCutoffInner:
+  choices: yes, no
+  default: false
+  description: Enable exponential cutoff for the density profile at the inner boundary.
+  type: bool
+  unitsupport: false
+ProfileCutoffOuter:
+  choices: yes, no
+  default: false
+  description: Enable exponential cutoff for the density profile at the outer boundary.
+  type: bool
+  unitsupport: false
+ProfileCutoffPointInner:
+  choices: 0+
+  default: 0
+  description: Location of the cuttoff at the inner boundary.
+  type: double
+  unitsupport: true
+ProfileCutoffPointOuter:
+  choices: +
+  default: 1.0e+300
+  description: Location of the cuttoff at the outer boundary.
+  type: double
+  unitsupport: true
+ProfileCutoffWidthInner:
+  choices: +
+  default: 1
+  description: Width of the cutoff at the inner boundary.
+  type: double
+  unitsupport: true
+ProfileCutoffWidthOuter:
+  choices: +
+  default: 1
+  description: Width of the cutoff at the outer boundary.
+  type: double
+  unitsupport: true
+QuantitiesRadiusLimit:
+  choices: +
+  default: 5
+  description: Limit the calculation of disk quantities to inside this radius. [default = RMAX]
+  type: double
+  unitsupport: true
+ROFVariableTransfer:
+  choices: yes, no
+  default: false
+  description: Rochlobe overflow, variable transfer. TODO describe this better.
+  type: bool
+  unitsupport: false
+ROFaveragingtime:
+  choices: +
+  default: 10
+  description: Rochlobe overflow, variable transfer averaging time. TODO describe this better.
+  type: double
+  unitsupport: false
+ROFgamma:
+  choices: +
+  default: 0.5
+  description: Rochlobe overflow, variable transfer gamma
+  type: double
+  unitsupport: false
+ROFplanet:
+  choices: +
+  default: 1
+  description: Rochlobe overflow, number of Nbody object from which the stream originates
+  type: int
+  unitsupport: false
+ROFrampingtime:
+  choices: 0+
+  default: 30
+  description: Ramp-up time for Rochlobe overflow in units of the reference planets orbital period.
+  type: double
+  unitsupport: false
+ROFtemperature:
+  choices: +
+  default: 1000.0 K
+  description: Rochlobe overflow, sets initial temperature and width of stream
+  type: double
+  unitsupport: true
+ROFvalue:
+  choices: 0+
+  default: 1e-08
+  description: Mass accretion rate through the stream of the Rochelobe overflow.
+  type: double
+  unitsupport: true
+RadialSpacing:
+  choices: Logarithmic, Arithmetic, Exponential
+  default: Arithmetic
+  description: Type of the radial grid spacing of the hydro grid.
+  type: string
+  unitsupport: false
+RadialViscosityFactor:
+  choices: +
+  default: 1
+  description: Danger zone! Check the code for what this does! Viscosity in radial direction is mutliplied with this factor to avoid oscillations.
+  type: double
+  unitsupport: false
+RadiativeDiffusion:
+  choices: yes, no
+  default: false
+  description: Turn on radiation transport using FLD to simulate radiative transport in the midplane.
+  type: bool
+  unitsupport: false
+RadiativeDiffusionAutoOmega:
+  choices: yes, no
+  default: false
+  description: Danger zone! Testing needed! Automatically update SOR omega.
+  type: bool
+  unitsupport: false
+RadiativeDiffusionCheckSolution:
+  choices: yes, no
+  default: false
+  description: For RadiativeDiffusionTest2D enabled, check the solution.
+  type: bool
+  unitsupport: false
+RadiativeDiffusionDumpData:
+  choices: yes, no
+  default: false
+  description: Write out internal variables (matrix elements and diffusion coefficents) for debugging.
+  type: bool
+  unitsupport: false
+RadiativeDiffusionInnerBoundary:
+  choices: ZeroFlux, ZeroGradient, Outflow
+  default: none
+  description: Inner boundary condition for the diffusion equation. You need to set this when using the FLD module.
+  type: string
+  unitsupport: false
+RadiativeDiffusionMaxIterations:
+  choices: +
+  default: 50000
+  description: Maximum number of SOR iterations for FLD.
+  type: unsigned int
+  unitsupport: false
+RadiativeDiffusionOmega:
+  choices: +
+  default: 1.5
+  description: Parameter for the succesive-overrelaxation (SOR) solver for the linear system of the FLD radiative transport.
+  type: double
+  unitsupport: false
+RadiativeDiffusionOuterBoundary:
+  choices: ZeroFlux, ZeroGradient, Outflow
+  default: none
+  description: Outer boundary condition for the diffusion equation. You need to set this when using the FLD module.
+  type: string
+  unitsupport: false
+RadiativeDiffusionTest1D:
+  choices: yes, no
+  default: false
+  description: Enable the 1D test case for the FLD module.
+  type: bool
+  unitsupport: false
+RadiativeDiffusionTest2D:
+  choices: yes, no
+  default: false
+  description: Enable the 2D test case for the FLD module. This simulates a 2D diffusion process.
+  type: bool
+  unitsupport: false
+RadiativeDiffusionTest2DDensity:
+  choices: +
+  default: 1.0 g/cm3
+  description: Set the constant density for the 2D test.
+  type: double
+  unitsupport: true
+RadiativeDiffusionTest2DK:
+  choices: +
+  default: 1
+  description: Set the diffusion coefficient for the 2D test.
+  type: double
+  unitsupport: false
+RadiativeDiffusionTest2DSteps:
+  choices: +
+  default: 1
+  description: Number of times to repleat SOR during the 2D test.
+  type: unsigned int
+  unitsupport: false
+RadiativeDiffusionTolerance:
+  choices: +
+  default: 1e-10
+  description: Absolute value of tolerance for the SOR solver. This is in units of temperature. If specified without temperature, it's a multiple of the code unit of temperature.
+  type: double
+  unitsupport: true
+RandomFactor:
+  choices: +
+  default: 0.1
+  description: Randomize the initial surface density by this factor times noise of order 1.
+  type: double
+  unitsupport: false
+RandomSeed:
+  choices: +
+  default: 0
+  description: Random seed integer value for noise on initial profile.
+  type: int
+  unitsupport: false
+RandomSigma:
+  choices: yes, no
+  default: false
+  description: Put random noise on surface density at start values.
+  type: bool
+  unitsupport: false
+Rmax:
+  choices: +
+  default: none
+  description: Outer domain radius of the hydro grid.
+  type: double
+  unitsupport: true
+Rmin:
+  choices: +
+  default: none
+  description: Inner domain radius of the hydro grid.
+  type: double
+  unitsupport: true
+RocheLobeOverflow:
+  choices: yes, no
+  default: false
+  description: Add a stream of mass from a secondary to the disk. This is added ontop of the outer boundary condition.
+  type: bool
+  unitsupport: false
+ScurveType:
+  choices: null
+  default: Kimura
+  description: Type of the scurve cooling. This sets the F_hot constant to 23.405 (Kimura) or 25.49 (Ichikawa).
+  type: string
+  unitsupport: false
+SecondaryDisk:
+  choices: yes, no
+  default: false
+  description: Initialize a secondary disk. This is used for binary star systems.
+  type: bool
+  unitsupport: false
+SelfGravity:
+  choices: Yes, Z, No
+  default: false
+  description: Enable self-gravity. This uses the Fourier-Convolution technique from Clement Baruteau with a modification for the scale height by Tobias Modlenhauer to make the accelerations symmetric.
+  type: bool
+  unitsupport: false
+SelfGravityAspectRatioChangeThreshold:
+  choices: +
+  default: 0.001
+  description: The self-gravity modules updates the kernel only if the aspect ratio changes by more than this threshold.
+  type: double
+  unitsupport: false
+SelfGravityMode:
+  choices: basic, symmetric, besselkernel
+  default: besselkernel
+  description: Type of kernel to use. Likely 'besselkernel' is the best choice (by Steven Rendon Restrepo). Its valid in the limit of large Toomre parameter. It avoids introducing a smoothing length. 'symmetric' also shares this feature by introducing a corrected self-gravity smoothing length (by Tobias Moldenhauer). Its best in the limit of Toomre parameter close to 1. 'basic' is the original implementation by Clement Baruteau. This formulation is not symmetric.
+  type: string
+  unitsupport: false
+SelfGravityStepsBetweenKernelUpdate:
+  choices: +
+  default: 20
+  description: Only update the kernel every SelfGravityStepsBetweenKernelUpdate steps. This is important for the besselkernel mode because the kernel update is computationally expensive then.
+  type: unsigned int
+  unitsupport: false
+SetSigma0:
+  choices: yes, no
+  default: false
+  description: Renormalize Sigma0 to have M_disc = discmass in units.
+  type: bool
+  unitsupport: false
+ShockTube:
+  choices: 0, 1, 2
+  default: 0
+  description: 'Initialize shocktube problem with 0:no shocktube 1:Ideal EOS (perfect gas) 2: PVTE EOS (variableGamma)'
+  type: int
+  unitsupport: false
+Sigma0:
+  choices: +
+  default: 173 g/cm2
+  description: 'Set the scale for the Surface density profile: Sigma = Sigma0 * r^-SigmaSlope.'
+  type: double
+  unitsupport: true
+SigmaCondition:
+  choices: Profile, 1D, 2D, Nbody
+  default: Profile
+  description: Initialize surface density by Profile, 1D data file or 2D data file, or Profile centered on nbody.
+  type: string
+  unitsupport: false
+SigmaFilename:
+  choices: ''
+  default: ''
+  description: File to read surface density from (when Condition = 1D or 2D)
+  type: string
+  unitsupport: false
+SigmaFloor:
+  choices: +
+  default: 1.0e-09
+  description: Floor surface density in multiples of sigma0.
+  type: double
+  unitsupport: false
+SigmaSlope:
+  choices: float
+  default: 0
+  description: Powerlaw exponent (the nagative of it) of the initial surface density profile. Sigma = Sigma0 * r^-SigmaSlope.
+  type: double
+  unitsupport: false
+SpreadingRing:
+  choices: yes, no
+  default: false
+  description: Initialize the simulation with the spreading ring test case.
+  type: bool
+  unitsupport: false
+StabilizeArtViscosity:
+  choices: 0+
+  default: 0
+  description: Artificially stabilize artificial viscosity to avoid numerical issues.
+  type: double
+  unitsupport: false
+StabilizeViscosity:
+  choices: 0+
+  default: 0
+  description: Artificially stabilize viscosity to avoid numerical issues.
+  type: int
+  unitsupport: false
+StarRadius:
+  choices: positive value
+  deprecated: true
+  description: Radius of the star used together with StarTemperature for computing the flux.
+  hint: Use key 'radius' for Nbody objects.
+  newname: none
+  type: double
+  unitsupport: false
+StarTemperature:
+  choices: positive value
+  deprecated: true
+  description: Radius of the star used together with StarRadius for computing the flux.
+  hint: Use key 'temperature' for Nbody objects.
+  newname: none
+  type: double
+  unitsupport: false
+StellarRotation:
+  choices: ''
+  default: 0.1
+  deprecated: true
+  description: 'For inner boundary = boundary layer: Stellar rotation rate (azimuthal velocity of the surface) in terms of Keplerian angular velocity at the inner boundary.'
+  hint: InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian
+  newname: none
+StsNu:
+  choices: positive value
+  default: '0.01'
+  deprecated: true
+  description: Set the value of the viscosity for the STS module.
+  hint: The STS module has been removed.
+  newname: none
+  type: double
+  unitsupport: false
+SurfaceCooling:
+  choices: no, thermal, scurve
+  default: false
+  description: 'Enable surface cooling. Thermal: cooling by blackbody radiation. Scurve: cooling by scurve cooling.'
+  type: string
+  unitsupport: false
+TauFactor:
+  choices: +
+  default: 0.5
+  description: 'Danger zone! Fudge factor for tau. Leave this as it is! [default = 0.5] TODO: change default value.'
+  type: double
+  unitsupport: false
+TauMin:
+  choices: +
+  default: 0.01
+  description: Tau min for the effective optical depth calculation. See Hubney (1990), Mueller & Kley (2012) and DAngelo & Marzari (2015).
+  type: double
+  unitsupport: false
+Temperature0:
+  choices: -0+
+  default: -1
+  description: If > 0, set the reference temperature at l0 instead of using the reference aspect ratio.
+  type: double
+  unitsupport: true
+Temperaturecgs0:
+  choices: positive value
+  default: none
+  deprecated: true
+  description: Set the reference temperature in cgs units.
+  hint: Use Temperature0 instead. Append a 'K' to the value to set the temperature in Kelvin.
+  newname: none
+  type: double
+  unitsupport: false
+ThicknessSmoothing:
+  choices: +
+  default: 0.6
+  description: Smoothing/softening parameters for the Nbody-disk gravitional interaction in multiples of the disk scaleheight.
+  type: double
+  unitsupport: false
+ThicknessSmoothingSG:
+  choices: ''
+  default: 1.2
+  description: Smoothing/softening parameter for SG [default = ThicknessSmoothing]
+  type: double
+  unitsupport: false
+Transport:
+  choices: fast, slow
+  default: Fast
+  description: Specify whether or not to use the Fargo method (fast) or the standard method (slow).
+  type: string
+  unitsupport: false
+VISCOSITY:
+  choices: ''
+  default: 0
+  deprecated: true
+  description: Set a constant kinetic viscosity.
+  newname: ConstantViscosity
+VRadIn:
+  choices: ''
+  default: 0.0016
+  deprecated: true
+  description: 'For inner boundary = boundary layer: value of v_rad at inner boundary in terms of Keplerian velocity v_kepler at the inner boundary.'
+  hint: InnerBoundaryVradKeplerianFactor, InnerBoundaryVrad = keplerian
+  newname: none
+VazimuthalConsidersQuadropoleMoment:
+  choices: yes, no
+  default: false
+  description: Add quadropole moment support in initialization of azimuthal velocity.
+  type: bool
+  unitsupport: false
+ViscAccretMassflowTest:
+  choices: yes, no
+  default: false
+  description: Enable viscous accretion massflow test.
+  type: bool
+  unitsupport: false
+ViscosityInCGS:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Interpret the value of constant viscosity to be in cgs.
+  hint: Use the 'ConstantViscosity' key instead. It supports specifying units.
+  newname: none
+  type: bool
+  unitsupport: false
+ViscousAlpha:
+  choices: 0+
+  default: 0
+  description: Specify the value of alpha for the alpha viscosity model.
+  oldname: AlphaViscosity
+  type: double
+  unitsupport: false
+ViscousOutflowSpeed:
+  choices: +
+  default: 1
+  description: '# Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed used for Inner/OuterBoundaryVrad = Viscous.'
+  type: double
+  unitsupport: false
+WriteAlpha:
+  choices: yes, no
+  default: false
+  description: Write 2D data of viscous alpha.
+  type: bool
+  unitsupport: false
+WriteAlphaGrav:
+  choices: yes, no
+  default: false
+  description: Write 2D array of alpha value gravitational strees.
+  type: bool
+  unitsupport: false
+WriteAlphaGravMean:
+  choices: yes, no
+  default: false
+  description: Write 2D array of azimuthal mean of the alpha value of gravitational stress.
+  type: bool
+  unitsupport: false
+WriteAlphaReynolds:
+  choices: yes, no
+  default: false
+  description: Write 2D array of alpha value Reynolds strees.
+  type: bool
+  unitsupport: false
+WriteAlphaReynoldsMean:
+  choices: yes, no
+  default: false
+  description: Write 2D array of azimuthal mean of the alpha value of Reynolds stress.
+  type: bool
+  unitsupport: false
+WriteAspectratio:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the aspect ratio.
+  type: bool
+  unitsupport: false
+WriteAtEveryTimestep:
+  choices: yes, no
+  default: true
+  description: Write some quantities (planet positions, disk quantities, ...) at every Timestep.
+  type: bool
+  unitsupport: false
+WriteDefaultValues:
+  choices: yes, no
+  default: false
+  description: Write a yaml file to the output directory containing all default values hardcoded in the code.
+  type: bool
+  unitsupport: false
+WriteDensity:
+  choices: yes, no
+  default: true
+  description: Write surface density. This is needed for restart of simulations.
+  type: bool
+  unitsupport: false
+WriteDiskQuantities:
+  choices: yes, no
+  default: true
+  description: Write a collection of disk quantities (mass, eccentricity, periastron, semi_major_axis, ...)
+  type: bool
+  unitsupport: false
+WriteDivV:
+  choices: yes, no
+  default: false
+  description: Write 2D array of divergence of velocity.
+  type: bool
+  unitsupport: false
+WriteEccentricity:
+  choices: yes, no
+  default: false
+  description: Write 2D array of eccentricity based on specific angular momentum of the cell.
+  type: bool
+  unitsupport: false
+WriteEccentricityChange:
+  choices: yes, no
+  default: false
+  description: Eccentricity change monitor.
+  type: bool
+  unitsupport: false
+WriteEffectiveGamma:
+  choices: yes, no
+  default: false
+  description: Write 2D effective adiabatic index.
+  type: bool
+  unitsupport: false
+WriteEnergy:
+  choices: yes, no
+  default: true
+  description: Write energy. This is needed for restart of (adiabatic) simulations.
+  type: bool
+  unitsupport: false
+WriteFirstAdiabaticIndex:
+  choices: yes, no
+  default: false
+  description: Write 2D data of the first adiabatic index. Usefull for PVTE EoS.
+  type: bool
+  unitsupport: false
+WriteGasTorques:
+  choices: yes, no
+  default: false
+  description: Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017
+  type: bool
+  unitsupport: false
+WriteKappa:
+  choices: yes, no
+  default: false
+  description: Write 2D array of opacity.
+  type: bool
+  unitsupport: false
+WriteLightCurves:
+  choices: yes, no
+  default: false
+  description: Danger zone! Check the code! Write light curves.
+  type: bool
+  unitsupport: false
+WriteLightCurvesRadii:
+  choices: yes, no
+  default: none
+  description: Danger zone! Check the code! Write radii for which the light curves are outputed.
+  type: string
+  unitsupport: false
+WriteMassFlow:
+  choices: yes, no
+  default: false
+  description: Write a 1D radial file with mass flow at each interface. Track accretion through the disk.
+  type: bool
+  unitsupport: false
+WriteMeanMolecularWeight:
+  choices: yes, no
+  default: false
+  description: Write 2D data of mean molecular weight.
+  type: bool
+  unitsupport: false
+WritePotential:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the gravitational potential.
+  type: bool
+  unitsupport: false
+WritePressure:
+  choices: yes, no
+  default: false
+  description: Write 2D array of pressure.
+  type: bool
+  unitsupport: false
+WriteQMinus:
+  choices: yes, no
+  default: false
+  description: Write 2D array of cooling terms.
+  type: bool
+  unitsupport: false
+WriteQPlus:
+  choices: yes, no
+  default: false
+  description: Write 2D array of heating terms.
+  type: bool
+  unitsupport: false
+WriteRadialDissipation:
+  choices: yes, no
+  default: false
+  description: Write 1D raidal array of dissipated energy.
+  type: bool
+  unitsupport: false
+WriteRadialLuminosity:
+  choices: yes, no
+  default: false
+  description: Write 1D radial array of luminosity.
+  type: bool
+  unitsupport: false
+WriteSGAccelAzi:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the azimuthal component of the gravitational stress.
+  type: bool
+  unitsupport: false
+WriteSGAccelRad:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the radial component of the gravitational stress.
+  type: bool
+  unitsupport: false
+WriteScaleHeight:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the scale height.
+  type: bool
+  unitsupport: false
+WriteSoundSpeed:
+  choices: yes, no
+  default: false
+  description: Write 2D sound speed.
+  type: bool
+  unitsupport: false
+WriteTGravitational:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the gravitational stress.
+  type: bool
+  unitsupport: false
+WriteTReynolds:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the Reynolds stress.
+  type: bool
+  unitsupport: false
+WriteTau:
+  choices: yes, no
+  default: false
+  description: Write 2D array of optical depth.
+  type: bool
+  unitsupport: false
+WriteTauCool:
+  choices: yes, no
+  default: false
+  description: Write 2D array of optical depth for cooling.
+  type: bool
+  unitsupport: false
+WriteTemperature:
+  choices: yes, no
+  default: false
+  description: Write 2D temperature.
+  type: bool
+  unitsupport: false
+WriteToomre:
+  choices: yes, no
+  default: false
+  description: Write 2D array of Toomre parameter Q.
+  type: bool
+  unitsupport: false
+WriteTorques:
+  choices: ''
+  default: false
+  description: Calculate and write 2D array of torques acting on each planet/star.
+  type: bool
+  unitsupport: false
+WriteVelocity:
+  choices: yes, no
+  default: true
+  description: Write velocites. This is needed for restart of simulations.
+  type: bool
+  unitsupport: false
+WriteVerticalOpticalDepth:
+  choices: yes, no
+  default: false
+  description: Write 2D of optical depth in vertical direction (tau_eff by Hubeny [1990]).
+  type: bool
+  unitsupport: false
+WriteViscosity:
+  choices: yes, no
+  default: false
+  description: Write 2D array of the kinematic viscosity.
+  type: bool
+  unitsupport: false
+WriteVisibility:
+  choices: yes, no
+  default: false
+  description: Write 2D array of visibility.
+  type: bool
+  unitsupport: false
+WritepDV:
+  choices: yes, no
+  default: false
+  description: Write 2D array of pressure * divergence of v.
+  type: bool
+  unitsupport: false
+cps:
+  choices: +
+  default: -1
+  description: 'Set the resolution in terms of cells per scaleheight ar r=1: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio.'
+  type: double
+  unitsupport: false
+discmass:
+  choices: +
+  default: 0.01
+  deprecated: true
+  description: In case of SetSigma0=yes, use this mass as diskmass.
+  newname: DiskMass
+l0:
+  choices: +
+  default: 1.0
+  description: 'Base length unit of the simulation [default: 1.0 au]'
+  type: string
+  unitsupport: true
+m0:
+  choices: +
+  default: 1.0
+  description: 'Base mass unit of the simulation [default: 1.0 solMass]'
+  type: string
+  unitsupport: true
+massoverflow:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable a constant massflow coming though the outer boundary.
+  newname: RocheLobeOverflow
+mofaveragingtime:
+  choices: ''
+  default: 10
+  deprecated: true
+  description: '?'
+  newname: ROFAveragingTime
+mofgamma:
+  choices: ''
+  default: 0.5
+  deprecated: true
+  description: '?'
+  newname: ROFGamma
+mofplanet:
+  choices: ''
+  default: 1
+  deprecated: true
+  description: '?'
+  newname: ROFPlanet
+moframpingtime:
+  choices: ''
+  default: 30
+  deprecated: true
+  description: Gradual increase for the mass overflow.
+  newname: ROFRampingTime
+moftemperature:
+  choices: ''
+  default: 1000.0 K
+  deprecated: true
+  description: '?'
+  newname: ROFTemperature
+mofvalue:
+  choices: ''
+  default: 1e-08
+  deprecated: true
+  description: '?'
+  newname: ROFValue
+mu:
+  choices: positive float
+  default: 1
+  description: 'Mean molecular weight of the gas. TODO: change default value.'
+  type: double
+  unitsupport: false
+t0:
+  choices: +
+  default: 1.0
+  description: 'Base time unit of the simulation [default: 1/2pi * Keplerian orbital period at r=l0 around mass m0]'
+  type: string
+  unitsupport: true
+temp0:
+  choices: +
+  default: 1.0
+  description: 'Base temperature unit of the simulation [default: such that Rgas = 1]'
+  type: string
+  unitsupport: true
+variableTransfer:
+  choices: ''
+  default: false
+  deprecated: true
+  description: '?'
+  newname: ROFVariableTransfer
+zbufferMaxAngle:
+  choices: ''
+  default: 0.17453292519943295
+  deprecated: true
+  description: ''
+  newname: none
+zbufferSize:
+  choices: ''
+  default: 100
+  deprecated: true
+  description: ''
+  newname: none

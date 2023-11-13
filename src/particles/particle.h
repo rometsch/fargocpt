@@ -1,15 +1,12 @@
-#ifndef PARTICLE_H
-#define PARTICLE_H
+#pragma once
 
-#include "../constants.h"
-#include "../util.h"
 #include <cmath>
 
 class t_particle
 {
   public:
     /// id (e.g. for tracking)
-    unsigned int id;
+    unsigned long id;
     /// r position
     double r;
     /// phi position
@@ -40,5 +37,3 @@ class t_particle
     double get_r_dot(void) const;
     double get_phi_dot(void) const;
 };
-
-#endif // PARTICLE_H

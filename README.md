@@ -21,6 +21,8 @@ This notebook will guide you through
 - how to plot some results.
 After completing this notebook, you likely know enough to run and analyze your own experiments.
 
+To learn what the parameters do while the documentation is being written, check out [parameters.md](https://github.com/rometsch/fargocpt/blob/devel/parameters.md) or open an issue here on github.
+
 ## Running locally
 
 To run locally on your computer, clone the last commit of the repository
@@ -47,8 +49,7 @@ This code is presented as is. And it will change over time.
 If something does not work, please __open an issue on GitHub__.
 We appreciate any feedback!
 
-Until the end of the third quarter in 2023, we plan to add more tests, add documentation and examples.
-Changes to the input and output format are also possible, though the goal for the next month is to have a version 1.0.
+For changes, please see [ChangeLog.md](https://github.com/rometsch/fargocpt/blob/devel/ChangeLog.md)
 
 ## Usage
 

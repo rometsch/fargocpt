@@ -1,0 +1,7 @@
+testname: planet_orbiting_disk
+setupfiles:
+  - euler.yml
+  - leapfrog.yml
+  - nbody.yml
+threshold_Euler: 0.12
+threshold_LF: 0.04

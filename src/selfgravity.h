@@ -1,8 +1,6 @@
-#ifndef SELFGRAVITY_H
-#define SELFGRAVITY_H
+#pragma once
 
 #include "polargrid.h"
-#include "types.h"
 
 namespace selfgravity
 {
@@ -14,7 +12,7 @@ void mpi_init(void);
 void mpi_finalize(void);
 
 void init(t_data &data);
-void update_sg_constants(t_data &data);
+void update_sg_constants();
 
 void compute(t_data &data, double dt, bool update);
 void compute_FFT_density(t_polargrid &density);
@@ -26,5 +24,3 @@ void update_velocities(t_polargrid &v_radial, t_polargrid &v_azimuthal,
 
 void init_azimuthal_velocity(t_polargrid &v_azimuthal);
 } // namespace selfgravity
-
-#endif // SELFGRAVITY_H

@@ -7,7 +7,7 @@ HeatingCoolingCFLlimit: '2.0'   # 2.5 # energy change dT/T in substep3 only allo
 Sigma0: 12.5432 g/cm2   # 1e-7#2571.8  # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'Yes'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass: '2.0e-11'   # only used when SetSigma0 = true [default = 0.01]
+DiskMass: '2.0e-11'   # only used when SetSigma0 = true [default = 0.01]
 SigmaFloor: '1.0e-8'   # floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
@@ -22,12 +22,11 @@ EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = P
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '0.002'   # Thickness over Radius in the disk
 AspectRatioMode: '1'
-Viscosity: '0.0'   # Uniform kinematic viscosity
-AlphaViscosity: '1.0e-1'
+ConstantViscosity: '0.0'   # Uniform kinematic viscosity
+ViscousAlpha: '1.0e-1'
 AlphaMode:  '1' # Scurve Alpha
 alphaCold:  '2.0e-2'
 alphaHot:  '1.0e-1'
-AlphaThreshold:  '5000'
 ArtificialViscosity: TW
 ArtificialViscosityDissipation: 'Yes'
 ArtificialViscosityFactor: '1.41'   # artificial viscosity (von Neumann-Richtmyer constant) [default = 1.41]
@@ -36,8 +35,7 @@ SelfGravity: 'NO'   # choose: Yes, Z or No
 EquationOfState: PVTE
 PolytropicConstant: '12.09520351949007'
 AdiabaticIndex: '1.4'
-CoolingRadiativeLocal: 'No'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
-CoolingScurve: 'Yes'
+SurfaceCooling: scurve
 RadiativeDiffusion: 'No'
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
@@ -47,11 +45,11 @@ HeatingViscousFactor: '1.0'
 MinimumTemperature: 10 K   # minimum Temperature in K
 MaximumTemperature: 300000 K   # minimum Temperature in K
 TauFactor: '0.5'
-Massoverflow: 'true'
-mofvalue: 1.5e-10 solMass/yr   # given in solar mass per year
-mofplanet: '1'
-moftemperature: '1500'   # given in Kelvin
-moframpingtime: '5'
+RocheLobeOverflow: 'true'
+ROFValue: 1.5e-10 solMass/yr   # given in solar mass per year
+ROFPlanet: '1'
+ROFTemperature: '1500'   # given in Kelvin
+ROFRampingTime: '5'
 
 # Units
 
@@ -63,20 +61,17 @@ InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/
 
 # Planet parameters
 
-ForcedCircular: 'No'
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness
 BodyForceFromPotential: 'Yes'
 Transport: FARGO
-ExplicitViscosity: 'YES'
 StabilizeViscosity: '1'
 
 Integrator: 'LeapFrog'
 # InnerBoundary  REFLECTING
 
-InnerBoundary: OPEN
-OuterBoundary: OPEN
+InnerBoundary: outflow
+OuterBoundary: outflow
 ViscousOutflowSpeed: '20.0'
-DomegaDrZero: 'NO'   # Set dOmega/dr = 0 at outer boundary
 Damping: 'No'
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -97,7 +92,7 @@ DiskFeedback: 'NO'
 # Mesh parameters
 
 Nrad: '450'   # 440 #73 #512 128  # Radial number of zones
-Nsec: '1070'   # 1050 #1536 384  # Azimuthal number of
+Naz: '1070'   # 1050 #1536 384  # Azimuthal number of
 
 # 
 
@@ -110,9 +105,9 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 
 # Output control parameters
 
-Ntot: '800'   # Total number of time steps
-Ninterm: '500'   # Time steps between outputs
-DT: '0.0580880687135333'   # 1/100th of a binary orbit
+Nsnapshots: '800'   # Total number of time steps
+Nmonitor: '500'   # Time steps between outputs
+MonitorTimestep: '0.0580880687135333'   # 1/100th of a binary orbit
 FirstDT: '1.0e-8'
 CFLmaxVar: '1.1'
 DoWrite1DFiles: 'No'
@@ -149,8 +144,6 @@ nbody:
   eccentricity: '0.0'
   radius: 0.011 solRadius
   temperature: 0 K
-  irradiate: 'NO'
-  phi: '0.0'
   ramp-up time: '0.0'
 - name: secondary
   semi-major axis: '1.0'
@@ -159,6 +152,4 @@ nbody:
   eccentricity: '0.0'
   radius: 0.13 solRadius
   temperature: 0 K
-  irradiate: 'NO'
-  phi: '0.0'
   ramp-up time: '0.0'

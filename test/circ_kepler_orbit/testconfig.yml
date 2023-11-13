@@ -1,0 +1,3 @@
+testname: circ_kepler_orbit
+setupfile: nbody_test.yml
+threshold: 1e-11

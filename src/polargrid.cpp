@@ -10,21 +10,24 @@
 #include "logging.h"
 #include "mpi_utils.h"
 #include "output.h"
-#include "util.h"
 #include <cfloat>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <gsl/gsl_spline.h>
 #include <mpi.h>
+
+#ifndef DISABLE_GSL
+#include <gsl/gsl_spline.h>
+#endif // DISABLE_GSL
+
 
 t_polargrid::t_polargrid()
 {
     Nrad = 0;
     Nsec = 0;
     m_name = NULL;
-    m_unit = NULL;
+    m_unit = &units::not_yet_defined;
     Field = NULL;
     m_scalar = true;
     m_write_1D = false;
@@ -118,16 +121,24 @@ void t_polargrid::write_polargrid(t_data &data)
 
 	\param number file number
 */
-void t_polargrid::write2D() const
+void t_polargrid::write2D() const {
+    const std::string filename = output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
+    write2D(filename);
+}
+
+
+/**
+	write polargrid to file
+
+	\param number file number
+*/
+void t_polargrid::write2D(const std::string filename) const
 {
     MPI_File fh;
     MPI_Status status;
 
     unsigned int count;
     double *from;
-
-    std::string filename =
-	output::snapshot_dir + "/" + std::string(get_name()) + ".dat";
 
     mpi_error_check_file_write(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					     MPI_MODE_WRONLY | MPI_MODE_CREATE,
@@ -289,12 +300,16 @@ bool t_polargrid::file_exists()
 
 void t_polargrid::read2D(const char *_filename)
 {
+    const std::string filename = std::string(_filename);
+    if (!std::filesystem::exists(filename)) {
+        die("Attempting to load file '%s' that does not exist!\n", _filename);
+    }
     MPI_File fh;
     MPI_Status status;
     MPI_Offset size;
     unsigned int count;
 
-    const std::string filename = std::string(_filename);
+
 
     mpi_error_check_file_read(MPI_File_open(MPI_COMM_WORLD, filename.c_str(),
 					    MPI_MODE_RDONLY, MPI_INFO_NULL,
@@ -350,6 +365,12 @@ void t_polargrid::read1D(bool skip_min_max)
     read1D(filename.c_str(), skip_min_max);
 }
 
+
+#ifdef DISABLE_GSL
+void t_polargrid::read1D([[maybe_unused]] const char *_filename, [[maybe_unused]] bool skip_min_max) {
+    die("Trying to read 1D file '%s' but GSL is not compiled in!\n", _filename);
+}
+#else // DISABLE_GSL
 void t_polargrid::read1D(const char *_filename, bool skip_min_max)
 {
     MPI_File fh;
@@ -443,6 +464,7 @@ void t_polargrid::read1D(const char *_filename, bool skip_min_max)
     gsl_spline_free(spline);
     gsl_interp_accel_free(acc);
 }
+#endif // DISABLE_GSL
 
 /**
 	calculate how much bytes are need for one 1D output

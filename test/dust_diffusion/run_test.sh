@@ -1,3 +1,2 @@
 #!/usr/bin/env bash
-make -C src -j
-mpirun -n 3 fargo start dust_test.par
+../../run_fargo -nt 4 start dust_diffusion.yml

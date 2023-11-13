@@ -4,12 +4,13 @@
 	Declares all global variables.
 */
 
-#include "pvte_law.h"
 #include "radialarray.h"
 #include "types.h"
 #include <mpi.h>
 #include <signal.h>
 #include <vector>
+#include "hydro_dt_logger.h"
+#include "polargrid.h"
 
 /** number of this process, not an unsigned integer because MPI excepts it to be
  * signed */
@@ -18,6 +19,7 @@ int CPU_Rank;
 /** total number of processes, not an unsigned integer because MPI excepts it to
  * be signed */
 int CPU_Number;
+int Thread_Number;
 
 /** is this process the master process */
 int CPU_Master;
@@ -91,9 +93,9 @@ int *RootIMIN;
 int *RootRanksOrdered;
 
 /** Rmed is the location of be the center of mass of the cell.
-    Its definition is in fact : 0.5 * [ (4/3) \pi Rsup[i]^3 - (4/3) \pi
-   Rinf[i]^3 ] / [ \pi Rsup[i]^2 - \pi Rinf[i]^2] or: one half of the elementary
-   volume divided by the elementary surface.
+    Its definition is in fact : 
+    0.5 * [ (4/3) \pi Rsup[i]^3 - (4/3) \pi Rinf[i]^3 ] / [ \pi Rsup[i]^2 - \pi Rinf[i]^2] 
+    or: one half of the elementary volume divided by the elementary surface.
 
     Note that this represents the position of the center of mass only for
    d\theta << \pi . If d\theta becomes large, then the center of mass can be out

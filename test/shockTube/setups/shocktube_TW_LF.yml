@@ -5,7 +5,7 @@ ShockTube: '1'
 Sigma0: 8887231.453904748 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass: '0.1'   # only used when SetSigma0 = true [default = 0.01]
+DiskMass: '0.1'   # only used when SetSigma0 = true [default = 0.01]
 SigmaFloor: '1.e-100'   # floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
@@ -19,8 +19,8 @@ ProfileCutoffWidthOuter: '0.000001'   # in [au], [default = 1]
 EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = Profile]
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '1.0'   # Thickness over Radius in the disk
-Viscosity: '0.0'   # Uniform kinematic viscosity
-AlphaViscosity: '0.0'   # 
+ConstantViscosity: '0.0'   # Uniform kinematic viscosity
+ViscousAlpha: '0.0'   # 
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
 ArtificialViscosityFactor: '1.41'   # artificial viscosity factor/constant (von Neumann-Richtmyer constant) [default = 1.41]
@@ -28,8 +28,7 @@ FlaringIndex: '0.5'   # Slope of Temperature/radius profile
 SelfGravity: 'No'   # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-CoolingRadiativeLocal: 'No'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
 RadiativeDiffusion: 'No'   # 
@@ -47,8 +46,6 @@ CFL: '0.5'
 
 # Star Parameters
 
-zbufferSize: '100'
-zbufferMaxAngle: '0.174'
 
 # Units
 
@@ -58,34 +55,28 @@ mu: '1.0'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
-MassOverflow: 'No'   # [default = No]
-MOFPLANET: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
-MOFSIGMA: '0.05'   # Sigma value for normal distribution
-MOFVALUE: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
+RocheLobeOverflow: 'No'   # [default = No]
+ROFPlanet: '0'   # Number of Planet in Planetary System where the massoverflow comes from, starting with 0
+ROFValue: 1E-9 solMass/yr   # Mass Overflow in host star masses (m0) / Year
 
 # PlanetConfig		setups/old/Jup-res.cfg
 
-IntegratePlanets: 'Yes'   # [default = yes]
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 # Boundary layer parameters
 
-VRadIn: 0e-3   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler [default = 1.6e-3]
-StellarRotation: '0.0'   # Stellar rotation rate in terms of Keplerian angular velocity Om_kepler [default = 0.1]
-MassAccretionRate: '0'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
+# MassAccretionRate: '0'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
+# has beed removed without replacement
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Numerical method parameters
 
 Transport: FARGO
 
-# InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer
-
-InnerBoundary: RIGID
-OuterBoundary: RIGID
-DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 Damping: 'No'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -107,7 +98,7 @@ Integrator: Leapfrog
 # Mesh parameters
 
 Nrad: '100'   # 512 128		# Radial number of zones
-Nsec: '2'   # 1536 384		# Azimuthal number of
+Naz: '2'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -118,10 +109,10 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 # Output control parameters
 
-OutputDir: output/TW_LF/
-Ntot: '1'   # Total number of time steps
-Ninterm: '1'   # Time steps between outputs
-DT: '0.228'   # Time step length. 2PI = 1 orbit
+OutputDir: ../../output/tests/shocktube/TW_LF/
+Nsnapshots: '1'   # Total number of time steps
+Nmonitor: '1'   # Time steps between outputs
+MonitorTimestep: '0.228'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
 WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]

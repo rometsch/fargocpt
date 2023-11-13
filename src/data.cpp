@@ -1,7 +1,6 @@
 
 #include "data.h"
 #include "logging.h"
-#include "output.h"
 #include "quantities.h"
 #include "units.h"
 #include <mpi.h>
@@ -48,26 +47,39 @@ t_data::t_data()
     m_polargrids[MU].set_name("mu");
 
     m_polargrids[ACCEL_RADIAL].set_vector(true);
-    m_polargrids[ACCEL_RADIAL].set_name("arad");
+    m_polargrids[ACCEL_RADIAL].set_name("a_rad");
     m_polargrids[ACCEL_RADIAL].set_unit(units::acceleration);
 
-    m_polargrids[ACCEL_AZIMUTHAL].set_vector(false);
-    m_polargrids[ACCEL_AZIMUTHAL].set_name("atheta");
+    /// Azimuthal acceleration is not a vector, but we
+    /// make it a vector for covenience to compute it
+    /// alongside radial acceleration
+    m_polargrids[ACCEL_AZIMUTHAL].set_vector(true);
+    m_polargrids[ACCEL_AZIMUTHAL].set_name("a_azi");
     m_polargrids[ACCEL_AZIMUTHAL].set_unit(units::acceleration);
+
+    // sg accel is cell-centered
+    m_polargrids[SG_ACCEL_RAD].set_vector(false);
+    m_polargrids[SG_ACCEL_RAD].set_name("a_sg_rad");
+    m_polargrids[SG_ACCEL_RAD].set_unit(units::acceleration);
+
+    // sg accel is cell-centered
+    m_polargrids[SG_ACCEL_AZI].set_vector(false);
+    m_polargrids[SG_ACCEL_AZI].set_name("a_sg_azi");
+    m_polargrids[SG_ACCEL_AZI].set_unit(units::acceleration);
 
     m_polargrids[TOOMRE].set_scalar(true);
     m_polargrids[TOOMRE].set_name("Toomre");
     m_polargrids[TOOMRE].set_do_before_write(&quantities::calculate_toomre);
 
-    m_polargrids[ECCENTRICITY].set_scalar(true);
-    m_polargrids[ECCENTRICITY].set_name("Eccentricity");
-    m_polargrids[ECCENTRICITY].set_do_before_write(
-	&quantities::calculate_disk_ecc_peri);
 
-    m_polargrids[PERIASTRON].set_scalar(true);
-    m_polargrids[PERIASTRON].set_name("Periastron");
-    m_polargrids[PERIASTRON].set_do_before_write(
-	&quantities::calculate_disk_ecc_peri);
+    m_polargrids[ECCENTRICITY_X].set_scalar(true);
+    m_polargrids[ECCENTRICITY_X].set_name("Eccentricity_X");
+    m_polargrids[ECCENTRICITY_X].set_do_before_write(
+	&quantities::calculate_disk_ecc_vector);
+
+    m_polargrids[ECCENTRICITY_Y].set_scalar(true);
+    m_polargrids[ECCENTRICITY_Y].set_name("Eccentricity_Y");
+    /// Always computed together with ECCENTRICITY_X
 
     m_polargrids[ALPHA_GRAV].set_scalar(true);
     m_polargrids[ALPHA_GRAV].set_name("alpha_grav");
@@ -186,6 +198,9 @@ t_data::t_data()
     m_polargrids[GRAVITATIONAL_TORQUE_NOT_INTEGRATED]
 	.set_integrate_azimuthally_for_1D_write(true);
 
+    m_polargrids[WORKER_SCALAR_ARRAY].set_scalar(true);
+    m_polargrids[WORKER_SCALAR_ARRAY].set_name("WORKER_SCALAR_ARRAY");
+
     m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_scalar(true);
     m_polargrids[GAS_DIFFUSION_COEFFICIENT].set_name("GAS_DIFFUSION_COEFFICIENT");
 
@@ -240,6 +255,7 @@ t_data::t_data()
 
     m_polargrids[ASPECTRATIO].set_scalar(true);
     m_polargrids[ASPECTRATIO].set_name("aspectratio");
+    m_polargrids[ASPECTRATIO].set_unit(units::unitless);
     m_polargrids[ASPECTRATIO].set_do_before_write(
 	&quantities::compute_aspectratio);
 
@@ -263,37 +279,21 @@ t_data::t_data()
 
     // -- radial grids --
     m_radialgrids[LUMINOSITY_1D].set_scalar(true);
-    m_radialgrids[LUMINOSITY_1D].set_name("1D_Luminosity");
+    m_radialgrids[LUMINOSITY_1D].set_name("Luminosity1D");
     m_radialgrids[LUMINOSITY_1D].set_unit(units::power);
     m_radialgrids[LUMINOSITY_1D].set_do_before_write(
 	&quantities::calculate_radial_luminosity);
 
     m_radialgrids[DISSIPATION_1D].set_scalar(true);
-    m_radialgrids[DISSIPATION_1D].set_name("1D_Dissipation");
+    m_radialgrids[DISSIPATION_1D].set_name("Dissipation1D");
     m_radialgrids[DISSIPATION_1D].set_unit(units::power);
     m_radialgrids[DISSIPATION_1D].set_do_before_write(
 	&quantities::calculate_radial_dissipation);
 
     m_radialgrids[TORQUE_1D].set_scalar(true);
-    m_radialgrids[TORQUE_1D].set_name("1D_torque");
+    /// Name does not matter, is overwritten for each planet at each outbut
+    m_radialgrids[TORQUE_1D].set_name("torque1D");
     m_radialgrids[TORQUE_1D].set_unit(units::torque);
-
-    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_name("prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_ENERGY_OUTER].set_unit(units::energy_density);
-
-    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_name("prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_DENSITY_OUTER].set_unit(units::surface_density);
-
-    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_name(
-	"prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_V_AZIMUTHAL_OUTER].set_unit(units::velocity);
-
-    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_scalar(true);
-    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_name("prescribed_energy_inner");
-    m_polargrids[PRESCRIBED_V_RADIAL_OUTER].set_unit(units::velocity);
 
     m_radialgrids[SIGMA_1D].set_scalar(true);
     m_radialgrids[SIGMA_1D].set_name("Sigma");

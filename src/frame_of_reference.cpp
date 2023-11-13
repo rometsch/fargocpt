@@ -1,11 +1,9 @@
 #include "frame_of_reference.h"
 #include "parameters.h"
 #include "SideEuler.h"
-#include "global.h"
 #include "particles/particles.h"
 #include "types.h"
 #include "Pframeforce.h"
-#include "simulation.h"
 
 namespace refframe {
 
@@ -52,9 +50,8 @@ void handle_corotation(t_data &data, const double dt)
 	OmegaFrame = OmegaNew;
     }
 
-    if (parameters::integrate_planets) {
-	data.get_planetary_system().rotate(OmegaFrame * dt);
-    }
+    data.get_planetary_system().rotate(OmegaFrame * dt);
+
     if (parameters::integrate_particles) {
 	particles::rotate(OmegaFrame * dt);
     }

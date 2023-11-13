@@ -1,6 +1,4 @@
-#ifndef MASSFLOW_TRACKER_H
-#define MASSFLOW_TRACKER_H
-
+#pragma once
 
 #include "nbody/planetary_system.h"
 
@@ -21,5 +19,3 @@ private:
 	double m_averaging_time;
 	double m_mdot;
 };
-
-#endif // MASSFLOW_TRACKER_H

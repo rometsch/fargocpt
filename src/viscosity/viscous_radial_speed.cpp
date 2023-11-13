@@ -3,11 +3,12 @@
 #include "../parameters.h"
 #include "../Theo.h"
 #include "../global.h"
-#include "../types.h"
 #include "../util.h"
-#include "../polargrid.h"
 #include "../find_cell_id.h"
 #include "../parameters.h"
+#include "../boundary_conditions/boundary_conditions.h"
+#include "../constants.h"
+
 
 ///
 /// \brief get_nu, compute initial viscosity for the locally isothermal model
@@ -26,10 +27,10 @@
 
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
-	parameters::ASPECTRATIO_REF * std::pow(R, parameters::FLARINGINDEX);
+	parameters::aspectratio_ref * std::pow(R, parameters::flaring_index);
 	const double cs = sqrt_gamma * h * v_k;
 	const double H = h * R;
-	const double nu = parameters::ALPHAVISCOSITY * cs * H;
+	const double nu = parameters::viscous_alpha * cs * H;
 	return nu;
 }
 
@@ -39,7 +40,7 @@
 
 	const double v_k = std::sqrt(constants::G * M / R);
 	const double h =
-	parameters::ASPECTRATIO_REF * std::pow(R, parameters::FLARINGINDEX);
+	parameters::aspectratio_ref * std::pow(R, parameters::flaring_index);
 
 	double cutoff = 1.0;
 	if (parameters::profile_cutoff_outer) {
@@ -84,12 +85,12 @@
 		H = h*R;
 	}
 
-	const double nu = parameters::ALPHAVISCOSITY * cs_adb * H;
+	const double nu = parameters::viscous_alpha * cs_adb * H;
 	return nu;
 }
 
 static double get_sigma(const double R){
-	const double S = parameters::SIGMASLOPE;
+	const double S = parameters::sigma_slope;
 	double density =
 		parameters::sigma0 * std::pow(R, -S);
 
@@ -267,11 +268,6 @@ static double max_r_inner;
 
 void init_vr_table_boundary(t_data &data){
 
-    if(parameters::boundary_outer != parameters::boundary_condition_center_of_mass_initial
-        && parameters::boundary_inner != parameters::boundary_condition_center_of_mass_initial){
-    return;
-    }
-
 	const auto & plsys = data.get_planetary_system();
 	const unsigned int np = plsys.get_number_of_planets();
 	const double mass = plsys.get_mass(np);
@@ -288,11 +284,11 @@ void init_vr_table_boundary(t_data &data){
 
 		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
 
-		min_r_outer = Rinf[NRadial-1] * parameters::damping_outer_limit - center_of_mass_max_dist  - safety_dr;
+		min_r_outer = Rinf[NRadial-1] * boundary_conditions::damping_outer_limit - center_of_mass_max_dist  - safety_dr;
 		max_r_outer = Rsup[NRadial-1] + center_of_mass_max_dist + safety_dr;
 	} else {
 		const double safety_dr = Rsup[NRadial-1] - Rinf[NRadial-1];
-		min_r_outer = Rinf[NRadial-1] * parameters::damping_outer_limit - safety_dr;
+		min_r_outer = Rinf[NRadial-1] * boundary_conditions::damping_outer_limit - safety_dr;
 		max_r_outer = Rsup[NRadial-1] + safety_dr;
 	}
 
@@ -312,7 +308,7 @@ void init_vr_table_boundary(t_data &data){
 
 	//////////////// init inner arrays //////////////////////////////////////
 	const int Nr_limit = clamp_r_id_to_rmed_grid(
-	get_rmed_id(RMIN * parameters::damping_inner_limit), false) + 1;
+	get_rmed_id(RMIN * boundary_conditions::damping_inner_limit), false) + 1;
 	const double safety_dr = Rsup[Nr_limit] - Rinf[Nr_limit];
 
 	if(plsys.get_number_of_planets() == 2 && parameters::n_bodies_for_hydroframe_center == 1){
@@ -326,10 +322,10 @@ void init_vr_table_boundary(t_data &data){
 
 	min_r_inner = Rinf[1] - center_of_mass_max_dist  - safety_dr;
 	min_r_inner = std::max(min_r_inner, Rsup[0] - Rinf[0]);
-	max_r_inner = Rsup[1] * parameters::damping_inner_limit + center_of_mass_max_dist + safety_dr;
+	max_r_inner = Rsup[1] * boundary_conditions::damping_inner_limit + center_of_mass_max_dist + safety_dr;
 } else {
 	min_r_inner = Rinf[1] - safety_dr;
-	max_r_inner = Rsup[1] * parameters::damping_inner_limit + safety_dr;
+	max_r_inner = Rsup[1] * boundary_conditions::damping_inner_limit + safety_dr;
 }
 
 	deltaLogR_inner = std::log10(max_r_inner / min_r_inner) / (double)N;

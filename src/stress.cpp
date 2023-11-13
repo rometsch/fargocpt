@@ -1,16 +1,20 @@
 #include "stress.h"
 #include "constants.h"
 #include "global.h"
-#include "output.h"
 #include "selfgravity.h"
-#include "units.h"
 #include "parameters.h"
+#include "logging.h"
 
 namespace stress
 {
 
 void calculate_gravitational_stress(t_data &data)
 {
+	#ifdef DISABLE_FFTW
+		logging::print_master(LOG_ERROR
+			"Self-gravity is not compiled in. Please recompile with FFTW enabled.\n");
+		PersonalExit(1);
+	#endif
 	const unsigned int Nr = data[t_data::T_GRAVITATIONAL].get_size_radial();
 	const unsigned int Nphi = data[t_data::T_GRAVITATIONAL].get_size_azimuthal();
 
@@ -22,7 +26,7 @@ void calculate_gravitational_stress(t_data &data)
 		1.0 / (4.0 * M_PI * constants::G) *
 		selfgravity::g_radial[nr * NAzimuthal + naz] *
 		selfgravity::g_azimuthal[nr * NAzimuthal + naz] *
-		(2 * parameters::ASPECTRATIO_REF * Rmed[nr]);
+		(2 * parameters::aspectratio_ref * Rmed[nr]);
 	}
     }
 }

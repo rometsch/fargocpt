@@ -1,9 +1,5 @@
-#ifndef VISCOUS_RADIAL_SPEED_H
-#define VISCOUS_RADIAL_SPEED_H
+#pragma once
 
-#include "../types.h"
-#include "../polargrid.h"
-#include "../radialarray.h"
 #include "../data.h"
 
 namespace viscous_speed
@@ -15,5 +11,3 @@ double lookup_initial_vr_inner(const double r);
 double get_vr_with_numerical_viscous_speed(const double r, const double mass);
 double get_vr_outer_viscous_speed_correction_factor(const double r, const double mass);
 } // viscous_speed
-
-#endif // VISCOUS_RADIAL_SPEED_H

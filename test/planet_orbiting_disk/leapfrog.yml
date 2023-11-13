@@ -6,8 +6,8 @@ SecondaryDisk: no
 Sigma0: 3341.7481 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: 1.5   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 
-SetSigma0:		Yes		# renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass:		1.0		# only used when SetSigma0 = true [default = 0.01]
+SetSigma0:  Yes   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
+DiskMass:   1.0   # only used when SetSigma0 = true [default = 0.01]
 
 SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-9]
 DensityFactor: '2.0'   # Factor for convertion from surface density to density [default = sqrt(2.0*pi)]
@@ -15,9 +15,8 @@ AspectRatio: 0.0   # Thickness over Radius in the disk
 AspectRatioMode: 0   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
 FlaringIndex: 0.00   # Slope of Temperature/radius profile
 
-ExplicitViscosity: 'YES'
-Viscosity: '0'   # Uniform kinematic viscosity
-AlphaViscosity: 0.0
+ConstantViscosity: '0'   # Uniform kinematic viscosity
+ViscousAlpha: 0.0
 
 StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
@@ -45,8 +44,8 @@ KlahrSmoothingRadius: '0.4'   # Smoothing radius for Klahr & Kley smoothing arou
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Boundaries
-InnerBoundary: Reflective
-OuterBoundary: Reflective
+InnerBoundary: Reflecting
+OuterBoundary: Reflecting
 
 Damping: No     # NO, YES [default = no]
 DampingInnerLimit: 1.25     # Rmin*Limit
@@ -74,7 +73,7 @@ PlanetOrbitDiskTest: yes
 # Mesh parameters
 
 Nrad: '28'   # 512 128		# Radial number of zones
-Nsec: '56'   # 1536 384		# Azimuthal number of
+Naz: '56'   # 1536 384		# Azimuthal number of
   #cps: 1
 
 # zones (sectors)
@@ -85,13 +84,13 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 # Output control parameters
 
-Ntot: 1     # Total number of time steps
-Ninterm: 2000     # Time steps between outputs
-DT: 0.06283185307179586     # Time step length. 2PI = 1 orbit
+Nsnapshots: 1     # Total number of time steps
+Nmonitor: 400     # Time steps between outputs
+MonitorTimestep: 0.06283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'
 #FirstDT: '0.031415'
 CFLmaxVar: '1.1'
-OutputDir: LF_disk_at_center/
+OutputDir: ../../output/tests/planet_orbiting_disk/LF_disk_at_center/
 
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
@@ -108,7 +107,7 @@ WriteGasTorques: 'No'   # Calculate and write gravitational/viscous and advectio
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: 'Yes'
-IntegratePlanets: 'Yes'   # [default = yes]
+CorrectDiskSelfgravity: No # need to disable self-gravity correction, otherwise the planet does not feel the symmetric part of the disk
 
 # Star Parameters
 
@@ -122,15 +121,13 @@ nbody:
   eccentricity: '0.0'
   radius: 1.0 solRadius
   temperature: 0 K
-  phi: 0
   ramp-up time: 0
 
 - name: planet
   semi-major axis: 1 au
   mass: 0.0
   accretion efficiency: '0.0'
-  eccentricity: '0.5'
+  eccentricity: 0.0
   radius: 1.0 solRadius
   temperature: 0 K
-  phi: 0
   ramp-up time: 0

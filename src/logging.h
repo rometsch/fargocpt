@@ -1,8 +1,8 @@
-#ifndef LOGGING_H
-#define LOGGING_H
+#pragma once
 
 #include <stdarg.h>
 #include <chrono>
+#include <string>
 
 
 #define LOG_ERROR "<0>"	  /* error conditions                     */
@@ -30,6 +30,7 @@ void print_runtime_info();
 void print_runtime_final();
 void start_timer();
 
-} // namespace logging
+void init_logfiles(const std::string outdir);
+void finalize();
 
-#endif // LOGGING_H
+} // namespace logging

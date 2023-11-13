@@ -2,8 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from disklab import DiskRadialModel
-from disklab.natconst import year, au, MS
+try:
+    from disklab import DiskRadialModel
+    from disklab.natconst import year, au, MS
+except ImportError:
+    print("Could not import disklab. Make sure it is installed or download it from https://github.com/dullemond/disklab.")
+    exit(1)
 
 
 #-----------------------------------------
@@ -142,10 +146,20 @@ def run(tfinal = tend/year):
 # Plotting
 #-----------------------------------------
 
-if __name__=="__main__":
+def main():
+    from argparse import ArgumentParser
+
+    parse = ArgumentParser()
+    parse.add_argument("--plot", action="store_true", help="Plot the last dust profile.")
+    opts = parse.parse_args()
+
     r, sigmad = run()
 
-    plt.plot(r, sigmad)
-    plt.xlabel("r [au]")
-    plt.ylabel("Sigmad [cgs]")
-    plt.show()
+    if opts.plot:
+        plt.plot(r, sigmad)
+        plt.xlabel("r [au]")
+        plt.ylabel("Sigmad [cgs]")
+        plt.show()
+
+if __name__=="__main__":
+    main()

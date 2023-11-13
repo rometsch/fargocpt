@@ -4,7 +4,7 @@ ShockTube: '0'   # Initialize shocktube problem with 0:no shocktube 1:Ideal EOS 
 Sigma0: 1890.673 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.5'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass: '0.5'   # only used when SetSigma0 = true [default = 0.01]
+DiskMass: '0.5'   # only used when SetSigma0 = true [default = 0.01]
 SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
@@ -19,12 +19,8 @@ EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = P
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '0.05'   # Thickness over Radius in the disk
 AspectRatioMode: '0'   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
-TemperatureCGS0: '0.0'   # Midplane Temperature at 1 au in K, overwrites AspectRaio
-ExplicitViscosity: 'YES'
-StsNu: '0.01'
-ViscosityInCGS: 'NO'   # Interpret Uniform kinematic viscosity (Viscosity below) in cgs units instead of code units
-Viscosity: '0'   # Uniform kinematic viscosity
-AlphaViscosity: '1.0e-3'   # 
+ConstantViscosity: '0'   # Uniform kinematic viscosity
+ViscousAlpha: '1.0e-3'   # 
 StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
 ArtificialViscosity: TW   # Type of artificial viscosity (none, TW, SN) [default = SN]
 ArtificialViscosityDissipation: 'Yes'   # Use artificial viscosity in dissipation function [default = yes]
@@ -34,7 +30,7 @@ SelfGravity: 'No'   # choose: Yes, Z or No
 EquationOfState: Ideal   # Isothermal Ideal PVTE Polytropic [default = Isothermal]
 AdiabaticIndex: '1.4'   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
 PolytropicConstant: FIT_ISOTHERMAL   # numerical value or FIT_ISOTHERMAL (only for polytropic equation of state) [default = 1.4]
-CoolingRadiativeLocal: 'Yes'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+SurfaceCooling: thermal
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
 RadiativeDiffusion: 'No'   # 
@@ -43,10 +39,6 @@ RadiativeDiffusionAutoOmega: 'No'   # [default = no]
 RadiativeDiffusionMaxIterations: '50000'   # [default = 50000]
 HeatingViscous: 'Yes'   # enable viscous heating
 HeatingViscousFactor: '1.0'
-HeatingStar: 'No'
-HeatingStarRampingTime: '5'   # Ramping time for star heating in timesteps
-HeatingStarFactor: '1.0'
-HeatingStarSimple: 'No'   # Use simplified star heating [default = No]
 MinimumTemperature: 3 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
 TauFactor: '1.0'   # correction factor for tau [default = 1.0]
@@ -54,9 +46,6 @@ Opacity: Lin   # opacity table to use (Lin, Bell, Zhu, Kramers) [default = Lin]
 KappaConst: '2.0e-6'   # used for const and simple opacity (kappa = kappa0 * T**2)
 CFL: '0.5'
 HeatingCoolingCFLlimit: '1.0'   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
-
-zbufferSize: '100'
-zbufferMaxAngle: '0.174'
 
 # Units
 
@@ -66,11 +55,11 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
-MassOverflow: 'No'   # [default = No]
-mofValue: '1.0e-9 solMass/yr'   # flowrate in mass / time
-mofPlanet: '1' # reference for the direction from which the mass overflow happens (mass flows in at the projected position of the planet at the outer boundary)
-mofTemperature: '1500' 
-mofRampingTime: '30' # in planetary orbits
+RocheLobeOverflow: 'No'   # [default = No]
+ROFValue: '1.0e-9 solMass/yr'   # flowrate in mass / time
+ROFPlanet: '1' # reference for the direction from which the mass overflow happens (mass flows in at the projected position of the planet at the outer boundary)
+ROFTemperature: '1500' 
+ROFRampingTime: '30' # in planetary orbits
 
 # Planet parameters
 
@@ -78,11 +67,6 @@ SecondaryDisk: 'No'
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
-# Boundary layer parameters
-
-VRadIn: 1e-3   # value of v_rad at inner boundary in terms of Keplerian velocity v_kepler at the inner boundary [default = 1.6e-3]
-StellarRotation: '0.1'   # Stellar rotation rate (azimuthal velocity of the surface) in terms of Keplerian angular velocity at the inner boundary [default = 0.1]
-MassAccretionRate: '1'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
 MassAccretionRadius: '0.2'   # Mass accretion radius in unints of R_hill / 2
 KlahrSmoothingRadius: '0.2'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
@@ -93,10 +77,8 @@ Transport: FARGO
 
 # InnerBoundary		NONREFLECTING	# Can also be OPEN, RIGID or NONREFLECTING, EVANESCENT, BoundaryLayer, PRESCRIBED_TIME_VARIABLE, ZERO_GRADIENT
 
-InnerBoundary: OPEN
-OuterBoundary: EVANESCENT
-PrescribedBoundaryFileOuter: boundary_data_folder   # Only needed when PRESCRIBED_TIME_VARIABLE is active
-DomegaDrZero: 'No'   # Set dOmega/dr = 0 at outer boundary
+InnerBoundary: OUTFLOW
+OuterBoundary: OUTFLOW
 Damping: 'Yes'   # NO, YES [default = no]
 DampingInnerLimit: '1.10'   # Rmin*Limit
 DampingOuterLimit: '0.90'   # Rmax*Limit
@@ -117,7 +99,7 @@ DiskFeedback: 'NO'   # Calculate incfluence of the disk on the star
 # Mesh parameters
 
 Nrad: '128'   # 512 128		# Radial number of zones
-Nsec: '384'   # 1536 384		# Azimuthal number of
+Naz: '384'   # 1536 384		# Azimuthal number of
 
 # zones (sectors)
 
@@ -129,15 +111,14 @@ QuantitiesRadiusLimit: '2.5'   # Disk quantities will be computed only within th
 
 # Output control parameters
 
-Ntot: '2'   # Total number of time steps
-Ninterm: '1'   # Time steps between outputs
-DT: '0.628'   # Time step length. 2PI = 1 orbit
+Nsnapshots: '2'   # Total number of time steps
+Nmonitor: '1'   # Time steps between outputs
+MonitorTimestep: '0.628'   # Time step length. 2PI = 1 orbit
 FirstDT: '1.0e-1'
 CFLmaxVar: '1.1'
 OutputDir: output/out
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
-DebugOutputs: 'No'
 DoWrite1DFiles: 'No'
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
@@ -183,8 +164,7 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 
 IntegrateParticles: yes   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
-ParticleIntegrator: Implicit   # Explicit, Adaptive, Semiimplicit and Implicit
-# Test adaptive integrator causing error: Timestep too small
+ParticleIntegrator: Midpoint   # Explicit, Adaptive, Semiimplicit and Implicit
 NumberOfParticles: '2000'   # number of particles [default = 0]
 ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.03'   # particle maximum Eccentricity
@@ -201,12 +181,6 @@ ParticleDiskGravityEnabled: 'no'   # [default = no]
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: 'Yes'
-IntegratePlanets: 'Yes'   # [default = yes]
-
-# Star Parameters
-
-StarRadius: '1.0'   # star radius in Solar Radii
-StarTemperature: '5778'   # star temperature in K
 
 # PDS70 according to wikipedia 2022-09-11
 nbody:
@@ -214,15 +188,15 @@ nbody:
   semi-major axis: 0.0 au
   mass: 0.76 solMass
   eccentricity: 0.0
+  temperature: 5778 K
+  radius: 1 solRadius
 - name: PDS70b
   semi-major axis: 22.7
   mass: 7.0 jupiterMass
   eccentricity: 0.17
-  phi: '0.0'
   ramp-up time: '0.0'
 - name: PDS70c
   semi-major axis: 30.2
   mass: 4.4 jupiterMass
   eccentricity: 0.037
-  phi: '0.0'
   ramp-up time: '0.0'

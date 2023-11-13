@@ -1,5 +1,4 @@
-#ifndef DATA_H
-#define DATA_H
+#pragma once
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -29,9 +28,11 @@ class t_data
 	MU,		      // mean molecular weights
 	ACCEL_RADIAL,	      // gas accerleration in r direction
 	ACCEL_AZIMUTHAL,      // gas acceleration in phi direction
+	SG_ACCEL_RAD,	      // gas accerleration in r direction due to self-gravity, cell-centered
+	SG_ACCEL_AZI,      // gas acceleration in phi direction due to self-gravity, cell-centered
 	TOOMRE,		      // Toomre parameter Q
-	ECCENTRICITY,	      // disk eccentricity
-	PERIASTRON,	      // disk periastron
+	ECCENTRICITY_X,	      // disk eccentricity vector component
+	ECCENTRICITY_Y,	      // disk eccentricity vector component
 	ALPHA_GRAV,	      // alpha grav
 	ALPHA_GRAV_MEAN,      // alpha grav time average
 	ALPHA_REYNOLDS,	      // alpha reynolds
@@ -76,12 +77,9 @@ class t_data
 	ADVECTION_TORQUE,
 	VISCOUS_TORQUE,
 	GRAVITATIONAL_TORQUE_NOT_INTEGRATED,
+	WORKER_SCALAR_ARRAY,
 	GAS_DIFFUSION_COEFFICIENT,
 	DRHO_DR,
-	PRESCRIBED_ENERGY_OUTER,
-	PRESCRIBED_DENSITY_OUTER,
-	PRESCRIBED_V_AZIMUTHAL_OUTER,
-	PRESCRIBED_V_RADIAL_OUTER,
 
 	// number of t_polargrid_types
 	N_POLARGRID_TYPES
@@ -139,5 +137,3 @@ class t_data
 	t_massflow_tracker m_massflow_tracker;
 
 };
-
-#endif // DATA_H
