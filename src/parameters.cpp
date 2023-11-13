@@ -493,7 +493,6 @@ void read(const std::string &filename, t_data &data)
 
 	units::precise_unit L0 = units::L0;
 	units::precise_unit M0 = units::M0;
-	units::precise_unit T0 = units::T0;
 	units::precise_unit Temp0 = units::Temp0;
 
 	constants::initialize_constants();
