@@ -8,22 +8,42 @@ import copy
 import re
 
 old_to_new = {
- 'ALPHAVISCOSITY': {'newname': 'ViscousAlpha'},
+'ALPHAVISCOSITY': {'newname': 'ViscousAlpha'},
  'Adiabatic': {'newname': 'none', 'hint': 'EquationOfState: Ideal'},
  'CoolingRadiativeLocal': {'newname': 'none',
   'hint': 'SurfaceCooling: thermal'},
  'CoolingScurve': {'newname': 'none', 'hint': 'SurfaceCooling: scurve'},
  'DT': {'newname': 'MonitorTimestep'},
+ 'DebugOutputs': {'newname': 'none'},
  'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi = zeroshear'},
+ 'ExplicitViscosity': {'newname': 'none',
+  'hint': 'Set ViscousAlpha = 0 and ConstantViscosity = 0'},
+ 'HeatingStar': {'newname': 'none',
+  'hint': 'Set temperature of any Nbody object > 0 to enable irradiation from this object.'},
+ 'HeatingStarFactor': {'newname': 'none',
+  'hint': 'Change the temperature of the Nbody object to modulate the heating.'},
+ 'HeatingStarRampingTime': {'newname': 'none',
+  'hint': "Use key 'irradiation ramp-up time' for Nbody objects."},
+ 'HeatingStarSimple': {'newname': 'none',
+  'hint': 'This is now the only option.'},
  'IntegratePlanets': {'newname': 'none'},
  'NSEC': {'newname': 'Naz'},
  'NTOT': {'newname': 'Nsnapshots'},
  'Ninterm': {'newname': 'Nmonitor'},
+ 'StarRadius': {'newname': 'none',
+  'hint': "Use key 'radius' for Nbody objects."},
+ 'StarTemperature': {'newname': 'none',
+  'hint': "Use key 'temperature' for Nbody objects."},
  'StellarRotation': {'newname': 'none',
   'hint': 'InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian'},
+ 'StsNu': {'newname': 'none', 'hint': 'The STS module has been removed.'},
+ 'Temperaturecgs0': {'newname': 'none',
+  'hint': "Use Temperature0 instead. Append a 'K' to the value to set the temperature in Kelvin."},
  'VISCOSITY': {'newname': 'ConstantViscosity'},
  'VRadIn': {'newname': 'none',
   'hint': 'InnerBoundaryVradKeplerianFactor, InnerBoundaryVrad = keplerian'},
+ 'ViscosityInCGS': {'newname': 'none',
+  'hint': "Use the 'ConstantViscosity' key instead. It supports specifying units."},
  'discmass': {'newname': 'DiskMass'},
  'massoverflow': {'newname': 'RocheLobeOverflow'},
  'mofaveragingtime': {'newname': 'ROFAveragingTime'},
@@ -94,8 +114,10 @@ def replace_parameter_names(yaml_file, dry=False, verbose=False):
     new_lines = []
     for i, line in enumerate(lines):
         found_line = False
+        lline = line.lower()
         for old, new in keys_update.items():
-            if old in line:
+            lold = old.lower()
+            if re.search(re.escape(lold) + r"\s*:", lline):
                 found_line = True
                 new_lines += get_new_lines(line, old, new, verbose=verbose)
                 break

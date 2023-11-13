@@ -1,94 +1,3 @@
-DebugOutputs:
-  choices: yes, no
-  default: false
-  description: Write out additional debug files.
-  type: bool
-  unitsupport: false
-  deprecated: true
-  newname: none
-ExplicitViscosity:
-  choices: yes, no
-  default: false
-  description: Consider explicit viscocsity.
-  type: bool
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Set ViscousAlpha = 0 and ConstantViscosity = 0"
-Temperaturecgs0:
-  choices: positive value
-  default: none
-  description: Set the reference temperature in cgs units.
-  type: double
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Use Temperature0 instead. Append a 'K' to the value to set the temperature in Kelvin."
-ViscosityInCGS:
-  choices: yes, no
-  default: false
-  description: Interpret the value of constant viscosity to be in cgs.
-  type: bool
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Use the 'ConstantViscosity' key instead. It supports specifying units."
-HeatingStar:
-  choices: yes, no
-  default: false
-  description: Enable irradiation heating by the star.
-  type: bool
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Set temperature of any Nbody object > 0 to enable irradiation from this object."
-HeatingStarFactor:
-  choices: positive value
-  description: Modulate the heating by this factor.
-  type: double
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Change the temperature of the Nbody object to modulate the heating."
-HeatingStarRampingTime:
-  choices: positive value
-  description: Ramp up the heating over this time.
-  type: double
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Use key 'irradiation ramp-up time' for Nbody objects."
-StarRadius:
-  choices: positive value
-  description: Radius of the star used together with StarTemperature for computing the flux.
-  type: double
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Use key 'radius' for Nbody objects."
-StarTemperature:
-  choices: positive value
-  description: Radius of the star used together with StarRadius for computing the flux.
-  type: double
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "Use key 'temperature' for Nbody objects."
-HeatingStarSimple:
-  choices: yes, no
-  default: false
-  description: Enable simple irradiation heating by the star solely based on distance.
-  type: bool
-  unitsupport: false
-  deprecated: true
-  newname: none
-  hint: "This is now the only option."
-PolytropicConstant:
-  choices: positive value
-  default: 12.753
-  description: Set the polytropic constant for the polytropic equation of state.
-  type: double
-  unitsupport: false
 ALPHAVISCOSITY:
   choices: ''
   default: 0
@@ -104,12 +13,12 @@ AccreteWithoutDiskFeedback:
 Adiabatic:
   choices: ''
   default: false
-  description: Deprecated. Dont use this anymore.
-  type: string
-  unitsupport: false
   deprecated: true
+  description: Deprecated. Dont use this anymore.
   hint: 'EquationOfState: Ideal'
   newname: none
+  type: string
+  unitsupport: false
 AdiabaticIndex:
   choices: ''
   default: none
@@ -143,7 +52,7 @@ ArtificialViscosity:
 ArtificialViscosityDissipation:
   choices: yes, no
   default: true
-  description: 'Use artificial viscosity in dissipation function.'
+  description: Use artificial viscosity in dissipation function.
   type: bool
   unitsupport: false
 ArtificialViscosityFactor:
@@ -401,6 +310,14 @@ DampingVRadialOuter:
   description: Target quantity of radial velocity at outer boundary
   type: string
   unitsupport: false
+DebugOutputs:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Write out additional debug files.
+  newname: none
+  type: bool
+  unitsupport: false
 DensityFactor:
   choices: ''
   default: 2.5066282746310002
@@ -462,6 +379,15 @@ EquationOfState:
   description: Select the equation of state.
   type: string
   unitsupport: false
+ExplicitViscosity:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Consider explicit viscocsity.
+  hint: Set ViscousAlpha = 0 and ConstantViscosity = 0
+  newname: none
+  type: bool
+  unitsupport: false
 ExponentialCellSizeFactor:
   choices: ''
   default: 1.41
@@ -503,6 +429,40 @@ HeatingCoolingCFLlimit:
   default: none
   description: Energy change dT/T in substep3 only allowed to change by this fraction times CFL.
   type: double
+  unitsupport: false
+HeatingStar:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable irradiation heating by the star.
+  hint: Set temperature of any Nbody object > 0 to enable irradiation from this object.
+  newname: none
+  type: bool
+  unitsupport: false
+HeatingStarFactor:
+  choices: positive value
+  deprecated: true
+  description: Modulate the heating by this factor.
+  hint: Change the temperature of the Nbody object to modulate the heating.
+  newname: none
+  type: double
+  unitsupport: false
+HeatingStarRampingTime:
+  choices: positive value
+  deprecated: true
+  description: Ramp up the heating over this time.
+  hint: Use key 'irradiation ramp-up time' for Nbody objects.
+  newname: none
+  type: double
+  unitsupport: false
+HeatingStarSimple:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Enable simple irradiation heating by the star solely based on distance.
+  hint: This is now the only option.
+  newname: none
+  type: bool
   unitsupport: false
 HeatingViscous:
   choices: yes, no
@@ -699,18 +659,18 @@ Naz:
 Ninterm:
   choices: ''
   default: none
+  deprecated: true
   description: Number of analysis outputs between two snapshots.
+  newname: Nmonitor
   type: unsigned int
   unitsupport: false
-  deprecated: true
-  newname: Nmonitor
 Nmonitor:
   choices: ''
   default: none
   description: Number of monitor outputs between two snapshots.
+  oldname: Ninterm
   type: unsigned int
   unitsupport: false
-  oldname: Ninterm
 Nrad:
   choices: ''
   default: none
@@ -884,6 +844,12 @@ PlanetOrbitDiskTest:
   default: false
   description: Enable test mode for a planet orbiting around just a disk.
   type: bool
+  unitsupport: false
+PolytropicConstant:
+  choices: positive value
+  default: 12.753
+  description: Set the polytropic constant for the polytropic equation of state.
+  type: string
   unitsupport: false
 ProfileCutoffInner:
   choices: ''
@@ -1158,7 +1124,7 @@ Sigma0:
 SigmaCondition:
   choices: Profile, 1D, 2D
   default: Profile
-  description: 'Initialize surface density by Profile, 1D data file or 2D data file.'
+  description: Initialize surface density by Profile, 1D data file or 2D data file.
   type: string
   unitsupport: false
 SigmaFilename:
@@ -1197,6 +1163,22 @@ StabilizeViscosity:
   description: Artificially stabalize viscosity to avoid numerical issues.
   type: int
   unitsupport: false
+StarRadius:
+  choices: positive value
+  deprecated: true
+  description: Radius of the star used together with StarTemperature for computing the flux.
+  hint: Use key 'radius' for Nbody objects.
+  newname: none
+  type: double
+  unitsupport: false
+StarTemperature:
+  choices: positive value
+  deprecated: true
+  description: Radius of the star used together with StarRadius for computing the flux.
+  hint: Use key 'temperature' for Nbody objects.
+  newname: none
+  type: double
+  unitsupport: false
 StellarRotation:
   choices: ''
   default: 0.1
@@ -1204,6 +1186,15 @@ StellarRotation:
   description: 'For inner boundary = boundary layer: Stellar rotation rate (azimuthal velocity of the surface) in terms of Keplerian angular velocity at the inner boundary.'
   hint: InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian
   newname: none
+StsNu:
+  choices: positive value
+  default: '0.01'
+  deprecated: true
+  description: Set the value of the viscosity for the STS module.
+  hint: The STS module has been removed.
+  newname: none
+  type: double
+  unitsupport: false
 SurfaceCooling:
   choices: ''
   default: none
@@ -1219,15 +1210,24 @@ TauFactor:
 TauMin:
   choices: ''
   default: 0.01
-  description: "Tau min for the effective optical depth calculation. See Hubney (1990), Müller & Kley (2012) and DAngelo & Marzari (2015)."
+  description: "Tau min for the effective optical depth calculation. See Hubney (1990), Mueller & Kley (2012) and DAngelo & Marzari (2015)."
   type: double
   unitsupport: false
 Temperature0:
   choices: ''
   default: -1
-  description: 'If > 0, set the reference temperature at l0 instead of using the reference aspect ratio.'
+  description: If > 0, set the reference temperature at l0 instead of using the reference aspect ratio.
   type: double
-  unitsupport: true
+  unitsupport: false
+Temperaturecgs0:
+  choices: positive value
+  default: none
+  deprecated: true
+  description: Set the reference temperature in cgs units.
+  hint: Use Temperature0 instead. Append a 'K' to the value to set the temperature in Kelvin.
+  newname: none
+  type: double
+  unitsupport: false
 ThicknessSmoothing:
   choices: ''
   default: none
@@ -1269,6 +1269,15 @@ ViscAccretMassflowTest:
   choices: ''
   default: false
   description: Enable viscous accretion massflow test.
+  type: bool
+  unitsupport: false
+ViscosityInCGS:
+  choices: yes, no
+  default: false
+  deprecated: true
+  description: Interpret the value of constant viscosity to be in cgs.
+  hint: Use the 'ConstantViscosity' key instead. It supports specifying units.
+  newname: none
   type: bool
   unitsupport: false
 ViscousAlpha:
