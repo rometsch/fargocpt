@@ -37,11 +37,13 @@ def run(fargo_path, setupfile, Nthreads, Nprocs, silent=False):
         out = sys.stdout
         err = sys.stderr
 
-    run_fargo(Nprocs, Nthreads, fargo_args=["start", setupfile], stdout=out, stderr=err)
+    returncode = run_fargo(Nprocs, Nthreads, fargo_args=["start", setupfile], stdout=out, stderr=err)
 
     if silent:
         out.close()
         err.close()
+
+    return returncode
 
 def main():
 
@@ -67,10 +69,18 @@ def main():
         setupfiles = testconfig["setupfiles"]
 
 
+    errors_happened = False
     if not opts.testonly:
         compile_fargo('../../', Nprocs*Nthreads, silent=opts.silent)
         for setupfile in setupfiles:
-            run('../../', setupfile, Nthreads, Nprocs, silent=opts.silent)
+            returncode = run('../../', setupfile, Nthreads, Nprocs, silent=opts.silent)
+            if returncode != 0:
+                print(f"ERROR: Run {setupfile} failed with return code {returncode}.")
+                errors_happened = True
+
+    if errors_happened:
+        print("ERROR: Some runs failed.")
+        sys.exit(1)
 
     sys.path = [os.getcwd()] + sys.path
     from check_results import test
