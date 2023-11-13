@@ -279,8 +279,8 @@ static void write_logfile_header(const std::string filename) {
 
 	logfile << "# FLD module logfile." << std::endl;
 	logfile << "#version: 1.0" <<std::endl;
-	logfile << "#variable: 0 | time step | 1" << std::endl;
-	logfile << "#variable: 1 | monitor step | 1" << std::endl;
+	logfile << "#variable: 0 | snapshot number | 1" << std::endl;
+	logfile << "#variable: 1 | monitor number | 1" << std::endl;
 	logfile << "#variable: 2 | number of hydro steps in last interval | 1" << std::endl;
 	logfile << "#variable: 3 | number of SOR iterations in last interval | 1" << std::endl;
 	logfile << "#variable: 4 | average SOR iterations per hydro step | 1" << std::endl;

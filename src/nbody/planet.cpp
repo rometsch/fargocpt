@@ -19,14 +19,14 @@
 // define the variables in the planet data file
 // file version 2.5
 const static std::map<const std::string, const int> planet_file_column_v2_5 = {
-    {"time step", 0},
-    {"analysis time step", 1},
+    {"snapshot number", 0},
+    {"monitor number", 1},
     {"x", 2},
     {"y", 3},
     {"vx", 4},
     {"vy", 5},
     {"mass", 6},
-    {"physical time", 7},
+    {"time", 7},
     {"omega frame", 8},
     {"mdcp", 9},
     {"eccentricity", 10},
@@ -44,15 +44,15 @@ const static std::map<const std::string, const int> planet_file_column_v2_5 = {
 const static auto planet_files_column = planet_file_column_v2_5;
 
 const static std::map<const std::string, const std::string> variable_units = {
-    {"time step", "1"},
-    {"analysis time step", "1"},
+    {"snapshot number", "1"},
+    {"monitor number", "1"},
     {"x", "length"},
     {"y", "length"},
     {"vx", "velocity"},
     {"vy", "velocity"},
     {"mass", "mass"},
     {"lost mass", "mass"},
-    {"physical time", "time"},
+    {"time", "time"},
     {"omega frame", "frequency"},
     {"mdcp", "mass"},
     {"exces mdcp", "mass"},

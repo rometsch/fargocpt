@@ -37,9 +37,9 @@ std::string last_snapshot_dir = "";
 std::string outdir = "";
 
 const std::map<const std::string, const int> quantities_file_column_v2_5 = {
-    {"time step", 0},
-    {"analysis time step", 1},
-    {"physical time", 2},
+    {"snapshot number", 0},
+    {"monitor number", 1},
+    {"time", 2},
     {"mass", 3},
     {"radius", 4},
     {"angular momentum", 5},
@@ -76,7 +76,7 @@ const std::map<const std::string, const int> quantities_file_column_v2_5 = {
 static const auto quantities_file_column = quantities_file_column_v2_5;
 
 const std::map<const std::string, const std::string> quantities_file_variables =
-	{{"physical time", "time"},
+	{{"time", "time"},
 	{"mass", "mass"},
 	{"radius", "length"},
 	{"angular momentum", "angular_momentum"},
@@ -100,8 +100,8 @@ const std::map<const std::string, const std::string> quantities_file_variables =
 	{"wave damping inner mass removal", "mass"},
 	{"wave damping outer mass creation", "mass"},
 	{"wave damping outer mass removal", "mass"},
-	{"time step", "1"},
-	{"analysis time step", "1"},
+	{"snapshot number", "1"},
+	{"monitor number", "1"},
 	{"omega frame", "frequency"},
 	{"lost mass", "mass"},
 	{"frame angle", "frequency"},
@@ -306,7 +306,7 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 void write_grids(t_data &data, int index, int iter, double phystime)
 {
     logging::print_master(
-	LOG_INFO "Writing output %s, Timestep Number %d, Physical Time %f.\n",
+	LOG_INFO "Writing output %s, Snapshot Number %d, Time %f.\n",
 	snapshot_dir.c_str(), index, iter, phystime);
 
     // go thru all grids and write them
@@ -1043,14 +1043,14 @@ void write_snapshot_time()
 	    // print header
 	    fprintf(fd, "# Time log for course output.\n"
 			"#version: 0.1\n"
-			"#variable: 0 | time step | 1\n"
-			"#variable: 1 | analysis time step | 1\n"
-			"#variable: 2 | physical time | ");
+			"#variable: 0 | snapshot number | 1\n"
+			"#variable: 1 | monitor number | 1\n"
+			"#variable: 2 | time | ");
 	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
 	    fprintf(
 		fd,
 		"\n# One monitor_timestep is %.18g (code) and %.18g (cgs).\n"
-		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
+		"# Syntax: snapshot number <tab> monitor number <tab> time (cgs)\n",
 		parameters::monitor_timestep, parameters::monitor_timestep * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
@@ -1103,14 +1103,14 @@ void write_monitor_time()
 	    // print header
 	    fprintf(fd, "# Time log for course output.\n"
 			"#version: 0.1\n"
-			"#variable: 0 | time step | 1\n"
-			"#variable: 1 | analysis time step | 1\n"
-			"#variable: 2 | physical time | ");
+			"#variable: 0 | snapshot number | 1\n"
+			"#variable: 1 | monitor number | 1\n"
+			"#variable: 2 | time | ");
 	    fprintf(fd, "%s", units::time.get_cgs_factor_symbol().c_str());
 	    fprintf(
 		fd,
 		"\n# One monitor_timestep is %.18g (code) and %.18g (cgs).\n"
-		"# Syntax: coarse output step <tab> fine output step <tab> physical time (code)\n",
+		"# Syntax: snapshot number <tab> monitor number <tab> time (cgs)\n",
 		parameters::monitor_timestep, parameters::monitor_timestep * units::time.get_code_to_cgs_factor());
 	    fd_created = true;
 	}
