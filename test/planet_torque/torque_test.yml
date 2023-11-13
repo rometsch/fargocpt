@@ -84,7 +84,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 # Output control parameters
 
 Nsnapshots: 20     # Total number of time steps
-Ninterm: 10     # Time steps between outputs
+Nmonitor: 10     # Time steps between outputs
 MonitorTimestep: 0.6283185307179586     # Time step length. 2PI = 1 orbit
 FirstDT: '0.1'
 CFLmaxVar: '1.1'

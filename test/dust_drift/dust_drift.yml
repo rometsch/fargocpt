@@ -51,7 +51,7 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 # Output control parameters
 
 Nsnapshots: '1000'   # Total number of time steps
-Ninterm: '1'   # Time steps between outputs
+Nmonitor: '1'   # Time steps between outputs
 MonitorTimestep: '0.628318531'   # 1/10th of a jupiter orbit
 FirstDt: 1e-1
 OutputDir: ../../output/tests/dust_drift/out

@@ -4,7 +4,7 @@ ShockTube: '0'   # Initialize shocktube problem with 0:no shocktube 1:Ideal EOS 
 Sigma0: 1890.673 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: '0.5'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'No'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
-DiscMass: '0.5'   # only used when SetSigma0 = true [default = 0.01]
+DiskMass: '0.5'   # only used when SetSigma0 = true [default = 0.01]
 SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-9]
 SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
 SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
@@ -26,9 +26,9 @@ EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = P
 EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
 AspectRatio: '0.05'   # Thickness over Radius in the disk
 AspectRatioMode: '0'   # Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass
-Viscosity: '0'   # Uniform kinematic viscosity
+ConstantViscosity: '0'   # Uniform kinematic viscosity
 AlphaMode: 0     # Various possible ways do determine the alpha value, Default = 0
-AlphaViscosity: '1.0e-3'   # Alpha value for AlphaMode == 0
+ViscousAlpha: '1.0e-3'   # Alpha value for AlphaMode == 0
 AlphaCold: '1.0e-3' # only needed for AlphaMode != 0
 AlphaHot:  '1.0e-2'  # only needed for AlphaMode != 0
 StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
@@ -62,11 +62,11 @@ mu: '2.35'   # mean molecular weight [default=1.0]
 ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
 InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
 InitializeVradialZero: 'No'   # Initialize VRadial=0  [default = no]
-MassOverflow: 'No'   # [default = No]
-mofValue: '1.0e-9 solMass/yr'   # mass transfer rate through l1 point from mofPlanet in mass / time
-mofPlanet: '1' # reference for the direction from which the mass overflow happens (mass flows in at the projected position of the planet at the outer boundary)
-mofTemperature: '1500'  # Temperature of the mass stream, affects the width of the stream
-mofRampingTime: '30' # growth time for the mass transfer rate in planetary orbits
+RocheLobeOverflow: 'No'   # [default = No]
+ROFValue: '1.0e-9 solMass/yr'   # mass transfer rate through l1 point from mofPlanet in mass / time
+ROFPlanet: '1' # reference for the direction from which the mass overflow happens (mass flows in at the projected position of the planet at the outer boundary)
+ROFTemperature: '1500'  # Temperature of the mass stream, affects the width of the stream
+ROFRampingTime: '30' # growth time for the mass transfer rate in planetary orbits
 
 # Planet parameters
 
@@ -127,9 +127,9 @@ DiskRadiusMassFraction: '0.99' # disk radius = radius at which this fraction of 
 
 # Output control parameters
 
-Ntot: '2'   # Total number outputs
-Ninterm: '3'   # Time steps between outputs
-DT: '0.628'   # Time step length. 2PI = 1 orbit
+Nsnapshots: '2'   # Total number outputs
+Nmonitor: '3'   # Time steps between outputs
+MonitorTimestep: '0.628'   # Time step length. 2PI = 1 orbit
 FirstDT: '1.0e-1' # initial hydro dt / dt in case of no disk
 CFLmaxVar: '1.1'
 OutputDir: output/out

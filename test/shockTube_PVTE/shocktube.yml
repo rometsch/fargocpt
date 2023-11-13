@@ -113,7 +113,7 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 OutputDir: ../../output/tests/shocktube_PVTE/shocktube
 Nsnapshots: '1'   # Total number of time steps
-Ninterm: '1'   # Time steps between outputs
+Nmonitor: '1'   # Time steps between outputs
 MonitorTimestep: '0.228'   # Time step length. 2PI = 1 orbit
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
