@@ -1142,9 +1142,9 @@ Sigma0:
   type: double
   unitsupport: true
 SigmaCondition:
-  choices: Profile, 1D, 2D
+  choices: Profile, 1D, 2D, Nbody
   default: Profile
-  description: Initialize surface density by Profile, 1D data file or 2D data file.
+  description: Initialize surface density by Profile, 1D data file or 2D data file, or Profile centered on nbody.
   type: string
   unitsupport: false
 SigmaFilename:
@@ -1154,7 +1154,7 @@ SigmaFilename:
   type: string
   unitsupport: false
 SigmaFloor:
-  choices: ''
+  choices: +
   default: 1.0e-09
   description: Floor surface density in multiples of sigma0.
   type: double
@@ -1172,15 +1172,15 @@ SpreadingRing:
   type: bool
   unitsupport: false
 StabilizeArtViscosity:
-  choices: ''
+  choices: 0+
   default: 0
-  description: Artificially stabalize artificial viscosity to avoid numerical issues.
+  description: Artificially stabilize artificial viscosity to avoid numerical issues.
   type: double
   unitsupport: false
 StabilizeViscosity:
-  choices: ''
+  choices: 0+
   default: 0
-  description: Artificially stabalize viscosity to avoid numerical issues.
+  description: Artificially stabilize viscosity to avoid numerical issues.
   type: int
   unitsupport: false
 StarRadius:
@@ -1215,26 +1215,26 @@ StsNu:
   newname: none
   type: double
   unitsupport: false
-SurfaceCooling:
-  choices: ''
+SurfaceCooling: 
+  choices: no, thermal, scurve
   default: false
-  description: ''
+  description: 'Enable surface cooling. Thermal: cooling by blackbody radiation. Scurve: cooling by scurve cooling.'
   type: string
   unitsupport: false
 TauFactor:
-  choices: ''
+  choices: +
   default: 0.5
-  description: 'Fudge factor for tau. Leave this as it is! [default = 1.0] TODO: change default value.'
+  description: 'Danger zone! Fudge factor for tau. Leave this as it is! [default = 0.5] TODO: change default value.'
   type: double
   unitsupport: false
 TauMin:
-  choices: ''
+  choices: +
   default: 0.01
   description: Tau min for the effective optical depth calculation. See Hubney (1990), Mueller & Kley (2012) and DAngelo & Marzari (2015).
   type: double
   unitsupport: false
 Temperature0:
-  choices: ''
+  choices: -0+
   default: -1
   description: If > 0, set the reference temperature at l0 instead of using the reference aspect ratio.
   type: double
@@ -1249,7 +1249,7 @@ Temperaturecgs0:
   type: double
   unitsupport: false
 ThicknessSmoothing:
-  choices: ''
+  choices: +
   default: 0.6
   description: Smoothing/softening parameters for the Nbody-disk gravitional interaction in multiples of the disk scaleheight.
   type: double
@@ -1257,7 +1257,7 @@ ThicknessSmoothing:
 ThicknessSmoothingSG:
   choices: ''
   default: 1.2
-  description: 'Smoothing/softening parameter for SG [default = ThicknessSmoothing] TODO: change the default to thickness smoothing'
+  description: 'Smoothing/softening parameter for SG [default = ThicknessSmoothing]'
   type: double
   unitsupport: false
 Transport:
@@ -1286,7 +1286,7 @@ VazimuthalConsidersQuadropoleMoment:
   type: bool
   unitsupport: false
 ViscAccretMassflowTest:
-  choices: ''
+  choices: yes, no
   default: false
   description: Enable viscous accretion massflow test.
   type: bool
@@ -1301,16 +1301,16 @@ ViscosityInCGS:
   type: bool
   unitsupport: false
 ViscousAlpha:
-  choices: ''
+  choices: 0+
   default: 0
   description: Specify the value of alpha for the alpha viscosity model.
   oldname: AlphaViscosity
   type: double
   unitsupport: false
 ViscousOutflowSpeed:
-  choices: positive float
+  choices: +
   default: 1
-  description: '# Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed used for VISC boundary condition and inside viscous accretion.'
+  description: '# Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed used for Inner/OuterBoundaryVrad = Viscous.'
   type: double
   unitsupport: false
 WriteAlpha:
@@ -1386,7 +1386,7 @@ WriteEccentricity:
   type: bool
   unitsupport: false
 WriteEccentricityChange:
-  choices: ''
+  choices: yes, no
   default: false
   description: Eccentricity change monitor.
   type: bool
@@ -1424,13 +1424,13 @@ WriteKappa:
 WriteLightCurves:
   choices: yes, no
   default: false
-  description: Write light curves.
+  description: Danger zone! Check the code! Write light curves.
   type: bool
   unitsupport: false
 WriteLightCurvesRadii:
-  choices: ''
+  choices: yes
   default: none
-  description: ''
+  description: Danger zone! Check the code! Write radii for which the light curves are outputed.
   type: string
   unitsupport: false
 WriteMassFlow:
@@ -1482,19 +1482,19 @@ WriteRadialLuminosity:
   type: bool
   unitsupport: false
 WriteSGAccelAzi:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: Write 2D array of the azimuthal component of the gravitational stress.
   type: bool
   unitsupport: false
 WriteSGAccelRad:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: Write 2D array of the radial component of the gravitational stress.
   type: bool
   unitsupport: false
 WriteScaleHeight:
-  choices: yes, no'
+  choices: yes, no
   default: false
   description: Write 2D array of the scale height.
   type: bool
@@ -1506,7 +1506,7 @@ WriteSoundSpeed:
   type: bool
   unitsupport: false
 WriteTGravitational:
-  choices: ''
+  choices: yes, no
   default: false
   description: Write 2D array of the gravitational stress.
   type: bool
@@ -1554,7 +1554,7 @@ WriteVelocity:
   type: bool
   unitsupport: false
 WriteVerticalOpticalDepth:
-  choices: ''
+  choices: yes, no
   default: false
   description: Write 2D of optical depth in vertical direction (tau_eff by Hubeny [1990]).
   type: bool
@@ -1578,25 +1578,25 @@ WritepDV:
   type: bool
   unitsupport: false
 cps:
-  choices: ''
+  choices: +
   default: -1
   description: 'Set the resolution in terms of cells per scaleheight ar r=1: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio.'
   type: double
   unitsupport: false
 discmass:
-  choices: ''
+  choices: +
   default: 0.01
   deprecated: true
   description: In case of SetSigma0=yes, use this mass as diskmass.
   newname: DiskMass
 l0:
-  choices: ''
+  choices: +
   default: 1.0
   description: 'Base length unit of the simulation [default: 1.0 au]'
   type: string
   unitsupport: true
 m0:
-  choices: ''
+  choices: +
   default: 1.0
   description: 'Base mass unit of the simulation [default: 1.0 solMass]'
   type: string
@@ -1650,15 +1650,15 @@ mu:
   type: double
   unitsupport: false
 t0:
-  choices: ''
+  choices: +
   default: 1.0
-  description: ''
+  description: "Base time unit of the simulation [default: 1/2pi * Keplerian orbital period at r=l0 around mass m0]"
   type: string
   unitsupport: true
 temp0:
-  choices: ''
+  choices: +
   default: 1.0
-  description: ''
+  description: 'Base temperature unit of the simulation [default: such that Rgas = 1]'
   type: string
   unitsupport: true
 variableTransfer:
