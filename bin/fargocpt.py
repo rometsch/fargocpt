@@ -68,9 +68,10 @@ def main():
     print(
         f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.", flush=True)
 
-    run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
+    rv = run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
               fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp,
               detach=opts.detach)
+    sys.exit(rv)
 
 
 def detach_processGroup():
@@ -231,6 +232,8 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     else:
         print_wrapper(stdout, "fargo process pid", pid)
         print_wrapper(stdout, "detaching... check output dir for logs")
+
+    return p.returncode
 
 def print_wrapper(stdout, *args, **kwargs):
     if stdout != PIPE:
