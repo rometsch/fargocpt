@@ -1,3 +1,94 @@
+DebugOutputs:
+  choices: yes, no
+  default: false
+  description: Write out additional debug files.
+  type: bool
+  unitsupport: false
+  deprecated: true
+  newname: none
+ExplicitViscosity:
+  choices: yes, no
+  default: false
+  description: Consider explicit viscocsity.
+  type: bool
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Set ViscousAlpha = 0 and ConstantViscosity = 0"
+Temperaturecgs0:
+  choices: positive value
+  default: none
+  description: Set the reference temperature in cgs units.
+  type: double
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Use Temperature0 instead. Append a 'K' to the value to set the temperature in Kelvin."
+ViscosityInCGS:
+  choices: yes, no
+  default: false
+  description: Interpret the value of constant viscosity to be in cgs.
+  type: bool
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Use the 'ConstantViscosity' key instead. It supports specifying units."
+HeatingStar:
+  choices: yes, no
+  default: false
+  description: Enable irradiation heating by the star.
+  type: bool
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Set temperature of any Nbody object > 0 to enable irradiation from this object."
+HeatingStarFactor:
+  choices: positive value
+  description: Modulate the heating by this factor.
+  type: double
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Change the temperature of the Nbody object to modulate the heating."
+HeatingStarRampingTime:
+  choices: positive value
+  description: Ramp up the heating over this time.
+  type: double
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Use key 'irradiation ramp-up time' for Nbody objects."
+StarRadius:
+  choices: positive value
+  description: Radius of the star used together with StarTemperature for computing the flux.
+  type: double
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Use key 'radius' for Nbody objects."
+StarTemperature:
+  choices: positive value
+  description: Radius of the star used together with StarRadius for computing the flux.
+  type: double
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "Use key 'temperature' for Nbody objects."
+HeatingStarSimple:
+  choices: yes, no
+  default: false
+  description: Enable simple irradiation heating by the star solely based on distance.
+  type: bool
+  unitsupport: false
+  deprecated: true
+  newname: none
+  hint: "This is now the only option."
+PolytropicConstant:
+  choices: positive value
+  default: 12.753
+  description: Set the polytropic constant for the polytropic equation of state.
+  type: double
+  unitsupport: false
 ALPHAVISCOSITY:
   choices: ''
   default: 0
@@ -1134,9 +1225,9 @@ TauMin:
 Temperature0:
   choices: ''
   default: -1
-  description: '?'
+  description: 'If > 0, set the reference temperature at l0 instead of using the reference aspect ratio.'
   type: double
-  unitsupport: false
+  unitsupport: true
 ThicknessSmoothing:
   choices: ''
   default: none
