@@ -47,7 +47,7 @@ void DeallocateBoundaryCommunicationBuffers()
 void AllocateBoundaryCommunicationBuffers()
 {
     /* number of polar grids to communicate; standard is 3 (density, vrad,
-     * vtheta) */
+     * vazi) */
     bufferSize = 3;
 
     /* if we calculate adiabatic, energy is additional needed */
@@ -92,11 +92,11 @@ void CommunicateBoundariesAllInitial(t_data& data) {
 
 	\param Density
 	\param Vrad
-	\param Vtheta
+	\param Vazi
 	\param Energy
 */
 void CommunicateBoundaries(t_polargrid *Density, t_polargrid *Vrad,
-			   t_polargrid *Vtheta, t_polargrid *Energy)
+			   t_polargrid *Vazi, t_polargrid *Energy)
 {
     MPI_Request req1, req2, req3, req4;
 
@@ -112,10 +112,10 @@ void CommunicateBoundaries(t_polargrid *Density, t_polargrid *Vrad,
     // copy data into send buffers
     memcpy(SendInnerBoundary, Density->Field + l, l * sizeof(double));
     memcpy(SendInnerBoundary + l, Vrad->Field + l, l * sizeof(double));
-    memcpy(SendInnerBoundary + 2 * l, Vtheta->Field + l, l * sizeof(double));
+    memcpy(SendInnerBoundary + 2 * l, Vazi->Field + l, l * sizeof(double));
     memcpy(SendOuterBoundary, Density->Field + o, l * sizeof(double));
     memcpy(SendOuterBoundary + l, Vrad->Field + o, l * sizeof(double));
-    memcpy(SendOuterBoundary + 2 * l, Vtheta->Field + o, l * sizeof(double));
+    memcpy(SendOuterBoundary + 2 * l, Vazi->Field + o, l * sizeof(double));
 
     if (parameters::Adiabatic) {
 	memcpy(SendInnerBoundary + 3 * l, Energy->Field + l,
@@ -162,7 +162,7 @@ void CommunicateBoundaries(t_polargrid *Density, t_polargrid *Vrad,
 	MPI_Wait(&req2, &global_MPI_Status);
 	memcpy(Density->Field, RecvInnerBoundary, l * sizeof(double));
 	memcpy(Vrad->Field, RecvInnerBoundary + l, l * sizeof(double));
-	memcpy(Vtheta->Field, RecvInnerBoundary + 2 * l, l * sizeof(double));
+	memcpy(Vazi->Field, RecvInnerBoundary + 2 * l, l * sizeof(double));
 	if (parameters::Adiabatic)
 	    memcpy(Energy->Field, RecvInnerBoundary + 3 * l,
 		   l * sizeof(double));
@@ -173,7 +173,7 @@ void CommunicateBoundaries(t_polargrid *Density, t_polargrid *Vrad,
 	MPI_Wait(&req4, &global_MPI_Status);
 	memcpy(Density->Field + oo, RecvOuterBoundary, l * sizeof(double));
 	memcpy(Vrad->Field + oo, RecvOuterBoundary + l, l * sizeof(double));
-	memcpy(Vtheta->Field + oo, RecvOuterBoundary + 2 * l,
+	memcpy(Vazi->Field + oo, RecvOuterBoundary + 2 * l,
 	       l * sizeof(double));
 	if (parameters::Adiabatic)
 	    memcpy(Energy->Field + oo, RecvOuterBoundary + 3 * l,

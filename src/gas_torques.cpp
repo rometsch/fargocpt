@@ -11,7 +11,7 @@ namespace gas_torques
 void calculate_advection_torque(t_data &data, t_polargrid &t_adv, const double dt)
 {
 
-    t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
+    t_polargrid &vazi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
     t_polargrid &dens = data[t_data::SIGMA];
 
@@ -31,13 +31,13 @@ void calculate_advection_torque(t_data &data, t_polargrid &t_adv, const double d
 			     (Rsup[n_r] - Rmed[n_r]) * vr_bot;
 	    vr_cell *= inv_dr;
 
-	    const double vphi_cell_left = vphi(n_r, n_az);
-	    const double vphi_cell_right =
-		vphi(n_r, get_next_azimuthal_id(n_az));
-	    const double vphi_cell = 0.5 * (vphi_cell_left + vphi_cell_right);
+	    const double vazi_cell_left = vazi(n_r, n_az);
+	    const double vazi_cell_right =
+		vazi(n_r, get_next_azimuthal_id(n_az));
+	    const double vazi_cell = 0.5 * (vazi_cell_left + vazi_cell_right);
 
 	    t_adv(n_r, n_az) +=
-		-std::pow(r, 2.0) * sigma_cell * vr_cell * vphi_cell * dt;
+		-std::pow(r, 2.0) * sigma_cell * vr_cell * vazi_cell * dt;
 	}
     }
 }
@@ -45,7 +45,7 @@ void calculate_advection_torque(t_data &data, t_polargrid &t_adv, const double d
 void calculate_viscous_torque(t_data &data, t_polargrid &t_visc, const double dt)
 {
     t_polargrid &visc = data[t_data::VISCOSITY];
-    t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
+    t_polargrid &vazi = data[t_data::V_AZIMUTHAL];
     t_polargrid &vr = data[t_data::V_RADIAL];
     t_polargrid &dens = data[t_data::SIGMA];
 
@@ -79,22 +79,22 @@ void calculate_viscous_torque(t_data &data, t_polargrid &t_visc, const double dt
 			      (Rsup[n_r] - Rmed[n_r]) * dvr_dphi_bot;
 	    dvr_dphi *= inv_dr;
 
-	    const double vphi_cellm1_top = vphi(n_r + 1, n_az);
-	    const double vphi_cellp1_top =
-		vphi(n_r + 1, get_next_azimuthal_id(n_az));
+	    const double vazi_cellm1_top = vazi(n_r + 1, n_az);
+	    const double vazi_cellp1_top =
+		vazi(n_r + 1, get_next_azimuthal_id(n_az));
 	    const double phi_dot_top =
-		0.5 * (vphi_cellp1_top + vphi_cellm1_top) / Rmed[n_r + 1];
+		0.5 * (vazi_cellp1_top + vazi_cellm1_top) / Rmed[n_r + 1];
 
-	    const double vphi_cellm1 = vphi(n_r, n_az);
-	    const double vphi_cellp1 = vphi(n_r, get_next_azimuthal_id(n_az));
+	    const double vazi_cellm1 = vazi(n_r, n_az);
+	    const double vazi_cellp1 = vazi(n_r, get_next_azimuthal_id(n_az));
 	    const double phi_dot =
-		0.5 * (vphi_cellp1 + vphi_cellm1) / Rmed[n_r];
+		0.5 * (vazi_cellp1 + vazi_cellm1) / Rmed[n_r];
 
-	    const double vphi_cellm1_bot = vphi(n_r - 1, n_az);
-	    const double vphi_cellp1_bot =
-		vphi(n_r - 1, get_next_azimuthal_id(n_az));
+	    const double vazi_cellm1_bot = vazi(n_r - 1, n_az);
+	    const double vazi_cellp1_bot =
+		vazi(n_r - 1, get_next_azimuthal_id(n_az));
 	    const double phi_dot_bot =
-		0.5 * (vphi_cellp1_bot + vphi_cellm1_bot) / Rmed[n_r - 1];
+		0.5 * (vazi_cellp1_bot + vazi_cellm1_bot) / Rmed[n_r - 1];
 
 	    // derivatives at the center of top and bottom interface
 	    const double dphi_dot_dr_top =

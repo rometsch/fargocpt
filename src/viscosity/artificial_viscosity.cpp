@@ -37,7 +37,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	t_polargrid &energy = data[t_data::ENERGY];
 	t_polargrid &density = data[t_data::SIGMA];
 	t_polargrid &vr = data[t_data::V_RADIAL];
-	t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
+	t_polargrid &vazi = data[t_data::V_AZIMUTHAL];
 
 	t_polargrid &Q_rr = data[t_data::Q_R];
 	t_polargrid &Q_pp = data[t_data::Q_PHI];
@@ -49,12 +49,12 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 0; nr < Nr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-		const double naz_next = naz == vphi.get_max_azimuthal() ? 0 : naz + 1;
+		const double naz_next = naz == vazi.get_max_azimuthal() ? 0 : naz + 1;
 
 		// div(v) = 1/r d(r v_r)/dr + 1/r d(v_phi)/dphi
 		//  	 == d(v_r)/dr + 1/r [ d(v_phi)/dphi + v_r]
 		const double eps_rr = (vr(nr+1, naz) - vr(nr, naz)) * InvDiffRsup[nr];
-		const double eps_pp =  InvRb[nr] * ((vphi(nr, naz_next) - vphi(nr, naz)) * invdphi + 0.5*(vr(nr + 1, naz) + vr(nr, naz)));
+		const double eps_pp =  InvRb[nr] * ((vazi(nr, naz_next) - vazi(nr, naz)) * invdphi + 0.5*(vr(nr + 1, naz) + vr(nr, naz)));
 
 		const double div_V =  std::min(eps_rr + eps_pp, 0.0);
 
@@ -113,7 +113,7 @@ void update_with_artificial_viscosity_TW(t_data &data, const double dt)
 		2.0 * dt / ((Rsup[nr] + Rinf[nr]) * sigma_phi_avg) *
 		(Q_pp(nr, naz) - Q_pp(nr, naz_prev)) * invdphi;
 
-		vphi(nr, naz) += dVp;
+		vazi(nr, naz) += dVp;
 	}}
 
 	#pragma omp parallel for collapse(2)
@@ -153,7 +153,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 	t_polargrid &energy = data[t_data::ENERGY];
 	t_polargrid &density = data[t_data::SIGMA];
 	t_polargrid &vr = data[t_data::V_RADIAL];
-	t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
+	t_polargrid &vazi = data[t_data::V_AZIMUTHAL];
 
 	t_polargrid &Qr = data[t_data::Q_R];
 	t_polargrid &Qphi = data[t_data::Q_PHI];
@@ -176,7 +176,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 		}
 
 		const double naz_next = naz == Nphi-1 ? 0 : naz + 1;
-		double dv_phi =	vphi(nr, naz_next) - vphi(nr, naz);
+		double dv_phi =	vazi(nr, naz_next) - vazi(nr, naz);
 
 		if (dv_phi < 0.0) {
 			Qphi(nr, naz) =
@@ -204,7 +204,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 			const double naz_next = naz == Nphi-1 ? 0 : naz + 1;
 
 			const double dv_r =	vr(nr+1, naz) - vr(nr, naz);
-			const double dv_phi = vphi(nr,	naz_next) -	vphi(nr, naz);
+			const double dv_phi = vazi(nr,	naz_next) -	vazi(nr, naz);
 
 			const double energy_new =
 				energy(nr, naz) -
@@ -241,7 +241,7 @@ void update_with_artificial_viscosity_SN(t_data &data, const double dt)
 		// between the neightbour cells
 		const unsigned int naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
 
-		vphi(nr, naz) =	vphi(nr, naz) -
+		vazi(nr, naz) =	vazi(nr, naz) -
 			dt * 2.0 / (density(nr, naz) + density(nr, naz_prev)) *
 			(Qphi(nr, naz) - Qphi(nr, naz_prev)) * invdxtheta;
 		}

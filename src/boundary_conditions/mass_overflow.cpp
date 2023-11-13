@@ -63,7 +63,7 @@ void rochelobe_overflow_boundary(t_data &data, t_polargrid *densitystar, bool tr
 	-omega_planet * r_cell *
 	vr_fraction; // radial inflow velocity is a fraction of v_Kepler, (e.g.
 		     // vr_fraction = 0.002)
-    const double vphi_stream =
+    const double vazi_stream =
 	(omega_planet - refframe::OmegaFrame) *
 	r_cell; // set angular velocity to zero (in co-rotating frame)
 
@@ -154,8 +154,8 @@ void rochelobe_overflow_boundary(t_data &data, t_polargrid *densitystar, bool tr
 
 	data[t_data::V_RADIAL](Nrad, gridcell) = vr_stream;
 	data[t_data::V_RADIAL](Nrad + 1, gridcell) = vr_stream;
-	data[t_data::V_AZIMUTHAL](Nrad, gridcell) = vphi_stream;
-	data[t_data::V_AZIMUTHAL](Nrad, gridcell_r) = vphi_stream;
+	data[t_data::V_AZIMUTHAL](Nrad, gridcell) = vazi_stream;
+	data[t_data::V_AZIMUTHAL](Nrad, gridcell_r) = vazi_stream;
 
 #ifndef NDEBUG
 	logging::print(

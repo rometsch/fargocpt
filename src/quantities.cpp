@@ -494,7 +494,7 @@ void calculate_disk_ecc_vector(t_data &data, unsigned int timestep,
 
 	const t_polargrid &density = data[t_data::SIGMA];
 	const t_polargrid &vr = data[t_data::V_RADIAL];
-	const t_polargrid &vphi = data[t_data::V_AZIMUTHAL];
+	const t_polargrid &vazi = data[t_data::V_AZIMUTHAL];
 
 	const double sinFrameAngle = std::sin(refframe::FrameAngle);
 	const double cosFrameAngle = std::cos(refframe::FrameAngle);
@@ -518,11 +518,11 @@ void calculate_disk_ecc_vector(t_data &data, unsigned int timestep,
 		// averaged velocities
 		const double v_xmed =
 		std::cos(angle) * 0.5 *	(vr(nr, naz) + vr(nr + 1, naz))
-		- std::sin(angle) *	(0.5 * (vphi(nr, naz) + vphi(nr, naz_next))
+		- std::sin(angle) *	(0.5 * (vazi(nr, naz) + vazi(nr, naz_next))
 							 + refframe::OmegaFrame * Rmed[nr]);
 		const double v_ymed =
 		std::sin(angle) * 0.5 *	(vr(nr, naz) + vr(nr + 1, naz)) +
-		std::cos(angle) * (0.5 * (vphi(nr, naz) + vphi(nr, naz_next)) +
+		std::cos(angle) * (0.5 * (vazi(nr, naz) + vazi(nr, naz_next)) +
 			 refframe::OmegaFrame * Rmed[nr]);
 
 		// specific angular momentum for each cell j = j*e_z

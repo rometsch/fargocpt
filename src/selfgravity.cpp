@@ -310,7 +310,7 @@ void compute(t_data &data, double dt, bool update)
 
     if (update) {
 	// Computes polar components of acceleration and updates values of vrad,
-	// vtheta at each step
+	// vazi at each step
 
 	auto &v_radial = data[t_data::V_RADIAL];
 	auto &v_azimuthal = data[t_data::V_AZIMUTHAL];
@@ -697,7 +697,7 @@ void compute_acceleration(t_polargrid &density)
    Update the velocity fields to take into account self-gravity
 
    \param VRad
-   \param VTheta
+   \param Vazi
    \param Dt
 */
 void update_velocities(t_polargrid &v_radial, t_polargrid &v_azimuthal,

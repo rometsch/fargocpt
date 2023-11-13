@@ -20,7 +20,7 @@ namespace boundary_conditions
 void zero_shear_inner(t_polargrid &vaz, [[maybe_unused]] t_polargrid &dummy,
 		      [[maybe_unused]] t_data &ddummy)
 {
-    /// Vphi_i / r_i - Vphi_(i-1) / r_(i-1) = 0
+    /// Vazi_i / r_i - Vazi_(i-1) / r_(i-1) = 0
     const unsigned int Iaz = vaz.get_max_azimuthal();
 
     if (CPU_Rank == 0) {
