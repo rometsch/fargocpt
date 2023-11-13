@@ -67,7 +67,8 @@ ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessS
 
 # Boundary layer parameters
 
-MassAccretionRate: '0'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
+# MassAccretionRate: '0'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
+# has beed removed without replacement
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Numerical method parameters
