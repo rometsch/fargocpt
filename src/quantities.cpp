@@ -832,7 +832,7 @@ void compute_aspectratio(t_data &data, unsigned int timestep, bool force_update)
 			// setup planet data
 			for (unsigned int k = 0; k < N_planets; k++) {
 				const t_planet &planet = data.get_planetary_system().get_planet(k);
-				g_mpl[k] = planet.get_rampup_mass(sim::PhysicalTime);
+				g_mpl[k] = planet.get_rampup_mass(sim::time);
 				g_xpl[k] = planet.get_x();
 				g_ypl[k] = planet.get_y();
 				g_rpl[k] = planet.get_planet_radial_extend();

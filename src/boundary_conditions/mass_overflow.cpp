@@ -105,8 +105,8 @@ void rochelobe_overflow_boundary(t_data &data, t_polargrid *densitystar, bool tr
 	rof_rampingtime * planet.get_orbital_period();
 
     double ramp_factor;
-    if (sim::PhysicalTime < t_ramp) {
-	ramp_factor = std::pow(std::sin(sim::PhysicalTime * M_PI_2 / t_ramp), 6);
+    if (sim::time < t_ramp) {
+	ramp_factor = std::pow(std::sin(sim::time * M_PI_2 / t_ramp), 6);
     } else {
 	ramp_factor = 1.0;
     }

@@ -541,10 +541,10 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 
 	double ramping = 1.0;
 	
-	if (sim::PhysicalTime < rampup_time) {
+	if (sim::time < rampup_time) {
 	    ramping =
 		1.0 -
-		std::pow(std::cos(sim::PhysicalTime * M_PI / 2.0 / rampup_time), 2);
+		std::pow(std::cos(sim::time * M_PI / 2.0 / rampup_time), 2);
 	}
 
 	const double x = planet.get_x();
@@ -695,7 +695,7 @@ static void thermal_cooling(t_data &data) {
 	const unsigned int Nr = Qminus.get_max_radial(); // = Size - 1
 	const unsigned int Nphi = Qminus.get_size_azimuthal();
 
-	compute::midplane_density(data, sim::PhysicalTime);
+	compute::midplane_density(data, sim::time);
 	compute::kappa_eff(data);
 
 	#pragma omp parallel for collapse(2)

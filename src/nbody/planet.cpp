@@ -339,7 +339,7 @@ void t_planet::write_ascii(const std::string &filename) const
 	fd,
 	"%u\t%u\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 	sim::N_snapshot, sim::N_monitor, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
-	sim::PhysicalTime, refframe::OmegaFrame, get_circumplanetary_mass(),
+	sim::time, refframe::OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
 	get_true_anomaly(), get_pericenter_angle(), get_torque(), accreted_mass,

@@ -66,7 +66,7 @@ void restart_load(t_data &data) {
 		logging::print_master(
 		    LOG_INFO
 		    "Cannot read Qplus, no bitwise identical restarting possible!\n");
-		compute_heating_cooling_for_CFL(data, sim::PhysicalTime);
+		compute_heating_cooling_for_CFL(data, sim::time);
 	    }
 	    if (data[t_data::QMINUS].file_exists()) {
 		data[t_data::QMINUS].read2D();
@@ -74,7 +74,7 @@ void restart_load(t_data &data) {
 		logging::print_master(
 		    LOG_INFO
 		    "Cannot read Qminus, no bitwise identical restarting possible!\n");
-		compute_heating_cooling_for_CFL(data, sim::PhysicalTime);
+		compute_heating_cooling_for_CFL(data, sim::time);
 	    }
 	}
 	if (parameters::integrate_particles) {
@@ -95,7 +95,7 @@ void restart_load(t_data &data) {
 	logging::print_master(LOG_INFO
 			      "Finished restarting planetary system.\n");
 
-	recalculate_derived_disk_quantities(data, sim::PhysicalTime);
+	recalculate_derived_disk_quantities(data, sim::time);
 
 	if (parameters::variableGamma) {
 
@@ -112,8 +112,8 @@ void restart_load(t_data &data) {
 	    }
 
 		compute_temperature(data);
-		compute_sound_speed(data, sim::PhysicalTime);
-		compute_scale_height(data, sim::PhysicalTime);
+		compute_sound_speed(data, sim::time);
+		compute_scale_height(data, sim::time);
 		compute_pressure(data);
 	    viscosity::update_viscosity(data);
 	}

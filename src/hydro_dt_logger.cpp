@@ -92,7 +92,7 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 						"#variable: 1 | monitor number | 1\n"
 						"#variable: 2 | hydrostep number | 1\n"
 						"#variable: 3 | Number of Hydrosteps in last monitor_timestep | 1\n"
-						"#variable: 4 | PhysicalTime | %s\n"
+						"#variable: 4 | time | %s\n"
 						"#variable: 5 | walltime | s\n"
 						"#variable: 6 | walltime per hydrostep | ms\n"
 						"#variable: 7 | mean dt | %s\n"
@@ -135,7 +135,7 @@ void hydro_dt_logger::write(const unsigned int coarseOutputNumber,
 			std_dev = 0.0;
 		}
 		fprintf(fd, "%u\t%u\t%lu\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n", coarseOutputNumber, fineOutputNumber,
-				sim::N_hydro_iter, m_N_hydro_iter_DT, sim::PhysicalTime, realtime_sec, time_per_step_ms, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
+				sim::N_hydro_iter, m_N_hydro_iter_DT, sim::time, realtime_sec, time_per_step_ms, mean_dt, m_min_hydro_dt, m_max_hydro_dt, std_dev);
 		fclose(fd);
 
 		reset();

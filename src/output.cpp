@@ -278,7 +278,7 @@ void write_full_output(t_data &data, const std::string &snapshot_id,
 	}
 		
     // write polar grids
-    output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::PhysicalTime);
+    output::write_grids(data, sim::N_snapshot, sim::N_hydro_iter, sim::time);
     // write planet data
     data.get_planetary_system().write_planets(0);
 	data.get_massflow_tracker().write_to_file();
@@ -407,7 +407,7 @@ void write_quantities(t_data &data, bool force_update)
 						    quantities_limit_radius);
 
     if (!parameters::body_force_from_potential) {
-	CalculateNbodyPotential(data, sim::PhysicalTime);
+	CalculateNbodyPotential(data, sim::time);
     }
 
 	const double gravitationalEnergy =
@@ -459,7 +459,7 @@ void write_quantities(t_data &data, bool force_update)
 	fprintf(
 	    fd,
 		"%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
-	    sim::N_snapshot, sim::N_monitor, sim::PhysicalTime, totalMass, diskRadius,
+	    sim::N_snapshot, sim::N_monitor, sim::time, totalMass, diskRadius,
 	    totalAngularMomentum, totalEnergy, internalEnergy, kinematicEnergy,
 	    gravitationalEnergy, radialKinematicEnergy,
 	    azimuthalKinematicEnergy, average_eccentricity, average_periastron, qplus,
@@ -515,7 +515,7 @@ void write_misc()
 	
     misc.timestep = sim::N_snapshot;
     misc.nTimeStep = sim::N_monitor;
-    misc.PhysicalTime = sim::PhysicalTime;
+    misc.time = sim::time;
     misc.OmegaFrame = refframe::OmegaFrame;
     misc.FrameAngle = refframe::FrameAngle;
     misc.last_dt = sim::last_dt;
@@ -572,7 +572,7 @@ std::string text_file_variable_description(
 {
     // construct a header string describing each variable in
     // its own line including the column and its unit. e.g.
-    // #variable: 1 | PhysicalTime | s
+    // #variable: 1 | time | s
 
     std::map<int, std::string> vars_by_column;
     for (auto const &ent : variables) {
@@ -640,7 +640,7 @@ int load_misc()
 
     sim::N_snapshot = misc.timestep;
     sim::N_monitor = misc.nTimeStep;
-    sim::PhysicalTime = misc.PhysicalTime;
+    sim::time = misc.time;
     refframe::OmegaFrame = misc.OmegaFrame;
     refframe::FrameAngle = misc.FrameAngle;
     sim::last_dt = misc.last_dt;
@@ -934,11 +934,11 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 
 	if (!fd_created_luminosity) {
 	    // print header
-	    fprintf(fd, "# PhysicalTime\tluminosities\n");
+	    fprintf(fd, "# time\tluminosities\n");
 	    fd_created_luminosity = true;
 	}
 
-	fprintf(fd, "%.20e\t", sim::PhysicalTime);
+	fprintf(fd, "%.20e\t", sim::time);
 
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
@@ -984,11 +984,11 @@ void write_lightcurves(t_data &data, unsigned int timestep, bool force_update)
 
 	if (!fd_created_dissipation) {
 	    // print header
-	    fprintf(fd, "# PhysicalTime\tdissipation\n");
+	    fprintf(fd, "# time\tdissipation\n");
 	    fd_created_dissipation = true;
 	}
 
-	fprintf(fd, "%.20e\t", sim::PhysicalTime);
+	fprintf(fd, "%.20e\t", sim::time);
 
 	for (unsigned int i = 1; i < parameters::lightcurves_radii.size();
 	     ++i) {
@@ -1058,7 +1058,7 @@ void write_snapshot_time()
 
     if (CPU_Master) {
 	fprintf(fd, "%u\t%u\t%#.16e\n", sim::N_snapshot, sim::N_monitor,
-		sim::PhysicalTime);
+		sim::time);
 	fclose(fd);
     }
 }
@@ -1118,7 +1118,7 @@ void write_monitor_time()
 
     if (CPU_Master) {
 	fprintf(fd, "%u\t%u\t%#.16e\n", sim::N_snapshot, sim::N_monitor,
-		sim::PhysicalTime);
+		sim::time);
 	fclose(fd);
     }
 }
@@ -1220,12 +1220,12 @@ void CheckAngularMomentumConservation(t_data &data)
     if (firstStart) {
 	firstStart = 0;
 
-	// sim::PhysicalTime < 1e-10 was the "old" condition for saving start values
-	if (sim::PhysicalTime > 1e-10) {
+	// sim::time < 1e-10 was the "old" condition for saving start values
+	if (sim::time > 1e-10) {
 	    logging::print_master(
 		LOG_INFO
 		"CheckAngularMomentumConservation is called for the first time very late: t=%f\n",
-		sim::PhysicalTime);
+		sim::time);
 	}
 
 	planetsStartAngularMomentum = planetsAngularMomentum;
@@ -1233,7 +1233,7 @@ void CheckAngularMomentumConservation(t_data &data)
 	totalStartAngularMomentum = totalAngularMomentum;
 	logging::print_master(
 	    LOG_INFO "time = %lg, Hp0 = %lg, Hg0 = %lg et Ht0 = %lg\n",
-	    sim::PhysicalTime, planetsStartAngularMomentum, gasStartAngularMomentum,
+	    sim::time, planetsStartAngularMomentum, gasStartAngularMomentum,
 	    totalStartAngularMomentum);
     }
 
@@ -1260,7 +1260,7 @@ void CheckAngularMomentumConservation(t_data &data)
 	fabs(totalAngularMomentum - totalStartAngularMomentum);
 
     // print to logfile
-    fprintf(fd, "%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n", sim::PhysicalTime,
+    fprintf(fd, "%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n", sim::time,
 	    planetsAngularMomentum, gasAngularMomentum, totalAngularMomentum,
 	    totalAngularMomentum / totalStartAngularMomentum);
 
@@ -1316,7 +1316,7 @@ void write_ecc_peri_changes(const unsigned int snapshot_number, const unsigned m
 		"# Syntax:\n"
 		"# 0 : coarse output step\n"
 		"# 1 : fine output step\n"
-		"# 2 : PhysicalTime\n"
+		"# 2 : time\n"
 
 		"# 3 : ecc change from source terms\n"
 		"# 4 : ecc change from artificial viscosity\n"
@@ -1339,7 +1339,7 @@ void write_ecc_peri_changes(const unsigned int snapshot_number, const unsigned m
 	fprintf(fd, "%u\t%u\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\t%#.16e\n",
 		snapshot_number,
 		monitor_number,
-		sim::PhysicalTime,
+		sim::time,
 
 		delta_ecc_source,
 		delta_ecc_art_visc,

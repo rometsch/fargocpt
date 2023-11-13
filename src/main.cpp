@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 		MPI_Barrier(MPI_COMM_WORLD);
     }
 
-    sim::PhysicalTimeInitial = sim::PhysicalTime;
+    sim::timeInitial = sim::time;
 
     logging::start_timer();
 
