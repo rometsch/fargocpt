@@ -108,7 +108,7 @@ CFLmaxVar:
 CICPLANET:
   choices: yes, no
   default: false
-  description: 'Initialize planets in center of cell. Only works for zero eccentricity.'
+  description: Initialize planets in center of cell. Only works for zero eccentricity.
   type: bool
   unitsupport: false
 CartesianParticles:
@@ -382,7 +382,7 @@ EnergyFilename:
   type: string
   unitsupport: false
 EquationOfState:
-  choices: 'Isothermal, Ideal/Adiabatic, PVTE, Polytropic'
+  choices: Isothermal, Ideal/Adiabatic, PVTE, Polytropic
   default: Isothermal
   description: Select the equation of state.
   type: string
@@ -501,13 +501,13 @@ HydroFrameCenter:
 HydrogenMassFraction:
   choices: +
   default: 0.75
-  description: 'Mass fraction of hydrogen in the gas for the case of scurve cooling.'
+  description: Mass fraction of hydrogen in the gas for the case of scurve cooling.
   type: double
   unitsupport: false
 ImposedDiskDrift:
   choices: 0+
   default: 0
-  description: 'Be careful and check the code! This is old code! Initialize vrad with an imposed accretion through the disk and add an additional torque during the simulation. vrad = ImposedDiskDrift * Sigma0 / Sigma_avg_azimuthal / R.'
+  description: Be careful and check the code! This is old code! Initialize vrad with an imposed accretion through the disk and add an additional torque during the simulation. vrad = ImposedDiskDrift * Sigma0 / Sigma_avg_azimuthal / R.
   type: double
   unitsupport: false
 IndirectTermMode:
@@ -555,7 +555,7 @@ InnerBoundaryVazi:
 InnerBoundaryVaziKeplerianFactor:
   choices: 0+
   default: 1
-  description: 'For InnerBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.'
+  description: For InnerBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.
   type: double
   unitsupport: false
 InnerBoundaryVrad:
@@ -567,7 +567,7 @@ InnerBoundaryVrad:
 InnerBoundaryVradKeplerianFactor:
   choices: 0+
   default: 0.1
-  description: 'For InnerBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.'
+  description: For InnerBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.
   type: double
   unitsupport: false
 IntegrateParticles:
@@ -633,11 +633,11 @@ MassAccretionRadius:
 MassAccretionRate:
   choices: ''
   default: 1.0e-09
-  description: 'For inner boundary = boundary layer: Mass accretion rate (from secondary, young stellar cloud, etc.).'
-  type: double
   deprecated: true
-  unitsupport: true
+  description: 'For inner boundary = boundary layer: Mass accretion rate (from secondary, young stellar cloud, etc.).'
   newname: none
+  type: double
+  unitsupport: true
 MaximumTemperature:
   choices: +
   default: 1.0e300 K
@@ -654,9 +654,9 @@ MonitorTimestep:
   choices: +
   default: 1
   description: Calculate scalar quatities every MonitorTimestep in code units. For default units 2PI = 1 orbit at r=1. This is analogous to the DT parameter in other FARGO versions.
-  type: double
   oldname: DT
-  unitsupport: yes
+  type: double
+  unitsupport: true
 NSEC:
   choices: ''
   default: 64
@@ -733,8 +733,8 @@ OuterBoundaryEnergy:
   type: string
   unitsupport: false
 OuterBoundarySigma:
-  choices: ''
-  default: Zerogradient, DiskModel, Reference, Infer
+  choices: Zerogradient, DiskModel, Reference, Infer
+  default: infer
   description: Boundary condition for the surface density at the outer boundary.
   type: string
   unitsupport: false
@@ -747,7 +747,7 @@ OuterBoundaryVazi:
 OuterBoundaryVaziKeplerianFactor:
   choices: 0+
   default: 1
-  description: 'For OuterBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.'
+  description: For OuterBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.
   type: double
   unitsupport: false
 OuterBoundaryVrad:
@@ -759,17 +759,17 @@ OuterBoundaryVrad:
 OuterBoundaryVradKeplerianFactor:
   choices: 0+
   default: 0.1
-  description: 'For OuterBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.'
+  description: For OuterBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.
   type: double
   unitsupport: false
 OuterSourceMass:
   choices: ''
   default: false
+  deprecated: true
   description: '?'
+  newname: none
   type: bool
   unitsupport: false
-  deprecated: true
-  newname: none
 OutputDir:
   choices: ''
   default: setupfile name
@@ -808,7 +808,7 @@ ParticleGasDragEnabled:
   unitsupport: false
 ParticleIntegrator:
   choices: explicit, midpoint
-  default: midpoint
+  default: m
   description: Select the particle integrator. Explicit (Cash-Carp with adaptive timesteping), Midpoint (Mignone 2019)
   type: string
   unitsupport: false
@@ -839,7 +839,7 @@ ParticleMinimumRadius:
 ParticleRadius:
   choices: +
   default: 100.0 cm
-  description: 'Radius of a single particle (assumed to be spherical).'
+  description: Radius of a single particle (assumed to be spherical).
   type: double
   unitsupport: true
 ParticleRadiusIncreaseFactor:
@@ -911,7 +911,7 @@ ProfileCutoffWidthOuter:
 QuantitiesRadiusLimit:
   choices: +
   default: 5
-  description: 'Limit the calculation of disk quantities to inside this radius. [default = RMAX]'
+  description: Limit the calculation of disk quantities to inside this radius. [default = RMAX]
   type: double
   unitsupport: true
 ROFVariableTransfer:
@@ -995,7 +995,7 @@ RadiativeDiffusionDumpData:
 RadiativeDiffusionInnerBoundary:
   choices: ZeroFlux, ZeroGradient, Outflow
   default: none
-  description: Inner boundary condition for the diffusion equation. You need to set this when using the FLD module. 
+  description: Inner boundary condition for the diffusion equation. You need to set this when using the FLD module.
   type: string
   unitsupport: false
 RadiativeDiffusionMaxIterations:
@@ -1013,7 +1013,7 @@ RadiativeDiffusionOmega:
 RadiativeDiffusionOuterBoundary:
   choices: ZeroFlux, ZeroGradient, Outflow
   default: none
-  description: Outer boundary condition for the diffusion equation. You need to set this when using the FLD module. 
+  description: Outer boundary condition for the diffusion equation. You need to set this when using the FLD module.
   type: string
   unitsupport: false
 RadiativeDiffusionTest1D:
@@ -1089,8 +1089,8 @@ RocheLobeOverflow:
   type: bool
   unitsupport: false
 ScurveType:
-  choices: 
-  default: Kimura, Ichikawa
+  choices: null
+  default: Kimura
   description: Type of the scurve cooling. This sets the F_hot constant to 23.405 (Kimura) or 25.49 (Ichikawa).
   type: string
   unitsupport: false
@@ -1216,7 +1216,7 @@ StsNu:
   newname: none
   type: double
   unitsupport: false
-SurfaceCooling: 
+SurfaceCooling:
   choices: no, thermal, scurve
   default: false
   description: 'Enable surface cooling. Thermal: cooling by blackbody radiation. Scurve: cooling by scurve cooling.'
@@ -1258,7 +1258,7 @@ ThicknessSmoothing:
 ThicknessSmoothingSG:
   choices: ''
   default: 1.2
-  description: 'Smoothing/softening parameter for SG [default = ThicknessSmoothing]'
+  description: Smoothing/softening parameter for SG [default = ThicknessSmoothing]
   type: double
   unitsupport: false
 Transport:
@@ -1429,7 +1429,7 @@ WriteLightCurves:
   type: bool
   unitsupport: false
 WriteLightCurvesRadii:
-  choices: yes
+  choices: yes, no
   default: none
   description: Danger zone! Check the code! Write radii for which the light curves are outputed.
   type: string
@@ -1653,7 +1653,7 @@ mu:
 t0:
   choices: +
   default: 1.0
-  description: "Base time unit of the simulation [default: 1/2pi * Keplerian orbital period at r=l0 around mass m0]"
+  description: 'Base time unit of the simulation [default: 1/2pi * Keplerian orbital period at r=l0 around mass m0]'
   type: string
   unitsupport: true
 temp0:
