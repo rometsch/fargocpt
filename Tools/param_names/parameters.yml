@@ -106,9 +106,9 @@ CFLmaxVar:
   type: double
   unitsupport: false
 CICPLANET:
-  choices: ''
+  choices: yes, no
   default: false
-  description: '?'
+  description: 'Initialize planets in center of cell. Only works for zero eccentricity.'
   type: bool
   unitsupport: false
 CartesianParticles:
@@ -715,51 +715,51 @@ OmegaFrame:
   type: double
   unitsupport: true
 Opacity:
-  choices: Lin, Bell, Zhu, Kramers
+  choices: Lin, Bell, Constant, Simple
   default: Lin
   description: Opacity table to use.
   type: string
   unitsupport: false
 OuterBoundary:
-  choices: Open, Reflective/Rigid, ZeroGradient, PrescribedTimeVariable, BoundaryLayer
+  choices: Zerogradient, Outflow, Reflecting, Reference, CenterOfMass, Custom, Individual
   default: individual
   description: Boundary condition at the outer boundary.
   type: string
   unitsupport: false
 OuterBoundaryEnergy:
-  choices: ''
+  choices: Zerogradient, DiskModel, Reference, Infer
   default: infer
-  description: ''
+  description: Boundary condition for the energy at the outer boundary.
   type: string
   unitsupport: false
 OuterBoundarySigma:
   choices: ''
-  default: infer
-  description: ''
+  default: Zerogradient, DiskModel, Reference, Infer
+  description: Boundary condition for the surface density at the outer boundary.
   type: string
   unitsupport: false
 OuterBoundaryVazi:
-  choices: ''
+  choices: ZeroGradient, Reference, ZeroShear, Balanced, Keplerian, Infer
   default: keplerian
-  description: ''
+  description: Boundary condition for the azimuthal velocity at the outer boundary.
   type: string
   unitsupport: false
 OuterBoundaryVaziKeplerianFactor:
-  choices: ''
+  choices: 0+
   default: 1
-  description: ''
+  description: 'For OuterBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.'
   type: double
   unitsupport: false
 OuterBoundaryVrad:
-  choices: ''
+  choices: ZeroGradient, Reference, Reflecting, Outflow, Viscous, Keplerian, Infer
   default: infer
-  description: ''
+  description: Boundary condition for the radial velocity at the outer boundary.
   type: string
   unitsupport: false
 OuterBoundaryVradKeplerianFactor:
-  choices: ''
+  choices: 0+
   default: 0.1
-  description: ''
+  description: 'For OuterBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.'
   type: double
   unitsupport: false
 OuterSourceMass:
@@ -768,296 +768,297 @@ OuterSourceMass:
   description: '?'
   type: bool
   unitsupport: false
+  deprecated: true
 OutputDir:
   choices: ''
-  default: config/
+  default: setupfile name
   description: Specify the output directory.
   type: string
   unitsupport: false
 ParticleDensity:
-  choices: ''
+  choices: +
   default: 2.65 g/cm3
-  description: Particle material density. [default = 2.65, Siliciumdioxid].
+  description: Particle material density. [default = 2.65 g/cm3, Siliciumdioxid].
   type: double
   unitsupport: true
 ParticleDiskGravityEnabled:
-  choices: ''
+  choices: yes, no
   default: false
   description: 'Enable disk self-gravity acting on particles. TODO: this should be set to default to reflect the self-gravity flag.'
   type: bool
   unitsupport: false
 ParticleDustDiffusion:
-  choices: ''
+  choices: yes, no
   default: false
   description: Enable dust diffusion.
   type: bool
   unitsupport: false
 ParticleEccentricity:
-  choices: ''
+  choices: 0+
   default: 0
   description: Initialize the particles with eccentricities drawn from a uniform random distribution between 0 and this number.
   type: double
   unitsupport: false
 ParticleGasDragEnabled:
-  choices: ''
+  choices: yes, no
   default: true
   description: Enable particle gas drag.
   type: bool
   unitsupport: false
 ParticleIntegrator:
-  choices: e, m
-  default: m
+  choices: explicit, midpoint
+  default: midpoint
   description: Select the particle integrator. Explicit (Cash-Carp with adaptive timesteping), Midpoint (Mignone 2019)
   type: string
   unitsupport: false
 ParticleMaximumEscapeRadius:
-  choices: ''
+  choices: +
   default: 2.5
   description: Eject particles that move outside this radius. [default = ParticleMaximumRadius]
   type: double
   unitsupport: true
 ParticleMaximumRadius:
-  choices: ''
+  choices: +
   default: 2.5
   description: Initialize particles up to this radius. [default = RMAX]
   type: double
   unitsupport: true
 ParticleMinimumEscapeRadius:
-  choices: ''
+  choices: 0+
   default: 0.4
   description: Eject particles that move inside this radius. [default = ParticleMinimumRadius]
   type: double
   unitsupport: true
 ParticleMinimumRadius:
-  choices: ''
+  choices: 0+
   default: 0.4
   description: Initialize particles starting at this radius. [default = RMIN]
   type: double
   unitsupport: true
 ParticleRadius:
-  choices: ''
+  choices: +
   default: 100.0 cm
-  description: 'Particle radius in cm [default = 100] TODO: change default radius to 1cm'
+  description: 'Radius of a single particle (assumed to be spherical).'
   type: double
   unitsupport: true
 ParticleRadiusIncreaseFactor:
-  choices: ''
+  choices: +
   default: 10
   description: Increase the size of each particle species by this factor. The size of the nth particle species is then ParticleRadius*IncreaseFactor^{n-1}.
   type: double
   unitsupport: false
 ParticleSpeciesNumber:
-  choices: ''
+  choices: +
   default: 1
-  description: Number of particle species/sizes.
+  description: Number of particle species/sizes. This works in tandem with ParticleRadiusIncreaseFactor.
   type: unsigned int
   unitsupport: false
 ParticleSurfaceDensitySlope:
-  choices: ''
+  choices: -0+
   default: 0
   description: 'Slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope). [default = SigmaSlope]'
   type: double
   unitsupport: false
 PlanetOrbitDiskTest:
-  choices: ''
+  choices: yes, no
   default: false
-  description: Enable test mode for a planet orbiting around just a disk.
+  description: 'Danger zone: Enable test mode for a planet orbiting around just a disk. You likely never need this.'
   type: bool
   unitsupport: false
 PolytropicConstant:
-  choices: positive value
+  choices: +
   default: 12.753
   description: Set the polytropic constant for the polytropic equation of state.
   type: string
   unitsupport: false
 ProfileCutoffInner:
-  choices: ''
+  choices: yes, no
   default: false
   description: Enable exponential cutoff for the density profile at the inner boundary.
   type: bool
   unitsupport: false
 ProfileCutoffOuter:
-  choices: ''
+  choices: yes, no
   default: false
   description: Enable exponential cutoff for the density profile at the outer boundary.
   type: bool
   unitsupport: false
 ProfileCutoffPointInner:
-  choices: ''
+  choices: 0+
   default: 0
   description: Location of the cuttoff at the inner boundary.
   type: double
   unitsupport: true
 ProfileCutoffPointOuter:
-  choices: ''
+  choices: +
   default: 1.0e+300
   description: Location of the cuttoff at the outer boundary.
   type: double
   unitsupport: true
 ProfileCutoffWidthInner:
-  choices: ''
+  choices: +
   default: 1
   description: Width of the cutoff at the inner boundary.
   type: double
   unitsupport: true
 ProfileCutoffWidthOuter:
-  choices: ''
+  choices: +
   default: 1
   description: Width of the cutoff at the outer boundary.
   type: double
   unitsupport: true
 QuantitiesRadiusLimit:
-  choices: ''
+  choices: +
   default: 5
-  description: 'Limit the calculation of disk quantities to inside this radius. TODO: enlarge radius'
+  description: 'Limit the calculation of disk quantities to inside this radius. [default = RMAX]'
   type: double
   unitsupport: true
 ROFVariableTransfer:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: Rochlobe overflow, variable transfer. TODO describe this better.
   type: bool
   unitsupport: false
 ROFaveragingtime:
-  choices: ''
+  choices: +
   default: 10
-  description: ''
+  description: Rochlobe overflow, variable transfer averaging time. TODO describe this better.
   type: double
   unitsupport: false
 ROFgamma:
-  choices: ''
+  choices: +
   default: 0.5
-  description: ''
+  description: Rochlobe overflow, variable transfer gamma
   type: double
   unitsupport: false
 ROFplanet:
-  choices: ''
+  choices: +
   default: 1
-  description: ''
+  description: Rochlobe overflow, number of Nbody object from which the stream originates
   type: int
   unitsupport: false
 ROFrampingtime:
-  choices: ''
+  choices: 0+
   default: 30
-  description: ''
+  description: Ramp-up time for Rochlobe overflow in units of the reference planets orbital period.
   type: double
   unitsupport: false
 ROFtemperature:
-  choices: ''
+  choices: +
   default: 1000.0 K
-  description: ''
+  description: Rochlobe overflow, sets initial temperature and width of stream
   type: double
   unitsupport: true
 ROFvalue:
-  choices: ''
+  choices: 0+
   default: 1e-08
-  description: ''
+  description: Mass accretion rate through the stream of the Rochelobe overflow.
   type: double
   unitsupport: true
 RadialSpacing:
   choices: Logarithmic or ARITHMETIC or Exponential
   default: ARITHMETIC
-  description: Type of the radial grid spacing.
+  description: Type of the radial grid spacing of the hydro grid.
   type: string
   unitsupport: false
 RadialViscosityFactor:
-  choices: ''
+  choices: +
   default: 1
-  description: Viscosity in radial direction is mutliplied with this factor to avoid oscillations.
+  description: Danger zone! Check the code for what this does! Viscosity in radial direction is mutliplied with this factor to avoid oscillations.
   type: double
   unitsupport: false
 RadiativeDiffusion:
   choices: yes, no
   default: false
-  description: Turn on 2D FLD to simulate radiative transport in the midplane.
+  description: Turn on radiation transport using FLD to simulate radiative transport in the midplane.
   type: bool
   unitsupport: false
 RadiativeDiffusionAutoOmega:
-  choices: ''
+  choices: yes, no
   default: false
-  description: Automatically update SOR Omega. Needs testing. Do not set to yes.
+  description: Danger zone! Testing needed! Automatically update SOR omega.
   type: bool
   unitsupport: false
 RadiativeDiffusionCheckSolution:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: For RadiativeDiffusionTest2D enabled, check the solution.
   type: bool
   unitsupport: false
 RadiativeDiffusionDumpData:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: Write out internal variables (matrix elements and diffusion coefficents) for debugging.
   type: bool
   unitsupport: false
 RadiativeDiffusionInnerBoundary:
-  choices: ''
+  choices: ZeroFlux, ZeroGradient, Outflow
   default: none
-  description: ''
+  description: Inner boundary condition for the diffusion equation. You need to set this when using the FLD module. 
   type: string
   unitsupport: false
 RadiativeDiffusionMaxIterations:
-  choices: ''
+  choices: +
   default: 50000
   description: Maximum number of SOR iterations for FLD.
   type: unsigned int
   unitsupport: false
 RadiativeDiffusionOmega:
-  choices: ''
+  choices: +
   default: 1.5
   description: Parameter for the succesive-overrelaxation (SOR) solver for the linear system of the FLD radiative transport.
   type: double
   unitsupport: false
 RadiativeDiffusionOuterBoundary:
-  choices: ''
+  choices: ZeroFlux, ZeroGradient, Outflow
   default: none
-  description: ''
+  description: Outer boundary condition for the diffusion equation. You need to set this when using the FLD module. 
   type: string
   unitsupport: false
 RadiativeDiffusionTest1D:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: Enable the 1D test case for the FLD module.
   type: bool
   unitsupport: false
 RadiativeDiffusionTest2D:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: Enable the 2D test case for the FLD module. This simulates a 2D diffusion process.
   type: bool
   unitsupport: false
 RadiativeDiffusionTest2DDensity:
-  choices: ''
+  choices: +
   default: 1.0 g/cm3
-  description: ''
+  description: Set the constant density for the 2D test.
   type: double
   unitsupport: true
 RadiativeDiffusionTest2DK:
-  choices: ''
+  choices: +
   default: 1
-  description: ''
+  description: Set the diffusion coefficient for the 2D test.
   type: double
   unitsupport: false
 RadiativeDiffusionTest2DSteps:
-  choices: ''
+  choices: +
   default: 1
-  description: ''
+  description: Number of times to repleat SOR during the 2D test.
   type: unsigned int
   unitsupport: false
 RadiativeDiffusionTolerance:
-  choices: ''
+  choices: +
   default: 1e-10
-  description: ''
+  description: Absolute value of tolerance for the SOR solver. This is in units of temperature. If specified without temperature, it's a multiple of the code unit of temperature.
   type: double
   unitsupport: true
 RandomFactor:
-  choices: ''
+  choices: +
   default: 0.1
-  description: Randomize by +- 10%
+  description: Randomize the initial surface density by this factor times noise of order 1.
   type: double
   unitsupport: false
 RandomSeed:
-  choices: ''
+  choices: +
   default: 0
   description: Random seed integer value for noise on initial profile.
   type: int
@@ -1069,27 +1070,27 @@ RandomSigma:
   type: bool
   unitsupport: false
 Rmax:
-  choices: ''
+  choices: +
   default: none
-  description: ''
+  description: Outer domain radius of the hydro grid.
   type: double
   unitsupport: true
 Rmin:
-  choices: ''
+  choices: +
   default: none
-  description: ''
+  description: Inner domain radius of the hydro grid.
   type: double
   unitsupport: true
 RocheLobeOverflow:
-  choices: ''
+  choices: yes, no
   default: false
-  description: ''
+  description: Add a stream of mass from a secondary to the disk. This is added ontop of the outer boundary condition.
   type: bool
   unitsupport: false
 ScurveType:
-  choices: ''
-  default: Kimura
-  description: ''
+  choices: 
+  default: Kimura, Ichikawa
+  description: Type of the scurve cooling. This sets the F_hot constant to 23.405 (Kimura) or 25.49 (Ichikawa).
   type: string
   unitsupport: false
 SecondaryDisk:
@@ -1105,21 +1106,21 @@ SelfGravity:
   type: bool
   unitsupport: false
 SelfGravityAspectRatioChangeThreshold:
-  choices: ''
+  choices: +
   default: 0.001
-  description: ''
+  description: The self-gravity modules updates the kernel only if the aspect ratio changes by more than this threshold.
   type: double
   unitsupport: false
 SelfGravityMode:
-  choices: ''
+  choices: basic, symmetric, besselkernel
   default: besselkernel
-  description: ''
+  description: Type of kernel to use. Likely 'besselkernel' is the best choice (by Steven Rendon Restrepo). Its valid in the limit of large Toomre parameter. It avoids introducing a smoothing length. 'symmetric' also shares this feature by introducing a corrected self-gravity smoothing length (by Tobias Moldenhauer). Its best in the limit of Toomre parameter close to 1. 'basic' is the original implementation by Clement Baruteau. This formulation is not symmetric.
   type: string
   unitsupport: false
 SelfGravityStepsBetweenKernelUpdate:
-  choices: ''
+  choices: +
   default: 20
-  description: ''
+  description: Only update the kernel every SelfGravityStepsBetweenKernelUpdate steps. This is important for the besselkernel mode because the kernel update is computationally expensive then.
   type: unsigned int
   unitsupport: false
 SetSigma0:
@@ -1135,9 +1136,9 @@ ShockTube:
   type: int
   unitsupport: false
 Sigma0:
-  choices: ''
+  choices: +
   default: 173 g/cm2
-  description: 'Set the scale for the Surface density profile: Sigma = Sigma0 * r^-SigmaSlope. TODO: change to value with unit.'
+  description: 'Set the scale for the Surface density profile: Sigma = Sigma0 * r^-SigmaSlope.'
   type: double
   unitsupport: true
 SigmaCondition:
