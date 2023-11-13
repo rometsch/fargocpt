@@ -267,7 +267,6 @@ extern bool initialize_vradial_zero;
 
 /// boundary layer parameters
 extern double radial_viscosity_factor;
-extern double mass_accretion_rate;
 
 extern double accretion_radius_fraction;
 extern double klahr_smoothing_radius;
