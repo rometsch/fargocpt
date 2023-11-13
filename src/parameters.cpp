@@ -454,7 +454,7 @@ static void read_beta_cooling_config(){
 	if (str == "zero") {
 	} else if (str == "reference") {
 		cooling_beta_reference = true;
-	} else if (str == "model") {
+	} else if (str == "diskmodel") {
 		cooling_beta_model = true;
 	} else if (str == "floor") {
 		cooling_beta_floor = true;

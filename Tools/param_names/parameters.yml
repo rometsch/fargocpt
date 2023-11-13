@@ -197,7 +197,7 @@ CoolingBetaRampUp:
   type: double
   unitsupport: true
 CoolingBetaReference:
-  choices: zero, initial, aspectratio
+  choices: reference, diskmodel, floor
   default: Zero
   description: Reference temperature/energy profile for beta cooling.
   type: string
