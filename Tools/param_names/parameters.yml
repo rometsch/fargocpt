@@ -384,7 +384,7 @@ ExplicitViscosity:
   default: false
   deprecated: true
   description: Consider explicit viscocsity.
-  hint: Set ViscousAlpha = 0 and ConstantViscosity = 0
+  hint: Set ViscousAlpha > 0 or ConstantViscosity > 0
   newname: none
   type: bool
   unitsupport: false

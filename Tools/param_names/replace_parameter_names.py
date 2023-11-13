@@ -17,7 +17,7 @@ old_to_new = {
  'DebugOutputs': {'newname': 'none'},
  'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi = zeroshear'},
  'ExplicitViscosity': {'newname': 'none',
-  'hint': 'Set ViscousAlpha = 0 and ConstantViscosity = 0'},
+  'hint': 'Set ViscousAlpha > 0 or ConstantViscosity > 0'},
  'HeatingStar': {'newname': 'none',
   'hint': 'Set temperature of any Nbody object > 0 to enable irradiation from this object.'},
  'HeatingStarFactor': {'newname': 'none',
