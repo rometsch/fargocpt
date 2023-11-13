@@ -36,8 +36,13 @@ deprecated_data.insert(0, ["Parameter", "Choices", "Default", "Description", "Ty
 markdown_table = tabulate(table_data, headers="firstrow", tablefmt="pipe")
 deprecated_table = tabulate(deprecated_data, headers="firstrow", tablefmt="pipe")
 
+
 with open("parameters.md", 'w') as outfile:
     outfile.write("# Active Parameters\n")
+    outfile.write(" For numerical parameters, the range of choices are abreviated as follows:\n")
+    outfile.write("- '-' : the range includes negative numbers.\n")
+    outfile.write("- '0' : the range includes zero.\n")
+    outfile.write("- '+' : the range includes positive numbers.\n\n")
     outfile.write(markdown_table)
     outfile.write("\n\n# Deprecated Parameters\n")
     outfile.write(deprecated_table)
