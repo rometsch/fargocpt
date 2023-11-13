@@ -508,7 +508,6 @@ ImposedDiskDrift:
   choices: 0+
   default: 0
   description: 'Be careful and check the code! This is old code! Initialize vrad with an imposed accretion through the disk and add an additional torque during the simulation. vrad = ImposedDiskDrift * Sigma0 / Sigma_avg_azimuthal / R.'
-			ri;
   type: double
   unitsupport: false
 IndirectTermMode:
