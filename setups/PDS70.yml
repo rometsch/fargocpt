@@ -39,14 +39,6 @@ RadiativeDiffusionAutoOmega: 'No'   # [default = no]
 RadiativeDiffusionMaxIterations: '50000'   # [default = 50000]
 HeatingViscous: 'Yes'   # enable viscous heating
 HeatingViscousFactor: '1.0'
-# HeatingStar: 'No'
-# hint: Set temperature of any Nbody object > 0 to enable irradiation from this object.
-# HeatingStarRampingTime: '5'   # Ramping time for star heating in timesteps
-# hint: Use key 'irradiation ramp-up time' for Nbody objects.
-# HeatingStarFactor: '1.0'
-# hint: Change the temperature of the Nbody object to modulate the heating.
-# HeatingStarSimple: 'No'   # Use simplified star heating [default = No]
-# hint: This is now the only option.
 MinimumTemperature: 3 K   # minimum Temperature in K
 MaximumTemperature: 1e100 K   # maximum Temperature in K
 TauFactor: '1.0'   # correction factor for tau [default = 1.0]
@@ -75,9 +67,6 @@ SecondaryDisk: 'No'
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
-# Boundary layer parameters
-
-MassAccretionRate: '1'   # Mass accretion rate (from secondary, young stellar cloud, etc.)
 MassAccretionRadius: '0.2'   # Mass accretion radius in unints of R_hill / 2
 KlahrSmoothingRadius: '0.2'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
@@ -130,8 +119,6 @@ CFLmaxVar: '1.1'
 OutputDir: output/out
 LogAfterRealSeconds: '600'
 LogAfterSteps: '0'
-# DebugOutputs: 'No'
-# has beed removed without replacement
 DoWrite1DFiles: 'No'
 WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
 WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
@@ -178,7 +165,6 @@ FeatureSize: '0.05'   # Feature size of the open somplex algorithm
 IntegrateParticles: yes   # enable particle integrator [default = no]
 CartesianParticles: 'YES'   # enable particle integrator [default = no]
 ParticleIntegrator: Midpoint   # Explicit, Adaptive, Semiimplicit and Implicit
-# Test adaptive integrator causing error: Timestep too small
 NumberOfParticles: '2000'   # number of particles [default = 0]
 ParticleRadius: 1e5 cm   # particle radius in cm [default = 100]
 ParticleEccentricity: '0.03'   # particle maximum Eccentricity
@@ -195,15 +181,6 @@ ParticleDiskGravityEnabled: 'no'   # [default = no]
 
 HydroFrameCenter: primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
 BodyForceFromPotential: 'Yes'
-# IntegratePlanets: 'Yes'   # [default = yes]
-# has beed removed without replacement
-
-# Star Parameters
-
-# StarRadius: '1.0'   # star radius in Solar Radii
-# hint: Use key 'radius' for Nbody objects.
-# StarTemperature: '5778'   # star temperature in K
-# hint: Use key 'temperature' for Nbody objects.
 
 # PDS70 according to wikipedia 2022-09-11
 nbody:
@@ -211,6 +188,8 @@ nbody:
   semi-major axis: 0.0 au
   mass: 0.76 solMass
   eccentricity: 0.0
+  temperature: 5778 K
+  radius: 1 solRadius
 - name: PDS70b
   semi-major axis: 22.7
   mass: 7.0 jupiterMass
