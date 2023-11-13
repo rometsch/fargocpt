@@ -224,7 +224,7 @@ bool Config::get_flag(const std::string &key, const char *default_value)
 char Config::get_first_letter_lowercase(const std::string &key, const std::string &default_value)
 {
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), false, default_value);
+    add_to_default(key, typeid(std::string).name(), false, default_value);
     std::string value = get<std::string>(key, default_value);
     if (value.length() == 0) {
         value = std::string(default_value);
@@ -235,7 +235,7 @@ char Config::get_first_letter_lowercase(const std::string &key, const std::strin
 char Config::get_first_letter_lowercase(const std::string &key)
 {
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), false);
+    add_to_default(key, typeid(std::string).name(), false);
     std::string value = get<std::string>(key);
     return (char)tolower(value[0]);
 }
@@ -253,7 +253,7 @@ bool Config::contains(const std::string &key)
 template <typename T> T Config::get(const std::string &key)
 {
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), false);
+    add_to_default(key, typeid(T).name(), false);
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key.c_str());
     }
@@ -275,7 +275,7 @@ template <typename T> T Config::get(const std::string &key)
 template <typename T> T Config::get(const std::string &key, const units::precise_unit& unit)
 {
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), true);
+    add_to_default(key, typeid(T).name(), true);
     if (!contains(key)) {
         die("Required parameter '%s' missing!\n", key.c_str());
     }
@@ -302,7 +302,7 @@ template <typename T> T Config::get(const std::string &key, const units::precise
 template <typename T> T Config::get(const std::string &key, const T &default_value)
 {
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), false, default_value);
+    add_to_default(key, typeid(T).name(), false, default_value);
     T rv;
     const std::string lkey = lowercase(key);
     if (contains(key)) {
@@ -335,7 +335,7 @@ template <typename T> T Config::get(const std::string &key,
                             const units::precise_unit& unit) 
 {    
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), true, default_value);
+    add_to_default(key, typeid(T).name(), true, default_value);
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;
@@ -361,7 +361,7 @@ template <typename T> T Config::get(const std::string &key,
                             const units::precise_unit& unit) 
 {
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), true, default_value);
+    add_to_default(key, typeid(T).name(), true, default_value);
     T rv;
     const std::string lkey = lowercase(key);
     std::string val;
@@ -384,7 +384,7 @@ template <typename T> T Config::get(const std::string &key,
 
 std::string Config::get_lowercase(const std::string &key, const std::string &default_value) {
     m_visited_keys.insert(lowercase(key));
-    add_to_default(key, typeid(bool).name(), false, default_value);
+    add_to_default(key, typeid(std::string).name(), false, default_value);
     std::string rv;
     const std::string lkey = lowercase(key);
     if (contains(key)) {
