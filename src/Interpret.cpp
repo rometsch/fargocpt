@@ -498,6 +498,8 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		parameters::ADIABATICINDEX, parameters::hydrogenMassFraction);
 	}
 
+	// Call for default value
+	cfg.get<std::string>("PolytropicConstant", "12.753");
 	if (strcmp(eos_string, "polytropic") == 0 ||
 	    strcmp(eos_string, "polytrop") == 0 ||
 	    strcmp(eos_string, "poly") == 0) {
