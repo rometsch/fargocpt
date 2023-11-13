@@ -524,7 +524,7 @@ void read(const std::string &filename, t_data &data)
 
     exponential_cell_size_factor =
 	config::cfg.get<double>("ExponentialCellSizeFactor", 1.41);
-    switch (config::cfg.get_first_letter_lowercase("RadialSpacing", "ARITHMETIC")) {
+    switch (config::cfg.get_first_letter_lowercase("RadialSpacing", "Arithmetic")) {
     case 'a': // arithmetic
 	radial_grid_type = arithmetic_spacing;
 	break;

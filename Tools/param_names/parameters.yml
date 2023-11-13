@@ -955,8 +955,8 @@ ROFvalue:
   type: double
   unitsupport: true
 RadialSpacing:
-  choices: Logarithmic or ARITHMETIC or Exponential
-  default: ARITHMETIC
+  choices: Logarithmic, Arithmetic, Exponential
+  default: Arithmetic
   description: Type of the radial grid spacing of the hydro grid.
   type: string
   unitsupport: false
