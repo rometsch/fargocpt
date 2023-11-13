@@ -5,7 +5,7 @@ ALPHAVISCOSITY:
   description: Specify the value of alpha for the alpha viscosity model.
   newname: ViscousAlpha
 AccreteWithoutDiskFeedback:
-  choices: ''
+  choices: yes, no
   default: false
   description: Let planets accrete without disk feedback being enabled.
   type: bool
@@ -20,27 +20,27 @@ Adiabatic:
   type: bool
   unitsupport: false
 AdiabaticIndex:
-  choices: ''
+  choices: +
   default: 1.4
   description: Numerical value or FIT_ISOTHERMAL (only for polytropic equation of state)
   type: bool
   unitsupport: false
 AlphaCold:
-  choices: ''
+  choices: 0+
   default: 0.01
   description: Alpha value for the cold state in scurve alpha.
   type: bool
   unitsupport: false
 AlphaHot:
-  choices: ''
+  choices: 0+
   default: 0.1
   description: Alpha value for the hot state in scurve alpha.
   type: bool
   unitsupport: false
 AlphaMode:
-  choices: 0, 1, 2
+  choices: 0, 1, 2, 3
   default: 0
-  description: 'Select how the viscosity is calculated. 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend'
+  description: 'Select how the viscosity is calculated. 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend  3: Scurve Alpha with ion fraction'
   type: bool
   unitsupport: false
 AlphaThreshold:
@@ -64,13 +64,13 @@ ArtificialViscosityDissipation:
   type: bool
   unitsupport: false
 ArtificialViscosityFactor:
-  choices: ''
+  choices: +
   default: 1.41
   description: Artificial viscosity factor/constant (von Neumann-Richtmyer constant).
   type: bool
   unitsupport: false
 AspectRatio:
-  choices: ''
+  choices: +
   default: 0.05
   description: 'Set the reference value for the aspect ratio: h = ASPECTRATIO * r^{1+flaringindex}'
   type: bool
@@ -88,19 +88,19 @@ BitwiseExactRestarting:
   type: bool
   unitsupport: false
 BodyForceFromPotential:
-  choices: ''
+  choices: yes, no
   default: true
   description: Consider the gravitational force from the Nbody onto the disk via the potential.
   type: bool
   unitsupport: false
 CFL:
-  choices: ''
+  choices: +
   default: 0.5
   description: CFL factor.
   type: bool
   unitsupport: false
 CFLmaxVar:
-  choices: ''
+  choices: +
   default: 1.1
   description: Maximum variation of the CFL timestep over one iteration.
   type: bool
@@ -114,7 +114,7 @@ CICPLANET:
 CartesianParticles:
   choices: yes, no
   default: false
-  description: Particle coordinates in cartesian coordinates.
+  description: Particle coordinates are stored in memory and in output files in cartesian coordinates.
   type: bool
   unitsupport: false
 CenterProfileDensityCorrectionFactor:
@@ -134,7 +134,7 @@ CircumBinaryDecayWidth:
   default: 0.84
   description: '?'
   type: bool
-  unitsupport: false
+  unitsupport: true
 CircumBinaryRing:
   choices: yes, no
   default: false
@@ -152,34 +152,34 @@ CircumBinaryRingPosition:
   default: 4.5
   description: Position of the circumbinary ring.
   type: bool
-  unitsupport: false
+  unitsupport: true
 CircumBinaryRingWidth:
   choices: ''
   default: 0.6
   description: Width of the circumbinary ring.
   type: bool
-  unitsupport: false
+  unitsupport: true
 CompatibilityNoStarSmoothing:
   choices: ''
   default: false
-  description: ''
+  description: Disable smoothing of the gravitational interaction for the central star. This is included for compatibility reasons to compare to simulations of other codes which do not smooth gravity from the central star. . See Mueller & Kley (2013) doi:10.1051/0004-6361/201322503 for why this is important.
   type: bool
   unitsupport: false
 CompatibilitySmoothingPlanetLoc:
   choices: yes, no
   default: false
-  description: Use the scale height at the planet position for the smoothing length calculation instead of the scaleheight at the cell.
+  description: Use the scale height at the planet position for the smoothing length calculation instead of the scaleheight at the cell. This is included for compatibility reasons to compare to simulations of other codes which do not use the scale height at the location of the cell. See Mueller & Kley (2013) doi:10.1051/0004-6361/201322503 for why this is important.
   type: bool
   unitsupport: false
 ConstantViscosity:
-  choices: ''
+  choices: '0+'
   default: 0
   description: Set a constant kinetic viscosity.
   oldname: Viscosity
   type: bool
-  unitsupport: false
+  unitsupport: true
 CoolingBeta:
-  choices: ''
+  choices: '0+'
   default: 1
   description: Paramter value of beta for the beta cooling.
   type: bool
@@ -191,11 +191,11 @@ CoolingBetaLocal:
   type: bool
   unitsupport: false
 CoolingBetaRampUp:
-  choices: ''
+  choices: '0+'
   default: 0
   description: Increase beta cooling on this timescale.
   type: bool
-  unitsupport: false
+  unitsupport: true
 CoolingBetaReference:
   choices: zero, initial, aspectratio
   default: Zero
@@ -349,7 +349,7 @@ DiskMass:
   default: 0.01
   description: In case of SetSigma0=yes, use this mass as diskmass.
   type: bool
-  unitsupport: false
+  unitsupport: true
 DiskRadiusMassFraction:
   choices: ''
   default: 0.99
@@ -407,13 +407,13 @@ FeatureSize:
   default: 0.014000000000000002
   description: Feature size of the open somplex algorithm.
   type: bool
-  unitsupport: false
+  unitsupport: true
 FirstDT:
   choices: ''
   default: 1.0e-09
   description: Initialization value for the hydro dt in case of hydro simulations turned off. Otherwise CFL dt is used.
   type: bool
-  unitsupport: false
+  unitsupport: true
 FlaringIndex:
   choices: ''
   default: 0
@@ -593,7 +593,7 @@ KappaConst:
   default: 1
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 KappaFactor:
   choices: ''
   default: 1
@@ -635,19 +635,19 @@ MassAccretionRate:
   default: 1.0e-09
   description: 'For inner boundary = boundary layer: Mass accretion rate (from secondary, young stellar cloud, etc.).'
   type: bool
-  unitsupport: false
+  unitsupport: true
 MaximumTemperature:
   choices: positive float w/wo unit
   default: 1.0e300 K
   description: Temperature ceiling.
   type: bool
-  unitsupport: false
+  unitsupport: true
 MinimumTemperature:
   choices: positive float w/wo unit
   default: 3 K
   description: Temperature floor.
   type: bool
-  unitsupport: false
+  unitsupport: true
 MonitorTimestep:
   choices: ''
   default: 1
@@ -776,7 +776,7 @@ ParticleDensity:
   default: 2.65 g/cm3
   description: Particle material density. [default = 2.65, Siliciumdioxid].
   type: bool
-  unitsupport: false
+  unitsupport: true
 ParticleDiskGravityEnabled:
   choices: ''
   default: false
@@ -812,31 +812,31 @@ ParticleMaximumEscapeRadius:
   default: 2.5
   description: Eject particles that move outside this radius. [default = ParticleMaximumRadius]
   type: bool
-  unitsupport: false
+  unitsupport: true
 ParticleMaximumRadius:
   choices: ''
   default: 2.5
   description: Initialize particles up to this radius. [default = RMAX]
   type: bool
-  unitsupport: false
+  unitsupport: true
 ParticleMinimumEscapeRadius:
   choices: ''
   default: 0.4
   description: Eject particles that move inside this radius. [default = ParticleMinimumRadius]
   type: bool
-  unitsupport: false
+  unitsupport: true
 ParticleMinimumRadius:
   choices: ''
   default: 0.4
   description: Initialize particles starting at this radius. [default = RMIN]
   type: bool
-  unitsupport: false
+  unitsupport: true
 ParticleRadius:
   choices: ''
   default: 100.0 cm
   description: 'Particle radius in cm [default = 100] TODO: change default radius to 1cm'
   type: bool
-  unitsupport: false
+  unitsupport: true
 ParticleRadiusIncreaseFactor:
   choices: ''
   default: 10
@@ -884,31 +884,31 @@ ProfileCutoffPointInner:
   default: 0
   description: Location of the cuttoff at the inner boundary.
   type: bool
-  unitsupport: false
+  unitsupport: true
 ProfileCutoffPointOuter:
   choices: ''
   default: 1.0e+300
   description: Location of the cuttoff at the outer boundary.
   type: bool
-  unitsupport: false
+  unitsupport: true
 ProfileCutoffWidthInner:
   choices: ''
   default: 1
   description: Width of the cutoff at the inner boundary.
   type: bool
-  unitsupport: false
+  unitsupport: true
 ProfileCutoffWidthOuter:
   choices: ''
   default: 1
   description: Width of the cutoff at the outer boundary.
   type: bool
-  unitsupport: false
+  unitsupport: true
 QuantitiesRadiusLimit:
   choices: ''
   default: 5
   description: 'Limit the calculation of disk quantities to inside this radius. TODO: enlarge radius'
   type: bool
-  unitsupport: false
+  unitsupport: true
 ROFVariableTransfer:
   choices: ''
   default: false
@@ -944,13 +944,13 @@ ROFtemperature:
   default: 1000.0 K
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 ROFvalue:
   choices: ''
   default: 1e-08
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 RadialSpacing:
   choices: Logarithmic or ARITHMETIC or Exponential
   default: ARITHMETIC
@@ -1028,7 +1028,7 @@ RadiativeDiffusionTest2DDensity:
   default: 1.0 g/cm3
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 RadiativeDiffusionTest2DK:
   choices: ''
   default: 1
@@ -1046,7 +1046,7 @@ RadiativeDiffusionTolerance:
   default: 1e-10
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 RandomFactor:
   choices: ''
   default: 0.1
@@ -1070,13 +1070,13 @@ Rmax:
   default: none
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 Rmin:
   choices: ''
   default: none
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 RocheLobeOverflow:
   choices: ''
   default: false
@@ -1136,7 +1136,7 @@ Sigma0:
   default: 173 g/cm2
   description: 'Set the scale for the Surface density profile: Sigma = Sigma0 * r^-SigmaSlope. TODO: change to value with unit.'
   type: bool
-  unitsupport: false
+  unitsupport: true
 SigmaCondition:
   choices: Profile, 1D, 2D
   default: Profile
@@ -1234,7 +1234,7 @@ Temperature0:
   default: -1
   description: If > 0, set the reference temperature at l0 instead of using the reference aspect ratio.
   type: bool
-  unitsupport: false
+  unitsupport: true
 Temperaturecgs0:
   choices: positive value
   default: none
@@ -1590,13 +1590,13 @@ l0:
   default: 1.0
   description: 'Base length unit of the simulation [default: 1.0 au]'
   type: bool
-  unitsupport: false
+  unitsupport: true
 m0:
   choices: ''
   default: 1.0
   description: 'Base mass unit of the simulation [default: 1.0 solMass]'
   type: bool
-  unitsupport: false
+  unitsupport: true
 massoverflow:
   choices: yes, no
   default: false
@@ -1650,13 +1650,13 @@ t0:
   default: 1.0
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 temp0:
   choices: ''
   default: 1.0
   description: ''
   type: bool
-  unitsupport: false
+  unitsupport: true
 variableTransfer:
   choices: ''
   default: false
