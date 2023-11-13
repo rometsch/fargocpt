@@ -49,8 +49,7 @@ This code is presented as is. And it will change over time.
 If something does not work, please __open an issue on GitHub__.
 We appreciate any feedback!
 
-Until the end of the third quarter in 2023, we plan to add more tests, add documentation and examples.
-Changes to the input and output format are also possible, though the goal for the next month is to have a version 1.0.
+For changes, please see [ChangeLog.md](https://github.com/rometsch/fargocpt/blob/devel/ChangeLog.md)
 
 ## Usage
 
