@@ -637,6 +637,7 @@ MassAccretionRate:
   type: double
   deprecated: true
   unitsupport: true
+  newname: none
 MaximumTemperature:
   choices: +
   default: 1.0e300 K
@@ -768,6 +769,7 @@ OuterSourceMass:
   type: bool
   unitsupport: false
   deprecated: true
+  newname: none
 OutputDir:
   choices: ''
   default: setupfile name
