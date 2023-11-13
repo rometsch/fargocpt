@@ -200,7 +200,7 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
     // time settings
     parameters::Nsnap = cfg.get<unsigned int>("Nsnapshots", 1000);
     parameters::Nmonitor = cfg.get<unsigned int>("Nmonitor", 10);
-    parameters::monitor_timestep = cfg.get<double>("MonitorTimestep", 1.0);
+    parameters::monitor_timestep = cfg.get<double>("MonitorTimestep", 1.0, units::T0);
 
 
 
