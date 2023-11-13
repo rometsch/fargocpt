@@ -172,14 +172,14 @@ CompatibilitySmoothingPlanetLoc:
   type: bool
   unitsupport: false
 ConstantViscosity:
-  choices: '0+'
+  choices: 0+
   default: 0
   description: Set a constant kinetic viscosity.
   oldname: Viscosity
   type: bool
   unitsupport: true
 CoolingBeta:
-  choices: '0+'
+  choices: 0+
   default: 1
   description: Paramter value of beta for the beta cooling.
   type: bool
@@ -191,7 +191,7 @@ CoolingBetaLocal:
   type: bool
   unitsupport: false
 CoolingBetaRampUp:
-  choices: '0+'
+  choices: 0+
   default: 0
   description: Increase beta cooling on this timescale.
   type: bool
@@ -345,13 +345,13 @@ DiskFeedback:
   type: bool
   unitsupport: false
 DiskMass:
-  choices: ''
+  choices: +
   default: 0.01
   description: In case of SetSigma0=yes, use this mass as diskmass.
   type: bool
   unitsupport: true
 DiskRadiusMassFraction:
-  choices: ''
+  choices: +
   default: 0.99
   description: 'Calculation of the disk radius: this fraction of the total mass is contained within the disk radius.'
   type: bool
@@ -370,9 +370,9 @@ DomegaDrZero:
   hint: OuterBoundaryAzi = zeroshear
   newname: none
 EnergyCondition:
-  choices: Profile, 1D, 2D
+  choices: Profile, 1D, 2D, Nbody
   default: Profile
-  description: Initialize energy by Profile, 1D data file or 2D data file.
+  description: Initialize energy by Profile, 1D data file or 2D data file, or by profile centered on nbody.
   type: bool
   unitsupport: false
 EnergyFilename:
@@ -382,10 +382,10 @@ EnergyFilename:
   type: bool
   unitsupport: false
 EquationOfState:
-  choices: 'Isothermal, Ideal, PVTE, Polytropic '
+  choices: 'Isothermal, Ideal/Adiabatic, PVTE, Polytropic '
   default: Isothermal
   description: Select the equation of state.
-  type: bool
+  type: string
   unitsupport: false
 ExplicitViscosity:
   choices: yes, no
@@ -397,16 +397,16 @@ ExplicitViscosity:
   type: bool
   unitsupport: false
 ExponentialCellSizeFactor:
-  choices: ''
+  choices: +
   default: 1.41
   description: Cell size increase factor to build an exponential grid. Only relevant for exponential grid type.
   type: bool
   unitsupport: false
 FeatureSize:
-  choices: ''
+  choices: +
   default: 0.014000000000000002
   description: Feature size of the open somplex algorithm.
-  type: bool
+  type: double
   unitsupport: true
 FirstDT:
   choices: ''
