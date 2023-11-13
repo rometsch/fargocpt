@@ -60,6 +60,9 @@ class Config
     std::vector<Config> get_nbody_config();
 
     void print();
+    void add_to_default(const std::string key, const std::string type, const bool unit_support);
+    template <typename T> void add_to_default(const std::string key, const std::string type, const bool unit_support, const T default_value);
+
     void print_default();
     void write_default(const std::string &filename);
 
