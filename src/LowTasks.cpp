@@ -66,12 +66,19 @@ void delete_directory_if_exists(const std::string &dirname)
 */
 void PersonalExit(int returncode)
 {
+    int is_MPI_initialized;
+    MPI_Initialized(&is_MPI_initialized);
+
     std::flush(std::cout);
     if (returncode != 0) {
 	PrintTrace();
-	MPI_Abort(MPI_COMM_WORLD, returncode);
+    if (is_MPI_initialized) {
+        MPI_Abort(MPI_COMM_WORLD, returncode);
     }
-    MPI_Finalize();
+    }
+    if (is_MPI_initialized){
+        MPI_Finalize();
+    }
     exit(returncode);
 }
 
