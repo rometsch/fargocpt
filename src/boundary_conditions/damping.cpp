@@ -135,6 +135,9 @@ static t_damping_type value_as_boudary_damping_default(const char *key,
     case 'n':
 	boundary_condition = t_damping_type::damping_none;
 	break;
+	case 'r':
+	boundary_condition = t_damping_type::damping_reference;
+	break;
     case 'i':
 	boundary_condition = t_damping_type::damping_reference;
 	break;
