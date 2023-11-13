@@ -16,8 +16,6 @@
 
 #include <string>
 
-extern boolean OuterSourceMass;
-
 namespace boundary_conditions
 {
 

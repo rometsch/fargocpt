@@ -22,8 +22,7 @@
 extern int damping_energy_id;
 extern std::vector<boundary_conditions::t_DampingType> damping_vector;
 
-int OuterSourceMass, CICPlanet;
-
+int CICPlanet;
 #include <algorithm>
 #include <array>
 #include <fstream>
@@ -155,7 +154,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    OuterSourceMass = cfg.get_flag("OuterSourceMass", "no");
 
     switch (cfg.get_first_letter_lowercase("Transport", "Fast")) {
     case 'f':

@@ -12,7 +12,6 @@
 #include "../global.h"
 #include "../quantities.h"
 
-extern boolean OuterSourceMass;
 
 namespace boundary_conditions
 {

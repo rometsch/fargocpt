@@ -16,9 +16,6 @@
 #include "global.h"
 #include <cassert>
 
-extern boolean Damping;
-extern boolean OuterSourceMass;
-
 
 /**
 	Divide each cell of a polar grid with a cell of another polargrid
