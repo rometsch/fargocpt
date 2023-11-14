@@ -16,7 +16,7 @@ def load_dset(filename, dset, N=None):
             pass
     return data
 
-from load_dust import get_time, get_sigma_dust
+from load_dust import get_sigma_dust
 datadir = "output/dust_diffusion/"
 
 try:
@@ -37,7 +37,10 @@ toffset = 0
 inds = [0, 1]
 Ymax = 0
 n = 1
-t = get_time(datadir, n)
+
+from fargocpt import Loader
+l = Loader(datadir)
+t = l.snapshot_times[n]
 sigma_dust, rmid, dr = get_sigma_dust(datadir, n, nbins=101)
 factor = np.sum(sigma_dust*rmid*dr*2*np.pi)
 Y = sigma_dust/factor

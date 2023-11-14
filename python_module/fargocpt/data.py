@@ -15,7 +15,7 @@ from typing import List
 from functools import lru_cache
 
 def print_indented(str, indent=0):
-    indent_str = "|   "*indent
+    indent_str = ".   "*indent
     for line in str.split('\n'):
         print(indent_str + line)
 
@@ -47,7 +47,7 @@ class Units:
             if not key in ["length", "time", "mass", "temperature"]:
                 value = getattr(self, key)
                 rv += f"|   {key}: {value}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 
@@ -69,7 +69,7 @@ class Grid:
         rv += f"| Nrad: {self.Nrad}\n"
         rv += f"| Naz: {self.Naz}\n"
         rv += f"| Spacing: {self.spacing}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
     @property
@@ -247,7 +247,7 @@ class Scalars:
         rv += f"| varnames:\n"
         for varname in self._varnames:
             rv += f"|   {varname.replace(' ', '_')}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 
@@ -570,7 +570,7 @@ class Vars1D:
         rv += f"| var_names:\n"
         for var_name in self.var_names:
             rv += f"|   {var_name}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
     
     def _return_radius(self, varname):
@@ -653,7 +653,7 @@ class Vars2D:
         rv += f"| var_names:\n"
         for var_name in self.var_names:
             rv += f"|   {var_name}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
     def meshgrid(self, varname):
@@ -717,8 +717,11 @@ class Vars2D:
 class Particles:
     output_dir: str
     target_units: Units = None
+    snapshots: List[int] = field(default_factory=list)
+    snapshot_time: List[float] = field(default_factory=list)
     _last_snapshot = None
     _last_data = None
+
 
     def __post_init__(self):
         self._load_info()
@@ -790,14 +793,80 @@ class Particles:
             raise KeyError(f"Unknown particle variable '{varname}'")
 
         res = self._load_snapshot(Nsnapshot)
-
         if varname in ['x', 'y', 'r', 'phi']:
             rv = self._handle_xy_rphi(varname, res)
         else:
             unit = Unit(self._info_dict['variables'][varname]['unit'])
+            if varname=="id":
+                unit = 1
             rv = res[varname]*unit
 
         return rv
+
+    def timeseries(self, varnames, start=None, end=None, step=1):
+        """ Construct time series from snapshot 'start' to snapshot 'end' of the requested variables.
+
+        If start is None, the first snapshot is used.
+        If end is None, the last snapshot is used.
+
+        Parameters
+        ----------
+        varnames: list[str]
+            Names of variables to load. If none specified, return all available variables.
+        start : int
+            The first snapshot to load.
+        end : int
+            The last snapshot to load.
+        step : int
+            The step size between snapshots.
+        time : np.ndarray
+            Full length array of the time of the snapshots. If this is provided, time is added to the returned data for each particle.
+
+        Returns
+        -------
+        data : dict
+            A dictionary containing the requested variables as keys and the time series as values.
+        """
+
+        if len(varnames) == 0:
+            varnames = self.var_names
+
+        if start is None:
+            start = self.snapshots[0]
+        if end is None:
+            end = self.snapshots[-1]
+        time = self.snapshot_time
+
+        # get ids at the first snapshot, particles only leave the system, they don't come back
+        ids = self.get('id', start)
+        # make a dict for every particle
+        data = {i: {key : [] for key in varnames} for i in ids}
+        if time is not None:
+            for id in ids:
+                data[id]['time'] = []
+
+        # loop over timesteps and fill the data dict
+        for N in range(start, end+1, step):
+            ids = self.get('id', N)
+            indices = np.arange(len(ids))
+            id2index = {id: ind for id, ind in zip(ids, indices) if id in ids}
+            if time is not None:
+                t = time[N]
+                for id in ids:
+                    data[id]['time'].append(t)
+            for key in varnames:
+                vals = self.get(key, N)
+                for id, index in id2index.items():
+                    data[id][key].append(vals[index])
+        
+        # make the lists numpy arrays/Quantities
+        for id in data:
+            for key in varnames:
+                data[id][key] = Quantity(data[id][key])
+            if time is not None:
+                data[id]['time'] = Quantity(data[id]['time'])
+
+        return data
 
     def __repr__(self) -> str:
         rv = "   Particles\n"
@@ -807,7 +876,7 @@ class Particles:
         rv += f"| var_names:\n"
         for var_name in self.var_names:
             rv += f"|   {var_name}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 @dataclass
@@ -839,7 +908,7 @@ class Hydro:
         rv += f"| scalars: Scalar\n"
         rv += f"| vars1D: Vars1D\n"
         rv += f"| vars2D: Vars2D\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
     
     def print(self, indent=0, recursive=False):
@@ -880,13 +949,13 @@ class Params:
         return self.params[self.lkeys[key.lower()]]
     
     def __repr__(self) -> str:
-        rv = "FargoCPT data Params\n"
+        rv = "   Params\n"
         rv += "====================\n"
         rv += f"| filename: {self._param_filepath}\n"
         rv += f"| params:\n"
         for key, value in self.params.items():
             rv += f"|   {key}: {value}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 @dataclass
@@ -935,7 +1004,7 @@ class Loader:
     def _load_particles(self):
         info_file = joinpath(self.output_dir, 'infoParticles.yml')
         if os.path.exists(info_file):
-            self.particles = Particles(self.output_dir, target_units=self.target_units)
+            self.particles = Particles(self.output_dir, target_units=self.target_units, snapshots=self.snapshots, snapshot_time=self.snapshot_time)
 
     def _load_snapshots(self):
         filename = joinpath(self.output_dir, 'snapshots', 'list.txt')
@@ -953,11 +1022,6 @@ class Loader:
         self.snapshot_time = load_text_data_file(joinpath(self.output_dir, 'snapshots', 'timeSnapshot.dat'), 'time')
         self.monitor_number = [int(n) for n in load_text_data_file(joinpath(self.output_dir, 'snapshots', 'timeSnapshot.dat'), 'monitor number')]
 
-    def snapshot_time(self, Nsnapshot):
-        filename = joinpath(self.output_dir, 'snapshots', f'{Nsnapshot}', 'time.dat')
-        return load_text_data_file(filename, 'time')
-
-
     def __repr__(self) -> str:
         rv = "   Loader\n"
         rv += "====================\n"
@@ -973,7 +1037,7 @@ class Loader:
         rv += f"| nbody: Nbody\n"
         rv += f"| params: Params\n"
         rv += f"| particles" + (" = None" if self.particles is None else ": Particles") + "\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
     
     def print(self, recursive=False):
@@ -983,31 +1047,22 @@ class Loader:
             print_indented(repr(self.units), indent=indent)
             print_indented(repr(self.params), indent=indent)
             if self.particles is not None:
-                print(repr(self.particles), indent=indent)
+                print(repr(self.particles))
             for nbody in self.nbody:
                 print_indented(repr(nbody), indent=indent)
             self.gas.print(indent=indent, recursive=recursive)
 
-
-def main(args=sys.argv[1:]):
-    import argparse
-    parser = argparse.ArgumentParser(description='Load FargoCPT data.')
-    parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
-    parser.add_argument("path", nargs="?", type=str, help="The path to the data to be printed. Eg. 'gas.vars2D' or ''.")
-    parser.add_argument("N", nargs="?", type=str, help="Snapshot number to load")
-    parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
-    opts = parser.parse_args(args)
-
+def data_print(output_dir, path, N, recursive=False):
     try:
-        l = Loader(opts.output_dir)
+        l = Loader(output_dir)
     except FileNotFoundError as e:
         print(e)
         sys.exit(1)
     
     obj = l
 
-    if opts.path is not None:
-        path = opts.path.split('.')
+    if path is not None:
+        path = path.split('.')
         for p in path:
             # interpret integer values of p as list indices
             try:
@@ -1020,16 +1075,26 @@ def main(args=sys.argv[1:]):
                 try:
                     obj = getattr(obj, p)
                 except AttributeError:
-                    if hasattr(obj, "get") and opts.N is not None:
-                        obj = obj.get(p, opts.N)
+                    if hasattr(obj, "get") and N is not None:
+                        obj = obj.get(p, N)
                     else:
                         raise
 
-
     if hasattr(obj, 'print'):
-        obj.print(recursive=opts.recursive)
+        obj.print(recursive=recursive)
     else:
         print(obj)
+
+def main(args=sys.argv[1:]):
+    import argparse
+    parser = argparse.ArgumentParser(description='Load FargoCPT data.')
+    parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
+    parser.add_argument("path", nargs="?", type=str, help="The path to the data to be printed. Eg. 'gas.vars2D' or ''.")
+    parser.add_argument("N", nargs="?", type=str, help="Snapshot number to load")
+    parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
+    opts = parser.parse_args(args)
+
+    data_print(opts.output_dir, opts.path, opts.N, opts.recursive)
 
 if __name__ == "__main__":
     main()
