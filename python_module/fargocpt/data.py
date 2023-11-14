@@ -1048,26 +1048,17 @@ class Loader:
                 print_indented(repr(nbody), indent=indent)
             self.gas.print(indent=indent, recursive=recursive)
 
-
-def main(args=sys.argv[1:]):
-    import argparse
-    parser = argparse.ArgumentParser(description='Load FargoCPT data.')
-    parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
-    parser.add_argument("path", nargs="?", type=str, help="The path to the data to be printed. Eg. 'gas.vars2D' or ''.")
-    parser.add_argument("N", nargs="?", type=str, help="Snapshot number to load")
-    parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
-    opts = parser.parse_args(args)
-
+def data_print(output_dir, path, N, recursive=False):
     try:
-        l = Loader(opts.output_dir)
+        l = Loader(output_dir)
     except FileNotFoundError as e:
         print(e)
         sys.exit(1)
     
     obj = l
 
-    if opts.path is not None:
-        path = opts.path.split('.')
+    if path is not None:
+        path = path.split('.')
         for p in path:
             # interpret integer values of p as list indices
             try:
@@ -1080,16 +1071,26 @@ def main(args=sys.argv[1:]):
                 try:
                     obj = getattr(obj, p)
                 except AttributeError:
-                    if hasattr(obj, "get") and opts.N is not None:
-                        obj = obj.get(p, opts.N)
+                    if hasattr(obj, "get") and N is not None:
+                        obj = obj.get(p, N)
                     else:
                         raise
 
-
     if hasattr(obj, 'print'):
-        obj.print(recursive=opts.recursive)
+        obj.print(recursive=recursive)
     else:
         print(obj)
+
+def main(args=sys.argv[1:]):
+    import argparse
+    parser = argparse.ArgumentParser(description='Load FargoCPT data.')
+    parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
+    parser.add_argument("path", nargs="?", type=str, help="The path to the data to be printed. Eg. 'gas.vars2D' or ''.")
+    parser.add_argument("N", nargs="?", type=str, help="Snapshot number to load")
+    parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
+    opts = parser.parse_args(args)
+
+    data_print(opts.output_dir, opts.path, opts.N, opts.recursive)
 
 if __name__ == "__main__":
     main()
