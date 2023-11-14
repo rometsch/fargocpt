@@ -717,8 +717,11 @@ class Vars2D:
 class Particles:
     output_dir: str
     target_units: Units = None
+    snapshots: List[int] = field(default_factory=list)
+    snapshot_time: List[float] = field(default_factory=list)
     _last_snapshot = None
     _last_data = None
+
 
     def __post_init__(self):
         self._load_info()
@@ -800,7 +803,7 @@ class Particles:
 
         return rv
 
-    def timeseries(self, varnames, start, end, step=1, time=None):
+    def timeseries(self, varnames, start=None, end=None, step=1):
         """ Construct time series from snapshot 'start' to snapshot 'end' of the requested variables.
 
         If start is None, the first snapshot is used.
@@ -827,6 +830,12 @@ class Particles:
 
         if len(varnames) == 0:
             varnames = self.var_names
+
+        if start is None:
+            start = self.snapshots[0]
+        if end is None:
+            end = self.snapshots[-1]
+        time = self.snapshot_time
 
         # get ids at the first snapshot, particles only leave the system, they don't come back
         ids = self.get('id', start)
@@ -995,7 +1004,7 @@ class Loader:
     def _load_particles(self):
         info_file = joinpath(self.output_dir, 'infoParticles.yml')
         if os.path.exists(info_file):
-            self.particles = Particles(self.output_dir, target_units=self.target_units)
+            self.particles = Particles(self.output_dir, target_units=self.target_units, snapshots=self.snapshots, snapshot_time=self.snapshot_time)
 
     def _load_snapshots(self):
         filename = joinpath(self.output_dir, 'snapshots', 'list.txt')
@@ -1012,11 +1021,6 @@ class Loader:
 
         self.snapshot_time = load_text_data_file(joinpath(self.output_dir, 'snapshots', 'timeSnapshot.dat'), 'time')
         self.monitor_number = [int(n) for n in load_text_data_file(joinpath(self.output_dir, 'snapshots', 'timeSnapshot.dat'), 'monitor number')]
-
-    def snapshot_time(self, Nsnapshot):
-        filename = joinpath(self.output_dir, 'snapshots', f'{Nsnapshot}', 'time.dat')
-        return load_text_data_file(filename, 'time')
-
 
     def __repr__(self) -> str:
         rv = "   Loader\n"
