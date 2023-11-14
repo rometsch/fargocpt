@@ -635,6 +635,102 @@ class Vars2D:
         else:
             return rv
 
+@dataclass
+class Particles:
+    output_dir: str
+    target_units: Units = None
+    _last_snapshot = None
+    _last_data = None
+
+    def __post_init__(self):
+        self._load_info()
+
+    def _load_info(self):
+        info_file = joinpath(self.output_dir, 'infoParticles.yml')
+        try:
+            with open(info_file, "r") as f:
+                self._info_dict = yaml.safe_load(f)
+        except FileNotFoundError:
+            raise FileNotFoundError("Could not find 'infoParticles.yml' in simulatiuon output ('{}')".format(self.output_dir))
+    
+        self.var_names = [k for k in self._info_dict['variables'].keys()]
+        self._dtypes = []
+        for key, info in self._info_dict['variables'].items():
+            dtype = info['type']
+            if dtype == 'double':
+                self._dtypes.append((key, np.dtype(np.dtype('f8'))))
+            elif dtype == 'unsigned long':
+                self._dtypes.append((key, 'u8'))
+            else:
+                raise ValueError(f'Unknown type {dtype}')
+            
+        if "r" in self.var_names and "phi" in self.var_names:
+            self.var_names.append("x")
+            self.var_names.append("y")
+        elif "x" in self.var_names and "y" in self.var_names:
+            self.var_names.append("r")
+            self.var_names.append("phi")
+
+    def _load_snapshot(self, Nsnapshot):
+        # cache the last read snapshot
+        filename = joinpath(self.output_dir, "snapshots", f"{Nsnapshot}", "particles.dat")
+        if self._last_snapshot == Nsnapshot:
+            res = self._last_data
+        else:
+            res = np.fromfile(filename, dtype=self._dtypes)
+            self._last_snapshot = Nsnapshot
+            self._last_data = res
+        return res
+
+    def _handle_xy_rphi(self, varname, res):
+        r_direct = varname == 'r' and 'r' in self._info_dict['variables']
+        phi_direct = varname == 'phi' and 'phi' in self._info_dict['variables']
+        x_direct = varname == 'x' and 'x' in self._info_dict['variables']
+        y_direct = varname == 'y' and 'y' in self._info_dict['variables']
+        if r_direct or phi_direct or x_direct or y_direct:
+            unit = Unit(self._info_dict['variables'][varname]['unit'])
+            rv = res[varname]*unit
+            return rv
+
+        # otherwise calculate the values
+        if varname == 'r':
+            unit = Unit(self._info_dict['variables']["x"]['unit'])
+            rv = np.sqrt(res['x']**2 + res['y']**2)*unit
+        elif varname == 'phi':
+            rv = np.arctan2(res['y'], res['x'])
+        elif varname == 'x':
+            unit = Unit(self._info_dict['variables']["r"]['unit'])
+            rv = res['r']*np.cos(res['phi'])*unit
+        elif varname == 'y':
+            unit = Unit(self._info_dict['variables']["r"]['unit'])
+            rv = res['r']*np.sin(res['phi'])*unit
+        return rv
+    
+
+    def get(self, varname, Nsnapshot):
+        if not varname in self.var_names:
+            raise KeyError(f"Unknown particle variable '{varname}'")
+
+        res = self._load_snapshot(Nsnapshot)
+
+        if varname in ['x', 'y', 'r', 'phi']:
+            rv = self._handle_xy_rphi(varname, res)
+        else:
+            unit = Unit(self._info_dict['variables'][varname]['unit'])
+            rv = res[varname]*unit
+
+        return rv
+
+    def __repr__(self) -> str:
+        rv = "FargoCPT data Particles\n"
+        rv += "====================\n"
+        rv += f"  output_dir: {self.output_dir}\n"
+        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"  var_names:\n"
+        for var_name in self.var_names:
+            rv += f"    {var_name}\n"
+        rv += "====================\n"
+        return rv
 
 @dataclass
 class Hydro:
@@ -713,17 +809,23 @@ class Loader:
     hydro: Hydro = None
     nbody: List[Nbody] = field(default_factory=list)
     params: Params = None
+    particles: Particles = None
 
     def __post_init__(self):
+        if not os.path.exists(self.output_dir):
+            raise FileNotFoundError(f"Could not find output directory '{self.output_dir}'")
+
         if self.units is None:
             self.units = Units()
             self.units.load_file(joinpath(self.output_dir , 'units.yml'))
+
+        self._load_snapshots()
 
         self.hydro = Hydro(self.output_dir, self.units, target_units=self.target_units)
         self._load_nbody()
 
         self.params = Params(self.output_dir)
-        self._load_snapshots()
+        self._load_particles()
 
     def _load_nbody(self):
         for n in range(1,100):
@@ -733,6 +835,11 @@ class Loader:
                 self.nbody.append(nbody)
             else:
                 break
+
+    def _load_particles(self):
+        info_file = joinpath(self.output_dir, 'infoParticles.yml')
+        if os.path.exists(info_file):
+            self.particles = Particles(self.output_dir, target_units=self.target_units)
 
     def _load_snapshots(self):
         filename = joinpath(self.output_dir, 'snapshots', 'list.txt')
@@ -769,6 +876,6 @@ class Loader:
         rv += f"  hydro: Hydro\n"
         rv += f"  nbody: Nbody\n"
         rv += f"  params: Params\n"
-        rv += f"  particles: Particles\n"
+        rv += f"  particles" + (" = None" if self.particles is None else ": Particles") + "\n"
         rv += "====================\n"
         return rv
