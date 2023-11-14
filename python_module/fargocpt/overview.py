@@ -153,7 +153,7 @@ class Plot1D:
 
             if self.plot_minmax:
                 ymin = self.loader.gas.vars2D.min(var, Nnow, grid=False).cgs.value
-                r, ymax = self.loader.gas.vars2D.max(var, Nnow, grid=True).cgs.value
+                r, ymax = self.loader.gas.vars2D.max(var, Nnow, grid=True)
                 ymax = ymax.cgs.value
                 x = r.to_value("au")
                 if self.plot_rel:
