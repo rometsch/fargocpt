@@ -922,7 +922,7 @@ class Loader:
 
     def _load_nbody(self):
         for n in range(0,100):
-            path = joinpath(self.output_dir, 'monitor', f'planet{n}.dat')
+            path = joinpath(self.output_dir, 'monitor', f'nbody{n}.dat')
             if os.path.exists(path):
                 nbody = Nbody(n, filepath=path)
                 self.nbody.append(nbody)
