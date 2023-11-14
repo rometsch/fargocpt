@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fargocpt"
+version = "1.4"
+authors = [
+  { name="Thomas Rometsch", email="thomas@rometsch.cloud" },
+  { name="Lucas Jordan" }
+]
+dependencies = [
+   "numpy>=1.17", 
+   "astropy"
+]
+description = "A simulation code for planet-disk interactions and protoplanetary disks."
+readme = "README.md"
+license = {text = "BSD 3-Clause License"}
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GPL-3.0-only",
+    "Operating System :: OS Independent",
+]
+
+[project.scripts]
+fargocpt = "fargocpt.run:main"
