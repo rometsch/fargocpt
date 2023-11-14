@@ -13,10 +13,10 @@ parser.add_argument("--log", action="store_true", help="Log plot")
 
 opts = parser.parse_args()
 
-from disgrid import Data
+from fargocpt import Loader
 
-datas = [Data(opts.dir1),
-         Data(opts.dir2)]
+loaders = [Loader(opts.dir1),
+         Loader(opts.dir2)]
 
 
 import numpy as np
@@ -26,23 +26,19 @@ import matplotlib.colors as mplcolors
 N = opts.N
 logplot = opts.log
 
-field = datas[0].get(var="mass density", dim="2d", N=N)
+R, PHI, vals = loaders[0].gas.vars2D.get("Sigma", N=N, grid_for_plot=True)
 
-ri = field.grid.get_interfaces("r")
-lengthunit = ri.unit
+lengthunit = R.unit
 
-ri = ri.to_value(lengthunit)
-phii = field.grid.get_interfaces("phi").to_value("rad")
-PHI, R = np.meshgrid(phii, ri)
 X = R*np.cos(PHI)
 Y = R*np.sin(PHI)
 
-Nr = len(ri)-1
-Nphi = len(phii)-1
+Nr = loaders[0].gas.grid.Nr
+Nphi = loaders[0].gas.grid.Nphi
 
 name = opts.name
-Z1 = np.fromfile(datas[0].path+f"/snapshots/{N}/{name}.dat", dtype=np.float64).reshape(Nr, Nphi)
-Z2 = np.fromfile(datas[1].path+f"/snapshots/{N}/{name}.dat", dtype=np.float64).reshape(Nr, Nphi)
+Z1 = np.fromfile(loaders[0].output_dir+f"/snapshots/{N}/{name}.dat", dtype=np.float64).reshape(Nr, Nphi)
+Z2 = np.fromfile(loaders[1].output_dir+f"/snapshots/{N}/{name}.dat", dtype=np.float64).reshape(Nr, Nphi)
 Z = Z2-Z1
 Z = Z / np.max(Z1)
 
@@ -60,7 +56,7 @@ cmap = "bwr"
 pcm = ax.pcolormesh(X,Y,Z, norm=norm, cmap=cmap)
 ax.set_aspect("equal")
 
-t = field.time.to_value("s")
+t = loaders[0].snapshot_time[N].to_value("s")
 ax.set_title(f" t={t:.2e}s, N={N}")
 
 cbar = fig.colorbar(pcm, ax=ax)
