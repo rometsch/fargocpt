@@ -4,14 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.widgets import Slider
-try:
-    import disgrid
-except ImportError:
-    print("Dependency 'disgrid' not found. Please install it via 'pip install git+https://github.com/rometsch/disgrid'")
+from fargocpt import Loader
 import argparse
 
 
-default_vars = ["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal:rphi", "2:velocity radial:rphi", "0:mass"]
+default_vars = ["0:Nbody", "2:Sigma:rphi", "2:vazi:rphi", "2:vrad:rphi", "0:mass"]
 
 def main():
     opts = parser_cmdline()
@@ -23,10 +20,10 @@ def main():
 
 class Plot2D:
 
-    def __init__(self, ax, simd, var, spec, start=None):
+    def __init__(self, ax, loader, var, spec, start=None):
         self.ax = ax
         self.fig = ax.figure
-        self.simd = simd
+        self.loader = loader
         self.var = var
         self.type = "2"
         self.spec = spec
@@ -43,8 +40,8 @@ class Plot2D:
             self.label_modifier += "diff"
 
     def update(self, Nnow, tnow):
-        field = self.simd.get(var=self.var, dim="2d", N=Nnow)
-        Z = field.data.cgs.value
+        l = self.loader
+        Z = l.gas.vars2D.get(self.var, Nnow, grid=False).cgs.value
         if self.plot_relative:
             Z = Z/self.Z0 -1
         if self.plot_diff:
@@ -57,12 +54,13 @@ class Plot2D:
         self.pm.update({'array': new_color})
 
     def create(self):
+        l = self.loader
         ax = self.ax
         if self.start is None:
-            N = self.simd.avail()["Nlast"]
+            N = l.snapshots[-1]
         else:
             N = self.start
-        field = self.simd.get(var=self.var, dim="2d", N=N)
+
         if self.rphi:
             ax.set_xlabel("r [au]")
             ax.set_ylabel("phi [rad]")
@@ -71,27 +69,27 @@ class Plot2D:
             ax.set_ylabel("y [au]")
             ax.set_aspect("equal")
 
-        R, Phi = field.grid.get_meshgrid()
+        R, Phi, Z = l.gas.vars2D.get(self.var, N, grid_for_plot=True)
+        dataunit = Z.cgs.unit
+        Z = Z.cgs.value
+        R = R.to_value("au")
+
         if self.rphi:
-            X = R.to_value("au")
-            Y = Phi.value
+            X = R
+            Y = Phi
         else:
             X = R * np.cos(Phi)
             Y = R * np.sin(Phi)
-            X = X.to_value("au")
-            Y = Y.to_value("au")
 
         self.X = X
         self.Y = Y
 
-        Z = field.data.cgs.value
-
         if self.plot_relative or self.plot_diff:
             try:
-                field0 = self.simd.get(var=self.var, dim="2d", N="reference")
+                vals = l.gas.vars2D.get(self.var, "reference", grid=False)
             except KeyError:
-                field0 = self.simd.get(var=self.var, dim="2d", N=0)
-            self.Z0 = field0.data.cgs.value
+                vals = l.gas.vars2D.get(self.var, 0, grid=False)
+            self.Z0 = vals.cgs.value
         if self.plot_relative:
             Z = Z/self.Z0 -1
         if self.plot_diff:
@@ -115,15 +113,15 @@ class Plot2D:
                                 Z, norm=self.my_norm, cmap=self.my_cmap)
         if vmin != vmax:
             self.cbar = self.fig.colorbar(self.pm, ax=ax)
-            self.cbar.set_label(f"{self.var} {self.label_modifier} [{field.data.cgs.unit}]")
+            self.cbar.set_label(f"{self.var} {self.label_modifier} [{dataunit}]")
 
 
 class Plot1D:
 
-    def __init__(self, ax, simd, vars, spec, start=None):
+    def __init__(self, ax, loader, vars, spec, start=None):
         self.ax = ax
         self.fig = ax.figure
-        self.simd = simd
+        self.loader = loader
         self.vars = vars
         self.type = "1"
         self.lines = []
@@ -146,8 +144,7 @@ class Plot1D:
         ax = self.ax
 
         for var, line in zip(self.vars, self.lines):
-            field = self.simd.get(var, dim="2d", N=Nnow)
-            y = field.data.cgs.value
+            y = self.loader.gas.vars2D.average(var, Nnow, grid=False).cgs.value
             if self.plot_rel:
                 y = y/self.y0s[var] - 1
             elif self.plot_diff:
@@ -155,9 +152,10 @@ class Plot1D:
             line.set_ydata(np.average(y, axis=1))
 
             if self.plot_minmax:
-                x = field.grid.get_coordinates("r").to_value("au")
-                ymin = np.min(y, axis=1)
-                ymax = np.max(y, axis=1)
+                ymin = self.loader.gas.vars2D.min(var, Nnow, grid=False).cgs.value
+                r, ymax = self.loader.gas.vars2D.max(var, Nnow, grid=True).cgs.value
+                ymax = ymax.cgs.value
+                x = r.to_value("au")
                 dummy = ax.fill_between(x, ymin, ymax, alpha=0)
                 # create invisible dummy object to extract the vertices
                 dp = dummy.get_paths()[0]
@@ -169,7 +167,7 @@ class Plot1D:
 
     def create(self):
         if self.start is None:
-            Nnow = self.simd.avail()["Nlast"]
+            Nnow = self.loader.snapshots[-1]
         else:
             Nnow = self.start
 
@@ -189,16 +187,15 @@ class Plot1D:
             self.y0s = {}
             for var in self.vars:
                 try:
-                    field = self.simd.get(var, dim="2d", N="reference")
+                    y0 = self.loader.gas.vars2D.get(var, "reference", grid=False)
                 except KeyError:
-                    field = self.simd.get(var, dim="2d", N=0)
-                self.y0s[var] = field.data.cgs.value
+                    y0 = self.loader.gas.vars2D.get(var, 0, grid=False)
+                self.y0s[var] = y0.cgs.value
 
         for var in self.vars:
             ax = self.ax
-            field = self.simd.get(var, dim="2d", N=Nnow)
-            y = field.data.cgs.value
-            x = field.grid.get_coordinates("r").to_value("au")
+            x, y = self.loader.gas.vars2D.get(var, Nnow).cgs.value
+            x = x.to_value("au")
             if self.plot_rel:
                 y = y/self.y0s[var] - 1
             elif self.plot_diff:
@@ -215,26 +212,26 @@ class Plot1D:
 
 class PlotNbody:
 
-    def __init__(self, ax, simd, var, spec, start=None):
+    def __init__(self, ax, loader, var, spec, start=None):
         self.ax = ax
-        self.simd = simd
+        self.loader = loader
         self.var = var
         self.type = "0"
         self.spec = spec
         self.start = start
 
     def update(self, Nnow, tnow):
-        for planet, line, fill in zip(self.simd.avail()["planets"], self.planet_lines, self.planet_fills):
+        for nb, line, fill in zip(self.loader.nbody, self.planet_lines, self.planet_fills):
             ax = self.ax
-            a = self.simd.get(var="semi-major axis", planet=planet)
-            line.set_xdata(a.time.to_value("kyr"))
-            line.set_ydata(a.data.to_value("au"))
+            t = nb.time.to_value("kyr")
+            a = nb.semi_major_axis.to_value("au")
+            line.set_xdata(t)
+            line.set_ydata(a)
 
-            e = self.simd.get(var="eccentricity", planet=planet).data
-            rmin = a.data.to_value("au") * (1 - e)
-            rmax = a.data.to_value("au") * (1 + e)
-            dummy = ax.fill_between(
-                a.time.to_value("kyr"), rmin, rmax, alpha=0)
+            e = nb.eccentricity.value
+            rmin = a * (1 - e)
+            rmax = a * (1 + e)
+            dummy = ax.fill_between(t, rmin, rmax, alpha=0)
             # create invisible dummy object to extract the vertices
             dp = dummy.get_paths()[0]
             dummy.remove()
@@ -247,30 +244,28 @@ class PlotNbody:
 
     def create(self):
         # Nbody
-        data = self.simd
+        l = self.loader
         if self.start is None:
-            N = self.simd.avail()["Nlast"]
+            N = l.snapshots[-1]
         else:
             N = self.start
-        tlast = data.loader.snapshot_time(N).to_value("kyr")
-        a = data.get(var="semi-major axis", planet=0)
-        avail = data.avail()
+        tlast = l.snapshot_time[N].to_value("kyr")
 
         ax = self.ax
         ax.set_xlabel("Time [kyr]")
         ax.set_ylabel(r"$a$ [au]")
         self.planet_lines = []
         self.planet_fills = []
-        for planet in avail["planets"]:
-            a = data.get(var="semi-major axis", planet=planet)
-            line, = ax.plot(a.time.to_value("kyr"), a.data.to_value(
-                "au"), label=f"planet {planet}")
+        for nb in l.nbody:
+            t = nb.time.to_value("kyr")
+            a = nb.semi_major_axis.to_value("au")
+
+            line, = ax.plot(t, a, label=f"planet {nb.id}")
             self.planet_lines.append(line)
-            e = data.get(var="eccentricity", planet=planet).data
-            rmin = a.data.to_value("au") * (1 - e)
-            rmax = a.data.to_value("au") * (1 + e)
-            lines = ax.fill_between(a.time.to_value(
-                "kyr"), rmin, rmax, color=line.get_color(), alpha=0.4)
+            e = nb.eccentricity.value
+            rmin = a * (1 - e)
+            rmax = a * (1 + e)
+            lines = ax.fill_between(t, rmin, rmax, color=line.get_color(), alpha=0.4)
             self.planet_fills.append(lines)
         ax.legend()
 
@@ -280,9 +275,9 @@ class PlotNbody:
 
 class PlotScalar:
 
-    def __init__(self, ax, simd, vars, spec, start=None):
+    def __init__(self, ax, loader: Loader, vars, spec, start=None):
         self.ax = ax
-        self.simd = simd
+        self.loader = loader
         self.vars = vars
         self.type = "0"
         self.spec = spec
@@ -291,10 +286,12 @@ class PlotScalar:
     def update(self, Nnow, tnow):
         ax = self.ax
         for var, line in zip(self.vars, self.lines):
-            x = self.simd.get(var=var, dim="scalar")
+            x = self.loader.get(var=var, dim="scalar")
+            x = self.loader.gas.scalars.get(var).cgs.value
+            t = self.loader.gas.scalars.time.to_value("kyr")
 
-            line.set_xdata(x.time.to_value("kyr"))
-            line.set_ydata(x.data.cgs.value)
+            line.set_xdata(t)
+            line.set_ydata(x)
 
         self.timemarker.set_xdata([tnow, tnow])
         ax.autoscale_view()
@@ -303,15 +300,12 @@ class PlotScalar:
 
     def create(self):
         # Nbody
-        data = self.simd
+        l = self.loader
         if self.start is None:
-            N = self.simd.avail()["Nlast"]
+            N = l.snapshots[-1]
         else:
             N = self.start
-        tlast = data.loader.snapshot_time(N).to_value("kyr")
-
-        x = data.get(var="mass", dim="scalar")
-        klast = np.argmin(np.abs(x.time.to_value("kyr") - tlast))
+        tlast = l.snapshot_time(N).to_value("kyr")
 
         ax = self.ax
         ax.set_xlabel("Time [kyr]")
@@ -321,8 +315,9 @@ class PlotScalar:
 
         for var in self.vars:
             ax = self.ax
-            x = self.simd.get(var=var, dim="scalar")
-            line, = ax.plot(x.time.to_value("kyr"), x.data.cgs, 
+            x = l.gas.scalars.get(var).cgs.value
+            t = x.time.to_value("kyr")
+            line, = ax.plot(t, x, 
                             label=f"{var}")
             self.lines.append(line)
 
@@ -333,7 +328,7 @@ class PlotScalar:
 
 class Overview:
 
-    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:mass density:rphi", "2:velocity azimuthal"], start=None, figsize=(8,6), dpi=150):
+    def __init__(self, outputdir, update_interval=0.0, vars=["0:Nbody", "2:Sigma:rphi", "2:vazi"], start=None, figsize=(8,6), dpi=150):
         self.outputdir = outputdir
         self.update_interval = update_interval
         self.vars = [k.split(":")[1] for k in vars]
@@ -369,16 +364,14 @@ class Overview:
                     f"{self.outputdir}/snapshots/list.txt", dtype=int)[-1]
                 if N_last_new > N_last_old and self.N_slider.val == self.Nlast:
                     N_last_old = N_last_new
-                    self.data = disgrid.Data(self.outputdir)
-                    self.Nlast = int(self.data.avail()["Nlast"])
+                    self.loader = Loader(self.outputdir)
+                    self.Nlast = int(self.loader.snapshots[-1])
                     self.update(None, N=self.Nlast)
 
     def create(self, dpi=150):
 
-        self.data = disgrid.Data(self.outputdir)
-        data = self.data
-
-        avail = data.avail()
+        self.loader = Loader(self.outputdir)
+        ldr = self.loader
 
         Nplots = len(self.vars)
         Ncols = int(np.ceil(np.sqrt(Nplots)))
@@ -398,8 +391,8 @@ class Overview:
         self.fig, self.axd = plt.subplot_mosaic(
             mosaic_def, figsize=self.figsize, height_ratios=height_ratios, dpi=dpi)
 
-        self.Nfirst = int(avail["Nfirst"])
-        self.Nlast = avail["Nlast"]
+        self.Nfirst = ldr.snapshots[0]
+        self.Nlast = ldr.snapshots[-1]
         if self.start is None:
             self.Nnow = self.Nlast
         else:
@@ -410,21 +403,20 @@ class Overview:
 
         for v, t, k in zip(self.vars, self.plot_types, self.keys):
             if v == "Nbody":
-                self.plots[k] = PlotNbody(self.axd[k], data, v, k, start=self.start)
+                self.plots[k] = PlotNbody(self.axd[k], ldr, v, k, start=self.start)
             elif t == "2":
-                self.plots[k] = Plot2D(self.axd[k], data, v, k, start=self.start)
+                self.plots[k] = Plot2D(self.axd[k], ldr, v, k, start=self.start)
             elif t == "0":
-                self.plots[k] = PlotScalar(self.axd[k], data, [s.strip() for s in v.split(',')], k, start=self.start)
+                self.plots[k] = PlotScalar(self.axd[k], ldr, [s.strip() for s in v.split(',')], k, start=self.start)
             elif t == "1":
-                self.plots[k] = Plot1D(self.axd[k], data, [s.strip() for s in v.split(',')], k, start=self.start)
+                self.plots[k] = Plot1D(self.axd[k], ldr, [s.strip() for s in v.split(',')], k, start=self.start)
             else:
                 NotImplementedError(f"Plot type {t} not implemented for variable {v}")
 
         for plot in self.plots.values():
             plot.create()
 
-        self.tnow = self.data.get(
-            var="mass density", dim="2d", N=self.Nlast).time.to_value("kyr")
+        self.tnow = ldr.snapshot_time[self.Nnow].to_value("kyr")
         self.update_title(self.Nnow, self.tnow)
 
         self.create_slider()
@@ -478,11 +470,10 @@ class Overview:
         if N > self.Nlast or N < self.Nfirst:
             return
         try:
-            sigma = self.data.get(var="mass density", dim="2d", N=N)
-            self.tnow = sigma.time.to_value("kyr")
+            self.tnow = self.loader.snapshot_time[N].to_value("kyr")
             self.Nnow = N
             for name, plot in self.plots.items():
-                plot.simd = self.data
+                plot.loader = self.loader
                 plot.update(self.Nnow, self.tnow)
             self.fig.suptitle(f"N = {N}, t = {self.tnow:.2e} kyr")
             self.N_slider.set_val(N)

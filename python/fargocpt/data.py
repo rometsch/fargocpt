@@ -656,13 +656,13 @@ class Vars2D:
         rv += "====================\n"
         return rv
 
-    def meshgrid(self, varname, Nsnapshot):
+    def meshgrid(self, varname):
         info = self._info_dict[varname]
         rad_interface = info["on_radial_interface"]
         azi_interface = info["on_azimuthal_interface"]
         return self.grid.meshgrid(intr=rad_interface, intf=azi_interface)
 
-    def meshgrid_plot(self, varname, Nsnapshot):
+    def meshgrid_plot(self, varname):
         info = self._info_dict[varname]
         rad_interface = info["on_radial_interface"]
         azi_interface = info["on_azimuthal_interface"]
@@ -682,9 +682,9 @@ class Vars2D:
 
         if grid:
             if grid_for_plot:
-                r, phi = self.meshgrid_plot(varname, Nsnapshot)
+                r, phi = self.meshgrid_plot(varname)
             else:
-                r, phi = self.meshgrid(varname, Nsnapshot)
+                r, phi = self.meshgrid(varname)
             return r, phi, rv
         else:
             return rv
