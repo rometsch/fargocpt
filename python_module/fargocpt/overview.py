@@ -187,24 +187,42 @@ class Plot1D:
             self.y0s = {}
             for var in self.vars:
                 try:
-                    y0 = self.loader.gas.vars2D.get(var, "reference", grid=False)
+                    y0 = self.loader.gas.vars2D.avg(var, "reference", grid=False)
                 except KeyError:
-                    y0 = self.loader.gas.vars2D.get(var, 0, grid=False)
+                    y0 = self.loader.gas.vars2D.avg(var, 0, grid=False)
                 self.y0s[var] = y0.cgs.value
+
+            if self.plot_minmax:
+                self.ymax0s = {}
+                self.ymin0s = {}
+                for var in self.vars:
+                    try:
+                        ymax0 = self.loader.gas.vars2D.max(var, "reference", grid=False)
+                        ymin0 = self.loader.gas.vars2D.min(var, "reference", grid=False)
+                    except KeyError:
+                        ymax0 = self.loader.gas.vars2D.max(var, 0, grid=False)
+                        ymin0 = self.loader.gas.vars2D.min(var, 0, grid=False)
+                    self.ymax0s[var] = ymax0.cgs.value
+                    self.ymin0s[var] = ymin0.cgs.value
+
 
         for var in self.vars:
             ax = self.ax
-            x, y = self.loader.gas.vars2D.get(var, Nnow).cgs.value
+            x, y = self.loader.gas.vars2D.avg(var, Nnow)
+            y = y.cgs.value
             x = x.to_value("au")
             if self.plot_rel:
                 y = y/self.y0s[var] - 1
             elif self.plot_diff:
                 y = y - self.y0s[var]
-            line, = ax.plot(x, np.average(y, axis=1), label=f"{var}")
+            line, = ax.plot(x, y, label=f"{var}")
             self.lines.append(line)
             if self.plot_minmax:
-                ymin = np.min(y, axis=1)
-                ymax = np.max(y, axis=1)
+                ymin = self.loader.gas.vars2D.min(var, Nnow, grid=False).cgs.value
+                ymax = self.loader.gas.vars2D.max(var, Nnow, grid=False).cgs.value
+                if self.plot_rel:
+                    ymin = ymin/self.y0s[var] - 1
+                    ymax = ymax/self.y0s[var] - 1
                 self.fills[var] = ax.fill_between(x, ymin, ymax, alpha=0.4, color=line.get_color())
 
         ax.legend()
