@@ -55,26 +55,25 @@ def main(args=sys.argv[1:]):
         print(e)
         exit(1)
 
-    if opts.np is not None and opts.nt is not None:
-        N_procs = opts.np
-        N_OMP_threads = opts.nt
-    elif opts.np is None and opts.nt is not None:
-        N_procs = 1
-        N_OMP_threads = opts.nt
-    elif opts.np is not None and opts.nt is None:
-        N_procs = opts.np
-        N_OMP_threads = 1
-    else:
-        N_procs, N_OMP_threads = get_auto_num_procs_and_threads()
-
-    print(
-        f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each using executable '{executable_path}'", flush=True)
-
-    rv = run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
+    rv = run(fargo_args, np=opts.np, nt=opts.nt, mpi_verbose=opts.mpi_verbose,
               fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp,
               detach=opts.detach, exe=executable_path)
     sys.exit(rv)
 
+
+def determine_cpu_allocation(np=None, nt=None):
+    if np is not None and nt is not None:
+        N_procs = np
+        N_OMP_threads = nt
+    elif np is None and nt is not None:
+        N_procs = 1
+        N_OMP_threads = nt
+    elif np is not None and nt is None:
+        N_procs = np
+        N_OMP_threads = 1
+    else:
+        N_procs, N_OMP_threads = get_auto_num_procs_and_threads()
+    return N_procs, N_OMP_threads
 
 def detach_processGroup():
     """
@@ -143,12 +142,12 @@ def parse_opts(args=sys.argv[1:]):
     return opts, remainder
 
 
-def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None, detach=False, exe=None):
+def run(fargo_args, np=None, nt=None, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None, detach=False, exe=None):
     """Run a fargo simulation.
 
     Args:
-        N_procs (int): Number of MPI processes to start.
-        N_OMP_threads (int): Number of OpenMP threads to start per process.
+        np (int): Number of MPI processes to start.
+        nt (int): Number of OpenMP threads to start per process.
         fargo_args (list of str): Arguments to be passed to the fargo executable.
         mpi_verbose (bool, optional): Verbose output of mpirun about process allocation. Defaults to False.
         stdout (file, optional): File to redirect stdout to. Defaults to None.
@@ -161,6 +160,11 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
     """
 
     executable_path = find_executable(exe)
+    N_procs, N_OMP_threads = determine_cpu_allocation(np=np, nt=nt)
+
+    print(
+        f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each using executable '{executable_path}'", flush=True)
+
 
     pidfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
     pidfilepath = pidfile.name
