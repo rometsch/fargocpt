@@ -1,5 +1,5 @@
 # content of build folder
-bin/fargocpt
+bin/fargocpt_exe
 build
 build/*
 src/build/
