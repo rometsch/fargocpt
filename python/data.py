@@ -503,6 +503,8 @@ class Vars1D:
                 self._info_dict = yaml.safe_load(f)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find 'info1D.yml' in simulatiuon output ('{}')".format(self.output_dir))
+        if self._info_dict is None:
+            self._info_dict = {}
 
     @property
     def var_names(self):
@@ -578,15 +580,14 @@ class Vars2D:
     target_units: Units = None
 
     def __post_init__(self):
-        self._load_info()
-    
-    def _load_info(self):
         info_file = joinpath(self.output_dir, 'info2D.yml')
         try:
             with open(info_file, "r") as f:
                 self._info_dict = yaml.safe_load(f)
         except FileNotFoundError:
             raise FileNotFoundError("Could not find 'info2D.yml' in simulatiuon output ('{}')".format(self.output_dir))
+        if self._info_dict is None:
+            self._info_dict = {}
 
     @property
     def var_names(self):
@@ -617,6 +618,8 @@ class Vars2D:
         return self.grid.meshgrid_plot(intr=rad_interface, intf=azi_interface)
 
     def get(self, varname, Nsnapshot, include_grid=True, grid_for_plot=False):
+        if not varname in self.var_names:
+            raise KeyError(f"Unknown variable '{varname}'")
 
         info = self._info_dict[varname]
         unit = Unit(info['unit'])
