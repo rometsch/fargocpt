@@ -1,0 +1,3 @@
+testname: temperature
+setupfiles:
+  - angelo.yml
