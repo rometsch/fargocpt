@@ -790,16 +790,17 @@ class Particles:
             raise KeyError(f"Unknown particle variable '{varname}'")
 
         res = self._load_snapshot(Nsnapshot)
-
         if varname in ['x', 'y', 'r', 'phi']:
             rv = self._handle_xy_rphi(varname, res)
         else:
             unit = Unit(self._info_dict['variables'][varname]['unit'])
+            if varname=="id":
+                unit = 1
             rv = res[varname]*unit
 
         return rv
 
-    def timeseries(self, *varnames, start=None, end=None):
+    def timeseries(self, varnames, start, end, step=1):
         """ Construct time series from snapshot 'start' to snapshot 'end' of the requested variables.
 
         If start is None, the first snapshot is used.
@@ -807,32 +808,42 @@ class Particles:
 
         Parameters
         ----------
-        *varnames: list[str]
+        varnames: list[str]
             Names of variables to load. If none specified, return all available variables.
         start : int
             The first snapshot to load.
         end : int
             The last snapshot to load.
-
+        step : int
+            The step size between snapshots.
         Returns
         -------
         data : dict
             A dictionary containing the requested variables as keys and the time series as values.
         """
-        if start is None:
-            start = self._last_snapshot
-        if end is None:
-            end = self._last_snapshot
 
         if len(varnames) == 0:
             varnames = self.var_names
-        data = {key : [] for key in varnames}
-        for N in range(start, end+1):
+
+        # get ids at the first snapshot, particles only leave the system, they don't come back
+        ids = self.get('id', start)
+        # make a dict for every particle
+        data = {i: {key : [] for key in varnames} for i in ids}
+
+        # loop over timesteps and fill the data dict
+        for N in range(start, end+1, step):
+            ids = self.get('id', N)
+            indices = np.arange(len(ids))
+            id2index = {id: ind for id, ind in zip(ids, indices) if id in ids}
             for key in varnames:
-                data[key].append(self.get(key, N))
+                vals = self.get(key, N)
+                for id, index in id2index.items():
+                    data[id][key].append(vals[index])
         
-        for key in varnames:
-            data[key] = Quantity(data[key])
+        # make the lists numpy arrays/Quantities
+        for id in ids:
+            for key in varnames:
+                data[id][key] = Quantity(data[id][key])
 
         return data
 
