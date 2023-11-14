@@ -109,7 +109,7 @@ t_planet::t_planet()
 
 void t_planet::print()
 {
-    std::cout << "Planet #" << m_planet_number << "\n";
+    std::cout << "Nbody #" << m_planet_number << "\n";
     std::cout << "Name: " << m_name << "\n";
     std::cout << "(x, y): (" << m_x << ", " << m_y << "\n";
     std::cout << "(vx, vy): (" << m_vx << ", " << m_vy << "\n";
@@ -261,7 +261,7 @@ void t_planet::copy(const planet_member_variables &other)
 }
 
 std::string t_planet::get_monitor_filename() const {
-    const std::string filename = output::outdir + "monitor/planet" + std::to_string(get_planet_number()) + ".dat";
+    const std::string filename = output::outdir + "monitor/nbody" + std::to_string(get_planet_number()) + ".dat";
     return filename;
 }
 
@@ -303,7 +303,7 @@ void t_planet::write(const unsigned int file_type)
     // create filename
     switch (file_type) {
     case 0:
-    filename = output::snapshot_dir + "/planet" + std::to_string(get_planet_number()) + ".bin";
+    filename = output::snapshot_dir + "/nbody" + std::to_string(get_planet_number()) + ".bin";
 	write_binary(filename);
 	break;
     case 1:
@@ -403,11 +403,11 @@ void t_planet::write_binary(const std::string &filename) const
 void t_planet::restart()
 {
 
-    const std::string filename = output::snapshot_dir + "/planet" + std::to_string(get_planet_number()) + ".bin";
+    const std::string filename = output::snapshot_dir + "/nbody" + std::to_string(get_planet_number()) + ".bin";
 
 
     if (get_planet_number() == 0 && !std::filesystem::exists(filename)) {
-        logging::print_master(LOG_WARNING "Could not find planet0.dat file. Maybe you want to restart from older data. Rename the 'planet{n}.dat' files to 'planet{n-1}.bin' and restart. Also move the '.dat' files in the 'monitor' output dir.\n");
+        logging::print_master(LOG_WARNING "Could not find nbody0.bin file. Maybe you want to restart from older data. Rename the 'planet{n}.dat' files to 'nbody{n-1}.bin' and restart. Also move the '.dat' files in the 'monitor' output dir.\n");
         PersonalExit(1);
     }
 
@@ -428,7 +428,7 @@ void t_planet::restart()
 	rf.close();
     } catch (...) {
 	logging::print_master(
-	    "Could not restart planet \"%s\". Planet is initialized from starting parameters\n",
+	    "Could not restart nbody \"%s\". Nbody is initialized from starting parameters\n",
 	    this->m_name.c_str());
     }
 }
