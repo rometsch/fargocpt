@@ -634,6 +634,30 @@ class Vars2D:
             return r, phi, rv
         else:
             return rv
+        
+    def _return_with_radius(self, varname, data, include_grid):
+        if include_grid:
+            if self._info_dict[varname]["on_radial_interface"]:
+                r = self.grid.radi
+            else:
+                r = self.grid.radc
+            return r, data
+        else:
+            return data
+
+    def average(self, varname, Nsnapshot, include_grid=True):
+        data = np.average(self.get(varname, Nsnapshot, include_grid=False), axis=1)
+        return self._return_with_radius(varname, data, include_grid)
+
+    def min(self, varname, Nsnapshot, include_grid=True):
+        data = np.min(self.get(varname, Nsnapshot, include_grid=False), axis=1)
+        return self._return_with_radius(varname, data, include_grid)
+        
+    def max(self, varname, Nsnapshot, include_grid=True):
+        data = np.max(self.get(varname, Nsnapshot, include_grid=False), axis=1)
+        return self._return_with_radius(varname, data, include_grid)
+        
+
 
 @dataclass
 class Particles:
