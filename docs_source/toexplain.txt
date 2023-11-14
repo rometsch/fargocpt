@@ -1,0 +1,5 @@
+# concepts
+
+- snapshot, monitor, cfl timestep
+- time vs walltime
+- all physical quantities have units
