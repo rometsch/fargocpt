@@ -15,6 +15,7 @@ Syntax of the versions are: major, minor, revision
 - added installable python package (`pip install <repo path>/python`) which installs a command line interface called `fargocpt`. Start a simulation with `fargocpt run` and check the data with `fargocpt data <output dir>`
 - `planet{n}.dat/bin` files renamed to `nbody{n-1}.dat/bin`, thus `nbody0.dat` instead of `planet1.dat`. This requires renaming files to restart older data.
 - nbody indices start at 0 now instead of at 1.
+- the `run_fargo` file in the repository root is now a python script that uses the binary from the `bin` folder
 
 ## Version 1.3
 - the code now has a version string, run ./bin/fargocpt --version
