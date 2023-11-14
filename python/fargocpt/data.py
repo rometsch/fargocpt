@@ -921,7 +921,7 @@ class Loader:
             raise FileNotFoundError(f"Could not find identifier file '{id_file}' in output directory '{self.output_dir}'")
 
     def _load_nbody(self):
-        for n in range(1,100):
+        for n in range(0,100):
             path = joinpath(self.output_dir, 'monitor', f'planet{n}.dat')
             if os.path.exists(path):
                 nbody = Nbody(n, filepath=path)

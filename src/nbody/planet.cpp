@@ -15,6 +15,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <filesystem>
 
 // define the variables in the planet data file
 // file version 2.5
@@ -402,16 +403,21 @@ void t_planet::write_binary(const std::string &filename) const
 void t_planet::restart()
 {
 
-    std::stringstream filename;
-    filename << output::snapshot_dir << "/planet" << get_planet_number() << ".bin";
+    const std::string filename = output::snapshot_dir + "/planet" + std::to_string(get_planet_number()) + ".bin";
+
+
+    if (get_planet_number() == 0 && !std::filesystem::exists(filename)) {
+        logging::print_master(LOG_WARNING "Could not find planet0.dat file. Maybe you want to restart from older data. Rename the 'planet{n}.dat' files to 'planet{n-1}.bin' and restart. Also move the '.dat' files in the 'monitor' output dir.\n");
+        PersonalExit(1);
+    }
 
     try {
-	std::ifstream rf(filename.str().c_str(),
+	std::ifstream rf(filename.c_str(),
 			 std::ofstream::binary | std::ios::in);
 
 	if (!rf.is_open()) {
 	    logging::print_master(LOG_ERROR "Can't read '%s' file.\n",
-				  filename.str().c_str());
+				  filename.c_str());
 	    throw 0;
 	}
 
