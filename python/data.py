@@ -13,6 +13,10 @@ from typing import List
 
 from functools import lru_cache
 
+def print_indented(str, indent=0):
+    indent_str = "|   "*indent
+    for line in str.split('\n'):
+        print(indent_str + line)
 
 @dataclass
 class Units:
@@ -30,18 +34,18 @@ class Units:
             self._unit_names.append(key)
 
     def __repr__(self) -> str:
-        rv = "FargoCPT data Units\n"
+        rv = "   Units\n"
         rv += "====================\n"
-        rv += f"  base:\n"
-        rv += f"    length: {self.length}\n"
-        rv += f"    time: {self.time}\n"
-        rv += f"    mass: {self.mass}\n"
-        rv += f"    temperature: {self.temperature}\n"
-        rv += "   derived:\n"
+        rv += f"| base:\n"
+        rv += f"|   length: {self.length}\n"
+        rv += f"|   time: {self.time}\n"
+        rv += f"|   mass: {self.mass}\n"
+        rv += f"|   temperature: {self.temperature}\n"
+        rv += "|  derived:\n"
         for key in self._unit_names:
             if not key in ["length", "time", "mass", "temperature"]:
                 value = getattr(self, key)
-                rv += f"    {key}: {value}\n"
+                rv += f"|   {key}: {value}\n"
         rv += "====================\n"
         return rv
 
@@ -56,6 +60,17 @@ class Grid:
     Nrad = None
     spacing = None
     
+    def __repr__(self) -> str:
+        rv = "   Grid\n"
+        rv += "====================\n"
+        rv += f"| radi: {self.radi[0]} ... {self.radi[-1]}\n"
+        rv += f"| phii: {self.phii[0]} ... {self.phii[-1]}\n"
+        rv += f"| Nrad: {self.Nrad}\n"
+        rv += f"| Naz: {self.Naz}\n"
+        rv += f"| Spacing: {self.spacing}\n"
+        rv += "====================\n"
+        return rv
+
     @property
     def radc(self):
         if self.radi is None:
@@ -161,6 +176,9 @@ class Grid:
         self.spacing = fields[8]
 
 
+
+
+
 @lru_cache(20)
 def _load_text_data_variables(filepath, timestamp):
     # load all variable definitions from a text file
@@ -209,14 +227,32 @@ def load_text_data_file(filepath, varname, Nmax=np.inf):
     return data
 
 @dataclass
-class Nbody:
+class Scalars:
     id: int
     filepath: str
     _target_units: Units = None
-    _varnames = ["time", "snapshot_number", "monitor_number", "x", "y", "vx", "vy", "mass", "physical_time", "omega_frame", "mdcp", "eccentricity", "angular_momentum", "semi_major_axis", "omega_kepler", "mean_anomaly", "eccentric_anomaly", "true_anomaly", "pericenter_angle", "torque", "accreted_mass", "accretion_rate"]
-    
+    _varnames = None
+
     def _return_var(self, varname):
         rv = load_text_data_file(self.filepath, varname)
+        return rv
+
+    def __repr__(self):
+        rv = "====================\n"
+        rv += f"| filepath: {self.filepath}\n"
+        rv += f"| varnames:\n"
+        for varname in self._varnames:
+            rv += f"|   {varname.replace(' ', '_')}\n"
+        rv += "====================\n"
+        return rv
+
+
+class Nbody(Scalars):
+    _varnames = ["time", "snapshot_number", "monitor_number", "x", "y", "vx", "vy", "mass", "physical_time", "omega_frame", "mdcp", "eccentricity", "angular_momentum", "semi_major_axis", "omega_kepler", "mean_anomaly", "eccentric_anomaly", "true_anomaly", "pericenter_angle", "torque", "accreted_mass", "accretion_rate"]
+    
+    def __repr__(self):
+        rv = "   Nbody\n"
+        rv += super().__repr__()
         return rv
 
     @property
@@ -307,29 +343,15 @@ class Nbody:
     def accretion_rate(self):
         return self._return_var('accretion rate')
 
-@dataclass
-class Scalars:
-    id: int
-    filepath: str
-    _target_units: Units = None
-    _varnames = None
-
-    def _return_var(self, varname):
-        rv = load_text_data_file(self.filepath, varname)
-        return rv
-
-    def __repr__(self):
-        rv = "FargoCPT data Scalars\n"
-        rv += "====================\n"
-        rv += f"  filepath: {self.filepath}\n"
-        rv += f"  varnames:\n"
-        for varname in self._varnames:
-            rv += f"    {varname.replace(' ', '_')}\n"
-        rv += "====================\n"
-        return rv
 
 class Timestepping(Scalars):
+    _type_name: str = "TimeStepping Info"
     _varnames = ["snapshot_number", "monitor_number", "hydrostep_number", "Number_of_Hydrosteps_in_last_monitor_timestep", "time", "walltime", "walltime_per_hydrostep", "mean_dt", "min_dt", "std_dev_dt"]
+
+    def __repr__(self):
+        rv = "   TimeStepInfo\n"
+        rv += super().__repr__()
+        return rv
     
     @property
     def snapshot_number(self):
@@ -372,8 +394,14 @@ class Timestepping(Scalars):
         return self._return_var('std dev dt')
 
 class Quantities(Scalars):
+
     _varnames = ["snapshot number", "monitor number", "time", "mass", "radius", "angular momentum", "total energy", "internal energy", "kinematic energy", "potential energy", "radial kinetic energy", "azimuthal kinetic energy", "eccentricity", "periastron", "viscous dissipation", "luminosity", "pdivv", "inner boundary mass inflow", "inner boundary mass outflow", "outer boundary mass inflow", "outer boundary mass outflow", "wave damping inner mass creation", "wave damping inner mass removal", "wave damping outer mass creation", "wave damping outer mass removal", "density floor mass creation", "aspect", "indirect term nbody x", "indirect term nbody y", "indirect term disk x", "indirect term disk y", "frame angle", "advection torque", "viscous torque", "gravitational torque"]
     
+    def __repr__(self):
+        rv = "   Scalars\n"
+        rv += super().__repr__()
+        return rv
+
     @property
     def snapshot_number(self):
         return self._return_var('snapshot number')
@@ -530,14 +558,14 @@ class Vars1D:
         return [k for k in self._info_dict.keys()]
     
     def __repr__(self) -> str:
-        rv = "FargoCPT data Vars1D\n"
+        rv = "   Vars1D\n"
         rv += "====================\n"
-        rv += f"  output_dir: {self.output_dir}\n"
-        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
-        rv += f"  grid: Grid\n"
-        rv += f"  var_names:\n"
+        rv += f"| output_dir: {self.output_dir}\n"
+        rv += f"| target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"| grid: Grid\n"
+        rv += f"| var_names:\n"
         for var_name in self.var_names:
-            rv += f"    {var_name}\n"
+            rv += f"|   {var_name}\n"
         rv += "====================\n"
         return rv
     
@@ -613,14 +641,14 @@ class Vars2D:
         return [k for k in self._info_dict.keys()]
     
     def __repr__(self) -> str:
-        rv = "FargoCPT data Vars2D\n"
+        rv = "   Vars2D\n"
         rv += "====================\n"
-        rv += f"  output_dir: {self.output_dir}\n"
-        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
-        rv += f"  grid: Grid\n"
-        rv += f"  var_names:\n"
+        rv += f"| output_dir: {self.output_dir}\n"
+        rv += f"| target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"| grid: Grid\n"
+        rv += f"| var_names:\n"
         for var_name in self.var_names:
-            rv += f"    {var_name}\n"
+            rv += f"|   {var_name}\n"
         rv += "====================\n"
         return rv
 
@@ -768,13 +796,13 @@ class Particles:
         return rv
 
     def __repr__(self) -> str:
-        rv = "FargoCPT data Particles\n"
+        rv = "   Particles\n"
         rv += "====================\n"
-        rv += f"  output_dir: {self.output_dir}\n"
-        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
-        rv += f"  var_names:\n"
+        rv += f"| output_dir: {self.output_dir}\n"
+        rv += f"| target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"| var_names:\n"
         for var_name in self.var_names:
-            rv += f"    {var_name}\n"
+            rv += f"|   {var_name}\n"
         rv += "====================\n"
         return rv
 
@@ -797,18 +825,27 @@ class Hydro:
         self.vars2D = Vars2D(self.output_dir, self.grid, target_units=self.target_units)
 
     def __repr__(self) -> str:
-        rv = "FargoCPT data Hydro\n"
+        rv = "   Hydro\n"
         rv += "====================\n"
-        rv += f"  output_dir: {self.output_dir}\n"
-        rv += f"  units: Units\n"
-        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
-        rv += f"  grid: Grid\n"
-        rv += f"  timestepping: Scalar\n"
-        rv += f"  scalars: Scalar\n"
-        rv += f"  vars1D: Vars1D\n"
-        rv += f"  vars2D: Vars2D\n"
+        rv += f"| output_dir: {self.output_dir}\n"
+        rv += f"| units: Units\n"
+        rv += f"| target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"| grid: Grid\n"
+        rv += f"| timestepping: Scalar\n"
+        rv += f"| scalars: Scalar\n"
+        rv += f"| vars1D: Vars1D\n"
+        rv += f"| vars2D: Vars2D\n"
         rv += "====================\n"
         return rv
+    
+    def print_recurse(self, indent=0):
+        print_indented(repr(self), indent)
+        indent += 1
+        print_indented(repr(self.grid), indent=indent)
+        print_indented(repr(self.scalars), indent=indent)
+        print_indented(repr(self.timestepping), indent=indent)
+        print_indented(repr(self.vars1D), indent=indent)
+        print_indented(repr(self.vars2D), indent=indent)
 
 class Params:
     """ Class to load the parameters from the output directory supporting non-case sensitive keys."""
@@ -840,10 +877,10 @@ class Params:
     def __repr__(self) -> str:
         rv = "FargoCPT data Params\n"
         rv += "====================\n"
-        rv += f"  filename: {self._param_filepath}\n"
-        rv += f"  params:\n"
+        rv += f"| filename: {self._param_filepath}\n"
+        rv += f"| params:\n"
         for key, value in self.params.items():
-            rv += f"    {key}: {value}\n"
+            rv += f"|   {key}: {value}\n"
         rv += "====================\n"
         return rv
 
@@ -909,19 +946,30 @@ class Loader:
 
 
     def __repr__(self) -> str:
-        rv = "FargoCPT data Loader\n"
+        rv = "   Loader\n"
         rv += "====================\n"
-        rv += f"  output_dir: {self.output_dir}\n"
-        rv += f"  snapshots: {self.snapshots[0]} ... {self.snapshots[-1]}\n"
+        rv += f"| output_dir: {self.output_dir}\n"
+        rv += f"| snapshots: {self.snapshots[0]} ... {self.snapshots[-1]}\n"
         if len(self.special_snapshots) > 0:
-            rv += f"  special_snapshots: {self.special_snapshots}\n"
-        rv += f"  snapshot_time: {self.snapshot_time[0]} ... {self.snapshot_time[-1]}\n"
-        rv += f"  monitor_number: {self.monitor_number[0]} ... {self.monitor_number[-1]}\n"
-        rv += f"  units: Units\n"
-        rv += f"  target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
-        rv += f"  hydro: Hydro\n"
-        rv += f"  nbody: Nbody\n"
-        rv += f"  params: Params\n"
-        rv += f"  particles" + (" = None" if self.particles is None else ": Particles") + "\n"
+            rv += f"| special_snapshots: {self.special_snapshots}\n"
+        rv += f"| snapshot_time: {self.snapshot_time[0]} ... {self.snapshot_time[-1]}\n"
+        rv += f"| monitor_number: {self.monitor_number[0]} ... {self.monitor_number[-1]}\n"
+        rv += f"| units: Units\n"
+        rv += f"| target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
+        rv += f"| hydro: Hydro\n"
+        rv += f"| nbody: Nbody\n"
+        rv += f"| params: Params\n"
+        rv += f"| particles" + (" = None" if self.particles is None else ": Particles") + "\n"
         rv += "====================\n"
         return rv
+    
+    def print_recurse(self):
+        print(self)
+        indent = 1
+        print_indented(repr(self.units), indent=indent)
+        print_indented(repr(self.params), indent=indent)
+        if self.particles is not None:
+            print(repr(self.particles), indent=indent)
+        for nbody in self.nbody:
+            print_indented(repr(nbody), indent=indent)
+        self.hydro.print_recurse(indent=indent)
