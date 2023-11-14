@@ -4,6 +4,7 @@ import sys
 import os
 from argparse import ArgumentParser
 import yaml
+from fargocpt import run as run_fargo
 
 def compile_fargo(fargo_path, Nthreads, silent=False):
 
@@ -21,14 +22,8 @@ def compile_fargo(fargo_path, Nthreads, silent=False):
         out.close()
 
 def run(fargo_path, setupfile, Nthreads, Nprocs, silent=False):
-    import sys
-    fargo_path = os.path.abspath(fargo_path)
-    bindir = os.path.join(fargo_path, 'bin')
-    sys.path.append(bindir)
-    from fargocpt import run_fargo
 
     runname = os.path.basename(setupfile)[:-4]
-
 
     if silent:
         out = open(f"{runname}.out", "w")
@@ -37,7 +32,7 @@ def run(fargo_path, setupfile, Nthreads, Nprocs, silent=False):
         out = sys.stdout
         err = sys.stderr
 
-    returncode = run_fargo(Nprocs, Nthreads, fargo_args=["start", setupfile], stdout=out, stderr=err)
+    returncode = run_fargo(fargo_args=["start", setupfile], np=Nprocs, nt=Nthreads, stdout=out, stderr=err, exe=f"{fargo_path}/bin/fargocpt_exe")
 
     if silent:
         out.close()
