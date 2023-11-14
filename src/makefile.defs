@@ -1,7 +1,7 @@
 include arch.defs
 
 BUILD_DIR = ../build
-EXENAME        = ../bin/fargocpt
+EXENAME        = ../bin/fargocpt_exe
 
 # compiler warnings
 OPTIONS += -Wall -Wextra -Wmissing-declarations -Werror=redundant-decls -DOMPI_SKIP_MPICXX -Werror=format-security -Wno-unknown-pragmas
