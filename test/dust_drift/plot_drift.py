@@ -9,7 +9,7 @@ import astropy.units as u
 from scipy import interpolate
 
 from drift_theo import vdrift_theo
-from load_dust import construct_dust_trajectories
+from fargocpt import Loader
 
 def main():
     fig = plot_drift("../../output/tests/dust_drift/out")
@@ -23,7 +23,8 @@ def plot_drift(outdir):
 
     ax = fig.add_subplot(gs[:2, :])
 
-    particles = construct_dust_trajectories(outdir)
+    l = Loader(outdir)
+    particles = l.particles.timeseries(["r", "stokes", "size"])
 
     sizes = []
     Sts = []

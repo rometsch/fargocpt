@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
-import os
-import re
-
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as u
 
 from drift_theo import vdrift_theo
-from load_dust import construct_dust_trajectories
+
+from fargocpt import Loader
 
 def main():
     fig = plot_trajectory("../../output/tests/dust_drift/out")
@@ -21,7 +19,9 @@ def plot_trajectory(outdir):
 
     fig.subplots_adjust(wspace=0.4)
 
-    particles = construct_dust_trajectories(outdir)
+
+    l = Loader(outdir)
+    particles = l.particles.timeseries(["r", "stokes", "size"])
 
     sizes = []
     Sts = []

@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from drift_theo import vdrift_theo
-from load_dust import construct_dust_trajectories
+from fargocpt import Loader
 
 header = """Deviations of drift speeds in simulation to theoretical drift speeds (sim/theo -1)
 for different stokes numbers averaged over the last tenth of the time series.
@@ -26,7 +26,8 @@ def main():
 
 def calc_deviation(outdir):
 
-    particles = construct_dust_trajectories(outdir)
+    l = Loader(outdir)
+    particles = l.particles.timeseries(["r", "stokes", "size"])
 
     tolerance = 0.01
 
