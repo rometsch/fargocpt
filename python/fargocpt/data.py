@@ -238,6 +238,9 @@ class Scalars:
         rv = load_text_data_file(self.filepath, varname)
         return rv
 
+    def get(self, varname):
+        return self._return_var(varname)
+
     def __repr__(self):
         rv = "====================\n"
         rv += f"| filepath: {self.filepath}\n"
@@ -594,7 +597,7 @@ class Vars1D:
     def get(self, varname, Nsnapshot, include_grid=True):
         return self.average(varname, Nsnapshot, include_grid=include_grid)
 
-    def average(self, varname, Nsnapshot, include_grid=True):
+    def avg(self, varname, Nsnapshot, include_grid=True):
         avg_slice = slice(1,None,4)
         data = self._return_data(varname, Nsnapshot, avg_slice)
         if include_grid:
@@ -696,7 +699,7 @@ class Vars2D:
         else:
             return data
 
-    def average(self, varname, Nsnapshot, include_grid=True):
+    def avg(self, varname, Nsnapshot, include_grid=True):
         data = np.average(self.get(varname, Nsnapshot, include_grid=False), axis=1)
         return self._return_with_radius(varname, data, include_grid)
 
