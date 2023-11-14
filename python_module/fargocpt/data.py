@@ -860,7 +860,7 @@ class Particles:
                     data[id][key].append(vals[index])
         
         # make the lists numpy arrays/Quantities
-        for id in ids:
+        for id in data:
             for key in varnames:
                 data[id][key] = Quantity(data[id][key])
             if time is not None:
