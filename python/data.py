@@ -22,10 +22,29 @@ class Units:
     temperature: Unit = None
 
     def load_file(self, path):
+        self._unit_names = []
         with open(path, 'r') as f:
             unitdata = yaml.safe_load(f)
         for key, value in unitdata.items():
             setattr(self, key, Unit(value["unit"]))
+            self._unit_names.append(key)
+
+    def __repr__(self) -> str:
+        rv = "FargoCPT data Units\n"
+        rv += "====================\n"
+        rv += f"  base:\n"
+        rv += f"    length: {self.length}\n"
+        rv += f"    time: {self.time}\n"
+        rv += f"    mass: {self.mass}\n"
+        rv += f"    temperature: {self.temperature}\n"
+        rv += "   derived:\n"
+        for key in self._unit_names:
+            if not key in ["length", "time", "mass", "temperature"]:
+                value = getattr(self, key)
+                rv += f"    {key}: {value}\n"
+        rv += "====================\n"
+        return rv
+
 
 @dataclass
 class Grid:
