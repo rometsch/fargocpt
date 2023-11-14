@@ -799,6 +799,43 @@ class Particles:
 
         return rv
 
+    def timeseries(self, *varnames, start=None, end=None):
+        """ Construct time series from snapshot 'start' to snapshot 'end' of the requested variables.
+
+        If start is None, the first snapshot is used.
+        If end is None, the last snapshot is used.
+
+        Parameters
+        ----------
+        *varnames: list[str]
+            Names of variables to load. If none specified, return all available variables.
+        start : int
+            The first snapshot to load.
+        end : int
+            The last snapshot to load.
+
+        Returns
+        -------
+        data : dict
+            A dictionary containing the requested variables as keys and the time series as values.
+        """
+        if start is None:
+            start = self._last_snapshot
+        if end is None:
+            end = self._last_snapshot
+
+        if len(varnames) == 0:
+            varnames = self.var_names
+        data = {key : [] for key in varnames}
+        for N in range(start, end+1):
+            for key in varnames:
+                data[key].append(self.get(key, N))
+        
+        for key in varnames:
+            data[key] = Quantity(data[key])
+
+        return data
+
     def __repr__(self) -> str:
         rv = "   Particles\n"
         rv += "====================\n"
