@@ -11,6 +11,8 @@ Syntax of the versions are: major, minor, revision
 
 ## Version 1.4
 - rename 'vtheta' and 'vphi' both to 'vazi'. The output file of azimuthal velocity is now called 'vazi.dat' instead of 'vtheta.dat'. You might have to rename files to restart data.
+- executable file renamed from `fargocpt` to `fargocpt_exe` to allow python cli to be called `fargocpt`
+- added installable python package (`pip install <repo path>/python`) which installs a command line interface called `fargocpt`. Start a simulation with `fargocpt run` and check the data with `fargocpt data <output dir>`
 
 ## Version 1.3
 - the code now has a version string, run ./bin/fargocpt --version
