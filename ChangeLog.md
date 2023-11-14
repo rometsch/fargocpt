@@ -13,6 +13,8 @@ Syntax of the versions are: major, minor, revision
 - rename 'vtheta' and 'vphi' both to 'vazi'. The output file of azimuthal velocity is now called 'vazi.dat' instead of 'vtheta.dat'. You might have to rename files to restart data.
 - executable file renamed from `fargocpt` to `fargocpt_exe` to allow python cli to be called `fargocpt`
 - added installable python package (`pip install <repo path>/python`) which installs a command line interface called `fargocpt`. Start a simulation with `fargocpt run` and check the data with `fargocpt data <output dir>`
+- `planet{n}.dat/bin` files renamed to `nbody{n-1}.dat/bin`, thus `nbody0.dat` instead of `planet1.dat`. This requires renaming files to restart older data.
+- nbody indices start at 0 now instead of at 1.
 
 ## Version 1.3
 - the code now has a version string, run ./bin/fargocpt --version
