@@ -9,6 +9,8 @@ Syntax of the versions are: major, minor, revision
 - minor: new features, new options, new config file options, renamed parameters, new or changed single output files
 - revision: bug fixes
 
+## Version 1.4
+- rename 'vtheta' and 'vphi' both to 'vazi'. The output file of azimuthal velocity is now called 'vazi.dat' instead of 'vtheta.dat'. You might have to rename files to restart data.
 
 ## Version 1.3
 - the code now has a version string, run ./bin/fargocpt --version

@@ -25,7 +25,7 @@ namespace sim {
 
 double last_dt;
 
-double PhysicalTime, PhysicalTimeInitial;
+double time, timeInitial;
 unsigned int N_snapshot = 0;
 unsigned int N_monitor = 0;
 unsigned long int N_hydro_iter = 0;
@@ -147,8 +147,6 @@ Returns the time covered.
 */
 static void step_Euler(t_data &data, const double dt) {
 
-	const double time = PhysicalTime;
-
 	if (parameters::calculate_disk){
 		// minimum density is assured inside AccreteOntoPlanets
 	    accretion::AccreteOntoPlanets(data, dt);
@@ -195,7 +193,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    // source term
 	    art_visc::update_with_artificial_viscosity(data, dt);
 
-	    recalculate_viscosity(data, sim::PhysicalTime);
+	    recalculate_viscosity(data, sim::time);
 	    viscosity::compute_viscous_stress_tensor(data);
 	    viscosity::update_velocities_with_viscosity(data, dt);
 
@@ -225,7 +223,7 @@ static void step_Euler(t_data &data, const double dt) {
 	data.get_planetary_system().copy_data_from_rebound();
 	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 
-	PhysicalTime += dt;
+	time += dt;
 	N_hydro_iter = N_hydro_iter + 1;
 	logging::print_runtime_info();
 
@@ -238,8 +236,8 @@ static void step_Euler(t_data &data, const double dt) {
 	    // accretion are not also hit by viscous accretion at inner
 	    // boundary.
 	    if (parameters::VISCOUS_ACCRETION) {
-        compute_sound_speed(data, PhysicalTime);
-        compute_scale_height(data, PhysicalTime);
+        compute_sound_speed(data, time);
+        compute_scale_height(data, time);
 		viscosity::update_viscosity(data);
 	    }
 
@@ -260,11 +258,11 @@ static void step_Euler(t_data &data, const double dt) {
 				      // scale_height is already updated
 		// Recompute scale height after Transport to update the 3D
 		// density
-        compute_sound_speed(data, PhysicalTime);
-        compute_scale_height(data, PhysicalTime);
+        compute_sound_speed(data, time);
+        compute_scale_height(data, time);
 	    }
 	    // this must be done after CommunicateBoundaries
-        recalculate_derived_disk_quantities(data, PhysicalTime);
+        recalculate_derived_disk_quantities(data, time);
 	}
 }
 
@@ -278,9 +276,9 @@ static void step_Euler(t_data &data, const double dt) {
 [[maybe_unused]] static void step_LeapFrog(t_data &data, const double step_dt)
 {
 	const double frog_dt = step_dt/2;
-	const double start_time = PhysicalTime;
-	const double midstep_time = PhysicalTime + frog_dt;
-	const double end_time = PhysicalTime + step_dt;
+	const double start_time = time;
+	const double midstep_time = time + frog_dt;
+	const double end_time = time + step_dt;
 
 	//////////////// Leapfrog compute v_i+1/2 /////////////////////
 
@@ -424,7 +422,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 	//////////////// END Leapfrog compute v_i+1   /////////////////////
 
-	PhysicalTime = end_time;
+	time = end_time;
 	N_hydro_iter += 1;
 	logging::print_runtime_info();
 
@@ -462,7 +460,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 
 void init(t_data &data) {
-	boundary_conditions::apply_boundary_condition(data, PhysicalTime, 0.0, false);
+	boundary_conditions::apply_boundary_condition(data, time, 0.0, false);
 	refframe::init_corotation(data);
 
 	if (start_mode::mode != start_mode::mode_restart) {
@@ -514,7 +512,7 @@ void run(t_data &data) {
 	const double t_final = parameters::Nsnap * parameters::Nmonitor * parameters::monitor_timestep;
 	const bool iteration_restriction = options::max_iteration_number >= 0;
 
-    for (; PhysicalTime < t_final;) {
+    for (; time < t_final;) {
 
 		if (iteration_restriction &&  N_hydro_iter >= (long unsigned int) options::max_iteration_number) {
 			break;
@@ -528,7 +526,7 @@ void run(t_data &data) {
 		cfl_dt = CalculateTimeStep(data);
 
 		const double time_next_monitor = (N_monitor+1)*parameters::monitor_timestep;
-		const double time_left_till_write = time_next_monitor - PhysicalTime;
+		const double time_left_till_write = time_next_monitor - time;
 
 		const bool overshoot = cfl_dt > time_left_till_write;
 		
@@ -543,7 +541,7 @@ void run(t_data &data) {
 
 		step(data, step_dt);
 
-		const double towrite = std::fabs(time_next_monitor - PhysicalTime) < 1e-6*cfl_dt;
+		const double towrite = std::fabs(time_next_monitor - time) < 1e-6*cfl_dt;
 		// TODO: document behaviour
 		if (towrite) {
 			N_monitor++;

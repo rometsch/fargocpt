@@ -14,7 +14,7 @@ def get_output_times(datadir):
     timeunit = None
     with open(filepath, "r") as infile:
         for line in infile:
-            m = re.search("physical time \| ([0-9e+-\.]+) s", line)
+            m = re.search("time \| ([0-9e+-\.]+) s", line)
             if m is not None:
                 timeunit = u.Unit(m.groups()[0] + "s")
     # print("time", t)

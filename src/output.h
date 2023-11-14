@@ -16,7 +16,7 @@ extern std::string outdir;
 struct misc_entry {
     unsigned int timestep;
     unsigned int nTimeStep;
-    double PhysicalTime;
+    double time;
     double OmegaFrame;
     double FrameAngle;
     double last_dt;

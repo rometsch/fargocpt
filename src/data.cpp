@@ -18,7 +18,7 @@ t_data::t_data()
     m_polargrids[V_RADIAL].set_unit(units::velocity);
 
     m_polargrids[V_AZIMUTHAL].set_vector(false);
-    m_polargrids[V_AZIMUTHAL].set_name("vtheta");
+    m_polargrids[V_AZIMUTHAL].set_name("vazi");
     m_polargrids[V_AZIMUTHAL].set_unit(units::velocity);
 
     m_polargrids[ENERGY].set_scalar(true);
@@ -105,7 +105,7 @@ t_data::t_data()
 
     m_polargrids[V_AZIMUTHAL0].set_vector(
 	m_polargrids[V_AZIMUTHAL].is_vector());
-    m_polargrids[V_AZIMUTHAL0].set_name("vtheta0");
+    m_polargrids[V_AZIMUTHAL0].set_name("vazi0");
     m_polargrids[V_AZIMUTHAL0].set_unit(units::velocity);
 
     m_polargrids[SIGMA0].set_vector(false);

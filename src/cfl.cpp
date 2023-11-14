@@ -26,7 +26,7 @@ static void print_info()
 	logging::print_master(LOG_INFO "output number = %d\n", sim::N_snapshot);
 	logging::print_master(LOG_INFO "outer loop iteration = %d\n", sim::N_monitor);
 	logging::print_master(LOG_INFO "N hydro step = %d\n", sim::N_hydro_iter);
-	logging::print_master(LOG_INFO "PhysicalTime = %g\n", sim::PhysicalTime);
+	logging::print_master(LOG_INFO "time = %g\n", sim::time);
 }
 
 static inline unsigned int cell_number(const unsigned int nrad, 

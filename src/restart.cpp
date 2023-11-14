@@ -36,6 +36,11 @@ void restart_load(t_data &data) {
 				  "Loading polargrinds for damping...\n");
 	    data[t_data::SIGMA].read2D();
 	    data[t_data::V_RADIAL].read2D();
+		if (!std::filesystem::exists(output::snapshot_dir + "vazi.dat")) {
+			logging::print_master(
+				LOG_ERROR
+				"vazi.dat not found in snapshot directory '%s'. Maybe it's from an old version and called 'vtheta.dat'. In that case, rename it to 'vazi.dat'.\n", output::snapshot_dir.c_str());
+		}
 	    data[t_data::V_AZIMUTHAL].read2D();
 	    if (parameters::Adiabatic) {
 		data[t_data::ENERGY].read2D();
@@ -56,6 +61,11 @@ void restart_load(t_data &data) {
 			      start_mode::restart_from);
 	data[t_data::SIGMA].read2D();
 	data[t_data::V_RADIAL].read2D();
+	if (!std::filesystem::exists(output::snapshot_dir + "vazi.dat")) {
+			logging::print_master(
+				LOG_ERROR
+				"vazi.dat not found in snapshot directory '%s'. Maybe it's from an old version and called 'vtheta.dat'. In that case, rename it to 'vazi.dat'.\n", output::snapshot_dir.c_str());
+	}
 	data[t_data::V_AZIMUTHAL].read2D();
 	if (parameters::Adiabatic) {
 	    data[t_data::ENERGY].read2D();
@@ -66,7 +76,7 @@ void restart_load(t_data &data) {
 		logging::print_master(
 		    LOG_INFO
 		    "Cannot read Qplus, no bitwise identical restarting possible!\n");
-		compute_heating_cooling_for_CFL(data, sim::PhysicalTime);
+		compute_heating_cooling_for_CFL(data, sim::time);
 	    }
 	    if (data[t_data::QMINUS].file_exists()) {
 		data[t_data::QMINUS].read2D();
@@ -74,7 +84,7 @@ void restart_load(t_data &data) {
 		logging::print_master(
 		    LOG_INFO
 		    "Cannot read Qminus, no bitwise identical restarting possible!\n");
-		compute_heating_cooling_for_CFL(data, sim::PhysicalTime);
+		compute_heating_cooling_for_CFL(data, sim::time);
 	    }
 	}
 	if (parameters::integrate_particles) {
@@ -95,7 +105,7 @@ void restart_load(t_data &data) {
 	logging::print_master(LOG_INFO
 			      "Finished restarting planetary system.\n");
 
-	recalculate_derived_disk_quantities(data, sim::PhysicalTime);
+	recalculate_derived_disk_quantities(data, sim::time);
 
 	if (parameters::variableGamma) {
 
@@ -112,8 +122,8 @@ void restart_load(t_data &data) {
 	    }
 
 		compute_temperature(data);
-		compute_sound_speed(data, sim::PhysicalTime);
-		compute_scale_height(data, sim::PhysicalTime);
+		compute_sound_speed(data, sim::time);
+		compute_scale_height(data, sim::time);
 		compute_pressure(data);
 	    viscosity::update_viscosity(data);
 	}

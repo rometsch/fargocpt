@@ -70,36 +70,36 @@ void diskmodel_center_of_mass_boundary_outer(t_data &data)
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 	    // pressure support correction
-		double vphi0;
+		double vazi0;
 	    double vr0;
 	    if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 	    } else {
             if(parameters::v_azimuthal_with_quadropole_support){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
             } else { // no quadropole support
-            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
             }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
-		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 	    const double cell_vy_com =
-		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 	    // shift velocity from center of mass frame to primary frame
 	    const double cell_vx = cell_vx_com + com_vel.x;
 	    const double cell_vy = cell_vy_com + com_vel.y;
 
-	    const double cell_vphi =
+	    const double cell_vazi =
 		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
-		vaz(nr, naz) = cell_vphi - refframe::OmegaFrame * rmed;
+		vaz(nr, naz) = cell_vazi - refframe::OmegaFrame * rmed;
 	} /// END V_PHI
 
 	{ /// V_R
@@ -115,28 +115,28 @@ void diskmodel_center_of_mass_boundary_outer(t_data &data)
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 	    // pressure support correction
-		double vphi0;
+		double vazi0;
 	    double vr0;
 	    if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
             if(parameters::v_azimuthal_with_quadropole_support){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
             } else { // no quadropole support
-            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
             }
             vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
-		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 	    const double cell_vy_com =
-		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 	    // shift velocity from center of mass frame to primary frame
 	    const double cell_vx = cell_vx_com + com_vel.x;
@@ -159,28 +159,28 @@ void diskmodel_center_of_mass_boundary_outer(t_data &data)
 	    const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 	    // pressure support correction
-		double vphi0;
+		double vazi0;
 	    double vr0;
 	    if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
             if(parameters::v_azimuthal_with_quadropole_support){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
             } else { // no quadropole support
-            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
             }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 	    }
 
 	    // Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 	    const double cell_vx_com =
-		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 	    const double cell_vy_com =
-		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 	    // shift velocity from center of mass frame to primary frame
 	    const double cell_vx = cell_vx_com + com_vel.x;
@@ -260,32 +260,32 @@ void diskmodel_center_of_mass_boundary_inner(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
-		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 		const double cell_vy_com =
-		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
 		const double cell_vy = cell_vy_com + com_vel.y;
 
-		const double cell_vphi =
+		const double cell_vazi =
 		(cell_x * cell_vy - cell_vx * cell_y) / rmed;
-		vaz(nr, naz) = cell_vphi - refframe::OmegaFrame * rmed;
+		vaz(nr, naz) = cell_vazi - refframe::OmegaFrame * rmed;
 	} /// END V_PHI
 
 	{ /// V_R GHOST CELL
@@ -301,24 +301,24 @@ void diskmodel_center_of_mass_boundary_inner(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
-		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 		const double cell_vy_com =
-		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
@@ -341,24 +341,24 @@ void diskmodel_center_of_mass_boundary_inner(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
-		(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 		const double cell_vy_com =
-		(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
@@ -408,7 +408,7 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 
 	// use the correct radius array corresponding to quantity
 	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
-    t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
+    t_polargrid &vazi_arr = data[t_data::V_AZIMUTHAL];
 
     const unsigned int np = data.get_planetary_system().get_number_of_planets();
     const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
@@ -452,9 +452,9 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 
 		// pressure support correction
 		double vr_init;
-		double vphi_init;
+		double vazi_init;
 		if (parameters::initialize_pure_keplerian) {
-			vphi_init = compute_v_kepler(r_com, com_mass);
+			vazi_init = compute_v_kepler(r_com, com_mass);
 			if(parameters::initialize_vradial_zero){
 				vr_init = 0.0;
 			} else {
@@ -462,21 +462,21 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 			}
 		} else {
             if(parameters::v_azimuthal_with_quadropole_support){
-            vphi_init = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            vazi_init = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
             } else { // no quadropole support
-            vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            vazi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
             }
 			vr_init = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com = vphi_init;
+		const double cell_vazi_com = vazi_init;
 		const double cell_vr_com = vr_init;
 
 		const double cell_vx_com =
-		    (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		    (cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 		const double cell_vy_com =
-		    (cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		    (cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
@@ -490,12 +490,12 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 	    }
 	}
 
-	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
+	const unsigned int clamped_vazi_id = clamp_r_id_to_rmed_grid(
 		get_rmed_id(RMAX * damping_outer_limit),
-		vphi_arr.is_vector()) + 1;
+		vazi_arr.is_vector()) + 1;
 
 	#pragma omp parallel for
-	for (unsigned int n_radial = clamped_vphi_id;
+	for (unsigned int n_radial = clamped_vazi_id;
 		 n_radial < Max_no_ghost; ++n_radial) {
 	    double factor = std::pow(
 		(Rmed[n_radial] - RMAX * damping_outer_limit) /
@@ -504,7 +504,7 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
         const double exp_factor = std::exp(-dt * factor / tau);
 
 	    for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < vazi_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = ((double)n_azimuthal - 0.5) * dphi;
 		const double rmed = Rmed[n_radial];
@@ -518,10 +518,10 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			if(parameters::initialize_vradial_zero){
 				vr0 = 0.0;
 			} else {
@@ -529,21 +529,21 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 			}
 		} else {
             if(parameters::v_azimuthal_with_quadropole_support){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, com_mass);
             } else { // no quadropole support
-            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
             }
 			vr0 = viscous_speed::lookup_initial_vr_outer(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
-		    (cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+		    (cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 		const double cell_vy_com =
-		    (cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+		    (cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
@@ -552,9 +552,9 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed -
 				refframe::OmegaFrame * rmed;
 
-		const double vp = vphi_arr(n_radial, n_azimuthal);
+		const double vp = vazi_arr(n_radial, n_azimuthal);
 		const double vp_new = (vp - vp0) * exp_factor + vp0;
-		vphi_arr(n_radial, n_azimuthal) = vp_new;
+		vazi_arr(n_radial, n_azimuthal) = vp_new;
 	    }
 	}
 
@@ -562,7 +562,7 @@ void damping_diskmodel_center_of_mass_outer(t_data &data, double dt)
 	t_polargrid &energy = data[t_data::ENERGY];
 	//t_polargrid &sigma = data[t_data::DENSITY];
 	#pragma omp parallel for
-	for (unsigned int nr = clamped_vphi_id;
+	for (unsigned int nr = clamped_vazi_id;
 		 nr < Max_no_ghost; ++nr) {
 		double factor = std::pow(
 		(Rmed[nr] - RMAX * damping_outer_limit) /
@@ -599,7 +599,7 @@ void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 {
 
 	t_polargrid &vrad_arr = data[t_data::V_RADIAL];
-	t_polargrid &vphi_arr = data[t_data::V_AZIMUTHAL];
+	t_polargrid &vazi_arr = data[t_data::V_AZIMUTHAL];
 
 	const unsigned int np = parameters::n_bodies_for_hydroframe_center;
 	const Pair com_pos = data.get_planetary_system().get_center_of_mass(np);
@@ -643,27 +643,27 @@ void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 
 		// pressure support correction
 		double vr_init;
-		double vphi_init;
+		double vazi_init;
 		if (parameters::initialize_pure_keplerian) {
-			vphi_init = compute_v_kepler(r_com, com_mass);
+			vazi_init = compute_v_kepler(r_com, com_mass);
 			if(parameters::initialize_vradial_zero){
 				vr_init = 0.0;
 			} else {
 			vr_init = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vazi_init = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr_init = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com = vphi_init;
+		const double cell_vazi_com = vazi_init;
 		const double cell_vr_com = vr_init;
 
 		const double cell_vx_com =
-			(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+			(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 		const double cell_vy_com =
-			(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+			(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
@@ -677,13 +677,13 @@ void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 		}
 	}
 
-	const unsigned int clamped_vphi_id = clamp_r_id_to_rmed_grid(
+	const unsigned int clamped_vazi_id = clamp_r_id_to_rmed_grid(
 		get_rmed_id(RMIN * damping_inner_limit),
-		vphi_arr.is_vector());
+		vazi_arr.is_vector());
 
 	#pragma omp parallel for
 	for (unsigned int n_radial = Zero_no_ghost;
-		 n_radial <= clamped_vphi_id; ++n_radial) {
+		 n_radial <= clamped_vazi_id; ++n_radial) {
 		double factor = std::pow(
 		(Rmed[n_radial] - RMAX * damping_outer_limit) /
 			(RMAX - RMAX * damping_outer_limit),
@@ -691,7 +691,7 @@ void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 		const double exp_factor = std::exp(-dt * factor / tau);
 
 		for (unsigned int n_azimuthal = 0;
-		 n_azimuthal < vphi_arr.get_size_azimuthal(); ++n_azimuthal) {
+		 n_azimuthal < vazi_arr.get_size_azimuthal(); ++n_azimuthal) {
 
 		const double phi = ((double)n_azimuthal - 0.5) * dphi;
 		const double rmed = Rmed[n_radial];
@@ -705,28 +705,28 @@ void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, com_mass);
+			vazi0 = compute_v_kepler(r_com, com_mass);
 			if(parameters::initialize_vradial_zero){
 				vr0 = 0.0;
 			} else {
 			vr0 = initial_viscous_radial_speed(r_com, com_mass);
 			}
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
+			vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, com_mass);
 			vr0 = viscous_speed::lookup_initial_vr_inner(r_com);
 		}
 
 		// Velocity in center of mass frame
-		const double cell_vphi_com = vphi0;
+		const double cell_vazi_com = vazi0;
 		const double cell_vr_com = vr0;
 
 		const double cell_vx_com =
-			(cell_vr_com * x_com - cell_vphi_com * y_com) / r_com;
+			(cell_vr_com * x_com - cell_vazi_com * y_com) / r_com;
 		const double cell_vy_com =
-			(cell_vr_com * y_com + cell_vphi_com * x_com) / r_com;
+			(cell_vr_com * y_com + cell_vazi_com * x_com) / r_com;
 
 		// shift velocity from center of mass frame to primary frame
 		const double cell_vx = cell_vx_com + com_vel.x;
@@ -735,9 +735,9 @@ void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 		const double vp0 = (cell_x * cell_vy - cell_vx * cell_y) / rmed -
 				refframe::OmegaFrame * rmed;
 
-		const double vp = vphi_arr(n_radial, n_azimuthal);
+		const double vp = vazi_arr(n_radial, n_azimuthal);
 		const double vp_new = (vp - vp0) * exp_factor + vp0;
-		vphi_arr(n_radial, n_azimuthal) = vp_new;
+		vazi_arr(n_radial, n_azimuthal) = vp_new;
 		}
 	}
 
@@ -746,7 +746,7 @@ void damping_diskmodel_center_of_mass_inner(t_data &data, double dt)
 	//t_polargrid &sigma = data[t_data::DENSITY];
 	#pragma omp parallel for
 	for (unsigned int nr = Zero_no_ghost;
-		 nr <= clamped_vphi_id; ++nr) {
+		 nr <= clamped_vazi_id; ++nr) {
 		double factor = std::pow(
 		(Rmed[nr] - RMAX * damping_outer_limit) /
 			(RMAX - RMAX * damping_outer_limit),

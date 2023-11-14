@@ -8,7 +8,7 @@ extern double hydro_dt;
 extern double last_dt;
 extern double dtemp;
 
-extern double PhysicalTime, PhysicalTimeInitial;
+extern double time, timeInitial;
 extern unsigned int N_snapshot;
 extern unsigned int N_monitor;
 extern unsigned long int N_hydro_iter;

@@ -215,7 +215,7 @@ void compute_viscous_stress_tensor(t_data &data)
 		const double naz_prev = (naz == 0 ? Nphi-1 : naz - 1);
 
 	    // d(v_phi/r)/dr
-	    double dvphirdr =
+	    double dvazirdr =
 		(data[t_data::V_AZIMUTHAL](nr, naz) * InvRb[nr] -
 		 data[t_data::V_AZIMUTHAL](nr - 1, naz) * InvRb[nr - 1]) *
 		InvDiffRmed[nr];
@@ -227,7 +227,7 @@ void compute_viscous_stress_tensor(t_data &data)
 
 	    // r*d(v_phi/r)/dr + 1/r d(v_r)/dphi (edge)
 	    const double drp =
-		Ra[nr] * dvphirdr + dvrdphi * InvRa[nr];
+		Ra[nr] * dvazirdr + dvrdphi * InvRa[nr];
 
 	    // averaged nu over 4 corresponding cells
 	    const double nu =

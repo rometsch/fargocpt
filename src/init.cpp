@@ -328,7 +328,7 @@ void init_physics(t_data &data)
 
     // only gas velocities remain to be initialized
 
-	init_euler(data, sim::PhysicalTime);
+	init_euler(data, sim::time);
     init_gas_velocities(data);
     if (parameters::do_init_secondary_disk) {
 	init_secondary_disk_velocities(data);
@@ -794,13 +794,13 @@ void init_secondary_disk_velocities(t_data &data)
 	    if (r_sec < compute_radius) {
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_sec, planet.get_mass());
+			vazi0 = compute_v_kepler(r_sec, planet.get_mass());
 			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
+			vazi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
 			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_sec, planet.get_mass());
 		}
 		if(parameters::initialize_vradial_zero){
@@ -809,7 +809,7 @@ void init_secondary_disk_velocities(t_data &data)
 
 		// Velocities in center of mass frame
 		const double vr_sec = vr0;
-		const double vaz_sec = vphi0;
+		const double vaz_sec = vazi0;
 
 		const double vx_sec =
 		    (vr_sec * x_sec - vaz_sec * y_sec) / r_sec;
@@ -852,13 +852,13 @@ void init_secondary_disk_velocities(t_data &data)
 	    if (r_sec < compute_radius) {
 
 		// pressure support correction
-			double vphi0;
+			double vazi0;
 			double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_sec, planet.get_mass());
+			vazi0 = compute_v_kepler(r_sec, planet.get_mass());
 			vr0 = initial_viscous_radial_speed(r_sec, planet.get_mass());
 		} else {
-			vphi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
+			vazi0 = initial_locally_isothermal_smoothed_v_az(r_sec, planet.get_mass());
 			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_sec, planet.get_mass());
 		}
 		if(parameters::initialize_vradial_zero){
@@ -867,7 +867,7 @@ void init_secondary_disk_velocities(t_data &data)
 
 		// Velocities in center of mass frame
 		const double vr_sec = vr0;
-		const double vaz_sec = vphi0;
+		const double vaz_sec = vazi0;
 
 		const double vx_sec =
 		    (vr_sec * x_sec - vaz_sec * y_sec) / r_sec;
@@ -1506,19 +1506,19 @@ void init_gas_velocities(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, mass);
+			vazi0 = compute_v_kepler(r_com, mass);
 			vr0 = initial_viscous_radial_speed(r_com, mass);
 		} else {
 
             if(parameters::v_azimuthal_with_quadropole_support &&
                 data.get_planetary_system().get_number_of_planets() > 1 &&
                 r_com > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, mass);
             } else {
-            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
             }
 
 			vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_com, mass);
@@ -1528,7 +1528,7 @@ void init_gas_velocities(t_data &data)
 		}
 
 		const double vr_com = vr0;
-		const double vaz_com = vphi0;
+		const double vaz_com = vazi0;
 
 		const double vx_com =
 			(vr_com * x_com - vaz_com * y_com) / r_com;
@@ -1568,19 +1568,19 @@ void init_gas_velocities(t_data &data)
 		const double r_com = std::sqrt(x_com * x_com + y_com * y_com);
 
 		// pressure support correction
-		double vphi0;
+		double vazi0;
 		double vr0;
 
 		if (parameters::initialize_pure_keplerian) {
-			vphi0 = compute_v_kepler(r_com, mass);
+			vazi0 = compute_v_kepler(r_com, mass);
 			vr0 = initial_viscous_radial_speed(r_com, mass);
 		} else {
             if(parameters::v_azimuthal_with_quadropole_support &&
                 data.get_planetary_system().get_number_of_planets() > 1 &&
                 r_com > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r_com, mass);
             } else {
-            vphi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az(r_com, mass);
             }
 
             vr0 = viscous_speed::get_vr_with_numerical_viscous_speed(r_com, mass);
@@ -1591,7 +1591,7 @@ void init_gas_velocities(t_data &data)
 
 		// Velocities in center of mass frame
 		const double vr_com = vr0;
-		const double vaz_com = vphi0;
+		const double vaz_com = vazi0;
 
 		const double vx_com =
 			(vr_com * x_com - vaz_com * y_com) / r_com;
@@ -1734,15 +1734,15 @@ void init_gas_velocities(t_data &data)
 	     ++n_azimuthal) {
 	    if (!parameters::self_gravity) {
 		// v_azimuthal = Omega_K * r * (...)
-        double vphi0;
+        double vazi0;
         if(parameters::v_azimuthal_with_quadropole_support &&
             data.get_planetary_system().get_number_of_planets() > 1 &&
             r > 2.0*data.get_planetary_system().get_planet(1).get_distance_to_primary()){
-            vphi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r, hydro_center_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az_with_quadropole_moment(r, hydro_center_mass);
         } else {
-            vphi0 = initial_locally_isothermal_smoothed_v_az(r, hydro_center_mass);
+            vazi0 = initial_locally_isothermal_smoothed_v_az(r, hydro_center_mass);
         }
-        data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vphi0;
+        data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) = vazi0;
 	    }
 
 	    data[t_data::V_AZIMUTHAL](n_radial, n_azimuthal) -= refframe::OmegaFrame * r;

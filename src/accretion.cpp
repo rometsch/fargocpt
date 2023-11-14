@@ -86,7 +86,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     const double *vrad = data[t_data::V_RADIAL].Field;
-    const double *vtheta = data[t_data::V_AZIMUTHAL].Field;
+    const double *vazi = data[t_data::V_AZIMUTHAL].Field;
     const double density_floor = parameters::sigma_floor * parameters::sigma0;
 
     const double Xplanet = planet.get_x();
@@ -149,7 +149,7 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
-		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * refframe::OmegaFrame;
+		0.5 * (vazi[l] + vazi[ljp]) + Rmed[i] * refframe::OmegaFrame;
 	    const double vrcell = 0.5 * (vrad[l] + vrad[lip]);
 	    // calculate cartesian velocities
 	    const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
@@ -226,7 +226,7 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     const double *vrad = data[t_data::V_RADIAL].Field;
-    const double *vtheta = data[t_data::V_AZIMUTHAL].Field;
+    const double *vazi = data[t_data::V_AZIMUTHAL].Field;
     const double density_floor = parameters::sigma_floor * parameters::sigma0;
 
     const double Xplanet = planet.get_x();
@@ -277,7 +277,7 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
-		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * refframe::OmegaFrame;
+		0.5 * (vazi[l] + vazi[ljp]) + Rmed[i] * refframe::OmegaFrame;
 	    const double vrcell = 0.5 * (vrad[l] + vrad[lip]);
 	    // calculate cartesian velocities
 	    const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];
@@ -338,7 +338,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     const double *cell_center_x = CellCenterX->Field;
     const double *cell_center_y = CellCenterY->Field;
     const double *vrad = data[t_data::V_RADIAL].Field;
-    const double *vtheta = data[t_data::V_AZIMUTHAL].Field;
+    const double *vazi = data[t_data::V_AZIMUTHAL].Field;
     const double density_floor = parameters::sigma_floor * parameters::sigma0;
 
     const double Xplanet = planet.get_x();
@@ -418,7 +418,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
 
 	    // interpolate velocities to cell centers
 	    const double vtcell =
-		0.5 * (vtheta[l] + vtheta[ljp]) + Rmed[i] * refframe::OmegaFrame;
+		0.5 * (vazi[l] + vazi[ljp]) + Rmed[i] * refframe::OmegaFrame;
 	    const double vrcell = 0.5 * (vrad[l] + vrad[lip]);
 	    // calculate cartesian velocities
 	    const double vxcell = (vrcell * xc - vtcell * yc) / Rmed[i];

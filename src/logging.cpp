@@ -197,8 +197,8 @@ void print_runtime_final()
     }
     logging::print_master(
 	LOG_INFO
-	"-- Final: Total Hydrosteps %d, Physical Time %.2f, Realtime %.2f seconds, Time per Step: %.2f milliseconds\n",
-	sim::N_hydro_iter, sim::PhysicalTime, realtime / 1000000.0, time_per_step_ms);
+	"-- Final: Total Hydrosteps %d, Time %.2f, Walltime %.2f seconds, Time per Step: %.2f milliseconds\n",
+	sim::N_hydro_iter, sim::time, realtime / 1000000.0, time_per_step_ms);
 }
 
 void print_runtime_info()
@@ -249,7 +249,7 @@ void print_runtime_info()
 	logging::print_master(
 	    LOG_INFO
 	    "Logging info: snapshot %d, monitor %d, hydrostep %d, time inside simulation %f, dt %.3e, realtime %.2f s, timeperstep %.2f ms\n",
-	    sim::N_snapshot, sim::N_monitor, sim::N_hydro_iter, sim::PhysicalTime, sim::last_dt,
+	    sim::N_snapshot, sim::N_monitor, sim::N_hydro_iter, sim::time, sim::last_dt,
 	    realtime / 1000000.0, time_per_step_ms);
 
 	n_last_log = sim::N_hydro_iter;

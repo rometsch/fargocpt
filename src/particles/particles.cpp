@@ -619,7 +619,7 @@ void init(t_data &data)
 	}
     }
 
-	compute::midplane_density(data, sim::PhysicalTime);
+	compute::midplane_density(data, sim::time);
 	compute_temperature(data);
     check_tstop(data);
 
