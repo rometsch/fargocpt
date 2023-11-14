@@ -594,31 +594,31 @@ class Vars1D:
 
         return data
 
-    def get(self, varname, Nsnapshot, include_grid=True):
-        return self.average(varname, Nsnapshot, include_grid=include_grid)
+    def get(self, varname, Nsnapshot, grid=True):
+        return self.average(varname, Nsnapshot, grid=grid)
 
-    def avg(self, varname, Nsnapshot, include_grid=True):
+    def avg(self, varname, Nsnapshot, grid=True):
         avg_slice = slice(1,None,4)
         data = self._return_data(varname, Nsnapshot, avg_slice)
-        if include_grid:
+        if grid:
             r = self._return_radius(varname)
             return r, data
         else:
             return data
     
-    def min(self, varname, Nsnapshot, include_grid=True):
+    def min(self, varname, Nsnapshot, grid=True):
         max_slice = slice(2,None,4)
         data = self._return_data(varname, Nsnapshot, max_slice)
-        if include_grid:
+        if grid:
             r = self._return_radius(varname)
             return r, data
         else:
             return data
     
-    def max(self, varname, Nsnapshot, include_grid=True):
+    def max(self, varname, Nsnapshot, grid=True):
         min_slice = slice(3,None,4)
         data = self._return_data(varname, Nsnapshot, min_slice)
-        if include_grid:
+        if grid:
             r = self._return_radius(varname)
             return r, data
         else:
@@ -668,7 +668,7 @@ class Vars2D:
         azi_interface = info["on_azimuthal_interface"]
         return self.grid.meshgrid_plot(intr=rad_interface, intf=azi_interface)
 
-    def get(self, varname, Nsnapshot, include_grid=True, grid_for_plot=False):
+    def get(self, varname, Nsnapshot, grid=True, grid_for_plot=False):
         if not varname in self.var_names:
             raise KeyError(f"Unknown variable '{varname}'")
 
@@ -680,7 +680,7 @@ class Vars2D:
         filepath = joinpath(self.output_dir, "snapshots", f"{Nsnapshot}", info["filename"])
         rv = np.fromfile(filepath).reshape(Nr, Naz) * unit
 
-        if include_grid:
+        if grid:
             if grid_for_plot:
                 r, phi = self.meshgrid_plot(varname, Nsnapshot)
             else:
@@ -689,8 +689,8 @@ class Vars2D:
         else:
             return rv
         
-    def _return_with_radius(self, varname, data, include_grid):
-        if include_grid:
+    def _return_with_radius(self, varname, data, grid):
+        if grid:
             if self._info_dict[varname]["on_radial_interface"]:
                 r = self.grid.radi
             else:
@@ -699,17 +699,17 @@ class Vars2D:
         else:
             return data
 
-    def avg(self, varname, Nsnapshot, include_grid=True):
-        data = np.average(self.get(varname, Nsnapshot, include_grid=False), axis=1)
-        return self._return_with_radius(varname, data, include_grid)
+    def avg(self, varname, Nsnapshot, grid=True):
+        data = np.average(self.get(varname, Nsnapshot, grid=False), axis=1)
+        return self._return_with_radius(varname, data, grid)
 
-    def min(self, varname, Nsnapshot, include_grid=True):
-        data = np.min(self.get(varname, Nsnapshot, include_grid=False), axis=1)
-        return self._return_with_radius(varname, data, include_grid)
+    def min(self, varname, Nsnapshot, grid=True):
+        data = np.min(self.get(varname, Nsnapshot, grid=False), axis=1)
+        return self._return_with_radius(varname, data, grid)
         
-    def max(self, varname, Nsnapshot, include_grid=True):
-        data = np.max(self.get(varname, Nsnapshot, include_grid=False), axis=1)
-        return self._return_with_radius(varname, data, include_grid)
+    def max(self, varname, Nsnapshot, grid=True):
+        data = np.max(self.get(varname, Nsnapshot, grid=False), axis=1)
+        return self._return_with_radius(varname, data, grid)
         
 
 
