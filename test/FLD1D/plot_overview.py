@@ -12,7 +12,7 @@ import numpy as np
 def calc_theo(R):
     
     mu = 2.353
-    K = 106701.29 # code unit for temperature
+    K = 106700 # code unit for temperature
     T0 = mu * 0.05**2 * K
 
 
@@ -65,20 +65,17 @@ fig.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=None, h
 
 
 
-from disgrid import Data
-d = Data(opts.outdir)
+from fargocpt import Loader
+l = Loader(opts.outdir)
 
-name = "energy"
 dataunit = "J/cm2"
 
-Nfirst = d.avail()["Nfirst"]
-Nlast = d.avail()["Nlast"]
+Nfirst = l.snapshots[0]
+Nlast = l.snapshots[-1]
 
-Tunit = 1.0670018430261180e+05
-
-field = d.get(dim="2d", var=name, N=0)
-grid = field.grid
-r = grid.get_centers("r").to_value("au")
+r, profile0 = l.gas.vars2D.avg("Temperature", Nfirst)
+profile0 = profile0.to_value("K")
+r = r.to_value("au")
 
 theo = calc_theo(r)
 
@@ -87,10 +84,6 @@ n = np.argmin(np.abs(theo.R - 1))
 R0 = theo.R[n]
 F0 = calc_flux(r, theo.T)[n]
 
-Nr = len(grid.get_centers("r"))
-Nphi = len(grid.get_centers("phi"))
-T = np.fromfile(d.path+"/snapshots/0/Temperature.dat", dtype=np.float64).reshape(Nr, Nphi)*Tunit
-profile0 = np.average(T, axis=1)
 
 from matplotlib import colormaps
 cmap = colormaps.get_cmap("viridis")
@@ -105,18 +98,13 @@ for k, n in enumerate(inds):
     color = cmap(k/(len(inds)-1))
     
     try:
-        field = d.get(dim="2d", var=name, N=n)
+        T = l.gas.vars2D.avg("Temperature", n, grid=False)
     except FileNotFoundError:
         continue
-    T = np.fromfile(d.path+f"/snapshots/{n}/Temperature.dat", dtype=np.float64).reshape(Nr, Nphi)*Tunit
 
-    r = grid.get_centers("r").to_value("au")
-    Z = T
-
+    y = T.to_value("K")
     
-    y = np.average(Z, axis=1)
-    
-    t = field.time.to_value("yr")/1**1.5
+    t = l.snapshot_time[n].to_value("yr")/1**1.5
     line, = axes[0].plot(r, y, label=f"t={t:.0f} orbs", color=color)
     axes[1].plot(r, np.abs((y/theo.T-1)), label=f"t={t:.3f}yr", color=color)
 

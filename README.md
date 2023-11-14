@@ -23,6 +23,8 @@ After completing this notebook, you likely know enough to run and analyze your o
 
 To learn what the parameters do while the documentation is being written, check out [parameters.md](https://github.com/rometsch/fargocpt/blob/devel/parameters.md) or open an issue here on github.
 
+Running the same notebooks locally, make sure to install the python dependencies (`pip install -r requirements.txt`) and go step by step through the notebooks.
+
 ## Running locally
 
 To run locally on your computer, clone the last commit of the repository
@@ -68,12 +70,31 @@ In `auto` mode, the simulation is restarted at the last available output if ther
 
 When omitting the `-np` and `-nt` options, the starting script tries to automatically use all available resources and determine the appropritate number of processes and threads to use for the given computer - one MPI process per numa node with as many OpenMP threads as there are cores per numa node. Hyperthreads are ignored.
 
-Have a look at `./bin/fargocpt.py`, which is a Python wrapper for calling the binary executable using `mpirun` with a couple of runtime options, e.g. for binding the processes to numa nodes.
+`./run_fargo` is a script to call part of python module in `python-module` for calling the binary executable using `mpirun` with a couple of runtime options, e.g. for binding the processes to numa nodes.
 We tested this setup for OpenMPI with versions 3 and 4.
-For any other MPI implementation, please test the available options for hybrid parallelization using `mpirun` manually.
+For any other MPI implementation, please test the available options for hybrid parallelization using `mpirun` manually using
+```bash
+mpirun <your choice of options> ./bin/fargocpt_exe {start/restart N/auto} setup/config.yml
+```
 
+If you have the fargocpt python module installed (`pip install -r requirements`), you can also use the cli tool that is automatically installed with the python package.
+Using this, you can run
+```bash
+fargocpt run --exe bin/fargocpt_exe -np NPROCS -nt NTHREADS {start/restart N/auto} setupfile.yml
+```
+Essentially, the `run_fargo` script is swapped out for `fargocpt run --exe ...`.
+Please note the `--exe` option. You need to specify the path to your `fargocpt_exe` executable of you choice.
+The program will complain, if it can't find it.
+
+You can specify the executable path in three ways, where the first options take priority.
+1. Using the `--exe` command line option (equivalently specifying the `exe=` keyword argument in python).
+2. Specifying the path in `~/.config/fargocpt/config.yml` as key `exe_path: /path/to/fargocpt_exe`.
+3. By placing `fargocpt_exe` into your `PATH` variable.
 
 ## Building the code
+
+You likely want to install the python dependencies and the `fargocpt` python module.
+Before or after making the code, run `pip install -r requirements`.
 
 To build the code, navigate to the repository home and run
 
