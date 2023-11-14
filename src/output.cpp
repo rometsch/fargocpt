@@ -202,7 +202,7 @@ static void copy_parameters_to_snapshot_dir()
 void write_output_version()
 {
     if (CPU_Master) {
-	const std::string filename = outdir + "/fargocpt_output_v1_3";
+	const std::string filename = outdir + "/fargocpt_output_v1_4";
 	std::ofstream versionfile(filename, std::ios_base::app);
 	versionfile.close();
     }
