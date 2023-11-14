@@ -144,18 +144,21 @@ class Plot1D:
         ax = self.ax
 
         for var, line in zip(self.vars, self.lines):
-            y = self.loader.gas.vars2D.average(var, Nnow, grid=False).cgs.value
+            y = self.loader.gas.vars2D.avg(var, Nnow, grid=False).cgs.value
             if self.plot_rel:
                 y = y/self.y0s[var] - 1
             elif self.plot_diff:
                 y = y - self.y0s[var]
-            line.set_ydata(np.average(y, axis=1))
+            line.set_ydata(y)
 
             if self.plot_minmax:
                 ymin = self.loader.gas.vars2D.min(var, Nnow, grid=False).cgs.value
-                r, ymax = self.loader.gas.vars2D.max(var, Nnow, grid=True).cgs.value
+                r, ymax = self.loader.gas.vars2D.max(var, Nnow, grid=True)
                 ymax = ymax.cgs.value
                 x = r.to_value("au")
+                if self.plot_rel:
+                    ymin = ymin/self.y0s[var] - 1
+                    ymax = ymax/self.y0s[var] - 1
                 dummy = ax.fill_between(x, ymin, ymax, alpha=0)
                 # create invisible dummy object to extract the vertices
                 dp = dummy.get_paths()[0]
