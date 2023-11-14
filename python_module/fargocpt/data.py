@@ -15,7 +15,7 @@ from typing import List
 from functools import lru_cache
 
 def print_indented(str, indent=0):
-    indent_str = "|   "*indent
+    indent_str = ".   "*indent
     for line in str.split('\n'):
         print(indent_str + line)
 
@@ -47,7 +47,7 @@ class Units:
             if not key in ["length", "time", "mass", "temperature"]:
                 value = getattr(self, key)
                 rv += f"|   {key}: {value}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 
@@ -69,7 +69,7 @@ class Grid:
         rv += f"| Nrad: {self.Nrad}\n"
         rv += f"| Naz: {self.Naz}\n"
         rv += f"| Spacing: {self.spacing}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
     @property
@@ -247,7 +247,7 @@ class Scalars:
         rv += f"| varnames:\n"
         for varname in self._varnames:
             rv += f"|   {varname.replace(' ', '_')}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 
@@ -570,7 +570,7 @@ class Vars1D:
         rv += f"| var_names:\n"
         for var_name in self.var_names:
             rv += f"|   {var_name}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
     
     def _return_radius(self, varname):
@@ -653,7 +653,7 @@ class Vars2D:
         rv += f"| var_names:\n"
         for var_name in self.var_names:
             rv += f"|   {var_name}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
     def meshgrid(self, varname):
@@ -844,7 +844,7 @@ class Particles:
         rv += f"| var_names:\n"
         for var_name in self.var_names:
             rv += f"|   {var_name}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 @dataclass
@@ -876,7 +876,7 @@ class Hydro:
         rv += f"| scalars: Scalar\n"
         rv += f"| vars1D: Vars1D\n"
         rv += f"| vars2D: Vars2D\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
     
     def print(self, indent=0, recursive=False):
@@ -917,13 +917,13 @@ class Params:
         return self.params[self.lkeys[key.lower()]]
     
     def __repr__(self) -> str:
-        rv = "FargoCPT data Params\n"
+        rv = "   Params\n"
         rv += "====================\n"
         rv += f"| filename: {self._param_filepath}\n"
         rv += f"| params:\n"
         for key, value in self.params.items():
             rv += f"|   {key}: {value}\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
 
 @dataclass
@@ -1010,7 +1010,7 @@ class Loader:
         rv += f"| nbody: Nbody\n"
         rv += f"| params: Params\n"
         rv += f"| particles" + (" = None" if self.particles is None else ": Particles") + "\n"
-        rv += "====================\n"
+        rv += "____________________\n"
         return rv
     
     def print(self, recursive=False):
@@ -1020,7 +1020,7 @@ class Loader:
             print_indented(repr(self.units), indent=indent)
             print_indented(repr(self.params), indent=indent)
             if self.particles is not None:
-                print(repr(self.particles), indent=indent)
+                print(repr(self.particles))
             for nbody in self.nbody:
                 print_indented(repr(nbody), indent=indent)
             self.gas.print(indent=indent, recursive=recursive)
