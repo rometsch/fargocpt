@@ -27,7 +27,6 @@ def main(args=sys.argv[1:]):
 
     if pass_on_help:
         remainder.append("--help")
-    print(opts, remainder)
 
     if opts.command == "run":
         from .run import main as cmd_main

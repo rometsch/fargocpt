@@ -900,6 +900,8 @@ class Loader:
         if not os.path.exists(self.output_dir):
             raise FileNotFoundError(f"Could not find output directory '{self.output_dir}'")
 
+        self._check_output_dir()
+
         if self.units is None:
             self.units = Units()
             self.units.load_file(joinpath(self.output_dir , 'units.yml'))
@@ -911,6 +913,12 @@ class Loader:
 
         self.params = Params(self.output_dir)
         self._load_particles()
+
+    def _check_output_dir(self):
+        """ Check if the output directory contains the identifier file. """
+        id_file = "fargocpt_output_v1_4"
+        if not os.path.exists(joinpath(self.output_dir, id_file)):
+            raise FileNotFoundError(f"Could not find identifier file '{id_file}' in output directory '{self.output_dir}'")
 
     def _load_nbody(self):
         for n in range(1,100):
@@ -982,14 +990,43 @@ def main(args=sys.argv[1:]):
     import argparse
     parser = argparse.ArgumentParser(description='Load FargoCPT data.')
     parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
+    parser.add_argument("path", nargs="?", type=str, help="The path to the data to be printed. Eg. 'gas.vars2D' or ''.")
+    parser.add_argument("N", nargs="?", type=int, help="Snapshot number to load")
     parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
     opts = parser.parse_args(args)
 
-    l = Loader(opts.output_dir)
-    if opts.recursive:
-        l.print(recursive=True)
+    try:
+        l = Loader(opts.output_dir)
+    except FileNotFoundError as e:
+        print(e)
+        sys.exit(1)
+    
+    obj = l
+
+    if opts.path is not None:
+        path = opts.path.split('.')
+        for p in path:
+            # interpret integer values of p as list indices
+            try:
+                ind = int(p)
+            except ValueError:
+                ind = None
+            if ind is not None:
+                obj = obj[ind]
+            else:
+                try:
+                    obj = getattr(obj, p)
+                except AttributeError:
+                    if hasattr(obj, "get") and opts.N is not None:
+                        obj = obj.get(p, opts.N)
+                    else:
+                        raise
+
+
+    if hasattr(obj, 'print'):
+        obj.print(recursive=opts.recursive)
     else:
-        print(l)
+        print(obj)
 
 if __name__ == "__main__":
     main()
