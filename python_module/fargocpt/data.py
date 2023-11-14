@@ -800,7 +800,7 @@ class Particles:
 
         return rv
 
-    def timeseries(self, varnames, start, end, step=1):
+    def timeseries(self, varnames, start, end, step=1, time=None):
         """ Construct time series from snapshot 'start' to snapshot 'end' of the requested variables.
 
         If start is None, the first snapshot is used.
@@ -816,6 +816,9 @@ class Particles:
             The last snapshot to load.
         step : int
             The step size between snapshots.
+        time : np.ndarray
+            Full length array of the time of the snapshots. If this is provided, time is added to the returned data for each particle.
+
         Returns
         -------
         data : dict
@@ -829,12 +832,19 @@ class Particles:
         ids = self.get('id', start)
         # make a dict for every particle
         data = {i: {key : [] for key in varnames} for i in ids}
+        if time is not None:
+            for id in ids:
+                data[id]['time'] = []
 
         # loop over timesteps and fill the data dict
         for N in range(start, end+1, step):
             ids = self.get('id', N)
             indices = np.arange(len(ids))
             id2index = {id: ind for id, ind in zip(ids, indices) if id in ids}
+            if time is not None:
+                t = time[N]
+                for id in ids:
+                    data[id]['time'].append(t)
             for key in varnames:
                 vals = self.get(key, N)
                 for id, index in id2index.items():
@@ -844,6 +854,8 @@ class Particles:
         for id in ids:
             for key in varnames:
                 data[id][key] = Quantity(data[id][key])
+            if time is not None:
+                data[id]['time'] = Quantity(data[id]['time'])
 
         return data
 
