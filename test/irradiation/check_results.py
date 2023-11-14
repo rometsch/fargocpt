@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def test(outputdir, Nsnapshot, interactive=False, log=True):
+def test(outputdir, Nsnapshot=10, interactive=False, log=True):
 
 
     file_name1 = outputdir + f"snapshots/{Nsnapshot}/Temperature1D.dat"
