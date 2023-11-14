@@ -24,4 +24,4 @@ classifiers = [
 ]
 
 [project.scripts]
-fargocpt = "fargocpt.run:main"
+fargocpt = "fargocpt._command_line_:main"

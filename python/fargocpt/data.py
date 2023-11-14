@@ -1,5 +1,6 @@
 import yaml
 import os
+import sys
 
 import numpy as np
 
@@ -977,12 +978,12 @@ class Loader:
             self.gas.print(indent=indent, recursive=recursive)
 
 
-def main():
+def main(args=sys.argv[1:]):
     import argparse
     parser = argparse.ArgumentParser(description='Load FargoCPT data.')
     parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
     parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
-    opts = parser.parse_args()
+    opts = parser.parse_args(args)
 
     l = Loader(opts.output_dir)
     if opts.recursive:
