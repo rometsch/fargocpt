@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import yaml
 from datetime import datetime
 
-from load_dust import get_time, get_sigma_dust
+from load_dust import get_sigma_dust
+from fargocpt import Loader
 
 def test(_):
     datadir = "../../output/tests/dust_diffusion/out"
@@ -17,7 +18,7 @@ def test(_):
 
     Ymax = 0
     n = 1
-    t = get_time(datadir, n)
+    t = Loader(datadir).snapshots[n]
     sigma_dust, rmid, dr = get_sigma_dust(datadir, n, nbins=101)
     factor = np.sum(sigma_dust*rmid*dr*2*np.pi)
     Y = sigma_dust/factor
