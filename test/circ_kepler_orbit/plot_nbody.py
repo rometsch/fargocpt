@@ -3,24 +3,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.units as units
-import disgrid
+from fargocpt import Loader
 
 def main():
-    d = disgrid.Data("../../output/tests/circ_kepler_orbit/out")
+    l = Loader("../../output/tests/circ_kepler_orbit/out")
 
     fig, axes = plt.subplots(nrows=2, ncols=2)
 
-    Npl = len(d.avail()["planets"])
+    Npl = len(l.nbody)
     for n in range(Npl):
-        q = d.get("semi-major axis", planet=n)
-        t = q.time.to_value("kyr")
-        a = q.data.to_value("au")
+        nb = l.nbody[n]
+        a = nb.semi_major_axis.to_value("au")
+        t = nb.time.to_value("kyr")
         ax = axes[0,0]
         ax.plot(t, np.abs(a-1), label=f"{n}")
 
-        q = d.get("eccentricity", planet=n)
-        t = q.time.to_value("kyr")
-        e = q.data.value
+        e = nb.eccentricity.value
         ax = axes[0,1]
         ax.plot(t, e)
 
@@ -33,17 +31,16 @@ def main():
     ax.set_ylabel(r"$e$")
     ax.set_xlabel(r"$t$ [kyr]")
 
-    Npl = len(d.avail()["planets"])
     for n in range(Npl):
-        q = d.get("x", planet=n)
-        t = q.time.to_value("kyr")
-        x = q.data.to_value("au")
+        nb = l.nbody[n]
+        t = nb.time.to_value("kyr")
+        x = nb.x.to_value("au")
         ax = axes[1,0]
         ax.plot(t, x, label=f"{n}")
 
-        q = d.get("y", planet=n)
-        t = q.time.to_value("kyr")
-        y = q.data.to_value("au")
+        nb = l.nbody[n]
+        t = nb.time.to_value("kyr")
+        y = nb.y.to_value("au")
         ax = axes[1,1]
         ax.plot(t, y)
 
