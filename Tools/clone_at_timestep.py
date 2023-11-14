@@ -84,12 +84,12 @@ def copy_scalar_data(src_dir, dst_dir, timestep):
         timestep)
     for n in range(1000):
         try:
-            file_name = f"planet{n}.dat"
+            file_name = f"nbody{n}.dat"
             copy_scalar_data_single_timestep(
                 os.path.join(src_dir, file_name),
                 os.path.join(dst_dir, file_name),
                 timestep)
-            file_name = f"bigplanet{n}.dat"
+            file_name = f"nbody{n}.dat"
             copy_scalar_data_single_timestep(
                 os.path.join(src_dir, file_name),
                 os.path.join(dst_dir, file_name),
