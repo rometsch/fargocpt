@@ -994,7 +994,7 @@ def main(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(description='Load FargoCPT data.')
     parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
     parser.add_argument("path", nargs="?", type=str, help="The path to the data to be printed. Eg. 'gas.vars2D' or ''.")
-    parser.add_argument("N", nargs="?", type=int, help="Snapshot number to load")
+    parser.add_argument("N", nargs="?", type=str, help="Snapshot number to load")
     parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
     opts = parser.parse_args(args)
 
