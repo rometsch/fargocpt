@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 cd $(dirname $0)
-python3 ./TemperatureTest.py --silent
+python3 ../run_test.py --silent

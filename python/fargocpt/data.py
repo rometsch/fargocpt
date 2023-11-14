@@ -1,5 +1,6 @@
 import yaml
 import os
+import sys
 
 import numpy as np
 
@@ -838,14 +839,15 @@ class Hydro:
         rv += "====================\n"
         return rv
     
-    def print_recurse(self, indent=0):
+    def print(self, indent=0, recursive=False):
         print_indented(repr(self), indent)
-        indent += 1
-        print_indented(repr(self.grid), indent=indent)
-        print_indented(repr(self.scalars), indent=indent)
-        print_indented(repr(self.timestepping), indent=indent)
-        print_indented(repr(self.vars1D), indent=indent)
-        print_indented(repr(self.vars2D), indent=indent)
+        if recursive:
+            indent += 1
+            print_indented(repr(self.grid), indent=indent)
+            print_indented(repr(self.scalars), indent=indent)
+            print_indented(repr(self.timestepping), indent=indent)
+            print_indented(repr(self.vars1D), indent=indent)
+            print_indented(repr(self.vars2D), indent=indent)
 
 class Params:
     """ Class to load the parameters from the output directory supporting non-case sensitive keys."""
@@ -889,7 +891,7 @@ class Loader:
     output_dir: str
     units: Units = None
     target_units: Units = None
-    hydro: Hydro = None
+    gas: Hydro = None
     nbody: List[Nbody] = field(default_factory=list)
     params: Params = None
     particles: Particles = None
@@ -898,21 +900,29 @@ class Loader:
         if not os.path.exists(self.output_dir):
             raise FileNotFoundError(f"Could not find output directory '{self.output_dir}'")
 
+        self._check_output_dir()
+
         if self.units is None:
             self.units = Units()
             self.units.load_file(joinpath(self.output_dir , 'units.yml'))
 
         self._load_snapshots()
 
-        self.hydro = Hydro(self.output_dir, self.units, target_units=self.target_units)
+        self.gas = Hydro(self.output_dir, self.units, target_units=self.target_units)
         self._load_nbody()
 
         self.params = Params(self.output_dir)
         self._load_particles()
 
+    def _check_output_dir(self):
+        """ Check if the output directory contains the identifier file. """
+        id_file = "fargocpt_output_v1_4"
+        if not os.path.exists(joinpath(self.output_dir, id_file)):
+            raise FileNotFoundError(f"Could not find identifier file '{id_file}' in output directory '{self.output_dir}'")
+
     def _load_nbody(self):
-        for n in range(1,100):
-            path = joinpath(self.output_dir, 'monitor', f'planet{n}.dat')
+        for n in range(0,100):
+            path = joinpath(self.output_dir, 'monitor', f'nbody{n}.dat')
             if os.path.exists(path):
                 nbody = Nbody(n, filepath=path)
                 self.nbody.append(nbody)
@@ -955,21 +965,68 @@ class Loader:
         rv += f"| snapshot_time: {self.snapshot_time[0]} ... {self.snapshot_time[-1]}\n"
         rv += f"| monitor_number: {self.monitor_number[0]} ... {self.monitor_number[-1]}\n"
         rv += f"| units: Units\n"
-        rv += f"| target_units" + ("= None" if self.target_units is None else ": Units") + "\n"
-        rv += f"| hydro: Hydro\n"
+        rv += f"| target_units" + (" = None" if self.target_units is None else ": Units") + "\n"
+        rv += f"| gas: Hydro\n"
         rv += f"| nbody: Nbody\n"
         rv += f"| params: Params\n"
         rv += f"| particles" + (" = None" if self.particles is None else ": Particles") + "\n"
         rv += "====================\n"
         return rv
     
-    def print_recurse(self):
+    def print(self, recursive=False):
         print(self)
-        indent = 1
-        print_indented(repr(self.units), indent=indent)
-        print_indented(repr(self.params), indent=indent)
-        if self.particles is not None:
-            print(repr(self.particles), indent=indent)
-        for nbody in self.nbody:
-            print_indented(repr(nbody), indent=indent)
-        self.hydro.print_recurse(indent=indent)
+        if recursive:
+            indent = 1
+            print_indented(repr(self.units), indent=indent)
+            print_indented(repr(self.params), indent=indent)
+            if self.particles is not None:
+                print(repr(self.particles), indent=indent)
+            for nbody in self.nbody:
+                print_indented(repr(nbody), indent=indent)
+            self.gas.print(indent=indent, recursive=recursive)
+
+
+def main(args=sys.argv[1:]):
+    import argparse
+    parser = argparse.ArgumentParser(description='Load FargoCPT data.')
+    parser.add_argument('output_dir', type=str, help='The output directory of the simulation.')
+    parser.add_argument("path", nargs="?", type=str, help="The path to the data to be printed. Eg. 'gas.vars2D' or ''.")
+    parser.add_argument("N", nargs="?", type=int, help="Snapshot number to load")
+    parser.add_argument("-r", "--recursive", action="store_true", help="Print the full data structure.")
+    opts = parser.parse_args(args)
+
+    try:
+        l = Loader(opts.output_dir)
+    except FileNotFoundError as e:
+        print(e)
+        sys.exit(1)
+    
+    obj = l
+
+    if opts.path is not None:
+        path = opts.path.split('.')
+        for p in path:
+            # interpret integer values of p as list indices
+            try:
+                ind = int(p)
+            except ValueError:
+                ind = None
+            if ind is not None:
+                obj = obj[ind]
+            else:
+                try:
+                    obj = getattr(obj, p)
+                except AttributeError:
+                    if hasattr(obj, "get") and opts.N is not None:
+                        obj = obj.get(p, opts.N)
+                    else:
+                        raise
+
+
+    if hasattr(obj, 'print'):
+        obj.print(recursive=opts.recursive)
+    else:
+        print(obj)
+
+if __name__ == "__main__":
+    main()

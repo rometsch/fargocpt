@@ -36,7 +36,7 @@ void restart_load(t_data &data) {
 				  "Loading polargrinds for damping...\n");
 	    data[t_data::SIGMA].read2D();
 	    data[t_data::V_RADIAL].read2D();
-		if (!std::filesystem::exists(output::snapshot_dir + "vazi.dat")) {
+		if (!std::filesystem::exists(output::snapshot_dir + "/vazi.dat")) {
 			logging::print_master(
 				LOG_ERROR
 				"vazi.dat not found in snapshot directory '%s'. Maybe it's from an old version and called 'vtheta.dat'. In that case, rename it to 'vazi.dat'.\n", output::snapshot_dir.c_str());
@@ -61,7 +61,7 @@ void restart_load(t_data &data) {
 			      start_mode::restart_from);
 	data[t_data::SIGMA].read2D();
 	data[t_data::V_RADIAL].read2D();
-	if (!std::filesystem::exists(output::snapshot_dir + "vazi.dat")) {
+	if (!std::filesystem::exists(output::snapshot_dir + "/vazi.dat")) {
 			logging::print_master(
 				LOG_ERROR
 				"vazi.dat not found in snapshot directory '%s'. Maybe it's from an old version and called 'vtheta.dat'. In that case, rename it to 'vazi.dat'.\n", output::snapshot_dir.c_str());

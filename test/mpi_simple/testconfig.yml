@@ -1,0 +1,3 @@
+testname: mpi_simple
+setupfiles:
+  - setup.yml

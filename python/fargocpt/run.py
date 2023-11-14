@@ -9,9 +9,13 @@ from time import sleep
 import os
 import re
 import tempfile
+import yaml
+import shutil
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
-executable_path = os.path.join(file_dir, "fargocpt")
+config_dir = os.path.expanduser("~/.config/fargocpt")
+config_file = os.path.join(config_dir, "config.yml")
+
 
 fargo_help_string = """This script is a wrapper to start the fargocpt code.
 Its main use is to specify the number of processes started and threads used per process, and to automatically infer some information about the available cpus and the numa nodes on the system.
@@ -37,42 +41,41 @@ Following are the additional options available through this wrapper, refered to 
 
 usage = "%(prog)s [wrapper options] [fargo options] start|restart <N>|auto configfile"
 
-
-def main():
-    opts, fargo_args = parse_opts()
+def main(args=sys.argv[1:], exe=None):
+    opts, fargo_args = parse_opts(args)
 
     if opts.print_numa:
         print(get_numa_nodes_linux())
         print("Exiting now due to --print-numa option.")
         exit(0)
 
-    if not os.path.exists(executable_path):
-        print(f"Executable not found! I looked for {executable_path}.")
-        src_dir = os.path.relpath(os.path.join(
-            file_dir, "..", "src"), os.getcwd())
-        print(f"Please compile the code first: make -C {src_dir} -j 4")
+    try:
+        if opts.exe is not None:
+            exe = opts.exe
+        executable_path = find_executable(exe)
+    except RuntimeError as e:
+        print(e)
         exit(1)
 
-    if opts.np is not None and opts.nt is not None:
-        N_procs = opts.np
-        N_OMP_threads = opts.nt
-    elif opts.np is None and opts.nt is not None:
+    rv = run(fargo_args, np=opts.np, nt=opts.nt, mpi_verbose=opts.mpi_verbose,
+              fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp,
+              detach=opts.detach, exe=executable_path)
+    sys.exit(rv)
+
+
+def determine_cpu_allocation(np=None, nt=None):
+    if np is not None and nt is not None:
+        N_procs = np
+        N_OMP_threads = nt
+    elif np is None and nt is not None:
         N_procs = 1
-        N_OMP_threads = opts.nt
-    elif opts.np is not None and opts.nt is None:
-        N_procs = opts.np
+        N_OMP_threads = nt
+    elif np is not None and nt is None:
+        N_procs = np
         N_OMP_threads = 1
     else:
         N_procs, N_OMP_threads = get_auto_num_procs_and_threads()
-
-    print(
-        f"Running fargo with {N_procs} processes with {N_OMP_threads} OMP threads each.", flush=True)
-
-    rv = run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=opts.mpi_verbose,
-              fallback_mpi=opts.fallback_mpi, fallback_openmp=opts.fallback_openmp,
-              detach=opts.detach)
-    sys.exit(rv)
-
+    return N_procs, N_OMP_threads
 
 def detach_processGroup():
     """
@@ -83,8 +86,45 @@ def detach_processGroup():
     """
     os.setpgrp()
 
+def find_executable(exe=None):
+    """ Attempt to find the fargocpt executable.
+    Check the following locations:
+    1. Command line argument option
+    2. ~/.config/fargocpt/config.yml
+    3. In the path
+    """
+    executable_path = None
+    if exe is not None:
+        # 1. Command line argument option
+        executable_path = exe
+    
+    if executable_path is None:
+        # 2. ~/.config/fargocpt/config.yml
+        try:
+            with open(config_file, "r") as infile:
+                config = yaml.safe_load(infile)
+                executable_path = config["exe_path"]
+        except FileNotFoundError:
+            executable_path = None
+        
+    if executable_path is None:
+        # 3. In the path
+        guess = shutil.which("fargocpt_exe")
+        if guess is not None:
+            executable_path = guess
 
-def parse_opts():
+    if executable_path is None:
+        msg = "Could not locate the fargocpt_exe executable.\nThere are three options to specify the path to it wich are checked in the following order.\n  1. specify it via the --exe cli option.\n  2. Create a config file at ~/.config/fargocpt/config.yml with the key 'exe_path' pointing to the fargocpt executable.\n  3. Put the bin/fargocpt_exe executable in your path and name it 'fargocpt_exe'."
+        raise RuntimeError(msg)
+
+    if not os.path.exists(executable_path):
+        msg = f"Executable not found! I looked for {executable_path}\nPlease compile the code first: make -C <source dir in repo> -j 4"
+        raise RuntimeError(msg)
+    
+    return executable_path
+
+
+def parse_opts(args=sys.argv[1:]):
     parser = ArgumentParser(
         usage=usage, description=fargo_help_string, formatter_class=RawTextHelpFormatter)
     parser.add_argument("-np", type=int, help="Number of processes to start.")
@@ -99,36 +139,19 @@ def parse_opts():
     parser.add_argument("--fallback-openmp", action="store_true",
                         help="Fall back to calling openmp directly.")
     parser.add_argument("-d", "--detach", action="store_true", help="Detach the launcher from the simulation and run in the background.")
-    opts, remainder = parser.parse_known_args()
+    parser.add_argument("-e", "--exe", type=str, default=None, help="Path to the fargocpt executable.")
+    opts, remainder = parser.parse_known_args(args)
     return opts, remainder
 
 
-def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None, detach=False):
-    """Run a fargo simulation.
-
-    Args:
-        N_procs (int): Number of MPI processes to start.
-        N_OMP_threads (int): Number of OpenMP threads to start per process.
-        fargo_args (list of str): Arguments to be passed to the fargo executable.
-        mpi_verbose (bool, optional): Verbose output of mpirun about process allocation. Defaults to False.
-        stdout (file, optional): File to redirect stdout to. Defaults to None.
-        stderr (file, optional): File to redirect stderr to. Defaults to None.
-        fallback_mpi (bool, optional): If True, fall back to a simpler call of mpi. Defaults to False.
-        fallback_openmp (bool, optional): If True, fall back to calling openmp directly. Defaults to False.
-        envfile (str, optional): Before running fargo, source this file first. Use for loading modules on clusters.
-    """
-
-    pidfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
-    pidfilepath = pidfile.name
-    pidfile.close()
-
-
+def get_mpi_command(N_procs, N_OMP_threads, mpi_verbose=False, fallback_mpi=False, fallback_openmp=False, pid_file_path=None):
     if not fallback_mpi and not fallback_openmp:
         cmd = ["mpirun"]
         cmd += ["-np", f"{N_procs}"]
         # write out pid of mpirun to correctly terminate multiprocess sims
         # if N_procs > 1:
-        cmd += ["--report-pid", pidfilepath]
+        if pid_file_path is not None:
+            cmd += ["--report-pid", pid_file_path]
         if mpi_verbose:
             cmd += ["--display-map"]
             cmd += ["--display-allocation"]
@@ -156,7 +179,8 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         N_procs = N_procs * N_OMP_threads
         N_OMP_threads = 1
         cmd = ["mpirun"]
-        cmd += ["--report-pid", pidfilepath]
+        if pid_file_path is not None:
+            cmd += ["--report-pid", pid_file_path]
         cmd += ["-np", f"{N_procs}"]
         env = os.environ.copy()
         env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
@@ -168,6 +192,34 @@ def run_fargo(N_procs, N_OMP_threads, fargo_args, mpi_verbose=False, stdout=None
         env_update = {"OMP_NUM_THREADS": f"{N_OMP_threads}"}
         env.update(env_update)
         cmd = []
+    return cmd, env, env_update
+
+def run(fargo_args, np=None, nt=None, mpi_verbose=False, stdout=None, stderr=None, fallback_mpi=False, fallback_openmp=False, envfile=None, detach=False, exe=None):
+    """Run a fargo simulation.
+
+    Args:
+        np (int): Number of MPI processes to start.
+        nt (int): Number of OpenMP threads to start per process.
+        fargo_args (list of str): Arguments to be passed to the fargo executable.
+        mpi_verbose (bool, optional): Verbose output of mpirun about process allocation. Defaults to False.
+        stdout (file, optional): File to redirect stdout to. Defaults to None.
+        stderr (file, optional): File to redirect stderr to. Defaults to None.
+        fallback_mpi (bool, optional): If True, fall back to a simpler call of mpi. Defaults to False.
+        fallback_openmp (bool, optional): If True, fall back to calling openmp directly. Defaults to False.
+        envfile (str, optional): Before running fargo, source this file first. Use for loading modules on clusters.
+        detach (bool, optional): Detach the launcher from the simulation and run in the background. Defaults to False.
+        exe (str, optional): Path to the fargocpt executable. Defaults to None.
+    """
+
+    executable_path = find_executable(exe)
+    N_procs, N_OMP_threads = determine_cpu_allocation(np=np, nt=nt)
+
+    pidfile = tempfile.NamedTemporaryFile(mode="w", delete=False)
+    pidfilepath = pidfile.name
+    pidfile.close()
+
+    cmd, env, env_update = get_mpi_command(N_procs, N_OMP_threads, mpi_verbose=mpi_verbose, fallback_mpi=fallback_mpi, fallback_openmp=fallback_openmp, pid_file_path=pidfilepath)
+    
     cmd += [executable_path] + fargo_args
     if fallback_openmp:
         cmd += ["--pidfile", pidfilepath]

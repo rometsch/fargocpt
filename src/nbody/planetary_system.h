@@ -19,7 +19,7 @@ class t_planetary_system
     inline void add_planet(t_planet *planet)
     {
 	m_planets.push_back(planet);
-	planet->set_planet_number(get_number_of_planets());
+	planet->set_planet_number(get_number_of_planets()-1);
     }
 	inline void delete_planet(const unsigned int planet_id)
 	{

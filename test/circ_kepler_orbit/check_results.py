@@ -5,7 +5,7 @@ import yaml
 
 def test(outdir):
 
-    t, x, y = np.genfromtxt(outdir + "/monitor/planet2.dat", usecols=(7,2,3), unpack=True)
+    t, x, y = np.genfromtxt(outdir + "/monitor/nbody1.dat", usecols=(7,2,3), unpack=True)
     t = t
 
     OmegaP = np.sqrt(1 + 1e-3)

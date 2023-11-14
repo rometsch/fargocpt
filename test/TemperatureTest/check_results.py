@@ -1,51 +1,12 @@
 #!/usr/bin/env python3
-import subprocess
-import sys
-import os
-from argparse import ArgumentParser
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def compile_fargo(fargo_path, Nthreads, silent=False):
-
-    if silent:
-        out = open("make.log", "w")
-        err = out
-    else:
-        out = sys.stdout
-        err = sys.stderr
-
-    subprocess.run(['make', '-j', str(Nthreads), '-C' 'src/'], cwd=fargo_path, stdout=out, stderr=err)
-
-    if silent: 
-        out.close()
-
-def run(fargo_path, par_file, Nthreads, Nprocs, silent=False):
-    import sys
-    fargo_path = os.path.abspath(fargo_path)
-    bindir = os.path.join(fargo_path, 'bin')
-    sys.path.append(bindir)
-    from fargocpt import run_fargo
-
-    if silent:
-        out = open("sim.log", "w")
-        err = open("sim.err", "w")
-    else:
-        out = sys.stdout
-        err = sys.stderr
-
-    run_fargo(Nprocs, Nthreads, fargo_args=["start", par_file], stdout=out, stderr=err)
-
-    if silent:
-        out.close()
-        err.close()
-
-def test(out1, dt, interactive=False, log=True):
+def test(out1, Nsnapshot=10, interactive=False, log=True):
 
 
-    file_name1 = out1 + f"snapshots/{dt}/Temperature1D.dat"
+    file_name1 = out1 + f"snapshots/{Nsnapshot}/Temperature1D.dat"
     data1 = np.fromfile(file_name1)
     quant1 = data1[1::4].flatten()
 
@@ -93,7 +54,7 @@ def test(out1, dt, interactive=False, log=True):
 
     ### Plot density
 
-    file_name = out1 + f"snapshots/{dt}/Sigma1D.dat"
+    file_name = out1 + f"snapshots/{Nsnapshot}/Sigma1D.dat"
     data_dens = np.fromfile(file_name)
     densnum = data_dens[1::4].flatten() * Sigma0
 
@@ -158,26 +119,3 @@ def test(out1, dt, interactive=False, log=True):
         print("SUCCESS: TemperatureTest")
     else:
         print("FAIL: TemperatureTest")
-
-def main():
-
-    parser = ArgumentParser()
-    parser.add_argument('-nt', type=int, default=2, help='Number of threads per process.')
-    parser.add_argument('-np', type=int, default=1, help='Number of MPI processes.')
-    parser.add_argument('-i', '--interactive', action='store_true', help='Interactive mode. Show the plot in a window.')
-    parser.add_argument('-p', '--plot', action='store_true', help='Only plot the results.')
-    parser.add_argument('-l', '--linear', action='store_true', help='Linear y scaling in plot.')
-    parser.add_argument('-s', '--silent', action='store_true', help="Don't print anything.")
-
-    opts = parser.parse_args()
-
-    Nthreads = opts.nt
-    Nprocs = opts.np
-
-    if not opts.plot:
-        compile_fargo('../../', Nprocs*Nthreads, silent=opts.silent)
-        run('../../', 'angelo.yml', Nthreads, Nprocs, silent=opts.silent)   
-    test('../../output/tests/TemperatureTest/out/', 10, interactive=opts.interactive, log=not opts.linear)
-
-if __name__=='__main__':
-    main()

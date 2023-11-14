@@ -9,10 +9,10 @@ def test(_):
         testconfig = yaml.safe_load(ymlfile)
     testname = testconfig['testname']
 
-    p_LF = np.loadtxt(f"../../output/tests/{testname}/LF_disk_at_center/monitor/planet2.dat", skiprows=22)
-    p_e = np.loadtxt(f"../../output/tests/{testname}/euler_disk_at_center/monitor/planet2.dat", skiprows=22)
-    #p_e = np.loadtxt("LF_disk_at_center/monitor/bigplanet2.dat", skiprows=22)
-    p_ref = np.loadtxt(f"../../output/tests/{testname}/star_at_center/monitor/planet2.dat", skiprows=22)
+    p_LF = np.loadtxt(f"../../output/tests/{testname}/LF_disk_at_center/monitor/nbody1.dat", skiprows=22)
+    p_e = np.loadtxt(f"../../output/tests/{testname}/euler_disk_at_center/monitor/nbody1.dat", skiprows=22)
+    #p_e = np.loadtxt("LF_disk_at_center/monitor/nbody1.dat", skiprows=22)
+    p_ref = np.loadtxt(f"../../output/tests/{testname}/star_at_center/monitor/nbody1.dat", skiprows=22)
 
     t_ref = p_ref[:,7]
     x_ref = p_ref[:,2]

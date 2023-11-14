@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-
-
 import os
-import sys
 
-this_dir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-bin_dir = os.path.join(this_dir, "bin")
-sys.path.append(bin_dir)
+try:
+    from fargocpt.run import main
+except ImportError:
+    import sys
+    sys.path.append("../python/")
+    from fargocpt.run import main
 
-from fargocpt import main
+file_dir = os.path.dirname(os.path.realpath(__file__))
 
-main()
+if __name__=="__main__":
+    main(exe=file_dir+"/bin/fargocpt_exe")
