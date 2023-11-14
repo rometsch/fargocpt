@@ -43,7 +43,7 @@ def main():
     for outdir in dirs:
         # print(outdir)
 
-        fname = f"{outdir}/monitor/planet2.dat"
+        fname = f"{outdir}/monitor/nbody1.dat"
         name = outdir.rstrip("/").split("/")[-1]
         try:
             time, torque, a = np.genfromtxt(fname, usecols=(7,18,12), unpack=True)
