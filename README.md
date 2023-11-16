@@ -229,12 +229,7 @@ Inside the container, the program can be called with the `fargocpt` command, whi
   + Dust diffusion
 + N-body
   + migrating low mass planet
-TBD
-+ self-gravity
-+ program
-  + valgrind run
-    + ignore OpenMPI errors
-      + ignore rebound padding (Syscall param write(buf) points to uninitialized byte(s))
++ more to be documented...
 
 
 ## Open Source code used in this program
@@ -242,4 +237,7 @@ TBD
 + [REBOUND](https://github.com/hannorein/rebound) for N-body (GPL3)
 + [yaml-cpp](https://github.com/jbeder/yaml-cpp) for the config files (MIT License)
 + [units by LLNL](https://github.com/LLNL/units) for the handling of physical units (BSD 3-Clause)
++ [Opensimplex noise](https://github.com/deerel/OpenSimplexNoise), for randomization of the initial surface density profile ([The Unlicense
+](https://github.com/deerel/OpenSimplexNoise/blob/master/UNLICENSE))
++ [jsf RNG](https://www.pcg-random.org/posts/bob-jenkins-small-prng-passes-practrand.html) for random number in dust diffusion and particle initialization. ([Source](https://gist.github.com/imneme/85cff47d4bad8de6bdeb671f9c76c814)) (MIT License)
 
