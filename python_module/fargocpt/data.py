@@ -76,7 +76,10 @@ class Grid:
     def radc(self):
         if self.radi is None:
             return None
-        return 0.5*(self.radi[1:] + self.radi[:-1])
+        # approximate center in polar coords
+        ri = self.radi
+        rv = 2/3*(ri[1:]**2/(ri[1:]+ri[:-1]) + ri[:-1]) 
+        return rv
         
     @property
     def phic(self):
@@ -95,6 +98,23 @@ class Grid:
         if self.radi is None:
             return None
         return self.radi[1:] - self.radi[:-1]
+
+    @property
+    def A(self):
+        """ Return the area of the cells as a 1d vector for each radius."""
+        if self.radi is None or self.phic is None:
+            return None
+        dphi = self.dphi
+        ri = self.radi
+        A = 0.5*(ri[1:]**2 - ri[:-1]**2)*dphi
+        return A
+    
+    @property
+    def Agrid(self):
+        """ Return the area of the cells as a 2d array."""
+        if self.radi is None or self.phic is None:
+            return None
+        return np.repeat(self.A[:, np.newaxis], self.Naz, axis=1)
 
     def meshgrid_plot(self, intr = False, intf = False):
         """ Return a meshgrid of the radial and azimuthal coordinates for plotting purposes.
