@@ -76,7 +76,10 @@ class Grid:
     def radc(self):
         if self.radi is None:
             return None
-        return 0.5*(self.radi[1:] + self.radi[:-1])
+        # approximate center in polar coords
+        ri = self.radi
+        rv = 2/3*(ri[1:]**2/(ri[1:]+ri[:-1]) + ri[:-1]) 
+        return rv
         
     @property
     def phic(self):
