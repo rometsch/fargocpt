@@ -152,5 +152,5 @@ def test(output_dir):
 
 
 if __name__=="__main__":
-    output_dir = "../../output/tests/self_gravity/out"
+    output_dir = "../../output/tests/self_gravity_solver/out"
     test(output_dir)

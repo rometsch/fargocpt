@@ -47,8 +47,8 @@ CFLmaxVar: 1.1 # maximum factor the timestep can increase in one hydro step
 
 # Nrad: 128   # Radial number of zones
 # Naz: 256  # Azimuthal number of
-Nrad: 32   # Radial number of zones
-Naz: 64  # Azimuthal number of
+Nrad: 128   # Radial number of zones
+Naz: 256  # Azimuthal number of
 
 
 Rmin: 1   # Inner boundary radius
@@ -105,7 +105,7 @@ DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boun
 # Output control parameters
 #
 
-OutputDir: ../../output/tests/self_gravity/out
+OutputDir: ../../output/tests/self_gravity_solver/out
 
 ## Logging messages
 LogAfterRealSeconds: 5 # write a log line to console every 'LogAfterRealSeconds' seconds
