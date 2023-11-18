@@ -99,6 +99,16 @@ class Grid:
             return None
         return self.radi[1:] - self.radi[:-1]
 
+    @property
+    def A(self):
+        """ Return the area of the cells."""
+        if self.radi is None or self.phic is None:
+            return None
+        dphi = self.phi()
+        Ri = self.radi()
+        A = 0.5*(Ri[1:,1:]**2 - Ri[:-1,1:]**2)*dphi
+        return A
+
     def meshgrid_plot(self, intr = False, intf = False):
         """ Return a meshgrid of the radial and azimuthal coordinates for plotting purposes.
 
