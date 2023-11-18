@@ -106,7 +106,7 @@ def test(output_dir):
     gr_code = gr_code.to_value("cm/s2")
 
 
-    fig, axs = plt.subplots(2,1,height_ratios=[3,1], sharex=True)
+    fig, axs = plt.subplots(2,1,height_ratios=[3,1], sharex=True, figsize=(6,4))
     fig.subplots_adjust(hspace=0)
     ax = axs[0]
     ax.plot(r_direct, gr_direct, label="direct sum")
@@ -125,7 +125,6 @@ def test(output_dir):
     ax.set_yticks([1e-3, 1e-2, 1e-1, 1])
 
     fig.savefig("plot.jpg", dpi=150)
-
 
     threshold = 0.054
     diff_test = diff[r_code > 2]
