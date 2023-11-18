@@ -2,9 +2,9 @@
 Disk: yes   # enable disk [default = yes]
 DiskFeedback: yes   # Calculate incfluence of the disk on the star
 SelfGravity: yes   # choose: Yes, Z or No
-SelfGravityMode: basic
+# SelfGravityMode: basic
 # SelfGravityMode: BesselKernel
-# SelfGravityMode: symmetric
+SelfGravityMode: symmetric
 
 # Units
 l0: 1 au   # Base length unit of the simulation [default: 1.0 au]
@@ -44,9 +44,12 @@ CFL: 0.5
 CFLmaxVar: 1.1 # maximum factor the timestep can increase in one hydro step
 
 ### Mesh parameters
-cps:  -1.0  # Set cells per scaleheight: if cps > 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio
-Nrad: 512   # Radial number of zones
-Naz: 1024   # Azimuthal number of
+
+# Nrad: 128   # Radial number of zones
+# Naz: 256  # Azimuthal number of
+Nrad: 32   # Radial number of zones
+Naz: 64  # Azimuthal number of
+
 
 Rmin: 1   # Inner boundary radius
 Rmax: 12.5   # Outer boundary radius
