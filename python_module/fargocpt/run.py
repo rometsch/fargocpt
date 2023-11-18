@@ -103,7 +103,7 @@ def find_executable(exe=None):
         try:
             with open(config_file, "r") as infile:
                 config = yaml.safe_load(infile)
-                executable_path = config["exe_path"]
+                executable_path = os.path.expanduser(config["exe_path"])
         except FileNotFoundError:
             executable_path = None
         
