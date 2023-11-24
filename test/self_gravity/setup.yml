@@ -64,8 +64,6 @@ ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmo
 Sigma0: 200 g/cm2   # surface density at r=1 in g/cm^2
 SigmaSlope: 1   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SigmaFloor: 1e-9   # floor surface density in multiples of sigma0 [default = 1e-9]
-DiskMass: 1
-SetSigma0: yes
 
 AspectRatio: 0.05   # Thickness over Radius in the disk
 FlaringIndex: 0.0   # Slope of Temperature/radius profile
