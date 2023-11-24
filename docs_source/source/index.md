@@ -8,6 +8,7 @@ This is yet another version of the FARGO code.
 
 parameters
 usage
+Examples/index
 input
 output
 units
