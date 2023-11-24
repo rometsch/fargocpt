@@ -6,6 +6,7 @@ This is yet another version of the FARGO code.
 ``` {toctree}
 :maxdepth: 2
 
+parameters
 usage
 input
 output
