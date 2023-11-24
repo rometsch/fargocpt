@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Disk Plots &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Loading data from the simulation output - the automatic way" href="210_DataLoading_Automatic.html" />
+    <link rel="prev" title="Examples" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="disk-plots">
+<h1>Disk Plots<a class="headerlink" href="#disk-plots" title="Link to this heading">¶</a></h1>
+<p>This notebook shows how to produce top-down view plots of the disk.</p>
+<p>We will reuse the data from the <code class="docutils literal notranslate"><span class="pre">100_quickstart</span></code> example.
+Let’s make sure it existst.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">example_name</span> <span class="o">=</span> <span class="s2">&quot;100_quickstart&quot;</span>
+<span class="n">example_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;example_dirs/</span><span class="si">{</span><span class="n">example_name</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">==</span> <span class="n">example_name</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">example_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">example_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;output/out/snapshots/list.txt&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No snapshots found. Please run the simulation inside the 100_Quickstart.ipynb notebook first!&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Please go through the 100_Quickstart.ipynb notebook first!&quot;</span><span class="p">)</span>
+
+<span class="n">repo_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;../../../&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current working directory: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repository root directory: </span><span class="si">{</span><span class="n">repo_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Current working directory: /home/rometsch/repo/fargocpt/examples/example_dirs/100_quickstart
+Repository root directory: /home/rometsch/repo/fargocpt
+</pre></div>
+</div>
+<section id="plotting-fields">
+<h2>Plotting fields<a class="headerlink" href="#plotting-fields" title="Link to this heading">¶</a></h2>
+<p>The data is present in polar (<span class="math notranslate nohighlight">\(r-\varphi\)</span>) coordinates.
+To plot the disk as a circular object, we can calculate the coordinates in cartesian coordinates and then use <code class="docutils literal notranslate"><span class="pre">pcolormesh</span></code> from <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code>.</p>
+<p>Below is a function to plot a field from the simulation output in such a way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mplcolors</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="k">def</span> <span class="nf">plot_field</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataunit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">R</span><span class="p">,</span> <span class="n">PHI</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">vars2D</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">grid_for_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dataunit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dataunit</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">unit</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">dataunit</span><span class="p">)</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">PHI</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">PHI</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
+
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">mplcolors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+
+    <span class="c1"># Hacky way to support arrays that are defined on the radial interfaces</span>
+    <span class="k">if</span> <span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">C</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]</span>
+
+    <span class="n">pcm</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">C</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">snapshot_time</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;kyr&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">title</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">kyr, N=</span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcm</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">dataunit</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">fig</span>
+</pre></div>
+</div>
+<p>Now, let’s plot some fields.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fargocpt</span> <span class="kn">import</span> <span class="n">Loader</span>
+<span class="n">l</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="s2">&quot;output/out/&quot;</span><span class="p">)</span>
+<span class="n">Nlast</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">plot_field</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="s2">&quot;Sigma&quot;</span><span class="p">,</span> <span class="n">Nlast</span><span class="p">,</span> <span class="n">dataunit</span><span class="o">=</span><span class="s2">&quot;g/cm2&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Sigma&quot;</span><span class="p">);</span>
+<span class="n">plot_field</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="s2">&quot;vrad&quot;</span><span class="p">,</span> <span class="n">Nlast</span><span class="p">,</span> <span class="n">dataunit</span><span class="o">=</span><span class="s2">&quot;cm/s&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;bwr&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Velocity radial&quot;</span><span class="p">);</span>
+<span class="n">plot_field</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="s2">&quot;vazi&quot;</span><span class="p">,</span> <span class="n">Nlast</span><span class="p">,</span> <span class="n">dataunit</span><span class="o">=</span><span class="s2">&quot;cm/s&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;bwr&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Velocity azimuthal&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/101_DiskPlots_7_0.png" /></p>
+<p><img alt="png" src="../_images/101_DiskPlots_7_1.png" /></p>
+<p><img alt="png" src="../_images/101_DiskPlots_7_2.png" /></p>
+</section>
+<section id="using-the-overview-widget">
+<h2>Using the overview widget<a class="headerlink" href="#using-the-overview-widget" title="Link to this heading">¶</a></h2>
+<p>We can also use the overview widget.
+Just remove the <code class="docutils literal notranslate"><span class="pre">rphi</span></code> in the variable descriptions as done below.</p>
+<p>Run the next cell again to refresh the snapshot list.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># %matplotlib widget</span>
+<span class="kn">from</span> <span class="nn">fargocpt</span> <span class="kn">import</span> <span class="n">Overview</span>
+<span class="n">overview</span> <span class="o">=</span> <span class="n">Overview</span><span class="p">(</span><span class="s2">&quot;output/out/&quot;</span><span class="p">,</span> 
+                    <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2:Sigma:rel,rphi&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;2:vazi:rel,rphi&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;2:vrad:diff,rphi&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;1:Sigma:minmax&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;1:vazi:rel,minmax&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;1:vrad:diff,minmax&quot;</span><span class="p">],</span>
+                          <span class="n">start</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">overview</span><span class="o">.</span><span class="n">create</span><span class="p">();</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/101_DiskPlots_10_0.png" /></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Disk Plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html">Loading data from the simulation output - the automatic way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html#d-data">2D data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="300_Bootstrap_Simulation.html">FargoCPT Bootstrap Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="401_Selfgravity.html">FargoCPT Selfgravity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Numerics/index.html">Physics and numerics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Examples</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Examples</a></li>
+      <li>Next: <a href="210_DataLoading_Automatic.html" title="next chapter">Loading data from the simulation output - the automatic way</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/Examples/101_DiskPlots.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Parameters &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="FargoCPT" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="parameters">
+<h1>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h1>
+<p>Following is a list of parameters that can be used to configure physics and numerics of a simulation and the behavior of the program.</p>
+<section id="active-parameters">
+<h2>Active Parameters<a class="headerlink" href="#active-parameters" title="Link to this heading">¶</a></h2>
+<p>For numerical parameters, the range of choices are abreviated as follows:</p>
+<ul class="simple">
+<li><p>‘-’ : the range includes negative numbers.</p></li>
+<li><p>‘0’ : the range includes zero.</p></li>
+<li><p>‘+’ : the range includes positive numbers.</p></li>
+</ul>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Parameter</p></th>
+<th class="head text-left"><p>Choices</p></th>
+<th class="head text-left"><p>Default</p></th>
+<th class="head text-left"><p>Type</p></th>
+<th class="head text-left"><p>Unit Support</p></th>
+<th class="head text-left"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>AccreteWithoutDiskFeedback</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Let planets accrete without disk feedback being enabled.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>AdiabaticIndex</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.4</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Numerical value or FIT_ISOTHERMAL (only for polytropic equation of state)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>AlphaCold</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0.01</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Alpha value for the cold state in scurve alpha.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>AlphaHot</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0.1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Alpha value for the hot state in scurve alpha.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>AlphaMode</p></td>
+<td class="text-left"><p>0, 1, 2, 3</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Select how the viscosity is calculated. 0: Const alpha  1: Scurve Alpha  2: Nbody distance dependend  3: Scurve Alpha with ion fraction</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ArtificialViscosity</p></td>
+<td class="text-left"><p>none, TW, SN</p></td>
+<td class="text-left"><p>SN</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Type of artificial viscosity [default = SN] TODO: change default to TW</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ArtificialViscosityDissipation</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Use artificial viscosity in dissipation function.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ArtificialViscosityFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.41</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Artificial viscosity factor/constant (von Neumann-Richtmyer constant).</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>AspectRatio</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.05</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the reference value for the aspect ratio: h = ASPECTRATIO * r^{1+flaringindex}</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>AspectRatioMode</p></td>
+<td class="text-left"><p>0, 1, 2</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Compute aspectratio with respect to: 0: Primary object, 1: Nbody system, 2: Nbody center of mass</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>BitwiseExactRestarting</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write out Qplus and Qminus 2D arrays to snapshot for bitwise exact restarting. This is really usefull to test development changes in the code.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>BodyForceFromPotential</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Consider the gravitational force from the Nbody onto the disk via the potential.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CFL</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>CFL factor.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CFLmaxVar</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Maximum variation of the CFL timestep over one iteration.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CICPLANET</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize planets in center of cell. Only works for zero eccentricity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CartesianParticles</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Particle coordinates are stored in memory and in output files in cartesian coordinates.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CenterProfileDensityCorrectionFactor</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CircumBinaryDecayExponent</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0.75</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CircumBinaryDecayWidth</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0.84</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CircumBinaryRing</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize a circumbinary ring.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CircumBinaryRingEnhancementFactor</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>2.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CircumBinaryRingPosition</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>4.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Position of the circumbinary ring.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CircumBinaryRingWidth</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0.6</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Width of the circumbinary ring.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CompatibilityNoStarSmoothing</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Disable smoothing of the gravitational interaction for the central star. This is included for compatibility reasons to compare to simulations of other codes which do not smooth gravity from the central star. . See Mueller &amp; Kley (2013) doi:10.1051/0004-6361/201322503 for why this is important.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CompatibilitySmoothingPlanetLoc</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Use the scale height at the planet position for the smoothing length calculation instead of the scaleheight at the cell. This is included for compatibility reasons to compare to simulations of other codes which do not use the scale height at the location of the cell. See Mueller &amp; Kley (2013) doi:10.1051/0004-6361/201322503 for why this is important.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ConstantViscosity</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Set a constant kinetic viscosity.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CoolingBeta</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Paramter value of beta for the beta cooling.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CoolingBetaLocal</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable beta cooling Q- = T * Omega/beta</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CoolingBetaRampUp</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Increase beta cooling on this timescale.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CoolingBetaReference</p></td>
+<td class="text-left"><p>reference, diskmodel, floor</p></td>
+<td class="text-left"><p>Zero</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Reference temperature/energy profile for beta cooling.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CoolingRadiativeFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Fudge factor for radiative cooling. Leave this at 1.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CorotationReferenceBody</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Select the Nbody object which is the reference object for the automatic calculation of the corotation angular velocity for a rotating frame.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CorrectDiskSelfgravity</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Substract the azimuthal average of the surface density in the calculation of torques on Nbody object to make the disk and Nbody have the same central mass around which they orbit. See Baruteau &amp; Masset (2008). [default=not selfgravity turned on]</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Damping</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Use a wave-damping zone. Exponentially damp to a profile.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DampingEnergyInner</p></td>
+<td class="text-left"><p>reference, mean, zero, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of energy at inner boundary</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DampingEnergyOuter</p></td>
+<td class="text-left"><p>reference, mean, zero, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of energy at outer boundary</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DampingInnerLimit</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.05</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the outer limit of the inner wave damping zone: Rmin*Limit. Zone is diabled for limit &lt; 1. Rmin is the radius of the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DampingOuterLimit</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.95</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the inner limit of the outer wave damping zone: Rmax*Limit. Zone is diabled for limit &gt; 1. Rmax is the radius of the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DampingSurfaceDensityInner</p></td>
+<td class="text-left"><p>reference, mean, zero, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of surface density at inner boundary</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DampingSurfaceDensityOuter</p></td>
+<td class="text-left"><p>reference, mean, zero, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of surface density at outer boundary</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DampingTimeFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Damping time factor. Values will be exponentially damped on a timescale of factor*Keplerian Period at boundary radius.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DampingTimeRadiusOuter</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>2.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Reference radius for the outer damping time. default: Outer domain radius RMAX</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DampingVAzimuthalInner</p></td>
+<td class="text-left"><p>reference, mean, zero, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of azimuthal velocity at inner boundary</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DampingVAzimuthalOuter</p></td>
+<td class="text-left"><p>reference, mean, zero, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of azimuthal velocity at outer boundary</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DampingVRadialInner</p></td>
+<td class="text-left"><p>reference, mean, zero, visc, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of radial velocity at inner boundary. For damping to viscous speed, use visc.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DampingVRadialOuter</p></td>
+<td class="text-left"><p>reference, mean, zero, none</p></td>
+<td class="text-left"><p>None</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Target quantity of radial velocity at outer boundary</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DensityFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>2.5066282746310002</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Factor for convertion from surface density to density. Leave this as it is! [default = sqrt(2.0*pi)]</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Disk</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Turn on hydro part of the simulation. Set this to no to, e.g., test the dust module.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DiskFeedback</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable gravitational forces from the disk onto the planets. Enable migration.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DiskMass</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.01</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>In case of SetSigma0=yes, use this mass as diskmass.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DiskRadiusMassFraction</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.99</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Calculation of the disk radius: this fraction of the total mass is contained within the disk radius.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DoWrite1DFiles</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write out 1D files additional to the 2D output.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>EnergyCondition</p></td>
+<td class="text-left"><p>Profile, 1D, 2D, Nbody</p></td>
+<td class="text-left"><p>Profile</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize energy by Profile, 1D data file or 2D data file, or by profile centered on nbody.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>EnergyFilename</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>File to read energy from (when Condition = 1D or 2D)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>EquationOfState</p></td>
+<td class="text-left"><p>Isothermal, Ideal/Adiabatic, PVTE, Polytropic</p></td>
+<td class="text-left"><p>Isothermal</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Select the equation of state.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ExponentialCellSizeFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.41</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Cell size increase factor to build an exponential grid. Only relevant for exponential grid type.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>FeatureSize</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.014000000000000002</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Feature size of the open somplex algorithm.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>FirstDT</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1e-09</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Initialization value for the hydro dt in case of hydro simulations turned off. Otherwise CFL dt is used.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>FlaringIndex</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Specify the flaring index. H = H0 * r^{1+FlaringIndex}.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>FluxLimiter</p></td>
+<td class="text-left"><p>VanLeer, MC</p></td>
+<td class="text-left"><p>VanLeer</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Selec the flux limiter for the upwind scheme.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Frame</p></td>
+<td class="text-left"><p>F, C</p></td>
+<td class="text-left"><p>Fixed</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Select whether the rotating frame has a fixed angular velocity (F) or if it is updated (C).  F: Fixed, C: Corotating</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>HeatingCoolingCFLlimit</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>10</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Energy change dT/T in substep3 only allowed to change by this fraction times CFL.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>HeatingViscous</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable viscous heating. TODO: change default to yes</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>HeatingViscousFactor</p></td>
+<td class="text-left"><p>positive float.</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Fudge factor for viscous heating. Leave this at 1.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>HydroFrameCenter</p></td>
+<td class="text-left"><p>primary, binary, tertiary, quatirary, all</p></td>
+<td class="text-left"><p>primary</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>HydrogenMassFraction</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.75</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Mass fraction of hydrogen in the gas for the case of scurve cooling.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ImposedDiskDrift</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Be careful and check the code! This is old code! Initialize vrad with an imposed accretion through the disk and add an additional torque during the simulation. vrad = ImposedDiskDrift * Sigma0 / Sigma_avg_azimuthal / R.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>IndirectTermMode</p></td>
+<td class="text-left"><p>0, 1</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Select the way the indirect term is calculated. You likely want 0. 0: indirect term from rebound with shift; 1: euler with shift (original)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>InitializePureKeplerian</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>InitializeVradialZero</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize VRadial=0  [default = no]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>InnerBoundary</p></td>
+<td class="text-left"><p>Zerogradient, Outflow, Reflecting, Reference, CenterOfMass, Custom, Individual</p></td>
+<td class="text-left"><p>individual</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition at the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>InnerBoundaryEnergy</p></td>
+<td class="text-left"><p>Zerogradient, DiskModel, Reference, Infer</p></td>
+<td class="text-left"><p>infer</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the energy at the inner boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>InnerBoundarySigma</p></td>
+<td class="text-left"><p>Zerogradient, DiskModel, Reference, Infer</p></td>
+<td class="text-left"><p>infer</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the surface density at the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>InnerBoundaryVazi</p></td>
+<td class="text-left"><p>ZeroGradient, Reference, ZeroShear, Balanced, Keplerian, Infer</p></td>
+<td class="text-left"><p>keplerian</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the azimuthal velocity at the inner boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>InnerBoundaryVaziKeplerianFactor</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>For InnerBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>InnerBoundaryVrad</p></td>
+<td class="text-left"><p>ZeroGradient, Reference, Reflecting, Outflow, Viscous, Keplerian, Infer</p></td>
+<td class="text-left"><p>infer</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the radial velocity at the inner boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>InnerBoundaryVradKeplerianFactor</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0.1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>For InnerBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>IntegrateParticles</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable the particle module.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Integrator</p></td>
+<td class="text-left"><p>Euler, LeapFrog</p></td>
+<td class="text-left"><p>Euler</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Select timestepping for hydro simulation: Euler or LeapFrog</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>KappaConst</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Opacity value for the cases of Opacity = constant or Opacity = simple.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>KappaFactor</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone: Fudge factor for kappa. Use this to increase/decrease to scale the restults of fixed opacity laws.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>KeepDiskMassConstant</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone: Rescale the mass of the disk periodically. You likely want to keep this turned off.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>KlahrSmoothingRadius</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0.3</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Smoothing radius for Klahr &amp; Kley smoothing around the secondary if H is calculated using all Nbody objects.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>LogAfterRealSeconds</p></td>
+<td class="text-left"><p>positive integers</p></td>
+<td class="text-left"><p>600</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write a log message to console after this number of real seconds. Setting to 0 disables this feature.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>LogAfterSteps</p></td>
+<td class="text-left"><p>positive integers</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write a log message to console after this number hydro steps. Setting to 0 disables this feature.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>MassAccretionRadius</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>When accretion onto Nbody abjects is turned on, accrete from the disk within MassAccretionRadius*RRoche.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>MaximumTemperature</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.0e300 K</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Temperature ceiling.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>MinimumTemperature</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>3 K</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Temperature floor.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>MonitorTimestep</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Calculate scalar quatities every MonitorTimestep in code units. For default units 2PI = 1 orbit at r=1. This is analogous to the DT parameter in other FARGO versions.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Naz</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>64</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of azimuthal cells in the hydro grid.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Nmonitor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>10</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of monitor outputs between two snapshots.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Nrad</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>64</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of radial cells in the hydro grid.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Nsnapshots</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1000</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of snapshots. The final time will be tfinal = Nsnapshots<em>Nmonitor</em>MonitorTimestep. Please note that this is a different from FARGO3D!</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>NumberOfParticles</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of particles.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>OmegaFrame</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Specify the angular velocity with which the frame rotates. Units of 1/T0. Specifying 2pi is equivalent to a corotating frame at R=R0.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Opacity</p></td>
+<td class="text-left"><p>Lin, Bell, Constant, Simple</p></td>
+<td class="text-left"><p>Lin</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Opacity table to use.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>OuterBoundary</p></td>
+<td class="text-left"><p>Zerogradient, Outflow, Reflecting, Reference, CenterOfMass, Custom, Individual</p></td>
+<td class="text-left"><p>individual</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition at the outer boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>OuterBoundaryEnergy</p></td>
+<td class="text-left"><p>Zerogradient, DiskModel, Reference, Infer</p></td>
+<td class="text-left"><p>infer</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the energy at the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>OuterBoundarySigma</p></td>
+<td class="text-left"><p>Zerogradient, DiskModel, Reference, Infer</p></td>
+<td class="text-left"><p>infer</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the surface density at the outer boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>OuterBoundaryVazi</p></td>
+<td class="text-left"><p>ZeroGradient, Reference, ZeroShear, Balanced, Keplerian, Infer</p></td>
+<td class="text-left"><p>keplerian</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the azimuthal velocity at the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>OuterBoundaryVaziKeplerianFactor</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>For OuterBoundaryVazi = Keplerian, the inner ghostcell vazi is set to this factor times the keplerian velocity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>OuterBoundaryVrad</p></td>
+<td class="text-left"><p>ZeroGradient, Reference, Reflecting, Outflow, Viscous, Keplerian, Infer</p></td>
+<td class="text-left"><p>infer</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Boundary condition for the radial velocity at the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>OuterBoundaryVradKeplerianFactor</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0.1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>For OuterBoundaryVrad = Keplerian, the inner ghostcell vrad is set to this factor times the keplerian velocity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>OutputDir</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>setupfile name</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Specify the output directory.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ParticleDensity</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>2.65 g/cm3</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Particle material density. [default = 2.65 g/cm3, Siliciumdioxid].</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ParticleDiskGravityEnabled</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable disk self-gravity acting on particles. TODO: this should be set to default to reflect the self-gravity flag.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ParticleDustDiffusion</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable dust diffusion.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ParticleEccentricity</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize the particles with eccentricities drawn from a uniform random distribution between 0 and this number.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ParticleGasDragEnabled</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable particle gas drag.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ParticleIntegrator</p></td>
+<td class="text-left"><p>explicit, midpoint</p></td>
+<td class="text-left"><p>m</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Select the particle integrator. Explicit (Cash-Carp with adaptive timesteping), Midpoint (Mignone 2019)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ParticleMaximumEscapeRadius</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>2.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Eject particles that move outside this radius. [default = ParticleMaximumRadius]</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ParticleMaximumRadius</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>2.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Initialize particles up to this radius. [default = RMAX]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ParticleMinimumEscapeRadius</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0.4</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Eject particles that move inside this radius. [default = ParticleMinimumRadius]</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ParticleMinimumRadius</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0.4</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Initialize particles starting at this radius. [default = RMIN]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ParticleRadius</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>100.0 cm</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Radius of a single particle (assumed to be spherical).</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ParticleRadiusIncreaseFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>10</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Increase the size of each particle species by this factor. The size of the nth particle species is then ParticleRadius*IncreaseFactor^{n-1}.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ParticleSpeciesNumber</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of particle species/sizes. This works in tandem with ParticleRadiusIncreaseFactor.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ParticleSurfaceDensitySlope</p></td>
+<td class="text-left"><p>-0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope). [default = SigmaSlope]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>PlanetOrbitDiskTest</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone: Enable test mode for a planet orbiting around just a disk. You likely never need this.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>PolytropicConstant</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>12.753</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the polytropic constant for the polytropic equation of state.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ProfileCutoffInner</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable exponential cutoff for the density profile at the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ProfileCutoffOuter</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable exponential cutoff for the density profile at the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ProfileCutoffPointInner</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Location of the cuttoff at the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ProfileCutoffPointOuter</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1e+300</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Location of the cuttoff at the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ProfileCutoffWidthInner</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Width of the cutoff at the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ProfileCutoffWidthOuter</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Width of the cutoff at the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>QuantitiesRadiusLimit</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Limit the calculation of disk quantities to inside this radius. [default = RMAX]</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ROFVariableTransfer</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Rochlobe overflow, variable transfer. TODO describe this better.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ROFaveragingtime</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>10</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Rochlobe overflow, variable transfer averaging time. TODO describe this better.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ROFgamma</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Rochlobe overflow, variable transfer gamma</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ROFplanet</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Rochlobe overflow, number of Nbody object from which the stream originates</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ROFrampingtime</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>30</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Ramp-up time for Rochlobe overflow in units of the reference planets orbital period.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ROFtemperature</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1000.0 K</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Rochlobe overflow, sets initial temperature and width of stream</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ROFvalue</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>1e-08</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Mass accretion rate through the stream of the Rochelobe overflow.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadialSpacing</p></td>
+<td class="text-left"><p>Logarithmic, Arithmetic, Exponential</p></td>
+<td class="text-left"><p>Arithmetic</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Type of the radial grid spacing of the hydro grid.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadialViscosityFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone! Check the code for what this does! Viscosity in radial direction is mutliplied with this factor to avoid oscillations.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadiativeDiffusion</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Turn on radiation transport using FLD to simulate radiative transport in the midplane.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadiativeDiffusionAutoOmega</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone! Testing needed! Automatically update SOR omega.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadiativeDiffusionCheckSolution</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>For RadiativeDiffusionTest2D enabled, check the solution.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadiativeDiffusionDumpData</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write out internal variables (matrix elements and diffusion coefficents) for debugging.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadiativeDiffusionInnerBoundary</p></td>
+<td class="text-left"><p>ZeroFlux, ZeroGradient, Outflow</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Inner boundary condition for the diffusion equation. You need to set this when using the FLD module.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadiativeDiffusionMaxIterations</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>50000</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Maximum number of SOR iterations for FLD.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadiativeDiffusionOmega</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Parameter for the succesive-overrelaxation (SOR) solver for the linear system of the FLD radiative transport.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadiativeDiffusionOuterBoundary</p></td>
+<td class="text-left"><p>ZeroFlux, ZeroGradient, Outflow</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Outer boundary condition for the diffusion equation. You need to set this when using the FLD module.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadiativeDiffusionTest1D</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable the 1D test case for the FLD module.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadiativeDiffusionTest2D</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable the 2D test case for the FLD module. This simulates a 2D diffusion process.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadiativeDiffusionTest2DDensity</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.0 g/cm3</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Set the constant density for the 2D test.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadiativeDiffusionTest2DK</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the diffusion coefficient for the 2D test.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RadiativeDiffusionTest2DSteps</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of times to repleat SOR during the 2D test.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RadiativeDiffusionTolerance</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1e-10</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Absolute value of tolerance for the SOR solver. This is in units of temperature. If specified without temperature, it’s a multiple of the code unit of temperature.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RandomFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Randomize the initial surface density by this factor times noise of order 1.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RandomSeed</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Random seed integer value for noise on initial profile.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>RandomSigma</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Put random noise on surface density at start values.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Rmax</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Outer domain radius of the hydro grid.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Rmin</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Inner domain radius of the hydro grid.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>RocheLobeOverflow</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Add a stream of mass from a secondary to the disk. This is added ontop of the outer boundary condition.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ScurveType</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Kimura</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Type of the scurve cooling. This sets the F_hot constant to 23.405 (Kimura) or 25.49 (Ichikawa).</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>SecondaryDisk</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize a secondary disk. This is used for binary star systems.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>SelfGravity</p></td>
+<td class="text-left"><p>Yes, Z, No</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable self-gravity. This uses the Fourier-Convolution technique from Clement Baruteau with a modification for the scale height by Tobias Modlenhauer to make the accelerations symmetric.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>SelfGravityAspectRatioChangeThreshold</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.001</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>The self-gravity modules updates the kernel only if the aspect ratio changes by more than this threshold.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>SelfGravityMode</p></td>
+<td class="text-left"><p>basic, symmetric, besselkernel</p></td>
+<td class="text-left"><p>besselkernel</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Type of kernel to use. Likely ‘besselkernel’ is the best choice (by Steven Rendon Restrepo). Its valid in the limit of large Toomre parameter. It avoids introducing a smoothing length. ‘symmetric’ also shares this feature by introducing a corrected self-gravity smoothing length (by Tobias Moldenhauer). Its best in the limit of Toomre parameter close to 1. ‘basic’ is the original implementation by Clement Baruteau. This formulation is not symmetric.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>SelfGravityStepsBetweenKernelUpdate</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>20</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Only update the kernel every SelfGravityStepsBetweenKernelUpdate steps. This is important for the besselkernel mode because the kernel update is computationally expensive then.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>SetSigma0</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Renormalize Sigma0 to have M_disc = discmass in units.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ShockTube</p></td>
+<td class="text-left"><p>0, 1, 2</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize shocktube problem with 0:no shocktube 1:Ideal EOS (perfect gas) 2: PVTE EOS (variableGamma)</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Sigma0</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>173 g/cm2</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Set the scale for the Surface density profile: Sigma = Sigma0 * r^-SigmaSlope.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>SigmaCondition</p></td>
+<td class="text-left"><p>Profile, 1D, 2D, Nbody</p></td>
+<td class="text-left"><p>Profile</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize surface density by Profile, 1D data file or 2D data file, or Profile centered on nbody.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>SigmaFilename</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>File to read surface density from (when Condition = 1D or 2D)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>SigmaFloor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1e-09</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Floor surface density in multiples of sigma0.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>SigmaSlope</p></td>
+<td class="text-left"><p>float</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Powerlaw exponent (the nagative of it) of the initial surface density profile. Sigma = Sigma0 * r^-SigmaSlope.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>SpreadingRing</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Initialize the simulation with the spreading ring test case.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>StabilizeArtViscosity</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Artificially stabilize artificial viscosity to avoid numerical issues.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>StabilizeViscosity</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Artificially stabilize viscosity to avoid numerical issues.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>SurfaceCooling</p></td>
+<td class="text-left"><p>no, thermal, scurve</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable surface cooling. Thermal: cooling by blackbody radiation. Scurve: cooling by scurve cooling.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>TauFactor</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.5</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone! Fudge factor for tau. Leave this as it is! [default = 0.5] TODO: change default value.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>TauMin</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.01</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Tau min for the effective optical depth calculation. See Hubney (1990), Mueller &amp; Kley (2012) and DAngelo &amp; Marzari (2015).</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Temperature0</p></td>
+<td class="text-left"><p>-0+</p></td>
+<td class="text-left"><p>-1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>If &gt; 0, set the reference temperature at l0 instead of using the reference aspect ratio.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ThicknessSmoothing</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.6</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Smoothing/softening parameters for the Nbody-disk gravitional interaction in multiples of the disk scaleheight.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ThicknessSmoothingSG</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1.2</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Smoothing/softening parameter for SG [default = ThicknessSmoothing]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Transport</p></td>
+<td class="text-left"><p>fast, slow</p></td>
+<td class="text-left"><p>Fast</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Specify whether or not to use the Fargo method (fast) or the standard method (slow).</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>VazimuthalConsidersQuadropoleMoment</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Add quadropole moment support in initialization of azimuthal velocity.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ViscAccretMassflowTest</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable viscous accretion massflow test.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ViscousAlpha</p></td>
+<td class="text-left"><p>0+</p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Specify the value of alpha for the alpha viscosity model.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ViscousOutflowSpeed</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p># Viscous outflow speed vr(0) = -3/2 nu / R(0) * ViscousOutflowSpeed used for Inner/OuterBoundaryVrad = Viscous.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteAlpha</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D data of viscous alpha.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteAlphaGrav</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of alpha value gravitational strees.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteAlphaGravMean</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of azimuthal mean of the alpha value of gravitational stress.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteAlphaReynolds</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of alpha value Reynolds strees.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteAlphaReynoldsMean</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of azimuthal mean of the alpha value of Reynolds stress.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteAspectratio</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the aspect ratio.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteAtEveryTimestep</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write some quantities (planet positions, disk quantities, …) at every Timestep.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteDefaultValues</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write a yaml file to the output directory containing all default values hardcoded in the code.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteDensity</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write surface density. This is needed for restart of simulations.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteDiskQuantities</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write a collection of disk quantities (mass, eccentricity, periastron, semi_major_axis, …)</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteDivV</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of divergence of velocity.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteEccentricity</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of eccentricity based on specific angular momentum of the cell.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteEccentricityChange</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Eccentricity change monitor.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteEffectiveGamma</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D effective adiabatic index.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteEnergy</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write energy. This is needed for restart of (adiabatic) simulations.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteFirstAdiabaticIndex</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D data of the first adiabatic index. Usefull for PVTE EoS.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteGasTorques</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Calculate and write gravitational/viscous and advection torques on gas. See Miranda et al. 2017</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteKappa</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of opacity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteLightCurves</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone! Check the code! Write light curves.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteLightCurvesRadii</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Danger zone! Check the code! Write radii for which the light curves are outputed.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteMassFlow</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write a 1D radial file with mass flow at each interface. Track accretion through the disk.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteMeanMolecularWeight</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D data of mean molecular weight.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WritePotential</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the gravitational potential.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WritePressure</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of pressure.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteQMinus</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of cooling terms.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteQPlus</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of heating terms.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteRadialDissipation</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 1D raidal array of dissipated energy.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteRadialLuminosity</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 1D radial array of luminosity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteSGAccelAzi</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the azimuthal component of the gravitational stress.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteSGAccelRad</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the radial component of the gravitational stress.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteScaleHeight</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the scale height.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteSoundSpeed</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D sound speed.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteTGravitational</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the gravitational stress.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteTReynolds</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the Reynolds stress.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteTau</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of optical depth.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteTauCool</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of optical depth for cooling.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteTemperature</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D temperature.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteToomre</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of Toomre parameter Q.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteTorques</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Calculate and write 2D array of torques acting on each planet/star.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteVelocity</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write velocites. This is needed for restart of simulations.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteVerticalOpticalDepth</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D of optical depth in vertical direction (tau_eff by Hubeny [1990]).</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WriteViscosity</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of the kinematic viscosity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>WriteVisibility</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of visibility.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>WritepDV</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write 2D array of pressure * divergence of v.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>cps</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>-1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the resolution in terms of cells per scaleheight ar r=1: if cps &gt; 0, overrides Nrad and Nsec and initializes them according to domain size and AspectRatio.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>l0</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.0</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Base length unit of the simulation [default: 1.0 au]</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>m0</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.0</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Base mass unit of the simulation [default: 1.0 solMass]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>mu</p></td>
+<td class="text-left"><p>positive float</p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Mean molecular weight of the gas. TODO: change default value.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>t0</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.0</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Base time unit of the simulation [default: 1/2pi * Keplerian orbital period at r=l0 around mass m0]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>temp0</p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>1.0</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>Base temperature unit of the simulation [default: such that Rgas = 1]</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="deprecated-parameters">
+<h2>Deprecated Parameters<a class="headerlink" href="#deprecated-parameters" title="Link to this heading">¶</a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head text-left"><p>Parameter</p></th>
+<th class="head text-left"><p>Newname</p></th>
+<th class="head text-left"><p>Hint</p></th>
+<th class="head text-left"><p>Choices</p></th>
+<th class="head text-left"><p>Default</p></th>
+<th class="head text-left"><p>Type</p></th>
+<th class="head text-left"><p>Unit Support</p></th>
+<th class="head text-left"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-left"><p>ALPHAVISCOSITY</p></td>
+<td class="text-left"><p>ViscousAlpha</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Specify the value of alpha for the alpha viscosity model.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>Adiabatic</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>EquationOfState: Ideal</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>string</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Deprecated. Dont use this anymore.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>AlphaThreshold</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>positive values</p></td>
+<td class="text-left"><p>5000</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>?Threshold value for viscosity stabalized?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>CoolingRadiativeLocal</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>SurfaceCooling: thermal</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Enable local radiative cooling Q- = 2 * sigma_R * T_eff^4.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>CoolingScurve</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>SurfaceCooling: scurve</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Enable Scurve Cooling</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DT</p></td>
+<td class="text-left"><p>MonitorTimestep</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Time between two analysis outputs. For default units, 2PI = 1 orbit at r=1.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>DebugOutputs</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Write out additional debug files.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>DomegaDrZero</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>OuterBoundaryAzi = zeroshear</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Set dOmega/dr = 0 at outer boundary</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>ExplicitViscosity</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Set ViscousAlpha &gt; 0 or ConstantViscosity &gt; 0</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Consider explicit viscocsity.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ForcedCircular</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Keep the eccentricity of the planet to zero. [default = no]</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>HeatingStar</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Set temperature of any Nbody object &gt; 0 to enable irradiation from this object.</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable irradiation heating by the star.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>HeatingStarFactor</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Change the temperature of the Nbody object to modulate the heating.</p></td>
+<td class="text-left"><p>positive value</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Modulate the heating by this factor.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>HeatingStarRampingTime</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Use key ‘irradiation ramp-up time’ for Nbody objects.</p></td>
+<td class="text-left"><p>positive value</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Ramp up the heating over this time.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>HeatingStarSimple</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>This is now the only option.</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Enable simple irradiation heating by the star solely based on distance.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>IntegratePlanets</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Evolve the Nbody system.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>MassAccretionRate</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1e-09</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>True</p></td>
+<td class="text-left"><p>For inner boundary = boundary layer: Mass accretion rate (from secondary, young stellar cloud, etc.).</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>NSEC</p></td>
+<td class="text-left"><p>Naz</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>64</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Number of azimuthal cells</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>NTOT</p></td>
+<td class="text-left"><p>Nsnapshots</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1000</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Number of snapshots to be written.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Ninterm</p></td>
+<td class="text-left"><p>Nmonitor</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>unsigned int</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Number of analysis outputs between two snapshots.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>OuterSourceMass</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>StarRadius</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Use key ‘radius’ for Nbody objects.</p></td>
+<td class="text-left"><p>positive value</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Radius of the star used together with StarTemperature for computing the flux.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>StarTemperature</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Use key ‘temperature’ for Nbody objects.</p></td>
+<td class="text-left"><p>positive value</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Radius of the star used together with StarRadius for computing the flux.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>StellarRotation</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0.1</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>For inner boundary = boundary layer: Stellar rotation rate (azimuthal velocity of the surface) in terms of Keplerian angular velocity at the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>StsNu</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>The STS module has been removed.</p></td>
+<td class="text-left"><p>positive value</p></td>
+<td class="text-left"><p>0.01</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the value of the viscosity for the STS module.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>Temperaturecgs0</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Use Temperature0 instead. Append a ‘K’ to the value to set the temperature in Kelvin.</p></td>
+<td class="text-left"><p>positive value</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>double</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Set the reference temperature in cgs units.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>VISCOSITY</p></td>
+<td class="text-left"><p>ConstantViscosity</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Set a constant kinetic viscosity.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>VRadIn</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>InnerBoundaryVradKeplerianFactor, InnerBoundaryVrad = keplerian</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0.0016</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>For inner boundary = boundary layer: value of v_rad at inner boundary in terms of Keplerian velocity v_kepler at the inner boundary.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>ViscosityInCGS</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p>Use the ‘ConstantViscosity’ key instead. It supports specifying units.</p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>bool</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p>Interpret the value of constant viscosity to be in cgs.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>discmass</p></td>
+<td class="text-left"><p>DiskMass</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>+</p></td>
+<td class="text-left"><p>0.01</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>In case of SetSigma0=yes, use this mass as diskmass.</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>massoverflow</p></td>
+<td class="text-left"><p>RocheLobeOverflow</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>yes, no</p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Enable a constant massflow coming though the outer boundary.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>mofaveragingtime</p></td>
+<td class="text-left"><p>ROFAveragingTime</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>10</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>mofgamma</p></td>
+<td class="text-left"><p>ROFGamma</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0.5</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>mofplanet</p></td>
+<td class="text-left"><p>ROFPlanet</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>moframpingtime</p></td>
+<td class="text-left"><p>ROFRampingTime</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>30</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>Gradual increase for the mass overflow.</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>moftemperature</p></td>
+<td class="text-left"><p>ROFTemperature</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1000.0 K</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>mofvalue</p></td>
+<td class="text-left"><p>ROFValue</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>1e-08</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>variableTransfer</p></td>
+<td class="text-left"><p>ROFVariableTransfer</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>False</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>?</p></td>
+</tr>
+<tr class="row-odd"><td class="text-left"><p>zbufferMaxAngle</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>0.17453292519943295</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+</tr>
+<tr class="row-even"><td class="text-left"><p>zbufferSize</p></td>
+<td class="text-left"><p>none</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p>100</p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+<td class="text-left"><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#active-parameters">Active Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deprecated-parameters">Deprecated Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">Unit system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Numerics/index.html">Physics and numerics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">FargoCPT</a></li>
+      <li>Next: <a href="usage.html" title="next chapter">Usage</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/parameters.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

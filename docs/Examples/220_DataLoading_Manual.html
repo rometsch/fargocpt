@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Manual 2d data loading &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FargoCPT Bootstrap Notebook" href="300_Bootstrap_Simulation.html" />
+    <link rel="prev" title="Loading data from the simulation output - the automatic way" href="210_DataLoading_Automatic.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="manual-2d-data-loading">
+<h1>Manual 2d data loading<a class="headerlink" href="#manual-2d-data-loading" title="Link to this heading">¶</a></h1>
+<p>This example will teach you how to manually load the 2d output files.</p>
+<p>We will use the data from the simulation in the quickstart example, so make sure you ran this beforehand.</p>
+<p>First, lets get the number of cells in each direction of the grid by loading the dimensions.dat file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">datadir</span> <span class="o">=</span> <span class="s2">&quot;example_dirs/100_quickstart/output/out&quot;</span>
+<span class="n">dimensions</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+    <span class="p">[</span><span class="s2">&quot;RMIN&quot;</span><span class="p">,</span> <span class="s2">&quot;RMAX&quot;</span> <span class="p">,</span><span class="s2">&quot;PHIMIN&quot;</span><span class="p">,</span> <span class="s2">&quot;PHIMAX&quot;</span><span class="p">,</span> <span class="s2">&quot;NRAD&quot;</span> <span class="p">,</span><span class="s2">&quot;NAZ&quot;</span><span class="p">,</span><span class="s2">&quot;NGHRAD&quot;</span><span class="p">,</span><span class="s2">&quot;NGHAZ&quot;</span><span class="p">,</span><span class="s2">&quot;Radial_spacing&quot;</span><span class="p">],</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">datadir</span> <span class="o">+</span> <span class="s2">&quot;/dimensions.dat&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="s1">&#39;S20&#39;</span><span class="p">])[()])}</span>
+<span class="n">Nrad</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;NRAD&quot;</span><span class="p">]</span>
+<span class="n">Naz</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;NAZ&quot;</span><span class="p">]</span>
+
+</pre></div>
+</div>
+<p>Next, load the base units from the units.dat file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimensions</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;RMIN&#39;: 0.4,
+ &#39;RMAX&#39;: 2.5,
+ &#39;PHIMIN&#39;: 0.0,
+ &#39;PHIMAX&#39;: 6.283185307179586,
+ &#39;NRAD&#39;: 74,
+ &#39;NAZ&#39;: 251,
+ &#39;NGHRAD&#39;: 1,
+ &#39;NGHAZ&#39;: 1,
+ &#39;Radial_spacing&#39;: b&#39;Logarithmic&#39;}
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">yaml</span>
+<span class="n">units</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">datadir</span> <span class="o">+</span> <span class="s2">&quot;/units.yml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+    <span class="n">unit_data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">unit_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">units</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">]</span>
+<span class="n">units</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>{&#39;length&#39;: &#39;14959787070000 cm&#39;,
+ &#39;mass&#39;: &#39;1.9884699999999999e+33 g&#39;,
+ &#39;time&#39;: &#39;5022566.9513368811 s&#39;,
+ &#39;temperature&#39;: &#39;106700.1843026118 K&#39;,
+ &#39;energy&#39;: &#39;1.7640804944591272e+46 erg&#39;,
+ &#39;energy surface density&#39;: &#39;7.8825652402193138e+19 erg cm^-2&#39;,
+ &#39;density&#39;: &#39;5.939403178403638e-07 g cm^-3&#39;,
+ &#39;mass surface density&#39;: &#39;8885220.687179964 g cm^-2&#39;,
+ &#39;opacity&#39;: &#39;1.1254644484439755e-07 g^-1 cm^2&#39;,
+ &#39;energy flux&#39;: &#39;15694295997629.604 erg cm^-2 s^-1&#39;,
+ &#39;velocity&#39;: &#39;2978514.216922102 cm s^-1&#39;,
+ &#39;angular momentum&#39;: &#39;8.8602123909684364e+52 cm^2 g s^-1&#39;,
+ &#39;kinematic viscosity&#39;: &#39;4.4557938470122439e+19 cm^2 s^-1&#39;,
+ &#39;dynamic viscosity&#39;: &#39;26464756137255.898 P&#39;,
+ &#39;acceleration&#39;: &#39;0.59302628432445215 cm s^-2&#39;,
+ &#39;stress&#39;: &#39;7.8825652402193138e+19 g s^-2&#39;,
+ &#39;pressure&#39;: &#39;7.8825652402193138e+19 dyn cm^-1&#39;,
+ &#39;power&#39;: &#39;3.5123085696041805e+39 erg/s&#39;,
+ &#39;potential&#39;: &#39;8871546940407.084 erg/g&#39;,
+ &#39;torque&#39;: &#39;1.7640804944591272e+46 erg&#39;,
+ &#39;force&#39;: &#39;1.1792149755906433e+33 dyn&#39;,
+ &#39;mass accretion rate&#39;: &#39;3.959071166728239e+26 g s^-1&#39;}
+</pre></div>
+</div>
+<p>Finally, lets load some data from an output file.
+We’ll start with surface density from snapshot number 2.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Nsnap</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">datafile</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/snapshots/</span><span class="si">{</span><span class="n">Nsnap</span><span class="si">}</span><span class="s2">/Sigma.dat&quot;</span>
+<span class="n">Sigma_raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">Sigma_raw</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>(18574,)
+</pre></div>
+</div>
+<p>The data is stored on disk as a 1D-array, so we need to reshape it to the correct 2d form.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Sigma_reshaped</span> <span class="o">=</span> <span class="n">Sigma_raw</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">Nrad</span><span class="p">,</span> <span class="n">Naz</span><span class="p">)</span>
+<span class="n">Sigma_reshaped</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>(74, 251)
+</pre></div>
+</div>
+<p>At this point, the values are in code units, which can be anything.
+Because we have all the unit information loaded already, we can convert the values to something more understandable.
+I suggest using the astropy library to handle the unit conversions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="n">L0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">])</span>
+<span class="n">M0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">])</span>
+<span class="n">T0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;L0 =&quot;</span><span class="p">,</span> <span class="n">L0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;M0 =&quot;</span><span class="p">,</span> <span class="n">M0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;T0 =&quot;</span><span class="p">,</span> <span class="n">T0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>L0 = 1.49598e+13 cm
+M0 = 1.98847e+33 g
+T0 = 5.02257e+06 s
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Sigma</span> <span class="o">=</span> <span class="n">Sigma_reshaped</span> <span class="o">*</span> <span class="n">M0</span> <span class="o">/</span> <span class="n">L0</span><span class="o">**</span><span class="mi">2</span>
+<span class="n">Sigma</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="math notranslate nohighlight">\(3.2442895 \times 10^{-5} \; \mathrm{8885220.7\,\frac{g}{cm^{2}}}\)</span></p>
+<p>Now the values carry a unit, though this is still the code unit for surface density.
+The Sigma variable now points to an astropy.units.Quantity object, which is a numpy array with some extra information like the unit and some extra methods to convert these units.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Sigma</span> <span class="o">=</span> <span class="n">Sigma</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;g/cm2&quot;</span><span class="p">)</span>
+<span class="n">Sigma</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="math notranslate nohighlight">\(288.26228 \; \mathrm{\frac{g}{cm^{2}}}\)</span></p>
+<p>Before we construct a grid, lets have a look at the data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">Sigma</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;g/cm2&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.image.AxesImage at 0x7f3d66dd81f0&gt;
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/220_DataLoading_Manual_17_1.png" /></p>
+<p>Fargo only stores basic information about the grid which we already loaded above.
+We will now construct arrays with the coordinates on the cell interfaces.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;Radial_spacing&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s1">&#39;Logarithmic&#39;</span><span class="p">:</span>
+    <span class="n">ri</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">geomspace</span><span class="p">(</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;RMIN&quot;</span><span class="p">],</span> <span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;RMAX&quot;</span><span class="p">],</span> <span class="n">Nrad</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">ri</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;RMIN&quot;</span><span class="p">],</span> <span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;RMAX&quot;</span><span class="p">],</span> <span class="n">Nrad</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ri</span> <span class="o">=</span> <span class="n">ri</span><span class="o">*</span><span class="n">L0</span>
+
+<span class="n">phii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;PHIMIN&quot;</span><span class="p">],</span> <span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;PHIMAX&quot;</span><span class="p">],</span> <span class="n">Naz</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we have all information to make a colormap plot of the surface density.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Ri</span><span class="p">,</span> <span class="n">Phii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">ri</span><span class="p">,</span> <span class="n">phii</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+<span class="n">pcm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">Ri</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span> <span class="n">Phii</span><span class="p">,</span> <span class="n">Sigma</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;g/cm2&quot;</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;r [au]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\phi$&quot;</span><span class="p">)</span>
+<span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/220_DataLoading_Manual_21_0.png" /></p>
+<p>And a top down view on the disk.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Ri</span><span class="p">,</span> <span class="n">Phii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">ri</span><span class="p">,</span> <span class="n">phii</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+<span class="n">Xi</span> <span class="o">=</span> <span class="n">Ri</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Phii</span><span class="p">)</span>
+<span class="n">Yi</span> <span class="o">=</span> <span class="n">Ri</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Phii</span><span class="p">)</span>
+<span class="n">pcm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">Xi</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span> <span class="n">Yi</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span> <span class="n">Sigma</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;g/cm2&quot;</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;x [au]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;y [au]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+<span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/220_DataLoading_Manual_23_0.png" /></p>
+<p>The surface density values are defined on the cell center locations.
+Fargo uses a staggered grid, which means that the velocities are defined on the cell interfaces.
+The radial velocity is defined on the radial cell interfaces and the azimuthal velocity is defined on the azimuthal cell interfaces.
+As a result, there are more values in the radial velocity array because there is one more radial interface location compared to radial center locations. This means the respective array has Naz more values.
+Let’s see for ourselves.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Nsnap</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">datafile</span> <span class="o">=</span> <span class="n">datadir</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;/snapshots/</span><span class="si">{</span><span class="n">Nsnap</span><span class="si">}</span><span class="s2">/vrad.dat&quot;</span>
+<span class="n">vrad_raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">datafile</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="n">vrad_raw</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>(18825,)
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;len(Sigma_raw) =&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Sigma_raw</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;len(vrad_raw) =&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vrad_raw</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>len(Sigma_raw) = 18574
+len(vrad_raw) = 18825
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">vrad_raw</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">Sigma_raw</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>251
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Naz</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>251
+</pre></div>
+</div>
+<p>Again, reshape and apply units.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">vrad_reshaped</span> <span class="o">=</span> <span class="n">vrad_raw</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">Nrad</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">Naz</span><span class="p">)</span>
+<span class="n">vrad</span> <span class="o">=</span> <span class="n">vrad_reshaped</span> <span class="o">*</span> <span class="n">L0</span> <span class="o">/</span> <span class="n">T0</span>
+</pre></div>
+</div>
+<p>For the azimuthal velocity, there are as many values as in the surface density array.
+This is because the azimuthal boundary is periodic, so we do not need to store both the the values on the first and the last interface locations since these values are identical by construction.
+The energy values are also defined at the cell centers, so its the same procedure as for the surface density.</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="101_DiskPlots.html">Disk Plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html">Loading data from the simulation output - the automatic way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html#d-data">2D data</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Manual 2d data loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="300_Bootstrap_Simulation.html">FargoCPT Bootstrap Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="401_Selfgravity.html">FargoCPT Selfgravity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Numerics/index.html">Physics and numerics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Examples</a><ul>
+      <li>Previous: <a href="210_DataLoading_Automatic.html" title="previous chapter">Loading data from the simulation output - the automatic way</a></li>
+      <li>Next: <a href="300_Bootstrap_Simulation.html" title="next chapter">FargoCPT Bootstrap Notebook</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/Examples/220_DataLoading_Manual.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
