@@ -1,20 +1,16 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Implicit viscosity &#8212; FargoCPT  documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
     <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -38,9 +34,9 @@
           <div class="body" role="main">
             
   <section class="tex2jax_ignore mathjax_ignore" id="implicit-viscosity">
-<h1>Implicit viscosity<a class="headerlink" href="#implicit-viscosity" title="Permalink to this heading">¶</a></h1>
+<h1>Implicit viscosity<a class="headerlink" href="#implicit-viscosity" title="Link to this heading">¶</a></h1>
 <section id="problem-description">
-<h2>Problem description<a class="headerlink" href="#problem-description" title="Permalink to this heading">¶</a></h2>
+<h2>Problem description<a class="headerlink" href="#problem-description" title="Link to this heading">¶</a></h2>
 <p>In simulations with strong radial gradients in density, e.g. at the gap edge
 carved by a massive planet or at the disk truncation radius caused by a
 companion, the velocity updates by the viscous terms can become unstable and
@@ -58,7 +54,7 @@ strong radial gradients in <span class="math notranslate nohighlight">\(\tau_{r 
 cells can reach differences above a factor of 100, causing numerical instability.</p>
 </section>
 <section id="proposed-solution">
-<h2>Proposed Solution<a class="headerlink" href="#proposed-solution" title="Permalink to this heading">¶</a></h2>
+<h2>Proposed Solution<a class="headerlink" href="#proposed-solution" title="Link to this heading">¶</a></h2>
 <p>The viscous interactions between the cells are a diffusion process. Therefore
 the velocity should never become faster/slower than the fastest/slowest cell
 it is in contact with. During the timestep, we consider all properties but the
@@ -72,7 +68,7 @@ exponentially converge towards a equilibrium velocity of <span class="math notra
 should not overshoot over <span class="math notranslate nohighlight">\(v_{eq}\)</span>.</p>
 </section>
 <section id="stabilizing-scheme">
-<h2>Stabilizing Scheme<a class="headerlink" href="#stabilizing-scheme" title="Permalink to this heading">¶</a></h2>
+<h2>Stabilizing Scheme<a class="headerlink" href="#stabilizing-scheme" title="Link to this heading">¶</a></h2>
 <p>The explicit form of the update is:
 <span class="math notranslate nohighlight">\({v}_\varphi^\mathrm{new} = v_\varphi + dt (c_1 \cdot v_\varphi + c_2)\)</span></p>
 <p>The implicit form of the update is:
@@ -103,7 +99,7 @@ This update will always be stable.</p>
 <p>For simplicity, we compute the two terms separately and combine them again later:</p>
 </section>
 <section id="tau-r-varphi">
-<h2><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span><a class="headerlink" href="#tau-r-varphi" title="Permalink to this heading">¶</a></h2>
+<h2><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span><a class="headerlink" href="#tau-r-varphi" title="Link to this heading">¶</a></h2>
 <p><span class="math notranslate nohighlight">\(\frac{2}{(R_a^{i+1})^2 - (R_a^i)^2}\cdot ((R_a^{i+1})^2 \tau_{r\varphi}^{i+1} - (R_a^i)^2 \tau_{r\varphi}^i)\)</span></p>
 <p>With</p>
 <p><span class="math notranslate nohighlight">\(\frac{2}{(R_a^{i+1})^2 - (R_a^i)^2} = \frac{2}{\Delta (R_a^2)^{i}\)</span></p>
@@ -120,7 +116,7 @@ This update will always be stable.</p>
 <p><span class="math notranslate nohighlight">\(c_{1,r\varphi} = -\frac{2}{\Delta (R_a^2)^{i}} \frac{1}{R_b^i}\left((\frac{R_a^3 \bar{\nu} \bar{\Sigma}}{\Delta R_b})^{i+1} + (\frac{R_a^3 \bar{\nu} \bar{\Sigma}}{\Delta R_b})^{i}\right)\)</span></p>
 </section>
 <section id="tau-varphi-varphi">
-<h2><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span><a class="headerlink" href="#tau-varphi-varphi" title="Permalink to this heading">¶</a></h2>
+<h2><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span><a class="headerlink" href="#tau-varphi-varphi" title="Link to this heading">¶</a></h2>
 <p><span class="math notranslate nohighlight">\((\tau_{\varphi\varphi}^{i,j} - \tau_{\varphi\varphi}^{i,j-1}) \cdot \frac{1}{\Delta\varphi}\)</span></p>
 <p>With
 <span class="math notranslate nohighlight">\(\tau_{\varphi\varphi} = 2\nu\Sigma(d_{\varphi\varphi} - \frac{1}{3}\nabla v)\)</span></p>
@@ -142,12 +138,12 @@ This update will always be stable.</p>
 <p><span class="math notranslate nohighlight">\(c_{1,\,v_\varphi} = \frac{1}{R_b^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i,j-1})}(c_{1,r\varphi} + c_{1,\varphi\varphi})\)</span></p>
 </section>
 <section id="vr-case">
-<h2>Vr case<a class="headerlink" href="#vr-case" title="Permalink to this heading">¶</a></h2>
+<h2>Vr case<a class="headerlink" href="#vr-case" title="Link to this heading">¶</a></h2>
 <p><span class="math notranslate nohighlight">\(\frac{d v}{dt} = \frac{2}{R_b^i + R_b^{i-1}} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})}[(R_b^{i} \tau_{rr}^{i} - R_b^{i-1} \tau_{rr}^{i-1}) \cdot \frac{1}{\Delta R_b} + (\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi} - \frac{1}{2}(\tau_{\varphi\varphi}^{i} + \tau_{\varphi\varphi}^{i-1})]\)</span></p>
 <p>For simplicity, we compute the terms separately and combine them again later:</p>
 </section>
 <section id="id1">
-<h2><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span><a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+<h2><span class="math notranslate nohighlight">\(\tau_{r\varphi}\)</span><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p><span class="math notranslate nohighlight">\((\tau_{r\varphi}^{i,j+1} - \tau_{r\varphi}^{i,j}) \cdot \frac{1}{\Delta \varphi}\)</span></p>
 <p>With</p>
 <p><span class="math notranslate nohighlight">\(\tau_{r\varphi} = d_{rp} \bar{\nu} \bar{\Sigma}\)</span></p>
@@ -166,7 +162,7 @@ This update will always be stable.</p>
 <p><span class="math notranslate nohighlight">\(c_{1,r\varphi} = -[\frac{(\bar{\nu} \bar{\Sigma})^{i,j+1}}{\Delta \varphi^2 R_a^i} + \frac{(\bar{\nu} \bar{\Sigma})^{ij}}{\Delta \varphi^2 R_a^i}]\)</span></p>
 </section>
 <section id="id2">
-<h2><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span><a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
+<h2><span class="math notranslate nohighlight">\(\tau_{\varphi\varphi}\)</span><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
 <p>We apply the minus at the end
 <span class="math notranslate nohighlight">\(-\frac{1}{2}(\tau_{\varphi\varphi}^{i,j} + \tau_{\varphi\varphi}^{i-1,j})\)</span></p>
 <p>With
@@ -184,7 +180,7 @@ This update will always be stable.</p>
 <span class="math notranslate nohighlight">\(+ \frac{(2\nu\Sigma)^{j,i-1}}{\Delta\varphi}\left[\frac{1}{2}\frac{1}{R_b^{i-1}} - \frac{1}{3}\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}}\right] + \nu_a^{i-1} (\frac{R_a^{i}}{(R_a^{i} - R_a^{i-1}) R_b^{i-1}})\)</span></p>
 </section>
 <section id="tau-rr">
-<h2><span class="math notranslate nohighlight">\(\tau_{rr}\)</span><a class="headerlink" href="#tau-rr" title="Permalink to this heading">¶</a></h2>
+<h2><span class="math notranslate nohighlight">\(\tau_{rr}\)</span><a class="headerlink" href="#tau-rr" title="Link to this heading">¶</a></h2>
 <p><span class="math notranslate nohighlight">\(\Delta v_r = \frac{R_b^i\tau_{rr}^{i,j} - R_b^{i-1}\tau_{rr}^{i-1,j}}{\Delta R_b^i}\)</span></p>
 <p>With
 <span class="math notranslate nohighlight">\(\tau_{rr} = 2\nu\Sigma(d_{rr} - \frac{1}{3}\nabla v)\)</span></p>
@@ -202,7 +198,7 @@ This update will always be stable.</p>
 <p><span class="math notranslate nohighlight">\(c_{1,v_r} = \frac{1}{R_a^i} \frac{1}{0.5 \cdot (\Sigma^{i,j} + \Sigma^{i-1,j})} (c_{1,rr} + c_{1,r\varphi} + c_{1,\varphi\varphi)\)</span></p>
 </section>
 <section id="method-example-from-simple-diffusion-problem">
-<h2>Method example from simple diffusion problem<a class="headerlink" href="#method-example-from-simple-diffusion-problem" title="Permalink to this heading">¶</a></h2>
+<h2>Method example from simple diffusion problem<a class="headerlink" href="#method-example-from-simple-diffusion-problem" title="Link to this heading">¶</a></h2>
 <p>The implicit method with the corrected constants reproduces the explicit method, but prevents overshoots.</p>
 <p><img alt="" src="../_images/diff_0.3.png" /></p>
 <p><img alt="" src="../_images/diff_1.0.png" /></p>
@@ -228,7 +224,9 @@ This update will always be stable.</p>
 
 <h3>Navigation</h3>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
@@ -297,8 +295,8 @@ This update will always be stable.</p>
       &copy;2022, Thomas Rometsch.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/Numerics/implicit_viscosity.md.txt"

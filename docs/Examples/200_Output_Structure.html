@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FargoCPT Output Structure &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Loading data from the simulation output - the automatic way" href="210_DataLoading_Automatic.html" />
+    <link rel="prev" title="Disk Plots" href="101_DiskPlots.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="fargocpt-output-structure">
+<h1>FargoCPT Output Structure<a class="headerlink" href="#fargocpt-output-structure" title="Link to this heading">¶</a></h1>
+<p>This notebook introduces the structure of the simulation output directory and introduces a tool to investigate it.</p>
+<p>We will use the data from the simulation in the quickstart example, so make sure you ran this beforehand.</p>
+<section id="the-output-directory-structure">
+<h2>The output directory structure<a class="headerlink" href="#the-output-directory-structure" title="Link to this heading">¶</a></h2>
+<p>The following cell will stop the notebook if the simulation has not been run yet.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">example_name</span> <span class="o">=</span> <span class="s2">&quot;100_quickstart&quot;</span>
+<span class="n">example_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;example_dirs/</span><span class="si">{</span><span class="n">example_name</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">==</span> <span class="n">example_name</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">example_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">example_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;output/out/snapshots/list.txt&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No snapshots found. Please run the simulation inside the 100_Quickstart.ipynb notebook first!&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Please go through the 100_Quickstart.ipynb notebook first!&quot;</span><span class="p">)</span>
+
+<span class="n">repo_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;../../../&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current working directory: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repository root directory: </span><span class="si">{</span><span class="n">repo_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Current working directory: /home/rometsch/repo/fargocpt/examples/example_dirs/100_quickstart
+Repository root directory: /home/rometsch/repo/fargocpt
+</pre></div>
+</div>
+<p>Now, let’s have a look at how the output directory is structured.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">ls</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>constants.yml	      info1D.yml  monitor     units.yml
+dimensions.dat	      info2D.yml  parameters  used_rad.dat
+fargocpt_output_v1_4  logs	  snapshots
+</pre></div>
+</div>
+<p>It contains some files describing general properties of the simulation, like</p>
+<ul class="simple">
+<li><p>the version of the code (<code class="docutils literal notranslate"><span class="pre">fargocpt_output_v1_4</span></code>),</p></li>
+<li><p>the dimensions of the grid (<code class="docutils literal notranslate"><span class="pre">dimensions.dat</span></code> and <code class="docutils literal notranslate"><span class="pre">used_rad.dat</span></code>),</p></li>
+<li><p>the code units used (<code class="docutils literal notranslate"><span class="pre">units.dat</span></code>),</p></li>
+<li><p>and information on 1D output files (<code class="docutils literal notranslate"><span class="pre">*1D.info</span></code>) used to load the corresponding binary files.</p></li>
+</ul>
+<p>There is also a <code class="docutils literal notranslate"><span class="pre">parameters</span></code> directory containing a copy of the setup file used for every start of the simulation.
+This way you can easily track how often and at which snapshots you restarted a long run.
+Here, we only have one copy.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">ls</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">parameters</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>setup.yml
+</pre></div>
+</div>
+<p>Next, there are snaphost directories, each containing a full snapshot of the system.
+Each of these directories can be used to restart the simulation or start a new one.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">ls</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">snapshots</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>0  1  10  2  3	4  5  6  7  8  9  list.txt  reference  timeSnapshot.dat
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">damping</span></code> directory contains a copy of the initial data which is used in the code e.g. for damping to the initial density inside of damping zones close to the boundaries. Copy this aswell, if you want to restart a simulation from a snapshot.</p>
+<p>There is <code class="docutils literal notranslate"><span class="pre">timeSnapshot.dat</span></code> file which is a tab separated data file containing the time of the snapshot and the <code class="docutils literal notranslate"><span class="pre">list.txt</span></code> file which is simply a text file which has the number of each snapshot in a separate line. This is useful if you interact with the code using the command line. E.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">tail</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">snapshots</span><span class="o">/</span><span class="nb">list</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10
+</pre></div>
+</div>
+<p>is a clean way to get the number of the last snapshot.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">snapshots</span></code> directory contains</p>
+<ul class="simple">
+<li><p>the state variables of the hydro simulation (density, energy and velocities),</p></li>
+<li><p>1D output files,</p></li>
+<li><p>a binary file for each planet and the <code class="docutils literal notranslate"><span class="pre">rebound.bin</span></code> for the state of the integrator (this is used for binary exact restarting)</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">misc.bin</span></code> file which contains the state of the simulation system, e.g. the orientation of the coordinate system w.r.t. to an inertial frame and the last used CFL limited timestep,</p></li>
+<li><p>and a copy of the setup at the time of this snapshot.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">ls</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">snapshots</span><span class="o">/</span><span class="mi">0</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>config.yml    misc.bin	  rebound.bin  vazi1D.dat  vrad.dat
+energy1D.dat  nbody0.bin  Sigma1D.dat  vazi.dat
+energy.dat    nbody1.bin  Sigma.dat    vrad1D.dat
+</pre></div>
+</div>
+<p>Finally, there is the <code class="docutils literal notranslate"><span class="pre">monitor</span></code> directory which contains monitor variables. These scalar variables are computed from the system state during the simulation and are written more often than the full snapshots.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">ls</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">monitor</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>nbody0.dat  nbody1.dat	Quantities.dat	timeMonitor.dat  timestepLogging.dat
+</pre></div>
+</div>
+<p>All files have a header that describes the colums and the units of the variables. The header can be automatically parsed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">head</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">monitor</span><span class="o">/</span><span class="n">timeMonitor</span><span class="o">.</span><span class="n">dat</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Time log for course output.
+#version: 0.1
+#variable: 0 | snapshot number | 1
+#variable: 1 | monitor number | 1
+#variable: 2 | time | 5.0225669513368811e+06 s
+# One monitor_timestep is 0.314000000000000001 (code) and 1577086.02271978068 (cgs).
+# Syntax: snapshot number &lt;tab&gt; monitor number &lt;tab&gt; time (cgs)
+0	0	0.0000000000000000e+00
+0	1	3.1400000000000000e-01
+0	2	6.2800000000000000e-01
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Each planet has its own file,</p></li>
+<li><p>disk quantities, e.g. the total mass, are stored in <code class="docutils literal notranslate"><span class="pre">Quantities.dat</span></code>,</p></li>
+<li><p>the output times of these fine grained monitor variables are stored in <code class="docutils literal notranslate"><span class="pre">timeMonitor.dat</span></code>, along with the corresponding snapshot number,</p></li>
+<li><p>and information about the CFL timestep and the ellapsed walltime can be found in <code class="docutils literal notranslate"><span class="pre">timestepLogging.dat</span></code>.</p></li>
+</ul>
+</section>
+<section id="loading-data">
+<h2>Loading data<a class="headerlink" href="#loading-data" title="Link to this heading">¶</a></h2>
+<p>Let’s inspect the monitor quantities that Fargo outputs.
+Those are stored in the <code class="docutils literal notranslate"><span class="pre">monitor</span></code> directory within the output dir.</p>
+<p>We’ll use the <code class="docutils literal notranslate"><span class="pre">inspect_tab_file.py</span></code> tool, which helps navigating the tab separated output files.</p>
+<p>Calling this tool with the <code class="docutils literal notranslate"><span class="pre">monitor/Quantities.dat</span></code> file, an overview of the available data is shown.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">python3</span> <span class="err">$</span><span class="n">repo_root</span><span class="o">/</span><span class="n">Tools</span><span class="o">/</span><span class="n">inspect_tab_file</span><span class="o">.</span><span class="n">py</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">monitor</span><span class="o">/</span><span class="n">Quantities</span><span class="o">.</span><span class="n">dat</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Available variables:
+ 0   snapshot number
+ 1   monitor number
+ 2   time
+ 3   mass
+ 4   radius
+ 5   angular momentum
+ 6   total energy
+ 7   internal energy
+ 8   kinematic energy
+ 9   potential energy
+10   radial kinetic energy
+11   azimuthal kinetic energy
+12   eccentricity
+13   periastron
+14   viscous dissipation
+15   luminosity
+16   pdivv
+17   inner boundary mass inflow
+18   inner boundary mass outflow
+19   outer boundary mass inflow
+20   outer boundary mass outflow
+21   wave damping inner mass creation
+22   wave damping inner mass removal
+23   wave damping outer mass creation
+24   wave damping outer mass removal
+25   density floor mass creation
+26   aspect ratio
+27   indirect term nbody x
+28   indirect term nbody y
+29   indirect term disk x
+30   indirect term disk y
+31   frame angle
+32   advection torque
+33   viscous torque
+34   gravitational torque
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="err">!</span><span class="n">python3</span> <span class="err">$</span><span class="n">repo_root</span><span class="o">/</span><span class="n">Tools</span><span class="o">/</span><span class="n">inspect_tab_file</span><span class="o">.</span><span class="n">py</span> <span class="n">output</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">monitor</span><span class="o">/</span><span class="n">Quantities</span><span class="o">.</span><span class="n">dat</span> <span class="mi">2</span> <span class="mi">3</span> <span class="o">--</span><span class="n">units</span> <span class="n">kyr</span> <span class="n">solMass</span> <span class="o">|</span> <span class="n">head</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>         0 kyr	  0.000349 solMass
+     5e-05 kyr	  0.000349 solMass
+  9.99e-05 kyr	  0.000349 solMass
+   0.00015 kyr	  0.000349 solMass
+    0.0002 kyr	  0.000349 solMass
+   0.00025 kyr	  0.000349 solMass
+    0.0003 kyr	  0.000349 solMass
+   0.00035 kyr	  0.000349 solMass
+    0.0004 kyr	  0.000349 solMass
+   0.00045 kyr	  0.000349 solMass
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="101_DiskPlots.html">Disk Plots</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">FargoCPT Output Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html">Loading data from the simulation output - the automatic way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html#d-data">2D data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="220_DataLoading_Manual.html">Manual 2d data loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="300_Bootstrap_Simulation.html">FargoCPT Bootstrap Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="301_Adjusting_Inditial_Conditions.html">Adjusting initial conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="400_Custom_Initial_Conditions.html">Custom Initial Conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="401_Selfgravity.html">FargoCPT Selfgravity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Numerics/index.html">Physics and numerics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Examples</a><ul>
+      <li>Previous: <a href="101_DiskPlots.html" title="previous chapter">Disk Plots</a></li>
+      <li>Next: <a href="210_DataLoading_Automatic.html" title="next chapter">Loading data from the simulation output - the automatic way</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/Examples/200_Output_Structure.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

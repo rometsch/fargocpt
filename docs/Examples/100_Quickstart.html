@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FargoCPT Quickstart &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="fargocpt-quickstart">
+<h1>FargoCPT Quickstart<a class="headerlink" href="#fargocpt-quickstart" title="Link to this heading">¶</a></h1>
+<p>This notebook guides you through how to make the code, run a simulation and plot the results.</p>
+<p>First we create a new directory and change to it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">example_name</span> <span class="o">=</span> <span class="s2">&quot;100_quickstart&quot;</span>
+<span class="n">example_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;example_dirs/</span><span class="si">{</span><span class="n">example_name</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">==</span> <span class="n">example_name</span><span class="p">:</span>
+    <span class="err">!</span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="err">$</span><span class="n">example_dir</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">example_dir</span><span class="p">)</span>
+<span class="n">repo_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;../../../&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current working directory: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repository root directory: </span><span class="si">{</span><span class="n">repo_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Current working directory: /home/rometsch/repo/fargocpt/examples/example_dirs/100_quickstart
+Repository root directory: /home/rometsch/repo/fargocpt
+</pre></div>
+</div>
+<section id="make-the-code">
+<h2>Make the code<a class="headerlink" href="#make-the-code" title="Link to this heading">¶</a></h2>
+<p>Make sure the code is built by running make again.</p>
+<p>If you have not yet compiled the go, please go to the readme and follow the instructions there.
+You can also try to run the following cell directly, but it will only output error messages. This might make debugging harder.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">timeit</span> <span class="o">-</span><span class="n">n1</span> <span class="o">-</span><span class="n">r1</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+<span class="k">if</span> <span class="n">platform</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;linux&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">]:</span>
+    <span class="err">!</span><span class="n">make</span> <span class="o">-</span><span class="n">j</span> <span class="mi">4</span> <span class="o">-</span><span class="n">C</span> <span class="err">$</span><span class="n">repo_root</span><span class="o">/</span><span class="n">src</span> <span class="o">&gt;</span> <span class="n">make</span><span class="o">.</span><span class="n">log</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Seems like you are not running MacOS or Linux but </span><span class="si">{</span><span class="n">platform</span><span class="si">}</span><span class="s2">. This is unsupported. You are on your own, good luck!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>115 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+</pre></div>
+</div>
+</section>
+<section id="preparing-a-setup-file">
+<h2>Preparing a setup file<a class="headerlink" href="#preparing-a-setup-file" title="Link to this heading">¶</a></h2>
+<p>We’ll take the example setup file from the examples directory and modify it in python.
+If you want to create setup files for a parameter study, just copy the code and make your own setup creator script.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">configfile</span> <span class="o">=</span> <span class="s2">&quot;setup.yml&quot;</span>
+<span class="err">!</span><span class="n">cp</span> <span class="err">$</span><span class="n">repo_root</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">config</span><span class="o">.</span><span class="n">yml</span> <span class="err">$</span><span class="n">configfile</span>
+</pre></div>
+</div>
+<p>We’ll use the <code class="docutils literal notranslate"><span class="pre">ruamel.yaml</span></code> package to read and write the setup file. This can be set up to preserve comments which is very useful if you want to trace your decisions later on.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">ruamel.yaml</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Please install ruamel.yaml with `python3 -m pip install ruamel.yaml`&quot;</span><span class="p">)</span>
+<span class="n">yaml</span> <span class="o">=</span> <span class="n">ruamel</span><span class="o">.</span><span class="n">yaml</span><span class="o">.</span><span class="n">YAML</span><span class="p">()</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">configfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;nbody&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;accretion efficiency&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;MonitorTimestep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.314</span> <span class="c1"># monitor scalar files around every half orbit</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;Nmonitor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span> <span class="c1"># write a snapshot after every 20 monitor timesteps = every orbit</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;Nsnapshots&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="c1"># wirte 10 snapshots</span>
+<span class="c1"># use very low resolution by setting it to 2 cell per scaleheight, cps</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;cps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">configfile</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+    <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="running-the-code">
+<h2>Running the code<a class="headerlink" href="#running-the-code" title="Link to this heading">¶</a></h2>
+<p>We can start fargo using the python interface.</p>
+<p>For a production, uncomment the following cell and copy the command to your start script.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># cwd = os.getcwd()</span>
+<span class="c1"># cmd = f&quot;cd {cwd} &amp;&amp; python3 ../../../run_fargo -np 1 -nt 4 auto {configfile}&quot;</span>
+<span class="c1"># print(cmd)</span>
+</pre></div>
+</div>
+<p>Here, we just launch the code from within the notebook.</p>
+<p>Note the <code class="docutils literal notranslate"><span class="pre">detach=False</span></code> parameter.
+Here, we use <code class="docutils literal notranslate"><span class="pre">detach=False</span></code> to see the output in the notebook.
+You can also use <code class="docutils literal notranslate"><span class="pre">detach=True</span></code> to run the simulation in the background and continue to use the notebook while the simulation is running.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fargocpt</span> <span class="kn">import</span> <span class="n">run</span>
+<span class="n">np</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># Number of mpi processes. Should be equal to the number of numa nodes on your machine, check your cluster docu or run `lscpu` or `./run_fargo --print-numa` if you&#39;re on linux.</span>
+<span class="n">nt</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Number of threads per mpi process, set it to the number of cores you want to use / number of MPI processes</span>
+<span class="n">run</span><span class="p">([</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="n">configfile</span><span class="p">],</span> <span class="n">np</span><span class="o">=</span><span class="n">np</span><span class="p">,</span> <span class="n">nt</span><span class="o">=</span><span class="n">nt</span><span class="p">,</span> <span class="n">exe</span><span class="o">=</span><span class="n">repo_root</span><span class="o">+</span><span class="s2">&quot;/bin/fargocpt_exe&quot;</span><span class="p">,</span> <span class="n">detach</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Running command: mpirun -np 2 --report-pid /tmp/tmpyyu0scqg -x OMP_NUM_THREADS=1 /home/rometsch/repo/fargocpt/bin/fargocpt_exe start setup.yml
+fargo process pid 1409397
+
+[0] MPI rank #  0 runs as process 1409401
+[1] MPI rank #  1 runs as process 1409402
+[0] MPI rank #  0 OpenMP thread #  0 of  1 on cpt-kamino
+[1] MPI rank #  1 OpenMP thread #  0 of  1 on cpt-kamino
+[0] fargo: This file was compiled on Nov 14 2023, 12:56:40.
+[0] fargo: This version of FARGO used _GNU_SOURCE
+[0] fargo: This version of FARGO used NDEBUG. So no assertion checks!
+[0] Using parameter file setup.yml
+[0] Computing disk quantities within 5.00000e+00 L0 from coordinate center
+[0] BC: Inner composite = reflecting
+[0] BC: Outer composite = reflecting
+[0] BC: Sigma inner = zerogradient
+[0] BC: Sigma outer = zerogradient
+[0] BC: Energy inner = zerogradient
+[0] BC: Energy outer = zerogradient
+[0] BC: Vrad inner = reflecting
+[0] BC: Vrad outer = reflecting
+[0] BC: Vaz inner = keplerian
+[0] BC: Vaz outer = keplerian
+[0] DampingTimeFactor: 1.00000e-01 Outer damping time is computed at radius of 2.50000e+00
+[0] Damping VRadial to reference value at inner boundary.
+[0] Damping VRadial to reference value at outer boundary.
+[0] Damping VAzimuthal to reference value at inner boundary.
+[0] Damping VAzimuthal to reference value at outer boundary.
+[0] Damping SurfaceDensity to reference value at inner boundary.
+[0] Damping SurfaceDensity to reference value at outer boundary.
+[0] Damping Energy to reference value at inner boundary.
+[0] Damping Energy to reference value at outer boundary.
+[0] Radiative diffusion is disabled. Using fixed omega = 1.500000 with a maximum 50000 interations.
+[0] Indirect Term computed as effective Hydro center acceleratrion with shifting the Nbody system to the center.
+[0] Body force on gas computed via potential.
+[0] Using FARGO algorithm for azimuthal advection.
+[0] Using standard forward euler scheme for source terms.
+[0] Cps is set, overwriting Nrad and Naz!
+[0] Grid resolution set using cps = 2.000000
+[0] The grid has (Nrad, Naz) = (74, 251) cells with (1.994113, 1.997395) cps.
+[0] Computing scale height with respect to primary object.
+[0] Using isothermal equation of state. AdiabaticIndex = 1.400.
+[0] Viscosity is of alpha type with alpha = 1.000e-03
+[0] Defaulting to VanLeer flux limiter
+[0] Output information:
+[0]    Output directory: output/out/
+[0]     Number of files: 80
+[0]   Total output size: 0.00 GB
+[0]     Space Available: 31.24 GB
+[0] Initializing 1 RNGs per MPI process.
+[0] Warning : no `radii.dat&#39; file found. Using default.
+[0] The first 1 planets are used to calculate the hydro frame center.
+[0] The mass of the planets used as hydro frame center is 1.000000e+00.
+[0] 2 planet(s) initialized.
+[0] Planet overview:
+[0] 
+[0]  #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |
+[0] -----+-------------------------+------------+------------+------------+------------+------------+
+[0]    0 | Star                    |          1 |          0 |         -0 |          0 |          0 |
+[0]    1 | Jupiter                 |  0.0009546033 |          1 |          0 |         -0 |   1.000477 |
+[0] 
+[0]  #   | e          | a          | T [t0]     | T [a]      | accreting  | Accretion Type |
+[0] -----+------------+------------+------------+------------+------------+----------------+
+[0]    0 |  6.368246e-17 |          1 |   6.280188 |   0.999548 |          0 |   No Accretion |
+[0]    1 |  6.368246e-17 |          1 |   6.280188 |   0.999548 |          2 |   Kley Accret. |
+[0] 
+[0]  #   | Temp [K]   | R [l0]     | irradiates | rampuptime |
+[0] -----+------------+------------+------------+------------+
+[0]    0 |       5778 |  0.0046505 |        yes |          0 |
+[0]    1 |          0 |  4.6505e-05 |         no |          0 |
+[0] 
+[0] Using Tscharnuter-Winkler (1979) artificial viscosity with C = 1.410000.
+[0] Artificial viscosity is used for dissipation.
+[0] Surface density factor: 2.50663
+[0] Tau factor: 0.5
+[0] Tau min: 0.01
+[0] Kappa factor: 1
+[0] Minimum temperature: 2.81162e-05 K = 3.00000e+00
+[0] Maximum temperature: 9.37206e+94 K = 1.00000e+100
+[0] Heating from viscous dissipation is enabled. Using a total factor of 1.
+[0] Cooling (beta) is disabled and reference temperature is floor. Using beta = 10.
+[0] Cooling (radiative) is enabled. Using a total factor of 1.
+[0] S-curve cooling is disabled. 
+[0] CFL parameter: 0.5
+[0] Opacity uses tables from Lin &amp; Papaloizou, 1985
+[0] Particles are disabled.
+[0] Initializing Sigma(r) = 2.25093e-05 = 200 g cm^-2 * [r/(1 AU)]^(-0.5)
+[0] Total disk is mass is 0.000348841 = 6.9366e+29 g.
+[0] Writing output output/out/snapshots/0, Snapshot Number 0, Time 0.000000.
+[0] Writing output output/out/snapshots/reference, Snapshot Number 0, Time 0.000000.
+[0] Writing output output/out/snapshots/1, Snapshot Number 1, Time 6.280000.
+[0] Writing output output/out/snapshots/2, Snapshot Number 2, Time 12.560000.
+[0] Writing output output/out/snapshots/3, Snapshot Number 3, Time 18.840000.
+[0] Writing output output/out/snapshots/4, Snapshot Number 4, Time 25.120000.
+[0] Writing output output/out/snapshots/5, Snapshot Number 5, Time 31.400000.
+[0] Writing output output/out/snapshots/6, Snapshot Number 6, Time 37.680000.
+[0] Writing output output/out/snapshots/7, Snapshot Number 7, Time 43.960000.
+[0] Writing output output/out/snapshots/8, Snapshot Number 8, Time 50.240000.
+[0] Writing output output/out/snapshots/9, Snapshot Number 9, Time 56.520000.
+[0] Writing output output/out/snapshots/10, Snapshot Number 10, Time 62.800000.
+[0] -- Final: Total Hydrosteps 1760, Time 62.80, Walltime 4.12 seconds, Time per Step: 2.34 milliseconds
+
+
+
+
+
+0
+</pre></div>
+</div>
+<p>Following is an overview widget for the simulation. You can use the slider to scrub through the different snapshots.</p>
+<p>Run the cell again to refresh the snapshot list.</p>
+<p>Uncomment the first line for an interactive widget. Your Jupyter environment must support this.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># %matplotlib widget</span>
+<span class="kn">from</span> <span class="nn">fargocpt</span> <span class="kn">import</span> <span class="n">Overview</span>
+<span class="n">overview</span> <span class="o">=</span> <span class="n">Overview</span><span class="p">(</span><span class="s2">&quot;output/out/&quot;</span><span class="p">,</span> 
+                    <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2:Sigma:rel,rphi&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;2:vazi:rel,rphi&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;2:vrad:diff,rphi&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;1:Sigma:minmax&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;1:vazi:rel,minmax&quot;</span><span class="p">,</span>
+                          <span class="s2">&quot;1:vrad:diff,minmax&quot;</span><span class="p">],</span>
+                          <span class="n">start</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">overview</span><span class="o">.</span><span class="n">create</span><span class="p">();</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/100_Quickstart_20_0.png" /></p>
+<p>Concratulations! You’ve made it through the quickstart guide.
+You should now know enough to run your own experiments using the FargoCPT code.
+Happy experimenting!</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Numerics/index.html">Physics and numerics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/Examples/100_Quickstart.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Loading data from the simulation output - the automatic way &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FargoCPT Bootstrap Notebook" href="300_Bootstrap_Simulation.html" />
+    <link rel="prev" title="Disk Plots" href="101_DiskPlots.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="loading-data-from-the-simulation-output-the-automatic-way">
+<h1>Loading data from the simulation output - the automatic way<a class="headerlink" href="#loading-data-from-the-simulation-output-the-automatic-way" title="Link to this heading">¶</a></h1>
+<p>This notebook teaches you how to load data from the simulation output using a helper tool.</p>
+<p>We will use the data from the simulation in the quickstart example, so make sure you ran this beforehand.</p>
+<p>We’ll first create a Data object and ask what’s available in the output.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fargocpt</span> <span class="kn">import</span> <span class="n">Loader</span>
+<span class="n">l</span> <span class="o">=</span> <span class="n">Loader</span><span class="p">(</span><span class="s2">&quot;example_dirs/100_quickstart/output/out&quot;</span><span class="p">)</span>
+<span class="n">l</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Loader
+====================
+| output_dir: example_dirs/100_quickstart/output/out
+| snapshots: 0 ... 10
+| special_snapshots: [&#39;reference&#39;]
+| snapshot_time: 0.0 5.02257e+06 s ... 62.8 5.02257e+06 s
+| monitor_number: 0 ... 200
+| units: Units
+| target_units = None
+| gas: Hydro
+| nbody: Nbody
+| params: Params
+| particles = None
+====================
+</pre></div>
+</div>
+<p>We can explore this data object further by looking at some of its member variables.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l</span><span class="o">.</span><span class="n">nbody</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[   Nbody
+ ====================
+ | filepath: 100_quickstart/output/out/monitor/nbody0.dat
+ | varnames:
+ |   time
+ |   snapshot_number
+ |   monitor_number
+ |   x
+ |   y
+ |   vx
+ |   vy
+ |   mass
+ |   physical_time
+ |   omega_frame
+ |   mdcp
+ |   eccentricity
+ |   angular_momentum
+ |   semi_major_axis
+ |   omega_kepler
+ |   mean_anomaly
+ |   eccentric_anomaly
+ |   true_anomaly
+ |   pericenter_angle
+ |   torque
+ |   accreted_mass
+ |   accretion_rate
+ ====================,
+    Nbody
+ ====================
+ | filepath: 100_quickstart/output/out/monitor/nbody1.dat
+ | varnames:
+ |   time
+ |   snapshot_number
+ |   monitor_number
+ |   x
+ |   y
+ |   vx
+ |   vy
+ |   mass
+ |   physical_time
+ |   omega_frame
+ |   mdcp
+ |   eccentricity
+ |   angular_momentum
+ |   semi_major_axis
+ |   omega_kepler
+ |   mean_anomaly
+ |   eccentric_anomaly
+ |   true_anomaly
+ |   pericenter_angle
+ |   torque
+ |   accreted_mass
+ |   accretion_rate
+ ====================]
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l</span><span class="o">.</span><span class="n">gas</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Hydro
+====================
+| output_dir: 100_quickstart/output/out
+| units: Units
+| target_units= None
+| grid: Grid
+| timestepping: Scalar
+| scalars: Scalar
+| vars1D: Vars1D
+| vars2D: Vars2D
+====================
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l</span><span class="o">.</span><span class="n">units</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Units
+====================
+| base:
+|   length: 1.49598e+13 cm
+|   time: 5.02257e+06 s
+|   mass: 1.98847e+33 g
+|   temperature: 106700 K
+|  derived:
+|   energy: 1.76408e+46 erg
+|   energy surface density: 7.88257e+19 erg / cm2
+|   density: 5.9394e-07 g / cm3
+|   mass surface density: 8.88522e+06 g / cm2
+|   opacity: 1.12546e-07 cm2 / g
+|   energy flux: 1.56943e+13 erg / (s cm2)
+|   velocity: 2.97851e+06 cm / s
+|   angular momentum: 8.86021e+52 cm2 g / s
+|   kinematic viscosity: 4.45579e+19 cm2 / s
+|   dynamic viscosity: 2.64648e+13 P
+|   acceleration: 0.593026 cm / s2
+|   stress: 7.88257e+19 g / s2
+|   pressure: 7.88257e+19 dyn / cm
+|   power: 3.51231e+39 erg / s
+|   potential: 8.87155e+12 erg / g
+|   torque: 1.76408e+46 erg
+|   force: 1.17921e+33 dyn
+|   mass accretion rate: 3.95907e+26 g / s
+====================
+</pre></div>
+</div>
+<p>To see all at once, run the following cell.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Loader
+====================
+| output_dir: 100_quickstart/output/out
+| snapshots: 0 ... 10
+| special_snapshots: [&#39;reference&#39;]
+| snapshot_time: 0.0 5.02257e+06 s ... 62.8 5.02257e+06 s
+| monitor_number: 0 ... 200
+| units: Units
+| target_units = None
+| gas: Hydro
+| nbody: Nbody
+| params: Params
+| particles = None
+====================
+
+|      Units
+|   ====================
+|   | base:
+|   |   length: 1.49598e+13 cm
+|   |   time: 5.02257e+06 s
+|   |   mass: 1.98847e+33 g
+|   |   temperature: 106700 K
+|   |  derived:
+|   |   energy: 1.76408e+46 erg
+|   |   energy surface density: 7.88257e+19 erg / cm2
+|   |   density: 5.9394e-07 g / cm3
+|   |   mass surface density: 8.88522e+06 g / cm2
+|   |   opacity: 1.12546e-07 cm2 / g
+|   |   energy flux: 1.56943e+13 erg / (s cm2)
+|   |   velocity: 2.97851e+06 cm / s
+|   |   angular momentum: 8.86021e+52 cm2 g / s
+|   |   kinematic viscosity: 4.45579e+19 cm2 / s
+|   |   dynamic viscosity: 2.64648e+13 P
+|   |   acceleration: 0.593026 cm / s2
+|   |   stress: 7.88257e+19 g / s2
+|   |   pressure: 7.88257e+19 dyn / cm
+|   |   power: 3.51231e+39 erg / s
+|   |   potential: 8.87155e+12 erg / g
+|   |   torque: 1.76408e+46 erg
+|   |   force: 1.17921e+33 dyn
+|   |   mass accretion rate: 3.95907e+26 g / s
+|   ====================
+|   
+|   FargoCPT data Params
+|   ====================
+|   | filename: 100_quickstart/output/out/parameters/setup.yml
+|   | params:
+|   |   Disk: True
+|   |   DiskFeedback: True
+|   |   SelfGravity: False
+|   |   IntegrateParticles: False
+|   |   l0: 1 au
+|   |   m0: 1 solMass
+|   |   mu: 2.35
+|   |   HydroFrameCenter: primary
+|   |   IndirectTermMode: 0
+|   |   OmegaFrame: 1.0
+|   |   Frame: F
+|   |   MonitorTimestep: 0.314
+|   |   Nmonitor: 20
+|   |   Nsnapshots: 10
+|   |   FirstDT: 0.1
+|   |   nbody: [{&#39;name&#39;: &#39;Star&#39;, &#39;semi-major axis&#39;: &#39;0.0 au&#39;, &#39;mass&#39;: &#39;1.0 solMass&#39;, &#39;eccentricity&#39;: 0.0, &#39;radius&#39;: &#39;1.0 solRadius&#39;, &#39;temperature&#39;: &#39;5778 K&#39;}, {&#39;name&#39;: &#39;Jupiter&#39;, &#39;semi-major axis&#39;: &#39;1.0 au&#39;, &#39;mass&#39;: &#39;1 jupiterMass&#39;, &#39;accretion efficiency&#39;: &#39;2&#39;, &#39;accretion method&#39;: &#39;kley&#39;, &#39;eccentricity&#39;: 0, &#39;radius&#39;: &#39;0.01 solRadius&#39;, &#39;ramp-up time&#39;: 0.0}]
+|   |   NumberOfParticles: 2000
+|   |   ParticleGasDragEnabled: True
+|   |   ParticleDustDiffusion: True
+|   |   ParticleDiskGravityEnabled: False
+|   |   ParticleMinimumEscapeRadius: 0.4
+|   |   ParticleMaximumEscapeRadius: 2.5
+|   |   ParticleMinimumRadius: 0.4
+|   |   ParticleMaximumRadius: 2.5
+|   |   ParticleSurfaceDensitySlope: 0.5
+|   |   ParticleSpeciesNumber: 7
+|   |   ParticleRadius: 1 cm
+|   |   ParticleRadiusIncreaseFactor: 1e-1
+|   |   ParticleEccentricity: 0.03
+|   |   ParticleDensity: 2.65 g/cm3
+|   |   ParticleIntegrator: Midpoint
+|   |   CartesianParticles: True
+|   |   Transport: FARGO
+|   |   Integrator: Euler
+|   |   CFL: 0.5
+|   |   CFLmaxVar: 1.1
+|   |   cps: 2
+|   |   Nrad: 128
+|   |   Naz: 384
+|   |   Rmin: 0.4
+|   |   Rmax: 2.5
+|   |   RadialSpacing: Logarithmic
+|   |   ThicknessSmoothing: 0.6
+|   |   ThicknessSmoothingSG: 0.6
+|   |   KlahrSmoothingRadius: 0.3
+|   |   MassAccretionRadius: 0.3
+|   |   Sigma0: 200 g/cm2
+|   |   SigmaSlope: 0.5
+|   |   SigmaFloor: 1e-9
+|   |   AspectRatio: 0.05
+|   |   FlaringIndex: 0.0
+|   |   AspectRatioMode: 0
+|   |   RandomSeed: 1337
+|   |   RandomSigma: False
+|   |   RandomFactor: 0.1
+|   |   FeatureSize: 0.05
+|   |   ViscousAlpha: 0.001
+|   |   ArtificialViscosity: TW
+|   |   ArtificialViscosityDissipation: True
+|   |   ArtificialViscosityFactor: 1.41
+|   |   EquationOfState: isothermal
+|   |   AdiabaticIndex: 1.4
+|   |   HydrogenMassFraction: 0.75
+|   |   SurfaceCooling: thermal
+|   |   RadiativeDiffusion: False
+|   |   CoolingBetaLocal: False
+|   |   CoolingRadiativeFactor: 1.0
+|   |   CoolingBeta: 10
+|   |   CoolingBetaRampUp: 0.0
+|   |   CoolingBetaReference: floor
+|   |   ScurveType: Kimura
+|   |   RadiativeDiffusionOmega: 1.5
+|   |   RadiativeDiffusionAutoOmega: False
+|   |   RadiativeDiffusionMaxIterations: 50000
+|   |   RadiativeDiffusionTolerance: 1.5
+|   |   RadiativeDiffusionInnerBoundary: zerogradient
+|   |   RadiativeDiffusionOuterBoundary: zerogradient
+|   |   Opacity: Lin
+|   |   KappaConst: 2e-06
+|   |   HeatingViscous: True
+|   |   MinimumTemperature: 3 K
+|   |   MaximumTemperature: 1e100 K
+|   |   HeatingCoolingCFLlimit: 1.0
+|   |   InnerBoundary: Reflecting
+|   |   OuterBoundary: Reflecting
+|   |   Damping: True
+|   |   DampingInnerLimit: 1.1
+|   |   DampingOuterLimit: 0.9
+|   |   DampingTimeFactor: 0.1
+|   |   DampingTimeRadiusOuter: 2.5
+|   |   DampingEnergyInner: Initial
+|   |   DampingVRadialInner: Initial
+|   |   DampingVAzimuthalInner: Initial
+|   |   DampingSurfaceDensityInner: Initial
+|   |   DampingEnergyOuter: Initial
+|   |   DampingVRadialOuter: Initial
+|   |   DampingVAzimuthalOuter: Initial
+|   |   DampingSurfaceDensityOuter: Initial
+|   |   OutputDir: output/out
+|   |   LogAfterRealSeconds: 10
+|   |   LogAfterSteps: 0
+|   |   WriteAtEveryTimestep: True
+|   |   WriteDensity: True
+|   |   WriteVelocity: True
+|   |   WriteEnergy: True
+|   |   WriteTemperature: False
+|   |   WriteSoundspeed: False
+|   |   WriteEccentricityChange: False
+|   |   WriteEffectiveGamma: False
+|   |   WriteFirstAdiabaticIndex: False
+|   |   WriteMeanMolecularWeight: False
+|   |   WriteToomre: False
+|   |   WriteQMinus: False
+|   |   WriteQPlus: False
+|   |   WriteTauCool: False
+|   |   WriteViscosity: False
+|   |   WriteAlpha: False
+|   |   WriteKappa: False
+|   |   WriteAlphaGrav: False
+|   |   WriteAlphaGravMean: False
+|   |   WriteAlphaReynolds: False
+|   |   WriteAlphaReynoldsMean: False
+|   |   WriteEccentricity: False
+|   |   WriteTReynolds: False
+|   |   WriteTGravitational: False
+|   |   WritepdV: False
+|   |   WriteDiskQuantities: True
+|   |   WriteRadialLuminosity: False
+|   |   WriteRadialDissipation: False
+|   |   WriteLightCurves: False
+|   |   WriteLightcurvesRadii: 0.4,5.2
+|   |   WriteMassFlow: False
+|   |   WriteGasTorques: False
+|   |   WritePressure: False
+|   |   WriteScaleHeight: False
+|   |   WriteAspectratio: False
+|   |   WriteTorques: False
+|   |   WriteVerticalOpticalDepth: False
+|   |   WriteSGAccelRad: False
+|   |   WriteSGAccelAzi: False
+|   ====================
+|   
+|      Nbody
+|   ====================
+|   | filepath: 100_quickstart/output/out/monitor/nbody0.dat
+|   | varnames:
+|   |   time
+|   |   snapshot_number
+|   |   monitor_number
+|   |   x
+|   |   y
+|   |   vx
+|   |   vy
+|   |   mass
+|   |   physical_time
+|   |   omega_frame
+|   |   mdcp
+|   |   eccentricity
+|   |   angular_momentum
+|   |   semi_major_axis
+|   |   omega_kepler
+|   |   mean_anomaly
+|   |   eccentric_anomaly
+|   |   true_anomaly
+|   |   pericenter_angle
+|   |   torque
+|   |   accreted_mass
+|   |   accretion_rate
+|   ====================
+|   
+|      Nbody
+|   ====================
+|   | filepath: 100_quickstart/output/out/monitor/nbody1.dat
+|   | varnames:
+|   |   time
+|   |   snapshot_number
+|   |   monitor_number
+|   |   x
+|   |   y
+|   |   vx
+|   |   vy
+|   |   mass
+|   |   physical_time
+|   |   omega_frame
+|   |   mdcp
+|   |   eccentricity
+|   |   angular_momentum
+|   |   semi_major_axis
+|   |   omega_kepler
+|   |   mean_anomaly
+|   |   eccentric_anomaly
+|   |   true_anomaly
+|   |   pericenter_angle
+|   |   torque
+|   |   accreted_mass
+|   |   accretion_rate
+|   ====================
+|   
+|      Hydro
+|   ====================
+|   | output_dir: 100_quickstart/output/out
+|   | units: Units
+|   | target_units= None
+|   | grid: Grid
+|   | timestepping: Scalar
+|   | scalars: Scalar
+|   | vars1D: Vars1D
+|   | vars2D: Vars2D
+|   ====================
+|   
+|   |      Grid
+|   |   ====================
+|   |   | radi: 0.3899474657238236 1.49598e+13 cm ... 2.564448003640175 1.49598e+13 cm
+|   |   | phii: 0.0 ... 6.283185307179586
+|   |   | Nrad: 74
+|   |   | Naz: 251
+|   |   | Spacing: Logarithmic
+|   |   ====================
+|   |   
+|   |      Scalars
+|   |   ====================
+|   |   | filepath: 100_quickstart/output/out/monitor/Quantities.dat
+|   |   | varnames:
+|   |   |   snapshot_number
+|   |   |   monitor_number
+|   |   |   time
+|   |   |   mass
+|   |   |   radius
+|   |   |   angular_momentum
+|   |   |   total_energy
+|   |   |   internal_energy
+|   |   |   kinematic_energy
+|   |   |   potential_energy
+|   |   |   radial_kinetic_energy
+|   |   |   azimuthal_kinetic_energy
+|   |   |   eccentricity
+|   |   |   periastron
+|   |   |   viscous_dissipation
+|   |   |   luminosity
+|   |   |   pdivv
+|   |   |   inner_boundary_mass_inflow
+|   |   |   inner_boundary_mass_outflow
+|   |   |   outer_boundary_mass_inflow
+|   |   |   outer_boundary_mass_outflow
+|   |   |   wave_damping_inner_mass_creation
+|   |   |   wave_damping_inner_mass_removal
+|   |   |   wave_damping_outer_mass_creation
+|   |   |   wave_damping_outer_mass_removal
+|   |   |   density_floor_mass_creation
+|   |   |   aspect
+|   |   |   indirect_term_nbody_x
+|   |   |   indirect_term_nbody_y
+|   |   |   indirect_term_disk_x
+|   |   |   indirect_term_disk_y
+|   |   |   frame_angle
+|   |   |   advection_torque
+|   |   |   viscous_torque
+|   |   |   gravitational_torque
+|   |   ====================
+|   |   
+|   |      TimeStepInfo
+|   |   ====================
+|   |   | filepath: 100_quickstart/output/out/monitor/timestepLogging.dat
+|   |   | varnames:
+|   |   |   snapshot_number
+|   |   |   monitor_number
+|   |   |   hydrostep_number
+|   |   |   Number_of_Hydrosteps_in_last_monitor_timestep
+|   |   |   time
+|   |   |   walltime
+|   |   |   walltime_per_hydrostep
+|   |   |   mean_dt
+|   |   |   min_dt
+|   |   |   std_dev_dt
+|   |   ====================
+|   |   
+|   |      Vars1D
+|   |   ====================
+|   |   | output_dir: 100_quickstart/output/out
+|   |   | target_units= None
+|   |   | grid: Grid
+|   |   | var_names:
+|   |   |   Sigma
+|   |   |   vrad
+|   |   |   vazi
+|   |   |   energy
+|   |   ====================
+|   |   
+|   |      Vars2D
+|   |   ====================
+|   |   | output_dir: 100_quickstart/output/out
+|   |   | target_units= None
+|   |   | grid: Grid
+|   |   | var_names:
+|   |   |   Sigma
+|   |   |   vrad
+|   |   |   vazi
+|   |   |   energy
+|   |   ====================
+|   |   
+</pre></div>
+</div>
+<p>Scalar quantities can be loaded directly by accessing a member:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">scalars</span><span class="o">.</span><span class="n">mass</span><span class="p">[:</span><span class="mi">10</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">nbody</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">[:</span><span class="mi">10</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.00034884 0.00034884 0.00034884 0.00034884 0.00034884 0.00034884
+ 0.00034884 0.00034885 0.00034885 0.00034886] 1.98847e+33 g
+[1.         0.99999997 0.99999969 0.99999872 0.99999644 0.99999217
+ 0.99998542 0.99997613 0.99996456 0.99995133] 1.49598e+13 cm
+</pre></div>
+</div>
+<p>We can also use a getter function to do this. See its use below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">scalars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mass&quot;</span><span class="p">)[:</span><span class="mi">10</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[0.00034884 0.00034884 0.00034884 0.00034884 0.00034884 0.00034884
+ 0.00034884 0.00034885 0.00034885 0.00034886] 1.98847e+33 g
+</pre></div>
+</div>
+<p>Let’s plot some data for the second nbody object, the planet in this case.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">,</span> <span class="s2">&quot;eccentricity&quot;</span><span class="p">]:</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">nbody</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">varname</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">nbody</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;yr&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">varname</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;time [yr]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/210_DataLoading_Automatic_15_0.png" /></p>
+<p><img alt="png" src="../_images/210_DataLoading_Automatic_15_1.png" /></p>
+</section>
+<section id="d-data">
+<h1>2D data<a class="headerlink" href="#d-data" title="Link to this heading">¶</a></h1>
+<p>To obtain 2D data for the gas, let’s inspect</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l</span><span class="o">.</span><span class="n">gas</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Hydro
+====================
+| output_dir: 100_quickstart/output/out
+| units: Units
+| target_units= None
+| grid: Grid
+| timestepping: Scalar
+| scalars: Scalar
+| vars1D: Vars1D
+| vars2D: Vars2D
+====================
+</pre></div>
+</div>
+<p>There seems to be a <code class="docutils literal notranslate"><span class="pre">vars2D</span></code> member.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">l</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">vars2D</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>   Vars2D
+====================
+| output_dir: 100_quickstart/output/out
+| target_units= None
+| grid: Grid
+| var_names:
+|   Sigma
+|   vrad
+|   vazi
+|   energy
+====================
+</pre></div>
+</div>
+<p>And some data is available.
+Here, we can’t just access the data via member variables, because we need to specify a snaphost number.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">R</span><span class="p">,</span> <span class="n">PHI</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">vars2D</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Sigma&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">PHI</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">vals</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>(74, 251) (74, 251) (74, 251)
+</pre></div>
+</div>
+<p>This returns meshgrids for radius and azimuth coordinates and the values as 2D array.</p>
+<p>If you want to use this for plotting with pcolormesh, add the following. This returns meshgrids which are 1 cell larger in each direction as needed by plt.pcolormesh.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">R</span><span class="p">,</span> <span class="n">PHI</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">vars2D</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Sigma&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">grid_for_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">PHI</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">vals</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>(75, 252) (75, 252) (74, 251)
+</pre></div>
+</div>
+<p>Now in action!</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.colors</span> <span class="k">as</span> <span class="nn">mplcolors</span>
+
+<span class="k">def</span> <span class="nf">plot_field</span><span class="p">(</span><span class="n">loader</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dataunit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">):</span>
+    <span class="n">R</span><span class="p">,</span> <span class="n">PHI</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">vars2D</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">grid_for_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dataunit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dataunit</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">unit</span>
+    <span class="n">Z</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">dataunit</span><span class="p">)</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">PHI</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">PHI</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
+
+    <span class="n">norm</span> <span class="o">=</span> <span class="n">mplcolors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+    <span class="n">pcm</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">X</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">Z</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+
+    <span class="n">t</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">snapshot_time</span><span class="p">[</span><span class="n">N</span><span class="p">]</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;kyr&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">kyr, N=</span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">pcm</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+    <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">dataunit</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">fig</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plot_field</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="s2">&quot;Sigma&quot;</span><span class="p">,</span> <span class="n">l</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dataunit</span><span class="o">=</span><span class="s2">&quot;g/cm2&quot;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">800</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/210_DataLoading_Automatic_26_0.png" /></p>
+<p>We can also reduce the data to azimuthal averages, minimums or maximums as follows</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colormaps</span>
+
+<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Sigma&quot;</span>
+<span class="n">dataunit</span> <span class="o">=</span> <span class="s2">&quot;g/cm2&quot;</span>
+
+<span class="n">Nfirst</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">Nlast</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">snapshots</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">)</span>
+
+<span class="n">cmap</span> <span class="o">=</span> <span class="n">colormaps</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;viridis&quot;</span><span class="p">)</span>
+
+<span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Nfirst</span><span class="p">,</span> <span class="n">Nlast</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inds</span><span class="p">):</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="n">k</span><span class="o">/</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inds</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    
+    <span class="n">r</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">gas</span><span class="o">.</span><span class="n">vars2D</span><span class="o">.</span><span class="n">avg</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="c1"># here, we automatically get a grid, i.e. an array of radii</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">dataunit</span><span class="p">)</span>
+    
+    <span class="n">t</span> <span class="o">=</span> <span class="n">l</span><span class="o">.</span><span class="n">snapshot_time</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="s2">&quot;yr&quot;</span><span class="p">)</span>
+    <span class="c1"># ax.plot(r, (profile-profile0)/profile0, label=f&quot;t={t:.3f}yr&quot;)</span>
+    <span class="n">line</span><span class="p">,</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">yr&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+    
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r [au]&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">fr</span><span class="s2">&quot;$\Sigma$ [</span><span class="si">{</span><span class="n">dataunit</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Text(0, 0.5, &#39;$\\Sigma$ [g/cm2]&#39;)
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/210_DataLoading_Automatic_28_1.png" /></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="101_DiskPlots.html">Disk Plots</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Loading data from the simulation output - the automatic way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#d-data">2D data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="300_Bootstrap_Simulation.html">FargoCPT Bootstrap Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="401_Selfgravity.html">FargoCPT Selfgravity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Numerics/index.html">Physics and numerics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Examples</a><ul>
+      <li>Previous: <a href="101_DiskPlots.html" title="previous chapter">Disk Plots</a></li>
+      <li>Next: <a href="300_Bootstrap_Simulation.html" title="next chapter">FargoCPT Bootstrap Notebook</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/Examples/210_DataLoading_Automatic.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

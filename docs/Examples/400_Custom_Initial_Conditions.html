@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Custom Initial Conditions &#8212; FargoCPT  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="FargoCPT Selfgravity" href="401_Selfgravity.html" />
+    <link rel="prev" title="Adjusting initial conditions" href="301_Adjusting_Inditial_Conditions.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section class="tex2jax_ignore mathjax_ignore" id="custom-initial-conditions">
+<h1>Custom Initial Conditions<a class="headerlink" href="#custom-initial-conditions" title="Link to this heading">¶</a></h1>
+<p>This notebook will teach you how to set up a custom gas distribution as initial conditions.</p>
+<p>First we create a new directory and change to it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">example_name</span> <span class="o">=</span> <span class="s2">&quot;400_custom_initial_conditions&quot;</span>
+<span class="n">example_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;example_dirs/</span><span class="si">{</span><span class="n">example_name</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">==</span> <span class="n">example_name</span><span class="p">:</span>
+    <span class="err">!</span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="err">$</span><span class="n">example_dir</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">example_dir</span><span class="p">)</span>
+<span class="n">repo_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;../../../&quot;</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current working directory: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repository root directory: </span><span class="si">{</span><span class="n">repo_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Current working directory: /home/rometsch/repo/fargocpt/examples/example_dirs/400_custom_initial_conditions
+Repository root directory: /home/rometsch/repo/fargocpt
+</pre></div>
+</div>
+<section id="make-the-code">
+<h2>Make the code<a class="headerlink" href="#make-the-code" title="Link to this heading">¶</a></h2>
+<p>Make sure the code is built by running make again.</p>
+<p>If you have not yet compiled the go, please go to the readme and follow the instructions there.
+You can also try to run the following cell directly, but it will only output error messages. This might make debugging harder.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">timeit</span> <span class="o">-</span><span class="n">n1</span> <span class="o">-</span><span class="n">r1</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">platform</span>
+<span class="k">if</span> <span class="n">platform</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;linux&quot;</span><span class="p">,</span> <span class="s2">&quot;darwin&quot;</span><span class="p">]:</span>
+    <span class="err">!</span><span class="n">make</span> <span class="o">-</span><span class="n">j</span> <span class="mi">4</span> <span class="o">-</span><span class="n">C</span> <span class="err">$</span><span class="n">repo_root</span><span class="o">/</span><span class="n">src</span> <span class="o">&gt;</span> <span class="n">make</span><span class="o">.</span><span class="n">log</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Seems like you are not running MacOS or Linux but </span><span class="si">{</span><span class="n">platform</span><span class="si">}</span><span class="s2">. This is unsupported. You are on your own, good luck!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>119 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+</pre></div>
+</div>
+</section>
+<section id="preparing-a-setup-file">
+<h2>Preparing a setup file<a class="headerlink" href="#preparing-a-setup-file" title="Link to this heading">¶</a></h2>
+<p>We’ll take the example setup file from the examples directory and modify it in python.
+If you want to create setup files for a parameter study, just copy the code and make your own setup creator script.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">configfile</span> <span class="o">=</span> <span class="s2">&quot;setup.yml&quot;</span>
+<span class="err">!</span><span class="n">cp</span> <span class="err">$</span><span class="n">repo_root</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">config</span><span class="o">.</span><span class="n">yml</span> <span class="err">$</span><span class="n">configfile</span>
+</pre></div>
+</div>
+<p>We’ll use the <code class="docutils literal notranslate"><span class="pre">ruamel.yaml</span></code> package to read and write the setup file. This can be set up to preserve comments which is very useful if you want to trace your decisions later on.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">ruamel.yaml</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Please install ruamel.yaml with `python3 -m pip install ruamel.yaml`&quot;</span><span class="p">)</span>
+<span class="n">yamlloader</span> <span class="o">=</span> <span class="n">ruamel</span><span class="o">.</span><span class="n">yaml</span><span class="o">.</span><span class="n">YAML</span><span class="p">()</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">configfile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">yamlloader</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;MonitorTimestep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.314</span> <span class="c1"># monitor scalar files around every half orbit</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;Nmonitor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span> <span class="c1"># write a snapshot every orbit</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;Nsnapshots&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span> <span class="c1"># wirte 100 snapshots</span>
+<span class="c1"># use very low resolution by setting it to 2 cell per scaleheight, cps</span>
+<span class="n">config</span><span class="p">[</span><span class="s2">&quot;cps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">configfile</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outfile</span><span class="p">:</span>
+    <span class="n">yamlloader</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="getting-a-data-skeleton">
+<h2>Getting a data skeleton<a class="headerlink" href="#getting-a-data-skeleton" title="Link to this heading">¶</a></h2>
+<p>The next step is to run the code for zero timesteps.
+This creates the zeroth and reference snapshots, which we can then modify to our liking.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fargocpt</span> <span class="kn">import</span> <span class="n">run</span>
+<span class="n">run</span><span class="p">([</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="n">configfile</span><span class="p">,</span> <span class="s2">&quot;-N&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">],</span> <span class="n">np</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">exe</span><span class="o">=</span><span class="n">repo_root</span><span class="o">+</span><span class="s2">&quot;/bin/fargocpt_exe&quot;</span><span class="p">,</span> <span class="n">detach</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Running command: mpirun -np 2 --report-pid /tmp/tmp72h2aq3h -x OMP_NUM_THREADS=1 /home/rometsch/repo/fargocpt/bin/fargocpt_exe start setup.yml -N 0
+fargo process pid 1410359
+
+[0] MPI rank #  0 runs as process 1410363
+[0] MPI rank #  0 OpenMP thread #  0 of  1 on cpt-kamino
+[1] MPI rank #  1 runs as process 1410364
+[1] MPI rank #  1 OpenMP thread #  0 of  1 on cpt-kamino
+[0] fargo: This file was compiled on Nov 14 2023, 12:56:40.
+[0] fargo: This version of FARGO used _GNU_SOURCE
+[0] fargo: This version of FARGO used NDEBUG. So no assertion checks!
+[0] Using parameter file setup.yml
+[0] Computing disk quantities within 5.00000e+00 L0 from coordinate center
+[0] BC: Inner composite = reflecting
+[0] BC: Outer composite = reflecting
+[0] BC: Sigma inner = zerogradient
+[0] BC: Sigma outer = zerogradient
+[0] BC: Energy inner = zerogradient
+[0] BC: Energy outer = zerogradient
+[0] BC: Vrad inner = reflecting
+[0] BC: Vrad outer = reflecting
+[0] BC: Vaz inner = keplerian
+[0] BC: Vaz outer = keplerian
+[0] DampingTimeFactor: 1.00000e-01 Outer damping time is computed at radius of 2.50000e+00
+[0] Damping VRadial to reference value at inner boundary.
+[0] Damping VRadial to reference value at outer boundary.
+[0] Damping VAzimuthal to reference value at inner boundary.
+[0] Damping VAzimuthal to reference value at outer boundary.
+[0] Damping SurfaceDensity to reference value at inner boundary.
+[0] Damping SurfaceDensity to reference value at outer boundary.
+[0] Damping Energy to reference value at inner boundary.
+[0] Damping Energy to reference value at outer boundary.
+[0] Radiative diffusion is disabled. Using fixed omega = 1.500000 with a maximum 50000 interations.
+[0] Indirect Term computed as effective Hydro center acceleratrion with shifting the Nbody system to the center.
+[0] Body force on gas computed via potential.
+[0] Using FARGO algorithm for azimuthal advection.
+[0] Using standard forward euler scheme for source terms.
+[0] Cps is set, overwriting Nrad and Naz!
+[0] Grid resolution set using cps = 2.000000
+[0] The grid has (Nrad, Naz) = (74, 251) cells with (1.994113, 1.997395) cps.
+[0] Computing scale height with respect to primary object.
+[0] Using isothermal equation of state. AdiabaticIndex = 1.400.
+[0] Viscosity is of alpha type with alpha = 1.000e-03
+[0] Defaulting to VanLeer flux limiter
+[0] Output information:
+[0]    Output directory: output/out/
+[0]     Number of files: 80
+[0]   Total output size: 0.00 GB
+[0]     Space Available: 31.24 GB
+[0] Initializing 1 RNGs per MPI process.
+[0] Warning : no `radii.dat&#39; file found. Using default.
+[0] The first 1 planets are used to calculate the hydro frame center.
+[0] The mass of the planets used as hydro frame center is 1.000000e+00.
+[0] 2 planet(s) initialized.
+[0] Planet overview:
+[0] 
+[0]  #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |
+[0] -----+-------------------------+------------+------------+------------+------------+------------+
+[0]    0 | Star                    |          1 |          0 |         -0 |          0 |          0 |
+[0]    1 | Jupiter                 |  0.0009546033 |          1 |          0 |         -0 |   1.000477 |
+[0] 
+[0]  #   | e          | a          | T [t0]     | T [a]      | accreting  | Accretion Type |
+[0] -----+------------+------------+------------+------------+------------+----------------+
+[0]    0 |  6.368246e-17 |          1 |   6.280188 |   0.999548 |          0 |   No Accretion |
+[0]    1 |  6.368246e-17 |          1 |   6.280188 |   0.999548 |          0 |   No Accretion |
+[0] 
+[0]  #   | Temp [K]   | R [l0]     | irradiates | rampuptime |
+[0] -----+------------+------------+------------+------------+
+[0]    0 |       5778 |  0.0046505 |        yes |          0 |
+[0]    1 |          0 |  4.6505e-05 |         no |          0 |
+[0] 
+[0] Using Tscharnuter-Winkler (1979) artificial viscosity with C = 1.410000.
+[0] Artificial viscosity is used for dissipation.
+[0] Surface density factor: 2.50663
+[0] Tau factor: 0.5
+[0] Tau min: 0.01
+[0] Kappa factor: 1
+[0] Minimum temperature: 2.81162e-05 K = 3.00000e+00
+[0] Maximum temperature: 9.37206e+94 K = 1.00000e+100
+[0] Heating from viscous dissipation is enabled. Using a total factor of 1.
+[0] Cooling (beta) is disabled and reference temperature is floor. Using beta = 10.
+[0] Cooling (radiative) is enabled. Using a total factor of 1.
+[0] S-curve cooling is disabled. 
+[0] CFL parameter: 0.5
+[0] Opacity uses tables from Lin &amp; Papaloizou, 1985
+[0] Particles are disabled.
+[0] Initializing Sigma(r) = 2.25093e-05 = 200 g cm^-2 * [r/(1 AU)]^(-0.5)
+[0] Total disk is mass is 0.000348841 = 6.9366e+29 g.
+[0] Writing output output/out/snapshots/0, Snapshot Number 0, Time 0.000000.
+[0] Writing output output/out/snapshots/reference, Snapshot Number 0, Time 0.000000.
+[0] -- Final: Total Hydrosteps 0, Time 0.00, Walltime 0.01 seconds, Time per Step: 0.00 milliseconds
+
+
+
+
+
+0
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># %matplotlib widget</span>
+<span class="kn">from</span> <span class="nn">fargocpt</span> <span class="kn">import</span> <span class="n">Overview</span>
+<span class="n">Overview</span><span class="p">(</span><span class="s2">&quot;output/out&quot;</span><span class="p">,</span>
+        <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2:Sigma&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:Sigma&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:vazi:rel&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:vrad&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/400_Custom_Initial_Conditions_13_0.png" /></p>
+</section>
+<section id="defining-helper-functions-and-classes">
+<h2>Defining helper functions and classes<a class="headerlink" href="#defining-helper-functions-and-classes" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">SimpleNamespace</span>
+<span class="kn">import</span> <span class="nn">astropy.units</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">import</span> <span class="nn">astropy.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">FargoCPTField</span><span class="p">:</span>
+    <span class="n">outputdir</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">snapshotid</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">outputdir</span><span class="si">}</span><span class="s2">/snapshots/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshotid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.dat&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grid</span> <span class="o">=</span> <span class="n">get_fargo_grid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;vrad&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">ri</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">phic</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;vtheta&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">rc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">phii</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">rc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">phic</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">altid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">altid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">outputdir</span><span class="si">}</span><span class="s2">/snapshots/</span><span class="si">{</span><span class="n">altid</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.dat&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+
+    <span class="nd">@array</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Shape of data does not match shape of field&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
+
+
+<span class="k">def</span> <span class="nf">get_fargo_grid</span><span class="p">(</span><span class="n">outputdir</span><span class="p">):</span>
+
+    <span class="n">Nrad</span><span class="p">,</span> <span class="n">Naz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">outputdir</span><span class="si">}</span><span class="s2">/dimensions.dat&quot;</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">ri</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">outputdir</span><span class="si">}</span><span class="s2">/used_rad.dat&quot;</span><span class="p">)</span>
+    <span class="n">phii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">Naz</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Ri</span><span class="p">,</span> <span class="n">Phii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">ri</span><span class="p">,</span> <span class="n">phii</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+    <span class="n">Xi</span> <span class="o">=</span> <span class="n">Ri</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Phii</span><span class="p">)</span>
+    <span class="n">Yi</span> <span class="o">=</span> <span class="n">Ri</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Phii</span><span class="p">)</span>
+
+    <span class="n">rc</span> <span class="o">=</span> <span class="mi">2</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="p">(</span><span class="n">ri</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">ri</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">ri</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">ri</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># approx center in polar coords</span>
+    <span class="n">phic</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">phii</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">+</span><span class="n">phii</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">Rc</span><span class="p">,</span> <span class="n">Phic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">rc</span><span class="p">,</span> <span class="n">phic</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+    <span class="n">Xc</span> <span class="o">=</span> <span class="n">Rc</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">Phic</span><span class="p">)</span>
+    <span class="n">Yc</span> <span class="o">=</span> <span class="n">Rc</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">Phic</span><span class="p">)</span>
+
+    <span class="n">dphi</span> <span class="o">=</span> <span class="n">phii</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">phii</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">dr</span> <span class="o">=</span> <span class="n">ri</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">ri</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">Ri</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span><span class="mi">1</span><span class="p">:]</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">Ri</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">:]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">dphi</span>
+
+    <span class="k">return</span> <span class="n">SimpleNamespace</span><span class="p">(</span>
+        <span class="n">Nrad</span><span class="o">=</span><span class="n">Nrad</span><span class="p">,</span> <span class="n">Naz</span><span class="o">=</span><span class="n">Naz</span><span class="p">,</span>
+        <span class="n">ri</span><span class="o">=</span><span class="n">ri</span><span class="p">,</span> <span class="n">phii</span><span class="o">=</span><span class="n">phii</span><span class="p">,</span> <span class="n">Ri</span><span class="o">=</span><span class="n">Ri</span><span class="p">,</span> <span class="n">Phii</span><span class="o">=</span><span class="n">Phii</span><span class="p">,</span> <span class="n">Xi</span><span class="o">=</span><span class="n">Xi</span><span class="p">,</span> <span class="n">Yi</span><span class="o">=</span><span class="n">Yi</span><span class="p">,</span>
+        <span class="n">rc</span><span class="o">=</span><span class="n">rc</span><span class="p">,</span> <span class="n">phic</span><span class="o">=</span><span class="n">phic</span><span class="p">,</span> <span class="n">Rc</span><span class="o">=</span><span class="n">Rc</span><span class="p">,</span> <span class="n">Phic</span><span class="o">=</span><span class="n">Phic</span><span class="p">,</span> <span class="n">Xc</span><span class="o">=</span><span class="n">Xc</span><span class="p">,</span> <span class="n">Yc</span><span class="o">=</span><span class="n">Yc</span><span class="p">,</span> 
+        <span class="n">dphi</span><span class="o">=</span><span class="n">dphi</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="n">dr</span><span class="p">,</span> <span class="n">A</span><span class="o">=</span><span class="n">A</span>
+    <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_fargo_powerlaw_disk</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+
+    <span class="n">l0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;l0&quot;</span><span class="p">])</span>
+    <span class="n">m0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;m0&quot;</span><span class="p">])</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;t0&quot;</span><span class="p">])</span>
+    <span class="n">Temp0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;Temp0&quot;</span><span class="p">])</span>
+
+    <span class="n">Mstar</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;nbody&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;mass&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">m0</span><span class="p">)</span>
+    <span class="n">GM</span> <span class="o">=</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">G</span> <span class="o">*</span> <span class="n">Mstar</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">l0</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">t0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+    <span class="n">Rgas</span> <span class="o">=</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">k_B</span> <span class="o">/</span> <span class="n">const</span><span class="o">.</span><span class="n">m_p</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">l0</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">t0</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">Temp0</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Sigma0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;Sigma0&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Sigma0</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">is_unity</span><span class="p">():</span>
+        <span class="n">Sigma0</span> <span class="o">=</span> <span class="n">Sigma0</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">m0</span><span class="o">/</span><span class="n">l0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">betaSigma</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;SigmaSlope&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;EquationOfState&quot;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;iso&quot;</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;AdiabaticIndex&quot;</span><span class="p">])</span>
+    <span class="n">h0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;AspectRatio&quot;</span><span class="p">])</span>
+    <span class="n">betah</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;FlaringIndex&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">PowerlawDisk</span><span class="p">(</span><span class="n">GM</span><span class="p">,</span> <span class="n">Rgas</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r0</span><span class="p">,</span> <span class="n">Sigma0</span><span class="p">,</span> <span class="n">betaSigma</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="n">h0</span><span class="p">,</span> <span class="n">betah</span><span class="o">=</span><span class="n">betah</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">get_fargo_units</span><span class="p">(</span><span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">outdir</span><span class="si">}</span><span class="s2">/units.yml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">units_info</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">units_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">units</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Unit</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;cgs value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">val</span><span class="p">[</span><span class="s1">&#39;cgs symbol&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">units</span>
+
+<span class="k">def</span> <span class="nf">get_fargo_powerlaw_disk_output</span><span class="p">(</span><span class="n">outdir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+
+    <span class="n">config</span> <span class="o">=</span> <span class="n">get_fargo_config</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">outdir</span><span class="si">}</span><span class="s2">/snapshots/0/config.yml&quot;</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">get_fargo_units</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+
+    <span class="n">l0</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s2">&quot;length&quot;</span><span class="p">]</span>
+    <span class="n">m0</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">]</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span>
+    <span class="n">Temp0</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span>
+
+    <span class="n">Mstar</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;nbody&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;mass&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">m0</span><span class="p">)</span>
+    <span class="n">GM</span> <span class="o">=</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">G</span> <span class="o">*</span> <span class="n">Mstar</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">l0</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">t0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+    <span class="n">Rgas</span> <span class="o">=</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">k_B</span> <span class="o">/</span> <span class="n">const</span><span class="o">.</span><span class="n">m_p</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">l0</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">t0</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">Temp0</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+    <span class="n">mu</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]</span>
+    <span class="n">r0</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Sigma0</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">Quantity</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;Sigma0&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Sigma0</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">is_unity</span><span class="p">():</span>
+        <span class="n">Sigma0</span> <span class="o">=</span> <span class="n">Sigma0</span><span class="o">.</span><span class="n">to_value</span><span class="p">(</span><span class="n">m0</span><span class="o">/</span><span class="n">l0</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">betaSigma</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;SigmaSlope&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;EquationOfState&quot;</span><span class="p">][:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;iso&quot;</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;AdiabaticIndex&quot;</span><span class="p">])</span>
+    <span class="n">h0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;AspectRatio&quot;</span><span class="p">])</span>
+    <span class="n">betah</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;FlaringIndex&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">PowerlawDisk</span><span class="p">(</span><span class="n">GM</span><span class="p">,</span> <span class="n">Rgas</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">r0</span><span class="p">,</span> <span class="n">Sigma0</span><span class="p">,</span> <span class="n">betaSigma</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="n">h0</span><span class="p">,</span> <span class="n">betah</span><span class="o">=</span><span class="n">betah</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">yaml</span>
+<span class="k">def</span> <span class="nf">get_fargo_config</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">config</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">PowerlawDisk</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Powerlaw disk model</span>
+
+<span class="sd">    Scaleheight is defined with the isothermal sound speed, so H = c_s/sqrt(gamma) / Omega_K</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    GM : float</span>
+<span class="sd">        Product of the gravitational constant and the central mass</span>
+<span class="sd">    Rgas : float</span>
+<span class="sd">        Gas constant to link c_s and T through the ideal gas law. c_s = sqrt(gamma Rg/mu T). It&#39;s Rgas = kB/mH. kB = Boltzman constant. mH = mass of a hydrogen atom.</span>
+<span class="sd">    mu : float</span>
+<span class="sd">        Mean molecular weight</span>
+<span class="sd">    r0 : float</span>
+<span class="sd">        Reference radius</span>
+<span class="sd">    Sigma0 : float</span>
+<span class="sd">        Surface density at r0</span>
+<span class="sd">    betaSigma : float</span>
+<span class="sd">        Surface density powerlaw exponent</span>
+<span class="sd">    T0 : float</span>
+<span class="sd">        Temperature at r0</span>
+<span class="sd">    betaT : float</span>
+<span class="sd">        Temperature powerlaw exponent</span>
+<span class="sd">    gamma : float</span>
+<span class="sd">        Adiabatic index</span>
+<span class="sd">    betaOmega : float (optional)</span>
+<span class="sd">        Disk angular velocity powerlaw . Defaults to -3/2 for a Keplerian disk.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">GM</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">Rgas</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">mu</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">r0</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">Sigma0</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">betaSigma</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">T0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">betaT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">h0</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">betah</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">betaOmega</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3</span><span class="o">/</span><span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set derived parameters</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">OmegaK0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">GM</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">is_T_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T0</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">is_h_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h0</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_T_set</span> <span class="ow">or</span> <span class="n">is_h_set</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either T0 or h0 must be set.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_T_set</span> <span class="ow">and</span> <span class="n">is_h_set</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either T0 or h0 must be set, not both.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_T_set</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cs0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Rgas</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">T0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">h0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">OmegaK0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cs0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">OmegaK0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">T0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Rgas</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs0</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span>
+
+        <span class="n">is_betaT_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betaT</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">is_betah_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betah</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">is_betaT_set</span> <span class="ow">or</span> <span class="n">is_betah_set</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either betaT or betah must be set.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_betaT_set</span> <span class="ow">and</span> <span class="n">is_betah_set</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either betaT or betah must be set, not both.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">is_betaT_set</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">betacs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betaT</span><span class="o">/</span><span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">betah</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betaT</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">betaT</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">betah</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">betacs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betaT</span><span class="o">/</span><span class="mi">2</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">betaP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betaSigma</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">betaT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Sigma0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs0</span><span class="o">**</span><span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">cs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs0</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">betacs</span>
+
+    <span class="k">def</span> <span class="nf">h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">h0</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">betah</span>
+
+    <span class="k">def</span> <span class="nf">Sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Sigma0</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">betaSigma</span>
+
+    <span class="k">def</span> <span class="nf">T</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">T0</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">betaT</span>
+    
+    <span class="k">def</span> <span class="nf">P</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">P0</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">betaP</span>
+
+    <span class="k">def</span> <span class="nf">OmegaK</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">OmegaK0</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">r0</span><span class="p">)</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">betaOmega</span>
+
+    <span class="k">def</span> <span class="nf">Omega</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the background disk angular velocity profile.</span>
+
+<span class="sd">        Use a modification of SB15 Eq. (12) which uses the disk aspect ratio h.</span>
+<span class="sd">        Omega_0(r) = Omega_K(r) * sqrt{1 + beta_p * h^2}.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        r : np.ndarray</span>
+<span class="sd">            Radial positions</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">OmegaK</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">betaP</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot an overview of the disks powerlaws.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mosaic_defs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="s2">&quot;Sigma&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot;cs&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="s2">&quot;Omega&quot;</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axd</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot_mosaic</span><span class="p">(</span><span class="n">mosaic_defs</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Sigma&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Sigma</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Sigma&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Sigma&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Sigma&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Sigma&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Sigma&quot;</span><span class="p">)</span>
+
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">)</span>
+
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;cs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;cs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;cs&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;cs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;cs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;cs&quot;</span><span class="p">)</span>
+
+
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">)</span>
+
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Omega&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Omega</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Omega&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Omega&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Omega&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s2">&quot;Omega&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Omega&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">axd</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;minor&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axd</span>
+
+</pre></div>
+</div>
+</section>
+<section id="modify-the-initial-conditions">
+<h2>Modify the initial conditions<a class="headerlink" href="#modify-the-initial-conditions" title="Link to this heading">¶</a></h2>
+<p>To modify the data, we first define a helper class to handle the data files.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">get_fargo_config</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span>
+<span class="n">outdir</span> <span class="o">=</span> <span class="s2">&quot;output/out&quot;</span>
+<span class="n">disk</span> <span class="o">=</span> <span class="n">get_fargo_powerlaw_disk_output</span><span class="p">(</span><span class="n">outdir</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="adding-a-gap">
+<h3>Adding a gap<a class="headerlink" href="#adding-a-gap" title="Link to this heading">¶</a></h3>
+<p>Let’s add a gap by reducing the density and adjusting the azimuthal velocity.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">gap_depth</span> <span class="o">=</span> <span class="mf">0.9</span>
+<span class="n">gap_width</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">gap_center</span> <span class="o">=</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">field</span> <span class="o">=</span> <span class="n">FargoCPTField</span><span class="p">(</span><span class="s2">&quot;output/out&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;Sigma&quot;</span><span class="p">)</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">R</span>
+<span class="n">old_density</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">array</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="o">-</span><span class="n">gap_depth</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">R</span><span class="o">-</span><span class="n">gap_center</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">gap_width</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">field</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">old_density</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">field</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">field</span> <span class="o">=</span> <span class="n">FargoCPTField</span><span class="p">(</span><span class="s2">&quot;output/out&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;vazi&quot;</span><span class="p">)</span>
+<span class="n">R</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">R</span>
+<span class="c1"># need to recompute because R is different for vrad</span>
+<span class="n">f</span> <span class="o">=</span> <span class="o">-</span><span class="n">gap_depth</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">R</span><span class="o">-</span><span class="n">gap_center</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">gap_width</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="c1"># field.array = field.array * ( 1 - 2*R*(R-gap_center)/gap_width**2 * f/(1+f) * disk.cs(R)**2/(disk.gamma*(R*disk.Omega(R))**2) )**0.5</span>
+<span class="n">field</span><span class="o">.</span><span class="n">array</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">array</span> <span class="o">*</span> <span class="p">(</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">R</span><span class="o">*</span><span class="p">(</span><span class="n">R</span><span class="o">-</span><span class="n">gap_center</span><span class="p">)</span><span class="o">/</span><span class="n">gap_width</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">f</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">disk</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="n">R</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
+
+<span class="n">field</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Overview</span><span class="p">(</span><span class="s2">&quot;output/out&quot;</span><span class="p">,</span>
+        <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2:Sigma&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:Sigma&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:vazi:rel&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:vrad&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/400_Custom_Initial_Conditions_22_0.png" /></p>
+<p>Now that the initial conditions have been adjusted, we can restart the simulation from snapshot number zero, which will pick up the modified conditions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="n">configfile</span><span class="p">],</span> <span class="n">np</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nt</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">exe</span><span class="o">=</span><span class="n">repo_root</span><span class="o">+</span><span class="s2">&quot;/bin/fargocpt_exe&quot;</span><span class="p">,</span> <span class="n">detach</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Running command: mpirun -np 2 --report-pid /tmp/tmp5b2djodn -x OMP_NUM_THREADS=1 /home/rometsch/repo/fargocpt/bin/fargocpt_exe auto setup.yml
+fargo process pid 1410404
+
+[0] MPI rank #  0 runs as process 1410408
+[0] MPI rank #  0 OpenMP thread #  0 of  1 on cpt-kamino
+[1] MPI rank #  1 runs as process 1410409
+[1] MPI rank #  1 OpenMP thread #  0 of  1 on cpt-kamino
+[0] fargo: This file was compiled on Nov 14 2023, 12:56:40.
+[0] fargo: This version of FARGO used _GNU_SOURCE
+[0] fargo: This version of FARGO used NDEBUG. So no assertion checks!
+[0] Using parameter file setup.yml
+[0] Computing disk quantities within 5.00000e+00 L0 from coordinate center
+[0] BC: Inner composite = reflecting
+[0] BC: Outer composite = reflecting
+[0] BC: Sigma inner = zerogradient
+[0] BC: Sigma outer = zerogradient
+[0] BC: Energy inner = zerogradient
+[0] BC: Energy outer = zerogradient
+[0] BC: Vrad inner = reflecting
+[0] BC: Vrad outer = reflecting
+[0] BC: Vaz inner = keplerian
+[0] BC: Vaz outer = keplerian
+[0] DampingTimeFactor: 1.00000e-01 Outer damping time is computed at radius of 2.50000e+00
+[0] Damping VRadial to reference value at inner boundary.
+[0] Damping VRadial to reference value at outer boundary.
+[0] Damping VAzimuthal to reference value at inner boundary.
+[0] Damping VAzimuthal to reference value at outer boundary.
+[0] Damping SurfaceDensity to reference value at inner boundary.
+[0] Damping SurfaceDensity to reference value at outer boundary.
+[0] Damping Energy to reference value at inner boundary.
+[0] Damping Energy to reference value at outer boundary.
+[0] Radiative diffusion is disabled. Using fixed omega = 1.500000 with a maximum 50000 interations.
+[0] Indirect Term computed as effective Hydro center acceleratrion with shifting the Nbody system to the center.
+[0] Body force on gas computed via potential.
+[0] Getting output number of snapshot 0
+[0] Using FARGO algorithm for azimuthal advection.
+[0] Using standard forward euler scheme for source terms.
+[0] Cps is set, overwriting Nrad and Naz!
+[0] Grid resolution set using cps = 2.000000
+[0] The grid has (Nrad, Naz) = (74, 251) cells with (1.994113, 1.997395) cps.
+[0] Computing scale height with respect to primary object.
+[0] Using isothermal equation of state. AdiabaticIndex = 1.400.
+[0] Viscosity is of alpha type with alpha = 1.000e-03
+[0] Defaulting to VanLeer flux limiter
+[0] Output information:
+[0]    Output directory: output/out/
+[0]     Number of files: 80
+[0]   Total output size: 0.00 GB
+[0]     Space Available: 31.23 GB
+[0] Initializing 1 RNGs per MPI process.
+[0] Warning : no `radii.dat&#39; file found. Using default.
+[0] The first 1 planets are used to calculate the hydro frame center.
+[0] The mass of the planets used as hydro frame center is 1.000000e+00.
+[0] 2 planet(s) initialized.
+[0] Planet overview:
+[0] 
+[0]  #   | name                    | mass [m0]  | x [l0]     | y [l0]     | vx         | vy         |
+[0] -----+-------------------------+------------+------------+------------+------------+------------+
+[0]    0 | Star                    |          1 |          0 |         -0 |          0 |          0 |
+[0]    1 | Jupiter                 |  0.0009546033 |          1 |          0 |         -0 |   1.000477 |
+[0] 
+[0]  #   | e          | a          | T [t0]     | T [a]      | accreting  | Accretion Type |
+[0] -----+------------+------------+------------+------------+------------+----------------+
+[0]    0 |  6.368246e-17 |          1 |   6.280188 |   0.999548 |          0 |   No Accretion |
+[0]    1 |  6.368246e-17 |          1 |   6.280188 |   0.999548 |          0 |   No Accretion |
+[0] 
+[0]  #   | Temp [K]   | R [l0]     | irradiates | rampuptime |
+[0] -----+------------+------------+------------+------------+
+[0]    0 |       5778 |  0.0046505 |        yes |          0 |
+[0]    1 |          0 |  4.6505e-05 |         no |          0 |
+[0] 
+[0] Using Tscharnuter-Winkler (1979) artificial viscosity with C = 1.410000.
+[0] Artificial viscosity is used for dissipation.
+[0] Surface density factor: 2.50663
+[0] Tau factor: 0.5
+[0] Tau min: 0.01
+[0] Kappa factor: 1
+[0] Minimum temperature: 2.81162e-05 K = 3.00000e+00
+[0] Maximum temperature: 9.37206e+94 K = 1.00000e+100
+[0] Heating from viscous dissipation is enabled. Using a total factor of 1.
+[0] Cooling (beta) is disabled and reference temperature is floor. Using beta = 10.
+[0] Cooling (radiative) is enabled. Using a total factor of 1.
+[0] S-curve cooling is disabled. 
+[0] CFL parameter: 0.5
+[0] Opacity uses tables from Lin &amp; Papaloizou, 1985
+[0] Particles are disabled.
+[0] Initializing Sigma(r) = 2.25093e-05 = 200 g cm^-2 * [r/(1 AU)]^(-0.5)
+[0] Total disk is mass is 0.000348841 = 6.9366e+29 g.
+[0] Loading polargrinds for damping...
+[0] Reading file &#39;output/out/snapshots/reference/Sigma.dat&#39; with 148592 bytes.
+[0] Reading file &#39;output/out/snapshots/reference/vrad.dat&#39; with 150600 bytes.
+[0] Reading file &#39;output/out/snapshots/reference/vazi.dat&#39; with 148592 bytes.
+[0] Loading polargrinds at t = 0...
+[0] Reading file &#39;output/out/snapshots/0/Sigma.dat&#39; with 148592 bytes.
+[0] Reading file &#39;output/out/snapshots/0/vrad.dat&#39; with 150600 bytes.
+[0] Reading file &#39;output/out/snapshots/0/vazi.dat&#39; with 148592 bytes.
+[0] Restarting planetary system...
+[0] Loading planets ...[0]  done
+[0] Loading rebound ...[0]  done
+[0] Finished restarting planetary system.
+[0] Writing output output/out/snapshots/1, Snapshot Number 1, Time 6.280000.
+[0] Writing output output/out/snapshots/2, Snapshot Number 2, Time 12.560000.
+[0] Writing output output/out/snapshots/3, Snapshot Number 3, Time 18.840000.
+[0] Writing output output/out/snapshots/4, Snapshot Number 4, Time 25.120000.
+[0] Writing output output/out/snapshots/5, Snapshot Number 5, Time 31.400000.
+[0] Writing output output/out/snapshots/6, Snapshot Number 6, Time 37.680000.
+[0] Writing output output/out/snapshots/7, Snapshot Number 7, Time 43.960000.
+[0] Writing output output/out/snapshots/8, Snapshot Number 8, Time 50.240000.
+[0] Writing output output/out/snapshots/9, Snapshot Number 9, Time 56.520000.
+[0] Writing output output/out/snapshots/10, Snapshot Number 10, Time 62.800000.
+[0] -- Final: Total Hydrosteps 1728, Time 62.80, Walltime 4.01 seconds, Time per Step: 2.32 milliseconds
+
+
+
+
+
+0
+</pre></div>
+</div>
+<p>And finally, let’s see how this system evolved.</p>
+<p>Uncomment the first line to get an interactive widget, if your jupyter installation supports it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="n">Overview</span><span class="p">(</span><span class="s2">&quot;output/out&quot;</span><span class="p">,</span>
+        <span class="nb">vars</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2:Sigma&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:Sigma&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:vazi:rel&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;1:vrad&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><img alt="png" src="../_images/400_Custom_Initial_Conditions_26_0.png" /></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">FargoCPT</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="101_DiskPlots.html">Disk Plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html">Loading data from the simulation output - the automatic way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html#d-data">2D data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="220_DataLoading_Manual.html">Manual 2d data loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="300_Bootstrap_Simulation.html">FargoCPT Bootstrap Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="301_Adjusting_Inditial_Conditions.html">Adjusting initial conditions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Custom Initial Conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="401_Selfgravity.html">FargoCPT Selfgravity</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units.html">Unit system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Numerics/index.html">Physics and numerics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Code%20architecture/index.html">Code architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Tests/index.html">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../licence.html">Licence</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">How to cite?</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Examples</a><ul>
+      <li>Previous: <a href="301_Adjusting_Inditial_Conditions.html" title="previous chapter">Adjusting initial conditions</a></li>
+      <li>Next: <a href="401_Selfgravity.html" title="next chapter">FargoCPT Selfgravity</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Thomas Rometsch.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/Examples/400_Custom_Initial_Conditions.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

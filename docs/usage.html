@@ -1,24 +1,20 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Usage &#8212; FargoCPT  documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Input files" href="input.html" />
-    <link rel="prev" title="FargoCPT" href="index.html" />
+    <link rel="next" title="Examples" href="Examples/index.html" />
+    <link rel="prev" title="Parameters" href="parameters.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -36,8 +32,28 @@
           <div class="body" role="main">
             
   <section class="tex2jax_ignore mathjax_ignore" id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h1>
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading">¶</a></h1>
 <p>How to use the code?</p>
+<section id="parallel-execution">
+<h2>Parallel execution<a class="headerlink" href="#parallel-execution" title="Link to this heading">¶</a></h2>
+<p>The code is parallelized using a hybrid MPI/OpenMP approach.
+This means that the user has to specify the configuration of how the cores are distributed among the MPI processes and OpenMP threads.
+The total number of processes x number of threads must be equal to the number of cores available on the machine.</p>
+<p>In general, each compute node (physical computer/cpu socket/numa node) should have its own MPI process with a number of OpenMP threads equal to the number of cores on that node.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">run_fargo</span></code> wrapper script takes the number of MPI proceeses via the <code class="docutils literal notranslate"><span class="pre">-np</span></code> argument and the number of OpenMP threads via the <code class="docutils literal notranslate"><span class="pre">-nt</span></code> argument.
+Internally, <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> is called with options suitable for an x86 processor architecture with numa nodes.</p>
+<p>If no arguments are given, the wrapper script will try to determine the number of cores available on the machine and launch one MPI process per numa node with as many OpenMP threads as there are cores on that node.
+The number of available cores is determined by in the following order:</p>
+<ol class="arabic simple">
+<li><p>Check whether there are environment variables set by the <code class="docutils literal notranslate"><span class="pre">SLURM</span></code> or <code class="docutils literal notranslate"><span class="pre">PBS</span></code> job schedulers.</p></li>
+<li><p>Check the number of physical cores (no hyperthreading) using <code class="docutils literal notranslate"><span class="pre">psutil.cpu_count(logical=False)</span></code>.</p></li>
+</ol>
+<p>If this does not work for you, there are also two fallback options which are less restrictive:</p>
+<ol class="arabic simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">--fallback-mpi</span></code> will ignore OpenMP and just launch as many MPI processes as there are cores available (Nprocs * Nthreads, or maximum number of cores).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">--fallback-openmp</span></code> will ignore MPI and just launch 1 process with as many OpenMP threads as there are cores available (Nprocs * Nthreads, or maximum number of cores).</p></li>
+</ol>
+</section>
 </section>
 
 
@@ -58,7 +74,12 @@
 
 <h3>Navigation</h3>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">Parameters</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parallel-execution">Parallel execution</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="input.html">Input files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output.html">Output</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units.html">Unit system</a></li>
@@ -74,8 +95,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">FargoCPT</a></li>
-      <li>Next: <a href="input.html" title="next chapter">Input files</a></li>
+      <li>Previous: <a href="parameters.html" title="previous chapter">Parameters</a></li>
+      <li>Next: <a href="Examples/index.html" title="next chapter">Examples</a></li>
   </ul></li>
 </ul>
 </div>
@@ -105,8 +126,8 @@
       &copy;2022, Thomas Rometsch.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/usage.md.txt"
