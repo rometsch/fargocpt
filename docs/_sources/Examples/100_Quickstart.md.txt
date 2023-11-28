@@ -1,27 +1,32 @@
-# FargoCPT Selfgravity
+# FargoCPT Quickstart
 
-This notebook guides you enabling self-gravity and plotting the accelerations.
+This notebook guides you through how to make the code, run a simulation and plot the results.
 
 First we create a new directory and change to it.
 
 
 ```python
-example_name = "401_Selfgravity"
+example_name = "100_quickstart"
 example_dir = f"example_dirs/{example_name}"
 import os
-repo_root = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
 if not os.path.basename(os.getcwd()) == example_name:
     !mkdir -p $example_dir
     os.chdir(example_dir)
+repo_root = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
 print(f"Current working directory: {os.getcwd()}")
 print(f"Repository root directory: {repo_root}")
 ```
 
-    Current working directory: /home/rometsch/repo/fargocpt/examples/example_dirs/401_Selfgravity
+    Current working directory: /home/rometsch/repo/fargocpt/examples/example_dirs/100_quickstart
     Repository root directory: /home/rometsch/repo/fargocpt
 
 
-## Make sure the code is built by running make again.
+## Make the code
+
+Make sure the code is built by running make again.
+
+If you have not yet compiled the go, please go to the readme and follow the instructions there.
+You can also try to run the following cell directly, but it will only output error messages. This might make debugging harder.
 
 
 ```python
@@ -33,7 +38,7 @@ else:
     raise RuntimeError(f"Seems like you are not running MacOS or Linux but {platform}. This is unsupported. You are on your own, good luck!")
 ```
 
-    118 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
+    115 ms ± 0 ns per loop (mean ± std. dev. of 1 run, 1 loop each)
 
 
 ## Preparing a setup file
@@ -64,46 +69,49 @@ with open(configfile, "r") as infile:
 ```python
 config["nbody"][1]["accretion efficiency"] = "2"
 config["MonitorTimestep"] = 0.314 # monitor scalar files around every half orbit
-config["Nmonitor"] = 20 # write a snapshot every orbit
-config["Nsnapshots"] = 10 # wirte 100 snapshots
+config["Nmonitor"] = 20 # write a snapshot after every 20 monitor timesteps = every orbit
+config["Nsnapshots"] = 10 # wirte 10 snapshots
 # use very low resolution by setting it to 2 cell per scaleheight, cps
-
-# config["Nrad"] = 100
-# config["Naz"] = 100
 config["cps"] = 2
-
-config["WriteSGAccelRad"] = "yes"
-config["WriteSGAccelAzi"] = "yes"
-config["WriteToomre"] = "yes"
-
-config["SelfGravity"] = "yes"
-# select the self-gravity mode, 'besselkernel' is likely what you want
-# you can also choose 'symmetric', or 'basic' (warning: this is a non-symmetric force)
-config["SelfGravityMode"] = "besselkernel"
-# if you run a simulation with an non-isothermal equation of state, the following parameter sets 
-# the number of hydrosteps between kernel updates
-# config["SelfGravityStepsBetweenKernelUpdate"] = 10
-
 
 with open(configfile, "w") as outfile:
     yaml.dump(config, outfile)
 ```
 
-## Run the simulation
+## Running the code
+
+We can start fargo using the python interface.
+
+For a production, uncomment the following cell and copy the command to your start script.
+
+
+```python
+# cwd = os.getcwd()
+# cmd = f"cd {cwd} && python3 ../../../run_fargo -np 1 -nt 4 auto {configfile}"
+# print(cmd)
+```
+
+Here, we just launch the code from within the notebook.
+
+Note the `detach=False` parameter.
+Here, we use `detach=False` to see the output in the notebook.
+You can also use `detach=True` to run the simulation in the background and continue to use the notebook while the simulation is running.
 
 
 ```python
 from fargocpt import run
-run(["start", configfile], np=2, nt=1, exe=repo_root+"/bin/fargocpt_exe", detach=False)
+np = 2 # Number of mpi processes. Should be equal to the number of numa nodes on your machine, check your cluster docu or run `lscpu` or `./run_fargo --print-numa` if you're on linux.
+nt = 1 # Number of threads per mpi process, set it to the number of cores you want to use / number of MPI processes
+run(["start", configfile], np=np, nt=nt, exe=repo_root+"/bin/fargocpt_exe", detach=False)
 ```
 
-    Running command: mpirun -np 2 --report-pid /tmp/tmpy5rc70j7 -x OMP_NUM_THREADS=1 /home/rometsch/repo/fargocpt/bin/fargocpt_exe start setup.yml
-    fargo process pid 1410484
+    Running command: mpirun -np 2 --report-pid /tmp/tmpyyu0scqg -x OMP_NUM_THREADS=1 /home/rometsch/repo/fargocpt/bin/fargocpt_exe start setup.yml
+    fargo process pid 1409397
     
-    [0] MPI rank #  0 runs as process 1410488
-    [1] MPI rank #  1 runs as process 1410489
-    [1] MPI rank #  1 OpenMP thread #  0 of  1 on cpt-kamino
+    [0] MPI rank #  0 runs as process 1409401
+    [1] MPI rank #  1 runs as process 1409402
     [0] MPI rank #  0 OpenMP thread #  0 of  1 on cpt-kamino
+    [1] MPI rank #  1 OpenMP thread #  0 of  1 on cpt-kamino
     [0] fargo: This file was compiled on Nov 14 2023, 12:56:40.
     [0] fargo: This version of FARGO used _GNU_SOURCE
     [0] fargo: This version of FARGO used NDEBUG. So no assertion checks!
@@ -129,7 +137,6 @@ run(["start", configfile], np=2, nt=1, exe=repo_root+"/bin/fargocpt_exe", detach
     [0] Damping Energy to reference value at inner boundary.
     [0] Damping Energy to reference value at outer boundary.
     [0] Radiative diffusion is disabled. Using fixed omega = 1.500000 with a maximum 50000 interations.
-    [0] Self gravity enabled. It uses the 'besselkernel' mode. The kernel is updated every 20 steps and after aspect ratio changed by 0.001000.
     [0] Indirect Term computed as effective Hydro center acceleratrion with shifting the Nbody system to the center.
     [0] Body force on gas computed via potential.
     [0] Using FARGO algorithm for azimuthal advection.
@@ -143,10 +150,9 @@ run(["start", configfile], np=2, nt=1, exe=repo_root+"/bin/fargocpt_exe", detach
     [0] Defaulting to VanLeer flux limiter
     [0] Output information:
     [0]    Output directory: output/out/
-    [0]     Number of files: 140
+    [0]     Number of files: 80
     [0]   Total output size: 0.00 GB
-    [0]     Space Available: 31.23 GB
-    [0] SplitDomain: Doing some FFT test measures to optimize FFT calculations. This may take a few seconds.
+    [0]     Space Available: 31.24 GB
     [0] Initializing 1 RNGs per MPI process.
     [0] Warning : no `radii.dat' file found. Using default.
     [0] The first 1 planets are used to calculate the hydro frame center.
@@ -186,7 +192,6 @@ run(["start", configfile], np=2, nt=1, exe=repo_root+"/bin/fargocpt_exe", detach
     [0] Particles are disabled.
     [0] Initializing Sigma(r) = 2.25093e-05 = 200 g cm^-2 * [r/(1 AU)]^(-0.5)
     [0] Total disk is mass is 0.000348841 = 6.9366e+29 g.
-    [0] sg initialised
     [0] Writing output output/out/snapshots/0, Snapshot Number 0, Time 0.000000.
     [0] Writing output output/out/snapshots/reference, Snapshot Number 0, Time 0.000000.
     [0] Writing output output/out/snapshots/1, Snapshot Number 1, Time 6.280000.
@@ -199,7 +204,7 @@ run(["start", configfile], np=2, nt=1, exe=repo_root+"/bin/fargocpt_exe", detach
     [0] Writing output output/out/snapshots/8, Snapshot Number 8, Time 50.240000.
     [0] Writing output output/out/snapshots/9, Snapshot Number 9, Time 56.520000.
     [0] Writing output output/out/snapshots/10, Snapshot Number 10, Time 62.800000.
-    [0] -- Final: Total Hydrosteps 1762, Time 62.80, Walltime 8.05 seconds, Time per Step: 4.57 milliseconds
+    [0] -- Final: Total Hydrosteps 1760, Time 62.80, Walltime 4.12 seconds, Time per Step: 2.34 milliseconds
 
 
 
@@ -209,21 +214,11 @@ run(["start", configfile], np=2, nt=1, exe=repo_root+"/bin/fargocpt_exe", detach
 
 
 
-
-```python
-print(os.listdir(config["OutputDir"]))
-snapshots = os.listdir(config["OutputDir"]+ "/snapshots")
-snapshots.sort()
-print(snapshots)
-```
-
-    ['parameters', 'snapshots', 'fargocpt_output_v1_4', 'used_rad.dat', 'constants.yml', 'info2D.yml', 'monitor', 'dimensions.dat', 'info1D.yml', 'logs', 'units.yml']
-    ['0', '1', '10', '2', '3', '4', '5', '6', '7', '8', '9', 'list.txt', 'reference', 'timeSnapshot.dat']
-
-
 Following is an overview widget for the simulation. You can use the slider to scrub through the different snapshots.
 
-Run the next cell again to refresh the snapshot list.
+Run the cell again to refresh the snapshot list.
+
+Uncomment the first line for an interactive widget. Your Jupyter environment must support this.
 
 
 ```python
@@ -231,100 +226,21 @@ Run the next cell again to refresh the snapshot list.
 from fargocpt import Overview
 overview = Overview("output/out/", 
                     vars=["2:Sigma:rel,rphi",
-                          "2:a_sg_rad:rphi",
-                          "2:a_sg_azi:rphi",
+                          "2:vazi:rel,rphi",
+                          "2:vrad:diff,rphi",
                           "1:Sigma:minmax",
-                          "1:a_sg_rad:minmax",
-                          "1:a_sg_azi:minmax",
-                          "1:Toomre:minmax"])
+                          "1:vazi:rel,minmax",
+                          "1:vrad:diff,minmax"],
+                          start=8)
 overview.create();
 ```
 
 
     
-![png](401_Selfgravity_files/401_Selfgravity_16_0.png)
+![png](100_Quickstart_files/100_Quickstart_20_0.png)
     
 
 
-## Visualizing SG accelerations
-
-We turned on output of the self-gravity accelerations.
-Let's have a look.
-
-
-```python
-import numpy as np
-import matplotlib.colors as mplcolors
-import matplotlib.pyplot as plt
-
-def plot_field(loader, name, N, ax=None, dataunit=None, vmin=None, vmax=None, cmap="viridis", title=None):
-    R, PHI, vals = loader.gas.vars2D.get(name, N, grid_for_plot=True)
-    if dataunit is None:
-        dataunit = vals.unit
-    Z = vals.to_value(dataunit)
-
-    X = R*np.cos(PHI)
-    Y = R*np.sin(PHI)
-
-    if ax is None:
-        fig, ax = plt.subplots(dpi=150)
-    else:
-        fig = ax.get_figure()
-
-    norm = mplcolors.Normalize(vmin=vmin, vmax=vmax)
-    pcm = ax.pcolormesh(X,Y,Z, norm=norm, cmap=cmap)
-    ax.set_aspect("equal")
-
-    t = loader.snapshot_time[N].to_value("kyr")
-    if title is None:
-        title = ""
-    else:
-        title += "\n"
-    title += f" t={t:.2e}kyr, N={N}"
-    ax.set_title(title)
-
-    cbar = fig.colorbar(pcm, ax=ax)
-    cbar.set_label(f"{name} [{dataunit}]")
-    
-    return fig
-```
-
-
-```python
-from fargocpt import Loader
-l = Loader("output/out/")
-Nlast = l.snapshots[-1]
-plot_field(l, "Sigma", Nlast, dataunit="g/cm2", cmap="magma", title="Sigma");
-plot_field(l, "a_sg_rad", Nlast, dataunit="cm/s2", cmap="bwr", title="SG acceleration radial");
-plot_field(l, "a_sg_azi", Nlast, dataunit="cm/s2", cmap="bwr", title="SG acceleration azimuthal");
-plot_field(l, "Toomre", Nlast, dataunit="1", cmap="bwr", title="Toomre");
-```
-
-
-    
-![png](401_Selfgravity_files/401_Selfgravity_19_0.png)
-    
-
-
-
-    
-![png](401_Selfgravity_files/401_Selfgravity_19_1.png)
-    
-
-
-
-    
-![png](401_Selfgravity_files/401_Selfgravity_19_2.png)
-    
-
-
-
-    
-![png](401_Selfgravity_files/401_Selfgravity_19_3.png)
-    
-
-
-
-```python
-
-```
+Concratulations! You've made it through the quickstart guide.
+You should now know enough to run your own experiments using the FargoCPT code.
+Happy experimenting!

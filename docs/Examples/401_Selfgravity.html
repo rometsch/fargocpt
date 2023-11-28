@@ -13,8 +13,8 @@
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Input files" href="../input.html" />
-    <link rel="prev" title="Examples" href="index.html" />
+    <link rel="next" title="FargoCPT Simulation movies" href="500_Movie.html" />
+    <link rel="prev" title="Custom Initial Conditions" href="400_Custom_Initial_Conditions.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -38,10 +38,10 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">example_name</span> <span class="o">=</span> <span class="s2">&quot;401_Selfgravity&quot;</span>
 <span class="n">example_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;example_dirs/</span><span class="si">{</span><span class="n">example_name</span><span class="si">}</span><span class="s2">&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="n">repo_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;../../../&quot;</span><span class="p">))</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span> <span class="o">==</span> <span class="n">example_name</span><span class="p">:</span>
     <span class="err">!</span><span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="err">$</span><span class="n">example_dir</span>
     <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">example_dir</span><span class="p">)</span>
-<span class="n">repo_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;../../../&quot;</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current working directory: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repository root directory: </span><span class="si">{</span><span class="n">repo_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -334,7 +334,17 @@ Let’s have a look.</p>
 <li class="toctree-l1"><a class="reference internal" href="../parameters.html">Parameters</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="100_Quickstart.html">FargoCPT Quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="101_DiskPlots.html">Disk Plots</a></li>
+<li class="toctree-l2"><a class="reference internal" href="200_Output_Structure.html">FargoCPT Output Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html">Loading data from the simulation output - the automatic way</a></li>
+<li class="toctree-l2"><a class="reference internal" href="210_DataLoading_Automatic.html#d-data">2D data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="220_DataLoading_Manual.html">Manual 2d data loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="300_Bootstrap_Simulation.html">FargoCPT Bootstrap Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="301_Adjusting_Inditial_Conditions.html">Adjusting initial conditions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="400_Custom_Initial_Conditions.html">Custom Initial Conditions</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">FargoCPT Selfgravity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="500_Movie.html">FargoCPT Simulation movies</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../input.html">Input files</a></li>
@@ -353,8 +363,8 @@ Let’s have a look.</p>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">Examples</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Examples</a></li>
-      <li>Next: <a href="../input.html" title="next chapter">Input files</a></li>
+      <li>Previous: <a href="400_Custom_Initial_Conditions.html" title="previous chapter">Custom Initial Conditions</a></li>
+      <li>Next: <a href="500_Movie.html" title="next chapter">FargoCPT Simulation movies</a></li>
   </ul></li>
   </ul></li>
 </ul>

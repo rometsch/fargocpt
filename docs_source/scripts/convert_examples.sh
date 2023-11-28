@@ -10,6 +10,7 @@ fi
 examples_dir="../../../examples"
 # convert all ipynb files to markdown
 for F in $(find "$examples_dir" -name "*.ipynb"); do
+    echo "Converting $F"
     jupyter nbconvert --to markdown --output-dir="." "$F"
 done
 
