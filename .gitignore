@@ -92,7 +92,7 @@ notebook/
 examples/*/
 
 
-docs/
+# docs/
 
 python-venv
 
