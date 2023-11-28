@@ -21,7 +21,9 @@ This notebook will guide you through
 - how to plot some results.
 After completing this notebook, you likely know enough to run and analyze your own experiments.
 
-To learn what the parameters do while the documentation is being written, check out [parameters.md](https://github.com/rometsch/fargocpt/blob/devel/parameters.md) or open an issue here on github.
+To learn more about how to configure the code, please visit the [documentation](https://rometsch.github.io/fargocpt/).
+It includes all simulation parameters and more examples to browse.
+Alternatively, explore the `examples` directory.
 
 Running the same notebooks locally, make sure to install the python dependencies (`pip install -r requirements.txt`) and go step by step through the notebooks.
 
