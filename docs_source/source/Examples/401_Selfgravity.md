@@ -9,10 +9,10 @@ First we create a new directory and change to it.
 example_name = "401_Selfgravity"
 example_dir = f"example_dirs/{example_name}"
 import os
+repo_root = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
 if not os.path.basename(os.getcwd()) == example_name:
     !mkdir -p $example_dir
     os.chdir(example_dir)
-repo_root = os.path.abspath(os.path.join(os.getcwd(), "../../../"))
 print(f"Current working directory: {os.getcwd()}")
 print(f"Repository root directory: {repo_root}")
 ```
