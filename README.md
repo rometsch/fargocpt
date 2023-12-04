@@ -218,21 +218,26 @@ Inside the container, the program can be called with the `fargocpt` command, whi
 
 ## Tests
 
-+ Hydro
-  + Shocktube
-+ Viscosity
-  + Viscous spreading ring
-+ Heating/Cooling
-  + passive disk -> power law profile
-  + beta cooling background
-  + beta cooling aspect ratio
-+ Dust
-  + Dust drift
-  + Dust diffusion
-+ N-body
-  + migrating low mass planet
-+ more to be documented...
+There is a test suite to check that the physics modules work correctly.
+Run it by executing `test/run_tests.sh`, it should run in a matter of a few minutes.
+Each test outputs whether the test passed or failed.
+Most of the test have a `readme.md` file with some description and produce a `plot.jpg` file to inspect the results.
 
+- Shocktube (ideal and pvte equation of state)
+- Steady state accretion disk (gas mass flow)
+- Viscous spreading ring
+- Viscous heating-cooling equilibrium temperature
+- Irraditation-cooling equlibrium temperature
+- Cold disk with ideal equation of state with and without planet
+- Nbody integration: Kepler orbits
+- Dust drift
+- Dust diffusion
+- Type I migration planet torque
+- Flux-Limited Diffusion 1D
+- Flux-Limited Diffusion 2D - direct test of the diffusion equation solver
+- Self-gravity solver - comparison agains direct summation
+- Planet orbiting a disk
+- Steady-state accretion disk
 
 ## Open Source code used in this program
 
