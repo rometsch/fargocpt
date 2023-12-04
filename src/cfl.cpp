@@ -175,7 +175,7 @@ static void timestep_debug_report(t_data &data,
 	logging::print(LOG_INFO "Fargo shear limit		   : %g\n", dt_shear);
 	logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
 				   itdbg5);
-	logging::print(LOG_INFO "Heating cooling limit			: %g Qm=%.3g Qp=%.3g\n",
+	logging::print(LOG_INFO "Heating cooling limit		: %g Qm=%.3g Qp=%.3g\n",
 				   itdbg6, data[t_data::QMINUS](n_radial, n_azimuthal), data[t_data::QPLUS](n_radial, n_azimuthal));
 	logging::print(LOG_INFO "Limit time step for this cell  : %g\n",
 				   dt_cell);
