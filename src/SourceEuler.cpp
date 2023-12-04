@@ -725,13 +725,16 @@ static void thermal_cooling(t_data &data) {
 static void scurve_cooling(t_data &data) {
 
 	const double SigmaCGS_threshold = 2.0;
-	const double temperatureCGS_threshold = 1200;
+	const double temperatureCGS_threshold = 1200.0;
 
+	double muExponent;
 	double F_hot_const;
 	if(parameters::cooling_scurve_type){
 	    F_hot_const = 23.405; // Kimura et al. 2020 (https://doi.org/10.1093/pasj/psz144)
+	    muExponent = 0.31; // Sign change in Kimura
 	} else {
 	    F_hot_const = 25.49; // Ichikawa & Osaki 1992 (https://ui.adsabs.harvard.edu/abs/1992PASJ...44...15I/abstract)
+	    muExponent = -0.31;
 	}
 
 	t_polargrid & Qminus = data[t_data::QMINUS];
@@ -767,7 +770,7 @@ static void scurve_cooling(t_data &data) {
 	// Solve sigma T^4 = F_cool(T) for T
 	const double logTA = -1.0/5.49 * (0.62 * std::log10(omega_keplerCGS)
 					    + 1.62 * std::log10(SigmaCGS_tmp)
-					    - 0.31 * std::log10(mu) - 25.48
+					    + muExponent * std::log10(mu) - 25.48
 					    - std::log10(sigma_sb_cgs));
 	const double TA = std::pow(10.0, logTA);
 
@@ -788,8 +791,8 @@ static void scurve_cooling(t_data &data) {
 	if (temperatureCGS_tmp < TA) {
 	// F_cold
 	    logFtot = 9.49 * std::log10(temperatureCGS_tmp) + 0.62 *
-							      std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS_tmp) -
-                      0.31 * std::log10(mu) - 25.48;
+							      std::log10(omega_keplerCGS) + 1.62 * std::log10(SigmaCGS_tmp) +
+		      muExponent * std::log10(mu) - 25.48;
 	} else if (temperatureCGS_tmp > TB) {
 	// F_hot
 	    logFtot = 8.0 * std::log10(temperatureCGS_tmp) -
@@ -801,17 +804,24 @@ static void scurve_cooling(t_data &data) {
 			  / std::log10(TA / TB) + logFB;
     }
 
-	double qminus_scurve = 2.0 * std::pow(10.0, logFtot)*units::energy_flux.get_cgs_to_code_factor();
+	const double T4 = std::pow(data[t_data::TEMPERATURE](nr, naz), 4);
+	const double sigma_sb = constants::sigma.get_code_value();
+	const double factor = parameters::surface_cooling_factor;
 
+	/// Limiting cooling to black body radiation is not described in the equations
+	/// of either Ichikawa 1992 or Kimura 2020, but it is shown
+	/// in Fig.3 of Kimura et. al 2020
+	/// without it, the cooling by Kimura has a jump from cold to hot branch
+	/// at densities below ~0.7 g/cm^2 that reduces the timestep
+	double F_tot = std::pow(10.0, logFtot)*units::energy_flux.get_cgs_to_code_factor();
 	// Scale with power law below theshold Temperature or Surface density
-	qminus_scurve *= std::pow((SigmaCGS / SigmaCGS_tmp), 0.5);
-	qminus_scurve *= std::pow(temperatureCGS / temperatureCGS_tmp, 2);
+	F_tot *= std::pow((SigmaCGS / SigmaCGS_tmp), 0.5);
+	F_tot *= std::pow(temperatureCGS / temperatureCGS_tmp, 2);
+
+	const double F_Blackbody = sigma_sb * T4;
+	const double qminus_scurve = 2.0 * factor * std::min(F_tot, F_Blackbody);
 
 	Qminus(nr, naz) += qminus_scurve;
-
-	const double factor = parameters::surface_cooling_factor;
-	const double sigma_sb = constants::sigma.get_code_value();
-	const double T4 = std::pow(data[t_data::TEMPERATURE](nr, naz), 4);
 
 	const double tau_eff =  factor * 2 * sigma_sb * T4 / qminus_scurve;
 	data[t_data::TAU_EFF](nr, naz) = tau_eff;
