@@ -5,7 +5,11 @@ try:
     from fargocpt.run import main
 except ImportError:
     import sys
-    sys.path.append("../python/")
+    import inspect
+    this_folder = os.path.realpath(os.path.abspath(os.path.split(inspect.getfile( inspect.currentframe() ))[0]))
+    module_folder = os.path.realpath(os.path.abspath(os.path.join(this_folder,"python_module")))
+    sys.path.append(module_folder)
+    print
     from fargocpt.run import main
 
 file_dir = os.path.dirname(os.path.realpath(__file__))

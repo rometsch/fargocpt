@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, RawTextHelpFormatter
-from subprocess import Popen, PIPE, run
+import subprocess
 import signal
 import sys
 from sys import platform
@@ -9,7 +9,6 @@ from time import sleep
 import os
 import re
 import tempfile
-import yaml
 import shutil
 
 file_dir = os.path.abspath(os.path.dirname(__file__))
@@ -98,14 +97,18 @@ def find_executable(exe=None):
         # 1. Command line argument option
         executable_path = exe
     
-    if executable_path is None:
-        # 2. ~/.config/fargocpt/config.yml
-        try:
-            with open(config_file, "r") as infile:
-                config = yaml.safe_load(infile)
-                executable_path = os.path.expanduser(config["exe_path"])
-        except FileNotFoundError:
-            executable_path = None
+    try:
+        import yaml
+        if executable_path is None:
+            # 2. ~/.config/fargocpt/config.yml
+            try:
+                with open(config_file, "r") as infile:
+                    config = yaml.safe_load(infile)
+                    executable_path = os.path.expanduser(config["exe_path"])
+            except FileNotFoundError:
+                executable_path = None
+    except ImportError:
+        pass
         
     if executable_path is None:
         # 3. In the path
@@ -241,7 +244,7 @@ def run(fargo_args, np=None, nt=None, mpi_verbose=False, stdout=None, stderr=Non
     else:
         cmd = " ".join(cmd)
 
-    p = Popen(cmd,
+    p = subprocess.Popen(cmd,
               stdout=stdout,
               stderr=stderr,
               env=env,
@@ -261,12 +264,7 @@ def run(fargo_args, np=None, nt=None, mpi_verbose=False, stdout=None, stderr=Non
         print_wrapper(stdout, "fargo process pid", pid, flush=True)
 
         def handle_termination_request(signum, frame):
-            try:
-                import psutil
-                pfargo = psutil.Process(int(pid))
-                pfargo.send_signal(signal.SIGTERM)
-            except ImportError:
-                run(["kill", "-SIGTERM", f"{int(pid)}"])
+            subprocess.run(["kill", "-SIGTERM", f"{int(pid)}"])
 
         signal.signal(signal.SIGINT, handle_termination_request)
         signal.signal(signal.SIGTERM, handle_termination_request)
@@ -275,7 +273,7 @@ def run(fargo_args, np=None, nt=None, mpi_verbose=False, stdout=None, stderr=Non
             print("reading lines")
             for line in iter(p.stdout.readline, b''):
                 line = line.decode("utf8")
-                if stdout is not None and stdout != PIPE:
+                if stdout is not None and stdout != subprocess.PIPE:
                     print_wrapper(stdout, line.rstrip())
                 
         else:
@@ -288,7 +286,7 @@ def run(fargo_args, np=None, nt=None, mpi_verbose=False, stdout=None, stderr=Non
     return p.returncode
 
 def print_wrapper(stdout, *args, **kwargs):
-    if stdout != PIPE:
+    if stdout != subprocess.PIPE:
         print(*args, file=stdout, **kwargs)
     else:
         print(*args, **kwargs)
