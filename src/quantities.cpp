@@ -715,19 +715,23 @@ void calculate_toomre(t_data &data, unsigned int /* timestep */,
 	#pragma omp parallel for collapse(2)
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
-	    // kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
+	    
+		// kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
+		// be sure to compute vaz with the correct frame of reference
+		const double ro = Rmed[nr];
+		const double vo = data[t_data::V_AZIMUTHAL](nr, naz) + ro * refframe::OmegaFrame;
+		const double ri = Rmed[nr - 1];
+		const double vi = data[t_data::V_AZIMUTHAL](nr - 1, naz) + ri * refframe::OmegaFrame;
         const double kappa = std::sqrt(std::fabs(
 		std::pow(InvRmed[nr], 3) *
-		(std::pow(data[t_data::V_AZIMUTHAL](nr, naz) * Rmed[nr],  2) -
-		 std::pow(data[t_data::V_AZIMUTHAL](nr - 1, naz) * Rmed[nr - 1], 2)) *
-		InvDiffRmed[nr]));
+		(std::pow(vo * ro,  2) - std::pow(vi * ri, 2)) * InvDiffRmed[nr]));
 
 	    // Q = (c_s kappa) / (Pi G Sigma)
-	    // data[t_data::TOOMRE](n_radial, n_azimuthal) =
-	    // data[t_data::SOUNDSPEED](n_radial,
-	    // n_azimuthal)*calculate_omega_kepler(Rmed[n_radial])/(PI*G*data[t_data::DENSITY](n_radial,
-	    // n_azimuthal));
-		data[t_data::TOOMRE](nr, naz) = data[t_data::SOUNDSPEED](nr, naz) * kappa / (M_PI * constants::G * data[t_data::SIGMA](nr, naz));
+	    
+		const double cs = data[t_data::SOUNDSPEED](nr, naz);
+		const double G = constants::G;
+		const double Sigma = data[t_data::SIGMA](nr, naz);
+		data[t_data::TOOMRE](nr, naz) = cs * kappa / (M_PI * G * Sigma);
 	}
     }
 }
