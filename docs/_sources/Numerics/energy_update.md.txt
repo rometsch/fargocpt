@@ -1,0 +1,51 @@
+# Implicit energy update
+
+FargoCPT code (old):
+
+$\alpha = 1 +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3$
+
+$\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^-}{\alpha}$
+
+
+
+## What is $\alpha$
+
+### Equation to solve: $\frac{\partial (e + E_{rad})}{\partial t} = -p\nabla u + Q^+ - Q^- - \nabla F$
+  
+$\frac{\partial e}{\partial t} = - p \nabla u + Q^+$
+
+$\frac{\partial E_{rad}}{\partial t} = - Q^- - \nabla F$
+
+
+$E_{rad} = 2 H \frac{\sigma_R}{c} T^4$
+
+$T = \frac{m_\mu(\gamma - 1)}{R\Sigma} e$
+
+$E_{rad} = 2 H \frac{\sigma_R}{c} (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^4$
+
+
+$\frac{\partial E_{rad}}{\partial t} = 2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3 \frac{\partial e}{\partial t}$
+
+$\frac{\partial (e + E_{rad})}{\partial t} = -p\nabla u + Q^+ - Q^- - \nabla F$
+
+$\frac{\partial e}{\partial t} +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3 \frac{\partial e}{\partial t}= -p\nabla u + Q^+ - Q^- - \nabla F$
+
+$\frac{\partial e}{\partial t}(1 +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3)= -p\nabla u + Q^+ - Q^- - \nabla F$
+
+
+$\alpha = 1 +  2 H \frac{\sigma_R}{c} 4 (\frac{m_\mu (\gamma - 1)}{R \Sigma})^4 e^3$
+
+$\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^- - \nabla F} {\alpha}$
+
+
+## Questions
+
+### Is this operation splitting still correct?
+$\frac{\partial e}{\partial t} = \frac{-p\nabla u + Q^+ - Q^-}{\alpha}$
+
+$\frac{\partial e}{\partial t} = -p\nabla u$
+
+$\frac{\partial e}{\partial t} = \frac{Q^+ - Q^-}{\alpha}$
+
+###  What is the actually emitted energy?
+$Q^-$ or $\frac{Q^-}{\alpha}$
