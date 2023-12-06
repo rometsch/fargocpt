@@ -1,3 +1,9 @@
-from .data import Loader
 from .run import run
-from .overview import Overview
+try:
+    from .data import Loader
+except ImportError:
+    pass
+try:
+    from .overview import Overview
+except ImportError:
+    pass
