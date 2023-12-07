@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-subcommands = ["run", "data"]
+subcommands = ["run", "data", "config"]
 
 def main(args=sys.argv[1:]):
 
@@ -33,6 +33,9 @@ def main(args=sys.argv[1:]):
         cmd_main(remainder)
     elif opts.command == "data":
         from .data import main as cmd_main
+        cmd_main(remainder)
+    elif opts.command == "config":
+        from .config import main as cmd_main
         cmd_main(remainder)
 
 if __name__=="__main__":
