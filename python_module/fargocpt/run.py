@@ -11,6 +11,8 @@ import re
 import tempfile
 import shutil
 
+from .config import Config
+
 file_dir = os.path.abspath(os.path.dirname(__file__))
 config_dir = os.path.expanduser("~/.config/fargocpt")
 config_file = os.path.join(config_dir, "config.yml")
@@ -98,17 +100,10 @@ def find_executable(exe=None):
         executable_path = exe
     
     try:
-        import yaml
-        if executable_path is None:
-            # 2. ~/.config/fargocpt/config.yml
-            try:
-                with open(config_file, "r") as infile:
-                    config = yaml.safe_load(infile)
-                    executable_path = os.path.expanduser(config["exe_path"])
-            except FileNotFoundError:
-                executable_path = None
-    except ImportError:
-        pass
+        executable_path = Config()["exe_path"]
+    except KeyError as e:
+        print(e)
+        executable_path = None
         
     if executable_path is None:
         # 3. In the path
@@ -120,6 +115,7 @@ def find_executable(exe=None):
         msg = "Could not locate the fargocpt_exe executable.\nThere are three options to specify the path to it wich are checked in the following order.\n  1. specify it via the --exe cli option.\n  2. Create a config file at ~/.config/fargocpt/config.yml with the key 'exe_path' pointing to the fargocpt executable.\n  3. Put the bin/fargocpt_exe executable in your path and name it 'fargocpt_exe'."
         raise RuntimeError(msg)
 
+    executable_path = os.path.expanduser(executable_path)
     if not os.path.exists(executable_path):
         msg = f"Executable not found! I looked for {executable_path}\nPlease compile the code first: make -C <source dir in repo> -j 4"
         raise RuntimeError(msg)
