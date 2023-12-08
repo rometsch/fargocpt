@@ -88,7 +88,7 @@ t_planet::t_planet()
     m_planet_number = 0;
     m_temperature = 0.0;
     m_radius = 0.0;
-    m_irradiation_rampuptime = false;
+    m_irradiation_rampuptime = 0.0;
     m_rampuptime = 0.0;
     m_disk_on_planet_acceleration = {0.0, 0.0};
     m_nbody_on_planet_acceleration = {0.0, 0.0};
