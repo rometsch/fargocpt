@@ -107,7 +107,7 @@ class Config:
                 self.data = yaml.safe_load(infile)
         except FileNotFoundError:
             self.data = {}
-            self.data["exe_path"] = []
+            self.data["exe_path"] = None
 
     def print(self):
         try:

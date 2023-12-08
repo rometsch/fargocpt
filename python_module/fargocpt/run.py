@@ -94,17 +94,21 @@ def find_executable(exe=None):
     2. ~/.config/fargocpt/config.yml
     3. In the path
     """
+    print(exe)
     executable_path = None
     if exe is not None:
         # 1. Command line argument option
         executable_path = exe
     
-    try:
-        executable_path = Config()["exe_path"]
-    except KeyError as e:
-        print(e)
-        executable_path = None
-        
+    if executable_path is None:
+        try:
+            executable_path = Config()["exe_path"]
+        except KeyError as e:
+            print(e)
+            executable_path = None
+    
+    
+    
     if executable_path is None:
         # 3. In the path
         guess = shutil.which("fargocpt_exe")
