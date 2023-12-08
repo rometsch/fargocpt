@@ -1,13 +1,13 @@
 """ Config structure for fargocpt python wrapper. """
 import os
 import sys
-import json
+import yaml
 
 program_name = "fargocpt"
 config_version = "1.0"
 information_types = ["exe_path"]
 
-home_path = os.path.join(os.path.expanduser("~"), f".{program_name}")
+config_dir = os.path.join(os.path.expanduser("~"), f".config/{program_name}")
 
 def main(args=sys.argv[1:]):
     opts = parse_opts(args)
@@ -66,9 +66,9 @@ def check_information_type(info_type):
 
 class Config:
     def __init__(self):
-        if not os.path.exists(home_path):
-            os.makedirs(home_path)
-        self.config_file = os.path.join(home_path, "config.json")
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+        self.config_file = os.path.join(config_dir, "config.yml")
         self.load()
 
     def set(self, what, val):
@@ -99,12 +99,12 @@ class Config:
         self.data["type"] = f"{program_name} config"
         self.data["version"] = config_version
         with open(self.config_file, "w") as outfile:
-            outfile.write(json.dumps(self.data, indent=4))
+            yaml.dump(self.data, outfile, default_flow_style=False)
 
     def load(self):
         try:
             with open(self.config_file, "r") as infile:
-                self.data = json.load(infile)
+                self.data = yaml.safe_load(infile)
         except FileNotFoundError:
             self.data = {}
             self.data["exe_path"] = []
