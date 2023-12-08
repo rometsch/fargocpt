@@ -619,7 +619,7 @@ void calculate_qplus(t_data &data)
 			viscous_heating(data);
     }
     if (parameters::heating_star_enabled) {
-		if (!parameters::cooling_surface_enabled) {
+			if (!(parameters::cooling_surface_enabled | parameters::cooling_scurve_enabled)) {
 		    compute::kappa_eff(data);
 		}
 		irradiation(data);
