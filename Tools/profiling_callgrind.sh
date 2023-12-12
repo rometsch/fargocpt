@@ -5,7 +5,7 @@ echo "The simulation will run much slower than usual (expect factor 20+ slower).
 echo "You need to call the binary directly without the wrapper."
 
 FILEDIR="$(realpath $(dirname $0))"
-FARGOCMD="$FILEDIR/../bin/fargocpt"
+FARGOCMD="$FILEDIR/../bin/fargocpt_exe"
 
 # Check if at least two arguments are provided
 if [ $# -lt 3 ]; then
