@@ -22,15 +22,27 @@ def print_indented(str, indent=0):
 
 def interp_vr(r_data, vr, r_new, kind="cubic"):
     from scipy.interpolate import interp1d
+    hu = hasattr(vr, "unit")
+    if hu:
+        unit = vr.unit
+        vr = vr.value
     f = interp1d(r_data, vr, axis=0, kind=kind)
     vr_ = f(r_new)
+    if hu:
+        vr_ = vr_*unit
     return vr_
 
 def interp_va(phi_data, va, phi_new, kind="cubic"):
     from scipy.interpolate import interp1d
     phi = np.append(phi_data, [2*np.pi])
+    hu = hasattr(va, "unit")
+    if hu:
+        unit = va.unit
+        va = va.value
     f = interp1d(phi_data, np.hstack([va, va[:,0].reshape(-1,1)]), axis=1, kind=kind)
     va_ = f(phi_new)
+    if hu:
+        va_ = va_*unit
     return va_
 
 @dataclass
