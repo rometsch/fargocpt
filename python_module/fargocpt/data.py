@@ -722,6 +722,9 @@ class Vars2D:
         if not varname in self.var_names:
             raise KeyError(f"Unknown variable '{varname}'")
 
+        if not grid and grid_for_plot:
+            grid = True
+
         info = self._info_dict[varname]
         unit = Unit(info['unit'])
 
