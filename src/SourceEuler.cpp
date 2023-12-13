@@ -620,6 +620,7 @@ void calculate_qplus(t_data &data)
     }
     if (parameters::heating_star_enabled) {
 		if (!(parameters::cooling_surface_enabled || parameters::cooling_scurve_enabled)) {
+			compute::midplane_density(data, sim::time);
 		    compute::kappa_eff(data);
 		}
 		irradiation(data);
