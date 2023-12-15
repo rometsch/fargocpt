@@ -1,7 +1,7 @@
 """ Config structure for fargocpt python wrapper. """
 import os
 import sys
-import yaml
+import json
 
 program_name = "fargocpt"
 config_version = "1.0"
@@ -68,7 +68,7 @@ class Config:
     def __init__(self):
         if not os.path.exists(config_dir):
             os.makedirs(config_dir)
-        self.config_file = os.path.join(config_dir, "config.yml")
+        self.config_file = os.path.join(config_dir, "config.json")
         self.load()
 
     def set(self, what, val):
@@ -99,12 +99,12 @@ class Config:
         self.data["type"] = f"{program_name} config"
         self.data["version"] = config_version
         with open(self.config_file, "w") as outfile:
-            yaml.dump(self.data, outfile, default_flow_style=False)
+            json.dump(self.data, outfile, indent=4)
 
     def load(self):
         try:
             with open(self.config_file, "r") as infile:
-                self.data = yaml.safe_load(infile)
+                self.data = json.load(infile)
         except FileNotFoundError:
             self.data = {}
             self.data["exe_path"] = None
