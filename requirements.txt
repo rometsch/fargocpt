@@ -5,4 +5,5 @@ ipympl
 ruamel.yaml
 astropy
 psutil
+yaml
 ./python_module
