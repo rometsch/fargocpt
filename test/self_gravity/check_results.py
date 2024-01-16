@@ -116,14 +116,14 @@ def test(output_dir):
 
     ax = axs[1]
     diff = np.abs(gr_code/gr_direct - 1)
-    ax.plot(r_code, diff, label="relative difference")
-    # ax.plot(r_code, np.abs(gr_code-gr_direct)*1e5, label="absolute difference * $10^5$", ls="--", color="C2")
+    ax.plot(r_code, diff, label="relative difference", ls="none", marker=".")
+    ax.plot(r_code, np.abs(gr_code-gr_direct)*1e5, label=r"absolute difference $\times 10^5$", ls="-", color="C2")
     ax.set_yscale("log")
     ax.set_xlabel("r [au]")
-    ax.set_ylabel("relative difference")
+    ax.set_ylabel("(relative) difference")
     ax.grid(alpha=0.5)
-    ax.set_yticks([1e-3, 1e-2, 1e-1, 1])
-    # ax.legend(bbox_to_anchor=(1.0, 3.3), loc="upper right")
+    ax.set_yticks([1e-4, 1e-3, 1e-2, 1e-1, 1])
+    ax.legend(bbox_to_anchor=(1.0, 3.3), loc="upper right")
 
     kzero = np.argmin(np.abs(gr_code))
     rzero = r_code[kzero]
@@ -134,7 +134,6 @@ def test(output_dir):
     fig.savefig("plot.jpg", dpi=150)
     fig.savefig("plot.pdf", dpi=150)
 
-    threshold = 0.001
     diff_test = diff[r_code > 2]
     max_diff = np.max(diff_test)
 
