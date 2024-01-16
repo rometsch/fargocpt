@@ -26,7 +26,7 @@ def smoothing_length_sq(r, rp, h):
         Squared smoothing length.    
     """
     chi = 0.6472*h - 0.7543*h**2
-    lam = 0.4571*h + 0.6737*h**2
+    lam = 0.4571*h + 0.6737*np.sqrt(h)
     eps_sq = lam**2 * (r - rp)**2 + chi**2 * r*rp
     return eps_sq
 
@@ -74,8 +74,6 @@ def get_gr_direct(ld: Loader):
             dsq = dx**2 + dy**2
             d = np.sqrt(dsq)
             
-
-
             accx_full = - G * A * Sigma * dx / (d**2 + eps_sq)**1.5
             accy_full = - G * A * Sigma * dy / (d**2 + eps_sq)**1.5
 
@@ -114,19 +112,29 @@ def test(output_dir):
     ax.set_xlabel("r [au]")
     ax.set_ylabel("$g_r$ [cm/s2]")
     ax.legend()
+    ax.axhline(0.0, ls="-", lw=1, color="k", alpha=0.5, zorder=0)
 
     ax = axs[1]
     diff = np.abs(gr_code/gr_direct - 1)
-    ax.plot(r_code, diff)
+    ax.plot(r_code, diff, label="relative difference")
+    # ax.plot(r_code, np.abs(gr_code-gr_direct)*1e5, label="absolute difference * $10^5$", ls="--", color="C2")
     ax.set_yscale("log")
     ax.set_xlabel("r [au]")
     ax.set_ylabel("relative difference")
     ax.grid(alpha=0.5)
     ax.set_yticks([1e-3, 1e-2, 1e-1, 1])
+    # ax.legend(bbox_to_anchor=(1.0, 3.3), loc="upper right")
+
+    kzero = np.argmin(np.abs(gr_code))
+    rzero = r_code[kzero]
+    for ax in axs:
+        ax.axvline(rzero, ls="-", lw=1, color="k", alpha=0.5, zorder=0)
+    
 
     fig.savefig("plot.jpg", dpi=150)
+    fig.savefig("plot.pdf", dpi=150)
 
-    threshold = 0.054
+    threshold = 0.001
     diff_test = diff[r_code > 2]
     max_diff = np.max(diff_test)
 
