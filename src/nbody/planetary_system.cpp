@@ -954,7 +954,7 @@ void t_planetary_system::init_roche_radii()
 	}
 	planet.set_dimensionless_roche_radius(x);
 
-	if (i == 1) {
+	if (i == rof_planet) {
 	    primary.set_dimensionless_roche_radius(1.0 - x);
 	}
     }
