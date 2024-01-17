@@ -13,6 +13,7 @@
 #include "../logging.h"
 #include "../units.h"
 #include "../LowTasks.h"
+#include "../global.h" // For RMAX
 
 #include <string>
 
@@ -428,6 +429,48 @@ static void composite_outer()
 	logging::print_master(LOG_INFO "BC: Outer composite = %s\n",
 			      composite_outer_name.c_str());
     }
+}
+
+void roche_lobe_overflow_setup_error_check(t_data &data){
+    /*
+     * Function must be called after 'parse_config()' of boundary conditions
+     * has been called, which happens inside ReadVariables in main.cpp
+     * and after 'data.get_planetary_system().init_system()' has been called,
+     * which happens in main.cpp
+     */
+
+
+    if(!rochelobe_overflow){
+	return;
+    }
+
+    const auto &nbody_sys = data.get_planetary_system();
+    if(nbody_sys.get_number_of_planets() < rof_planet){
+	die("Roche lobe overflowing companion %d not contained in Nbody system of size %d!",
+	    rof_planet, nbody_sys.get_number_of_planets());
+    }
+
+    const t_planet &companion = nbody_sys.get_planet(rof_planet);
+
+    if(RMAX > companion.get_semi_major_axis()){
+	die("Roche lobe overflowing companion %s with a=%.3e must be outside of the simulation domain of size %.3e!",
+	    companion.get_name().c_str(), companion.get_semi_major_axis(), RMAX);
+    }
+
+    if(companion.get_eccentricity() > 0.01){
+	die("Roche lobe overflow only intended to be used with circular companions, but companion %s has an eccentricity of %.2g!",
+	    companion.get_name().c_str(), companion.get_eccentricity());
+    }
+
+    const t_planet &primary = nbody_sys.get_planet(0);
+    const double l1 = primary.get_dimensionless_roche_radius() *
+			 companion.get_distance_to_primary();
+
+    if(std::fabs(RMAX / l1 - 1) > 0.05){
+	die("Lagrange l1 point %.3e of the primary must be equal to the outer domain radius %.3e to 5%% accuracy!",
+	    l1, RMAX);
+    }
+
 }
 
 void parse_config()

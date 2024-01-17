@@ -7,6 +7,7 @@
 #include "../parameters.h"
 #include "../types.h"
 #include "../output.h"
+#include "../boundary_conditions/boundary_conditions.h"
 #include <cstring>
 #include <ctype.h>
 #include <fstream>
@@ -954,7 +955,7 @@ void t_planetary_system::init_roche_radii()
 	}
 	planet.set_dimensionless_roche_radius(x);
 
-	if (i == rof_planet) {
+	if (i == boundary_conditions::rof_planet) {
 	    primary.set_dimensionless_roche_radius(1.0 - x);
 	}
     }

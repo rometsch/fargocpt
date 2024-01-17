@@ -107,6 +107,8 @@ int main(int argc, char *argv[])
 	data.get_massflow_tracker().init(data.get_planetary_system());
     init_binary_quadropole_moment(data.get_planetary_system());
 
+    boundary_conditions::roche_lobe_overflow_setup_error_check(data);
+
 
     parameters::summarize_parameters();
     if (CPU_Master) {
