@@ -286,10 +286,10 @@ if __name__ == "__main__":
     ax.set_xlabel(r"$x$")
     ax.set_ylabel(r"$\Delta f / f$")
 
-    ax.grid(alpha=0.5)
+    # ax.grid(alpha=0.5)
 
     if opts.outfile is not None:
-        fig.savefig(opts.outfile, dpi=150)
+        fig.savefig(opts.outfile, dpi=150, bbox_inches='tight')
     else:
         plt.show()
 
