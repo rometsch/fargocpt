@@ -272,16 +272,16 @@ if __name__ == "__main__":
 
 
     ax = axs[0]
-    ax.plot(g.Xc[:,0]-x0, analytical_init[:,0], label="initial")
-    ax.plot(g.Xc[:,0]-x0, analytical_solution[:,0], label="analytical")
-    ax.plot(g.Xc[:,0]-x0, code_solution[:,0], label="code x")
+    ax.plot(g.Xc[:,0]-x0, analytical_init[:,0], label="initial", lw=2)
+    ax.plot(g.Xc[:,0]-x0, analytical_solution[:,0], label="analytical", lw=2)
+    ax.plot(g.Xc[:,0]-x0, code_solution[:,0], label="code x", lw=2)
     ax.set_xlim(xlim)
     ax.set_xlabel(r"$x$")
     ax.set_ylabel(r"$f$")
     ax.legend()
 
     ax = axs[1]
-    ax.plot(g.Xc[:,0]-x0, code_solution[:,0]/analytical_solution[:,0]-1, label="code x - analytical")
+    ax.plot(g.Xc[:,0]-x0, code_solution[:,0]/analytical_solution[:,0]-1, label="code x - analytical", lw=2)
     ax.set_xlim(xlim)
     ax.set_xlabel(r"$x$")
     ax.set_ylabel(r"$\Delta f / f$")
@@ -289,7 +289,7 @@ if __name__ == "__main__":
     # ax.grid(alpha=0.5)
 
     if opts.outfile is not None:
-        fig.savefig(opts.outfile, dpi=150, bbox_inches='tight')
+        fig.savefig(opts.outfile, dpi=300, bbox_inches='tight')
     else:
         plt.show()
 
