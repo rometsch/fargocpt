@@ -63,16 +63,14 @@ def test(_):
     # fig, axs = plt.subplots(2,1,figsize=(6,8))
     axs = np.ravel(axs)
 
-    reference(axs)
+    # reference(axs)
     plot('../../output/tests/shocktube_PVTE/shocktube/', 'Ideal Eos FARGO', 'black', Nsnap, axs)
-    plot('../../output/tests/shocktube_PVTE/shocktube_varGamm/', 'Perfect Eos FARGO', 'darkblue', Nsnap, axs)
+    plot('../../output/tests/shocktube_PVTE/shocktube_varGamm/', 'PVTE Eos FARGO', 'darkblue', Nsnap, axs)
 
-    x0, _, rho0, v0, p0 = np.loadtxt("plutoIdealGas0.tab", unpack=True)
-    x1, _, rho1, v1, p1 = np.loadtxt("plutoIdealGas1.tab", unpack=True)
+    x1, _, rho1, v1, p1 = np.loadtxt("plutoIdeal.tab", unpack=True)
 
-    xp1, _, rhop1, vp1, pp1 = np.loadtxt("plutoPerfectGas1.tab", unpack=True)
+    xp1, _, rhop1, vp1, pp1 = np.loadtxt("plutoPVTE.tab", unpack=True)
 
-    pluto_quants0 = np.array([rho0, v0, p0])
     pluto_quants1 = np.array([rho1, v1, p1])
 
     pluto_perfectQuants1 = np.array([rhop1, vp1, pp1])
@@ -85,8 +83,8 @@ def test(_):
 
         ax.axis('auto')
         ax.set_title(quant, color='black', y = 1.00)
-        ax.plot(xp1, pluto_perfectQuants1[i], ls='--',color="red",  label="Ideal Eos PLUTO")
-        ax.plot(x1, pluto_quants1[i],ls='--' ,color="orange", label="Perfect Eos PLUTO")
+        ax.plot(x1, pluto_quants1[i],ls='--' ,color="orange", label="Ideal Eos PLUTO")
+        ax.plot(xp1, pluto_perfectQuants1[i], ls='--',color="red",  label="PVTE Eos PLUTO")
         #ax.grid()
         if quant == 'Sigma':
             ax.legend(loc='upper right')
