@@ -1,0 +1,4 @@
+testname: self_gravity_solver_azi
+threshold: 0.0256
+setupfiles:
+  - setup.yml
