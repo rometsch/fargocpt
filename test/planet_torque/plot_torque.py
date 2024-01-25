@@ -34,7 +34,7 @@ def main():
     # print("expected torque", expected_torque)
 
 
-    fig, axes = plt.subplots(ncols=2, figsize=(20,8))
+    fig, ax = plt.subplots(figsize=(6,4))
 
     dirs = []
     for name in os.listdir("../../output/tests/planet_torque"):
@@ -51,20 +51,17 @@ def main():
             print(f"{fname} not found")
             continue
         time = time/(2*np.pi)
-        axes[0].plot(time, torque/Gamma0, label=name)
-        axes[1].plot(time, a)
+        ax.plot(time, torque/Gamma0, label=name)
 
-    axes[0].set_xlabel(r"$t$ [orbits]")
-    axes[0].set_ylabel(r"$\Gamma / \Gamma_0$")
+    ax.set_xlabel(r"$t$ [orbits]")
+    ax.set_ylabel(r"$\Gamma / \Gamma_0$")
 
 
-    axes[1].set_xlabel(r"$t$ [orbits]")
-    axes[1].set_ylabel(r"$a$")
+    ax.axhline(expected_torque, color="gray", label="theory")
+    ax.legend()
 
-    axes[0].axhline(expected_torque, color="gray", label="theory")
-    axes[0].legend()
-
-    fig.savefig("plot.jpg", dpi=150)
+    fig.savefig("plot.jpg", dpi=150, bbox_inches='tight')
+    fig.savefig("plot.pdf", dpi=300, bbox_inches='tight')
 
     ratios = torque/Gamma0 / expected_torque
     average = np.average(ratios[-len(ratios)//10:])
