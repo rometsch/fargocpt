@@ -9,20 +9,24 @@ import astropy.units as u
 from scipy import interpolate
 
 from drift_theo import vdrift_theo
+
+from matplotlib.ticker import NullLocator
+
 from fargocpt import Loader
 
 def main():
     fig = plot_drift("../../output/tests/dust_drift/out")
-    fig.savefig("drift.jpg")
+    fig.savefig("drift.jpg", dpi=150, bbox_inches="tight")
+    # fig.savefig("drift.pdf", dpi=300, bbox_inches="tight")
 
 
 def plot_drift(outdir):
 
-    fig = plt.figure(constrained_layout=True)
-    gs = fig.add_gridspec(3, 1)
 
-    ax = fig.add_subplot(gs[:2, :])
+    fig, axs = plt.subplots(2,1,height_ratios=[3,1], sharex=True, figsize=(6,4))
+    fig.subplots_adjust(hspace=0)
 
+    ax = axs[0]
     l = Loader(outdir)
     particles = l.particles.timeseries(["r", "stokes", "size"])
 
@@ -48,45 +52,58 @@ def plot_drift(outdir):
     sizes = np.array(sizes)
     Sts = np.array(Sts)
 
+    vdrift = vdrift_theo(Sts, 1*u.au).to_value("cm/s")
+
+
     # X = sizes
     X = Sts
     Y = rdot_abs
-    ax.plot(X, Y, marker="x")
+        
+    ax.plot(X, Y, lw=2, label="code", marker="+", markersize=10, ls="-")
+    ax.plot(Sts, -vdrift, lw=2, ls="--", label="theoretical")
+    
+    
 
     ax.set_ylabel(r"$-\dot{r}$ [cm/s]")
 
     ax.set_xscale("log")
     ax.set_yscale("log")
-
+    
     # secondary y axis
     secax = ax.secondary_yaxis(
         'right', functions=(cmps_to_aupyr, aupyr_to_cmps))
     secax.set_ylabel(r"$\dot{r}$ [au/yr]")
+    secax.set_yticks([1e-8, 1e-6, 1e-4, 1e-2])
+    secax.yaxis.set_minor_locator(NullLocator())
 
-    ax.grid(alpha=0.3)
+    # ax.grid(alpha=0.3)
     
-    vdrift = vdrift_theo(Sts, 1*u.au).to_value("cm/s")
-    ax.plot(Sts, -vdrift)
-
-    try:
-        f = interpolate.InterpolatedUnivariateSpline(sizes, Sts)
-        f2 = interpolate.InterpolatedUnivariateSpline(Sts, sizes)
-        secax = ax.secondary_xaxis(
-            'top', functions = (f2, f)
-        )
-        secax.set_xlabel("size [cm]")
-    except Exception:
-        pass
+    ax.set_yticks([1e-2, 1e0, 1e2, 1e4])
+    ax.yaxis.set_minor_locator(NullLocator())
 
 
-    ax = fig.add_subplot(gs[2:3, :])
+
+    ax.legend()
+
+    # try:
+    #     f = interpolate.InterpolatedUnivariateSpline(sizes, Sts)
+    #     f2 = interpolate.InterpolatedUnivariateSpline(Sts, sizes)
+    #     secax = ax.secondary_xaxis(
+    #         'top', functions = (f2, f)
+    #     )
+    #     secax.set_xlabel("size [cm]")
+    # except Exception:
+    #     pass
+
+    ax = axs[1]
     reldiff = (np.abs(rdot_abs - np.abs(vdrift))) / np.abs(vdrift)
-    ax.plot(Sts, reldiff)
+    ax.plot(Sts, reldiff, lw=2)
     ax.set_xscale("log")
     ax.set_ylabel("rel. diff.")
     ax.set_xlabel(r"Stokes number")
-    ax.set_ylim(bottom=0)
-    ax.grid()
+    ax.set_ylim(bottom=1e-4, top=2)
+    ax.set_yscale("log")
+    # ax.grid()
 
 
     # ax = fig.add_subplot(gs[3:])
