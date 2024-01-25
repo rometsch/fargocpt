@@ -52,7 +52,7 @@ def test(_):
 
     fargo_r, fargo_quants = plot('../../output/tests/shocktube_PVTE/shocktube_varGamm/', 'Perfect Eos FARGO', 'darkblue', Nsnap, axs)
 
-    x1, _, rho1, v1, p1 = np.loadtxt("plutoPerfectGas1.tab", unpack=True)
+    x1, _, rho1, v1, p1 = np.loadtxt("plutoPVTE.tab", unpack=True)
 
     pluto_quants = np.array([rho1, v1, p1])
 
