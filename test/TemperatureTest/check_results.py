@@ -40,7 +40,7 @@ def test(out1, Nsnapshot=10, interactive=False, log=True):
     ax = axs[0]
     ax2 = axs[1]
     ax.plot(r, Tnum, color="C0", label='$T$ Code', lw=2, ls="none", marker=".", markersize=5)
-    ax.plot(r, Ttheo, color="k", lw=1, ls="-", label='Theory')
+    ax.plot(r, Ttheo, color="k", lw=1, ls="-", label=r'$T$ Theory')
 
     vmin = min(vmin, np.min(Ttheo))
     vmax = max(vmax, np.max(Ttheo))
@@ -56,7 +56,7 @@ def test(out1, Nsnapshot=10, interactive=False, log=True):
     densnum = data_dens[1::4].flatten() * Sigma0
 
     denstheo = 300*np.sqrt(5/r)
-    ax.plot(r, densnum, color="C1", label=r'$\Sigma Code', ls="none", marker=".", markersize=5)
+    ax.plot(r, densnum, color="C1", label=r'$\Sigma$ Code', ls="none", marker=".", markersize=5)
     ax.plot(r, denstheo, '-k', label=r'$\Sigma$ Theory', lw=1)
 
     vmin2 = np.min(densnum)
