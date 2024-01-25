@@ -10,22 +10,19 @@ from fargocpt import Loader
 
 def main():
     fig = plot_trajectory("../../output/tests/dust_drift/out")
-    fig.savefig("trajectories.jpg")
+    fig.savefig("trajectories.jpg", dpi=150, bbox_inches='tight')
+    fig.savefig("trajectories.pdf", dpi=300, bbox_inches='tight')
 
 
 def plot_trajectory(outdir):
 
-    fig, axes = plt.subplots(figsize=(10,5), ncols=2)
-
-    fig.subplots_adjust(wspace=0.4)
-
+    fig, ax = plt.subplots(figsize=(6,4))
 
     l = Loader(outdir)
     particles = l.particles.timeseries(["r", "stokes", "size"])
 
-    sizes = []
-    Sts = []
-    rdot_abs = []
+
+    sizes = [1e-2, 1e-1, 1, 1e1, 1e2,1e3]
 
     for i, p in particles.items():
         try:
@@ -37,6 +34,10 @@ def plot_trajectory(outdir):
             
             
             size = p["size"][0].to("cm")
+            
+            if not any( [ np.isclose(size.to_value("cm"), s) for s in sizes]):
+                continue
+            
             stokes = p["stokes"]
             vtheo = vdrift_theo(stokes, r.to("au"))
             vtheo = vtheo.to("cm/s")
@@ -54,30 +55,24 @@ def plot_trajectory(outdir):
             
             label = f"s={size:.1e}, St={stokes[-1]:.1e}"
             
-            ax = axes[0]
-            line, = axes[0].plot(t[:-1].to("yr"), -rdot, label=label)
+            ax = ax
+            line, = ax.plot(t[:-1].to("yr"), -rdot, label=label)
             color = line.get_color()
             ax.plot(t.to("yr"), -vtheo, ls=":", color=color)
             
-            axes[1].plot(t.to("yr"), r.to("au"), color=color, label=label)
         except IndexError as e:
             print(e)
 
     # secondary y axis
-    secax = axes[0].secondary_yaxis(
+    secax = ax.secondary_yaxis(
         'right', functions=(cmps_to_aupyr, aupyr_to_cmps))
     secax.set_ylabel(r"$-\dot{r}$ [au/yr]")
 
 
-    axes[0].set_yscale("log")
-    axes[0].set_ylabel(r"$-\dot{r}$ [cm/s]")
-    axes[0].set_xlabel(r"$t$ [yr]")
-    
-    axes[1].legend()
-
-
-    axes[1].set_ylabel(r"$r$ [au]")
-    axes[1].set_xlabel(r"$t$ [yr]")
+    ax.set_yscale("log")
+    ax.set_ylabel(r"$-\dot{r}$ [cm/s]")
+    ax.set_xlabel(r"$t$ [yr]")    
+    ax.legend()
 
 
     return fig
