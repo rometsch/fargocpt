@@ -193,6 +193,18 @@ DampingVRadialOuter: Initial   # Damping of radial velocity at outer boundary, v
 DampingVAzimuthalOuter: Initial   # Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
 DampingSurfaceDensityOuter: Initial   # Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none]
 
+# Roche lobe overflow
+RocheLobeOverflow: No
+ROFplanet: 1 # Nbody index of the overflowing companion
+ROFrampingtime: 5 # In overflowing companion orbital periods
+ROFtemperature: 1500.0 # Surface temperature of the companion, to compute stream width
+ROFvalue: 1.5e-10 solMass/yr
+ROFVariableTransfer: No # scale transfer rate with mass accreted onto primary
+ROFgamma: 0.5 # scaling factor of variable mass transfer dot_M_transfer = max(gamma * dot_M_accret, ROFvalue)
+ROFaveragingtime: 10 # primary accretion rate is averaged over companion Porb
+
+
+
 #
 # Output control parameters
 #

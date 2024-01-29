@@ -100,6 +100,7 @@ extern std::vector<t_DampingType> damping_vector;
 /// Functions
 ****************************************/
 
+void roche_lobe_overflow_setup_error_check(t_data &data);
 void parse_config();
 
 void apply_boundary_condition(t_data &data, const double current_time, const double dt, const bool final);

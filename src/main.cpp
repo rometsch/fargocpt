@@ -107,7 +107,6 @@ int main(int argc, char *argv[])
 	data.get_massflow_tracker().init(data.get_planetary_system());
     init_binary_quadropole_moment(data.get_planetary_system());
 
-
     parameters::summarize_parameters();
     if (CPU_Master) {
         config::cfg.exit_on_unknown_key();
