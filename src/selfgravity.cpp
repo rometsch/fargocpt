@@ -466,26 +466,34 @@ void compute_FFT_kernel()
 			* This last naming is the one used in the cmath library
 			*/
 
-			/* L_sg would be defined in Rendon Restrepo et al. 2023 (not yet published) */
-			const double L_sg = std::pow(M_PI, 0.5) 
-								* (distance_squared / 8.)
-								* std::exp(distance_squared / 8.) 
-								* ( std::cyl_bessel_kl(1., distance_squared /8.) 
-								- std::cyl_bessel_kl(0., distance_squared /8.) );
+			/* L_sg would be defined in Rendon Restrepo et al. 2024 (not yet published) */
+			/* The following computation of L_sg solve an exponential overflow/underflow for large distances
+			* by using the exact Taylor expansion at infinite of the Bessel Kernel . 
+			*/
 
-			K_radial[l] = std::exp(1./2.*u)    // this term is specific to how SG
-												// is written in Fargo (see C. Baruteau thesis p. 53)
-						* (L_sg / 2. / M_PI / aspect_ratio) 
-						* std::exp(-3./2.*u) 
-						* std::pow(std::cosh(u), -0.5) 
+			double L_sg;
+            if (X_aux < 60) {
+                L_sg = std::pow(M_PI, 0.5)
+                     * X_aux
+                     * std::exp(X_aux)
+                     * ( std::cyl_bessel_kl(1., X_aux)
+                     - std::cyl_bessel_kl(0., X_aux) );
+            } else { // Taylor expansion at inifinity in order to avoid exp overflow
+                L_sg = std::pow(M_PI, 0.5)
+                     * X_aux
+                     * 0.5 * std::pow(M_PI/2., 0.5)
+                     * ( std::pow(X_aux, -1.5)
+                       - 3./8.*std::pow(X_aux, -2.5)
+                       + 45./128.*std::pow(X_aux, -3.5) );
+            }
+			
+			K_radial[l] = (L_sg / 2. / M_PI / aspect_ratio)
+						* std::pow(std::cosh(u), -0.5)
 						* std::pow(std::cosh(u)-std::cos(theta), -1.)
-						* (std::exp(u)-std::cos(theta));
+						* (1.0-std::cos(theta)*std::exp(-u));
 
-			K_azimuthal[l] = std::exp(3./2.*u) // this term is specific to how SG
-												// is written in Fargo (see C. Baruteau thesis p. 55)
-							* (L_sg / 2. / M_PI / aspect_ratio) 
-							* std::exp(-3./2.*u) 
-							* std::pow(std::cosh(u), -0.5) 
+			K_azimuthal[l] =  (L_sg / 2. / M_PI / aspect_ratio)
+							* std::pow(std::cosh(u), -0.5)
 							* std::pow(std::cosh(u)-std::cos(theta), -1.)
 							* std::sin(theta);
 		}
