@@ -20,6 +20,8 @@ void no_operation([[maybe_unused]] t_polargrid&, [[maybe_unused]] t_polargrid&, 
 
 
 void init(t_data &data) {
+	roche_lobe_overflow_setup_error_check(data);
+
 	init_custom(data);
 
 	if (composite_inner_name == "centerofmass" || composite_outer_name == "centerofmass") {
