@@ -10,12 +10,9 @@ def test(out1, Nsnapshot=10, interactive=False, log=True):
     data1 = np.fromfile(file_name1)
     quant1 = data1[1::4].flatten()
 
-    fig, axs = plt.subplots(2,2, gridspec_kw={'height_ratios': [1, 1]})
-    ax = axs[0,0]
-    ax1diff = axs[1,0]
-    ax2 = axs[0,1]
-    ax2diff = axs[1,1]
-
+    fig, axs = plt.subplots(2,1,height_ratios=[3,1], sharex=True, figsize=(6,4))
+    fig.subplots_adjust(hspace=0)
+    
     r = data1[::4]
     r = r.flatten()
 
@@ -40,17 +37,17 @@ def test(out1, Nsnapshot=10, interactive=False, log=True):
 
     ### Plot temperature
 
-    ax.axis('auto')
-    ax.set_title('Temperature', color='black', y = 1.06)
-    ax.plot(r, Tnum, '.r', label='Code', lw=2.5)
-    ax.plot(r, Ttheo, '--k', label='Theory', lw=2.5)
+    ax = axs[0]
+    ax2 = axs[1]
+    ax.plot(r, Tnum, color="C0", label='$T$ Code', lw=2, ls="none", marker=".", markersize=5)
+    ax.plot(r, Ttheo, color="k", lw=1, ls="-", label=r'$T$ Theory')
 
     vmin = min(vmin, np.min(Ttheo))
     vmax = max(vmax, np.max(Ttheo))
 
     Tdiff = np.abs(Tnum - Ttheo) / Ttheo
-    ax1diff.plot(r, Tdiff)
-    ax1diff.set_ylabel('Relative difference')
+    axs[1].plot(r, Tdiff, label="$T$", lw=2, color="C0")
+
 
     ### Plot density
 
@@ -58,21 +55,19 @@ def test(out1, Nsnapshot=10, interactive=False, log=True):
     data_dens = np.fromfile(file_name)
     densnum = data_dens[1::4].flatten() * Sigma0
 
-    ax2.axis('auto')
-    ax2.set_title('Density', color='black', y = 1.06)
     denstheo = 300*np.sqrt(5/r)
-    ax2.plot(r, densnum, '.r', label='Code', lw=2.5)
-    ax2.plot(r, denstheo, '--k', label='Theory', lw=2.5)
+    ax.plot(r, densnum, color="C1", label=r'$\Sigma$ Code', ls="none", marker=".", markersize=5)
+    ax.plot(r, denstheo, '-k', label=r'$\Sigma$ Theory', lw=1)
 
     vmin2 = np.min(densnum)
     vmax2 = np.max(densnum)
 
     densdiff = np.abs(densnum - denstheo) / denstheo
-    ax2diff.plot(r, densdiff)
-    ax2diff.set_ylabel('Relative difference')
+    axs[1].plot(r, densdiff, label=r"$\Sigma$", lw=2, color="C1")
+    axs[1].set_ylabel('Relative difference')
 
     ax.legend(loc='upper right')
-    ax2.legend(loc='upper right')
+    axs[1].legend(loc='lower right')
 
     # ax.set_xlim(rmin,rmax)
     # ax.set_ylim(vmin,vmax)
@@ -81,23 +76,20 @@ def test(out1, Nsnapshot=10, interactive=False, log=True):
         ax.set_xscale("log")
 
     if log:
-        ax1diff.set_yscale("log", nonpositive='clip')
-        ax1diff.set_xscale("log")
-
-    # ax2.set_xlim(rmin,rmax)
-    # ax2.set_ylim(vmin2,vmax2)
-    if log:
         ax2.set_yscale("log", nonpositive='clip')
         ax2.set_xscale("log")
 
-    if log:
-        ax2diff.set_yscale("log", nonpositive='clip')
-        ax2diff.set_xscale("log")
+
 
     # ax.set_ylim(bottom=5)
     # ax2.set_ylim(top=700)
 
-    fig.savefig("plot.jpg", dpi=150)
+    ax.set_ylabel("value [cgs]")
+    ax2.set_xlabel("r [au]")
+
+    fig.savefig("plot.jpg", dpi=150, bbox_inches='tight')
+    # fig.savefig("plot.pdf", dpi=300, bbox_inches='tight')
+
     if interactive:
         plt.show()
 
@@ -119,3 +111,6 @@ def test(out1, Nsnapshot=10, interactive=False, log=True):
         print("SUCCESS: TemperatureTest")
     else:
         print("FAIL: TemperatureTest")
+
+if __name__=="__main__":
+    test("../../output/tests/TemperatureTest/out/")

@@ -1,4 +1,4 @@
 testname: self_gravity_solver
-threshold: 0.0256
+threshold: 0.0014
 setupfiles:
   - setup.yml

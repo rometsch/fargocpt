@@ -107,8 +107,8 @@ def test(output_dir):
     fig, axs = plt.subplots(2,1,height_ratios=[3,1], sharex=True, figsize=(6,4))
     fig.subplots_adjust(hspace=0)
     ax = axs[0]
-    ax.plot(r_direct, gr_direct, label="direct sum")
-    ax.plot(r_code, gr_code, ls="--", label="code")
+    ax.plot(r_direct, gr_direct, label="direct sum", lw=2)
+    ax.plot(r_code, gr_code, ls="--", label="code", lw=2)
     ax.set_xlabel("r [au]")
     ax.set_ylabel("$g_r$ [cm/s2]")
     ax.legend()
@@ -116,25 +116,23 @@ def test(output_dir):
 
     ax = axs[1]
     diff = np.abs(gr_code/gr_direct - 1)
-    ax.plot(r_code, diff, label="relative difference")
-    # ax.plot(r_code, np.abs(gr_code-gr_direct)*1e5, label="absolute difference * $10^5$", ls="--", color="C2")
+    ax.plot(r_code, np.abs(gr_code-gr_direct)*1e5, label=r"absolute difference $\times 10^5$", ls="-", color="C2", lw=2)
+    ax.plot(r_code, diff, label="relative difference", ls="none", marker=".")
     ax.set_yscale("log")
     ax.set_xlabel("r [au]")
-    ax.set_ylabel("relative difference")
-    ax.grid(alpha=0.5)
-    ax.set_yticks([1e-3, 1e-2, 1e-1, 1])
-    # ax.legend(bbox_to_anchor=(1.0, 3.3), loc="upper right")
+    ax.set_ylabel("(relative) difference")
+    # ax.grid(alpha=0.5)
+    ax.set_yticks([1e-4, 1e-2, 1])
+    ax.legend(bbox_to_anchor=(1.0, 3.3), loc="upper right")
 
     kzero = np.argmin(np.abs(gr_code))
     rzero = r_code[kzero]
     for ax in axs:
         ax.axvline(rzero, ls="-", lw=1, color="k", alpha=0.5, zorder=0)
     
+    fig.savefig("plot.jpg", dpi=150, bbox_inches="tight")
+    # fig.savefig("plot.pdf", dpi=300, bbox_inches="tight")
 
-    fig.savefig("plot.jpg", dpi=150)
-    fig.savefig("plot.pdf", dpi=150)
-
-    threshold = 0.001
     diff_test = diff[r_code > 2]
     max_diff = np.max(diff_test)
 

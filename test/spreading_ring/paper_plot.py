@@ -159,7 +159,9 @@ axs = np.ravel(axs)
 ax = axs[0]
 ax.set_ylabel('$\Sigma$ [code units]')
 ax.set_xlabel('x')
-data = test_1D("../../output/spreading_ring" + parfile[:-4], ax, 140)
+# data = test_1D("../../output/tests/spreading_ring/" + parfile[:-4], ax, 140)
+data = test_1D("../../output/tests/spreading_ring/" + parfile[:-4], ax, 90)
 
-plt.savefig('spreading_ring.pdf', dpi=300, bbox_inches='tight')
+# plt.savefig('spreading_ring.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('spreading_ring.jpg', dpi=300, bbox_inches='tight')
 plt.show()

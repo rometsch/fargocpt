@@ -137,7 +137,8 @@ axes[1].set_yscale('log')
 axes[2].set_ylabel(r'$\frac{r\,F}{r\,F_\mathrm{sol}}$')
 
 axes[-1].set_xlabel('$r$ [au]')
-for ax in axes:
-    ax.grid(alpha=0.4)
+# for ax in axes:
+#     ax.grid(alpha=0.4)
 
 fig.savefig(opts.plotfilename)
+# fig.savefig("overview.pdf", dpi=300, bbox_inches='tight')

@@ -94,7 +94,6 @@ def find_executable(exe=None):
     2. ~/.config/fargocpt/config.yml
     3. In the path
     """
-    print(exe)
     executable_path = None
     if exe is not None:
         # 1. Command line argument option
