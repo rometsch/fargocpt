@@ -130,7 +130,6 @@ def test(output_dir):
     for ax in axs:
         ax.axvline(rzero, ls="-", lw=1, color="k", alpha=0.5, zorder=0)
     
-
     fig.savefig("plot.jpg", dpi=150, bbox_inches="tight")
     # fig.savefig("plot.pdf", dpi=300, bbox_inches="tight")
 
