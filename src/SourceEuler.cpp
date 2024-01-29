@@ -1300,6 +1300,25 @@ void compute_scale_height_center_of_mass(t_data &data)
     }
 }
 
+static void adjust_scale_height_for_sg(t_data &data) {
+
+	t_polargrid &H = data[t_data::SCALE_HEIGHT];
+
+	const unsigned int Nr = H.get_size_radial();
+	const unsigned int Naz = H.get_size_azimuthal();
+
+	#pragma omp parallel for collapse(2)
+	for (unsigned int nr = 1; nr < Nr; ++nr) {
+	for (unsigned int naz = 0; naz < Naz; ++naz) {
+		const double Q = data[t_data::TOOMRE](nr, naz);
+		// Hsg = sqrt(2/pi) * H  * f(Q)
+		// f(Q) = pi / (4Q) * (sqrt(1 + 8*Q^2/pi) - 1)
+		const double f = M_PI * (std::sqrt(1 + 8*Q*Q/M_PI) - 1) / (4*Q);
+		H(nr, naz) *= f*std::sqrt(2/M_PI);
+	}
+	}
+}
+
 void compute_scale_height(t_data &data, const double current_time)
 {
     switch (parameters::aspectratio_mode) {
@@ -1315,6 +1334,11 @@ void compute_scale_height(t_data &data, const double current_time)
     default:
 	compute_scale_height_old(data);
     }
+
+	if (parameters::self_gravity) {
+		compute::toomreQ(data);
+		adjust_scale_height_for_sg(data);
+	}
 }
 
 void compute_pressure(t_data &data)
