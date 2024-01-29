@@ -19,6 +19,32 @@ def print_indented(str, indent=0):
     for line in str.split('\n'):
         print(indent_str + line)
 
+
+def interp_vr(r_data, vr, r_new, kind="cubic"):
+    from scipy.interpolate import interp1d
+    hu = hasattr(vr, "unit")
+    if hu:
+        unit = vr.unit
+        vr = vr.value
+    f = interp1d(r_data, vr, axis=0, kind=kind)
+    vr_ = f(r_new)
+    if hu:
+        vr_ = vr_*unit
+    return vr_
+
+def interp_va(phi_data, va, phi_new, kind="cubic"):
+    from scipy.interpolate import interp1d
+    phi = np.append(phi_data, [2*np.pi])
+    hu = hasattr(va, "unit")
+    if hu:
+        unit = va.unit
+        va = va.value
+    f = interp1d(phi_data, np.hstack([va, va[:,0].reshape(-1,1)]), axis=1, kind=kind)
+    va_ = f(phi_new)
+    if hu:
+        va_ = va_*unit
+    return va_
+
 @dataclass
 class Units:
     length: Unit = None
@@ -680,7 +706,11 @@ class Vars2D:
         info = self._info_dict[varname]
         rad_interface = info["on_radial_interface"]
         azi_interface = info["on_azimuthal_interface"]
-        return self.grid.meshgrid(intr=rad_interface, intf=azi_interface)
+        r, phi = self.grid.meshgrid(intr=rad_interface, intf=azi_interface)
+        if varname == "vazi":                    
+            r = r[:,:-1]
+            phi = phi[:,:-1]
+        return r, phi
 
     def meshgrid_plot(self, varname):
         info = self._info_dict[varname]
@@ -688,9 +718,12 @@ class Vars2D:
         azi_interface = info["on_azimuthal_interface"]
         return self.grid.meshgrid_plot(intr=rad_interface, intf=azi_interface)
 
-    def get(self, varname, Nsnapshot, grid=True, grid_for_plot=False):
+    def get(self, varname, Nsnapshot, grid=False, grid_for_plot=False, centered=False):
         if not varname in self.var_names:
             raise KeyError(f"Unknown variable '{varname}'")
+
+        if not grid and grid_for_plot:
+            grid = True
 
         info = self._info_dict[varname]
         unit = Unit(info['unit'])
@@ -700,11 +733,23 @@ class Vars2D:
         filepath = joinpath(self.output_dir, "snapshots", f"{Nsnapshot}", info["filename"])
         rv = np.fromfile(filepath).reshape(Nr, Naz) * unit
 
+        if centered:
+            if varname == "vrad":
+                rv = interp_vr(self.grid.radi, rv, self.grid.radc)
+            elif varname == "vazi":
+                rv = interp_va(self.grid.phii, rv, self.grid.phic)
         if grid:
             if grid_for_plot:
-                r, phi = self.meshgrid_plot(varname)
+                if centered:
+                    r, phi = self.grid.meshgrid(intr=True, intf=True)
+                else:
+                    r, phi = self.meshgrid_plot(varname)
             else:
-                r, phi = self.meshgrid(varname)
+                if centered:
+                    r, phi = self.grid.meshgrid(intr=False, intf=False)
+                else:
+                    r, phi = self.meshgrid(varname)
+                
             return r, phi, rv
         else:
             return rv
@@ -719,16 +764,16 @@ class Vars2D:
         else:
             return data
 
-    def avg(self, varname, Nsnapshot, grid=True):
-        data = np.average(self.get(varname, Nsnapshot, grid=False), axis=1)
+    def avg(self, varname, Nsnapshot, grid=True, centered=False):
+        data = np.average(self.get(varname, Nsnapshot, grid=False, centered=centered), axis=1)
         return self._return_with_radius(varname, data, grid)
 
-    def min(self, varname, Nsnapshot, grid=True):
-        data = np.min(self.get(varname, Nsnapshot, grid=False), axis=1)
+    def min(self, varname, Nsnapshot, grid=True, centered=False):
+        data = np.min(self.get(varname, Nsnapshot, grid=False, centered=centered), axis=1)
         return self._return_with_radius(varname, data, grid)
         
-    def max(self, varname, Nsnapshot, grid=True):
-        data = np.max(self.get(varname, Nsnapshot, grid=False), axis=1)
+    def max(self, varname, Nsnapshot, grid=True, centered=False):
+        data = np.max(self.get(varname, Nsnapshot, grid=False, centered=centered), axis=1)
         return self._return_with_radius(varname, data, grid)
         
 
