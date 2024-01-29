@@ -113,7 +113,7 @@ ExponentialCellSizeFactor: '1.41'   # Scaling used on the size of the first cell
 
 # Output control parameters
 
-OutputDir: ../../output/tests/spreading_ring/speth2003   # Output directory
+OutputDir: ../../output/tests/spreading_ring/speith2003   # Output directory
 Nsnapshots: '240'   # Total number of time steps
 Nmonitor: '10'   # Time steps between outputs
 MonitorTimestep: '0.314159265359'   # Time step length. 2PI = 1 orbit
