@@ -472,6 +472,7 @@ void compute_FFT_kernel()
 			*/
 
 			double L_sg;
+            const double X_aux = distance_squared / 8.;
             if (X_aux < 60) {
                 L_sg = std::pow(M_PI, 0.5)
                      * X_aux
