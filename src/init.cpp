@@ -1016,9 +1016,7 @@ void init_gas_density(t_data &data)
     if (parameters::sigma_randomize) {
 
 	struct osn_context *osn;
-	if (open_simplex_noise(parameters::random_seed + 325582, &osn) !=
-	    0) // add random number to seed to keep seed unique, because it is
-	       // reused several times in the code.
+	if (open_simplex_noise(&osn) != 0)
 	{
 	    die("Bad open simplex noise!");
 	}

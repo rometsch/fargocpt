@@ -20,10 +20,10 @@
 #include "../frame_of_reference.h"
 #include "../simulation.h"
 #include "../compute.h"
+#include "../random/random_wrapper.h"
 #include <cstring>
 #include <cmath>
 #include <mpi.h>
-#include <random>
 #include <sstream>
 #include <stdlib.h>
 #include <vector>
@@ -474,16 +474,12 @@ static void insert_particle(const unsigned long i, const unsigned int id_offset,
 }
 
 static void
-init_particle(const unsigned long &i, const unsigned int &id_offset,
-	      std::mt19937 &generator,
-	      std::uniform_real_distribution<double> &dis_one,
-	      std::uniform_real_distribution<double> &dis_twoPi,
-	      std::uniform_real_distribution<double> &dis_eccentricity)
+init_particle(const unsigned long &i, const unsigned int &id_offset)
 {
     double semi_major_axis =
-	power_law_distribution(dis_one(generator), parameters::particle_slope);
-    double phi = dis_twoPi(generator);
-    double eccentricity = dis_eccentricity(generator);
+	power_law_distribution(fargo_random::get_uniform_one(), parameters::particle_slope);
+    double phi = fargo_random::get_uniform_two_pi();
+    double eccentricity = fargo_random::get_uniform_dust_eccentricity();
 
     /*
     // debug setup
@@ -535,19 +531,6 @@ void init(t_data &data)
     particles_size = local_number_of_particles;
     particles.resize(particles_size);
 
-    const unsigned int seed = parameters::random_seed;
-    logging::print(LOG_DEBUG "random generator seed: %u\n", seed);
-
-    // random generator and distributions
-    std::mt19937 generator(seed);
-    std::uniform_real_distribution<double> dis_one(0.0, 1.0);
-    std::uniform_real_distribution<double> dis_twoPi(0.0, 2.0 * M_PI);
-
-    std::uniform_real_distribution<double> dis_eccentricity(
-	0.0,
-	parameters::particle_eccentricity); // for generating eccentricities
-					    // same as Marzari & Scholl 2000
-
     // get number of local particles from all nodes to compute correct offsets
     std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
     MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
@@ -561,14 +544,11 @@ void init(t_data &data)
     }
 
     for (unsigned int i = 0; i < local_offset; ++i) {
-	init_particle(
-	    0, local_offset, generator, dis_one, dis_twoPi,
-	    dis_eccentricity); // bring random generator to correct position
+	init_particle(0, local_offset); // bring random generator to correct position
     }
 
     for (unsigned int i = 0; i < local_number_of_particles; ++i) {
-	init_particle(i, local_offset, generator, dis_one, dis_twoPi,
-		      dis_eccentricity);
+	init_particle(i, local_offset);
     }
 
     // create MPI datatype
