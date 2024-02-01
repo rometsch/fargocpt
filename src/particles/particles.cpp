@@ -615,6 +615,190 @@ void init(t_data &data)
 
 }
 
+
+static void insert_particle_cell(t_data &data, const unsigned long i, const unsigned int id_offset,
+				 const uint32_t nr, const uint32_t naz) {
+
+	particles[i].radius = parameters::particle_radius;
+
+	const unsigned long particle_type = i % parameters::particle_species_number;
+	particles[i].radius *=
+	    std::pow(parameters::particle_radius_increase_factor, particle_type);
+
+	double volume = 4.0 / 3.0 * M_PI * std::pow(particles[i].radius, 3);
+
+	particles[i].mass = volume * parameters::particle_density;
+
+	const double r = Rmed[nr];
+	const double phi = dphi * (double)naz;
+
+	const double eccentricity = 0.0;
+
+	const double vr_gas = data[t_data::V_RADIAL](nr, naz);
+	const double v_gas = data[t_data::V_AZIMUTHAL](nr, naz);
+	const double Sigma = data[t_data::SIGMA](nr, naz);
+	const double dPdr = (data[t_data::PRESSURE](nr+1, naz) - data[t_data::PRESSURE](nr-1, naz)
+								       /(Rmed[nr+1] - Rmed[nr-1]));
+	// particle azimuthal velocity = gas azimuthal velocity - pressure support
+	double v = std::sqrt(std::max(0.0, v_gas*v_gas - r/Sigma*dPdr));
+
+	if (parameters::CartesianParticles) {
+		// Beware: cartesian particles still use the names of polar coordinates
+		// x = r
+		// y = phi
+		// vx = r_dot
+		// vy = phi_dot
+		particles[i].r = r * std::cos(phi);
+		particles[i].phi = r * std::sin(phi);
+
+		particles[i].r_dot = vr_gas*std::cos(phi) - v * std::sin(phi);
+		particles[i].phi_dot = vr_gas*std::sin(phi) + v * std::cos(phi);
+	} else {
+		particles[i].r = r;
+		particles[i].phi = phi;
+
+		particles[i].r_dot = vr_gas;
+		particles[i].phi_dot = v / r;
+	}
+
+	particles[i].r_ddot = v;
+	particles[i].phi_ddot = eccentricity;
+
+	       // only needed for adaptive integrator, initialized later
+	particles[i].timestep = 0.0;
+	particles[i].facold = 0.0;
+
+	particles[i].id = id_offset + i;
+}
+
+static void init_populate_disk(t_data &data)
+{
+	// calculate number of initial local particles
+	global_number_of_particles = parameters::number_of_particles;
+
+	// this init function requires that the CPU knows the gas densities
+	// of the cell in which the dust particle is created
+	// if all particles are created on one CPU, it needs sufficient storage
+	local_number_of_particles = global_number_of_particles;
+
+	if ((unsigned int)CPU_Rank <
+	    global_number_of_particles - CPU_Number * local_number_of_particles) {
+		local_number_of_particles++;
+	}
+
+	       // create storage
+	particles_size = local_number_of_particles;
+	particles.resize(particles_size);
+
+	       // get number of local particles from all nodes to compute correct offsets
+	std::vector<unsigned int> nodes_number_of_particles(CPU_Number);
+	MPI_Allgather(&local_number_of_particles, 1, MPI_UNSIGNED,
+		      &nodes_number_of_particles[0], 1, MPI_UNSIGNED,
+		      MPI_COMM_WORLD);
+
+	       // compute local offset
+	unsigned int local_offset = 0;
+	for (int cpu = 0; cpu < CPU_Rank; ++cpu) {
+		local_offset += nodes_number_of_particles[cpu];
+	}
+
+
+	// get disk mass in range
+	/// copy & paste from 'quantities::gas_total_mass()' ///////////////////////////
+	double local_mass = 0.0;
+	double global_mass = 0.0;
+
+	       // calculate mass of this process' cells
+#pragma omp parallel for reduction(+ : local_mass)
+	for (unsigned int n_radial = radial_first_active;
+	     n_radial < radial_active_size; ++n_radial) {
+		for (unsigned int n_azimuthal = 0;
+		     n_azimuthal < data[t_data::SIGMA].get_size_azimuthal();
+		     ++n_azimuthal) {
+	    /// changed range check
+	    if ((Rmed[n_radial] >= particles_rmin) && (Rmed[n_radial] <= particles_rmax)) {
+		local_mass +=
+		    Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
+	    }
+		}
+	}
+
+	MPI_Allreduce(&local_mass, &global_mass, 1, MPI_DOUBLE, MPI_SUM,
+		      MPI_COMM_WORLD);
+
+	const double disk_mass = global_mass;
+	///////////////////////////////////////////////////////////////////////////////////
+
+
+	// insert particles at cell centers, the chance of
+	// placing a particle inside the cell depends on the mass in the cell
+	const unsigned int Nr = data[t_data::SIGMA].get_size_radial();
+	const unsigned int Nphi = data[t_data::SIGMA].get_size_azimuthal();
+	int particle_init_counter = 0;
+    #pragma omp parallel for reduction(+ : particle_init_counter)
+	for (unsigned int nr = 0; nr < Nr; ++nr) {
+		for (unsigned int naz = 0; naz < Nphi; ++naz) {
+	    if ((Rmed[nr] >= particles_rmin) && (Rmed[nr] <= particles_rmax)) {
+
+		const double cell_mass = Surf[n_radial] * data[t_data::SIGMA](n_radial, n_azimuthal);
+
+		double particles_in_cell = cell_mass / disk_mass * (double)global_number_of_particles;
+		const double roll = fargo_random::get_uniform_one();
+
+		while(particles_in_cell > 1.0){
+
+		    if(particle_init_counter < local_number_of_particles){
+		    insert_particle_cell(data, particle_init_counter, local_offset, nr, naz);
+		    }
+
+		    particles_in_cell -= 1.0;
+		    particle_init_counter++;
+
+		}
+		if(roll < particles_in_cell){
+
+		    if(particle_init_counter < local_number_of_particles){
+		    insert_particle_cell(data, particle_init_counter, local_offset, nr, naz);
+		    }
+		    particle_init_counter++;
+		}
+
+	    }
+	}
+	}
+
+	unsigned int total_initialized = 0;
+	MPI_Allreduce(&particle_init_counter, &total_initialized, 1, MPI_INT, MPI_SUM,
+		      MPI_COMM_WORLD);
+
+	if(CPU_Master){
+	for (unsigned int i = total_initialized; i < local_number_of_particles; ++i) {
+
+	    const double hydro_center_mass_old = hydro_center_mass;
+	    // in case of circumbinary particles in frame of one star,
+	    // manually adjust hydro_center_mass to include binary mass
+	    // so that particles have correct azimuthal velocity
+	init_particle(i, local_offset);
+	    hydro_center_mass = hydro_center_mass_old;
+	}
+	}
+
+	// particles might be created on the wrong node, so move them to the correct
+	// one :)
+	for (int i = 0; i < CPU_Number; ++i) {
+		move();
+	}
+
+	compute::midplane_density(data, sim::time);
+	compute_temperature(data);
+	check_tstop(data);
+
+	if (parameters::particle_integrator == parameters::integrator_adaptive) {
+		init_particle_timestep(data);
+	}
+
+}
+
 void restart()
 {
 
@@ -629,8 +813,10 @@ void restart()
     if (fd == nullptr) {
 	logging::print_master(
 	    LOG_INFO
-	    "Can't find file particles.dat (%s). Using generated particles.\n",
+	    "Can't find file particles.dat (%s). Generating particles based on gas distribution ...\n",
 	    filename.c_str());
+
+	init_populate_disk(data);
 	return;
     }
     fseek(fd, 0L, SEEK_END);
