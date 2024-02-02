@@ -529,7 +529,7 @@ InitializeVradialZero:
   type: bool
   unitsupport: false
 InnerBoundary:
-  choices: Zerogradient, Outflow, Reflecting, Reference, CenterOfMass, Custom, Individual
+  choices: Zerogradient, Outflow, Viscous, Reflecting, Reference, CenterOfMass, Custom, Individual
   default: individual
   description: Boundary condition at the inner boundary.
   type: string
