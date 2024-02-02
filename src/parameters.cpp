@@ -201,6 +201,7 @@ double particle_radius_increase_factor;
 double particle_eccentricity;
 double particle_density;
 double particle_slope;
+bool particle_distribution_like_gas;
 double particle_minimum_radius;
 double particle_maximum_radius;
 double particle_minimum_escape_radius;
@@ -816,15 +817,25 @@ void read(const std::string &filename, t_data &data)
     particle_eccentricity =
 	config::cfg.get<double>("ParticleEccentricity", 0.0);
     particle_density = config::cfg.get<double>("ParticleDensity", "2.65 g/cm3", M0/(L0*L0*L0));
-    particle_slope = config::cfg.get<double>(
-	"ParticleSurfaceDensitySlope", sigma_slope);
-    particle_slope =
-	-particle_slope; // particle distribution scales with  r^slope, so we
-			 // introduces the minus here to make it r^-slope (same
-			 // as for gas)
-    particle_slope +=
-	1.0; // particles are distributed over a whole simulation ring which
-	     // introduces a factor 1/r for the particle surface density
+
+    {
+	std::string particle_slope_string = config::cfg.get<std::string>("ParticleSurfaceDensitySlope");
+	if (particle_slope_string == "gas"){
+	    particle_distribution_like_gas = true;
+	} else {
+	particle_slope = config::cfg.get<double>(
+	    "ParticleSurfaceDensitySlope", sigma_slope);
+	particle_slope =
+	    -particle_slope; // particle distribution scales with  r^slope, so we
+			     // introduces the minus here to make it r^-slope (same
+			     // as for gas)
+	particle_slope +=
+	    1.0; // particles are distributed over a whole simulation ring which
+		 // introduces a factor 1/r for the particle surface density
+	}
+
+    }
+
     particle_minimum_radius =
 	config::cfg.get<double>("ParticleMinimumRadius", RMIN, L0);
     particle_maximum_radius =
@@ -1025,11 +1036,19 @@ void summarize_parameters()
 	    LOG_INFO
 	    "Using %u particles with a radius of %g and a density of %g.\n",
 	    number_of_particles, particle_radius, particle_density);
+
+	if(particle_distribution_like_gas){
+		logging::print_master(
+		    LOG_INFO
+		    "Distributing particles according to the gas distribution inside a range from %g to %g\n",
+		    particle_minimum_radius, particle_maximum_radius);
+	} else {
 	logging::print_master(
 	    LOG_INFO
 	    "Distributing particles with a r^%.2g profile from %g to %g with a eccentricity from 0.0 to %g.\n",
 	    particle_slope, particle_minimum_radius, particle_maximum_radius,
 	    particle_eccentricity);
+	}
 	logging::print_master(
 	    LOG_INFO
 	    "Particles are considered escaped from the system when they reach a distance of %g or %g.\n",
