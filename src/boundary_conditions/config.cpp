@@ -358,7 +358,7 @@ static void composite_inner()
 	sigma_inner_name = "zerogradient";
 	energy_inner_name = "zerogradient";
 	vrad_inner_name = "outflow";
-    } else if (str == "viscousoutflow") {
+    } else if (str == "viscous") {
 	sigma_inner_name = "zerogradient";
 	energy_inner_name = "zerogradient";
 	vrad_inner_name = "viscous";
