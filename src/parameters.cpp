@@ -134,7 +134,7 @@ double profile_cutoff_point_inner;
 double profile_cutoff_width_inner;
 
 bool disk_feedback;
-bool accrete_without_disk_feedback;
+bool accretion_feedback;
 bool fast_transport;
 int hydro_integrator;
 int indirect_term_mode;
@@ -753,7 +753,7 @@ void read(const std::string &filename, t_data &data)
 	"Please add the central object to the planet configuration.");
 
     disk_feedback = config::cfg.get_flag("DiskFeedback", "yes");
-	accrete_without_disk_feedback = config::cfg.get_flag("AccreteWithoutDiskFeedback", "no");
+	accretion_feedback = config::cfg.get_flag("AccretionFeedback", disk_feedback);
 	planet_orbit_disk_test = config::cfg.get_flag("PlanetOrbitDiskTest", "no");
 
 	indirect_term_mode = config::cfg.get<int>("IndirectTermMode", INDIRECT_TERM_REBOUND);
