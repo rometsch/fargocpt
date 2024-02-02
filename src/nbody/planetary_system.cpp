@@ -853,7 +853,7 @@ void t_planetary_system::integrate(const double time, const double dt)
 void t_planetary_system::correct_velocity_for_disk_accel()
 {
 
-    if (!parameters::disk_feedback) {
+    if (!parameters::disk_feedback_active) {
 	return;
     }
 

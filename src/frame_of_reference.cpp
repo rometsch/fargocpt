@@ -72,7 +72,7 @@ void ComputeIndirectTermDisk(t_data &data)
     IndirectTermDisk.y = 0.0;
 
     // compute disk indirect term
-    if (parameters::disk_feedback) {
+    if (parameters::disk_feedback_active) {
 	// add up contributions from disk on all bodies used to calculate the
 	// center
 	double mass_center = 0.0;

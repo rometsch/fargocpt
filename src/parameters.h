@@ -192,9 +192,11 @@ extern double alphaHot;
 
 /// disk applies force onto star
 /// and correction terms due to off barycenter system are applied
-/// replaces feels_disk
 extern bool disk_feedback;
 extern bool accretion_feedback;
+extern double feedback_delay;
+extern bool disk_feedback_active;
+extern bool accretion_feedback_active;
 extern bool planet_orbit_disk_test;
 
 extern bool fast_transport;

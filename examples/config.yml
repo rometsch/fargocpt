@@ -52,6 +52,12 @@ nbody:
   ramp-up time: 0.0
 
 #
+# Feedback Tuning
+#
+DiskFeedbackDelay: 0.0 # DiskFeedback is not active before this time in code units
+AccretionFeedback: yes # momentum of accreted gas getting transfered to the accreting object [default = DiskFeedback]
+
+#
 # Particlesystem
 #
 

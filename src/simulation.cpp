@@ -56,7 +56,7 @@ void handle_outputs(t_data &data) {
 
 
 	/// asure planet torques are computed
-	if (!parameters::disk_feedback && to_write_monitor) {
+	if (!parameters::disk_feedback_active && to_write_monitor) {
 	    ComputeDiskOnNbodyAccel(data);
 	}
 
@@ -152,7 +152,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    accretion::AccreteOntoPlanets(data, dt);
 	}
 
-	if (parameters::disk_feedback) {
+	if (parameters::disk_feedback_active) {
 	    ComputeDiskOnNbodyAccel(data);
 	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
@@ -291,7 +291,7 @@ static void step_Euler(t_data &data, const double dt) {
 	data.get_planetary_system().copy_data_from_rebound();
 	data.get_planetary_system().move_to_hydro_center_and_update_orbital_parameters();
 
-	if (parameters::disk_feedback) {
+	if (parameters::disk_feedback_active) {
 		ComputeDiskOnNbodyAccel(data);
 	}
 	refframe::ComputeIndirectTermDisk(data);
@@ -301,7 +301,7 @@ static void step_Euler(t_data &data, const double dt) {
 	/// Nbody Kick 1 / 2
 	// minimum density is assured inside AccreteOntoPlanets
 	accretion::AccreteOntoPlanets(data, frog_dt);
-	if (parameters::disk_feedback) {
+	if (parameters::disk_feedback_active) {
 		UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 	}
 	data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
@@ -349,7 +349,7 @@ static void step_Euler(t_data &data, const double dt) {
 
 	//////////////// Gas kick 2/2   /////////////////////
 	/// planets positions still at x_i+1/2 for gas interaction
-	if (parameters::disk_feedback) {
+	if (parameters::disk_feedback_active) {
 		ComputeDiskOnNbodyAccel(data, true);
 	}
 	refframe::ComputeIndirectTermDisk(data);
@@ -404,7 +404,7 @@ static void step_Euler(t_data &data, const double dt) {
 	accretion::AccreteOntoPlanets(data, frog_dt);
 
 	       /// Nbody kick 2/2
-	if (parameters::disk_feedback) {
+	if (parameters::disk_feedback_active) {
 	UpdatePlanetVelocitiesWithDiskForce(data, frog_dt);
 	}
 	data.get_planetary_system().apply_indirect_term_on_Nbody(refframe::IndirectTerm, frog_dt);
@@ -538,6 +538,9 @@ void run(t_data &data) {
 		} else {
 			step_dt = cfl_dt;
 		}
+
+		disk_feedback_active = disk_feedback && (time > feedback_delay);
+		accretion_feedback_active = accretion_feedback && (time > feedback_delay);
 
 		step(data, step_dt);
 
