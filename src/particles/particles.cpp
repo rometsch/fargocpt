@@ -813,10 +813,9 @@ void restart()
     if (fd == nullptr) {
 	logging::print_master(
 	    LOG_INFO
-	    "Can't find file particles.dat (%s). Generating particles based on gas distribution ...\n",
+	    "Can't find file particles.dat (%s). Using initial distribution.\n",
 	    filename.c_str());
 
-	init_populate_disk(data);
 	return;
     }
     fseek(fd, 0L, SEEK_END);
