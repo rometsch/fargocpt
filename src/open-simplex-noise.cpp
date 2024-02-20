@@ -17,7 +17,7 @@
 #include <cmath>
 #include <cstring>
 
-#include <random>
+#include "random/random_wrapper.h"
 
 #include "open-simplex-noise.h"
 
@@ -168,7 +168,7 @@ int open_simplex_noise_init_perm(struct osn_context *ctx, int16_t p[],
  * Generates a proper permutation (i.e. doesn't merely perform N successive pair
  * swaps on a base array).  Uses a simple 64-bit LCG.
  */
-int open_simplex_noise(int64_t seed, struct osn_context **ctx)
+int open_simplex_noise(struct osn_context **ctx)
 {
     int rc;
     int16_t source[256];
@@ -176,10 +176,6 @@ int open_simplex_noise(int64_t seed, struct osn_context **ctx)
     int16_t *perm;
     int16_t *permGradIndex3D;
     int r;
-
-    std::mt19937 generator(seed);
-    std::uniform_int_distribution<int> uni(
-	0, 255); // random number distribution inclusive, returns r in [0,255]
 
     *ctx = (struct osn_context *)malloc(sizeof(**ctx));
     if (!(*ctx))
@@ -198,13 +194,13 @@ int open_simplex_noise(int64_t seed, struct osn_context **ctx)
 
     for (i = 0; i < 256; i++)
 	source[i] = (int16_t)i;
-    // (Lucas) Replaced random generator with random library mersenne twister.
+    // (Lucas) Replaced random generator with the fargo default rng
 
     // seed = seed * 6364136223846793005LL + 1442695040888963407LL;
     // seed = seed * 6364136223846793005LL + 1442695040888963407LL;
     // seed = seed * 6364136223846793005LL + 1442695040888963407LL;
     for (i = 255; i >= 0; i--) {
-	r = uni(generator);
+	r = fargo_random::get_uniform256();
 	// seed = seed * 6364136223846793005LL + 1442695040888963407LL;
 	// r = (int)((seed + 31) % (i + 1));
 	// if (r < 0)

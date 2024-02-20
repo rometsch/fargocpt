@@ -1,7 +1,7 @@
 #include "dust_diffusion.h"
 #include "../find_cell_id.h"
 #include "../global.h"
-#include "../random/random.h"
+#include "../random/random_wrapper.h"
 #include "../Theo.h"
 #include "../parameters.h"
 #include <filesystem>
@@ -86,7 +86,7 @@ double kick_length(t_particle &particle, t_data &data, const double dt)
     const double mean = Dd / rho * drho_dr * dt * dt * OmegaK;
     const double sigma = std::sqrt(2 * Dd * dt);
 
-    const double snv = fargo_random::std_normal();
+    const double snv = fargo_random::get_std_normal();
     // Correct for missing diffusion in direction tangential to r
     const double corr_2d = r * ( std::sqrt(1 + std::pow(sigma*snv/r,2)) - 1 );
     const double deltar = mean + snv * sigma + corr_2d;

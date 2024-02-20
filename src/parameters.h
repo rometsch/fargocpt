@@ -293,6 +293,7 @@ extern double particle_eccentricity;
 extern double particle_density;
 /// particle slope
 extern double particle_slope;
+extern bool particle_distribution_like_gas;
 /// particle minimum radius
 extern double particle_minimum_radius;
 /// particle maximum radius

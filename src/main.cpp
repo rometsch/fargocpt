@@ -25,7 +25,7 @@
 #include "start_mode.h"
 #include "units.h"
 #include "particles/particles.h"
-#include "random/random.h"
+#include "random/random_wrapper.h"
 #include "simulation.h"
 #include "buildtime_info.h"
 #include "restart.h"

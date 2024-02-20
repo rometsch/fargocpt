@@ -67,7 +67,7 @@ ParticleMaximumEscapeRadius: 2.5   # [default = ParticleMaximumRadius]
 ## Particle initial conditions
 ParticleMinimumRadius: 0.4   # [default = RMIN]
 ParticleMaximumRadius: 2.5   # [default = RMAX] spread particles between these two radii
-ParticleSurfaceDensitySlope: 0.5   # [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope)
+ParticleSurfaceDensitySlope: 0.5   # Can be a number or string:"gas" [default = SigmaSlope] slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope) or in case of "gas" following the mass distribution of the gas disk
 
 ParticleSpeciesNumber: 7      # [default = 1]
 ParticleRadius: 1 cm         # particle radius in cm [default = 100]
