@@ -137,8 +137,8 @@ void config() {
 	radiative_diffusion_omega, radiative_diffusion_max_iterations);
 
 	// boundary conditions
-	inner_boundary_name = config::cfg.get<std::string>("RadiativeDiffusionInnerBoundary", "none");
-	outer_boundary_name = config::cfg.get<std::string>("RadiativeDiffusionOuterBoundary", "none");
+	inner_boundary_name = config::cfg.get_lowercase("RadiativeDiffusionInnerBoundary", "none");
+	outer_boundary_name = config::cfg.get_lowercase("RadiativeDiffusionOuterBoundary", "none");
 
 	if (radiative_diffusion_enabled) {
 		if (inner_boundary_name == "none") {
