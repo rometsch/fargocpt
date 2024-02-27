@@ -278,7 +278,7 @@ void UpdatePlanetVelocitiesWithDiskForce(t_data &data, const double dt)
 {
     for (unsigned int k = 0;
 	 k < data.get_planetary_system().get_number_of_planets(); k++) {
-	if (parameters::disk_feedback) {
+	if (parameters::disk_feedback_active) {
 	    t_planet &planet = data.get_planetary_system().get_planet(k);
 
 	    const Pair gamma = planet.get_disk_on_planet_acceleration();

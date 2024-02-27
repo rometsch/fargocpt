@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 		data.get_planetary_system().get_planet(0).set_mass(1.0e-66);
 	} else {
     // update planet velocity due to disk potential
-    if (parameters::disk_feedback) {
+    if (parameters::disk_feedback_active) {
 	ComputeDiskOnNbodyAccel(data);
 	data.get_planetary_system().correct_velocity_for_disk_accel();
     }
