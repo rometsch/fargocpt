@@ -639,7 +639,6 @@ static double calculate_beta_inv(const double r, const double t) {
 	const double t_ramp_up = parameters::cooling_beta_ramp_up;
 	// Apply rampup time
 	if (t_ramp_up > 0.0) {
-		const double omega_k = calculate_omega_kepler(r);
 		const double ramp_factor = 1 - std::exp(-std::pow(2 * t / t_ramp_up, 2));
 		beta_inv = beta_inv * ramp_factor;
 	}
@@ -661,6 +660,7 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 		// Q- = E Omega/beta
 		const double r = Rmed[nr];
 		const double E = data[t_data::ENERGY](nr, naz);
+		const double omega_k = calculate_omega_kepler(r);
 		const double beta_inv = calculate_beta_inv(r, current_time);
 
 		double delta_E = E;
