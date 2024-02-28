@@ -74,6 +74,10 @@ void t_planetary_system::init_system()
     for (auto &planet_cfg : planet_configs) {
 		init_planet(planet_cfg);
     }
+	
+	if (config::cfg.get_flag("WriteDefaultValues", "no")) {
+		planet_configs[0].write_default(output::outdir + "default_config_nbody.yml");
+	}
 
 	if (CPU_Master) {
 		for (auto &planet_cfg : planet_configs) {
