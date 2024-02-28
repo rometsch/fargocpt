@@ -632,8 +632,8 @@ static double calculate_beta_inv(const double r, const double t) {
 
 	double beta_inv = 1 / parameters::cooling_beta;
 
-	if (r > parameters::cooling_beta_transition_radius) {
-		beta_inv = 1 / parameters::cooling_beta_out;
+	if (r > parameters::cooling_beta_step_radius) {
+		beta_inv = 1 / parameters::cooling_beta_outer;
 	}
 
 	const double t_ramp_up = parameters::cooling_beta_ramp_up;
