@@ -76,6 +76,10 @@ extern bool cooling_beta_enabled;
 extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
+/// beta cooling constant outside of transition radius
+extern double cooling_beta_out;
+/// beta cooling transition radius
+extern double cooling_beta_transition_radius;
 /// beta cooling to aspect ratio profile
 extern bool cooling_beta_reference;
 /// beta cooling to initial profile

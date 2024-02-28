@@ -79,6 +79,8 @@ bool cooling_surface_enabled;
 bool cooling_beta_enabled;
 double cooling_beta_ramp_up;
 double cooling_beta;
+double cooling_beta_out;
+double cooling_beta_transition_radius;
 bool cooling_beta_reference;
 bool cooling_beta_model;
 bool cooling_beta_floor;
@@ -439,6 +441,8 @@ static void read_beta_cooling_config(){
 	cooling_beta_enabled = config::cfg.get_flag("CoolingBetaLocal", "No");
 
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
+	cooling_beta_out = config::cfg.get<double>("CoolingBetaOut", 1.0);;
+	cooling_beta_transition_radius = config::cfg.get<double>("CoolingBetaTransitionRadius", 2*RMAX, units::L0);
 
     units::precise_unit T0 = units::T0;
     cooling_beta_ramp_up =
