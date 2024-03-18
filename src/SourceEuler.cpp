@@ -627,23 +627,35 @@ void calculate_qplus(t_data &data)
 	}    
 }
 
-/* Calculate the inverse of the beta value for thermal relaxation. */
-static double calculate_beta_inv(const double r, const double t) {
+/* Calculate the beta value for thermal relaxation. */
+static double calculate_beta(const double r, const double t, const bool to_log = false) {
 
-	double beta_inv = 1 / parameters::cooling_beta;
+	double beta_ini = parameters::cooling_beta;
+	double beta = beta_ini ;
 
 	if (r > parameters::cooling_beta_step_radius) {
-		beta_inv = 1 / parameters::cooling_beta_outer;
+		beta = parameters::cooling_beta_outer;
 	}
 
 	const double t_ramp_up = parameters::cooling_beta_ramp_up;
+    const double beta_f = parameters::cooling_beta_final;
+    const double t_switch = parameters::cooling_beta_time_switch;
 	// Apply rampup time
 	if (t_ramp_up > 0.0) {
-		const double ramp_factor = 1 - std::exp(-std::pow(2 * t / t_ramp_up, 2));
-		beta_inv = beta_inv * ramp_factor;
-	}
+        double ramp_factor;
+        if (t < t_switch) {
+			ramp_factor = 0.0;
+        } else {      
+			ramp_factor = 1 - std::exp(-std::pow(2 * (t-t_switch) / t_ramp_up, 2));
+        }
 
-	return beta_inv;
+		beta = beta_ini + (beta_f-beta_ini) * ramp_factor;
+	}
+	if (to_log) {
+	// logging::print_master(LOG_INFO "t, t_ramp_up, t_switch, beta: %g, %g, %g, %g\n", t, t_ramp_up, t_switch, beta);
+	// std::cout << "t, t_ramp_up, t_switch, beta: " << t << ", " << t_ramp_up << t_switch << beta << std::endl;
+	}
+	return beta;
 }
 
 /* Perform thermal relaxation also called beta cooling.
@@ -661,7 +673,7 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 		const double r = Rmed[nr];
 		const double E = data[t_data::ENERGY](nr, naz);
 		const double omega_k = calculate_omega_kepler(r);
-		const double beta_inv = calculate_beta_inv(r, current_time);
+		const double beta_inv = 1.0/calculate_beta(r, current_time);
 
 		double delta_E = E;
 		if (parameters::cooling_beta_reference) {
@@ -698,6 +710,10 @@ static void thermal_relaxation(t_data &data, const double current_time) {
 		Qminus(nr, naz) += qminus;
 	    }
 	}
+
+	// save beta value for diagnostic print out
+	parameters::cooling_beta_current_time = calculate_beta(50, current_time, true);
+	
 }
 
 

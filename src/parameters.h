@@ -76,10 +76,16 @@ extern bool cooling_beta_enabled;
 extern double cooling_beta_ramp_up;
 /// beta cooling constant
 extern double cooling_beta;
+/// beta cooling constant for t>CoolingBetaTime
+extern double cooling_beta_final;
+/// beta cooling time at which the parameter is shifted
+extern double cooling_beta_time_switch;
 /// beta cooling constant outside of transition radius
 extern double cooling_beta_outer;
 /// beta cooling transition radius
 extern double cooling_beta_step_radius;
+/// For checking the value of beta
+extern double cooling_beta_current_time;
 /// beta cooling to aspect ratio profile
 extern bool cooling_beta_reference;
 /// beta cooling to initial profile

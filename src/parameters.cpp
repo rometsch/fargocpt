@@ -81,6 +81,9 @@ double cooling_beta_ramp_up;
 double cooling_beta;
 double cooling_beta_outer;
 double cooling_beta_step_radius;
+double cooling_beta_final;
+double cooling_beta_time_switch;
+double cooling_beta_current_time;
 bool cooling_beta_reference;
 bool cooling_beta_model;
 bool cooling_beta_floor;
@@ -443,10 +446,15 @@ static void read_beta_cooling_config(){
     cooling_beta = config::cfg.get<double>("CoolingBeta", 1.0);
 	cooling_beta_outer = config::cfg.get<double>("CoolingBetaOuter", 1.0);;
 	cooling_beta_step_radius = config::cfg.get<double>("CoolingBetaStepRadius", 2*RMAX, units::L0);
+    cooling_beta_final = config::cfg.get<double>("CoolingBetaFinal", 1.0);
+ 	cooling_beta_current_time = 1.0;
+    
 
     units::precise_unit T0 = units::T0;
     cooling_beta_ramp_up =
-	config::cfg.get<double>("CoolingBetaRampUp", 0.0, T0);
+	config::cfg.get<double>("CoolingBetaRampUp", "0.0 yr", T0);
+    cooling_beta_time_switch = 
+    config::cfg.get<double>("CoolingBetaTimeSwitch", "1.0 yr", T0);
 
 	cooling_beta_reference = false;
 	cooling_beta_model = false;
