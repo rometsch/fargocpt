@@ -1,9 +1,10 @@
-### Fiducial from Wehner et al. 2023
-### V1504 Cyg system parameters taken from Coyne et al. 2012
+### Fiducial from Jordan et al. 2024
+### V1504 Cyg system parameters based on from Coyne et al. 2012
 
 # Disk parameters
+
 CFL: '0.5'
-HeatingCoolingCFLlimit: '2.0'   # 2.5 # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
+HeatingCoolingCFLlimit: '2'   # 2.5 # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
 Sigma0: 12.5432 g/cm2   # 1e-7#2571.8  # surface density at r=1 in g/cm^2
 SigmaSlope: '0.0'   # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
 SetSigma0: 'Yes'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
@@ -24,7 +25,7 @@ AspectRatio: '0.002'   # Thickness over Radius in the disk
 AspectRatioMode: '1'
 ConstantViscosity: '0.0'   # Uniform kinematic viscosity
 ViscousAlpha: '1.0e-1'
-AlphaMode:  '1' # Scurve Alpha
+AlphaMode:  '1'
 alphaCold:  '2.0e-2'
 alphaHot:  '1.0e-1'
 ArtificialViscosity: TW
@@ -33,9 +34,12 @@ ArtificialViscosityFactor: '1.41'   # artificial viscosity (von Neumann-Richtmye
 FlaringIndex: '0'   # Slope of Temperature/radius profile
 SelfGravity: 'NO'   # choose: Yes, Z or No
 EquationOfState: PVTE
-PolytropicConstant: '12.09520351949007'
 AdiabaticIndex: '1.4'
-SurfaceCooling: scurve
+
+SurfaceCooling: scurve  # Type of surface cooling (no, thermal, scurve) [default = no]
+RadiativeDiffusion: No   # Enable radiation transport in the midplane with FLD (yes, no) [default = no]
+CoolingBetaLocal: no     # Enable thermal relaxation (yes, no) [default = no]
+ScurveType: Ichikawa # Kimura, Ichikawa [default = Kimura]
 RadiativeDiffusion: 'No'
 CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
 CoolingBeta: '10'
@@ -46,10 +50,12 @@ MinimumTemperature: 10 K   # minimum Temperature in K
 MaximumTemperature: 300000 K   # minimum Temperature in K
 TauFactor: '0.5'
 RocheLobeOverflow: 'true'
-ROFValue: 1.5e-10 solMass/yr   # given in solar mass per year
-ROFPlanet: '1'
-ROFTemperature: '1500'   # given in Kelvin
-ROFRampingTime: '5'
+ROFvalue: 1.5e-10 solMass/yr   # given in solar mass per year
+ROFplanet: '1'
+ROFtemperature: '1500'   # given in Kelvin
+ROFrampingtime: '5'
+ROFVariableTransfer: 'No'
+ROFgamma: '0.5'
 
 # Units
 
@@ -73,11 +79,11 @@ InnerBoundary: outflow
 OuterBoundary: outflow
 ViscousOutflowSpeed: '20.0'
 Damping: 'No'
-DampingInnerLimit: '1.10'   # Rmin*Limit
-DampingOuterLimit: '0.90'   # Rmax*Limit
-DampingTimeFactor: '1.0e-1'
+DampingInnerLimit: '1.0'   # Rmin*Limit
+DampingOuterLimit: '1.0'   # Rmax*Limit
+DampingTimeFactor: '1.0'
 DampingEnergyInner: none   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
-DampingVRadialInner: visc   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialInner: none   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingVAzimuthalInner: none   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
 DampingSurfaceDensityInner: none   # Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
 DampingEnergyOuter: none   # Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
@@ -91,8 +97,10 @@ DiskFeedback: 'NO'
 
 # Mesh parameters
 
+  #Nrad: '300'   # 440 #73 #512 128  # Radial number of zones
+  #Naz: '714'   # 1050 #1536 384  # Azimuthal number of zones
 Nrad: '450'   # 440 #73 #512 128  # Radial number of zones
-Naz: '1070'   # 1050 #1536 384  # Azimuthal number of
+Naz: '1070'   # 1050 #1536 384  # Azimuthal number of zones
 
 # 
 
@@ -105,8 +113,8 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
 
 # Output control parameters
 
-Nsnapshots: '800'   # Total number of time steps
-Nmonitor: '500'   # Time steps between outputs
+Nsnapshots: '4000'   # Total number of time steps
+Nmonitor: '100'   # Time steps between outputs
 MonitorTimestep: '0.0580880687135333'   # 1/100th of a binary orbit
 FirstDT: '1.0e-8'
 CFLmaxVar: '1.1'
