@@ -1,14 +1,16 @@
 import yaml
 from tabulate import tabulate
 
-def convert_to_md(datafile, outfile):
+def convert_to_md(paramfile, nbodyparamfile, outfile):
+    
     # Load the YAML data
-    with open(datafile, 'r') as infile:
+    with open(paramfile, 'r') as infile:
         parsed_data = yaml.safe_load(infile)
 
     # Convert the parsed data into a list of lists for the tables
     table_data = [["Parameter", "Choices", "Default", "Type", "Unit Support", "Description"]]
     deprecated_data = [["Parameter", "Newname", "Hint", "Choices", "Default", "Type", "Unit Support", "Description"]]
+
     for key, value in parsed_data.items():
         deprecated = value.get('deprecated', '')
         if not deprecated:
@@ -34,19 +36,59 @@ def convert_to_md(datafile, outfile):
             ]
             deprecated_data.append(row)
 
+    # Load the nbody YAML data
+    with open(nbodyparamfile, 'r') as infile:
+        parsed_data = yaml.safe_load(infile)
+        
+    nbody_table_data = [["Parameter", "Choices", "Default", "Type", "Unit Support", "Description"]]
+    nbody_deprecated_data = [["Parameter", "Newname", "Hint", "Choices", "Default", "Type", "Unit Support", "Description"]]
+
+    for key, value in parsed_data.items():
+        deprecated = value.get('deprecated', '')
+        if not deprecated:
+            row = [
+                key,
+                value.get('choices', ''),
+                value.get('default', ''),
+                value.get('type', ''),
+                value.get('unitsupport', ''),
+                value.get('description', '')
+            ]
+            nbody_table_data.append(row)
+        else:
+            row = [
+                key,
+                value.get('newname', ''),
+                value.get('hint', ''),
+                value.get('choices', ''),
+                value.get('default', ''),
+                value.get('type', ''),
+                value.get('unitsupport', ''),
+                value.get('description', '')
+            ]
+            nbody_deprecated_data.append(row)
+
     table_header = table_data[0]
     deprecated_header = deprecated_data[0]
+    nbody_table_header = nbody_table_data[0]
+    nbody_deprecated_header = nbody_deprecated_data[0]
     # Sort the table data by parameter name
     table_data = sorted(table_data[1:], key=lambda row: row[0])
     deprecated_data = sorted(deprecated_data[1:], key=lambda row: row[0])
+    nbody_table_data = sorted(nbody_table_data[1:], key=lambda row: row[0])
+    nbody_deprecated_data = sorted(nbody_deprecated_data[1:], key=lambda row: row[0])
 
     # Add the headers back to the start of the table data
     table_data.insert(0, table_header)
     deprecated_data.insert(0, deprecated_header)
+    nbody_table_data.insert(0, nbody_table_header)
+    nbody_deprecated_data.insert(0, nbody_deprecated_header)
 
     # Generate the markdown tables
     markdown_table = tabulate(table_data, headers="firstrow", tablefmt="pipe")
     deprecated_table = tabulate(deprecated_data, headers="firstrow", tablefmt="pipe")
+    nbody_markdown_table = tabulate(nbody_table_data, headers="firstrow", tablefmt="pipe")
+    nbody_deprecated_table = tabulate(nbody_deprecated_data, headers="firstrow", tablefmt="pipe")
 
 
     with open(outfile, 'w') as outfile:
@@ -58,17 +100,21 @@ def convert_to_md(datafile, outfile):
         outfile.write("- '0' : the range includes zero.\n")
         outfile.write("- '+' : the range includes positive numbers.\n\n")
         outfile.write(markdown_table)
+        outfile.write("\n\n## Nbody Parameters\n")
+        outfile.write(nbody_markdown_table)
         outfile.write("\n\n## Deprecated Parameters\n")
         outfile.write(deprecated_table)
+        outfile.write("\n\n## Deprecated Nbody Parameters\n")
+        outfile.write(nbody_deprecated_table)
 
 
 if __name__ == "__main__":
     # parse optional cli args for input and output files
     import argparse
     parser = argparse.ArgumentParser(description='Convert a YAML file to a markdown table.')
-    parser.add_argument('-i','--input', default="parameters.yml", help='The YAML file to convert.')
+    # parser.add_argument('-i','--input', default="parameters.yml", help='The YAML file to convert.')
     parser.add_argument('-o','--output', default="parameters.md", help='The markdown file to write to.')
     args = parser.parse_args()
 
 
-    convert_to_md(args.input, args.output)
+    convert_to_md("parameters.yml", "parameters_nbody.yml", args.output)
