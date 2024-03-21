@@ -19,10 +19,13 @@ OPTIONS += -fopenmp
 # optimizations, applied to options later
 OPTIMIZATION := -Ofast
 
+
 # Track git commit when in git repository
 GIT_COMMIT = "$(shell git rev-parse HEAD || echo '0000000000gitnotfound0000000000000000000')"
 GIT_CHANGED = "$(shell git diff-index --name-only HEAD | awk 1 ORS=' ')"
 GIT_INFO = -DGIT_COMMIT='$(GIT_COMMIT)' -DGIT_CHANGED='$(GIT_CHANGED)'
+
+OPTIONS += $(GIT_INFO)
 
 # options to compile
 #OPTIONS += -D_TRAP_FPE -D_GNU_SOURCE
