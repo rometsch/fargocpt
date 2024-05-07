@@ -855,10 +855,10 @@ ParticleSpeciesNumber:
   type: unsigned int
   unitsupport: false
 ParticleSurfaceDensitySlope:
-  choices: -0+
-  default: 0
-  description: 'Slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope). [default = SigmaSlope]'
-  type: double
+  choices: -0+, gas
+  default: SigmaSlope
+  description: Slope of particle surface density distribution: Sigma(r) = Sigma0 * r^(-ParticleSurfaceDensitySlope). [default = SigmaSlope] in case of "gas" particles are inserted into the disk according to the gas mass distribution
+  type: double, string
   unitsupport: false
 PlanetOrbitDiskTest:
   choices: yes, no

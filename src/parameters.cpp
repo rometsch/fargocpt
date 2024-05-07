@@ -819,7 +819,7 @@ void read(const std::string &filename, t_data &data)
     particle_density = config::cfg.get<double>("ParticleDensity", "2.65 g/cm3", M0/(L0*L0*L0));
 
     {
-	std::string particle_slope_string = config::cfg.get<std::string>("ParticleSurfaceDensitySlope");
+	std::string particle_slope_string = config::cfg.get<std::string>("ParticleSurfaceDensitySlope", "SigmaSlope");
 	if (particle_slope_string == "gas"){
 	    particle_distribution_like_gas = true;
 	} else {
