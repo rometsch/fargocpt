@@ -9,6 +9,10 @@ Syntax of the versions are: major, minor, revision
 - minor: new features, new options, new config file options, renamed parameters, new or changed single output files
 - revision: bug fixes
 
+## Version 1.4.1
+- compute Toomre Q with OmegaK instead of epicycle frequency for use in adjusting scaleheight for SG
+- adjust scaleheight in SG runs with Toomre Q
+
 ## Version 1.4
 - rename 'vtheta' and 'vphi' both to 'vazi'. The output file of azimuthal velocity is now called 'vazi.dat' instead of 'vtheta.dat'. You might have to rename files to restart data.
 - executable file renamed from `fargocpt` to `fargocpt_exe` to allow python cli to be called `fargocpt`
