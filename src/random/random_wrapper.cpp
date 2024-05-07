@@ -1,6 +1,7 @@
-#include "random.h"
+#include "random_wrapper.h"
 #include "../logging.h"
 #include "../global.h"
+#include "../parameters.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -10,13 +11,15 @@
 #include <random>
 #include <vector>
 
-
-
 namespace fargo_random
 {
 
+// distribution functions are not necessarily threat safe, so each threat gets their own
 std::vector<cxx::ziggurat_normal_distribution<double>> std_normal_dists;
-std::vector<std::uniform_real_distribution<double>> uniform_dists;
+std::vector<std::uniform_real_distribution<double>> uniform_one_dists;
+std::vector<std::uniform_real_distribution<double>> uniform_two_pi_dists;
+std::vector<std::uniform_real_distribution<double>> dust_eccentricity_dists;
+std::vector<std::uniform_int_distribution<int>> uniform256_dists;
 
 std::vector<jsf64> gen_jsfs;
 uint64_t a_seed[4];
@@ -40,10 +43,17 @@ void init() {
     logging::print_master(LOG_INFO "Initializing %d RNGs per MPI process.\n", Nrngs);
 
     for (unsigned int n=0; n<Nrngs; n++) {
-        seed(n + CPU_Rank * 421);
+	seed(n + CPU_Rank * parameters::random_seed);
 	gen_jsfs.emplace_back(jsf64(a_seed[0]));
-        uniform_dists.emplace_back(std::uniform_real_distribution<double>(0.0, 1.0));
-        std_normal_dists.emplace_back(cxx::ziggurat_normal_distribution<double>());
+	uniform_one_dists.emplace_back(std::uniform_real_distribution<double>(0.0, 1.0));
+	std_normal_dists.emplace_back(cxx::ziggurat_normal_distribution<double>());
+	uniform_two_pi_dists.emplace_back(std::uniform_real_distribution<double>(0.0, 2.0*M_PI));
+
+	 // random number distribution inclusive, returns r in [0,255]
+	uniform256_dists.emplace_back(std::uniform_int_distribution<int>(0, 255));
+	// for generating dust particle eccentricities, same as Marzari & Scholl 2000
+	dust_eccentricity_dists.emplace_back(std::uniform_real_distribution<double> (0.0, parameters::particle_eccentricity));
+
     }
 
 }
@@ -71,13 +81,25 @@ static unsigned int thread_num() {
     return n;
 }
 
-double std_normal() { 
+double get_std_normal() {
     const unsigned int n = thread_num();
     return std_normal_dists[n](gen_jsfs[n]); 
 }
-double uniform() {
+double get_uniform_one() {
     const unsigned int n = thread_num();
-    return uniform_dists[n](gen_jsfs[n]); 
+    return uniform_one_dists[n](gen_jsfs[n]);
+}
+double get_uniform_two_pi() {
+    const unsigned int n = thread_num();
+    return uniform_two_pi_dists[n](gen_jsfs[n]);
+}
+int get_uniform256() {
+    const unsigned int n = thread_num();
+    return uniform256_dists[n](gen_jsfs[n]);
+}
+double get_uniform_dust_eccentricity() {
+    const unsigned int n = thread_num();
+    return dust_eccentricity_dists[n](gen_jsfs[n]);
 }
 
 } // namespace fargo_random

@@ -36,7 +36,7 @@ extern "C" {
 
 struct osn_context;
 
-int open_simplex_noise(int64_t seed, struct osn_context **ctx);
+int open_simplex_noise(struct osn_context **ctx);
 void open_simplex_noise_free(struct osn_context *ctx);
 int open_simplex_noise_init_perm(struct osn_context *ctx, int16_t p[],
 				 int nelements);
