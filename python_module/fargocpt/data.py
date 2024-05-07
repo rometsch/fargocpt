@@ -641,7 +641,7 @@ class Vars1D:
         return data
 
     def get(self, varname, Nsnapshot, grid=True):
-        return self.average(varname, Nsnapshot, grid=grid)
+        return self.avg(varname, Nsnapshot, grid=grid)
 
     def avg(self, varname, Nsnapshot, grid=True):
         avg_slice = slice(1,None,4)
