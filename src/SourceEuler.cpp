@@ -1335,10 +1335,15 @@ void compute_scale_height(t_data &data, const double current_time)
 	compute_scale_height_old(data);
     }
 
-	if (parameters::self_gravity) {
-		compute::toomreQ(data);
-		adjust_scale_height_for_sg(data);
-	}
+	//if (parameters::self_gravity) {
+	//	compute::toomreQ(data);
+	//	adjust_scale_height_for_sg(data);
+	//}
+	
+	if (parameters::self_gravity_mode == parameters::t_sg::sg_BK) {
+        compute::toomreQ(data);
+        adjust_scale_height_for_sg(data);
+    }
 }
 
 void compute_pressure(t_data &data)

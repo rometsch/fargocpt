@@ -1,0 +1,66 @@
+accretion efficiency:
+  choices: '0+'
+  default: 0
+  description: 'Accretion efficiency factor. Fraction of the mass in the Hill sphere to accrete every orbit.'
+  type: double
+  unitsupport: false
+argument of pericenter:
+  choices: '0-2pi'
+  default: 0
+  description: 'Argument of pericenter of the initial orbit in radians.'
+  type: double
+  unitsupport: false
+eccentricity:
+  choices: '0-1'
+  default: 0
+  description: 'Eccentricity of the initial orbit.'
+  type: double
+  unitsupport: false
+irradiation ramp-up time:
+  choices: '0+'
+  default: 0
+  description: 'Ramp-up time for the irradiation in multiples of the orbital period.'
+  type: double
+  unitsupport: true
+mass:
+  choices: '0+'
+  default: none
+  description: 'Inital mass.'
+  type: double
+  unitsupport: true
+name:
+  choices: ''
+  default: none
+  description: 'Name of the body.'
+  type: string
+  unitsupport: false
+radius:
+  choices: '0+'
+  default: 0.009304813 au
+  description: 'Radius of the body (assumed to be a sphere). Is constant in time.'
+  type: double
+  unitsupport: true
+ramp-up time:
+  choices: '0+'
+  default: 0
+  description: 'Ramp-up time for the mass of the planet. This only affects the gravitational interactions.'
+  type: double
+  unitsupport: false
+semi-major axis:
+  choices: '0+'
+  default: none
+  description: 'Semimajor axis of the initial orbit.'
+  type: double
+  unitsupport: true
+temperature:
+  choices: '0+'
+  default: 0.0 K
+  description: 'Temperature of the body. Is constant in time.'
+  type: double
+  unitsupport: true
+trueanomaly:
+  choices: '0+'
+  default: 0
+  description: 'True anomaly of the initial orbit in radians.'
+  type: double
+  unitsupport: false

@@ -43,8 +43,8 @@ FargoCPT includes a number of improvements over the original FARGO code and is p
 It is now used and maintained by Lucas Jordan and Thomas Rometsch with contributions by Tobias Moldenhauer (symmetric self-gravity) and Dennis Wehner (variable adiabatic index).
 
 Credit for earlier version we built uopn go to:
-- the original [FARGO](http://fargo.in2p3.fr/-Legacy-archive-) code by Frederic Masset
-- [FARGO-ADSG](http://fargo.in2p3.fr/-FARGO-ADSG-) by [Clément Baruteau](http://clement.baruteau.free.fr/work/) who added a solver for the energy equation (AD=adiabatic) and self-gravity (SG)
+- the original [FARGO](https://web.archive.org/web/20230320190653/http://fargo.in2p3.fr/-Legacy-archive-) code by Frederic Masset
+- [FARGO-ADSG](https://web.archive.org/web/20220318010527/http://fargo.in2p3.fr/-FARGO-ADSG-) by [Clément Baruteau](http://clement.baruteau.free.fr/work/) who added a solver for the energy equation (AD=adiabatic) and self-gravity (SG)
 - [Tobias Müller](https://twam.info) for adopting FARGO-ADSG to C++, [Giovanni Picogna](https://www.usm.uni-muenchen.de/people/picogna/index.html) for adding Langrangian particles, and other students in the CPT group.
 
 ## In development

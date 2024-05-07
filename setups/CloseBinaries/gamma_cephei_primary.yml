@@ -1,0 +1,145 @@
+# As the Code has changed a lot, this setup is only roughly equal to the one used in Jordan et. al 2021
+
+# Disk parameters
+
+Integrator: Leapfrog
+CFL: '0.45'
+HeatingCoolingCFLlimit: '10.0'   # energy change dT/T in substep3 only allowed to change by this fraction times CFL.
+Sigma0: 0.003 # surface density at r=1 in g/cm^2
+SigmaSlope: 1.0 # slope of surface density profile: Sigma(r) = Sigma0 * r^(-SigmaSlope)
+
+SetSigma0: 'Yes'   # renormalize Sigma0 to have M_disc = discmass in units of m0 [default = no]
+DiskMass: 0.006 # only used when SetSigma0 = true [default = 0.01]
+SigmaFloor: '5.0e-11'   # floor surface density in multiples of sigma0 [default = 1e-9]
+SigmaCondition: Profile   # Initialize surface density by Profile, 1D or 2D [default = Profile]
+SigmaFilename: ''   # File to read surface density from (when Condition = 1D or 2D)
+DensityFactor: '2.5'
+EnergyCondition: Profile   # Initialize energy by Profile, 1D or 2D [default = Profile]
+EnergyFilename: ''   # File to read energy from (when Condition = 1D or 2D)
+ProfileCutoffInner: 'No'   # enable profile cutoff [default = no]
+ProfileCutoffPointInner: '3.8'   # in [au], [default = 0]
+ProfileCutoffWidthInner: '0.38'   # in [au], [default = 1]
+ProfileCutoffOuter: 'Yes'   # enable profile cutoff [default = no]
+ProfileCutoffPointOuter: '0.3'   # in [au], [default = 0]
+ProfileCutoffWidthOuter: '0.025'   # in [au], [default = 1]
+AspectRatio: 0.05 ##
+FlaringIndex: 0.0 ##
+AspectRatioMode: '0' ##
+AlphaMode: '0'
+ViscousAlpha: 1.0e-3   # Alpha value for AlphaMode == 0
+StabilizeViscosity: '0'   # 1 for limiting viscosity update step, 2 for limiting dt
+ArtificialViscosity: SN
+ArtificialViscosityDissipation: 'Yes'
+ArtificialViscosityFactor: '2.0'   # artificial viscosity (von Neumann-Richtmyer constant) [default = 1.41]
+SelfGravity: 'No'   # choose: Yes, Z or No
+EquationOfState: Ideal
+AdiabaticIndex: '1.4'
+SurfaceCooling: 'Thermal'   # enable local radiative cooling Q- = 2 * sigma_R * T_eff^4 [default = no]
+CoolingBetaLocal: 'No'   # enable beta cooling Q- = T * Omega/beta [default = no]
+CoolingBeta: '10'
+HeatingViscous: 'Yes'   # enable viscous heating
+HeatingViscousFactor: '1.0'
+MinimumTemperature: 3 K   # minimum Temperature in K
+MaximumTemperature: 30000 K   # minimum Temperature in K
+TauFactor: '0.5'
+TauMin: '0.0'
+l0: '20.0'   # Base length unit in times of 1 AU = 149597870691 m. A planet with an orbital radius of 1 l0 has an orbit time of 2PI. [default=1.0]
+m0: '1.8'   # Base mass unit in times of solar mass = 1.98892e30 kg. The central star has a mass of 1 m0. [default=1.0]
+mu: '2.35'   # mean molecular weight [default=1.0]
+ImposedDiskDrift: '0.0'   # Impose a radial drift of the disk material (default = 0)
+InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/2) (default = No)
+
+# Planet parameters
+
+ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness
+MassAccretionRadius: '0.1'   # Mass accretion radius in unints of R_hill / 2
+KlahrSmoothingRadius: '0.3'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
+BodyForceFromPotential: 'Yes'
+
+# Numerical method parameters
+
+Transport: FARGO
+
+InnerBoundary: Reflecting
+OuterBoundary: Outflow
+ViscousOutflowSpeed: '10.0'
+Damping: 'Yes'
+DampingInnerLimit: '1.1'   # Rmin*Limit
+DampingOuterLimit: '1.0'   # Rmax*Limit
+DampingTimeFactor: '0.001'
+DampingEnergyInner: mean   # Damping of energy at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialInner: zero   # Damping of radial velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalInner: none   # Damping of azimuthal velocity at inner boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityInner: mean   # Damping of surface density at inner boundary, values: initial, mean, zero, none [default = none]
+DampingEnergyOuter: none   # Damping of energy at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVRadialOuter: none   # Damping of radial velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingVAzimuthalOuter: none   # Damping of azimuthal velocity at outer boundary, values: initial, mean, zero, none [default = none]
+DampingSurfaceDensityOuter: none   # Damping of surface density at outer boundary, values: initial, mean, zero, none [default = none]
+Disk: 'YES'
+OmegaFrame: '0.0'
+Frame: F
+DiskFeedback: 'NO'
+SecondaryDisk: 'No'
+HydroFrameCenter: Primary   # specify the origin of the simulation grid. Primary uses the central object, binary/tertiary/quatirary/all uses the center of mass of the first 2/3/4/all nbody objects
+
+VazimuthalConsidersQuadropoleMoment: 'No' # add quadropole moment support to azimuthal velocity
+
+# Mesh parameters
+Nrad: '762'   # Radial number of zones
+Naz: '1160'  # Azimuthal number of
+
+# zones (sectors)
+Rmin: '0.01'   # Inner boundary radius
+Rmax: '0.6'   # Outer boundary radius
+RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC
+
+Nsnapshots: '1500'   # Total number of time steps
+Nmonitor: '100'   # Time steps between outputs
+MonitorTimestep: '0.06283185307179586477'   # 1/4th of a binary orbit
+
+FirstDT: '1.0e-5'
+CFLmaxVar: '1.1'
+LogAfterRealSeconds: '900'
+LogAfterSteps: '0'
+DoWrite1DFiles: 'No'
+WriteAtEveryTimestep: 'Yes'   # Write some quantities (planet positions, disk quantities, ...) at every Timestep (ignore Ninterm) [default = no]
+WriteDensity: 'Yes'   # Write surface density. This is needed for restart of simulations. [default = yes]
+WriteEnergy: 'Yes'   # Write energy. This is needed for restart of (adiabatic) simulations. [default = yes]
+WriteTemperature: 'No'   # Write temperature. [default = no]
+WriteVelocity: 'Yes'   # Write velocites. This is needed for restart of simulations. [default = yes]
+WriteToomre: 'No'   # Write Toomre parameter Q. [default = no]
+WriteQMinus: 'yes'   # Write QMinus. [default = no]
+WriteQPlus: 'yes'   # Write QPlus. [default = no]
+WriteViscosity: 'Yes'   # Write Viscosity. [default = no]
+WriteAspectratio: 'Yes'
+WriteTauCool: 'No'   # Write TauCool. [default = no]
+WriteKappa: 'No'   # Write Kappa. [default = no]
+WriteAlphaGrav: 'No'   # Write AlphaGrav. [default = no]
+WriteEccentricity: 'No'   # Write eccentricity. [default = no]
+WriteTReynolds: 'No'   # Write Reynolds stress tensor. [default = no]
+WriteTGravitational: 'No'   # Write gravitational stress tensor. [default = no]
+WritepdV: 'No'   # Write pdV. [default = no]
+WriteDiskQuantities: 'Yes'
+WriteMassFlow: 'Yes'   # Write a 1d radial file with mass flow at each interface [default = no]
+RandomSigma: 'No'   # randomize sigma start values?
+RandomFactor: '0.1'   # randomize by +- 10%
+
+# Nbody
+nbody:
+- name: primary
+  semi-major axis: '0.0'
+  mass: '0.77778641984910943455'
+  accretion efficiency: '0'
+  eccentricity: '0.0'
+  radius: 1.533 solRadius
+    #temperature: 6670 K
+  ramp-up time: '0.0'
+- name: secondary
+  semi-major axis: '1.0'
+  mass: '0.22221358015089056545'
+  accretion efficiency: '0'
+  eccentricity: '0.4'
+  radius: 0.421 solRadius
+    #temperature: 3470 K
+  trueanomaly: '0.0'
+  ramp-up time: '0.0'
