@@ -6,6 +6,7 @@
 #include "frame_of_reference.h"
 #include "constants.h"
 #include "global.h"
+#include "Theo.h"
 
 namespace compute {
 
@@ -98,22 +99,15 @@ void toomreQ(t_data &data) {
 	for (unsigned int nr = 1; nr < Nr; ++nr) {
 	for (unsigned int naz = 0; naz < Nphi; ++naz) {
 	    
-		// kappa^2 = 1/r^3 d((r^2 Omega)^2)/dr = 1/r^3 d((r*v_phi)^2)/dr
-		// be sure to compute vaz with the correct frame of reference
-		const double ro = Rmed[nr];
-		const double vo = data[t_data::V_AZIMUTHAL](nr, naz) + ro * refframe::OmegaFrame;
-		const double ri = Rmed[nr - 1];
-		const double vi = data[t_data::V_AZIMUTHAL](nr - 1, naz) + ri * refframe::OmegaFrame;
-        const double kappa = std::sqrt(std::fabs(
-		std::pow(InvRmed[nr], 3) *
-		(std::pow(vo * ro,  2) - std::pow(vi * ri, 2)) * InvDiffRmed[nr]));
+		const double r = Rmed[nr];
+        const double OmegaK = calculate_omega_kepler(r);
 
-	    // Q = (c_s kappa) / (Pi G Sigma)
+	    // Q = (c_s Omega_K) / (Pi G Sigma)
 	    
 		const double cs = data[t_data::SOUNDSPEED](nr, naz);
 		const double G = constants::G;
 		const double Sigma = data[t_data::SIGMA](nr, naz);
-		data[t_data::TOOMRE](nr, naz) = cs * kappa / (M_PI * G * Sigma);
+		data[t_data::TOOMRE](nr, naz) = cs * OmegaK / (M_PI * G * Sigma);
 	}
     }
 }
