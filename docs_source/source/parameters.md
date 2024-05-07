@@ -243,6 +243,21 @@ Following is a list of parameters that can be used to configure physics and nume
 | t0                                    | +                                                                                       | 1.0                  | string       | True           | Base time unit of the simulation [default: 1/2pi * Keplerian orbital period at r=l0 around mass m0]                                                                                                                                                                                                                                                                                                                                                                  |
 | temp0                                 | +                                                                                       | 1.0                  | string       | True           | Base temperature unit of the simulation [default: such that Rgas = 1]                                                                                                                                                                                                                                                                                                                                                                                                |
 
+## Nbody Parameters
+| Parameter                | Choices   | Default        | Type   | Unit Support   | Description                                                                                  |
+|:-------------------------|:----------|:---------------|:-------|:---------------|:---------------------------------------------------------------------------------------------|
+| accretion efficiency     | 0+        | 0              | double | False          | Accretion efficiency factor. Fraction of the mass in the Hill sphere to accrete every orbit. |
+| argument of pericenter   | 0-2pi     | 0              | double | False          | Argument of pericenter of the initial orbit in radians.                                      |
+| eccentricity             | 0-1       | 0              | double | False          | Eccentricity of the initial orbit.                                                           |
+| irradiation ramp-up time | 0+        | 0              | double | True           | Ramp-up time for the irradiation in multiples of the orbital period.                         |
+| mass                     | 0+        | none           | double | True           | Inital mass.                                                                                 |
+| name                     |           | none           | string | False          | Name of the body.                                                                            |
+| radius                   | 0+        | 0.009304813 au | double | True           | Radius of the body (assumed to be a sphere). Is constant in time.                            |
+| ramp-up time             | 0+        | 0              | double | False          | Ramp-up time for the mass of the planet. This only affects the gravitational interactions.   |
+| semi-major axis          | 0+        | none           | double | True           | Semimajor axis of the initial orbit.                                                         |
+| temperature              | 0+        | 0.0 K          | double | True           | Temperature of the body. Is constant in time.                                                |
+| trueanomaly              | 0+        | 0              | double | False          | True anomaly of the initial orbit in radians.                                                |
+
 ## Deprecated Parameters
 | Parameter              | Newname             | Hint                                                                                  | Choices         | Default             | Type         | Unit Support   | Description                                                                                                                                                  |
 |:-----------------------|:--------------------|:--------------------------------------------------------------------------------------|:----------------|:--------------------|:-------------|:---------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -285,3 +300,7 @@ Following is a list of parameters that can be used to configure physics and nume
 | variableTransfer       | ROFVariableTransfer |                                                                                       |                 | False               |              |                | ?                                                                                                                                                            |
 | zbufferMaxAngle        | none                |                                                                                       |                 | 0.17453292519943295 |              |                |                                                                                                                                                              |
 | zbufferSize            | none                |                                                                                       |                 | 100                 |              |                |                                                                                                                                                              |
+
+## Deprecated Nbody Parameters
+| Parameter   | Newname   | Hint   | Choices   | Default   | Type   | Unit Support   | Description   |
+|-------------|-----------|--------|-----------|-----------|--------|----------------|---------------|
