@@ -48,6 +48,7 @@ void integrate(t_data &data, const double current_time, double dt);
 void integrate_explicit_adaptive(t_data &data, const double dt);
 void integrate_exponential_midpoint(t_data &data, const double dt);
 void write();
+void write_if_not_exist();
 void write_info();
 void move(void);
 void rotate(const double angle);

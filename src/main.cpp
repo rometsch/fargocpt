@@ -149,7 +149,11 @@ int main(int argc, char *argv[])
 
 	if (start_mode::mode != start_mode::mode_restart) {
 		sim::handle_outputs(data);
-	}
+	} 
+    if ((start_mode::mode == start_mode::mode_restart || start_mode::mode == start_mode::mode_auto) 
+        && parameters::integrate_particles) {
+        particles::write_if_not_exist();
+    }
 
 	sim::run(data);	
     
