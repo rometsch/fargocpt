@@ -9,6 +9,9 @@ Syntax of the versions are: major, minor, revision
 - minor: new features, new options, new config file options, renamed parameters, new or changed single output files
 - revision: bug fixes
 
+## Version 1.4.2
+- fix bug with SG scaleheight adjustment, was applied even without SG on
+
 ## Version 1.4.1
 - compute Toomre Q with OmegaK instead of epicycle frequency for use in adjusting scaleheight for SG
 - adjust scaleheight in SG runs with Toomre Q

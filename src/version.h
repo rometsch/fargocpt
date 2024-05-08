@@ -7,6 +7,6 @@ namespace version {
 // major: major restructuring of code or config files
 // minor: new features, new options, new config file options, renamed parameters
 // revision: bug fixes, small changes, no config file changes
-const char *string = "1.4.1";
+const char *string = "1.4.2";
 
 }
