@@ -27,6 +27,7 @@
 #include <sstream>
 #include <stdlib.h>
 #include <vector>
+#include <filesystem>
 
 
 namespace particles
@@ -2157,6 +2158,19 @@ void move(void)
     // update global_number_of_particles
     MPI_Allreduce(&local_number_of_particles, &global_number_of_particles, 1,
 		  MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+}
+
+/* Write a particle file if it does not exists in the current snapshot directory
+*/
+void write_if_not_exist() {
+	if (output::is_autosave_dir(output::snapshot_dir)) {
+		die("I refuse to write particle file in autosave directory. This is for your own sanity. Change the code if you really want to initialize particles when restarting from autosave!");
+	}
+	std::string filename = output::snapshot_dir + "/particles.dat";
+	if (!std::filesystem::exists(filename)) {
+		write();
+	}
+	logging::print_master(LOG_INFO "Particle file written to %s\n", filename.c_str());
 }
 
 void write()
