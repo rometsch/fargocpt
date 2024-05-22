@@ -157,21 +157,12 @@ static void timestep_debug_report(t_data &data,
 	logging::print(LOG_INFO "Residual circular motion limit : %g\n",
 				   itdbg3);
 
-	if (parameters::artificial_viscosity_factor > 0 && parameters::artificial_viscosity ==
-			parameters::artificial_viscosity_SN) {
-		logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
-					   itdbg4);
-		logging::print(LOG_INFO "   Arise from r with limit     : %g\n",
-					   viscRadial);
-		logging::print(LOG_INFO "   and from theta with limit   : %g\n",
-					   viscAzimuthal);
-	} else if (parameters::artificial_viscosity_factor > 0 && (StabilizeViscosity == 2 || StabilizeArtViscosity == 2)) {
+	if (StabilizeViscosity == 2) {
 		logging::print(LOG_INFO "Viscosity stability limit %g\n", dt_stable_visc);
-
-	} else {
-		logging::print(LOG_INFO
-					   "Articifial Viscosity limit     : %g\n", itdbg4);
 	}
+
+	logging::print(LOG_INFO
+					   "Articifial Viscosity limit     : %g\n", itdbg4);
 	logging::print(LOG_INFO "Fargo shear limit		   : %g\n", dt_shear);
 	logging::print(LOG_INFO "Kinematic viscosity limit      : %g\n",
 				   itdbg5);
@@ -345,28 +336,6 @@ double condition_cfl(t_data &data, const double dt_global_input)
 
 		if(c*dt_cell*parameters::CFL < -1.0){
 		logging::print(LOG_INFO "Viscosity unstable with c=%.5e\n", c);
-		}
-
-		if (c != 0.0) {
-			const double dtStable = -parameters::CFL / c;
-			dt_stable_visc = dtStable;
-			dt_cell = std::min(dt_cell, dtStable);
-		}
-		}
-
-		if (StabilizeArtViscosity == 2) {
-		const double cphi =
-			data[t_data::ART_VISCOSITY_CORRECTION_FACTOR_PHI](nr,
-								  naz);
-		const double cr = data[t_data::ART_VISCOSITY_CORRECTION_FACTOR_R](
-			nr, naz);
-		const double c =
-			std::min(cphi, cr); // c < 0.0 is negative, so take min to
-					// get 'larger' negative number
-
-		if(c*dt_cell*parameters::CFL < -1.0){
-		logging::print(LOG_INFO "Artificial Viscosity unstable with c=%.5e dt = %.5e < %.5e\n", c,
-					   -parameters::CFL / c, dt_cell);
 		}
 
 		if (c != 0.0) {

@@ -686,21 +686,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 	    "Using pseudo implicit viscosity to limit the time step size\n");
     }
 
-	/// Read Viscosity Stuff
-	StabilizeArtViscosity = config::cfg.get<double>("StabilizeArtViscosity", 0);
-
-	if (StabilizeArtViscosity == 1) {
-	logging::print_master(
-		LOG_INFO
-		"(WT Only) Using pseudo implicit artificial viscosity to limit the viscosity update step\n");
-	}
-	if (StabilizeArtViscosity == 2) {
-	logging::print_master(
-		LOG_INFO
-		"(WT Only) Using pseudo implicit artificial viscosity to limit the time step size\n");
-	}
-
-
     if (parameters::constant_viscosity != 0.0) {
 	logging::print_master(
 	    LOG_INFO "Viscosity is kinematic viscosity with nu = %.3e\n",
