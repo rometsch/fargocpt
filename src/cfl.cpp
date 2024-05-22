@@ -157,19 +157,13 @@ static void timestep_debug_report(t_data &data,
 	logging::print(LOG_INFO "Residual circular motion limit : %g\n",
 				   itdbg3);
 
-	if (parameters::artificial_viscosity_factor > 0 && parameters::artificial_viscosity ==
-			parameters::artificial_viscosity_SN) {
-		logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
+	logging::print(LOG_INFO "Articifial Viscosity limit     : %g\n",
 					   itdbg4);
+	if (parameters::artificial_viscosity == parameters::artificial_viscosity_SN) {
 		logging::print(LOG_INFO "   Arise from r with limit     : %g\n",
 					   viscRadial);
 		logging::print(LOG_INFO "   and from theta with limit   : %g\n",
 					   viscAzimuthal);
-	}
-	if (parameters::artificial_viscosity_factor > 0 && parameters::artificial_viscosity ==
-			parameters::artificial_viscosity_TW){
-		logging::print(LOG_INFO
-					   "Articifial Viscosity limit     : %g\n", itdbg4);
 	}
 
 	if (StabilizeViscosity == 2) {
