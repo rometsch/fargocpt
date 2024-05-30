@@ -789,8 +789,9 @@ void read(const std::string &filename, t_data &data)
 
     accretion_radius_fraction =
 	config::cfg.get<double>("MassAccretionRadius", 1.0);
+
     klahr_smoothing_radius = config::cfg.get<double>(
-	"KlahrSmoothingRadius", accretion_radius_fraction);
+	"KlahrSmoothingRadius", 0.0);
 
     visc_accret_massflow_test =
         config::cfg.get_flag("ViscAccretMassflowTest", "no");

@@ -249,13 +249,6 @@ void ReadVariables(const std::string &filename, t_data &data, int argc, char **a
 		"The grid has (Nrad, Naz) = (%u, %u) cells with (%f, %f) cps.\n",
 		NRadial, NAzimuthal, cpsrad, cpsaz);
 
-
-	if(parameters::klahr_smoothing_radius == 0.0){ // otherwise Ofast will optimize out zero checks and then divide by zero
-		parameters::klahr_smoothing_radius = 0.001 * (RMAX - RMIN)/(double)NRadial;
-	}
-
-
-
     if ((parameters::radial_grid_type == parameters::logarithmic_spacing) ||
 	(parameters::radial_grid_type == parameters::exponential_spacing)) {
 	double c = log(RMAX / RMIN);

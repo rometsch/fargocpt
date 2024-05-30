@@ -556,7 +556,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 			planet.get_distance_to_primary();
 	double min_dist;
 	if(x*x + y*y > 1e-10){
-		min_dist = l1 * parameters::klahr_smoothing_radius;
+	    min_dist = std::max(R_star, l1 * parameters::klahr_smoothing_radius);
 	} else {
 		min_dist = R_star;
 	}
