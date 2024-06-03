@@ -1172,12 +1172,6 @@ SpreadingRing:
   description: Initialize the simulation with the spreading ring test case.
   type: bool
   unitsupport: false
-StabilizeArtViscosity:
-  choices: 0+
-  default: 0
-  description: Artificially stabilize artificial viscosity to avoid numerical issues.
-  type: double
-  unitsupport: false
 StabilizeViscosity:
   choices: 0+
   default: 0
