@@ -48,6 +48,14 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
     std::string description_inner;
     std::string description_outer;
 
+    // handle center of mass in extra case
+    if (composite_inner_name == "centerofmass") {
+	damping_type.inner_damping_function = nullptr;
+	description_inner =
+	    "Damping " + description + " is handled by center of mass damping function at inner boundary.";
+    } else {
+
+    // if not center of mass case, handle inner boundary normally
     switch (type_inner) {
     case damping_none:
 	damping_type.inner_damping_function = nullptr;
@@ -79,7 +87,16 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 			    " to viscous radial speed at inner boundary.";
 	break;
     }
+    }
 
+    // handle center of mass in extra case
+    if (composite_outer_name == "centerofmass") {
+	damping_type.outer_damping_function = nullptr;
+	description_outer =
+	    "Damping " + description + " is handled by center of mass damping function at outer boundary.";
+    } else {
+
+    // if not center of mass case, handle outer boundary normally
     switch (type_outer) {
     case damping_none:
 	damping_type.outer_damping_function = nullptr;
@@ -110,9 +127,14 @@ static t_DampingType write_damping_type(t_damping_type type_inner,
 		.c_str());
 	break;
     }
+    }
 
+    if(damping_enabled){
     logging::print_master(LOG_INFO "%s\n", description_inner.c_str());
     logging::print_master(LOG_INFO "%s\n", description_outer.c_str());
+    } else if (quantity == t_data::SIGMA){ // Only announce it once
+    logging::print_master(LOG_INFO "Damping is disabled!\n");
+    }
 
     return damping_type;
 }
@@ -177,9 +199,17 @@ void damping_config() {
     damping_time_radius_outer =
 	config::cfg.get<double>("DampingTimeRadiusOuter", RMAX);
 
+    if(damping_enabled){
     logging::print_master(
-	"DampingTimeFactor: %.5e Outer damping time is computed at radius of %.5e\n",
+	"DampingTimeFactor: %.3e Outer damping time is computed at radius of %.3e\n",
 	damping_time_factor, damping_time_radius_outer);
+    logging::print_master(
+	"Damping region at inner boundary ranges from %.3e to %.3e\n",
+	RMIN, RMIN*damping_inner_limit);
+    logging::print_master(
+	"Damping region at outer boundary ranges from %.3e to %.3e\n",
+	RMAX, RMAX*damping_outer_limit);
+    }
 
     t_damping_type tmp_damping_inner;
     t_damping_type tmp_damping_outer;
