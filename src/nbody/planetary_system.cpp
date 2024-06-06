@@ -364,6 +364,7 @@ void t_planetary_system::list_planets()
 	    double cubic_smoothing_factor = get_planet(i).get_cubic_smoothing_factor();
 	    int precisionVal = 2;
 	    cubic_smoothing = std::to_string(cubic_smoothing_factor).substr(0, std::to_string(cubic_smoothing_factor).find(".") + precisionVal + 1);
+	    cubic_smoothing = cubic_smoothing + " x R_L1";
 	}
 
 	logging::print(
