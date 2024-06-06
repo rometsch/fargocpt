@@ -83,7 +83,6 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 		/// Thus we add the gravitational potential smoothing proposed
 		/// by Klahr & Kley 2005; but the derivative of it, since we
 		/// apply it directly on the force
-		if (std::sqrt(x*x + y*y) > 10.e-10) {
 			const double l1 = planet.get_dimensionless_roche_radius() *
 				planet.get_distance_to_primary();
 			const double r_sm = l1 * klahr_smoothing_constant;
@@ -93,7 +92,6 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
 				  4.0 * std::pow(dist_sm / r_sm, 3.0));
 		    }
-		}
 		}
 
 	    if (Rmed[n_rad] < a) {

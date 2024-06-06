@@ -64,7 +64,6 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
-			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			const double r_sm = g_cubic_smoothing_radius[k];
 
 			if (d_smoothed < r_sm) {
@@ -73,7 +72,6 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 				 2.0 * std::pow(d_smoothed / r_sm, 3.0) +
 				 2.0 * d_smoothed / r_sm);
 			}
-		    }
 		}
 
 		// direct term from planet
@@ -145,7 +143,6 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		    /// smoothing proposed by Klahr & Kley 2005; but the
 		    /// derivative of it, since we apply it directly on the
 		    /// force
-			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
 			const double r_sm = g_cubic_smoothing_radius[k];
 
 			if (dist_sm < r_sm) {
@@ -153,7 +150,6 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 				-(3.0 * std::pow(dist_sm / r_sm, 4.0) -
 				  4.0 * std::pow(dist_sm / r_sm, 3.0));
 			}
-		    }
 		}
 
 		// direct term from planet
