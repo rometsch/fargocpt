@@ -61,22 +61,22 @@ static void timestep_debug_report(t_data &data,
 	   itdbg4 = std::numeric_limits<double>::max(), itdbg5 = std::numeric_limits<double>::max(), itdbg6 = std::numeric_limits<double>::max();
 
 	if (invdt1 != 0) {
-		itdbg1 = 1.0 / invdt1;
+		itdbg1 = 1.0 / invdt1 * parameters::CFL;
 	}
 	if (invdt2 != 0) {
-		itdbg2 = std::fabs(1.0 / invdt2);
+		itdbg2 = std::fabs(1.0 / invdt2) * parameters::CFL;
 	}
 	if (invdt3 != 0) {
-		itdbg3 = std::fabs(1.0 / invdt3);
+		itdbg3 = std::fabs(1.0 / invdt3) * parameters::CFL;
 	}
 	if (invdt4 != 0) {
-		itdbg4 = 1.0 / invdt4;
+		itdbg4 = 1.0 / invdt4 * parameters::CFL;
 	}
 	if (invdt5 != 0) {
-		itdbg5 = 1.0 / invdt5;
+		itdbg5 = 1.0 / invdt5 * parameters::CFL;
 	}
 	if (invdt6 != 0) {
-		itdbg6 = 1.0 / invdt6;
+		itdbg6 = 1.0 / invdt6 * parameters::CFL;
 	}
 	if ((parameters::artificial_viscosity ==
 		 parameters::artificial_viscosity_SN) &&
@@ -115,11 +115,11 @@ static void timestep_debug_report(t_data &data,
 		viscRadial =
 				dxRadial / dvRadial / 4.0 /
 				std::pow(parameters::artificial_viscosity_factor,
-						 2);
+						 2) * parameters::CFL;
 		viscAzimuthal =
 				dxAzimuthal / dvAzimuthal / 4.0 /
 				std::pow(parameters::artificial_viscosity_factor,
-						 2);
+						 2) * parameters::CFL;
 	}
 
 	print_info();
