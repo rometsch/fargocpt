@@ -68,7 +68,6 @@ ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness [default = 
 ThicknessSmoothingSG: '0.0'   # Softening parameter for SG [default = ThicknessSmoothing]
 
 MassAccretionRadius: '0.2'   # Mass accretion radius in unints of R_hill / 2
-KlahrSmoothingRadius: '0.2'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 RadialViscosityFactor: '1'   # Viscosity in radial direction is mutliplied with this factor to avoid oscillations [default = 1]
 
 # Numerical method parameters
@@ -194,9 +193,11 @@ nbody:
   semi-major axis: 22.7
   mass: 7.0 jupiterMass
   eccentricity: 0.17
+  cubic smoothing factor: 0.2
   ramp-up time: '0.0'
 - name: PDS70c
   semi-major axis: 30.2
   mass: 4.4 jupiterMass
   eccentricity: 0.037
+  cubic smoothing factor: 0.2
   ramp-up time: '0.0'

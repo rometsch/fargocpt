@@ -185,7 +185,6 @@ double star_temperature;
 
 double radial_viscosity_factor;
 double accretion_radius_fraction;
-double klahr_smoothing_radius;
 
 double visc_accret_massflow_test;
 
@@ -789,8 +788,6 @@ void read(const std::string &filename, t_data &data)
 
     accretion_radius_fraction =
 	config::cfg.get<double>("MassAccretionRadius", 1.0);
-    klahr_smoothing_radius = config::cfg.get<double>(
-	"KlahrSmoothingRadius", accretion_radius_fraction);
 
     visc_accret_massflow_test =
         config::cfg.get_flag("ViscAccretMassflowTest", "no");

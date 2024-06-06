@@ -80,6 +80,7 @@ t_planet::t_planet()
     m_vx = 0.0;
     m_vy = 0.0;
 
+    m_cubic_smoothing_factor = 0.0;
     m_accretion_efficiency = 0.0;
     m_accretion_type = 0;
     m_accreted_mass = 0.0;
@@ -230,6 +231,9 @@ void t_planet::copy(const planet_member_variables &other)
     m_vx = other.m_vx;
     m_vy = other.m_vy;
 
+    /// TODO: Will break backwarts compatibility, should be applied alongside another major change
+    /// m_cubic_smoothing_factor = other.m_cubic_smoothing;
+
     // do not copy accretion rate so we can change it in the config file
     // m_acc = other.m_acc;
     m_accreted_mass = other.m_accreted_mass;
@@ -372,6 +376,8 @@ void t_planet::write_binary(const std::string &filename) const
     pl.m_vx = m_vx;
     pl.m_vy = m_vy;
 
+    /// TODO: Will break backwarts compatibility, should be applied alongside another major change
+    /// pl.m_cubic_smoothing = m_cubic_smoothing_factor;
     pl.m_acc = m_accretion_efficiency;
     pl.m_accreted_mass = m_accreted_mass;
     pl.m_planet_number = m_planet_number;

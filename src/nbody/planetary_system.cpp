@@ -89,6 +89,31 @@ void t_planetary_system::init_system()
 
     init_hydro_frame_center();
 
+    /// handle old Klahr & Kley smoothing parameter
+
+    const double KlahrSmoothingRadius =
+	config::cfg.get<double>("KlahrSmoothingRadius", 0.0);
+    if(KlahrSmoothingRadius > 0.0){
+	logging::print_master(
+	    LOG_WARNING
+	    "Deprecation Warning: KlahrSmoothingRadius is now a "
+	    "Nbody parameter 'cubic smoothing factor'.\n");
+
+	const unsigned int N_planets =
+	    get_number_of_planets();
+
+	for (unsigned int k = 0; k < N_planets; k++) {
+	    t_planet &planet = get_planet(k);
+	    const double x = planet.get_x();
+	    const double y = planet.get_y();
+	    const double r = std::sqrt(x*x + y*y);
+
+	    if (r > 1.0e-10 && planet.get_cubic_smoothing_factor() == 0.0) { // only for non central objects
+		planet.set_cubic_smoothing_factor(KlahrSmoothingRadius);
+	    }
+	}
+    }
+
     init_corotation_body();
 
     init_rebound();
@@ -145,6 +170,9 @@ void t_planetary_system::init_planet(config::Config &cfg)
     const double mass = cfg.get<double>("mass", units::M0);
 
     const double eccentricity = cfg.get<double>("eccentricity", 0.0);
+
+    const double cubic_smoothing_factor =
+	cfg.get<double>("cubic smoothing factor", 0.0);
 
     const double accretion_efficiency =
 	cfg.get<double>("accretion efficiency", 0.0);
@@ -207,7 +235,8 @@ void t_planetary_system::init_planet(config::Config &cfg)
 	}
 
     planet->set_name(name.c_str());
-	planet->set_accretion_efficiency(accretion_efficiency);
+    planet->set_cubic_smoothing_factor(cubic_smoothing_factor);
+    planet->set_accretion_efficiency(accretion_efficiency);
 
     if(planet->get_accretion_efficiency() <= 0.0){
 	planet->set_accretion_type(ACCRETION_TYPE_NONE);
@@ -299,7 +328,7 @@ void t_planetary_system::list_planets()
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	logging::print(
 	    LOG_INFO
-	    " %3i | %-23s | % 10.7g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
+	    " %3i | %-23s | %10.5g | % 10.7g | % 10.7g | % 10.7g | % 10.7g |\n",
 	    i, get_planet(i).get_name().c_str(), get_planet(i).get_mass(),
 	    get_planet(i).get_x(), get_planet(i).get_y(),
 	    get_planet(i).get_vx(), get_planet(i).get_vy());
@@ -308,10 +337,10 @@ void t_planetary_system::list_planets()
     logging::print(LOG_INFO "\n");
     logging::print(
 	LOG_INFO
-	" #   | e          | a          | T [t0]     | T [a]      | accreting  | Accretion Type |\n");
+	" #   | e          | a          | T [t0]     | T [a]      | accreting  | Accretion Type | Cubic Smoothing |\n");
     logging::print(
 	LOG_INFO
-	"-----+------------+------------+------------+------------+------------+----------------+\n");
+	"-----+------------+------------+------------+------------+------------+----------------+-----------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	std::string accretion_method;
@@ -328,29 +357,38 @@ void t_planetary_system::list_planets()
 	default:
 	accretion_method = "No Accretion";
 	}
+	std::string cubic_smoothing;
+	if (get_planet(i).get_cubic_smoothing_factor() == 0.0){
+	    cubic_smoothing = "Disabled";
+	} else {
+	    double cubic_smoothing_factor = get_planet(i).get_cubic_smoothing_factor();
+	    int precisionVal = 2;
+	    cubic_smoothing = std::to_string(cubic_smoothing_factor).substr(0, std::to_string(cubic_smoothing_factor).find(".") + precisionVal + 1);
+	    cubic_smoothing = cubic_smoothing + " x R_L1";
+	}
 
 	logging::print(
 	    LOG_INFO
-	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g | %14.14s |\n",
+	    " %3i | % 10.7g | % 10.7g | % 10.7g | % 10.6g | % 10.7g | %14.14s | %15.15s |\n",
 	    i, get_planet(i).get_eccentricity(),
 	    get_planet(i).get_semi_major_axis(),
 	    get_planet(i).get_orbital_period(),
 	    get_planet(i).get_orbital_period() * units::time.get_code_to_cgs_factor() /
 		units::cgs_Year,
-	    get_planet(i).get_accretion_efficiency(), accretion_method.c_str());
+	    get_planet(i).get_accretion_efficiency(), accretion_method.c_str(), cubic_smoothing.c_str());
     }
 
     logging::print(LOG_INFO "\n");
     logging::print(
 	LOG_INFO
-	" #   | Temp [K]   | R [l0]     | irradiates | rampuptime |\n");
+	" #   | Temp [K]   | R [l0]      | irradiates | rampuptime |\n");
     logging::print(
 	LOG_INFO
-	"-----+------------+------------+------------+------------+\n");
+	"-----+------------+-------------+------------+------------+\n");
 
     for (unsigned int i = 0; i < get_number_of_planets(); ++i) {
 	logging::print(LOG_INFO
-		       " %3i | % 10.7g | % 10.5g |        %s | % 10.7g |\n",
+		       " %3i | % 10.7g | % 11.5g |        %s | % 10.7g |\n",
 		       i, get_planet(i).get_temperature() * units::temperature,
 		       get_planet(i).get_planet_radial_extend(),
 		       (get_planet(i).get_irradiate()) ? "yes" : " no",

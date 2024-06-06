@@ -53,7 +53,6 @@ InitializePureKeplerian: 'No'   # Initialize VRadial=0 and VAzimuthal=(GM/r)^(1/
 
 ThicknessSmoothing: '0.6'   # Softening parameters in disk thickness
 MassAccretionRadius: '0.1'   # Mass accretion radius in unints of R_hill / 2
-KlahrSmoothingRadius: '0.3'   # Smoothing radius for Klahr & Kley smoothing around the secondary if HNbody is on
 BodyForceFromPotential: 'Yes'
 
 # Numerical method parameters
@@ -138,6 +137,7 @@ nbody:
   semi-major axis: '1.0'
   mass: '0.22221358015089056545'
   accretion efficiency: '0'
+  cubic smoothing factor: 0.3
   eccentricity: '0.4'
   radius: 0.421 solRadius
     #temperature: 3470 K

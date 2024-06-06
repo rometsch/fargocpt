@@ -15,6 +15,8 @@ struct planet_member_variables {
     double m_y;
     double m_vx;
     double m_vy;
+    /// TODO: Will break backwarts compatibility, should be applied alongside another major change
+    /// double m_cubic_smoothing;
     /// accretion times^-1
     double m_acc;
     double m_accreted_mass;
@@ -53,6 +55,8 @@ class t_planet
     double m_y;
     double m_vx;
     double m_vy;
+    /// dimensionless, will be multiplied by the radius of the L1 point for smoothing
+    double m_cubic_smoothing_factor;
     /// accretion times^-1
     double m_accretion_efficiency;
     int m_accretion_type;
@@ -99,6 +103,7 @@ class t_planet
     inline void set_y(const double value) { m_y = value; update_rphi(); }
     inline void set_vx(const double value) { m_vx = value; }
     inline void set_vy(const double value) { m_vy = value; }
+    inline void set_cubic_smoothing_factor(const double value) { m_cubic_smoothing_factor = value; }
     inline void set_accretion_efficiency(const double value) { m_accretion_efficiency = value; }
     inline void set_accretion_type(const int value) { m_accretion_type = value; }
 
@@ -151,6 +156,7 @@ class t_planet
     inline double get_y(void) const { return m_y; }
     inline double get_vx(void) const { return m_vx; }
     inline double get_vy(void) const { return m_vy; }
+    inline double get_cubic_smoothing_factor(void) const { return m_cubic_smoothing_factor; }
     inline double get_accretion_efficiency(void) const { return m_accretion_efficiency; }
     inline int get_accretion_type(void) const { return m_accretion_type; }
 

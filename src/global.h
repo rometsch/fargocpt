@@ -123,4 +123,4 @@ extern std::vector<double> g_xpl;
 extern std::vector<double> g_ypl;
 extern std::vector<double> g_mpl;
 extern std::vector<double> g_rpl;
-extern std::vector<double> g_l1pl;
+extern std::vector<double> g_cubic_smoothing_radius;
