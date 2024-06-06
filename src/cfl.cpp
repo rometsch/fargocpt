@@ -61,22 +61,22 @@ static void timestep_debug_report(t_data &data,
 	   itdbg4 = std::numeric_limits<double>::max(), itdbg5 = std::numeric_limits<double>::max(), itdbg6 = std::numeric_limits<double>::max();
 
 	if (invdt1 != 0) {
-		itdbg1 = 1.0 / invdt1;
+		itdbg1 = 1.0 / invdt1 * parameters::CFL;
 	}
 	if (invdt2 != 0) {
-		itdbg2 = std::fabs(1.0 / invdt2);
+		itdbg2 = std::fabs(1.0 / invdt2) * parameters::CFL;
 	}
 	if (invdt3 != 0) {
-		itdbg3 = std::fabs(1.0 / invdt3);
+		itdbg3 = std::fabs(1.0 / invdt3) * parameters::CFL;
 	}
 	if (invdt4 != 0) {
-		itdbg4 = 1.0 / invdt4;
+		itdbg4 = 1.0 / invdt4 * parameters::CFL;
 	}
 	if (invdt5 != 0) {
-		itdbg5 = 1.0 / invdt5;
+		itdbg5 = 1.0 / invdt5 * parameters::CFL;
 	}
 	if (invdt6 != 0) {
-		itdbg6 = 1.0 / invdt6;
+		itdbg6 = 1.0 / invdt6 * parameters::CFL;
 	}
 	if ((parameters::artificial_viscosity ==
 		 parameters::artificial_viscosity_SN) &&
@@ -115,11 +115,11 @@ static void timestep_debug_report(t_data &data,
 		viscRadial =
 				dxRadial / dvRadial / 4.0 /
 				std::pow(parameters::artificial_viscosity_factor,
-						 2);
+						 2) * parameters::CFL;
 		viscAzimuthal =
 				dxAzimuthal / dvAzimuthal / 4.0 /
 				std::pow(parameters::artificial_viscosity_factor,
-						 2);
+						 2) * parameters::CFL;
 	}
 
 	print_info();
@@ -297,15 +297,13 @@ double condition_cfl(t_data &data, const double dt_global_input)
 			const double eps_rr = (v_radial(nr+1, naz) - v_radial(nr, naz)) * InvDiffRsup[nr];
 			const double eps_pp =  InvRb[nr] * ((v_azimuthal(nr, naz_next) - v_azimuthal(nr, naz)) * invdphi + 0.5*(v_radial(nr + 1, naz) + v_radial(nr, naz)));
 			const double mdiv_V =  -std::min(eps_rr + eps_pp, 0.0);
-			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * leapfrog_cfl_factor * parameters::CFL;
+			invdt4 = 4.0 * std::pow(parameters::artificial_viscosity_factor, 2)  * mdiv_V * leapfrog_cfl_factor;
 		}
 
 		// kinematic viscosity limit
 		// for diffusion stability: dt < dx^2 / (4 * nu)
-		// so we do not need the extra CFL factor, same for invdt4
-		// we multipy with CFL here so that it cancels out for the combined dt
 		const double invdt5 = 4.0 * data[t_data::VISCOSITY](nr, naz) / std::pow(cell_size, 2)
-				* leapfrog_cfl_factor * parameters::CFL;
+				* leapfrog_cfl_factor;
 
 		// heating / cooling limit
 		double invdt6;
