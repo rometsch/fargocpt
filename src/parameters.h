@@ -268,7 +268,6 @@ extern bool initialize_vradial_zero;
 extern double radial_viscosity_factor;
 
 extern double accretion_radius_fraction;
-extern double klahr_smoothing_radius;
 
 extern double visc_accret_massflow_test; // gas massflow test specific parameter
 

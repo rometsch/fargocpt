@@ -30,10 +30,9 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 	g_xpl[k] = planet.get_x();
 	g_ypl[k] = planet.get_y();
 
-	if (parameters::klahr_smoothing_radius > 0.0) {
-		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
-		      planet.get_distance_to_primary();
-	}
+	g_cubic_smoothing_radius[k] = planet.get_dimensionless_roche_radius() *
+		      planet.get_distance_to_primary() * planet.get_cubic_smoothing_factor();
+
     }
 
     auto &pot = data[t_data::POTENTIAL];
@@ -60,16 +59,13 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 
 		double smooth_factor_klahr = 1.0;
 
-		if (parameters::klahr_smoothing_radius > 0.0) {
+		if (g_cubic_smoothing_radius[k] > 0.0) {
 		    /// scale height is reduced by the planets and can cause the
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
 		    /// smoothing proposed by Klahr & Kley 2005.
 			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
-			// position of the l1 point between planet and central star.
-			const double l1 = g_l1pl[k];
-			const double r_sm =
-			    l1 * parameters::klahr_smoothing_radius;
+			const double r_sm = g_cubic_smoothing_radius[k];
 
 			if (d_smoothed < r_sm) {
 			    smooth_factor_klahr =
@@ -104,10 +100,8 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	g_xpl[k] = planet.get_x();
 	g_ypl[k] = planet.get_y();
 
-	if (parameters::klahr_smoothing_radius > 0.0) {
-		g_l1pl[k] = planet.get_dimensionless_roche_radius() *
-		      planet.get_distance_to_primary();
-	}
+	g_cubic_smoothing_radius[k] = planet.get_dimensionless_roche_radius() *
+				     planet.get_distance_to_primary() * planet.get_cubic_smoothing_factor();
     }
 
     double *acc_r = data[t_data::ACCEL_RADIAL].Field;
@@ -144,7 +138,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 
 		double smooth_factor_klahr = 1.0;
 
-		if (parameters::klahr_smoothing_radius > 0.0) {
+		if (g_cubic_smoothing_radius[k] > 0.0) {
 		    /// scale height is reduced by the planets and can cause the
 		    /// epsilon smoothing be not sufficient for numerical
 		    /// stability. Thus we add the gravitational potential
@@ -152,11 +146,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 		    /// derivative of it, since we apply it directly on the
 		    /// force
 			if (std::sqrt(g_xpl[k]*g_xpl[k] + g_ypl[k]*g_ypl[k]) > 1.0e-10) { // only for non central objects
-			// position of the l1 point between planet and central
-			// star.
-			const double l1 = g_l1pl[k];
-			const double r_sm =
-			    l1 * parameters::klahr_smoothing_radius;
+			const double r_sm = g_cubic_smoothing_radius[k];
 
 			if (dist_sm < r_sm) {
 			    smooth_factor_klahr =

@@ -146,6 +146,9 @@ void t_planetary_system::init_planet(config::Config &cfg)
 
     const double eccentricity = cfg.get<double>("eccentricity", 0.0);
 
+    const double cubic_smoothing_factor =
+	cfg.get<double>("cubic smoothing factor", 0.0);
+
     const double accretion_efficiency =
 	cfg.get<double>("accretion efficiency", 0.0);
 
@@ -207,7 +210,8 @@ void t_planetary_system::init_planet(config::Config &cfg)
 	}
 
     planet->set_name(name.c_str());
-	planet->set_accretion_efficiency(accretion_efficiency);
+    planet->set_cubic_smoothing_factor(cubic_smoothing_factor);
+    planet->set_accretion_efficiency(accretion_efficiency);
 
     if(planet->get_accretion_efficiency() <= 0.0){
 	planet->set_accretion_type(ACCRETION_TYPE_NONE);

@@ -181,6 +181,6 @@ std::vector<double> g_xpl;
 std::vector<double> g_ypl;
 std::vector<double> g_mpl;
 std::vector<double> g_rpl;
-std::vector<double> g_l1pl;
+std::vector<double> g_cubic_smoothing_radius;
 
 volatile sig_atomic_t SIGTERM_RECEIVED = 0, PRINT_SIG_INFO = 0;

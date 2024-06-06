@@ -45,6 +45,7 @@ nbody:
 - name: Jupiter
   semi-major axis: 1.0 au
   mass: 1 jupiterMass
+  cubic smoothing factor: 0.3
   accretion efficiency: 0.0
   accretion method: kley # can also be sinkhole, viscous, kley, or none
   eccentricity: 0
@@ -105,7 +106,6 @@ RadialSpacing: Logarithmic   # Logarithmic or ARITHMETIC or Exponential
 
 ThicknessSmoothing: 0.6   # Softening parameters in disk thickness [default = 0.0]
 ThicknessSmoothingSG: 0.6   # Softening parameter for SG [default = ThicknessSmoothing]
-KlahrSmoothingRadius: 0.3 # Numerical potential smoothing in hill radii
 
 MassAccretionRadius: 0.3 # Radius from which planets accrete mass in hill radii
 

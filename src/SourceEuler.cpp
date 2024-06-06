@@ -259,7 +259,7 @@ void init_euler(t_data &data, const double current_time)
 	g_ypl.resize(N_planets);
 	g_mpl.resize(N_planets);
 	g_rpl.resize(N_planets);
-	g_l1pl.resize(N_planets);
+	g_cubic_smoothing_radius.resize(N_planets);
 
     if (parameters::Locally_Isothermal) {
 	compute_sound_speed(data, current_time);
@@ -556,7 +556,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 			planet.get_distance_to_primary();
 	double min_dist;
 	if(x*x + y*y > 1e-10){
-	    min_dist = std::max(R_star, l1 * parameters::klahr_smoothing_radius);
+	    min_dist = std::max(R_star, l1 * planet.get_cubic_smoothing_factor());
 	} else {
 		min_dist = R_star;
 	}

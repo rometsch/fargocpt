@@ -29,6 +29,8 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 	const double y = planet.get_y();
 	const double a = planet.get_r();
 
+	const double klahr_smoothing_constant = planet.get_cubic_smoothing_factor();
+
 
     Pair acceleration;
     double localaccel[4] = {0., 0., 0., 0.};
@@ -75,7 +77,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 	    // just to be consistent with the force the gas feels from the
 	    // planets
 	    double smooth_factor_klahr = 1.0;
-	    if (parameters::klahr_smoothing_radius > 0.0) {
+	    if (klahr_smoothing_constant > 0.0) {
 		/// scale height is reduced by the planets and can cause the
 		/// epsilon smoothing be not sufficient for numerical stability.
 		/// Thus we add the gravitational potential smoothing proposed
@@ -84,7 +86,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 		if (std::sqrt(x*x + y*y) > 10.e-10) {
 			const double l1 = planet.get_dimensionless_roche_radius() *
 				planet.get_distance_to_primary();
-			const double r_sm = l1 * parameters::klahr_smoothing_radius;
+			const double r_sm = l1 * klahr_smoothing_constant;
 
 			if (dist_sm < r_sm) {
 			smooth_factor_klahr =
