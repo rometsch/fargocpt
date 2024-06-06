@@ -33,6 +33,8 @@ def thin(outputdir: Path, Nptrn: slice, force: bool = False, new_outputdir: Path
     """Thin out an output directory or copy a reduced version.
 
     Delte all but every Nth snapshot or copy only scalar data and every Nth snapshot if new_outputdir is defined.
+    Nptrn can be a single integer, a fancy index like 1:10 or 1:10:2 as in numpy (syntax Nstart:Nstop:step)
+    or it can be 'keep15' where the number indicates the number of snapshots to keep.
 
     Args:
         outputdir (Path): Path to the output dir.
@@ -71,7 +73,13 @@ def thin(outputdir: Path, Nptrn: slice, force: bool = False, new_outputdir: Path
         new_inds = np.genfromtxt(outputdir/"thin_newinds.tmp", dtype="int")
         inds_to_del = np.genfromtxt(outputdir/"thin_todel.tmp", dtype="int")
     else:
-        if not ":" in Nptrn:
+        if Nptrn.startswith("keep"): 
+            Nkeep = int(Nptrn[4:])
+            if Nkeep < 2:
+                raise ValueError("Nkeep must be larger equal 2!")
+            sel = np.linspace(0,len(inds)-1,num=Nkeep, endpoint=True, dtype=int)
+            new_inds = [int(inds[s]) for s in sel]
+        elif not ":" in Nptrn:
             new_inds = [int(Nptrn)]
         else:
             try:
@@ -250,7 +258,7 @@ def parse_args():
     thin_parser = subparsers.add_parser("delete")
     thin_parser.add_argument("outputdir", type=str)
     thin_parser.add_argument(
-        "Nptrn", type=str, help="Pattern for inds. E.g. 1:10:3 for inds from 1 to 10 in steps of 3, or ::5 for every 5th. Same pattern as in fancy indexing.")
+        "Nptrn", type=str, help="Pattern for inds. Can be 'keep15' to retain 15 snapshots or 1:10:3 for inds from 1 to 10 in steps of 3, or ::5 for every 5th. Same pattern as in fancy indexing.")
     thin_parser.add_argument("-y", action="store_true",
                              help="Answer yes to all questions.")
 
