@@ -761,7 +761,7 @@ void read(const std::string &filename, t_data &data)
 	switch(indirect_term_mode){
 		case INDIRECT_TERM_REBOUND:
 		{
-			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleratrion with shifting the Nbody system to the center.\n");
+			logging::print_master(LOG_INFO "Indirect Term computed as effective Hydro center acceleration with shifting the Nbody system to the center.\n");
 			break;
 		}
 		case INDIRECT_TERM_EULER:
