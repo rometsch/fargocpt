@@ -350,7 +350,7 @@ static void step_Euler(t_data &data, const double dt) {
 	//////////////// Gas kick 2/2   /////////////////////
 	/// planets positions still at x_i+1/2 for gas interaction
 	if (parameters::disk_feedback) {
-		ComputeDiskOnNbodyAccel(data, true);
+		ComputeDiskOnNbodyAccel(data);
 	}
 	refframe::ComputeIndirectTermDisk(data);
 	refframe::ComputeIndirectTermNbody(data, midstep_time, frog_dt);

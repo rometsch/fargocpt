@@ -740,6 +740,11 @@ void t_planetary_system::apply_indirect_term_on_Nbody(const pair accel, const do
 
 		planet.set_vx(new_vx);
 		planet.set_vy(new_vy);
+
+		const double torque =
+		    (planet.get_x() * accel.y - planet.get_y() * accel.x) *
+		    planet.get_mass();
+		planet.add_indirect_torque(torque*dt);
 	}
 }
 
