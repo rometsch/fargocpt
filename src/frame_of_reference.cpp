@@ -109,7 +109,7 @@ void ComputeIndirectTermNbodyEuler(t_data &data)
 	mass_center += mass;
     }
     IndirectTermPlanets.x /= mass_center;
-	IndirectTermPlanets.y /= mass_center;
+    IndirectTermPlanets.y /= mass_center;
 }
 
 void ComputeIndirectTermNbody(t_data &data, const double current_time, const double dt)
