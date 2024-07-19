@@ -157,7 +157,7 @@ static void step_Euler(t_data &data, const double dt) {
 	    UpdatePlanetVelocitiesWithDiskForce(data, dt);
 	}
 
-	refframe::ComputeIndirectTermDisk(data);
+	refframe::ComputeIndirectTermDisk(data, dt);
 	refframe::ComputeIndirectTermNbody(data, time, dt);
 	refframe::ComputeIndirectTermFully();
 
@@ -294,7 +294,7 @@ static void step_Euler(t_data &data, const double dt) {
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(data);
 	}
-	refframe::ComputeIndirectTermDisk(data);
+	refframe::ComputeIndirectTermDisk(data, frog_dt);
 
 	refframe::ComputeIndirectTermFully();
 
@@ -352,7 +352,7 @@ static void step_Euler(t_data &data, const double dt) {
 	if (parameters::disk_feedback) {
 		ComputeDiskOnNbodyAccel(data);
 	}
-	refframe::ComputeIndirectTermDisk(data);
+	refframe::ComputeIndirectTermDisk(data, frog_dt);
 	refframe::ComputeIndirectTermNbody(data, midstep_time, frog_dt);
 	refframe::ComputeIndirectTermFully();
 

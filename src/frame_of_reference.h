@@ -17,7 +17,7 @@ extern Pair IndirectTermPlanets;
 void ComputeIndirectTermFully();
 
 void ComputeIndirectTermNbody(t_data &data, const double current_time, const double dt);
-void ComputeIndirectTermDisk(t_data &data);
+void ComputeIndirectTermDisk(t_data &data, const double dt);
 void ComputeIndirectTermNbodyEuler(t_data &data);
 
 

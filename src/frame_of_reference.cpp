@@ -66,7 +66,7 @@ void handle_corotation(t_data &data, const double dt)
  * @param force
  * @param data
  */
-void ComputeIndirectTermDisk(t_data &data)
+void ComputeIndirectTermDisk(t_data &data, const double dt)
 {
     IndirectTermDisk.x = 0.0;
     IndirectTermDisk.y = 0.0;
@@ -88,6 +88,26 @@ void ComputeIndirectTermDisk(t_data &data)
 	IndirectTermDisk.x /= mass_center;
 	IndirectTermDisk.y /= mass_center;
     }
+
+
+    /// Compute indirect torque
+    /// caused by the gas feedback on the central object
+    for (unsigned int k = 0;
+	 k < data.get_planetary_system().get_number_of_planets(); k++) {
+	t_planet &planet = data.get_planetary_system().get_planet(k);
+
+	/// 2-Body force does not exert torque,
+	/// but our shift based indirect term is not
+	/// perpendicular to the central object and seems to create a torque
+	/// therefore we directly only use the IndirectTermDisk instead of the
+	/// full IndirectTerm (which is stored in accel)
+	const double torque =
+	    (planet.get_x() * IndirectTermDisk.y - planet.get_y() * IndirectTermDisk.x) *
+	    planet.get_mass();
+	planet.add_indirect_torque(torque*dt);
+    }
+
+
 }
 
 void ComputeIndirectTermNbodyEuler(t_data &data)
