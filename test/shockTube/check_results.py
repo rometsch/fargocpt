@@ -136,7 +136,7 @@ def diff_to_analytic(out, quant, Nsnap):
     analytic = spl(r1)
 
     delta = np.abs(data - analytic)
-    return integrate.simpson(delta, r1)
+    return integrate.simpson(delta, x=r1)
 
 
 def visualize(Nsnapshot):
