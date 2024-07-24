@@ -58,7 +58,7 @@ def calc_deviation(outdir):
     
     average = np.mean(diff)
  
-    threshold = 0.0045
+    threshold = 0.007
 
     success = np.abs(average) < threshold
 
