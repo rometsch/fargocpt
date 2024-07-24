@@ -59,8 +59,18 @@ def calc_deviation(outdir):
     average = np.mean(diff)
  
     threshold = 0.0045
+
     success = np.abs(average) < threshold
-    
+
+    with open("test.log", "w") as logfile:
+        from datetime import datetime
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(f"{current_time}", file=logfile)
+
+        print(f"diff_avg = {average}", file=logfile)
+        print(f"threshold = {threshold}", file=logfile)
+        print(f"test passed = {success}", file=logfile)
+
     return success   
     
 def main():
