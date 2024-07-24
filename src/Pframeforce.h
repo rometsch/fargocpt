@@ -2,7 +2,7 @@
 
 #include "data.h"
 
-void ComputeDiskOnNbodyAccel(t_data &data, const bool add_torqe_and_average=false);
+void ComputeDiskOnNbodyAccel(t_data &data);
 void ComputeAverageDensity(t_data &data);
 void ComputeNbodyOnNbodyAccel(t_planetary_system &planetary_system);
 void ComputeNbodyOnNbodyAccelRebound(t_planetary_system &planetary_system);

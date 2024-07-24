@@ -72,6 +72,10 @@ static void update_planet(t_planet &planet, const double dMplanet,
     PxPlanet += dPxPlanet;
     PyPlanet += dPyPlanet;
 
+    const double torque_dt =
+	(planet.get_x() * dPyPlanet - planet.get_y() * dPxPlanet);
+    planet.add_accretion_torque(torque_dt);
+
     planet.set_vx(PxPlanet / Mplanet);
     planet.set_vy(PyPlanet / Mplanet);
     planet.set_mass(Mplanet);

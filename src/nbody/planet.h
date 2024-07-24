@@ -15,8 +15,8 @@ struct planet_member_variables {
     double m_y;
     double m_vx;
     double m_vy;
-    /// TODO: Will break backwarts compatibility, should be applied alongside another major change
-    /// double m_cubic_smoothing;
+
+    double m_cubic_smoothing_factor;
     /// accretion times^-1
     double m_acc;
     double m_accreted_mass;
@@ -42,6 +42,9 @@ struct planet_member_variables {
     double m_pericenter_angle;
 
     double m_torque;
+    double m_gas_torque_acc;
+    double m_accretion_torque_acc;
+    double m_indirect_torque_acc;
 };
 
 class t_planet
@@ -85,6 +88,9 @@ class t_planet
     double m_pericenter_angle;
 
     double m_torque;
+    double m_gas_torque_acc;
+    double m_accretion_torque_acc;
+    double m_indirect_torque_acc;
 
     // variables not written to disk.
 
@@ -97,6 +103,9 @@ class t_planet
     void print();
     inline void add_accreted_mass(double value) { m_accreted_mass += value; }
     inline void reset_accreted_mass() { m_accreted_mass = 0.0; }
+    inline void reset_torque_acc() { m_gas_torque_acc = 0.0; }
+    inline void reset_accretion_torque_acc() { m_accretion_torque_acc = 0.0; }
+    inline void reset_indirect_torque_acc() { m_indirect_torque_acc = 0.0; }
     // setter
     inline void set_mass(const double value) { m_mass = value; }
     inline void set_x(const double value) { m_x = value; update_rphi(); }
@@ -108,6 +117,9 @@ class t_planet
     inline void set_accretion_type(const int value) { m_accretion_type = value; }
 
     inline void set_torque(const double value) { m_torque = value; }
+    inline void add_torque(const double dt) { m_gas_torque_acc += m_torque*dt; }
+    inline void add_accretion_torque(const double value) {m_accretion_torque_acc += value;}
+    inline void add_indirect_torque(const double value) {m_indirect_torque_acc += value;}
     void set_name(const std::string value);
     inline void set_planet_number(const unsigned int value)
     {
@@ -198,6 +210,9 @@ class t_planet
     inline double get_eccentric_anomaly() const { return m_eccentric_anomaly; }
     inline double get_pericenter_angle() const { return m_pericenter_angle; }
     inline double get_torque() const { return m_torque; }
+    inline double get_gas_torque_acc() const { return m_gas_torque_acc; }
+    inline double get_accretion_torque_acc() const { return m_accretion_torque_acc; }
+    inline double get_indirect_torque_acc() const { return m_indirect_torque_acc; }
     inline double get_accreted_mass() const { return m_accreted_mass; }
 
     double get_r(void) const { return m_r; };

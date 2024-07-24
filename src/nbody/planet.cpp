@@ -18,8 +18,8 @@
 #include <filesystem>
 
 // define the variables in the planet data file
-// file version 2.5
-const static std::map<const std::string, const int> planet_file_column_v2_5 = {
+// file version 2.6
+const static std::map<const std::string, const int> planet_file_column_v2_6 = {
     {"snapshot number", 0},
     {"monitor number", 1},
     {"x", 2},
@@ -38,11 +38,12 @@ const static std::map<const std::string, const int> planet_file_column_v2_5 = {
     {"eccentric anomaly", 15},
     {"true anomaly", 16},
     {"pericenter angle", 17},
-    {"torque", 18},
-    {"accreted mass", 19},
-    {"accretion rate", 20}};
+    {"gas torque", 18},
+    {"accretion torque", 19},
+    {"indirect torque", 20},
+    {"accretion rate", 21}};
 
-const static auto planet_files_column = planet_file_column_v2_5;
+const static auto planet_files_column = planet_file_column_v2_6;
 
 const static std::map<const std::string, const std::string> variable_units = {
     {"snapshot number", "1"},
@@ -66,8 +67,9 @@ const static std::map<const std::string, const std::string> variable_units = {
     {"pericenter angle", "1"},
     {"omega", "frequency"},
     {"omega kepler", "frequency"},
-    {"torque", "torque"},
-    {"accreted mass", "mass"},
+    {"gas torque", "torque"},
+    {"accretion torque", "torque"},
+    {"indirect torque", "torque"},
     {"accretion rate", "mass accretion rate"}};
 
 t_planet::~t_planet() {}
@@ -106,6 +108,9 @@ t_planet::t_planet()
     m_eccentric_anomaly = 0.0;
     m_pericenter_angle = 0.0;
     m_torque = 0.0;
+    m_gas_torque_acc = 0.0;
+    m_accretion_torque_acc = 0.0;
+    m_indirect_torque_acc = 0.0;
 }
 
 void t_planet::print()
@@ -231,8 +236,7 @@ void t_planet::copy(const planet_member_variables &other)
     m_vx = other.m_vx;
     m_vy = other.m_vy;
 
-    /// TODO: Will break backwarts compatibility, should be applied alongside another major change
-    /// m_cubic_smoothing_factor = other.m_cubic_smoothing;
+    m_cubic_smoothing_factor = other.m_cubic_smoothing_factor;
 
     // do not copy accretion rate so we can change it in the config file
     // m_acc = other.m_acc;
@@ -260,6 +264,9 @@ void t_planet::copy(const planet_member_variables &other)
     m_pericenter_angle = other.m_pericenter_angle;
 
     m_torque = other.m_torque;
+    m_gas_torque_acc = other.m_gas_torque_acc;
+    m_accretion_torque_acc = other.m_accretion_torque_acc;
+    m_indirect_torque_acc = other.m_indirect_torque_acc;
 
     update_rphi();
 }
@@ -314,6 +321,9 @@ void t_planet::write(const unsigned int file_type)
     filename = get_monitor_filename();
 	write_ascii(filename);
 	reset_accreted_mass();
+	reset_torque_acc();
+	reset_accretion_torque_acc();
+	reset_indirect_torque_acc();
 	break;
     default:
 	die("Bad file_type value for writing planet files!\n");
@@ -329,26 +339,34 @@ void t_planet::write_ascii(const std::string &filename) const
 	PersonalExit(1);
     }
 
-    const double accreted_mass = get_accreted_mass();
     double div;
-
     if (parameters::write_at_every_timestep) {
 	div = parameters::monitor_timestep;
     } else {
 	div = parameters::monitor_timestep * parameters::Nmonitor;
     }
 
-    const double accretion_rate = accreted_mass / div;
+    double torque;
+    if(parameters::disk_feedback){
+    torque = get_gas_torque_acc();
+    torque /= div;
+    } else {
+    torque = get_torque();
+    }
+
+    const double indirect_torque = get_indirect_torque_acc() / div;
+    const double accretion_torque = get_accretion_torque_acc() / div;
+    const double accretion_rate = get_accreted_mass() / div;
 
     fprintf(
 	fd,
-	"%u\t%u\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
+	"%u\t%u\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\t%#.18g\n",
 	sim::N_snapshot, sim::N_monitor, get_x(), get_y(), get_vx(), get_vy(), get_mass(),
 	sim::time, refframe::OmegaFrame, get_circumplanetary_mass(),
 	get_eccentricity(), get_angular_momentum(), get_semi_major_axis(),
 	get_omega(), get_mean_anomaly(), get_eccentric_anomaly(),
-	get_true_anomaly(), get_pericenter_angle(), get_torque(), accreted_mass,
-	accretion_rate);
+	get_true_anomaly(), get_pericenter_angle(), torque, accretion_torque,
+	indirect_torque, accretion_rate);
 
     // close file
 
@@ -376,8 +394,7 @@ void t_planet::write_binary(const std::string &filename) const
     pl.m_vx = m_vx;
     pl.m_vy = m_vy;
 
-    /// TODO: Will break backwarts compatibility, should be applied alongside another major change
-    /// pl.m_cubic_smoothing = m_cubic_smoothing_factor;
+    pl.m_cubic_smoothing_factor = m_cubic_smoothing_factor;
     pl.m_acc = m_accretion_efficiency;
     pl.m_accreted_mass = m_accreted_mass;
     pl.m_planet_number = m_planet_number;
@@ -401,6 +418,9 @@ void t_planet::write_binary(const std::string &filename) const
     pl.m_pericenter_angle = m_pericenter_angle;
 
     pl.m_torque = m_torque;
+    pl.m_gas_torque_acc = m_gas_torque_acc;
+    pl.m_accretion_torque_acc = m_accretion_torque_acc;
+    pl.m_indirect_torque_acc = m_indirect_torque_acc;
 
     wf.write((char *)(&pl), sizeof(planet_member_variables));
     wf.close();
