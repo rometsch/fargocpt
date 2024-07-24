@@ -99,6 +99,7 @@ void ComputeIndirectTermDisk(t_data &data, const double dt)
 	/// 2-Body force does not exert torque,
 	/// but our shift based indirect term is not
 	/// perpendicular to the central object and seems to create a torque
+	/// this leads to artificially high values that make the measure unusable
 	/// therefore we only use the IndirectTermDisk instead of the full IndirectTerm
 	const double torque =
 	    (planet.get_x() * IndirectTermDisk.y - planet.get_y() * IndirectTermDisk.x) *
