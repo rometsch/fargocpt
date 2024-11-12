@@ -45,7 +45,7 @@ nbody:
 - name: Jupiter
   semi-major axis: 1.0 au
   mass: 1 jupiterMass
-  cubic smoothing factor: 0.3
+  cubic smoothing factor: 0.0
   accretion efficiency: 0.0
   accretion method: kley # can also be sinkhole, viscous, kley, or none
   eccentricity: 0
