@@ -634,15 +634,17 @@ void init_secondary_disk_densities(t_data &data)
     const auto &planet = data.get_planetary_system().get_planet(1);
     const double disk_size = parameters::profile_cutoff_point_outer *
 			     planet.get_dimensionless_roche_radius() /
-			     (1.0 - planet.get_dimensionless_roche_radius());
+			     (1.0 - planet.get_dimensionless_roche_radius())
+			     * planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     const double cutoff_width = parameters::profile_cutoff_width_outer *
 				planet.get_dimensionless_roche_radius() /
-				(1.0 - planet.get_dimensionless_roche_radius());
+				(1.0 - planet.get_dimensionless_roche_radius())
+				* planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     const double mass_q = planet.get_mass() /
 			  data.get_planetary_system().get_planet(0).get_mass();
     const double compute_radius =
 	eggleton_1983(mass_q, planet.get_distance_to_primary());
-    const double scaling_factor = std::sqrt(planet.get_mass());
+    const double scaling_factor = std::sqrt(mass_q);
 
     const double min_dist = RMIN / 3.0;
 
@@ -689,15 +691,17 @@ void init_secondary_disk_energies(t_data &data)
     const auto &planet = data.get_planetary_system().get_planet(1);
     const double disk_size = parameters::profile_cutoff_point_outer *
 			     planet.get_dimensionless_roche_radius() /
-			     (1.0 - planet.get_dimensionless_roche_radius());
+			     (1.0 - planet.get_dimensionless_roche_radius())
+			     * planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     const double cutoff_width = parameters::profile_cutoff_width_outer *
 				planet.get_dimensionless_roche_radius() /
-				(1.0 - planet.get_dimensionless_roche_radius());
+				(1.0 - planet.get_dimensionless_roche_radius())
+				* planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     const double mass_q = planet.get_mass() /
 			  data.get_planetary_system().get_planet(0).get_mass();
     const double compute_radius =
 	eggleton_1983(mass_q, planet.get_distance_to_primary());
-    const double scaling_factor = std::sqrt(planet.get_mass());
+    const double scaling_factor = std::sqrt(mass_q);
 
     const double min_dist = RMIN / 3.0;
 

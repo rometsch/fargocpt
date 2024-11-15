@@ -112,7 +112,8 @@ static bool AccreteOntoSinglePlanet(t_data &data, t_planet &planet, double dt)
     // W. Kley's parameters initialization finished
 
     const double RHill = planet.get_dimensionless_roche_radius() *
-			 planet.get_distance_to_primary();
+		planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
+
     // search radius is bigger fraction + 2 dphi cell sizes to capture all cells
     const double search_radius = RHill * frac1 + 2.0 * Rplanet / ns;
 
@@ -242,7 +243,7 @@ static bool SinkHoleSinglePlanet(t_data &data, t_planet &planet, double dt)
     const double frac = parameters::accretion_radius_fraction;
 
     const double RHill = planet.get_dimensionless_roche_radius() *
-			 planet.get_distance_to_primary();
+			 planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     // search radius is bigger fraction + 2 dphi cell sizes to capture all cells
     const double search_radius = RHill * frac + 2.0 * Rplanet / ns;
 
@@ -358,7 +359,7 @@ static bool AccreteOntoSinglePlanetViscous(t_data &data, t_planet &planet,
     const double frac = parameters::accretion_radius_fraction;
 
     const double RHill = planet.get_dimensionless_roche_radius() *
-			 planet.get_distance_to_primary();
+			 planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     // search radius is bigger fraction + 2 dphi cell sizes to capture all cells
     const double search_radius = RHill * frac + 2.0 * Rplanet / ns;
 
