@@ -26,9 +26,9 @@ Frame: F   # F: Fixed, C: Corotating
 # Simulation time
 #
 
-MonitorTimestep: 0.628   # Calculate scalar quatities every DT in code units. For default units 2PI = 1 orbit at r=1
-Nmonitor: 10   # Number of DTs before writing a snapshot
-Nsnapshots: 50   # Total number snapshots. The final time will be tfinal = Ntot*Ninterm*DT. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
+MonitorTimestep: 0.628   # Equivalent to FARGO3D's "DT". Calculate scalar quatities every MonitorTimestep in code units. For default units 2PI = 1 orbit at r=1
+Nmonitor: 10   # Number of MonitorTimestep before writing a snapshot
+Nsnapshots: 50   # Total number snapshots. Equivalent to FARGO3D's "Ntot". The final time will be tfinal = Nsnapshots*MonitorTimestep*MonitorTimestep. Please note that this is a different from FARGO3D where tfinal = Ntot*DT!
 FirstDT: 1.0e-1 # initial hydro dt / dt in case of no disk
 
 #
@@ -88,7 +88,7 @@ CartesianParticles: YES   # enable particle integrator [default = no]
 ## Numerical method choices
 
 Transport: FARGO
-Integrator: Euler  # Integrator type: Euler or LeapFrog or KickDriftKick(Leapfrog)
+Integrator: Euler  # Integrator type: Euler or LeapFrog
 CFL: 0.5
 CFLmaxVar: 1.1 # maximum factor the timestep can increase in one hydro step
 
@@ -176,8 +176,8 @@ HeatingCoolingCFLlimit: 1.0   # energy change dT/T in substep3 only allowed to c
 
 # Boundary conditions
 # TODO: complete boundary config with comments
-InnerBoundary: Reflecting
-OuterBoundary: Reflecting
+InnerBoundary: Reflecting # can be Reflecting, Outflow, ZeroGradient, Reference, Individual, Custom, Viscous (= viscous outflow)
+OuterBoundary: Reflecting # can be Reflecting, Outflow, ZeroGradient, Reference, Individual, Custom, CenterOfMass
 
 Damping: Yes   # NO, YES [default = no]
 DampingInnerLimit: 1.10   # Rmin*Limit
