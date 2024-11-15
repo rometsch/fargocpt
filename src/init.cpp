@@ -643,7 +643,8 @@ void init_secondary_disk_densities(t_data &data)
     const double mass_q = planet.get_mass() /
 			  data.get_planetary_system().get_planet(0).get_mass();
     const double compute_radius =
-	eggleton_1983(mass_q, planet.get_distance_to_primary());
+	eggleton_1983(mass_q, planet.get_distance_to_primary())
+	* planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     const double scaling_factor = std::sqrt(mass_q);
 
     const double min_dist = RMIN / 3.0;
@@ -700,7 +701,8 @@ void init_secondary_disk_energies(t_data &data)
     const double mass_q = planet.get_mass() /
 			  data.get_planetary_system().get_planet(0).get_mass();
     const double compute_radius =
-	eggleton_1983(mass_q, planet.get_distance_to_primary());
+	eggleton_1983(mass_q, planet.get_distance_to_primary())
+	* planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
     const double scaling_factor = std::sqrt(mass_q);
 
     const double min_dist = RMIN / 3.0;
