@@ -84,7 +84,7 @@ Pair ComputeDiskOnPlanetAccel(t_data &data, const unsigned int nb)
 		/// by Klahr & Kley 2005; but the derivative of it, since we
 		/// apply it directly on the force
 			const double l1 = planet.get_dimensionless_roche_radius() *
-				planet.get_distance_to_primary();
+				planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
 			const double r_sm = l1 * klahr_smoothing_constant;
 
 			if (dist_sm < r_sm) {

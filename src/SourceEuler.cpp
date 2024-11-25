@@ -553,7 +553,7 @@ static void irradiation_single(t_data &data, const t_planet &planet) {
 	const double T_star = planet.get_temperature();
 
 	const double l1 = planet.get_dimensionless_roche_radius() *
-			planet.get_distance_to_primary();
+			planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity());
 	double min_dist;
 	if(x*x + y*y > 1e-10){
 	    min_dist = std::max(R_star, l1 * planet.get_cubic_smoothing_factor());
