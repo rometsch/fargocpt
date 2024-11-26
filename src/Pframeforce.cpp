@@ -31,7 +31,7 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 	g_ypl[k] = planet.get_y();
 
 	g_cubic_smoothing_radius[k] = planet.get_dimensionless_roche_radius() *
-		      planet.get_distance_to_primary() * planet.get_cubic_smoothing_factor();
+		      planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity())  * planet.get_cubic_smoothing_factor();
 
     }
 
@@ -99,7 +99,7 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	g_ypl[k] = planet.get_y();
 
 	g_cubic_smoothing_radius[k] = planet.get_dimensionless_roche_radius() *
-				     planet.get_distance_to_primary() * planet.get_cubic_smoothing_factor();
+				     planet.get_semi_major_axis() * (1.0 - planet.get_eccentricity()) * planet.get_cubic_smoothing_factor();
     }
 
     double *acc_r = data[t_data::ACCEL_RADIAL].Field;
