@@ -86,6 +86,7 @@ def get_new_lines(line, old, new, verbose=False, nohints=False):
             line_value = line_value.strip('\"')
                 
             if nohints and line_value not in ["no", "false", "0"]:
+                ### if the parameter was configured in any form, we probably want it activated
                 text = new["hint"]
             else:
                 new_lines.append(text)
