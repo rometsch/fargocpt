@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-import os
 import argparse
 import yaml
-import copy
 import re
 
 old_to_new = {
@@ -16,7 +13,7 @@ old_to_new = {
  'CoolingScurve': {'newname': 'none', 'hint': 'SurfaceCooling: scurve'},
  'DT': {'newname': 'MonitorTimestep'},
  'DebugOutputs': {'newname': 'none'},
- 'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi = zeroshear'},
+ 'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi: zeroshear'},
  'ExplicitViscosity': {'newname': 'none',
   'hint': 'Set ViscousAlpha > 0 or ConstantViscosity > 0'},
  'ForcedCircular': {'newname': 'none'},
@@ -66,15 +63,33 @@ def replace_word(word, replacement, string):
     pattern = r"(^|\s)" + re.escape(word) + r"\s*:"
     return re.sub(pattern, replacement + ":", string)
 
-def get_new_lines(line, old, new, verbose=False):
+def get_new_lines(line, old, new, verbose=False, nohints=False):
     new_lines = []
     if new["newname"] == "none":
         text = "# " + line
-        new_lines.append(text)
+        
+        if not nohints: # show comment with deprecated parameter
+            new_lines.append(text)
+            
         if verbose:
             print(text.strip())
         if "hint" in new:
-            text = "# hint: " + new["hint"]
+            
+            ### Get value of parameter and only write it if it is true
+            ### else, leave it as a comment
+            line_value = line.split(":")[1].strip()
+            try:
+                line_value = line_value.split("#")[0].strip().lower()
+            except:
+                Exception
+            line_value = line_value.strip('\'')
+            line_value = line_value.strip('\"')
+                
+            if nohints and line_value not in ["no", "false", "0"]:
+                text = new["hint"]
+            else:
+                new_lines.append(text)
+                text = "# hint: " + new["hint"]
             if verbose:
                 print(text.strip())                        
             new_lines.append(text + "\n")
@@ -95,7 +110,7 @@ def get_new_lines(line, old, new, verbose=False):
             print()
     return new_lines
 
-def replace_parameter_names(yaml_file, dry=False, verbose=False):
+def replace_parameter_names(yaml_file, dry=False, verbose=False, nohints=False):
     with open(yaml_file, "r") as infile:
         config = yaml.safe_load(infile)
 
@@ -123,7 +138,7 @@ def replace_parameter_names(yaml_file, dry=False, verbose=False):
             lold = old.lower()
             if re.search(re.escape(lold) + r"\s*:", lline):
                 found_line = True
-                new_lines += get_new_lines(line, old, new, verbose=verbose)
+                new_lines += get_new_lines(line, old, new, verbose=verbose, nohints=nohints)
                 break
         if not found_line:
             new_lines.append(line)
@@ -137,9 +152,10 @@ def main():
     parser.add_argument('filename', help='YAML file to process')
     parser.add_argument('--dry', action='store_true', help='Dry run, do not modify file')
     parser.add_argument('--verbose', action='store_true', help='Verbose output. Show replacements.')
+    parser.add_argument('--nohints', action='store_true', help='Hints are automatically activated.')
     opts = parser.parse_args()
 
-    replace_parameter_names(opts.filename, dry=opts.dry, verbose=opts.verbose)
+    replace_parameter_names(opts.filename, dry=opts.dry, verbose=opts.verbose, nohints=opts.nohints)
 
 
 if __name__ == '__main__':

@@ -4,6 +4,8 @@ import os
 import yaml
 import argparse
 
+from param_names.replace_parameter_names import replace_parameter_names
+
 
 def main():
     args = parse_cli_args()
@@ -30,10 +32,18 @@ def main():
     handle_nans(params)
 
     remove_deprecated_entries(params)
+    
+    ### Transform Ntot to Nsnapshots
+    try:
+        params["Ntot"] = int(float(params["Ntot"]) / float(params["Ninterm"]))
+    except:
+        Exception
 
     write_yaml_file(params, args.outfile)
 
     insert_comments(comments, args.outfile)
+    
+    replace_parameter_names(args.outfile, dry=False, verbose=False, nohints=True)
 
 def handle_nans(params):
     key = "MaximumTemperature"
