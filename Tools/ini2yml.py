@@ -46,7 +46,7 @@ def handle_nans(params):
 def remove_entry(params, key):
     if contains(params, key):
         params.pop(keyname(params, key))
-    print(f"Removed deprecated parameter {key} which has no effect anymore.")
+        print(f"Removed deprecated parameter {key} which has no effect anymore.")
 
 
 def remove_deprecated_entries(params):
