@@ -196,16 +196,27 @@ def handle_default_star(params):
         # default is defaultstar is true
         return
 
-    if "StarTemperature" in params:
-        temperature = params.pop("StarTemperature") + " K"
-    else:
-        temperature = "5778 K"
-
+    
+    irradiation_enabled = False
     try:
-        if not get_flag(params, "HeatingStar"):
-            temperature = "0"
+        if get_flag(params, "HeatingStar"):
+            irradiation_enabled = True
     except KeyError:
         pass
+    try:
+        if get_flag(params, "HeatingStarSimple"):
+            irradiation_enabled = True
+    except KeyError:
+        pass
+    
+    
+    if irradiation_enabled:
+        if "StarTemperature" in params:
+            temperature = params.pop("StarTemperature") + " K"
+        else:
+            temperature = "5778 K"
+    else:
+        temperature = "0 K"
 
     if "StarRadius" in params:
         radius = params.pop("StarRadius") + " solRadius"
