@@ -36,8 +36,8 @@ def main():
     ### Transform Ntot to Nsnapshots
     try:
         params["Ntot"] = int(float(params["Ntot"]) / float(params["Ninterm"]))
-    except:
-        Exception
+    except Exception:
+        pass
 
     write_yaml_file(params, args.outfile)
 

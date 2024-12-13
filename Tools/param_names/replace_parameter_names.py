@@ -80,8 +80,9 @@ def get_new_lines(line, old, new, verbose=False, nohints=False):
             line_value = line.split(":")[1].strip()
             try:
                 line_value = line_value.split("#")[0].strip().lower()
-            except:
-                Exception
+            except Exception:
+                pass
+                
             line_value = line_value.strip('\'')
             line_value = line_value.strip('\"')
                 
