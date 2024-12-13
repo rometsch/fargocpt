@@ -102,7 +102,8 @@ def get_new_lines(line, old, new, verbose=False, nohints=False):
                 new_lines.append(text + "\n")
             if verbose:
                 print(text.strip())
-            print(line.strip("\n") + "\t has been removed without replacement")
+            else:
+                print(line.strip("\n") + "\t has been removed without replacement")
     else:
         text = replace_word(old, new["newname"], line)
         new_lines.append(text)
