@@ -4,6 +4,8 @@ import os
 import yaml
 import argparse
 
+from param_names.replace_parameter_names import replace_parameter_names
+
 
 def main():
     args = parse_cli_args()
@@ -30,10 +32,18 @@ def main():
     handle_nans(params)
 
     remove_deprecated_entries(params)
+    
+    ### Transform Ntot to Nsnapshots
+    try:
+        params["Ntot"] = int(float(params["Ntot"]) / float(params["Ninterm"]))
+    except Exception:
+        pass
 
     write_yaml_file(params, args.outfile)
 
     insert_comments(comments, args.outfile)
+    
+    replace_parameter_names(args.outfile, dry=False, verbose=False, nohints=True)
 
 def handle_nans(params):
     key = "MaximumTemperature"
@@ -46,7 +56,7 @@ def handle_nans(params):
 def remove_entry(params, key):
     if contains(params, key):
         params.pop(keyname(params, key))
-    print(f"Removed deprecated parameter {key} which has no effect anymore.")
+        print(f"Removed deprecated parameter {key} which has no effect anymore.")
 
 
 def remove_deprecated_entries(params):
@@ -196,16 +206,27 @@ def handle_default_star(params):
         # default is defaultstar is true
         return
 
-    if "StarTemperature" in params:
-        temperature = params.pop("StarTemperature") + " K"
-    else:
-        temperature = "5778 K"
-
+    
+    irradiation_enabled = False
     try:
-        if not get_flag(params, "HeatingStar"):
-            temperature = "0"
+        if get_flag(params, "HeatingStar"):
+            irradiation_enabled = True
     except KeyError:
         pass
+    try:
+        if get_flag(params, "HeatingStarSimple"):
+            irradiation_enabled = True
+    except KeyError:
+        pass
+    
+    
+    if irradiation_enabled:
+        if "StarTemperature" in params:
+            temperature = params.pop("StarTemperature") + " K"
+        else:
+            temperature = "5778 K"
+    else:
+        temperature = "0 K"
 
     if "StarRadius" in params:
         radius = params.pop("StarRadius") + " solRadius"

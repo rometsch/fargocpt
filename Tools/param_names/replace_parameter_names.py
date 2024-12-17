@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
-import sys
-import os
 import argparse
 import yaml
-import copy
 import re
 
 old_to_new = {
@@ -16,7 +13,7 @@ old_to_new = {
  'CoolingScurve': {'newname': 'none', 'hint': 'SurfaceCooling: scurve'},
  'DT': {'newname': 'MonitorTimestep'},
  'DebugOutputs': {'newname': 'none'},
- 'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi = zeroshear'},
+ 'DomegaDrZero': {'newname': 'none', 'hint': 'OuterBoundaryAzi: zeroshear'},
  'ExplicitViscosity': {'newname': 'none',
   'hint': 'Set ViscousAlpha > 0 or ConstantViscosity > 0'},
  'ForcedCircular': {'newname': 'none'},
@@ -30,6 +27,11 @@ old_to_new = {
   'hint': 'This is now the only option.'},
  'IntegratePlanets': {'newname': 'none'},
  'MassAccretionRate': {'newname': 'none'},
+ 'irradiate': {'newname': 'none'},
+ 'phi': {'newname': ' trueanomaly'},
+ 'profiledamping': {'newname': 'ProfileCutoffOuter'},
+ 'profiledampingpoint': {'newname': 'ProfileCutoffPointOuter'},
+ 'profiledampingwidth': {'newname': 'ProfileCutoffPointOuter'},
  'NSEC': {'newname': 'Naz'},
  'NTOT': {'newname': 'Nsnapshots'},
  'Ninterm': {'newname': 'Nmonitor'},
@@ -40,6 +42,8 @@ old_to_new = {
   'hint': "Use key 'temperature' for Nbody objects."},
  'StellarRotation': {'newname': 'none',
   'hint': 'InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian'},
+ 'InnerBoundary': {'newname': 'none', 'oldval': ['open', 'rigid'], 'newval': ['Outflow', 'Reflecting']},
+ 'OuterBoundary': {'newname': 'none', 'oldval': ['open', 'rigid'], 'newval': ['Outflow', 'Reflecting']},
  'StsNu': {'newname': 'none', 'hint': 'The STS module has been removed.'},
  'Temperaturecgs0': {'newname': 'none',
   'hint': "Use Temperature0 instead. Append a 'K' to the value to set the temperature in Kelvin."},
@@ -60,29 +64,64 @@ old_to_new = {
  'zbufferMaxAngle': {'newname': 'none'},
  'zbufferSize': {'newname': 'none'}
 }
-old_keys = {k.lower(): k for k in old_to_new.keys()}
 
 def replace_word(word, replacement, string):
     pattern = r"(^|\s)" + re.escape(word) + r"\s*:"
     return re.sub(pattern, replacement + ":", string)
 
-def get_new_lines(line, old, new, verbose=False):
+def get_new_lines(line, old, new, verbose=False, nohints=False):
     new_lines = []
     if new["newname"] == "none":
         text = "# " + line
-        new_lines.append(text)
+        
+        if not nohints: # show comment with deprecated parameter
+            new_lines.append(text)
+            
         if verbose:
             print(text.strip())
+
+        ### Get value of parameter and only write it if it is true
+        ### else, leave it as a comment
+        line_value = line.split(":")[1].strip()
+        try:
+            line_value = line_value.split("#")[0].strip().lower()
+        except Exception:
+            pass
+        line_value = line_value.strip('\'')
+        line_value = line_value.strip('\"')
+
         if "hint" in new:
-            text = "# hint: " + new["hint"]
-            if verbose:
-                print(text.strip())                        
-            new_lines.append(text + "\n")
-        else:
-            text = "# has beed removed without replacement"
-            new_lines.append(text + "\n")
+            if nohints and line_value not in ["no", "false", "0"]:
+                ### if the parameter was configured in any form, we probably want it activated
+                text = new["hint"]
+            else:
+                new_lines.append(text)
+                text = "# hint: " + new["hint"]
             if verbose:
                 print(text.strip())
+            new_lines.append(text + "\n")
+
+        elif "newval" in new: ## Update value of Parameter to new syntax
+            for oldval, newval in zip (new["oldval"], new["newval"]):
+                if oldval in line_value:
+                    text = old + ": " + newval
+                    new_lines.append(text + "\n")
+                    if verbose:
+                        print(text.strip())
+                elif newval.lower() in line_value:
+                    new_lines.append(line)
+                    if verbose:
+                        print(line)
+
+        else:
+            text = "# has beed removed without replacement"
+            
+            if not nohints:
+                new_lines.append(text + "\n")
+            if verbose:
+                print(text.strip())
+            else:
+                print(line.strip("\n") + "\t has been removed without replacement")
     else:
         text = replace_word(old, new["newname"], line)
         new_lines.append(text)
@@ -95,15 +134,18 @@ def get_new_lines(line, old, new, verbose=False):
             print()
     return new_lines
 
-def replace_parameter_names(yaml_file, dry=False, verbose=False):
+def replace_parameter_names(yaml_file, dry=False, verbose=False, nohints=False):
     with open(yaml_file, "r") as infile:
         config = yaml.safe_load(infile)
 
     # Replace parameter names
     lkeys = {k.lower(): k for k in config.keys()}
+
+    for nbody in config['nbody']:
+        for nbody_config in nbody:
+            lkeys[nbody_config] = nbody_config
     
     keys_update = {}
-
     for old, new in old_to_new.items():
         lold = old.lower()
         if lold in lkeys:
@@ -123,7 +165,7 @@ def replace_parameter_names(yaml_file, dry=False, verbose=False):
             lold = old.lower()
             if re.search(re.escape(lold) + r"\s*:", lline):
                 found_line = True
-                new_lines += get_new_lines(line, old, new, verbose=verbose)
+                new_lines += get_new_lines(line, old, new, verbose=verbose, nohints=nohints)
                 break
         if not found_line:
             new_lines.append(line)
@@ -137,9 +179,10 @@ def main():
     parser.add_argument('filename', help='YAML file to process')
     parser.add_argument('--dry', action='store_true', help='Dry run, do not modify file')
     parser.add_argument('--verbose', action='store_true', help='Verbose output. Show replacements.')
+    parser.add_argument('--nohints', action='store_true', help='Hints are automatically activated.')
     opts = parser.parse_args()
 
-    replace_parameter_names(opts.filename, dry=opts.dry, verbose=opts.verbose)
+    replace_parameter_names(opts.filename, dry=opts.dry, verbose=opts.verbose, nohints=opts.nohints)
 
 
 if __name__ == '__main__':
