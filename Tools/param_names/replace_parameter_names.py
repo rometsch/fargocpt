@@ -27,6 +27,11 @@ old_to_new = {
   'hint': 'This is now the only option.'},
  'IntegratePlanets': {'newname': 'none'},
  'MassAccretionRate': {'newname': 'none'},
+ 'irradiate': {'newname': 'none'},
+ 'phi': {'newname': ' trueanomaly'},
+ 'profiledamping': {'newname': 'ProfileCutoffOuter'},
+ 'profiledampingpoint': {'newname': 'ProfileCutoffPointOuter'},
+ 'profiledampingwidth': {'newname': 'ProfileCutoffPointOuter'},
  'NSEC': {'newname': 'Naz'},
  'NTOT': {'newname': 'Nsnapshots'},
  'Ninterm': {'newname': 'Nmonitor'},
@@ -37,6 +42,8 @@ old_to_new = {
   'hint': "Use key 'temperature' for Nbody objects."},
  'StellarRotation': {'newname': 'none',
   'hint': 'InnerBoundaryVaziKeplerianFactor, InnerBoundaryVazi = keplerian'},
+ 'InnerBoundary': {'newname': 'none', 'oldval': ['open', 'rigid'], 'newval': ['Outflow', 'Reflecting']},
+ 'OuterBoundary': {'newname': 'none', 'oldval': ['open', 'rigid'], 'newval': ['Outflow', 'Reflecting']},
  'StsNu': {'newname': 'none', 'hint': 'The STS module has been removed.'},
  'Temperaturecgs0': {'newname': 'none',
   'hint': "Use Temperature0 instead. Append a 'K' to the value to set the temperature in Kelvin."},
@@ -57,7 +64,6 @@ old_to_new = {
  'zbufferMaxAngle': {'newname': 'none'},
  'zbufferSize': {'newname': 'none'}
 }
-old_keys = {k.lower(): k for k in old_to_new.keys()}
 
 def replace_word(word, replacement, string):
     pattern = r"(^|\s)" + re.escape(word) + r"\s*:"
@@ -73,19 +79,18 @@ def get_new_lines(line, old, new, verbose=False, nohints=False):
             
         if verbose:
             print(text.strip())
+
+        ### Get value of parameter and only write it if it is true
+        ### else, leave it as a comment
+        line_value = line.split(":")[1].strip()
+        try:
+            line_value = line_value.split("#")[0].strip().lower()
+        except Exception:
+            pass
+        line_value = line_value.strip('\'')
+        line_value = line_value.strip('\"')
+
         if "hint" in new:
-            
-            ### Get value of parameter and only write it if it is true
-            ### else, leave it as a comment
-            line_value = line.split(":")[1].strip()
-            try:
-                line_value = line_value.split("#")[0].strip().lower()
-            except Exception:
-                pass
-                
-            line_value = line_value.strip('\'')
-            line_value = line_value.strip('\"')
-                
             if nohints and line_value not in ["no", "false", "0"]:
                 ### if the parameter was configured in any form, we probably want it activated
                 text = new["hint"]
@@ -93,8 +98,21 @@ def get_new_lines(line, old, new, verbose=False, nohints=False):
                 new_lines.append(text)
                 text = "# hint: " + new["hint"]
             if verbose:
-                print(text.strip())                        
+                print(text.strip())
             new_lines.append(text + "\n")
+
+        elif "newval" in new: ## Update value of Parameter to new syntax
+            for oldval, newval in zip (new["oldval"], new["newval"]):
+                if oldval in line_value:
+                    text = old + ": " + newval
+                    new_lines.append(text + "\n")
+                    if verbose:
+                        print(text.strip())
+                elif newval.lower() in line_value:
+                    new_lines.append(line)
+                    if verbose:
+                        print(line)
+
         else:
             text = "# has beed removed without replacement"
             
@@ -122,9 +140,12 @@ def replace_parameter_names(yaml_file, dry=False, verbose=False, nohints=False):
 
     # Replace parameter names
     lkeys = {k.lower(): k for k in config.keys()}
+
+    for nbody in config['nbody']:
+        for nbody_config in nbody:
+            lkeys[nbody_config] = nbody_config
     
     keys_update = {}
-
     for old, new in old_to_new.items():
         lold = old.lower()
         if lold in lkeys:
