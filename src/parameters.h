@@ -201,6 +201,7 @@ extern bool fast_transport;
 extern int hydro_integrator;
 
 extern int indirect_term_mode;
+extern bool indirect_term_disk_on_disk;
 
 /// factor for conversation from surface density to density
 extern double density_factor;

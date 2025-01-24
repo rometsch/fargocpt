@@ -138,6 +138,7 @@ bool accrete_without_disk_feedback;
 bool fast_transport;
 int hydro_integrator;
 int indirect_term_mode;
+bool indirect_term_disk_on_disk;
 
 bool planet_orbit_disk_test;
 
@@ -771,6 +772,20 @@ void read(const std::string &filename, t_data &data)
 		}
 	}
 
+	// this code must come after self gravity is read
+	const std::string intdirect_term_disk_on_disk_string = config::cfg.get_lowercase("IndirectTermDiskOnDisk", "auto");
+	if (intdirect_term_disk_on_disk_string == "auto") {
+		indirect_term_disk_on_disk = self_gravity;
+	} else if (intdirect_term_disk_on_disk_string == "yes") {
+		indirect_term_disk_on_disk = true;
+	} else if (intdirect_term_disk_on_disk_string == "no") {
+		indirect_term_disk_on_disk = false;
+	} else {
+		logging::print_master(
+			LOG_ERROR
+			"Invalid choice for indirect term disk on disk: %s!\n", intdirect_term_disk_on_disk_string.c_str());
+		PersonalExit(1);;
+	}
 
     body_force_from_potential =
 	config::cfg.get_flag("BodyForceFromPotential", "yes");

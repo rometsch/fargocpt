@@ -80,7 +80,13 @@ void CalculateNbodyPotential(t_data &data, const double current_time)
 	    }
 	    // apply indirect term
 	    // correct frame with contributions from disk and planets
-	    pot(n_rad, n_az) += -refframe::IndirectTerm.x * x - refframe::IndirectTerm.y * y;
+		if (parameters::indirect_term_disk_on_disk) {
+			// apply the full indirect term including the disk
+			pot(n_rad, n_az) += -refframe::IndirectTerm.x * x - refframe::IndirectTerm.y * y;
+		} else {
+			// apply the indirect term without the disk
+			pot(n_rad, n_az) += -refframe::IndirectTermPlanets.x * x - refframe::IndirectTermPlanets.y * y;
+		}
 	}
     }
 }
@@ -120,8 +126,16 @@ void CalculateAccelOnGas(t_data &data, const double current_time)
 	    const double x = CellCenterX->Field[cell_id];
 	    const double y = CellCenterY->Field[cell_id];
 
+		// initialize acceleration with indirect term
+	    pair accel_cart;
+		if (parameters::indirect_term_disk_on_disk) {
+			// apply the full indirect term including the disk
+			accel_cart = refframe::IndirectTerm;
+		} else {
+			// apply the indirect term without the disk
+			accel_cart = refframe::IndirectTermPlanets;
+		}
 
-	    pair accel_cart = refframe::IndirectTerm;
 	    for (unsigned int k = 0; k < N_planets; k++) {
 
 		const double smooth = compute_smoothing(data, n_rad, n_az, k);
